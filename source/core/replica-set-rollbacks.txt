@@ -52,90 +52,57 @@ Rollback Data
 By default, when a rollback occurs, MongoDB writes the rollback data to
 :term:`BSON` files.
 
-.. note:: Rollback Directory Change
+For each collection whose data is rolled back, the rollback files are located in 
+a ``<dbpath>/rollback/<collectionUUID>`` directory and have filenames of the 
+form:
+
+.. code-block:: none
+   :copyable: false
    
-   Starting in Mongo 4.4, the rollback directory for a collection is named
-   after the collection's UUID rather than the collection namespace.
+   removed.<timestamp>.bson   
 
-.. tabs::
+For example, if data for the collection ``comments`` in the ``reporting`` 
+database rolled back:
 
-   .. tab:: MongoDB 4.4+
-      :tabid: 4.4
+.. code-block:: none
+   :copyable: false
+
+   <dbpath>/rollback/20f74796-d5ea-42f5-8c95-f79b39bad190/removed.2020-02-19T04-57-11.0.bson
+
+where ``<dbpath>`` is the :binary:`~bin.mongod`'s :setting:`~storage.dbPath`.
+
+.. tip:: Collection Name
    
-      For each collection whose data is rolled back, the
-      rollback files are located in a ``<dbpath>/rollback/<collectionUUID>``
-      directory and have filenames of the form:
+   To get the collection name, you can search for ``rollback file`` in the 
+   MongoDB log. For example, if the log file is
+   ``/var/log/mongodb/mongod.log``, you can use ``grep`` to search for instances 
+   of ``"rollback file"`` in the log:
 
-      .. code-block:: none
-         :copyable: false
+.. code-block:: bash
+   
+   grep "rollback file" /var/log/mongodb/mongod.log
 
-         removed.<timestamp>.bson   
+Alternatively, you can loop through all the databases and run
+:method:`db.getCollectionInfos()` for the specific UUID until you get a match. 
+For example:
 
-      For example, if data for the collection ``comments`` in the
-      ``reporting`` database rolled back:
+.. code-block:: javascript
+   
+   var mydatabases=db.adminCommand("listDatabases").databases;
+   var foundcollection=false;
 
-      .. code-block:: none
-         :copyable: false
+   for (var i = 0; i < mydatabases.length; i++) {
+      let mdb = db.getSiblingDB(mydatabases[i].name);
+      collections = mdb.getCollectionInfos( { "info.uuid": UUID("20f74796-d5ea-42f5-8c95-f79b39bad190") } );
 
-         <dbpath>/rollback/20f74796-d5ea-42f5-8c95-f79b39bad190/removed.2020-02-19T04-57-11.0.bson
+      for (var j = 0; j < collections.length; j++) {   // Array of 1 element
+         foundcollection=true;
+         print(mydatabases[i].name + '.' + collections[j].name);
+         break;
+      }
 
-      where ``<dbpath>`` is the :binary:`~bin.mongod`'s :setting:`~storage.dbPath`.
-
-      .. tip:: Collection Name
-
-         To get the collection name, you can search for ``rollback
-         file`` in the MongoDB log. For example, if the log file is
-         ``/var/log/mongodb/mongod.log``, you can use ``grep`` to
-         search for instances of ``"rollback file"`` in the log:
-
-         .. code-block:: bash
-
-            grep "rollback file" /var/log/mongodb/mongod.log
-
-         Alternatively, you can loop through all the databases and run
-         :method:`db.getCollectionInfos()` for the specific UUID until
-         you get a match. For example:
-
-         .. code-block:: javascript
-
-            var mydatabases=db.adminCommand("listDatabases").databases;
-            var foundcollection=false;
-
-            for (var i = 0; i < mydatabases.length; i++) {
-               let mdb = db.getSiblingDB(mydatabases[i].name);
-               collections = mdb.getCollectionInfos( { "info.uuid": UUID("20f74796-d5ea-42f5-8c95-f79b39bad190") } );
-
-               for (var j = 0; j < collections.length; j++) {   // Array of 1 element
-                  foundcollection=true;
-                  print(mydatabases[i].name + '.' + collections[j].name);
-                  break;
-               }
-
-               if (foundcollection) { break; }
-            }
-
-   .. tab:: MongoDB 4.2
-      :tabid: 4.2
-
-      For each collection whose data is rolled back, the
-      rollback files are located in a ``<dbpath>/rollback/<db>.<collection>``
-      directory and have filenames of the form:
-
-      .. code-block:: none
-         :copyable: false
-
-         removed.<timestamp>.bson   
-
-      For example, if data for the collection ``comments`` in the
-      ``reporting`` database rolled back:
-
-      .. code-block:: none
-         :copyable: false
-
-         <dbpath>/rollback/reporting.comments/removed.2019-01-31T02-57-40.0.bson
-
-      where ``<dbpath>`` is the :binary:`~bin.mongod`'s :setting:`~storage.dbPath`.
-
+      if (foundcollection) { break; }
+   }
 
 Rollback Data Exclusion
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -159,7 +126,7 @@ Avoid Replica Set Rollbacks
 ---------------------------
 
 For replica sets, the :ref:`write concern <write-concern>`
-:writeconcern:`{ w: 1 } <\<number\>>` only provides acknowledgement of write
+:writeconcern:`{ w: 1 } <\<number\>>` only provides acknowledgment of write
 operations on the primary. Data may be rolled back if the primary steps
 down before the write operations have replicated to any of the
 secondaries. This includes data written in :doc:`multi-document
@@ -173,7 +140,7 @@ To prevent rollbacks of data that have been acknowledged to the client,
 run all voting members with journaling enabled and use :ref:`{ w:
 "majority" } write concern <wc-w>` to guarantee that the write operations
 propagate to a majority of the replica set nodes before returning with
-acknowledgement to the issuing client.
+acknowledgment to the issuing client.
 
 Starting in MongoDB 5.0, ``{ w: "majority" }`` is the default write concern
 for *most* MongoDB deployments. See :ref:`wc-default-behavior`.
@@ -207,7 +174,26 @@ Index Operations When :readconcern:`"majority"` Read Concern is Disabled
 Size Limitations
 ~~~~~~~~~~~~~~~~
 
-MongoDB does not limit the amount of data you can roll back.
+MongoDB supports the following rollback algorithms, which have different size limitations:
+
+- **Recover to a Timestamp**, where a former primary reverts to a consistent point in time and
+  applies operations until it catches up to the sync source's branch of history. This is the
+  default rollback algorithm.
+
+  When using this algorithm, MongoDB does not limit the amount of data you can roll back.
+
+- **Rollback via Refetch**, where a former primary finds the common point between its :term:`oplog`
+  and the sync source's oplog. Then, the member examines and reverts all operations in its oplog until
+  it reaches this common point. Rollback via Refetch occurs only when the
+  :setting:`~replication.enableMajorityReadConcern` setting in your configuration file is set to
+  ``false``.
+
+  When using this algorithm, MongoDB can only roll back up to 300 MB of data.
+
+  .. note::
+
+     Starting in MongoDB 5.0, :setting:`~replication.enableMajorityReadConcern` is set to
+     ``true`` and cannot be changed.
 
 .. _rollback-time-limit:
 

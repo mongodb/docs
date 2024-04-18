@@ -21,6 +21,16 @@
          .. figure:: /images/compass-array-match-by-index.png
             :alt: Query array by index
 
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 27
+            :end-before: End Example 27
+    
+            
      - id: python
        content: |
 
@@ -56,6 +66,15 @@
             :dedent: 8
             :start-after: Start Example 26
             :end-before: End Example 26
+
+     - id: kotlin-coroutine
+       content: |
+
+         .. literalinclude:: /driver-examples/kotlin_examples.kt
+            :language: kotlin
+            :dedent:
+            :start-after: Start Example 27
+            :end-before: End Example 27
 
      - id: nodejs
        content: |

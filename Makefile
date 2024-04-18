@@ -181,5 +181,8 @@ examples:
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-swift-driver/master/Examples/Docs/Sources/AsyncExamples/main.swift -o ${DRIVERS_PATH}/swiftAsync.swift
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-swift-driver/master/Examples/Docs/Sources/SyncExamples/main.swift -o ${DRIVERS_PATH}/swiftSync.swift
 
+# kotlin-coroutine
+	curl -SfL https://raw.githubusercontent.com/mongodb/docs-kotlin/master/source/examples/ServerManualCodeExamples.kt -o ${DRIVERS_PATH}/kotlin_examples.kt
+
 changelogs:
 	python3 changelogs/generatechangelogs.py

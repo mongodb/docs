@@ -143,15 +143,6 @@ Increase the Number of Clients
 Increasing the number of clients writing data to your collections can
 improve performance.
 
-.. important:: Disable Retryable Writes
-
-   To write data with multiple clients, you must disable retryable
-   writes. Retryable writes for time series collections do not combine
-   writes from multiple clients.
-
-   To learn more about retryable writes and how to disable them, see
-   :ref:`retryable writes <retryable-writes>`.
-
 .. _tsc-best-practice-optimize-compression:
 
 Optimize Compression
@@ -262,3 +253,53 @@ To improve query performance, :ref:`create one or more secondary indexes
 ``metaField`` to support common query  patterns. In versions 6.3 and
 higher, MongoDB creates a secondary index on the ``timeField`` and
 ``metaField`` automatically.
+
+Query metaFields on Sub-Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB reorders the metaFields of time-series collections, which may
+cause servers to store data in a different field order than
+applications. If metaFields are objects, queries on entire metaFields
+may produce inconsistent results because metaField order may vary
+between servers and applications. To optimize queries on time-series
+metaFields, query timeseries metaFields on scalar sub-fields rather than
+entire metaFields. 
+
+The following example creates a time series collection:
+
+.. code-block:: javascript
+
+   db.weather.insertMany( [
+      {
+         "metaField": { "sensorId": 5578, "type": "temperature" },
+         "timestamp": ISODate( "2021-05-18T00:00:00.000Z" ),
+         "temp": 12
+      },
+      {
+         "metaField": { "sensorId": 5578, "type": "temperature" },
+         "timestamp": ISODate( "2021-05-18T04:00:00.000Z" ),
+         "temp": 11
+      }
+   ] )
+
+The following query on the ``sensorId`` and ``type`` scalar sub-fields
+returns the first document that matches the query criteria: 
+
+.. code-block:: javascript
+
+   db.weather.findOne( {
+      "metaField.sensorId": 5578,
+      "metaField.type": "temperature"
+   } )
+
+Example output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+     _id: ObjectId("6572371964eb5ad43054d572"),
+     metaField: { sensorId: 5578, type: 'temperature' },
+     timestamp: ISODate( "2021-05-18T00:00:00.000Z" ),
+     temp: 12
+   }

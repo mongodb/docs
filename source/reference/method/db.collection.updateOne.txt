@@ -4,6 +4,9 @@ db.collection.updateOne()
 
 .. default-domain:: mongodb
 
+.. meta::
+   :description: Update a single document that matches a specified filter.
+
 .. facet::
    :name: programming_language 
    :values: shell
@@ -180,7 +183,9 @@ The method returns a document that contains:
 
 - ``modifiedCount`` containing the number of modified documents
 
-- ``upsertedId`` containing the ``_id`` for the upserted document.
+- ``upsertedId`` containing the ``_id`` for the upserted document
+
+- ``upsertedCount`` containing the number of upserted documents
 
 - A boolean ``acknowledged`` as ``true`` if the operation ran with
   :term:`write concern` or ``false`` if write concern was disabled
@@ -344,40 +349,41 @@ See also :ref:`updateOne-sharded-upsert`.
 Missing Shard Key
 `````````````````
 
-Starting in version 4.4, documents in a sharded collection can be
-:ref:`missing the shard key fields <shard-key-missing>`. To use
-:method:`db.collection.updateOne()` to set the document's
-**missing** shard key, you :red:`must` run on a
-:binary:`~bin.mongos`. Do :red:`not` issue the operation directly on
-the shard.
+- Starting in version 7.1, you do not need to provide the :term:`shard key` 
+  or ``_id`` field in the query specification. 
 
-In addition, the following requirements also apply:
+- Documents in a sharded collection can be
+  :ref:`missing the shard key fields <shard-key-missing>`. To use
+  :method:`db.collection.updateOne()` to set a **missing** shard key, 
+  you :red:`must` run on a :binary:`~bin.mongos`. Do :red:`not` issue 
+  the operation directly on the shard.
 
-.. list-table::
-   :header-rows: 1
-   :widths: 30 70
+  In addition, the following requirements also apply:
 
-   * - Task
+  .. list-table::
+     :header-rows: 1
+     :widths: 30 70
 
-     - Requirements
+     * - Task
 
-   * - To set to ``null``
+       - Requirements
 
-     - - Requires equality filter on the full shard key if
+     * - To set to ``null``
+
+       - Requires equality filter on the full shard key if
          ``upsert: true``.
 
-   * - To set to a non-``null`` value
+     * - To set to a non-``null`` value
 
-     - - :red:`Must` be performed either inside a
+       - :red:`Must` be performed either inside a
          :ref:`transaction <transactions>` or as a
-         :doc:`retryable write </core/retryable-writes>`.
+         :ref:`retryable write <retryable-writes>`.
 
-       - Requires equality filter on the full shard key if ``upsert:
-         true``.
+         Requires equality filter on the full shard key if ``upsert: true``.
 
-.. tip::
+  .. tip::
 
-   .. include:: /includes/extracts/missing-shard-key-equality-condition-abridged.rst
+     .. include:: /includes/extracts/missing-shard-key-equality-condition-abridged.rst
 
 See also:
 
@@ -409,6 +415,14 @@ Write Concerns and Transactions
 .. include:: /includes/extracts/transactions-operations-write-concern.rst
 
 .. |operation| replace:: :method:`db.collection.updateOne()`
+
+Oplog Entries
+~~~~~~~~~~~~~
+
+If a ``db.collection.updateOne()`` operation successfully updates a
+document, the operation adds an entry on the :term:`oplog` (operations
+log). If the operation fails or does not find a document to update, the
+operation does not add an entry on the oplog. 
 
 .. _updateOne-method-examples:
 
@@ -659,7 +673,8 @@ Since ``upsert:true`` the document is ``inserted`` based on the ``filter`` and
       "acknowledged" : true,
       "matchedCount" : 0,
       "modifiedCount" : 0,
-      "upsertedId" : 4
+      "upsertedId" : 4,
+      "upsertedCount": 1
    }
 
 The collection now contains the following documents:
@@ -741,10 +756,8 @@ within 100 milliseconds, it returns:
 
    { "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
 
-If the acknowledgement takes longer than the ``wtimeout`` limit, the following 
+If the acknowledgment takes longer than the ``wtimeout`` limit, the following 
 exception is thrown:
-
-.. versionchanged:: 4.4
 
 .. code-block:: javascript
 

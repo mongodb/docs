@@ -22,6 +22,17 @@
          .. figure:: /images/compass-find-null-existence-check.png
             :alt: Query for null value
 
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 41
+            :end-before: End Example 41
+         
+         .. include:: /includes/driver-examples/driver-example-c-cleanup.rst
+            
      - id: python
        content: |
 
@@ -58,6 +69,15 @@
             :start-after: Start Example 41
             :end-before: End Example 41
 
+     - id: kotlin-coroutine
+       content: |
+
+         .. literalinclude:: /driver-examples/kotlin_examples.kt
+            :language: kotlin
+            :dedent:
+            :start-after: Start Example 41
+            :end-before: End Example 41
+
      - id: nodejs
        content: |
          .. literalinclude:: /driver-examples/node_query_for_null_fields.js
@@ -72,15 +92,6 @@
          .. literalinclude:: /driver-examples/DocumentationExamplesTest.php
             :language: php
             :dedent: 8
-            :start-after: Start Example 41
-            :end-before: End Example 41
-
-     - id: perl
-       content: |
-
-         .. literalinclude:: /driver-examples/driver-examples.t
-            :language: perl
-            :dedent: 4
             :start-after: Start Example 41
             :end-before: End Example 41
 

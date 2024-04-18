@@ -8,6 +8,9 @@ cursor.sort()
    :name: programming_language 
    :values: shell
 
+.. meta:: 
+   :description: The MongoDB cursor sort method specifies the order of matching documents that a query returns.
+
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -80,8 +83,6 @@ Limits
 
 Sort Consistency
 ~~~~~~~~~~~~~~~~
-
-.. versionchanged:: 4.4
 
 .. include:: /includes/fact-sort-consistency.rst
 
@@ -179,12 +180,56 @@ The following sample document specifies a descending sort by the
 
    db.users.find(
       { $text: { $search: "operating" } },
-      { score: { $meta: "textScore" }}        // Optional starting in MongoDB 4.4
+      { score: { $meta: "textScore" }}  
    ).sort({ score: { $meta: "textScore" } })
    
 The ``"textScore"`` metadata sorts in descending order.
 
 For more information, see :expression:`$meta` for details.
+
+.. _sort-by-array:
+
+Sort by an Array Field 
+~~~~~~~~~~~~~~~~~~~~~~
+
+When you sort by an array field, the following behaviors apply:
+
+- MongoDB uses the lowest or highest member of an array for sorting in
+  ascending or descending order, respectively. 
+- MongoDB ignores the query filter when selecting the elements to sort by.
+
+.. example:: 
+
+   Consider a collection named ``shoes`` with the following documents:
+
+   .. code-block:: json
+      
+      db.shoes.insertMany([
+         { _id: 'A', sizes: [7, 11] }, 
+         { _id: 'B', sizes: [8, 9, 10] }
+      ])
+
+   The following queries sort the results by shoe size in ascending
+   and descending order.
+
+   .. code-block:: json
+
+      db.shoes.find().sort( { sizes: 1 } )
+      db.shoes.find().sort( { sizes: -1 } )
+
+   Both of these queries return document with ``_id: 'A'`` first because
+   sizes ``7`` and ``11`` are the lowest and highest in the entries in
+   the ``sizes`` array, respectively.
+
+   The following query finds shoes with sizes greater than 10 and sorts
+   the results by shoe size in ascending order. 
+
+   db.shoes.find( { sizes: { $gte: 10 } } ).sort( { sizes: 1 } )
+
+   This query returns document with ``_id: 'A'`` first even though the
+   filter includes a condition on ``sizes`` greater than ``7`` because
+   MongoDB ignores the query filter when selecting the elements to sort
+   by.
 
 .. _sort-index-use:
 
@@ -208,14 +253,14 @@ sort operations, see :ref:`sorting-with-indexes`.
 
 If MongoDB requires using more than 100 megabytes of system memory for
 the blocking sort operation, MongoDB returns an error *unless* the query
-specifies :method:`cursor.allowDiskUse()` (*New in MongoDB 4.4*).
+specifies :method:`cursor.allowDiskUse()`.
 :method:`~cursor.allowDiskUse()` allows MongoDB to use temporary files
 on disk to store data exceeding the 100 megabyte system memory limit
 while processing a blocking sort operation.
 
 To check if MongoDB must perform a blocking sort, append
 :method:`cursor.explain()` to the query and check the 
-:doc:`explain results </reference/explain-results>`. If the query plan 
+:ref:`explain results <explain-results>`. If the query plan 
 contains a ``SORT`` stage, then MongoDB must perform a
 blocking sort operation subject to the 100 megabyte memory limit.
 
@@ -247,8 +292,7 @@ uses a top-k sort algorithm. This algorithm buffers the first ``k``
 results (or last, depending on the sort order) seen so far by the
 underlying index or collection access. If at any point the memory
 footprint of these ``k`` results exceeds 100 megabytes, the query will
-fail *unless* the query specifies :method:`cursor.allowDiskUse()`
-(*New in MongoDB 4.4*).
+fail *unless* the query specifies :method:`cursor.allowDiskUse()`.
 
 .. seealso::
 

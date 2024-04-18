@@ -73,47 +73,58 @@ Pipeline Sequence Optimization
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 For an aggregation pipeline that contains a projection stage
-(:pipeline:`$project` or :pipeline:`$unset` or
-:pipeline:`$addFields` or  :pipeline:`$set`) followed by a
-:pipeline:`$match` stage, MongoDB moves any filters in the
-:pipeline:`$match` stage that do not require values computed in the
-projection stage to a new :pipeline:`$match` stage before the
+(:pipeline:`$addFields`, :pipeline:`$project`, :pipeline:`$set`, or
+:pipeline:`$unset`) followed by a :pipeline:`$match` stage, MongoDB
+moves any filters in the ``$match`` stage that do not require values
+computed in the projection stage to a new ``$match`` stage before the
 projection.
 
-If an aggregation pipeline contains multiple projection and/or
-:pipeline:`$match` stages, MongoDB performs this optimization for each
-:pipeline:`$match` stage, moving each :pipeline:`$match` filter before
-all projection stages that the filter does not depend on.
+If an aggregation pipeline contains multiple projection or ``$match``
+stages, MongoDB performs this optimization for each ``$match`` stage,
+moving each ``$match`` filter before all projection stages that the
+filter does not depend on.
 
-Consider a pipeline of the following stages:
+Consider a pipeline with the following stages:
 
 .. code-block:: javascript
-   :emphasize-lines: 9-14
+   :emphasize-lines: 18-23
 
-   { $addFields: {
-       maxTime: { $max: "$times" },
-       minTime: { $min: "$times" }
-   } },
-   { $project: {
-       _id: 1, name: 1, times: 1, maxTime: 1, minTime: 1,
-       avgTime: { $avg: ["$maxTime", "$minTime"] }
-   } },
-   { $match: {
-       name: "Joe Schmoe",
-       maxTime: { $lt: 20 },
-       minTime: { $gt: 5 },
-       avgTime: { $gt: 7 }
-   } }
+   {
+      $addFields: {
+         maxTime: { $max: "$times" },
+         minTime: { $min: "$times" }
+      }
+   },
+   {
+      $project: {
+         _id: 1,
+         name: 1,
+         times: 1,
+         maxTime: 1,
+         minTime: 1,
+         avgTime: { $avg: ["$maxTime", "$minTime"] }
+      }
+   },
+   {
+      $match: {
+         name: "Joe Schmoe",
+         maxTime: { $lt: 20 },
+         minTime: { $gt: 5 },
+         avgTime: { $gt: 7 }
+      }
+   }
 
-The optimizer breaks up the :pipeline:`$match` stage into four
-individual filters, one for each key in the :pipeline:`$match` query
-document. The optimizer then moves each filter before as many projection
-stages as possible, creating new :pipeline:`$match` stages as needed.
-Given this example, the optimizer produces the following *optimized*
-pipeline:
+The optimizer breaks up the ``$match`` stage into four individual
+filters, one for each key in the ``$match`` query document. The
+optimizer then moves each filter before as many projection stages as
+possible, creating new ``$match`` stages as needed.
+
+Given this example, the optimizer automatically produces the following
+*optimized* pipeline:
 
 .. code-block:: javascript
    :emphasize-lines: 1, 6, 11
+   :copyable: false
 
    { $match: { name: "Joe Schmoe" } },
    { $addFields: {
@@ -126,6 +137,14 @@ pipeline:
        avgTime: { $avg: ["$maxTime", "$minTime"] }
    } },
    { $match: { avgTime: { $gt: 7 } } }
+
+.. note::
+
+   The optimized pipeline is not intended to be run manually. The
+   original and optimized pipelines return the same results.
+
+   You can see the optimized pipeline in the :ref:`explain plan
+   <example-aggregate-method-explain-option>`.
 
 The :pipeline:`$match` filter ``{ avgTime: { $gt: 7 } }`` depends on the
 :pipeline:`$project` stage to compute the ``avgTime`` field. The
@@ -144,14 +163,10 @@ use any values computed in either the :pipeline:`$project` or
 :pipeline:`$addFields` stages so it was moved to a new
 :pipeline:`$match` stage before both of the projection stages.
 
-.. note::
-
-   After optimization, the filter ``{ name: "Joe Schmoe" }`` is in a
-   :pipeline:`$match` stage at the beginning of the pipeline. This has
-   the added benefit of allowing the aggregation to use an index on the
-   ``name`` field when initially querying the collection. See
-   :ref:`aggregation-pipeline-optimization-indexes-and-filters` for more
-   information.
+After optimization, the filter ``{ name: "Joe Schmoe" }`` is in a
+:pipeline:`$match` stage at the beginning of the pipeline. This has the
+added benefit of allowing the aggregation to use an index on the
+``name`` field when initially querying the collection.
 
 .. _agg-sort-match-optimization:
 
@@ -375,44 +390,66 @@ stage
 
 .. _agg-lookup-unwind-coalescence:
 
-``$lookup`` + ``$unwind`` Coalescence
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+``$lookup``, ``$unwind``, and ``$match`` Coalescence
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When a :pipeline:`$unwind` immediately follows another
-:pipeline:`$lookup`, and the :pipeline:`$unwind` operates on the ``as``
-field of the :pipeline:`$lookup`, the optimizer can coalesce the
-:pipeline:`$unwind` into the :pipeline:`$lookup` stage. This avoids
-creating large intermediate documents.
+When :pipeline:`$unwind` immediately follows :pipeline:`$lookup`, and the 
+:pipeline:`$unwind` operates on the ``as`` field of the :pipeline:`$lookup`, 
+the optimizer coalesces the :pipeline:`$unwind` into the :pipeline:`$lookup` 
+stage. This avoids creating large intermediate documents. Furthermore, if 
+:pipeline:`$unwind` is followed by a :pipeline:`$match` on any ``as`` subfield 
+of the :pipeline:`$lookup`, the optimizer also coalesces the :pipeline:`$match`.
 
 For example, a pipeline contains the following sequence:
 
 .. code-block:: javascript
+   :copyable: false
 
    {
-     $lookup: {
-       from: "otherCollection",
-       as: "resultingArray",
-       localField: "x",
-       foreignField: "y"
-     }
+      $lookup: {
+        from: "otherCollection",
+        as: "resultingArray",
+        localField: "x",
+        foreignField: "y"
+      }
    },
-   { $unwind: "$resultingArray"}
-
-The optimizer can coalesce the :pipeline:`$unwind` stage into the
-:pipeline:`$lookup` stage. If you run the aggregation with ``explain``
-option, the ``explain`` output shows the coalesced stage:
-
-.. code-block:: javascript
-
-   {
-     $lookup: {
-       from: "otherCollection",
-       as: "resultingArray",
-       localField: "x",
-       foreignField: "y",
-       unwinding: { preserveNullAndEmptyArrays: false }
+   { $unwind: "$resultingArray"  },
+   { $match: {
+       "resultingArray.foo": "bar"
      }
    }
+
+The optimizer coalesces the :pipeline:`$unwind` and :pipeline:`$match` stages 
+into the :pipeline:`$lookup` stage. If you run the aggregation with ``explain``
+option, the ``explain`` output shows the coalesced stages:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      $lookup: {
+        from: "otherCollection",
+        as: "resultingArray",
+        localField: "x",
+        foreignField: "y",
+        let: {},
+        pipeline: [
+          {
+            $match: {
+              "foo": {
+                "$eq": "bar"
+              }
+            }
+          }
+        ],
+        unwinding: {
+          "preserveNullAndEmptyArrays": false
+        }
+      }
+   }
+
+You can see this optimized pipeline in the :ref:`explain plan
+<example-aggregate-method-explain-option>`.
 
 .. _sbe-pipeline-optimizations:
 

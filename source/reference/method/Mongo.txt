@@ -34,10 +34,15 @@ Description
 
       * - ``host``
 
-        - string
+        - string or ``Mongo`` instance
 
-        - *Optional*. The host, either in the form of ``<host>`` or
-          ``<host><:port>``.
+        - *Optional*. Host or connection string. 
+         
+          The host can either be a connection string or in the form of ``<host>`` or
+          ``<host><:port>``. The connection string can be in the form of
+          a ``Mongo`` instance. If you specify a ``Mongo`` instance, the
+          :method:`Mongo()` constructor uses the connection string of
+          the specified Mongo instance.
 
           If omitted, :method:`Mongo` instantiates a connection to the
           localhost interface on the default port ``27017``.
@@ -102,7 +107,8 @@ syntax:
      "keyVaultNamespace" : "<string>",
      "kmsProviders" : <object>,
      "schemaMap" : <object>,
-     "bypassAutoEncryption" : <boolean>
+     "bypassAutoEncryption" : <boolean>,
+     "tlsOptions": <object>
    }
 
 The ``{+auto-encrypt-options+}`` document takes the
@@ -155,7 +161,7 @@ following parameters:
      - document
 
      - *(Required)*  The :ref:`Key Management Service (KMS)
-       <field-level-encryption-kms>` used by client-side field level
+       <qe-fundamentals-kms-providers>` used by client-side field level
        encryption for managing a Customer Master Key (CMK). Client-side
        field level encryption uses the CMK for encrypting and decrypting
        data encryption keys.
@@ -163,19 +169,18 @@ following parameters:
        {+csfle+} supports the following KMS
        providers:
 
-       - :ref:`Amazon Web Services KMS <field-level-encryption-aws-kms>`
-       - :ref:`Azure Key Vault <field-level-encryption-azure-keyvault>`
-       - :ref:`Google Cloud Platform KMS <field-level-encryption-gcp-kms>`
-       - :ref:`Locally Managed Key <field-level-encryption-local-kms>`
+       - :ref:`Amazon Web Services KMS <qe-fundamentals-kms-providers-aws>`
+       - :ref:`Azure Key Vault <qe-fundamentals-kms-providers-azure>`
+       - :ref:`Google Cloud Platform KMS <qe-fundamentals-kms-providers-gcp>`
+       - :ref:`Locally Managed Key <qe-fundamentals-kms-providers-local>`
 
        If possible, consider defining the credentials provided in
        ``kmsProviders`` as environment variables, and then passing them
        to :binary:`~bin.mongosh` using the :option:`--eval
        <mongosh --eval>` option. This minimizes the chances of credentials
-       leaking into logs. See
-       :ref:`Create a Data Key 
+       leaking into logs. See :ref:`Create a Data Key 
        <qe-field-level-encryption-data-key-create>` for examples of
-       this approach for each supported KMS.
+       this approach for each supported KMS. 
 
        Amazon Web Services KMS
          .. include:: /includes/extracts/csfle-aws-kms-4.2.0-4.2.1-broken.rst
@@ -194,6 +199,17 @@ following parameters:
 
          The specified ``accessKeyId`` must correspond to an IAM user
          with all ``List`` and ``Read`` permissions for the KMS service.
+
+         In some environments, the AWS SDK can pick up credentials
+         automatically. To enable AWS KMS usage without providing
+         explicit credentials to the AWS SDK, you can pass the
+         ``kmsProvider`` details to the ``Mongo()`` constructor.  
+
+         .. code-block:: json
+
+            { 
+              "kmsProviders" : { "aws" : { } }
+            }
 
        Azure Key Vault
          Specify the ``azure`` document to ``kmsProviders`` with  the
@@ -247,7 +263,8 @@ following parameters:
 
      - *(Optional)* The automatic client-side field level encryption
        rules specified using the JSON schema Draft 4 standard syntax and
-       encryption-specific keywords.
+       encryption-specific keywords. This option is mutually exclusive
+       with ``explicitEncryptionOnly``.
 
        For complete documentation, see
        :ref:`csfle-fundamentals-create-schema`.
@@ -268,6 +285,21 @@ following parameters:
        indexed fields without the ``crypt_shared`` library. For details,
        see :ref:`qe-reference-mongo-client`.
 
+   * - ``explicitEncryptionOnly``
+     - boolean 
+     - *(Optional)* Specify ``true`` to use neither automatic encryption
+       nor automatic decryption. You can use :method:`getKeyVault()` and
+       :method:`getClientEncryption()` to perform explicit
+       encryption. This option is mutually exclusive with ``schemaMap``.
+       If omitted, defaults to ``false``.
+
+   * - ``tlsOptions``
+     - object 
+     - *(Optional)* The path to the TLS client certificate and private key file in PEM format
+       (``tlsCertificateKeyFile``), TLS client certificate and private key file password
+       (``tlsCertificateKeyFilePassword``), or TLS certificate authority file
+       (``tlsCAFile``) to use to connect to the KMS in PEM format. To learn more 
+       about these options, see :mongosh:`TLS Options <reference/options/#tls-options>`. 
 
 .. _mongo-api-options:
 
@@ -424,6 +456,23 @@ The specified automatic encryption rules encrypt the ``taxid`` and
 ``taxid-short`` fields using the specified data encryption key and
 algorithm. Only clients configured for the correct KMS *and* access to
 the specified data encryption key can decrypt the field.
+
+The following operation creates a new connection object from within a
+:binary:`~bin.mongosh` session. The ``mongo.tlsOptions`` option enables
+a connection using KMIP as the KMS provider:
+
+.. code-block:: javascript
+
+   var csfleConnection = {
+     keyVaultNamespace: "encryption.__keyVault",
+     kmsProviders: { kmip: { endpoint: "kmip.example.com:123" } },
+     tlsOptions: { kmip: { tlsCertificateKeyFile: "/path/to/client/cert-and-key-bundle.pem" } }
+   }
+
+   cluster = Mongo(
+     "mongodb://mymongo.example.net:27017/?replicaSet=myMongoCluster",
+     csfleConnection
+   );
 
 See :doc:`/reference/method/js-client-side-field-level-encryption` for
 a complete list of client-side field level encryption methods.

@@ -6,6 +6,7 @@ $lookup (aggregation)
 
 .. meta:: 
    :keywords: atlas
+   :description: Learn about the $lookup aggregation stage, which performs left outer joins with collections in the same database, adding a new array field to each input document with matching documents from the joined collection.
 
 .. contents:: On this page
    :local:
@@ -27,7 +28,7 @@ Definition
    the "joined" collection. The :pipeline:`$lookup` stage passes these
    reshaped documents to the next stage.
 
-   Starting in MongoDB 5.1, :pipeline:`$lookup` works across sharded 
+   Starting in MongoDB 5.1, you can use :pipeline:`$lookup` with sharded 
    collections.
 
    To combine elements from two different collections, use the
@@ -120,19 +121,25 @@ The :pipeline:`$lookup` takes a document with these fields:
        already exists in the input document, the existing field is
        *overwritten*.
 
-The operation would correspond to the following pseudo-SQL statement:
+The operation corresponds to this pseudo-SQL statement:
 
 .. code-block:: sql
+   :copyable: false
 
-   SELECT *, <output array field>
-   FROM collection
-   WHERE <output array field> IN (
-      SELECT *
+   SELECT *, (
+      SELECT ARRAY_AGG(*)
       FROM <collection to join>
       WHERE <foreignField> = <collection.localField>
-   );
+   ) AS <output array field>
+   FROM collection;
 
-See these examples:
+.. note::
+
+   The SQL statements on this page are included for comparison to the
+   MongoDB aggregation pipeline syntax. The SQL statements aren't
+   runnable.
+
+For MongoDB examples, see these pages:
 
 - :ref:`lookup-single-equality-example`
 - :ref:`unwind-example`
@@ -249,6 +256,7 @@ The :pipeline:`$lookup` stage accepts a document with these fields:
 The operation corresponds to this pseudo-SQL statement:
 
 .. code-block:: sql
+   :copyable: false
 
    SELECT *, <output array field>
    FROM collection
@@ -380,6 +388,7 @@ The :pipeline:`$lookup` accepts a document with these fields:
 The operation corresponds to this pseudo-SQL statement:
 
 .. code-block:: sql
+   :copyable: false
 
    SELECT *, <output array field>
    FROM localCollection
@@ -505,7 +514,8 @@ Starting in MongoDB 5.1, you can specify :ref:`sharded collections
 <sharding-sharded-cluster>` in the ``from`` parameter of 
 :pipeline:`$lookup` stages.
 
-.. include:: /includes/graphLookup-sharded-coll-transaction-note.rst
+You **cannot** use the ``$lookup`` stage within a transaction while 
+targeting a sharded collection.
 
 |sbe-title|
 ~~~~~~~~~~~
@@ -536,33 +546,36 @@ different ``$lookup`` operations.
      - .. _equality-match-performance:
 
        - ``$lookup`` operations that perform equality matches with a
-         single join typically perform better when the source collection
-         contains an index on the ``foreignField``.
+         single join perform better when the foreign collection contains
+         an index on the ``foreignField``.
 
-   * - :ref:`Uncorrelated Subqueries<lookup-uncorrelated-subquery>`
+         .. important::
 
-     - .. _uncorrelated-subqueries-performance: 
+            If a supporting index on the ``foreignField`` does not
+            exist, a ``$lookup`` operation that performs an equality
+            match with a single join will likely have poor performance.
 
+   * - :ref:`Uncorrelated Subqueries <lookup-uncorrelated-subquery>`
+
+     - .. _uncorrelated-subqueries-performance:
+     
        - ``$lookup`` operations that contain uncorrelated subqueries
-         typically perform better when the inner pipeline can reference
-         an index on the ``foreignField``. 
+         perform better when the inner pipeline can reference an
+         index of the foreign collection.
 
        - MongoDB only needs to run the ``$lookup`` subquery once before
          caching the query because there is no relationship between the
-         source and foreign collections. The ``$lookup`` subquery is not
-         based on any value in the source collection. This behavior
-         improves performance for subsequent executions of this query.
-
+         source and foreign collections. The subquery is not based on
+         any value in the source collection. This behavior improves
+         performance for subsequent executions of the ``$lookup``
+         operation.
 
    * - :ref:`Correlated Subqueries <lookup-concise-correlated-subquery>`
 
      - .. _correlated-subqueries-performance: 
 
        - ``$lookup`` operations that contain correlated subqueries
-         typically perform better when the following conditions apply:
-
-         - The source collection contains an index on the
-           ``localField``.
+         perform better when the following conditions apply:
          
          - The foreign collection contains an index on the
            ``foreignField``.
@@ -681,6 +694,7 @@ The operation returns these documents:
 The operation corresponds to this pseudo-SQL statement:
 
 .. code-block:: sql
+   :copyable: false
 
    SELECT *, inventory_docs
    FROM orders
@@ -691,7 +705,7 @@ The operation corresponds to this pseudo-SQL statement:
    );
 
 For more information, see
-:ref:`Equality Match Performance Considerations<equality-match-performance>`. 
+:ref:`Equality Match Performance Considerations <equality-match-performance>`. 
 
 .. _unwind-example:
 
@@ -942,6 +956,7 @@ The operation returns these documents:
 The operation corresponds to this pseudo-SQL statement:
 
 .. code-block:: sql
+   :copyable: false
 
    SELECT *, stockdata
    FROM orders
@@ -1057,6 +1072,7 @@ The operation returns the following:
 The operation corresponds to this pseudo-SQL statement:
 
 .. code-block:: sql
+   :copyable: false
 
    SELECT *, holidays
    FROM absences

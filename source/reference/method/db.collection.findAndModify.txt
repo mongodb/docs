@@ -4,6 +4,9 @@ db.collection.findAndModify()
 
 .. default-domain:: mongodb
 
+.. meta::
+   :description: Update or delete a single document.
+
 .. facet::
    :name: programming_language 
    :values: shell
@@ -26,17 +29,23 @@ Definition
    .. |dbcommand| replace:: :dbcommand:`findAndModify` command
    .. include:: /includes/fact-mongosh-shell-method-alt.rst
 
-   Modifies and returns a single document. By default, the returned
+   Updates and returns a single document. By default, the returned
    document does not include the modifications made on the update. To
    return the document with the modifications made on the update, use
-   the ``new`` option. 
+   the ``new`` option.
 
 Compatibility
 -------------
 
-.. |operator-method| replace:: ``db.collection.findAndModify()``
+.. |command| replace:: method
 
-.. include:: /includes/fact-compatibility.rst
+This method is available in deployments hosted in the following environments:
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. include:: /includes/fact-environments-atlas-support-all.rst
+
+.. include:: /includes/fact-environments-onprem-only.rst
 
 Syntax
 ------
@@ -95,8 +104,8 @@ parameter with the following embedded document fields:
        ``sort``
 
      - document
-     - Optional. Determines which document the operation modifies if the query selects
-       multiple documents. |operation| modifies
+     - Optional. Determines which document the operation updates if the query 
+       selects multiple documents. |operation| updates
        the first document in the sort order specified by this argument.
        
        Starting in MongoDB 4.2 (and 4.0.12+, 3.6.14+, and 3.4.23+), the operation
@@ -126,14 +135,14 @@ parameter with the following embedded document fields:
        
        - Starting in MongoDB 4.2, if passed an :ref:`aggregation pipeline
          <aggregation-pipeline>` ``[ <stage1>, <stage2>, ... ]``,
-         |operation| modifies the document per the pipeline. The pipeline
+         |operation| updates the document per the pipeline. The pipeline
          can consist of the following stages:
        
          .. include:: /includes/list-update-agg-stages.rst
        
    * - ``new``
      - boolean
-     - Optional. When ``true``, returns the modified document rather than the original.
+     - Optional. When ``true``, returns the updated document rather than the original.
        The default is ``false``.
 
    * - ``fields``
@@ -219,7 +228,6 @@ one of the following:
 Behavior
 --------
 
-
 .. _fields-projection:
 
 ``fields`` Projection
@@ -272,6 +280,9 @@ To use :dbcommand:`findAndModify` on a sharded collection:
 
 - You can provide an equality condition on a full shard key in the ``query`` field. 
 
+- Starting in version 7.1, you do not need to provide the :term:`shard key` 
+  or ``_id`` field in the query specification. 
+
 .. include:: /includes/extracts/missing-shard-key-equality-condition-findAndModify.rst
 
 Shard Key Modification
@@ -281,7 +292,7 @@ Shard Key Modification
 
 .. include:: /includes/shard-key-modification-warning.rst
 
-To modify the **existing** shard key value with
+To update the **existing** shard key value with
 :method:`db.collection.findAndModify()`:
 
 - You :red:`must` run on a :binary:`~bin.mongos`. Do :red:`not`
@@ -299,7 +310,7 @@ To modify the **existing** shard key value with
 Missing Shard Key
 `````````````````
 
-Starting in version 4.4, documents in a sharded collection can be
+Documents in a sharded collection can be
 :ref:`missing the shard key fields <shard-key-missing>`. To use
 :method:`db.collection.findAndModify()` to set the document's
 **missing** shard key: 
@@ -354,6 +365,14 @@ Write Concerns and Transactions
 
 .. include:: /includes/extracts/transactions-operations-write-concern.rst
 
+Oplog Entries
+~~~~~~~~~~~~~
+
+If a ``db.collection.findAndModify()`` operation successfully finds and
+modifies a document, the operation adds an entry on the :term:`oplog`
+(operations log). If the operation fails or does not find a document to
+modify, the operation does not add an entry on the oplog. 
+
 Examples
 --------
 
@@ -399,7 +418,7 @@ This method performs the following actions:
         "score" : 5
       }
 
-   To return the modified document, add the ``new:true`` option to
+   To return the updated document, add the ``new:true`` option to
    the method.
 
    If no document matched the ``query`` condition, the method
@@ -568,7 +587,7 @@ Create a collection ``students`` with the following documents:
       { "_id" : 3, "grades" : [ 95, 110, 100 ] }
    ] )
 
-To modify all elements that are greater than or equal to ``100`` in the
+To update all elements that are greater than or equal to ``100`` in the
 ``grades`` array, use the filtered positional operator
 :update:`$[\<identifier\>]` with the ``arrayFilters`` option in the
 :method:`db.collection.findAndModify` method:
@@ -624,7 +643,7 @@ Create a collection ``students2`` with the following documents:
 
 The following operation finds a document where the ``_id`` field equals
 ``1`` and uses the filtered positional operator :update:`$[\<identifier\>]` with
-the ``arrayFilters`` to modify the ``mean`` for all elements in the
+the ``arrayFilters`` to update the ``mean`` for all elements in the
 ``grades`` array where the grade is greater than or equal to ``85``.
 
 .. code-block:: javascript

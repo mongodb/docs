@@ -17,7 +17,7 @@ The ``metadata`` validation option:
   only collections metadata.
 
 - Provides an alternative to dropping and recreating multiple invalid 
-  indexes when used with the :doc:`collMod </reference/command/collMod>` 
+  indexes when used with the :dbcommand:`collMod` 
   command.
 
 The ``metadata`` validation option only scans collection metadata to 

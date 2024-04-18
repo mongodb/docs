@@ -1,5 +1,5 @@
 - You cannot run |CQA| on Atlas 
-  :atlas:`multi-tenant </docs/atlas/build-multi-tenant-arch/>`
+  :atlas:`multi-tenant </build-multi-tenant-arch>`
   configurations.
 - You cannot run |CQA| on 
   standalone deployments.

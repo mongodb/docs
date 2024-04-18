@@ -32,6 +32,17 @@ Definition
       views. For discussion of on-demand materialized views, see
       :pipeline:`$merge` instead.
 
+Compatibility
+-------------
+
+This command is available in deployments hosted in the following environments: 
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. include:: /includes/fact-environments-atlas-support-all.rst
+
+.. include:: /includes/fact-environments-onprem-only.rst
+                
 Syntax
 ------
 
@@ -57,6 +68,27 @@ Options
 
 Change Index Properties
 ~~~~~~~~~~~~~~~~~~~~~~~
+
+To change index options, specify either the key pattern or name of the
+existing index options you want to change:
+
+.. code-block:: javascript
+   :copyable: false
+
+   db.runCommand( {
+      collMod: <collection>,
+      index: {
+         keyPattern: <index_spec> | name: <index_name>,
+         expireAfterSeconds: <number>,  // Set the TTL expiration threshold
+         hidden: <boolean>,             // Change index visibility in the query planner
+         prepareUnique: <boolean>,      // Reject new duplicate index entries 
+         unique: <boolean>              // Convert an index to a unique index
+      },
+      dryRun: <boolean>
+   } )
+
+If the index does not exist, the command errors with the message
+``"cannot find index <name|keyPattern> for ns <db.collection>"``.
 
 .. collflag:: index
 
@@ -109,8 +141,6 @@ Change Index Properties
           Modifying the index option ``hidden`` resets the
           :pipeline:`$indexStats` for the index if the value changes.
 
-          .. versionadded:: 4.4
-
       * - ``prepareUnique``
         - A boolean that determines whether the index will accept
           new duplicate entries.
@@ -145,32 +175,23 @@ Change Index Properties
           
           To end a conversion, set ``prepareUnique`` to ``false``.
 
+          To see an example of how to convert a non-unique index to a
+          unique index, see :ref:`index-convert-to-unique`.
+
           .. versionadded:: 6.0
 
-   To change index options, specify either the key pattern or name of
-   the existing index and the index option or options you wish to
-   change:
+.. collflag:: dryRun
 
-   .. code-block:: javascript
-      :copyable: false
+   *Default value:* ``false``
+   
+   Only used when ``index.unique`` is ``true``.
+   
+   Before you convert a non-unique index to a unique index, you can run
+   the ``collMod`` command with ``dryRun: true``. If you do, MongoDB
+   checks the collection for duplicate keys and returns any violations.
 
-      db.runCommand( {
-         collMod: <collection>,
-         index: {
-            keyPattern: <index_spec> | name: <index_name>,
-            expireAfterSeconds: <number>,  // Set the TTL expiration threshold
-            hidden: <boolean>,             // Change index visibility in the query planner
-            prepareUnique: <boolean>,      // Reject new duplicate index entries 
-            unique: <boolean>              // Convert an index to a unique index
-         }
-      } )
-
-   If the index does not exist, the command errors with the message
-   ``"cannot find index <name|keyPattern> for ns <db.collection>"``.
-
-   .. seealso::
-
-      - :ref:`index-type-hidden`
+   Use ``dryRun: true`` to confirm that you can convert an index to be
+   unique without any errors.
 
 Validate Documents
 ~~~~~~~~~~~~~~~~~~
@@ -429,8 +450,6 @@ To disable change stream pre- and post-images for a collection, set
 Attach Comment 
 ~~~~~~~~~~~~~~
 
-.. versionadded:: 4.4
-
 .. collflag:: comment
 
 Optional. You can attach a comment to this command. The comment must be
@@ -524,9 +543,7 @@ Hide an Index from the Query Planner
 .. note::
 
    To hide an index, you must have :ref:`featureCompatibilityVersion
-   <view-fcv>` set to ``4.4`` or greater. However, once hidden, the
-   index remains hidden even with ``featureCompatibilityVersion``
-   set to ``4.2`` on MongoDB 4.4 binaries.
+   <view-fcv>` set to ``{+minimum-lts-version+}`` or greater.
 
 The following example :ref:`hides <index-type-hidden>` an existing
 index on the ``orders`` collection. Specifically, the operation hides
@@ -565,97 +582,3 @@ To hide a text index, you must specify the index by ``name`` and not by
    - :ref:`index-type-hidden`
    - :method:`db.collection.hideIndex()`
    - :method:`db.collection.unhideIndex()`
-
-Convert an Existing Index to a Unique Index
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Create the ``apples`` collection:
-
-.. code-block:: javscript
-
-   db.apples.insertMany( [
-      { type: "Delicious", quantity: 12 },
-      { type: "Macintosh", quantity: 13 },
-      { type: "Delicious", quantity: 13 },
-      { type: "Fuji", quantity: 15 },
-      { type: "Washington", quantity: 10 },
-   ] )
-
-Add a single field index on ``type``:
-
-.. code-block:: javscript
-
-   db.apples.createIndex( { type: 1 } )
-
-Prepare the index on the ``type`` field for conversion:
-
-.. code-block:: javscript
-
-   db.runCommand( {
-       collMod: "apples",
-       index: {
-          keyPattern: { type: 1 },
-          prepareUnique: true
-       }
-    } )
-
-The existing index may contain duplicate entries, but it will not
-accept new documents that duplicate an index entry when
-``prepareUnique`` is ``true``. 
-
-Try to insert a document with a duplicate index value:
-
-.. code-block:: javscript
-
-   db.apples.insertOne( { type: "Delicious", quantity: 200 } )
-
-The operation returns an error. The index will not accept new
-duplicate entries. 
-
-Use the ``unique``option to convert the index to a unique index.
-``collMod`` checks the collection for duplicate index entries before
-converting the index:
-
-.. code-block:: javscript
-
-   db.runCommand( {
-       collMod: "apples",
-       index: {
-          keyPattern: { type: 1 },
-          unique: true
-       }
-   } )
-
-The response to this operation varies by driver. You will always
-receive an error message about the duplicate entries.
-
-.. code-block:: shell
-   :copyable: false
-   
-   "errmsg" : "Cannot convert the index to unique. Please resolve
-               conflicting documents before running collMod again."
-   
-Some drivers also return a list of ``ObjectIds`` for the duplicate
-entries:
-
-.. code-block:: shell
-   :copyable: false
-
-   {
-        "ok" : 0,
-        "errmsg" : "Cannot convert the index to unique. Please resolve \
-                    conflicting documents before running collMod again.",
-        "code" : 359,
-        "codeName" : "CannotConvertIndexToUnique",
-        "violations" : [
-                {
-                        "ids" : [
-                                ObjectId("62a2015777e2d47c4da33146"),
-                                ObjectId("62a2015777e2d47c4da33148")
-                        ]
-                }
-        ]
-   }
-
-To complete the conversion, modify the duplicate entries to remove any
-conflicts and re-run ``collMod()`` with the ``unique`` option.

@@ -60,8 +60,6 @@ content: |
 ref: transactions-operations-restrictions
 content: |
 
-   .. versionchanged:: 4.4
- 
    The following operations are not allowed in transactions:
  
    - Creating new collections in cross-shard write transactions. For
@@ -207,37 +205,87 @@ content: |
 ref: transactions-stale-reads
 content: |
 
-   Read operations inside a transaction can return stale data. That is,
-   read operations inside a transaction are not guaranteed to see
-   writes performed by other committed transactions or
-   non-transactional writes. For
-   example, consider the following sequence: 1) a transaction is
-   in-progress 2) a write outside the transaction deletes a document 3)
-   a read operation inside the transaction is able to read the
-   now-deleted document since the operation is using a snapshot from
-   before the write.
+   Read operations inside a transaction can return old data, which is known as a
+   :term:`stale read`. Read operations inside a transaction are not guaranteed 
+   to see writes performed by other committed transactions or
+   non-transactional writes. For example, consider the following sequence: 
+   
+   #. A transaction is in-progress.
+   
+   #. A write outside the transaction deletes a document. 
+   
+   #. A read operation inside the transaction can read the now-deleted document 
+      since the operation uses a snapshot from before the write operation.
 
    To avoid stale reads inside transactions for a single document, you
-   can use the :method:`db.collection.findOneAndUpdate()` method. For
-   example:
+   can use the :method:`db.collection.findOneAndUpdate()` method. The following 
+   :binary:`~bin.mongosh` example demonstrates how you can use 
+   ``db.collection.findOneAndUpdate()`` to take a :term:`write lock` and ensure 
+   that your reads are up to date:
 
-   .. code-block:: javascript
+   .. procedure::
+        :style: normal
 
-      session.startTransaction( { readConcern: { level: "snapshot" }, writeConcern: { w: "majority" } } );
+        .. step:: Insert a document into the ``employees`` collection
+           
+           .. code-block:: javascript
+              :copyable: true 
+           
+              db.getSiblingDB("hr").employees.insertOne(
+                 { _id: 1, status: "Active" }
+              )
 
-      employeesCollection = session.getDatabase("hr").employees;
+        .. step:: Start a session
 
-      employeeDoc = employeesCollection.findOneAndUpdate( 
-         { _id: 1, employee: 1, status: "Active" },
-         { $set: { employee: 1 } },
-         { returnNewDocument: true }
-      );
+           .. code-block:: javascript
+              :copyable: true 
+              
+              session = db.getMongo().startSession( { readPreference: { mode: "primary" } } )
 
-   - If the employee document has changed outside the transaction, then
-     the transaction aborts.
+        .. step:: Start a transaction 
+         
+           .. code-block:: javascript
+              :copyable: true 
+             
+              session.startTransaction( { readConcern: { level: "snapshot" }, writeConcern: { w: "majority" } } )
+             
+              employeesCollection = session.getDatabase("hr").employees
 
-   - If the employee document has not changed, the transaction returns
-     the document and locks the document.
+        .. step:: Use ``db.collection.findOneAndUpdate()`` inside the transaction
+         
+           .. code-block:: javascript
+              :copyable: true 
+             
+              employeeDoc = employeesCollection.findOneAndUpdate( 
+                 { _id: 1, status: "Active" },
+                 { $set: { lockId: ObjectId() } },
+                 { returnNewDocument: true }
+              )
+
+           Note that inside the transaction, the ``findOneAndUpdate`` operation 
+           sets a new ``lockId`` field. You can set ``lockId`` field to any 
+           value, as long as it modifies the document. By updating the 
+           document, the transaction acquires a lock.
+           
+           If an operation outside of the transaction attempts to modify the 
+           document before you commit the transaction, MongoDB returns a write 
+           conflict error to the external operation.
+
+        .. step:: Commit the transaction
+        
+           .. code-block:: javascript
+              :copyable: true         
+              
+              session.commitTransaction()
+
+           After you commit the transaction, MongoDB releases the lock.
+           
+           .. note:: 
+           
+              If any operation in the transaction fails, the transaction 
+              aborts and all data changes made in the transaction are discarded
+              without ever becoming visible in the collection.
+
 ---
 ref: transactions-read-concern-majority
 content: |

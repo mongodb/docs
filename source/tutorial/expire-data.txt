@@ -10,6 +10,9 @@ Expire Data from Collections by Setting TTL
    :name: programming_language
    :values: shell
 
+.. meta::
+   :description: Automatically remove MongoDB data after a set time with TTL or time to live collections.
+   
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -303,37 +306,39 @@ To avoid problems, either drop or correct any misconfigured TTL indexes.
       .. code-block:: javascript
 
          function getNaNIndexes() {
-           const nan_index = [];
-          
-           const dbs = db.adminCommand({ listDatabases: 1 }).databases;
-          
-           dbs.forEach((d) => {
-             const listCollCursor = db
-               .getSiblingDB(d.name)
-               .runCommand({ listCollections: 1 }).cursor;
-          
-             const collDetails = {
-               db: listCollCursor.ns.split(".$cmd")[0],
-               colls: listCollCursor.firstBatch.map((c) => c.name),
-             };
-          
-             collDetails.colls.forEach((c) =>
-               db
-                 .getSiblingDB(collDetails.db)
-                 .getCollection(c)
-                 .getIndexes()
-                 .forEach((entry) => {
-                   if (Object.is(entry.expireAfterSeconds, NaN)) {
-                     nan_index.push({ ns: `${collDetails.db}.${c}`, index: entry });
-                   }
-                 })
-             );
-           });
-          
-           return nan_index;
+            const nan_index = [];
+            
+            const dbs = db.adminCommand({ listDatabases: 1 }).databases;
+            
+            dbs.forEach((d) => {
+               if (d.name != 'local') {
+                  const listCollCursor = db
+                     .getSiblingDB(d.name)
+                     .runCommand({ listCollections: 1 }).cursor;
+                  
+                  const collDetails = {
+                     db: listCollCursor.ns.split(".$cmd")[0],
+                     colls: listCollCursor.firstBatch.map((c) => c.name),
+                  };
+                  
+                  collDetails.colls.forEach((c) =>
+                     db
+                        .getSiblingDB(collDetails.db)
+                        .getCollection(c)
+                        .getIndexes()
+                        .forEach((entry) => {
+                           if (Object.is(entry.expireAfterSeconds, NaN)) {
+                              nan_index.push({ ns: `${collDetails.db}.${c}`, index: entry });
+                           }
+                        })
+                  );
+               }
+            }); 
+            
+            return nan_index;
          };
-
-         getNaNIndexes();
+         
+         getNaNIndexes(); 
 
    .. step:: Correct misconfigured indexes.
  
@@ -343,4 +348,3 @@ To avoid problems, either drop or correct any misconfigured TTL indexes.
       As an alternative, you can :dbcommand:`drop <dropIndexes>` any
       misconfigured TTL indexes and recreate them later using the
       :dbcommand:`createIndexes` command. 
-

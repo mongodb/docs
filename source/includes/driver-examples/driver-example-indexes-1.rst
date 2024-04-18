@@ -51,6 +51,18 @@
 
             collection.createIndex(Indexes.descending("name"), someCallbackFunction());
 
+     - id: kotlin-coroutine
+       content: |
+
+         This example creates a single key descending index on the
+         ``name`` field:
+
+         .. literalinclude:: /driver-examples/kotlin_examples.kt
+            :language: kotlin
+            :dedent:
+            :start-after: Start Index Example 1
+            :end-before: End Index Example 1
+
      - id: nodejs
        content: |
 

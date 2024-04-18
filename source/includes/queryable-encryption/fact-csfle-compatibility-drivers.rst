@@ -25,7 +25,7 @@ object:
   to create the database connection with the automatic encryption rules
   included as part of the {+qe+}
   configuration object. Defer to the :ref:`driver API reference
-  <field-level-encryption-drivers>` for more complete documentation and
+  <csfle-driver-tutorials>` for more complete documentation and
   tutorials.
 
 For all clients, the ``keyVault`` and ``kmsProviders`` specified

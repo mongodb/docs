@@ -30,7 +30,14 @@
 
          #. Click :guilabel:`Find`.
 
-            
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 50
+            :end-before: End Example 50          
 
      - id: python
        content: |
@@ -71,6 +78,20 @@
          .. literalinclude:: /driver-examples/AsyncDocumentationSamples.java
             :language: java
             :dedent: 8
+            :start-after: Start Example 50
+            :end-before: End Example 50
+
+     - id: kotlin-coroutine
+       content: |
+         To specify a projection document, chain the
+         `FindFlow.projection() <{+java-api-docs+}/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-find-flow/projection.html>`__ method to the
+         ``find()`` method. The example uses the
+         `com.mongodb.client.model.Projections <{+java-api-docs+}/mongodb-driver-core/com/mongodb/client/model/Projections.html>`__ class to create the
+         projection documents.
+
+         .. literalinclude:: /driver-examples/kotlin_examples.kt
+            :language: kotlin
+            :dedent:
             :start-after: Start Example 50
             :end-before: End Example 50
 

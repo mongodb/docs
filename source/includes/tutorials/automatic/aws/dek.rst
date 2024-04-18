@@ -172,8 +172,8 @@
 
    To view a diagram showing how your client application creates your
    {+dek-long+} when using an AWS KMS, see
-   :ref:`csfle-reference-kms-providers-aws-architecture`.
+   :ref:`qe-fundamentals-kms-providers-aws-architecture`.
 
    To learn more about the options for creating a {+dek-long+}
    encrypted with a {+cmk-long+} hosted in AWS KMS, see
-   :ref:`csfle-kms-datakeyopts-aws`.
+   :ref:`qe-kms-datakeyopts-aws`.

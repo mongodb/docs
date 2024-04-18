@@ -6,6 +6,10 @@ Replica Set Oplog
 
 .. default-domain:: mongodb
 
+.. facet::
+   :name: genre
+   :values: reference
+
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -14,19 +18,12 @@ Replica Set Oplog
 
 The :term:`oplog` (operations log) is a special :term:`capped
 collection` that keeps a rolling record of all operations that modify
-the data stored in your databases. 
+the data stored in your databases. If write operations do not modify any
+data or fail, they do not create oplog entries. 
 
 Unlike other capped collections, the oplog
 can grow past its configured size limit to avoid deleting the
 :data:`majority commit point <replSetGetStatus.optimes.lastCommittedOpTime>`.
-
-.. versionadded:: 4.4
-
-   MongoDB 4.4 supports specifying a minimum oplog retention
-   period in hours, where MongoDB only removes an oplog entry if:
-
-   - The oplog has reached the maximum configured size, *and*
-   - The oplog entry is older than the configured number of hours.
 
 MongoDB applies database operations
 on the :term:`primary` and then records the operations on the
@@ -50,36 +47,39 @@ Oplog Size
 ----------
 
 When you start a replica set member for the first time, MongoDB creates
-an oplog of a default size if you do not specify the oplog size. 
+an oplog of a default size if you do not specify the oplog size.
 
 For Unix and Windows systems
    The default oplog size depends on the storage engine:
 
    .. list-table::
-      :widths: 30 30 20 20
+      :widths: 50 50
       :header-rows: 1
 
       * - Storage Engine
         - Default Oplog Size
-        - Lower Bound
-        - Upper Bound
 
-      * - :doc:`/core/inmemory`
+      * - :ref:`storage-wiredtiger`
 
-        -  5% of physical memory
-
-        - 50 MB
-
-        - 50 GB
-
-      * - :doc:`/core/wiredtiger`
         - 5% of free disk space
-        - 990 MB 
-        - 50 GB
+
+      * - :ref:`storage-inmemory`
+
+        - 5% of physical memory
+
+   The default oplog size has the following constraints:
+
+   - The minimum oplog size is 990 MB. If 5% of free disk space or
+     physical memory (whichever is applicable based on your storage
+     engine) is less than 990 MB, the default oplog size is 990 MB.
+
+   - The maximum default oplog size is 50 GB. If 5% of free disk space or
+     physical memory (whichever is applicable based on your storage
+     engine) is greater than 50 GB, the default oplog size is 50 GB.
 
 For 64-bit macOS systems
-   The default oplog size is 192 MB of either physical memory or free
-   disk space depending on the storage engine:
+   The default oplog size is 192 MB of either free disk space or
+   physical memory depending on the storage engine:
    
    .. list-table::
       :widths: 50 50
@@ -88,13 +88,13 @@ For 64-bit macOS systems
       * - Storage Engine
         - Default Oplog Size
 
-      * - :doc:`/core/inmemory`
+      * - :ref:`storage-wiredtiger`
 
-        - 192 MB of physical memory
-
-      * - :doc:`/core/wiredtiger`
         - 192 MB of free disk space
 
+      * - :ref:`storage-inmemory`
+
+        - 192 MB of physical memory
 
 In most cases, the default oplog size is sufficient. For example, if an
 oplog is 5% of free disk space and fills up in 24 hours of operations,
@@ -115,9 +115,7 @@ oplog dynamically without restarting the :binary:`~bin.mongod` process.
 Minimum Oplog Retention Period
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. versionadded:: 4.4
-
-   .. include:: /includes/extracts/4.4-changes-minimum-oplog-retention-period.rst
+.. include:: /includes/extracts/4.4-changes-minimum-oplog-retention-period.rst
 
 To configure the minimum oplog retention period when starting the
 :binary:`~bin.mongod`, either:
@@ -250,7 +248,7 @@ the ``local.oplog.rs`` collection from a standalone MongoDB instance.
 both :ref:`replication` and recovery of a node if the node goes down.
 
 Starting in MongoDB 5.0, it is no longer possible to perform manual
-write operations to the :doc:`oplog </core/replica-set-oplog>` on a
+write operations to the :ref:`oplog <replica-set-oplog>` on a
 cluster running as a :ref:`replica set <replication>`. Performing write
 operations to the oplog when running as a
 :term:`standalone instance <standalone>` should only be done with

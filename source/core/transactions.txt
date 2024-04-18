@@ -16,6 +16,7 @@ Transactions
 
 .. meta:: 
    :keywords: motor, java sync, code example, node.js
+   :description: Use distributed transactions across multiple operations, collections, databases, documents, and shards.
 
 .. contents:: On this page
    :local:
@@ -80,7 +81,8 @@ upper-right to set the language of the following example.
          /*
            For a replica set, include the replica set name and a seedlist of the members in the URI string; e.g.
            String uri = "mongodb://mongodb0.example.com:27017,mongodb1.example.com:27017/admin?replicaSet=myRepl";
-           For a sharded cluster, connect to the mongos instances; e.g.
+           For a sharded cluster, connect to the mongos instances.
+           For example:
            String uri = "mongodb://mongos0.example.com:27017,mongos1.example.com:27017:27017/admin";
           */
           
@@ -277,7 +279,6 @@ upper-right to set the language of the following example.
       .. literalinclude:: /driver-examples/DocumentationTransactionsExampleSpec.scala
          :language: scala
 
-
 .. seealso::
 
    For an example in :binary:`~bin.mongosh`, see
@@ -290,12 +291,12 @@ Transactions and Atomicity
 
 .. include:: /includes/transactions/distributed-transaction-repl-shard-support.rst
 
-Distributed transactions are atomic. They provide an "all-or-nothing" 
-proposition:
+Distributed transactions are atomic:
 
-- When a transaction commits, all data changes made in the transaction
-  are saved and visible outside the transaction. That is, a transaction
-  will not commit some of its changes while rolling back others.
+- Transactions either apply all data changes or roll back the changes.
+
+- If a transaction commits, all data changes made in the transaction
+  are saved and are visible outside of the transaction.
 
   .. include:: /includes/extracts/transactions-committed-visibility.rst
 
@@ -334,11 +335,11 @@ For a list of operations not supported in transactions, see
 
 .. _transactions-create-collections-indexes:
 
-Create Collections and Indexes In a Transaction
+Create Collections and Indexes in a Transaction
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can perform the following operations inside of a :ref:`distributed
-transaction <transactions>` as long as the transaction is not a
+You can perform the following operations in a :ref:`distributed
+transaction <transactions>` if the transaction is not a
 cross-shard write transaction:
 
 - Create collections.
@@ -352,11 +353,11 @@ When creating a collection inside a transaction:
   <transactions-operations-ddl-implicit>`, such as with:
 
   - an :ref:`insert operation <transactions-operations-ddl-implicit>`
-    against a non-existing collection, or
+    for a non-existent collection, or
 
   - an :ref:`update/findAndModify operation
     <transactions-operations-ddl-implicit>` with ``upsert: true``
-    against a non-existing collection.
+    for a non-existent collection.
 
 - You can :ref:`explicitly create a collection
   <transactions-operations-ddl-explicit>` using the :dbcommand:`create`
@@ -366,7 +367,7 @@ When :ref:`creating an index inside a transaction
 <transactions-operations-ddl-explicit>` [#create-existing-index]_, the
 index to create must be on either:
 
-- a non-existing collection. The collection is created as part of the
+- a non-existent collection. The collection is created as part of the
   operation.
 
 - a new empty collection created earlier in the same transaction.
@@ -387,7 +388,10 @@ Restrictions
 
 - For explicit creation of a collection or an index inside a
   transaction, the transaction read concern level must be
-  :readconcern:`"local"`. Explicit creation is through:
+  :readconcern:`"local"`.
+  
+  To explicitly create collections and indexes, use the following
+  commands and methods:
 
   .. list-table::
      :header-rows: 1
@@ -444,10 +448,9 @@ Restricted Operations
 Transactions and Sessions
 -------------------------
 
-- Transactions are associated with a session
+- Transactions are associated with a session.
 
-- At any given time, you can have at most one open transaction for a
-  session.
+- You can have at most one open transaction at a time for a session.
 
 - When using the drivers, each operation in the transaction must be
   associated with the session. Refer to your driver specific
@@ -487,7 +490,7 @@ Transactions and Read Concern
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Operations in a transaction use the transaction-level :doc:`read
-concern </reference/read-concern>`. That is, any read concern set at
+concern </reference/read-concern>`. This means a read concern set at
 the collection and database level is ignored inside the transaction.
 
 You can set the transaction-level :doc:`read concern
@@ -498,8 +501,8 @@ You can set the transaction-level :doc:`read concern
 
 - If transaction-level and the session-level read concern are unset,
   the transaction-level read concern defaults to the client-level read
-  concern. By default, client-level read concern is
-  :readconcern:`"local"` for reads against the primary. See also:
+  concern. By default, the client-level read concern is
+  :readconcern:`"local"` for reads on the primary. See also:
 
   - :ref:`transactions-read-preference`
   - :doc:`/reference/mongodb-defaults`
@@ -559,16 +562,16 @@ Transactions and Write Concern
 
 Transactions use the transaction-level :doc:`write concern
 </reference/write-concern>` to commit the write operations. Write
-operations inside transactions must be issued without explicit write
+operations inside transactions must be run without an explicit write
 concern specification and use the default write concern. At commit
-time, the writes are then commited using the transaction-level write
+time, the writes committed using the transaction-level write
 concern.
 
 .. tip::
 
-   Do not explicitly set the write concern for the individual write
+   Don't explicitly set the write concern for the individual write
    operations inside a transaction. Setting write concerns for the
-   individual write operations inside a transaction results in an error.
+   individual write operations inside a transaction returns an error.
 
 You can set the transaction-level :doc:`write concern
 </reference/write-concern>` at the transaction start:
@@ -599,7 +602,7 @@ values, including:
 ````````
 
 - Write concern :writeconcern:`w: 1 <\<number\>>` returns
-  acknowledgement after the commit has been applied to the primary.
+  acknowledgment after the commit has been applied to the primary.
 
   .. important::
 
@@ -621,9 +624,8 @@ values, including:
 `````````````````
 
 - Write concern :writeconcern:`w: "majority" <"majority">` returns
-  acknowledgement after the commit has been applied to a majority
-  (M) of voting members, meaning the commit has been applied to the
-  primary and (M-1) voting secondaries.
+  acknowledgment after the commit has been applied to a majority of
+  voting members.
 
 - When you commit with :writeconcern:`w: "majority" <"majority">`
   write concern, transaction-level :readconcern:`"majority"` read
@@ -652,12 +654,15 @@ values, including:
 General Information
 -------------------
 
+The following sections describe additional considerations for
+transactions.
+
 Production Considerations
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For various production considerations with using transactions, see
+For transactions in production environments, see
 :ref:`production-considerations`. In addition, for sharded
-clusters, see also :ref:`production-considerations-sharded`.
+clusters, see :ref:`production-considerations-sharded`.
 
 Arbiters
 ~~~~~~~~
@@ -678,7 +683,7 @@ Shard Configuration Restriction
 Diagnostics
 ~~~~~~~~~~~
 
-MongoDB provides various transactions metrics:
+To obtain transaction status and metrics, use the following methods:
 
 .. list-table::
    :widths: 40 60
@@ -719,9 +724,9 @@ MongoDB provides various transactions metrics:
 
    * - :binary:`~bin.mongod` and :binary:`~bin.mongos` log messages
 
-     - Includes information on slow transactions, which are transactions
+     - Includes information on slow transactions (which are transactions
        that exceed the :setting:`operationProfiling.slowOpThresholdMs`
-       threshold) under the :data:`TXN` log component.
+       threshold) in the :data:`TXN` log component.
 
 ..  _transactions-fcv:
 
@@ -775,8 +780,8 @@ Starting in MongoDB 5.2 (and 5.0.4):
   :parameter:`metadataRefreshInTransactionMaxWaitBehindCritSecMS`
   parameter.
 
-Additional Transactions Topics
-------------------------------
+Learn More
+----------
 
 - :doc:`/core/transactions-in-applications`
 - :doc:`/core/transactions-production-consideration`

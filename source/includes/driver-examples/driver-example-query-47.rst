@@ -32,6 +32,15 @@
 
          #. Click :guilabel:`Find`.
 
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 47
+            :end-before: End Example 47
+            
      - id: python
        content: |
 
@@ -71,6 +80,15 @@
          .. literalinclude:: /driver-examples/AsyncDocumentationSamples.java
             :language: java
             :dedent: 8
+            :start-after: Start Example 47
+            :end-before: End Example 47
+
+     - id: kotlin-coroutine
+       content: |
+
+         .. literalinclude:: /driver-examples/kotlin_examples.kt
+            :language: kotlin
+            :dedent:
             :start-after: Start Example 47
             :end-before: End Example 47
 

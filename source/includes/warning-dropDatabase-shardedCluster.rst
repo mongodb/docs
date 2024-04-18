@@ -7,15 +7,6 @@ database, you must follow these additional steps for using the
   #. Run the :dbcommand:`dropDatabase` command on a 
      :binary:`~bin.mongos`, no additional steps required.
 
-- For **MongoDB 4.4**, you must:
-
-  #. Run the :dbcommand:`dropDatabase` command on a
-     :binary:`~bin.mongos`.
-
-  #. Once the command successfully completes, run the
-     :dbcommand:`dropDatabase` command once more on a
-     :binary:`~bin.mongos`.
-
 - For **MongoDB 4.2**, you must:
 
   #. Run the :dbcommand:`dropDatabase` command on a

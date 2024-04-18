@@ -10,26 +10,22 @@ cleanupOrphaned
    :depth: 1
    :class: singlecol
 
+.. important::
+
+   Starting in MongoDB 6.0.3, you should run an aggregation using the 
+   :pipeline:`$shardedDataDistribution` stage to confirm no orphaned 
+   documents remain. For details, 
+   see :ref:`shardedDataDistribution-no-orphaned-docs`.
+
 Definition
 ----------
 
 .. dbcommand:: cleanupOrphaned
 
-   .. versionchanged:: 4.4
-
-   For orphaned documents generated after upgrading to MongoDB 4.4,
-   :term:`chunk` migrations and orphaned document cleanup are more
-   resilient to failover. The cleanup process automatically resumes in
-   the event of a failover. You no longer need to run the
-   :dbcommand:`cleanupOrphaned` command to clean up orphaned documents.
-   Instead, use this command to wait for orphaned documents in a chunk
+   Use this command to wait for orphaned documents in a chunk
    range from a shard key's :bsontype:`MinKey` to its
    :bsontype:`MaxKey` for a specified namespace to be
    cleaned up from a majority of a shard's members.
-
-   In MongoDB 4.2 and earlier, :dbcommand:`cleanupOrphaned` initiated 
-   the cleanup process for orphaned documents in a specified namespace 
-   and shard key range.
 
    To run, issue :dbcommand:`cleanupOrphaned` in the ``admin`` database
    directly on the :binary:`~bin.mongod` instance that is the primary
@@ -92,42 +88,6 @@ Command Fields
        of the sharded collection for which to wait for cleanup of the
        orphaned data.
  
- 
-   * - ``startingFromKey``
- 
-     - document
- 
-     - Deprecated. Starting in MongoDB 4.4, the value of this field
-       is not used to determine the bounds of the cleanup range. The
-       :dbcommand:`cleanupOrphaned` command waits until 
-       all orphaned documents in all ranges are cleaned up from the
-       shard before completing, regardless of the presence of or the
-       value of ``startingFromKey``.
- 
-       .. note::
- 
-          The :binary:`~bin.mongod` continues to validate that the
-          ``startingFromKey`` value matches the shard key pattern,
-          even though it is not used to determine the bounds of the
-          cleanup range.
-       
- 
-   * - ``secondaryThrottle``
- 
-     - boolean
- 
-     - Deprecated. Starting in MongoDB 4.4, this field has no effect.
- 
-   * - ``writeConcern``
- 
-     - document
- 
-     - Deprecated. Starting in MongoDB 4.4, this field has no effect.
-       Orphaned documents are always cleaned up from a majority of a
-       shard's members (``{ writeConcern: { w: "majority" } }``)
-       before the :dbcommand:`cleanupOrphaned` command returns a
-       response.
- 
 Behavior
 --------
 
@@ -136,10 +96,9 @@ Behavior
 Determine Range
 ~~~~~~~~~~~~~~~
 
-Starting in MongoDB 4.4, the value of this field is not used to
-determine the bounds of the cleanup range. The
-:dbcommand:`cleanupOrphaned` command waits until all orphaned documents
-in all ranges in the namespace are cleaned up from the shard before
+The value of this field is not used to determine the bounds of the cleanup 
+range. The :dbcommand:`cleanupOrphaned` command waits until all orphaned 
+documents in all ranges in the namespace are cleaned up from the shard before
 completing, regardless of the presence of or value of
 ``startingFromKey``. 
 

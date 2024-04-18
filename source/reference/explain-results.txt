@@ -12,22 +12,29 @@ Explain Results
    :depth: 2
    :class: singlecol
 
-To return information on query plans and execution statistics of the
-query plans, MongoDB provides:
+To return information on :ref:`query plans
+<query-plans-query-optimization>` and execution statistics of the query
+plans, MongoDB provides the following methods:
 
-- the :method:`db.collection.explain()` method,
+- :method:`db.collection.explain()`
 
-- the :method:`cursor.explain()` method, and
+- :method:`cursor.explain()`
 
-- the :dbcommand:`explain` command.
+To learn about important explain result fields and how to interpret
+them, see :ref:`interpret-explain-plan`.
 
 .. important::
 
-   - Only the most important output fields are shown on this page.
+   ``explain`` ignores the plan cache. Instead, a set 
+   of candidate plans are generated, and a winner is chosen without consulting 
+   the plan cache. Furthermore, ``explain`` prevents the MongoDB query planner 
+   from caching the winning plan.
 
-   - The output is subject to change.
+.. note::
 
-   - Some fields are for internal use and are not documented.
+   Only the most important output fields are shown on this page, and fields for 
+   internal use are not documented. The fields listed in the output are subject 
+   to change.
 
 .. _explain-output-structure:
 
@@ -137,7 +144,7 @@ documentation for that version.
 ~~~~~~~~~~~~~~~~
 
 :data:`explain.queryPlanner` information details the plan selected by
-the :doc:`query optimizer </core/query-plans>`.
+the :ref:`query optimizer <read-operations-query-optimization>`.
 
 These examples may combine the output structures of MongoDB's classic
 and slot-based execution engines. They are not meant to be 
@@ -231,7 +238,7 @@ representative. Your output may differ significantly.
 .. data:: explain.queryPlanner
 
    Contains information on the selection of the query plan by the
-   :doc:`query optimizer </core/query-plans>`.
+   :ref:`query optimizer <read-operations-query-optimization>`.
 
    .. data:: explain.queryPlanner.namespace
 
@@ -463,6 +470,22 @@ representative. Your output may differ significantly.
                      },
                      ...
                   ]
+                  operationMetrics: {
+                     cpuNanos: <int>,
+                     cursorSeeks: <int>,
+                     docBytesRead: <int>,
+                     docBytesWritten: <int>,
+                     docUnitsRead: <int>,
+                     docUnitsReturned: <int>,
+                     docUnitsWritten: <int>,
+                     idxEntryBytesRead: <int>,
+                     idxEntryBytesWritten: <int>,
+                     idxEntryUnitsRead: <int>,
+                     idxEntryUnitsWritten: <int>,
+                     totalUnitsWritten: <int>,
+                     keysSorted: <int>,
+                     sorterSpills: <int>
+                  }
                }
 
       - id: sharded
@@ -558,16 +581,24 @@ representative. Your output may differ significantly.
 
    .. data:: explain.executionStats.nReturned
 
-      Number of documents that match the query condition.
+      Number of documents returned by the winning query plan.
       :data:`~explain.executionStats.nReturned` corresponds to the ``n`` field
       returned by ``cursor.explain()`` in earlier versions of MongoDB.
 
    .. data:: explain.executionStats.executionTimeMillis
 
       Total time in milliseconds required for query plan selection and
-      query execution. :data:`explain.executionStats.executionTimeMillis` corresponds
-      to the ``millis`` field returned by ``cursor.explain()`` in
-      earlier versions of MongoDB.
+      query execution. It includes the time it takes to run the trial phase 
+      part of the plan selection process, but does not include the network time 
+      to transmit the data back to the client.
+
+      The time reported by ``explain.executionStats.executionTimeMillis`` is 
+      not necessarily representative of actual query time. During steady 
+      state operations (when the query plan is cached), or when using 
+      :method:`cursor.hint()` with ``cursor.explain()``, MongoDB bypasses the 
+      plan selection process, resulting in a faster actual time, leading to 
+      a lower ``explain.executionStats.executionTimeMillis`` value.
+
 
    .. data:: explain.executionStats.totalKeysExamined
 
@@ -738,6 +769,13 @@ representative. Your output may differ significantly.
       both the winning and rejected plans. The field is present only if
       ``explain`` runs in ``allPlansExecution`` verbosity mode.
 
+   .. data:: explain.executionStats.operationMetrics
+
+      Contains resource consumption statistics, as long as they 
+      are not zero. The field is present only if ``explain`` 
+      runs in ``executionStats`` verbosity mode or higher and if 
+      :parameter:`profileOperationResourceConsumptionMetrics` is enabled.
+
 .. _serverInfo:
 
 ``serverInfo``
@@ -834,7 +872,6 @@ The following fields are included in the explain results for a
    totalKeysExamined: <long>,
    collectionScans: <long>,
    indexesUsed: [ <string_1>, <string_2>, ..., <string_n> ],
-   nReturned: <long>,
    executionTimeMillisEstimate: <long>
 
 To see the descriptions for the fields in the ``$lookup`` section, see
@@ -862,14 +899,9 @@ The other fields are:
 
    Array of strings with the names of the indexes used by the query.
 
-.. data:: explain.nReturned
-
-   Number of documents that match the query condition.
-
 .. data:: explain.executionTimeMillisEstimate
 
    Estimated time in milliseconds for the query execution.
-
 
 .. _explain-output-collection-scan:
 
@@ -885,9 +917,22 @@ key pattern, direction of traversal, and index bounds.
 
 Starting in MongoDB 5.3, if the query planner selects a :ref:`clustered
 index <db.createCollection.clusteredIndex>` for a :ref:`clustered
-collection <clustered-collections>`, the explain result includes a
+collection <clustered-collections>` and the query contains bounds that
+define the portion of the index to search, the explain result includes a
 ``CLUSTERED_IXSCAN`` stage. The stage includes information about the
 clustered index key and index bounds.
+
+If the query planner selects a :ref:`clustered index
+<db.createCollection.clusteredIndex>` for a :ref:`clustered collection
+<clustered-collections>` and the query *does not* contain bounds, the
+query performs an unbounded collection scan and the explain result
+includes a ``COLLSCAN`` stage.
+
+.. note::
+
+   The :parameter:`notablescan` parameter does not allow unbounded
+   queries that use a clustered index because the queries require a
+   full collection scan. 
 
 For more information on execution statistics of collection scans, see
 :doc:`/tutorial/analyze-query-plan`.
@@ -1028,9 +1073,13 @@ documents, blocking the flow of data for that specific query.
 
 If MongoDB requires using more than 100 megabytes of system memory for
 the blocking sort operation, MongoDB returns an error *unless* the query
-specifies :method:`cursor.allowDiskUse()` (*New in MongoDB 4.4*).
-:method:`cursor.allowDiskUse()` allows MongoDB to use temporary files
-on disk to store data exceeding the 100 megabyte system memory limit
-while processing a blocking sort operation. If the explain plan does not
-contain an explicit ``SORT`` stage, then MongoDB can use an index to
-obtain the sort order.
+specifies :method:`cursor.allowDiskUse()`. :method:`cursor.allowDiskUse()` 
+allows MongoDB to use temporary files on disk to store data exceeding the 100 
+megabyte system memory limit while processing a blocking sort operation. If the 
+explain plan does not contain an explicit ``SORT`` stage, then MongoDB can use 
+an index to obtain the sort order.
+
+.. toctree::
+   :titlesonly:
+
+   /tutorial/analyze-query-plan

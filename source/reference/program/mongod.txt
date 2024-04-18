@@ -12,6 +12,9 @@
 ``mongod``
 ==========
 
+.. meta::
+   :description: Explore the command-line options for mongod, MongoDB's primary daemon process, which handles data, manages data access, and performs background management operations.
+
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -78,11 +81,6 @@ Options
 
    - MongoDB removes the ``--serviceExecutor`` command-line option and the
      corresponding ``net.serviceExecutor`` configuration option.
-
-.. versionchanged:: 4.4
-
-   - MongoDB removes the ``--noIndexBuildRetry`` command-line option
-     and the corresponding ``storage.indexBuildRetry`` option.
 
 Core Options
 ~~~~~~~~~~~~
@@ -1133,10 +1131,9 @@ LDAP Authentication or Authorization Options
    or the transformation the document describes fails,
    ``mongod`` returns an error. 
 
-   Starting in MongoDB 4.4, ``mongod`` also returns an error
-   if one of the transformations cannot be evaluated due to networking
-   or authentication failures to the LDAP server. ``mongod``
-   rejects the connection request and does not check the remaining
+   ``mongod`` also returns an error if one of the transformations cannot be 
+   evaluated due to networking or authentication failures to the LDAP server. 
+   ``mongod`` rejects the connection request and does not check the remaining
    documents in the array.
 
    Starting in MongoDB 5.0, :option:`--ldapUserToDNMapping`
@@ -1366,16 +1363,11 @@ Storage Options
    *Default*: 60
 
    Controls how much time can pass before MongoDB flushes data to the data
-   files via an :term:`fsync` operation.
+   files.
    
    **Do not set this value on
    production systems.** In almost every situation, you should use the
    default setting.
-   
-   .. warning::
-   
-      If you set :option:`--syncdelay` to ``0``, MongoDB doesn't sync the
-      memory mapped files to disk.
    
    The ``mongod`` process writes data very quickly to the journal and
    lazily to the data files. :option:`--syncdelay` has no effect on 
@@ -1384,7 +1376,7 @@ Storage Options
 
    .. include:: /includes/not-available-for-inmemory-storage-engine.rst
    
-
+   .. include:: /includes/checkpoints.rst
 
 .. option:: --upgrade
 
@@ -1412,18 +1404,6 @@ Storage Options
    - If a collection's data file is salvaged or if the collection has
      inconsistencies that the validate step is unable to fix, then all
      indexes are rebuilt.
-   
-   In MongoDB 4.4 and previous versions, the repair operation attempts
-   to: 
-   
-   - Salvage corrupt data. The operation discards any corrupt 
-     data that cannot be salvaged. 
-     
-   - Rebuild indexes. The operation validates collections and rebuilds 
-     all indexes for collections with inconsistencies between the 
-     collection data and one or more indexes. The operation also 
-     rebuilds indexes for all salvaged and modified collections. 
-     (*Changed in version 4.4.*)
    
    .. tip::
    
@@ -1482,48 +1462,6 @@ WiredTiger Options
    
 
    .. include:: /includes/extracts/wt-cache-additional-constraints-mongod-cmdline-option.rst
-   
-
-
-.. option:: --wiredTigerMaxCacheOverflowFileSizeGB <float>
-
-   .. note:: Deprecated in MongoDB 4.4
-
-
-      MongoDB deprecates the ``--wiredTigerMaxCacheOverflowFileSizeGB``
-      option. The option has no effect starting in MongoDB 4.4.
-
-   Specifies the maximum size (in GB) for the "lookaside (or cache
-   overflow) table" file :file:`WiredTigerLAS.wt` for MongoDB
-   4.2.1-4.2.x. The file no longer exists starting in
-   version 4.4.
-
-   The setting can accept the following values:
-   
-   .. list-table::
-      :header-rows: 1
-      :widths: 20 80
-   
-      * - Value
-        - Description
-   
-      * - ``0``
-   
-        - The default value. If set to ``0``, the file size is
-          unbounded.
-   
-      * - number >= 0.1
-   
-        - The maximum size (in GB). If the :file:`WiredTigerLAS.wt`
-          file exceeds this size, ``mongod`` exits with a
-          fatal assertion. You can clear the :file:`WiredTigerLAS.wt`
-          file and restart ``mongod``.
-   
-   To change the maximum size during runtime, use the
-   :parameter:`wiredTigerMaxCacheOverflowSizeGB` parameter.
-   
-   .. versionadded:: 4.2.1
-   
 
 
 .. option:: --wiredTigerJournalCompressor <compressor>
@@ -1614,8 +1552,9 @@ Replication Options
 
 .. option:: --oplogSize <value>
 
-   Specifies a maximum size in megabytes for the replication operation log
-   (i.e., the :term:`oplog`).
+   .. |oplog-size-setting| replace:: ``oplogSize``
+
+   .. include:: /includes/reference/oplog-size-setting-intro.rst
    
    .. note:: 
    
@@ -1639,17 +1578,15 @@ Replication Options
 
 .. option:: --oplogMinRetentionHours <value>
 
-   .. versionadded:: 4.4
-
-      Specifies the minimum number of hours to preserve an oplog entry,
-      where the decimal values represent the fractions of an hour. For
-      example, a value of ``1.5`` represents one hour and thirty
-      minutes.
-
-      The value must be greater than or equal to ``0``. A value of ``0``
-      indicates that the ``mongod`` should truncate the oplog
-      starting with the oldest entries to maintain the configured
-      maximum oplog size.
+   Specifies the minimum number of hours to preserve an oplog entry,
+   where the decimal values represent the fractions of an hour. For
+   example, a value of ``1.5`` represents one hour and thirty
+   minutes.
+   
+   The value must be greater than or equal to ``0``. A value of ``0``
+   indicates that the ``mongod`` should truncate the oplog
+   starting with the oldest entries to maintain the configured
+   maximum oplog size.
 
    Defaults to ``0``.
    
@@ -1730,7 +1667,7 @@ Sharded Cluster Options
    config servers (SCCC) is no longer supported.
 
    The replica set config servers (CSRS) must run the
-   :doc:`WiredTiger storage engine </core/wiredtiger>`.
+   :ref:`WiredTiger storage engine <storage-wiredtiger>`.
 
    The :option:`--configsvr` option creates a local :term:`oplog`.
    
@@ -1920,8 +1857,6 @@ TLS Options
    .. include:: /includes/extracts/tls-facts-ca-file.rst
    
    .. include:: /includes/extracts/tls-facts-see-more.rst
-   
-
 
 .. option:: --tlsClusterFile <filename>
 
@@ -2078,6 +2013,10 @@ TLS Options
    Specifies the :file:`.pem` file that contains the root certificate
    chain from the Certificate Authority. Specify the file name of the
    :file:`.pem` file using relative or absolute paths.
+
+   .. important:: 
+
+      .. include:: /includes/fact-ssl-tlsCAFile-tlsUseSystemCA.rst
    
    Windows/macOS Only
      If using :option:`--tlsCertificateSelector` and/or
@@ -2140,7 +2079,7 @@ TLS Options
         :option:`--tlsCertificateSelector` to use the
         system SSL certificate store.
 
-      - Starting in version 4.4, to check for certificate revocation,
+      - To check for certificate revocation,
         MongoDB :parameter:`enables <ocspEnabled>` the use of OCSP
         (Online Certificate Status Protocol) by default as an
         alternative to specifying a CRL file or using the system SSL
@@ -2611,7 +2550,7 @@ SSL Options (Deprecated)
         :option:`--tlsCertificateSelector` in MongoDB 4.2+ to use the
         system SSL certificate store.
 
-      - Starting in version 4.4, to check for certificate revocation,
+      - To check for certificate revocation,
         MongoDB :parameter:`enables <ocspEnabled>` the use of OCSP
         (Online Certificate Status Protocol) by default as an
         alternative to specifying a CRL file or using the system SSL
@@ -3055,9 +2994,6 @@ Encryption Key Management Options
 
    *Default*: 0
 
-
-   .. versionadded:: 4.4
-   
    How many times to retry the initial connection to the KMIP server.
    Use together with :option:`--kmipConnectTimeoutMS` to
    control how long the ``mongod`` waits for a response
@@ -3071,9 +3007,6 @@ Encryption Key Management Options
 
    *Default*: 5000
 
-
-   .. versionadded:: 4.4
-   
    Timeout in milliseconds to wait for a response from the KMIP server.
    If the :option:`--kmipConnectRetries` setting is specified,
    the ``mongod`` waits for the specified interval between retries.
@@ -3087,7 +3020,7 @@ Encryption Key Management Options
 .. option:: --kmipClientCertificateSelector <string>
 
    
-   .. versionadded:: 4.2.15, 4.4.7, and 5.0
+   .. versionadded:: 5.0
    
       Available on Windows and macOS as an alternative to
       :option:`--kmipClientCertificateFile`. 
@@ -3115,6 +3048,11 @@ Encryption Key Management Options
    
    To use this option, you must also specify the
    :option:`--kmipServerName` option.
+
+   .. |kmip-client-cert-file| replace:: ``--kmipClientCertificateFile``
+   .. |kmip-client-cert-selector| replace:: :option:`--kmipClientCertificateSelector`
+
+   .. include:: /includes/enable-KMIP-on-windows.rst
    
    .. note::
       

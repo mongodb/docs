@@ -18,6 +18,7 @@
        - :pipeline:`$merge`
        - :pipeline:`$out`
        - :pipeline:`$planCacheStats`
+       - :pipeline:`$unionWith`
 
    * - :method:`db.collection.countDocuments()` 
      -
@@ -57,9 +58,8 @@
 
      - :dbcommand:`findAndModify`
 
-     - Starting in MongoDB 4.4, if the update or replace operation is
-       run with ``upsert: true`` on a non-existing collection, the
-       collection is implicitly created.
+     - If the update or replace operation is run with ``upsert: true`` on a 
+       non-existing collection, the collection is implicitly created.
 
        In MongoDB 4.2 and earlier, if ``upsert: true``, the operation
        must be run on an existing collection.
@@ -73,8 +73,8 @@
 
      - :dbcommand:`insert`
 
-     - Starting in MongoDB 4.4, if run on a non-existing
-       collection, the collection is implicitly created.
+     - If run on a non-existing collection, the collection is implicitly 
+       created.
        
        In MongoDB 4.2 and earlier, the operation must be run on an
        existing collection.
@@ -89,8 +89,8 @@
 
      - :dbcommand:`update`
 
-     - Starting in MongoDB 4.4, if run on a non-existing
-       collection, the collection is implicitly created.
+     - If run on a non-existing collection, the collection is implicitly 
+       created.
        
        In MongoDB 4.2 and earlier, the operation must be run on an
        existing collection.
@@ -102,8 +102,8 @@
    * - | :method:`db.collection.bulkWrite()`
        | Various :doc:`/reference/method/js-bulk`
      - 
-     - Starting in MongoDB 4.4, if run on a non-existing
-       collection, the collection is implicitly created.
+     - If run on a non-existing collection, the collection is implicitly 
+       created.
        
        In MongoDB 4.2 and earlier, the operation must be run on an
        existing collection.

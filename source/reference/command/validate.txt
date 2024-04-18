@@ -18,7 +18,10 @@ Definition
 .. dbcommand:: validate
 
    The :dbcommand:`validate` command checks a collection's data and
-   indexes for correctness and returns the results.
+   indexes for correctness and returns the results. If you don't run the
+   command in the :ref:`background <cmd-validate-background>`, the
+   command also repairs any inconsistencies in the count and data size
+   of a collection. 
 
    .. |method| replace:: :method:`~db.collection.validate` helper method
    .. include:: /includes/fact-dbcommand-tip
@@ -39,6 +42,17 @@ Definition
    :binary:`~bin.mongosh` provides a wrapper around
    :dbcommand:`validate`.
 
+Compatibility
+-------------
+
+This command is available in deployments hosted in the following environments: 
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. include:: /includes/fact-environments-atlas-support-no-free-or-serverless.rst
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
 Syntax
 ------
 
@@ -53,6 +67,7 @@ The command has the following syntax:
         repair: <boolean>,  // Optional, added in MongoDB 5.0
         metadata: <boolean>,  // Optional, added in MongoDB 5.0.4
         checkBSONConformance: <boolean>  // Optional, added in MongoDB 6.2
+        background: <boolean> // Optional
       } 
    )
 
@@ -84,9 +99,9 @@ The command takes the following fields:
        - If ``true``, performs a more thorough check with the following
          exception:
 
-         - Starting in MongoDB 4.4, full validation on the ``oplog``
-           for WiredTiger skips the more thorough check. The
-           :data:`validate.warnings` includes a notice of the behavior.
+         - Full validation on the ``oplog`` for WiredTiger skips the more 
+           thorough check. The :data:`validate.warnings` includes a notice of 
+           the behavior.
 
        - If ``false``, omits some checks for a faster but less
          thorough check.
@@ -112,6 +127,16 @@ The command takes the following fields:
      - .. _cmd-validate-checkBSONConformance:
 
        .. include:: /includes/fact-validate-conformance.rst
+
+   * - ``background`` 
+     - boolean 
+     - .. _cmd-validate-background:
+     
+       *Optional*. If ``true``, MongoDB runs the ``validate`` command in the
+       background. If ``false``, the command repairs any inconsistencies
+       in the count and data size of a collection. 
+       
+       The default is ``false``.
 
 Behavior
 --------
@@ -163,6 +188,19 @@ Index Key Format
 Starting in MongoDB 6.0, the ``validate`` command returns a message if a
 :ref:`unique index <index-type-unique>` has a key format that is
 incompatible. The message indicates an old format is used.
+
+Count and Data Size Statistics 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :dbcommand:`validate` command updates the collection's count and
+data size statistics in the :dbcommand:`collStats` :ref:`output
+<collStats-output>` with their correct values.
+
+.. note:: 
+
+   In the event of an :ref:`unclean shutdown
+   <estimated-document-count-unclean-shutdown>`, the count and data size
+   statistics might be inaccurate. 
 
 Examples
 --------

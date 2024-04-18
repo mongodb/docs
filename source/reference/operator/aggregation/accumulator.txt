@@ -15,8 +15,6 @@ Definition
 
 .. group:: $accumulator
 
-   .. versionadded:: 4.4
-
    Defines a custom :ref:`accumulator operator
    <agg-operators-group-accumulators>`. Accumulators are operators that
    maintain their state (e.g. totals, maximums, minimums, and related
@@ -248,7 +246,13 @@ may need to merge two separate, intermediate states. The :ref:`merge
 <accumulator-merge>` function specifies how the operator should merge
 two states.
 
-For example, :group:`$accumulator` may need to combine two states when:
+The :ref:`merge <accumulator-merge>` function always merges two
+states at a time. In the event that more than two states must be merged,
+the resulting merge of two states is merged with a single state. This
+process repeats until all states are merged.
+
+For example, :group:`$accumulator` may need to combine two states in the
+following scenarios:
 
 - :group:`$accumulator` is run on a sharded cluster. The operator
   needs to merge the results from each shard to obtain the final
@@ -261,16 +265,64 @@ For example, :group:`$accumulator` may need to combine two states when:
   Once the operation finishes, the results from disk and memory are
   merged together using the :ref:`merge <accumulator-merge>` function.
 
-  .. seealso::
+Document Processing Order
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-     :ref:`group-memory-limit`
+The order that MongoDB processes documents for the ``init()``,
+``accumulate()``, and ``merge()`` functions can vary, and might differ
+from the order that those documents are specified to the
+``$accumulator`` function.
 
-.. note::
+For example, consider a series of documents where the ``_id`` fields are
+the letters of the alphabet:
 
-   The :ref:`merge <accumulator-merge>` function always merges two
-   states at a time. In the event that more than two states must be
-   merged, the resulting merge of two states is merged with a single
-   state. This process repeats until all states are merged.
+.. code-block:: javascript
+   :copyable: false
+
+  { _id: 'a' },
+  { _id: 'b' },
+  { _id: 'c' }
+  ...
+  { _id: 'z' }
+
+Next, consider an aggregation pipeline that sorts the documents by the
+``_id`` field and then uses an ``$accumulator`` function to concatenate
+the ``_id`` field values:
+
+.. code-block:: javascript
+  
+   [
+      {
+         $sort: { _id: 1 }
+      },
+      {
+         $group: {
+            _id: null,
+            alphabet: {
+               $accumulator: {
+                  init: function() {
+                     return ""
+                  },
+                  accumulate: function(state, letter) {
+                     return(state + letter)
+                  },
+                  accumulateArgs: [ "$_id" ],
+                  merge: function(state1, state2) {         
+                     return(state1 + state2)
+                  },
+                  lang: "js"
+               }
+            }
+         }
+      }
+   ]
+
+MongoDB does not guarantee that the documents are processed in the
+sorted order, meaning the ``alphabet`` field does not necessarily get
+set to ``abc...z``.
+
+Due to this behavior, ensure that your ``$accumulator`` function does
+not need to process and return documents in a specific order.
 
 Javascript Enabled
 ~~~~~~~~~~~~~~~~~~
@@ -288,8 +340,7 @@ scripting:
 
 - For a :binary:`~bin.mongos` instance, see
   :setting:`security.javascriptEnabled` configuration option or the
-  :option:`--noscripting <mongos --noscripting>` command-line option
-  starting in MongoDB 4.4.
+  :option:`--noscripting <mongos --noscripting>` command-line option.
   
   | In earlier versions, MongoDB does not allow JavaScript execution on
     :binary:`~bin.mongos` instances.

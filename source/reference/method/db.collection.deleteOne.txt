@@ -4,6 +4,9 @@ db.collection.deleteOne()
 
 .. default-domain:: mongodb
 
+.. meta::
+   :description: Delete a single document from a collection.
+
 .. facet::
    :name: programming_language 
    :values: shell
@@ -51,7 +54,7 @@ The :method:`~db.collection.deleteOne()` method has the following form:
        {
          writeConcern: <document>,
          collation: <document>,
-         hint: <document|string>        // Available starting in MongoDB 4.4
+         hint: <document|string>  
        }
    )
 
@@ -109,8 +112,6 @@ parameters:
 
        For an example, see :ref:`ex-deleteOne-hint`.
 
-       .. versionadded:: 4.4
-
 Behavior
 --------
 
@@ -131,8 +132,8 @@ To use :method:`db.collection.deleteOne` on a sharded collection:
 
 - If you only target one shard, you can use a partial shard key in the query specification or,
 
-- You can provide the :term:`shard key` or the ``_id`` field in the query
-  specification.
+- If you set ``limit: 1``, you do not need to provide the :term:`shard key` 
+  or ``_id`` field in the query specification.
 
 Transactions
 ~~~~~~~~~~~~
@@ -144,6 +145,14 @@ Transactions
 .. include:: /includes/extracts/transactions-usage.rst
 
 .. |operation| replace:: :method:`db.collection.deleteOne()`
+
+Oplog Entries
+~~~~~~~~~~~~~
+
+If a ``db.collection.deleteOne()`` operation successfully deletes a
+document, the operation adds an entry on the :term:`oplog` (operations
+log). If the operation fails or does not find a document to delete, the
+operation does not add an entry on the oplog. 
 
 Examples
 --------
@@ -157,16 +166,18 @@ The ``orders`` collection has documents with the following structure:
 
 .. code-block:: javascript
 
-   {
-      _id: ObjectId("563237a41a4d68582c2509da"),
-      stock: "Brent Crude Futures",
-      qty: 250,
-      type: "buy-limit",
-      limit: 48.90,
-      creationts: ISODate("2015-11-01T12:30:15Z"),
-      expiryts: ISODate("2015-11-01T12:35:15Z"),
-      client: "Crude Traders Inc."
-   }
+   db.orders.insertOne(
+      {
+         _id: ObjectId("563237a41a4d68582c2509da"),
+         stock: "Brent Crude Futures",
+         qty: 250,
+         type: "buy-limit",
+         limit: 48.90,
+         creationts: ISODate("2015-11-01T12:30:15Z"),
+         expiryts: ISODate("2015-11-01T12:35:15Z"),
+         client: "Crude Traders Inc."
+      }
+   )
    
 The following operation deletes the order with ``_id: 
 ObjectId("563237a41a4d68582c2509da")`` : 
@@ -174,7 +185,7 @@ ObjectId("563237a41a4d68582c2509da")`` :
 .. code-block:: javascript
 
    try {
-      db.orders.deleteOne( { "_id" : ObjectId("563237a41a4d68582c2509da") } );
+      db.orders.deleteOne( { _id: ObjectId("563237a41a4d68582c2509da") } );
    } catch (e) {
       print(e);
    }
@@ -183,7 +194,7 @@ The operation returns:
 
 .. code-block:: javascript
 
-   { "acknowledged" : true, "deletedCount" : 1 }
+   { acknowledged: true, deletedCount: 1 }
    
 The following operation deletes the first document with ``expiryts`` greater 
 than ``ISODate("2015-11-01T12:40:15Z")``
@@ -191,7 +202,7 @@ than ``ISODate("2015-11-01T12:40:15Z")``
 .. code-block:: javascript
 
    try {
-      db.orders.deleteOne( { "expiryts" : { $lt: ISODate("2015-11-01T12:40:15Z") } } );
+      db.orders.deleteOne( { expiryts: { $lt: ISODate("2015-11-01T12:40:15Z") } } );
    } catch (e) {
       print(e);
    }
@@ -200,7 +211,7 @@ The operation returns:
 
 .. code-block:: javascript
 
-   { "acknowledged" : true, "deletedCount" : 1 }
+   { acknowledged: true, deletedCount: 1 }
    
 .. _deleteOne-example-update-with-write-concern:
 
@@ -214,27 +225,27 @@ Given a three member replica set, the following operation specifies a
 
    try {
       db.orders.deleteOne(
-          { "_id" : ObjectId("563237a41a4d68582c2509da") },
-          { w : "majority", wtimeout : 100 }
+          { _id: ObjectId("563237a41a4d68582c2509da") },
+          { w: "majority", wtimeout: 100 }
       );
    } catch (e) {
       print (e);
    }
 
-If the acknowledgement takes longer than the ``wtimeout`` limit, the following 
+If the acknowledgment takes longer than the ``wtimeout`` limit, the following 
 exception is thrown:
 
 .. code-block:: javascript
 
    WriteConcernError({
-      "code" : 64,
-      "errmsg" : "waiting for replication timed out",
-      "errInfo" : {
-        "wtimeout" : true,
-        "writeConcern" : {    // Added in MongoDB 4.4
-          "w" : "majority",
-          "wtimeout" : 100,
-          "provenance" : "getLastErrorDefaults"
+      code: 64,
+      errmsg: "waiting for replication timed out",
+      errInfo: {
+        wtimeout: true,
+        writeConcern: {  
+          w: "majority",
+          wtimeout: 100,
+          provenance: "getLastErrorDefaults"
         }
       }
    })
@@ -248,20 +259,22 @@ Specify Collation
 
 .. include:: /includes/extracts/collation-versionadded.rst
 
-A collection ``myColl`` has the following documents:
+A collection ``restaurants`` has the following documents:
 
 .. code-block:: javascript
 
-   { _id: 1, category: "café", status: "A" }
-   { _id: 2, category: "cafe", status: "a" }
-   { _id: 3, category: "cafE", status: "a" }
+   db.restaurants.insertMany( [
+      { _id: 1, category: "café", status: "A" },
+      { _id: 2, category: "cafe", status: "a" },
+      { _id: 3, category: "cafE", status: "a" }
+   ] )
 
 The following operation includes the :ref:`collation <collation>`
 option:
 
 .. code-block:: javascript
 
-   db.myColl.deleteOne( 
+   db.restaurants.deleteOne( 
       { category: "cafe", status: "A" }, 
       { collation: { locale: "fr", strength: 1 } }
    )
@@ -271,21 +284,19 @@ option:
 Specify ``hint`` for Delete Operations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. versionadded:: 4.4
-
 In :binary:`~bin.mongosh`, create a ``students`` collection
 with the following documents:
 
 .. code-block:: javascript
 
-   db.members.insertMany([
-      { "_id" : 1, "student" : "Richard", "grade" : "F", "points" :  0 },
-      { "_id" : 2, "student" : "Jane", "grade" : "A", "points" : 60 },
-      { "_id" : 3, "student" : "Adam", "grade" : "F", "points" :  0 },
-      { "_id" : 4, "student" : "Ronan", "grade" : "D", "points" : 20 },
-      { "_id" : 5, "student" : "Noah", "grade" : "F", "points" :  0 },
-      { "_id" : 6, "student" : "Henry", "grade" : "A", "points" : 86 }
-   ])
+   db.members.insertMany( [
+      { _id: 1, student: "Richard", grade: "F", points: 0 },
+      { _id: 2, student: "Jane", grade: "A", points: 60 },
+      { _id: 3, student: "Adam", grade: "F", points:  0 },
+      { _id: 4, student: "Ronan", grade: "D", points: 20 },
+      { _id: 5, student: "Noah", grade: "F", points:  0 },
+      { _id: 6, student: "Henry", grade: "A", points: 86 }
+   ] )
 
 Create the following index on the collection:
 
@@ -299,7 +310,7 @@ The following delete operation explicitly hints to use the index
 .. code-block:: javascript
 
    db.members.deleteOne(
-      { "points": { $lte: 20 }, "grade": "F" }, 
+      { points: { $lte: 20 }, grade: "F" }, 
       { hint: { grade: 1 } }
    )
 
@@ -311,7 +322,7 @@ The delete command returns the following:
 
 .. code-block:: javascript
 
-   { "acknowledged" : true, "deletedCount" : 1 }
+   { acknowledged: true, deletedCount: 1 }
 
 To view the indexes used, you can use the :pipeline:`$indexStats` pipeline:
 

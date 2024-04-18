@@ -4,6 +4,9 @@ db.collection.deleteMany()
 
 .. default-domain:: mongodb
 
+.. meta::
+   :description: Delete all documents that match a specified filter from a collection.
+
 .. facet::
    :name: programming_language 
    :values: shell
@@ -122,8 +125,6 @@ syntax:
 
        For an example, see :ref:`ex-deleteMany-hint`.
 
-       .. versionadded:: 4.4
-
 Behavior
 --------
 
@@ -165,6 +166,16 @@ If the primary node fails during a :method:`db.collection.deleteMany()`
 operation, documents that were not yet deleted from secondary nodes are
 not deleted from the collection.
 
+Oplog Entries
+~~~~~~~~~~~~~
+
+If a ``db.collection.deleteMany()`` operation successfully deletes one
+or more documents, the operation adds an entry for each deleted document
+on the :term:`oplog` (operations log). If the operation fails or does
+not find any documents to delete, the operation does not add an entry on
+the oplog. 
+
+
 Examples
 --------
 
@@ -177,16 +188,18 @@ The ``orders`` collection has documents with the following structure:
 
 .. code-block:: javascript
 
-   {
-      _id: ObjectId("563237a41a4d68582c2509da"),
-      stock: "Brent Crude Futures",
-      qty: 250,
-      type: "buy-limit",
-      limit: 48.90,
-      creationts: ISODate("2015-11-01T12:30:15Z"),
-      expiryts: ISODate("2015-11-01T12:35:15Z"),
-      client: "Crude Traders Inc."
-   }
+   db.orders.insertOne(
+      {
+         _id: ObjectId("563237a41a4d68582c2509da"),
+         stock: "Brent Crude Futures",
+         qty: 250,
+         type: "buy-limit",
+         limit: 48.90,
+         creationts: ISODate("2015-11-01T12:30:15Z"),
+         expiryts: ISODate("2015-11-01T12:35:15Z"),
+         client: "Crude Traders Inc."
+      }
+   )
    
 The following operation deletes all documents where ``client : "Crude Traders 
 Inc."``:
@@ -241,7 +254,7 @@ Given a three member replica set, the following operation specifies a
       print (e);
    }
 
-If the acknowledgement takes longer than the ``wtimeout`` limit, the following 
+If the acknowledgment takes longer than the ``wtimeout`` limit, the following 
 exception is thrown:
 
 .. code-block:: javascript
@@ -251,7 +264,7 @@ exception is thrown:
       "errmsg" : "waiting for replication timed out",
       "errInfo" : {
         "wtimeout" : true,
-        "writeConcern" : {    // Added in MongoDB 4.4
+        "writeConcern" : {  
           "w" : "majority",
           "wtimeout" : 100,
           "provenance" : "getLastErrorDefaults"
@@ -268,20 +281,22 @@ Specify Collation
 
 .. include:: /includes/extracts/collation-versionadded.rst
 
-A collection ``myColl`` has the following documents:
+A collection ``restaurants`` has the following documents:
 
 .. code-block:: javascript
 
-   { _id: 1, category: "café", status: "A" }
-   { _id: 2, category: "cafe", status: "a" }
-   { _id: 3, category: "cafE", status: "a" }
+   db.restaurants.insertMany( [
+      { _id: 1, category: "café", status: "A" },
+      { _id: 2, category: "cafe", status: "a" },
+      { _id: 3, category: "cafE", status: "a" }
+   ] )
 
 The following operation includes the :ref:`collation <collation>`
 option:
 
 .. code-block:: javascript
 
-   db.myColl.deleteMany( 
+   db.restaurants.deleteMany( 
       { category: "cafe", status: "A" }, 
       { collation: { locale: "fr", strength: 1 } }
    )
@@ -290,8 +305,6 @@ option:
 
 Specify ``hint`` for Delete Operations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. versionadded:: 4.4
 
 In :binary:`~bin.mongosh`, create a ``members`` collection
 with the following documents:

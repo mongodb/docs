@@ -86,25 +86,41 @@ The following operation uses the :expression:`$anyElementTrue` operator
 to determine if the ``responses`` array contains any value that
 evaluates to ``true``:
 
-.. code-block:: javascript
+.. io-code-block:: 
+   :copyable: true
 
-   db.survey.aggregate(
+   .. input:: 
+      :language: javascript
+
+      db.survey.aggregate(
+        [
+          { $project: { responses: 1, isAnyTrue: { $anyElementTrue: [ "$responses" ] }, _id: 1 } }
+        ]
+      )
+
+   .. output:: 
+      :language: javascript
+
       [
-        { $project: { responses: 1, isAnyTrue: { $anyElementTrue: [ "$responses" ] }, _id: 0 } }
+        { _id: 1, responses: [ true ], isAnyTrue: true },
+        { _id: 2, responses: [ true, false ], isAnyTrue: true },
+        { _id: 3, responses: [], isAnyTrue: false },
+        { _id: 4, responses: [ 1, true, 'seven' ], isAnyTrue: true },
+        { _id: 5, responses: [ 0 ], isAnyTrue: false },
+        { _id: 6, responses: [ [] ], isAnyTrue: true },
+        { _id: 7, responses: [ [ 0 ] ], isAnyTrue: true },
+        { _id: 8, responses: [ [ false ] ], isAnyTrue: true },
+        { _id: 9, responses: [ null ], isAnyTrue: false },
+        { _id: 10, responses: [ null ], isAnyTrue: false }
       ]
-   )
 
-The operation returns the following results:
+In the results: 
 
-.. code-block:: javascript
-
-   { "responses" : [ true ], "isAnyTrue" : true }
-   { "responses" : [ true, false ], "isAnyTrue" : true }
-   { "responses" : [ ], "isAnyTrue" : false }
-   { "responses" : [ 1, true, "seven" ], "isAnyTrue" : true }
-   { "responses" : [ 0 ], "isAnyTrue" : false }
-   { "responses" : [ [ ] ], "isAnyTrue" : true }
-   { "responses" : [ [ 0 ] ], "isAnyTrue" : true }
-   { "responses" : [ [ false ] ], "isAnyTrue" : true }
-   { "responses" : [ null ], "isAnyTrue" : false }
-   { "responses" : [ undefined ], "isAnyTrue" : false }
+- Document with ``_id: 1`` is ``true`` because the element inside the
+  ``responses`` array evaluates as ``true``.  
+- Documents with ``_id: 2`` and ``_id: 4`` are ``true`` because at least
+  one element inside the ``responses`` array evaluates as ``true``. 
+- Documents with ``_id: 6``, ``_id: 7``, and ``_id: 8`` are ``true``
+  because the ``responses`` array, which is the array that
+  ``$anyElementTrue`` evaluated for the operation, contains a nested
+  array, which ``$anyElementTrue`` always evaluates as ``true``. 

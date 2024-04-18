@@ -22,6 +22,16 @@
          .. figure:: /images/compass-find-null-field.png
             :alt: Query null value or missing field
 
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 39
+            :end-before: End Example 39
+  
+            
      - id: python
        content: |
 
@@ -58,6 +68,15 @@
             :start-after: Start Example 39
             :end-before: End Example 39
 
+     - id: kotlin-coroutine
+       content: |
+
+         .. literalinclude:: /driver-examples/kotlin_examples.kt
+            :language: kotlin
+            :dedent:
+            :start-after: Start Example 39
+            :end-before: End Example 39
+
      - id: nodejs
        content: |
          .. literalinclude:: /driver-examples/node_query_for_null_fields.js
@@ -72,15 +91,6 @@
          .. literalinclude:: /driver-examples/DocumentationExamplesTest.php
             :language: php
             :dedent: 8
-            :start-after: Start Example 39
-            :end-before: End Example 39
-
-     - id: perl
-       content: |
-
-         .. literalinclude:: /driver-examples/driver-examples.t
-            :language: perl
-            :dedent: 4
             :start-after: Start Example 39
             :end-before: End Example 39
 

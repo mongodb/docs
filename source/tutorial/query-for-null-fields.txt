@@ -6,15 +6,16 @@
 ================================
 Query for Null or Missing Fields
 ================================
-
+  
 .. default-domain:: mongodb
 
 .. facet::
    :name: programming_language
-   :values: shell, csharp, go, java, javascript/typescript, perl, php, python, ruby, scala
+   :values: shell, csharp, go, java, javascript/typescript, php, python, ruby, scala, kotlin
 
 .. meta:: 
-   :keywords: java sync, java async, reactive streams, motor, code example, node.js, compass
+   :description:  Learn how to query for null or missing fields in MongoDB using various methods including the MongoDB Atlas UI and MongoDB Compass. Understand different query operators' treatment of null values.
+   :keywords: java sync, java async, reactive streams, motor, code example, node.js, compass, kotlin coroutine
 
 .. contents:: On this page
    :local:
@@ -36,11 +37,17 @@ Different query operators in MongoDB treat ``null`` values differently.
 
 .. |query_operations| replace:: operations that query for ``null`` values
 
-.. include:: /includes/driver-examples/driver-example-query-intro.rst
+.. include:: /includes/driver-examples/driver-example-query-intro-no-perl.rst
 
 .. tabs-drivers::
 
    tabs:
+     - id: c
+       content: |
+         .. important::
+            Use ``BCON_NULL`` with the MongoDB C driver to
+            query for ``null`` or missing fields in MongoDB.
+
      - id: python
        content: |
          .. important::
@@ -53,10 +60,10 @@ Different query operators in MongoDB treat ``null`` values differently.
             Use ``None`` with the Motor driver to
             query for ``null`` or missing fields in MongoDB.
 
-     - id: perl
+     - id: kotlin-coroutine
        content: |
          .. important::
-            Use ``undef`` with the MongoDB Perl driver to
+            Use ``null`` with the Kotlin Coroutine driver to
             query for ``null`` or missing fields in MongoDB.
 
      - id: ruby
@@ -84,7 +91,6 @@ Different query operators in MongoDB treat ``null`` values differently.
             Use ``nil`` with the MongoDB Go driver to
             query for ``null`` or missing fields in MongoDB.
 
-
 .. include:: /includes/driver-examples/driver-example-query-38.rst
 
 .. _faq-comparison-with-null:
@@ -104,6 +110,12 @@ Equality Filter
      - id: compass
        content: |
          The ``{ item : null }`` query matches documents that either
+         contain the ``item`` field whose value is ``null`` *or* that
+         do not contain the ``item`` field.
+
+     - id: c
+       content: |
+         The ``{ item, BCON_NULL }`` query matches documents that either
          contain the ``item`` field whose value is ``null`` *or* that
          do not contain the ``item`` field.
 
@@ -131,6 +143,12 @@ Equality Filter
          contain the ``item`` field whose value is ``null`` *or* that
          do not contain the ``item`` field.
 
+     - id: kotlin-coroutine
+       content: |
+         The ``eq("item", null)`` query matches documents that either
+         contain the ``item`` field whose value is ``null`` *or* that
+         do not contain the ``item`` field.
+
      - id: nodejs
        content: |
          The ``{ item : null }`` query matches documents that either
@@ -140,12 +158,6 @@ Equality Filter
      - id: php
        content: |
          The ``[ item => undef ]`` query matches documents that either
-         contain the ``item`` field whose value is ``null`` *or* that
-         do not contain the ``item`` field.
-
-     - id: perl
-       content: |
-         The ``{ item => undef }`` query matches documents that either
          contain the ``item`` field whose value is ``null`` *or* that
          do not contain the ``item`` field.
 
@@ -178,6 +190,110 @@ Equality Filter
 
 The query returns both documents in the collection.
 
+.. _non-equality-filter:
+
+Non-Equality Filter
+-------------------
+
+To query for fields that **exist** and are **not null**, use the ``{ $ne
+: null }`` filter. The ``{ item : { $ne : null } }`` query matches
+documents where the ``item`` field exists *and* has a non-null value.
+
+.. tabs-drivers::
+
+   tabs:
+     - id: shell
+       content: |
+         .. code-block:: sh
+
+            db.inventory.find( { item: { $ne : null } } )
+
+     - id: compass
+       content: |
+         .. code-block:: javascript
+
+            { item: { $ne : null } }
+
+     - id: c
+       content: |
+         .. code-block:: c
+
+            filter = BCON_NEW ("item", BCON_NULL);
+            cursor = mongoc_collection_find_with_opts (collection, filter, NULL, NULL);
+      
+     - id: python
+       content: |
+         .. code-block:: python
+
+            cursor = db.inventory.find( { "item": { "$ne": None } } )
+
+     - id: motor
+       content: |
+         .. code-block:: python
+
+            cursor = db.inventory.find( { "item": { "$ne": None } } )
+
+     - id: java-sync
+       content: |
+         .. code-block:: java
+
+            collection.find(ne("item", null));
+
+     - id: java-async
+       content: |
+         .. code-block:: java
+
+            db.inventory.find( { item: { $ne : null} } )
+
+     - id: kotlin-coroutine
+       content: |
+         .. code-block:: kotlin
+
+            collection.find(ne("item", null))
+
+     - id: nodejs
+       content: |
+         .. code-block:: javascript
+
+            const cursor = db.collection('inventory')
+              .find({ item: { $ne : null }
+            });
+
+     - id: php
+       content: |
+         .. code-block:: php
+
+            $cursor = $db->inventory->find(['item' => ['$ne' => null ]]);
+
+     - id: ruby
+       content: |
+         .. code-block:: ruby
+
+            client[:inventory].find(item: { '$ne' => nil })
+            
+     - id: scala
+       content: |
+         .. code-block:: scala
+
+            collection.find($ne("item", null));
+
+     - id: csharp
+       content: |
+         .. code-block:: csharp
+
+            var filter = Builders<BsonDocument>.Filter.Ne("item", BsonNull.Value);
+            var result = collection.Find(filter).ToList();
+
+     - id: go
+       content: |
+         .. code-block:: go
+
+            cursor, err := coll.Find(
+              context.TODO(),
+              bson.D{
+                {"item", bson.D{"$ne": nil}},
+              })
+
 Type Check
 ----------
 
@@ -194,6 +310,13 @@ Type Check
      - id: compass
        content: |
          The ``{ item : { $type: 10 } }`` query matches *only*
+         documents that contain the ``item`` field whose value is
+         ``null``; i.e. the value of the ``item`` field is of
+         :ref:`BSON Type <bson-types>` ``Null`` (BSON Type 10):
+
+     - id: c
+       content: |
+         The ``{ item, { $type, BCON_NULL } }`` query matches *only*
          documents that contain the ``item`` field whose value is
          ``null``; i.e. the value of the ``item`` field is of
          :ref:`BSON Type <bson-types>` ``Null`` (BSON Type 10):
@@ -226,6 +349,13 @@ Type Check
          ``null``; i.e. the value of the ``item`` field is of
          :ref:`BSON Type <bson-types>` ``Null`` (BSON Type 10):
 
+     - id: kotlin-coroutine
+       content: |
+         The ``type("item", BsonType.NULL)`` query matches *only*
+         documents that contain the ``item`` field whose value is
+         ``null``. This means the value of the ``item`` field is of
+         :ref:`BSON Type <bson-types>` ``Null`` (BSON Type 10):
+
      - id: nodejs
        content: |
          The ``{ item : { $type: 10 } }`` query matches *only*
@@ -236,13 +366,6 @@ Type Check
      - id: php
        content: |
          The ``[ item => [ $type => 10 ] ]`` query matches *only*
-         documents that contain the ``item`` field whose value is
-         ``null``; i.e. the value of the ``item`` field is of
-         :ref:`BSON Type <bson-types>` ``Null`` (BSON Type 10):
-
-     - id: perl
-       content: |
-         The ``{ item => { $type => 10 } }`` query matches *only*
          documents that contain the ``item`` field whose value is
          ``null``; i.e. the value of the ``item`` field is of
          :ref:`BSON Type <bson-types>` ``Null`` (BSON Type 10):
@@ -300,6 +423,11 @@ field. [#type0]_
          The ``{ item : { $exists: false } }`` query matches documents
          that do not contain the ``item`` field:
 
+     - id: c
+       content: |
+         The ``{ item, { $exists, BCON_BOOL (false) } }`` query matches documents
+         that do not contain the ``item`` field:
+
      - id: python
        content: |
          The ``{ item : { $exists: False } }`` query matches documents
@@ -320,6 +448,11 @@ field. [#type0]_
          The   ``exists("item", false)`` query matches documents that do
          not contain the ``item`` field:
 
+     - id: kotlin-coroutine
+       content: |
+         The ``exists("item", false)`` query matches documents that
+         do not contain the ``item`` field:
+
      - id: nodejs
        content: |
          The ``{ item : { $exists: false } }`` query matches documents
@@ -328,11 +461,6 @@ field. [#type0]_
      - id: php
        content: |
          The ``[ item => [ $exists => false ] ]`` query matches documents
-         that do not contain the ``item`` field:
-
-     - id: perl
-       content: |
-         The ``{ item => { $exists => false } }`` query matches documents
          that do not contain the ``item`` field:
 
      - id: ruby

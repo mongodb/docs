@@ -20,3 +20,19 @@ MongoDB 5.0 removes the following server parameters:
         parameter. In 5.0+, collection and index creation inside of
         transactions is always enabled. You can no longer use the server
         parameter to disable this behavior.
+
+    * - ``connPoolMaxShardedConnsPerHost``
+
+      - MongoDB 5.0 removes the ``connPoolMaxShardedConnsPerHost`` server
+        parameter.
+
+    * - ``connPoolMaxShardedInUseConnsPerHost``
+
+      - MongoDB 5.0 removes the ``connPoolMaxShardedInUseConnsPerHost`` server
+        parameter.
+
+    * - ``shardedConnPoolIdleTimeoutMinutes``
+
+      - MongoDB 5.0 removes the ``shardedConnPoolIdleTimeoutMinutes`` server
+        parameter.
+

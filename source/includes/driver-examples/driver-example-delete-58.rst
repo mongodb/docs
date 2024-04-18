@@ -46,6 +46,17 @@
          #. Click :guilabel:`Delete` to confirm. Compass deletes the
             document from the collection.
 
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 58
+            :end-before: End Example 58
+
+         .. include:: /includes/driver-examples/driver-example-c-cleanup.rst
+
      - id: python
        content: |
 

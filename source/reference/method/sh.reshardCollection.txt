@@ -51,7 +51,7 @@ Definition
 
           Set the field values to either:
 
-          - ``1`` for :doc:`ranged based sharding </core/ranged-sharding>`
+          - ``1`` for :ref:`range-based sharding <sharding-ranged>`
           - ``"hashed"`` to specify a
             :ref:`hashed shard key <hashed-shard-keys>`.
 
@@ -110,6 +110,20 @@ The ``options`` field supports the following fields:
              },
              ...
           ]
+
+
+Compatibility
+-------------
+
+.. |command| replace:: method
+
+This method is available in deployments hosted in the following environments:
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. include:: /includes/fact-environments-atlas-support-all.rst
+
+.. include:: /includes/fact-environments-onprem-only.rst
 
 .. _resharding-process-details:
 
@@ -210,6 +224,62 @@ Example output:
      },
      operationTime: Timestamp(1, 1624887947)
    }
+
+Reshard a Collection with Zones
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Reshard a collection with zones when you need to adjust the distribution 
+of data across the shards in your cluster to meet changing requirements or 
+to improve performance. 
+
+In the following example, the ``test.scores`` collection resides on ``shard0`` 
+and ``shard1``. The current shard key is ``{ _id: 1}``. 
+
+.. procedure::
+   :style: normal
+
+   .. step:: Add shards to a new zone
+
+      In this example, this zone is called ``NewZone``.
+
+      .. code-block:: javascript
+
+         sh.addShardToZone( “shard2”, ‘NewZone’ )
+         sh.addShardToZone( “shard3”, ‘NewZone’ )
+
+   .. step:: Run ``sh.reshardCollection`` with the new zone information
+
+      .. code-block:: javascript
+
+         sh.reshardCollection(
+           "test.scores", 
+           { "studentId": 1, "testId": 1}, 
+           { zones: [ {
+             min: { "studentId": MinKey(), "testId": MinKey() },
+             max: { "studentId": MaxKey(), "testId": MaxKey() },
+             zone: "NewZone" }
+             ]
+         } )
+
+      The resharding operation adds the shards in zone ``NewZone`` as recipients. 
+      The database primary shard is added as a recipient as a backstop for any
+      missing ranges in the zone definition. If there are no missing ranges, the 
+      collection is cloned on shards in the "NewZone", such as ``shard2`` and 
+      ``shard3`` in this example. ``sh.reshardCollection`` returns the following:
+
+      .. code-block:: javascript
+         :copyable: false 
+
+         {
+            ok: 1,
+            '$clusterTime': {
+            clusterTime: Timestamp( { t: 1699484530, i: 54 } ),
+            signature: {
+            hash: Binary.createFromBase64( "90ApBDrSSi4XnCpV3OWIH4OGO0Y=", 0 ),
+            keyId: Long( "7296989036055363606" )
+            } },
+            operationTime: Timestamp( { t: 1699484530, i: 54 } )
+         }
 
 .. seealso::
 

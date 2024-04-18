@@ -1,19 +1,21 @@
+.. meta::
+   :keywords: time series, IOT
+
+.. facet::
+   :name: genre
+   :values: reference
+
 .. _manual-timeseries-collection-limitations:
 
 ==================================
 Time Series Collection Limitations
 ==================================
 
-.. default-domain:: mongodb
-
 .. contents:: On this page
    :local:
    :backlinks: none
    :depth: 2
    :class: singlecol
-
-.. meta::
-   :keywords: Time Series, IOT
 
 This page describes limitations on using :ref:`time series collections
 <manual-timeseries-collection>`.
@@ -26,21 +28,26 @@ The following features are not supported for time series collections:
 * :atlas:`Atlas Search </atlas-search>`
 * :ref:`Change streams <changeStreams>`
 * :ref:`{+csfle+} <manual-csfle-feature>`
-* :realm:`Database Triggers </triggers/database-triggers>`
-* :realm:`GraphQL API </graphql>`
+* :appservices:`Database Triggers </triggers/database-triggers>`
+* :appservices:`GraphQL API (deprecated) </graphql>`
 * :ref:`Schema validation rules <schema-validation-overview>`
 * :dbcommand:`reIndex`
 * :dbcommand:`renameCollection`
 
-:realm:`Atlas Device Sync </sync>` is only supported if the time series
-collections are asymmetrically synchronized. For details, see
-:realm:`Enable Atlas Device Sync </sync/configure/enable-sync>`.
+:appservices:`Atlas Device Sync </sync>` support is limited to time
+series collections that use :appservices:`Atlas Data Ingest
+</sync/configure/sync-settings/#data-ingest>`.
 
-Aggregation $merge
-~~~~~~~~~~~~~~~~~~
+Aggregation $merge and $out
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You cannot use the :pipeline:`$merge` aggregation stage to add data from
 another collection to a time series collection.
+
+.. versionchanged:: 7.0.3
+
+   You can use the :pipeline:`$out` aggregation stage to write
+   documents to a time series collection.
 
 .. _timeseries-limitations-updates-deletes:
 
@@ -173,12 +180,23 @@ parameters later.
 
 .. _timeseries-limitations-granularity:
 
-Modifying Bucket Parameters
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Granularity
+~~~~~~~~~~~
 
-Once you set a collection's ``granularity`` or custom bucketing
+Bucket Size
+```````````
+For any configuration of granularity parameters, the maximum
+size of a bucket is 1000 measurements or 125KB of data,
+whichever is lower. MongoDB may also enforce a lower maximum size for 
+high cardinality data with many unique values, so that the working set 
+of buckets fits within the :ref:`WiredTiger cache <storage-wiredtiger>`.
+
+Modifying Bucket Parameters
+```````````````````````````
+
+Once you set a collection's ``granularity`` or the custom bucketing
 parameters ``bucketMaxSpanSeconds`` and ``bucketRoundingSeconds``, you
-can increase them, but not decrease them.
+can increase the timespan covered by a bucket, but not decrease it.
 Use the :dbcommand:`collMod` command to modify the parameters. For example:
 
 .. code-block:: javascript
@@ -205,15 +223,11 @@ collections.
 In versions earlier than MongoDB 5.0.6, you cannot shard time series
 collections.
 
-Sharding Administration Commands
+Sharding Administration Commands 
 ````````````````````````````````
 
-Starting in MongoDB 5.2 (and 5.1.2, 5.0.6), you can run :ref:`sharding
-administration commands <db-commands-sharding>` (such as
-:dbcommand:`moveChunk`) on the ``system.buckets`` collection.
-
-In versions earlier than MongoDB 5.0.6, you cannot run sharding
-administration commands for sharded time series collections.
+You cannot run sharding administration commands on sharded time series 
+collections. 
 
 Shard Key Fields
 ````````````````
@@ -223,7 +237,8 @@ Shard Key Fields
 Resharding
 ``````````
 
-You cannot reshard sharded time series collections.
+You cannot reshard a sharded time series collection. However, you can 
+:ref:`refine its shard key <shard-key-refine>`.
 
 Transactions
 ~~~~~~~~~~~~

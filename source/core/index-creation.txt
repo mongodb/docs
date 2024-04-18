@@ -22,12 +22,11 @@ of the index build. The rest of the build process yields to interleaving
 read and write operations. For a detailed description of index build
 process and locking behavior, see :ref:`index-build-process`.
 
-Starting in MongoDB 4.4, index builds on a replica set or sharded
-cluster build simultaneously across all data-bearing replica set
-members. The primary requires a minimum number of data-bearing voting
-members (i.e. commit quorum), including itself, that must complete the
-build before marking the index as ready for use. A "voting" member is
-any replica set member where :rsconf:`members[n].votes` is greater than
+Index builds on a replica set or sharded cluster build simultaneously across 
+all data-bearing replica set members. The primary requires a minimum number of 
+data-bearing voting members (i.e. commit quorum), including itself, that must 
+complete the build before marking the index as ready for use. A "voting" member 
+is any replica set member where :rsconf:`members[n].votes` is greater than
 ``0``. See :ref:`index-operations-replicated-build` for more
 information.
 
@@ -175,6 +174,8 @@ Index Builds in Replicated Environments
 
 .. include:: /includes/extracts/4.4-changes-index-builds-simultaneous-nolink.rst
 
+.. include:: /includes/unreachable-node-default-quorum-index-builds.rst 
+
 The build process is summarized as follows:
 
 1. The primary receives the :dbcommand:`createIndexes` command and 
@@ -274,10 +275,7 @@ when it is restarted and continues from the saved checkpoint. In earlier
 versions, if the index build was interrupted it had to be restarted
 from the beginning.
 
-Prior to MongoDB 4.4, the startup process stalls behind any recovered
-index builds. The secondary could fall out of sync with the replica set
-and require resynchronization. Starting in MongoDB 4.4, the
-:binary:`~bin.mongod` can perform the startup process while the
+The :binary:`~bin.mongod` can perform the startup process while the 
 recovering index builds.
 
 If you restart the :binary:`~bin.mongod` as a standalone (i.e. removing
@@ -304,17 +302,14 @@ there is still work to be done when the rollback concludes, the
 :binary:`~bin.mongod` automatically recovers the index build and
 continues from the saved checkpoint.
 
-Starting in version 4.4, MongoDB can pause an in-progress 
-index build to perform a :doc:`rollback </core/replica-set-rollbacks>`.
+MongoDB can pause an in-progress index build to perform a 
+:ref:`rollback <replica-set-rollbacks>`.
 
 - If the rollback does not revert the index build, MongoDB restarts 
   the index build after completing the rollback. 
 
 - If the rollback reverts the index build, you must re-create the 
   index or indexes after the rollback completes.
-
-Prior to MongoDb 4.4, rollbacks could start only after all in-progress 
-index builds finished.
 
 .. _index-creation-index-consistency:
 
@@ -338,9 +333,8 @@ can occur, such as:
   fails to build the index for an associated shard or incorrectly
   builds an index with different specification.
 
-Starting in MongoDB 4.4 (and in MongoDB 4.2.6), the :ref:`config server
-<sharding-config-server>` primary periodically checks for
-index inconsistencies across the shards for sharded collections. To
+The :ref:`config server <sharding-config-server>` primary periodically checks 
+for index inconsistencies across the shards for sharded collections. To
 configure these periodic checks, see
 :parameter:`enableShardedIndexConsistencyCheck` and
 :parameter:`shardedIndexConsistencyCheckIntervalMS`.
@@ -476,10 +470,9 @@ process:
     - A :binary:`~bin.mongod` that is *not* part of a replica set 
       skips this stage.
 
-      Starting in MongoDB 4.4, the :binary:`~bin.mongod` submits a
-      "vote" to the primary to commit the index. Specifically, it writes
-      the "vote" to an internal replicated collection on the
-      :term:`primary`.
+      The :binary:`~bin.mongod` submits a "vote" to the primary to commit the 
+      index. Specifically, it writes the "vote" to an internal replicated 
+      collection on the :term:`primary`.
       
       If the :binary:`~bin.mongod` is the :term:`primary`, it waits
       until it has a commit quorum of votes (all voting data-bearing

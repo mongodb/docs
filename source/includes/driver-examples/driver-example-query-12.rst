@@ -21,6 +21,15 @@
          .. figure:: /images/compass-find-filter-or.png
             :alt: Query using OR
 
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 12
+            :end-before: End Example 12
+
      - id: python
        content: |
 
@@ -54,6 +63,15 @@
          .. literalinclude:: /driver-examples/AsyncDocumentationSamples.java
             :language: java
             :dedent: 8
+            :start-after: Start Example 12
+            :end-before: End Example 12
+
+     - id: kotlin-coroutine
+       content: |
+
+         .. literalinclude:: /driver-examples/kotlin_examples.kt
+            :language: kotlin
+            :dedent:
             :start-after: Start Example 12
             :end-before: End Example 12
 

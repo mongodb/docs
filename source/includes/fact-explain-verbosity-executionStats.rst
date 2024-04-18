@@ -1,4 +1,4 @@
-MongoDB runs the :doc:`query optimizer </core/query-plans>` to choose
+MongoDB runs the :ref:`query optimizer <read-operations-query-optimization>` to choose
 the winning plan, executes the winning plan to completion, and returns
 statistics describing the execution of the winning plan.
 

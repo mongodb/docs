@@ -44,7 +44,7 @@
 
          .. code-block:: java
 
-            collection.createIndex( <key and index type specification>, <options> )å
+            collection.createIndex(<key and index type specification>, <options>)
 
      - id: java-async
        content: |
@@ -57,6 +57,19 @@
          .. code-block:: java
 
             collection.createIndex( <key and index type specification>, <options>, <callbackFunction>)
+
+     - id: kotlin-coroutine
+       content: |
+
+         To create an index by using the
+         :driver:`Kotlin Coroutine Driver </kotlin/coroutine/current/>`,
+         use the `MongoCollection.createIndex()
+         <{+java-api-docs+}/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-mongo-collection/create-index.html>`__
+         method.
+
+         .. code-block:: kotlin
+
+            collection.createIndex(<key and index type specification>, <options>)
 
      - id: nodejs
        content: |
@@ -77,7 +90,7 @@
 
          To create an index using the
          `PHP driver <https://www.mongodb.com/docs/php-library/current/>`_, use
-         :phpmethod:`MongoDB\\Collection::createIndex() <phpmethod.MongoDB\\Collection::createIndex>`.
+         :phpmethod:`MongoDB\\Collection::createIndex() <phpmethod.MongoDB\\Collection::createIndex()>`.
 
          .. code-block:: php
 

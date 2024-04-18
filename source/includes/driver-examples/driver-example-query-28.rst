@@ -21,6 +21,17 @@
          .. figure:: /images/compass-array-query-by-size.png
             :alt: Query for array by number of elements
 
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 28
+            :end-before: End Example 28
+         
+         .. include:: /includes/driver-examples/driver-example-c-cleanup.rst  
+            
      - id: python
        content: |
 
@@ -54,6 +65,15 @@
          .. literalinclude:: /driver-examples/AsyncDocumentationSamples.java
             :language: java
             :dedent: 8
+            :start-after: Start Example 28
+            :end-before: End Example 28
+
+     - id: kotlin-coroutine
+       content: |
+
+         .. literalinclude:: /driver-examples/kotlin_examples.kt
+            :language: kotlin
+            :dedent:
             :start-after: Start Example 28
             :end-before: End Example 28
 

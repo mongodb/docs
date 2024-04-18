@@ -31,7 +31,7 @@ Check the Balancer State
 actively migrating data.
 
 To see if the balancer is enabled in your :term:`sharded cluster`,
-issue the following command, which returns a boolean:
+run the following command, which returns a boolean:
 
 .. code-block:: javascript
 
@@ -39,7 +39,7 @@ issue the following command, which returns a boolean:
 
 You can also see if the balancer is enabled using :method:`sh.status()`.
 The :data:`~sh.status.balancer.currently-enabled` field indicates
-whether the balancer is enabled, while the
+whether the balancer is enabled, and the
 :data:`~sh.status.balancer.currently-running` field indicates if the
 balancer is currently running.
 
@@ -88,12 +88,26 @@ Schedule the Balancing Window
 
 In some situations, particularly when your data set grows slowly and a
 migration can impact performance, it is useful to ensure
-that the balancer is active only at certain times. The following
-procedure specifies the ``activeWindow``, 
-which is the timeframe during which the :term:`balancer` will
-be able to migrate chunks:
+that the balancer is active only at certain times. By default, the
+balancer process is always enabled and migrating chunks. The following
+procedure specifies the ``activeWindow``, which is the timeframe during
+which the :term:`balancer` is able to migrate chunks:
 
 .. include:: /includes/steps/schedule-balancer-window.rst
+
+.. _sharding-check-balancing-window:
+
+Check Balancing Window
+----------------------
+
+To see the current balancing window, run the following
+command: 
+
+.. code-block:: javascript
+   :copyable: true 
+
+   use config
+   db.settings.find( { _id: "balancer" } )
 
 .. _sharding-balancing-remove-window:
 
@@ -134,7 +148,7 @@ all migration, use the following procedure:
    
    .. include:: /includes/extracts/4.2-changes-stop-balancer-autosplit.rst
 
-#. To verify that the balancer will not start, issue the following command,
+#. To verify that the balancer won't start, run the following command,
    which returns ``false`` if the balancer is disabled:
 
    .. code-block:: javascript
@@ -142,7 +156,7 @@ all migration, use the following procedure:
       sh.getBalancerState()
 
    Optionally, to verify no migrations are in progress after disabling,
-   issue the following operation in the :binary:`~bin.mongosh` shell:
+   run the following operation in the :binary:`~bin.mongosh` shell:
 
    .. code-block:: javascript
 
@@ -320,17 +334,10 @@ when the migration proceeds with next document in the chunk.
 
 In the :data:`config.settings` collection:
 
-
 - If the ``_secondaryThrottle`` setting for the balancer is set to a
-  write concern, each document move during chunk migration must receive
-  the requested acknowledgement before proceeding with the next
+  :term:`write concern`, each document moved during chunk migration must receive
+  the requested acknowledgment before proceeding with the next
   document.
-
-- If the ``_secondaryThrottle`` setting for the balancer is set to
-  ``true``, each document move during chunk migration must receive
-  acknowledgement from at least one secondary before the migration
-  proceeds with the next document in the chunk. This is equivalent to a
-  write concern of :writeconcern:`{ w: 2 } <\<number\>>`.
 
 - If the ``_secondaryThrottle`` setting is unset, the migration process
   does not wait for replication to a secondary and instead continues
@@ -342,7 +349,7 @@ To change the ``_secondaryThrottle`` setting, connect to a
 :binary:`~bin.mongos` instance and directly update the
 ``_secondaryThrottle`` value in the :data:`~config.settings` collection
 of the :ref:`config database <config-database>`. For example, from a
-:binary:`~bin.mongosh` shell connected to a :binary:`~bin.mongos`, issue
+:binary:`~bin.mongosh` shell connected to a :binary:`~bin.mongos`, run
 the following command:
 
 .. code-block:: javascript
@@ -432,16 +439,15 @@ the range is greater than 2 times the result of dividing the
 configured :ref:`range size<sharding-range-size>` by the average
 document size.
 
-Starting in MongoDB 4.4, by specifying the balancer setting
-``attemptToBalanceJumboChunks`` to ``true``, the balancer can migrate
-these large ranges as long as they have not been labeled as
-:ref:`jumbo <jumbo-chunk>`. 
+By specifying the balancer setting ``attemptToBalanceJumboChunks`` to ``true``, 
+the balancer can migrate these large ranges as long as they have not been 
+labeled as :ref:`jumbo <jumbo-chunk>`. 
 
 To set the balancer's ``attemptToBalanceJumboChunks`` setting, connect
 to a :binary:`~bin.mongos` instance and directly update the
 :data:`config.settings` collection. For example, from a
 :binary:`~bin.mongosh` shell connected to a :binary:`~bin.mongos`
-instance, issue the following command:
+instance, run the following command:
 
 .. code-block:: javascript
 

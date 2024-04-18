@@ -32,7 +32,7 @@
       .. tip:: Learn More
 
          To learn more about your {+cmk-long+}s, see
-         :ref:`csfle-reference-keys-key-vaults`.
+         :ref:`qe-reference-keys-key-vaults`.
 
          To learn more about key policies, see
          `Key Policies in AWS KMS <https://docs.aws.amazon.com/kms/latest/developerguide/key-policies.html>`__

@@ -10,6 +10,9 @@ Configure ``mongod`` and ``mongos`` for TLS/SSL
    :name: programming_language
    :values: shell
 
+.. meta::
+   :description: Configure MongoDB instances for TLS or SSL encryption using native OS libraries. Ensure strong ciphers with a minimum 128-bit key length for secure connections.
+
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -250,16 +253,15 @@ settings <net-tls-conf-options>` in your
                bindIp: localhost,mongodb0.example.net
                port: 27017
 
-A :binary:`~bin.mongod` instance that uses the above configuration
-can only use TLS/SSL connections:
+A :binary:`~bin.mongod` instance that uses the above configuration can
+only accept TLS/SSL connections:
 
 .. code-block:: bash
 
    mongod --config <path/to/configuration/file>
 
-That is, clients must specify TLS/SSL connections. See
-:ref:`tls-client-connection-only` for more information on
-connecting with TLS/SSL.
+See :ref:`tls-client-connection-only` for more information on connecting
+with TLS/SSL.
 
 .. seealso::
 
@@ -345,6 +347,10 @@ your :binary:`mongod` / :binary:`mongos` instance's
        certificate chain includes the certificate of the root
        Certificate Authority.
 
+.. important:: 
+
+   .. include:: /includes/fact-ssl-tlsCAFile-tlsUseSystemCA.rst
+
 For example, consider the following :ref:`configuration file
 <conf-file>` for a :binary:`~bin.mongod` instance:
 
@@ -368,16 +374,16 @@ For example, consider the following :ref:`configuration file
       bindIp: localhost,mongodb0.example.net
       port: 27017
 
-A :binary:`~bin.mongod` instance that uses the above configuration
-can only use TLS/SSL connections and requires valid certificate from
+A :binary:`~bin.mongod` instance that uses the above configuration can
+only accept TLS/SSL connections and requires a valid certificate from
 its clients:
 
 .. code-block:: bash
 
    mongod --config <path/to/configuration/file>
 
-That is, clients must specify TLS/SSL connections and presents its
-certificate key file to the instance. See
+Clients must specify TLS/SSL connections and present their certificate
+key file to the instance. See
 :ref:`mongo-connect-require-client-certificates-tls` for more
 information on connecting with TLS/SSL.
 
@@ -395,6 +401,7 @@ information on connecting with TLS/SSL.
      :option:`--tlsCertificateKeyFile <mongos --tlsCertificateKeyFile>`,
      :option:`--tlsCAFile <mongos --tlsCAFile>`.
 
+.. _block-revoked-certs-tls:
 
 Block Revoked Certificates for Clients
 ``````````````````````````````````````
@@ -405,46 +412,36 @@ Block Revoked Certificates for Clients
    MongoDB 4.2). For procedures using the ``net.ssl`` settings, see
    :ref:`configure-ssl`.
 
-To prevent clients with revoked certificates from connecting to the
-:binary:`~bin.mongod` or :binary:`~bin.mongos` instance, you can use:
+.. include:: /includes/security/block-revoked-certificates-intro.rst
 
-- Online Certificate Status Protocol (OCSP)
-      Starting in version 4.4, to check for certificate revocation,
-      MongoDB :parameter:`enables <ocspEnabled>` the use of OCSP
-      (Online Certificate Status Protocol) by default as an alternative
-      to specifying a CRL file or using the :setting:`system SSL
-      certificate store <net.tls.certificateSelector>`.
+To specify a :abbr:`CRL (Certificate Revocation List)` file, include
+:setting:`net.tls.CRLFile` set to a file that contains revoked
+certificates.
 
-      In versions 4.0 and 4.2, the use of OCSP is available only
-      through the use of :setting:`system certificate store
-      <net.tls.certificateSelector>` on Windows or macOS.
-      
-- Certificate Revocation List (CRL)
-      To specify a CRL file, include
-      :setting:`net.tls.CRLFile` set to a file that contains revoked
-      certificates.
+For example:
 
-      For example:
+.. code-block:: yaml
+   :emphasize-lines: 6
 
-      .. code-block:: yaml
-         :emphasize-lines: 6
+   net:
+      tls:
+         mode: requireTLS
+         certificateKeyFile: /etc/ssl/mongodb.pem
+         CAFile: /etc/ssl/caToValidateClientCertificates.pem
+         CRLFile: /etc/ssl/revokedCertificates.pem
 
-         net:
-           tls:
-             mode: requireTLS
-             certificateKeyFile: /etc/ssl/mongodb.pem
-             CAFile: /etc/ssl/caToValidateClientCertificates.pem
-             CRLFile: /etc/ssl/revokedCertificates.pem
+Clients that present certificates that are listed in the
+:file:`/etc/ssl/revokedCertificates.pem` file are not able to connect.
 
-      Clients that present certificates that are listed in the
-      :file:`/etc/ssl/revokedCertificates.pem` will not be able to connect.
+.. seealso::
 
-      .. seealso::
+   You can also configure the revoked certificate list using the
+   command-line option.
 
-         You can also configure the revoked certificate list using the command-line option.
-
-         - For :binary:`~bin.mongod`, see :option:`--tlsCRLFile <mongod --tlsCRLFile>`.
-         - For :binary:`~bin.mongos`, see :option:`--tlsCRLFile <mongos --tlsCRLFile>`.
+   - For :binary:`~bin.mongod`, see :option:`--tlsCRLFile <mongod
+     --tlsCRLFile>`.
+   - For :binary:`~bin.mongos`, see :option:`--tlsCRLFile <mongos
+     --tlsCRLFile>`.
 
 .. _ssl-mongod-weak-certification:
 
@@ -797,16 +794,15 @@ your :binary:`mongod` / :binary:`mongos` instance's
                bindIp: localhost,mongodb0.example.net
                port: 27017
 
-A :binary:`~bin.mongod` instance that uses the above configuration
-can only use TLS/SSL connections:
+A :binary:`~bin.mongod` instance that uses the above configuration can
+only accept TLS/SSL connections:
 
 .. code-block:: bash
 
    mongod --config <path/to/configuration/file>
 
-That is, clients must specify TLS/SSL connections. See
-:ref:`tls-client-connection-only` for more information on
-connecting with TLS/SSL.
+See :ref:`tls-client-connection-only` for more information on connecting
+with TLS/SSL.
 
 .. seealso::
 
@@ -910,16 +906,16 @@ For example, consider the following :ref:`configuration file
       bindIp: localhost,mongodb0.example.net
       port: 27017
 
-A :binary:`~bin.mongod` instance that uses the above configuration
-can only use TLS/SSL connections and requires valid certificate from
+A :binary:`~bin.mongod` instance that uses the above configuration can
+only accept TLS/SSL connections and requires a valid certificate from
 its clients:
 
 .. code-block:: bash
 
    mongod --config <path/to/configuration/file>
 
-That is, clients must specify TLS/SSL connections and present their
-certificate key file to the instance. See
+Clients must specify TLS/SSL connections and present their certificate
+key file to the instance. See
 :ref:`mongo-connect-require-client-certificates-tls` for more
 information on connecting with TLS/SSL.
 
@@ -937,50 +933,38 @@ information on connecting with TLS/SSL.
      :option:`--sslPEMKeyFile <mongos --sslPEMKeyFile>`, and 
      :option:`--sslCAFile <mongos --sslCAFile>`.
 
+.. _block-revoked-certs-ssl:
+
 Block Revoked Certificates for Clients
 ``````````````````````````````````````
 
-To prevent clients with revoked certificates from connecting to the
-:binary:`~bin.mongod` or :binary:`~bin.mongos` instance, you can use:
+.. include:: /includes/security/block-revoked-certificates-intro.rst
 
-- Online Certificate Status Protocol (OCSP)
-      Starting in version 4.4, to check for certificate revocation,
-      MongoDB :parameter:`enables <ocspEnabled>` the use of OCSP
-      (Online Certificate Status Protocol) by default as an alternative
-      to specifying a CRL file or using the :setting:`system SSL
-      certificate store <net.ssl.certificateSelector>`.
+To specify a :abbr:`CRL (Certificate Revocation List)` file, include
+:setting:`net.ssl.CRLFile` set to a file that contains revoked
+certificates.
 
+For example:
 
-      In versions 4.0 and 4.2, the use of OCSP is available only
-      through the use of :setting:`system certificate store
-      <net.ssl.certificateSelector>` on Windows or macOS.
+.. code-block:: yaml
+   :emphasize-lines: 6
 
-- Certificate Revocation List (CRL)
-      To specify a CRL file, include
-      :setting:`net.ssl.CRLFile` set to a file that contains revoked
-      certificates.
+   net:
+      ssl:
+         mode: requireSSL
+         PEMKeyFile: /etc/ssl/mongodb.pem
+         CAFile: /etc/ssl/caToValidateClientCertificates.pem
+         CRLFile: /etc/ssl/revokedCertificates.pem
 
-      For example:
+Clients that present certificates that are listed in the
+:file:`/etc/ssl/revokedCertificates.pem` file are not able to connect.
 
-      .. code-block:: yaml
-         :emphasize-lines: 6
+.. seealso::
 
-         net:
-           ssl:
-             mode: requireSSL
-             PEMKeyFile: /etc/ssl/mongodb.pem
-             CAFile: /etc/ssl/caToValidateClientCertificates.pem
-             CRLFile: /etc/ssl/revokedCertificates.pem
+   You can also configure the revoked certificate list using the command-line option.
 
-      Clients that present certificates that are listed in the
-      :file:`/etc/ssl/revokedCertificates.pem` will not be able to connect.
-
-      .. seealso::
-
-         You can also configure the revoked certificate list using the command-line option.
-
-         - For :binary:`~bin.mongod`, see :option:`--sslCRLFile <mongod --sslCRLFile>`.
-         - For :binary:`~bin.mongos`, see :option:`--sslCRLFile <mongos --sslCRLFile>`.
+   - For :binary:`~bin.mongod`, see :option:`--sslCRLFile <mongod --sslCRLFile>`.
+   - For :binary:`~bin.mongos`, see :option:`--sslCRLFile <mongos --sslCRLFile>`.
 
 Validate Only if a Client Presents a Certificate
 ````````````````````````````````````````````````
