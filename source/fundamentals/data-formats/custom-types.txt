@@ -1,323 +1,328 @@
-.. uses custom-type.rst
+.. _pymongo-custom-types:
 
-Custom Type Example
-===================
+Custom Types
+============
 
-This is an example of using a custom type with PyMongo. The example here shows
-how to subclass ``~bson.codec_options.TypeCodec`` to write a type
-codec, which is used to populate a ``~bson.codec_options.TypeRegistry``.
-The type registry can then be used to create a custom-type-aware
-``~pymongo.collection.Collection``. Read and write operations
-issued against the resulting collection object transparently manipulate
-documents as they are saved to or retrieved from MongoDB.
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
 
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: class, code examples
 
-Setting Up
-----------
+Overview
+--------
 
-We'll start by getting a clean database to use for the example:
+This guide explains how to create a custom type with {+driver-short+}.
+To create a custom type, define a class that inherits from ``codec_options.TypeCodec``.
+You can use this *type codec* to populate an instance of ``codec_options.TypeRegistry``,
+a type registry. You can then use the type registry to create a custom-type-aware
+``Collection`` object. 
 
-.. code-block:: python
+Encode a Custom Type
+--------------------
 
-  >>> from pymongo import MongoClient
-  >>> client = MongoClient()
-  >>> client.drop_database("custom_type_example")
-  >>> db = client.custom_type_example
+You might need to define a custom type if you want to store a data type that
+the driver doesn't understand. For example, the
+BSON library's ``Decimal128`` type is distinct
+from Python's built-in ``Decimal`` type. Attempting
+to save an instance of ``Decimal`` with {+driver-short+} results in an
+``InvalidDocument`` exception, as shown in the following code example:
 
+.. io-code-block::
 
-Since the purpose of the example is to demonstrate working with custom types,
-we'll need a custom data type to use. For this example, we will be working with
-the ``~decimal.Decimal`` type from Python's standard library. Since the
-BSON library's ``~bson.decimal128.Decimal128`` type (that implements
-the IEEE 754 decimal128 decimal-based floating-point numbering format) is
-distinct from Python's built-in ``~decimal.Decimal`` type, attempting
-to save an instance of ``Decimal`` with PyMongo, results in an
-``~bson.errors.InvalidDocument`` exception.
+   .. input::
+      :language: python
 
-.. code-block:: python
+      from decimal import Decimal
 
-  >>> from decimal import Decimal
-  >>> num = Decimal("45.321")
-  >>> db.test.insert_one({"num": num})
-  Traceback (most recent call last):
-  ...
-  bson.errors.InvalidDocument: cannot encode object: Decimal('45.321'), of type: <class 'decimal.Decimal'>
+      num = Decimal("45.321")
+      db.coll.insert_one({"num": num})
 
+      <input code>
 
-.. _custom-type-type-codec:
+   .. output::
+      :language: shell
 
-The ``~bson.codec_options.TypeCodec`` Class
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      Traceback (most recent call last):
+      ...
+      bson.errors.InvalidDocument: cannot encode object: Decimal('45.321'), of
+      type: <class 'decimal.Decimal'>
 
-.. versionadded:: 3.8
+The following sections show how to define a custom type for this ``Decimal`` type.
 
-In order to encode a custom type, we must first define a **type codec** for
-that type. A type codec describes how an instance of a custom type can be
-*transformed* to and/or from one of the types ``~bson`` already understands.
-Depending on the desired functionality, users must choose from the following
-base classes when defining type codecs:
+Define a Type Codec Class
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* ``~bson.codec_options.TypeEncoder``: subclass this to define a codec that
-  encodes a custom Python type to a known BSON type. Users must implement the
-  ``python_type`` property/attribute and the ``transform_python`` method.
-* ``~bson.codec_options.TypeDecoder``: subclass this to define a codec that
-  decodes a specified BSON type into a custom Python type. Users must implement
-  the ``bson_type`` property/attribute and the ``transform_bson`` method.
-* ``~bson.codec_options.TypeCodec``: subclass this to define a codec that
-  can both encode and decode a custom type. Users must implement the
-  ``python_type`` and ``bson_type`` properties/attributes, as well as the
-  ``transform_python`` and ``transform_bson`` methods.
+To encode a custom type, you must first define a **type codec.** A type codec
+describes how an instance of a custom type can be
+converted to and from one of the types the ``bson`` module can already encode.
 
+When you define a type codec, your class must inherit from one of the base classes in the
+``codec_options`` module. The following table describes these base classes, and when
+and how to implement them:
 
-The type codec for our custom type simply needs to define how a
-``~decimal.Decimal`` instance can be converted into a
-``~bson.decimal128.Decimal128`` instance and vice-versa. Since we are
-interested in both encoding and decoding our custom type, we use the
-``TypeCodec`` base class to define our codec:
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 10 10 20
 
-.. code-block:: python
+   * - Base Class
+     - When to Use
+     - Members to Implement
+ 
+   * - ``codec_options.TypeEncoder``
+     - Inherit from this class to define a codec that
+       encodes a custom Python type to a known BSON type.
+     - - ``python_type`` attribute: The Python type acted on by this type codec
+       - ``transform_python()`` method: Function that transforms a custom type value into a type
+         that BSON can encode
 
-  >>> from bson.decimal128 import Decimal128
-  >>> from bson.codec_options import TypeCodec
-  >>> class DecimalCodec(TypeCodec):
-  ...     python_type = Decimal  # the Python type acted upon by this type codec
-  ...     bson_type = Decimal128  # the BSON type acted upon by this type codec
-  ...     def transform_python(self, value):
-  ...         """Function that transforms a custom type value into a type
-  ...         that BSON can encode."""
-  ...         return Decimal128(value)
-  ...     def transform_bson(self, value):
-  ...         """Function that transforms a vanilla BSON type value into our
-  ...         custom type."""
-  ...         return value.to_decimal()
-  ...
-  >>> decimal_codec = DecimalCodec()
+   * - ``codec_options.TypeDecoder``
+     - Inherit from this class to define a codec that
+       decodes a specified BSON type into a custom Python type.
+     - - ``bson_type`` attribute: The BSON type acted on by this type codec
+       - ``transform_bson()`` method: Function that transforms a standard BSON type value
+         into the custom type
+  
+   * - ``codec_options.TypeCodec``
+     - Inherit from this class to define a codec that
+       can both encode and decode a custom type.
+     - - ``python_type`` attribute: The Python type acted on by this type codec
+       - ``bson_type`` attribute: The BSON type acted on by this type codec
+       - ``transform_bson()`` method: Function that transforms a standard BSON type value
+         into the custom type
+       - ``transform_python()`` method: Function that transforms a custom type value into a type
+         that BSON can encode
 
-
-.. _custom-type-type-registry:
-
-The ``~bson.codec_options.TypeRegistry`` Class
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. versionadded:: 3.8
-
-Before we can begin encoding and decoding our custom type objects, we must
-first inform PyMongo about the corresponding codec. This is done by creating
-a ``~bson.codec_options.TypeRegistry`` instance:
-
-.. code-block:: python
-
-  >>> from bson.codec_options import TypeRegistry
-  >>> type_registry = TypeRegistry([decimal_codec])
-
-
-Note that type registries can be instantiated with any number of type codecs.
-Once instantiated, registries are immutable and the only way to add codecs
-to a registry is to create a new one.
-
-
-Putting It Together
--------------------
-
-Finally, we can define a ``~bson.codec_options.CodecOptions`` instance
-with our ``type_registry`` and use it to get a
-``~pymongo.collection.Collection`` object that understands the
-``~decimal.Decimal`` data type:
+Because the example ``Decimal`` custom type can be converted to and from a
+``Decimal128`` instance, you must define how to encode and decode this type.
+Therefore, the``Decimal`` type codec class must inherit from
+the ``TypeCodec`` base class:
 
 .. code-block:: python
 
-  >>> from bson.codec_options import CodecOptions
-  >>> codec_options = CodecOptions(type_registry=type_registry)
-  >>> collection = db.get_collection("test", codec_options=codec_options)
+  from bson.decimal128 import Decimal128
+  from bson.codec_options import TypeCodec
 
+  class DecimalCodec(TypeCodec):
+      python_type = Decimal
+      bson_type = Decimal128
+      
+      def transform_python(self, value):
+          return Decimal128(value)
+      
+      def transform_bson(self, value):
+          return value.to_decimal()
 
-Now, we can seamlessly encode and decode instances of
-``~decimal.Decimal``:
+Add Codec to the Type Registry
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: python
-
-  >>> collection.insert_one({"num": Decimal("45.321")})
-  InsertOneResult(ObjectId('...'), acknowledged=True)
-  >>> mydoc = collection.find_one()
-  >>> import pprint
-  >>> pprint.pprint(mydoc)
-  {'_id': ObjectId('...'), 'num': Decimal('45.321')}
-
-
-We can see what's actually being saved to the database by creating a fresh
-collection object without the customized codec options and using that to query
-MongoDB:
-
-.. code-block:: python
-
-  >>> vanilla_collection = db.get_collection("test")
-  >>> pprint.pprint(vanilla_collection.find_one())
-  {'_id': ObjectId('...'), 'num': Decimal128('45.321')}
-
-
-Encoding Subtypes
-^^^^^^^^^^^^^^^^^
-
-Consider the situation where, in addition to encoding
-``~decimal.Decimal``, we also need to encode a type that subclasses
-``Decimal``. PyMongo does this automatically for types that inherit from
-Python types that are BSON-encodable by default, but the type codec system
-described above does not offer the same flexibility.
-
-Consider this subtype of ``Decimal`` that has a method to return its value as
-an integer:
+After defining a custom type codec, you must add it to {+driver-short+}'s **type registry**,
+the list of types the driver can encode and decode.
+To do so, create an instance of the ``TypeRegistry`` class, passing in an instance
+of your type codec class inside a list:
 
 .. code-block:: python
 
-  >>> class DecimalInt(Decimal):
-  ...     def my_method(self):
-  ...         """Method implementing some custom logic."""
-  ...         return int(self)
-  ...
+   from bson.codec_options import TypeRegistry
+    
+   decimal_codec = DecimalCodec()
+   type_registry = TypeRegistry([decimal_codec])
 
-If we try to save an instance of this type without first registering a type
-codec for it, we get an error:
-
-.. code-block:: python
-
-  >>> collection.insert_one({"num": DecimalInt("45.321")})
-  Traceback (most recent call last):
-  ...
-  bson.errors.InvalidDocument: cannot encode object: Decimal('45.321'), of type: <class 'decimal.Decimal'>
-
-In order to proceed further, we must define a type codec for ``DecimalInt``.
-This is trivial to do since the same transformation as the one used for
-``Decimal`` is adequate for encoding ``DecimalInt`` as well:
-
-.. code-block:: python
-
-  >>> class DecimalIntCodec(DecimalCodec):
-  ...     @property
-  ...     def python_type(self):
-  ...         """The Python type acted upon by this type codec."""
-  ...         return DecimalInt
-  ...
-  >>> decimalint_codec = DecimalIntCodec()
-
+If you create multiple custom codecs, you can pass them all to the ``TypeRegistry``
+constructor.
 
 .. note::
 
-  No attempt is made to modify decoding behavior because without additional
-  information, it is impossible to discern which incoming
-  ``~bson.decimal128.Decimal128`` value needs to be decoded as ``Decimal``
-  and which needs to be decoded as ``DecimalInt``. This example only considers
-  the situation where a user wants to *encode* documents containing either
-  of these types.
+   Once instantiated, registries are immutable and the only way to add codecs
+   to a registry is to create a new one.
 
-After creating a new codec options object and using it to get a collection
-object, we can seamlessly encode instances of ``DecimalInt``:
+Get a Collection Reference
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Finally, define a ``codec_options.CodecOptions`` instance, passing your ``TypeRegistry``
+object as a keyword argument. Pass your ``CodecOptions`` object to the
+``get_collection()`` method to obtain a collection that can use your custom type:
 
 .. code-block:: python
 
-  >>> type_registry = TypeRegistry([decimal_codec, decimalint_codec])
-  >>> codec_options = CodecOptions(type_registry=type_registry)
-  >>> collection = db.get_collection("test", codec_options=codec_options)
-  >>> collection.drop()
-  >>> collection.insert_one({"num": DecimalInt("45.321")})
-  InsertOneResult(ObjectId('...'), acknowledged=True)
-  >>> mydoc = collection.find_one()
-  >>> pprint.pprint(mydoc)
-  {'_id': ObjectId('...'), 'num': Decimal('45.321')}
+  from bson.codec_options import CodecOptions
+  
+  codec_options = CodecOptions(type_registry=type_registry)
+  collection = db.get_collection("test", codec_options=codec_options)
 
-Note that the ``transform_bson`` method of the base codec class results in
-these values being decoded as ``Decimal`` (and not ``DecimalInt``).
+You can then encode and decode instances of the ``Decimal`` class:
 
+.. io-code-block::
 
-.. _decoding-binary-types:
+   .. input::
+      :language: python
 
-Decoding ``~bson.binary.Binary`` Types
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      import pprint
+  
+      collection.insert_one({"num": Decimal("45.321")})
+      my_doc = collection.find_one()
+      pprint.pprint(my_doc)
 
-The decoding treatment of ``~bson.binary.Binary`` types having
-``subtype = 0`` by the ``bson`` module varies slightly depending on the
-version of the Python runtime in use. This must be taken into account while
-writing a ``TypeDecoder`` that modifies how this datatype is decoded.
+   .. output::
+      :language: shell
+  
+      {'_id': ObjectId('...'), 'num': Decimal('45.321')}
 
-On Python 3.x, ``~bson.binary.Binary`` data (``subtype = 0``) is decoded
-as a ``bytes`` instance:
+To see how MongoDB stores an instance of the custom type,
+create a new collection object without the customized codec options, then use it
+to retrieve the document containing the custom type. The following example shows
+that {+driver-short+} stores an instance of the ``Decimal`` class as a ``Decimal128``
+value:
 
-.. code-block:: pycon
+.. io-code-block::
 
-    >>> # On Python 3.x.
-    >>> from bson.binary import Binary
-    >>> newcoll = db.get_collection("new")
-    >>> newcoll.insert_one({"_id": 1, "data": Binary(b"123", subtype=0)})
-    >>> doc = newcoll.find_one()
-    >>> type(doc["data"])
-    bytes
+   .. input::
+      :language: python
 
+      import pprint
 
-On Python 2.7.x, the same data is decoded as a ``~bson.binary.Binary``
-instance:
+      new_collection = db.get_collection("test")
+      pprint.pprint(new_collection.find_one())
 
-.. code-block:: pycon
+   .. output::
+      :language: shell
 
-    >>> # On Python 2.7.x
-    >>> newcoll = db.get_collection("new")
-    >>> doc = newcoll.find_one()
-    >>> type(doc["data"])
-    bson.binary.Binary
+      {'_id': ObjectId('...'), 'num': Decimal128('45.321')}
 
+Encode a Subtype
+----------------
 
-As a consequence of this disparity, users must set the ``bson_type`` attribute
-on their ``~bson.codec_options.TypeDecoder`` classes differently,
-depending on the python version in use.
+You might also need to encode one or more types that inherit from your custom type.
+Consider this subtype of the ``Decimal`` type, which contains a method to return its value
+as an integer:
 
+.. code-block:: python
+
+   class DecimalInt(Decimal):
+       def get_int(self):
+           return int(self)
+
+If you try to save an instance of the ``DecimalInt`` class without first registering a type
+codec for it, {+driver-short+} raises an error:
+
+.. io-code-block::
+
+   .. input::
+      :language: python
+
+      collection.insert_one({"num": DecimalInt("45.321")})
+
+   .. output::
+      :language: shell
+
+      Traceback (most recent call last):
+      ...
+      bson.errors.InvalidDocument: cannot encode object: Decimal('45.321'),
+      of type: <class 'decimal.Decimal'>
+
+To encode an instance of the ``DecimalInt`` class, you must define a type codec for
+the class. This type codec must inherit from the parent class's codec:
+
+.. code-block:: python
+
+   class DecimalIntCodec(DecimalCodec):
+       @property
+       def python_type(self):
+           # The Python type acted upon by this type codec
+           return DecimalInt
+
+You can then add the sublcass's type codec to the type registry and encode instances
+of the custom type:
+
+.. io-code-block::
+
+   .. input::
+      :language: python
+
+      import pprint
+      from bson.codec_options import CodecOptions
+
+      decimal_int_codec = DecimalIntCodec()
+      type_registry = TypeRegistry([decimal_codec, decimal_int_codec])
+      codec_options = CodecOptions(type_registry=type_registry)
+
+      collection = db.get_collection("test", codec_options=codec_options)
+      collection.drop()
+      collection.insert_one({"num": DecimalInt("45.321")})
+  
+      my_doc = collection.find_one()
+      pprint.pprint(my_doc)
+
+   .. output::
+      :language: shell
+
+      {'_id': ObjectId('...'), 'num': Decimal('45.321')}
 
 .. note::
+  
+   The ``transform_bson()`` method of the ``DecimalCodec`` class results in
+   these values being decoded as ``Decimal``, not ``DecimalInt``.
 
-  For codebases requiring compatibility with both Python 2 and 3, type
-  decoders will have to be registered for both possible ``bson_type`` values.
+Define a Fallback Encoder
+-------------------------
 
+You can also register a **fallback encoder**, a callable to encode types not recognized
+by BSON and for which no type codec has been registered.
+Like the ``transform_python()`` method, the fallback encoder accepts an unencodable
+value as a parameter and returns a BSON-encodable value.
 
-.. _fallback-encoder-callable:
-
-The ``fallback_encoder`` Callable
----------------------------------
-
-.. versionadded:: 3.8
-
-
-In addition to type codecs, users can also register a callable to encode types
-that BSON doesn't recognize and for which no type codec has been registered.
-This callable is the **fallback encoder** and like the ``transform_python``
-method, it accepts an unencodable value as a parameter and returns a
-BSON-encodable value. The following fallback encoder encodes python's
-``~decimal.Decimal`` type to a ``~bson.decimal128.Decimal128``:
+The following fallback encoder encodes Python's ``Decimal`` type to a ``Decimal128``:
 
 .. code-block:: python
 
-  >>> def fallback_encoder(value):
-  ...     if isinstance(value, Decimal):
-  ...         return Decimal128(value)
-  ...     return value
-  ...
+   def fallback_encoder(value):
+       if isinstance(value, Decimal):
+           return Decimal128(value)
+       return value
 
-After declaring the callback, we must create a type registry and codec options
-with this fallback encoder before it can be used for initializing a collection:
+After declaring a fallback encoder, perform the following steps:
 
-.. code-block:: python
+- Construct a new instance of the ``TypeRegistry`` class. Use the ``fallback_encoder``
+  keyword argument to pass in the fallback encoder.
+- Construct a new instance of the ``CodecOptions`` class. Use the ``type_registry``
+  keyword argument to pass in the ``TypeRegistry`` instance.
+- Call the ``get_collection()`` method. Use the ``codec_options`` keyword argument
+  to pass in the ``CodecOptions`` instance.
 
-  >>> type_registry = TypeRegistry(fallback_encoder=fallback_encoder)
-  >>> codec_options = CodecOptions(type_registry=type_registry)
-  >>> collection = db.get_collection("test", codec_options=codec_options)
-  >>> collection.drop()
-
-We can now seamlessly encode instances of ``~decimal.Decimal``:
+The following code example shows this process:
 
 .. code-block:: python
 
-  >>> collection.insert_one({"num": Decimal("45.321")})
-  InsertOneResult(ObjectId('...'), acknowledged=True)
-  >>> mydoc = collection.find_one()
-  >>> pprint.pprint(mydoc)
-  {'_id': ObjectId('...'), 'num': Decimal128('45.321')}
+   type_registry = TypeRegistry(fallback_encoder=fallback_encoder)
+   codec_options = CodecOptions(type_registry=type_registry)
+   collection = db.get_collection("test", codec_options=codec_options)
 
+You can then use this reference to a collection to store instances of the ``Decimal``
+class:
+
+.. io-code-block::
+
+   .. input::
+      :language: python
+
+      import pprint
+
+      collection.insert_one({"num": Decimal("45.321")})
+      my_doc = collection.find_one()
+      pprint.pprint(my_doc)
+
+   .. output::
+      :language: shell
+
+      {'_id': ObjectId('...'), 'num': Decimal128('45.321')}
 
 .. note::
 
@@ -325,24 +330,15 @@ We can now seamlessly encode instances of ``~decimal.Decimal``:
   with standard BSON encoders and any configured type encoders have failed.
   Therefore, in a type registry configured with a type encoder and fallback
   encoder that both target the same custom type, the behavior specified in
-  the type encoder will prevail.
+  the type encoder takes precedence.
 
+Encode Unknown Types
+~~~~~~~~~~~~~~~~~~~~
 
 Because fallback encoders don't need to declare the types that they encode
-beforehand, they can be used to support interesting use-cases that cannot be
-serviced by ``TypeEncoder``. One such use-case is described in the next
-section.
-
-
-Encoding Unknown Types
-^^^^^^^^^^^^^^^^^^^^^^
-
-In this example, we demonstrate how a fallback encoder can be used to save
-arbitrary objects to the database. We will use the the standard library's
-``pickle`` module to serialize the unknown types and so naturally, this
-approach only works for types that are picklable.
-
-We start by defining some arbitrary custom types:
+beforehand, you can them in cases where a ``TypeEncoder`` doesn't work.
+For example, you can use a fallback encoder to save arbitrary objects to MongoDB.
+Consider the following arbitrary custom types:
 
 .. code-block:: python
 
@@ -361,9 +357,9 @@ We start by defining some arbitrary custom types:
       def __repr__(self):
           return "MyNumberType(%s)" % (self.__value,)
 
-We also define a fallback encoder that pickles whatever objects it receives
-and returns them as ``~bson.binary.Binary`` instances with a custom
-subtype. The custom subtype, in turn, allows us to write a TypeDecoder that
+You can define a fallback encoder that pickles the objects it receives
+and returns them as ``Binary`` instances with a custom
+subtype. This custom subtype allows you to define a ``TypeDecoder`` class that
 identifies pickled artifacts upon retrieval and transparently decodes them
 back into Python objects:
 
@@ -371,11 +367,10 @@ back into Python objects:
 
   import pickle
   from bson.binary import Binary, USER_DEFINED_SUBTYPE
-
+  from bson.codec_options import TypeDecoder
 
   def fallback_pickle_encoder(value):
       return Binary(pickle.dumps(value), USER_DEFINED_SUBTYPE)
-
 
   class PickledBinaryDecoder(TypeDecoder):
       bson_type = Binary
@@ -385,54 +380,69 @@ back into Python objects:
               return pickle.loads(value)
           return value
 
+You can then add the ``PickledBinaryDecoder`` to the codec options for a collection
+and use it to encode and decode your custom types:
 
-.. note::
+.. io-code-block::
 
-  The above example is written assuming the use of Python 3. If you are using
-  Python 2, ``bson_type`` must be set to ``Binary``. See the
-  :ref:`decoding-binary-types` section for a detailed explanation.
+   .. input::
+      :language: python
 
+      from bson.codec_options import CodecOptions,TypeRegistry
 
-Finally, we create a ``CodecOptions`` instance:
-
-.. code-block:: python
-
-  codec_options = CodecOptions(
-      type_registry=TypeRegistry(
-          [PickledBinaryDecoder()], fallback_encoder=fallback_pickle_encoder
+      codec_options = CodecOptions(
+          type_registry=TypeRegistry(
+              [PickledBinaryDecoder()], fallback_encoder=fallback_pickle_encoder
+        )
       )
-  )
 
-We can now round trip our custom objects to MongoDB:
+      collection = db.get_collection("test", codec_options=codec_options)
+      collection.insert_one(
+          {"_id": 1, "str": MyStringType("hello world"), "num": MyNumberType(2)}
+      )
+      my_doc = collection.find_one()
 
-.. code-block:: python
+      print(isinstance(my_doc["str"], MyStringType))
+      assert(isinstance(my_doc["num"], MyNumberType))
 
-  collection = db.get_collection("test_fe", codec_options=codec_options)
-  collection.insert_one(
-      {"_id": 1, "str": MyStringType("hello world"), "num": MyNumberType(2)}
-  )
-  mydoc = collection.find_one()
-  assert isinstance(mydoc["str"], MyStringType)
-  assert isinstance(mydoc["num"], MyNumberType)
+   .. output::
+      :language: shell
 
+      True
+      True
 
 Limitations
 -----------
 
-PyMongo's type codec and fallback encoder features have the following
+{+driver-short+} type codecs and fallback encoders have the following
 limitations:
 
-#. Users cannot customize the encoding behavior of Python types that PyMongo
-   already understands like ``int`` and ``str`` (the 'built-in types').
-   Attempting to instantiate a type registry with one or more codecs that act
-   upon a built-in type results in a ``TypeError``. This limitation extends
-   to all subtypes of the standard types.
-#. Chaining type encoders is not supported. A custom type value, once
-   transformed by a codec's ``transform_python`` method, *must* result in a
-   type that is either BSON-encodable by default, or can be
-   transformed by the fallback encoder into something BSON-encodable--it
-   *cannot* be transformed a second time by a different type codec.
-#. The the ``~pymongo.database.Database.command`` method method does not apply the
-   user's TypeDecoders while decoding the command response document.
-#. ``gridfs`` does not apply custom type encoding or decoding to any
-   documents received from or to returned to the user.
+- You can't customize the encoding behavior of Python types that {+driver-short+}
+  already understands, like ``int`` and ``str``.
+  If you try to instantiate a type registry with one or more codecs that act
+  upon a built-in type, {+driver-short+} raises a ``TypeError``. This limitation also
+  applies to all subtypes of the standard types.
+
+- You can't chain type encoders. A custom type value, once
+  transformed by a codec's ``transform_python()`` method, *must* result in a
+  type that is either BSON-encodable by default, or can be
+  transformed by the fallback encoder into something BSON-encodable. It
+  *cannot* be transformed a second time by a different type codec.
+
+- The ``Database.command()`` method doesn't apply custom
+  type decoders while decoding the command response document.
+
+- The ``gridfs`` class doesn't apply custom type encoding or decoding to any
+  documents it receives or returns.
+
+API Documentation
+-----------------
+
+For more information about encoding and decoding custom types,
+see the following API documentation:
+
+- `TypeCodec <{+api-root+}bson/codec_options.html#bson.codec_options.TypeCodec>`__
+- `TypeEncoder <{+api-root+}bson/codec_options.html#bson.codec_options.TypeEncoder>`__
+- `TypeDecoder <{+api-root+}bson/codec_options.html#bson.codec_options.TypeDecoder>`__
+- `TypeRegistry <{+api-root+}bson/codec_options.html#bson.codec_options.TypeRegistry>`__
+- `CodecOptions <{+api-root+}bson/codec_options.html#bson.codec_options.CodecOptions>`__
