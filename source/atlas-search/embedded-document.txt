@@ -128,6 +128,13 @@ the :ref:`scoring-embedded` option.
 
    :ref:`scoring-ref` 
 
+.. _embedded-document-query-sort:
+
+Sorting Behavior 
+----------------
+
+.. include:: /includes/fact-fts-embedded-documents-sort.rst
+
 .. _embedded-document-query-highlighting:
 
 Highlighting 
@@ -162,10 +169,21 @@ examples use the following index definition on the collection:
      "mappings": {
        "dynamic": true,
        "fields": {
-         "items": {
-           "dynamic": true,
-           "type": "embeddedDocuments"
-         },
+         "items": [
+           {
+             "dynamic": true,
+             "type": "embeddedDocuments"
+           },
+           {
+             "dynamic": true,
+             "fields": {
+               "tags": {
+                 "type": "token"
+               }
+             },
+             "type": "document"
+           }
+         ],
          "purchaseMethod": {
            "type": "stringFacet"
          }
@@ -185,7 +203,7 @@ examples use the following index definition on the collection:
       query includes a :pipeline:`$limit` stage to limit the output to 
       ``5`` documents and a :pipeline:`$project` stage to:
 
-      - Exclude all fields except ``items.name`` field 
+      - Exclude all fields except ``items.name`` and ``items.tags`` fields 
       - Add a field named ``score`` 
 
       .. io-code-block:: 
@@ -351,5 +369,129 @@ examples use the following index definition on the collection:
                     ]
                   }
                 }
+              }
+            ]
+
+   .. tab:: Sort Example 
+      :tabid: sort 
+      
+      The following query searches for items named ``laptop`` and 
+      it sorts the results by the ``items.tags`` field. The query 
+      includes a :pipeline:`$limit` stage to limit the output to 
+      ``5`` documents and a :pipeline:`$project` stage to:
+
+      - Exclude all fields except ``items.name`` and ``items.tags``  
+      - Add a field named ``score`` 
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: 
+            :language: json
+            :linenos: 
+
+            db.sales.aggregate({
+              "$search": {
+                "embeddedDocument": {
+                  "path": "items",
+                  "operator": {
+                    "text": {
+                      "path": "items.name",
+                      "query": "laptop"
+                    }
+                  }
+                },
+                "sort": {
+                  "items.tags": 1
+                }
+              }
+            },
+            {
+              "$limit": 5
+            },
+            {
+              "$project": {
+                "_id": 0,
+                "items.name": 1,
+                "items.tags": 1,
+                "score": { "$meta": "searchScore" }
+              }
+            })
+
+         .. output::
+            :language: json 
+            :linenos:
+            :emphasize-lines: 7, 26, 38, 44, 66
+
+            [
+              {
+                items: [
+                  { name: 'envelopes',  tags: [ 'stationary', 'office', 'general' ] },
+                  { name: 'binder', tags: [ 'school', 'general', 'organization' ] },
+                  { name: 'notepad', tags: [ 'office', 'writing', 'school' ] },
+                  { name: 'laptop', tags: [ 'electronics', 'school', 'office' ] },
+                  { name: 'notepad', tags: [ 'office', 'writing', 'school' ] },
+                  { name: 'printer paper', tags: [ 'office', 'stationary' ] },
+                  { name: 'backpack', tags: [ 'school', 'travel', 'kids' ] },
+                  { name: 'pens', tags: [ 'writing', 'office', 'school', 'stationary' ] },
+                  { name: 'envelopes', tags: [ 'stationary', 'office', 'general' ] }
+                ],
+                score: 1.168686032295227
+              },
+              {
+                items: [
+                  { name: 'notepad', tags: [ 'office', 'writing', 'school' ] },
+                  { name: 'binder', tags: [ 'school', 'general', 'organization' ] },
+                  { name: 'notepad', tags: [ 'office', 'writing', 'school' ] },
+                  { name: 'pens', tags: [ 'writing', 'office', 'school', 'stationary' ] },
+                  { name: 'printer paper', tags: [ 'office', 'stationary' ] },
+                  { name: 'pens', tags: [ 'writing', 'office', 'school', 'stationary' ] },
+                  { name: 'notepad', tags: [ 'office', 'writing', 'school' ] },
+                  { name: 'backpack', tags: [ 'school', 'travel', 'kids' ] },
+                  { name: 'laptop', tags: [ 'electronics', 'school', 'office' ] }
+                ],
+                score: 1.168686032295227
+              },
+              {
+                items: [
+                  { name: 'backpack', tags: [ 'school', 'travel', 'kids' ] },
+                  { name: 'notepad', tags: [ 'office', 'writing', 'school' ] },
+                  { name: 'binder', tags: [ 'school', 'general', 'organization' ] },
+                  { name: 'pens', tags: [ 'writing', 'office', 'school', 'stationary' ] },
+                  { name: 'notepad', tags: [ 'office', 'writing', 'school' ] },
+                  { name: 'envelopes', tags: [ 'stationary', 'office', 'general' ] },
+                  { name: 'laptop', tags: [ 'electronics', 'school', 'office' ] }
+                ],
+                score: 1.168686032295227
+              },
+              {
+                items: [
+                  { name: 'laptop', tags: [ 'electronics', 'school', 'office' ] },
+                  { name: 'binder', tags: [ 'school', 'general', 'organization' ] },
+                  { name: 'binder', tags: [ 'school', 'general', 'organization' ] },
+                  { name: 'backpack', tags: [ 'school', 'travel', 'kids' ] },
+                  { name: 'notepad', tags: [ 'office', 'writing', 'school' ] },
+                  { name: 'printer paper', tags: [ 'office', 'stationary' ] },
+                  { name: 'pens', tags: [ 'writing', 'office', 'school', 'stationary' ] },
+                  { name: 'notepad', tags: [ 'office', 'writing', 'school' ] },
+                  { name: 'pens', tags: [ 'writing', 'office', 'school', 'stationary' ] },
+                  { name: 'notepad', tags: [ 'office', 'writing', 'school' ] }
+                ],
+                score: 1.168686032295227
+              },
+              {
+                items: [
+                  { name: 'envelopes', tags: [ 'stationary', 'office', 'general' ] },
+                  { name: 'notepad', tags: [ 'office', 'writing', 'school' ] },
+                  { name: 'notepad', tags: [ 'office', 'writing', 'school' ] },
+                  { name: 'backpack', tags: [ 'school', 'travel', 'kids' ] },
+                  { name: 'envelopes', tags: [ 'stationary', 'office', 'general' ] },
+                  { name: 'pens', tags: [ 'writing', 'office', 'school', 'stationary' ] },
+                  { name: 'binder', tags: [ 'school', 'general', 'organization' ] },
+                  { name: 'laptop', tags: [ 'electronics', 'school', 'office' ] },
+                  { name: 'printer paper', tags: [ 'office', 'stationary' ] },
+                  { name: 'binder', tags: [ 'school', 'general', 'organization' ] }
+                ],
+                score: 1.168686032295227
               }
             ]
