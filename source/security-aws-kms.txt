@@ -55,66 +55,20 @@ Required Access
 Enable Customer-Managed Keys with AWS KMS
 -----------------------------------------
 
-Key Concepts 
-~~~~~~~~~~~~
+.. |cloud-kms| replace:: AWS KMS
+.. |envelope-encryption| replace:: `envelope encryption <https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#enveloping>`__
+.. |cmk-link| replace:: `AWS KMS Documentation <https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#kms_keys>`__
 
-.. expression:: MongoDB Master Key
+.. include:: /includes/fact-customer-managed-keys.rst
 
-   :expression:`MongoDB Master Key` is an encryption key used by the
-   MongoDB Server to encrypt the WiredTiger Storage Engine. The key
-   isn't stored in the MongoDB database, but it's supplied externally
-   through |kmip|. When the MongoDB server starts, it
-   obtains the master key from the |kmip| or local file and then stores
-   it in memory. This key is then used to decrypt the data stored in the
-   WiredTiger storage engine. 
+Example
+~~~~~~~
 
-   |service| maintains a layer that translates requests between MongoDB
-   Server and a |cmk| that you created in |aws|. To translate the
-   requests, |service| uses the layer to request the |cmk| to create an
-   encrypted data encryption key (DEK). This encrypted
-   :abbr:`DEK (data encryption key)` is generated per |service| deployment. 
+.. include:: /includes/fact-cmk-workflow-example.rst
 
-   For example, for a three node M10+ replica set as shown in the
-   following figure, there are three unique encrypted :abbr:`DEK (data
-   encryption key)`\s, one per node. |service| stores the encrypted
-   :abbr:`DEK (data encryption key)` on disk on each node in the
-   |service| cluster. When the cluster starts up, the |service| layer
-   decrypts the :abbr:`DEK (data encryption key)` using the customer
-   provided encryption key and supplies this to the MongoDB Server.  
-
-   .. figure:: /images/aws-kms-cmk-key-concepts.png 
-      :figwidth: 100%
-      :alt: Atlas and AWS KMS key transfer workflow
-
-.. expression:: Per Database Encryption Key in a MongoDB Cluster
-
-   MongoDB Server maintains a per database encryption key in the MongoDB 
-   cluster. In the preceding figure, there are three databases on the
-   MongoDB cluster, each of which is encrypted with a unique database
-   encryption key. Each of these keys are then encrypted with the
-   :expression:`MongoDB Master Key`.  
-
-.. expression:: Data Encryption Key (in cloud provider terminology) or MongoDB Master Key 
-
-   |service| uses the customer provided encryption key to create an
-   encrypted :abbr:`DEK (data encryption key)`. |service| also uses a 
-   customer key management instance to decrypt this encrypted :abbr:`DEK
-   (data encryption key)` and supply the resulting plaintext key to the 
-   MongoDB Server over the wire using |tls|. When MongoDB Server uses
-   this plaintext key, it refers to it as the :expression:`MongoDB
-   Master Key`, whereas a cloud provider's customer key management
-   instance might refer to it as a :abbr:`DEK (data encryption key)`. 
-   To learn more about :abbr:`DEK (data encryption key)`\s, see `Data Keys
-   <https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#data-keys>`__.
-
-.. expression:: Customer Master Key (CMK)
-
-   :abbr:`Customer Master Key (CMK)` is a concept of a customer key
-   management instance. |cmk|\s are used to  encrypt and decrypt a
-   :expression:`MongoDB Master Key` (or :abbr:`DEK (data encryption
-   key)`). The |cmk| exists only on the customer key management
-   instance. To learn more about |cmk|\s, see `Data Keys
-   <https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#key-mgmt>`__.
+.. figure:: /images/aws-kms-cmk-diagram.png
+   :figwidth: 100%
+   :alt: Diagram of CMK workflow with AWS KMS and Atlas
 
 .. _aws-ksm-prereqs:
 .. _security-aws-kms-restrictions:

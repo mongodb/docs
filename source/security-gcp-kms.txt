@@ -21,89 +21,40 @@ Manage Customer Keys with Google Cloud KMS
 
 .. include:: /includes/unavailable-serverless-m0-m2-m5-clusters.rst
 
-|service| uses your |gcp| Service Account Key to encrypt and decrypt
-your MongoDB master keys. These MongoDB master keys are used to encrypt
-cluster database files and
-:ref:`cloud providers snapshots <backup-cloud-provider>`.
+You can use a customer-managed key (CMK) from Google Cloud KMS 
+to further encrypt your data at rest in |service|.
+
+|service| uses your |cmk| from Google Cloud KMS 
+to encrypt and decrypt MongoDB Master Keys, which are then 
+used to encrypt cluster database files and 
+:ref:`cloud providers snapshots <backup-cloud-provider>`. To learn more
+about how |service| uses |cmk|\s for encryption,
+see :ref:`enable-cmk-gcp`.
 
 .. include:: /includes/fact-atlas-key-rotation.rst
-
-|service| encrypts your data at rest using encrypted storage media.
-Using keys you manage with |gcp| |kms|, |service| encrypts your
-data a second time when it writes it to the MongoDB
-:manual:`encrypted storage engine </core/security-encryption-at-rest>`.
-You use your |gcp| |sak| to encrypt the MongoDB master encryption keys.
-
-This page covers configuring customer key management using |gcp| on
-your |service| project.
 
 You must configure customer key management for the |service| project
 before enabling it on clusters in that project.
 
+.. _enable-cmk-gcp:
+   
 Enable Customer-Managed Keys with Google Cloud KMS
 --------------------------------------------------
 
-Key Concepts 
-~~~~~~~~~~~~
+.. |cloud-kms| replace:: Google Cloud KMS
+.. |envelope-encryption| replace:: `envelope encryption <https://cloud.google.com/kms/docs/envelope-encryption>`__
+.. |cmk-link| replace:: `Google Cloud Documentation <https://cloud.google.com/kms/docs/cmek>`__
 
-.. expression:: MongoDB Master Key
+.. include:: /includes/fact-customer-managed-keys.rst
 
-   :expression:`MongoDB Master Key` is an encryption key used by the
-   MongoDB Server to encrypt the WiredTiger Storage Engine. The key
-   isn't stored in the MongoDB database, but it's supplied externally
-   through |kmip|. When the MongoDB server starts, it
-   obtains the master key from the |kmip| or local file and then stores
-   it in memory. This key is then used to decrypt the data stored in the
-   WiredTiger storage engine. 
+Example
+~~~~~~~
 
-   |service| maintains a layer that translates requests between MongoDB
-   Server and a |cmk| that you created in |gcp|. To translate the
-   requests, |service| uses the layer to request the |cmk| to create an
-   encrypted data encryption key (DEK). This encrypted :abbr:`DEK (data
-   encryption key)` is generated per |service| deployment.  
+.. include:: /includes/fact-cmk-workflow-example.rst
 
-   For example, for a three node M10+ replica set as shown in the
-   following figure, there are three unique encrypted :abbr:`DEK (data
-   encryption key)`\s, one per node. |service| stores the encrypted
-   :abbr:`DEK (data encryption key)` on disk on each node in the
-   |service| cluster. When the cluster starts up, the |service| layer
-   decrypts the :abbr:`DEK (data encryption key)` using the customer
-   provided encryption key and supplies this to the MongoDB Server.  
-
-   .. figure:: /images/gcp-kms-cmk-key-concepts.png 
-      :figwidth: 100%
-      :alt: Atlas and AWS KMS key transfer workflow
-
-.. expression:: Per Database Encryption Key in a MongoDB Cluster
-
-   MongoDB Server maintains a per database encryption key in the MongoDB 
-   cluster. In the preceding figure, there are three databases on the
-   MongoDB cluster, each of which is encrypted with a unique database
-   encryption key. Each of these keys are then encrypted with the
-   :expression:`MongoDB Master Key`.  
-
-.. expression:: Data Encryption Key (in cloud provider terminology) or MongoDB Master Key 
-
-   |service| uses the customer provided encryption key to create an
-   encrypted :abbr:`DEK (data encryption key)`. |service| also uses a 
-   customer key management instance to decrypt this encrypted :abbr:`DEK
-   (data encryption key)` and supply the resulting plaintext key to the 
-   MongoDB Server over the wire using |tls|. When MongoDB Server uses
-   this plaintext key, it refers to it as the :expression:`MongoDB
-   Master Key`, whereas a cloud provider's customer key management
-   instance might refer to it as a :abbr:`DEK (data encryption key)`. 
-   To learn more about :abbr:`DEK (data encryption key)`\s, see `Data
-   encryption keys
-   <https://cloud.google.com/kms/docs/envelope-encryption#data_encryption_keys>`__. 
-
-.. expression:: Customer Master Key (CMK)
-
-   Customer Master Keys are used to  encrypt and decrypt a
-   :expression:`MongoDB Master Key` (or :abbr:`DEK (data encryption
-   key)`). The |cmk| exists only on the customer key management
-   instance. To learn more about |cmk|\s, see `Customer-managed
-   encryption keys  
-   <https://cloud.google.com/storage/docs/encryption/customer-managed-keys>`__.
+.. figure:: /images/gcp-kms-cmk-diagram.png
+   :figwidth: 100%
+   :alt: Diagram of CMK workflow with Google Cloud KMS and Atlas
 
 Required Access
 ---------------
