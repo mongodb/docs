@@ -24,28 +24,33 @@
 .. include:: includes/atlas-sp/public-preview.rst
 
 Definition
-~~~~~~~~~~
+----------
 
-The :pipeline:`$emit` stage specifies a connection in the 
-:ref:`Connection Registry <manage-spi-connection-add>` to emit messages
-to. The connection must be an {+kafka+} broker.
-
-.. pipeline:: $emit
-
-   An ``$emit`` pipeline stage has the following prototype form:
-
-   .. code-block:: json
-
-      {
-        "$emit": {
-          "connectionName": "<registered-connection>",
-          "topic" : "<target-topic>" | <expression>,
-          }
-        }  
-      }
+The ``$emit`` stage specifies a connection in the
+:ref:`Connection Registry <manage-spi-connection-add>` to emit
+messages to. The connection must be either an {+kafka+} broker or a
+:manual:`time series collection </core/timeseries-collections>`.
 
 Syntax
-~~~~~~
+------
+
+.. _sp-emit-kafka:
+
+Apache Kafka Broker
+~~~~~~~~~~~~~~~~~~~
+
+To write processed data to an {+kafka+} broker, use the ``$emit``
+pipeline stage with the following prototype form:
+
+.. code-block:: json
+
+   {
+     "$emit": {
+       "connectionName": "<registered-connection>",
+       "topic" : "<target-topic>" | <expression>,
+       }
+     }  
+   }
 
 The ``$emit`` stage takes a document with the following fields: 
 
@@ -61,25 +66,89 @@ The ``$emit`` stage takes a document with the following fields:
    * - ``connectionName`` 
      - string
      - Required 
-     - The logical name, as it appears in the 
+     - Name, as it appears in the 
        :ref:`Connection Registry <manage-spi-connection-add>`, of the
        connection to ingest data from.
 
    * - ``topic``
      - string | expression
      - Conditional 
-     - The name of the {+kafka+} topic to emit messages to.
+     - Name of the {+kafka+} topic to emit messages to.
+
+.. _sp-emit-timeseries:
+
+{+service+} Time Series Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To write processed data to an {+service+} time series collection,
+use the ``$emit`` pipeline stage with the following prototype form:
+
+.. code-block:: json
+
+   {
+     "$emit": {
+       "connectionName": "<registered-connection>",
+       "db" : "<target-db>",
+       "coll" : "<target-coll>",
+       "timeseries" : {
+	 <options>
+       } 
+     }  
+   }
+
+
+The ``$emit`` stage takes a document with the following fields: 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 10 15 15 70
+
+   * - Field 
+     - Type 
+     - Necessity 
+     - Description
+
+   * - ``connectionName`` 
+     - string
+     - Required 
+     - Name, as it appears in the 
+       :ref:`Connection Registry <manage-spi-connection-add>`, of the
+       connection to ingest data from.
+
+   * - ``db``
+     - string
+     - Required 
+     - Name of the {+service+} database that contains the target
+       time series collection.
+
+   * - ``coll``
+     - string
+     - Required 
+     - Name of the {+service+} time series collection to write
+       to.
+
+   * - ``timeseries``
+     - document
+     - Required 
+     - Document defining the :manual:`time series fields
+       </core/timeseries/timeseries-procedures/#time-series-field-reference>`
+       for the collection.
 
 Behavior
-~~~~~~~~
+--------
 
 ``$emit`` must be the last stage of any pipeline it appears in. You can
 use only one ``$emit`` stage per pipeline.
 
-You can use a :manual:`dynamic expression </reference/operator/aggregation/#expression-operators>`
-as the value of the ``topic`` field to enable your stream processor to 
-write to different target {+kafka+} topics on a message-by-message 
-basis.
+You can only write to a single {+service+} time series collection per
+stream processor. If you specify a collection that doesn't exist,
+{+service+} creates the collection with the time series fields you
+specified. You must specify an existing database.
+
+You can use a :manual:`dynamic expression
+</reference/operator/aggregation/#expression-operators>` as the value
+of the ``topic`` field to enable your stream processor to write to
+different target {+kafka+} topics on a message-by-message basis.
 
 .. example::
 
