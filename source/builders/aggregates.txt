@@ -1,0 +1,240 @@
+.. _scala-builders-agg:
+
+==========
+Aggregates
+==========
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, create insights, computed fields
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The ``Aggregates`` class provides static factory methods that build
+:manual:`aggregation pipeline stages
+</reference/operator/aggregation-pipeline/>`. Each method returns an
+instance of the ``Bson`` type, which can in turn be passed to the
+``MongoCollection.aggregate()`` method.
+
+You can import the methods of the ``Aggregates``
+class statically, as shown in the following code:
+
+.. code-block:: scala
+
+   import org.mongodb.scala.model.Aggregates._
+
+The examples in this guide assume this static import.
+
+Match
+-----
+
+The ``$match`` pipeline stage passes all documents matching the
+specified filter to the next stage. Though the filter can be an instance
+of any class that implements ``Bson``, it’s convenient to use methods from
+the :ref:`scala-builders-filters` class.
+
+The following example creates a pipeline stage that matches all
+documents where the ``author`` field value is ``"Dave"``:
+
+.. code-block:: scala
+
+   `match`(equal("author", "Dave"))
+
+.. note::
+
+   As ``match`` is a reserved word in Scala and has to be escaped by
+   backticks, you might prefer to use the ``filter()`` alias:
+   
+   .. code-block:: scala
+
+      filter(equal("author", "Dave"))
+
+Project
+-------
+
+The ``$project`` pipeline stage passes the projected fields of all
+documents to the next stage. Though the projection can be an instance of
+any class that implements ``Bson``, it’s convenient to use methods from the
+:ref:`scala-builders-projections` class.
+
+The following example creates a pipeline stage that excludes the ``_id``
+field but includes the ``title`` and ``author`` fields:
+
+.. code-block:: scala
+
+   project(fields(include("title", "author"), excludeId()))
+
+Computed Fields
+~~~~~~~~~~~~~~~
+
+The ``$project`` stage can project computed fields as well.
+
+The following example projects the ``qty`` field into a new field called
+``quantity``. In other words, it renames the field:
+
+.. code-block:: scala
+
+   project(computed("quantity", "$qty"))
+
+Sample
+------
+
+The ``$sample`` pipeline stage randomly select ``N`` documents from
+input documents. The following example uses the ``sample()`` method to randomly select ``5``
+documents from the collection:
+
+.. code-block:: scala
+
+   sample(5)
+
+Sort
+----
+
+The ``$sort`` pipeline stage passes all documents to the next stage, sorted
+by the specified sort criteria. Though the sort criteria can be an
+instance of any class that implements ``Bson``, it’s convenient to use methods
+from the :ref:`scala-builders-sorts` class.
+
+The following example creates a pipeline stage that sorts in descending order
+according to the value of the ``age`` field and then in ascending order
+according to the value of the ``posts`` field:
+
+.. code-block:: scala
+
+   sort(orderBy(descending("age"), ascending("posts")))
+
+Skip
+----
+
+The ``$skip`` pipeline stage skips over the specified number of documents
+that pass into the stage and passes the remaining documents to the next
+stage.
+
+The following example skips the first ``5`` documents:
+
+.. code-block:: scala
+
+   skip(5)
+
+Limit
+-----
+
+The ``$limit`` pipeline stage limits the number of documents passed to
+the next stage.
+
+The following example limits the number of documents to 10:
+
+.. code-block:: scala
+
+   limit(10)
+
+Lookup
+------
+
+The ``$lookup`` pipeline stage performs a left outer join with another
+collection to filter in documents from the joined collection for
+processing.
+
+This example performs a left outer join on the ``fromCollection``
+collection, joining the ``local`` field to the ``from`` field and outputted
+in the ``joinedOutput`` field:
+
+.. code-block:: scala
+
+   lookup("fromCollection", "local", "from", "joinedOutput")
+
+Group
+-----
+
+The ``$group`` pipeline stage groups documents by some specified expression
+and outputs a document for each distinct grouping to the next stage. A
+group consists of an ``_id`` which specifies the expression on which to
+group, and zero or more accumulators which are evaluated for each
+grouping.
+
+To simplify the expression of accumulators, the driver
+includes an ``Accumulators`` singleton object with factory methods for each
+of the supported accumulators.
+
+This example groups documents by the value of the ``customerId`` field, and
+for each group accumulates the sum and average of the values of the
+quantity field into the ``totalQuantity`` and ``averageQuantity`` fields,
+respectively:
+
+.. code-block:: scala
+
+   group("$customerId", sum("totalQuantity", "$quantity"), avg("averageQuantity", "$quantity"))
+
+Unwind
+------
+
+The ``$unwind`` pipeline stage deconstructs an array field from the
+input documents to output a document for each element.
+
+This example outputs, for each document, a document for each element in
+the ``sizes`` array:
+
+.. code-block:: scala
+
+   unwind("$sizes")
+
+This example also includes any documents that have missing or null
+values for the ``sizes`` field or where the ``sizes`` list is empty:
+
+.. code-block:: scala
+
+   unwind("$sizes", UnwindOptions().preserveNullAndEmptyArrays(true))
+
+This example unwinds the ``sizes`` array and also outputs the array
+index into the ``position`` field:
+
+.. code-block:: scala
+
+   unwind("$sizes", UnwindOptions().includeArrayIndex("$position"))
+
+Set Window Fields
+-----------------
+
+The ``$setWindowFields`` pipeline stage allows using window operators. This
+stage partitions the input documents similarly to the ``$group`` pipeline
+stage, optionally sorts them, computes fields in the documents by
+computing window functions over windows specified per function, and
+outputs the documents. A window is a subset of a partition.
+
+The important difference from the ``$group`` pipeline stage is that documents belonging to
+the same partition or window are not folded into a single document.
+
+The driver includes the ``WindowedComputations`` singleton object with
+factory methods for supported window operators. 
+
+This example computes the accumulated rainfall and the average
+temperature over the past month per each locality from more fine-grained
+measurements presented in the ``rainfall`` and ``temperature`` fields:
+
+.. code-block:: scala
+   
+   val pastMonth: Window = Windows.timeRange(-1, MongoTimeUnit.MONTH, Windows.Bound.CURRENT)
+
+   setWindowFields(Some("$localityId"), Some(Sorts.ascending("measurementDateTime")),
+     WindowedComputations.sum("monthlyRainfall", "$rainfall", Some(pastMonth)),
+     WindowedComputations.avg("monthlyAvgTemp", "$temperature", Some(pastMonth)))
+
+Assembling a Pipeline
+---------------------
+
+Pipeline operators are typically combined into a list and passed to the
+``aggregate()`` method of a ``MongoCollection``:
+
+.. code-block:: scala
+   
+   collection.aggregate(List(filter(equal("author", "Dave")),
+       group("$customerId", sum("totalQuantity", "$quantity"), 
+                            avg("averageQuantity", "$quantity")),
+       out("authors")))
