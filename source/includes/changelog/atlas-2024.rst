@@ -48,6 +48,8 @@
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 - Supports MongoDB 7.2.
+- Supports |gcp| for |service| oplog store. To learn more, see
+  :ref:`pit-restore`. 
 
 .. _atlas_2024_01_04:
 
