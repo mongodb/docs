@@ -1,0 +1,151 @@
+.. _pymongo-connection-targets:
+
+==========================
+Choose a Connection Target
+==========================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: connection string, URI, server, settings, client
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use a connection string and ``MongoClient`` object
+to connect to different types of MongoDB deployments.
+
+Atlas
+-----
+
+To connect to a MongoDB deployment on Atlas, include the following elements
+in your connection string:
+
+- URL of your Atlas cluster
+- MongoDB username
+- MongoDB password
+
+Then, pass your connection string to the ``MongoClient`` constructor.
+
+.. tip::
+
+   Follow the :atlas:`Atlas driver connection guide </driver-connection?tck=docs_driver_python>`
+   to retrieve your connection string.
+
+When you connect to Atlas, we recommend using the {+stable-api+} client option to avoid
+breaking changes when Atlas upgrades to a new version of MongoDB Server.
+To learn more about the {+stable-api+} feature, see the :ref:`{+stable-api+} page
+<pymongo-stable-api>`.
+
+The following code shows how to use {+driver-short+} to connect to an Atlas cluster. The
+code also uses the ``server_api`` option to specify a {+stable-api+} version.
+
+.. literalinclude:: /includes/connect/atlas_connection.py
+   :language: python
+
+Local Deployments
+-----------------
+
+To connect to a local MongoDB deployment, use ``localhost`` as the hostname. By
+default, the ``mongod`` process runs on port 27017, though you can customize this for
+your deployment.
+
+The following code shows how to use {+driver-short+} to connect to a local MongoDB
+deployment:
+
+.. code-block:: python
+
+   from pymongo import MongoClient
+   
+   uri = "mongodb://localhost:27017/"
+   client = MongoClient(uri)
+
+Replica Sets
+------------
+
+To connect to a replica set, specify the hostnames (or IP addresses) and 
+port numbers of the replica-set members in your connection string.
+
+If you aren't able to provide a full list of hosts in the replica set, you can 
+specify one or more of the hosts in the replica set and instruct {+driver-short+} to 
+perform automatic discovery to find the others. To instruct the driver to perform
+automatic discovery, perform one of the following actions:
+
+- Specify the name of the replica set as the value of the ``replicaSet`` parameter.
+- Specify ``false`` as the value of the ``directConnection`` parameter.
+- Specify more than one host in the replica set.
+
+In the following example, the driver uses a sample connection URI to connect to the 
+MongoDB replica set ``sampleRS``, which is running on port ``27017`` of three different
+hosts, including ``host1``:
+
+.. code-block:: python
+
+   from pymongo import MongoClient
+
+   uri = "mongodb://host1:27017/?replicaSet=sampleRS"
+   client = MongoClient(uri)
+
+.. note::
+
+   The ``MongoClient`` constructor is *non-blocking*.
+   When you connect to a replica set, the constructor returns immediately while the
+   client uses background threads to connect to the replica set.
+   
+   If you construct a ``MongoClient`` and immediately print the string representation
+   of its ``nodes`` attribute, the list might be empty while the client connects to
+   the replica-set members.
+
+Initialization
+~~~~~~~~~~~~~~
+
+To initialize a replica set, you must connect directly to a single member. To do so,
+set the ``directConnection`` connection
+option to ``True``. You can do this in two ways: by passing an argument to the
+``MongoClient`` constructor or through a parameter in your connection string.
+
+.. tabs::
+
+   .. tab:: MongoClient
+      :tabid: mongoclient
+
+      .. code-block:: python
+         :emphasize-lines: 4
+
+         from pymongo import MongoClient
+
+         client = MongoClient("mongodb://<hostname>:<port>",
+                              directConnection=True)
+
+   .. tab:: Connection String
+      :tabid: connectionstring
+
+      .. code-block:: python
+         :emphasize-lines: 4
+
+         from pymongo import MongoClient
+
+         uri = ("mongodb://<hostname>:<port>/?"
+                "directConnection=true")
+         client = MongoClient(uri)
+
+Troubleshooting
+---------------
+
+.. include:: /includes/troubleshooting/connection-targets.rst
+
+API Documentation
+-----------------
+
+To learn more about creating a ``MongoClient`` object in {+driver-short+},
+see the following API documentation:
+
+- `MongoClient <{+api-root+}pymongo/mongo_client.html#pymongo.mongo_client.MongoClient>`__ 
