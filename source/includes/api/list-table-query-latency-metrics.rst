@@ -6,39 +6,39 @@
      - Description 
 
    * - ``TOTAL_LATENCY``
-     - Rate that indicates the total combined operation 
-       execution time on a collection (total combined 
-       operation execution time / collection interval in seconds).
+     - Rate that indicates the total combined server operation 
+       duration on a collection (total combined 
+       server operation duration / collection interval in seconds).
 
    * - ``READS_LATENCY``
-     - Rate that indicates the total combined read operation execution 
-       time on a collection (total combined read operation execution 
-       time / collection interval in seconds).
+     - Rate that indicates the total combined read operation 
+       duration on a collection (total combined read operation 
+       duration / collection interval in seconds).
 
    * - ``WRITES_LATENCY``
      - Rate that indicates the total combined write operation 
-       execution time on a collection (total combined write operation 
-       execution time / collection interval in seconds).
+       duration on a collection (total combined write operation 
+       duration / collection interval in seconds).
 
    * - ``COMMANDS_LATENCY``
      - Rate that indicates the total combined command operation 
-       execution time on a collection (total combined command operation 
-       execution time / collection interval in seconds).
+       duration on a collection (total combined command operation 
+       duration / collection interval in seconds).
 
    * - ``AVERAGE_TOTAL_OPS_LATENCY``
-     - Total operation execution time divided by the total operation 
+     - Total server operation duration divided by the total server operation 
        count across all operation types.
 
    * - ``AVERAGE_READS_LATENCY``
-     - Read operation execution time divided by the read operation 
+     - Read operation duration divided by the read operation 
        count.
 
    * - ``AVERAGE_WRITES_LATENCY``
-     - Write operation execution time divided by the write operation 
+     - Write operation duration divided by the write operation 
        count.
 
    * - ``AVERAGE_COMMANDS_LATENCY``
-     - Command operation execution time divided by the command 
+     - Command operation duration divided by the command 
        operation count.
  
    * - ``TOTAL_OPS_P50_VALUE``
