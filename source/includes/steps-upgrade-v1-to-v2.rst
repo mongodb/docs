@@ -112,8 +112,8 @@
          spec:
            name: Test Atlas Operator Project
            projectIpAccessList:
-             - ipAddress: "<Public-IP-of-K8s-Cluster>"
-               comment: "This IP is added to your Atlas Project's Access List." 
+             - cidrBlock: "<Public-CIDR-of-K8s-Cluster>"
+               comment: "This CIDR is added to your Atlas Project's Access List." 
 
    .. step:: Update existing ``AtlasDeployment`` CR definitions.
       
