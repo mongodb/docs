@@ -31,14 +31,13 @@ Using the Connection URI
 
 If you pass a connection URI to the ``MongoClient`` constructor, you can include
 connection options in the string as ``<name>=<value>`` pairs. In the following example,
-the connection URI contains the ``connect_timeout`` option with a value of ``60000``
+the connection URI contains the ``connectTimeoutMS`` option with a value of ``60000``
 and the ``tls`` option with a value of ``true``:
 
-.. literalinclude:: /includes/connect/local_connection_config.py
-   :language: python
-   :dedent:
-   :start-after: # start local connection config
-   :end-before: # end local connection config
+.. code-block:: python
+
+   uri = "mongodb://<hostname>:<port>/?connectTimeoutMS=60000&tls=true"
+   client = pymongo.MongoClient(uri)
 
 .. _pymongo-mongo-client-settings:
 
@@ -52,11 +51,10 @@ change settings at runtime and helps you catch errors during compilation.
 The following example shows how to use the ``MongoClient`` constructor to set
 connection options:
 
-.. literalinclude:: /includes/connect/mongoclient_settings_config.py
-   :language: python
-   :dedent:
-   :start-after: # start mongo client settings config
-   :end-before: # end mongo client settings config
+.. code-block:: python
+
+   uri = "mongodb://<hostname>:<port>"
+   client = pymongo.MongoClient(uri, connectTimeoutMS=60000, tls=True)
 
 Connection Options
 ------------------
@@ -221,6 +219,14 @@ Read and Write Operations
        | **MongoClient Example**: ``replicaSet='replicaSetName'``
        | **Connection URI Example**: ``replicaSet=replicaSetName``
     
+   * - **directConnection**
+     - | Whether to connect only to the primary member of the replica set.
+       |
+       | **Data Type**: {+bool-data-type+}
+       | **Default**: ``False``
+       | **MongoClient Example**: ``directConnection=True``
+       | **Connection URI Example**: ``directConnection=true``
+   
    * - **readPreference**
      - | Specifies the client's read-preference settings.
        |
@@ -257,91 +263,3 @@ Read and Write Operations
        | **Connection URI Example**: ``localThresholdMS=35``
 
 For more information about the connection option in this section, see :ref:`pymongo-databases-collections`. 
-
-.. _secondary-reads:
-
-Secondary Reads
----------------
-
-By default, an instance of ``MongoClient`` sends queries to
-the primary member of the replica set. To use secondary members for queries instead, change
-the read preference as shown in the following example:
-
-.. code-block:: python
-
-   >>> client = MongoClient(
-   ...     'localhost:27017',
-   ...     replicaSet='foo',
-   ...     readPreference='secondaryPreferred')
-   >>> client.read_preference
-   SecondaryPreferred(tag_sets=None)
-
-Now the ``MongoClient`` sends all queries to the secondary members of the replica set. If there are
-no secondary members, the client uses the primary member as a fallback. If you have
-queries you would prefer to never send to the primary, you can specify that
-using the ``secondary`` read preference.
-
-.. _health-monitoring:
-
-Health Monitoring
------------------
-
-When you initialize a ``MongoClient``, it launches background threads to
-monitor the replica set for the following changes:
-
-- Health: Detect when a member goes down or comes up, or if a different member
-  becomes primary.
-- Configuration: Detect when members are added or removed, and detect changes
-  in members' tags.
-- Latency: Track a moving average of each member's ping time.
-
-Replica-set monitoring ensures that queries are continually routed to the proper
-members as the state of the replica set changes.
-
-.. _mongos-load-balancing:
-
-``mongos`` Load Balancing
--------------------------
-
-You can configure an instance of ``~pymongo.mongo_client.MongoClient``
-with a list of ``mongos`` server addresses:
-
-.. code-block:: python
-
-   >> client = MongoClient('mongodb://host1,host2,host3')
-
-Each member of the list must be a single ``mongos`` server. Multi-homed and round
-robin DNS addresses are **not** supported. The client continuously
-monitors the availability of all ``mongos`` servers. It also monitors its
-network latency to each server.
-
-PyMongo distributes operations evenly among the set of ``mongos`` servers within its
-``localThresholdMS`` (similar to how it distributes reads to secondaries
-in a replica set). By default, the threshold is 15 ms.
-
-The server with the lowest latency, and all servers with latencies no more than
-``localThresholdMS`` beyond the server with the lowest latency, receive
-operations equally. For example, consider the following three ``mongos`` servers:
-
-- host1: 20 ms
-- host2: 35 ms
-- host3: 40 ms
-
-By default, the ``localThresholdMS`` is 15 ms, so PyMongo uses "host1" and "host2"
-evenly. It uses "host1" because its network latency to the driver is shortest. It
-uses "host2" because its latency is within 15 ms of the server with the lowest latency.
-PyMongo doesn't use "host3" because its latency is 20 ms beyond the server with the
-lowest latency.
-
-To ensure that all servers are within the threshold, set ``localThresholdMS`` to 30
-ms as shown in the following example:
-
-.. code-block:: python
-
-   >> client = MongoClient('mongodb://host1,host2,host3/?localThresholdMS=30')
-
-.. warning:: 
-  
-   Do **not** connect PyMongo to a pool of ``mongos`` instances through a
-   load balancer. A single socket connection must always route to the same
-   ``mongos`` instance for proper cursor support.

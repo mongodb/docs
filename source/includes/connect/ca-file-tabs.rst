@@ -14,5 +14,5 @@
 
       .. code-block:: python
 
-         uri = "mongodb://example.com/?tls=true&tlsCAFile=/path/to/ca.pem"
+         uri = "mongodb://<username>:<password>@<hostname>:<port>/?tls=true&tlsCAFile=/path/to/ca.pem"
          client = pymongo.MongoClient(uri)
