@@ -1,7 +1,7 @@
-You can view a history of previous conversion in the left-hand 
+You can view the history of previous conversion in the left-hand 
 :guilabel:`Query Converter` pane. Each conversion has an icon 
-indicating the result of the conversion, if the object does not have 
-an icon a conversion has not been attempted:
+indicating the result of the conversion. If an object does not have 
+an icon next to it, a conversion has not been attempted yet:
 
 .. list-table::
    :header-rows: 1
