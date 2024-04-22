@@ -1,5 +1,5 @@
-Starting in version 5.2, MongoDB uses the :ref:`slot-based execution
-query engine <5.1-rel-notes-sbe>` to execute :pipeline:`$group` stages
+Starting in version 5.2, MongoDB uses the slot-based execution
+query engine to execute :pipeline:`$group` stages
 if either:
 
 - ``$group`` is the first stage in the pipeline.
