@@ -1,138 +1,133 @@
-const { MongoClient } = require("mongodb");
+from pymongo import MongoClient
 
-const uri = "<connection string>";
-const client = new MongoClient(uri);
+uri = "<connection string>"
+client = MongoClient(uri)
 
-async function run() {
-  try {
-    const aggDB = client.db("agg_tutorials_db");
+try:
+    agg_db = client["agg_tutorials_db"]
 
-    // start-coll
-    const ordersColl = await aggDB.collection("orders");
-    // end-coll
+    # start-coll
+    orders_coll = agg_db["orders"]
+    # end-coll
 
-    // start-insert-orders
-    await ordersColl.deleteMany({});
+    # start-insert-orders
+    orders_coll.delete_many({})
 
-    const orderData = [
-      {
-        order_id: 6363763262239,
-        products: [
-          {
-            prod_id: "abc12345",
-            name: "Asus Laptop",
-            price: 431,
-          },
-          {
-            prod_id: "def45678",
-            name: "Karcher Hose Set",
-            price: 22,
-          },
-        ],
-      },
-      {
-        order_id: 1197372932325,
-        products: [
-          {
-            prod_id: "abc12345",
-            name: "Asus Laptop",
-            price: 429,
-          },
-        ],
-      },
-      {
-        order_id: 9812343774839,
-        products: [
-          {
-            prod_id: "pqr88223",
-            name: "Morphy Richards Food Mixer",
-            price: 431,
-          },
-          {
-            prod_id: "def45678",
-            name: "Karcher Hose Set",
-            price: 21,
-          },
-        ],
-      },
-      {
-        order_id: 4433997244387,
-        products: [
-          {
-            prod_id: "def45678",
-            name: "Karcher Hose Set",
-            price: 23,
-          },
-          {
-            prod_id: "jkl77336",
-            name: "Picky Pencil Sharpener",
-            price: 1,
-          },
-          {
-            prod_id: "xyz11228",
-            name: "Russell Hobbs Chrome Kettle",
-            price: 16,
-          },
-        ],
-      },
-    ];
-
-    await ordersColl.insertMany(orderData);
-    // end-insert-orders
-
-    const pipeline = [];
-
-    // start-unwind
-    pipeline.push({
-      $unwind: {
-        path: "$products",
-      },
-    });
-    // end-unwind
-
-    // start-match
-    pipeline.push({
-      $match: {
-        "products.price": {
-          $gt: 15,
+    order_data = [
+        {
+            "order_id": 6363763262239,
+            "products": [
+                {
+                    "prod_id": "abc12345",
+                    "name": "Asus Laptop",
+                    "price": 431,
+                },
+                {
+                    "prod_id": "def45678",
+                    "name": "Karcher Hose Set",
+                    "price": 22,
+                },
+            ]
         },
-      },
-    });
-    // end-match
+        {
+            "order_id": 1197372932325,
+            "products": [
+                {
+                    "prod_id": "abc12345",
+                    "name": "Asus Laptop",
+                    "price": 429,
+                }
+            ]
+        },
+        {
+            "order_id": 9812343774839,
+            "products": [
+                {
+                    "prod_id": "pqr88223",
+                    "name": "Morphy Richards Food Mixer",
+                    "price": 431,
+                },
+                {
+                    "prod_id": "def45678",
+                    "name": "Karcher Hose Set",
+                    "price": 21,
+                }
+            ]
+        },
+        {
+            "order_id": 4433997244387,
+            "products": [
+                {
+                    "prod_id": "def45678",
+                    "name": "Karcher Hose Set",
+                    "price": 23,
+                },
+                {
+                    "prod_id": "jkl77336",
+                    "name": "Picky Pencil Sharpener",
+                    "price": 1,
+                },
+                {
+                    "prod_id": "xyz11228",
+                    "name": "Russell Hobbs Chrome Kettle",
+                    "price": 16,
+                }
+            ]
+        }
+    ]
 
-    // start-group
-    pipeline.push({
-      $group: {
-        _id: "$products.prod_id",
-        product: { $first: "$products.name" },
-        total_value: { $sum: "$products.price" },
-        quantity: { $sum: 1 },
-      },
-    });
-    // end-group
+    orders_coll.insert_many(order_data)
+    # end-insert-orders
 
-    // start-set
-    pipeline.push({
-      $set: {
-        product_id: "$_id",
-      },
-    });
-    // end-set
+    pipeline = []
 
-    // start-unset
-    pipeline.push({ $unset: ["_id"] });
-    // end-unset
+    # start-unwind
+    pipeline.append({
+        "$unwind": {
+            "path": "$products"
+        }
+    })
+    # end-unwind
 
-    // start-run-agg
-    const aggregationResult = await ordersColl.aggregate(pipeline);
-    // end-run-agg
+    # start-match
+    pipeline.append({
+        "$match": {
+            "products.price": {
+                "$gt": 15
+            }
+        }
+    })
+    # end-match
 
-    for await (const document of aggregationResult) {
-      console.log(document);
-    }
-  } finally {
-    await client.close();
-  }
-}
+    # start-group
+    pipeline.append({
+        "$group": {
+            "_id": "$products.prod_id",
+            "product": {"$first": "$products.name"},
+            "total_value": {"$sum": "$products.price"},
+            "quantity": {"$sum": 1}
+        }
+    })
+    # end-group
 
-run().catch(console.dir);
+    # start-set
+    pipeline.append({
+        "$set": {
+            "product_id": "$_id"
+        }
+    })
+    # end-set
+
+    # start-unset
+    pipeline.append({"$unset": ["_id"]})
+    # end-unset
+
+    # start-run-agg
+    aggregation_result = orders_coll.aggregate(pipeline)
+    # end-run-agg
+
+    for document in aggregation_result:
+        print(document)
+
+finally:
+    client.close()
