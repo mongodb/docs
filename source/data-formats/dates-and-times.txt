@@ -6,7 +6,7 @@ Dates and Times
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 3
    :class: singlecol
 
 .. facet::
@@ -16,167 +16,437 @@ Dates and Times
 .. meta::
    :keywords: convert, span, central, mountain, pacific, eastern, calendar 
 
-These examples show how to handle Python ``datetime.datetime`` objects
-correctly in PyMongo.
+Overview
+--------
 
-Basic Usage
------------
+In this guide, you can learn how to handle Python ``datetime`` objects
+in {+driver-short+}.
 
-PyMongo uses ``datetime.datetime`` objects to represent dates and times
-in MongoDB documents. Because MongoDB assumes that dates and times are in UTC,
-take care to ensure that dates and times written to the database
-reflect UTC. For example, the following code stores the current UTC date and
-time into MongoDB:
+.. _pymongo-datetime-terminology:
+
+Terminology
+~~~~~~~~~~~
+
+Python uses a dedicated data type, ``datetime.datetime``, to represent dates and times.
+MongoDB stores ``datetime`` values in *coordinated universal time (UTC)*,
+a global time standard local to London, England.
+
+Naive Datetimes
+```````````````
+
+A ``datetime`` value is *naive* when it doesn't include supplemental information
+about its UTC offset or time zone. The following is an example of a naive ``datetime``
+object:
 
 .. code-block:: python
 
-   >>> result = db.objects.insert_one(
-   ...     {"last_modified": datetime.datetime.now(tz=datetime.timezone.utc)}
-   ... )
+   datetime(2002, 10, 27, 14, 0, 0)
 
-.. important::
+Aware Datetimes
+```````````````
+
+A ``datetime`` value is *aware* when it includes a ``tzinfo`` attribute. This attribute
+indicates the value's offset from UTC time, its time zone, and whether daylight saving
+time was in effect. The following is an example of an aware ``datetime`` object:
+
+.. code-block:: python
+
+   datetime(2002, 10, 27, 6, 0,
+            tzinfo=<DstTzInfo 'US/Pacific' PST-1 day, 16:00:00 STD>)
+
+Localization
+````````````
+
+*Localization* is the process of adding hours to, or subtracting hours from, a
+``datetime`` value to translate its value to another time zone.
+To localize a ``datetime`` value, perform the following steps:
+
+1. Use pip to install the ``pytz`` library in your Python environment: ``pip install pytz``
+#. Create a ``pytz.timezone`` object. Pass the target time zone to the
+   constructor as a string. 
+#. Call the ``localize()`` method on your ``timezone`` object, passing in the
+   ``datetime`` value to localize.
+
+The following code example localizes a ``datetime`` value to the
+``"US/Pacific"`` time zone, an offset of eight hours:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: python
+
+      from datetime import datetime 
+      from pytz import timezone
+
+      utc_datetime = datetime(2002, 10, 27, 6, 0, 0)
+      pacific = timezone("US/Pacific")
+      local_datetime = pacific.localize(utc_datetime)
+      
+      print(f"UTC datetime: {utc_datetime}")
+      print(f"Local datetime: {local_datetime}")
+
+   .. output::
+      :language: shell
    
-   Always use the ``datetime.datetime.now(tz=datetime.timezone.utc)`` method, which
-   explicitly returns the current time in UTC. Avoid using the ``datetime.datetime.now()``
-   method, with no arguments, which returns the current local time.
+      UTC datetime: 2002-10-27 06:00:00
+      Local datetime: 2002-10-27 06:00:00-08:00
 
-How Can I Save a ``datetime.date`` Instance?
------------------------------------------------
+For a canonical list of time zone strings, see the
+`Time Zone Database <https://www.iana.org/time-zones>`__ or its corresponding article
+on :wikipedia:`Wikipedia. <Tz_database>`
 
-{+driver-short+} doesn't support saving ``datetime.date`` instances, since
-there is no BSON type for dates without times. Rather than having the
-driver enforce a convention for converting ``datetime.date``
-instances to ``datetime.datetime`` instances for you, you should
-perform any conversion in your client code.
+.. important:: 
+   
+   With {+driver-short+}, you can't save ``datetime.date`` instances, because
+   there is no BSON type for dates without times. 
+   Convert all ``date`` objects to ``datetime`` objects before saving them to
+   MongoDB.
 
-Saving Datetimes with Time Zones
---------------------------------
+Reading datetimes
+-----------------
 
-When storing ``datetime.datetime`` objects that specify a time zone
-(they have a ``tzinfo`` property that isn't ``None``), PyMongo automatically converts
-the ``datetime`` value to UTC:
+When you use {+driver-short+} to retrieve a ``datetime`` value, the driver can format
+it as a naive UTC, aware UTC, or localized value. The following sections describe how to
+retrieve each kind of value.
 
-.. code-block:: python
+For these sections, assume that a MongoDB collection named ``sample_collection``
+contains the following document. The value of the ``"date"`` field is a UTC ``datetime``
+value.
 
-   >>> import pytz
-   >>> pacific = pytz.timezone("US/Pacific")
-   >>> aware_datetime = pacific.localize(datetime.datetime(2002, 10, 27, 6, 0, 0))
-   >>> result = db.times.insert_one({"date": aware_datetime})
-   >>> db.times.find_one()["date"]
-   datetime.datetime(2002, 10, 27, 14, 0)
+.. code-block:: shell
 
-Reading Time
-------------
+   {"date": datetime(2002, 10, 27, 14, 0, 0)}
 
-By default, PyMongo retrieves "naive" ``datetime`` values, which show the time
-only in UTC. The ``bson.codec_options.CodecOptions``
-class contains a ``tz_aware`` option that enables
-"aware" ``datetime.datetime`` objects, which include a ``tzinfo`` property that
-shows the UTC time zone.
+Naive UTC datetime
+~~~~~~~~~~~~~~~~~~
 
-The following example stores a ``datetime`` value, then retrieves the value twice: once
-without the ``tz_aware`` option, and once with ``tz_aware=true``.
+By default, {+driver-short+} retrieves UTC ``datetime`` values with no supplemental
+information. The following code example retrieves the sample document
+and prints the ``datetime`` value. The printed value is identical to
+the one in the sample document.
 
-.. code-block:: python
+.. io-code-block::
+   :copyable: true
 
-   >>> result = db.tzdemo.insert_one({"date": datetime.datetime(2002, 10, 27, 6, 0, 0)})
-   >>> db.tzdemo.find_one()["date"]
-   datetime.datetime(2002, 10, 27, 6, 0)
-   >>> options = CodecOptions(tz_aware=True)
-   >>> db.get_collection("tzdemo", codec_options=options).find_one()["date"]
-   datetime.datetime(2002, 10, 27, 6, 0,
-                     tzinfo=<bson.tz_util.FixedOffset object at 0x10583a050>)
+   .. input::
+      :language: python
 
-To automatically convert all times read from MongoDB to a specific time zone,
-call the ``CodecOptions()`` constructor and pass in the ``tz_aware`` and ``tzinfo``
-arguments. Pass your ``CodecOptions`` object to the ``with_options()`` method. 
+      from datetime import datetime
 
-The following example shows how to automatically convert all times
-read MongoDB into US/Pacific time:
+      collection = database["sample_collection"]
+      find_result = collection.find_one()["date"]
+      print(f"datetime: {find_result}")
+      print(f"datetime.tzinfo: {find_result.tzinfo}")
 
-.. code-block::
+   .. output::
+      :language: shell
+      :visible: false
 
-   >>> from bson.codec_options import CodecOptions
-   >>> db.times.find_one()['date']
-   datetime.datetime(2002, 10, 27, 14, 0)
-   >>> aware_times = db.times.with_options(codec_options=CodecOptions(
-   ...     tz_aware=True,
-   ...     tzinfo=pytz.timezone('US/Pacific')))
-   >>> result = aware_times.find_one()
-   datetime.datetime(2002, 10, 27, 6, 0,
-                     tzinfo=<DstTzInfo 'US/Pacific' PST-1 day, 16:00:00 STD>)
+      datetime: 2002-10-27 14:00:00
+      datetime.tzinfo: None
 
-.. _handling-out-of-range-datetimes:
+Aware UTC datetime
+~~~~~~~~~~~~~~~~~~
+
+To instruct {+driver-short+} to retrieve an aware ``datetime`` value,
+create a ``CodecOptions`` object and pass ``tz_aware = True`` to the constructor.
+Then, pass the ``CodecOptions`` object to the ``get_collection()`` method.
+
+The following code example retrieves the ``datetime`` value from the sample document as
+an aware ``datetime``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: python
+
+      from pymongo import MongoClient 
+      from datetime import datetime
+      from bson.codec_options import CodecOptions
+
+      options = CodecOptions(tz_aware = True)
+      collection = database.get_collection("sample_collection", options)
+      find_result = collection.find_one()["date"]
+      
+      print(f"datetime: {find_result}")
+      print(f"datetime.tzinfo: {find_result.tzinfo}")
+
+   .. output::
+      :language: shell
+      :visible: false
+
+      datetime: 2002-10-27 14:00:00+00:00
+      datetime.tzinfo: <bson.tz_util.FixedOffset object at 0x104db2b80>
+
+Localized datetime
+~~~~~~~~~~~~~~~~~~
+
+If you plan to show ``datetime`` values to the user, you can instruct {+driver-short+}
+to automatically convert all times read from MongoDB to a specific time zone. To do so,
+create a ``timezone`` object for the target time zone, as described in the
+:ref:`pymongo-datetime-terminology` section.
+Then, create a ``CodecOptions`` object and pass the following arguments to the constructor:
+
+- ``tz_aware``: Set to ``True``.
+- ``tzinfo``: The ``timezone`` object. 
+
+The following code example retrieves the sample document,
+but uses the ``tz_aware`` and ``tzinfo`` arguments to automatically localize
+the ``datetime`` value to the ``"US/Pacific"`` time zone:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: python
+
+      from pymongo import MongoClient 
+      from datetime import datetime
+      from bson.codec_options import CodecOptions
+      import pytz
+      from pytz import timezone
+
+      pacific = timezone("US/Pacific")
+      options = CodecOptions(tz_aware = True, tzinfo = pacific)
+      collection = database.get_collection("sample_collection", options)
+      
+      find_result = collection.find_one()["date"]
+      print(f"datetime: {find_result}")
+      print(f"datetime.tzinfo: {find_result.tzinfo}")
+   
+   .. output::
+      :language: shell
+      :visible: false
+
+      datetime: 2002-10-27 06:00:00-08:00
+      datetime.tzinfo: US/Pacific
+
+.. tip::
+   
+   The preceding example specifies codec options at the collection level. You can
+   also specify codec options at the client or database level.
+
+Storing datetimes
+-----------------
+
+For consistency, store only UTC ``datetime`` values to MongoDB. When you use {+driver-short+}
+to create or update a field containing a ``datetime`` value, the driver first checks
+whether the ``datetime`` value is naive or aware:
+
+- If the ``datetime`` is naive, {+driver-short+} assumes the ``datetime`` is in UTC
+  and stores it to MongoDB unchanged.
+- If the ``datetime`` is aware, {+driver-short+} automatically
+  converts the time to UTC before storing it to MongoDB.
+
+The following code example inserts a document containing a ``datetime`` value localized
+to the ``"US/Pacific"`` time zone. {+driver-short+} uses the attached time zone to convert
+the local time to UTC. When the document is retrieved from MongoDB, the ``datetime`` value
+is in UTC.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: python
+
+      from pymongo import MongoClient 
+      from datetime import datetime
+      from pytz import timezone
+      
+      utc_datetime = datetime(2002, 10, 27, 6, 0, 0)
+      pacific = timezone("US/Pacific")
+      local_datetime = pacific.localize(utc_datetime)
+
+      print(f"datetime before storage: {local_datetime}")
+      collection.insert_one({"date": local_datetime}) 
+      find_result = collection.find_one()["date"]
+      print(f"datetime after storage: {find_result}")
+
+   .. output::
+      :language: shell
+      :visible: false
+
+      datetime before storage: 2002-10-27 06:00:00-08:00
+      datetime after storage: 2002-10-27 14:00:00
+
+.. important:: datetime.now()
+   
+   Avoid calling the ``datetime.now()`` method with no arguments. This returns the
+   current local time.
+   
+   Instead, always call the ``datetime.now(tz=datetime.timezone.utc)`` method, which
+   returns the current time in UTC.
+
+.. _pymongo-out-of-range-datetimes:
 
 Handling Out-of-Range datetimes
 -------------------------------
 
-Python's ``~datetime.datetime`` can only represent ``datetime`` values within the
-range allowed by ``~datetime.datetime.min`` and ``~datetime.datetime.max``.
-BSON allows any 64-bit of milliseconds from the Unix epoch.
+Python's ``datetime`` class can represent only ``datetime`` values between
+``datetime.min`` and ``datetime.max`` (years 1-9999).
+You can represent a much greater range of dates and times by using BSON, which allows any
+64-bit millisecond value from the :wikipedia:`Unix epoch. <Unix_time>`
 
-If you need represent a BSON time, you can use a
-``bson.datetime_ms.DatetimeMS`` object, a wrapper for the
-built-in ``int`` type.
+To represent a BSON time with {+driver-short+}, create a
+``datetime_ms.DatetimeMS`` object, a wrapper for Python's built-in ``int`` type.
+You can manually create a ``DatetimeMS`` object by passing in one of the following values:
 
-To decode UTC datetime values as ``~bson.datetime_ms.DatetimeMS``,
-set the ``datetime_conversion`` parameter of ``~bson.codec_options.CodecOptions``
-to one of the following values from ``bson.datetime_ms.DatetimeConversion``:
+- An ``int`` representing the number of milliseconds since the Unix epoch
+- A ``datetime`` object
 
-- ``~bson.datetime_ms.DatetimeConversion.DATETIME``
-- ``~bson.datetime_ms.DatetimeConversion.DATETIME_MS``
-- ``~bson.datetime_ms.DatetimeConversion.DATETIME_AUTO``
-- ``~bson.datetime_ms.DatetimeConversion.DATETIME_CLAMP``
-
-The default value, ``~bson.datetime_ms.DatetimeConversion.DATETIME``,
-raises an ``~builtin.OverflowError`` upon attempting to decode an out-of-range date.
-
-``~bson.datetime_ms.DatetimeConversion.DATETIME_MS`` returns only
-``~bson.datetime_ms.DatetimeMS`` objects, regardless of whether the
-represented datetime is in out-of-range: 
+The following code example constructs a ``DatetimeMS`` object by passing in an ``int``
+value that represents the year -146136543, a date outside of the ``datetime`` range: 
 
 .. code-block:: python
 
-   >>> from datetime import datetime
-   >>> from bson import encode, decode
-   >>> from bson.datetime_ms import DatetimeMS
-   >>> from bson.codec_options import CodecOptions, DatetimeConversion
-   >>> x = encode({"x": datetime(1970, 1, 1)})
-   >>> codec_ms = CodecOptions(datetime_conversion=DatetimeConversion.DATETIME_MS)
-   >>> decode(x, codec_options=codec_ms)
-   {'x': DatetimeMS(0)}
+     from bson.datetime_ms import DatetimeMS
 
-``~bson.datetime_ms.DatetimeConversion.DATETIME_AUTO`` returns
-``~datetime.datetime`` if the underlying UTC datetime is within range,
-or ``~bson.datetime_ms.DatetimeMS`` if the underlying datetime
-cannot be represented using the built-in Python ``~datetime.datetime``:
+     out_of_range = DatetimeMS(-(2**62))
 
-.. code-block:: python
+You can also instruct {+driver-short+} to automatically decode UTC ``datetime`` values as
+``DatetimeMS`` objects. To do so, set the ``datetime_conversion`` parameter of ``CodecOptions``
+to a value from the ``datetime_ms.DatetimeConversion`` enum. The following sections
+describe these values.
 
-   >>> x = encode({"x": datetime(1970, 1, 1)})
-   >>> y = encode({"x": DatetimeMS(-(2**62))})
-   >>> codec_auto = CodecOptions(datetime_conversion=DatetimeConversion.DATETIME_AUTO)
-   >>> decode(x, codec_options=codec_auto)
-   {'x': datetime.datetime(1970, 1, 1, 0, 0)}
-   >>> decode(y, codec_options=codec_auto)
-   {'x': DatetimeMS(-4611686018427387904)}
+.. tip::
 
-``~bson.datetime_ms.DatetimeConversion.DATETIME_CLAMP`` "clamps"
-the resulting ``~datetime.datetime`` objects, forcing them to be within
-the ``~datetime.datetime.min`` and ``~datetime.datetime.max`` boundaries
-(trimmed to ``999000`` microseconds):
+   ``DatetimeMS`` objects support rich comparison methods against other instances of
+   ``DatetimeMS``. You can also convert them to ``datetime`` objects by using
+   the ``DatetimeMS.to_datetime()`` method.
 
-.. code-block:: python
+DatetimeConversion.DATETIME
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   >>> x = encode({"x": DatetimeMS(2**62)})
-   >>> y = encode({"x": DatetimeMS(-(2**62))})
-   >>> codec_clamp = CodecOptions(datetime_conversion=DatetimeConversion.DATETIME_CLAMP)
-   >>> decode(x, codec_options=codec_clamp)
-   {'x': datetime.datetime(9999, 12, 31, 23, 59, 59, 999000)}
-   >>> decode(y, codec_options=codec_clamp)
-   {'x': datetime.datetime(1, 1, 1, 0, 0)}
+``DatetimeConversion.DATETIME`` is the default value. This value causes {+driver-short+}
+to raise an error when it tries to decode an out-of-range date, as shown
+in the following example:
 
-``~bson.datetime_ms.DatetimeMS`` objects support rich comparison
-methods against other instances of ``~bson.datetime_ms.DatetimeMS``.
-They can also be converted to ``~datetime.datetime`` objects by using
-the ``~bson.datetime_ms.DatetimeMS.to_datetime()`` method.
+.. io-code-block::
+
+   .. input::
+      :language: python
+
+      from datetime import datetime
+      from bson import encode, decode
+      from bson.datetime_ms import DatetimeMS
+      
+      out_of_range = DatetimeMS(-(2**62))
+      val = encode({"date": out_of_range})
+      decoded = decode(val)
+      print(decoded)
+
+   .. output::
+      :language: shell
+
+      ...
+      bson.errors.InvalidBSON: year -146136543 is out of range (Consider Using
+      CodecOptions(datetime_conversion=DATETIME_AUTO) or
+      MongoClient(datetime_conversion='DATETIME_AUTO')).
+      ...
+
+DatetimeConversion.DATETIME_MS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This value instructs {+driver-short+} to return only ``DatetimeMS`` objects, even if
+the date is within the range of ``datetime``:
+
+.. io-code-block::
+
+   .. input::
+      :language: python
+
+      from datetime import datetime
+      from bson import encode, decode
+      from bson.datetime_ms import DatetimeMS
+      from bson.codec_options import CodecOptions, DatetimeConversion
+   
+      val = encode({"date": datetime(1970, 1, 2)})
+      codec_ms = CodecOptions(datetime_conversion=DatetimeConversion.DATETIME_MS)
+      decoded = decode(val, codec_options=codec_ms)
+      print(decoded)
+
+   .. output::
+      :language: javascript
+
+      {"date": DatetimeMS(86400000)}
+
+DatetimeConversion.DATETIME_AUTO
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This value instructs {+driver-short+} to return ``datetime`` objects if the value is
+within ``datetime`` range, and return a ``DatetimeMS`` object otherwise. The following
+code example encodes and decodes one datetime in the ``datetime`` range and one
+outside the range:
+
+.. io-code-block::
+
+   .. input::
+      :language: python
+   
+      from datetime import datetime
+      from bson import encode, decode
+      from bson.datetime_ms import DatetimeMS
+      from bson.codec_options import CodecOptions, DatetimeConversion
+   
+      in_range = encode({"date": datetime(1970, 1, 1)})
+      out_of_range = encode({"date": DatetimeMS(-(2**62))})
+      codec_auto = CodecOptions(datetime_conversion=DatetimeConversion.DATETIME_AUTO)
+   
+      in_decoded = decode(in_range, codec_options=codec_auto)
+      out_decoded = decode(out_of_range, codec_options=codec_auto)
+      print(f"in-range date: {in_decoded}") 
+      print(f"out-of-range date: {out_decoded}") 
+
+   .. output::
+      :language: shell
+
+      in-range date: {"date": datetime.datetime(1970, 1, 1, 0, 0)}
+      out-of-range date: {'x': DatetimeMS(-4611686018427387904)}
+
+DatetimeConversion.DATETIME_CLAMP
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This value "clamps" the resulting ``datetime`` objects, forcing them to be within
+the ``datetime`` range (trimmed to 999,000 microseconds).
+
+The following code example encodes and decodes one datetime earlier than the ``datetime``
+range and one datetime later than the ``datetime`` range. The resulting values are
+at the beginning and end of the allowed range.
+
+.. io-code-block::
+
+   .. input::
+      :language: python
+
+      from datetime import datetime
+      from bson import encode, decode
+      from bson.datetime_ms import DatetimeMS
+      from bson.codec_options import CodecOptions, DatetimeConversion
+   
+      before = encode({"date": DatetimeMS(-(2**62))})
+      after = encode({"date": DatetimeMS(2**62)})
+      codec_clamp = CodecOptions(datetime_conversion=DatetimeConversion.DATETIME_CLAMP)
+   
+      before_decoded = decode(before, codec_options=codec_clamp)
+      after_decoded = decode(after, codec_options=codec_clamp)
+      print(f"datetime before the range: {before_decoded}")
+      print(f"datetime after the range: {after_decoded}")
+
+   .. output::
+      :language: shell
+
+      datetime before the range: {"date": datetime.datetime(1, 1, 1, 0, 0)}
+      datetime after the range: {"date": datetime.datetime(9999, 12, 31, 23, 59, 59, 999000)}
+
+API Documentation
+-----------------
+
+For more information about working with dates and times in {+driver-short+},
+see the following API documentation:
+
+- ``datetime`` at `docs.python.org <https://docs.python.org/3/library/datetime.html#datetime.datetime>`__
+- ``pytz`` at `pypi.org <https://pypi.org/project/pytz/>`__
+- `CodecOptions <{+api-root+}bson/codec_options.html#bson.codec_options.CodecOptions>`__
+- `DatetimeMS <{+api-root+}bson/datetime_ms.html>`__
