@@ -1,137 +1,133 @@
-const { MongoClient } = require("mongodb");
+from pymongo import MongoClient
+from datetime import datetime
 
-const uri = "<connection string>";
-const client = new MongoClient(uri);
+uri = "<connection string>"
+client = MongoClient(uri)
 
-async function run() {
-  try {
-    const aggDB = client.db("agg_tutorials_db");
+try:
+    agg_db = client["agg_tutorials_db"]
 
-    // start-colls
-    const ordersColl = await aggDB.collection("orders");
-    const productsColl = await aggDB.collection("products");
-    // end-colls
+    # start-colls
+    orders_coll = agg_db["orders"]
+    products_coll = agg_db["products"]
+    # end-colls
 
-    // start-insert-orders
-    await ordersColl.deleteMany({});
+    # start-insert-orders
+    orders_coll.delete_many({})
 
-    const orderData = [
-      {
-        customer_id: "elise_smith@myemail.com",
-        orderdate: new Date("2020-05-30T08:35:52Z"),
-        product_id: "a1b2c3d4",
-        value: 431.43,
-      },
-      {
-        customer_id: "tj@wheresmyemail.com",
-        orderdate: new Date("2019-05-28T19:13:32Z"),
-        product_id: "z9y8x7w6",
-        value: 5.01,
-      },
-      {
-        customer_id: "oranieri@warmmail.com",
-        orderdate: new Date("2020-01-01T08:25:37Z"),
-        product_id: "ff11gg22hh33",
-        value: 63.13,
-      },
-      {
-        customer_id: "jjones@tepidmail.com",
-        orderdate: new Date("2020-12-26T08:55:46Z"),
-        product_id: "a1b2c3d4",
-        value: 429.65,
-      },
-    ];
-
-    await ordersColl.insertMany(orderData);
-    // end-insert-orders
-
-    // start-insert-products
-    await productsColl.deleteMany({});
-
-    const productData = [
-      {
-        id: "a1b2c3d4",
-        name: "Asus Laptop",
-        category: "ELECTRONICS",
-        description: "Good value laptop for students",
-      },
-      {
-        id: "z9y8x7w6",
-        name: "The Day Of The Triffids",
-        category: "BOOKS",
-        description: "Classic post-apocalyptic novel",
-      },
-      {
-        id: "ff11gg22hh33",
-        name: "Morphy Richardds Food Mixer",
-        category: "KITCHENWARE",
-        description: "Luxury mixer turning good cakes into great",
-      },
-      {
-        id: "pqr678st",
-        name: "Karcher Hose Set",
-        category: "GARDEN",
-        description: "Hose + nosels + winder for tidy storage",
-      },
-    ];
-
-    await productsColl.insertMany(productData);
-    // end-insert-products
-
-    const pipeline = [];
-
-    // start-match
-    pipeline.push({
-      $match: {
-        orderdate: {
-          $gte: new Date("2020-01-01T00:00:00Z"),
-          $lt: new Date("2021-01-01T00:00:00Z"),
-        },
-      },
-    });
-    // end-match
-
-    // start-lookup
-    pipeline.push({
-      $lookup: {
-        from: "products",
-        localField: "product_id",
-        foreignField: "id",
-        as: "product_mapping",
-      },
-    });
-    // end-lookup
-
-    // start-set
-    pipeline.push(
+    order_data = [
         {
-          $set: {
-            product_mapping: { $first: "$product_mapping" },
-          },
+            "customer_id": "elise_smith@myemail.com",
+            "orderdate": datetime(2020, 5, 30, 8, 35, 52),
+            "product_id": "a1b2c3d4",
+            "value": 431.43
         },
         {
-          $set: {
-            product_name: "$product_mapping.name",
-            product_category: "$product_mapping.category",
-          },
+            "customer_id": "tj@wheresmyemail.com",
+            "orderdate": datetime(2019, 5, 28, 19, 13, 32),
+            "product_id": "z9y8x7w6",
+            "value": 5.01
+        },
+        {
+            "customer_id": "oranieri@warmmail.com",
+            "orderdate": datetime(2020, 1, 1, 8, 25, 37),
+            "product_id": "ff11gg22hh33",
+            "value": 63.13
+        },
+        {
+            "customer_id": "jjones@tepidmail.com",
+            "orderdate": datetime(2020, 12, 26, 8, 55, 46),
+            "product_id": "a1b2c3d4",
+            "value": 429.65
         }
-      );
-    // end-set
+    ]
 
-    // start-unset
-    pipeline.push({ $unset: ["_id", "product_id", "product_mapping"] });
-    // end-unset
+    orders_coll.insert_many(order_data)
+    # end-insert-orders
 
-    // start-run-agg
-    const aggregationResult = await ordersColl.aggregate(pipeline);
-    // end-run-agg
-    
-    for await (const document of aggregationResult) {
-      console.log(document);
-    }
-  } finally {
-    await client.close();
-  }
-}
+    # start-insert-products
+    products_coll.delete_many({})
 
-run().catch(console.dir);
+    product_data = [
+        {
+            "id": "a1b2c3d4",
+            "name": "Asus Laptop",
+            "category": "ELECTRONICS",
+            "description": "Good value laptop for students"
+        },
+        {
+            "id": "z9y8x7w6",
+            "name": "The Day Of The Triffids",
+            "category": "BOOKS",
+            "description": "Classic post-apocalyptic novel"
+        },
+        {
+            "id": "ff11gg22hh33",
+            "name": "Morphy Richardds Food Mixer",
+            "category": "KITCHENWARE",
+            "description": "Luxury mixer turning good cakes into great"
+        },
+        {
+            "id": "pqr678st",
+            "name": "Karcher Hose Set",
+            "category": "GARDEN",
+            "description": "Hose + nosels + winder for tidy storage"
+        }
+    ]
+
+    products_coll.insert_many(product_data)
+    # end-insert-products
+
+    pipeline = []
+
+    # start-match
+    pipeline.append({
+        "$match": {
+            "orderdate": {
+                "$gte": datetime(2020, 1, 1, 0, 0, 0),
+                "$lt": datetime(2021, 1, 1, 0, 0, 0)
+            }
+        }
+    })
+    # end-match
+
+    # start-lookup
+    pipeline.append({
+        "$lookup": {
+            "from": "products",
+            "localField": "product_id",
+            "foreignField": "id",
+            "as": "product_mapping"
+        }
+    })
+    # end-lookup
+
+    # start-set
+    pipeline.extend([
+        {
+            "$set": {
+                "product_mapping": {"$first": "$product_mapping"}
+            }
+        },
+        {
+            "$set": {
+                "product_name": "$product_mapping.name",
+                "product_category": "$product_mapping.category"
+            }
+        }
+    ])
+    # end-set
+
+    # start-unset
+    pipeline.append({"$unset": ["_id", "product_id", "product_mapping"]})
+    # end-unset
+
+    # start-run-agg
+    aggregation_result = orders_coll.aggregate(pipeline)
+    # end-run-agg
+
+    for document in aggregation_result:
+        print(document)
+
+finally:
+    client.close()
