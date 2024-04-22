@@ -16,4 +16,4 @@ an icon next to it, a conversion has not been attempted yet:
      - The conversion was successful.
 
    * - Red exclamation mark
-     - The conversion failed on last attempt
+     - The conversion failed on last attempt.
