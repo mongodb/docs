@@ -25,11 +25,12 @@
                            
    .. step:: Define environmental variables.
 
-      Run the following code and provide your OpenAI API Key and
-      the |srv| :manual:`connection string
-      </reference/connection-string/#find-your-mongodb-atlas-connection-string>`
-      for your |service| cluster once prompted:
+      Run the following code and provide the following when prompted:
       
+      - Your OpenAI API Key.
+      - Your |service| {+cluster+}'s |srv| :manual:`connection string
+        </reference/connection-string/#find-your-mongodb-atlas-connection-string>`.
+
       .. code-block:: python
 
          os.environ["OPENAI_API_KEY"] = getpass.getpass("OpenAI API Key:")
