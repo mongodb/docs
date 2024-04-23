@@ -36,6 +36,6 @@
    * - For new 4.2 deployments
      - ``"4.2"``
 
-   * - For 4.2 deployments :ref:`upgraded from 4.0 <4.2-upgrade>`
+   * - For 4.2 deployments upgraded from 4.0 
 
      - ``"4.0"`` until you :dbcommand:`setFeatureCompatibilityVersion` to ``"4.2"``.
