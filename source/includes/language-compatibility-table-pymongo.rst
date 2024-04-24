@@ -7,18 +7,18 @@ Python 3
    :class: compatibility-large
 
    * - {+driver-short+} Version
-     - Python 3.12
-     - Python 3.11
-     - Python 3.10 [#ssl-4.0-issue]_
-     - Python 3.9
-     - Python 3.8
-     - Python 3.7
-     - Python 3.6
-     - Python 3.5
-     - Python 3.4
+     - CPython 3.12
+     - CPython 3.11
+     - CPython 3.10 [#ssl-4.0-issue]_
+     - CPython 3.9
+     - CPython 3.8
+     - CPython 3.7
+     - CPython 3.6
+     - CPython 3.5
+     - CPython 3.4
      - PyPy3
 
-   * - 4.6
+   * - 4.5 to 4.6
      - ✓
      - ✓
      - ✓
@@ -30,31 +30,7 @@ Python 3
      -
      -
 
-   * - 4.5
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     -
-     -
-     -
-     -
-
-   * - 4.4
-     -
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     -
-     -
-     -
-     -
-
-   * - 4.3
+   * - 4.3 to 4.4
      -
      - ✓
      - ✓
@@ -150,31 +126,7 @@ Python 3
      - ✓
      - ✓
 
-   * - 3.9
-     -
-     -
-     -
-     -
-     -
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-
-   * - 3.8
-     -
-     -
-     -
-     -
-     -
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-
-   * - 3.7
+   * - 3.7 to 3.9
      -
      -
      -
