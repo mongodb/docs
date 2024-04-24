@@ -6,5 +6,5 @@ client = MongoClient(
     "mongodb://<hostname>:<port>",
     username="<Azure identity client ID>",
     authMechanism="MONGODB-OIDC",
-    authMechanismProperties=properties,
+    authMechanismProperties=properties
 )

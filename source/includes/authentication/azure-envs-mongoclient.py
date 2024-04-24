@@ -14,5 +14,5 @@ properties = {"OIDC_CALLBACK": MyCallback()}
 client = MongoClient(
    "mongodb://<hostname>:<port>",
    authMechanism="MONGODB-OIDC",
-   authMechanismProperties=properties,
+   authMechanismProperties=properties
 )
