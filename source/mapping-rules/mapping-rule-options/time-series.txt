@@ -1,0 +1,180 @@
+.. _rm-timeseries:
+
+==================================
+Configure a Time Series Collection
+==================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can configure mapping rules to migrate a table that contains a 
+datetime column to a :ref:`time series collection <manual-timeseries-collection>`. 
+Time series collections efficiently store time series data. In time 
+series collections, writes are organized so that data from the same 
+source is stored alongside other data points from a similar point in time.
+
+About this Task
+---------------
+
+- You can use :ref:`field customizations <rm-field-customizations>` to 
+  convert string columns to datetime fields in Relational Migrator.
+
+- :abbr:`CDC (Change Data Capture)` jobs that have time series 
+  configurations do not create the time series collections until the 
+  CDC job completes. 
+
+- Compared to normal collections, storing time series data in time series
+  collections improves query efficiency and reduces the disk usage for
+  time series data and :term:`secondary indexes <secondary index>`.
+
+- Use cases for time series collections include 
+  :abbr:`IoT (Internet of Things)`, forecasting, and time based analysis.
+
+Before you Begin
+----------------
+
+- For full details on each time series field component, see 
+  :ref:`time-series-fields`.
+
+- If the time series data in your sync job does not require any 
+  complex transformations you may benefit from migrating your time 
+  series data as a separate sync job. This can make it easier to 
+  preload a large time series collection and migrate the rest of your data after the initial job completes.
+
+- If you're migrating large amounts of data, you might want to use 
+  :ref:`table filters <rm-table-filters>` to divide your sync jobs into 
+  batches. For example, you might import one year of historical data at 
+  a time. This allows you to break down a large job into more manageable 
+  segments.
+
+- If a long-running sync job fails unexpectedly (for example, due to a 
+  database outage) and is not able to automatically recover, you may 
+  be able to use :ref:`table filters <rm-table-filters>` to create a 
+  new sync job that picks up from where the previous one left off. This 
+  approach lets you avoid having to repeat the entire sync job.
+
+Steps
+-----
+
+.. procedure::
+   :style:  connected
+
+   .. step:: Select a collection with a datetime field 
+
+      a. Navigate to the :guilabel:`Mapping` screen.
+      #. On the :guilabel:`Schema model` pane under the 
+         :guilabel:`MongoDB` header, click on a collection that has a 
+         datetime field.
+
+   .. step:: Configure the time series collection
+
+      a. On the :guilabel:`Mappings` pane, click the :icon-lg:`Edit` 
+         :guilabel:`Configure` button.
+      #. Select the :guilabel:`Time Series Collection` radio button.
+      #. Select a :guilabel:`Time Field`.
+
+         ``Time Field`` is the name of the field which contains the 
+         datetime field in each time series document. Documents in a 
+         time series collection must have a valid BSON date data type. 
+         For details on converting a field to a datetime type in 
+         Relational Migrator, see 
+         :ref:`field customizations <rm-field-customizations>`.
+
+         .. note::
+
+            If you have multiple datetime columns must select a 
+            single field per timeseries collection.
+
+      #. (Optional) Select a :guilabel:`Meta Field`
+
+         ``Meta Field`` is the name of the field that contains metadata
+         in each time series document. The metadata in the specified 
+         field is used to label a unique series of
+         documents. The metadata should rarely change.
+
+      #. Select a :guilabel:`Granularity`.
+
+         Specify a ``Granularity`` value that most closely matches 
+         the time between consecutive incoming timestamps. Setting the correct granularity
+         improves performance by optimizing how MongoDB stores data in the 
+         collection. Possible values are ``seconds``, ``minutes``, and 
+         ``hours``.
+
+      #. (Optional) Select a :guilabel:`Expire After Seconds`.
+
+         ``Expire After Seconds`` enables the automatic deletion 
+         of documents in a time series collection by specifying the 
+         number of seconds after which documents expire. MongoDB 
+         deletes expired documents automatically.
+
+      #. Click :guilabel:`Save And Close`.
+
+         .. note::
+
+            When a collection is configured with a time series field, 
+            the time series icon :icon-lg:`TimeSeries` displays next to the collection
+            name on the :guilabel:`Schema model` pane.
+
+Example
+-------
+
+The following example converts the ``rental_date`` column into a time
+series field in MongoDB:
+
+.. tabs::
+
+   .. tab:: Relational Input
+      :tabid: new-document-in
+
+      .. list-table::
+         :header-rows: 1
+
+         * - rental_id
+           - rental_date
+           - inventory_id
+           - customer_id
+           - return_date
+           - staff_id
+           - last_updated
+
+         * - 1
+           - 2005-05-24 22:53:30
+           - 367
+           - 130
+           - 2005-05-26 22:04:30
+           - 1
+           - 2006-02-15 20:30:53
+
+   .. tab:: MongoDB Output
+      :tabid: Embedded-array-out
+
+      .. code-block:: javascript
+         :copyable: false
+
+         {
+         rental_date: {
+            $date: "2005-05-24T22:53:30.000Z",
+         },
+         last_updated: "2006-02-16T01:30:53Z",
+         customerId: 130,
+         rental_date: {
+            $date: "2005-05-26T22:04:30.000Z",
+         },
+         _id: {
+            $oid: "661597470a883992d56d60d6",
+         },
+         inventory_id: 367,
+         staff_id: 1,
+         rental_id: 1,
+         }
+
+Learn More
+----------
+
+- :manual:`Time Series Best Practices </core/timeseries/timeseries-best-practices>`
+- :ref:`Optimize Time Series Query Performance <tsc-best-practice-optimize-query-performance>`
+- :ref:`timeseries-add-secondary-index`
+- :ref:`time-series-fields`
