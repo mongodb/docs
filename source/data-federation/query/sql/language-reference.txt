@@ -27,7 +27,7 @@ Compatability and Limitations
 
   - The ``UNION`` function is not supported. However, ``UNION ALL`` is supported.
   - The ``date`` data type is not supported. Use ``timestamp`` instead.
-  - ``DISTINCT`` is not supported.
+  - ``SELECT DISTINCT`` is not supported.
   - Interval and date interval arithmetic are not supported.
 
 - {+asql+} does not support {+avs+} and |fts|.
@@ -49,7 +49,7 @@ All of these types can be queried in {+asql+}. They are:
 - BinData (``BINDATA``)
 - ObjectId (``OBJECTID``)
 - Boolean (``BOOL``)
-- Date (``DATE``)
+- Date (``TIMESTAMP``)
 - Null (``NULL``)
 - Regex (``REGEX``)
 - 32-bit integer (``INT``)
@@ -89,13 +89,6 @@ or that an expression is either an array with a length of one or a positive inte
 
 If a static type constraint is not satisfied, the query will fail to compile.
 
-.. _asql-aggregation-functions:
-
-Aggregation Functions
----------------------
-
-{+asql+} supports MongoDB's :manual:`aggregation pipeline </core/aggregation-pipeline/>` in the :ref:`GROUP BY <asql-group-by-clause>` clause.
-
 Clauses
 -------
 
@@ -121,7 +114,7 @@ SELECT
 
 .. code-block:: none
 
-   SELECT foo FROM (SELECT bar ) as subSelect
+   SELECT foo FROM (SELECT bar FROM baz) as subSelect
 
 .. _from-clause:
 
@@ -130,8 +123,11 @@ FROM
 
 ``FROM`` is the first clause evaluated in every {+asql+} query.
 
-FROM can pull data from various sources including collections (``SELECT * FROM foo``),
-joins (``SELECT * FROM (a JOIN b)``), and from :ref:`FLATTEN and UNWIND <asql-flatten-and-unwind>`.
+``FROM`` can pull data from various sources including collections 
+``(SELECT * FROM foo)``, arrays ``(SELECT * FROM [{'a': 1}])``, joins 
+``(SELECT * FROM a JOIN b)``, derived tables 
+``(SELECT * FROM (SELECT a FROM foo) d)``, and :ref:`FLATTEN and UNWIND 
+<asql-flatten-and-unwind>`.
   
 .. _asql-where-clause:
 
@@ -139,7 +135,8 @@ WHERE
 ~~~~~
 
 The ``WHERE`` clause is a filter on incoming data.
-Its expression must be a ``BOOLEAN``.
+Its expression must statically have type ``BOOL`` or ``NULL`` and may 
+evaluate to ``MISSING``.
 
 .. _asql-group-by-clause:
 
@@ -304,7 +301,7 @@ Literals
 
 {+asql+} supports literals for booleans, null, numbers, and strings.
 Strings are enclosed in single quotes.
-To include a single quote character in a string literal, double it (``"o''clock"``).
+To include a single quote character in a string literal, double it (``'o''clock'``).
 
 Literal integers are typed as ``INT`` when within the 32-bit signed integer range and ``LONG`` otherwise.
 Literal floating point numbers or scientific notation numbers have type ``DOUBLE``.
@@ -330,6 +327,9 @@ Operators
 
 - ``+``
 - ``-``
+- ``*``
+- ``/``
+- ``||``
 - ``<``
 - ``<=``
 - ``!=``
@@ -363,19 +363,6 @@ Dot notation is similar to field access in MongoDB aggregation.
 For example, if a document ``doc`` contains a field ``f``, then the expression ``doc.f`` is used to access the value of that field.
 Bracket notation uses square brackets (``[`` and ``]``) around a field name to access the field with that name.
 For example, consider the same document described before: ``doc["f"]`` is used to access the value of that field.
-
-Array, Indexing, and Slicing Expressions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Arrays are ordered lists of values.
-Elements can have any of the :ref:`supported types <asql-data-types>` and do not need to all be the same type.
-Access array elements in {+asql+} with bracket notation.
-For example, if an array ``arr`` contains the elements ``1``, ``2``, and ``3`` in that order,
-then the expression ``arr[0]`` is used to access the first element, ``1``.
-
-The index must be ``NULL`` or ``INT``, and may evaluate to ``MISSING``.
-
-The semantics of array element access match those of the :manual:`aggregation operator </reference/operator/aggregation/arrayElemAt/>`.
 
 Null and Missing
 ~~~~~~~~~~~~~~~~
