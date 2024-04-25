@@ -145,9 +145,11 @@ You can set the following in the {+atlas-ui+}:
       storage than the standard limit. Only {+clusters+} which meet the
       following criteria support extended storage:
 
-      - The {+cluster+} is on AWS or GCP
-      - The {+cluster+} is either General or Low-CPU class
-      - The {+cluster+} is single-region
+      - The {+cluster+} is on |azure|, |aws|, or |gcp|
+      - If the {+cluster+} is on |azure|, it is configured in one of the
+        following :ref:`regions that support extended storage <microsoft-azure-supported-regions>`
+      - The {+cluster+} is either :guilabel:`General` or :guilabel:`Low-CPU`` class
+      - The {+cluster+} is single-region.
 
       .. include:: /includes/fact-extended-storage.rst
 
