@@ -1,0 +1,82 @@
+.. _avs-performance-tuning:
+
+=================================
+Improve Vector Search Performance
+=================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: atlas vector search
+   :description: Learn how to improve vector search performance.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+{+avs+} enables you to perform |ann| queries that search for results
+similar to a selected product, search for images, and so on. To improve
+the indexing speed and query performance, review the following best
+practices.
+
+Reduce Vector Dimensions 
+------------------------
+
+{+avs+} supports up to ``4096``, inclusive, vector dimensions. However,
+vector search indexing and queries are computationally intensive, as
+larger vectors require more floating point comparisons. Therefore, where 
+possible, we recommend reducing the number of dimensions after ensuring
+that you can measure the impact of changing embedding models on the
+accuracy of your vector queries. 
+
+Avoid Indexing Vectors When Running Queries 
+-------------------------------------------
+
+Vector embeddings consume computational resources during indexing. We
+recommend avoiding indexing and re-indexing during a vector search. If
+you decide to change the embedding model that produces the vectors to
+index, we recommend that you re-index the new vectors into a new index
+rather than updating the index that is currently in use.  
+
+Exclude Vector Fields From the Results 
+--------------------------------------
+
+You can request existing fields from the documents in the results
+and newly computed fields to be returned in the :pipeline:`$project`
+stage. To improve query performance, use the :pipeline:`$project` stage
+to judiciously select the fields to return in the results, unless you
+need all the fields in the results. We recommend excluding the vector
+field in the :pipeline:`$project` stage because vector embeddings might
+be large and impact query latency in returning the results. 
+
+Ensure Enough Memory 
+--------------------
+
+|hnsw| works efficiently when vector data is held in memory. You must
+ensure that the data nodes have enough RAM to hold the vector data and
+indexes. We recommend deploying separate :ref:`search nodes for workload
+isolation <configure-search-nodes>` without data isolation, which
+enables more efficient usage of memory for vector search use cases.  
+
+Warm up the Filesystem Cache  
+----------------------------
+
+When you perform vector search without :ref:`dedicated search nodes
+<configure-search-nodes>`, your queries initially perform random seeks
+on disk as you traverse the |hnsw| graph and the vector values are read
+into memory. This causes very high latency for initial queries.
+The latency improves when |hnsw| traversal reads all indexed vectors
+into memory, which allows them to be accessed much more quickly for
+subsequent queries. 
+
+However, this cache warming process must be repeated on large writes, or
+when your index is rebuilt. If you :ref:`deploy dedicated search nodes
+<configure-search-nodes>`, {+avs+} automatically prewarms the indexes
+into the filesystem cache, and this additional step is therefore not
+necessary.
