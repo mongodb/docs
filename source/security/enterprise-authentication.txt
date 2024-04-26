@@ -19,12 +19,8 @@ Enterprise Authentication Mechanisms
 Overview
 --------
 
-MongoDB Enterprise Edition includes the following authentication mechanisms that aren't
-available in MongoDB Community Edition: 
-
-- :ref:`GSSAPI/Kerberos <pymongo-kerberos>`
-- :ref:`LDAP (Plain) <pymongo-sasl>`
-
+MongoDB Enterprise Edition includes authentication mechanisms that aren't
+available in MongoDB Community Edition. 
 In this guide, you can learn how to authenticate to MongoDB by using these
 authentication mechanisms. To learn about the other authentication mechanisms available
 in MongoDB, see :ref:`<pymongo-auth>`.
@@ -197,6 +193,256 @@ You can set this option in two ways: by passing an argument to the
                 "&tls=true")
          client = pymongo.MongoClient(uri)
 
+.. _pymongo-mongodb-oidc:
+
+MONGODB-OIDC
+------------
+
+.. important::
+
+   The MONGODB-OIDC authentication mechanism requires MongoDB v7.0 or later running
+   on a Linux platform.
+
+{+driver-short+} supports OIDC authentication for **workload identities**. A workload
+identity is an identity you assign to a software workload, such as an application,
+service, script, or container, to authenticate and access other services and resources.
+
+The following sections describe how to use the MONGODB-OIDC authentication mechanism to
+authenticate to various platforms.
+
+For more information about the MONGODB-OIDC authentication mechanism, see
+:manual:`OpenID Connect Authentication </core/security-oidc/>` in the MongoDB Server
+manual.
+
+.. _pymongo-mongodb-oidc-azure-imds:
+
+Azure IMDS
+~~~~~~~~~~
+
+If your application runs on an Azure VM, or otherwise uses the
+`Azure Instance Metadata Service <https://learn.microsoft.com/en-us/azure/virtual-machines/instance-metadata-service>`__
+(IMDS), you can authenticate to MongoDB by using {+driver-short+}'s built-in Azure
+support.
+
+You can configure OIDC for Azure IMDS in two ways: by passing arguments to the
+``MongoClient`` constructor or through parameters in your connection string.
+
+.. tabs::
+
+   .. tab:: MongoClient
+      :tabid: mongoclient
+
+      First, create a Python dictionary for your authentication mechanism properties, as shown
+      in the following example. Replace the ``<audience>`` placeholder with
+      the percent-encoded audience configured on your MongoDB deployment.
+
+      .. literalinclude:: /includes/authentication/azure-imds-mongoclient.py
+         :language: python
+         :copyable: true
+         :start-after: # define properties and MongoClient
+         :end-before: client = MongoClient(
+
+      Then, set the following connection options:
+
+      - ``username``: If you're using an Azure managed identity, set this to the client ID
+        of the managed identity. If you're using a service principal to represent an
+        enterprise application, set this to the application ID of the service principal. 
+      - ``authMechanism``: Set to ``"MONGODB-OIDC"``.
+      - ``authMechanismProperties``: Set to the ``properties`` dictionary that you
+        created in the previous step.
+
+      The following code example shows how to set these options when creating a
+      ``MongoClient``:
+
+      .. literalinclude:: /includes/authentication/azure-imds-mongoclient.py
+            :language: python
+            :copyable: true
+            :emphasize-lines: 5-10
+
+   .. tab:: Connection String
+      :tabid: connectionstring
+
+      Include the following connection options in your connection string:
+
+      - ``username``: If you're using an Azure managed identity, set this to the client ID
+        of the managed identity. If you're using a service principal to represent an
+        enterprise application, set this to the application ID of the service principal. 
+      - ``authMechanism``: Set to ``MONGODB-OIDC``.
+      - ``authMechanismProperties``: Set to ``ENVIRONMENT:azure,TOKEN_RESOURCE:<audience>``.
+        Replace the ``<audience>`` placeholder with the audience
+        configured on your MongoDB deployment. You must percent-encode the audience value
+        if it contains a comma (``,``), plus sign (``+``), or ampersand (``&``).
+
+      The following code example shows how to set these options in your connection string:
+      
+      .. literalinclude:: /includes/authentication/azure-imds-connection-string.py
+            :language: python
+            :copyable: true
+            :emphasize-lines: 4-7
+
+.. tip::
+   
+   If your application is running on an Azure VM, and only one managed identity is
+   associated with the VM, you can omit the ``username`` connection option.
+
+.. _pymongo-mongodb-oidc-gcp-imds:
+
+GCP IMDS
+~~~~~~~~
+
+If your application runs on a GCP VM, or otherwise uses the
+`GCP Instance Metadata Service <https://cloud.google.com/compute/docs/metadata/querying-metadata>`__,
+you can authenticate to MongoDB by using {+driver-short+}'s built-in GCP
+support.
+
+You can configure OIDC for GCP IMDS in two ways: by passing arguments to the
+``MongoClient`` constructor or through parameters in your connection string.
+
+.. tabs::
+
+   .. tab:: MongoClient
+      :tabid: mongoclient
+
+      First, create a Python dictionary for your authentication mechanism properties, as shown
+      in the following example. Replace the ``<audience>`` placeholder with
+      the percent-encoded audience configured on your MongoDB deployment.
+
+      .. literalinclude:: /includes/authentication/gcp-imds-mongoclient.py
+         :language: python
+         :copyable: true
+         :start-after: # define properties and MongoClient
+         :end-before: client = MongoClient(
+
+      Then, set the following connection options:
+
+      - ``username``: The client ID of the GCP managed identity.
+      - ``authMechanism``: Set to ``"MONGODB-OIDC"``.
+      - ``authMechanismProperties``: Set to the ``properties`` dictionary that you
+        created in the previous step.
+
+      The following code example shows how to set these options when creating a
+      ``MongoClient``:
+
+      .. literalinclude:: /includes/authentication/gcp-imds-mongoclient.py
+            :language: python
+            :copyable: true
+            :emphasize-lines: 5-10
+
+   .. tab:: Connection String
+      :tabid: connectionstring
+
+      Include the following connection options in your connection string:
+
+      - ``username``: The client ID of the GCP managed identity.
+      - ``authMechanism``: Set to ``MONGODB-OIDC``.
+      - ``authMechanismProperties``: Set to ``ENVIRONMENT:gcp,TOKEN_RESOURCE:<audience>``.
+        Replace the ``<audience>`` placeholder with the audience
+        configured on your MongoDB deployment. You must percent-encode the audience value
+        if it contains a comma (``,``), plus sign (``+``), or ampersand (``&``).
+
+      The following code example shows how to set these options in your connection string:
+      
+      .. literalinclude:: /includes/authentication/gcp-imds-connection-string.py
+            :language: python
+            :copyable: true
+            :emphasize-lines: 4-7
+
+.. _pymongo-mongodb-oidc-azure-envs:
+
+Other Azure Environments
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your application runs on Azure Functions, App Service Environment (ASE), or Azure
+Kubernetes Service (AKS), you can use the
+`azure-identity <https://pypi.org/project/azure-identity/>`__ package to fetch
+authentication credentials.
+
+First, use pip to install the ``azure-identity`` library, as shown in the
+following example:
+
+.. code-block:: sh
+
+   python3 -m pip install azure-identity
+
+Next, define a class that inherits from the ``OIDCCallback`` class. This class must
+implement a ``fetch()`` method, which returns the OIDC token in the form of an
+``OIDCCallbackResult`` object.
+
+The following example shows how to define a callback class named ``MyCallback``. This class
+includes a ``fetch()`` method that retrieves an OIDC token from a file in the standard
+service-account token-file location.
+
+.. literalinclude:: /includes/authentication/azure-envs-mongoclient.py
+   :language: python
+   :copyable: true
+   :start-after: # define callback, properties, and MongoClient
+   :end-before: properties = {"OIDC_CALLBACK": MyCallback()}
+
+After you define your callback class, create a Python dictionary that contains one key,
+``"OIDC_CALLBACK"``, whose value is an instance of your custom callback class:
+
+.. literalinclude:: /includes/authentication/azure-envs-mongoclient.py
+   :language: python
+   :copyable: true
+   :start-after: return OIDCCallbackResult(access_token=token)
+   :end-before: client = MongoClient(
+
+Finally, set the following connection options by passing arguments to the ``MongoClient``
+constructor:
+
+- ``authMechanism``: Set to ``"MONGODB-OIDC"``.
+- ``authMechanismProperties``: Set to the ``properties`` dictionary that you created in the
+  previous step.
+
+.. literalinclude:: /includes/authentication/azure-envs-mongoclient.py
+      :language: python
+      :copyable: true
+      :emphasize-lines: 14-18
+
+.. _pymongo-mongodb-oidc-gcp-gke:
+
+GCP GKE
+~~~~~~~
+
+If your application runs on a GCP Google Kubernetes Engine (GKE) cluster with a
+`configured service account <https://cloud.google.com/kubernetes-engine/docs/how-to/service-accounts>`__,
+you can read the OIDC token from the standard service-account token-file location.
+
+First, define a class that inherits from the ``OIDCCallback`` class. This class must
+implement a ``fetch()`` method, which returns the OIDC token in the form of an
+``OIDCCallbackResult`` object.
+
+The following example shows how to define a callback class named ``MyCallback``. This class
+includes a ``fetch()`` method that retrieves an OIDC token from a file in the standard
+service-account token-file location.
+
+.. literalinclude:: /includes/authentication/gcp-gke-mongoclient.py
+   :language: python
+   :copyable: true
+   :start-after: # define callback, properties, and MongoClient
+   :end-before: properties = {"OIDC_CALLBACK": MyCallback()}
+
+After you define your callback class, create a Python dictionary that contains one key,
+``"OIDC_CALLBACK"``, whose value is an instance of your custom callback class:
+
+.. literalinclude:: /includes/authentication/gcp-gke-mongoclient.py
+   :language: python
+   :copyable: true
+   :start-after: return OIDCCallbackResult(access_token=token)
+   :end-before: client = MongoClient(
+
+Finally, set the following connection options by passing arguments to the ``MongoClient``
+constructor:
+
+- ``authMechanism``: Set to ``"MONGODB-OIDC"``.
+- ``authMechanismProperties``: Set to the ``properties`` dictionary that you created
+  in the previous step.
+
+.. literalinclude:: /includes/authentication/gcp-gke-mongoclient.py
+      :language: python
+      :copyable: true
+      :emphasize-lines: 11-15
+
 API Documentation
 -----------------
 
@@ -204,3 +450,4 @@ To learn more about using enterprise authentication mechanisms with {+driver-sho
 see the following API documentation:
 
 - `MongoClient <{+api-root+}pymongo/mongo_client.html#pymongo.mongo_client.MongoClient>`__
+- `OIDCCallback <{+api-root+}pymongo/auth_oidc.html#pymongo.auth_oidc.OIDCCallback>`__
