@@ -26,3 +26,9 @@
      - collection
      - Optional
      -  .. include:: /includes/facts/fact-external-service-annotation-spec.rst
+
+        .. note:: 
+
+           You can specify placeholder values to customize your annotations.
+           To learn more, see :setting:`spec.externalAccess.externalService.annotations
+           <spec.externalAccess.externalService.annotations>`.

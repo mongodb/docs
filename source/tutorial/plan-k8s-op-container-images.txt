@@ -6,10 +6,14 @@ Container Images
 
 .. default-domain:: mongodb
 
+.. facet::
+   :name: genre
+   :values: tutorial
+
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 When you install the |k8s-op-short|, it pulls the images from the Quay.io
@@ -38,7 +42,8 @@ To view all available versions for each image, see the following links.
 
    * - :qr-mdb:`mongodb-enterprise-server 
        </mongodb-enterprise-server?tab=tags&tag=latest>`
-     - The Enterprise MongoDB image used for the Application Database.
+     - The Enterprise MongoDB image used for :ref:`static containers <static-containers>` 
+       and the Application Database.
 
    * - :qr-mdb:`mongodb-enterprise-init-appdb-ubi 
        </mongodb-enterprise-init-appdb-ubi?tab=tags&tag=latest>`
@@ -47,7 +52,9 @@ To view all available versions for each image, see the following links.
 
    * - :qr-mdb:`mongodb-enterprise-database-ubi 
        </mongodb-enterprise-database-ubi?tab=tags&tag=latest>`
-     - MongoDB Database environment image.
+     - MongoDB Database environment image used for non-static containers. 
+       To learn about static and non-static containers, see  
+       :ref:`static-containers`.
 
    * - :qr-mdb:`mongodb-enterprise-init-database-ubi
        </mongodb-enterprise-init-database-ubi?tab=tags&tag=latest>`
@@ -62,3 +69,306 @@ To view all available versions for each image, see the following links.
        </mongodb-enterprise-init-ops-manager-ubi?tab=tags&tag=latest>`
      - ``initContainer`` image that contains the |onprem| start-up
        scripts and the readiness probe.
+
+.. _static-containers:
+
+Static Containers (Public Preview)
+----------------------------------
+
+.. include:: /includes/static-containers-description.rst
+
+Starting with |k8s-op-full| 1.25, you can use the Public Preview of static containers instead of 
+the existing non-static containers that download the MongoDB binary from |com| 
+or the Internet at runtime. You can use the following procedures to enable or disable 
+static containers for all or individual MongoDB deployments.
+
+Static containers use the image from the 
+:qr-mdb:`mongodb-enterprise-server </mongodb-enterprise-server?tab=tags&tag=latest>` 
+Quay.io repository.
+
+.. _arch-static-containers:
+
+Architecture
+~~~~~~~~~~~~
+
+The architecture of static and non-static containers differs significantly and
+requires several steps to migrate from one to the other. To learn more, see :ref:`migrate-to-static-containers` and :ref:`migrate-to-non-static-containers`.  
+
+Non-Static Container Architecture
+`````````````````````````````````
+
+The default non-static container architecture assumes you bootstrap an empty-shell 
+container, download and start the {+mdbagent+}, which then downloads the binaries 
+for |mongod| and |mongosh| from |com|. 
+
+.. figure:: /images/mdb-deployment.svg
+   :alt: Diagram showing the high-level architecture of a MongoDB deployment with
+         non-static containers configured using the MongoDB Enterprise Kubernetes Operator.
+   :figwidth: 600px
+
+Static Container Architecture
+`````````````````````````````
+
+The static container architecture uses Kubernetes' :k8sdocs:`shared namespace feature </tasks/configure-pod-container/share-process-namespace/>`
+to run the {+mdbagent+} as a separate process so it can control the full |mongod| lifecycle and avoid downloading files over a network.
+
+.. include:: /includes/static-containers-description.rst
+
+.. figure:: /images/mdb-deployment-static.svg
+   :alt: Diagram showing the high-level architecture of a MongoDB deployment with
+         static containers configured using the MongoDB Enterprise Kubernetes Operator.
+   :figwidth: 600px
+
+.. _limitations-static-containers:
+
+Limitations
+~~~~~~~~~~~
+
+If you enable static containers:
+
+- You must :ref:`disable-queryable-backups` so the :ref:`backup-daemon` doesn't 
+  attempt to download the MongoDB binaries from |onprem|, which undermines the immutable
+  nature of static containers.  
+
+- With |onprem|, only the following |onprem| and {+mdbagent+} versions are compatible with 
+  static containers:
+  
+  .. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - |onprem| Version
+     - {+mdbagent+} Version
+
+   * - 7.0.5
+     - :ref:`107.0.0.8490-1 <mongodb-agent-changelog>`
+
+   * - 6.0.24
+     - :ref:`12.0.29.7775-1 <mongodb-agent-changelog>`
+
+- With |cloud|, your {+mdbagent+} version could fall behind compatibility with the latest 
+  version of |cloud| because the {+k8s-op-short+} can't call the ``agentVersion`` endpoint 
+  in |cloud|. To ensure your {+mdbagent+} is up to date with |cloud|, you can perform one 
+  of the following actions:
+
+  - Specify a :ref:`compatible <mms-changelog>` {+mdbagent+} version in the 
+    :ref:`k8s-om-specification` by overriding the |k8s-statefulset| container image for 
+    the {+mdbagent+}. 
+    For example:
+
+    .. code-block:: yaml
+
+       podSpec:
+         podTemplate:
+           spec:
+             containers:
+               - name: mongodb-agent-ubi
+                 Image: 12.0.29.7785-1_1.24.0
+
+  - :ref:`Upgrade the {+k8s-op-short+} <upgrade-k8s-operator>` to the latest version, 
+    which automatically updates the {+mdbagent+}.
+
+- :ref:`Upgrading a MongoDB version <meko-upgrade-mdb-version>` triggers a rolling restart
+  of all Pods, in order of last to first, and could cause more :manual:`elections </core/replica-set-elections/#voting-members>`, up to the number of Pods. This is true of
+  any updates that trigger a rolling restart. 
+
+- You won't be able to determine whether a MongoDB database upgrade happened from 
+  the :ref:`{+mdbagent+}'s status <view-agent-status>`. 
+  When |k8s| rotates Pods following an upgrade, the {+mdbagent+} replaces the 
+  health status file so you can't tell from the health status that a version change 
+  happened, only the current health status.
+
+.. _migrate-to-static-containers:
+
+Migrate to Static Containers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To migrate from non-static to static containers, set the {+mdbagent+} environment
+variables and enable static containers by following the steps below.
+You can also enable static containers during 
+:ref:`installation <install-k8s>` or :ref:`upgrade <upgrade-k8s-operator>`.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Review the :ref:`limitations <limitations-static-containers>`.
+
+   .. step:: Disable queryable backups.
+    
+      Follow the procedure in :ref:`disable-queryable-backups`.
+
+   .. step:: Set environment variables for the {+mdbagent+} image.
+
+      .. tabs::
+
+         .. tab:: kubectl and oc
+            :tabid: kubectl
+
+            In your |k8s-op-short| 
+            :ref:`configuration file <meko-op-install-settings-kubectl-oc>`, define the :ref:`MDB_AGENT_IMAGE_REPOSITORY <agent-image-repo>` environment variable to 
+            specify the repository from which the |k8s-op-short| downloads the {+mdbagent+} 
+            image for static containers.
+
+         .. tab:: Helm
+            :tabid: helm
+            
+            In your |k8s-op-short| :ref:`Helm chart <meko-op-install-settings-helm>`,
+            define :ref:`agentRepo` and :ref:`agent-name-helm` to specify the repository from which 
+            the |k8s-op-short| downloads the {+mdbagent+} image for static containers.
+
+   .. step:: Save and apply the file.
+
+      After saving the changes, reapply your configuration.
+
+      .. tabs::
+         :hidden:
+
+         .. tab:: kubectl and oc
+            :tabid: kubectl
+
+            If you use |k8s| without OpenShift, run: 
+
+            .. code-block:: sh
+
+               kubectl apply -f mongodb-enterprise.yaml
+
+            If you use |k8s| with OpenShift:
+
+            .. code-block:: sh
+
+               oc apply -f mongodb-enterprise-openshift.yaml
+
+         .. tab:: Helm
+            :tabid: helm
+
+            .. code-block:: sh
+
+               helm upgrade enterprise-operator mongodb/enterprise-operator \
+                 --set registry.pullPolicy='IfNotPresent'
+   
+      This initiates a rolling restart of all Pods in your deployment.
+
+   .. step:: Enable static containers. 
+    
+      Select the appropriate tab below to enable static containers for all your MongoDB 
+      deployments at once, including existing deployments, or one deployment at a time.
+
+      .. tabs::
+
+         .. tab:: All Deployments
+            :tabid: enable-static-all 
+            
+            In your |k8s-op-short| :ref:`configuration file <meko-operator-settings>`, 
+            set :ref:`MDB_DEFAULT_ARCHITECTURE <mdb-default-architecture>` 
+            or :ref:`operator.mdbDefaultArchitecture <mdb-default-architecture-helm>` to ``static``.
+
+         .. tab:: Individual Deployments
+            :tabid: enable-static-one
+
+            In the :ref:`MongoDB resource specification <k8s-specification>` for 
+            a specific deployment,
+            set the :setting:`metadata.annotations.mongodb.com/v1.architecture` 
+            annotation to ``static``.
+
+   .. step:: Save and apply the file.
+
+      After saving the changes, reapply your configuration.
+
+      .. tabs::
+         :hidden:
+
+         .. tab:: kubectl and oc
+            :tabid: kubectl
+
+            If you use |k8s| without OpenShift, run: 
+
+            .. code-block:: sh
+
+               kubectl apply -f <my-config-file>.yaml
+
+            If you use |k8s| with OpenShift:
+
+            .. code-block:: sh
+
+               oc apply -f <my-config-file>.yaml
+
+         .. tab:: Helm
+            :tabid: helm
+
+            .. code-block:: sh
+
+               helm upgrade enterprise-operator mongodb/enterprise-operator \
+                --set <setting_1> --set <setting_2> --set operator.mdbDefaultArchitecture="static"
+
+      The |k8s-op-short| updates the |k8s-statefulset| images for your MongoDB deployment, 
+      transitioning from a single container that previously managed both the {+mdbagent+} 
+      and MongoDB database, to a new configuration with two separate containers: one for 
+      the {+mdbagent+} and another for the MongoDB database. This update initiates a 
+      rolling restart.
+
+.. _migrate-to-non-static-containers:
+
+Migrate to Non-Static Containers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To migrate from static to non-static containers, disable static containers by 
+following the steps below.
+You can also disable static containers during 
+:ref:`installation <install-k8s>` or :ref:`upgrade <upgrade-k8s-operator>`.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Disable static containers. 
+    
+      Select the appropriate tab below to disable static containers for all your MongoDB 
+      deployments at once, including existing deployments, or one deployment at a time.
+
+      .. tabs::
+
+         .. tab:: All Deployments
+            :tabid: enable-static-all 
+            
+            In your |k8s-op-short| :ref:`configuration file <meko-operator-settings>`, 
+            set :ref:`MDB_DEFAULT_ARCHITECTURE <mdb-default-architecture>` 
+            or :ref:`operator.mdbDefaultArchitecture <mdb-default-architecture-helm>` to ``non-static``.
+
+         .. tab:: Individual Deployments
+            :tabid: enable-static-one
+
+            In the :ref:`MongoDB resource specification <k8s-specification>` for 
+            a specific deployment,
+            set the :setting:`metadata.annotations.mongodb.com/v1.architecture` 
+            annotation to ``non-static``.
+
+   .. step:: Save and apply the file.
+
+      After saving the changes, reapply your configuration.
+
+      .. tabs::
+
+         .. tab:: kubectl and oc
+            :tabid: kubectl
+
+            If you use |k8s| without OpenShift, run: 
+
+            .. code-block:: sh
+
+               kubectl apply -f <my-config-file>.yaml
+
+            If you use |k8s| with OpenShift:
+
+            .. code-block:: sh
+
+               oc apply -f <my-config-file>.yaml
+
+         .. tab:: Helm
+            :tabid: helm
+
+            .. code-block:: sh
+
+               helm upgrade enterprise-operator mongodb/enterprise-operator \
+                --set <setting_1> --set <setting_2> --set operator.mdbDefaultArchitecture="non-static"
+      
+      The |k8s-op-short| replaces the |k8s-statefulset| images of your MongoDB 
+      deployment and initiates a rolling restart of all Pods in your deployment.

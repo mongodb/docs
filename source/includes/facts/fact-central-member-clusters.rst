@@ -9,4 +9,9 @@ A |multi-cluster| that uses the |k8s-op-full| consists of one
   - Hosts |onprem|, if you deploy |onprem| with the |k8s-op-short|
   - Can also host members of the MongoDB replica set
 
+  .. important::
+
+     The central cluster is also known as the operator cluster.
+     References to the central cluster might be renamed to refer to the operator cluster in the future releases.
+
 - **Member clusters** host the MongoDB replica sets.

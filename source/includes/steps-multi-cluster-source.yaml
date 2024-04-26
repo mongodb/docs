@@ -31,6 +31,7 @@ content: |
                     --version <mongodb-kubernetes-operator-version> \
                     --set operator.name=mongodb-enterprise-operator-multi-cluster \
                     --set operator.createOperatorServiceAccount=false \
+                    --set operator.createResourcesServiceAccountsAndRoles=false \
                     --set "multiCluster.clusters={$MDB_CLUSTER_1_FULL_NAME,$MDB_CLUSTER_2_FULL_NAME,$MDB_CLUSTER_3_FULL_NAME}" \
                     --set multiCluster.performFailover=false
 
@@ -109,13 +110,12 @@ ref: set-istio-webhook
 title: "Set the Istio injection webhook in each member cluster."
 content: |
    
-   If you're using Istio, run the following command on the central cluster, specifying the context
-   for each of the member clusters in the deployment. These commands add
-   the ``istio-injection=enabled`` label to the ``mongodb`` namespace on
-   each member cluster. This label configures Istio's injection webhook
-   which enables adding a sidecar to any Pods that you create in this
-   namespace. To learn more, see `Automatic sidecar injection <https://istio.io/latest/docs/setup/additional-setup/sidecar-injection/#automatic-sidecar-injection>`__
-   in the Istio documentation.
+   If you're using Istio, run the following command on the central cluster,
+   specifying the context for each of the member clusters in the deployment.
+   To enable |sidecar-injection| in Istio, the following commands add
+   the ``istio-injection=enabled`` labels to the ``mongodb`` namespaces
+   on each member cluster. If you use another service mesh, configure
+   it to handle network traffic in the created namespaces.
 
    .. code-block:: sh
       :emphasize-lines: 4
@@ -179,6 +179,7 @@ content: |
               --version <mongodb-kubernetes-operator-version> \
               --set operator.name=mongodb-enterprise-operator-multi-cluster \
               --set operator.createOperatorServiceAccount=false \
+              --set operator.createResourcesServiceAccountsAndRoles=false \
               --set "multiCluster.clusters={$MDB_CLUSTER_1_FULL_NAME,$MDB_CLUSTER_2_FULL_NAME,$MDB_CLUSTER_3_FULL_NAME}" \
               --set multiCluster.performFailover=false
 ---
@@ -200,8 +201,6 @@ stepnum: 0
 title: "Deploy |onprem| on the central cluster and connect to |onprem|."
 ref: deploy-om-mc-central-cluster
 content: |
-
-  Review the |multi-cluster| exceptions and follow the linked procedures in :ref:`multi-cluster-deploy-om-summary`.
 
 ---
 stepnum: 0
@@ -264,7 +263,7 @@ content: |
      service mesh, this tutorial creates service objects with a
      single ClusterIP address per each |k8s| Pod.
 
-  .. code-block:: sh
+  .. code-block:: yaml
 
      kubectl apply -f - <<EOF
      apiVersion: mongodb.com/v1

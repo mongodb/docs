@@ -18,3 +18,5 @@ namespace with the optional ``--create-namespace`` option.
 
 To learn about optional |k8s-op-short| installation settings, see
 :ref:`Operator Helm Installation Settings <meko-op-install-settings-helm>`.
+
+.. include:: /includes/static-containers-beta.rst

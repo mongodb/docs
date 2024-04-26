@@ -50,9 +50,10 @@ deployment:
            :language: yaml
            :linenos:
 
+.. _om_resource-spec-required:
 
-Required |onprem| Resource Settings
------------------------------------
+|onprem| Required Settings
+--------------------------
 
 This section describes settings that you must use for all |onprem|
 resources.
@@ -78,15 +79,6 @@ resources.
 
    .. include:: /includes/fact-resource-name-char-limit.rst
 
-.. opsmgrkube:: spec.replicas
-
-   *Type*: integer
-
-   *Required*. Number of |onprem| instances to run in parallel.
-   The minimum accepted value is ``1``.
-
-   .. include:: /includes/admonitions/note-highly-available-om.rst
-
 .. opsmgrkube:: spec.version
 
    *Type*: string
@@ -108,793 +100,63 @@ resources.
    :opsmgr:`Global Owner </reference/user-roles/#global-automation-admin-role>`
    role.
 
-.. opsmgrkube:: spec.applicationDatabase.version
+.. opsmgrkube:: spec.replicas
 
-   *Type*: string
+   *Type*: integer
 
-   *Required*. Version of MongoDB installed on the |onprem|
-   :opsmgr:`Application Database </core/system-overview/#application-database>`.
-   You must specify a compatible enterprise MongoDB version based on the tag in the
-   :qr-mdb:`container registry </mongodb-enterprise-server?tab=tags>`. For example, ``6.0.0-ubi8``. Starting in |k8s-op-short| version 1.20, tags no longer end in ``-ent``.  
+   *Conditional*. Number of |onprem| instances to run in parallel.
+   If you specify ``SingleCluster`` in :opsmgrkube:`spec.topology`, this
+   parameter is required. The mimimum accepted value is ``1``. 
 
-   .. include:: /includes/admonitions/ubi-8-min-db-versions.rst
-
-   .. note::
-
-      If you update this value to a later version of MongoDB for the 
-      Application Database, the Feature Compatibility Version (FCV) *does 
-      not change* unless you also specify the 
-      ``featureCompatibilityVersion``
-      parameter under :opsmgrkube:`spec.applicationDatabase`.
-
+   If you specify ``MultiCluster`` in :opsmgrkube:`spec.topology`, this
+   parameter is ignored.
 
 .. _optional-om-k8s-settings:
 
-Optional |onprem| Resource Settings
------------------------------------
+|onprem| Optional Settings
+--------------------------
 
-|onprem| resources can use the following settings:
+|onprem| resources can also use the following settings:
 
-.. opsmgrkube:: spec.applicationDatabase
+.. opsmgrkube:: spec.opsManagerURL
 
-   *Type*: collection
+   *Type*: string
 
-   |onprem| :opsmgr:`Application Database </core/system-overview/#application-database>`
-   resource definition.
+   *Optional*. The URL for the |onprem| resource in the |k8s-op-short|,
+   for example: ``https://link.to.configured.lb.example.com``.
 
-   The following settings from the
-   :ref:`replica set <replica-set-settings>` resource specification are
-   optional.
-
-.. note::
-   All settings under ``spec.applicationDatabase.agent`` apply to both
-   Automation and Monitoring, unless you specify values for Automation
-   and Monitoring separately in ``spec.applicationDatabase.agent`` and
-   ``spec.applicationDatabase.monitoringAgent``.
-
-.. opsmgrkube:: spec.applicationDatabase.agent.logRotate
-
-   *Type*: object
-
-   MongoDB configuration object for rotating the MongoDB logs of a process. To use 
-   the ``agent.logRotate`` settings, you must set 
-   :opsmgrkube:`systemLog.destination <spec.applicationDatabase.agent.systemLog.destination>` 
-   to ``file`` because you can't use the ``agent.logRotate`` settings if you're writing 
-   logs to the host's :manual:`syslog </reference/glossary/#std-term-syslog>` system.
-
-.. opsmgrkube:: spec.applicationDatabase.agent.logRotate.numTotal
-
-   *Type*: integer
-
-   *Default*: ``0``
-
-   Total number of log files that |mms| retains. If you don't change the default,
-   |mms| bases rotation on your other ``agent.logRotate`` settings.
-
-.. opsmgrkube:: spec.applicationDatabase.agent.logRotate.numUncompressed
-
-   *Type*: integer
-
-   *Default*: ``5``
-    
-   Maximum number of total log files to leave uncompressed,
-   including the current log file.
-
-.. opsmgrkube:: spec.applicationDatabase.agent.logRotate.percentOfDiskspace
-
-   *Type*: number
-
-   *Default*: ``0.02``
-     
-   Maximum percentage of total disk space that |mms| can use to
-   store the log files expressed as decimal. If this limit is
-   exceeded, |mms| deletes compressed log files until it meets this
-   limit. |mms| deletes the oldest log files first.
-
-.. opsmgrkube:: spec.applicationDatabase.agent.logRotate.sizeThresholdMB
-     
-   *Type*: number
-
-   *Required if rotating logs.*
-  
-   Maximum size in MB for an individual log file before |mms|
-   rotates it. |mms| rotates the log file immediately if it meets
-   the value given in either this ``sizeThresholdMB`` or the
-   :opsmgrkube:`logRotate.timeThresholdHrs <spec.applicationDatabase.agent.logRotate.timeThresholdHrs>` limit.
-
-.. opsmgrkube:: spec.applicationDatabase.agent.logRotate.timeThresholdHrs
-    
-   *Type*: integer
+   - If you omit this parameter, then to connect to |onprem| instances
+     the |k8s-op-short| uses the following URL as the default for the
+     |onprem| instance: ``<om-name>-svc.{namespace}.svc.cluster.local``.
+     This is the |fqdn| of the headless service for |onprem|.
    
-   *Required if rotating logs*.
-   
-   Maximum duration in hours for an individual log file before the
-   next rotation. The time is since the last rotation. |mms| rotates the log file 
-   immediately if it meets the value given in either this ``timeThresholdHrs`` or the
-   :opsmgrkube:`logRotate.sizeThresholdM <spec.applicationDatabase.agent.logRotate.sizeThresholdMB>` limit.
-
-.. opsmgrkube:: spec.applicationDatabase.agent.logRotate.includeAuditLogsWithMongoDBLogs
-    
-   *Type*: boolean
-      
-   Set to ``true`` to have the Automation Agent rotate 
-   the audit files along with MongoDB log files.
-
-.. opsmgrkube:: spec.applicationDatabase.agent.startupOptions
-
-   *Type*: object
-
-   MongoDB configuration object for startup options. 
-   See :opsmgr:`MongoDB Agent Settings </reference/mongodb-agent-settings/>` for available fields.
-
-.. opsmgrkube:: spec.applicationDatabase.agent.systemLog
-
-   *Type*: object
-
-   MongoDB configuration object for configuring the ``systemLog`` options.
-
-.. opsmgrkube:: spec.applicationDatabase.agent.systemLog.path
-
-   *Type*: string
-
-   *Default:* ``/var/log/mongodb-mms-automation/mongodb.log``
-
-   The path of the log file to which |mongod| or |mongos| should send all diagnostic 
-   logging information, rather than the standard output or the host's 
-   :manual:`syslog </reference/glossary/#std-term-syslog>`. 
-   MongoDB creates the log file at the specified path.
-
-   The Linux package init scripts don't expect ``systemLog.path`` to change from the defaults. 
-   If you use the Linux packages and change ``systemLog.path``, you will have to use your own 
-   init scripts and disable the built-in scripts.
-
-.. opsmgrkube:: spec.applicationDatabase.agent.systemLog.logAppend
-
-   *Type:* boolean
-
-   *Default:* ``false``
-
-   When ``true``, |mongos| or |mongod| appends new entries to the end of the existing 
-   log file when the |mongos| or |mongod| instance restarts. Without this option, |mongod| 
-   will back up the existing log and create a new file.  
-
-.. opsmgrkube:: spec.applicationDatabase.agent.systemLog.destination
-
-   *Type:* string
-
-   The destination to which MongoDB sends all log output. Specify either ``file`` or ``syslog``. 
-   If you specify ``file``, you must also specify 
-   :opsmgrkube:`systemLog.path <spec.applicationDatabase.agent.systemLog.path>`.
-
-   If you don't specify 
-   :opsmgrkube:`systemLog.path <spec.applicationDatabase.agent.systemLog.path>`, MongoDB 
-   sends all log output to standard output.
-
-   .. warning::
-
-      The syslog daemon generates timestamps when it logs a message, not when MongoDB 
-      issues the message. This behavior can lead to misleading timestamps for log entries, 
-      especially when the system is under heavy load. We recommend using the ``file``
-      option for production systems to ensure accurate timestamps.
-
-.. opsmgrkube:: spec.applicationDatabase.topology
-
-   *Type*: string
-
-   *Optional*. The type of the |k8s| deployment for the Application Database.
-   
-   - The values are ``SingleCluster`` or ``MultiCluster``. If omitted,
-     the default value is ``SingleCluster``.
-   - If you specify ``MultiCluster``, you must specify
-     the :opsmgrkube:`clusterSpecList <spec.applicationDatabase.clusterSpecList>` and
-     include in it the :opsmgrkube:`clusterName <spec.applicationDatabase.clusterSpecList.clusterName>`
-     of each |k8s| cluster included in your |multi-cluster|, and the number
-     of :opsmgrkube:`members <spec.applicationDatabase.clusterSpecList.clusterName.members>`
-     in each |k8s| cluster.
-
-   - If you specify ``MultiCluster``, the |k8s-op-short| ignores values
-     that you set for the :setting:`spec.applicationDatabase.members <spec.members>`
-     field, if specified.
-
-   To learn more, see the :ref:`example of the resource specification <om_resource_spec_example_multi_cluster>`.
-
-.. opsmgrkube:: spec.applicationDatabase.clusterSpecList
-
-  *Type*: collection
-
-  Details of selected |k8s| member clusters in a |multi-cluster|
-  that serve as nodes that host the Application Database.
-
-.. opsmgrkube:: spec.applicationDatabase.clusterSpecList.clusterName
-
-  *Type*: string
-
-  Name of the member |k8s| cluster in a |multi-cluster| where the |k8s-op|
-  schedules the |k8s-statefulset| for the Application Database.
-
-
-  .. important::
-
-     .. include:: /includes/facts/fact-cannot-convert-om-crd-multi.rst
-
-.. opsmgrkube:: spec.applicationDatabase.clusterSpecList.clusterName.members
-
-  *Type*: number
-
-  Number of statefulSet nodes in the given member cluster. The member cluster
-  is one of the member clusters that hosts the Application Database in
-  a |multi-cluster|.
-
-.. opsmgrkube:: spec.applicationDatabase.memberConfig.priority
-
-   *Type*: string
-   
-   Number that indicates the relative likelihood of an application database replica set member to become the `primary <https://www.mongodb.com/docs/manual/reference/glossary/#std-term-primary>`__.
-
-   * To increase the relative likelihood that a replica set member becomes the primary, specify a higher ``priority`` value.
-   
-   * To decrease the relative likelihood that a replica set member becomes the primary, specify a lower ``priority`` value.
-   
-   For example, a member with a ``memberConfig.priority`` of ``1.5`` is more likely than a member with a ``memberConfig.priority`` of ``0.5`` to become the primary. 
-   
-   A member with a ``memberConfig.priority`` of ``0`` is ineligible to become the primary. To learn more, see :manual:`Member Priority </core/replica-set-elections/#voting-members>`.
-
-.. opsmgrkube:: spec.applicationDatabase.memberConfig.tags
-
-   *Type*: map
-
-   Map of :manual:`replica set tags </tutorial/configure-replica-set-tag-sets/>` for directing
-   read and write operations to specific members of your application database replica set.
-
-.. opsmgrkube:: spec.applicationDatabase.memberConfig.votes
-
-   *Type*: number
-
-   Determines whether an application database replica set member can vote in an :manual:`election </core/replica-set-elections/#voting-members>`. Set to ``1`` to allow the member to vote. Set to ``0`` to exclude the member from an election. 
-
-.. opsmgrkube:: spec.applicationDatabase.passwordSecretKeyRef.name
-
-   *Type*: string
-
-   Name of the :ref:`secret <om-db-user-secret>` that contains the
-   password for the |onprem| database user ``mongodb-ops-manager``.
-   |onprem| uses this password to :ref:`authenticate to the Application
-   Database <app-db-auth>`.
-
-.. opsmgrkube:: spec.applicationDatabase.passwordSecretKeyRef.key
-
-   *Type*: string
-
-   Name of the field in the :ref:`secret <om-db-user-secret>` that
-   contains the password for the |onprem| database user
-   ``mongodb-ops-manager``. |onprem| uses this password to
-   :ref:`authenticate to the Application Database <app-db-auth>`.
-
-   The default value is ``password``.
-
-.. opsmgrkube:: spec.applicationDatabase.security.certsSecretPrefix
-
-   *Type*: string
-
-   Text to prefix to the name of the secret that contains the
-   application database's |tls| certificate. Name the secret
-   ``<prefix>-<metadata.name>-db-cert``.
-
-.. opsmgrkube:: spec.applicationDatabase.security.tls.ca
-
-   *Type*: string
-
-   Name of the |k8s| |k8s-configmap| containing the |certauth| file for
-   the application database.
-
-   .. important::
-
-      :opsmgrkube:`spec.applicationDatabase.security.tls.ca` is required
-      if you use a custom |certauth| to sign your application database's
-      |tls| certificates.
-
-      The |k8s-op-short| requires that you name the application database's
-      certificate ``ca-pem`` in the ConfigMap.
-
-      The |certauth| specified in this section is also used for 
-      configuring custom |tls| certificates for |s3| storage when either
-      :opsmgrkube:`spec.backup.s3OpLogStores.customCertificate` or
-      :opsmgrkube:`spec.backup.s3Stores.customCertificate` are set to 
-      ``true``.
-
-   This |certauth| signs the certificates that:
-   
-   - the application database replica set members use to communicate
-     with one another, and
-   - |onprem| uses to communicate with the application database replica
-     set.
-
-   .. include:: /includes/admonitions/warning-concatenate-download-certs.rst
-
-.. opsmgrkube:: spec.app
-
-   *Type*: string
-
-   Text to prefix to the |k8s| |k8s-secret| that you
-   created that contains your application database's |tls| key and 
-   certificate.
-
-   You must name your secret ``<prefix>-<metadata.name>-db-cert``.
-
-   To learn how to configure your |onprem| instance to run over
-   |https|, see :ref:`deploy-om-container`.
-
-.. opsmgrkube:: spec.applicationDatabase.security.tls.enabled
-
-  .. important::
-
-     ``spec.security.applicationDatabase.tls.enabled`` is 
-     deprecated and will be removed in a future release. To enable 
-     |tls|, provide a value for the 
-     ``spec.security.applicationDatabase.certsSecretPrefix`` 
-     setting.
-
-  Encrypts communications using |tls| certificates between |onprem| and
-  the application database.
-
-.. opsmgrkube:: spec.backup.assignmentLabels
-
-   *Type*: array of strings
-
-   A list of assignment labels for the :ref:`backup-daemon` processes.
-   Use assignment labels to identify that specific backup daemon
-   processes are associated with particular projects. If you set assignment
-   labels using the |k8s-op-short|, the values that you set in the |k8s|
-   configuration file for assignment labels override the values defined
-   in the |mms| UI. Assignment labels that you don't set using the
-   |k8s-op-short| continue to use the values set in the |mms| UI.
-
-.. opsmgrkube:: spec.backup.enabled
-
-   *Type*: boolean
-
-   Flag that enables Backup for your |onprem| resource. When set to
-   ``false``, Backup is disabled.
-
-   Default value is ``true``.
-
-.. opsmgrkube:: spec.backup.encryption
-
-   *Type*: object
-
-   Object that contains the backup encryption configuration settings.
-
-.. opsmgrkube:: spec.backup.encryption.kmip
-
-   *Type*: object
-
-   Object that contains the |kmip| backup encryption configuration 
-   settings. To learn more, see :ref:`configure-kmip-backup-encryption`.
-
-   .. note::
-   
-      If you set this parameter, the API key linked with the value of 
-      :setting:`spec.credentials` must have the :authrole:`Global Owner` role.
-
-.. opsmgrkube:: spec.backup.encryption.kmip.server
-
-   *Type*: object
-
-   Object that contains the |kmip| backup encryption server 
-   configuration settings.
-
-.. opsmgrkube:: spec.backup.encryption.kmip.server.ca
-
-   *Type*: string
-
-   Human-readable label that identifies the ConfigMap that contains an 
-   entry for the |certauth| certificate (``ca.pem``) to use for |kmip| 
-   authentication.
-
-.. opsmgrkube:: spec.backup.encryption.kmip.server.url
-
-   *Type*: string
-
-   |url| for the |kmip| server that uses the ``hostname.port`` format 
-   (for example, ``192.168.1.3:5696`` or 
-   ``my-kmip-server.mycorp.com:5696``).
-
-.. opsmgrkube:: spec.backup.headDB
-
-   *Type*: collection
-
-   Configuration settings for the :ref:`head database <backup-daemon>`.
-   |k8s-op-short| creates a |k8s-pvc| with the specified configuration.
-
-   .. list-table::
-      :widths: 20 20 60
-      :header-rows: 1
-
-      * - Scalar
-        - Data Type
-        - Description
-
-      * - ``labelSelector``
-        - string
-        - `Tag
-          <https://kubernetes.io/docs/concepts/storage/persistent-volumes/#selector>`__
-          used to bind mounted volumes to directories.
-
-      * - ``storage``
-        - string
-        - Minimum size of |k8s-pv| that should be mounted. This value is
-          expressed as an integer followed by a unit of storage in
-          |jedec| notation.
-
-          Default value is ``30Gi``.
-
-          .. seealso::
-
-             :ref:`backup-hardware-requirements`
-
-          .. example::
-
-             If the head database requires 60 gigabytes of storage
-             space, set this value to ``60Gi``.
-
-      * - ``storageClass``
-        - string
-        - Type of storage specified in a |k8s-pvc|. You may create 
-          this storage type as a |k8s-sc| object before using it in this
-          |k8s-obj| specification.
-
-          .. note::
-
-             .. include:: /includes/admonitions/fact-reclaimpolicy-to-retain.rst
-
-.. opsmgrkube:: spec.backup.jvmParameters
-
-   *Type*: array of strings
-
-   *Optional*. |jvm| parameters passed to the |onprem| backup service
-   in the container.
-
-   This |k8s-op-short| parameter defaults to an empty list.
-
-   .. code-block:: yaml
-
-      spec:
-        backup:
-          jvmParameters: ["-XX:+UseStringCache"]
-
-   .. warning:: Change the JVM Memory Heap values at your own risk
-
-      |k8s-op-short| calculates the |jvm| memory heap values of the
-      backup service based on the container's memory. Changing the
-      ``-Xms`` and ``-Xmx`` values can cause issues with |onprem|.
-
-.. opsmgrkube:: spec.backup.members
-
-   *Type*: integer
-   
-   *Optional*. Number of :opsmgr:`backup daemon services
-   </core/system-overview/#backup-daemon-service>`
-   to deploy in |k8s|. If not specified, defaults to ``1``.
-   To ensure high availability for your backup service, deploy
-   :opsmgr:`multiple backup daemons </tutorial/configure-backup-high-availability/#multiple-backup-daemons>`
-   in |onprem|.
-   
-.. opsmgrkube:: spec.backup.opLogStores
-
-   *Type*: collection
-
-   *Required if you enable backup.*
-
-   Array of :ref:`oplog stores <backup-database-specifications>` used
-   for backup. Each item in the array references a MongoDB database
-   resource deployed in the |k8s| cluster by the |k8s-op-short|.
-
-.. opsmgrkube:: spec.backup.opLogStores.assignmentLabels
-
-   *Type*: array of strings
-
-   A list of assignment labels for the :ref:`oplog store <backup-database-specifications>`.
-   Use assignment labels to identify that specific oplog stores are associated
-   with particular projects. If you set assignment labels using the |k8s-op-short|,
-   the values that you set in the |k8s| configuration file for assignment
-   labels override the values defined in the |mms| UI. Assignment labels
-   that you don't set using the |k8s-op-short| continue to use the values
-   set in the |mms| UI.
-
-.. opsmgrkube:: spec.backup.opLogStores.name
-
-   *Type*: string
-
-   *Required if you enable Backup.*
-
-   Name of the oplog store.
-
-   .. important::
-
-      Once specified, don't edit the name of the oplog store.
-
-.. opsmgrkube:: spec.backup.opLogStores.mongodbResourceRef.name
-
-   *Type*: string
-
-   *Required if you enable Backup.*
-
-   Name of the |k8s-mdbrsc| or the |mongodb-multi| that you create to store
-   oplog slices. You must deploy this resource in the same namespace as
-   the |onprem| resource.
-
-   .. include:: /includes/admonitions/fact-backing-db-auth.rst
-
-   .. include:: /includes/admonitions/watch-backup-resources.rst
-
-.. opsmgrkube:: spec.backup.opLogStores.mongodbUserRef.name
-
-   *Type*: string
-
-   *Required if SCRAM authentication is enabled on the oplog
-   store database.*
-
-   Name of the MongoDB user resource used to connect to the oplog store
-   database. Deploy this user resource in the same
-   namespace as the |onprem| resource and with all of the following roles:
-   
-   - :manual:`readWriteAnyDatabase
-     </reference/built-in-roles/#readWriteAnyDatabase>`
-   - :manual:`dbAdminAnyDatabase
-     </reference/built-in-roles/#dbAdminAnyDatabase>`
-   - :manual:`clusterMonitor
-     </reference/built-in-roles/#mongodb-authrole-clusterMonitor>`
-
-.. opsmgrkube:: spec.backup.blockStores
-
-   *Type*: collection
-
-   *Required if you enable Backup using a blockstore.*
-
-   Array of :ref:`blockstores <backup-database-specifications>` used
-   for Backup. Each item in the array references a MongoDB database
-   resource deployed in the |k8s| cluster by the |k8s-op-short|.
-
-.. opsmgrkube:: spec.backup.blockStores.assignmentLabels
-
-   *Type*: array of strings
-
-   A list of assignment labels for the :ref:`blockstore <backup-database-specifications>`.
-   Use assignment labels to identify that specific blockstores are
-   associated with particular projects. If you set assignment labels using
-   the |k8s-op-short|, the values that you set in the |k8s| configuration
-   file for assignment labels override the values defined in the |mms| UI.
-   Assignment labels that you don't set using the |k8s-op-short| continue
-   to use the values set in the |mms| UI.
-
-.. opsmgrkube:: spec.backup.blockStores.name
-
-   *Type*: string
-
-   *Required if you enable backup using a blockstore.*
-
-   Name of the blockstore.
-
-   .. important::
-
-      Once specified, don't edit the name of the :ref:`blockstore <backup-database-specifications>`.
-
-
-
-.. opsmgrkube:: spec.backup.blockStores.mongodbResourceRef.name
-
-   *Type*: string
-
-   *Required if you enable backup using a blockstore.*
-
-   Name of the MongoDB database resource that you create for the
-   blockstore. You must deploy this database resource in the same
-   namespace as the |onprem| resource.
-
-   The blockstore database only supports the ``SCRAM`` authentication
-   mechanism. You cannot enable other authentication mechanisms.
-
-   If you enable ``SCRAM`` authentication on the blockstore database,
-   you must:
-
-   - Create a MongoDB user resource to connect |onprem| to the
-     blockstore database.
-   - Specify the :opsmgrkube:`~spec.backup.blockStores.mongodbUserRef.name`
-     of the user in the |onprem| resource definition.
-
-   .. include:: /includes/admonitions/watch-backup-resources.rst
-
-.. opsmgrkube:: spec.backup.blockStores.mongodbUserRef.name
-
-   *Type*: string
-
-   *Required if SCRAM authentication is enabled on the blockstore database.*
-
-   Name of the MongoDB user resource used to connect to the blockstore
-   database. Deploy this user resource in the same
-   namespace as the |onprem| resource and with all of the following roles:
-   
-   - :manual:`readWriteAnyDatabase
-     </reference/built-in-roles/#readWriteAnyDatabase>`
-   - :manual:`dbAdminAnyDatabase
-     </reference/built-in-roles/#dbAdminAnyDatabase>`
-   - :manual:`clusterMonitor
-     </reference/built-in-roles/#mongodb-authrole-clusterMonitor>`
-
-.. opsmgrkube:: spec.backup.queryableBackupSecretRef.name
-
-   *Type*: string
-
-   Name of the secret that contains the :opsmgr:`queryable.pem </reference/configuration/#brs.queryable.pem>`
-   file from |onprem| that you will use for accessing and querying backups
-   based on your deployment's |tls| requirements.The PEM file contains
-   a public key certificate and its associated private key that are needed
-   to access and run queries on backup snapshots in |onprem|.
-   To query backups, specify the value for this parameter. If not set,
-   backups are not affected, but you can't query them.
-
-.. opsmgrkube:: spec.backup.statefulSet.spec
-
-   *Type*: collection
-
-   Specification for the |k8s-statefulset| that the |k8s-op| creates
-   for the :opsmgr:`backup daemon service
-   </core/system-overview/#backup-daemon-service>`.
-
-   To review which fields you can add to
-   :opsmgrkube:`spec.backup.statefulSet.spec`, see
-   :k8sdocs:`StatefulSetSpec v1 apps
-   </reference/generated/kubernetes-api/{+k8s-api-version+}/#statefulsetspec-v1-apps>` in the |k8s| documentation.
-
-.. opsmgrkube:: spec.backup.statefulSet.spec.template
-
-   *Type*: collection
-
-   :k8sdocs:`Template </concepts/workloads/pods/pod-overview/#pod-templates>`
-   for the |k8s| Pods in the |k8s-statefulset| that the |k8s-op| creates
-   for the :opsmgr:`backup daemon service
-   </core/system-overview/#backup-daemon-service>`.
+   - If you specify this parameter, this allows you to change this URL to a
+     different one.
 
    .. note::
 
-      The |k8s-op-short| doesn't validate the fields you provide
-      in :opsmgrkube:`spec.backup.statefulSet.spec.template`.
+      Don't confuse the :opsmgrkube:`spec.opsManagerURL` with the URL that
+      you :ref:`specify in a ConfigMap <create-k8s-project>` for a particular
+      deployment to configure MongoDB deployments and Monitoring Agents
+      for the Application Database. The |k8s-op-short| requires to have the
+      :opsmgrkube:`spec.opsManagerURL` to directly connect to |onprem|
+      instances and to configure |onprem| and Application Database deployments.
+      The |k8s-op-short| doesn't use the :opsmgrkube:`spec.opsManagerURL`
+      to manage particular MongoDB databases.
 
-.. opsmgrkube:: spec.backup.statefulSet.spec.template.metadata
+   Change the :opsmgrkube:`spec.opsManagerURL` parameter to a custom URL
+   in the following cases:
 
-   *Type*: collection
+   - When you deploy |onprem| across multiple |k8s| clusters and the default
+     URL is not accessible from the |onprem|-hosting Pod.  For example, when
+     you deploy |onprem| on other |k8s| clusters than those on which you
+     deploy the |k8s-op-short|, the |fqdn| for the |onprem| service might
+     not be accessible. In this case, you can specify a custom URL.
 
-   Metadata for the |k8s| Pods in the |k8s-statefulset| that the
-   |k8s-op| creates for the :opsmgr:`backup daemon service
-   </core/system-overview/#backup-daemon-service>`.
-
-   To review which fields you can add to
-   :opsmgrkube:`spec.backup.statefulSet.spec.template.metadata`, see
-   the :k8sdocs:`Kubernetes documentation
-   </reference/generated/kubernetes-api/{+k8s-api-version+}/#objectmeta-v1-meta>`.
-
-.. opsmgrkube:: spec.backup.statefulSet.spec.template.spec
-
-   *Type*: collection
-
-   Specifications of the |k8s| Pods in the |k8s-statefulset| that the
-   |k8s-op| creates for the :opsmgr:`backup daemon service
-   </core/system-overview/#backup-daemon-service>`.
-
-   To review the complete list of fields you can add to
-   :opsmgrkube:`spec.backup.statefulSet.spec.template.spec`, see the
-   :k8sdocs:`Kubernetes documentation
-   </reference/generated/kubernetes-api/{+k8s-api-version+}/#podspec-v1-core>`.
-
-   The following example ``spec.backup.statefulSet.spec.template.spec``
-   defines minimum and maximum CPU and memory capacity for one
-   :opsmgr:`backup daemon service
-   </core/system-overview/#backup-daemon-service>` container the |k8s-op| deploys:
-
-   .. code-block:: yaml
-
-      statefulSet:
-        spec:
-          template:
-            spec:
-              containers:
-              - name: mongodb-backup-daemon
-                resources:
-                  requests:
-                    cpu: "0.50"
-                    memory: "4500M"
-                  limits:
-                    cpu: "1"
-                    memory: "6000M"
-
-
-.. opsmgrkube:: spec.backup.statefulSet.spec.template.spec.containers
-
-   *Type*: collection
-
-   List of containers that belong to the |k8s| Pods in the
-   |k8s-statefulset| that the |k8s-op| creates for the
-   :opsmgr:`backup daemon service
-   </core/system-overview/#backup-daemon-service>`.
-
-   To modify the specifications of the :opsmgr:`backup daemon service
-   </core/system-overview/#backup-daemon-service>` container,
-   you must provide the exact name of the container using the ``name``
-   field, as shown in the following example:
-
-   .. code-block:: yaml
-
-         backup:
-          statefulSet:
-            spec:
-              template:
-                spec:
-                  containers:
-                  - name: mongodb-backup-daemon
-
-   .. note::
-
-      When you add containers to
-      ``spec.backup.statefulSet.spec.template.spec.containers``,
-      the |k8s-op-short| adds them to the |k8s| pod. These containers
-      are appended to the :ref:`backup-daemon` containers in the pod.
-
-.. opsmgrkube:: spec.backup.statefulSet.spec.template.spec.containers.resources.requests.cpu
-
-   *Type*: string
-
-   Minimum CPU capacity that must be available on a |k8s| |k8s-node| to
-   host the :opsmgr:`backup daemon service
-   </core/system-overview/#backup-daemon-service>`.
-
-   The requested value must be less than or equal to
-   :opsmgrkube:`spec.backup.statefulSet.spec.template.spec.containers.resources.limits.cpu`.
-
-.. opsmgrkube:: spec.backup.statefulSet.spec.template.spec.containers.resources.limits.cpu
-
-   *Type*: string
-
-   Maximum CPU capacity for the |k8s-node| being created to host
-   the :opsmgr:`backup daemon service
-   </core/system-overview/#backup-daemon-service>`.
-   If omitted, this value is set to
-   :opsmgrkube:`spec.backup.statefulSet.spec.template.spec.containers.resources.requests.cpu`.
-
-.. opsmgrkube:: spec.backup.statefulSet.spec.template.spec.containers.resources.requests.memory
-
-   *Type*: string
-
-   Minimum memory capacity that must be available on a |k8s| |k8s-node|
-   to host the :opsmgr:`backup daemon service
-   </core/system-overview/#backup-daemon-service>` on |k8s|.
-   This value is expressed as an integer followed by a unit of memory
-   in |jedec| notation.
-
-   .. note::
-
-      Set this value to at least ``4.5Gi``. Values of less than ``4.5Gi``
-      might result in an error.
-
-   The requested value must be less than or equal to
-   :opsmgrkube:`spec.backup.statefulSet.spec.template.spec.containers.resources.limits.memory`.
-
-.. opsmgrkube:: spec.backup.statefulSet.spec.template.spec.containers.resources.limits.memory
-
-   *Type*: string
-
-   Maximum memory capacity for the |k8s-node| being created to host
-   the :opsmgr:`backup daemon service
-   </core/system-overview/#backup-daemon-service>`. If omitted,
-   this value is set to :opsmgrkube:`spec.backup.statefulSet.spec.template.spec.containers.resources.requests.memory`.
-
-   The |k8s-op-short| calculates and sets parameters for Java heap size
-   based on the container's memory.
-
-   .. warning:: Limit this value to less than 32 GB
-
-      Setting this value to a value greater than 32 GB (``32Gi``) can
-      cause issues with the backup service. Excessive heaps can cause
-      unpredictable results in |onprem|.
+   - When you configure external access to the |onprem| instance on an external
+     domain, you can specify a custom URL.
+     This also requires the |k8s-op-short| and the Application Database's
+     Monitoring Agents to use this custom URL instead of the default one.
 
 .. opsmgrkube:: spec.clusterDomain
 
@@ -928,16 +190,28 @@ Optional |onprem| Resource Settings
    .. include:: /includes/admonitions/mms-centralurl-external-mdb.rst
 
 .. opsmgrkube:: spec.configuration.mms.featureFlag.automation.verifyDownloads
-   
+
    *Type*: string
 
    When set to ``enabled``, the {+mdbagent+} requires signature files 
    for all MongoDB deployments that your |onprem| instance manages. 
-   
+
    When you upgrade the {+mdbagent+} with this option enabled, the current version 
    of the {+mdbagent+} requires signature files of the new {+mdbagent+} binary. 
 
    To learn more, see :ref:`k8s-signatures`.
+.. opsmgrkube:: spec.configuration.mms.featureFlag.backup.queryable
+
+   *Type*: boolean
+
+   Set to ``false`` to disable :opsmgr:`queryable backups </tutorial/query-backup/>`.
+
+.. opsmgrkube:: spec.configuration.mms.featureFlag.backup.wt.queryable
+
+   *Type*: boolean
+
+   Set to ``false`` to disable :opsmgr:`queryable backups </tutorial/query-backup/>`
+   when using WiredTiger.
 
 .. opsmgrkube:: spec.configuration.mms.mongoDbUsage.defaultUsageType
 
@@ -948,112 +222,6 @@ Optional |onprem| Resource Settings
 
    Accepted values are: ``PRODUCTION_SERVER``, ``TEST_SERVER``, ``DEV_SERVER``, and
    ``RAM_POOL``.
-
-.. opsmgrkube:: spec.externalConnectivity
-
-   *Type*: collection
-
-   Configuration object that enables external connectivity to |onprem|.
-   If provided, the |k8s-op-short| creates a |k8s| :k8sdocs:`service
-   </concepts/services-networking/service/>` that allows traffic
-   originating from outside of the |k8s| cluster to reach the |onprem|
-   application.
-
-   If not provided, the |k8s-op-short| doesn't create a |k8s| service.
-   You must create one manually or use a third-party solution that
-   enables you to route external traffic to the |application| in your
-   |k8s| cluster.
-
-.. opsmgrkube:: spec.externalConnectivity.type
-
-   *Type*: string
-
-   The |k8s| service :k8sdocs:`ServiceType
-   </concepts/services-networking/service/#publishing-services-service-types>`
-   that exposes |onprem| outside of |k8s|.
-
-   *Required* if :opsmgrkube:`spec.externalConnectivity.type` is
-   present.
-
-   Accepted values are: ``LoadBalancer`` and ``NodePort``.
-   ``LoadBalancer`` is recommended if your cloud provider supports it.
-   Use ``NodePort`` for local deployments.
-
-.. opsmgrkube:: spec.externalConnectivity.port
-
-   *Type*: integer
-
-   Value that indicates which port that a |k8s| service exposes the
-   |application| should use for external traffic.
-
-
-   - If :opsmgrkube:`spec.externalConnectivity.type` is ``NodePort``:
-   
-     - The |k8s| service exposes the |application| to external traffic
-       through this port.
-
-     - If you don't provide a :opsmgrkube:`spec.externalConnectivity.port`
-       value, the |k8s| service routes traffic to the |application| from an
-       available port selected randomly from the following default range: ``30000``-``32767``.
-
-       .. note::
-
-          You must configure your network's firewall to allow traffic over
-          this port.
-
-   - If :opsmgrkube:`spec.externalConnectivity.type` is ``LoadBalancer``:
-
-     - The load balancer resource that your cloud provider creates exposes
-       the |application| through this port.
-
-     - If you don't provide a :opsmgrkube:`spec.externalConnectivity.port`
-       value, the |k8s| service exposes the |application| to external
-       traffic through the default HTTP (8080) or HTTPS (8443) port.
-
-.. opsmgrkube:: spec.externalConnectivity.loadBalancerIP
-
-   *Type*: string
-
-   The IP address the ``LoadBalancer`` |k8s| service uses when the
-   |k8s-op-short| creates it.
-
-   This setting can only be used if your cloud provider supports it and
-   :opsmgrkube:`spec.externalConnectivity.type` is ``LoadBalancer``. To
-   learn more about the
-   :k8sdocs:`Type LoadBalancer
-   </concepts/services-networking/service/#loadbalancer>`, see the
-   |k8s| documentation.
-
-.. opsmgrkube:: spec.externalConnectivity.externalTrafficPolicy
-
-   *Type*: string
-
-   Routing policy for external traffic to the |onprem| |k8s| service.
-   The service routes external traffic to node-local or cluster-wide
-   endpoints depending the value of this setting.
-
-   Accepted values are: ``Cluster`` and ``Local``. To learn which of
-   values meet your requirements, see :k8sdocs:`Source IPs in Kubernetes
-   </tutorials/services/source-ip/>` in the |k8s| documentation.
-
-   .. note::
-
-      If you select ``Cluster``, the ``Source-IP`` of your clients are
-      lost during the network hops that happen at the |k8s|
-      network boundary.
-
-.. opsmgrkube:: spec.externalConnectivity.annotations
-
-   *Type*: collection
-
-   Key-value pairs that allow you to provide cloud provider-specific
-   configuration settings.
-
-   To learn more about
-   :k8sdocs:`Annotations </concepts/overview/working-with-objects/annotations/>`
-   and
-   :k8sdocs:`TLS support on AWS </concepts/services-networking/service/#ssl-support-on-aws>`,
-   see the |k8s| documentation.
 
 .. opsmgrkube:: spec.jvmParameters
 
@@ -1276,118 +444,570 @@ Optional |onprem| Resource Settings
       cause issues with the backup service. Excessive heaps can cause
       unpredictable results in |onprem|.
 
-.. _om-prometheus-settings:
+External Connectivity Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Prometheus Settings
-~~~~~~~~~~~~~~~~~~~
+This section describes optional settings related to
+external connectivity in |onprem|. For optional 
+external connectivity settings specific to your 
+|multi-cluster-om|, see :ref:`om_resource-spec-multi-cluster`.
 
-The following settings apply when you use Prometheus with your 
-application database:
+.. opsmgrkube:: spec.externalConnectivity
 
-.. setting:: spec.applicationDatabase.prometheus
+   *Type*: collection
 
-   *Type*: array
+   Configuration object that enables external connectivity to |onprem|.
+   If provided, the |k8s-op-short| creates a |k8s| :k8sdocs:`service
+   </concepts/services-networking/service/>` that allows traffic
+   originating from outside of the |k8s| cluster to reach the |onprem|
+   application.
 
-   *Optional*
+   If not provided, the |k8s-op-short| doesn't create a |k8s| service.
+   You must create one manually or use a third-party solution that
+   enables you to route external traffic to the |application| in your
+   |k8s| cluster.
 
-   List that contains the parameters for exposing metrics to Prometheus.
-
-.. setting:: spec.applicationDatabase.prometheus.metricsPath
-
-   *Type*: string
-
-   *Optional*
-
-   *Default*: ``"/metrics"``
-
-   Human-readable string that indicates the path to the metrics 
-   endpoint. If you don't specify this setting, the default applies.
-
-.. setting:: spec.applicationDatabase.prometheus.passwordSecretRef
-
-   *Type*: object
-
-   *Conditional*
-
-   Object that contains the details of the |k8s-secret| for 
-   basic HTTP authentication. If you want to use Prometheus with your 
-   application database, you must specify this setting.
-
-.. setting:: spec.applicationDatabase.prometheus.passwordSecretRef.key
+.. opsmgrkube:: spec.externalConnectivity.type
 
    *Type*: string
 
-   *Optional*
+   The |k8s| service :k8sdocs:`ServiceType
+   </concepts/services-networking/service/#publishing-services-service-types>`
+   that exposes |onprem| outside of |k8s|.
 
-   *Default*: ``"password"``
+   *Required* if :opsmgrkube:`spec.externalConnectivity.type` is
+   present.
 
-   Human-readable string that identifies the key in the |k8s-secret| that
-   stores the password for basic HTTP authentication. If you don't specify
-   this setting, the default applies.
+   Accepted values are: ``LoadBalancer`` and ``NodePort``.
+   ``LoadBalancer`` is recommended if your cloud provider supports it.
+   Use ``NodePort`` for local deployments.
 
-.. setting:: spec.applicationDatabase.prometheus.passwordSecretRef.name
-
-   *Type*: string
-
-   *Conditional*
-
-   Human-readable label that identifies the |k8s-secret| that contains 
-   the password for basic HTTP authentication. If you want to use 
-   Prometheus with your application database, you must specify this 
-   setting.
-
-.. setting:: spec.applicationDatabase.prometheus.port
+.. opsmgrkube:: spec.externalConnectivity.port
 
    *Type*: integer
 
-   *Optional*
+   Value that indicates which port that a |k8s| service exposes the
+   |application| should use for external traffic.
 
-   *Default:* 9216
 
-   Number that identifies the port that the metrics endpoint will 
-   bind to. If you don't specify this setting, the default applies.
+   - If :opsmgrkube:`spec.externalConnectivity.type` is ``NodePort``:
+   
+     - The |k8s| service exposes the |application| to external traffic
+       through this port.
 
-.. setting:: spec.applicationDatabase.prometheus.tlseSecretKeyRef
+     - If you don't provide a :opsmgrkube:`spec.externalConnectivity.port`
+       value, the |k8s| service routes traffic to the |application| from an
+       available port selected randomly from the following default range: ``30000``-``32767``.
+
+       .. note::
+
+          You must configure your network's firewall to allow traffic over
+          this port.
+
+   - If :opsmgrkube:`spec.externalConnectivity.type` is ``LoadBalancer``:
+
+     - The load balancer resource that your cloud provider creates exposes
+       the |application| through this port.
+
+     - If you don't provide a :opsmgrkube:`spec.externalConnectivity.port`
+       value, the |k8s| service exposes the |application| to external
+       traffic through the default HTTP (8080) or HTTPS (8443) port.
+
+.. opsmgrkube:: spec.externalConnectivity.loadBalancerIP
+
+   *Type*: string
+
+   The IP address the ``LoadBalancer`` |k8s| service uses when the
+   |k8s-op-short| creates it.
+
+   This setting can only be used if your cloud provider supports it and
+   :opsmgrkube:`spec.externalConnectivity.type` is ``LoadBalancer``. To
+   learn more about the
+   :k8sdocs:`Type LoadBalancer
+   </concepts/services-networking/service/#loadbalancer>`, see the
+   |k8s| documentation.
+
+.. opsmgrkube:: spec.externalConnectivity.externalTrafficPolicy
+
+   *Type*: string
+
+   Routing policy for external traffic to the |onprem| |k8s| service.
+   The service routes external traffic to node-local or cluster-wide
+   endpoints depending the value of this setting.
+
+   Accepted values are: ``Cluster`` and ``Local``. To learn which of
+   values meet your requirements, see :k8sdocs:`Source IPs in Kubernetes
+   </tutorials/services/source-ip/>` in the |k8s| documentation.
+
+   .. note::
+
+      If you select ``Cluster``, the ``Source-IP`` of your clients are
+      lost during the network hops that happen at the |k8s|
+      network boundary.
+
+.. opsmgrkube:: spec.externalConnectivity.annotations
+
+   *Type*: collection
+
+   Key-value pairs that allow you to provide cloud provider-specific
+   configuration settings.
+
+   To learn more about
+   :k8sdocs:`Annotations </concepts/overview/working-with-objects/annotations/>`
+   and
+   :k8sdocs:`TLS support on AWS </concepts/services-networking/service/#ssl-support-on-aws>`,
+   see the |k8s| documentation.
+
+Backup Settings
+~~~~~~~~~~~~~~~
+
+This section describes optional settings related to
+backups in |onprem|. For optional backup settings
+specific to your |multi-cluster-om|, see 
+:ref:`om_resource-spec-multi-cluster`.
+
+.. opsmgrkube:: spec.backup.assignmentLabels
+
+   *Type*: array of strings
+
+   A list of assignment labels for the :ref:`backup-daemon` processes.
+   Use assignment labels to identify that specific backup daemon
+   processes are associated with particular projects. If you set assignment
+   labels using the |k8s-op-short|, the values that you set in the |k8s|
+   configuration file for assignment labels override the values defined
+   in the |mms| UI. Assignment labels that you don't set using the
+   |k8s-op-short| continue to use the values set in the |mms| UI.
+
+.. opsmgrkube:: spec.backup.enabled
+
+   *Type*: boolean
+
+   Flag that enables Backup for your |onprem| resource. When set to
+   ``false``, Backup is disabled.
+
+   Default value is ``true``.
+
+.. opsmgrkube:: spec.backup.encryption
 
    *Type*: object
 
-   *Optional*
+   Object that contains the backup encryption configuration settings.
 
-   Object that contains the details of the |k8s-secret| for |tls| 
+.. opsmgrkube:: spec.backup.encryption.kmip
+
+   *Type*: object
+
+   Object that contains the |kmip| backup encryption configuration 
+   settings. To learn more, see :ref:`configure-kmip-backup-encryption`.
+
+   .. note::
+
+      If you set this parameter, the API key linked with the value of 
+      :setting:`spec.credentials` must have the :authrole:`Global Owner` role.
+
+.. opsmgrkube:: spec.backup.encryption.kmip.server
+
+   *Type*: object
+
+   Object that contains the |kmip| backup encryption server 
+   configuration settings.
+
+.. opsmgrkube:: spec.backup.encryption.kmip.server.ca
+
+   *Type*: string
+
+   Human-readable label that identifies the ConfigMap that contains an 
+   entry for the |certauth| certificate (``ca.pem``) to use for |kmip| 
    authentication.
 
-.. setting:: spec.applicationDatabase.prometheus.tlseSecretKeyRef.key
+.. opsmgrkube:: spec.backup.encryption.kmip.server.url
 
    *Type*: string
 
-   *Optional*
+   |url| for the |kmip| server that uses the ``hostname.port`` format 
+   (for example, ``192.168.1.3:5696`` or 
+   ``my-kmip-server.mycorp.com:5696``).
 
-   *Default*: ``"password"``
+.. opsmgrkube:: spec.backup.headDB
 
-   Human-readable string that identifies the key in the |k8s-secret| that
-   stores the password for |tls| authentication. If you don't specify this
-   setting, the default applies.
+   *Type*: collection
 
-.. setting:: spec.applicationDatabase.prometheus.tlseSecretKeyRef.name
+   Configuration settings for the :ref:`head database <backup-daemon>`.
+   |k8s-op-short| creates a |k8s-pvc| with the specified configuration.
+
+   .. list-table::
+      :widths: 20 20 60
+      :header-rows: 1
+
+      * - Scalar
+        - Data Type
+        - Description
+
+      * - ``labelSelector``
+        - string
+        - `Tag
+          <https://kubernetes.io/docs/concepts/storage/persistent-volumes/#selector>`__
+          used to bind mounted volumes to directories.
+
+      * - ``storage``
+        - string
+        - Minimum size of |k8s-pv| that should be mounted. This value is
+          expressed as an integer followed by a unit of storage in
+          |jedec| notation.
+
+          Default value is ``30Gi``.
+
+          .. seealso::
+
+             :ref:`backup-hardware-requirements`
+
+          .. example::
+
+             If the head database requires 60 gigabytes of storage
+             space, set this value to ``60Gi``.
+
+      * - ``storageClass``
+        - string
+        - Type of storage specified in a |k8s-pvc|. You may create 
+          this storage type as a |k8s-sc| object before using it in this
+          |k8s-obj| specification.
+
+          .. note::
+
+             .. include:: /includes/admonitions/fact-reclaimpolicy-to-retain.rst
+
+.. opsmgrkube:: spec.backup.jvmParameters
+
+   *Type*: array of strings
+
+   *Optional*. |jvm| parameters passed to the |onprem| backup service
+   in the container.
+
+   This |k8s-op-short| parameter defaults to an empty list.
+
+   .. code-block:: yaml
+
+      spec:
+        backup:
+          jvmParameters: ["-XX:+UseStringCache"]
+
+   .. warning:: Change the JVM Memory Heap values at your own risk
+
+      |k8s-op-short| calculates the |jvm| memory heap values of the
+      backup service based on the container's memory. Changing the
+      ``-Xms`` and ``-Xmx`` values can cause issues with |onprem|.
+
+.. opsmgrkube:: spec.backup.members
+
+   *Type*: integer
+   
+   *Optional*. Number of :opsmgr:`backup daemon services
+   </core/system-overview/#backup-daemon-service>`
+   to deploy in |k8s|. If not specified, defaults to ``1``.
+   To ensure high availability for your backup service, deploy
+   :opsmgr:`multiple backup daemons </tutorial/configure-backup-high-availability/#multiple-backup-daemons>`
+   in |onprem|.
+   
+.. opsmgrkube:: spec.backup.opLogStores
+
+   *Type*: collection
+
+   *Required if you enable backup.* Array of :ref:`oplog stores <backup-database-specifications>`
+   used for backup. Each item in the array references a MongoDB database
+   resource deployed in the |k8s| cluster by the |k8s-op-short|.
+
+.. opsmgrkube:: spec.backup.opLogStores.assignmentLabels
+
+   *Type*: array of strings
+
+   A list of assignment labels for the :ref:`oplog store <backup-database-specifications>`.
+   Use assignment labels to identify that specific oplog stores are associated
+   with particular projects. If you set assignment labels using the |k8s-op-short|,
+   the values that you set in the |k8s| configuration file for assignment
+   labels override the values defined in the |mms| UI. Assignment labels
+   that you don't set using the |k8s-op-short| continue to use the values
+   set in the |mms| UI.
+
+.. opsmgrkube:: spec.backup.opLogStores.name
 
    *Type*: string
 
-   *Conditional*
+   *Required if you enable Backup.* Name of the oplog store.
 
-   Human-readable label that identifies the |k8s-secret| that contains 
-   the password for |tls| authentication. If you want to use 
-   Prometheus with your application database and you want to use |tls| 
-   authentication, you must specify this setting.
+   .. important::
 
-.. setting:: spec.applicationDatabase.prometheus.username
+      Once specified, don't edit the name of the oplog store.
+
+.. opsmgrkube:: spec.backup.opLogStores.mongodbResourceRef.name
 
    *Type*: string
 
-   *Conditional*
+   *Required if you enable Backup.* Name of the |k8s-mdbrsc| or the |mongodb-multi|
+   that you create to store oplog slices. You must deploy this resource in
+   the same namespace as the |onprem| resource.
 
-   Human-readable label that identifies the user for basic HTTP 
-   authentication. If you want to use Prometheus with your application 
-   database, you must specify this setting.
+   .. include:: /includes/admonitions/fact-backing-db-auth.rst
+
+   .. include:: /includes/admonitions/watch-backup-resources.rst
+
+.. opsmgrkube:: spec.backup.opLogStores.mongodbUserRef.name
+
+   *Type*: string
+
+   *Required if SCRAM authentication is enabled on the oplog
+   store database.* Name of the MongoDB user resource used to connect to
+   the oplog store database. Deploy this user resource in the same
+   namespace as the |onprem| resource and with all of the following roles:
+   
+   - :manual:`readWriteAnyDatabase
+     </reference/built-in-roles/#readWriteAnyDatabase>`
+   - :manual:`dbAdminAnyDatabase
+     </reference/built-in-roles/#dbAdminAnyDatabase>`
+   - :manual:`clusterMonitor
+     </reference/built-in-roles/#mongodb-authrole-clusterMonitor>`
+
+.. opsmgrkube:: spec.backup.blockStores
+
+   *Type*: collection
+
+   *Required if you enable Backup using a blockstore.* Array of
+   :ref:`blockstores <backup-database-specifications>` used for Backup.
+   Each item in the array references a MongoDB database resource deployed
+   in the |k8s| cluster by the |k8s-op-short|.
+
+.. opsmgrkube:: spec.backup.blockStores.assignmentLabels
+
+   *Type*: array of strings
+
+   A list of assignment labels for the :ref:`blockstore <backup-database-specifications>`.
+   Use assignment labels to identify that specific blockstores are
+   associated with particular projects. If you set assignment labels using
+   the |k8s-op-short|, the values that you set in the |k8s| configuration
+   file for assignment labels override the values defined in the |mms| UI.
+   Assignment labels that you don't set using the |k8s-op-short| continue
+   to use the values set in the |mms| UI.
+
+.. opsmgrkube:: spec.backup.blockStores.name
+
+   *Type*: string
+
+   *Required if you enable backup using a blockstore.* Name of the blockstore.
+
+   .. important::
+
+      Once specified, don't edit the name of the :ref:`blockstore <backup-database-specifications>`.
+
+.. opsmgrkube:: spec.backup.blockStores.mongodbResourceRef.name
+
+   *Type*: string
+
+   *Required if you enable backup using a blockstore.* Name of the MongoDB database
+   resource that you create for the blockstore. You must deploy this database
+   resource in the same namespace as the |onprem| resource.
+
+   The blockstore database only supports the ``SCRAM`` authentication
+   mechanism. You cannot enable other authentication mechanisms.
+
+   If you enable ``SCRAM`` authentication on the blockstore database,
+   you must:
+
+   - Create a MongoDB user resource to connect |onprem| to the
+     blockstore database.
+   - Specify the :opsmgrkube:`~spec.backup.blockStores.mongodbUserRef.name`
+     of the user in the |onprem| resource definition.
+
+   .. include:: /includes/admonitions/watch-backup-resources.rst
+
+.. opsmgrkube:: spec.backup.blockStores.mongodbUserRef.name
+
+   *Type*: string
+
+   *Required if SCRAM authentication is enabled on the blockstore database.*
+   Name of the MongoDB user resource used to connect to the blockstore
+   database. Deploy this user resource in the same namespace as the
+   |onprem| resource and with all of the following roles:
+   
+   - :manual:`readWriteAnyDatabase
+     </reference/built-in-roles/#readWriteAnyDatabase>`
+   - :manual:`dbAdminAnyDatabase
+     </reference/built-in-roles/#dbAdminAnyDatabase>`
+   - :manual:`clusterMonitor
+     </reference/built-in-roles/#mongodb-authrole-clusterMonitor>`
+
+.. opsmgrkube:: spec.backup.queryableBackupSecretRef.name
+
+   *Type*: string
+
+   Name of the secret that contains the :opsmgr:`queryable.pem </reference/configuration/#brs.queryable.pem>`
+   file from |onprem| that you will use for accessing and querying backups
+   based on your deployment's |tls| requirements.The PEM file contains
+   a public key certificate and its associated private key that are needed
+   to access and run queries on backup snapshots in |onprem|.
+   To query backups, specify the value for this parameter. If not set,
+   backups are not affected, but you can't query them.
+
+.. opsmgrkube:: spec.backup.statefulSet.spec
+
+   *Type*: collection
+
+   Specification for the |k8s-statefulset| that the |k8s-op| creates
+   for the :opsmgr:`backup daemon service
+   </core/system-overview/#backup-daemon-service>`.
+
+   To review which fields you can add to
+   :opsmgrkube:`spec.backup.statefulSet.spec`, see
+   :k8sdocs:`StatefulSetSpec v1 apps
+   </reference/generated/kubernetes-api/{+k8s-api-version+}/#statefulsetspec-v1-apps>` in the |k8s| documentation.
+
+.. opsmgrkube:: spec.backup.statefulSet.spec.template
+
+   *Type*: collection
+
+   :k8sdocs:`Template </concepts/workloads/pods/pod-overview/#pod-templates>`
+   for the |k8s| Pods in the |k8s-statefulset| that the |k8s-op| creates
+   for the :opsmgr:`backup daemon service
+   </core/system-overview/#backup-daemon-service>`.
+
+   .. note::
+
+      The |k8s-op-short| doesn't validate the fields you provide
+      in :opsmgrkube:`spec.backup.statefulSet.spec.template`.
+
+.. opsmgrkube:: spec.backup.statefulSet.spec.template.metadata
+
+   *Type*: collection
+
+   Metadata for the |k8s| Pods in the |k8s-statefulset| that the
+   |k8s-op| creates for the :opsmgr:`backup daemon service
+   </core/system-overview/#backup-daemon-service>`.
+
+   To review which fields you can add to
+   :opsmgrkube:`spec.backup.statefulSet.spec.template.metadata`, see
+   the :k8sdocs:`Kubernetes documentation
+   </reference/generated/kubernetes-api/{+k8s-api-version+}/#objectmeta-v1-meta>`.
+
+.. opsmgrkube:: spec.backup.statefulSet.spec.template.spec
+
+   *Type*: collection
+
+   Specifications of the |k8s| Pods in the |k8s-statefulset| that the
+   |k8s-op| creates for the :opsmgr:`backup daemon service
+   </core/system-overview/#backup-daemon-service>`.
+
+   To review the complete list of fields you can add to
+   :opsmgrkube:`spec.backup.statefulSet.spec.template.spec`, see the
+   :k8sdocs:`Kubernetes documentation
+   </reference/generated/kubernetes-api/{+k8s-api-version+}/#podspec-v1-core>`.
+
+   The following example ``spec.backup.statefulSet.spec.template.spec``
+   defines minimum and maximum CPU and memory capacity for one
+   :opsmgr:`backup daemon service
+   </core/system-overview/#backup-daemon-service>` container the |k8s-op| deploys:
+
+   .. code-block:: yaml
+
+      statefulSet:
+        spec:
+          template:
+            spec:
+              containers:
+              - name: mongodb-backup-daemon
+                resources:
+                  requests:
+                    cpu: "0.50"
+                    memory: "4500M"
+                  limits:
+                    cpu: "1"
+                    memory: "6000M"
+
+
+.. opsmgrkube:: spec.backup.statefulSet.spec.template.spec.containers
+
+   *Type*: collection
+
+   List of containers that belong to the |k8s| Pods in the
+   |k8s-statefulset| that the |k8s-op| creates for the
+   :opsmgr:`backup daemon service
+   </core/system-overview/#backup-daemon-service>`.
+
+   To modify the specifications of the :opsmgr:`backup daemon service
+   </core/system-overview/#backup-daemon-service>` container,
+   you must provide the exact name of the container using the ``name``
+   field, as shown in the following example:
+
+   .. code-block:: yaml
+
+         backup:
+          statefulSet:
+            spec:
+              template:
+                spec:
+                  containers:
+                  - name: mongodb-backup-daemon
+
+   .. note::
+
+      When you add containers to
+      ``spec.backup.statefulSet.spec.template.spec.containers``,
+      the |k8s-op-short| adds them to the |k8s| pod. These containers
+      are appended to the :ref:`backup-daemon` containers in the pod.
+
+.. opsmgrkube:: spec.backup.statefulSet.spec.template.spec.containers.resources.requests.cpu
+
+   *Type*: string
+
+   Minimum CPU capacity that must be available on a |k8s| |k8s-node| to
+   host the :opsmgr:`backup daemon service
+   </core/system-overview/#backup-daemon-service>`.
+
+   The requested value must be less than or equal to
+   :opsmgrkube:`spec.backup.statefulSet.spec.template.spec.containers.resources.limits.cpu`.
+
+.. opsmgrkube:: spec.backup.statefulSet.spec.template.spec.containers.resources.limits.cpu
+
+   *Type*: string
+
+   Maximum CPU capacity for the |k8s-node| being created to host
+   the :opsmgr:`backup daemon service
+   </core/system-overview/#backup-daemon-service>`.
+   If omitted, this value is set to
+   :opsmgrkube:`spec.backup.statefulSet.spec.template.spec.containers.resources.requests.cpu`.
+
+.. opsmgrkube:: spec.backup.statefulSet.spec.template.spec.containers.resources.requests.memory
+
+   *Type*: string
+
+   Minimum memory capacity that must be available on a |k8s| |k8s-node|
+   to host the :opsmgr:`backup daemon service
+   </core/system-overview/#backup-daemon-service>` on |k8s|.
+   This value is expressed as an integer followed by a unit of memory
+   in |jedec| notation.
+
+   .. note::
+
+      Set this value to at least ``4.5Gi``. Values of less than ``4.5Gi``
+      might result in an error.
+
+   The requested value must be less than or equal to
+   :opsmgrkube:`spec.backup.statefulSet.spec.template.spec.containers.resources.limits.memory`.
+
+.. opsmgrkube:: spec.backup.statefulSet.spec.template.spec.containers.resources.limits.memory
+
+   *Type*: string
+
+   Maximum memory capacity for the |k8s-node| being created to host
+   the :opsmgr:`backup daemon service
+   </core/system-overview/#backup-daemon-service>`. If omitted,
+   this value is set to :opsmgrkube:`spec.backup.statefulSet.spec.template.spec.containers.resources.requests.memory`.
+
+   The |k8s-op-short| calculates and sets parameters for Java heap size
+   based on the container's memory.
+
+   .. warning:: Limit this value to less than 32 GB
+
+      Setting this value to a value greater than 32 GB (``32Gi``) can
+      cause issues with the backup service. Excessive heaps can cause
+      unpredictable results in |onprem|.
 
 .. _om-s3-settings:
 
@@ -1467,20 +1087,36 @@ You can use |tls| for both |s3| and your application database, or for
 
    *Type*: string
 
-   *Required to use custom certificates for your S3 oplog store.*
+   *Required to use custom certificates for your S3 oplog store.* |k8s|
+   |k8s-secret| that contains the custom certificate.
 
-   |k8s| |k8s-secret| that contains the custom certificate.
+.. opsmgrkube:: spec.configuration.mms.featureFlag.automation.verifyDownloads
+   
+   *Type*: string
+
+   When set to ``enabled``, the {+mdbagent+} requires signature files 
+   for all MongoDB deployments that your |onprem| instance manages. 
+   
+   When you upgrade the {+mdbagent+} with this option enabled, the current version 
+   of the {+mdbagent+} requires signature files of the new {+mdbagent+} binary. 
+
+   To learn more, see :ref:`k8s-signatures`.
+
+.. opsmgrkube:: spec.configuration.mms.mongoDbUsage.defaultUsageType
+
+   *Type*: string
+
+   The |k8s| service's :opsmgr:`default server type
+   </reference/config/ui-settings>`.
 
 .. opsmgrkube:: spec.backup.s3OpLogStores.customCertificateSecretRefs.key 
 
    *Type*: string
 
-   *Required to use custom certificates for your S3 oplog store.*
-
-   File that represents the key in the |k8s-secret| that contains the
-   base64-encoded x.509 certificate. If you don't specify this setting,
-   |k8s-op-short| can't utilize the custom certificate for |s3| oplog
-   store backups. 
+   *Required to use custom certificates for your S3 oplog store.* File that
+   represents the key in the |k8s-secret| that contains the base64-encoded x.509
+   certificate. If you don't specify this setting, the |k8s-op-short| can't
+   utilize the custom certificate for |s3| oplog store backups. 
 
 .. opsmgrkube:: spec.backup.s3OpLogStores.irsaEnabled
 
@@ -1498,9 +1134,7 @@ You can use |tls| for both |s3| and your application database, or for
 
    *Type*: string
 
-   *Required to store the oplog using an S3 store.*
-
-   Name of the |s3| oplog store.
+   *Required to store the oplog using an S3 store.* Name of the |s3| oplog store.
 
 .. opsmgrkube:: spec.backup.s3OpLogStores.mongodbResourceRef.name
 
@@ -1533,11 +1167,10 @@ You can use |tls| for both |s3| and your application database, or for
    *Type*: string
 
    *Required if you created a MongoDB database resource to store
-   S3 oplog metadata and SCRAM is enabled on this database.*
-
-   Name of the MongoDB user resource used to connect to the metadata
-   database of the |s3| oplog store. Deploy this user resource in the
-   same namespace as the |onprem| resource and with all of the following roles:
+   S3 oplog metadata and SCRAM is enabled on this database.* Name of the
+   MongoDB user resource used to connect to the metadata database of the
+   |s3| oplog store. Deploy this user resource in the same namespace as
+   the |onprem| resource and with all of the following roles:
    
    - :manual:`readWriteAnyDatabase
      </reference/built-in-roles/#readWriteAnyDatabase>`
@@ -1555,12 +1188,10 @@ You can use |tls| for both |s3| and your application database, or for
 
    *Type*: string
 
-   *Required to store the oplog using an S3 store.*
-
-   Name of the secret that contains the ``accessKey`` and
-   ``secretKey`` fields. The :opsmgr:`backup daemon service
-   </core/system-overview/#backup-daemon-service>` uses
-   the values of these fields as credentials to access your
+   *Required to store the oplog using an S3 store.* Name of the secret
+   that contains the ``accessKey`` and ``secretKey`` fields. The
+   :opsmgr:`backup daemon service </core/system-overview/#backup-daemon-service>`
+   uses the values of these fields as credentials to access your
    |aws| |s3| or |s3|-compatible bucket. To configure the |s3| oplog 
    store, you must specify both keys in the secret.
 
@@ -1586,16 +1217,21 @@ You can use |tls| for both |s3| and your application database, or for
         - Virtual-host-style URL
         - ``<bucket>.s3.amazonaws.com``
 
+
+   To learn more about
+   |k8s-annotations|
+   and
+   :k8sdocs:`TLS support on AWS </concepts/services-networking/service/#ssl-support-on-aws>`,
+   see the |k8s| documentation.
+
    Default value is ``true``.
 
 .. opsmgrkube:: spec.backup.s3OpLogStores.s3BucketEndpoint
 
    *Type*: string
 
-   *Required to store the oplog using an S3 store.*
-
-   URL of the |aws| |s3| bucket or |s3|-compatible bucket that hosts the
-   oplog store.
+   *Required to store the oplog using an S3 store.* URL of the |aws| |s3|
+   bucket or |s3|-compatible bucket that hosts the oplog store.
 
    .. note::
 
@@ -1607,10 +1243,8 @@ You can use |tls| for both |s3| and your application database, or for
 
    *Type*: string
 
-   *Required to store the oplog using an S3 store.*
-
-   Name of the |aws| |s3| bucket or |s3|-compatible bucket that hosts
-   the oplog store.
+   *Required to store the oplog using an S3 store.* Name of the |aws|
+   |s3| bucket or |s3|-compatible bucket that hosts the oplog store.
 
 .. opsmgrkube:: spec.backup.s3OpLogStores.s3RegionOverride
 
@@ -1680,17 +1314,15 @@ You can use |tls| for both |s3| and your application database, or for
 
    *Type*: string
 
-   *Required to use custom certificates for your S3 oplog store.*
-
-   |k8s| |k8s-secret| that contains the custom certificate.
+   *Required to use custom certificates for your S3 oplog store.* |k8s|
+   |k8s-secret| that contains the custom certificate.
 
 .. opsmgrkube:: spec.backup.s3Stores.customCertificateSecretRefs.key 
 
    *Type*: string
 
-   *Required to use custom certificates for your S3 oplog store.*
-
-   File that represents the key in the |k8s-secret| that contains the
+   *Required to use custom certificates for your S3 oplog store.* File that
+   represents the key in the |k8s-secret| that contains the
    base64-encoded x.509 certificate. If you don't specify this setting,
    |k8s-op-short| can't utilize the custom certificate for |s3| snapshot
    store and defaults to the default :abbr:`JVM {Java Virtual Machine)`
@@ -1712,9 +1344,7 @@ You can use |tls| for both |s3| and your application database, or for
 
    *Type*: string
 
-   *Required to store the oplog using an S3 store.*
-
-   Name of the |s3| snapshot store.
+   *Required to store the oplog using an S3 store.* Name of the |s3| snapshot store.
 
    .. important::
 
@@ -1761,9 +1391,8 @@ You can use |tls| for both |s3| and your application database, or for
    *Type*: string
 
    *Required if you created a MongoDB database resource to store
-   |s3| snapshot metadata and SCRAM is enabled on this database.*
-
-   Name of the MongoDB user resource used to connect to the metadata
+   |s3| snapshot metadata and SCRAM is enabled on this database.* Name of
+   the MongoDB user resource used to connect to the metadata
    database of the |s3| snapshot store. Deploy this user resource in the
    same namespace as the |onprem| resource and with all of the following roles:
    
@@ -1783,12 +1412,10 @@ You can use |tls| for both |s3| and your application database, or for
 
    *Type*: string
 
-   *Required if you enable Backup using an S3 store.*
-
-   Name of the secret that contains the ``accessKey`` and
-   ``secretKey`` fields. The :opsmgr:`backup daemon service
-   </core/system-overview/#backup-daemon-service>` uses
-   the values of these fields as credentials to access your
+   *Required if you enable Backup using an S3 store.* Name of the secret
+   that contains the ``accessKey`` and ``secretKey`` fields. The
+   :opsmgr:`backup daemon service </core/system-overview/#backup-daemon-service>`
+   uses the values of these fields as credentials to access your
    |aws| |s3| or |s3|-compatible bucket. The |s3| snapshot store
    can't be configured if the secret is missing either key.
 
@@ -1820,10 +1447,8 @@ You can use |tls| for both |s3| and your application database, or for
 
    *Type*: string
 
-   *Required if you enable Backup using an S3 store.*
-
-   URL of the |aws| |s3| bucket or |s3|-compatible bucket that hosts the
-   snapshot store. 
+   *Required if you enable Backup using an S3 store.* URL of the |aws| |s3|
+   bucket or |s3|-compatible bucket that hosts the snapshot store. 
 
    .. note::
 
@@ -1835,10 +1460,8 @@ You can use |tls| for both |s3| and your application database, or for
 
    *Type*: string
 
-   *Required if you enable Backup using an S3 store.*
-
-   Name of the |aws| |s3| bucket or |s3|-compatible bucket that hosts
-   the snapshot store.
+   *Required if you enable Backup using an S3 store.* Name of the |aws| |s3|
+   bucket or |s3|-compatible bucket that hosts the snapshot store.
 
 .. opsmgrkube:: spec.backup.s3Stores.s3RegionOverride
 
@@ -1851,3 +1474,650 @@ You can use |tls| for both |s3| and your application database, or for
    
    Don't use this field with |aws| |s3| buckets. For more information, see 
    :opsmgr:`S3 Blockstore Configuration </reference/api/admin/backup/snapshot/s3Configs/create-one-s3-blockstore-configuration/>`.
+
+Application Database Required Settings
+--------------------------------------
+
+This section describes settings that you must use 
+in addition to the :ref:`required Ops Manager settings
+<om_resource-spec-required>` in order to 
+configure your |onprem| Application Database.
+
+.. opsmgrkube:: spec.applicationDatabase.version
+
+   *Type*: string
+
+   *Required*. Version of MongoDB installed on the |onprem|
+   :opsmgr:`Application Database </core/system-overview/#application-database>`.
+   You must specify a compatible enterprise MongoDB version based on the tag in the
+   :qr-mdb:`container registry </mongodb-enterprise-server?tab=tags>`.
+   For example, ``6.0.0-ubi8``. Starting in |k8s-op-short| version 1.20, tags no longer end in ``-ent``.
+
+   .. include:: /includes/admonitions/ubi-8-min-db-versions.rst
+
+   .. note::
+
+      If you update this value to a later version of MongoDB for the 
+      Application Database, the Feature Compatibility Version (FCV) *does 
+      not change* unless you also specify the 
+      ``featureCompatibilityVersion``
+      parameter under :opsmgrkube:`spec.applicationDatabase`.
+
+Application Database Optional Settings
+--------------------------------------
+
+This section describes optional settings related to
+your |onprem| Application Database. For optional application 
+database settings specific to your |multi-cluster-om|, see 
+:ref:`om_resource-spec-multi-cluster`.
+
+.. opsmgrkube:: spec.applicationDatabase
+
+   *Type*: collection
+
+   |onprem| :opsmgr:`Application Database </core/system-overview/#application-database>`
+   resource definition.
+
+   The following settings from the
+   :ref:`replica set <replica-set-settings>` resource specification are
+   optional.
+
+.. note::
+
+   All settings under ``spec.applicationDatabase.agent`` apply to both
+   Automation and Monitoring, unless you specify values for Automation
+   and Monitoring separately in ``spec.applicationDatabase.agent`` and
+   ``spec.applicationDatabase.monitoringAgent``.
+
+.. opsmgrkube:: spec.applicationDatabase.agent.logRotate
+
+   *Type*: object
+
+   MongoDB configuration object for rotating the MongoDB logs of a process. To use 
+   the ``agent.logRotate`` settings, you must set 
+   :opsmgrkube:`systemLog.destination <spec.applicationDatabase.agent.systemLog.destination>` 
+   to ``file`` because you can't use the ``agent.logRotate`` settings if you're writing 
+   logs to the host's :manual:`syslog </reference/glossary/#std-term-syslog>` system.
+
+.. opsmgrkube:: spec.applicationDatabase.agent.logRotate.numTotal
+
+   *Type*: integer
+
+   *Default*: ``0``
+
+   Total number of log files that |mms| retains. If you don't change the default,
+   |mms| bases rotation on your other ``agent.logRotate`` settings.
+
+.. opsmgrkube:: spec.applicationDatabase.agent.logRotate.numUncompressed
+
+   *Type*: integer
+
+   *Default*: ``5``
+    
+   Maximum number of total log files to leave uncompressed,
+   including the current log file.
+
+.. opsmgrkube:: spec.applicationDatabase.agent.logRotate.percentOfDiskspace
+
+   *Type*: number
+
+   *Default*: ``0.02``
+     
+   Maximum percentage of total disk space that |mms| can use to
+   store the log files expressed as decimal. If this limit is
+   exceeded, |mms| deletes compressed log files until it meets this
+   limit. |mms| deletes the oldest log files first.
+
+.. opsmgrkube:: spec.applicationDatabase.agent.logRotate.sizeThresholdMB
+     
+   *Type*: number
+
+   *Required if rotating logs.* Maximum size in MB for an individual log file
+   before |mms| rotates it. |mms| rotates the log file immediately if it meets
+   the value given in either this ``sizeThresholdMB`` or the
+   :opsmgrkube:`logRotate.timeThresholdHrs <spec.applicationDatabase.agent.logRotate.timeThresholdHrs>` limit.
+
+.. opsmgrkube:: spec.applicationDatabase.agent.logRotate.timeThresholdHrs
+    
+   *Type*: integer
+   
+   *Required if rotating logs*. Maximum duration in hours for an individual
+   log file before the next rotation. The time is since the last rotation.
+   |mms| rotates the log file immediately if it meets the value given in
+   either ``timeThresholdHrs`` or
+   the :opsmgrkube:`logRotate.sizeThresholdM <spec.applicationDatabase.agent.logRotate.sizeThresholdMB>`
+   limit.
+
+.. opsmgrkube:: spec.applicationDatabase.agent.logRotate.includeAuditLogsWithMongoDBLogs
+
+   *Type*: boolean
+
+   Set to ``true`` to have the Automation Agent rotate 
+   the audit files along with MongoDB log files.
+
+.. opsmgrkube:: spec.applicationDatabase.agent.startupOptions
+
+   *Type*: object
+
+   MongoDB configuration object for startup options. 
+   See :opsmgr:`MongoDB Agent Settings </reference/mongodb-agent-settings/>` for available fields.
+
+.. opsmgrkube:: spec.applicationDatabase.agent.systemLog
+
+   *Type*: object
+
+   MongoDB configuration object for configuring the ``systemLog`` options.
+
+.. opsmgrkube:: spec.applicationDatabase.agent.systemLog.path
+
+   *Type*: string
+
+   *Default:* ``/var/log/mongodb-mms-automation/mongodb.log``
+
+   The path of the log file to which |mongod| or |mongos| should send all diagnostic 
+   logging information, rather than the standard output or the host's 
+   :manual:`syslog </reference/glossary/#std-term-syslog>`. 
+   MongoDB creates the log file at the specified path.
+
+   The Linux package init scripts don't expect ``systemLog.path`` to change from the defaults. 
+   If you use the Linux packages and change ``systemLog.path``, you will have to use your own 
+   init scripts and disable the built-in scripts.
+
+.. opsmgrkube:: spec.applicationDatabase.agent.systemLog.logAppend
+
+   *Type:* boolean
+
+   *Default:* ``false``
+
+   When ``true``, |mongos| or |mongod| appends new entries to the end of the existing 
+   log file when the |mongos| or |mongod| instance restarts. Without this option, |mongod| 
+   will back up the existing log and create a new file.  
+
+.. opsmgrkube:: spec.applicationDatabase.agent.systemLog.destination
+
+   *Type:* string
+
+   The destination to which MongoDB sends all log output. Specify either ``file`` or ``syslog``. 
+   If you specify ``file``, you must also specify 
+   :opsmgrkube:`systemLog.path <spec.applicationDatabase.agent.systemLog.path>`.
+
+   If you don't specify 
+   :opsmgrkube:`systemLog.path <spec.applicationDatabase.agent.systemLog.path>`, MongoDB 
+   sends all log output to standard output.
+
+   .. warning::
+
+      The syslog daemon generates timestamps when it logs a message, not when MongoDB 
+      issues the message. This behavior can lead to misleading timestamps for log entries, 
+      especially when the system is under heavy load. We recommend using the ``file``
+      option for production systems to ensure accurate timestamps.
+
+.. opsmgrkube:: spec.applicationDatabase.memberConfig.priority
+
+   *Type*: string
+   
+   Number that indicates the relative likelihood of an application database replica set member to become the `primary <https://www.mongodb.com/docs/manual/reference/glossary/#std-term-primary>`__.
+
+   * To increase the relative likelihood that a replica set member becomes the primary, specify a higher ``priority`` value.
+   
+   * To decrease the relative likelihood that a replica set member becomes the primary, specify a lower ``priority`` value.
+   
+   For example, a member with a ``memberConfig.priority`` of ``1.5`` is more likely than a member with a ``memberConfig.priority`` of ``0.5`` to become the primary. 
+   
+   A member with a ``memberConfig.priority`` of ``0`` is ineligible to become the primary. To learn more, see :manual:`Member Priority </core/replica-set-elections/#voting-members>`.
+
+.. opsmgrkube:: spec.applicationDatabase.memberConfig.tags
+
+   *Type*: map
+
+   Map of :manual:`replica set tags </tutorial/configure-replica-set-tag-sets/>` for directing
+   read and write operations to specific members of your application database replica set.
+
+.. opsmgrkube:: spec.applicationDatabase.memberConfig.votes
+
+   *Type*: number
+
+   Determines whether an application database replica set member can vote in an :manual:`election </core/replica-set-elections/#voting-members>`. Set to ``1`` to allow the member to vote. Set to ``0`` to exclude the member from an election. 
+
+.. opsmgrkube:: spec.applicationDatabase.passwordSecretKeyRef.name
+
+   *Type*: string
+
+   Name of the :ref:`secret <om-db-user-secret>` that contains the
+   password for the |onprem| database user ``mongodb-ops-manager``.
+   |onprem| uses this password to :ref:`authenticate to the Application
+   Database <app-db-auth>`.
+
+.. opsmgrkube:: spec.applicationDatabase.passwordSecretKeyRef.key
+
+   *Type*: string
+
+   Name of the field in the :ref:`secret <om-db-user-secret>` that
+   contains the password for the |onprem| database user
+   ``mongodb-ops-manager``. |onprem| uses this password to
+   :ref:`authenticate to the Application Database <app-db-auth>`.
+
+   The default value is ``password``.
+
+.. opsmgrkube:: spec.applicationDatabase.security.certsSecretPrefix
+
+   *Type*: string
+
+   Text to prefix to the |k8s| |k8s-secret| that you
+   created that contains your application database's |tls| key and 
+   certificate.
+
+   You must name your secret ``<prefix>-<metadata.name>-db-cert``.
+
+   To learn how to configure your |onprem| instance to run over
+   |https|, see :ref:`deploy-om-container`.
+
+.. opsmgrkube:: spec.applicationDatabase.security.tls.ca
+
+   *Type*: string
+
+   Name of the |k8s| |k8s-configmap| containing the |certauth| file for
+   the application database.
+
+   .. important::
+
+      :opsmgrkube:`spec.applicationDatabase.security.tls.ca` is required
+      if you use a custom |certauth| to sign your application database's
+      |tls| certificates.
+
+      The |k8s-op-short| requires that you name the application database's
+      certificate ``ca-pem`` in the ConfigMap.
+
+      The |certauth| specified in this section is also used for 
+      configuring custom |tls| certificates for |s3| storage when either
+      :opsmgrkube:`spec.backup.s3OpLogStores.customCertificate` or
+      :opsmgrkube:`spec.backup.s3Stores.customCertificate` are set to 
+      ``true``.
+
+   This |certauth| signs the certificates that:
+   
+   - the application database replica set members use to communicate
+     with one another, and
+   - |onprem| uses to communicate with the application database replica
+     set.
+
+   .. include:: /includes/admonitions/warning-concatenate-download-certs.rst
+
+.. opsmgrkube:: spec.applicationDatabase.security.tls.enabled
+
+  .. important::
+
+     ``spec.security.applicationDatabase.tls.enabled`` is 
+     deprecated and will be removed in a future release. To enable 
+     |tls|, provide a value for the 
+     ``spec.security.applicationDatabase.certsSecretPrefix`` 
+     setting.
+
+  Encrypts communications using |tls| certificates between |onprem| and
+  the application database.
+
+.. _om-prometheus-settings:
+
+Prometheus Settings
+~~~~~~~~~~~~~~~~~~~
+
+The following settings apply when you use Prometheus with your 
+application database:
+
+.. setting:: spec.applicationDatabase.prometheus
+
+   *Type*: array
+
+   *Optional*. List that contains the parameters for exposing metrics to Prometheus.
+
+.. setting:: spec.applicationDatabase.prometheus.metricsPath
+
+   *Type*: string
+
+   *Default*: ``"/metrics"``
+
+   *Optional*. Human-readable string that indicates the path to the metrics
+   endpoint. If you don't specify this setting, the default applies.
+
+.. setting:: spec.applicationDatabase.prometheus.passwordSecretRef
+
+   *Type*: object
+
+   *Conditional* Object that contains the details of the |k8s-secret| for 
+   basic HTTP authentication. If you want to use Prometheus with your 
+   application database, you must specify this setting.
+
+.. setting:: spec.applicationDatabase.prometheus.passwordSecretRef.key
+
+   *Type*: string
+
+   *Default*: ``"password"``
+
+   *Optional*. Human-readable string that identifies the key in the |k8s-secret|
+   that stores the password for basic HTTP authentication. If you don't specify
+   this setting, the default applies.
+
+.. setting:: spec.applicationDatabase.prometheus.passwordSecretRef.name
+
+   *Type*: string
+
+   *Conditional*
+
+   Human-readable label that identifies the |k8s-secret| that contains 
+   the password for basic HTTP authentication. If you want to use 
+   Prometheus with your application database, you must specify this 
+   setting.
+
+.. setting:: spec.applicationDatabase.prometheus.port
+
+   *Type*: integer
+
+   *Default:* 9216
+
+   *Optional*. Number that identifies the port that the metrics endpoint will
+   bind to. If you don't specify this setting, the default applies.
+
+.. setting:: spec.applicationDatabase.prometheus.tlseSecretKeyRef
+
+   *Type*: object
+
+   *Optional*. Object that contains the details of the |k8s-secret| for |tls|
+   authentication.
+
+.. setting:: spec.applicationDatabase.prometheus.tlseSecretKeyRef.key
+
+   *Type*: string
+
+   *Default*: ``"password"``
+
+   *Optional*. Human-readable string that identifies the key in the |k8s-secret| that
+   stores the password for |tls| authentication. If you don't specify this
+   setting, the default applies.
+
+.. setting:: spec.applicationDatabase.prometheus.tlseSecretKeyRef.name
+
+   *Type*: string
+
+   *Conditional*. Human-readable label that identifies the |k8s-secret|
+   that contains the password for |tls| authentication. If you want to use
+   Prometheus with your application database and you want to use |tls|
+   authentication, you must specify this setting.
+
+.. setting:: spec.applicationDatabase.prometheus.username
+
+   *Type*: string
+
+   *Conditional*. Human-readable label that identifies the user for basic
+   HTTP authentication. If you want to use Prometheus with your application
+   database, you must specify this setting.
+
+.. _om_resource-spec-multi-cluster:
+
+Multi-Cluster Settings
+----------------------
+
+|onprem| Required Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This section describes settings that you must use for your 
+|multi-cluster-om| in addition to the :ref:`required Ops Manager settings
+<om_resource-spec-required>`.
+
+.. opsmgrkube:: spec.clusterSpecList.members
+
+   *Type*: integer
+
+   *Conditional*. The number of |onprem| members in the |onprem| cluster
+   in a |multi-cluster|. When you set :opsmgrkube:`spec.topology` to
+   ``MultiCluster``, you must specify the value for this parameter.
+   Omit this parameter for single-cluster deployments.
+   If you set this parameter to zero, this removes this |onprem| member cluster
+   from the list of member clusters in the multi-|k8s| cluster of |onprem|
+   instances.
+
+.. opsmgrkube:: spec.topology
+
+   *Type*: string
+
+   The type of the |k8s| deployment for the Ops Manager Resource.
+
+   - The values are ``SingleCluster`` or ``MultiCluster``. If omitted,
+     the default value is ``SingleCluster``.
+   - If you specify ``MultiCluster``:
+
+     - :ref:`Add <one-operator-for-single-and-multi-k8s-clusters>` the
+       |mongodb-multi| to the watched resources list. This indicates to
+       the |k8s-op-short| that it should work in multi-|k8s| cluster mode
+       and perform configuration actions required for handling
+       multi-|k8s| resources.
+
+     - Specify at least one member cluster on which you want to deploy
+       |onprem|, using :opsmgrkube:`spec.clusterSpecList` and its nested
+       :opsmgrkube:`spec.clusterSpecList.clusterName` and
+       :opsmgrkube:`spec.clusterSpecList.members` parameters.
+
+     - If you specify ``MultiCluster``, the |k8s-op-short| ignores any
+       values that you set for :setting:`spec.members <spec.members>`.
+       See the :ref:`example of the resource specification <om_resource_spec_example_multi_cluster>`.
+
+|onprem| Optional Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|onprem| resources can also use the following settings specific to 
+|multi-cluster-om|\s:
+
+.. opsmgrkube:: spec.clusterSpecList
+
+   *Type*: collection
+
+   *Conditional*. Details of selected |k8s| member clusters in a multi-Kubernetes
+   cluster where you intend to deploy |onprem| or Backup Daemon instances.
+   See also the :ref:`example of the resource specification <om_resource_spec_example_multi_cluster>`.
+
+   .. include:: /includes/facts/fact-cluster-spec-list-optional.rst
+
+.. opsmgrkube:: spec.clusterSpecList.clusterName
+
+   *Type*: string
+
+   *Optional*. Name of the member |k8s| cluster in a |multi-cluster| where
+   the |k8s-op| schedules the |k8s-statefulset| for |onprem| or the Backup
+   Daemon.
+
+.. opsmgrkube:: spec.clusterSpecList.clusterDomain
+
+   *Type*: string
+
+   *Optional*. An override for :opsmgrkube:`spec.clusterDomain` for the specific
+   |onprem| member cluster. If you omit this value, defaults to the value
+   set in :opsmgrkube:`spec.clusterDomain`.
+   |k8s| assigns each |k8s-pod| a |fqdn|. The |k8s-op-short|
+   calculates the |fqdn| for each |k8s-pod| using a provided ``clusterDomain``
+   value. |k8s| doesn't provide an |api| to query these hostnames.
+
+.. opsmgrkube:: spec.clusterSpecList.configuration
+
+   *Type*: collection
+
+   *Optional*. |onprem| configuration properties that override properties
+   you set in :opsmgrkube:`spec.configuration` for the specific cluster.
+   See :opsmgr:`Ops Manager Configuration Settings
+   </reference/configuration/>` for property names and descriptions.
+   Each property takes a value of type ``string``. For example, setting
+   these properties allows you to change environment variables that you
+   must pass to |onprem| and the Backup Daemon in that particular member
+   cluster.
+
+   If you omit specifying values, defaults to the values
+   set in :opsmgrkube:`spec.configuration`.
+
+.. opsmgrkube:: spec.clusterSpecList.jvmParameters
+
+   *Type*: array of strings
+
+   *Optional*. |jvm| parameters passed to the Ops Manager and Backup Daemon
+   instances for this member cluster.
+
+   - If you specify this parameter, its values override the values specified
+     in :opsmgrkube:`spec.jvmParameters`. For example values,
+     see the :ref:`example of the resource specification <om_resource_spec_example_multi_cluster>`.
+   - If you omit this parameter, values from the :opsmgrkube:`spec.jvmParameters`
+     are used for the |onprem| and Backup Daemon instances in this member cluster.
+
+.. opsmgrkube:: spec.clusterSpecList.externalConnectivity
+
+   *Type*: collection
+
+   *Optional*. Configuration object that enables external connectivity to
+   |onprem| for the specific cluster. This is an override for
+   :opsmgrkube:`spec.externalConnectivity` for the specific cluster.
+
+   Specify values for this parameter to change how the |onprem| application is
+   exposed externally in different clusters. For example, if you deploy |onprem|
+   on |k8s| nodes across different cloud providers, you might be required
+   to specify cloud proviver-specific values for this parameter.
+
+   If you set this parameter:
+
+   - The |k8s-op-short| doesn't use :opsmgrkube:`spec.externalConnectivity` values
+     for this member |onprem| cluster.
+   - The |k8s-op-short| creates a |k8s| :k8sdocs:`service </concepts/services-networking/service/>`,
+     named ``<om-name>-svc-ext``, that allows traffic originating from outside of the |k8s| cluster
+     to reach the |onprem| application on this member cluster.
+
+   If you omit this parameter, the |k8s-op-short| uses values from :opsmgrkube:`spec.externalConnectivity`
+   for this member cluster.
+
+.. opsmgrkube:: spec.clusterSpecList.statefulSet.spec
+
+   *Type*: collection
+
+   *Optional*. Specification for the |k8s-statefulset| that the |k8s-op| creates
+   for a specific member cluster in the multi-|k8s| cluster |onprem| deployment.
+   This parameter is an override for :opsmgrkube:`spec.statefulSet.spec`.
+   If you omit it, the |k8s-op-short| uses the values from :opsmgrkube:`spec.statefulSet.spec`.
+   For example, you can use this parameter to specify different storage
+   values for each of your |onprem| clusters in the |multi-cluster|.
+
+   To review which fields you can add to :opsmgrkube:`spec.clusterSpecList.statefulSet.spec`, see
+   :k8sdocs:`StatefulSetSpec v1 apps
+   </reference/generated/kubernetes-api/{+k8s-api-version+}/#statefulsetspec-v1-apps>`
+   in the |k8s| documentation.
+
+.. opsmgrkube:: spec.clusterSpecList[*].backup
+
+   *Optional*. Backup settings that override values specified under
+   ``spec.backup`` for that particular member cluster.
+
+   - You can set these values only if :opsmgrkube:`spec.backup.enabled` is
+     set to ``true``.
+
+   - If you omit setting any values for this parameter, they default to values
+     specified in settings under ``spec.backup``.
+
+   - Not all backup settings are supported in this override. You can't override
+     the following backup settings because they apply globally to all member
+     clusters, if specified under ``spec.backup``:
+
+     - ``externalServiceEnabled``
+     - ``headDB``
+     - ``opLogStores``
+     - ``blockStores``
+     - ``s3Stores``
+     - ``fileSystemStores``
+     - ``queryableBackupSecretRef``
+     - ``encryption``
+
+.. opsmgrkube:: spec.clusterSpecList[*].backup.members
+
+   *Type*: integer
+
+   *Optional*. Override for :opsmgrkube:`spec.backup.members`. The number of
+   Backup Daemon instances to deploy in this cluster. if you omit this value
+   or provide a value of ``0``, the |k8s-op-short| won't deploy Backup Daemon
+   instances in a particular member cluster.
+
+.. opsmgrkube:: spec.clusterSpecList[*].backup.assignmentLabels
+
+   *Type*: array of strings
+
+   *Optional*. Override for :opsmgrkube:`spec.backup.assignmentLabels`.
+   If specified, the |k8s-op-short| uses the values you specify in this override for all
+   Backup Daemon instances in a particular member cluster. If you omit values
+   for this parameter, the values default to those specified in :opsmgrkube:`spec.backup.assignmentLabels`
+   for all Backup Daemon instances in a member cluster.
+
+.. opsmgrkube:: spec.clusterSpecList[*].backup.jvmParameters
+
+   *Type*: array of strings
+
+   *Optional*. Override for :opsmgrkube:`spec.backup.jvmParameters`. Allows
+   you to customize the |jvm| value for Backup Daemon instances in a
+   particular member cluster.
+
+.. opsmgrkube:: spec.clusterSpecList[*].backup.statefulSet
+
+   *Type*: string
+
+   *Optional*. Override for :opsmgrkube:`spec.backup.statefulSet.spec`.
+   Allows you to customize the values for a Backup Daemon in a particular
+   member cluster. To review which fields you can add to
+   :opsmgrkube:`spec.clusterSpecList[*].backup.statefulSet`, see
+   :k8sdocs:`StatefulSetSpec v1 apps </reference/generated/kubernetes-api/{+k8s-api-version+}/#statefulsetspec-v1-apps>`
+   in the |k8s| documentation.
+
+
+Application Database Required Settings 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This section describes settings specific to your 
+|multi-cluster-om| that you must use for your Application Database.
+
+.. opsmgrkube:: spec.applicationDatabase.clusterSpecList
+
+   *Type*: collection
+
+   Details of selected |k8s| member clusters in a |multi-cluster|
+   that serve as nodes that host the Application Database.
+
+.. opsmgrkube:: spec.applicationDatabase.clusterSpecList.clusterName
+
+  *Type*: string
+
+  Name of the member |k8s| cluster in a |multi-cluster| where the |k8s-op|
+  schedules the |k8s-statefulset| for the Application Database.
+
+
+  .. important::
+
+     .. include:: /includes/facts/fact-cannot-convert-om-crd-multi.rst
+
+.. opsmgrkube:: spec.applicationDatabase.clusterSpecList.members
+
+  *Type*: number
+
+  Number of statefulSet nodes in the given member cluster. The member cluster
+  is one of the member clusters that hosts the Application Database in
+  a |multi-cluster|.
+
+.. opsmgrkube:: spec.applicationDatabase.topology
+
+   *Type*: string
+
+   The type of the |k8s| deployment for the Application Database.
+   
+   - The values are ``SingleCluster`` or ``MultiCluster``. If omitted,
+     the default value is ``SingleCluster``.
+   - If you specify ``MultiCluster``, you must specify at least one member
+   - cluster on which you want to deploy the Application Database using
+     the :opsmgrkube:`clusterSpecList <spec.applicationDatabase.clusterSpecList>`,
+     :opsmgrkube:`clusterName <spec.applicationDatabase.clusterSpecList.clusterName>`, 
+     :opsmgrkube:`members <spec.applicationDatabase.clusterSpecList.members>`
+     parameters.
+
+   - If you specify ``MultiCluster``, the |k8s-op-short| ignores values
+     that you set for the :setting:`spec.applicationDatabase.members <spec.members>`
+     field.
+
+   To learn more, see the :ref:`example of the multi-cluster resource specification <om_resource_spec_example_multi_cluster>`.
+

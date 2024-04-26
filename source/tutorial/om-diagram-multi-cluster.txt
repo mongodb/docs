@@ -1,0 +1,216 @@
+.. _om-multi-k8s-diagram:
+
+=========================================================================
+Multi-Cluster Architecture Diagram: |onprem| and the Application Database
+=========================================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The following diagram shows the |application|, the Application Database,
+the Backup Daemon, and the corresponding |k8s-pvs| deployed on multiple
+|k8s| clusters.
+
+.. figure:: /images/om-multicluster-arch.svg
+   :alt: Diagram showing the high-level deployment of the Ops Manager,
+         its UI application, the Application Database, and the Backup Daemon
+         on multiple Kubernetes clusters. The diagram also shows network
+         connections between the components.
+   :figwidth: 100%
+
+In this diagram:
+
+1. The ``Member Cluster 0`` is also an "operator cluster" because you install
+   the |k8s-op-short| on it. It is also a "member cluster" and can host
+   any multi-cluster custom resource.
+
+2. The ``Member Cluster 0`` stores the |k8s-kubeconfigs|, which describe the
+   |k8s-configuration| for member clusters, users, and contexts. When you
+   configure the |k8s-op-short| for multi-cluster deployments using the
+   ``kubectl mongodb`` plugin, it creates the following resource:
+
+   - The ``mongodb-enterprise-operator-multi-cluster-kubeconfig`` secret,
+     which contains the credentials to all |k8s| clusters that the |k8s-op-short|
+     is going to manage. If you plan to use the operator cluster as a member
+     cluster, this secret might contain the credentials to the same cluster
+     where you install the |k8s-op-short|.
+
+   When the |k8s-op-short| runs in the :ref:`multi-cluster mode <mode-multi-or-single>`,
+   it stores the resources it needs, such as ConfigMaps and secrets about
+   the clusters that it is going to manage. These resources belong to the
+   same namespace as the |k8s-op-short|. The |k8s-op-short| uses these
+   resources to deploy the |application| and the Application Database on
+   multiple |k8s| clusters.
+
+3. The |k8s-op-short| also creates and maintains some additional multi-cluster
+   deployment state ConfigMaps for each |application| and Application Database
+   deployment it manages. The ``Member Cluster 0`` stores this configuration,
+   which includes the following ConfigMaps:
+
+   - The ``<om_resource_name>-cluster-mapping`` ConfigMap contains the
+     mapping of member cluster names listed in the :opsmgrkube:`spec.clusterSpecList`
+     to cluster indexes, referenced in this documentation as ``cluster_index``, such
+     as ``Cluster 0``, or ``Cluster 1``. The |k8s-op-short| assigns these indexes to
+     each cluster name.
+   - The ``<om_resource_name>-db-cluster-mapping`` ConfigMap contains the
+     mapping of member cluster names listed in the :opsmgrkube:`spec.applicationDatabase.clusterSpecList`
+     to cluster indexes.
+   - The ``<om_resource_name>-db-member-spec`` ConfigMap contains the number
+     of Application Database replicas configured for each member cluster.
+     Having this information allows the |k8s-op-short| to correctly scale
+     or reconfigure the replica set as part of disaster recovery, such as
+     after losing the entire member cluster.
+
+4. The ``MongoDBOpsManager`` resource's configuration is a file that you
+   create that describes a multi-cluster |onprem| deployment.
+   The |k8s-op-short| uses this file to deploy the |onprem| components.
+   
+   The following example shows the configuration that leads to the |k8s-op-short|
+   deploying the |onprem| components described in this diagram. This example
+   omits some settings that aren't relevant for this diagram, such as |tls| configuration.
+
+   .. literalinclude:: /reference/k8s/example-opsmgr-diagram-multi-cluster.yaml
+           :language: yaml
+           :linenos:
+
+5. The |k8s-op-short| connects to the |onprem| instances referencing either:
+
+   - The default |fqdn| of the service it creates for the |onprem| resource,
+     ``<om_resource_name>-svc.<namespace>.svc.cluster.local``, or
+   - The URL that you specify in :opsmgrkube:`spec.opsManagerURL`.
+     In some deployments, such as when the cluster where you installed the
+     |k8s-op-short| isn't attached to the service mesh, the default service
+     |fqdn| might be unreachable. In this case, the |k8s-op-short| reports
+     the ``MongoDBOpsManager`` resource status as ``Failed`` indicating a
+     connection error. To account for such cases, provide the URL to |onprem|
+     in the :opsmgrkube:`spec.opsManagerURL`. This URL might be a hostname of
+     an externally exposed |onprem| instance. To learn more, see :ref:`om-networking-overview`.
+
+6. Two member clusters host the :term:`Ops Manager Application <Ops Manager Application>`.
+   In each cluster, the |k8s-op-short| deploys a StatefulSet named ``<om_resource_name>-<cluster_index>``.
+
+   - The StatefulSet deploys two instances of the |application| in ``Member Cluster 1``
+     and one instance in ``Member Cluster 2``.
+
+   - You define the number of instances in :opsmgrkube:`spec.clusterSpecList.members`.
+     You might set the number of instances to zero so that this cluster doesn't
+     deploy any |application| instances. This is useful, if, for example,
+     you would like to use this cluster for hosting only Backup Daemon instances.
+
+     If you remove a cluster from :opsmgrkube:`spec.clusterSpecList`, this is
+     equivalent to specifying zero members in :opsmgrkube:`spec.clusterSpecList.members`
+     and :opsmgrkube:`spec.clusterSpecList[*].backup.members`.
+
+   - For each StatefulSet in each cluster, the |k8s-op-short| configures a
+     |k8s-service| of type ``ClusterIP``, named ``<om_resource_name>-svc``,
+     that contains all Pods on the cluster's endpoints list. This service's
+     FQDN, ``<om_resource_name>-svc.<namespace>.svc.cluster.local``, is a
+     default hostname that the |k8s-op-short| uses to access the deployed
+     endpoint for the |application|.
+
+   - If you specify :opsmgrkube:`spec.externalConnectivity`, the |k8s-op-short|
+     also creates an external |k8s| ``LoadBalancer``-type service, named
+     ``<om_resource_name>-svc-ext``, for each cluster. In each cluster,
+     you can specify its own configuration for this external service using
+     :opsmgrkube:`spec.clusterSpecList.externalConnectivity`. For example,
+     you can change the service's type or define annotations.
+
+7. Application Database. The |k8s-op-short| deploys the Application Database on two clusters.
+
+   - The ``Member Cluster 1`` contains three |mongod| processes for the
+     Application Database, and the ``Member Cluster 2`` contains two |mongod|
+     processes..
+
+   - You define the Application Database configuration using the
+     :opsmgrkube:`spec.applicationDatabase` settings. On each member cluster,
+     the |k8s-op-short| creates a StatefulSet named ``<om_resource_name>-db-<cluster_index>``
+     with the number of member clusters defined in :opsmgrkube:`spec.applicationDatabase.clusterSpecList.members`.
+     In multi-cluster mode, the |k8s-op-short| ignores values that you set
+     for the :setting:`spec.applicationDatabase.members <spec.members>` field.
+     The |k8s-op-short| configures one replica set formed from |mongod|
+     processes deployed across all member clusters.
+
+   - For each Pod in ``<statefulset_name>-<pod_index>`` hosting a MongoDB
+     process named ``<om_resource_name>-db-<cluster_index>-<pod_index>``,
+     the |k8s-op-short| creates a |k8s| ``ClusterIP``-type service for accessing
+     the individual |mongod| processes by its |fqdn|,
+     ``<om_resource_name>-db-<cluster_index>-<pod_index>-svc``. Each |mongod|
+     process in the replica set must be uniquely addressable.
+
+     The processes in the replica set configuration must have their process hostnames
+     configured to that Pod service's |fqdn|: ``<om_resource_name>-db-<cluster_index>-<pod_index>-svc.<namespace>.svc.cluster.local``.
+
+   - Each Pod has its persistent volume attached via a |k8s-pvc| that the
+     |k8s-op-short| creates.
+
+   - To form a replica set from all |mongod| processes, each process must
+     connect to each other process for replication purposes. To achieve this,
+     include all member clusters on which you deploy the Application Database
+     into the same service mesh configuration.
+
+     The service mesh handles cross-cluster DNS queries and routes the traffic accordingly.
+     The service mesh assists in resolving each Pod service's |fqdn|
+     ``<om_resource_name>-db-<cluster_index>-<pod-index>-svc.<namespace>.svc.cluster.local``
+     across all clusters and allows connectivity on the exposed |mongod| port
+     (27017 by default).
+
+     For example, when a |mongod| process running in the ``om-db-1-0`` Pod
+     in ``Member Cluster 1`` connects to a |mongod| running in the
+     ``om-db-2-1`` Pod in ``Member Cluster 2``, the first |mongod| process
+     uses its hostname from the Automation Configuration, ``om-db-2-1-svc.om-ns.svc.cluster.local:27017``,
+     and the service mesh routes this request to ``Member Cluster 2`` to
+     the ``om-db-2-1-svc`` service.
+     Without the service mesh, the |k8s| ``Member Cluster 1`` has no information
+     about the ``om-db-2-1-svc`` service deployed in the ``Member Cluster 2``
+     and the DNS resolution of ``om-db-2-1-svc.om-ns.svc.cluster.local``
+     would fail.
+
+   - When the Application Database and the |application| instances are in a
+     ``Running`` state, the |k8s-op-short| adds an additional monitoring
+     container to the Application Database StatefulSets. This results in
+     a rolling restart of all Application Database Pods in all clusters.
+     The |k8s-op-short| updates the StatefulSets across all clusters
+     sequentially, so that during the rolling restart process, in each
+     cluster, only one replica set's member becomes temporarily unavailable.
+
+   - The Monitoring Agent connects to the |application| instances using
+     the |onprem| service's |fqdn|, ``<om_resource_name>-svc.<namespace>.svc.cluster.local``,
+     or the value in :opsmgrkube:`spec.opsManagerURL` if you specify it.
+
+     The |application| and the Backup Daemon always use the connection string
+     to the Application Database that contains all replica set members in it.
+     The connection string is always constructed using the service-per-pod
+     FQDNs.
+
+8. The |k8s-op-short| deploys the Backup Daemon StatefulSets if you set
+   the :opsmgrkube:`spec.backup.enabled` to ``true``. 
+   
+   - On each member cluster listed in the :opsmgrkube:`spec.clusterSpecList`, the |k8s-op-short|
+     creates one Backup Daemon StatefulSet, named ``<om_resource_name>-backup-daemon-<cluster_index>``
+     with the number of Backup Daemon instances set to :opsmgrkube:`spec.backup.members`.
+   
+     Alternatively, you can configure the number of Backup Daemon instances
+     for each cluster in :opsmgrkube:`spec.clusterSpecList[*].backup.members`.
+
+   - The Backup Daemon instances connect only to the Application Database
+     replica set using the same connection string as the |application|
+     instances.
+
+In addition, in this diagram, you can observe the service mesh and the
+networking connections between the components:
+
+- The dotted lines surrounding the diagram show the single service mesh that
+  includes the networking configuration for all clusters.
+- The dotted lines surrounding the |application| across member clusters
+  indicate that these instances are stateless and the traffic can be
+  equally distributed to all instances, for example by using using a
+  round-robin load balancer.
+
+- The dotted lines surrounding the Application Database across member
+  clusters indicate that these instances communicate with each other and
+  form a single MongoDB replica set.
