@@ -10,5 +10,5 @@
    * - {+c2c-version+}
      - {+c2c-version+}
 
-   * - 7.0+
-     - 7.0+
+   * - {+c2c-version-7+}
+     - {+c2c-version-7+}
