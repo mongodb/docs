@@ -1,0 +1,40 @@
+apiVersion: mongodb.com/v1
+kind: MongoDBOpsManager
+metadata:
+  name: om
+  namespace: om-ns
+spec:
+  replicas: 1 # You can set this value and use it as a global or default
+              # setting for all clusters. The spec.clusterSpecList.members
+              # setting overrides this setting.
+  topology: MultiCluster
+  version: 6.0.22
+  adminCredentials: om-admin-secret
+  clusterSpecList:
+    - clusterName: "Member Cluster 1" # Ops Manager settings for "Member Cluster 1"
+      members: 2
+      backup: # Backup settings for "Member Cluster 1"
+        members: 2 # Overrides spec.backup.members
+    - clusterName: "Member Cluster 2" # Ops Manager settings for "Member Cluster 2"
+      members: 1
+      backup: # Backup settings for "Member Cluster 2"
+        members: 2 # Overrides spec.backup.members
+  applicationDatabase: # Global Application Database settings
+    topology: MultiCluster
+    version: 6.0.5-ent
+    members: 3 # In multi-cluster mode, the Operator ignores this field.
+               # The Operator sets the number of members for the Application
+               # Database in spec.applicationDatabase.clusterSpecList.members.
+    clusterSpecList:
+      - clusterName: "Member Cluster 1"
+        members: 3
+      - clusterName: "Member Cluster 2"
+        members: 2
+  backup: # Global settings for the Backup Daemon
+    enabled: true
+    members: 1 # Set this value and use it as a global or default setting.
+               # To override this value, set the value for
+               # spec.clusterSpecList.backup.members.
+               # The Backup Daemon's configuration for each cluster isn't
+               # stored here. Use the Ops Manager's spec.clusterSpecList.backup to
+               # specify the Backup Daemon configuration for each member cluster.

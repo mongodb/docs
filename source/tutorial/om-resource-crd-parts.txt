@@ -1,0 +1,234 @@
+.. _om-resource-crd-parts:
+
+====================================================
+The ``MongoDBOpsManager`` Custom Resource Definition
+====================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+
+The |k8s-op-short| manages |onprem| deployments using the ``MongoDBOpsManager``
+|k8s-custom-resource| in each |k8s| cluster where you deploy the resource.
+The |k8s-op-short| watches the resource's specification for changes.
+When the specification changes, the |k8s-op-short| validates the changes
+and makes the appropriate updates to the resource in each of the |k8s|
+clusters where you deploy |onprem| components.
+
+``MongoDBOpsManager`` |k8s-custom-resource|\s specification defines the
+following |onprem| components:
+
+- The Application Database
+- The |onprem| application
+- The Backup Daemon
+
+The following diagram describes the related components for an |onprem|
+deployment:
+
+- In single-cluster deployments, you deploy these components in the same |k8s|
+  cluster where you install the |k8s-op-short|. This cluster is known
+  as the "operator cluster".
+- In multi-cluster deployments, you:
+  
+  - Deploy each component in different |k8s| clusters, known as "member clusters".
+    You can also deploy a simplified multi-cluster deployment with a single
+    member |k8s| cluster. To learn more, see :ref:`mode-multi-or-single`.
+  - Install the |k8s-op-short| in one |k8s| cluster, known as the "operator cluster"
+    from where the |k8s-op-short| manages all other member clusters. The
+    operator cluster can also be considered a member cluster as it too can
+    host the |onprem| components. See :ref:`Multi-Cluster Architecture Diagram <om-multi-k8s-diagram>`.
+
+.. figure:: /images/meko-arch.svg
+   :alt: Diagram showing the high-level architecture of the MongoDB
+         Enterprise Kubernetes Operator (single Kubernetes Cluster)
+   :figwidth: 600px
+
+.. _appdb-om-arch:
+
+Application Database
+---------------------
+
+For the Application Database, the |k8s-op-short| deploys a MongoDB replica set
+as a |k8s-statefulset|.
+
+Each Pod for the Application Database has the following containers:
+
+- |mongod|.
+- {+mdbagent+}. To override the {+mdbagent+} version, use
+  the ``$AGENT_IMAGE`` environment variable or ``agent.version``
+  in the Helm chart that you use for installing the |k8s-op-short|.
+- Monitoring Agent. You can't override the Monitoring Agent's version.
+  The version that the |k8s-op-short| uses ensures backwards compatibility
+  with the |onprem| versions.
+
+  To view the Monitoring Agent's version:
+
+  - Inspect ``/usr/local/om_version_mapping.json`` inside the Pod for
+    the |k8s-op-short| or the image for the |k8s-op-short|.
+  - Check the Monitoring Agent's container image on the Pod where you deploy
+    the Application Database.
+
+In multi-cluster deployments (when you set
+:opsmgrkube:`spec.applicationDatabase.topology` to ``MultiCluster``),
+the |k8s-op-short| creates the StatefulSet in each |k8s| cluster specified
+for the Application Database in :opsmgrkube:`spec.applicationDatabase.clusterSpecList`.
+
+The following actions take place in each member |k8s| cluster hosting 
+MongoDB replica set nodes for the Application Database:
+
+- |k8s| creates one Pod in the StatefulSet for each node that comprises
+  your Application Database replica set. Each Pod in the StatefulSet runs
+  a ``mongod`` and the {+mdbagent+}.
+
+  To enable each {+mdbagent+} to start |mongod| on its Pod in the StatefulSet,
+  you must specify a specific MongoDB Server version for the Application Database
+  using the :opsmgrkube:`spec.applicationDatabase.version` setting. The version
+  that you specify in this setting must correspond to the tag in the
+  :qr-mdb:`container registry </mongodb-enterprise-server?tab=tags>`.
+  
+- Each {+mdbagent+} starts |mongod|\s on its Application Database
+  Pod. {+mdbagent+}\s add |mongod| processes to the Application Database replica set.
+
+  You configure the number of replicas and other configuration options
+  for the Application Database replica set in the :opsmgrkube:`spec.applicationDatabase`
+  collection in the ``MongoDBOpsManager`` custom resource. The |k8s-op-short|
+  passes this configuration to the {+mdbagent+}\s using a |k8s-secret| that the
+  |k8s-op-short| mounts to each Pod in the Application Database StatefulSet.
+
+  In multi-cluster Application Database deployments, (where :opsmgrkube:`spec.applicationDatabase.topology`
+  is set to ``MultiCluster``), you specify the number of nodes in each member
+  cluster separately for each member cluster in
+  :opsmgrkube:`spec.applicationDatabase.clusterSpecList`.
+  In multi-cluster deployments, the ``replicas`` setting in
+  :opsmgrkube:`spec.applicationDatabase` is ignored.
+
+- Each time that you update the :opsmgrkube:`spec.applicationDatabase` collection,
+  the |k8s-op-short| applies the changes to the {+mdbagent+} configuration and
+  the StatefulSet specification, if applicable. If the StatefulSet specification
+  changes, |k8s| upgrades the Pods in a rolling fashion and restarts each Pod.
+
+- To provide connectivity to each Application Database Pod from within each
+  |k8s| cluster hosting the Application Database, the |k8s-op-short| creates
+  a headless |k8s-service|.
+  In multi-cluster deployments of the Application Database, the |k8s-op-short|
+  also creates one service per Pod named ``<om_resource_name>-db-N-svc`` (this corresponds
+  to :opsmgrkube:`metadata.name`),
+  and uses its |fqdn|, such as ``<om_resource_name>-db-0.<namespace>.svc.cluster.local``,
+  as a hostname for connecting to a particular |mongod|.
+
+- Depending on the |k8s-sc| or the environment to which you deploy the
+  |k8s-op-short|, |k8s| might create the |k8s-pvs| using
+  :k8sdocs:`dynamic volume provisioning </concepts/storage/dynamic-provisioning/>`.
+
+  You can customize the |k8s-pvcs| for the Application Database Pods using
+  :opsmgrkube:`spec.applicationDatabase.podSpec.persistence.single <spec.applicationDatabase>`
+  or :opsmgrkube:`spec.applicationDatabase.podSpec.persistence.multiple <spec.applicationDatabase>`.
+
+Application Database Topology
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To elect a primary, a majority of the Application Database replica set's
+nodes must be available. If a majority of replica set's nodes fail,
+the replica set can't form a voting majority to elect a primary node.
+To learn more, see :manual:`Replica Set Deployment Architectures </core/replica-set-architectures/>`.
+
+If possible, use an odd number of member |k8s| clusters and distribute your
+Application Database nodes across data centers, zones, or |k8s| clusters.
+To learn more, see :manual:`Replica Sets Distributed Across Two or More Data Centers </core/replica-set-architecture-geographically-distributed/>`.
+
+Consider the following examples of the Application Database's topology:
+
+.. tabs::
+
+   .. tab:: Five-member Application Database
+      :tabid: five-member
+
+      For a five-member Application Database, some possible distributions of members include:
+
+      - Two clusters: three members to ``Cluster 1`` and two members to ``Cluster 2``.
+
+        - If ``Cluster 2`` fails, ``Cluster 1`` hosts a sufficient number of
+          Application Database's replica set members to elect a primary node.
+        - If ``Cluster 1`` fails, ``Cluster 2`` doesn't have enough Application
+          Database's members to elect a primary node.
+
+      - Three clusters: two members to ``Cluster 1``, two members to ``Cluster 2``, and one member to ``Cluster 3``.
+
+        - If any single cluster fails, there are enough members on the remaining clusters to elect a primary node.
+        - If two clusters fail, there are not enough members on any remaining cluster to elect a primary node.
+
+   .. tab:: Seven-member Application Database
+      :tabid: seven-member
+
+      For a seven-member Application Database, consider the following distribution of members:
+
+      - Two clusters: four members to ``Cluster 1`` and three members to ``Cluster 2``.
+
+        - If ``Cluster 2`` fails, there are enough members on ``Cluster 1`` to elect a primary node.
+        - If ``Cluster 1`` fails, there are not enough members on ``Cluster 2`` to elect a primary node.
+        
+      Although ``Cluster 2`` meets the three member minimum for the Application Database,
+      a majority of the Application Database's seven members must be available
+      to elect a primary node.
+
+To learn more, see :ref:`disaster-recovery-om-appdb`.
+
+.. _application-om-arch:
+
+|application|
+--------------------------
+
+After the Application Database reaches a **Running** state, the |k8s-op-short|
+starts deploying the |application|:
+
+- It configures a StatefulSet on each member |k8s| cluster.
+- For each |onprem| replica set that you want to deploy, |k8s| creates one Pod
+  in the StatefulSet.
+- Each Pod contains one |application| process.
+
+To make your single cluster |onprem| deployment resilient to single Pod
+failures, increase the number of replicas hosting the |application|,
+using :opsmgrkube:`spec.replicas`.
+
+To make your multi-cluster |onprem| deployment resilient to entire data
+center or zone failures, deploy the |application| in multiple |k8s| clusters
+by setting :opsmgrkube:`spec.topology` and :opsmgrkube:`spec.applicationDatabase.topology`
+to ``MultiCluster``. See also :ref:`disaster-recovery-om-appdb`.
+
+Backup Daemon
+--------------
+
+If :opsmgrkube:`spec.backup.enabled` is **true**, then on each member
+|k8s| cluster, the |k8s-op-short| starts the Backup Daemon after
+the |application| reaches a **Running** stage. For the Backup Daemon,
+the |k8s-op-short| deploys a StatefulSet to each member |k8s| cluster.
+In each member cluster, |k8s| creates as many Backup Daemon Pods in the
+StatefulSet as specified in :opsmgrkube:`spec.backup.members`.
+In single cluster deployments, these actions take place on the operator
+cluster that you use for installing the |k8s-op-short| and deploying the
+|onprem| components.
+
+If you enable backup, configure the :term:`oplog store <Oplog Store Database>`,
+a :term:`blockstore <Backup Blockstore Database>`,
+or an |s3| :term:`snapshot store <S3 Snapshot Store>` at the global
+``spec.backup`` level, and not for each |k8s| member cluster.
+
+You can also :ref:`encrypt backup jobs <configure-kmip-backup-encryption>`,
+but :ref:`limitations <kmip-limitations>` apply to deployments where the
+same  |k8s-op-short| instance is not managing both the
+:ref:`MongoDBOpsManager <k8s-om-specification>` and :ref:`MongoDB <k8s-specification>`
+custom resources.
+
+If you enable backup, the |k8s-op-short| creates a |k8s-pvc| for the
+Backup Daemon's :term:`head database` on each member |k8s| cluster.
+You can configure the head database using the :opsmgrkube:`spec.backup.headDB`
+setting.
+
+The |k8s-op-short| invokes |onprem| APIs to ensure that the |application|\'s
+backup configuration matches the one that you define in the custom resource
+definitions for each member |k8s| cluster.

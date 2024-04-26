@@ -1,0 +1,183 @@
+:noprevnext:
+
+.. _deploy-om-multi-cluster:
+
+=====================================================
+Deploy |onprem| Resources on Multiple |k8s| Clusters
+=====================================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: multicluster, multi-Kubernetes cluster
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+To make your multi-cluster |onprem| and the Application Database deployment
+resilient to entire data center or zone failures, deploy the |application|
+and the Application Database on multiple |k8s| clusters.
+
+To learn more about the architecture, networking, limitations, and peformance
+of multi-|k8s| cluster deployments for |onprem| resources, see:
+
+- :ref:`om-multi-k8s`
+- :ref:`om-multi-k8s-limitations`
+- :ref:`multi-vs-single-om-diffs`
+- :ref:`Architecture Diagram <om-multi-k8s-diagram>`
+- :ref:`Networking, Load Balancer, Service Mesh <om-nw-lb-mesh>`
+- :ref:`Performance <om-performance>`
+
+.. _om-multi-procedure-overview:
+
+Overview
+--------
+
+When you deploy the |application| and the Application Database using the
+procedure in this section, you:
+
+1. Use |gke| and |istio| service mesh as tools that help demonstrate the
+   multi-|k8s| cluster deployment.
+
+2. Install the |k8s-op-short| on one of the member |k8s| clusters known
+   as the operator cluster. The operator cluster acts as a Hub in the
+   "Hub and Spoke" pattern used by the |k8s-op-short| to manage deployments
+   on multiple |k8s| clusters.
+
+3. Deploy the operator cluster in the ``$OPERATOR_NAMESPACE`` and configure
+   this cluster to watch ``$NAMESPACE`` and manage all member |k8s| clusters.
+
+4. Deploy the Application Database and the |application| on a single member
+   |k8s| cluster to demonstrate similarity of a multi-cluster deployment
+   to a single cluster deployment. A single cluster deployment with
+   :opsmgrkube:`spec.topology` and :opsmgrkube:`spec.applicationDatabase.topology`
+   set to ``MultiCluster`` prepares the deployment for adding more |k8s| clusters
+   to it.
+
+5. Deploy an additional Application Database replica set on the second member
+   |k8s| cluster to improve Application Database's resiliency. You also
+   deploy an additional |application| instance in the second member
+   |k8s| cluster.
+
+6. Create valid certificates for |tls| encryption, and establish
+   |tls|-encrypted connections to and from the |application| and between
+   the Application Database's replica set members.  When running over |https|,
+   |onprem| runs on port ``8443`` by default.
+
+7. Enable backup using |s3|-compatible storage and deploy the Backup Daemon
+   on the third member |k8s| cluster. To simplify setting up |s3|-compatible
+   storage buckets, you deploy the |minio|. You enable the Backup Daemon only
+   on one member cluster in your deployment. However, you can configure
+   other member clusters to host the Backup Daemon resources as well.
+   Only |s3| backups are supported in multi-cluster |onprem| deployments.
+
+.. _om-multi-prereqs:
+
+Prerequisites
+--------------
+
+- :ref:`install-tools-om-mc`
+- :ref:`gcloud-cli-auth`
+- :ref:`install-kubectl-mongodb-plugin-om-mc`
+- :ref:`clone-k8sop-repo-om-mc`
+- :ref:`set-env-vars-om-mc`
+
+.. _install-tools-om-mc:
+
+Install Tools
+~~~~~~~~~~~~~~
+
+Before you can begin the deployment, install the following required tools:
+
+- |helm-install|. Installing |helm| is required for the installation of the |k8s-op-short|.
+- |kustomize-install|. Installing |kustomize| is required for the |minio|.
+- |kubectl-install|.
+- Prepare the |gcp| project so that you can use it to create |gke| clusters.
+  In the following  procedure, you create three new GKE clusters, with a
+  total of seven ``e2-standard-4`` low-cost |spot-vms|.
+- |gcloud-cli-install|.
+
+.. _gcloud-cli-auth:
+
+Authorize into gcloud CLI
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|gcloud-cli-install| and authorize into it:
+
+.. code-block:: sh
+
+   gcloud auth login
+
+.. _install-kubectl-mongodb-plugin-om-mc:
+
+Install the |kubectl-mongodb|
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :ref:`kubectl mongodb plugin <kubectl-plugin-ref>` automates the
+configuration of the |k8s| clusters. This allows the |k8s-op-short| to
+deploy resources, necessary roles, and services for accounts for the
+|application|, Application Database, and MongoDB resources on these clusters.
+
+To install the |kubectl-mongodb|:
+
+.. include:: /includes/steps/install-kubectl-mongodb-plugin.rst
+
+.. _clone-k8sop-repo-om-mc:
+
+Clone the |k8s-op-full| Repository
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Clone the :github:`MongoDB Enterprise Kubernetes Operator repository </mongodb/mongodb-enterprise-kubernetes>`, change into the ``mongodb-enterprise-kubernetes``
+directory, and check out the current version.
+
+.. code-block:: sh
+
+   git clone https://github.com/mongodb/mongodb-enterprise-kubernetes.git
+   cd mongodb-enterprise-kubernetes
+   git checkout <version>
+   cd public/samples/ops-manager-multi-cluster
+
+.. important::
+
+   Some steps in this guide work only if you run them from
+   the ``public/samples/ops-manager-multi-cluster`` directory.
+
+.. _set-env-vars-om-mc:
+
+Set up Environment Variables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+All steps in this guide reference the environment variables defined in ``env_variables.sh``.
+
+.. literalinclude:: /includes/code-examples/ops-manager-multi-cluster/env_variables.sh
+  :language: shell
+  :linenos:
+
+Adjust the settings in the previous example for your needs as instructed
+in the comments and source them into your shell as follows:
+
+.. code-block:: shell
+   :copyable: true
+
+   source env_variables.sh
+
+.. important::
+
+   Each time after you update ``env_variables.sh``, run ``source env_variables.sh`` 
+   to ensure that the scripts in this section use updated variables.
+
+.. _deploy-om-mc-procedure:
+
+Procedure
+---------
+
+This procedure applies to deploying an |onprem| instance on multiple
+|k8s| clusters.
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/steps-deploy-k8s-om-multi-https.rst

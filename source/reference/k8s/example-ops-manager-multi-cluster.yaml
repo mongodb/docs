@@ -3,9 +3,40 @@ kind: MongoDBOpsManager
 metadata:
  name: om
 spec:
- replicas: 1
+ topology: MultiCluster # optional, SingleCluster by default
+ opsManagerURL: https://link.to.configured.lb.example.com # optional OM URL for the operator
+ clusterSpecList: # optional ClusterSpecOMItem list, the type is different than ClusterSpecItem for AppDB and MongoDB
+   - clusterName: cluster-1 # required
+     replicas: 1 # required, OM application replicas
+     # optional parameters to override those defined at MongoDBOpsManager level
+     clusterDomain: cluster-1.example.com # optional, default cluster.local
+     jvmParameters: ["-Xmx4352m","-Xms4352m"]
+     externalConnectivity: # optional to override
+       type: LoadBalancer
+       port: 9090
+       annotations:
+         key: value
+     statefulSet: # StatefulSetSpecWrapper override
+       spec: {}
+       metadata: {}
+     configuration:
+       automation.versions.source: mongodb
+       mms.adminEmailAddr: cloud-manager-support@mongodb.com
+     backup: # MongoDBOpsManagerBackup, optional, we only support a subset of fields
+       members: 1 # backup daemon replicas, optional, default=1
+       assignmentLabels: [] # assignment labels to override
+       jvmParameters: ["-Xmx4352m","-Xms4352m"] # optional
+       statefulSet: # mdbc.StatefulSetConfiguration, optional to override for backup daemon
+         spec: {}
+         metadata: {}
+   - clusterName: cluster-2
+     replicas: 1
+     
+     ....
+
+replicas: 1
  version: "6.0.18"
- adminCredentials: ops-manager-admin
+ adminCredentials: ops-manager-admin-secret
  configuration:
   mms.fromEmailAddr: admin@example.com
   mms.security.allowCORS: "false"
@@ -43,7 +74,9 @@ spec:
      pathStyleAccessEnabled: true
      s3BucketEndpoint: s3.region.amazonaws.com
      s3BucketName: my-bucket
-
+ security:
+   tls:
+     ca: issuer-ca
  applicationDatabase:
    passwordSecretKeyRef:
     name: om-db-user-secret
@@ -57,4 +90,9 @@ spec:
       members: 3
     - clusterName: cluster3.example.com
       members: 2
-    
+      security:
+     tls:
+       ca: issuer-ca
+       secretRef:
+         prefix: appdb
+

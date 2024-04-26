@@ -1,0 +1,87 @@
+.. _om-arch-reconciliation:
+
+======================================================
+Reconciling the ``MongoDBOpsManager`` Custom Resource
+======================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+
+The following diagram describes how the |k8s-op-short| reconciles changes
+to the ``MongoDBOpsManager`` |k8s-crd| on each member |k8s| cluster.
+
+.. figure:: /images/meko-reconciliation.svg
+   :alt: Diagram describing how the MongoDB Enterprise Kubernetes
+         Operator reconciles changes to the MongoDBOpsManager 
+         Custom Resource Definition on each member Kubernetes cluster.
+   :figwidth: 600px
+
+.. _om-arch-steps:
+
+1. The |k8s-op-short| creates or updates the
+   ``<om_resource_name>-db-config`` secret. This secret contains
+   the configurations that the {+mdbagent+} uses to start the
+   Application Database replica set.
+
+2. The |k8s-op-short| creates or updates the ``<om_resource_name>-db``
+   Application Database StatefulSet. This StatefulSet contains at
+   least three |k8s-pods|.
+
+   - Each Pod runs one {+mdbagent+} instance. Each {+mdbagent+} starts a
+     |mongod| instance on its Pod.
+   - The |k8s-op-short| mounts the ``<om_resource_name>-db-config``
+     secret to each Pod. The {+mdbagent+} uses this secret to
+     configure the Application Database replica set.
+
+     In multi-cluster deployments, the |k8s-op-short| assigns the member
+     cluster's index suffix to each Application Database's StatefulSet, in
+     the form of ``<om_resource_name>-db-<cluster-idx>``, for example: ``om-db-1``.
+
+3. The |k8s-op-short| creates or updates the ``<om_resource_name>``
+   StatefulSet. In multi-cluster deployments, the |k8s-op-short| assigns
+   the member cluster's index suffix to each StatefulSet, in the form of
+   ``<om_resource_name>-<cluster-idx>``, for example: ``om-1``.
+
+   The StatefulSet contains one Pod for each |onprem| replica. Each |onprem|
+   replica connects to the Application Database.
+
+   Most changes to the ``MongoDBOpsManager`` |k8s-custom-resource|
+   trigger a rolling upgrade of the Pods in the ``<om_resource_name>``
+   StatefulSet. :ref:`Enabling TLS for the Application Database <secure-om-db-tls>`
+   also triggers a rolling restart because the connection string to the
+   Application Database changes. Changes to :opsmgrkube:`spec.backup <spec.backup.enabled>`
+   don't trigger a rolling upgrade.
+
+4. The |k8s-op-short| invokes |onprem| APIs to create an admin user.
+   The |k8s-op-short| saves this admin user's credentials in the
+   ``<om_resource_name>-admin-key`` secret. The |k8s-op-short| uses
+   these credentials for all other |onprem| API invocations.
+   This reconciliation step happens only once when you use the |k8s-op-short|
+   to deploy a new |onprem| resource. The |k8s-op-short| skips this step
+   when it updates the resource.
+
+5. The |k8s-op-short| performs a rolling upgrade of the Pods in the ``<om_resource_name>-db``
+   Application Database StatefulSet to enable |onprem| to monitor it.
+   Monitoring is enabled by default. This reconciliation step happens
+   only once, such as when you deploy a new |onprem| resource.
+
+6. If :opsmgrkube:`spec.backup.enabled` is **true**, the |k8s-op-short|
+   creates the ``<om_resource_name>-backup-daemon`` StatefulSet or
+   verifies that it is running. The Backup Daemon connects to the same
+   Application Database as the |onprem| deployment.
+
+   In multi-cluster deployments, the |k8s-op-short| assigns the member
+   cluster's index suffix to each Backup Daemon's StatefulSet, in
+   the form of ``<om_resource_name>-backup-daemon-<cluster-idx>``, for
+   example: ``om-backup-daemon-1``.
+
+7. If :opsmgrkube:`spec.backup.enabled` is **true**, the |k8s-op-short|
+   invokes |onprem| APIs to ensure that the |application|\'s backup
+   configuration matches the one that you define in the custom resource
+   definition.

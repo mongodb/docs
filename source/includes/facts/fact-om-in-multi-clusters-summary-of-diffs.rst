@@ -1,12 +1,11 @@
-To deploy an |onprem| instance in the central cluster and connect to it,
+To deploy a single |onprem| instance in the operator cluster and connect to it,
 use the following procedures:
 
 - :ref:`Review the Ops Manager resource architecture <meko-om-arch>`
 - :ref:`Review the Ops Manager resource considerations and prerequisites <plan-om-resource>`
 - :ref:`Deploy an Ops Manager instance on the central cluster with TLS encryption <deploy-om-container>`
 
-These procedures are the same as the procedures for single clusters
-deployed with the |k8s-op-short| with the following exceptions:
+These procedures are the same as the procedures for deploying |onprem| in single clusters with the following exceptions:
 
 - **Set the context and the namespace.**
 
@@ -19,7 +18,7 @@ deployed with the |k8s-op-short| with the following exceptions:
 - **Deploy Ops Manager and the Application Database on the central cluster.**
 
   You can choose to deploy |onprem| and the Application Database only on the central cluster,
-  using the same procedure as for single |k8s| clusters. To learn more,
+  using the same procedure as for single MongoDB resources |k8s| clusters. To learn more,
   see :ref:`Deploy an Ops Manager instance on the central cluster with TLS encryption <deploy-om-container>`.
 
 - **Deploy Ops Manager on the central cluster and the Application Database on selected member clusters.**
@@ -34,7 +33,7 @@ deployed with the |k8s-op-short| with the following exceptions:
   - Specify the :opsmgrkube:`clusterSpecList <spec.applicationDatabase.clusterSpecList>` and
     include in it the :opsmgrkube:`clusterName <spec.applicationDatabase.clusterSpecList.clusterName>`
     of each selected |k8s| member cluster on which you want to deploy the Application Database, and the
-    number of :opsmgrkube:`members <spec.applicationDatabase.clusterSpecList.clusterName.members>`
+    number of :opsmgrkube:`members <spec.applicationDatabase.clusterSpecList.members>`
     (MongoDB nodes) in each |k8s| member cluster.
 
   .. note::

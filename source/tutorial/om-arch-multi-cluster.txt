@@ -1,0 +1,144 @@
+.. _om-multi-k8s:
+
+====================================
+Multi-Cluster |onprem| Architecture
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This section describes specific considerations for deploying the |application|
+and the Application Database on multiple |k8s| clusters, where you set
+:opsmgrkube:`spec.topology` and :opsmgrkube:`spec.applicationDatabase.topology`
+to ``MultiCluster``.
+
+This section addresses the following areas:
+
+- :ref:`Single- and Multi-Cluster Mode <mode-multi-or-single>`
+- :ref:`Limitations <om-multi-k8s-limitations>`
+- :ref:`Differences between Single and Multi-cluster Deployments <multi-vs-single-om-diffs>`
+
+.. note::
+
+  For actual deployment steps, see :ref:`deploy-om-multi-cluster`.
+
+.. _mode-multi-or-single:
+
+Single- and Multi-Cluster Mode
+-------------------------------
+
+The following settings in the :ref:`k8s-om-specification` define the mode
+in which you deploy the |application| and the Application Database custom
+resources:
+
+- Multi-cluster mode. To deploy the |application| and the Application Database
+  on multiple |k8s| clusters, set :opsmgrkube:`spec.topology` and
+  :opsmgrkube:`spec.applicationDatabase.topology` to ``MultiCluster``.
+
+  If you define :opsmgrkube:`spec.topology` and :opsmgrkube:`spec.applicationDatabase.topology`
+  as ``MultiCluster``, this allows you to begin with a single-member |k8s| cluster
+  and scale your multi-cluster deployment as needed. In particular:
+
+  - You can create a deployment in a multi-cluster mode that has only one member cluster.
+  - You can have the replica set of a minimum 3 |mongod| processes for the
+    Application Database deployed on a single member cluster in a multi-cluster
+    mode. To increase resilience of the Application Database, you can expand
+    the replica set to span across multiple |k8s| clusters and redeploy
+    the configuration.
+
+  - You can have a single |application| instance deployed on a single member
+    cluster in a multi-cluster mode. To increase resilience of the |application|,
+    you can add more |k8s| clusters, add the |application| instances on them
+    and redeploy the configuration.
+
+- Single cluster mode. To deploy the |application| and the Application Database
+  on a single |k8s| cluster, omit specifying the values for the following
+  settings, or set :opsmgrkube:`spec.topology` and
+  :opsmgrkube:`spec.applicationDatabase.topology` to ``SingleCluster``.
+
+.. _om-multi-k8s-limitations:
+
+Limitations
+------------
+
+Deploying the |application| and the Application Database on multiple |k8s|
+clusters has the following limitations:
+
+- You can't change the topology of an existing |onprem| deployment from
+  single to multi-cluster. You can set :opsmgrkube:`spec.topology` and
+  :opsmgrkube:`spec.applicationDatabase.topology` to ``MultiCluster``
+  only for new deployments of the |application|.
+
+- You can't use the |k8s-op-short| to deploy the |application| and the
+  Application Database without a service mesh. To learn more, see
+  :ref:`om-service-mesh`.
+
+- You can't use |hashicorp-vault| in any multi-cluster |k8s| deployments.
+  This includes multi-cluster deployments of |onprem| resources,
+  the Application Database resources, and |mongodb-multis|.
+
+.. _multi-vs-single-om-diffs:
+
+Differences between Single and Multi-Cluster |onprem| Deployments
+------------------------------------------------------------------
+
+The following table lists the differences between single and multi-|k8s|
+cluster deployments of the |application| and the Application Database.
+All other features not listed in this table are equivalent for single and
+multi-cluster deployments.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 20 30
+
+   * - Capability or Requirement
+     - Single-Cluster Deployment
+     - Multi-Cluster Deployment
+
+   * - You must install the |k8s-op-short| in the same cluster as the |application|
+       and the Application Database.
+     - Yes
+     - No. The operator cluster can also host the |application|, the
+       Application Database and the Backup Daemon. To learn more,
+       see :ref:`om-multi-k8s-diagram`.
+
+   * - You must configure the |k8s-op-short| for :ref:`single or multi-cluster mode <mode-multi-or-single>`.
+     - No.
+     - Yes
+
+   * - :ref:`Service mesh is required <om-service-mesh>` for |k8s| clusters
+       hosting the |application| and the Application Database.
+     - No
+     - Yes
+
+   * - Alternative Secret Storage (|hashicorp-vault|) is supported.
+     - Yes
+     - No. To learn more, see :ref:`om-multi-k8s-limitations`.
+
+   * - All backup mechanisms are supported.
+     - Yes
+     - No. Only |s3|-compatible Oplog and snapshot storage backups are supported.
+       To learn more, see :opsmgrkube:`spec.clusterSpecList[*].backup`.`
+
+   * - |kmip| encryption
+     - Yes
+     - With :ref:`limitations <kmip-limitations>`.
+
+Use the following resources to help you learn about the architecture and
+performance of a multi-|k8s| cluster deployment, and to configure networking:
+
+- :ref:`Architecture Diagram <om-multi-k8s-diagram>`
+- :ref:`Networking, Load Balancer, Service Mesh <om-nw-lb-mesh>`
+- :ref:`Performance <om-performance>`
+
+.. toctree::
+   :titlesonly:
+
+   Diagram </tutorial/om-diagram-multi-cluster>
+   Networking, Load Balancing, Service Mesh </tutorial/om-nw-lb-mesh-multi-cluster>
+   Performance </tutorial/om-perf-multi-cluster>
