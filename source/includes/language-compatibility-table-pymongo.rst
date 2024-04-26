@@ -18,7 +18,7 @@ Python 3
      - CPython 3.4
      - PyPy3
 
-   * - 4.5 to 4.6
+   * - 4.5 to 4.7
      - ✓
      - ✓
      - ✓

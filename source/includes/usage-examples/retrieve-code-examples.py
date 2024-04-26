@@ -10,7 +10,7 @@ for document in results:
     print(document)
 # end-find
 # start-count-all
-count = collection.count_documents()
+count = collection.count_documents({})
 
 print(count)
 #end-count-all
