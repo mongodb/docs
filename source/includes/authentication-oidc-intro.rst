@@ -3,5 +3,5 @@
 allows authentication using OIDC. To authenticate with  `OIDC
 <https://openid.net/>`__, you must first register your |oidc|
 or OAuth application with an |idp| that supports |oidc| standard,
-such as as :abbr:`Azure AD (Azure Active Directory)`, Okta, and Ping
+such as as |azure-ad|, Okta, and Ping
 Identity.
