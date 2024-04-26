@@ -17,10 +17,6 @@
      - `RFC 5802 <https://tools.ietf.org/html/rfc5802>`_ standard 
        Salted Challenge Response Authentication Mechanism using the 
        SHA-256 hash function.
-
-   * - :ref:`MONGODB-CR <4.0-mongodb-cr>`
-   
-     - MongoDB challenge/response authentication.
    
    * - :ref:`MONGODB-X509 <security-auth-x509>`
    
