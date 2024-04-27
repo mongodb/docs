@@ -380,8 +380,8 @@ Backup
   
      On Windows, :doc:`queryable restores </tutorial/query-backup/>`
      work on MongoDB 3.2, 3.4, and 3.6 snapshots once the |onprem|
-     :opsmgr:`Backup Daemon </reference/glossary/#std-term-backup-daemon>` can access
-     :ref:`MongoDB 3.4.11 <3.4.11-changelog>` or later.
+     :opsmgr:`Backup Daemon </reference/glossary/#std-term-backup-daemon>`
+     can access MongoDB 3.4.11 or later.
 
 - Added support for IBM Cloud Object Storage and DellEMC Elastic Cloud
   Storage for S3 blockstore snapshot storage
