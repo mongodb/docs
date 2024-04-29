@@ -8,4 +8,4 @@
       from the :guilabel:`Projects` menu in the navigation bar.
 
    #. In the left-hand menu, click :guilabel:`Network Access` under 
-      the :guilabel:`SECURITY` heading.
+      the :guilabel:`Security` heading.
