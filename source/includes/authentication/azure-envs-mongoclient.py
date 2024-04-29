@@ -3,7 +3,7 @@ from azure.identity import DefaultAzureCredential
 from pymongo.auth_oidc import OIDCCallback, OIDCCallbackContext, OIDCCallbackResult
          
 # define callback, properties, and MongoClient
-audience = "<audience configured on the MongoDB deployment>"
+audience = "<audience>"
 client_id = "<Azure client ID>"
 class MyCallback(OIDCCallback):
     def fetch(self, context: OIDCCallbackContext) -> OIDCCallbackResult:
