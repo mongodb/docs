@@ -5,4 +5,5 @@ MongoDB deployments.
 X.509 client authentication requires one of the following:
 
 - |cloud-short|
-- |onprem| 5.0.7 or later
+- |onprem| version :ref:`compatible <k8s-onprem-version-compatibility>` with
+  your |k8s-op-short| version.
