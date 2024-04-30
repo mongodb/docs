@@ -182,20 +182,6 @@ following parameters:
   operation to write its output. By default this will be the same
   database as the input collection.
 
-- ``sharded``:
-
-  .. note::
-
-     Starting in version 4.2, the use of the ``sharded`` option is
-     deprecated.
-
-  Optional. If ``true`` *and* you have enabled sharding on output
-  database, the map-reduce operation will shard the output collection
-  using the ``_id`` field as the shard key.
-
-  If ``true`` and ``collectionName`` is an existing unsharded collection,
-  map-reduce fails.
-
 Output Inline
 ~~~~~~~~~~~~~~
 

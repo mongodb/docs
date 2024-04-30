@@ -8,10 +8,9 @@ encryption rules specified :autoencryptkeyword:`encrypt` or
 ``medicalRecords.additionalItems``, automatic field level encryption
 fails and returns an errors.
 
-The official MongoDB 4.2+ compatible drivers, :binary:`~bin.mongosh`,
-and the 4.2 or later legacy ``mongo`` shell require specifying the 
-automatic encryption rules as part of creating the database connection 
-object:
+The official MongoDB drivers, :binary:`~bin.mongosh`, and the legacy ``mongo`` 
+shell require specifying the automatic encryption rules as part of creating the 
+database connection object:
 
 - For ``mongosh``, use the :method:`Mongo()`
   constructor to create a database connection. Specify the automatic
@@ -20,10 +19,9 @@ object:
   :ref:`mongo-connection-automatic-client-side-encryption-enabled`
   for a complete example.
 
-- For the official MongoDB 4.2+ compatible drivers, use the
-  driver-specific database connection constructor (``MongoClient``)
-  to create the database connection with the automatic encryption rules
-  included as part of the {+qe+}
+- For the official MongoDB drivers, use the driver-specific database connection 
+  constructor (``MongoClient``) to create the database connection with the 
+  automatic encryption rules included as part of the {+qe+}
   configuration object. Defer to the :ref:`driver API reference
   <csfle-driver-tutorials>` for more complete documentation and
   tutorials.
