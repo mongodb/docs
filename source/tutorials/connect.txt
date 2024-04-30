@@ -84,13 +84,109 @@ when running multiple concurrent operations.
    - To dispose of an instance, call the ``MongoClient.close()`` method
      to clean up resources.
 
-Connect to a Standalone MongoDB Deployment
-------------------------------------------
+Connection URI
+--------------
 
-The following example shows several ways to connect to a single
-MongoDB deployment.
+The **connection URI** provides a set of instructions that the driver uses to
+connect to a MongoDB deployment. It instructs the driver on how it should
+connect to MongoDB and how it should behave while connected. The following
+figure explains each part of a sample connection URI:
 
-You can connect to a single MongoDB deployment in the following ways:
+.. figure:: /includes/dns_seedlist_connection_string_parts.png
+   :alt: An example of a connection string that demonstrates the protocol, credentials, hostname or IP, port, and connection options
+
+In this example, you connect to an Atlas MongoDB deployment that has a
+DNS SRV record. For more details, see the :manual:`DNS Seed List
+Connection Format
+</reference/connection-string/#dns-seed-list-connection-format>`
+documentation. This format offers flexibility in deployment and the
+ability to change the servers in rotation without reconfiguring clients.
+
+.. note::
+
+   If your deployment is on MongoDB Atlas, see the
+   :atlas:`Atlas driver connection guide </driver-connection/>`
+   and select :guilabel:`Scala` from the language dropdown to retrieve your connection
+   string.
+
+If you are connecting to an instance or replica set that does not have a 
+DNS SRV address, you must use ``mongodb`` for the protocol, which specifies 
+the :manual:`Standard Connection String Format 
+</reference/connection-string/#std-label-connections-standard-connection-string-format>`.
+
+After the protocol, the connection string contains your
+credentials if you are using a password-based authentication mechanism.
+Replace the value of ``user`` with your username and ``pass`` with your
+password. If your authentication mechanism does not require credentials,
+omit this part of the connection URI.
+
+The next part of the connection URI specifies the hostname or IP
+address, followed by the port of your MongoDB instance. In the example,
+``sample.host`` represents the hostname and ``27017`` is the port number.
+Replace these values to refer to your MongoDB instance.
+
+The last part of the connection URI contains connection options as parameters.
+The example sets two connection options: ``maxPoolSize=20`` and
+``w=majority``.
+
+Connect to MongoDB Atlas
+------------------------
+
+You can use the following connection snippet to test your connection to
+your MongoDB deployment on Atlas:
+
+.. code-block:: scala
+   :emphasize-lines: 14
+
+   import com.mongodb.{ServerApi, ServerApiVersion}
+   import org.mongodb.scala.{ConnectionString, MongoClient, MongoClientSettings}
+   import org.mongodb.scala.bson.Document
+   
+   import scala.concurrent.Await
+   import scala.concurrent.duration.DurationInt
+   import scala.util.Using
+   
+   object MongoClientConnectionExample {
+   
+     def main(args: Array[String]): Unit = {
+   
+       // Replace the placeholder with your Atlas connection string
+       val connectionString = "<connection string>";
+   
+       // Construct a ServerApi instance using the ServerApi.builder() method
+       val serverApi = ServerApi.builder.version(ServerApiVersion.V1).build()
+   
+       val settings = MongoClientSettings
+         .builder()
+         .applyConnectionString(ConnectionString(connectionString))
+         .serverApi(serverApi)
+         .build()
+       
+       // Create a new client and connect to the server
+       Using(MongoClient(settings)) { mongoClient =>
+         // Send a ping to confirm a successful connection
+         val database = mongoClient.getDatabase("admin")
+         val ping = database.runCommand(Document("ping" -> 1)).head()
+   
+         Await.result(ping, 10.seconds)
+         System.out.println("Pinged your deployment. You successfully connected to MongoDB!")
+       }
+     }
+   }
+
+This connection snippet uses the Stable API feature, which you can
+enable when using the {+driver-short+} v4.3 and later to connect to MongoDB
+Server v5.0 and later. When you use this feature, you can update your
+driver or server without worrying about backward compatibility issues
+with any commands covered by the Stable API.
+
+To learn more about the Stable API feature, see
+:manual:`Stable API </reference/stable-api/>` in the Server manual.
+
+Connect to a Local MongoDB Deployment
+-------------------------------------
+
+You can connect to a local MongoDB deployment in the following ways:
 
 - Instantiate a ``MongoClient`` object without any parameters to
   connect to a MongoDB server running on localhost on port ``27017``:
