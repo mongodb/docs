@@ -1,0 +1,229 @@
+.. _oidc-authentication-workforce:
+
+================================================================
+Set up {+wif+} (Humans) with OIDC
+================================================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: connect
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+In MongoDB 7.0 and later, you can manage your workforce access to
+MongoDB by authenticating to your own |idp| supporting OpenID Connect (|oidc|). 
+
+With {+wif+}, you can:
+
+- Manage your workforce access to MongoDB deployments through your
+  existing |idp|.
+- Enforce security policies such as password complexity, credential
+  rotation, and |mfa| within your |idp|.
+- Authenticate for a :ref:`group of users or a single user <authenticate-group-user>`.
+
+You can use {+wif+} with |oidc| for database access. 
+
+You can enable one |oidc| |idp-full| for multiple organizations. When 
+you enable |oidc| |idp-full| in an organization, you can use it in all
+projects in that organization for database access.
+
+Required Access
+---------------
+
+To manage |oidc| configuration, you must have
+:authrole:`Organization Owner` access to |service|.
+
+Prerequisites
+-------------
+
+To manage user authentication and authorization using |oidc| in
+|service|, you must :ref:`map one or more domains to your Identity
+Provider <atlas-manage-fed-domain-map>`.
+
+Procedures
+----------
+
+.. important::
+
+   You configure {+wif+} in two stages. To link your |idp| to |service|:
+
+   - Configure your |idp| and save its metadata.
+   - Set the metadata from your |idp| to |service|.
+
+Configure OIDC Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note:: Prerequisite
+
+   This procedure requires you to have :authrole:`Organization Owner`
+   access and assumes you already have an |oidc| or OAuth2 application
+   created in your |idp|. To learn
+   how to configure an |idp|, see :ref:`configure-idp-oidc`.
+
+You can configure {+wif+} with |oidc| for database access in |service|
+from the :guilabel:`Federation Management Console`.
+
+Use the :guilabel:`Federation Management Console` to:
+
+- Configure :guilabel:`Identity Providers` to authenticate users
+  belonging to specified organizations.
+- Connect |service| :guilabel:`Organizations` to your |idp|.
+
+To configure an |oidc| |idp-full| in |service|:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Open the Federation :guilabel:`Overview` tab.
+  
+   .. step:: Click :guilabel:`Begin`.
+   
+      Click the :guilabel:`Begin` button to the right of :guilabel:`Workforce Identity Federation`.
+
+   .. step:: Add and verify domain ownership.
+
+      a. Click the :guilabel:`Add Domain` button.
+
+      #. Enter a display name in the :guilabel:`Display Name` box. 
+
+      #. Enter a domain name in the :guilabel:`Domain Name` box. 
+
+      #. Select the method you would like to use to verify that you are the owner
+         of your domain by clicking either the :guilabel:`HTML File Upload` or 
+         :guilabel:`DNS Record` button.
+
+      #. If you selected :guilabel:`HTML File Upload`, download the provided 
+         HTML file and upload it to your domain so that it is accessible at 
+         ``https://<your-domain/mongodb-site-verification.html>``.
+
+      #. If you selected :guilabel:`DNS Record`, copy the provided ``TXT Record``, 
+         and upload it to your domain provider. 
+
+      #. Click :guilabel:`Continue`.
+
+      #. Finally, in the :guilabel:`Domains` page, click the :guilabel:`Verify` 
+         button for your newly added domain.
+
+   .. step:: Configure identify providers.
+      
+      Do one of the following steps:
+      
+      - If you do not have any Identity Providers configured yet, click
+        :guilabel:`Setup Identity Provider`.
+      - Otherwise, on the :guilabel:`Identity Providers` screen, click
+        :guilabel:`Configure Identity Provider(s)`.
+
+   .. step:: Enter the following |oidc| Protocol Settings.
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 30 10 60
+         :stub-columns: 1
+
+         * - Setting
+           - Necessity
+           - Value
+
+         * - :guilabel:`Configuration Name`
+           - Required
+           - Human-readable label that identifies this configuration.
+
+         * - :guilabel:`Configuration Description`
+           - Optional
+           - Human-readable label that describes this configuration.
+
+         * - :guilabel:`Issuer URI`
+           - Required
+           - Issuer value provided by your registered |idp| application.
+             Using this URI, MongoDB finds an OpenID Provider Configuration
+             Document, which should be available in the
+             ``/.wellknown/open-id-configuration`` endpoint. 
+
+         * - :guilabel:`Client ID`
+           - Required
+           - Unique identifier for your registered application. Enter
+             the ``clientId`` value from the app you registered
+             with |oidc| |idp-full|.
+
+         * - Audience
+           - Required
+           - Entity that your |oidc| provider intends the token for. Enter
+             the ``audience`` value from the app you registered
+             with |oidc| |idp-full|.
+
+         * - Authorization Type
+           - Required
+           - Select ``Group Membership`` to grant authorization based on group 
+             membership, or select ``User ID`` to grant an individual 
+             user authorization.
+      
+         * - :guilabel:`Requested Scopes`
+           - Optional
+           - Tokens that give users permission to request data
+             from the authorization endpoint.
+
+             For each additional scope you
+             want to add, click :guilabel:`Add more scopes`.
+
+         * - :guilabel:`User Claim`
+           - Required
+           - Identifier of the claim that includes the user principal
+             identity. Accept the default value unless your |idp| uses a
+             different claim.
+          
+             *Default*: ``sub``
+
+         * - :guilabel:`Groups Claim`
+           - Required
+           - Identifier of the claim that includes the principal's |idp|
+             user group membership information. Accept the default value
+             unless your |idp| uses a different claim, or you need a custom 
+             claim. This field is only required if you select 
+             ``Groups Membership``.
+         
+             *Default*: ``groups``
+
+   .. step:: Click :guilabel:`Save and Finish`.
+   .. step:: Associate at least one domain to your OIDC |idp|.
+
+      a. In your |oidc| card, click :guilabel:`Associate Domains`.
+      
+      #. In the :guilabel:`Associate Domains with Identity Provider` modal,
+         select one or more domains.
+      
+      #. Click :guilabel:`Submit`.
+
+   .. step:: Enable your |oidc| |idp-full| in an organization.
+
+      a. Click :guilabel:`Connect Organizations`.
+
+      #. For the organization you want to connect to |oidc|, click
+            :guilabel:`Configure Access`.
+
+      #. Click :guilabel:`Connect Identity Provider`.
+      
+         .. note::
+
+            If you have another |idp| configured, this button says
+            :guilabel:`Connect Identity Provider(s)`.
+
+   .. step:: Select :guilabel:`OIDC for Data Access`.
+   
+      In the :guilabel:`Connect Identity Provider(s)` modal, select  an 
+      OIDC Identity Provider where the :guilabel:`Purpose` is 
+      :guilabel:`Workforce Identity Federation`.
+
+   .. step:: Click :guilabel:`Connect`.
+
+      When you connect your |oidc| |idp-full| to an organization, |service|
+      enables |oidc| for all the projects within that organization.
+
+Add a Database User using OIDC Authentication
+---------------------------------------------
+
+.. include:: /includes/steps/create-oidc-user.rst

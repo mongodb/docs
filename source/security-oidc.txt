@@ -1,8 +1,8 @@
 .. _oidc-authentication-authorization:
 
-================================================
-Set up {+wif+} with OIDC
-================================================
+===============================================================
+Set Up User Authentication and Authorization with OIDC/OAuth2.0
+===============================================================
 
 .. default-domain:: mongodb
 
@@ -15,21 +15,35 @@ Set up {+wif+} with OIDC
    :depth: 2
    :class: singlecol
 
-In MongoDB 7.0 and later, you can manage your workforce access to
-MongoDB by federating to your own |idp| supporting OpenID Connect (|oidc|). 
+You can authenticate and authorize access to |service| for both employees 
+and applications with your own identity provider supporting |oidc|. 
+You can configure user access with {+wif+}, and you can configure application 
+access with {+workload+}. See the following table for a comparison of the
+|oidc| access options.
 
-With {+wif+}, you can:
+.. list-table:: 
+   :header-rows: 1
+   :widths: 25 25 25 25
 
-- Manage your workforce access to MongoDB deployments through your
-  existing |idp|.
-- Enforce security policies such as password complexity, credential
-  rotation, and |mfa| within your |idp|.
+   * - Authentication method
+     - User type
+     - Access type
+     - Supported protocols
 
-Currently, you can only use {+wif+} with |oidc| for database access. 
+   * - Workforce Identity Federation
+     - Human users
+     - Atlas UI Access, Database Access
+     - OIDC, SAML
 
-You can enable one |oidc| |idp| for multiple organizations. When 
-you enable |oidc| |idp| in an organization, you can use it in all
-projects in that organization for database access.
+   * - Workload Identity Federation
+     - Programmatic users
+     - Database Access
+     - OAuth2.0
+     
+Select the authentication method to learn more:
+
+- :ref:`{+wif+} (Humans) <oidc-authentication-workforce>`
+- :ref:`{+workload+} (Applications) <oidc-authentication-workload>`
 
 Required Access
 ---------------
@@ -53,6 +67,46 @@ Procedures
 
    - Configure your |idp| and save its metadata.
    - Set the metadata from your |idp| to |service|.
+
+.. _authenticate-group-user:
+
+Authenticate for a User or Group of Users
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For both {+workload+} and {+wif+}, you can grant authorization for 
+either a group of users who will each have the same permissions, or for a 
+single user. 
+
+Complete the following steps to create an |oidc| entry for multiple users with 
+the same permissions: 
+
+.. procedure:: 
+   :style: normal
+
+   .. step:: Select :guilabel:`Group Membership`. 
+             
+      Select the :guilabel:`Group Membership` option in the 
+      :guilabel:`Configure Identity Provider` flow.
+   
+   .. step:: Update the :guilabel:`Group Claim` and the :guilabel:`User Claim`.
+             
+      Update the :guilabel:`Group Claim` and the :guilabel:`User Claim` default 
+      values of ``group`` and ``sub`` respectively as needed to align with 
+      your externally configured |oidc| provider.
+
+Complete the following steps to create an |oidc| entry for a single user:
+
+.. procedure:: 
+   :style: normal
+
+   .. step:: Select :guilabel:`User ID`. 
+
+      Select the :guilabel:`User ID` option in the :guilabel:`Configure Identity Provider` flow.
+
+   .. step:: Update the :guilabel:`User Claim`.
+
+      Update the :guilabel:`User Claim` default value of ``sub`` as needed to 
+      align with your externally configured |oidc| provider. 
 
 .. _configure-idp-oidc:
 
@@ -111,187 +165,6 @@ Configure Microsoft Entra ID as an Identity Provider
 
 .. _apply-oidc-idp:
 
-Configure OIDC Authentication
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. note:: Prerequisite
-
-   This procedure requires you to have :authrole:`Organization Owner`
-   access and assumes you already have an |oidc| or OAuth2 application
-   created in your |idp|. To learn
-   how to configure an |idp|, see :ref:`configure-idp-oidc`.
-
-You can configure {+wif+} with |oidc| for database access in |service|
-from the :guilabel:`Federation Management Console`.
-
-Use the :guilabel:`Federation Management Console` to:
-
-- Configure :guilabel:`Identity Providers` to authenticate users
-  belonging to specified organizations.
-- Connect |service| :guilabel:`Organizations` to your |idp|.
-
-To configure an |oidc| |idp| in |service|:
-
-.. procedure::
-   :style: normal
-
-   .. step:: Open the Management Console.
-
-      .. include:: /includes/steps/open-fed-auth-console.rst
-  
-   .. step:: Click :guilabel:`Configure Identity Providers`.
-
-   .. step:: If you do not have any Identity Providers configured yet, click
-             :guilabel:`Setup Identity Provider`. Otherwise, on the
-             :guilabel:`Identity Providers` screen, click
-             :guilabel:`Configure Identity Provider(s)`.
-
-   .. step:: Enter the following |oidc| Protocol Settings.
-
-      .. list-table::
-         :header-rows: 1
-         :widths: 30 10 60
-         :stub-columns: 1
-
-         * - Setting
-           - Necessity
-           - Value
-
-         * - :guilabel:`Configuration Name`
-           - Required
-           - Human-readable label that identifies this configuration.
-
-         * - :guilabel:`Configuration Description`
-           - Optional
-           - Human-readable label that describes this configuration.
-
-         * - :guilabel:`Issuer URI`
-           - Required
-           - Issuer value provided by your registered |idp| application.
-             Using this URI, MongoDB finds an OpenID Provider Configuration
-             Document, which should be available in the
-             ``/.wellknown/open-id-configuration`` endpoint. 
-
-         * - :guilabel:`Client ID`
-           - Required
-           - Unique identifier for your registered application. Enter
-             the ``clientId`` value from the app you registered
-             with |oidc| |idp|.
-
-         * - Audience
-           - Required
-           - Entity that your |oidc| provider intends the token for. Enter
-             the ``audience`` value from the app you registered
-             with |oidc| |idp|.
-      
-         * - :guilabel:`Requested Scopes`
-           - Optional
-           - Tokens that give users permission to request data
-             from the authorization endpoint.
-
-             For each additional scope you
-             want to add, click :guilabel:`Add more scopes`.
-
-         * - :guilabel:`User Claim`
-           - Required
-           - The identifier of the claim that includes the user principal
-             identity. Accept the default value unless your |idp| uses a
-             different claim.
-          
-             *Default*: ``sub``
-
-         * - :guilabel:`Groups Claim`
-           - Required
-           - The identifier of the claim that includes the principal's |idp|
-             user group membership information. Accept the default value
-             unless your |idp| uses a different claim, or you need a custom 
-             claim. 
-         
-             *Default*: ``groups``
-
-   .. step:: Click :guilabel:`Finish`.
-   .. step:: Associate at least one domain to your OIDC |idp|.
-
-      .. procedure::
-         :style: connected
-
-         .. step:: In your |oidc| card, click :guilabel:`Associate Domains`.
-
-         .. step:: In the :guilabel:`Associate Domains with Identity Provider` modal,
-            select one or more domains.
-
-         .. step:: Click :guilabel:`Submit`.
-
-   .. step:: Enable your |oidc| |idp| in an organization.
-
-      .. procedure::
-         :style: connected
-
-         .. step:: Click :guilabel:`Connect Organizations`.
-
-         .. step:: For the organization you want to connect to |oidc|, click
-            :guilabel:`Configure Access`.
-
-         .. step:: Click :guilabel:`Connect Identity Provider`.
-      
-            .. note::
-
-               If you have another |idp| configured, this button says
-               :guilabel:`Connect Identity Provider(s)`.
-
-   .. step:: In the :guilabel:`Connect Identity Provider(s)` modal, select a
-      row where the :guilabel:`Type` is :guilabel:`OIDC for Data
-      Access`.
-
-   .. step:: Click :guilabel:`Connect`.
-
-      When you connect your |oidc| |idp| to an organization, |service|
-      enables |oidc| for all the projects within that organization.
-
-Configure OIDC Authorization
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-|service| clusters grant access to users authenticating with your |oidc|
-|idp| by using the token issued by your |idp|. MongoDB expects that the
-following claims exist in the access token:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 10 90
-   :stub-columns: 1
-
-   * - Claim
-     - Description
-
-   * - ``iss`` 
-     - Identifies the token issuer, such as a registered OIDC or OAuth
-       application.
-
-   * - ``sub`` 
-     - Identifier of the principal in your |idp|. This value appears in
-       database access logs as the user identifier.
-   
-   * - ``aud`` 
-     - Identifies the intended consumer of the token. This value should
-       match the ``audience`` value set during the |oidc| |idp|
-       configuration in |service|.
- 
-   * - ``iat`` 
-     - Time at which your |idp| issued the token.
- 
-   * - ``exp`` 
-     - Time at which the token expires. 
- 
-   * - ``groups`` 
-     - Custom claim that includes user group membership information.
-       |oidc| used this information for authorization.
-
-
-After you :ref:`enable OIDC IdP for your Organization in Atlas
-<apply-oidc-idp>`, set up authorization for |idp| groups:
-
-.. include:: /includes/steps/create-oidc-user.rst
-
 Delete OIDC Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -300,7 +173,7 @@ To delete your |oidc| configuration, you must:
 .. procedure::
    :style: normal
 
-   .. step:: Disconnect each organization you connected to your |oidc| |idp|.
+   .. step:: Disconnect each organization you connected to your |oidc| |idp-full|.
 
       .. procedure::
          :style: connected
@@ -336,7 +209,7 @@ Revoke JWKS
 .. note::
    
    Don't use this feature to rotate your signing keys. When you rotate 
-   your |oidc| |idp| signing keys, MongoDB fetches the JWKS automatically
+   your |oidc| |idp-full| signing keys, MongoDB fetches the JWKS automatically
    upon expiration of the existing access tokens.
 
 If your private key is compromised, you can immediately revoke your JSON
@@ -360,3 +233,10 @@ Web Key Sets (JWKS) cached in MongoDB nodes:
       After you click :guilabel:`Revoke`, MongoDB fetches the new keys
       through your JWKS endpoint. You must restart your clients (such as
       MongoDB Shell or Compass) after revoking JWKS. 
+
+
+.. toctree::
+   :titlesonly:
+
+   Workforce (Humans) </workforce-oidc>
+   Workload (Applications) </workload-oidc>

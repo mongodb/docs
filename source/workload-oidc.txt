@@ -1,0 +1,166 @@
+.. _oidc-authentication-workload:
+
+======================================================================
+Set up {+workload+} (Applications) with OIDC/OAuth2.0
+======================================================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: connect
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can manage your workload access with your own |idp| supporting OAuth2.0.
+
+With {+workload+}, you can:
+
+- Manage your workload access to MongoDB deployments through your
+  existing |idp|.
+- Enforce security policies such as password complexity, credential
+  rotation, and |mfa| within your |idp|.
+- Authenticate for a :ref:`group of users or a single user <authenticate-group-user>`.
+
+You can use {+workload+} Identity Federation with OAuth2.0 for database access. 
+
+You can enable any number of |oidc| |idps-full| for one or more organizations. When 
+you enable an |oidc| |idp-full| in an organization, you can use it in all
+projects in that organization for database access.
+
+Required Access
+---------------
+
+To manage |oidc| configuration, you must have
+:authrole:`Organization Owner` access to |service|.
+
+Procedures
+----------
+
+.. important::
+
+   You configure {+workload+} in two stages. To link your |idp| to |service|:
+
+   - Configure your |idp| and save its metadata.
+   - Set the metadata from your |idp| to |service|.
+
+Configure OIDC Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note:: Prerequisite
+
+   This procedure requires you to have :authrole:`Organization Owner`
+   access and assumes you already have an |oidc| or OAuth2 application
+   created in your |idp|. To learn
+   how to configure an |idp|, see :ref:`configure-idp-oidc`.
+
+You can configure {+workload+} with |oidc| for database access in |service|
+from the :guilabel:`Federation Management Console`.
+
+Use the :guilabel:`Federation Management Console` to:
+
+- Configure :guilabel:`Identity Providers` to authenticate users
+  belonging to specified organizations.
+- Connect |service| :guilabel:`Organizations` to your |idp|.
+
+To configure an |oidc| |idp-full| in |service|:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Open the Federation :guilabel:`Overview` tab.
+  
+   .. step:: Click :guilabel:`Begin`.
+   
+      Click the :guilabel:`Begin` button to the right of :guilabel:`Workload Identity Federation`.
+
+   .. step:: Enter the following |oidc| Protocol Settings.
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 30 10 60
+         :stub-columns: 1
+
+         * - Setting
+           - Necessity
+           - Value
+
+         * - :guilabel:`Configuration Name`
+           - Required
+           - Human-readable label that identifies this configuration.
+
+         * - :guilabel:`Configuration Description`
+           - Optional
+           - Human-readable label that describes this configuration.
+
+         * - :guilabel:`Issuer URI`
+           - Required
+           - Issuer value provided by your registered |idp| application.
+             Using this URI, MongoDB finds an OpenID Provider Configuration
+             Document, which should be available in the
+             ``/.wellknown/open-id-configuration`` endpoint. 
+
+         * - Audience
+           - Required
+           - Entity that your |oidc| provider intends the token for. Enter
+             the ``audience`` value from the app you registered
+             with |oidc| |idp-full|.
+
+         * - Authorization Type
+           - Required
+           - Select ``Group Membership`` to grant authorization based on group 
+             membership, or select ``User ID`` to grant an individual 
+             user authorization.
+
+         * - :guilabel:`Groups Claim`
+           - Required
+           - Identifier of the claim that includes the principal's |idp|
+             user group membership information. Accept the default value
+             unless your |idp| uses a different claim, or you need a custom 
+             claim. This field is only required if you select 
+             ``Groups Membership``.
+         
+             *Default*: ``groups``
+
+         * - :guilabel:`User Claim`
+           - Required
+           - Identifier of the claim that includes the user principal
+             identity. Accept the default value unless your |idp| uses a
+             different claim. 
+          
+             *Default*: ``sub``
+
+   .. step:: Click :guilabel:`Save and Finish`.
+
+   .. step:: Enable your |oidc| |idp-full| in an organization.
+
+      a. Click :guilabel:`Connect Organizations`.
+      
+      #. For the organization you want to connect to |oidc|, click
+         :guilabel:`Configure Access`.
+         
+      #. Click :guilabel:`Connect Identity Provider`.
+      
+         .. note::
+         
+            If you have another |idp| configured, this button says
+            :guilabel:`Connect Identity Provider(s)`.
+
+   .. step:: Select an |oidc| |idp-full|.
+   
+      In the :guilabel:`Connect Identity Provider(s)` modal, select
+      an |oidc| |idp-full| where the :guilabel:`Purpose` is 
+      :guilabel:`Workload Identity Federation`.
+
+   .. step:: Click :guilabel:`Connect`.
+
+      When you connect your |oidc| |idp-full| to an organization, |service|
+      enables |oidc| for all the projects within that organization.
+
+Add a Database User using OIDC Authentication
+---------------------------------------------
+
+.. include:: /includes/steps/create-oidc-user.rst
