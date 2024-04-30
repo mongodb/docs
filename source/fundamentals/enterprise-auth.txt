@@ -10,6 +10,13 @@ Enterprise Authentication Mechanisms
    :depth: 2
    :class: singlecol
 
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: ldap, encryption, principal, tls
+
 Overview
 --------
 
@@ -22,12 +29,12 @@ Enterprise Edition:
 
 - :ref:`Kerberos (GSSAPI) <gssapi-auth-mechanism>`
 - :ref:`LDAP (PLAIN) <plain-auth-mechanism>`
+- :ref:`MONGODB-OIDC <mongodb-oidc>`
 
 To authenticate using another mechanism, see the
 :doc:`Authentication Mechanisms guide </fundamentals/auth>`. For more
 information on establishing a connection to your MongoDB cluster, read our
 :doc:`Connection Guide </fundamentals/connection>`.
-
 
 Specify an Authentication Mechanism
 -----------------------------------
@@ -280,3 +287,160 @@ mechanism:
       method. The code to instantiate a ``MongoClient`` resembles the following:
 
       .. include:: /includes/fundamentals/code-snippets/auth-credentials-ldap.rst
+
+.. _mongodb-oidc:
+
+MONGODB-OIDC
+~~~~~~~~~~~~
+
+.. important::
+
+   The MONGODB-OIDC authentication mechanism requires {+mdb-server+} v7.0 or later running
+   on a Linux platform.
+
+The following sections describe how to use the MONGODB-OIDC authentication mechanism to
+authenticate to various platforms.
+
+For more information about the MONGODB-OIDC authentication mechanism, see
+:manual:`OpenID Connect Authentication </core/security-oidc/>` and
+:manual:`MongoDB Server Parameters </reference/parameters/#mongodb-parameter-param.oidcIdentityProviders>`
+in the MongoDB Server manual.
+
+.. _java-mongodb-oidc-azure-imds:
+
+Azure IMDS
+++++++++++
+
+If your application runs on an Azure VM, or otherwise uses the
+`Azure Instance Metadata Service <https://learn.microsoft.com/en-us/azure/virtual-machines/instance-metadata-service>`__
+(IMDS), you can authenticate to MongoDB by using the {+driver-short+}'s built-in Azure
+support.
+
+You can specify Azure IMDS OIDC authentication either by 
+using a ``MongoCredential`` or as part of the connection string. Select the 
+:guilabel:`Connection String` or :guilabel:`MongoCredential` tab to
+see the corresponding syntax.
+
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: mongodb-azure-imds-connection-string
+    
+      Replace the ``<percent-encoded audience>`` placeholder with the percent-encoded
+      value of the ``audience`` server parameter configured on your MongoDB deployment.
+     
+      .. code-block:: java
+         
+         MongoClient mongoClient = MongoClients.create(
+            "mongodb://<username>@<hostname>:<port>/?" + 
+            "?authMechanism=MONGODB-OIDC" +
+            "&authMechanismProperties=ENVIRONMENT:azure,TOKEN_RESOURCE:<percent-encoded audience>");
+
+   .. tab:: MongoCredential
+      :tabid: mongodb-azure-mongo-credential
+
+      Replace the ``<username>`` placeholder with the client ID or application ID of the
+      Azure managed identity or enterprise application. Replace the ``<audience>``
+      placeholder with the value of the
+      ``audience`` server parameter configured on your MongoDB deployment.
+      
+      .. code-block:: java
+
+         MongoCredential credential = MongoCredential.createOidcCredential("<username>")
+            .withMechanismProperty("ENVIRONMENT", "azure")  
+            .withMechanismProperty("TOKEN_RESOURCE", "<audience>");
+   
+         MongoClient mongoClient = MongoClients.create(
+             MongoClientSettings.builder()
+                 .applyToClusterSettings(builder ->
+                         builder.hosts(Arrays.asList(new ServerAddress("<hostname>", <port>))))
+                 .credential(credential)
+                 .build());
+
+.. _java-mongodb-oidc-gcp-imds:
+
+GCP IMDS
+++++++++++
+
+If your application runs on a GCP VM, or otherwise uses the
+`GCP Instance Metadata Service <https://cloud.google.com/compute/docs/metadata/querying-metadata>`__,
+you can authenticate to MongoDB by using {+driver-short+}'s built-in GCP
+support.
+
+You can specify GCP IMDS OIDC authentication either by 
+using a ``MongoCredential`` or as part of the connection string. Select the 
+:guilabel:`Connection String` or :guilabel:`MongoCredential` tab to
+see the corresponding syntax.
+
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: mongodb-gcp-imds-connection-string
+    
+      Replace the ``<percent-encoded audience>`` placeholder with the percent-encoded
+      value of the ``audience`` server parameter configured on your MongoDB deployment.
+     
+      .. code-block:: java
+
+         MongoClient mongoClient = MongoClients.create(
+            "mongodb://<hostname>:<port>/?" +
+            "authMechanism=MONGODB-OIDC" +
+            "&authMechanismProperties=ENVIRONMENT:gcp,TOKEN_RESOURCE:<percent-encoded audience>");
+
+   .. tab:: MongoCredential
+      :tabid: mongodb-gcp-mongo-credential
+
+      Replace the ``<audience>`` placeholder with the value of the
+      ``audience`` server parameter configured on your MongoDB deployment.
+      
+      .. code-block:: java
+
+         MongoCredential credential = MongoCredential.createOidcCredential()
+            .withMechanismProperty("ENVIRONMENT", "gcp")
+            .withMechanismProperty("TOKEN_RESOURCE", "<audience>");
+   
+         MongoClient mongoClient = MongoClients.create(
+             MongoClientSettings.builder()
+                 .applyToClusterSettings(builder ->
+                         builder.hosts(Arrays.asList(new ServerAddress("<hostname>", <port>))))
+                 .credential(credential)
+                 .build());
+
+Custom Callback
++++++++++++++++
+
+The {+driver-short+} doesn't offer built-in support for all platforms, including
+Azure Functions and Azure Kubernetes Service (AKS). Instead, you
+must define a custom callback to use OIDC to authenticate from these platforms.
+To do so, use the ``"OIDC_CALLBACK"`` authentication property, as shown in the following
+code example:
+
+.. code-block:: java
+
+   MongoCredential credential = MongoCredential.createOidcCredential(null)
+      .withMechanismProperty("OIDC_CALLBACK", (context) ->  {
+         String accessToken = ...
+         return new OidcCallbackResult(accessToken);
+      });
+
+The value of the ``"OIDC_CALLBACK"`` property must be a lambda or other implementation
+of the ``OidcCallback`` functional interface that accepts an ``OidcCallbackContext``
+as a parameter and returns an ``OidcCallbackResult``.
+
+The following example uses an example callback to retrieve an OIDC token from a file
+named ``"access-token.dat"`` in the local file system:
+
+.. code-block:: java
+
+   MongoCredential credential = MongoCredential.createOidcCredential(null)
+      .withMechanismProperty("OIDC_CALLBACK", (context) ->  {
+         string accessToken = new String(Files.readAllBytes(Paths.get("access-token.dat"));
+         return new OidcCallbackResult(accessToken);
+      });
+
+   MongoClient mongoClient = MongoClients.create(
+       MongoClientSettings.builder()
+           .applyToClusterSettings(builder ->
+                   builder.hosts(Arrays.asList(new ServerAddress("<hostname>", <port>))))
+           .credential(credential)
+           .build());
