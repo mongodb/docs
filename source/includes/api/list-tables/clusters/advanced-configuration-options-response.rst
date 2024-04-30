@@ -50,7 +50,7 @@
        To learn more, see :ref:`faq-tls-1.0-deprecation`.
 
        This option corresponds to the
-       :setting:`net.ssl.disabledProtocols` |mongod|
+       :setting:`net.tls.disabledProtocols` |mongod|
        configuration file option.
 
    * - noTableScan
