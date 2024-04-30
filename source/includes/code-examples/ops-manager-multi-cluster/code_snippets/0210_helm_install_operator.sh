@@ -10,5 +10,5 @@ helm upgrade --install \
   --set operator.name=mongodb-enterprise-operator-multi-cluster \
   --set operator.createOperatorServiceAccount=false \
   --set operator.createResourcesServiceAccountsAndRoles=false \
-  --set "multiCluster.clusters={${K8S_CLUSTER_0_CONTEXT_NAME},${K8S_CLUSTER_0_CONTEXT_NAME},${K8S_CLUSTER_0_CONTEXT_NAME}}" \
+  --set "multiCluster.clusters={${K8S_CLUSTER_0_CONTEXT_NAME},${K8S_CLUSTER_1_CONTEXT_NAME},${K8S_CLUSTER_2_CONTEXT_NAME}}" \
   --set "${OPERATOR_ADDITIONAL_HELM_VALUES:-"dummy=value"}"

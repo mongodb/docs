@@ -1,26 +1,12 @@
 Release "mongodb-enterprise-operator-multi-cluster" does not exist. Installing it now.
 NAME: mongodb-enterprise-operator-multi-cluster
-LAST DEPLOYED: Thu Mar 21 13:45:35 2024
+LAST DEPLOYED: Tue Apr 30 19:40:26 2024
 NAMESPACE: mongodb-operator
 STATUS: deployed
 REVISION: 1
 TEST SUITE: None
 USER-SUPPLIED VALUES:
-agent:
-  name: mongodb-agent-ubi
-  version: 12.0.29.7785-1
-database:
-  name: mongodb-enterprise-database-ubi
-  version: 65f9d44968c03f00075e0cb7
-initAppDb:
-  version: 65f9d44968c03f00075e0cb7
-initDatabase:
-  version: 65f9d44968c03f00075e0cb7
-initOpsManager:
-  version: 65f9d44968c03f00075e0cb7
-managedSecurityContext: false
-mongodb:
-  name: mongodb-enterprise-server
+dummy: value
 multiCluster:
   clusters:
   - gke_scratch-kubernetes-team_europe-central2-a_k8s-mdb-0
@@ -32,36 +18,25 @@ operator:
   createResourcesServiceAccountsAndRoles: false
   name: mongodb-enterprise-operator-multi-cluster
   namespace: mongodb-operator
-  version: 65f9d44968c03f00075e0cb7
   watchNamespace: mongodb
-opsManager:
-  name: mongodb-enterprise-ops-manager-ubi
-registry:
-  appDb: 268558157000.dkr.ecr.us-east-1.amazonaws.com/images/ubi
-  database: 268558157000.dkr.ecr.us-east-1.amazonaws.com/dev
-  imagePullSecrets: image-registries-secret
-  initAppDb: 268558157000.dkr.ecr.us-east-1.amazonaws.com/dev
-  initDatabase: 268558157000.dkr.ecr.us-east-1.amazonaws.com/dev
-  initOpsManager: 268558157000.dkr.ecr.us-east-1.amazonaws.com/dev
-  operator: 268558157000.dkr.ecr.us-east-1.amazonaws.com/dev
-  opsManager: 268558157000.dkr.ecr.us-east-1.amazonaws.com/images/ubi
 
 COMPUTED VALUES:
 agent:
   name: mongodb-agent-ubi
-  version: 12.0.29.7785-1
+  version: 107.0.0.8502-1
 database:
   name: mongodb-enterprise-database-ubi
-  version: 65f9d44968c03f00075e0cb7
+  version: 1.25.0
+dummy: value
 initAppDb:
   name: mongodb-enterprise-init-appdb-ubi
-  version: 65f9d44968c03f00075e0cb7
+  version: 1.25.0
 initDatabase:
   name: mongodb-enterprise-init-database-ubi
-  version: 65f9d44968c03f00075e0cb7
+  version: 1.25.0
 initOpsManager:
   name: mongodb-enterprise-init-ops-manager-ubi
-  version: 65f9d44968c03f00075e0cb7
+  version: 1.25.0
 managedSecurityContext: false
 mongodb:
   appdbAssumeOldFormat: false
@@ -87,6 +62,7 @@ operator:
   createResourcesServiceAccountsAndRoles: false
   deployment_name: mongodb-enterprise-operator
   env: prod
+  mdbDefaultArchitecture: non-static
   name: mongodb-enterprise-operator-multi-cluster
   namespace: mongodb-operator
   nodeSelector: {}
@@ -103,24 +79,26 @@ operator:
   vaultSecretBackend:
     enabled: false
     tlsSecretRef: ""
-  version: 65f9d44968c03f00075e0cb7
+  version: 1.25.0
   watchNamespace: mongodb
   watchedResources:
   - mongodb
   - opsmanagers
   - mongodbusers
+  webhook:
+    registerConfiguration: true
 opsManager:
   name: mongodb-enterprise-ops-manager-ubi
 registry:
   agent: quay.io/mongodb
-  appDb: 268558157000.dkr.ecr.us-east-1.amazonaws.com/images/ubi
-  database: 268558157000.dkr.ecr.us-east-1.amazonaws.com/dev
-  imagePullSecrets: image-registries-secret
-  initAppDb: 268558157000.dkr.ecr.us-east-1.amazonaws.com/dev
-  initDatabase: 268558157000.dkr.ecr.us-east-1.amazonaws.com/dev
-  initOpsManager: 268558157000.dkr.ecr.us-east-1.amazonaws.com/dev
-  operator: 268558157000.dkr.ecr.us-east-1.amazonaws.com/dev
-  opsManager: 268558157000.dkr.ecr.us-east-1.amazonaws.com/images/ubi
+  appDb: quay.io/mongodb
+  database: quay.io/mongodb
+  imagePullSecrets: null
+  initAppDb: quay.io/mongodb
+  initDatabase: quay.io/mongodb
+  initOpsManager: quay.io/mongodb
+  operator: quay.io/mongodb
+  opsManager: quay.io/mongodb
   pullPolicy: Always
 subresourceEnabled: true
 
@@ -192,11 +170,9 @@ spec:
       securityContext:
         runAsNonRoot: true
         runAsUser: 2000
-      imagePullSecrets:
-        - name: image-registries-secret
       containers:
         - name: mongodb-enterprise-operator-multi-cluster
-          image: "268558157000.dkr.ecr.us-east-1.amazonaws.com/dev/mongodb-enterprise-operator-ubi:65f9d44968c03f00075e0cb7"
+          image: "quay.io/mongodb/mongodb-enterprise-operator-ubi:1.25.0"
           imagePullPolicy: Always
           args:
             - -watch-resource=mongodb
@@ -218,6 +194,8 @@ spec:
           env:
             - name: OPERATOR_ENV
               value: prod
+            - name: MDB_DEFAULT_ARCHITECTURE
+              value: non-static
             - name: WATCH_NAMESPACE
               value: "mongodb"
             - name: NAMESPACE
@@ -230,29 +208,31 @@ spec:
               value: Always
             # Database
             - name: MONGODB_ENTERPRISE_DATABASE_IMAGE
-              value: 268558157000.dkr.ecr.us-east-1.amazonaws.com/dev/mongodb-enterprise-database-ubi
+              value: quay.io/mongodb/mongodb-enterprise-database-ubi
             - name: INIT_DATABASE_IMAGE_REPOSITORY
-              value: 268558157000.dkr.ecr.us-east-1.amazonaws.com/dev/mongodb-enterprise-init-database-ubi
+              value: quay.io/mongodb/mongodb-enterprise-init-database-ubi
             - name: INIT_DATABASE_VERSION
-              value: 65f9d44968c03f00075e0cb7
+              value: 1.25.0
             - name: DATABASE_VERSION
-              value: 65f9d44968c03f00075e0cb7
+              value: 1.25.0
             # Ops Manager
             - name: OPS_MANAGER_IMAGE_REPOSITORY
-              value: 268558157000.dkr.ecr.us-east-1.amazonaws.com/images/ubi/mongodb-enterprise-ops-manager-ubi
+              value: quay.io/mongodb/mongodb-enterprise-ops-manager-ubi
             - name: INIT_OPS_MANAGER_IMAGE_REPOSITORY
-              value: 268558157000.dkr.ecr.us-east-1.amazonaws.com/dev/mongodb-enterprise-init-ops-manager-ubi
+              value: quay.io/mongodb/mongodb-enterprise-init-ops-manager-ubi
             - name: INIT_OPS_MANAGER_VERSION
-              value: 65f9d44968c03f00075e0cb7
+              value: 1.25.0
             # AppDB
             - name: INIT_APPDB_IMAGE_REPOSITORY
-              value: 268558157000.dkr.ecr.us-east-1.amazonaws.com/dev/mongodb-enterprise-init-appdb-ubi
+              value: quay.io/mongodb/mongodb-enterprise-init-appdb-ubi
             - name: INIT_APPDB_VERSION
-              value: 65f9d44968c03f00075e0cb7
+              value: 1.25.0
             - name: OPS_MANAGER_IMAGE_PULL_POLICY
               value: Always
             - name: AGENT_IMAGE
-              value: "quay.io/mongodb/mongodb-agent-ubi:12.0.29.7785-1"
+              value: "quay.io/mongodb/mongodb-agent-ubi:107.0.0.8502-1"
+            - name: MDB_AGENT_IMAGE_REPOSITORY
+              value: "quay.io/mongodb/mongodb-agent-ubi"
             - name: MONGODB_IMAGE
               value: mongodb-enterprise-server
             - name: MONGODB_REPO_URL
@@ -261,17 +241,9 @@ spec:
               value: ubi8
             - name: PERFORM_FAILOVER
               value: 'true'
-            - name: IMAGE_PULL_SECRETS
-              value: image-registries-secret
       volumes:
         - name: kube-config-volume
           secret:
             defaultMode: 420
             secretName: mongodb-enterprise-operator-multi-cluster-kubeconfig
----
-# Source: enterprise-operator/templates/operator-roles.yaml
-# This ClusterRoleBinding is necessary in order to use validating
-# webhooks—these will prevent you from applying a variety of invalid resource
-# definitions. The validating webhooks are optional so this can be removed if
-# necessary.
 
