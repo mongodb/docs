@@ -1,0 +1,272 @@
+.. _avs-deployment-options:
+
+=========================
+Review Deployment Options 
+=========================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: dedicated search nodes
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can structure your |service| {+cluster+} with different deployment
+types, cloud providers, and cluster tiers to meet the needs of a
+pre-production or production environment. Use these recommendations to
+select the deployment type, cloud provider and region, and {+cluster+}
+and search tiers for performing vector search. 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 15 20 20 20 25
+   :stub-columns: 1
+
+   * - Environment 
+     - Deployment Type
+     - Cluster Tier 
+     - Cloud Provider Region  
+     - Node Architecture 
+
+   * - Testing Queries
+     - Shared or dedicated {+cluster+} 
+     - ``M0``, ``M2``, ``M5``, or higher tier
+     - All
+     - MongoDB and Search processes run on the same node
+
+   * - Prototyping Applications
+     - Dedicated {+cluster+}
+     - ``M10``, ``M20``, or higher tier
+     - All 
+     - MongoDB and Search processes run on the same node
+
+   * - Production
+     - Dedicated {+cluster+} with separate search nodes
+     - ``M10`` or higher {+cluster+} tier and ``S30`` or higher search tier
+     - |aws| in some regions or |gcp| in all regions
+     - MongoDB and Search processes run on different nodes
+
+To learn more about these deployment models, review the following
+sections: 
+
+- :ref:`avs-deployment-options-testing`
+- :ref:`avs-deployment-options-production`
+
+.. _avs-deployment-options-testing:
+
+Testing and Prototyping Environments
+------------------------------------
+
+For testing your vector search queries and prototyping your
+application, we recommend the following configuration for your
+{+cluster+}. 
+
+Deployment Type
+~~~~~~~~~~~~~~~
+
+For testing {+avs+} queries, you can deploy shared or dedicated
+{+clusters+}.
+
+{+Cluster+} Tiers 
+~~~~~~~~~~~~~~~~~
+
+Shared {+clusters+} include the ``M0``, ``M2``, and ``M5`` tiers. These
+low-cost cluster types are available for testing your {+avs+} queries.
+However, you might experience resource contention and query latency on
+shared {+clusters+}. If you begin your project with a shared
+{+cluster+}, we recommend upgrading to a higher tier when your
+application is ready for production.
+
+Dedicated {+clusters+} include ``M10`` and higher tiers. The ``M10`` and
+``M20`` tiers are suitable for prototyping your application. You can
+upgrade to higher tiers to handle large datasets or deploy
+:ref:`dedicated search nodes <configure-search-nodes>` for workload
+isolation when your application is ready for production.  
+
+Cloud Provider and Region 
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The cloud provider and region that you choose affects the configuration
+options available for the {+cluster+} tiers and the :doc:`cost of
+running the cluster </billing>`.  
+
+All the {+cluster+} tiers are available in all the supported cloud
+provider regions.  
+
+Node Architecture 
+~~~~~~~~~~~~~~~~~
+
+In this deployment model, the search ``mongot`` process runs alongside
+``mongod`` on each node in the |service| {+cluster+}. The ``mongod``
+process routes queries to the ``mongot`` on the same node and they share
+the same resources. To learn more about the behavior of ``mongod`` and
+``mongot`` processes running on the same node, see
+:ref:`fts-architecture`.
+
+Limitations 
+~~~~~~~~~~~
+
+You might experience resource contention between the database ``mongod``
+and the search ``mongot`` processes. This could negatively impact the
+performance of your index and latency of your queries. We recommend this 
+deployment model for only testing and prototyping environments. For
+production-ready applications and associated search workloads, we
+recommend :ref:`migrating to dedicated search nodes
+<avs-migrate-to-decoupled>`. 
+
+.. _avs-deployment-options-production:
+
+Production Environment
+----------------------
+
+For your production-ready application, we recommend the following
+{+cluster+} configuration.
+
+Deployment Type
+~~~~~~~~~~~~~~~
+
+For production-ready applications, you need a dedicated {+cluster+}. 
+ 
+{+Cluster+} Tiers 
+~~~~~~~~~~~~~~~~~
+
+Dedicated {+clusters+} include ``M10`` and higher tiers. The ``M10`` and
+``M20`` tiers are suitable for development and for production
+environments. However, the higher tiers can handle large datasets and
+production workloads. We recommend that you also :ref:`deploy dedicated
+search nodes <configure-search-nodes>` for your search workload. This
+allows you to scale your search deployment independently and
+appropriately. 
+
+Cloud Provider and Region
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The cloud provider and region that you choose affects the configuration
+options and search tiers available for the {+cluster+} and the
+:doc:`cost of running the cluster </billing>`. 
+
+All the {+cluster+} tiers are available in all the supported cloud
+provider regions. However, search nodes are only available for |aws| and
+|gcp| in a subset of the :ref:`cloud provider regions
+<fts-cloud-provider-regions>`. So, you *must* select a cloud provider
+and region where search nodes are available for your deployment. 
+
+Node Architecture 
+~~~~~~~~~~~~~~~~~
+
+In this deployment model, the ``mongot`` process runs on search nodes,
+which are separate from the {+cluster+} nodes on which the ``mongod``
+process runs. To learn more about the behavior of ``mongod`` and
+``mongot`` processes running on different nodes, see
+:ref:`what-is-search-node`. 
+
+Benefits 
+~~~~~~~~
+
+This deployment model provides the following benefits: 
+
+- Efficiently utilize your resources while ensuring high availability of
+  your resources for search workloads.
+
+- Size and scale your search deployment independently from your database
+  deployment. 
+
+- Automatically process {+avs+} queries concurrently, improving the
+  response time especially on large datasets. To learn more, see 
+  :ref:`vectorSearch-concurrent-queries`.
+
+Size and Scale Your {+Cluster+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+avs+} holds the entire index in memory, so you need to ensure there's
+enough memory for the {+avs+} index and :abbr:`JVM (Java virtual
+machine)`. We recommend that your node has RAM that is at least 10%
+larger than the total size of your {+avs+} indexes. Each index is a
+combination of the vectors being indexed and additional metadata. The
+index size is primarily determined by the size of the vectors that you
+are indexing. While the index size can vary based on the amount of
+metadata, the memory required for additional metadata is typically
+minimal. 
+
+Consider the following requirements for a **single vector**:
+
+.. list-table:: 
+   :header-rows: 1
+
+   * - Embedding Model 
+     - Vector Dimension 
+     - Space Requirement
+
+   * - OpenAI ``text-embedding-ada-002``
+     - 1536
+     - 12kb
+
+   * - Google ``text-embedding-gecko``
+     - 768
+     - 6kb
+
+The required space scales linearly with the number of vectors that you
+are indexing and with the vector dimensionality. You can also use the
+:guilabel:`Search Index Size` :ref:`metric
+<review-atlas-search-metrics>` to determine the amount of space and 
+memory you need on your search nodes.
+
+When you deploy dedicated search nodes, you can choose from different
+:ref:`search tiers <select-tiers-for-search-nodes>`. Each search tier
+has a default RAM capacity, storage capacity, and CPU. This allows you
+to size and scale your {+cluster+} independently from your database
+deployment. To scale your search deployment separately, you can make the
+following changes to your {+cluster+} configuration at any time: 
+
+- Adjust the number of search nodes on your {+cluster+}.
+- Adjust the CPU, RAM, and storage of the node by changing search tiers. 
+
+.. note:: 
+
+   To learn more about the cost of search nodes and search tiers, expand
+   :guilabel:`View all plan features` and click :guilabel:`Atlas Vector
+   Search` in the the `MongoDB Pricing <https://www.mongodb.com/pricing>`__ 
+   page.
+
+.. _avs-migrate-to-decoupled:
+
+Migrate to Dedicated Search Nodes 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Dedicated search nodes allow you to both size and scale your search
+deployment separately from your database deployment. It also eliminates
+any resource contention that you might experience on a {+cluster+} that
+runs both the database and search processes on the same node.
+
+To migrate to dedicated search nodes, make the following changes to your
+deployment: 
+
+1. If your deployment is currently using a shared tier, :ref:`upgrade
+   <change-cluster-type>` your {+cluster+} to a higher tier. Dedicated
+   search nodes are supported only for ``M10`` and higher {+cluster+}
+   tiers. To learn more about migrating to a different {+cluster+} 
+   tier, see :ref:`scale-cluster-instance`.
+
+2. If you're running a multi-region {+cluster+} or if your {+cluster+}
+   is currently deployed on |azure|, migrate your {+cluster+} to |aws|
+   or |gcp|. Dedicated search nodes are only available for single-region
+   |aws| and |gcp| {+clusters+}. To learn more, see
+   :ref:`scale-cluster-cloud-provider`.
+   
+   Dedicated search nodes are only available on a subset of the |aws|
+   regions and in all supported |gcp| regions. Make sure to deploy your
+   {+cluster+} in a region where search nodes are also available. If
+   your existing {+cluster+} is in a region where search nodes are not 
+   available, migrate your {+cluster+} to a region where search nodes
+   are available. To learn more, see :ref:`fts-cloud-provider-regions`.  
+
+3. Enable :guilabel:`Search Nodes for workload isolation` and configure
+   search nodes. To learn more, see :ref:`add-search-nodes`.
