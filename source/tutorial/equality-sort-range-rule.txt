@@ -21,7 +21,7 @@ Index keys correspond to document fields. In most cases, applying the
 ESR (Equality, Sort, Range) Rule to arrange the index keys helps to
 create a more efficient :ref:`compound index <index-type-compound>`.
 
-This page introduces the ESR Rule. For more information on tuning
+This page introduces the ESR Rule. For more information on optimizing
 queries, see :dbcommand:`explain` and 
 :ref:`query-plans-query-optimization`. 
 
@@ -45,7 +45,7 @@ exact match queries scan the ``cars`` collection for documents whose
    db.cars.find( { model: { $eq: "Cordoba" } } )
 
 Index searches make efficient use of exact matches to limit the number
-of documents that need to be examined to satisfy a query. Place fields
+of documents that need to be examined to complete a query. Put the fields
 that require exact matches first in your index.
 
 An index may have multiple keys for queries with exact matches. The
@@ -72,7 +72,7 @@ do a non-blocking sort.
 An index can support sort operations when the query fields are a subset
 of the index keys. Sort operations on a subset of the index keys are
 only supported if the query includes equality conditions for all of the
-prefix keys that precede the sort keys. For more information see:
+prefix keys that precede the sort keys. For more information, see
 :ref:`Sort and Non-prefix Subset of an Index
 <sort-index-nonprefix-subset>`.
 
@@ -100,8 +100,8 @@ Range
 
 "Range" filters scan fields. The scan doesn't require an exact match,
 which means range filters are loosely bound to index keys. To improve
-query efficiency, make the range bounds as tight as possible and use
-equality matches to limit the number of documents that must be scanned.
+query efficiency, limit the range bounds and use
+equality matches to reduce the number of documents to scan.
 
 Range filters resemble the following:
 
@@ -111,7 +111,7 @@ Range filters resemble the following:
    db.cars.find( { age: { $lt: 10 } } )
    db.cars.find( { priorAccidents: { $ne: null } } )
 
-MongoDB cannot do an index sort on the results of a range filter.
+MongoDB cannot perform an index sort on the results of a range filter.
 Place the range filter after the sort predicate so MongoDB can use a
 non-blocking index sort. For more information on blocking sorts, see
 :method:`cursor.allowDiskUse()`.
@@ -124,12 +124,30 @@ Additional Considerations
 
 - :query:`$regex` is a range operator.
 
-- :query:`$in` can be an equality operator or a range operator.
+- :query:`$in`:
 
   - When ``$in`` is used alone, it is an equality operator that performs a 
     series of equality matches. 
-  - When ``$in`` is used with ``.sort()``, ``$in`` can act like a range 
-    operator.
+  - When ``$in`` is used with ``.sort()``:
+
+    - If ``$in`` has less than 200 array elements, the elements are
+      expanded and then merged in the sort order specified for the
+      index. This improves performance for small arrays.
+      ``$in`` is similar to an equality predicate with ESR.
+    - If ``$in`` has 200 elements or more, the elements are ordered like
+      a range operator. In this scenario, the performance improvement
+      for small arrays isn't realized. It isn't possible for the
+      subsequent fields in the index to provide a sort, and ``$in`` is
+      similar to a range predicate with ESR.
+    - If you typically use ``$ins`` with small arrays, include ``$ins``
+      earlier in the index specification. If you typically use large
+      arrays, include ``$ins`` where you would include a range
+      predicate.
+
+.. note::
+
+   The 200 limit is subject to change and is not guaranteed to stay the
+   same for all MongoDB versions.
 
 Example
 -------
@@ -146,7 +164,6 @@ are sorted by model:
           cost: { $gt: 15000 }
       } ).sort( { model: 1 } )
 
-
 The query contains all the elements of the ESR Rule:
 
 - ``manufacturer: 'Ford'`` is an equality based match
@@ -156,6 +173,7 @@ The query contains all the elements of the ESR Rule:
 Following the ESR rule, the optimal index for the example query is:
 
 .. code-block:: javascript
+   :copyable: false
 
    { manufacturer: 1, model: 1, cost: 1 }
 
@@ -163,7 +181,5 @@ Learn More
 ----------
 
 - :ref:`create-indexes-to-support-queries`
-
 - :ref:`index-sort`
-
 - :ref:`index-selectivity`
