@@ -1,9 +1,7 @@
-export MDB_GKE_PROJECT="scratch-kubernetes-team"
-#export MDB_GKE_PROJECT={GKE project name}
+export MDB_GKE_PROJECT="### Set your GKE project name here ###"
 
 export NAMESPACE="mongodb"
 export OPERATOR_NAMESPACE="mongodb-operator"
-export OPERATOR_HELM_CHART=../../../helm_chart
 
 # comma-separated key=value pairs
 # export OPERATOR_ADDITIONAL_HELM_VALUES=""
@@ -40,8 +38,14 @@ export S3_ENDPOINT="minio.tenant-tiny.svc.cluster.local"
 export S3_ACCESS_KEY="console"
 export S3_SECRET_KEY="console123"
 
+export OPERATOR_HELM_CHART="mongodb/enterprise-operator"
+
 # (Optional) Change the following setting when using the external URL.
+# This env variable is used in OpenSSL configuration to generate
+# server certificates for Ops Manager Application.
 export OPS_MANAGER_EXTERNAL_DOMAIN="om-svc.${NAMESPACE}.svc.cluster.local"
 
-export OPS_MANAGER_VERSION="7.0.1"
-export APPDB_VERSION="6.0.5-ubi8"
+export OPS_MANAGER_VERSION="7.0.4"
+export APPDB_VERSION="7.0.9-ubi8"
+
+
