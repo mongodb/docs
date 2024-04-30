@@ -23,6 +23,7 @@ You can use the following authentication mechanisms with the latest version of
 
 - :ref:`GSSAPI/Kerberos <csharp-kerberos>`
 - :ref:`LDAP (Plain) <csharp-LDAP>`
+- :ref:`MONGODB-OIDC <csharp-mongodb-oidc>`
 
 To authenticate using another mechanism, see the
 :ref:`<csharp-authentication-mechanisms>` fundamentals page. For
@@ -255,6 +256,127 @@ mechanism:
          authenticates using the PLAIN Simple Authentication and Security Layer
          (SASL) defined in `RFC-4616 <https://tools.ietf.org/html/rfc4616>`__.
 
+.. _csharp-mongodb-oidc:
+
+MONGODB-OIDC
+------------
+
+.. important::
+
+   The MONGODB-OIDC authentication mechanism requires MongoDB v7.0 or later running
+   on a Linux platform.
+
+The following sections describe how to use the MONGODB-OIDC authentication mechanism to
+authenticate from various platforms.
+
+For more information about the MONGODB-OIDC authentication mechanism, see
+:manual:`OpenID Connect Authentication </core/security-oidc/>` and
+:manual:`MongoDB Server Parameters </reference/parameters/#mongodb-parameter-param.oidcIdentityProviders>`
+in the MongoDB Server manual.
+
+.. _csharp-mongodb-oidc-azure-imds:
+
+Azure IMDS
+~~~~~~~~~~
+
+If your application runs on an Azure VM, or otherwise uses the
+`Azure Instance Metadata Service <https://learn.microsoft.com/en-us/azure/virtual-machines/instance-metadata-service>`__
+(IMDS), you can authenticate to MongoDB by using the {+driver-short+}'s built-in Azure
+support.
+
+You can specify Azure IMDS OIDC authentication on a ``MongoClientSettings`` object either by 
+using a ``MongoCredential`` object or as part of the connection string. Select the 
+:guilabel:`Connection String` or :guilabel:`MongoCredential` tab to
+see the corresponding syntax.
+
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: mongodb-azure-imds-connection-string
+    
+      The following code example shows how to specify Azure IMDS OIDC authentication. 
+      Replace the ``<percent-encoded audience>`` placeholder with the percent-encoded
+      value of the ``audience`` parameter configured on your MongoDB deployment. 
+      
+      .. code-block:: csharp
+
+         var connectionString = "mongodb://<username>@<hostname>[:<port>]/?" +
+            "authMechanism=MONGODB-OIDC" +
+            "&authMechanismProperties=ENVIRONMENT:azure,TOKEN_RESOURCE:<percent-encoded audience>");
+         var mongoClientSettings = MongoClientSettings.FromConnectionString(connectionString);
+         var client = new MongoClient(mongoClientSettings);
+
+   .. tab:: MongoCredential
+      :tabid: mongodb-azure-mongo-credential
+
+      The following code example shows how to specify Azure IMDS OIDC authentication.
+      Replace the ``<username>`` placeholder with the client ID or application ID of the
+      Azure managed identity or enterprise application. Replace the ``<audience>``
+      placeholder with the value of the ``audience`` parameter configured on your MongoDB
+      deployment. 
+
+      .. code-block:: csharp
+
+         var mongoClientSettings = MongoClientSettings.FromConnectionString(
+            "mongodb+srv://<hostname>[:<port>]");
+         mongoClientSettings.Credential = MongoCredential.CreateOidcCredential("azure", "<username>")
+            .WithMechanismProperty("TOKEN_RESOURCE", "<audience>"); 
+         var client = new MongoClient(mongoClientSettings);
+
+Custom Callback
+~~~~~~~~~~~~~~~
+
+The {+driver-short+} doesn't offer built-in support for all platforms, including
+Azure Functions and Azure Kubernetes Service (AKS). Instead, you
+must define a custom callback to use OIDC to authenticate from these platforms.
+
+First, define a class that implements the ``IOidcCallback`` interface. This interface
+contains two methods:
+
+- ``GetOidcAccessToken()``: This method accepts the parameters to the callback method
+  and returns the callback response. 
+- ``GetOidcAccessTokenAsync()``: This method is an asynchronous version of the previous
+  method. 
+
+The following code is an example implementation of the ``IOidcCallback`` interface.
+In this example, the methods retrieve an OIDC token from a file named ``"access-token.dat"``
+in the local file system.
+
+.. code-block:: csharp
+
+   public class MyCallback : IOidcCallback
+   {
+       public OidcAccessToken GetOidcAccessToken(
+           OidcCallbackParameters parameters,
+           CancellationToken cancellationToken)
+       {
+           var accessToken = File.ReadAllText("access-token.dat");
+           return new(accessToken, expiresIn: null);
+       }
+
+       public async Task<OidcAccessToken> GetOidcAccessTokenAsync(
+           OidcCallbackParameters parameters,
+           CancellationToken cancellationToken)
+       {
+           var accessToken = await File.ReadAllTextAsync(
+               "access-token.dat",
+               cancellationToken)
+               .ConfigureAwait(false);
+           return new(accessToken, expiresIn: null);
+       }
+   }
+
+After you define a class that contains your custom callback methods, call the
+``MongoCredential.CreateOidcCredential()`` method and pass in a new instance of your
+class. Store the result of this method call in the ``Credential`` property of your
+``MongoClientSettings`` object, as shown in the following code example:
+
+.. code-block:: csharp
+
+   var mongoClientSettings = MongoClientSettings.FromConnectionString("mongodb://<hostname>[:port]");
+   mongoClientSettings.Credential = MongoCredential.CreateOidcCredential(new MyCallback());
+   var client = new MongoClient(mongoClientSettings);
+
 API Documentation
 -----------------
 
@@ -266,3 +388,4 @@ guide, see the following API Documentation:
 - `MongoClientSettings <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.MongoClientSettings.html>`__
 - `CreateGssapiCredential() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.MongoCredential.CreateGssapiCredential.html>`__
 - `CreatePlainCredential() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.MongoCredential.CreatePlainCredential.html>`__
+- `IOidcCallback <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.Core.Authentication.Oidc.IOidcCallback.html>`__
