@@ -1,3 +1,11 @@
+.. _atlas_2024_04_17:
+
+17 April 2024 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Adds the Migration Hub to |service|. The Migration Hub displays
+  available migration resources and the status of migrations in progress.
+
 .. _atlas_2024_02_28:
 
 28 February 2024 Release
