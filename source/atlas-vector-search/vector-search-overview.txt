@@ -1,94 +1,221 @@
 :noprevnext:
 
 .. _fts-vector-search:
+.. _avs-overview:
 
-================================================
-Perform Semantic Search with Atlas Vector Search 
-================================================
+============================
+{+avs+} Overview
+============================
 
 .. default-domain:: mongodb
 
 .. facet::
    :name: genre
-   :values: tutorial
+   :values: reference
 
 .. meta::
-   :description: Learn how to create and manage an Atlas Vector Search index for vector embeddings and perform vector search on the indexed field.
+   :description: Use MongoDB Atlas Vector Search to create vector indexes and perform vector search, including semantic search and hybrid search, on your vector embeddings.
 
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
-Overview
---------
+You can use {+avs+} to perform vector search on your data in |service|.
+When you define an {+avs+} index on your collection, you can 
+seamlessly index vector data along with your other data and then 
+perform vector search queries against the indexed fields.
 
-You can perform semantic search on data in your |service| {+cluster+}
-running MongoDB v6.0.11, v7.0.2, or later using {+avs+}. You can store
-vector embeddings for any kind of data along with other data in your
-collection on the |service| {+cluster+}. {+avs+} supports embeddings
-that are less than and equal to 4096 dimensions in width. 
+{+avs+} enables various search :ref:`use cases <avs-use-cases>`, 
+including semantic, hybrid, and generative search.
+By storing :term:`vector embeddings` alongside your other data in 
+|service|, you can filter semantic search queries on other fields 
+in your collection and combine semantic search with full-text search. 
+In addition, you can leverage {+avs+} in |ai| applications and integrate 
+it with popular |ai| frameworks and services.
 
-.. note:: 
+{+avs+} is supported on |service| {+clusters+} running
+MongoDB version 6.0.11, 7.0.2, or later.
+
+.. button:: Get Started with {+avs+}
+   :uri: /source/atlas-vector-search/tutorials/vector-search-quick-start.txt
+
+.. note::
 
    For optimal performance, we recommend deploying :ref:`separate search
    nodes for workload isolation <configure-search-nodes>`. Search nodes
    support concurrent query execution to improve individual query
-   latency. To learn more, see :ref:`vectorSearch-concurrent-queries`.
+   latency. To learn more, see :ref:`avs-deployment-options`.
 
-When you define an {+avs+} index on your collection, you can seamlessly
-index vector data along with your other data and then perform semantic
-search against the indexed fields. 
+.. _avs-about-vector-search:
 
-{+avs+} uses the |hnsw| algorithm to perform the semantic search. You can
-use {+avs+} support for |ann| queries to search for results similar to a
-selected product, search for images, etc. 
+What is Vector Search?
+------------------------
 
-About {+avs+} Indexes 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Vector search is a search method that returns results based on
+your data's semantic, or underlying, meaning. Unlike traditional 
+full-text search which finds text matches, vector search finds 
+:term:`vectors <vector>` that are close to your search query 
+in multi-dimensional space. The closer the vectors are to your query, 
+the more similar they are in meaning.
 
-You must index the fields that contain vector embeddings of |bson|
-``double`` data type for performing semantic search against the vector
-data. To perform a vector search against your data, create an {+avs+}
-``vectorSearch`` type index for your data. In the {+avs+} index
-definition, you must index the field that contains the vector data as
-the ``vector`` type. 
+By interpreting the meaning of your search query and data,
+vector search allows you to consider the searcher's intent
+and search context to retrieve more relevant results.
 
-You can also optionally index fields for pre-filtering the data against
-which you want to run your {+avs+} query. You can pre-filter your data
-by boolean, numeric, and string values. To pre-filter the data, you must
-index your boolean, numeric, and string fields as the ``filter`` type in
-the {+avs+} index definition that indexes your vector data field. 
+For example, if you searched for the term "red fruit," full-text search 
+returns only data that explicitly contains these keywords. However, 
+semantic search might return data that is similar in meaning,
+such as fruits that are red in color like apples or strawberries.
 
-To learn more about indexing your fields for {+avs+}, see
-:ref:`avs-types-vector-search`. 
+.. _avs-key-concepts:
 
-About {+avs+} Queries 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Key Concepts
+~~~~~~~~~~~~
 
-{+avs+} queries take the shape of an :manual:`aggregation pipeline stage 
-</aggregation>`. The {+avs+} :pipeline:`$vectorSearch` stage must be the
-first stage in the pipeline. You can run {+avs+} queries only against
-fields indexed as the ``vector`` type in a ``vectorSearch`` type index. 
+.. glossary::
 
-You can pre-filter data against which you want to perform semantic
-search using an :abbr:`MQL (MongoDB Query Language)` match expression
-that compares an indexed field with boolean, number, or string values. 
-{+avs+} supports some :manual:`comparison query
-</reference/operator/query-comparison/>` and :manual:`aggregation  
-pipeline </reference/operator/aggregation/>` operators in the filter in
-your :pipeline:`$vectorSearch` query. 
+   vector
+      A vector is an array of numbers that represents your data 
+      in multiple dimensions. Vectors can represent any kind of data, 
+      from text, image, and audio data to unstructured data. Semantic 
+      similarity is determined by measuring the distance between
+      vectors.
 
-To learn more about pre-filtering and querying your data using {+avs+},
+      Specifically, {+avs+} uses dense vectors,
+      which are a type of high-dimensional vector that favors 
+      smaller storage and semantic richness. As opposed to sparse vectors, 
+      dense vectors can be packed with more data,
+      which enables {+avs+} to capture more complex relationships.
+
+   vector embeddings
+      Vector embeddings, or vectorization, is the process of converting 
+      your data into vectors. You create these embeddings by passing your data 
+      through an :term:`embedding model`, and you 
+      store these embeddings as a field in your |service| collection.
+
+      {+avs+} determines semantic similarity by identifying the
+      vector embeddings that are closest in distance to
+      your query vector. To learn more, see :ref:`avs-queries`.
+
+   embedding model
+      Embedding models are algorithms that convert complex data 
+      into vectors. To do this, embedding models use |llm|\s, machine 
+      learning models trained on a large corpus of data, to generate 
+      vector embeddings that encapsulate the semantic meaning of your data.
+      
+      These embeddings allow {+avs+} to better understand 
+      relationships in your data and perform tasks like
+      semantic search and retrieval. Depending on your data and task, 
+      `different embedding models <https://huggingface.co/spaces/mteb/leaderboard>`__
+      offer varying advantages.
+
+.. _avs-indexes:
+
+{+avs+} Indexes 
+---------------------------
+
+To perform vector search on your data in |service|, you must create 
+an {+avs+} index. {+avs+} indexes are separate from your other database 
+indexes and are used to efficiently retrieve documents that contain 
+vector embeddings at query-time. In your {+avs+} index definition, 
+you index the fields in your collection that contain your embeddings 
+to enable vector search against those fields. {+avs+} supports embeddings 
+that are less than and equal to 4096 dimensions in width.
+
+You can also pre-filter your data by indexing any 
+boolean, string, and numeric fields in your collection 
+that you want to run your {+avs+} queries against. 
+Filtering your data narrows the scope of your
+search and ensures that certain vector embeddings
+aren't considered for comparison.
+
+To learn how to index fields for {+avs+}, 
+see :ref:`avs-types-vector-search`. 
+
+.. _avs-queries:
+
+{+avs+} Queries 
+---------------------------
+
+{+avs+} supports approximate nearest neighbor (|ann|) search 
+with the |hnsw| algorithm. |ann| optimizes for speed by 
+approximating the most similar vectors in multi-dimensional 
+space without scanning every vector. This approach is particularly 
+useful for retrieving data from large vector datasets.
+
+{+avs+} queries consist of :manual:`aggregation pipeline stages
+</aggregation>` where the :pipeline:`$vectorSearch` stage is the
+first stage in the pipeline. The process for a basic {+avs+} query 
+is as follows:
+
+#. You specify the :ref:`query vector <vectorSearch-agg-pipeline-options>`, 
+   which is the vector embedding that represents your search query.
+
+#. {+avs+} uses |ann| search to find vector embeddings in your data 
+   that are closest to the query vector.
+
+#. {+avs+} returns the documents that contain the most similar vectors.
+
+To customize your vector search query, you can pre-filter your data on 
+fields that you've indexed by using an :abbr:`MQL (MongoDB Query Language)` 
+match expression with supported :manual:`comparison </reference/operator/query-comparison/>` 
+or :manual:`aggregation operators </reference/operator/aggregation/>`,
+or you can add additional :manual:`aggregation stages </reference/operator/aggregation-pipeline/>` 
+to further process and organize your results.
+
+To learn how to create and run {+avs+} queries,
 see :ref:`return-vector-search-results`. 
 
-Next Steps 
-----------
+.. _avs-use-cases: 
 
-1. :ref:`Review the {+avs+} index definition <avs-types-vector-search>`.
-2. :ref:`Create the {+avs+} index <avs-create-index>` using one of the
-   supported clients.
+Use Cases
+---------
+
+{+avs+} supports the following types of vector search queries:
+
+- **Semantic Search**: Query your vector embeddings based on semantic similarity
+  by using the |ann| search algorithm.
+  
+  To learn more, see :ref:`How to Perform Semantic Search 
+  <vector-search-tutorial>` and :ref:`return-vector-search-results`.
+
+- **Hybrid Search**: Combine results from both semantic search and 
+  full-text search queries. To learn more, see :ref:`avs-reciprocal-rank-fusion`.
+
+By using |service| as a :website:`vector database 
+</basics/vector-databases>`, you can use {+avs+} to 
+build natural language processing (NLP), machine learning (ML), 
+and generative |ai| applications. 
+
+Specifically, you can implement **Retrieval-Augmented Generation (RAG)** 
+by storing data in |service|, using {+avs+} to retrieve relevant 
+documents from your data, and leveraging an |llm| to answer questions
+on your data. You can implement |rag| locally or by
+:ref:`integrating <avs-integrations>` {+avs+} with popular 
+frameworks and services. To learn more, see 
+:ref:`AI Key Concepts <ai-key-concepts>`.
+
+.. _avs-integrations:
+
+AI Integrations
+~~~~~~~~~~~~~~~
+
+You can use {+avs+} with popular chat and embedding models 
+from |ai| providers such as OpenAI, |aws|, and Google.
+MongoDB and partners also provide specific product integrations to 
+help you leverage {+avs+} in your generative |ai| and |ai|-powered 
+applications. These integrations include built-in tools and libraries 
+that enable you to build applications and implement |rag| from start to 
+finish. 
+
+For example, by integrating {+avs+} with open-source frameworks 
+such as `LangChain <https://langchain.com/>`__ and
+`LlamaIndex <https://llamaindex.ai/>`__, you can answer questions 
+about your data on top of popular |llm|\s.
+
+To learn more and get started, see :ref:`vector-search-integrations`.
 
 .. toctree::
    :titlesonly:

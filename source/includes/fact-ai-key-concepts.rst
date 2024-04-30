@@ -1,5 +1,4 @@
-.. expression:: Large Language Models (LLMs)
-
+Large Language Models (LLMs)
    You can integrate {+avs+}  with |llm|\s and |llm|
    frameworks to build AI-powered applications. 
    When developing with |llm|\s, you might encounter 
@@ -13,8 +12,7 @@
 
    - Hallucinations: |llm|\s sometimes generate inaccurate information.
 
-.. expression:: Retrieval-Augmented Generation (RAG)
-
+Retrieval-Augmented Generation (RAG)
    Retrieval-Augmented Generation (RAG) is an architecture for |llm|
    applications that's designed to address these limitations. In |rag|, 
    you perform the following actions:
