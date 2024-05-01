@@ -1,0 +1,108 @@
+.. _vector-search-troubleshooting:
+
+===============
+Troubleshooting
+===============
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: atlas vector search, vector search, $vectorSearch, $vectorSearch pipeline stage, atlas vector search pipeline stage, atlas vector search query, atlas vector search index
+   :description: Learn how to address common issues with Atlas Vector Search queries and configuration
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This document provides advice for troubleshooting problems with
+{+avs+}.  For direct assistance with {+avs+} issues, you can either
+start a discussion on the `MongoDB Developer Community
+<https://www.mongodb.com/community/forums/c/atlas/vector-search/168>`__
+or :ref:`contact support <request-support>`.
+
+Cannot use the ``$vectorSearch`` stage on {+service+} {+cluster+}
+-----------------------------------------------------------------
+
+To use the ``$vectorSearch`` pipeline stage to query your {+cluster+},
+your {+cluster+} must run MongoDB 6.0.11+ or 7.0.2+. If you invoke
+``$vectorSearch`` on an incompatible version of MongoDB, you might see
+the following error:
+
+.. code-block:: sh
+
+   OperationFailure: $vectorSearch is not allowed with the current
+   configuration. You may need to enable the corresponding feature
+   flag.
+
+To check the MongoDB version of your {+cluster+}:
+
+.. procedure::
+   :style: normal
+
+   .. include:: includes/nav/steps-db-deployments-page.rst
+
+   .. step:: Locate the information pane of the {+cluster+} you want
+      to use ``$vectorSearch`` on.
+
+   .. step:: Consult the :guilabel:`Version` number in the bottom section
+      of the information pane.
+
+If your {+cluster+} runs a version of MongoDB earlier than 6.0.11 or
+7.0.2, you must :ref:`upgrade the MongoDB version of the cluster
+<scale-cluster-version>`.
+
+Slow queries
+------------
+
+For recommendations on improving query performance, see
+:ref:`avs-performance-tuning`.
+
+``$vectorSearch`` returns no results
+------------------------------------
+
+If ``$vectorSearch`` queries return no results, ensure that you use the
+same text embedding model to embed both your data and your query. If
+you embed your query using a different model than you use to embed
+your data, ``$vectorSearch`` can't identify matches.
+
+``Error during document retrieval`` when using filtering with LangChain
+-----------------------------------------------------------------------
+
+When you use LangChain to perform |rag| with pre-filtering, you might
+encounter the following error:
+
+.. code-block:: js
+
+   Error during the document retrieval or generation process:
+   MongoServerError: PlanExecutor error during aggregation :: caused
+   by :: Path 'field' needs to be indexed as token
+
+If an index on ``field`` exists, ensure you have created this index as
+an {+avs+} index, not an {+fts+} index. If no index on ``field``
+exists, :ref:`create one <avs-create-index>`. To learn more about
+implementing |rag| with {+avs+} and LangChain, see
+:ref:`langchain-rag`.
+
+``Command not found`` when creating {+avs+} index
+---------------------------------------------------------------------
+
+When you attempt to create an {+avs+} index programmatically, you
+might encounter a ``Command not found`` error. This error occurs for
+one of two reasons:
+
+- You run the command against an {+service+} {+cluster+} running 
+  a version of MongoDB earlier than 6.0.11 or 7.0.2. In this case,
+  you must :ref:`upgrade the MongoDB version of the cluster
+  <scale-cluster-version>` to enable {+avs+} for the {+cluster+}.
+- You run the command against an ``M0`` Free Tier {+cluster+}. In this
+  case, as long as the {+cluster+} is running a compatible MongoDB
+  version, you can :ref:`create an {+avs+} index with the {+atlas-ui+}
+  <avs-create-index-procedure>`.
+
+Unable to filter on a given field
+---------------------------------
+
+{+avs+} currently supports filtering only on fields with boolean,
+numeric, or string values.
