@@ -7,8 +7,7 @@
    MongoDB.
 
    To explicitly link to the time zone database in versions of MongoDB
-   prior to 5.0, 4.4.7, and 4.2.14, download the `time zone
-   database
+   prior to 5.0, download the `time zone database
    <https://downloads.mongodb.org/olson_tz_db/timezonedb-latest.zip>`_.
    and use the :option:`timeZoneInfo <mongod --timeZoneInfo>` parameter.
 
