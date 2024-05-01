@@ -1,8 +1,8 @@
 .. _fts-paginate-results:
 
-=================================
-Paginate the Results Sequentially 
-=================================
+====================
+Paginate the Results 
+====================
 
 .. default-domain:: mongodb
 
@@ -20,7 +20,6 @@ Paginate the Results Sequentially
    :depth: 2
    :class: singlecol
 
-
 On |service| {+clusters+} running MongoDB 6.0.13+ or 7.0.5+, |fts|
 allows you to retrieve your :pipeline:`$search` query results
 sequentially after or before a reference point. You can use the
@@ -28,14 +27,15 @@ sequentially after or before a reference point. You can use the
 traverse results in-order and build "Next Page" and "Previous Page"
 functions in your application. 
 
-To jump to a page non-sequentially, you can use the :pipeline:`$skip`
-and :pipeline:`$limit` stages in your aggregation pipeline as
-demonstrated in the :ref:`pagination-skip-limit-tutorial` tutorial.
-However, jumping to a page non-sequentially might be slow if your query
-results are large. 
+.. _fts-paginate-results-usage:
 
 Usage
 -----
+
+.. _fts-paginate-results-usage-sequential:
+
+Retrieve Paginated Results Sequentially 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To retrieve paginated results sequentially, you must do the following: 
 
@@ -59,22 +59,50 @@ To retrieve paginated results sequentially, you must do the following:
    sub-pipeline. You can't use the ``searchAfter`` and ``searchBefore`` 
    options in the same query because they are mutually exclusive.
 
+.. _fts-paginate-results-usage-non-sequential:
+
+Jump to a Page Non-Sequentially
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For optimal performance, we recommend combining $skip with
+:pipeline:`$search` ``searchAfter`` or ``searchBefore`` options when
+jumping to a page non-sequentially in your results.
+
+For example, to jump to results from Page 3 to Page 5, with 10
+results per page, do the following: 
+
+a. Retrieve results using ``searchAfter`` with the point of reference
+   for the last result on Page 3 (Result 30).
+#. Use :pipeline:`$skip` to skip the 10 results on Page 4 (Results
+   31-40) and :pipeline:`$limit` to limit the results to 10 documents.
+#. Return results for Page 5 (Results 41-50).
+
+Here, using ``searchAfter`` with :pipeline:`$skip` optimizes the query
+to skip only 1 page of results (10 documents), instead of skipping 4
+pages (40 documents) if you only used ``$skip`` without the ``$search``
+``searchAfter`` option. 
+
+.. _fts-paginate-results-considerations:
+
 Considerations 
 --------------
 
 If you update your collection between your initial and subsequent
-queries, |fts| reflects the updates in your subsequent query results. For
-example, suppose you sort the results by an ``updated_time`` field. If
-you update the documents between your first query and subsequent query,
-the same document might appear in both your query results. To avoid
-this, sort the results by an immutable field. 
+queries, |fts| reflects the updates in your subsequent query results.
+
+For example, suppose you sort the results by an ``updated_time`` field.
+If you update the documents between your first query and subsequent
+query, the same document might appear in both your query results. To
+avoid this, sort the results by an immutable field. 
 
 By default, |fts| sorts the documents in the results by the relevance
-score of the documents. If multiple documents in the results have identical scores,
-|fts| returns arbitrarily ordered results. To return documents in a determined order, 
-use a unique field to sort your query results.
+score of the documents. If multiple documents in the results have
+identical scores, |fts| returns arbitrarily ordered results. To return
+documents in a determined order, use a unique field to sort your query
+results. 
 
-To learn how to sort your query results by an immutable or unique field, see :ref:`sort-ref`. 
+To learn how to sort your query results by an immutable or unique field,
+see :ref:`sort-ref`.  
 
 .. _paginate-results-search-sequence-token:
 
