@@ -5,9 +5,8 @@ with subtype ``4`` that uniquely identifies the data encryption key.
 The ``UUID`` string is the hexadecimal representation of the
 underlying binary data.
 
-If you are providing the data encryption key to an official 4.2+
-compatible driver in order to configure
-:ref:`automatic client-side field level encryption
+If you are providing the data encryption key to an official MongoDB driver in 
+order to configure :ref:`automatic client-side field level encryption
 <field-level-encryption-json-schema>`, you must use the ``base64``
 representation of the ``UUID`` string.
 

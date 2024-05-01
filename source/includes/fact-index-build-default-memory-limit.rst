@@ -1,8 +1,7 @@
 :dbcommand:`createIndexes` supports building one or more indexes on a
 collection. :dbcommand:`createIndexes` uses a combination of memory and
 temporary files on disk to complete index builds. The default limit on
-memory usage for :dbcommand:`createIndexes` is 200 megabytes (for
-versions 4.2.3 and later) and 500 (for versions 4.2.2 and earlier),
+memory usage for :dbcommand:`createIndexes` is 200 megabytes,
 shared between all indexes built using a single
 :dbcommand:`createIndexes` command. Once the memory limit is reached,
 :dbcommand:`createIndexes` uses temporary disk files in a subdirectory
