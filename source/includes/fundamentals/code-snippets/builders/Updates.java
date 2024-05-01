@@ -43,6 +43,10 @@ public class Updates {
         updates.setUpdate();
         updates.resetCollection(updates);
         
+        System.out.println("combineSet:");
+        updates.combineSet();
+        updates.resetCollection(updates);
+
         System.out.println("unsetUpdate:");
         updates.unsetUpdate();
         updates.resetCollection(updates);
@@ -116,6 +120,15 @@ public class Updates {
         collection.updateOne(filter, update);
         // end setUpdate
     }
+
+    private void combineSet() {
+        // begin combineSet
+        Bson filter = eq("_id", 1);
+        Bson update = combine(set("width", 6.5), set("height", 10));
+        collection.updateOne(filter, update);
+        // end combineSet
+    }
+
     private void unsetUpdate() {
         // begin unsetUpdate
         Bson filter = eq("_id", 1);
