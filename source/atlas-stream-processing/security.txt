@@ -1,0 +1,133 @@
+.. _atlas-sp-security:
+
+=======================================
+{+atlas-sp+} Security
+=======================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: atlas stream processing, streaming data, data stream, security, roles, actions
+   :description: Learn key concepts of Atlas Stream Processing security
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+|service| provides a system for managing user permissions at the
+:ref:`organization, project <user-roles>`, and :ref:`database
+<mongodb-users-roles-and-privileges>` levels. {+atlas-sp+} extends
+this system with additional roles and privileges specific to stream
+processing tasks, as well as the ability to restrict user permissions
+to specific {+spi+}s.
+
+{+atlas-sp+} Organization and Project Access
+-----------------------------------------------------------------------
+
+Users manage {+spi+}s and their associated connection registries at
+the project level. {+atlas-sp+} provides the :authrole:`Project Stream
+Processing Owner` role for this purpose. A user with this role can
+perform any :ref:`{+spi+} or connection registry management
+<atlas-sp-manage-spi>` action, and manage the
+databases and database users within the project. Assign this role to a
+user to enable them to perform all the actions necessary to configure
+an {+atlas-sp+} project without granting any unnecessary permissions
+to features in accordance with the principle of least privilege.
+
+If necessary, you can perform any of the actions authorized by the
+``Project Stream Processing Owner`` role as a user with either the
+``Project Owner`` or ``Organization Owner`` roles.
+
+{+spi+} Access
+-----------------------------------------------
+
+You can access an existing {+spi+} and :ref:`manage stream processors
+<streams-manage-processor>` as a :ref:`database user <mongodb-users>`,
+analogous to how you access an |service| {+cluster+}. The roles and
+actions assigned to your database users determine which operations
+they can perform on stream processors within a {+spi+}. {+atlas-sp+}
+provides the following privilege actions:
+
+..
+   Comment: Setting up these references to actions as links requires
+   a separate PR in Server docs. I will pursue this as part of the
+   definition of done for DOCSP-35256, but please review this content
+   with the assumption that these will be added to server docs on
+   privilege actions.
+
+- ``processStreamProcessor``
+- ``createStreamProcessor``
+- ``startStreamProcessor``
+- ``stopStreamProcessor``
+- ``dropStreamProcessor``
+- ``listStreamProcessors``
+- ``sampleStreamProcessor``
+- ``streamProcessorStats``
+- ``listConnections``
+
+You can assign exactly those privilege actions to a database user or
+:ref:`custom role <mongodb-roles>` that you need. Alternatively, a
+database user with the :atlasrole:`atlasAdmin` or
+:atlasrole:`readWriteAnyDatabase` can perform all of these actions.
+
+Restricting Access to Specific {+spi+}s
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, a user with {+atlas-sp+} privilege actions can perform the
+associated operations on all {+spi+}s. You can restrict the
+application of these privileges to specific {+spi+}s.
+
+.. procedure::
+   :style:normal
+
+   .. include:: /includes/nav/steps-db-access.rst
+
+   .. step:: Click :guilabel:`Edit` in the row of the user whose
+      permissions you want to modify.
+
+   .. step:: In the modal window, toggle the switch labeled
+      :guilabel:`Restrict Access to Specific Clusters
+      /Federated Database Instances/Stream Processing Instances` on.
+
+   .. step:: Find the names of the {+spi+}s for which you want to grant
+      the user privileges. Check the box next to a name to grant the
+      user privileges for that {+spi+}. Uncheck the box to deny the user
+      privileges for that {+spi+}
+
+   .. step:: Click :guilabel:`Update User`.
+
+Execution Profiles
+------------------
+
+You can configure the database user role that you use when connecting
+to an {+service+} database as either a :pipeline:`$source` or a
+:pipeline:`$merge` sink. This allows you to prevent
+{+atlas-sp+}-specific database users from gaining indirect access to
+the cluster hosting that database through the credentials of the
+elevated-privilege {+service+} user that configures the {+spi+} and its
+connections.
+
+.. note::
+
+   In accordance with the principle of least privilege, define a
+   custom role with only those privileges a user needs to perform
+   their desired operations.
+
+.. procedure::
+   :style:normal
+
+   .. include:: /includes/nav/steps-stream-processing.rst
+
+   .. step:: In the pane of the {+spi+} you want to configure, click
+      :guilabel:`Configure`.
+
+   .. step:: Click the :guilabel:`Connection Registry` tab. In the row
+      of the {+service+} database connection you want to configure, click
+      :icon-fa5:`pencil-alt`.
+
+   .. step:: From the :guilabel:`Execute As` drop-down menu, select the
+      role to use when connecting to the database.
+
+   .. step:: Click :guilabel:`Save changes`.

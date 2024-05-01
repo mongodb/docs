@@ -20,7 +20,7 @@
 14 February 2024 Release
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Introduces :ref:`{+atlas-sp+} <what-is-atlas-sp>` in
+- Introduces :ref:`{+atlas-sp+} <atlas-sp-overview>` in
   public preview. With {+atlas-sp+}, you can process streaming data in 
   |service|.
 - Supports |service| deployments in the following new 
