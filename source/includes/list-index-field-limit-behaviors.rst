@@ -1,4 +1,4 @@
-When the :limit:`Index Key Limit` applies:
+When the index key size limit applies:
 
 - .. include:: /includes/fact-index-key-length-operation-behaviors.rst
      :start-after: index-field-limit-ensureIndex

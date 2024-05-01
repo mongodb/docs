@@ -9,8 +9,6 @@
             The following is a prototype of the :dbcommand:`currentOp`
             output when run on a standalone:
 
-            .. versionchanged:: 4.2
-
             .. code-block:: javascript
 
                 {
@@ -129,8 +127,6 @@
 
             The following is a prototype of the :dbcommand:`currentOp`
             output when run on a primary of a replica set:
-
-            .. versionchanged:: 4.2
 
             .. code-block:: javascript
 
@@ -274,8 +270,6 @@
             cluster (Fields may vary depending on the operation being
             reported):
 
-            .. versionchanged:: 4.2
-
             .. code-block:: javascript
 
                 {
@@ -322,7 +316,7 @@
                                "db" : <string>
                             }
                          ],
-                         "twoPhaseCommitCoordinator" : {           // Starting in 4.2.1
+                         "twoPhaseCommitCoordinator" : {
                             "lsid" : {
                                "id" : <UUID>,
                                "uid" : <BinData>

@@ -37,7 +37,6 @@
 
          .. note::
 
-            Starting in MongoDB 4.2,
             :method:`db.collection.dropIndexes()` can accept an array
             of index names.
 
