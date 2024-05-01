@@ -1,0 +1,237 @@
+.. _sqlschema-edit:
+
+================
+Edit Schema
+================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Edit Schema Using the |service| UI
+-------------------------------------
+
+To edit an existing schema, use the following steps.
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-db-deployments-page.rst
+
+   .. step:: Navigate to :guilabel:`Manage SQL Schemas` page.
+
+             From the Data Federation menu, click :guilabel:`Manage SQL Schemas`.
+
+   .. step:: Edit schema.
+             
+      a. Next to a schema, click the :icon-fa4:`pencil`.
+      b. Edit the JSON.
+      c. Click :guilabel:`Save`.
+
+.. _sqlsetschema-cmd:
+
+Edit Schema Using the {+atlas-cli+}
+-------------------------------------
+         
+The ``sqlSetSchema`` command sets or deletes the schema for a collection
+or view. The command uses the provided schema to create the relational
+schema. The command doesn't validate the schema provided with the command
+against the data in the collection.
+
+.. _sqlsetschema-syntax:
+
+Syntax
+------
+
+.. tabs::
+
+   .. tab:: Set Schema
+      :tabid: setschema
+
+      .. code-block:: sh
+
+         db.runCommand({
+            sqlSetSchema: "<collection-name>|<view-name>",
+            schema: {
+               "version": 1,
+               "jsonSchema": <jsonSchema>
+            }
+         })
+
+   .. tab:: Delete Schema
+      :tabid: deleteschema
+
+      .. code-block:: sh
+
+         db.runCommand({
+            sqlSetSchema: "<collection-name>|<view-name>",
+            schema: {}
+         })
+
+.. _sqlsetschema-params:
+
+Parameters
+----------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 60 10
+
+   * - Parameter
+     - Type
+     - Description
+     - Necessity
+
+   * - ``<collection-name>``
+     - string
+     - Name of the collection for which to set the schema. You must provide either a collection name or a view name.
+     - Conditional
+
+   * - ``<view-name>``
+     - string
+     - Name of the view for which to set the schema. You must provide either a view name or a collection name.
+     - Conditional
+
+   * - ``schema``
+     - document
+     - The format version of the schema and either:
+         - the |json| schema for the collection or view
+         - an empty document to remove the schema for the collection or view.
+
+       .. note::
+
+          You can provide a single document or an array of documents
+          in the ``items`` field. When you retrieve the schema,
+          ``items`` shows the form that you used to set the schema.
+
+     - Required
+
+.. _sqlsetschema-output:
+
+Output
+------
+
+The command returns the following output if it succeeds.
+
+.. code-block:: sh
+   :copyable: false
+
+   { "ok" : 1 }
+
+You can verify that the command succeeded by running the
+``sqlGetSchema`` command. The 
+``metadata.description`` field in the response contains the following value:
+
+.. code-block:: json
+   :copyable: false
+
+   "set using sqlSetSchema"
+
+.. _sqlsetschema-egs:
+
+Examples
+--------
+
+.. include:: /includes/data-federation/command-example-collection.rst
+
+The examples below use the ``sqlSetSchema`` command to set
+and remove schema for the above collection.
+
+Set Schema Example
+~~~~~~~~~~~~~~~~~~
+
+The following ``sqlSetSchema`` command sets the schema for
+the ``egData`` collection.
+
+.. code-block:: sh
+
+   db.runCommand({
+      sqlSetSchema : "egData",
+      "schema" : {
+         "version" : NumberLong(1),
+         "jsonSchema" : {
+            "bsonType" : [ "object" ],
+            "properties" : {
+               "a" : {
+                  "bsonType" : [ "object" ],
+                  "properties" : {
+                     "b" : {
+                        "bsonType" : [ "object", "array" ],
+                        "properties" : {
+                           "c" : {
+                              "bsonType" : [ "array", "string", "object", "null" ],
+                              "properties" : {
+                                 "d" : {
+                                    "bsonType" : [ "int" ]
+                                 }
+                              },
+                              "items" : {
+                                 "bsonType" : [ "int" ]
+                              }
+                           }
+                        },
+                        "items" : {
+                           "bsonType" : [ "int" ]
+                        }
+                     }
+                  }
+               },
+               "s" : {
+                  "bsonType" : [ "int", "object" ],
+                  "properties" : {
+                     "b" : {
+                        "bsonType" : [ "object" ],
+                        "properties" : {
+                           "c" : {
+                              "bsonType" : [ "object" ],
+                              "properties" : {
+                                 "d" : {
+                                    "bsonType" : [ "array" ],
+                                    "items" : {
+                                       "bsonType" : [ "string" ]
+                                    }
+                                 }
+                              }
+                           }
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      }
+   })
+
+The previous command returns the following output.
+
+.. code-block:: json
+   :copyable: false
+
+   { "ok" : 1 }
+
+.. _sqlsetschema-delete-example:
+
+Delete Schema Example
+~~~~~~~~~~~~~~~~~~~~~
+
+The following ``sqlSetSchema`` command removes the schema
+for the ``egData`` collection.
+
+.. code-block:: sh
+
+   db.runCommand({
+      sqlSetSchema: "egData",
+      schema: {}
+   })
+
+The previous command returns the following output.
+
+.. code-block:: json
+   :copyable: false
+
+   { "ok" : 1 }
+
