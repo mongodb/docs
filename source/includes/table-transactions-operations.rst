@@ -61,9 +61,6 @@
      - If the update or replace operation is run with ``upsert: true`` on a 
        non-existing collection, the collection is implicitly created.
 
-       In MongoDB 4.2 and earlier, if ``upsert: true``, the operation
-       must be run on an existing collection.
-       
        .. seealso::
 
           :ref:`transactions-operations-ddl`
@@ -75,9 +72,6 @@
 
      - If run on a non-existing collection, the collection is implicitly 
        created.
-       
-       In MongoDB 4.2 and earlier, the operation must be run on an
-       existing collection.
        
        .. seealso::
 
@@ -91,9 +85,6 @@
 
      - If run on a non-existing collection, the collection is implicitly 
        created.
-       
-       In MongoDB 4.2 and earlier, the operation must be run on an
-       existing collection.
 
        .. seealso::
 
@@ -104,9 +95,6 @@
      - 
      - If run on a non-existing collection, the collection is implicitly 
        created.
-       
-       In MongoDB 4.2 and earlier, the operation must be run on an
-       existing collection.
        
        .. seealso::
 

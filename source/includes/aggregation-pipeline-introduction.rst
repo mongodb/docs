@@ -11,9 +11,8 @@ An aggregation pipeline consists of one or more :ref:`stages
 - An aggregation pipeline can return results for groups of documents.
   For example, return the total, average, maximum, and minimum values.
 
-Starting in MongoDB 4.2, you can update documents with an aggregation
-pipeline if you use the stages shown in
-:doc:`/tutorial/update-documents-with-aggregation-pipeline`.
+You can update documents with an aggregation pipeline if you use the stages 
+shown in :ref:`updates-agg-pipeline`.
 
 .. note::
 

@@ -25,17 +25,3 @@
    * - For 5.0 deployments :ref:`upgraded from 4.4 <5.0-upgrade>`
 
      - ``"4.4"`` until you :dbcommand:`setFeatureCompatibilityVersion` to ``"5.0"``.
-
-   * - For new 4.4 deployments
-     - ``"4.4"``
-
-   * - For 4.4 deployments :ref:`upgraded from 4.2 <4.4-upgrade>`
-
-     - ``"4.2"`` until you :dbcommand:`setFeatureCompatibilityVersion` to ``"4.4"``.
-
-   * - For new 4.2 deployments
-     - ``"4.2"``
-
-   * - For 4.2 deployments upgraded from 4.0 
-
-     - ``"4.0"`` until you :dbcommand:`setFeatureCompatibilityVersion` to ``"4.2"``.
