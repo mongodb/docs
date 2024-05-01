@@ -1,0 +1,188 @@
+.. _amazon-bedrock:
+
+==============================================================
+Get Started with the Amazon Bedrock Knowledge Base Integration
+==============================================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :description: Use Atlas Vector Search as a knowledge base for Amazon Bedrock to build generative AI and RAG applications.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can use {+avs+} as a `knowledge base 
+<https://aws.amazon.com/bedrock/knowledge-bases/>`__
+for `Amazon Bedrock <https://aws.amazon.com/bedrock/>`__
+to build generative AI applications and implement 
+retrieval-augmented generation (RAG). This tutorial demonstrates
+how to start using {+avs+} with Amazon Bedrock.
+Specifically, you perform the following actions:
+
+#. Load custom data into an Amazon |s3| bucket.
+#. Optionally, configure an endpoint service using {+aws-pl+}.
+#. Create an {+avs+} index on your data.
+#. Create a knowledge base to store data on |service|.
+#. Create an agent that uses {+avs+} to implement |rag|.
+
+Background
+----------
+
+Amazon Bedrock is a fully-managed service for building
+generative AI applications. It allows you to leverage 
+`foundation models (FMs) <https://aws.amazon.com/what-is/foundation-models/>`__ 
+from various AI companies as a single |api|.
+
+You can use {+avs+} as a knowledge base for Amazon Bedrock 
+to store custom data in |service| and create an `agent 
+<https://aws.amazon.com/bedrock/agents/>`__ to implement |rag| and 
+answer questions on your data. To learn more about |rag|, 
+see :ref:`ai-key-concepts`.
+
+Prerequisites
+-------------
+
+To complete this tutorial, you must have the following:
+
+- An |service| {+cluster+} running MongoDB version 6.0.11, 7.0.2, or later
+  (including :abbr:`RCs (Release Candidates)`).
+
+- An |aws| account with a :aws:`secret </secretsmanager/latest/userguide/create_secret.html>` 
+  that contains credentials to your |service| {+cluster+}.
+
+- :aws:`Access </bedrock/latest/userguide/model-access.html>` to 
+  the following foundation models used in this tutorial:
+
+  - :aws:`Amazon Titan Embeddings G1 - Text </bedrock/latest/userguide/titan-embedding-models.html>`
+  - :aws:`Anthropic Claude </bedrock/latest/userguide/model-parameters-claude.html>`
+
+- The :aws:`AWS CLI </cli/latest/userguide/cli-chap-install.html>` and 
+  `npm <https://www.npmjs.com/>`__ installed if you plan to configure an 
+  {+aws-pl+} endpoint service.
+
+.. _bedrock-load-data:
+
+Load Custom Data
+----------------
+
+If you don't already have an Amazon |s3| bucket that contains text
+data, create a new bucket and load the following publicly 
+accessible PDF about MongoDB best practices:
+
+.. procedure:: 
+   :style: normal 
+
+   .. step:: Download the PDF.
+
+      a. Navigate to the :website:`Best Practices Guide for MongoDB 
+         </collateral/best-practices-guide-for-mongodb>`.
+      #. Click either :guilabel:`Read Whitepaper` or :guilabel:`Email me the PDF` to access the PDF.
+      #. Download and save the PDF locally.
+
+   .. step:: Upload the PDF to an Amazon |s3| bucket.
+    
+      a. Follow the steps to :aws:`create an S3 Bucket </AmazonS3/latest/userguide/creating-bucket.html>`.
+         Ensure that you use a descriptive :guilabel:`Bucket Name`.
+      #. Follow the steps to :aws:`upload a file to your Bucket </AmazonS3/latest/userguide/uploading-an-object-bucket.html>`.
+         Select the file that contains the PDF that you just downloaded.
+
+.. _bedrock-configure-privatelink:
+
+Configure an Endpoint Service
+-----------------------------
+
+By default, Amazon Bedrock connects to your knowledge base over 
+the public internet. To further secure your connection, {+avs+}
+supports connecting to your knowledge base over a virtual
+network through an :aws:`{+aws-pl+} </vpc/latest/privatelink/what-is-privatelink>`
+:aws:`endpoint service </vpc/latest/privatelink/create-endpoint-service>`. 
+
+Optionally, complete the following steps to enable an endpoint service
+that connects to an {+aws-pl+} private endpoint for your |service| {+cluster+}:
+
+.. procedure:: 
+   :style: normal 
+
+   .. step:: Set up a private endpoint in |service|.
+
+      Follow the steps to :ref:`set up a {+aws-pl+} private endpoint
+      <cluster-private-endpoint>` for your |service| {+cluster+}. 
+      Ensure that you use a descriptive :guilabel:`VPC ID` to 
+      identify your private endpoint.
+
+      For more information, see :ref:`private-endpoint-overview`.
+
+   .. step:: Configure the endpoint service.
+      
+      MongoDB and partners provide a Cloud Development Kit (CDK)
+      that you can use to configure an endpoint service backed by a 
+      network load balancer that forwards traffic to your private endpoint.
+      
+      Follow the steps specified in the 
+      :github:`CDK GitHub Repository 
+      </mongodb-partners/mongodb_atlas_as_aws_bedrock_knowledge_base/>`
+      to prepare and run the :abbr:`CDK (Cloud Development Kit)` script.
+
+Create the {+avs+} Index
+------------------------------------
+
+In this section, you set up |service| as a :website:`vector database 
+</basics/vector-databases>`, also called a vector store, 
+by creating an {+avs+} index on your collection.
+
+Required Access
+~~~~~~~~~~~~~~~
+
+To create an {+avs+} index, you must have :authrole:`Project Data Access 
+Admin` or higher access to the |service| project.
+
+Procedure 
+~~~~~~~~~
+
+.. include:: /includes/ai-integrations/amazon-bedrock/bedrock-create-index.rst
+
+Create a Knowledge Base
+-----------------------
+
+In this section, you create a :aws:`knowledge base 
+</bedrock/latest/userguide/knowledge-base.html>`  
+to load custom data into your vector store.
+
+.. include:: /includes/ai-integrations/amazon-bedrock/bedrock-create-knowledge-base.rst
+
+Create an Agent
+---------------
+
+In this section, you create an :aws:`agent </bedrock/latest/userguide/agents.html>` 
+that uses {+avs+} to implement |rag| and answer questions on your data. 
+When you prompt this agent, it does the following:
+
+#. Connects to your knowledge base to access the custom data stored in |service|.
+#. Uses {+avs+} to retrieve relevant documents from your vector store based on the prompt.
+#. Leverages an AI chat model to generate a context-aware response based on these documents.
+
+Complete the following steps to create and test the |rag| agent:
+
+.. include:: /includes/ai-integrations/amazon-bedrock/bedrock-create-agent.rst
+
+Next Steps
+----------
+
+MongoDB and partners also provide the following developer resources:
+
+- :dochub:`Launch a Fully Managed RAG Workflow with MongoDB Atlas and Amazon Bedrock <amazon-bedrock-blogpost>`
+- `Connecting Applications Securely to a MongoDB Atlas Data Plane with AWS PrivateLink 
+  <https://aws.amazon.com/blogs/apn/connecting-applications-securely-to-a-mongodb-atlas-data-plane-with-aws-privatelink/>`__   
+
+.. seealso:: 
+
+   - :aws:`Amazon Bedrock Documentation </bedrock/>`
+   - `MongoDB Atlas on AWS Marketplace <https://aws.amazon.com/marketplace/pp/prodview-pp445qepfdy34>`__

@@ -1,4 +1,4 @@
-LangChain is an open-source framework designed to simplify the creation of 
+LangChain is an open-source framework that simplifies the creation of 
 |llm| applications through the use of "chains." Chains are LangChain-specific
 components that can be combined for a variety of AI use cases, including
 |rag|.
