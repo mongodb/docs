@@ -7,9 +7,11 @@ The document syntax is:
 .. code-block:: javascript
    :copyable: false
 
-   { <variable_name_1>: <expression_1>,
+   { 
+     <variable_name_1>: <expression_1>,
      ...,
-     <variable_name_n>: <expression_n> }
+     <variable_name_n>: <expression_n>
+   }
   
 The variable is set to the value returned by the expression, and cannot
 be changed afterwards.
