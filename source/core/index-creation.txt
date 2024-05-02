@@ -77,7 +77,7 @@ checks all pre-existing and concurrently-written documents for
 violations of those constraints *after* the index build completes.
 Documents that violate the index constraints can exist during the index
 build. If any documents violate the index constraints at the end of the
-build, the :binary:`~bin.mongod` terminates the build and throws an
+build, the ``mongod`` terminates the build and throws an
 error.
 
 For example, consider a populated collection ``inventory``. An
@@ -85,12 +85,12 @@ administrator wants to create a unique index on the ``product_sku``
 field. If any documents in the collection have duplicate values for
 ``product_sku``, the index build can still start successfully. 
 If any violations still exist at the end of the build, 
-the :binary:`~bin.mongod` terminates the build and throws an error. 
+the ``mongod`` terminates the build and throws an error. 
 
 Similarly, an application can successfully write documents to the
 ``inventory`` collection with duplicate values of ``product_sku`` while
 the index build is in progress. If any violations still exist at the end
-of the build,  the :binary:`~bin.mongod` terminates the build and throws
+of the build,  the ``mongod`` terminates the build and throws
 an error. 
 
 To mitigate the risk of index build failure due to constraint
@@ -161,7 +161,7 @@ Insufficient Available System Memory (RAM)
 
 If the host machine has limited available free RAM, you may need
 to schedule a maintenance period to increase the total system RAM
-before you can modify the :binary:`~bin.mongod` RAM usage.
+before you can modify the ``mongod`` RAM usage.
 
 .. _index-operations-replicated-build:
 .. _index-operations-simultaneous-build:
@@ -253,42 +253,44 @@ Build Failure and Recovery
 Interrupted Index Builds on a Primary ``mongod``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Starting in MongoDB 5.0, if the primary :binary:`~bin.mongod` shuts
-down cleanly during the index build and the 
-:ref:`commitQuorum <createIndexes-cmd-commitQuorum>` is set to the
-default ``votingMembers``, then the index build progress is saved to
-disk. The :binary:`~bin.mongod` automatically recovers the index build
-when it is restarted and continues from the saved checkpoint. In earlier
-versions, if the index build was interrupted it had to be restarted
-from the beginning.
+Starting in MongoDB 5.0, if the primary ``mongod`` 
+performs a clean :dbcommand:`shutdown` with ``"force" : true`` or 
+receives a ``SIGTERM`` signal during an index build and the 
+:ref:`commitQuorum <createIndexes-cmd-commitQuorum>` is set to the 
+default ``votingMembers``, then the index build progress is saved to 
+disk. The ``mongod`` automatically recovers the index 
+build when it is restarted and continues from the saved checkpoint. 
+In earlier versions, if the index build is interrupted, it has to 
+be restarted from the beginning.
 
 Interrupted Index Builds on a Secondary ``mongod``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Starting in MongoDB 5.0, if a secondary :binary:`~bin.mongod` shuts
-down cleanly during the index build and the 
+Starting in MongoDB 5.0, if a secondary ``mongod`` performs 
+a clean :dbcommand:`shutdown` with ``"force" : true`` or receives a 
+``SIGTERM`` signal during an index build and the 
 :ref:`commitQuorum <createIndexes-cmd-commitQuorum>` is set to the
 default ``votingMembers``, then the index build progress is saved to
-disk. The :binary:`~bin.mongod` automatically recovers the index build
+disk. The ``mongod`` automatically recovers the index build
 when it is restarted and continues from the saved checkpoint. In earlier
-versions, if the index build was interrupted it had to be restarted
-from the beginning.
+versions, if the index build is interrupted, it has to be restarted from 
+the beginning.
 
-The :binary:`~bin.mongod` can perform the startup process while the 
+The ``mongod`` can perform the startup process while the 
 recovering index builds.
 
-If you restart the :binary:`~bin.mongod` as a standalone (i.e. removing
+If you restart the ``mongod`` as a standalone (i.e. removing
 or commenting out :setting:`replication.replSetName` or omitting
-:option:`--replSetName <mongod --replSet>`), the :binary:`~bin.mongod`
+:option:`--replSetName <mongod --replSet>`), the ``mongod``
 cannot restart the index build. The build remains in a paused 
 state until it is manually :dbcommand:`dropped <dropIndexes>`.
 
 Interrupted Index Builds on Standalone ``mongod``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If the :binary:`~bin.mongod` shuts down during the index build, the
+If the ``mongod`` shuts down during the index build, the
 index build job and all progress is lost. Restarting the
-:binary:`~bin.mongod` does not restart the index build. You must
+``mongod`` does not restart the index build. You must
 re-issue the :method:`~db.collection.createIndex()` operation to restart
 the index build.
 
@@ -298,7 +300,7 @@ Rollbacks during Build Process
 Starting in MongoDB 5.0, if a node is rolled back to a prior state
 during the index build, the index build progress is saved to disk. If
 there is still work to be done when the rollback concludes, the
-:binary:`~bin.mongod` automatically recovers the index build and
+``mongod`` automatically recovers the index build and
 continues from the saved checkpoint.
 
 MongoDB can pause an in-progress index build to perform a 
@@ -398,16 +400,16 @@ process:
 
   * - Lock
 
-    - The :binary:`~bin.mongod` obtains an exclusive ``X`` lock on the
+    - The ``mongod`` obtains an exclusive ``X`` lock on the
       the collection being indexed. This blocks all read and write 
       operations on the collection, including the application
       of any replicated write operations or metadata commands that
-      target the collection. The :binary:`~bin.mongod` does not yield 
+      target the collection. The ``mongod`` does not yield 
       this lock. 
 
   * - Initialization
 
-    - The :binary:`~bin.mongod` creates three data structures 
+    - The ``mongod`` creates three data structures 
       at this initial state:
 
       - The initial index metadata entry.
@@ -424,79 +426,79 @@ process:
 
   * - Lock
 
-    - The :binary:`~bin.mongod` downgrades the exclusive ``X`` 
+    - The ``mongod`` downgrades the exclusive ``X`` 
       collection lock to an intent exclusive
-      ``IX`` lock. The :binary:`~bin.mongod` periodically yields
+      ``IX`` lock. The ``mongod`` periodically yields
       this lock to  interleaving read and write operations.
 
   * - Scan Collection
 
-    - For each document in the collection, the :binary:`~bin.mongod` 
+    - For each document in the collection, the ``mongod`` 
       generates a key for that document and dumps the 
       key into an external sorter.
 
-      If the :binary:`~bin.mongod` encounters a key generation
+      If the ``mongod`` encounters a key generation
       error while generating a key during the collection scan,
       it stores that key in the constraint violation table for later
       processing.
 
-      If the :binary:`~bin.mongod` encounters any other error while
+      If the ``mongod`` encounters any other error while
       generating a key, the build fails with an error.
 
-      Once the :binary:`~bin.mongod` completes the collection
+      Once the ``mongod`` completes the collection
       scan, it dumps the sorted keys into the index.
 
   * - Process Side Writes Table
 
-    - The :binary:`~bin.mongod` drains the side write table using
+    - The ``mongod`` drains the side write table using
       first-in-first-out priority.
 
-      If the :binary:`~bin.mongod` encounters a key generation error
+      If the ``mongod`` encounters a key generation error
       while processing a key in the side write table, it stores that key
       in the constraint violation table for later processing.
 
-      If the :binary:`~bin.mongod` encounters any other error while
+      If the ``mongod`` encounters any other error while
       processing a key, the build fails with an error.
 
       For each document written to the collection during the build
-      process, the :binary:`~bin.mongod` generates a key for that
+      process, the ``mongod`` generates a key for that
       document and stores it in the side write table for later
-      processing. The :binary:`~bin.mongod` uses a snapshot system to
+      processing. The ``mongod`` uses a snapshot system to
       set a limit to the number of keys to process. 
 
   * - Vote and Wait for Commit Quorum
 
-    - A :binary:`~bin.mongod` that is *not* part of a replica set 
+    - A ``mongod`` that is *not* part of a replica set 
       skips this stage.
 
-      The :binary:`~bin.mongod` submits a "vote" to the primary to commit the 
+      The ``mongod`` submits a "vote" to the primary to commit the 
       index. Specifically, it writes the "vote" to an internal replicated 
       collection on the :term:`primary`.
       
-      If the :binary:`~bin.mongod` is the :term:`primary`, it waits
+      If the ``mongod`` is the :term:`primary`, it waits
       until it has a commit quorum of votes (all voting data-bearing
       members by default) before continuing the index build process.
       
-      If the :binary:`~bin.mongod` is a :term:`secondary`, it waits
+      If the ``mongod`` is a :term:`secondary`, it waits
       until it replicates either a "commitIndexBuild" or 
       "abortIndexBuild" oplog entry:
 
-      - If the :binary:`~bin.mongod` replicates a "commitIndexBuild" 
+      - If the ``mongod`` replicates a "commitIndexBuild" 
         oplog entry, it finishes draining the side writes table and 
         moves to the next stage in the index build process. 
 
-      - If the :binary:`~bin.mongod` replicates an "abortIndexBuild"
+      - If the ``mongod`` replicates an "abortIndexBuild"
         oplog entry, it aborts the index build and discards the build 
         job.
 
-      While waiting for commit quorum, the :binary:`~bin.mongod` adds
+      While waiting for commit quorum, the ``mongod`` adds
       any additional keys generated from write operations to the
       collection being indexed to the side writes table and periodically
       drains the table.
 
   * - Lock
 
-    - The :binary:`~bin.mongod` upgrades the intent exclusive ``IX`` 
+    - The ``mongod`` upgrades the intent exclusive ``IX`` 
       lock on the collection to a shared ``S`` lock. This 
       blocks all write operations to the collection, including the
       application of any replicated write operations or metadata
@@ -504,36 +506,36 @@ process:
 
   * - Finish Processing Temporary Side Writes Table
 
-    - The :binary:`~bin.mongod` continues draining remaining 
-      records in the side writes table. The :binary:`~bin.mongod` may 
+    - The ``mongod`` continues draining remaining 
+      records in the side writes table. The ``mongod`` may 
       pause replication  during this stage.
 
-      If the :binary:`~bin.mongod` encounters a key generation error
+      If the ``mongod`` encounters a key generation error
       while processing a key in the side write table, it stores that key
       in the constraint violation table for later processing.
 
-      If the :binary:`~bin.mongod` encounters any other error while
+      If the ``mongod`` encounters any other error while
       processing a key, the build fails with an error.
 
   * - Lock
 
-    - The :binary:`~bin.mongod` upgrades the shared ``S`` lock on the 
+    - The ``mongod`` upgrades the shared ``S`` lock on the 
       collection to an exclusive ``X`` lock on the collection. This 
       blocks all read and write operations on the collection, including 
       the application of any replicated write operations or metadata 
-      commands that target the collection. The :binary:`~bin.mongod` 
+      commands that target the collection. The ``mongod`` 
       does not yield this lock. 
 
   * - Drop Side Write Table
 
-    - The :binary:`~bin.mongod` applies any remaining 
+    - The ``mongod`` applies any remaining 
       operations in the side writes table before dropping it. 
 
-      If the :binary:`~bin.mongod` encounters a key generation error
+      If the ``mongod`` encounters a key generation error
       while processing a key in the side write table, it stores that key
       in the constraint violation table for later processing.
 
-      If the :binary:`~bin.mongod` encounters any other error while
+      If the ``mongod`` encounters any other error while
       processing a key, the build fails with an error.
 
       At this point, the index includes all data written to
@@ -541,22 +543,22 @@ process:
 
   * - Process Constraint Violation Table
 
-    - If the :binary:`~bin.mongod` is the :term:`primary`, it drains the
+    - If the ``mongod`` is the :term:`primary`, it drains the
       constraint violation table using first-in-first-out priority.
 
       - If no keys in the constraint violation table produce a key
         generation error *or* if the table is empty, the
-        :binary:`~bin.mongod` drops the table and creates a
+        ``mongod`` drops the table and creates a
         "commitIndexBuild" oplog entry. Secondaries can complete the
         associated index build after replicating the oplog entry. 
 
       - If any key in the constraint violation table still produces a
-        key generation error, the :binary:`~bin.mongod` aborts the build
-        and throws an error. The :binary:`~bin.mongod` creates an 
+        key generation error, the ``mongod`` aborts the build
+        and throws an error. The ``mongod`` creates an 
         associated "abortIndexBuild" oplog entry to indicate that 
         secondaries should abort and discard the index build job.
 
-      If the :binary:`~bin.mongod` is a :term:`secondary`, it drops 
+      If the ``mongod`` is a :term:`secondary`, it drops 
       the constraint violation table. Since the primary *must* 
       successfully drain the constraint violation table prior to 
       creating the "commitOplogEntry" oplog entry, the secondary
@@ -566,12 +568,12 @@ process:
 
     - .. _index-build-process-ready:
 
-      The :binary:`~bin.mongod` updates the index metadata to 
+      The ``mongod`` updates the index metadata to 
       mark the index as ready for use.     
 
   * - Lock
 
-    - The :binary:`~bin.mongod` releases the ``X`` lock on the 
+    - The ``mongod`` releases the ``X`` lock on the 
       collection. 
 
 .. seealso::
