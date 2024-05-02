@@ -9,8 +9,8 @@
      - OpenShift Version
 
    * - 1.25 
-     - April 24, 2024
-     - April 24, 2025 
+     - April 30, 2024
+     - April 30, 2025 
      - 1.27, 1.28, 1.29 
      - 4.14
    
