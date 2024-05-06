@@ -8,6 +8,11 @@ Query Plans
 
 .. default-domain:: mongodb
 
+.. facet::
+   :name: genre
+   :values: reference
+
+
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -16,12 +21,12 @@ Query Plans
 
 .. TODO Consider moving this to the mechanics of the index section
 
-For any given query, the MongoDB query planner chooses and caches the most
-efficient query plan given the available indexes. The evaluation of the
-most efficient query plan is based on the number of "work units"
-(``works``) performed by the query execution plan when the query planner
-evaluates candidate plans. In general, the MongoDB query planner
-selects query plans with fewer ``works`` as the winning plan. 
+For any given query, the MongoDB query planner chooses and caches the
+most efficient query plan given the available indexes. To evaluate the
+efficiency of query plans, the query planner runs all candidate plans
+during a trial period. In general, the winning plan is the query plan
+that produces the most results during the trial period while performing
+the least amount of work.
 
 The associated plan cache entry is used for subsequent queries with the
 same query shape.
@@ -37,7 +42,8 @@ The following diagram illustrates the query planner logic:
 Plan Cache Entry State
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Each query shape is associated with one of three states in the cache:
+Starting in MongoDB 4.2, each query shape is associated with one of
+three states in the cache:
 
 .. list-table::
    :header-rows: 1
@@ -57,41 +63,45 @@ Each query shape is associated with one of three states in the cache:
 
        #. Candidate plans are evaluated and a winning plan is selected.
 
-       #. The cache creates an entry for the query shape in state :ref:`Inactive
-          <cache-entry-inactive>` with its ``works`` value. 
+       #. The cache creates an entry for the query shape in state
+          :ref:`Inactive <cache-entry-inactive>` with a value that
+          quantifies the amount of work required by the plan. 
        
    * - :ref:`Inactive <cache-entry-inactive>`
 
      - .. _cache-entry-inactive:
 
        The entry in the cache is a placeholder entry for this shape.
-       That is, the planner has seen the shape and calculated its cost
-       (``works`` value) and stored as a placeholder entry but the query
-       shape is **not** used to generate query plans.
+       That is, the planner has seen the shape, calculated a value that
+       quantifies the amount of work required by the plan and stored the
+       shape placeholder entry but the query shape is **not** used to
+       generate query plans.
     
        For a query, if the cache entry state for a shape is
        :ref:`Inactive <cache-entry-inactive>`:
 
        #. Candidate plans are evaluated and a winning plan is selected.
   
-       #. The selected plan's ``works`` value is compared
-          to the :ref:`Inactive <cache-entry-inactive>` entry's. If the
-          selected plan's ``works`` value is:
+       #. The selected plan's value that quantifies the amount of work
+          required by the plan is compared to the :ref:`Inactive
+          <cache-entry-inactive>` entry's. If the selected plan's value is:
      
-          - Less than or equal to the :ref:`Inactive <cache-entry-inactive>` entry's,
-               The selected plan replaces the placeholder
-               :ref:`Inactive <cache-entry-inactive>` entry and has an
-               :ref:`Active <cache-entry-active>` state.
+          - Less than or equal to the :ref:`Inactive <cache-entry-inactive>` entry's:
+               The selected plan replaces the placeholder :ref:`Inactive
+               <cache-entry-inactive>` entry and has an :ref:`Active
+               <cache-entry-active>` state.
        
                If before the replacement happens, the :ref:`Inactive
                <cache-entry-inactive>` entry becomes :ref:`Active
                <cache-entry-active>` (for example, due to another query
                operation), the newly active entry will only be replaced
-               if its ``works`` value is greater than the selected plan.
+               if its value that quantifies the amount of work required
+               by the plan is greater than the selected plan.
 
-          - Greater than the :ref:`Inactive <cache-entry-inactive>` entry's,
-              The :ref:`Inactive <cache-entry-inactive>` entry remains
-              but its ``works`` value is incremented.
+          - Greater than the :ref:`Inactive <cache-entry-inactive>` entry's:
+               The :ref:`Inactive <cache-entry-inactive>` entry remains
+               but its value that quantifies the amount of work required
+               by the plan is incremented.
 
    * - :ref:`Active <cache-entry-active>`
 
@@ -100,14 +110,15 @@ Each query shape is associated with one of three states in the cache:
        The entry in the cache is for the winning plan. The planner can
        use this entry to generate query plans.
 
-       For a query, if the cache entry state for a shape is
-       :ref:`Active <cache-entry-active>`:
+       For a query, if the cache entry state for a shape is :ref:`Active
+       <cache-entry-active>`:
 
        The active entry is used to generate query plans.
 
        The planner also evaluates the entry's performance and if its
-       ``works`` value no longer meets the selection criterion, it will
-       transition to :ref:`Inactive <cache-entry-inactive>` state.
+       value that quantifies the amount of work required by the plan no
+       longer meets the selection criterion, it will transition to
+       :ref:`Inactive <cache-entry-inactive>` state.
 
 See :ref:`query-plans-plan-cache-flushes` for additional scenarios that trigger
 changes to the plan cache.
