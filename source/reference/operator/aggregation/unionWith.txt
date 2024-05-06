@@ -15,19 +15,17 @@ Definition
 
 .. pipeline:: $unionWith
 
-   Performs a union of two collections. :pipeline:`$unionWith` combines 
-   pipeline results from two collections into a single result set. The stage 
-   outputs the combined result set (including duplicates) to the next stage.
+   Combines two aggregations into a single result set. ``$unionWith``
+   outputs the combined result set (including duplicates) to the next
+   stage.
 
    The order in which the combined result set documents are output is 
    unspecified.
 
-
-
 Syntax
 ------
 
-The :pipeline:`$unionWith` stage has the following syntax:
+The ``$unionWith`` stage has the following syntax:
 
 .. code-block:: javascript
 
@@ -40,31 +38,42 @@ processing, you can use the simplified form:
 
    { $unionWith: "<collection>" }  // Include all documents from the specified collection
 
-The :pipeline:`$unionWith` stage takes a document with the following
-fields:
+The ``$unionWith`` stage takes a document with the following fields:
 
 .. list-table::
   :header-rows: 1
-  :widths: 15 85
+  :widths: 10 10 20
 
   * - Field
+    - Necessity
     - Description
 
   * - :ref:`coll <unionWith-coll>`
+
+    - Required if ``pipeline`` is omitted. Otherwise optional.
 
     - ..  _unionWith-coll:
 
       The collection or view whose :ref:`pipeline <unionWith-pipeline>`
       results you wish to include in the result set.
 
+      If you omit the ``coll`` field, you must specify a ``pipeline``
+      field with a first stage of :pipeline:`$documents`.
+
   * - :ref:`pipeline <unionWith-pipeline>`
+
+    - Required if ``coll`` is omitted. Otherwise optional.
 
     - ..  _unionWith-pipeline:
 
-      Optional. An aggregation pipeline to apply to the specified
-      :ref:`coll <unionWith-coll>`.
-
-      ``[ <stage1>, <stage2>, ...]``
+      An aggregation pipeline to apply to the input documents.
+      
+      - If you specify ``coll``, the pipeline applies to the documents
+        in ``coll``.
+        
+      - If you omit ``coll``, the pipeline applies to the documents in
+        the pipeline's ``$documents`` stage. For an example, see
+        :ref:`unionWith-example-specified-docs`.
 
       The pipeline cannot include the :pipeline:`$out` and
       :pipeline:`$merge` stages. Starting in v6.0, the ``pipeline`` 
@@ -478,3 +487,48 @@ Pipeline output:
    { "_id" : "Nuts", "total" : 510 }
    { "_id" : "Pie", "total" : 395 }
    { "_id" : "Cheese", "total" : 350 }
+
+.. _unionWith-example-specified-docs:
+
+Create a Union with Specified Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use ``$unionWith`` to perform a union with documents that you
+specify in the ``pipeline`` field. When you specify a
+:pipeline:`$documents` stage in the ``pipeline`` field, you perform a
+union with documents that aren't stored in a separate collection.
+
+.. include:: /includes/let-example-create-flavors.rst
+
+The following ``$unionWith`` operation performs a union with documents
+specified in the ``pipeline`` :pipeline:`$documents` field:
+
+.. code-block:: javascript
+
+   db.cakeFlavors.aggregate( [
+      {
+         $unionWith: {
+            pipeline: [
+               {
+                  $documents: [
+                     { _id: 4, flavor: "orange" },
+                     { _id: 5, flavor: "vanilla", price: 20 }
+                  ]
+               }
+            ]
+         }
+      }
+   ] )
+
+Output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      { _id: 1, flavor: 'chocolate' },
+      { _id: 2, flavor: 'strawberry' },
+      { _id: 3, flavor: 'cherry' },
+      { _id: 4, flavor: 'orange' },
+      { _id: 5, flavor: 'vanilla', price: 20 }
+   ]
