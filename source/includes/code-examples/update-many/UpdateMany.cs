@@ -18,25 +18,31 @@ public class UpdateMany
 
     public static void Main(string[] args)
     {
-        Setup();
+        try {
+            Setup();
 
-        // Prints extra space for console readability  
-        Console.WriteLine();
+            // Prints extra space for console readability  
+            Console.WriteLine();
 
-        // Finds the number of restaurants with a "cuisine" value of "Pizza"
-        Console.WriteLine($"Restaurants with {CuisineField} \"{OldCuisine}\" found: {FindCountOfRestaurantsWithCuisine(OldCuisine)}");
+            // Finds the number of restaurants with a "cuisine" value of "Pizza"
+            Console.WriteLine($"Restaurants with {CuisineField} \"{OldCuisine}\" found: {FindCountOfRestaurantsWithCuisine(OldCuisine)}");
 
-        // Updates many documents by using a helper method
-        var syncResult = UpdateManyRestaurants();
-        Console.WriteLine($"Restaurants modified by update: {syncResult.ModifiedCount}");
+            // Updates many documents by using a helper method
+            var syncResult = UpdateManyRestaurants();
+            Console.WriteLine($"Restaurants modified by update: {syncResult.ModifiedCount}");
 
-        // Finds the number of restaurants with a "cuisine" value of "Pasta and breadsticks"
-        Console.WriteLine($"Restaurants with {CuisineField} \"{NewCuisine}\" found after update: {FindCountOfRestaurantsWithCuisine(NewCuisine)}");
+            // Finds the number of restaurants with a "cuisine" value of "Pasta and breadsticks"
+            Console.WriteLine($"Restaurants with {CuisineField} \"{NewCuisine}\" found after update: {FindCountOfRestaurantsWithCuisine(NewCuisine)}");
 
-        // Resets the sample data
-        Console.WriteLine("Resetting sample data...");
-        ResetSampleData();
-        Console.WriteLine("done.");
+            // Resets the sample data
+            Console.WriteLine("Resetting sample data...");
+            ResetSampleData();
+            Console.WriteLine("done.");
+
+        // Prints a message if any exceptions occur during the operation    
+        } catch (MongoException me) {
+            Console.WriteLine("Unable to update due to an error: " + me);
+        }            
     }
 
     private static UpdateResult UpdateManyRestaurants()

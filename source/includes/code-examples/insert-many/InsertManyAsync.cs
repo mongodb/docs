@@ -14,33 +14,39 @@ public class InsertManyAsync
 
     public static async Task Main(string[] args)
     {
-        Setup();
+        try {
+            Setup();
 
-        // Creates a filter for all documents that have a "name" value of "Mongo's Pizza"
-        var filter = Builders<Restaurant>.Filter
-            .Eq(r => r.Name, "Mongo's Pizza");
+            // Creates a filter for all documents that have a "name" value of "Mongo's Pizza"
+            var filter = Builders<Restaurant>.Filter
+                .Eq(r => r.Name, "Mongo's Pizza");
 
-        // Finds all documents that match the filter
-        var foundRestaurants = _restaurantsCollection.Find(filter).ToList();
+            // Finds all documents that match the filter
+            var foundRestaurants = _restaurantsCollection.Find(filter).ToList();
 
-        // Prints the number of documents found
-        Console.WriteLine($"Number of restaurants found before insert: {foundRestaurants.Count}");
+            // Prints the number of documents found
+            Console.WriteLine($"Number of restaurants found before insert: {foundRestaurants.Count}");
 
-        // Prints extra space for console readability
-        Console.WriteLine();
+            // Prints extra space for console readability
+            Console.WriteLine();
 
-        Console.WriteLine("Inserting documents...");
+            Console.WriteLine("Inserting documents...");
 
-        // Asynchronously inserts the documents by using a helper method
-        await InsertManyRestaurantsAsync();
+            // Asynchronously inserts the documents by using a helper method
+            await InsertManyRestaurantsAsync();
 
-        // Finds all documents that match the filter after the insert
-        foundRestaurants = _restaurantsCollection.Find(filter).ToList();
+            // Finds all documents that match the filter after the insert
+            foundRestaurants = _restaurantsCollection.Find(filter).ToList();
 
-        // Prints the number of documents found
-        Console.WriteLine($"Number of restaurants inserted: {foundRestaurants.Count}");
+            // Prints the number of documents found
+            Console.WriteLine($"Number of restaurants inserted: {foundRestaurants.Count}");
 
-        Cleanup();
+            Cleanup();
+
+        // Prints a message if any exceptions occur during the operation    
+        } catch (MongoException me) {
+            Console.WriteLine("Unable to insert due to an error: " + me);
+        }
     }
 
     private static async Task InsertManyRestaurantsAsync()

@@ -14,18 +14,24 @@ public class FindOne
 
     public static void Main(string[] args)
     {
-        Setup();
+        try {
+            Setup();
 
-        // Finds one document by using builders
-        Console.WriteLine("Finding a document with builders...");
-        FindOneRestaurantBuilder();
+            // Finds one document by using builders
+            Console.WriteLine("Finding a document with builders...");
+            FindOneRestaurantBuilder();
 
-        // Prints extra space for console readability 
-        Console.WriteLine();
+            // Prints extra space for console readability 
+            Console.WriteLine();
 
-        // Finds one document by using LINQ
-        Console.WriteLine("Finding a document with LINQ...");
-        FindOneRestaurantLinq();
+            // Finds one document by using LINQ
+            Console.WriteLine("Finding a document with LINQ...");
+            FindOneRestaurantLinq();
+
+        // Prints a message if any exceptions occur during the operation
+        } catch (MongoException me) {
+            Console.WriteLine("Unable to find due to an error: " + me); 
+        }    
     }
 
     private static void FindOneRestaurantBuilder()

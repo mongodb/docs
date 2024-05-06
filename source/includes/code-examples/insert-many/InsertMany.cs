@@ -14,32 +14,38 @@ public class InsertMany
 
     public static void Main(string[] args)
     {
-        Setup();
+        try {
+            Setup();
 
-        // Creates a filter for all documents that have a "name" value of "Mongo's Pizza"
-        var filter = Builders<Restaurant>.Filter
-            .Eq(r => r.Name, "Mongo's Pizza");
+            // Creates a filter for all documents that have a "name" value of "Mongo's Pizza"
+            var filter = Builders<Restaurant>.Filter
+                .Eq(r => r.Name, "Mongo's Pizza");
 
-        // Finds all documents that match the filter
-        var foundRestaurants = _restaurantsCollection.Find(filter).ToList();
+            // Finds all documents that match the filter
+            var foundRestaurants = _restaurantsCollection.Find(filter).ToList();
 
-        Console.WriteLine($"Number of restaurants found before insert: {foundRestaurants.Count}");
+            Console.WriteLine($"Number of restaurants found before insert: {foundRestaurants.Count}");
 
-        // Prints extra space for console readability
-        Console.WriteLine();
+            // Prints extra space for console readability
+            Console.WriteLine();
 
-        Console.WriteLine("Inserting documents...");
+            Console.WriteLine("Inserting documents...");
 
-        // Inserts the documents by using a helper method
-        InsertManyRestaurants();
+            // Inserts the documents by using a helper method
+            InsertManyRestaurants();
 
-        // Finds all documents that match the filter after the insert
-        foundRestaurants = _restaurantsCollection.Find(filter).ToList();
+            // Finds all documents that match the filter after the insert
+            foundRestaurants = _restaurantsCollection.Find(filter).ToList();
 
-        // Prints the number of documents found
-        Console.WriteLine($"Number of restaurants inserted: {foundRestaurants.Count}");
+            // Prints the number of documents found
+            Console.WriteLine($"Number of restaurants inserted: {foundRestaurants.Count}");
 
-        Cleanup();
+            Cleanup();
+
+        // Prints a message if any exceptions occur during the operation    
+        } catch (MongoException me) {
+            Console.WriteLine("Unable to insert due to an error: " + me);
+        }
     }
 
     private static void InsertManyRestaurants()

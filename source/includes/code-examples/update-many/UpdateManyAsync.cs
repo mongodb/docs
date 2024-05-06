@@ -18,25 +18,31 @@ public class UpdateManyAsync
 
     public static async Task Main(string[] args)
     {
-        Setup();
+        try {
+            Setup();
 
-        // Prints extra space for console readability
-        Console.WriteLine();
+            // Prints extra space for console readability
+            Console.WriteLine();
 
-        // Finds the number of restaurants with a "cuisine" value of "Pizza"
-        Console.WriteLine($"Restaurants with {CuisineField} \"{OldCuisine}\" found: {FindCountOfRestaurantsWithCuisine(OldCuisine)}");
+            // Finds the number of restaurants with a "cuisine" value of "Pizza"
+            Console.WriteLine($"Restaurants with {CuisineField} \"{OldCuisine}\" found: {FindCountOfRestaurantsWithCuisine(OldCuisine)}");
 
-        // Asynchronously updates many documents by using a helper method
-        var asyncResult = await UpdateManyRestaurantsAsync();
-        Console.WriteLine($"Restaurants modified by update: {asyncResult.ModifiedCount}");
+            // Asynchronously updates many documents by using a helper method
+            var asyncResult = await UpdateManyRestaurantsAsync();
+            Console.WriteLine($"Restaurants modified by update: {asyncResult.ModifiedCount}");
 
-        // Finds the number of restaurants with a "cuisine" value of "Pasta and breadsticks"
-        Console.WriteLine($"Restaurants with {CuisineField} \"{NewCuisine}\" found after update: {FindCountOfRestaurantsWithCuisine(NewCuisine)}");
+            // Finds the number of restaurants with a "cuisine" value of "Pasta and breadsticks"
+            Console.WriteLine($"Restaurants with {CuisineField} \"{NewCuisine}\" found after update: {FindCountOfRestaurantsWithCuisine(NewCuisine)}");
 
-        // Resets the sample data
-        Console.WriteLine("Resetting sample data...");
-        ResetSampleData();
-        Console.WriteLine("done.");
+            // Resets the sample data
+            Console.WriteLine("Resetting sample data...");
+            ResetSampleData();
+            Console.WriteLine("done.");
+            
+        // Prints a message if any exceptions occur during the operation    
+        } catch (MongoException me) {
+            Console.WriteLine("Unable to update due to an error: " + me);
+        }        
     }
 
     private static async Task<UpdateResult> UpdateManyRestaurantsAsync()

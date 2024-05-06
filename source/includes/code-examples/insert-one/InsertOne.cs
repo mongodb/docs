@@ -14,22 +14,28 @@ public class InsertOne
 
     public static void Main(string[] args)
     {
-        Setup();
+        try {
+            Setup();
 
-        Console.WriteLine("Inserting a document...");
-        InsertOneRestaurant();
+            Console.WriteLine("Inserting a document...");
+            InsertOneRestaurant();
 
-        // Creates a filter for all documents that have a "name" value of "Mongo's Pizza"
-        var filter = Builders<Restaurant>.Filter
-            .Eq(r => r.Name, "Mongo's Pizza");
+            // Creates a filter for all documents that have a "name" value of "Mongo's Pizza"
+            var filter = Builders<Restaurant>.Filter
+                .Eq(r => r.Name, "Mongo's Pizza");
 
-        // Finds the newly inserted document by using the filter
-        var document = _restaurantsCollection.Find(filter).FirstOrDefault();
+            // Finds the newly inserted document by using the filter
+            var document = _restaurantsCollection.Find(filter).FirstOrDefault();
 
-        // Prints the document
-        Console.WriteLine($"Document Inserted: {document.ToBsonDocument()}");
+            // Prints the document
+            Console.WriteLine($"Document Inserted: {document.ToBsonDocument()}");
 
-        Cleanup();
+            Cleanup();
+
+        // Prints a message if any exceptions occur during the operation    
+        } catch (MongoException me) {
+            Console.WriteLine("Unable to insert due to an error: " + me);
+        }
     }
 
     private static void InsertOneRestaurant()

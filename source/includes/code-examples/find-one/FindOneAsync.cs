@@ -15,20 +15,26 @@ public class FindOneAsync
 
     public static async Task Main(string[] args)
     {
-        Setup();
+        try {
+            Setup();
 
-        // Finds one document by using builders
-        var buildersDocument = await FindOneRestaurantBuilderAsync();
-        Console.WriteLine("Finding a document with builders...");
-        Console.WriteLine(buildersDocument.ToBsonDocument());
+            // Finds one document by using builders
+            var buildersDocument = await FindOneRestaurantBuilderAsync();
+            Console.WriteLine("Finding a document with builders...");
+            Console.WriteLine(buildersDocument.ToBsonDocument());
 
-        // Prints extra space for console readability
-        Console.WriteLine();
+            // Prints extra space for console readability
+            Console.WriteLine();
 
-        // Finds one document by using LINQ
-        var linqDocument = await FindOneRestaurantLinqAsync();
-        Console.WriteLine("Finding a document with LINQ...");
-        Console.WriteLine(linqDocument.ToBsonDocument());
+            // Finds one document by using LINQ
+            var linqDocument = await FindOneRestaurantLinqAsync();
+            Console.WriteLine("Finding a document with LINQ...");
+            Console.WriteLine(linqDocument.ToBsonDocument());
+
+        // Prints a message if any exceptions occur during the operation    
+        } catch (MongoException me) {
+            Console.WriteLine("Unable to find due to an error: " + me); 
+        }
     }
 
     private static async Task<Restaurant> FindOneRestaurantBuilderAsync()

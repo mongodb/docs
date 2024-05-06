@@ -15,27 +15,33 @@ public class FindManyAsync
 
     public static async Task Main(string[] args)
     {
-        Setup();
+        try {
+            Setup();
 
-        // Finds multiple documents by using builders
-        Console.WriteLine("Finding documents with builders...:");
-        var restaurantsBuilders = await FindMultipleRestaurantsBuilderAsync();
-        Console.WriteLine($"Number of documents found: {restaurantsBuilders.Count}");
+            // Finds multiple documents by using builders
+            Console.WriteLine("Finding documents with builders...:");
+            var restaurantsBuilders = await FindMultipleRestaurantsBuilderAsync();
+            Console.WriteLine($"Number of documents found: {restaurantsBuilders.Count}");
 
-        // Prints extra space for console readability 
-        Console.WriteLine();
+            // Prints extra space for console readability 
+            Console.WriteLine();
 
-        // Retrieves multiple documents by using LINQ
-        Console.WriteLine("Finding documents with LINQ...:");
-        var restaurantsLinq = await FindMultipleRestaurantsLinqAsync();
-        Console.WriteLine($"Number of documents found: {restaurantsLinq.Count}");
+            // Retrieves multiple documents by using LINQ
+            Console.WriteLine("Finding documents with LINQ...:");
+            var restaurantsLinq = await FindMultipleRestaurantsLinqAsync();
+            Console.WriteLine($"Number of documents found: {restaurantsLinq.Count}");
 
-        Console.WriteLine();
+            Console.WriteLine();
 
-        // Retrieves all documents in the "restaurants" collection
-        Console.WriteLine("Finding all documents...:");
-        var allRestaurants = await FindAllRestaurantsAsync();
-        Console.WriteLine($"Number of documents found: {allRestaurants.Count}");
+            // Retrieves all documents in the "restaurants" collection
+            Console.WriteLine("Finding all documents...:");
+            var allRestaurants = await FindAllRestaurantsAsync();
+            Console.WriteLine($"Number of documents found: {allRestaurants.Count}");
+
+        // Prints a message if any exceptions occur during the operation    
+        } catch (MongoException me) {
+            Console.WriteLine("Unable to find due to an error: " + me);
+        }
     }
 
     private static async Task<List<Restaurant>> FindMultipleRestaurantsBuilderAsync()

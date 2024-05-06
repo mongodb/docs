@@ -14,20 +14,26 @@ public class DeleteOne
 
     public static void Main(string[] args)
     {
-        Setup();
+        try {
+            Setup();
 
-        var filter = Builders<Restaurant>.Filter
-            .Eq(r => r.Name, "Ready Penny Inn");
+            var filter = Builders<Restaurant>.Filter
+                .Eq(r => r.Name, "Ready Penny Inn");
 
-        var doc = _restaurantsCollection.Find(filter).First();
+            var doc = _restaurantsCollection.Find(filter).First();
 
-        // Deletes a document by using builders
-        Console.WriteLine("Deleting a document with builders...");
-        var result = DeleteARestaurantBuilder();
+            // Deletes a document by using builders
+            Console.WriteLine("Deleting a document with builders...");
+            var result = DeleteARestaurantBuilder();
 
-        Console.WriteLine($"Deleted documents: {result.DeletedCount}");
+            Console.WriteLine($"Deleted documents: {result.DeletedCount}");
 
-        Restore(doc);
+            Restore(doc);
+
+        // Prints a message if any exceptions occur during the operation    
+        } catch (MongoException me) {
+            Console.WriteLine("Unable to delete due to an error: " + me);
+        }
     }
 
     private static DeleteResult DeleteARestaurantBuilder()

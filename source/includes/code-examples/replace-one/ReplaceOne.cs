@@ -14,26 +14,32 @@ public class ReplaceOne
 
     public static void Main(string[] args)
     {
-        Setup();
+        try {
+            Setup();
 
-        // Creates a filter for all restaurant documents that have a "cuisine" value of "Pizza"
-        var filter = Builders<Restaurant>.Filter
-            .Eq(r => r.Cuisine, "Pizza");
+            // Creates a filter for all restaurant documents that have a "cuisine" value of "Pizza"
+            var filter = Builders<Restaurant>.Filter
+                .Eq(r => r.Cuisine, "Pizza");
 
-        // Finds the first restaurant document that matches the filter
-        var oldPizzaRestaurant = _restaurantsCollection.Find(filter).First();
-        Console.WriteLine($"First pizza restaurant before replacement: {oldPizzaRestaurant.Name}");
+            // Finds the first restaurant document that matches the filter
+            var oldPizzaRestaurant = _restaurantsCollection.Find(filter).First();
+            Console.WriteLine($"First pizza restaurant before replacement: {oldPizzaRestaurant.Name}");
 
-        // Replaces the document by using a helper method
-        var syncResult = ReplaceOneRestaurant();
-        Console.WriteLine($"Restaurants modified by replacement: {syncResult.ModifiedCount}");
+            // Replaces the document by using a helper method
+            var syncResult = ReplaceOneRestaurant();
+            Console.WriteLine($"Restaurants modified by replacement: {syncResult.ModifiedCount}");
 
-        var firstPizzaRestaurant = _restaurantsCollection.Find(filter).First();
-        Console.WriteLine($"First pizza restaurant after replacement: {firstPizzaRestaurant.Name}");
+            var firstPizzaRestaurant = _restaurantsCollection.Find(filter).First();
+            Console.WriteLine($"First pizza restaurant after replacement: {firstPizzaRestaurant.Name}");
 
-        Console.WriteLine("Resetting sample data...");
-        _restaurantsCollection.ReplaceOneAsync(filter, oldPizzaRestaurant);
-        Console.WriteLine("done.");
+            Console.WriteLine("Resetting sample data...");
+            _restaurantsCollection.ReplaceOneAsync(filter, oldPizzaRestaurant);
+            Console.WriteLine("done.");
+
+        // Prints a message if any exceptions occur during the operation    
+        } catch (MongoException me) {
+            Console.WriteLine("Unable to replace due to an error: " + me);
+        }
     }
 
     private static ReplaceOneResult ReplaceOneRestaurant()

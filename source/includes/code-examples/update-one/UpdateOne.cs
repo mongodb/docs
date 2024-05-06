@@ -14,15 +14,21 @@ public class UpdateOne
 
     public static void Main(string[] args)
     {
-        Setup();
+        try {
+            Setup();
 
-        // Prints extra space for console readability 
-        Console.WriteLine();
+            // Prints extra space for console readability 
+            Console.WriteLine();
 
-        // Updates one document by using a helper method
-        var syncResult = UpdateOneRestaurant();
-        Console.WriteLine($"Updated documents: {syncResult.ModifiedCount}");
-        ResetSampleData();
+            // Updates one document by using a helper method
+            var syncResult = UpdateOneRestaurant();
+            Console.WriteLine($"Updated documents: {syncResult.ModifiedCount}");
+            ResetSampleData();
+
+        // Prints a message if any exceptions occur during the operation    
+        } catch (MongoException me) {
+            Console.WriteLine("Unable to update due to an error: " + me);
+        }
     }
 
     private static UpdateResult UpdateOneRestaurant()

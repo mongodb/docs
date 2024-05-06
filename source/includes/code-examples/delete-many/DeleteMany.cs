@@ -14,20 +14,26 @@ public class DeleteMany
 
     public static void Main(string[] args)
     {
-        Setup();
+        try {
+            Setup();
 
-        var filter = Builders<Restaurant>.Filter
-            .Eq(r => r.Borough, "Brooklyn");
+            var filter = Builders<Restaurant>.Filter
+                .Eq(r => r.Borough, "Brooklyn");
 
-        var docs = _restaurantsCollection.Find(filter).ToList();
+            var docs = _restaurantsCollection.Find(filter).ToList();
 
-        // Deletes documents by using builders
-        Console.WriteLine("Deleting documents...");
-        var result = DeleteMultipleRestaurantsBuilder();
+            // Deletes documents by using builders
+            Console.WriteLine("Deleting documents...");
+            var result = DeleteMultipleRestaurantsBuilder();
 
-        Console.WriteLine($"Deleted documents: {result.DeletedCount}");
+            Console.WriteLine($"Deleted documents: {result.DeletedCount}");
 
-        Restore(docs);
+            Restore(docs);
+            
+        // Prints a message if any exceptions occur during the operation    
+        } catch (MongoException me) {
+            Console.WriteLine("Unable to delete due to an error: " + me);
+        }    
     }
 
     // Deletes all documents that have a Borough value of "Brooklyn"

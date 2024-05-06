@@ -14,20 +14,26 @@ public class DeleteManyAsync
 
     public static async Task Main(string[] args)
     {
-        Setup();
+        try {
+            Setup();
 
-        var filter = Builders<Restaurant>.Filter
-            .Eq(r => r.Borough, "Brooklyn");
+            var filter = Builders<Restaurant>.Filter
+                .Eq(r => r.Borough, "Brooklyn");
 
-        var docs = _restaurantsCollection.Find(filter).ToList();
+            var docs = _restaurantsCollection.Find(filter).ToList();
 
-        // Deletes documents by using builders
-        Console.WriteLine("Deleting documents...");
-        var result = await DeleteMultipleRestaurantsBuilderAsync();
+            // Deletes documents by using builders
+            Console.WriteLine("Deleting documents...");
+            var result = await DeleteMultipleRestaurantsBuilderAsync();
 
-        Console.WriteLine($"Deleted documents: {result.DeletedCount}");
+            Console.WriteLine($"Deleted documents: {result.DeletedCount}");
 
-        Restore(docs);
+            Restore(docs);
+            
+        // Prints a message if any exceptions occur during the operation    
+        } catch (MongoException me) {
+            Console.WriteLine("Unable to delete due to an error: " + me);
+        }
     }
 
     // Deletes all documents that have a Borough value of "Brooklyn"

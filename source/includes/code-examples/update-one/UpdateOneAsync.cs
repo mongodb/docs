@@ -14,15 +14,21 @@ public class UpdateOneAsync
 
     public static async Task Main(string[] args)
     {
-        Setup();
+        try {
+            Setup();
 
-        // Prints extra space for console readability 
-        Console.WriteLine();
+            // Prints extra space for console readability 
+            Console.WriteLine();
 
-        // Updates one document asynchronously by using a helper method
-        var asyncResult = await UpdateOneRestaurantAsync();
-        Console.WriteLine($"Updated documents: {asyncResult.ModifiedCount}");
-        ResetSampleData();
+            // Updates one document asynchronously by using a helper method
+            var asyncResult = await UpdateOneRestaurantAsync();
+            Console.WriteLine($"Updated documents: {asyncResult.ModifiedCount}");
+            ResetSampleData();
+
+        // Prints a message if any exceptions occur during the operation    
+        } catch (MongoException e) {
+            Console.WriteLine("Unable to update due to an error: " + me);
+        }
     }
 
     private static async Task<UpdateResult> UpdateOneRestaurantAsync()

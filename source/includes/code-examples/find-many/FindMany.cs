@@ -14,27 +14,33 @@ public class FindMany
 
     public static void Main(string[] args)
     {
-        Setup();
+        try {
+            Setup();
 
-        // Finds multiple documents by using builders
-        Console.WriteLine("Finding documents with builders...:");
-        var restaurants = FindMultipleRestaurantsBuilderSync();
-        Console.WriteLine($"Number of documents found: {restaurants.Count}");
+            // Finds multiple documents by using builders
+            Console.WriteLine("Finding documents with builders...:");
+            var restaurants = FindMultipleRestaurantsBuilderSync();
+            Console.WriteLine($"Number of documents found: {restaurants.Count}");
 
-        // Prints extra space for console readability 
-        Console.WriteLine();
+            // Prints extra space for console readability 
+            Console.WriteLine();
 
-        // Retrieves multiple documents by using LINQ
-        Console.WriteLine("Finding documents with LINQ...:");
-        restaurants = FindMultipleRestaurantsLinqSync();
-        Console.WriteLine($"Number of documents found: {restaurants.Count}");
+            // Retrieves multiple documents by using LINQ
+            Console.WriteLine("Finding documents with LINQ...:");
+            restaurants = FindMultipleRestaurantsLinqSync();
+            Console.WriteLine($"Number of documents found: {restaurants.Count}");
 
-        Console.WriteLine();
+            Console.WriteLine();
 
-        // Retrieves all documents in the "restaurants" collection
-        Console.WriteLine("Finding all documents...:");
-        restaurants = FindAllRestaurantsSync();
-        Console.WriteLine($"Number of documents found: {restaurants.Count}");
+            // Retrieves all documents in the "restaurants" collection
+            Console.WriteLine("Finding all documents...:");
+            restaurants = FindAllRestaurantsSync();
+            Console.WriteLine($"Number of documents found: {restaurants.Count}");
+
+        // Prints a message if any exceptions occur during the operation
+        } catch (MongoException me) {
+            Console.WriteLine("Unable to find due to an error: " + me);
+        }
     }
 
     public static List<Restaurant> FindMultipleRestaurantsBuilderSync()
