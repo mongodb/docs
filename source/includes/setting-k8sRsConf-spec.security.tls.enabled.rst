@@ -17,7 +17,7 @@
    - Clients (|mongo| shell, drivers, |compass|, and others)
      and the MongoDB deployment
    
-   By default, :setting:`net.ssl.mode` is set to ``requireSSL``. To change the
+   By default, ``net.ssl.mode`` is set to ``requireSSL``. To change the
    |tls| mode used for client and database connections, see
    :setting:`spec.additionalMongodConfig.net.ssl.mode`.
    
