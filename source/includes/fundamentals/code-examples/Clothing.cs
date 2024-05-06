@@ -21,5 +21,12 @@ public class Clothing
 
     [BsonElement("colorSelection")]
     public List<string> ColorSelection { get; set; }
+
+    [BsonElement("listedDate")]
+    [BsonDateTimeOptions(DateOnly = true)]
+    public DateTime ListedDate { get; set; }
+
+    [BsonElement("sizeGuide")]
+    public Dictionary<string, string> SizeGuide { get; set; }
 }
 // end-model
