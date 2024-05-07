@@ -206,7 +206,7 @@
 
 - Introduces 
   :ref:`serverless instances <create-new-serverless-instance>` as a new 
-  database deployment option in |service|, available in preview.
+  {+database-deployment+} option in |service|, available in preview.
 
 - Introduces the general availability of the new 
   `MongoDB Shell <https://www.mongodb.com/docs/mongodb-shell/>`__.

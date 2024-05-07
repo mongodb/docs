@@ -111,7 +111,7 @@
 ~~~~~~~~~~~~~~~~~~~~~
 
 - Supports :ref:`tags <database-deployment-tags>` for your |service|
-  database deployments through the {+atlas-ui+}, {+atlas-admin-api+},
+  {+database-deployments+} through the {+atlas-ui+}, {+atlas-admin-api+},
   and {+atlas-cli+}.  
 - Provides preview of :ref:`federated access
   <oidc-authentication-authorization>` to MongoDB 7.0+ databases on 

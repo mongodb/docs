@@ -1,4 +1,4 @@
-.. step:: In |service|, go to the :guilabel:`Database Deployments` page for your project.
+.. step:: In |service|, go to the :guilabel:`Clusters` page for your project.
 
    a. If it is not already displayed, select the organization that
       contains your desired project from the |ui-org-menu| in the

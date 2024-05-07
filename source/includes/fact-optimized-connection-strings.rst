@@ -65,7 +65,7 @@ Use Optimized Connection Strings with Compass
 
 To learn how to connect using Compass and an optimized connection
 string, select the :guilabel:`Private Endpoint Connection` tab in the 
-`Connect to your Database Deployment procedure 
+`Connect to your {+Database-Deployment+} procedure 
 <https://www.mongodb.com/docs/atlas/compass-connection/#choose-your-connection-security>`__.
 
 Use Optimized Connection Strings with ``mongosh``
@@ -73,5 +73,5 @@ Use Optimized Connection Strings with ``mongosh``
 
 To learn how to connect using ``mongosh`` and an optimized connection
 string, select the :guilabel:`Private Endpoint Connection` tab in the 
-`Connect to your Database Deployment procedure 
+`Connect to your {+Database-Deployment+} procedure 
 <https://www.mongodb.com/docs/atlas/mongo-shell-connection/#choose-your-connection-security>`__.

@@ -16,7 +16,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 - Introduces :ref:`Termination Protection <scale-cluster-termination-protection>` 
-  for database deployments.
+  for {+database-deployments+}.
 - Adds a :ref:`project setting <atlas-modify-project-settings>` that lets you
   configure some M40+ {+clusters+} with greater maximum storage than the standard limit.
 - Adds the :guilabel:`Set Oplog Size` UI configuration setting. This setting
