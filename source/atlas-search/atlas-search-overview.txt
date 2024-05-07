@@ -36,6 +36,67 @@ score-based results ranking.
    with `the {+playground+} <https://search-playground.mongodb.com/>`__. To learn more, 
    see :ref:`the documentation <fts-playground>`.
 
+|fts| Fundamentals
+------------------
+
+The following concepts form the basis of |fts| and are essential to optimize your application.
+
+Indexing
+~~~~~~~~
+
+In the context of search, an *index* is a data structure that categorizes data in an easily searchable format.
+Search indexes enable faster retrieval of documents that contain a given term without having to scan the entire collection.
+While both |fts| indexes and :manual:`MongoDB Indexes </indexes>` make data retrieval faster, note that they are not the same.
+Like the index in the back of a book,
+a search index is a mapping between terms and the documents that contain those terms.
+Search indexes also contain other relevant metadata, such as the positions of terms in documents.
+
+Creating at least one search index is usually required in any search application.
+For more information, see :ref:`fts-about-indexing`.
+
+Tokenization
+~~~~~~~~~~~~
+
+When creating a search index, data must first be transformed into a sequence of *tokens* or *terms*.
+An *analyzer* facilitates this process through steps including:
+
+- *Tokenization*: Breaking up words in a string into indexable tokens.
+  For example, dividing a sentence by whitespace and punctuation.
+- *Normalization*: Organizing data so that it is consistently represented and easier to analyze.
+  For example, transforming text to lower case or removing unwanted words called *stop words*.
+- *Stemming*: Reducing words to their root form.
+  For example, ignoring suffixes, prefixes, and plural word forms.
+
+The specifics of tokenization are language-specific and can require making additional choices.
+Which analyzer to use depends on your data and application.
+For more information, see :ref:`analyzers-ref`.
+
+Querying
+~~~~~~~~
+
+Search queries consult the index to return a set of results.
+Search queries are different than traditional database queries,
+as they are intended to meet more general information needs.
+Where a database query must follow a strict syntax,
+search queries can be for simple text matching,
+but can also look for similar phrases, number or date ranges, or use regular expressions or wildcards.
+
+For more information, see :ref:`fts-about-queries`.
+
+Scoring
+~~~~~~~
+
+Each document receives a relevancy score that enables query results to be returned in order from the highest relevance to the lowest.
+In the simplest form of scoring, documents score higher if the query term appears frequently in a document and
+lower if the query term appears across many documents in the collection.
+Scoring can also be customized.
+Tailoring search to a specific domain often means customizing the relevance-based default score by boosting, decaying, or modifying it in other ways.
+
+For more information, see :ref:`Score Documents <scoring-ref>`.
+
+|fts| Availability
+------------------
+
 |fts| is available on |service| instances running MongoDB 4.2 or higher 
 versions only. For certain features, |fts| might require a specific 
 version of MongoDB. The following table lists the |fts| features that 
@@ -183,12 +244,6 @@ all associated |fts| deployments (``mongot`` processes).
 
 .. include:: /includes/facts/fts-index-description.rst
 
-When you configure one or more |fts| indexes, |service| enables the
-``mongot`` process on the nodes in the cluster. Each ``mongot`` process
-talks to the ``mongod`` on the same node. To create and update search
-indexes, the ``mongot`` process performs collection scans on the 
-backend database and opens change streams for each index.
-
 You can specify the fields to index using the following methods: 
 
 - :ref:`Dynamic mappings <static-dynamic-mappings>`, which enables 
@@ -201,12 +256,6 @@ You can specify the fields to index using the following methods:
   mapping in the index definition and ignores documents that contain
   values that don't correspond to the mapping specified in the index
   definition for the fields.
-
-|fts| performs inverted indexing and stores the indexed fields on disk. 
-An inverted index is a mapping between terms and which documents contain
-those terms. |fts| indexes contain the term, the ``_id``, and other
-relevant metadata about the term, such as the position of the term, in
-the document. 
 
 Although the data stored on |fts| isn't an identical copy of data from
 the collection on your |service| cluster, |fts| indexes still take some
@@ -222,16 +271,6 @@ and more. Analyzers apply parsing and language rules to the query. You
 can also create a custom analyzer using available built-in character 
 filters, tokenizers, and token filters. To learn more about the 
 built-in and custom analyzers, see :ref:`analyzers-ref`.
-
-For text fields, the ``mongot`` performs the following tasks to analyze
-text and create indexable tokens:
-
-1. Tokenization, which is breaking up of words in a string to indexable 
-   tokens
-#. Normalization, such as transforming the text to lower case, folding 
-   diacritics, and removing stop words
-#. Stemming, such as ignoring plural and other word forms to index the 
-   word in the most reduced form
 
 To learn more about |fts| support for other data types, see 
 :ref:`bson-data-types`. The ``mongot`` 
@@ -283,6 +322,8 @@ consistent.
 
 After you set up an |fts| index for a collection, you can run queries 
 against the indexed fields.
+
+.. _fts-about-queries:
 
 |fts| Queries 
 -------------
