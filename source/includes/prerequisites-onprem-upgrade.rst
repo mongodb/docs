@@ -5,6 +5,10 @@ Your servers must meet the :doc:`/core/requirements`.
 
 .. include:: /includes/admonitions/warning-follow-requirements.rst
 
+Ensure that all data-bearing members are running before you start the
+upgrade process. To determine the status of the replica set members, run
+:dbcommand:`replSetGetStatus`. 
+
 If your backing databases run the MMAPv1 storage engine, the upgrade
 process fails. |onprem| prompts you to
 :manual:`upgrade the storage engine for those backing databases to WiredTiger </tutorial/change-replica-set-wiredtiger>`.
