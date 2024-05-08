@@ -7,6 +7,9 @@
    * - Kotlin Driver Version
      - Kotlin 1.8
 
+   * - 5.1
+     - ✓
+
    * - 5.0
      - ✓
 
