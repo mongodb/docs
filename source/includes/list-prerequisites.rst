@@ -6,6 +6,6 @@
 
 - MongoDB version 4.0 or later
 
-- Spark version 3.1 through 3.2.4
+- Spark version 3.1 through 3.5
 
 - Java 8 or later
