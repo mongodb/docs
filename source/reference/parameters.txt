@@ -5410,6 +5410,8 @@ Auditing Parameters
    :ref:`audit system <auditing>` only logs the authorization
    failures for ``authCheck``.
 
+   .. include:: /includes/fact-runtime-startup-parameter
+
    To enable the audit of authorization successes, issue the following
    command:
 
@@ -5448,6 +5450,8 @@ Auditing Parameters
       Using the default value of 300 seconds, non-config nodes may lag up
       to 5 minutes after you set the :parameter:`auditConfig` cluster parameter.
 
+   .. include:: /includes/fact-startup-parameter
+
 .. parameter:: auditEncryptionHeaderMetadataFile
 
    .. versionadded:: 6.0
@@ -5464,10 +5468,9 @@ Auditing Parameters
    decrypting the audit log. The headers are also stored in the
    :ref:`audit log <auditing>`.
 
-   You can only set :parameter:`auditEncryptionHeaderMetadataFile`
-   during startup in the :setting:`configuration file <setParameter>` or
-   with the ``--setParameter`` option on the command line. For example,
-   the following sets the path and file for
+   .. include:: /includes/fact-startup-parameter
+
+   For example, the following sets the path and file for
    :parameter:`auditEncryptionHeaderMetadataFile`:
 
    .. code-block:: bash
@@ -5491,10 +5494,10 @@ Auditing Parameters
    Interoperability Protocol (KMIP) servers that only support KMIP
    protocol version 1.0 or 1.1.
 
-   You can only set :parameter:`auditEncryptKeyWithKMIPGet` during
-   startup in the :setting:`configuration file <setParameter>` or with
-   the ``--setParameter`` option on the command line. For example, the
-   following sets :parameter:`auditEncryptKeyWithKMIPGet` to ``true``:
+   .. include:: /includes/fact-startup-parameter
+
+   The following example sets
+   :parameter:`auditEncryptKeyWithKMIPGet` to ``true``:
 
    .. code-block:: bash
 
@@ -5515,39 +5518,34 @@ Transaction Parameters
 
    *Default*: false
 
-   Behavior When ``false``
-   ```````````````````````
+   - When set to ``false``, the :ref:`shard <shards-concepts>`
+     transaction coordinator waits for all participating shards
+     to acknowledge the decision to either commit or cancel a
+     :ref:`multi-document transaction <transactions-atomicity>`
+     before returning the result to the client.
 
-   The :ref:`shard <shards-concepts>` transaction coordinator waits for
-   all participating shards to acknowledge the decision to either commit
-   or cancel a :ref:`multi-document transaction
-   <transactions-atomicity>` before returning the result to the client.
+   - When set to ``true``, the shard transaction coordinator
+     returns a :ref:`multi-document transaction
+     <transactions-atomicity>` commit decision to the client as
+     soon as the decision is made :term:`durable` with the
+     requested transaction :ref:`write concern <write-concern>`.
 
-   Behavior When ``true``
-   ``````````````````````
+     If the client requested a write concern that is less than
+     :writeconcern:`"majority"`, the commit may roll back after the
+     decision is returned to the client.
+  
+     Transactions may not have "read your writes" consistency.
+     That is, a read operation may not show the results of write
+     operations that preceded it. This can happen if: 
+  
+     - A transaction has to write to multiple shards.
+     - The read and the earlier write take place in different sessions.
+  
+     :ref:`Causal consistency <causal-consistency>` only guarantees the
+     causal relationship of reads and writes that occur within the same
+     session.
 
-   The shard transaction coordinator returns a :ref:`multi-document
-   transaction <transactions-atomicity>` commit decision to the client
-   as soon as the decision is made :term:`durable` with the requested
-   transaction :ref:`write concern <write-concern>`.
-
-   If the client requested a write concern that is less than
-   :writeconcern:`"majority"`, the commit may roll back after the
-   decision is returned to the client.
-
-   Transactions may not have "read your writes" consistency. That is, a
-   read operation may not reflect the results of a write operation that
-   preceded it. This can happen in the following cases:
-
-   - A transaction has to write to multiple shards.
-   - The read and the earlier write take place in different sessions.
-
-   :ref:`Causal consistency <causal-consistency>` only guarantees the
-   causal relationship of reads and writes that occur within the same
-   session.
-
-   Example
-   ```````
+   .. include:: /includes/fact-runtime-startup-parameter
 
    The following example sets
    ``coordinateCommitReturnImmediatelyAfterPersistingDecision`` to
@@ -5583,6 +5581,8 @@ Transaction Parameters
    If you set :parameter:`internalSessionsReapThreshold` to ``0``, the
    internal session metadata is only deleted when the user session ends.
 
+   .. include:: /includes/fact-runtime-startup-parameter
+
    The following example sets :parameter:`internalSessionsReapThreshold`
    to ``500`` sessions:
 
@@ -5614,6 +5614,8 @@ Transaction Parameters
 
    The minimum value for transactionLifetimeLimitSeconds is ``1``
    second.
+
+   .. include:: /includes/fact-runtime-startup-parameter
 
    The following sets the
    :parameter:`transactionLifetimeLimitSeconds` to ``30``
@@ -5664,6 +5666,8 @@ Transaction Parameters
    To disable this behavior, set
    ``transactionTooLargeForCacheThreshold`` to ``1.0``.
 
+   .. include:: /includes/fact-runtime-startup-parameter
+
    For more information on WiredTiger storage, see:
    :ref:`wiredTiger-storage-options`.
 
@@ -5703,6 +5707,8 @@ Transaction Parameters
 
    - ``-1`` to use the operation specific timeout.
 
+   .. include:: /includes/fact-runtime-startup-parameter
+
    The following sets the
    :parameter:`maxTransactionLockRequestTimeoutMillis` to ``20``
    milliseconds:
@@ -5716,43 +5722,6 @@ Transaction Parameters
    .. code-block:: bash
 
       mongod --setParameter maxTransactionLockRequestTimeoutMillis=20
-
-.. parameter:: shouldMultiDocTxnCreateCollectionAndIndexes
-
-   *Removed in 5.0*
-
-   *Type*: boolean
-
-   *Default*: true
-
-   A flag that enables or disables the creation of a collection or an
-   index inside transactions. Set the parameter to:
-
-   - ``true`` to enable. (*Default*)
-
-   - ``false`` to disable.
-
-   You can set the parameter during startup or run time.
-
-   .. important::
-
-      When setting the parameter for a sharded cluster, set the
-      parameter on all shards.
-
-   To set the parameter at startup, specify the parameter in the
-   :setting:`configuration file <setParameter>` or with the
-   ``--setParameter`` option on the command line. For example:
-
-   .. code-block:: bash
-
-      mongod --setParameter shouldMultiDocTxnCreateCollectionAndIndexes=false
-
-   To modify during run time, you can use the :dbcommand:`setParameter`
-   command; for example:
-
-   .. code-block:: javascript
-
-      db.adminCommand( { setParameter: 1, shouldMultiDocTxnCreateCollectionAndIndexes: false } )
 
 Slot-Based Execution Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -5784,6 +5753,8 @@ Slot-Based Execution Parameters
      ``MB`` or ``GB``. For example, ``"100MB"`` or ``"1GB"``.
 
    .. include:: /includes/fact-sbe-plan-cache-motivation.rst
+
+   .. include:: /includes/fact-runtime-startup-parameter
 
    The following startup command sets :parameter:`planCacheSize` to 80
    megabytes:
