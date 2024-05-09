@@ -14,7 +14,6 @@
    - :setting:`net.port`
    - :setting:`net.tls.certificateKeyFile`
    - :setting:`net.tls.clusterFile`
-   - ``net.tls.PEMKeyFile``
    - :setting:`replication.replSetName`
    - :setting:`security.clusterAuthMode`
    - :setting:`sharding.clusterRole`
