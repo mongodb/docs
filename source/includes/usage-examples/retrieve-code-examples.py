@@ -31,3 +31,9 @@ results = collection.distinct("<field name>")
 for document in results:
     print(document)
 # end-distinct
+
+# start-watch-for-changes
+with collection.watch() as stream:
+    for change in stream:
+        print(change)
+# end-watch-for-changes
