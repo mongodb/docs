@@ -29,7 +29,7 @@ Example
             ``create_one()`` method to create the search index. To learn more, see
             :ref:`ref-index-definitions`.
 
-            .. literalinclude:: /includes/fts-tutorial/search-index-management/cxx/create-index.cpp
+            .. literalinclude:: /includes/fts-tutorial/search-index-management/cpp/create-index.cpp
                :language: cpp
                :copyable:
                
@@ -41,7 +41,7 @@ Example
             Then, add each search index to a vector and pass the vector to the ``create_many()``
             method to create the search indexes:
 
-            .. literalinclude:: /includes/fts-tutorial/search-index-management/cxx/create-indexes.cpp
+            .. literalinclude:: /includes/fts-tutorial/search-index-management/cpp/create-indexes.cpp
                :language: cpp
                :copyable:
 

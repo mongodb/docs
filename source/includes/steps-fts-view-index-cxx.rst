@@ -16,7 +16,7 @@ Example
       application calls the ``list()`` method on the view. This method returns
       a cursor from which the code accesses and prints each |fts| index.
 
-      .. literalinclude:: /includes/fts-tutorial/search-index-management/cxx/view-index.cpp
+      .. literalinclude:: /includes/fts-tutorial/search-index-management/cpp/view-index.cpp
          :language: cpp
          :copyable: true
 
