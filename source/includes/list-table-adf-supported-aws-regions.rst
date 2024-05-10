@@ -23,6 +23,9 @@
    * - Frankfurt, Germany
      - eu-central-1
     
+   * - Tokyo, Japan
+     - ap-northeast-1
+
    * - Mumbai, India
      - ap-south-1
 
@@ -31,3 +34,6 @@
 
    * - Sydney, Australia
      - ap-southeast-2
+
+   * - Montreal, Canada
+     - ca-central-1
