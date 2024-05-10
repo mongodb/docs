@@ -31,7 +31,7 @@ To learn more about the ``$search`` pipeline stage, see :manual:`$search
    The ``$search`` aggregation-pipeline operator is available only for collections hosted
    on :atlas:`MongoDB Atlas </>` clusters running MongoDB v4.2 or later that are
    covered by an :atlas:`Atlas search index </reference/atlas-search/index-definitions/>`.
-   To earn more about the required setup and the functionality of this operator,
+   To learn more about the required setup and the functionality of this operator,
    see the :ref:`Atlas Search <fts-top-ref>` documentation.
 
 The examples in this guide use the following documents in a collection called
@@ -39,12 +39,12 @@ The examples in this guide use the following documents in a collection called
 
 .. code-block:: json
  
-   { "_id": 1, "make": "Fender", "description": "Classic guitars known for their versatility.", "establishedYear": 1946, "in-stock": true, "rating": 9 }
-   { "_id": 2, "make": "Gibson", "description": "Classic guitars known for their rich, full tones.", "establishedYear": 1902, "in-stock": true, "rating": 8 }
-   { "_id": 3, "make": "PRS", "description": "High-end guitars known for their quality.", "establishedYear": 1985, "in-stock": true, "rating": 9 }
-   { "_id": 4, "make": "Kiesel", "description": "Quality guitars made only for custom orders.", "establishedYear": 2015, "in-stock": false }
-   { "_id": 5, "make": "Ibanez", "description": "Well-crafted guitars used by many professional guitarists.", "establishedYear": 1957, "in-stock": true, "rating": 7 }
-   { "_id": 6, "make": "Strandberg", "description": "Modern guitars known for their headless models.", "establishedYear": 1982, "in-stock": false }
+   { "_id": 1, "make": "Fender", "description": "Classic guitars known for their versatility.", "establishedYear": 1946, "in_stock": true, "rating": 9 }
+   { "_id": 2, "make": "Gibson", "description": "Classic guitars known for their rich, full tones.", "establishedYear": 1902, "in_stock": true, "rating": 8 }
+   { "_id": 3, "make": "PRS", "description": "High-end guitars known for their quality.", "establishedYear": 1985, "in_stock": true, "rating": 9 }
+   { "_id": 4, "make": "Kiesel", "description": "Quality guitars made only for custom orders.", "establishedYear": 2015, "in_stock": false }
+   { "_id": 5, "make": "Ibanez", "description": "Well-crafted guitars used by many professional guitarists.", "establishedYear": 1957, "in_stock": true, "rating": 7 }
+   { "_id": 6, "make": "Strandberg", "description": "Modern guitars known for their headless models.", "establishedYear": 1982, "in_stock": false }
 
 The following ``Guitar`` class models the documents in this collection.
 
@@ -56,7 +56,7 @@ The following ``Guitar`` class models the documents in this collection.
        public string Make { get; set; }
        public List<string> Models { get; set; }
        public int EstablishedYear { get; set; }
-       [BsonElement("in-stock")]
+       [BsonElement("in_stock")]
        public bool InStock { get; set; }
        public int? Rating { get; set; }
    }
@@ -87,14 +87,10 @@ The ``Search`` class contains methods you can use to perform ``$search``
 operations. For a full list of available ``$search`` operators, see the :atlas:`Operators and Collectors
 </atlas-search/operators-and-collectors>` Atlas guide.
 
-.. note:: 
-
-   The ``Search`` class does not currently support the ``$embeddedDocument`` operator.
-
 Autocomplete
 ~~~~~~~~~~~~
 
-Use the ``Autocomplete`` method to search for a word or phrase that contains a
+Use the ``Autocomplete()`` method to search for a word or phrase that contains a
 sequence of characters from an incomplete input string.
 
 The following example performs an autocomplete search on the ``guitars``
@@ -114,7 +110,7 @@ The search returns the following document:
 
 .. code-block:: json
 
-    { "_id" : 2, "make" : "Gibson", "description" : "Classic guitars known for their rich, full tones.", "establishedYear" : 1902, "in-stock" : true, "rating" : 8 }
+    { "_id" : 2, "make" : "Gibson", "description" : "Classic guitars known for their rich, full tones.", "establishedYear" : 1902, "in_stock" : true, "rating" : 8 }
 
 To learn more about the ``autocomplete`` operator, see the :atlas:`autocomplete </atlas-search/autocomplete>` 
 Atlas guide.
@@ -122,14 +118,14 @@ Atlas guide.
 Compound
 ~~~~~~~~
 
-Use the ``Compound`` method to combine two or more operators into a single
+Use the ``Compound()`` method to combine two or more operators into a single
 search.
 
 The following example searches the ``guitars`` collection for any documents
 that match all of the following criteria:
 
 - The ``rating`` field exists on the document
-- The ``in-stock`` field is not ``false``
+- The ``in_stock`` field is not ``false``
 - The ``establishedYear`` field has a value greater than 1940
 
 .. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
@@ -142,21 +138,69 @@ The search returns the following documents:
 
 .. code-block:: json
 
-   { "_id" : 1, "make" : "Fender", "description" : "...", "establishedYear" : 1946, "in-stock" : true, "rating" : 9 }
-   { "_id" : 3, "make" : "PRS", "description" : "...", "establishedYear" : 1985, "in-stock" : true, "rating" : 9 }
-   { "_id" : 5, "make" : "Ibanez", "description" : "...", "establishedYear" : 1957, "in-stock" : true, "rating" : 7 }
+   { "_id" : 1, "make" : "Fender", "description" : "...", "establishedYear" : 1946, "in_stock" : true, "rating" : 9 }
+   { "_id" : 3, "make" : "PRS", "description" : "...", "establishedYear" : 1985, "in_stock" : true, "rating" : 9 }
+   { "_id" : 5, "make" : "Ibanez", "description" : "...", "establishedYear" : 1957, "in_stock" : true, "rating" : 7 }
 
 To learn more about the ``compound`` operator, see the :atlas:`compound </atlas-search/compound>` 
 Atlas guide.
 
+EmbeddedDocument
+~~~~~~~~~~~~~~~~
+
+Use the ``EmbeddedDocument()`` method to perform search operations on documents
+within a field's array value.
+
+.. note::
+
+   To search on embedded documents, you must create an 
+   ``embeddedDocument`` index on the array field.
+
+   To learn how to define an ``embeddedDocument`` index, see
+   :atlas:`Define the Index for the embeddedDocument Type
+   </atlas-search/field-types/embedded-documents-type/#define-the-index-for-the-fts-field-type-type>`
+   in the Atlas documentation.
+
+Consider that some documents in the ``guitars`` collection have added a
+``productDetails`` field that holds an array of product detail objects:
+
+.. code-block:: json
+
+   { "_id": 1, "make": "Fender", "description": "...", "establishedYear": 1946, "in_stock": true, "rating": 9, "productDetails": [{"product_id": 1234, "serial": "YZ5678"}] }
+   { "_id": 2, "make": "Gibson", "description": "...", "establishedYear": 1902, "in_stock": true, "rating": 8 }
+   { "_id": 3, "make": "PRS", "description": "...", "establishedYear": 1985, "in_stock": true, "rating": 9, "productDetails": [{"product_id": 9870, "serial": "AB5555"}] }
+   { "_id": 4, "make": "Kiesel", "description": "...", "establishedYear": 2015, "in_stock": false }
+   { "_id": 5, "make": "Ibanez", "description": "...", "establishedYear": 1957, "in_stock": true, "rating": 7, "productDetails": [{"product_id": 5432, "serial": "ZZ1234"}] }
+   { "_id": 6, "make": "Strandberg", "description": "...", "establishedYear": 1982, "in_stock": false }
+
+After creating an ``embeddedDocument`` index on the ``productDetails`` field,
+you can perform Atlas search operations on documents in that field. The
+following example performs a text search on the ``productDetails`` array fields
+and returns any documents with a ``serial`` field value of ``"YZ5678"``:
+
+.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
+   :start-after: // start-embedded-search
+   :end-before: // end-embedded-search
+   :language: csharp
+   :dedent:
+
+The search returns the following document:
+
+.. code-block:: json
+
+   { "_id" : 1, "make" : "Fender", "description" : "Classic guitars known for their versatility.", "establishedYear" : 1946, "in_stock" : true, "rating" : 9, "productDetails" : [{ "product_id" : 1234, "serial" : "YZ5678" }] }
+
+To learn more about the ``embeddedDocument`` operator, see the
+:atlas:`embeddedDocument </atlas-search/embedded-document/>` Atlas guide.
+
 Equals
 ~~~~~~
 
-Use the ``Equals`` method to check whether a field matches a specified
+Use the ``Equals()`` method to check whether a field matches a specified
 value.
 
 The following example searches the ``guitars`` collection for any documents in
-which the value of the ``in-stock`` field is ``true``.
+which the value of the ``in_stock`` field is ``true``.
 
 .. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
    :start-after: // start-equals-search
@@ -168,10 +212,10 @@ The search returns the following documents:
 
 .. code-block:: json
 
-   { "_id" : 1, "make" : "Fender", "description" : "...", "establishedYear" : 1946, "in-stock" : true, "rating" : 9 }
-   { "_id" : 2, "make" : "Gibson", "description" : "...", "establishedYear" : 1902, "in-stock" : true, "rating" : 8 }
-   { "_id" : 3, "make" : "PRS", "description" : "...", "establishedYear" : 1985, "in-stock" : true, "rating" : 9 }
-   { "_id" : 5, "make" : "Ibanez", "description" : "...", "establishedYear" : 1957, "in-stock" : true, "rating" : 7 }
+   { "_id" : 1, "make" : "Fender", "description" : "...", "establishedYear" : 1946, "in_stock" : true, "rating" : 9 }
+   { "_id" : 2, "make" : "Gibson", "description" : "...", "establishedYear" : 1902, "in_stock" : true, "rating" : 8 }
+   { "_id" : 3, "make" : "PRS", "description" : "...", "establishedYear" : 1985, "in_stock" : true, "rating" : 9 }
+   { "_id" : 5, "make" : "Ibanez", "description" : "...", "establishedYear" : 1957, "in_stock" : true, "rating" : 7 }
 
 
 To learn more about the ``equals`` operator, see the :atlas:`equals </atlas-search/equals>` 
@@ -180,7 +224,7 @@ Atlas guide.
 Exists
 ~~~~~~
 
-Use the ``Exists`` method to search for documents in which a specified indexed
+Use the ``Exists()`` method to search for documents in which a specified indexed
 field name exists. If the specified field exists but is not indexed, the
 document is not included with the result set.
 
@@ -197,10 +241,10 @@ The search returns the following documents:
 
 .. code-block:: json
 
-   { "_id" : 1, "make" : "Fender", "description" : "...", "establishedYear" : 1946, "in-stock" : true, "rating" : 9 }
-   { "_id" : 2, "make" : "Gibson", "description" : "...", "establishedYear" : 1902, "in-stock" : true, "rating" : 8 }
-   { "_id" : 3, "make" : "PRS", "description" : "...", "establishedYear" : 1985, "in-stock" : true, "rating" : 9 }
-   { "_id" : 5, "make" : "Ibanez", "description" : "...", "establishedYear" : 1957, "in-stock" : true, "rating" : 7 }
+   { "_id" : 1, "make" : "Fender", "description" : "...", "establishedYear" : 1946, "in_stock" : true, "rating" : 9 }
+   { "_id" : 2, "make" : "Gibson", "description" : "...", "establishedYear" : 1902, "in_stock" : true, "rating" : 8 }
+   { "_id" : 3, "make" : "PRS", "description" : "...", "establishedYear" : 1985, "in_stock" : true, "rating" : 9 }
+   { "_id" : 5, "make" : "Ibanez", "description" : "...", "establishedYear" : 1957, "in_stock" : true, "rating" : 7 }
 
 
 To learn more about the ``exists`` operator, see the :atlas:`exists </atlas-search/exists>` 
@@ -209,7 +253,7 @@ Atlas guide.
 GeoShape
 ~~~~~~~~
 
-Use the ``GeoShape`` method to search for documents in relation to a given
+Use the ``GeoShape()`` method to search for documents in relation to a given
 geometry. When specifying the coordinates to search, longitude must be specified
 first, followed by latitude. Longitude values can be between ``-180`` and
 ``180``, inclusive. Latitude values can be between ``-90`` and ``90``,
@@ -218,16 +262,16 @@ inclusive.
 .. include:: /includes/atlas-search-support-note.rst
 
 Consider some documents in the ``guitars`` collection have added an
-``in-stock-location`` field. The changed documents in the collection now look as
+``in_stock_location`` field. The changed documents in the collection now look as
 follows:
 
 .. code-block:: json
  
-   { "_id": 1, "make": "Fender", "description": "...", "establishedYear": 1946, "in-stock": true, "in-stock-location":  { "type": "Point", "coordinates": [ -73.93615, 40.69791 ]}, "rating": 9 }
-   { "_id": 2, "make": "Gibson", "description": "...", "establishedYear": 1902, "in-stock": true, "in-stock-location":  { "type": "Point", "coordinates": [ 47.6062, 122.321 ]}, "rating": 8 }
+   { "_id": 1, "make": "Fender", "description": "...", "establishedYear": 1946, "in_stock": true, "in_stock_location":  { "type": "Point", "coordinates": [ -73.93615, 40.69791 ]}, "rating": 9 }
+   { "_id": 2, "make": "Gibson", "description": "...", "establishedYear": 1902, "in_stock": true, "in_stock_location":  { "type": "Point", "coordinates": [ 47.6062, 122.321 ]}, "rating": 8 }
 
 The following example searches for all documents in which the
-coordinates in the ``in-stock-location`` field intersect with a specified
+coordinates in the ``in_stock_location`` field intersect with a specified
 polygon:
 
 .. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
@@ -240,7 +284,7 @@ The search returns the following document:
 
 .. code-block:: json
 
-   { "_id" : 1, "make" : "Fender", "description" : "...", "establishedYear" : 1946, "in-stock" : true, "in-stock-location" : { "type" : "Point", "coordinates" : ["-73.93615", "40.69791"] }, "rating" : 9 }
+   { "_id" : 1, "make" : "Fender", "description" : "...", "establishedYear" : 1946, "in_stock" : true, "in_stock_location" : { "type" : "Point", "coordinates" : ["-73.93615", "40.69791"] }, "rating" : 9 }
 
 To learn more about the ``geoShape`` operator, see the :atlas:`geoShape </atlas-search/geoShape>` 
 Atlas guide.
@@ -248,7 +292,7 @@ Atlas guide.
 GeoWithin
 ~~~~~~~~~
 
-Use the ``GeoWithin`` method to search for documents in which the coordinates of
+Use the ``GeoWithin()`` method to search for documents in which the coordinates of
 their specified :manual:`GeoJSON </reference/geojson/>` field are within a given
 geometry. You can search for points that are within a:
 
@@ -264,16 +308,16 @@ inclusive.
 .. include:: /includes/atlas-search-support-note.rst
 
 Consider some documents in the ``guitars`` collection have added an
-``in-stock-location`` field. The changed documents in the collection now look as
+``in_stock_location`` field. The changed documents in the collection now look as
 follows:
 
 .. code-block:: json
  
-   { "_id": 1, "make": "Fender", "description": "...", "establishedYear": 1946, "in-stock": true, "in-stock-location":  { "type": "Point", "coordinates": [ -73.93615, 40.69791 ]}, "rating": 9 }
-   { "_id": 2, "make": "Gibson", "description": "...", "establishedYear": 1902, "in-stock": true, "in-stock-location":  { "type": "Point", "coordinates": [ 47.6062, 122.321 ]}, "rating": 8 }
+   { "_id": 1, "make": "Fender", "description": "...", "establishedYear": 1946, "in_stock": true, "in_stock_location":  { "type": "Point", "coordinates": [ -73.93615, 40.69791 ]}, "rating": 9 }
+   { "_id": 2, "make": "Gibson", "description": "...", "establishedYear": 1902, "in_stock": true, "in_stock_location":  { "type": "Point", "coordinates": [ 47.6062, 122.321 ]}, "rating": 8 }
 
 The following example searches for all documents in which the
-coordinates in the ``in-stock-location`` field falls within a specified
+coordinates in the ``in_stock_location`` field falls within a specified
 polygon: 
 
 .. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
@@ -286,7 +330,7 @@ The search returns the following document:
 
 .. code-block:: json
 
-   { "_id" : 1, "make" : "Fender", "description" : "Classic guitars known for their versatility.", "establishedYear" : 1946, "in-stock" : true, "in-stock-location" : { "type" : "Point", "coordinates" : ["-73.93615", "40.69791"] }, "rating" : 9 }
+   { "_id" : 1, "make" : "Fender", "description" : "Classic guitars known for their versatility.", "establishedYear" : 1946, "in_stock" : true, "in_stock_location" : { "type" : "Point", "coordinates" : ["-73.93615", "40.69791"] }, "rating" : 9 }
 
 To learn more about the ``geoWithin`` operator, see the :atlas:`geoWithin </atlas-search/geoWithin>` 
 Atlas guide.
@@ -294,7 +338,7 @@ Atlas guide.
 MoreLikeThis
 ~~~~~~~~~~~~
 
-Use the ``MoreLikeThis`` method to search for documents that are similar to an
+Use the ``MoreLikeThis()`` method to search for documents that are similar to an
 input document.
 
 The following example searches the ``guitars`` collection for documents that are
@@ -311,8 +355,8 @@ The search returns the following documents:
 
 .. code-block:: json
 
-   { "_id" : 3, "make" : "PRS", "description" : "High-end guitars known for their quality.", "establishedYear" : 1985, "in-stock" : true, "rating" : 9 }
-   { "_id" : 4, "make" : "Kiesel", "description" : "Quality guitars made only for custom orders.", "establishedYear" : 2015, "in-stock" : false, "rating" : null }
+   { "_id" : 3, "make" : "PRS", "description" : "High-end guitars known for their quality.", "establishedYear" : 1985, "in_stock" : true, "rating" : 9 }
+   { "_id" : 4, "make" : "Kiesel", "description" : "Quality guitars made only for custom orders.", "establishedYear" : 2015, "in_stock" : false, "rating" : null }
 
 
 To learn more about the ``moreLikeThis`` operator, see the :atlas:`moreLikeThis </atlas-search/morelikethis>` 
@@ -321,7 +365,7 @@ Atlas guide.
 Near
 ~~~~
 
-Use the ``Near`` method to search for documents in which a specified field is
+Use the ``Near()`` method to search for documents in which a specified field is
 near a given value. You can perform the search on:
 
 - A number field
@@ -342,10 +386,10 @@ The search returns the following documents:
 
 .. code-block:: json
 
-   { "_id" : 1, "make" : "Fender", "description" : "...", "establishedYear" : 1946, "in-stock" : true, "rating" : 9 }
-   { "_id" : 3, "make" : "PRS", "description" : "...", "establishedYear" : 1985, "in-stock" : true, "rating" : 9 }
-   { "_id" : 2, "make" : "Gibson", "description" : "...", "establishedYear" : 1902, "in-stock" : true, "rating" : 8 }
-   { "_id" : 5, "make" : "Ibanez", "description" : "...", "establishedYear" : 1957, "in-stock" : true, "rating" : 7 }
+   { "_id" : 1, "make" : "Fender", "description" : "...", "establishedYear" : 1946, "in_stock" : true, "rating" : 9 }
+   { "_id" : 3, "make" : "PRS", "description" : "...", "establishedYear" : 1985, "in_stock" : true, "rating" : 9 }
+   { "_id" : 2, "make" : "Gibson", "description" : "...", "establishedYear" : 1902, "in_stock" : true, "rating" : 8 }
+   { "_id" : 5, "make" : "Ibanez", "description" : "...", "establishedYear" : 1957, "in_stock" : true, "rating" : 7 }
 
 
 To learn more about the ``near`` operator, see the :atlas:`near </atlas-search/near>` 
@@ -354,7 +398,7 @@ Atlas guide.
 Phrase
 ~~~~~~
 
-Use the ``Phrase`` method to search for documents in which a specified field
+Use the ``Phrase()`` method to search for documents in which a specified field
 contains an input string.
 
 The following example searches the ``guitars`` collection for documents in which
@@ -370,8 +414,8 @@ The search returns the following documents:
 
 .. code-block:: json
 
-   { "_id" : 1, "make" : "Fender", "description" : "Classic guitars known for their versatility.", "establishedYear" : 1946, "in-stock" : true, "rating" : 9 }
-   { "_id" : 2, "make" : "Gibson", "description" : "Classic guitars known for their rich, full tones.", "establishedYear" : 1902, "in-stock" : true, "rating" : 8 }
+   { "_id" : 1, "make" : "Fender", "description" : "Classic guitars known for their versatility.", "establishedYear" : 1946, "in_stock" : true, "rating" : 9 }
+   { "_id" : 2, "make" : "Gibson", "description" : "Classic guitars known for their rich, full tones.", "establishedYear" : 1902, "in_stock" : true, "rating" : 8 }
 
 You can also search the collection for documents that match multiple separate
 phrases as follows:
@@ -386,9 +430,9 @@ This search returns the following documents:
 
 .. code-block:: json
 
-   { "_id" : 1, "make" : "Fender", "description" : "Classic guitars known for their versatility.", "establishedYear" : 1946, "in-stock" : true, "rating" : 9 }
-   { "_id" : 4, "make" : "Kiesel", "description" : "Quality guitars made only for custom orders.", "establishedYear" : 2015, "in-stock" : false, "rating" : null }
-   { "_id" : 2, "make" : "Gibson", "description" : "Classic guitars known for their rich, full tones.", "establishedYear" : 1902, "in-stock" : true, "rating" : 8 }
+   { "_id" : 1, "make" : "Fender", "description" : "Classic guitars known for their versatility.", "establishedYear" : 1946, "in_stock" : true, "rating" : 9 }
+   { "_id" : 4, "make" : "Kiesel", "description" : "Quality guitars made only for custom orders.", "establishedYear" : 2015, "in_stock" : false, "rating" : null }
+   { "_id" : 2, "make" : "Gibson", "description" : "Classic guitars known for their rich, full tones.", "establishedYear" : 1902, "in_stock" : true, "rating" : 8 }
 
 To learn more about the ``phrase`` operator, see the :atlas:`phrase </atlas-search/phrase>` 
 Atlas guide.
@@ -396,7 +440,7 @@ Atlas guide.
 QueryString
 ~~~~~~~~~~~
 
-Use the ``QueryString`` method to search for documents using a string with
+Use the ``QueryString()`` method to search for documents using a string with
 the following operators and delimiters:
 
 - ``AND``
@@ -420,9 +464,9 @@ The search returns the following documents:
 
 .. code-block:: json
 
-   { "_id" : 1, "make" : "Fender", "description" : "Classic guitars known for their versatility.", "establishedYear" : 1946, "in-stock" : true, "rating" : 9 }
-   { "_id" : 3, "make" : "PRS", "description" : "High-end guitars known for their quality.", "establishedYear" : 1985, "in-stock" : true, "rating" : 9 }
-   { "_id" : 2, "make" : "Gibson", "description" : "Classic guitars known for their rich, full tones.", "establishedYear" : 1902, "in-stock" : true, "rating" : 8 }
+   { "_id" : 1, "make" : "Fender", "description" : "Classic guitars known for their versatility.", "establishedYear" : 1946, "in_stock" : true, "rating" : 9 }
+   { "_id" : 3, "make" : "PRS", "description" : "High-end guitars known for their quality.", "establishedYear" : 1985, "in_stock" : true, "rating" : 9 }
+   { "_id" : 2, "make" : "Gibson", "description" : "Classic guitars known for their rich, full tones.", "establishedYear" : 1902, "in_stock" : true, "rating" : 8 }
 
 To learn more about the ``queryString`` operator, see the :atlas:`queryString </atlas-search/queryString>` 
 Atlas guide.
@@ -430,7 +474,7 @@ Atlas guide.
 Range
 ~~~~~
 
-Use the ``Range`` method to search for documents in which the value of a
+Use the ``Range()`` method to search for documents in which the value of a
 specified field falls within a given numeric or date range.
 
 The following example searches the ``guitars`` collection for all documents with
@@ -446,9 +490,9 @@ The search returns the following results:
 
 .. code-block:: json
 
-   { "_id" : 3, "make" : "PRS", "description" : "High-end guitars known for their quality.", "establishedYear" : 1985, "in-stock" : true, "rating" : 9 }
-   { "_id" : 4, "make" : "Kiesel", "description" : "Quality guitars made only for custom orders.", "establishedYear" : 2015, "in-stock" : false, "rating" : null }
-   { "_id" : 6, "make" : "Strandberg", "description" : "Modern guitars known for their headless models.", "establishedYear" : 1982, "in-stock" : false, "rating" : null }
+   { "_id" : 3, "make" : "PRS", "description" : "High-end guitars known for their quality.", "establishedYear" : 1985, "in_stock" : true, "rating" : 9 }
+   { "_id" : 4, "make" : "Kiesel", "description" : "Quality guitars made only for custom orders.", "establishedYear" : 2015, "in_stock" : false, "rating" : null }
+   { "_id" : 6, "make" : "Strandberg", "description" : "Modern guitars known for their headless models.", "establishedYear" : 1982, "in_stock" : false, "rating" : null }
 
 To learn more about the ``range`` operator, see the :atlas:`range </atlas-search/range>` 
 Atlas guide.
@@ -456,7 +500,7 @@ Atlas guide.
 Regex
 ~~~~~
 
-Use the ``Regex`` method to search for documents using a regular expression.
+Use the ``Regex()`` method to search for documents using a regular expression.
 
 The following example searches the ``guitars`` collection for documents in which
 the value of the ``make`` field contains exactly six letters.
@@ -471,10 +515,10 @@ The search returns the following results:
 
 .. code-block:: json
 
-   { "_id" : 1, "make" : "Fender", "description" : "Classic guitars known for their versatility.", "establishedYear" : 1946, "in-stock" : true, "rating" : 9 }
-   { "_id" : 2, "make" : "Gibson", "description" : "Classic guitars known for their rich, full tones.", "establishedYear" : 1902, "in-stock" : true, "rating" : 8 }
-   { "_id" : 4, "make" : "Kiesel", "description" : "Quality guitars made only for custom orders.", "establishedYear" : 2015, "in-stock" : false, "rating" : null }
-   { "_id" : 5, "make" : "Ibanez", "description" : "Well-crafted guitars used by many professional guitarists.", "establishedYear" : 1957, "in-stock" : true, "rating" : 7 }
+   { "_id" : 1, "make" : "Fender", "description" : "Classic guitars known for their versatility.", "establishedYear" : 1946, "in_stock" : true, "rating" : 9 }
+   { "_id" : 2, "make" : "Gibson", "description" : "Classic guitars known for their rich, full tones.", "establishedYear" : 1902, "in_stock" : true, "rating" : 8 }
+   { "_id" : 4, "make" : "Kiesel", "description" : "Quality guitars made only for custom orders.", "establishedYear" : 2015, "in_stock" : false, "rating" : null }
+   { "_id" : 5, "make" : "Ibanez", "description" : "Well-crafted guitars used by many professional guitarists.", "establishedYear" : 1957, "in_stock" : true, "rating" : 7 }
 
 .. note::
 
@@ -498,7 +542,7 @@ Atlas guide.
 Span
 ~~~~
 
-Use the ``Span`` method to search for text search matches within regions of a
+Use the ``Span()`` method to search for text search matches within regions of a
 field. You can use this method to find strings which are near each other to
 specified degrees of precision.
 
@@ -521,7 +565,7 @@ The search returns the following document:
 
 .. code-block:: json
 
-   { "_id" : 4, "make" : "Kiesel", "description" : "Quality guitars made only for custom orders.", "establishedYear" : 2015, "in-stock" : false, "rating" : null }
+   { "_id" : 4, "make" : "Kiesel", "description" : "Quality guitars made only for custom orders.", "establishedYear" : 2015, "in_stock" : false, "rating" : null }
 
 Although the document with ``_id: 3`` contains the strings "guitars" and
 "quality", they are separated by more than one word, so the search omits this
@@ -533,7 +577,7 @@ Atlas guide.
 Text
 ~~~~
 
-Use the ``Text`` method to search a document for a given string or array of
+Use the ``Text()`` method to search a document for a given string or array of
 strings. If there are multiple terms in a given string, Atlas Search also looks
 for a match for each term in the string separately.
 
@@ -551,7 +595,7 @@ The search returns the following document:
 
 .. code-block:: json
 
-   { "_id" : 5, "make" : "Ibanez", "description" : "Well-crafted guitars used by many professional guitarists.", "establishedYear" : 1957, "in-stock" : true, "rating" : 7 }
+   { "_id" : 5, "make" : "Ibanez", "description" : "Well-crafted guitars used by many professional guitarists.", "establishedYear" : 1957, "in_stock" : true, "rating" : 7 }
 
 .. tip::
 
@@ -564,7 +608,7 @@ Atlas guide.
 Wildcard
 ~~~~~~~~
 
-Use the ``Wildcard`` method to search for documents using special characters in
+Use the ``Wildcard()`` method to search for documents using special characters in
 your search string that can match any character. You can use the following
 characters in your search:
 
@@ -597,7 +641,7 @@ The search returns the following document:
 
 .. code-block:: json
 
-   { "_id" : 6, "make" : "Strandberg", "description" : "Modern guitars known for their headless models.", "establishedYear" : 1982, "in-stock" : false, "rating" : null }
+   { "_id" : 6, "make" : "Strandberg", "description" : "Modern guitars known for their headless models.", "establishedYear" : 1982, "in_stock" : false, "rating" : null }
 
 .. note::
 

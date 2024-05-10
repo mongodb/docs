@@ -52,6 +52,19 @@ public class AtlasSearchExamples
         return result;
     }
 
+    public static List<Guitar> EmbeddedDocumentSearch()
+    {
+        // start-embedded-search
+        var result = guitarsCollection.Aggregate()
+            .Search(Builders<Guitar>.Search.EmbeddedDocument(
+                g => g.ProductDetails,
+                Builders<ProductDetails>.Search.Text(p => p.Serial, "YZ5678")
+            )).ToList();
+
+        return result;
+        // end-embedded-search
+    }
+
     public static List<Guitar> EqualsSearch()
     {
         // start-equals-search
@@ -264,9 +277,9 @@ public class Guitar
     public string Make { get; set; }
     public string Description { get; set; }
     public int EstablishedYear { get; set; }
-    [BsonElement("in-stock")]
+    [BsonElement("in_stock")]
     public bool InStock { get; set; }
-    [BsonElement("in-stock-location")]
+    [BsonElement("in_stock_location")]
     public Location InStockLocation { get; set; }
     public int? Rating { get; set; }
 }
