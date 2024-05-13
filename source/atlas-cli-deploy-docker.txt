@@ -16,19 +16,22 @@ Create a Local Atlas Deployment with Docker
    :depth: 1
    :class: singlecol
 
-This tutorial shows you how to use the :ref:`atlas-deployments` command 
-to create a local |service| deployment with Docker. In this tutorial, 
-we will deploy a single-node replica set with Docker.
+This tutorial shows you how to create a local |service| deployment with 
+Docker. In this tutorial, we will deploy a single-node replica set with 
+Docker.
 
-.. include:: /includes/fact-atlas-deployments-preview.rst
+.. important:: Public Preview
+
+   Local deploymenets in Docker and Docker Compose 
+   are available as a Public Preview. The feature and corresponding 
+   documentation may change at any time in the Public Preview stage. To 
+   ask questions and provide feedback, see the `{+atlas-cli+} 
+   Local Development Community Forum <https://www.mongodb.com/community/forums/tag/local-dev-atlas-cli>`__.
 
 .. _atlas-cli-deploy-docker-setup:
 
 Create a Local Atlas Deployment with Docker
 -------------------------------------------
-
-Use the ``atlas deployments`` command to create a local |service|
-deployment with Docker.
       
 .. procedure::
    :style: normal
@@ -37,43 +40,42 @@ deployment with Docker.
 
       To learn more, see the `Docker documentation <https://docs.docker.com/desktop/install/mac-install/>`__.
 
-   .. step:: Pull down the latest ``mongodb/atlas`` Docker image.
+   .. step:: Pull down the ``mongodb/mongodb-atlas-local`` Docker image.
 
       **Example:**
 
       .. code-block:: sh
 
-         docker pull mongodb/atlas:latest
+         docker pull mongodb/mongodb-atlas-local:latest
 
-   .. step:: Run the Docker image in bash mode.
-
-      To learn more, see :ref:`atlas-cli-docker`.
+   .. step:: Run the Docker image.
 
       **Example:**
 
-      .. code-block:: sh
+      .. tabs::
 
-         docker run -p 27777:27017 --privileged -it mongodb/atlas bash
+         .. tab:: No Authentication
+            :tabid: no-auth
 
-   .. step:: Create a local |service| deployment.
+            .. code-block:: sh
 
-      The following command creates a local |service| deployment with 
-      |fts| capabilities enabled. It also returns a connection string.
+               docker run -p 27017:27017 mongodb/mongodb-atlas-local
 
-      **Example:**
+         .. tab:: With Authentication
+            :tabid: with-auth
 
-      .. code-block::
+            .. code-block:: sh
 
-         atlas deployments setup --bindIpAll --username root --password root --type local --force
+               docker run -e MONGODB_INITDB_ROOT_USERNAME=user MONGODB_INITDB_ROOT_PASSWORD=pass -p 27017:27017 mongodb/mongodb-atlas-local
 
-      To learn more about the available options, see 
-      :ref:`atlas-deployments-setup`.
+      The logs display as the Docker image runs.
 
    .. step:: Connect to the local |service| deployment.
 
       To connect to the local |service| deployment from the host (not 
-      container), copy and paste the following command, and replace 
-      the ``{connection_string}`` variable with your connection string.
+      container), copy and paste the following command into a new 
+      terminal, and replace the ``{connection_string}`` variable with 
+      your connection string.
 
       .. note::
 
@@ -84,18 +86,29 @@ deployment with Docker.
 
          mongosh {connection_string}
 
-      **Example:**
+      **Examples:**
 
-      .. code-block:: sh
+      .. tabs::
 
-         mongosh mongodb://root:root@localhost:27017/?directConnection=true
+         .. tab:: No Authentication
+            :tabid: no-auth
 
+            .. code-block:: sh
+
+               mongosh "mongodb://localhost:27017/?directConnection=true"
+
+         .. tab:: With Authentication
+            :tabid: with-auth
+
+            .. code-block:: sh
+
+               mongosh "mongodb://user:pass@localhost:27017/?directConnection=true"
 
 Create a Local Atlas Deployment with Docker Compose
 ---------------------------------------------------
 
-Use the ``atlas deployments`` command to create a local |service|
-deployment with `Docker Compose <https://docs.docker.com/compose/>`__.
+Create a local |service| deployment with `Docker Compose 
+<https://docs.docker.com/compose/>`__.
       
 .. procedure::
    :style: normal
@@ -123,25 +136,21 @@ deployment with `Docker Compose <https://docs.docker.com/compose/>`__.
       **Example:**
 
       .. code-block:: sh
+         :linenos: 
          
          services:
-           mongo:
-             image: mongodb/atlas
-             privileged: true
-             command: |
-               /bin/bash -c "atlas deployments setup --type local --port 27778 --bindIpAll --username root --password root --force && tail -f /dev/null"
-             volumes:
-               - /var/run/docker.sock:/var/run/docker.sock
+           mongodb:
+             image: mongodb/mongodb-atlas-local
+             environment:
+               - MONGODB_INITDB_ROOT_USERNAME=user
+               - MONGODB_INITDB_ROOT_PASSWORD=pass
              ports:
-               - 27778:27778
-
-      To learn more about the available options, see 
-      :ref:`atlas-deployments-setup`.
+               - 27018:27017
 
    .. step:: Run Docker Compose.
 
       The following command creates a local |service| deployment with 
-      |fts| capabilities enabled. It also returns a connection string.
+      |fts| capabilities enabled.
 
       **Example:**
 
@@ -152,8 +161,9 @@ deployment with `Docker Compose <https://docs.docker.com/compose/>`__.
    .. step:: Connect to the local |service| deployment.
 
       To connect to the local |service| deployment from the host (not 
-      container), copy and paste the following command, and replace 
-      the ``{connection_string}`` variable with your connection string.
+      container), copy and paste the following command into a new 
+      terminal, and replace the ``{connection_string}`` variable with 
+      your connection string.
 
       .. note::
 
@@ -168,7 +178,13 @@ deployment with `Docker Compose <https://docs.docker.com/compose/>`__.
 
       .. code-block:: sh
 
-         mongosh mongodb://root:root@localhost:27778/?directConnection=true
+         mongosh "mongodb://user:pass@localhost:27018/?directConnection=true"
+
+   .. step:: (Optional) Stop the container.
+
+      .. code-block:: sh
+
+         docker compose down -v
 
 Persist Data Across Runs with Docker Compose
 --------------------------------------------
@@ -196,81 +212,33 @@ of Docker Compose.
       To learn more, see the `Docker Compose install documentation 
       <https://docs.docker.com/compose/install/>`__.
 
-   .. step:: Create a script to start and stop your local deployment.
+   .. step:: Create a ``docker-compose.yaml`` file.
 
-      a. Create the following ``entrypoint.sh`` script file in the same 
-         directory that you run Docker Compose from:
+      Update the ``docker-compose.yaml`` file to mount the necessary 
+      data directories as volumes.
 
-         .. code-block:: sh
+      **Example:**
 
-            #!/bin/bash
-            stop_atlas() {
-              echo "Stopping Atlas deployment..."
-              atlas deployments stop
-            }
-            start_atlas() {
-              echo "Starting Atlas deployment..."
-              atlas deployments start
-            }
-           trap 'stop_atlas' SIGTERM SIGINT
-           deployment_status=$(atlas deployments list | grep 'LOCAL')
-           if [[ -z "$deployment_status" ]]; then
-             echo "No local deployment found. Setting up..."
-             atlas deployments setup dev --bindIpAll --username root --password $LOCALDEV_PASSWORD --type local --port 27017 --force
-           else
-             if [[ $deployment_status == *"STOPPED"* ]]; then
-               start_atlas
-             fi
-           fi
-           while true
-           do
-             tail -f /dev/null & wait ${!}
-           done
-
-      #. Run the following command to make the script executable only 
-         by you:
-
-         .. code-block:: sh
-
-            chmod u+x entrypoint.sh
-
-   .. step:: Update your ``docker-compose.yaml`` file.
-
-      a. Update the ``docker-compose.yaml`` file to mount the necessary 
-         data directories as volumes.
-
-         **Example:**
-
-         .. code-block:: sh
-            :linenos: 
+      .. code-block:: sh
+         :linenos: 
          
-            services:
-              mongo:
-                image: mongodb/atlas
-                privileged: true
-                volumes:
-                  - data-cni:/etc/cni
-                  - data-containers:/var/lib/containers
-                  - ./entrypoint.sh:/entrypoint.sh
-                entrypoint: ["/entrypoint.sh"]
-                ports:
-                  - 27017:27017
-                environment:
-                  - LOCALDEV_PASSWORD={your-password}
-            volumes:
-              data-cni:
-              data-containers:
-
-      #. Replace the ``{your-password}`` variable in the example with 
-         your password and save the file.
-
-      To learn more about the available options, see 
-      :ref:`atlas-deployments-setup`.
+         services:
+           mongodb:
+             image: mongodb/mongodb-atlas-local
+             environment:
+               - MONGODB_INITDB_ROOT_USERNAME=user
+               - MONGODB_INITDB_ROOT_PASSWORD=pass
+             ports:
+               - 27019:27017
+             volumes:
+               - data:/data/db
+         volumes:
+           data:
 
    .. step:: Run Docker Compose.
 
       The following command creates a local |service| deployment with 
-      |fts| capabilities enabled. It also returns a connection string.
+      |fts| capabilities enabled.
 
       **Example:**
 
@@ -289,8 +257,9 @@ of Docker Compose.
    .. step:: Connect to the local |service| deployment.
 
       To connect to the local |service| deployment from the host (not 
-      container), copy and paste the following command, and replace 
-      the ``{connection_string}`` variable with your connection string.
+      container), copy and paste the following command into a new 
+      terminal, and replace the ``{connection_string}`` variable with 
+      your connection string.
 
       .. note::
 
@@ -305,10 +274,98 @@ of Docker Compose.
 
       .. code-block:: sh
 
-         mongosh mongodb://root:{your-password}@localhost:27017/?directConnection=true
+         mongosh "mongodb://user:pass@localhost:27019/?directConnection=true"
 
-Supported Actions
------------------
+Generate a List of Dependencies
+-------------------------------
 
-To learn all of the actions that ``atlas deployments`` supports, see
-:ref:`atlas-deployments`.
+You can generate a list of the dependencies for the 
+``mongodb/mongodb-atlas-local`` Docker image.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Install syft.
+
+      **Example:**
+
+      .. code-block:: sh
+
+         brew install syft
+
+      To learn more, see the :github:`syft README 
+      </anchore/syft/blob/main/README.md>`.
+
+   .. step:: Run syft.
+
+      .. code-block:: sh
+
+         syft mongodb/mongodb-atlas-local
+
+Verify the Image Signature
+--------------------------
+
+You can verify the signature of the ``mongodb/mongodb-atlas-local`` 
+Docker image.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Install cosign.
+
+      **Example:**
+
+      .. code-block:: sh
+
+         brew install cosign
+
+      To learn more, see the `cosign Installation 
+      <https://docs.sigstore.dev/system_config/installation/>`__.
+
+   .. step:: Run the following commands.
+
+      **Example:**
+
+      .. code-block:: sh
+
+         curl -O https://cosign.mongodb.com/mongodb-atlas-local.pem
+
+      .. code-block:: sh
+
+         COSIGN_REPOSITORY="docker.io/mongodb/signatures" cosign verify --private-infrastructure --key=./mongodb-atlas-local.pem "mongodb/mongodb-atlas-local";
+
+Run the Image with GitHub Actions
+---------------------------------
+
+To run the ``mongodb/mongodb-atlas-local`` Docker image with 
+GitHub actions, create a workflow file. To learn more, see the 
+`GitHub Actions Quickstart 
+<https://docs.github.com/en/actions/quickstart>`__.
+
+**Example:**
+
+Create the following ``mongodb.yml`` file in the ``.github/workflows`` 
+directory:
+
+.. code-block:: yml
+
+   on:
+     push:
+       branches:
+         - main
+     pull_request:
+   jobs:
+     run:
+       runs-on: ubuntu-latest
+       services:
+         mongodb:
+           image: mongodb/mongodb-atlas-local
+           ports:
+             - 27017:27017
+       steps:
+         - name: install mongosh
+           run: |
+            curl --output mongosh.deb https://downloads.mongodb.com/compass/mongodb-mongosh_2.2.1_amd64.deb
+            sudo dpkg -i mongosh.deb
+            mongosh --version
+        - run: mongosh 'mongodb://localhost/?directConnection=true' --eval 'show dbs'
