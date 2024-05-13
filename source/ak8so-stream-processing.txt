@@ -1,0 +1,196 @@
+.. _ak8so-stream-processing:
+
+==============================
+Manage {+atlas-sp+}
+==============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can use |ak8so| to manage stream processing instances and 
+connections for {+atlas-sp+}. {+atlas-sp+} enables you to process 
+streams of complex data using the same :manual:`MongoDB Query API 
+</query-api>` that {+service+} databases use. {+atlas-sp+} allows you 
+to do the following tasks:
+
+- Build :ref:`aggregation pipelines <stream-aggregation>` to 
+  continuously operate on streaming data without the delays inherent in 
+  batch processing.
+- Perform continuous :ref:`schema validation
+  <streams-agg-pipeline-validate>` to check that messages are properly
+  formed, detect message corruption, and detect late-arriving data.
+- Continuously publish results to 
+  {+service+} collections or {+kafka+} clusters, ensuring up-to-date 
+  views and analysis of data.
+
+{+atlas-sp+} components belong directly to |service| projects and
+operate independent of |service| {+clusters+}. To learn more, see 
+:ref:`what-is-atlas-sp`.
+
+.. _ak8so-spi-connections:
+
+Stream Processing Instances and Connections
+-------------------------------------------
+
+{+atlas-sp+} instances provide the context for all of your operations 
+on streaming data. You can configure a sample connection, a connection 
+to an {+service+} :manual:`change stream <changeStreams>`, or a 
+connection to an {+kafka+} system. Then you can add the connection to 
+the Connection Registry for your stream processing instance. To learn 
+more, see :ref:`manage-spi`.
+
+Prerequisites
+-------------
+
+To use |ak8so| to manage stream processing instances and connections, 
+you must:
+  
+- Have an |service| user with the :authrole:`Project Owner` or
+  the :authrole:`Project Stream Processing Owner` role to manage a
+  Connection Registry and {+SPI+}. To learn more about the differences 
+  between the two roles, see :ref:`Project Roles <project-roles>`.
+
+- Have a running |k8s| cluster with |ak8so| :ref:`deployed 
+  <ak8so-quick-start-ref>`.
+ 
+- Ensure your |ipaddr| address is in the organization's |api| 
+  :ref:`access list <access-list>`.
+
+Procedure
+---------
+
+To use |ak8so| to manage a stream processing instance and its 
+connections, do the following steps:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Configure the :ref:`atlasstreaminstance-custom-resource`.
+
+      **Example:**
+
+      .. code-block::
+
+         cat <<EOF | kubectl apply -f -
+         apiVersion: atlas.mongodb.com/v1
+         kind: AtlasStreamInstance
+         metadata:
+            name: my-stream-instance
+         spec:
+           name: my-stream-instance
+           clusterConfig:
+             provider: AWS
+             region: VIRGINIA_USA
+             tier: SP30
+         EOF
+
+      To learn more about the available parameters, see the 
+      :ref:`atlasstreaminstance-custom-resource`.
+
+      .. include:: /includes/fact-ak8so-atlas-sp-provider-region.rst
+
+   .. step:: Configure the :ref:`atlasstreamconnection-custom-resource`.
+
+      You can configure a sample connection, a connection to an 
+      {+service+} :manual:`change stream <changeStreams>`, or a 
+      connection to an {+kafka+} system.
+
+      **Examples:**
+
+      .. tabs::
+         
+         .. tab:: Sample
+            :tabid: sample
+
+            .. code-block:: sh
+
+               apiVersion: atlas.mongodb.com/v1
+               kind: AtlasStreamConnection
+               metadata:
+                 name: my-stream-connection
+               spec:
+                 name: sample_stream_solar
+                 type: Sample
+
+            .. include:: /includes/fact-ak8so-atlas-sp-sample.rst
+
+         .. tab:: Change Stream
+            :tabid: cluster
+
+            .. code-block:: sh
+
+               apiVersion: atlas.mongodb.com/v1
+               kind: AtlasStreamConnection
+               metadata:
+                 name: my-stream-connection
+               spec:
+                 name: my-stream-connection
+                 type: Cluster
+                 clusterConfig:
+                   name: my-cluster
+                 role:
+                   name: my-db-role
+                   type: CUSTOM 
+
+         .. tab:: Kafka
+            :tabid: kafka
+
+            .. code-block:: sh
+               apiVersion: atlas.mongodb.com/v1
+               kind: AtlasStreamConnection
+               metadata:
+                 name: my-stream-connection
+               spec:
+                 name: my-stream-connection
+                 type: Kafka
+                 kafkaConfig:
+                   bootstrapServers: "comma,separated,list,of,server,addresses"
+                   authentication:
+                     mechanism: SCRAM-512
+                     credentials:
+                       name: ref-to-creds-secret
+                       namespace: default
+                   security:
+                     protocol: SSL
+                     certificate:
+                       name: ref-to-certificate-secret
+                       namespace: default
+
+      To learn more about the available parameters, see the 
+      :ref:`atlasstreamconnection-custom-resource`.
+
+   .. step:: Add your connections to the Connection Registry in the :ref:`atlasstreaminstance-custom-resource`.
+
+      **Example:**
+
+      .. code-block:: sh
+
+         cat <<EOF | kubectl apply -f -
+         apiVersion: atlas.mongodb.com/v1
+         kind: AtlasStreamInstance
+         metadata:
+            name: my-stream-instance
+         spec:
+           name: my-stream-instance
+           clusterConfig:
+             provider: AWS
+             region: VIRGINIA_USA
+             tier: SP30
+           connectionRegistry:
+             - name: ref-my-connection-1
+               namespace: my-namespace1
+             - name: ref-my-connection-2
+               namespace: my-namespace2
+             - name: ref-my-connection-3
+               namespace: my-namespace1
+         EOF
+
+      .. include:: /includes/fact-ak8so-atlas-sp-provider-region.rst
+
+      To learn more about the available parameters, see the 
+      :ref:`atlasstreaminstance-custom-resource`.

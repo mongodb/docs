@@ -1,0 +1,284 @@
+.. _atlasstreamconnection-custom-resource:
+
+=========================================
+``AtlasStreamConnection`` Custom Resource
+=========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The ``AtlasStreamConnection`` custom resource configures 
+:ref:`{+atlas-sp+} <what-is-atlas-sp>` :ref:`connections 
+<ak8so-spi-connections>`. You can configure a sample connection, a 
+connection to an {+service+} :manual:`change stream <changeStreams>`, 
+or a connection to an {+kafka+} system.
+
+.. _atlasstreamconnection-examples:
+
+Examples
+--------
+
+The following examples add a connection to add to the Connections 
+Registry of the stream processing instance. To learn more, see 
+:ref:`ak8so-stream-processing`.
+
+Sample Connection
+~~~~~~~~~~~~~~~~~
+
+.. code-block:: yaml
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasStreamConnection
+   metadata:
+     name: my-stream-connection
+   spec:
+     name: sample_stream_solar
+   type: Sample
+
+.. include:: /includes/fact-ak8so-atlas-sp-sample.rst
+
+Change Stream Connection
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: yaml
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasStreamConnection
+   metadata:
+     name: my-stream-connection
+   spec:
+     name: my-stream-connection
+     type: Cluster
+     clusterConfig:
+       name: my-cluster
+       role:
+         name: my-db-role
+         type: CUSTOM 
+
+Kafka Connection
+~~~~~~~~~~~~~~~~
+
+.. code-block:: yaml
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasStreamConnection
+   metadata:
+     name: my-stream-connection
+   spec:
+     name: my-stream-connection
+     type: Kafka
+     kafkaConfig:
+       bootstrapServers: "comma,separated,list,of,server,addresses"
+       authentication:
+         mechanism: SCRAM-512
+         credentials:
+           name: ref-to-creds-secret
+           namespace: default
+       security:
+         protocol: SSL
+         certificate:
+           name: ref-to-certificate-secret
+           namespace: default
+
+.. _atlasstreamconnection-parameters:
+
+Parameters
+----------
+
+This section describes the available ``AtlasStreamConnection`` 
+parameters.
+
+``spec.name``
+  *Type*: string
+
+  *Required*
+
+  Name that identifies the stream processing connection.
+
+  .. include:: /includes/fact-ak8so-atlas-sp-sample.rst
+
+``spec.type``
+  *Type*: string
+
+  *Required*
+
+  String that indicates the type of connection. Valid values include:
+
+  - ``Sample``
+  - ``Cluster``
+  - ``Kafka``
+
+``spec.clusterConfig``
+  *Type*: object
+  
+  *Conditional*
+
+  Object that contains the configuration for the connection to an 
+  {+service+} :manual:`change stream <changeStreams>`. If you specified 
+  ``Cluster`` for the ``spec.type`` parameter, you must specify this 
+  setting.
+
+``spec.clusterConfig.name``
+  *Type*: string
+
+  *Conditional*
+
+  Name that identifies the connection to the {+service+} 
+  :manual:`change stream <changeStreams>`. If you specified 
+  ``Cluster`` for the ``spec.type`` parameter, you must specify this 
+  setting.
+
+``spec.clusterConfig.role``
+  *Type*: string
+
+  *Conditional*
+
+  Database role for the connection to the {+service+} 
+  :manual:`change stream <changeStreams>`. If you specified 
+  ``Cluster`` for the ``spec.type`` parameter, you must specify this 
+  setting.
+  
+
+``spec.clusterConfig.role.name``
+  *Type*: string
+
+  *Conditional*
+
+  Name that identifies the database role for the connection to the 
+  {+service+} :manual:`change stream <changeStreams>`. If you specified 
+  ``Cluster`` for the ``spec.type`` parameter, you must specify this 
+  setting.
+
+``spec.clusterConfig.role.type``
+  *Type*: string
+
+  *Conditional*
+
+  String that indicates the type of database role. Valid values include:
+
+  - ``BUILT_IN``
+  - ``CUSTOM``
+
+  To learn more, see :ref:`mongodb-roles`.
+
+``spec.kafkaConfig``
+  *Type*: object
+  
+  *Conditional*
+
+  Object that contains the configuration for the connection to an
+  {+kafka+} system. If you specified ``Kafka`` for the ``spec.type`` 
+  parameter, you must specify this setting.
+
+``spec.kafkaConfig.bootstrapServers``
+  *Type*: array
+  
+  *Conditional*
+
+  Comma-separated list of server addresses for the connection to an
+  {+kafka+} system. If you specified ``Kafka`` for the ``spec.type`` 
+  parameter, you must specify this setting.
+
+``spec.kafkaConfig.authentication``
+  *Type*: object
+  
+  *Conditional*
+
+  Object that contains the configuration for the authentication 
+  mechanism and credentials. If you specified ``Kafka`` for the 
+  ``spec.type`` parameter, you must specify this setting.
+
+``spec.kafkaConfig.authentication.mechanism``
+  *Type*: string
+
+  *Conditional*
+
+  String that indicates the authentication mechanism for the
+  connection to an {+kafka+} system. If you specified ``Kafka`` for the 
+  ``spec.type`` parameter, you must specify this setting. Valid values 
+  include:
+
+  - ``PLAIN``
+  - ``SCRAM-256``
+  - ``SCRAM-512``
+
+``spec.kafkaConfig.authentication.credentials``
+  *Type*: object
+
+  *Conditional*
+
+  Object that contains the reference to the |k8s-secret| that contains 
+  the authentication credentials. If you specified ``Kafka`` for the 
+  ``spec.type`` parameter, you must specify this setting.
+
+``spec.kafkaConfig.authentication.credentials.name``
+  *Type*: string
+
+  *Conditional*
+
+  Name of the opaque |k8s-secret| that contains your authentication 
+  credentials. If you specified ``Kafka`` for the ``spec.type`` 
+  parameter, you must specify this setting.
+
+``spec.kafkaConfig.authentication.credentials.namespace``
+  *Type*: string
+
+  *Conditional*
+
+  Namespace of the opaque |k8s-secret| that contains your 
+  authentication credentials. If you specified ``Kafka`` for the 
+  ``spec.type`` parameter, you must specify this setting.
+
+``spec.kafkaConfig.security``
+  *Type*: object
+  
+  *Conditional*
+
+  Object that contains the configuration for the security
+  protocol and certificate. If you specified ``Kafka`` for the 
+  ``spec.type`` parameter, you must specify this setting.
+
+``spec.kafkaConfig.security.protocol``
+  *Type*: string
+
+  *Conditional*
+
+  String that indicates the security protocol for the 
+  connection to an {+kafka+} system. If you specified ``Kafka`` for the 
+  ``spec.type`` parameter, you must specify this setting. Valid values 
+  include:
+
+  - ``PLAIN``
+  - ``SSL``
+
+``spec.kafkaConfig.security.certificate``
+  *Type*: object
+
+  *Conditional*
+
+  Object that contains the configuration for the security certificate. 
+  If you specified ``Kafka`` for the ``spec.type`` 
+  parameter, you must specify this setting.
+
+``spec.kafkaConfig.security.certificate.name``
+  *Type*: string
+
+  *Conditional*
+
+  Name of the opaque |k8s-secret| that contains your secrity 
+  certificate. If you specified ``Kafka`` for the ``spec.type`` 
+  parameter, you must specify this setting.
+
+``spec.kafkaConfig.security.certificate.namespace``
+  *Type*: string
+
+  *Conditional*
+
+  Namespace of the opaque |k8s-secret| that contains your security 
+  certificate. If you specified ``Kafka`` for the ``spec.type`` 
+  parameter, you must specify this setting.
