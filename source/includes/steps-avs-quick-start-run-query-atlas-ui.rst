@@ -1,13 +1,11 @@
 .. procedure:: 
    :style: normal 
 
-   .. step:: Go to the :guilabel:`Collections` page.
+   .. include:: /includes/nav/steps-db-deployments-page.rst
 
-      a. Click the {+cluster+} name to view the {+cluster+} details.
+   .. include:: /includes/nav/steps-data-explorer.rst
   
-      #. Click the :guilabel:`Collections` tab.
-  
-   .. step:: Go to the :guilabel:`Data Explorer` tab for the collection.
+   .. step:: Go to the :guilabel:`Aggregation` tab for the collection.
 
       a. Expand ``sample_mflix`` under the list of databases and select
          ``embedded_movies`` from the list of collections in that

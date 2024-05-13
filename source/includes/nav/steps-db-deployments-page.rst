@@ -7,5 +7,5 @@
    #. If it is not already displayed, select your desired project
       from the :guilabel:`Projects` menu in the navigation bar.
 
-   #. If the :guilabel:`{+Database-Deployments+}` page is not 
+   #. If the :guilabel:`Clusters` page is not 
       already displayed, click :guilabel:`Database` in the sidebar.

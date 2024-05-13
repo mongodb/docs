@@ -4,17 +4,13 @@ to interact with data in your cluster.
 .. procedure::
    :style: normal
 
-   .. step:: Open the {+atlas-ui+}.
+   .. include:: /includes/nav/steps-db-deployments-page.rst
 
-      a. Click :guilabel:`Database` in the top-left corner of |service|. 
-        
-      b. From the |service| :guilabel:`{+Database-Deployments+}` view, click your cluster's
-         :guilabel:`Browse Collections` button.
+   .. include:: /includes/nav/steps-data-explorer.rst
 
    .. step:: Create a ``people`` collection in the ``gettingStarted`` database.
 
-      a. From the :guilabel:`Collections` tab, 
-         click the :guilabel:`+ Create Database` button. 
+      a. Click the :guilabel:`+ Create Database` button. 
       #. For the :guilabel:`Database Name` enter ``gettingStarted``.
       #. For the :guilabel:`Collection Name`,  enter ``people``.
       #. Click :guilabel:`Create` to create the 
