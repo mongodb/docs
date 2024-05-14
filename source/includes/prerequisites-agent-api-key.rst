@@ -12,11 +12,11 @@ create one:
 
    .. include:: /includes/nav/steps-deployment.rst
 
+   .. include:: /includes/nav/steps-agents.rst
+
    .. step:: Generate the |api| key.
 
-      a. Go to the :guilabel:`Agents` page.
-
-      #. Click :guilabel:`Agent API Keys`.
+      a. Click :guilabel:`Agent API Keys`.
 
       #. Click :icon:`plus` :guilabel:`Generate`.
 

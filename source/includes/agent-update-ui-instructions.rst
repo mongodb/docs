@@ -3,11 +3,11 @@ copy and paste:
 
 .. procedure::
    :style: normal
-   
-   .. include:: /includes/nav/steps-deployment.rst
-    
-   .. step:: Go to the :guilabel:`Downloads & Settings`
-      
-      a. Click :guilabel:`Agents`.
 
-      #. Click :guilabel:`Downloads & Settings`.
+   .. include:: /includes/nav/steps-deployment.rst
+
+   .. include:: /includes/nav/steps-agents.rst
+
+   .. step:: Go to the :guilabel:`Downloads & Settings`
+
+      Click :guilabel:`Downloads & Settings`.

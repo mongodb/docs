@@ -11,10 +11,11 @@ directory, follow these procedures:
 
    .. include:: /includes/nav/steps-deployment.rst
 
+   .. include:: /includes/nav/steps-agents.rst
+
    .. step:: Change the path.
 
-      a. Click :guilabel:`Agents`, and then 
-         :guilabel:`Downloads & Settings`.
+      a. Click :guilabel:`Downloads & Settings`.
 
       #. Below the :guilabel:`Download Directory` heading, click the
          pencil icon to the right of the path shown in
@@ -28,7 +29,6 @@ directory, follow these procedures:
          an Agent.
 
          .. code-block:: sh
-
             sudo mkdir -m 755 -p /<newPath>
 
 **To change the location of the Agent configuration backup:**
