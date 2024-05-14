@@ -5,11 +5,11 @@ You can create charts for a selection of these metrics in |mms|.
 
    .. include:: /includes/nav/steps-deployment.rst
 
+   .. include:: /includes/nav/steps-processes.rst
+
    .. step:: Select the metrics to chart.
 
-      a. Click the :guilabel:`Processes` tab.
-
-      #. Click the :guilabel:`List` tab.
+      a. Click the :guilabel:`List` tab.
       
       #. Click the process for which you want to monitor. 
       
