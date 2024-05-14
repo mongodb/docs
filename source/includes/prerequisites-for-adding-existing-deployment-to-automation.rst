@@ -24,8 +24,16 @@
 - If the |mms| project has authentication settings enabled, add the
   |mms| project's {+mdbagent+} user to the MongoDB process.
 
-  - To find the {+mdbagent+} user, click :guilabel:`Deployments`, then
-    :guilabel:`Security`, then :guilabel:`Users`.
+  - To find the {+mdbagent+} user:
+    
+    .. procedure::
+       :style: normal
+       
+       .. include:: /includes/nav/steps-deployment.rst
+        
+       .. include:: /includes/nav/steps-security.rst
+        
+       .. step:: Click :guilabel:`Users`.
 
   - To find the password for the |mms| project's {+mdbagent+} user, use
     one of the following methods:

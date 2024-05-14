@@ -7,7 +7,7 @@ Configure MongoDB Agent for Authentication
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 MongoDB supports the following authentication mechanisms depending on your MongoDB version:
@@ -36,6 +36,11 @@ MongoDB supports the following authentication mechanisms depending on your Mongo
        is a challenge-response mechanism that authenticates users
        through passwords.
 
+The {+mdbagent+} can use ``SCRAM-SHA-1`` or ``SCRAM-SHA-256``
+to authenticate to hosts that enforce access control.
+
+.. include:: /includes/extracts/note-manage-mdbagent-auth-with-automation.rst
+   
 Prerequisites
 -------------
 
@@ -44,201 +49,193 @@ Configure Deployments to Use Authentication
 
 .. include:: /includes/fact-mdbagent-access-control-host-settings.rst
 
-Configure the MongoDB Agent for Authentication
-----------------------------------------------
+Configure Deployments Managed by {+aagent+}
+-------------------------------------------------
 
-The {+mdbagent+} can use ``SCRAM-SHA-1`` or ``SCRAM-SHA-256``
-to authenticate to hosts that enforce access control.
+When you install the {+mdbagent+} with {+aagent+}, |mms| creates a
+user to authenticate on the MongoDB database. |mms| create this
+MongoDB user (``mms-automation``) in the ``admin`` database with
+the correct privileges for each {+mdbagent+} function.
 
-.. include:: /includes/extracts/note-manage-mdbagent-auth-with-automation.rst
+Configure these credentials in |mms|.
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-deployment.rst
+
+   .. include:: /includes/nav/steps-security.rst
+
+   .. step:: Add the appropriate credentials.
+
+      a. Click :guilabel:`Settings`.
+
+      #. Continue through the modal until you see the
+         :guilabel:`Configure Cloud Manager Agents` page.
+
+      #. Add the appropriate credentials:
+
+         .. list-table::
+            :header-rows: 1
+            :widths: 30 70
+
+            * - Setting
+              - Value
+
+            * - :guilabel:`{+mdbagent+} Username`
+              - Enter the {+mdbagent+} username.
+
+            * - :guilabel:`{+mdbagent+} Password`
+              - Enter the password for the {+mdbagent+} username.
+
+Configure Deployments Not Managed by {+aagent+}
+-----------------------------------------------------
+
+Each {+mdbagent+} function uses a different set of 
+MongoDB shell ({+mongosh+}) commands to configure a user with the 
+appropriate roles and privileges.
+
+{+bagent+}
+~~~~~~~~~~
+
+User creation commands vary depending on the version of
+MongoDB that you use:
 
 .. tabs::
 
-   .. tab:: Deployments Managed by {+aagent+}
-      :tabid: automation
+   .. tab:: FCV 4.2 or later
+      :tabid: backup-fcv4.2
 
-      When you install the {+mdbagent+} with {+aagent+}, |mms| creates a
-      user to authenticate on the MongoDB database. |mms| create this
-      MongoDB user (``mms-automation``) in the ``admin`` database with
-      the correct privileges for each {+mdbagent+} function.
+      To back up MongoDB instances running |fcv-link| 4.2
+      and later, create a user in the ``admin`` database.
+      Assign this user the roles provided in the following
+      example.
 
-      Configure these credentials in |mms|.
+      Use the following {+mongosh+} command to create the
+      user:
 
-      .. procedure::
-         :style: normal
+      .. code-block:: javascript
 
-         .. include:: /includes/nav/steps-deployment.rst
+         db.getSiblingDB("admin").createUser(
+           {
+             user: "<username>",
+             pwd: "<password>",
+             roles: [ { 
+               role: "clusterAdmin", db: "admin"
+             } ]
+           }
+         )
 
-         .. step:: Add the appropriate credentials.
+      To learn more about the required access, see
+      :ref:`Required Access for MongoDB Agent Backup 
+      <required-permissions-mms-backup>`
 
-            a. Click :guilabel:`Security`, and then :guilabel:`Settings`
+   .. tab:: FCV 4.0 or earlier
+      :tabid: backup-fcv4.0
 
-            #. Continue through the modal until you see the
-               :guilabel:`Configure Cloud Manager Agents` page
+      To back up MongoDB instances running |fcv-link| 4.0 or
+      earlier, create a user in the ``admin`` database.
+      Assign this user the roles provided in the following
+      example.
 
-            #. Add the appropriate credentials:
+      Use the following {+mongosh+} command to create the
+      user:
 
-               .. list-table::
-                  :header-rows: 1
-                  :widths: 30 70
+      .. code-block:: javascript
 
-                  * - Setting
-                    - Value
+         db.getSiblingDB("admin").createUser(
+           {
+             user: "<username>",
+             pwd: "<password>",
+             roles: [ {
+               role: "backup", db: "admin"
+             } ]
+           }
+         )
 
-                  * - :guilabel:`{+mdbagent+} Username`
-                    - Enter the {+mdbagent+} username.
+      To learn more about the required access, see
+      :ref:`Required Access for MongoDB Agent Backup 
+      <required-permissions-mms-backup>`
 
-                  * - :guilabel:`{+mdbagent+} Password`
-                    - Enter the password for the {+mdbagent+} username.
+      **Configure {+bagent+} Credentials**
 
-   .. tab:: Deployments Not Managed by {+aagent+}
-      :tabid: monitoring-backup-only
+      After you create the user for the {+bagent+} function, add
+      the credentials to the Backup Settings.
 
-      Each {+mdbagent+} function uses a different set of 
-      MongoDB shell ({+mongosh+}) commands to configure a user with the 
-      appropriate roles and privileges.
+      1. Navigate to :guilabel:`Backup` :icon-fa5:`arrow-right`
+         :guilabel:`<backup-deployment>` :icon-fa5:`arrow-right`
+         :icon-mms:`ellipsis` :icon-fa5:`arrow-right`
+         :guilabel:`Edit Credentials`.
 
-      .. tabs::
+      2. Click :guilabel:`Credentials`.
 
-         .. tab:: {+bagent+}
-            :tabid: backup
+      3. Add the appropriate credentials:
 
-            User creation commands vary depending on the version of
-            MongoDB that you use:
+         .. list-table::
+            :header-rows: 1
+            :widths: 30 70
 
-            .. tabs::
+            * - Setting
+              - Value
 
-               .. tab:: FCV 4.2 or later
-                  :tabid: backup-fcv4.2
+            * - :guilabel:`{+bagent+} Username`
+              - Enter the {+bagent+} username.
 
-                  To back up MongoDB instances running |fcv-link| 4.2
-                  and later, create a user in the ``admin`` database.
-                  Assign this user the roles provided in the following
-                  example.
+            * - :guilabel:`{+bagent+} Password`
+              - Enter the password for the {+bagent+} username.
 
-                  Use the following {+mongosh+} command to create the
-                  user:
+Monitoring
+~~~~~~~~~~
 
-                  .. code-block:: javascript
+To monitor MongoDB 4.0 or later instances that use SCRAM
+authentication, add a user to the ``admin`` database in
+MongoDB. Assign this user the roles provided in the
+following example.
 
-                     db.getSiblingDB("admin").createUser(
-                        {
-                           user: "<username>",
-                           pwd: "<password>",
-                           roles: [ { 
-                             role: "clusterAdmin", db: "admin"
-                           } ]
-                        }
-                     )
+.. code-block:: javascript
 
-                  To learn more about the required access, see
-                  :ref:`Required Access for MongoDB Agent Backup <required-permissions-mms-backup>`
+   db.getSiblingDB("admin").createUser(
+     {
+       user: "<username>",
+       pwd: "<password>",
+       roles: [ {
+         role: "clusterMonitor", db: "admin"
+       } ]
+     }
+   )
 
-               .. tab:: FCV 4.0 or earlier
-                  :tabid: backup-fcv4.0
+To learn what roles this function requires, see
+:ref:`Monitoring settings <mongodb-agent-monitoring-settings>`.
 
-                  To back up MongoDB instances running |fcv-link| 4.0 or
-                  earlier, create a user in the ``admin`` database.
-                  Assign this user the roles provided in the following
-                  example.
+**Configure {+magent+} Credentials**
 
-                  Use the following {+mongosh+} command to create the
-                  user:
+After you create the user for the {+magent+} function, add
+the credentials to the Monitoring Settings.
 
-                  .. code-block:: javascript
+.. procedure::
+   :style: normal
 
-                     db.getSiblingDB("admin").createUser(
-                       {
-                         user: "<username>",
-                         pwd: "<password>",
-                         roles: [ {
-                           role: "backup", db: "admin"
-                         } ]
-                       }
-                     )
+   .. include:: /includes/nav/steps-deployment.rst
 
-                  To learn more about the required access, see
-                  :ref:`Required Access for MongoDB Agent Backup <required-permissions-mms-backup>`
+   .. step:: Add the appropriate credentials.
 
-            **Configure {+bagent+} Credentials**
+      a. Click the :icon-mms:`ellipsis`, and then 
+         :guilabel:`Monitoring Settings`.
 
-            After you create the user for the {+bagent+} function, add
-            the credentials to the Backup Settings.
+      #. Click :guilabel:`Credentials`.
 
-            1. Navigate to :guilabel:`Backup` :icon-fa5:`arrow-right`
-               :guilabel:`<backup-deployment>` :icon-fa5:`arrow-right`
-               :icon-mms:`ellipsis` :icon-fa5:`arrow-right`
-               :guilabel:`Edit Credentials`.
+      #. Add the appropriate credentials:
 
-            2. Click :guilabel:`Credentials`.
+         .. list-table::
+            :header-rows: 1
+            :widths: 30 70
 
-            3. Add the appropriate credentials:
+            * - Setting
+              - Value
 
-               .. list-table::
-                  :header-rows: 1
-                  :widths: 30 70
+            * - :guilabel:`{+magent+} Username`
+              - Enter the {+magent+} username.
 
-                  * - Setting
-                    - Value
-
-                  * - :guilabel:`{+bagent+} Username`
-                    - Enter the {+bagent+} username.
-
-                  * - :guilabel:`{+bagent+} Password`
-                    - Enter the password for the {+bagent+} username.
-
-         .. tab:: Monitoring
-            :tabid: monitoring
-
-            To monitor MongoDB 4.0 or later instances that use SCRAM
-            authentication, add a user to the ``admin`` database in
-            MongoDB. Assign this user the roles provided in the
-            following example.
-
-            .. code-block:: javascript
-
-               db.getSiblingDB("admin").createUser(
-                  {
-                     user: "<username>",
-                     pwd: "<password>",
-                     roles: [ {
-                       role: "clusterMonitor", db: "admin"
-                     } ]
-                  }
-               )
-
-            To learn what roles this function requires, see
-            :ref:`Monitoring settings <mongodb-agent-monitoring-settings>`.
-
-            **Configure {+magent+} Credentials**
-
-            After you create the user for the {+magent+} function, add
-            the credentials to the Monitoring Settings.
-
-            .. procedure::
-               :style: normal
-
-               .. include:: /includes/nav/steps-deployment.rst
-
-               .. step:: Add the appropriate credentials.
-
-                  a. Click the :icon-mms:`ellipsis`, and then 
-                     :guilabel:`Monitoring Settings`.
-
-                  #. Click :guilabel:`Credentials`.
-
-                  #. Add the appropriate credentials:
-
-                     .. list-table::
-                        :header-rows: 1
-                        :widths: 30 70
-
-                        * - Setting
-                          - Value
-
-                        * - :guilabel:`{+magent+} Username`
-                          - Enter the {+magent+} username.
-
-                        * - :guilabel:`{+magent+} Password`
-                          - Enter the password for the {+magent+} 
-                            username.
+            * - :guilabel:`{+magent+} Password`
+              - Enter the password for the {+magent+} 
+                username.

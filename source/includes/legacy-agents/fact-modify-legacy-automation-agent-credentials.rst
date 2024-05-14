@@ -4,13 +4,14 @@ modification. However, if you need to modify them:
 
 .. procedure::
    :style: normal
-   
+
    .. include:: /includes/nav/steps-deployment.rst
+
+   .. include:: /includes/nav/steps-security.rst
 
    .. step:: Edit the settings.
 
-      a. Click :guilabel:`Security`.
-
-      #. Click :guilabel:`Settings`.
+      a. Click :guilabel:`Settings`.
 
       #. Click :guilabel:`Edit Settings`.
+      
