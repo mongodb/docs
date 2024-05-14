@@ -7,30 +7,37 @@ with the |application|.
 If you do not have an existing Agent |api| Key for your |mms| project,
 create one:
 
-1. Click :guilabel:`Deployment`.
+.. procedure::
+   :style: normal
 
-#. Navigate to :guilabel:`Agents`.
+   .. include:: /includes/nav/steps-deployment.rst
 
-#. Click :guilabel:`Agent API Keys`.
+   .. step:: Generate the |api| key.
 
-#. Click :icon:`plus` :guilabel:`Generate`.
+      a. Go to the :guilabel:`Agents` page.
 
-   .. note::
+      #. Click :guilabel:`Agent API Keys`.
 
-      This button appears if:
+      #. Click :icon:`plus` :guilabel:`Generate`.
 
-      1. The current user is the :authrole:`Project Owner` and
-      #. The project has no Agent API Keys other than the
-         :guilabel:`Original Group API Key` with an exclamation :icon-fa5:`exclamation-circle`
-         next to it. This type of key exists in projects created before
-         the :ref:`new Agent API Key model <new-agent-api-keys-model>`.
-         In the new model, you can create multiple Agent |api| Keys in
-         a project, and any the project's {+mdbagent+}s can use any of
-         the keys.
+         .. note::
 
-#. In the :guilabel:`Generate Key` modal, provide a description of the
-   new Agent API Key in the :guilabel:`Description` box.
+            This button appears if both of the following criteria are 
+            true:
 
-#. Click :guilabel:`Generate`.
+            - The current user is the :authrole:`Project Owner`.
+            - The project has no Agent API Keys other than the
+              :guilabel:`Original Group API Key` with an exclamation 
+              :icon-fa5:`exclamation-circle` next to it. This type of 
+              key exists in projects created before the 
+              :ref:`new Agent API Key model 
+              <new-agent-api-keys-model>`. In the new model, you can 
+              create multiple Agent |api| Keys in a project, and any 
+              the project's {+mdbagent+}s can use any of the keys.
 
-   .. include:: /includes/extracts/agent-api-key-admonition.rst
+      #. In the :guilabel:`Generate Key` modal, provide a description 
+         of the new Agent API Key in the :guilabel:`Description` box.
+
+      #. Click :guilabel:`Generate`.
+
+         .. include:: /includes/extracts/agent-api-key-admonition.rst

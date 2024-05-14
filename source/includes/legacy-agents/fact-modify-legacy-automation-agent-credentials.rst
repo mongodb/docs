@@ -1,7 +1,16 @@
 The legacy Automation Agent credentials become the {+mdbagent+}
 credentials used for Automation. These credentials should not need
-modification. However, if you need to modify them, navigate to
-:guilabel:`Deployment`
-:icon-fa5:`arrow-right` :guilabel:`Security`
-:icon-fa5:`arrow-right` :guilabel:`Settings`
-:icon-fa5:`arrow-right` :guilabel:`Edit Settings`.
+modification. However, if you need to modify them:
+
+.. procedure::
+   :style: normal
+   
+   .. include:: /includes/nav/steps-deployment.rst
+
+   .. step:: Edit the settings.
+
+      a. Click :guilabel:`Security`.
+
+      #. Click :guilabel:`Settings`.
+
+      #. Click :guilabel:`Edit Settings`.

@@ -1,7 +1,12 @@
 To interact with data in the |mms| UI:
 
-1. Click :guilabel:`Deployment` in the left navigation.
+.. procedure::
+   :style: normal
 
-#. Select the desired MongoDB deployment.
+   .. include:: /includes/nav/steps-deployment.rst
 
-#. Select the :guilabel:`Data` tab.
+   .. step:: Go to the :guilabel:`Data` tab
+
+      a. Select the desired MongoDB deployment.
+
+      #. Select the :guilabel:`Data` tab.
