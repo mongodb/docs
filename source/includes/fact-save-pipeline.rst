@@ -11,9 +11,6 @@
 
    .. step:: Enter a name for your pipeline
 
-      .. figure:: /images/compass/query-save-pipeline-as-name.png
-         :alt: Name your pipeline
-
    .. step:: Save the pipeline
 
       Click the :guilabel:`Save` button to save your pipeline. Your pipeline 
