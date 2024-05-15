@@ -146,7 +146,7 @@
        Webhook settings.
 
        If your webhook requires HTTPS, you must 
-       :ref:`import import your CA certificate into the Ops Manager trust store <add-ca-cert-to-om>`.
+       :ref:`import your CA certificate into the Ops Manager trust store <add-ca-cert-to-om>`.
 
    * - CA Flowdock Settings
    
