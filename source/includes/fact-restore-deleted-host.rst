@@ -15,12 +15,11 @@ To locate and undelete a previously deleted host:
 
    .. include:: /includes/nav/steps-deployment.rst
 
+   .. include:: /includes/nav/deleted-hosts.rst
+
    .. step:: Undelete the host.
 
-      a. From the :guilabel:`More` menu, click 
-         :guilabel:`Deleted Hosts`.
-         
-      #. Select the :icon:`trash-alt` to undelete the host.
+      Select the :icon:`trash-alt` to undelete the host.
 
 After the host has been undeleted, you can
 :ref:`import existing process procedure <add-existing-mongodb-hosts>`.
