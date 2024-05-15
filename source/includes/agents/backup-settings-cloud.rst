@@ -7,9 +7,12 @@ Connection Settings
 
    *Type*: string
 
-   Specifies the ID of your |mms| project. Find the project ID on the
-   :guilabel:`Project Settings` page (:guilabel:`Settings` >
-   :guilabel:`Project Settings`).
+   Specifies the ID of your |mms| project. To find the project ID:
+
+   .. procedure::
+      :style: normal
+
+      .. include:: /includes/nav/steps-project-settings.rst
 
    .. code-block:: ini
 
