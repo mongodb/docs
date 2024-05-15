@@ -82,8 +82,8 @@
        This issue is temporary and eventually corrects itself
        after MongoDB |onprem| instances have finished upgrading to
        MongoDB |onprem| 4.4. In addition, customers must be
-       running with clientCertificateMode=OPTIONAL /
-       :setting:`allowConnectionsWithoutCertificates=true <net.ssl.allowConnectionsWithoutCertificates>`
+       running with ``clientCertificateMode=OPTIONAL`` /
+       ``allowConnectionsWithoutCertificates=true``
        to be impacted.
    * - |cvss| score
      - 6.7
