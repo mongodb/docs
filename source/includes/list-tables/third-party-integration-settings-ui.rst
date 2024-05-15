@@ -134,7 +134,7 @@
        for programmatic processing. |mms| sends an alert as an |http|
        POST request in which the request body contains a |json|
        document that uses the same format as the |mms| |api|
-       :doc:`Alerts resource </reference/api/alerts>`.
+       :doc:`Alerts resource </reference/api/alerts>`. 
 
        .. include:: /includes/facts/alert-webhook-mms-event-header.rst
 
@@ -144,6 +144,9 @@
        the |url| or optional key becomes invalid, |mms| sends an email
        to the :authrole:`Project Owner` and eventually removes the
        Webhook settings.
+
+       If your webhook requires HTTPS, you must 
+       :ref:`import import your CA certificate into the Ops Manager trust store <add-ca-cert-to-om>`.
 
    * - CA Flowdock Settings
    
