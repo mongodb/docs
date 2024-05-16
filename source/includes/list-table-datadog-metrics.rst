@@ -38,25 +38,12 @@
      - Maximum latency gauge in milliseconds for read requests and write
        requests.
 
-   * - | ``DISK_PARTITION_UTILIZATION``
-       | (mongodb.atlas.system.disk.iops.percentutilization)
-     - Disk
-     - Percentage of time during which requests are being issued
-       to and serviced by the disk partition. Includes requests from all
-       processes, not just MongoDB processes.
-
    * - | ``DISK_QUEUE_DEPTH``
        | (mongodb.atlas.system.disk.queuedepth)
      - Disk
      - Average length of the queue of requests issued 
        to the disk partition that MongoDB uses over the time 
        period specified by the metric granularity.
-
-   * - | ``MAX_DISK_PARTITION_UTILIZATION_DATA``
-       | (mongodb.atlas.system.disk.max.iops.percentutilization)
-     - Disk
-     - Maximum disk utilization percent value over the time period
-       specified by the metric granularity.
 
    * - | ``MAX_DISK_QUEUE_DEPTH``
        | (mongodb.atlas.system.disk.max.queuedepth)
