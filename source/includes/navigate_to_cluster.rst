@@ -1,4 +1,4 @@
-.. step:: Navigate to the {+db-deployments+} page for your project.
+.. include:: /includes/nav/steps-db-deployments-page.rst
 
 .. step:: Click on your cluster name.
 
