@@ -36,11 +36,11 @@
       authentication enabled. To use this code, you must continue with 
       the subsequent steps to enable authenticated access.
 
+   .. include:: /includes/nav/steps-embedding.rst
+
    .. step:: Acquire an embedding key.
 
-      a. Click :guilabel:`Embedding` in the sidebar.
-     
-      #. Click the :guilabel:`Authentication Settings` tab.
+      Click the :guilabel:`Authentication Settings` tab.
 
       .. note::
 
