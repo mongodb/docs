@@ -24,8 +24,10 @@ Before you install |onprem|, you must:
 
    .. note::
 
-      |mms| cannot deploy its own backing databases. You must deploy
-      those databases manually.
+      You must deploy :term:`application databases <application
+      database>` manually. However, you can deploy backup databases
+      with |onprem|. For more information, see :ref:`Deploy Backing
+      Databases <deploy-om-appdb>`.
 
 4. Install and verify an Email Server. |onprem| needs an email server
    to :ref:`send alerts <create-alert-configuration>` and recover
