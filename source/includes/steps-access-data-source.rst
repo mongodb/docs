@@ -1,6 +1,4 @@
-.. step:: In the left navigation menu, click :guilabel:`Data Sources`.
-
-   The :guilabel:`Data Sources` page appears.
+.. include:: /includes/nav/steps-data-sources.rst
 
 .. step:: In the :guilabel:`Deployment` dropdown, select the deployment that contains your data source.
 
