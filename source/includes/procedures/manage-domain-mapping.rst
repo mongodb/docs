@@ -16,7 +16,7 @@
             left navigation pane.
 
          .. step:: In :guilabel:`Manage Federation Settings`, click
-            :guilabel:`Visit Federation Management App`.
+            :guilabel:`Open Federation Management App`.
 
    .. step:: Enter domain 
       mapping information.
