@@ -18,6 +18,31 @@
     UI. 
   - ObjectId fields in snapshot history rendered incorrectly.
 
+.. _opsmgr-server-7.0.5: 
+
+|onprem| Server 7.0.5
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2024-05-02*
+
+- Updates the {+mdbagent+} to :ref:`107.0.3.8581-1 <mongodb-107.0.3.8581>`.
+- Releases {+mongosh+} 2.2.4 to |onprem|. To learn more, see {+mongosh+} 
+  Release Notes.
+- Updates :abbr:`JDK (Java Development Kit)` to ``jdk-17.0.11+9``. 
+- Displays |s3| :opsmgr:`oplog store
+  </reference/glossary/#std-term-Oplog-Store-Database>` databases as a
+  backing database in the :guilabel:`Admin Overview` tab.
+- Adds additional diagnostics information related to backup speed in a
+  separate download ingestible format from diagnostic archive. 
+- Adds additional snapshot history metadata for block tracking,
+  incrementality for data and indexes, transfer speed, and duration in
+  the Admin UI and diagnostic archives.
+- Increases the number of snapshots retained to 60 snapshots per cluster
+  for the snapshot history metadata.
+- Fixes an issue with backup configuration daemon filter for deleted
+  daemons. 
+- Fixes `CVE-2024-29025 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-29025>`__.
+
 .. _opsmgr-server-7.0.4: 
 
 |onprem| Server 7.0.4
