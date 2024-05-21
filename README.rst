@@ -1,9 +1,8 @@
-==============================
-MongoDB Analyzer Documentation
-==============================
+=================================
+{+product+} Documentation
+=================================
 
-This repository contains documentation for the MongoDB Analyzer.
-
+This repository contains documentation for the {+product+}.
 
 File JIRA Tickets
 -----------------

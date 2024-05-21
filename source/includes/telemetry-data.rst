@@ -54,7 +54,7 @@ The following is the information the {+product+} collects about your environment
   - ``/domain``
 
 Your {+product+} Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following is the information the {+product+} collects about your {+product+}
 configuration:
