@@ -21,7 +21,7 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
     * -
-      - RHEL/Rocky/Alma Linux/Oracle Linux 8 :sup:`1`
+      - RHEL/Rocky/Alma Linux/Oracle Linux 8
       - :icon:`check-circle`
       - :icon:`check-circle`
       - :icon:`check-circle`
@@ -30,7 +30,7 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
     * - 
-      - RHEL/Rocky/Alma Linux/Oracle Linux 9 :sup:`1`
+      - RHEL/Rocky/Alma Linux/Oracle Linux 9
       - :icon:`check-circle`
       - :icon:`check-circle`
       - :icon:`check-circle`
@@ -75,7 +75,7 @@
       -
       -
     * - 
-      - Debian 8 :sup:`2`
+      - Debian 8
       - 
       - 
       -
@@ -84,7 +84,7 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
     * -
-      - Debian 9 :sup:`2`
+      - Debian 9
       -
       - 
       - :icon:`check-circle`
@@ -93,7 +93,7 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
     * -
-      - Debian 10 :sup:`2`
+      - Debian 10
       - 
       - :icon:`check-circle`
       - :icon:`check-circle`
@@ -102,10 +102,19 @@
       -
       -
     * -
-      - Debian 11 :sup:`2`
+      - Debian 11
       - :icon:`check-circle`
       - :icon:`check-circle`
       - :icon:`check-circle`
+      -
+      -
+      -
+      -
+    * -
+      - Debian 12
+      - :icon:`check-circle`
+      - 
+      - 
       -
       -
       -
@@ -138,7 +147,7 @@
       -
       -
     * - 
-      - Ubuntu 22.x :sup:`3`
+      - Ubuntu 22.x :sup:`1`
       - :icon:`check-circle`
       - :icon:`check-circle`
       - 
@@ -237,11 +246,4 @@
       -
       -
 
-:sup:`1` The Rocky or Alma Linux :abbr:`OS (Operating System)`
-must include the ``redhat-lsb-core`` package. 
-
-:sup:`2` The Debian installation must include the
-``lsb-release`` package. To learn more, see `lsb-release
-<https://packages.debian.org/sid/lsb-release>`__. 
-
-:sup:`3` |bic-full| isn't supported on Ubuntu 22.04.
+:sup:`1` |bic-full| isn't supported on Ubuntu 22.04.
