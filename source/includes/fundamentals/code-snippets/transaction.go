@@ -43,7 +43,7 @@ func main() {
 
 	// Inserts multiple documents into a collection within a transaction,
 	// then commits or ends the transaction
-	result, err := session.WithTransaction(context.TODO(), func(ctx mongo.SessionContext) (interface{}, error) {
+	result, err := session.WithTransaction(context.TODO(), func(ctx context.Context) (interface{}, error) {
 		result, err := coll.InsertMany(ctx, []interface{}{
 			bson.D{{"title", "The Bluest Eye"}, {"author", "Toni Morrison"}},
 			bson.D{{"title", "Sula"}, {"author", "Toni Morrison"}},
