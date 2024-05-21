@@ -45,12 +45,11 @@ documentation.
       .. procedure::
          :style: normal
 
+         .. include:: /includes/atlas-nav/steps-db-access.rst
+
          .. step:: Open the :guilabel:`Add Custom Role` dialog
 
-            a. In the :guilabel:`Security` section of the left 
-               navigation, click :guilabel:`Database Access`. 
-      
-            #. Click the :guilabel:`Custom Roles` tab.
+            a. Click the :guilabel:`Custom Roles` tab.
 
             #. Click :icon-fa5:`plus` 
                :guilabel:`Add New Custom Role`.
