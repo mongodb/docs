@@ -1,3 +1,23 @@
+.. _opsmgr-server-7.0.6: 
+
+|onprem| Server 7.0.6
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2024-05-10*
+
+- Updates the {+mdbagent+} to :ref:`107.0.6.8587-1 <mongodb-107.0.6.8587>`.
+- Supports parsing multiple certificates, or a chain, from PEM
+  files for |s3| backup store configuration.
+- Adds alert to verify ``defaultRWConcern`` of the AppDB and other
+  backing databases. 
+- Fixes the following issues:
+
+  - Restarts for individual processes would take significantly longer or
+    stall in some configurations. 
+  - Backup job logs for a specific logger didn't appear correctly in the
+    UI. 
+  - ObjectId fields in snapshot history rendered incorrectly.
+
 .. _opsmgr-server-7.0.4: 
 
 |onprem| Server 7.0.4
