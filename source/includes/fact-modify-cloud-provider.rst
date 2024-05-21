@@ -7,12 +7,12 @@
   modify your {+cluster+} or upgrade to a larger {+cluster+}. 
 
 Changing to a different provider could change the connection string to 
-your new {+cluster+} if your old {+cluster+} was deployed on GCP or
-Azure before October 2020. Consider scheduling a time to :ref:`update your 
+your new {+cluster+} if your old {+cluster+} was deployed on |gcp| or
+|azure| before October 2020. Consider scheduling a time to :ref:`update your 
 applications with the new connection string 
 <atlas-faq-migrate-providers>` to resume connectivity to the {+cluster+}. 
 |service| migrates data to the new {+cluster+}. 
 
 You can't modify the cloud provider or cloud provider region if you
 deployed Search Nodes on your |service| {+cluster+}. |service| supports
-Search Nodes only on single region |aws| or |gcp| {+clusters+}.
+Search Nodes on single-region {+clusters+} only.
