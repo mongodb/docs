@@ -9,7 +9,9 @@
 - You can only rename collections in certain situations. For more
   details see: :ref:`c2c-filter-renaming-collections`.
 - If a filter includes a :ref:`view <views-landing-page>` but not the
-  base collection, only the view is replicated.
+  base collection, only the view metadata syncs to the
+  destination cluster. To include the view documents, you must
+  also sync the base collection.
 - You cannot specify system collections or system databases in a filter.
 - To use the :pipeline:`$out` aggregation stage or the :dbcommand:`mapReduce`
   command (when set to create or replace a collection) with filtering,
