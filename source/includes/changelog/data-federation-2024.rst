@@ -1,3 +1,12 @@
+.. _adf-v20240409:
+
+9 April 2024 Release:
+~~~~~~~~~~~~~~~~~~~~~
+
+- Adds support for the ``$sql`` stage on {+adf+} views.
+- Fixes an issue where, when creating a view, {+adf+} was not 
+  properly checking permissions.
+
 .. _adf-v20240326:
 
 26 March 2024 Release 
