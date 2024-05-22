@@ -32,7 +32,7 @@ Kerberos Configuration Debugging Strategies
 
 If you have difficulty starting or authenticating against
 :binary:`~bin.mongod` or :binary:`~bin.mongos` with :doc:`Kerberos
-</core/kerberos>`:
+</core/kerberos>`, consider the following:
 
 - Ensure that you are running MongoDB Enterprise, not MongoDB Community
   Edition. Kerberos authentication is a MongoDB Enterprise feature
@@ -82,6 +82,67 @@ If you have difficulty starting or authenticating against
   Kerberos infrastructure are within the maximum time skew: 5 minutes
   by default. Time differences greater than the maximum time skew
   prevent successful authentication.
+
+- Ensure that Linux KRB5 keytabs contain principal names that end in 
+  ``@<KERBEROS REALM>``. To validate :abbr:`SPNs (service principal names)`, 
+  run ``setspn -Q <spn>`` on Active Directory. If correctly configured, 
+  this command returns one Distinguished Name for the account that is attached 
+  to the SPN. If you run ``klist -k <keytab>`` on Linux, 
+  ``<spn>@<KERBEROS REALM>`` appears in the 
+  keytab.
+
+- If you use Active Directory as a :abbr:`KDC (Key Distribution Center)`, ensure 
+  that the MongoDB service account is a user account, not a machine account.
+
+- If you use :abbr:`AES (Advanced Encryption Standard)` encryption with Active 
+  Directory, enable AES on the MongoDB service account with either the 
+  ``msDS-SupportedEncryptionTypes`` property or the "Network Security: 
+  Configure Encryption types allowed for Kerberos" policy setting.
+
+- Kerberos salts its key generation algorithms to ensure that two users with the 
+  same password result in distinct keys. ``ktutil`` on Linux and Active 
+  Directory (AD) don't use the same process to generate salts. This discrepancy 
+  can result in authentication failures when working across Linux and Windows 
+  environments. To mitigate this issue, you can: 
+  
+  - Generate the keytab file on the AD server and move the resulting file to the 
+    Linux server. 
+
+    .. code-block:: bash 
+
+       ktpass /out <outfile.keytab> /princ <spn>@<KERBEROS REALM> /mapuser <current userPrincipalName> /crypto ALL /ptype KRB5_NT_PRINCIPAL +rndpass
+    
+    .. note:: 
+       
+       This will change ``userPrincipalName`` to the value in ``/princ``.
+    
+  - Use ``ktutil`` on Linux and force it to use the correct salt. To force 
+    ``ktutil`` to use the correct salt: 
+    
+    #. Generate a keytab entry that uses ``userPrincipalName`` as the principal 
+       name.
+       
+       .. code-block:: bash 
+        
+          ktutil:  add_entry -password -p <userPrincipalName>@<KERBEROS REALM> -e aes256-cts-hmac-sha1-96 -k <KVNO>
+          Password for <userPrincipalName>@<KERBEROS REALM>: 
+          ktutil:  list -k
+          slot KVNO Principal
+    
+    #. Hexdump the key. 
+    
+    #. Create a new keytab entry, using ``<spn>@<KERBEROS REALM>`` as the 
+       principal name and use the hexdumped key.
+
+       .. code-block:: bash 
+        
+          1    <KVNO> <userPrincipalName>@<KERBEROS REALM>(0x<HEXDUMP>)
+          ktutil:  add_entry -key -p <spn>@<KERBEROS REALM> -e aes256-cts-hmac-sha1-96 -k <KVNO>
+          Key for <spn>@<KERBEROS REALM> (hex): <HEXDUMP>
+          ktutil:  write_kt mongodb_ad.keytab
+    
+  - Use RC4-HMAC, which does not use salts, although this is not recommended.
+
 
 Kerberos Trace Logging on Linux
 -------------------------------
