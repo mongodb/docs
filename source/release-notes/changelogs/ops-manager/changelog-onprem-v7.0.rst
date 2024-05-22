@@ -1,3 +1,48 @@
+.. _opsmgr-server-7.0.6: 
+
+|onprem| Server 7.0.6
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2024-05-10*
+
+- Updates the {+mdbagent+} to :ref:`107.0.6.8587-1 <mongodb-107.0.6.8587>`.
+- Supports parsing multiple certificates, or a chain, from PEM
+  files for |s3| backup store configuration.
+- Adds alert to verify ``defaultRWConcern`` of the AppDB and other
+  backing databases. 
+- Fixes the following issues:
+
+  - Restarts for individual processes would take significantly longer or
+    stall in some configurations. 
+  - Backup job logs for a specific logger didn't appear correctly in the
+    UI. 
+  - ObjectId fields in snapshot history rendered incorrectly.
+
+.. _opsmgr-server-7.0.5: 
+
+|onprem| Server 7.0.5
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2024-05-02*
+
+- Updates the {+mdbagent+} to :ref:`107.0.3.8581-1 <mongodb-107.0.3.8581>`.
+- Releases {+mongosh+} 2.2.4 to |onprem|. To learn more, see {+mongosh+} 
+  Release Notes.
+- Updates :abbr:`JDK (Java Development Kit)` to ``jdk-17.0.11+9``. 
+- Displays |s3| :opsmgr:`oplog store
+  </reference/glossary/#std-term-Oplog-Store-Database>` databases as a
+  backing database in the :guilabel:`Admin Overview` tab.
+- Adds additional diagnostics information related to backup speed in a
+  separate download ingestible format from diagnostic archive. 
+- Adds additional snapshot history metadata for block tracking,
+  incrementality for data and indexes, transfer speed, and duration in
+  the Admin UI and diagnostic archives.
+- Increases the number of snapshots retained to 60 snapshots per cluster
+  for the snapshot history metadata.
+- Fixes an issue with backup configuration daemon filter for deleted
+  daemons. 
+- Fixes `CVE-2024-29025 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-29025>`__.
+
 .. _opsmgr-server-7.0.4: 
 
 |onprem| Server 7.0.4
