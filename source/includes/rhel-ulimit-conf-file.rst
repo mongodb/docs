@@ -1,4 +1,4 @@
-:abbr:`RHEL (Red Hat Enterprise Linux)` and CentOS 6 limit the maximum
+:abbr:`RHEL (Red Hat Enterprise Linux)` limits the maximum
 number of user processes to ``1024``. This overrides the general
 user process limit (``ulimit -u``) setting.
 
