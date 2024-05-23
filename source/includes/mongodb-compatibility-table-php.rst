@@ -18,7 +18,7 @@
      - MongoDB 3.0
      - MongoDB 2.6
 
-   * - ext + lib 1.16 to 1.18
+   * - ext + lib 1.16 to 1.19
      - ✓
      - ✓
      - ✓
