@@ -12,7 +12,8 @@ Back Up Sharded Clusters with Database Dumps
    :depth: 1
    :class: singlecol
 
-Starting in MongoDB 7.1, you can back up data on sharded clusters
+Starting in MongoDB 7.1 (also available starting in 7.0.2,
+6.0.11, and 5.0.22), you can back up data on sharded clusters
 using :program:`mongodump`.
 
 About this Task
@@ -22,10 +23,10 @@ About this Task
 content. You can use the ``mongodump`` utility to take self-managed backups of
 a sharded cluster.
 
-To take a consistent backup of a sharded cluster with ``mongodump``, you must
-first stop the balancer, stop writes, and stop any schema transformation
-operations on the cluster. This ensures that the cluster remains in a
-consistent state for the duration of the backup.
+To back up a sharded cluster with ``mongodump``, you must stop
+the balancer, stop writes, and stop any schema transformation
+operations on the cluster. This helps reduce the likelihood of
+inconsistencies in the backup.
 
 MongoDB provides backup and restore operations that can run with the balancer
 and running transactions through the following services:
@@ -55,9 +56,14 @@ locking from :program:`mongos`.
 Admin Privileges
 ~~~~~~~~~~~~~~~~
 
-To perform these tasks, your user must have the :authaction:`fsync`
-authorization, which allows the user to run the :dbcommand:`fsync` and
-:dbcommand:`fsyncUnlock` commands.
+To use this procedure, your MongoDB user must have the
+:authaction:`fsync` authorization, which can be available
+through a custom role or using the built-in
+:authrole:`hostManager` role.
+
+With this authorization you can run the :dbcommand:`fsync`
+and :dbcommand:`fsyncUnlock` commands.
+
 
 Steps
 -----
@@ -70,16 +76,22 @@ steps:
 
    .. step:: Find a Backup Window
 
-      To find a good time to perform a backup, monitor your application
-      and database usage to find a time when chunk migrations, resharding,
-      and schema transformation operations are unlikely to occur, as these can cause an
-      inconsistent backup.
+      To find a good time to perform a backup, monitor your
+      application and database usage to find a time when chunk
+      migrations, resharding, and schema transformation
+      operations are unlikely to occur. 
+
+      .. note::
+
+         These steps can only produce a consistent backup if
+         they are followed exactly and no operations are in
+         progress when you begin.
 
       For more information, see :ref:`sharded-schedule-backup`.
 
    .. step:: Stop the Balancer
 
-      To prevent chunk migrations from distruping the backup, connect to
+      To prevent chunk migrations from disrupting the backup, connect to
       :program:`mongos` and use the :method:`sh.stopBalancer` method to stop
       the balancer:
 
@@ -90,22 +102,16 @@ steps:
       If a balancing round is in progress, the operation waits for balancing to
       complete.
 
-      To confirm that the balancer is stopped, use the
+      To verify that the balancer is stopped, use the
       :method:`sh.getBalancerState` method:
 
-      .. io-code-block::
+      .. code-block:: javascript
 
-         .. input::
-            :language: javascript
-
-            sh.getBalancerState()
-
-         .. output::
-            :language: javascript
-
-            false
-
-      The command returns ``false`` when the balancer is stopped.
+         use config
+         while( sh.isBalancerRunning().mode != "off" ) {
+            print( "Waiting for Balancer to stop..." );
+            sleep( 1000 );
+         } 
 
    .. step:: Lock the Cluster
 
@@ -134,8 +140,7 @@ steps:
                {  $facet: {
                   "locked": [
                      { $match: { $and: [
-                        { fsyncLock: { $exists: true } },
-                        { fsyncLock: true }
+                        { fsyncLock: { $exists: true } }
                      ] } }],
                    "unlocked": [
                      { $match: { fsyncLock: { $exists: false } } }
@@ -191,8 +196,7 @@ steps:
                {  $facet: {
                   "locked": [
                      { $match: { $and: [
-                        { fsyncLock: { $exists: true } },
-                        { fsyncLock: true }
+                        { fsyncLock: { $exists: true } }
                      ] } }],
                    "unlocked": [
                      { $match: { fsyncLock: { $exists: false } } }
