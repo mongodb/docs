@@ -62,8 +62,15 @@ Consistency
 ~~~~~~~~~~~
 
 To back up a sharded cluster, you must use the :dbcommand:`fsync` command or
-:method:`db.fsyncLock` method to stop writes on the cluster. This ensures that
-data files do not change during the backup.
+:method:`db.fsyncLock` method to stop writes on the cluster. This helps 
+reduce the likelihood of inconsistencies in the backup. 
+
+.. note::
+
+   These steps can only produce a consistent backup if they are
+   followed exactly and no operations are in progress when you
+   begin.
+
 
 .. include:: /includes/fact-backup-snapshots-with-ebs-in-raid10.rst
 
@@ -108,22 +115,16 @@ steps:
       If a balancing round is currently in progress, the operation waits for
       balancing to complete.
 
-      To confirm that the balancer is stopped, use the
+      To verify that the balancer is stopped, use the
       :method:`sh.getBalancerState` method:
 
-      .. io-code-block::
+      .. code-block:: javascript
 
-         .. input::
-            :language: javascript
-
-            sh.getBalancerState()
-
-         .. output::
-            :language: javascript
-
-            false
-
-      The command returns ``false`` when the balancer is stopped.
+         use config
+         while( sh.isBalancerRunning().mode != "off" ) {
+            print("waiting...");
+            sleep(1000);
+         }
 
    .. step:: Lock the Cluster
 
@@ -151,8 +152,7 @@ steps:
                {  $facet: {
                   "locked": [
                      { $match: { $and: [
-                        { fsyncLock: { $exists: true } },
-                        { fsyncLock: true }
+                        { fsyncLock: { $exists: true } }
                      ] } }],
                    "unlocked": [
                      { $match: { fsyncLock: { $exists: false } } }
@@ -188,7 +188,7 @@ steps:
 
    .. step:: Unlock the Cluster
 
-      After the backup completes, you can unlock the cluster to allow writes
+      After the backup completes, you must unlock the cluster to allow writes
       to resume.
 
       To unlock the cluster, use the :method:`db.fsyncUnlock` method:
@@ -212,8 +212,7 @@ steps:
                {  $facet: {
                   "locked": [
                      { $match: { $and: [
-                        { fsyncLock: { $exists: true } },
-                        { fsyncLock: true }
+                        { fsyncLock: { $exists: true } }
                      ] } }],
                    "unlocked": [
                      { $match: { fsyncLock: { $exists: false } } }

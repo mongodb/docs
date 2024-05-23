@@ -6,8 +6,9 @@ RAID configured within your instance, it is impossible to get a
 consistent state across all disks using the platform's snapshot tool. As
 an alternative, you can do one of the following:
 
-- Flush all writes to disk and create a write lock to ensure
-  consistent state during the backup process.
+- Set a :dbcommand:`fsync` lock to flush all writes and lock the
+  cluster against new writes to help reduce the likelihood of an
+  inconsistent state occurring during the backup process. 
 
   If you choose this option see :ref:`backup-without-journaling`.
 
