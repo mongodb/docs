@@ -8,7 +8,7 @@ Example
 .. procedure:: 
    :style: normal 
 
-   .. step:: Create a new file named ``edit_index.c``.
+   .. step:: Create a new file named ``edit-index.c``.
 
    .. step:: Copy the following code example into the file. 
 

@@ -1,6 +1,6 @@
 from pymongo.mongo_client import MongoClient
 
-def edit_index():
+def delete_index():
     # Connect to your Atlas deployment
     uri = "<connectionString>"
     client = MongoClient(uri)

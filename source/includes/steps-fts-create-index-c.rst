@@ -16,7 +16,7 @@ Example
 .. procedure:: 
    :style: normal 
 
-   .. step:: Create a new file named ``create_index.c``.
+   .. step:: Create a new file named ``create-index.c``.
 
    .. step:: Copy the following code example into the file. 
 

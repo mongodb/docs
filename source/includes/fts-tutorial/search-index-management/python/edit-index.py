@@ -9,6 +9,7 @@ def edit_index():
     database = client["<databaseName>"]
     collection = database["<collectionName>"]
 
+    # Specify a new index definition
     definition = {
             "mappings": {
                 "dynamic": True

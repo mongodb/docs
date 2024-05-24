@@ -12,7 +12,7 @@ Example
 
    .. step:: Copy the following code example into the file. 
 
-      The following sample application specifies the ``deleteSearchIndex``
+      The following sample application specifies the ``dropSearchIndex``
       command and an existing index name. Then, the application converts the
       command and index information to |bson| and passes this information to
       the ``mongoc_collection_command_simple()`` method to delete the search index.

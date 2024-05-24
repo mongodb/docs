@@ -1,5 +1,5 @@
 To use the :driver:`C++ Driver </cxx/>` to delete your |fts| index, call
-the ``delete_one()`` method on a search index view.
+the ``drop_one()`` method on a search index view.
 
 Example
 ~~~~~~~
@@ -13,7 +13,7 @@ Example
 
       The following sample application uses the ``search_indexes()`` method
       on the target collection to instantiate a search index view. Then,
-      the application calls the ``delete_one()`` method on the view and passes
+      the application calls the ``drop_one()`` method on the view and passes
       an |fts| index name as a parameter to delete the index.
 
       .. literalinclude:: /includes/fts-tutorial/search-index-management/cpp/delete-index.cpp

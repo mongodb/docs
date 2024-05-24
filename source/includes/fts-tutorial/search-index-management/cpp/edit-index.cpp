@@ -22,9 +22,9 @@ int main()
         // Access the indexes in your collection
         auto siv = collection.search_indexes();
 
-        // Update your search index
+        // Specify a new definiton and update your search index
         auto newDefinition = make_document(kvp("mappings", make_document(kvp("dynamic", true))));
-	    siv.update_one("<indexName>", newDefinition.view());
+        siv.update_one("<indexName>", newDefinition.view());
         
     }
     catch (const std::exception& e) 
