@@ -12,7 +12,7 @@
       - 4.0
       - 3.6
     * - x86_64
-      - RHEL/CentOS/Oracle Linux 7
+      - RHEL/Oracle Linux 7
       - :icon:`check-circle`
       - :icon:`check-circle`
       - :icon:`check-circle`
@@ -165,7 +165,7 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
     * - ARM
-      - RHEL/CentOS 8
+      - RHEL 8
       - :icon:`check-circle`
       - :icon:`check-circle`
       - :icon:`check-circle`
@@ -174,7 +174,7 @@
       -
       -
     * -
-      - RHEL/CentOS 9
+      - RHEL 9
       - :icon:`check-circle`
       - :icon:`check-circle`
       -
@@ -210,7 +210,7 @@
       -
       -
     * - PowerPC/ ppc64le
-      - RHEL/ Centos 7
+      - RHEL 7
       - :icon:`check-circle`
       - :icon:`check-circle`
       - :icon:`check-circle`
@@ -219,7 +219,7 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
     * - 
-      - RHEL/ CentOS 8
+      - RHEL 8
       - :icon:`check-circle`
       - :icon:`check-circle`
       - :icon:`check-circle`
