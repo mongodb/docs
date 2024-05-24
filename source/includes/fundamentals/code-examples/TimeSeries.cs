@@ -21,10 +21,11 @@ public class TimeSeries
         database.CreateCollection("september2021", collOptions);
         // end-time-series
         
-        // begin-run-command
-        var commandResult = database.RunCommand<BsonDocument>(new BsonDocument("listCollections", 1 ));
-        Console.WriteLine(commandResult.ToJson());
-        // end-run-command
+        // begin-list-collections
+        var collections = database.ListCollections().ToList();
+        foreach (var collection in collections) {
+            Console.WriteLine(collection);
+        }
+        // end-list-collections
     }
-
 }
