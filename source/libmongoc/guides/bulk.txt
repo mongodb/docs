@@ -14,6 +14,13 @@ This tutorial explains how to take advantage of MongoDB C driver bulk write oper
 Executing write operations in batches reduces the number of network round trips, increasing write
 throughput.
 
+.. tip::
+
+   Beginning in MongoDB Server version 8.0 and C Driver version 1.28, you can use the `mongoc_bulkwrite_t
+   <{+api-libmongoc+}/mongoc_bulkwrite_t.html>`__ type. This type uses the ``bulkWrite`` server command to
+   perform multiple kinds of write operations against mixed namespaces in a single request. For more
+   information, see the :ref:`bulkwrite_server` section of this guide.
+
 Bulk Insert
 -----------
 
@@ -229,9 +236,40 @@ The ``reply`` document is empty:
 
    { }
 
+.. _bulkwrite_server:
+
+``bulkWrite`` Server Command
+----------------------------
+
+The previous examples on this page use the `mongoc_bulk_operation_t <{+api-libmongoc+}/mongoc_bulk_operation_t.html>`__
+type to perform bulk write operations. ``mongoc_bulk_operation_t`` runs the ``insert``, ``update`` and ``delete`` server
+commands. Bulk write operations that use ``mongoc_bulk_operation_t`` group operations by type and send them in
+separate commands. You can specify only one collection for each bulk write.
+
+Alternatively, you can perform bulk writes by using the `mongoc_bulkwrite_t <{+api-libmongoc+}/mongoc_bulkwrite_t.html>`__
+type, which runs the ``bulkWrite`` server command. The ``bulkWrite`` command was introduced in MongoDB Server 8.0 and
+supports insert, update, and delete operations on multiple namespaces in the same payload.
+
+When connected to MongoDB Server version 8.0 or later, we recommend using ``mongoc_bulkwrite_t`` over
+``mongoc_bulk_operation_t`` to reduce network round trips.
+
+Example
+~~~~~~~
+
+The following example demonstrates how to use ``mongoc_bulkwrite_t`` and ``mongoc_bulkwrite_execute()`` to
+insert documents into two different collections:
+
+.. literalinclude:: /libmongoc/includes/examples/bulk/bulkwrite.c
+   :emphasize-lines: 24, 43
+   :language: c
+   :caption: bulkwrite.c
+
 Further Reading
 ---------------
 
-See the `Driver Bulk API Spec <https://github.com/mongodb/specifications/blob/master/source/driver-bulk-update.rst>`__,
-which describes bulk write operations for all MongoDB drivers.
+For more information about bulk write operations, see the following bulk API specifications:
+
+- Original `Driver Bulk API Spec <https://github.com/mongodb/specifications/blob/master/source/driver-bulk-update.rst>`__
+- New `Driver Bulk API Spec <https://github.com/mongodb/specifications/blob/master/source/crud/bulk-write.md>`__, introduced
+  in MongoDB Server 8.0
 
