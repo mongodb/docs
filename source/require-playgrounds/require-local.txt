@@ -1,0 +1,134 @@
+.. _vsce-require-local:
+
+=================================
+Use require() to Load Local Files
+=================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can use the `require()
+<https://nodejs.org/api/modules.html#modules_require_id>`__ function in
+your MongoDB Playgrounds to include code from local files. You can store
+your code in a single location and reuse that code in different
+playgrounds.
+
+About this Task
+---------------
+
+This tutorial shows how to use ``require()`` to load local scripts. You
+can also use ``require()`` to load Node modules, like those downloaded
+from `npm <https://www.npmjs.com/>`__. For more information, see
+:ref:`vsce-require`.
+
+Steps
+-----
+
+.. procedure::
+   :style: normal
+   
+   .. step:: Create a script file
+
+      The following script file validates documents to ensure that the
+      required fields are present. Save the script to your local
+      filesystem as ``validate.js``:
+
+      .. code-block:: javascript
+
+         // validate.js
+
+         const required_fields = [ 'name', 'email' ]
+
+         const validate_data = (document) => {
+
+            let is_valid = true;
+
+            for (const field of required_fields) {
+               if (document[field] == null) {
+                     is_valid = false;
+               }
+            };
+            return is_valid;
+         };
+
+         module.exports = validate_data;
+
+   .. step:: Create a playground that uses the validation script
+
+      The following playground uses ``require()`` to call the
+      ``validate_data`` function specified in ``validate.js``. The
+      ``validate_data`` function is called on two sample documents. If
+      the document contains the required fields ``name`` and ``email``,
+      it is inserted into the ``people`` collection.
+
+      .. important::
+
+         Update the first line of the playground with the path to the
+         ``validate.js`` file:
+
+      .. code-block:: javascript
+         :emphasize-lines: 3
+
+         // playground-1.mongodb.js
+
+         const validate = require('/path/to/validate.js');
+
+         use('mongodbVSCodePlaygroundDB');
+
+         const doc1 = { _id: 1, 'name': 'Taylor', 'email': 't123@gmail.com' };
+
+         const doc2 = { _id: 2, 'name': 'Taylor' };
+
+         const docs = [ doc1, doc2 ];
+
+         let inserted_count = 0;
+
+         for (const doc of docs) {
+            if (validate(doc)) {
+               db.getCollection('people').insertOne(doc);
+               inserted_count++;
+            }
+         };
+
+         console.log("Inserted " + inserted_count + " documents");
+
+   .. step:: Run the playground
+
+      .. include:: /includes/run-playground.rst
+
+Results
+-------
+
+Only ``doc1`` contains both required fields and is inserted into the
+collection. ``doc2`` does not contain the required field ``email``, and
+is not inserted.
+
+To confirm that the correct document was inserted, query the ``people``
+collection:
+
+.. code-block:: javascript
+
+   use mongodbVSCodePlaygroundDB
+
+   db.people.find()
+
+Output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      { _id: 1, name: 'Taylor', email: 't123@gmail.com' }
+   ]
+
+Learn More
+----------
+
+- :ref:`schema-validation-overview`
+
+- :ref:`vsce-require`
+
+- :ref:`vsce-playground-databases`
