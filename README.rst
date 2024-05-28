@@ -2,7 +2,7 @@
 {+product+} Documentation
 =================================
 
-This repository contains documentation for the {+product+}.
+This repository contains documentation for the {+product-short+}.
 
 File JIRA Tickets
 -----------------

@@ -2,7 +2,7 @@
     
    To output logs, you must specify both a logfile and the ``OutputInternalLogsToFile`` option. 
 
-   Use the following sample configuration to make the {+product+} output information to a logfile:
+   Use the following sample configuration to make the {+product-short+} output information to a logfile:
 
    .. code-block:: json
 
