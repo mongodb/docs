@@ -1,3 +1,33 @@
+.. _adf-v20240521:
+
+21 May 2024 Release:
+~~~~~~~~~~~~~~~~~~~~
+
+- Adds support for programmatic workloads via |oidc| for {+adf+}.
+  To learn more, see :ref:`oidc-authentication-workload`.
+- If you're an Admin user or a user with the :authaction:`killop` privilege,
+  you can use the :manual:`killOp </reference/command/killOp/>` command
+  to :ref:`terminate any query <terminate-running-query>` on a federated
+  database. The user who issued the query can also terminate the query.
+
+.. _adf-v20240514:
+
+14 May 2024 Release:
+~~~~~~~~~~~~~~~~~~~~
+
+- Changes which regions process data for unsupported regions:
+
+  - ``ca-central-1 (Montreal)`` will process data from ``ca-west-1 (Alberta)``
+    instead of ``eu-west-1 (Ireland)``.
+  - ``ap-northeast-1 (Tokyo)`` will process data:
+
+    - from ``ap-northeast-2 (Seoul)`` instead of ``eu-west-1 (Ireland)``.
+    - from ``ap-northeast-3 (Osaka)`` instead of ``eu-west-1 (Ireland)``.
+    - from ``ap-east-1 (Hong Kong)`` instead of ``ap-southeast-2 (Sydney)``.
+
+- Fixes an issue where the :manual:`killOp </reference/command/killOp/>`
+  command was prevented from terminating a query.
+
 .. _adf-v20240409:
 
 9 April 2024 Release:
