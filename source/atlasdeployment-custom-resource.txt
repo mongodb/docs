@@ -323,6 +323,93 @@ specification configured to span multiple cloud service providers:
              regionName: CENTRAL_US
              priority: 5
 
+Search Index Example
+~~~~~~~~~~~~~~~~~~~~
+
+The following example shows an ``AtlasDeployment`` custom resource
+specification configured to create a search index for the collection
+``listingsAndReviews`` and ``grades``:
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasDeployment
+   metadata:
+     name: my-atlas-cluster
+     namespace: mongodb-atlas-system
+   spec:
+     deploymentSpec:
+       backupEnabled: true
+       clusterType: REPLICASET
+       name: Test-cluster-M10
+       replicationSpecs:
+       - regionConfigs:
+         - backingProviderName: AWS
+           electableSpecs:
+             instanceSize: M10
+             nodeCount: 3
+           priority: 7
+           providerName: AWS
+           regionName: US_EAST_1
+         zoneName: Zone 1
+       searchIndexes:
+       - DBName: sample_training
+         collectionName: grades
+         name: test-vector-search-index
+         type: vectorSearch
+         vectorSearch:
+           fields:
+           - numDimensions: 1000
+             path: student_id
+             similarity: euclidean
+             type: vector
+       - DBName: sample_airbnb
+         collectionName: listingsAndReviews
+         name: my-index
+         search:
+           mappings:
+             dynamic: true
+           searchConfigurationRef:
+             name: atlassearchindexconfig-sample
+             namespace: mongodb-atlas-system
+         type: search
+       terminationProtectionEnabled: false
+     projectRef:
+       name: my-project
+       namespace: mongodb-atlas-system
+
+Search Nodes Example
+~~~~~~~~~~~~~~~~~~~~
+
+The following example shows an ``AtlasDeployment`` custom resource
+specification configured to create search nodes:
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasDeployment
+   metadata:
+     name: my-atlas-cluster
+     namespace: mongodb-atlas-system
+   spec:
+     deploymentSpec:
+       backupEnabled: true
+       clusterType: REPLICASET
+       name: Test-cluster-M10
+       replicationSpecs:
+       - regionConfigs:
+         - backingProviderName: AWS
+           electableSpecs:
+             instanceSize: M10
+             nodeCount: 3
+           priority: 7
+           providerName: AWS
+           regionName: US_EAST_1
+         zoneName: Zone 1
+       searchNodes:
+       - instanceSize: S20_HIGHCPU_NVME
+         nodeCount: 2
+   
 .. _atlasdeployment-crd-params:
 
 Parameters
@@ -337,7 +424,7 @@ parameters available.
 - For a full list of available parameters for {+serverless-instances+},
   see the |service| :oas-atlas-tag:`{+Serverless-Instances+} API </Serverless-Instances>`.
 
-To customize your specifications, Refer to these descriptions, the available
+To customize your specifications, refer to these descriptions, the available
 examples, and the |api| documentation.
 
 .. setting:: spec.backupRef
@@ -969,6 +1056,266 @@ examples, and the |api| documentation.
    :atlas:`Global {+Cluster+} </global-clusters>`. Provide this value 
    only if you set :setting:`spec.deploymentSpec.clusterType` to 
    ``GEOSHARDED``.
+
+.. setting:: spec.deploymentSpec.searchIndexes
+
+   *Type*: array
+
+   *Optional*
+
+   An array of ``SearchIndex`` objects with fields that describe the search index.
+   Each ``SearchIndex`` object contains the following fields:
+
+   .. list-table::
+      :header-rows: 1
+       
+      * - Field
+        - Type
+        - Description
+        
+      * - ``name`` 
+        - string
+        - Human-readable label that identifies this index. Must be unique for a deployment.
+
+      * - ``DBName``
+        - string
+        - Human-readable label that identifies the existing
+          database that contains the collection with one or more |fts| indexes.
+
+          .. important::
+
+             The database that you specify must already exist. If you don't have an existing database,
+             :atlas:`create one </create-connect-deployments/>`.
+
+      * - ``collectionName`` 
+        - string
+        - Human-readable label that identifies the collection that contains one or more |fts| indexes.
+
+      * - ``type`` 
+        - string
+        - Type of the index. |service| accepts the following values:
+          
+          - ``search``
+          - ``vectorSearch``
+
+      * - ``search`` 
+        - object
+        - You must include this object if ``type`` is ``search``. Otherwise, omit it.
+
+      * - ``vectorSearch`` 
+        - object
+        - You must include this object if ``type`` is ``vectorSearch``. Otherwise, omit it.
+
+.. setting:: spec.deploymentSpec.searchIndexes.search
+
+   *Type*: object
+
+   *Optional*
+
+  .. list-table::
+      :header-rows: 1
+
+      * - Field
+        - Type
+        - Description
+
+      * - ``synonyms`` 
+        - array
+        - Rule sets that map words to their synonyms in this index
+
+      * - ``mappings`` 
+        - object
+        - Index specifications for the collection's fields
+
+          *Required*
+
+      * - ``searchConfigurationRef`` 
+        - object
+        - A name/namespace reference to the AtlasSearchIndexConfig custom resource, described below.
+
+          *Required*
+
+.. setting:: spec.deploymentSpec.searchIndexes.search.synonyms
+
+   *Type*: array
+
+   *Optional*
+
+   An array of ``Synonym`` objects with fields that describe rule sets that map words to their synonyms in this index.
+   Each ``Synonym`` object contains the following fields:
+
+  .. list-table::
+      :header-rows: 1
+
+      * - Field
+        - Type
+        - Description
+
+      * - ``name`` 
+        - string
+        - Human-readable label that identifies the synonym definition. Each name must be unique within the same index definition
+
+        *Required*
+
+      * - ``analyzer`` 
+        - string
+        - Specific pre-defined method chosen to apply to the synonyms to be searched. 
+          Possible values are: 
+          
+          - lucene.standard
+          - lucene.standard
+          - lucene.simple
+          - lucene.whitespace
+          - lucene.keyword
+          - lucene.arabic
+          - lucene.armenian
+          - lucene.basque
+          - lucene.bengali
+          - lucene.brazilian
+          - lucene.bulgarian
+          - lucene.catalan
+          - lucene.chinese
+          - lucene.cjk
+          - lucene.czech
+          - lucene.danish
+          - lucene.dutch
+          - lucene.english
+          - lucene.finnish
+          - lucene.french
+          - lucene.galician
+          - lucene.german
+          - lucene.greek
+          - lucene.hindi
+          - lucene.hungarian
+          - lucene.indonesian
+          - lucene.irish
+          - lucene.italian
+          - lucene.japanese
+          - lucene.korean
+          - lucene.kuromoji
+          - lucene.latvian
+          - lucene.lithuanian
+          - lucene.morfologik
+          - lucene.nori
+          - lucene.norwegian
+          - lucene.persian
+          - lucene.portuguese
+          - lucene.romanian
+          - lucene.russian
+          - lucene.smartcn
+          - lucene.sorani
+          - lucene.spanish
+          - lucene.swedish
+          - lucene.thai
+          - lucene.turkish
+          - lucene.ukrainian
+
+          *Required*
+
+      * - ``source`` 
+        - object
+        - Data set that stores the mapping one or more words map to one or more synonyms of those words
+
+          *Required*
+
+.. setting:: spec.deploymentSpec.searchIndexes.search.synonyms.source
+
+   *Type*: object
+
+   *Required*
+
+  .. list-table::
+      :header-rows: 1
+
+      * - Field
+        - Type
+        - Description
+
+      * - ``collection`` 
+        - string
+        - Human-readable label that identifies the MongoDB collection that stores words and their applicable synonyms
+
+          *Required*
+
+.. setting:: spec.deploymentSpec.searchIndexes.search.mappings
+
+   *Type*: object
+
+   *Required*
+
+   An object with Index specifications for the collection's fields:
+
+  .. list-table::
+      :header-rows: 1
+
+      * - ``dynamic`` 
+        - boolean
+        - Flag that indicates whether the index uses dynamic or static mappings. Required if mappings.fields is omitted.
+
+      * - ``fields`` 
+        - JSON/YAML
+        - One or more field specifications for the Atlas Search index. Required if mappings.dynamic is omitted or set to false.
+
+.. setting:: spec.deploymentSpec.searchIndexes.vectorSearch
+
+   *Type*: object
+
+   *Optional*
+
+  .. list-table::
+      :header-rows: 1
+
+      * - Field
+        - Type
+        - Description
+
+      * - ``fields`` 
+        - JSON/YAML
+        - Array of JSON objects. See examples https://dochub.mongodb.org/core/avs-vector-type
+
+          *Required*
+
+.. setting:: spec.deploymentSpec.searchNodes
+
+   *Type*: array
+
+   *Optional*
+
+   An array of search nodes configurations. Each element contains two fields:
+    
+   .. list-table::
+      :header-rows: 1
+       
+      * - Field
+        - Type
+        - Description
+        
+      * - ``nodeCount`` 
+        - integer
+        - Number of search nodes in the cluster. |service| accepts values 2 through 32, inclusive.
+          The default number is `2`.
+
+      * - ``instanceSize`` 
+        - string
+        - Hardware specification for the search node instance sizes. 
+          |service| accepts one of the following:
+          
+          - ``S20_HIGHCPU_NVME``
+          - ``S30_HIGHCPU_NVME``
+          - ``S40_HIGHCPU_NVME``
+          - ``S50_HIGHCPU_NVME``
+          - ``S60_HIGHCPU_NVME`` 
+          - ``S70_HIGHCPU_NVME`` 
+          - ``S80_HIGHCPU_NVME`` 
+          - ``S30_LOWCPU_NVME`` 
+          - ``S40_LOWCPU_NVME`` 
+          - ``S50_LOWCPU_NVME`` 
+          - ``S60_LOWCPU_NVME`` 
+          - ``S80_LOWCPU_NVME`` 
+          - ``S90_LOWCPU_NVME`` 
+          - ``S100_LOWCPU_NVME`` 
+          
+          The default instance size is ``S20_HIGHCPU_NVME``.
 
 .. setting:: spec.deploymentSpec.tags
 
