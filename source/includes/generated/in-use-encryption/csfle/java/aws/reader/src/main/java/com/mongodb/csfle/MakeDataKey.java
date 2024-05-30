@@ -39,10 +39,9 @@ import com.mongodb.client.vault.ClientEncryption;
 import com.mongodb.client.vault.ClientEncryptions;
 import com.mongodb.client.model.IndexOptions;
 
-
 /*
- * - Reads master key from file "master-key.txt" in root directory of project, or creates one on a KMS
- * - Locates existing local encryption key from encryption.__keyVault collection, or from a KMS
+ * - Gets customer master key from the AWS KMS by using environment variables
+ * - Locates existing data encryption key in AWS KMS
  * - Prints base 64-encoded value of the data encryption key
  */
 public class MakeDataKey {

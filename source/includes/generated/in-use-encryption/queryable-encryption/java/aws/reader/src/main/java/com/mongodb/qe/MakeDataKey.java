@@ -21,7 +21,6 @@ import java.util.*;
 import java.util.HashMap;
 import java.util.Map;
 
-
 import org.bson.BsonArray;
 import org.bson.BsonBinary;
 import org.bson.BsonDocument;
@@ -43,11 +42,9 @@ import com.mongodb.client.model.vault.DataKeyOptions;
 import com.mongodb.client.vault.ClientEncryption;
 import com.mongodb.client.vault.ClientEncryptions;
 
-
-
 /*
- * - Reads master key from file "master-key.txt" in root directory of project, or creates one on a KMS
- * - Locates existing local encryption key from encryption.__keyVault collection, or from a KMS
+ * - Creates master key in AWS KMS
+ * - Locates existing data encryption key in AWS KMS
  * - Prints base 64-encoded value of the data encryption key
  */
 public class MakeDataKey {
