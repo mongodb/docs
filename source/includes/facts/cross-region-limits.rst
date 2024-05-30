@@ -9,6 +9,12 @@ project to a total of 40. This total excludes:
 - {+Free-clusters+} or {+shared-clusters+}
 - {+Serverless-instances+}
 
+Sharded {+clusters+} include additional nodes. The electable nodes on 
+the dedicated Config Server Replica Set (CSRS) count towards the 
+total number of allowable nodes. Each sharded {+cluster+} has an 
+additional electable node per region as part of the dedicated CSRS. To 
+learn more, see :ref:`replset-config-servers`.
+
 The total number of nodes between any two regions must meet this
 constraint.
 
