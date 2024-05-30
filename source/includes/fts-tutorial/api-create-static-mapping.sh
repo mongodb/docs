@@ -6,30 +6,32 @@ CLUSTER_NAME=YOUR_CLUSTER_NAME # replace with your cluster's name
 curl --user "$PUBLIC_KEY:$PRIVATE_KEY" --digest \
      --header "Content-Type: application/json" \
      --include \
-     --request POST "https://cloud.mongodb.com/api/atlas/v1.0/groups/$GROUP_ID/clusters/$CLUSTER_NAME/fts/indexes?pretty=true" \
+     --request POST "https://cloud.mongodb.com/api/atlas/v2/groups/$GROUP_ID/clusters/$CLUSTER_NAME/search/indexes?pretty=true" \
      --data '{
          "collectionName": "movies",
          "database": "sample_mflix",
-         "mappings": {
-           "dynamic": false,
-           "fields": {
-             "title": {
-               "type": "string",
-               "analyzer": "lucene.standard",
-               "multi": {
-                 "keywordAnalyzer": {
-                   "type": "string",
-                   "analyzer": "lucene.keyword"
+         "definition":{
+           "mappings": {
+             "dynamic": false,
+             "fields": {
+               "title": {
+                 "type": "string",
+                 "analyzer": "lucene.standard",
+                 "multi": {
+                   "keywordAnalyzer": {
+                     "type": "string",
+                     "analyzer": "lucene.keyword"
+                   }
                  }
+               },
+               "genres": {
+                 "type": "string",
+                 "analyzer": "lucene.standard"
+               },
+               "plot": {
+                 "type": "string",
+                 "analyzer": "lucene.standard"
                }
-             },
-             "genres": {
-               "type": "string",
-               "analyzer": "lucene.standard"
-             },
-             "plot": {
-               "type": "string",
-               "analyzer": "lucene.standard"
              }
            }
          },
