@@ -16,7 +16,6 @@ package com.mongodb.csfle;
  *
  */
 
-
 import java.util.*;
 
 import static com.mongodb.client.model.Filters.eq;
@@ -31,10 +30,8 @@ import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import org.bson.Document;
 
-
-
 /*
- * - Reads master key from file "master-key.txt" in root directory of project
+ * - Reads master key from GCP KMS
  * - Creates a JSON schema for a specified collection to enable automatic encryption
  * - Creates an encrypted client and upserts a single document
  * - Finds the upserted document with the encrypted client using an encrypted field

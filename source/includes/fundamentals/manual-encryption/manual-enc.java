@@ -38,10 +38,9 @@ import com.mongodb.client.vault.ClientEncryption;
 import com.mongodb.client.vault.ClientEncryptions;
 import org.bson.types.Binary;
 
-
 /*
- * - Reads master key from file "master-key.txt" in root directory of project, or creates one on a KMS
- * - Locates existing local encryption key from encryption.__keyVault collection, or from a KMS
+ * - Reads master key from AWS KMS
+ * - Locates existing data encryption key in AWS KMS
  * - Prints base 64-encoded value of the data encryption key
  */
 public class makeDataKey {
