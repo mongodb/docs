@@ -45,8 +45,8 @@ import java.io.IOException;
 import java.security.SecureRandom;
 
 /*
- * - Reads master key from file "master-key.txt" in root directory of project, or creates one on a KMS
- * - Locates existing local encryption key from encryption.__keyVault collection, or from a KMS
+ * - Reads master key from file "master-key.txt" in root directory of project 
+ * - Locates existing local data encryption key from encryption.__keyVault collection
  * - Prints base 64-encoded value of the data encryption key
  */
 public class MakeDataKey {

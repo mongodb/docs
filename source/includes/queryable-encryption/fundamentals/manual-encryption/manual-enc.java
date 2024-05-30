@@ -38,10 +38,9 @@ import com.mongodb.client.vault.ClientEncryption;
 import com.mongodb.client.vault.ClientEncryptions;
 import org.bson.types.Binary;
 
-
 /*
- * - Reads master key from file "master-key.txt" in root directory of project, or creates one on a KMS
- * - Locates existing local encryption key from encryption.__keyVault collection, or from a KMS
+ * - Reads master key from AWS KMS
+ * - Locates existing data encryption key in AWS KMS
  * - Prints base 64-encoded value of the data encryption key
  */
 public class makeDataKey {
@@ -65,36 +64,43 @@ public class makeDataKey {
         masterKeyProperties.put("key", new BsonString(System.getenv("AWS_KEY_ARN")));
         masterKeyProperties.put("region", new BsonString(System.getenv("AWS_KEY_REGION")));
         // end-specify-credentials
-        
+
         // start_mongoclient
         MongoClient client = MongoClients.create(connectionString);
         // end_mongoclient
         // start_client_enc
         MongoCollection<Document> collection = client.getDatabase(db).getCollection(coll);
         ClientEncryptionSettings clientEncryptionSettings = ClientEncryptionSettings.builder()
-                .keyVaultMongoClientSettings(MongoClientSettings.builder()
-                        .applyConnectionString(new ConnectionString(connectionString))
-                        .build())
-                .keyVaultNamespace(keyVaultNamespace)
-                .kmsProviders(kmsProviders)
-                .build();
+                        .keyVaultMongoClientSettings(MongoClientSettings.builder()
+                                        .applyConnectionString(new ConnectionString(connectionString))
+                                        .build())
+                        .keyVaultNamespace(keyVaultNamespace)
+                        .kmsProviders(kmsProviders)
+                        .build();
         ClientEncryption clientEncryption = ClientEncryptions.create(clientEncryptionSettings);
         // end_client_enc
         List keyAltNames = new ArrayList<String>();
         keyAltNames.add("demo-data-key");
-        BsonBinary dataKeyId = clientEncryption.createDataKey(kmsProvider, new DataKeyOptions().masterKey(masterKeyProperties).keyAltNames(keyAltNames));
+        BsonBinary dataKeyId = clientEncryption.createDataKey(kmsProvider,
+                        new DataKeyOptions().masterKey(masterKeyProperties).keyAltNames(keyAltNames));
 
         // start_enc_and_insert
-        BsonBinary encryptedName = clientEncryption.encrypt(new BsonString("Greg"), new EncryptOptions("AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic").keyId(dataKeyId));
-        BsonBinary encryptedFoods = clientEncryption.encrypt(new BsonArray().parse("[\"Grapes\", \"Foods\"]"), new EncryptOptions("AEAD_AES_256_CBC_HMAC_SHA_512-Random").keyId(dataKeyId));
-        collection.insertOne(new Document("name", encryptedName).append("foods", encryptedFoods).append("age", 83));
+        BsonBinary encryptedName = clientEncryption.encrypt(new BsonString("Greg"),
+                        new EncryptOptions("AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic").keyId(dataKeyId));
+        BsonBinary encryptedFoods = clientEncryption.encrypt(new BsonArray().parse("[\"Grapes\", \"Foods\"]"),
+                        new EncryptOptions("AEAD_AES_256_CBC_HMAC_SHA_512-Random").keyId(dataKeyId));
+        collection.insertOne(
+                        new Document("name", encryptedName).append("foods", encryptedFoods).append("age", 83));
         // end_enc_and_insert
         // start_find_decrypt
-        BsonBinary encryptedNameQuery = clientEncryption.encrypt(new BsonString("Greg"), new EncryptOptions("AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic").keyId(dataKeyId));
+        BsonBinary encryptedNameQuery = clientEncryption.encrypt(new BsonString("Greg"),
+                        new EncryptOptions("AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic").keyId(dataKeyId));
         Document result = collection.find(eq("name", encryptedNameQuery)).first();
         System.out.println("Encrypted Document: " + result.toJson());
-        result.replace("name", clientEncryption.decrypt(new BsonBinary(result.get("name", Binary.class).getData())));
-        result.replace("foods", clientEncryption.decrypt(new BsonBinary(result.get("foods", Binary.class).getData())));
+        result.replace("name",
+                        clientEncryption.decrypt(new BsonBinary(result.get("name", Binary.class).getData())));
+        result.replace("foods",
+                        clientEncryption.decrypt(new BsonBinary(result.get("foods", Binary.class).getData())));
         System.out.println("Decrypted Document: " + result.toJson());
         // end_find_decrypt
         client.close();
