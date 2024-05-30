@@ -17,6 +17,8 @@ add |service| IP addresses to your network's IP access list:
 Fetch |service| Control Plane IP Addresses
 -------------------------------------------
 
+.. include:: /includes/fact-inbound-ip-addresses.rst
+
 Send a GET request to the ``controlPlaneIPAddresses`` endpoint 
 to fetch the current |service| control plane IP addresses. The :oas-atlas-op:`API endpoint </returnAllControlPlaneIPAddresses>` 
 returns a list of inbound and outbound |service| control plane IP addresses in |cidr| notation 
