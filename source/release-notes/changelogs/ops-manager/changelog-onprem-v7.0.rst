@@ -12,8 +12,6 @@
   backing databases. 
 - Fixes the following issues:
 
-  - Restarts for individual processes would take significantly longer or
-    stall in some configurations. 
   - Backup job logs for a specific logger didn't appear correctly in the
     UI. 
   - ObjectId fields in snapshot history rendered incorrectly.
