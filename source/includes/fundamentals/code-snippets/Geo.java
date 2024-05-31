@@ -43,6 +43,30 @@ public class Geo {
 
     }
 
+    private void insertGeoJSONExample() {
+        // begin insertGeoJSONExample
+
+        // Add your MongoCollection setup code here
+        Point point = new Point(new Position(-74.0065, 40.7085));
+        
+        Document theater = new Document("theaterId", 1203)
+        		.append("location", new Document("geo", point));
+
+        InsertOneResult result = collection.insertOne(theater);
+        // end insertGeoJSONExample
+    }
+
+    private void insertLegacyExample() {
+        // begin insertLegacyExample
+
+        // Add your MongoCollection setup code here
+        Document theater = new Document("theaterId", 1204)
+        		.append("coordinates", Arrays.asList(-73.9862, 40.7311));
+
+        InsertOneResult result = collection.insertOne(theater);
+        // end insertLegacyExample
+    }
+
     private void nearExample() {
         // begin findExample
 
