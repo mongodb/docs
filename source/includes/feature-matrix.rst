@@ -62,10 +62,6 @@
      -
      - :icon-fa5:`check` [#govcloud-backup]_
 
-   * - Backups for |gcp| Assured Workloads regions
-     -
-     - :icon-fa5:`check`
-
    * - Push logs to AWS S3
      - :icon-fa5:`check`
      -  
