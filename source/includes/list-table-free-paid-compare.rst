@@ -41,7 +41,7 @@
      - |service| supports deploying clusters globally on
        :doc:`Amazon Web Services </reference/amazon-aws>`,
        :doc:`Google Cloud Platform </reference/google-gcp>`, and
-       :doc:`Microsoft Azure </reference/microsoft-azure>`.
+       :doc:`Microsoft Azure </reference/microsoft-azure>`
 
    * - Cross-Region Deployments
      - No

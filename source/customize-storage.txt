@@ -69,8 +69,10 @@ Storage Capacity
 
 To change the server data volume size, do one of the following tasks:
 
-- Move the slider until the text box displays your preferred disk size.
 - Specify the exact disk size in the text box.
+
+- Move the slide bar until the text box displays your preferred disk
+  size.
 
 For |azure|-specific instructions, see :ref:`<change-storage-capacity-azure>`.
 
@@ -208,129 +210,48 @@ Decrease Capacity or Throughput
 
 .. _change-storage-capacity-azure:
 
-Extend Storage Capacity and |iops| on |azure|
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Change Storage Capacity on |azure|
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For :guilabel:`Low CPU` or :guilabel:`General` {+clusters+} deployed on |azure|,
-you can extend |iops| and the data volumes' storage capacity in the {+atlas-ui+}.
+For clusters deployed on |azure|, you can change storage
+capacity in preset amounts only. To change server data volume size:
 
-If you increase disk storage for :guilabel:`Low CPU` or :guilabel:`General`
-{+clusters+}, you can:
+- Specify your preferred disk size in the text box. 
+- Move the slide bar until the text box displays your preferred disk
+  size.
 
-- Receive more |iops| on {+clusters+} in the same {+cluster+} tier.
-- Use these {+clusters+} for hosting applications with high IO workload requirements
-  without having to configure sharding to spread the applications' workload across
-  servers.
+.. note:: 
+  
+   |service| rounds the disk size to the nearest preset amount.
 
-The following statements describe the options you have in the {+atlas-ui+}
-for |iops| and storage management on |azure| {+clusters+}.
+When you change a cluster's storage capacity, |service| modifies the 
+size of the servers' data volumes in a rolling manner 
+with zero downtime. |service| increases the storage capacity in place without copying data
+or performing an :manual:`initial sync
+</core/replica-set-sync/#initial-sync>`.
 
-1. Initially, when you choose an |azure| :guilabel:`Low CPU` or
-   :guilabel:`General` {+cluster+}, |service| assigns the default storage
-   size and |iops| based on the tier you choose.
-2. Depending on the specific characteristics of the storage volumes used
-   in your region and whether the {+cluster+} is in the
-   :ref:`region that supports extended storage <microsoft-azure-supported-regions>`,
-   you can do one of the following actions:
+However, |azure| doesn't allow in-place storage capacity downgrades.
+If you downgrade the storage capacity of a {+cluster+}, |service| 
+replaces each node and performs an initial sync for each node in the 
+{+cluster+}.
 
-   - If your region doesn't :ref:`support extended storage <microsoft-azure-supported-regions>`,
-     you can change storage capacity only in preset amounts and can't change
-     the IOPS using the slider.
-   - If your region :ref:`supports extended storage <microsoft-azure-supported-regions>`,
-     you can use the :guilabel:`Storage` slider to increase the default storage
-     capacity within the same tier. |service| also increases |iops| to correspond
-     to the increased storage size.
+.. note::
 
-3. If, after you increase the storage volume's size, the increased number
-   of |iops| still isn't sufficient, and the {+cluster+}'s tier is in a
-   :ref:`region that supports extended storage <microsoft-azure-supported-regions>`,
-   you can further extend the number of |iops| using the :guilabel:`IOPS` slider,
-   without changing the {+cluster+} tier.
-4. In addition, you can also expand the total {+cluster+} storage beyond
-   the default limits for the {+cluster+}'s tier in
-   :ref:`regions that support extended storage <microsoft-azure-supported-regions>`.
-   You enable extended storage sizes in the :ref:`Project Settings <project-settings>`.
+   An initial sync copies data across the network and rebuilds all
+   indexes.
 
-The following sections describe how to increase the storage size and |iops|.
+During this time, you can still access your {+cluster+}, but each node 
+that |azure| modifies remains unavailable until the initial sync for 
+that node completes.
 
-- :ref:`change-storage-azure-steps`
-- :ref:`extend-iops-azure-steps`
+.. important::
 
-.. _change-storage-azure-steps:
+   For large {+clusters+}, initial syncs for each node might take 
+   several hours to complete.
 
-Change Data Volume Size on |azure|
-`````````````````````````````````````
-To change the server's data volume size:
-
-1. :ref:`View the cluster details <view-cluster-details>`.
-2. In the :guilabel:`Cluster tier` > :guilabel:`Storage` section, you can
-   do one of the following actions, depending on the region:
-
-   - If your region :ref:`supports extended storage <microsoft-azure-supported-regions>`,
-     move the slider to the right and choose your preferred disk size.
-
-     The text box to the right of the slider changes dynamically and indicates
-     the new disk size. |service| also increases |iops| to correspond to
-     the increased storage size.
-
-   - If your region doesn't support extended storage, you can increase the
-     disk capacity in preset amounts. In this case, |service| doesn't increase
-     |iops|.
-
-   Regardless of the option for increasing storage, |service| increases
-   the storage capacity in place without copying data or performing an
-   :manual:`initial sync </core/replica-set-sync/#initial-sync>`.
-
-   .. note::
-
-      If you change to another region or to a multi-region {+cluster+},
-      the specific storage volume capabilities or extended storage might
-      be unavailable. The {+atlas-ui} notifies you that your |iops| will
-      be reduced. This change might impact the application's performance,
-      the speed of restoring data from a backup, or copying backups from
-      these regions to other regions. To preserve the same performance,
-      continue using the same region. To learn more, see
-      :ref:`regions that support extended storage <microsoft-azure-supported-regions>`.
-
-   |azure| doesn't allow decreasing the storage capacity in place. To downgrade
-   the storage capacity of a {+cluster+} on |azure|, |service| provisions new
-   volumes, and then syncs data from the old to the new volumes. Before you apply
-   your storage capacity downgrades, the :guilabel:`Review Changes` page notifies
-   you that |service| triggers a rolling restart of your {+cluster+} when you
-   make this change.
-
-   An initial sync copies data across the network and rebuilds all indexes. During
-   this time, you can still access your {+cluster+}, but each node that |azure|
-   modifies remains unavailable until the node's initial sync completes. For large
-   {+clusters+}, initial syncs for each node might take several hours to complete.
-
-To expand the total {+cluster+} storage beyond the limits for the {+cluster+}
-tier, you can enable extended storage in the :ref:`Project Settings <project-settings>`
-for :ref:`regions that support extended storage <microsoft-azure-supported-regions>`.
-
-.. _extend-iops-azure-steps:
-
-Extend |iops| on |azure|
-``````````````````````````````
-
-The following procedure describes how to obtain extended |iops|, **on top of**
-the number of IOPS that you receive when you :ref:`increase <change-storage-azure-steps>`
-the storage size within the same {+cluster+} tier.
-
-You can change the number of |iops| for ``M40+`` |service| {+clusters+}
-for :ref:`regions that support extended storage <microsoft-azure-supported-regions>`.
-
-To extend the number of |iops|:
-
-1. :ref:`View the cluster details <view-cluster-details>`.
-2. In the :guilabel:`Cluster tier`, change to the ``M40`` or higher {+cluster+} tier.
-   The |iops| slider displays in the :guilabel:`IOPS` section.
-3. If you haven't already, :ref:`increasee <change-storage-azure-steps>`
-   the storage size.
-4. If your application requires additional IOPS on top of increased IOPS
-   that you received by increasing storage, you can extend IOPS further.
-   Move the :guilabel:`IOPS` slider to the right and choose your preferred
-   number of |iops|. Extending |iops| affects :ref:`cost <instance-storage-speed>`.
+Before you apply your storage capacity changes, the 
+:guilabel:`Review Changes` page notifies you that |service| triggers a 
+rolling restart of your {+cluster+} when you make this change.
 
 .. _change-storage-capacity-gcp:
 
@@ -354,8 +275,6 @@ Before you apply your storage capacity changes, the
 :guilabel:`Review Changes` page notifies you that |service| triggers a 
 rolling restart of your {+cluster+} when you make this change.
 
-.. include:: /includes/cluster-settings/extended-storage-limit.rst
-
 .. _change-storage-capacity-multi:
 
 Change Storage Capacity for Multi-Cloud Provider {+Clusters+}
@@ -365,7 +284,12 @@ Change Storage Capacity for Multi-Cloud Provider {+Clusters+}
 cloud providers. This ensures consistency across the multi-cloud 
 deployment.
 
-You can't adjust the |iops| for your multi-cloud {+cluster+}.
+The following limitations might apply: 
+
+- You can't adjust the |iops| for your multi-cloud cluster.
+
+- If your multi-cloud cluster includes |azure|, you can change storage 
+  capacity in preset amounts only. See :ref:`change-storage-capacity-azure`.
 
 .. _storage-iops-ui:
 
