@@ -5,9 +5,6 @@
    
    |fqdn| and port number of the |application|.
    
-   To use a port other than ``8080``, see
-   :doc:`/tutorial/manage-ports`.
-   
    .. important::
    
       If you plan on accessing your |application| using its |ipv6|
