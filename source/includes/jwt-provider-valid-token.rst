@@ -8,7 +8,7 @@
 
 - Contain an issued at time claim with a time and date in the past.
 
-- Have a token lifetime of less than or equal to one hour. The token 
+- Have a token lifetime of less than or equal to 24 hours. The token 
   lifetime is the difference between the issued at time claim and the 
   expiration time claim.
 
@@ -26,14 +26,14 @@
         }
 
       |charts-short| can accept a token containing the following claims 
-      because the token lifetime of one hour is acceptable:
+      because the token lifetime of 24 hours is acceptable:
 
       .. code-block:: json
         :copyable: false
 
         {
           "iat": "1585769399",
-          "exp": "1585772999"
+          "exp": "1586002999"
         }
 
 - Are signed using either the ``HS256`` or ``RS256`` signing 
