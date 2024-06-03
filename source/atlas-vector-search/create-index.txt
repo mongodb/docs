@@ -36,7 +36,7 @@ To create an {+avs+} index, you must have an |service| {+cluster+} with
 the following prerequisites: 
 
 - MongoDB version ``6.0.11``, ``7.0.2``, or higher
-- A collection for which create the {+avs+} index 
+- A collection for which to create the {+avs+} index 
 
 .. _avs-create-index-access:
 
@@ -46,260 +46,124 @@ Required Access
 You need the :authrole:`Project Data Access Admin` or higher role to create
 and manage {+avs+} indexes.
 
+.. _avs-types-vector-search-egs:
 .. _avs-create-index-supported-clients:
-
-Supported Clients 
------------------
-
-You can create an {+avs+} index by using one of the following methods: 
-
-- {+atlas-ui+}
-- {+atlas-admin-api+} :oas-atlas-op:`Create One Atlas Search Index
-  <createAtlasSearchIndex>` endpoint
-- {+atlas-cli+} v1.14.3 :atlascli:`atlas clusters search indexes create
-  </command/atlas-clusters-search-indexes-create/>` command on both the
-  :atlascli:`cloud deployment </atlas-cli-local-cloud/>` and
-  :atlascli:`local deployment </atlas-cli-deploy-local>`
-- {+mongosh+} v2.1.2 or later
-  :method:`db.collection.createSearchIndex()` method
-
 .. _avs-create-index-procedure:
 
 Procedure 
 ---------
 
-.. tabs:: 
+.. tabs-selector:: drivers
 
-   .. tab:: Atlas UI 
-      :tabid: ui 
+----------
+
+.. |arrow| unicode:: U+27A4
+
+|arrow| Use the **Select your language** drop-down menu to select the
+client you want to use to create your index.
+
+----------
+
+.. note::
+
+   The procedure includes index definition examples for the 
+   ``embedded_movies`` collection in the ``sample_mflix`` database. If
+   you load the :ref:`sample data <mflix-embedded_movies>` on your
+   {+cluster+} and create the example |fts| indexes for this collection,
+   you can run the sample :pipeline:`$vectorSearch` queries against this
+   collection. To learn more about the sample queries that you can run,
+   see :ref:`$vectorSearch Examples <vectorSearch-agg-pipeline-egs>`. 
+
+.. tabs-drivers:: 
+
+   .. tab::  
+      :tabid: atlas-ui 
 
       .. include:: /includes/steps-avs-create-index-atlas-ui.txt
 
-   .. tab:: Atlas Administration API 
-      :tabid: api 
+   .. tab::  
+      :tabid: atlas-api 
 
       To create an {+avs+} index for a collection using the
       {+atlas-admin-api+}, send a ``POST`` request to the |fts|
       ``indexes`` endpoint with the required parameters. 
       
-      .. example:: 
-
-         .. code-block:: shell 
-            :copyable: true 
-
-            curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-            --header "Accept: application/json" \
-            --header "Content-Type: application/json" \
-            --include \
-            --request POST "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes" \
-            --data '
-              {
-                "collectionName": "<name-of-collection>",
-                "database": "<name-of-database>",
-                "type": "vectorSearch",
-                "name": "<index-name>",
-                "definition": {
-                  "fields":[ 
-                    {
-                      "type": "vector",
-                      "path": <field-to-index>,
-                      "numDimensions": <number-of-dimensions>,
-                      "similarity": "euclidean | cosine | dotProduct"
-                    },
-                    {
-                      "type": "filter",
-                      "path": "<field-to-index>"
-                    },
-                    ...
-                  }
-                ]
-              }'
+      .. literalinclude:: /includes/avs-examples/index-management/create-index/create-index-api.sh 
+         :language: shell
+         :copyable:
+         :linenos:
       
       To learn more about the syntax and parameters for the endpoint, see
       :oas-atlas-op:`Create One Atlas Search Index </createAtlasSearchIndex>`.  
-
-   .. tab:: Atlas CLI 
-      :tabid: atlascli 
-
-      To create an {+avs+} index for a collection using the {+atlas-cli+},
-      run the following command: 
-
-      .. code-block:: shell 
-         :copyable: true
       
-         atlas clusters search indexes create --clusterName [cluster-name] --file [vector_index].json
+      .. example:: 
+
+         The following index definition indexes the ``plot_embedding``
+         field as the ``vector`` type and the ``genres`` and ``year``
+         fields as the ``filter`` type in an {+avs+} index. The
+         ``plot_embedding`` field contains embeddings created using
+         OpenAI's ``text-embedding-ada-002`` embeddings model. The index 
+         definition specifies ``1536`` vector dimensions and measures
+         similarity using ``euclidean`` distance. 
+
+         .. tabs:: 
+
+            .. tab:: Basic Example
+               :tabid: basic
+
+               The following index definition indexes only the vector
+               embeddings field for performing vector search.
+                  
+               .. literalinclude:: /includes/avs-examples/index-management/create-index/basic-example-api.sh 
+                  :language: shell
+                  :copyable:
+                  :linenos:
+
+            .. tab:: Filter Example 
+               :tabid: advanced
+
+               This index definition indexes the following fields: 
+         
+               - A string field (``genres``) and a numeric field (``year``)
+                 for pre-filtering the data. 
+               - The vector embeddings field (``plot_embedding``) for
+                 performing vector search against pre-filtered data.
+
+               .. literalinclude:: /includes/avs-examples/index-management/create-index/filter-example-api.sh 
+                  :language: shell
+                  :copyable:
+                  :linenos:
+
+   .. tab::  
+      :tabid: atlas-cli 
+
+      To create an {+avs+} index for a collection using the
+      {+atlas-cli+} v1.14.3 or later, perform the following steps: 
+
+      .. include:: /includes/steps-avs-create-index-acli.rst 
+
+   .. tab::  
+      :tabid: shell 
+
+      To create an {+avs+} index for a collection using {+mongosh+}
+      v2.1.2 or later, perform the following steps:
       
-      Replace the following placeholder values:
+      .. include:: /includes/steps-avs-create-index-mongosh.rst 
 
-      - ``cluster-name`` is the name of the |service| {+cluster+} that
-        contains the collection for which you want to create the index.
-      - ``vector_index`` is the name of the |json| file that contains the
-        index definition for the {+avs+} index. Your
-        index definition should resemble the following form: 
+   .. tab::
+      :tabid: python
 
-        .. code-block:: json
-         :copyable: true 
-         :linenos:
+      To create an {+avs+} index for a collection using the
+      `PyMongo <https://www.mongodb.com/docs/languages/python/pymongo-driver/current/indexes/atlas-search-index/>`__
+      driver v4.7 or later, perform the following steps: 
 
-         {
-           "collectionName": "<name-of-collection>",
-           "database": "<name-of-database>",
-           "type": "vectorSearch",
-           "name": "<index-name>",
-           "fields":[ 
-             {
-               "type": "vector",
-               "path": <field-to-index>,
-               "numDimensions": <number-of-dimensions>,
-               "similarity": "euclidean | cosine | dotProduct"
-             },
-             {
-               "type": "filter",
-               "path": "<field-to-index>"
-             },
-             ...
-           ]
-         }
+      .. include:: /includes/steps-avs-create-index-pymongo.rst
 
-      To learn more about the command syntax and parameters, see the
-      {+atlas-cli+} documentation for :atlascli:`atlas clusters search
-      indexes create </command/atlas-clusters-search-indexes-create/>`
-      command. 
+   .. tab::
+      :tabid: nodejs
 
-   .. tab:: mongosh 
-      :tabid: mongosh 
+      To create an {+avs+} index for a collection using the
+      :driver:`MongoDB Node driver </node/current/fundamentals/indexes/>` 
+      v6.6.0 or later, perform the following steps:
 
-      To create an {+avs+} index for a collection using {+mongosh+}, do
-      the following:
-      
-      1. :ref:`Connect <connect-mongo-shell>` to the |service|
-         {+cluster+} using {+mongosh+}.   
-      #. Switch to the database that contains the collection for which
-         you want to create the index.
-      #. Run the :method:`db.collection.createSearchIndex()` method. 
-
-         The :method:`db.collection.createSearchIndex()` method has the
-         following syntax:  
-
-         .. code-block:: shell 
-            :copyable: true 
-            :linenos: 
-
-            db.movies.createSearchIndex(
-              "<index-name>",
-              "vectorSearch", //index type
-              {
-                fields: [
-                  {
-                    type: "vector",
-                    numDimensions: <number-of-dimensions>,
-                    path: "<field-to-index>",
-                    similarity: "euclidean | cosine | dotProduct"
-                  },
-                  {
-                    "type": "filter",
-                    "path": "<field-to-index>"
-                  },
-                  ...
-                ]
-              }
-            );
-
-.. _avs-types-vector-search-egs:
-
-Create an Example Index From the {+atlas-ui+}
----------------------------------------------
-
-The following index definition for the ``sample_mflix.embedded_movies``
-collection indexes the ``plot_embedding`` field as the ``vector`` type
-and the ``genres`` and ``year`` fields as the ``filter`` type in an
-{+avs+} index from the {+atlas-ui+}. The ``plot_embedding`` field
-contains embeddings created using OpenAI's ``text-embedding-ada-002``
-embeddings model. The index definition specifies ``1536`` vector
-dimensions and measures similarity using ``euclidean``.
-
-.. procedure:: 
-   :style: normal
-
-   .. step:: Go the :guilabel:`Create Vector Search Index` page: 
-      
-      a. Go to the |fts| page.
-      #. Click :guilabel:`Create Index`.
-      #. Select :guilabel:`Atlas Vector Search Editor`.
-      #. Click :guilabel:`Next`.
-      
-      For detailed instructions, see :ref:`avs-create-index-procedure`.  
-
-   .. step:: Enter the :guilabel:`Index Name`, and set the :guilabel:`Database and Collection`.
-
-      a. In the :guilabel:`Index Name` field, enter **vector_index** as
-         the name for the index.  
-
-         Index name must be unique within the namespace,
-         regardless of the index type. If you already have an
-         index named *vector_index* on this collection, enter a
-         different name for the index.
-
-      #. In the :guilabel:`Database and Collection` section, find
-         the ``sample_mflix`` database, and select the
-         ``embedded_movies`` collection.  
-
-   .. step:: Replace the sample index definition with the following example. 
-
-      .. tabs:: 
-
-         .. tab:: Basic Example
-            :tabid: basic
-
-            The following index definition indexes only the vector
-            embeddings field for performing vector search.  
-
-            .. code-block:: json 
-               :linenos:
-
-               {
-                 "fields": [{
-                   "type": "vector",
-                   "path": "plot_embedding",
-                   "numDimensions": 1536,
-                   "similarity": "euclidean"
-                 }]
-               }
-
-         .. tab:: Filter Example 
-            :tabid: advanced
-
-            The following index definition indexes the following: 
-      
-            - A string field (``genres``) and a numeric field (``year``)
-              for pre-filtering the data. 
-            - The vector embeddings field (``plot_embedding``) for
-              performing vector search against pre-filtered data.
-
-            .. code-block:: json 
-               :linenos:
-
-               {
-                 "fields": [{
-                   "type": "vector",
-                   "path": "plot_embedding",
-                   "numDimensions": 1536,
-                   "similarity": "euclidean"
-                 },
-                 {
-                   "type": "filter",
-                   "path": "genres"
-                 },
-                 {
-                   "type": "filter",
-                   "path": "year"
-                 }]
-               }
-
-   .. step:: Click :guilabel:`Next` to review the index and then click :guilabel:`Create Search Index`. 
-
-If you load the :ref:`sample data <mflix-embedded_movies>` on your 
-{+cluster+} and create the preceding |fts| indexes for this collection, 
-you can run :pipeline:`$vectorSearch` queries against this collection.
-To learn more about the sample queries that you can run, see 
-:ref:`$vectorSearch Examples <vectorSearch-agg-pipeline-egs>`.
+      .. include:: /includes/steps-avs-create-index-nodejs.rst
