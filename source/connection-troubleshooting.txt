@@ -204,6 +204,47 @@ Consider setting ``maxConnectionLifeTime`` and
 maintains a connection to a MongoDB instance. For more information about these
 parameters, see :ref:`Connection Pool Settings <mcs-connectionpool-settings>`.
 
+.. _java-server-selection-errors:
+
+Server Selection Timeout Exceptions
+-----------------------------------
+
+Your application might not be able to complete a request even when some servers
+are available, causing the driver to return a server selection timeout
+exception.
+
+This exception is of type ``MongoTimeoutException``. The following
+shows a sample of the exception that occurs if you attempt to send a
+request to a replica set in which the primary is not reachable:
+
+.. code-block:: none
+
+   com.mongodb.MongoTimeoutException:
+   Timed out while waiting for a server that matches ReadPreferenceServerSelector{readPreference=primary}.
+   Client view of cluster state is
+   {type=REPLICA_SET,
+    servers=[
+     {address=localhost:27017, type=UNKNOWN, state=CONNECTING, exception={com.mongodb.MongoSocketOpenException: Exception opening socket}, caused by {java.net.ConnectException: Connection refused}},
+     {address=localhost:27018, type=UNKNOWN, state=CONNECTING, exception={com.mongodb.MongoSocketOpenException: Exception opening socket}, caused by {java.net.ConnectException: Connection refused}},
+     {address=localhost:27019, type=REPLICA_SET_SECONDARY, roundTripTime=15.0 ms, state=CONNECTED}
+    ]
+   }
+
+The error includes a view of the cluster state that describes the
+connection state of each node, which can help you identify the source of
+your connection issue.
+
+In the preceding error, the only connected server, ``localhost:27019``,
+is a secondary node. Because of this, the request times out as the
+driver is unable to select a server that satisfies the read preference
+of ``primary``. In this situation, you can still perform read operations
+against the connected secondary node if you set the read preference to
+``secondary``, ``secondaryPreferred``, or ``nearest``.
+
+You can also specify the ``serverSelectionTimeoutMS`` connection option
+to adjust the amount of time in which the driver must select a server. To
+learn more, see the :ref:`java-connection-options` guide.
+
 .. _java-miscellaneous-errors:
 
 Miscellaneous Errors
