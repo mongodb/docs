@@ -51,7 +51,7 @@
      name: OIDC
      content: |
 
-       .. include:: /includes/steps/create-oidc-user.rst
+       .. include:: /includes/steps-create-oidc-user.rst
 
    - id: ldap
      name: LDAP
