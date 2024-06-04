@@ -7,7 +7,8 @@
 
    * - ``us-east-1`` 
      - ``com.amazonaws.vpce.us-east-1.vpce-svc-00e311695874992b4``
-   * - ``us-west-1`` 
+
+   * - ``us-west-2`` 
      - ``com.amazonaws.vpce.us-west-2.vpce-svc-09d86b19e59d1b4bb``
 
    * - ``eu-west-1`` 
@@ -27,4 +28,13 @@
 
    * - ``ap-south-1`` 
      - ``com.amazonaws.vpce.ap-south-1.vpce-svc-03eb8a541f96d356d``
+
+   * - ``ca-central-1``
+     - ``com.amazonaws.vpce.ca-central-1.vpce-svc-08564bb8ccae8ba64``
+
+   * - ``ap-northeast-1``
+     - ``com.amazonaws.vpce.ap-northeast-1.vpce-svc-0b63834ecd618a332``
+
+   * - ``ap-southeast-1``
+     - ``com.amazonaws.vpce.ap-southeast-1.vpce-svc-07728d2dfd2860efb``
      
