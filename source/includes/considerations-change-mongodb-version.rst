@@ -2,6 +2,8 @@
   compatibility issues before changing a deployment's MongoDB version:
 
   - :manual:`The MongoDB Release Notes </release-notes>`
+  
+    .. include:: /includes/fact-mongodb-5.0-to-6.0.rst
 
   - The documentation for your driver.
 
