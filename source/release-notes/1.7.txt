@@ -15,6 +15,62 @@ Release Notes for mongosync 1.7
 Patch Releases
 --------------
 
+.. _1.7.3-c2c-release-notes:
+
+1.7.3 Release
+~~~~~~~~~~~~~
+
+**June 4, 2024**
+
+Issues Fixed:
+
+- Fixed bug introduced in v1.5.0 where mongosync could miss change
+  events when reading documents from a lagging secondary node and the
+  Oplog Rollover Resilience mechanism is enabled.
+
+- Fixed bug introduced in v1.0.0 where the destination may have missing
+  or extra indexes after mongosync is committed. This is an unlikely
+  edge case.
+
+- Fixed bug introduced in v1.0.0 where mongosync may miss change events
+  for a document. This is an unlikely edge case that is only possible if
+  the destination server version is MongoDB 5.0 or earlier.
+
+- Fixed bug introduced in v1.0.0 that could result in size mismatches
+  between source and destination capped collections. This can only
+  affect migrations if all of the following conditions are met:
+  
+  - The source cluster is MongoDB 6.0 or earlier.
+  
+  - The destination cluster is MongoDB 7.0 or later.
+  
+  - A capped collection's size was modified during a migration.
+
+- Fixed bug introduced in v1.0.0 where mongosync ignored the
+  ``changeStreamPreAndPostImages`` field in ``modify`` change events.
+  This could result in a destination collection having a different value
+  for this field compared to its source collection. mongosync now
+  correctly handles this field.
+
+- Mitigated bug introduced in v1.0.0 that could result in missed change
+  events when mongosync is interrupted and resumed. This is an unlikely
+  edge case.
+
+Limitations:
+
+- You must stop the balancer on both the source and destination sharded
+  clusters for the entire lifetime of a migration. If you try to start
+  mongosync while the balancer is still running, it throws an error.
+
+- You must not run the ``moveChunk`` or ``moveRange`` commands on the
+  destination cluster. If you try to run these commands on the source
+  cluster, mongosync throws an error.
+
+- mongosync reads from the destination cluster using the ``primary``
+  read preference. If you try to start mongosync with a different read
+  preference, it throws an error.
+
+
 .. _1.7.2-c2c-release-notes:
 
 1.7.2 Release
@@ -49,7 +105,7 @@ Issues Fixed:
 
   This can only affect migrations where collections are dropped
   or renamed while mongosync is running and the source or
-  destintion cluster runs MongoDB 6.0.0 to 6.0.12 or MongoDB
+  destination cluster runs MongoDB 6.0.0 to 6.0.12 or MongoDB
   7.0.0 or 7.0.3.
 
 - Fixed bug introduced in v1.1.0 that could result in a
