@@ -10,10 +10,6 @@
 
    .. step:: Search the collection.
       
-      .. procedure::
-         :style: connected
-      
-         .. step:: Enter the term to search in the search box.
+      a. Enter the term to search in the search box.
          
-         .. step:: Click :guilabel:`Search` to search the collection.
-
+      #. Click :guilabel:`Search` to search the collection.
