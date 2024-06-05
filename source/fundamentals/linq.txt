@@ -10,6 +10,13 @@ LINQ
    :depth: 2
    :class: singlecol
 
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: code example, query, aggregation
+
 
 Overview
 --------
@@ -575,3 +582,82 @@ implementation of LINQ:
 
    * - ``Where``
      - Returns all documents that match your specified criteria
+
+View Translated Queries
+-----------------------
+
+When you run a LINQ query, the {+driver-short+} automatically translates your
+query into an aggregation pipeline written with the {+query-api+}. You can view
+the translated query by using the ``ToString()`` method or the
+``LoggedStages`` property.
+
+To see the translated query for **non-scalar operations**, use the ``ToString()``
+method. Non-scalar operations are operations that return a query object, such
+as:
+
+- ``Where``
+- ``Select``
+- ``SelectMany``
+- ``GroupJoin``
+
+The following example calls the ``ToString()`` method on a LINQ query and prints
+the translated query:
+
+.. io-code-block::
+
+   .. input::
+      :language: csharp
+
+       var queryableCollection = _restaurantsCollection.AsQueryable();
+       var query = queryableCollection
+            .Where(r => r.Name == "The Movable Feast");
+
+       var queryTranslated = query.ToString();
+       Console.WriteLine(queryTranslated);
+
+   .. output::
+
+      sample_restaurants.restaurants.Aggregate([{ "$match" : { "name" : "The Movable Feast" } }])
+
+To get the translated query for **scalar operations** use the ``LoggedStages``
+property. Scalar operations are operations that return a scalar result rather than a
+query object, such as:
+
+- ``First`` 
+- ``Sum``
+- ``Count``
+- ``Min``
+- ``Max``
+
+To get a translated query with the ``LoggedStages`` property, you must save
+the translated query directly after it is executed, and before executing any
+other queries with the same queryable object.
+
+The following example uses the ``LoggedStages`` property on a LINQ query that
+uses a scalar operation, then prints the translated query:
+
+.. io-code-block::
+
+   .. input::
+      :language: csharp
+      :emphasize-lines: 6
+
+
+      var queryableCollection = _restaurantsCollection.AsQueryable();
+      var query = queryableCollection
+          .Where(r => r.Name == "The Movable Feast");
+
+      var result = query.FirstOrDefault(); 
+      var queryTranslated = query.LoggedStages;
+
+      Console.WriteLine(queryTranslated.ToJson());
+
+   .. output::
+
+      [{ "$match" : { "name" : "The Movable Feast" } }, { "$limit" : NumberLong(1) }]
+
+.. important::
+
+   ``LoggedStages`` is not thread-safe. Executing a query and accessing the
+   associated ``LoggedStages`` property from multiple threads might have
+   non-deterministic results.
