@@ -8,8 +8,8 @@ async function run() {
     const aggDB = client.db("agg_tutorials_db");
 
     // start-colls
-    const productsColl = await aggDB.collection("products");
-    const ordersColl = await aggDB.collection("orders");
+    const productsColl = aggDB.collection("products");
+    const ordersColl = aggDB.collection("orders");
     // end-colls
 
     // start-insert-products
