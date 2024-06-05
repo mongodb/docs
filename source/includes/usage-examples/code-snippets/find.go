@@ -55,17 +55,18 @@ func main() {
 	// is "Italian"
 	filter := bson.D{{"cuisine", "Italian"}}
 
-	// Retrieves documents that match the query filer
+	// Retrieves documents that match the query filter
 	cursor, err := coll.Find(context.TODO(), filter)
 	if err != nil {
 		panic(err)
 	}
-	// end find
 
+	// Unpacks the cursor into a slice
 	var results []Restaurant
 	if err = cursor.All(context.TODO(), &results); err != nil {
 		panic(err)
 	}
+	// end find
 
 	// Prints the results of the find operation as structs
 	for _, result := range results {
