@@ -5,8 +5,8 @@ curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
 --request POST "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes" \
 --data '
   {
-    "collectionName": "<name-of-collection>",
     "database": "<name-of-database>",
+    "collectionName": "<name-of-collection>",
     "type": "vectorSearch",
     "name": "<index-name>",
     "definition": {

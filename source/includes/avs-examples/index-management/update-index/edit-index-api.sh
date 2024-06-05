@@ -4,8 +4,8 @@ curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest --include \
      --request PATCH "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexId} | https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{databaseName}/{collectionName}/{indexName}" \
      --data'
        {
-         "collectionName": "<name-of-collection>",
          "database": "<name-of-database>",
+         "collectionName": "<name-of-collection>",
          "type": "vectorSearch",
          "name": "<index-name>",
            "definition": {

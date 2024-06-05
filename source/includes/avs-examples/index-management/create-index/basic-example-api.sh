@@ -5,8 +5,8 @@ curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
 --request POST "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes" \
 --data '
   {
-    "collectionName": "sample_mflix",
-    "database": "embedded_movies",
+    "database": "sample_mflix",
+    "collectionName": "embedded_movies",
     "type": "vectorSearch",
     "name": "vector_index",
     "definition: {
