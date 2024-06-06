@@ -26,10 +26,13 @@
    * - ``UnicodeTranslationOption``
      - Unicode encoding for {+asql+}. Set to ``utf16``.
 
-   * - ``loglevel``
-     - *Optional.* Default logging level for the ODBC driver. Values   
-       include: ``ERROR``, ``INFO``, or ``DEBUG``. ``INFO`` is the 
-       recommended level.
+   * - ``enable_max_string_length``
+     - *Optional.* Flag to enforce maximum string length of 4000
+       characters. To enable, set value to ``1`` and to disable, set
+       value to ``0``. If omitted, defaults to ``0``. You must enable
+       this option to work with BI tools like Microsoft SQL Server
+       Management Studio that can't support variable length string data
+       with unknown maximum length. 
 
 **Example:**
 
