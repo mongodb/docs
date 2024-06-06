@@ -6,8 +6,7 @@ A MongoDB :term:`sharded cluster` consists of the following components:
 
 - :doc:`/core/sharded-cluster-query-router`: The ``mongos`` acts as a
   query router, providing an interface between client applications and the
-  sharded cluster. :binary:`~bin.mongos` can support 
-  :ref:`hedged reads <mongos-hedged-reads>` to minimize latencies.
+  sharded cluster.
 
 - :ref:`config servers <sharding-config-server>`: Config
   servers store metadata and configuration settings for the cluster. As
