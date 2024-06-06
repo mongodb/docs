@@ -4,13 +4,18 @@
 Operations with Builders
 ========================
 
-.. default-domain:: mongodb
-
 .. contents:: On this page
    :local:
    :backlinks: none
    :depth: 2
    :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: aggregation, query, code example
 
 Overview
 --------
@@ -336,6 +341,57 @@ as a ``BsonDocument`` to the `AppendStage() method
 
 To learn more about the Aggregation Pipeline, see the
 :manual:`Aggregation Pipeline </core/aggregation-pipeline/>` server manual page.
+
+.. _csharp-builders-out:
+
+Write Pipeline Results to a Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can write the documents returned from an aggregation pipeline to a
+collection by creating an ``$out`` stage at the end of your aggregation
+pipeline. To create an ``$out`` stage, call the ``Out()`` method on a
+``PipelineStageDefinitionBuilder``. The ``Out()`` method requires the name of
+the collection you want to write the documents to.
+
+The following example builds an aggregation pipeline that matches all documents
+with a ``season`` field value of ``"Spring"`` and outputs them to
+a ``springFlowers`` collection:
+
+.. code-block:: csharp
+
+   var outputCollection = database.GetCollection("springFlowers");
+   var matchFilter = Builders<Flower>.Filter.AnyEq(f => f.Season, "spring");
+
+   // Creates an aggregation pipeline and outputs resulting documents to a new collection.
+   var pipeline = new EmptyPipelineDefinition<Flower>()
+       .Match(matchFilter)
+       .Out(outputCollection);
+
+You can write the results of an aggregation pipeline to a time series collection
+by specifying a ``TimeSeriesOption`` object and passing it as the second
+parameter to the ``Out()`` method.
+
+Imagine that the documents in the ``plants.flowers`` collection contain a ``datePlanted`` field that
+holds BSON date values. You can store the documents in this collection in a time
+series collection by using the ``datePlanted`` field as the time field.
+
+The following example creates a ``TimeSeriesOptions`` object and specifies
+``datePlanted`` as the ``timeField``. It then builds an aggregation pipeline that matches all documents
+with a ``season`` field value of ``"Spring"`` and outputs them to a
+time series collection called ``springFlowerTimes``.
+
+.. code-block:: csharp
+
+   var timeSeriesOptions = new TimeSeriesOptions("datePlanted");
+   var collectionName = "springFlowerTimes"
+   var matchFilter = Builders<Flower>.Filter.AnyEq(f => f.Season, "spring");
+
+   // Creates an aggregation pipeline and outputs resulting documents to a time series collection.
+   var pipeline = new EmptyPipelineDefinition<Flower>()
+       .Match(matchFilter)
+       .Out(collectionName, timeSeriesOptions);
+
+To learn more about time series collections, see :ref:`csharp-time-series`.
 
 Build an Atlas Search Query
 ---------------------------
