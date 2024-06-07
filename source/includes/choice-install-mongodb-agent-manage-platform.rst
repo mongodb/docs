@@ -56,11 +56,11 @@
 
                   .. include:: /includes/steps/install-mongodb-agent-manage-x86-64-rpm.rst
                         
-               .. tab:: RHEL/CentOS (7.x/8.x/9.x), SUSE12/15, Amazon Linux 2
+               .. tab:: RHEL/CentOS, SUSE, Amazon Linux 2
                   :tabid: v7
 
-                  Running RHEL / CentOS 7.x, SUSE12, SUSE15, or
-                  Amazon Linux 2:
+                  Running RHEL (7.x, 8.x, or 9.x) or CentOS (7.x or 
+                  8.x), SUSE12, SUSE15, or Amazon Linux 2:
 
                   .. tabs::
 
@@ -110,17 +110,16 @@
             On zSeries architecture (managing MongoDB 4.0 or
             later deployments):
 
-            Running RHEL / CentOS 7.x/8.x:
-
-            Running RHEL / CentOS 7.x/8.x using the ``rpm`` package
-            manager:
+            Running RHEL (7.x, 8.x, or 9.x) or CentOS (7.x or 8.x) 
+            using the ``rpm`` package manager:
 
             .. include:: /includes/steps/install-mongodb-agent-manage-s390x.rhel7-rpm.rst
 
          .. tab:: ARM64
             :tabid: arm64
 
-            On ARM64 architecture running RHEL 8.x/9.x or Amazon Linux 2:
+            On ARM64 architecture running RHEL (8.x or 9.x) or Amazon 
+            Linux 2:
 
             .. tabs::
 
@@ -129,8 +128,8 @@
 
                   .. include:: /includes/agents/binaries-removed-from-path.rst
 
-                  Running RHEL 8.x/9.x or Amazon Linux 2 using the rpm
-                  package manager:
+                  Running RHEL (8.x or 9.x) or Amazon Linux 2 using the 
+                  rpm package manager:
 
                   .. include:: /includes/steps/install-mongodb-agent-manage-arm64.rhel8-rpm.rst
 

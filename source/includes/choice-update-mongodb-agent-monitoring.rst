@@ -52,11 +52,11 @@
 
                   .. include:: /includes/steps/update-monitoring-to-mongodb-agent-x86-64-rpm.rst
 
-               .. tab:: RHEL/CentOS (7.x/8.x), SUSE12/15, Amazon Linux 2
+               .. tab:: RHEL/CentOS (7.X+), SUSE, Amazon Linux 2
                   :tabid: v7
 
-                  Running RHEL / CentOS 7.x, SUSE12, SUSE15 or
-                  Amazon Linux 2:
+                  Running RHEL (7.x, 8.x, or 9.x) or CentOS (7.x or
+                  8.x), SUSE12, SUSE15, or Amazon Linux 2:
 
                   .. tabs::
 
@@ -102,8 +102,8 @@
             On zSeries architecture (managing MongoDB 4.0 or
             later deployments):
 
-            Running RHEL / CentOS 7.x/8.x using the
-            ``rpm`` package manager:
+            Running RHEL (7.x, 8.x, or 9.x) or CentOS (7.x or 8.x) 
+            using the ``rpm`` package manager:
 
             .. include:: /includes/steps/update-monitoring-to-mongodb-agent-s390x.rhel7-rpm.rst
 
