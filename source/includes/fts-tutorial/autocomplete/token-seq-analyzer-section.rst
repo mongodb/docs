@@ -1,21 +1,22 @@
 You can search the ``title`` field for movie titles that start with a
 term or phrase by indexing the field using the :ref:`keyword analyzer
-<ref-keyword-analyzer>`.
+<ref-keyword-analyzer>`. 
 
-.. note:: 
+You must index the field using the :ref:`keyword analyzer
+<ref-keyword-analyzer>` with the ``edgeGram`` tokenization strategy to
+retrieve results for the following sample query. If you index the field
+using any other :ref:`built-in analyzers <ref-built-in-analyzers>`,
+|fts| doesn't return any results because it doesn't index your text
+field as a single term. The ``edgeGram`` tokenization strategy creates
+tokens starting at the left side of the words.
 
-   You must index the field using the :ref:`keyword analyzer
-   <ref-keyword-analyzer>` to retrieve results for the following sample
-   query. If you index the field using any other :ref:`built-in
-   analyzers <ref-built-in-analyzers>`, |fts| doesn't return any results
-   because they do not index your text field as a single term. You must
-   also set ``foldDiacritics`` to ``true`` to return case-agnostic
-   results. If you set ``foldDiacritics`` to ``false``, the letter case
-   of the query term must exactly match the letter case in the document
-   for |fts| to return any results.
+You must also set ``foldDiacritics`` to ``true`` to return
+case-agnostic results. If you set ``foldDiacritics`` to ``false``, the
+letter case of the query term must exactly match the letter case in the
+document for |fts| to return any results.
 
 .. code-block:: json
-   :emphasize-lines: 16
+   :emphasize-lines: 13, 16, 17
    
    {
      "mappings": {
