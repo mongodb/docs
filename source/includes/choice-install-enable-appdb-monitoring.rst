@@ -53,11 +53,11 @@
 
                   .. include:: /includes/steps/monitor-appdb-on-x86-64-rpm.rst
 
-               .. tab:: RHEL/CentOS (7.x/8.x/9.x), SUSE12/15, Amazon Linux 2
+               .. tab:: RHEL/CentOS (7.X+), SUSE, Amazon Linux 2
                   :tabid: v7
 
-                  RHEL / CentOS 7.x/8.x/9.x, SUSE12, SUSE15 or
-                  Amazon Linux 2:
+                  RHEL (7.x, 8.x, or 9.x) or CentOS (7.x or 8.x), 
+                  SUSE12, SUSE15, or Amazon Linux 2:
 
                   .. tabs::
 
@@ -105,12 +105,13 @@
             :tabid: s390x
 
             On zSeries architecture (managing MongoDB 4.4 or later
-            deployments), use RHEL / CentOS 7.x or 8.x:
+            deployments), use RHEL (7.x, 8.x, or 9.x) or CentOS (7.x or 
+            8.x):
 
             .. include:: /includes/agents/binaries-removed-from-path.rst
 
-            Running RHEL / CentOS 7.x/8.x using the ``rpm`` package
-            manager:
+            Running RHEL (7.x, 8.x, or 9.x) or CentOS (7.x or 8.x) 
+            using the ``rpm`` package manager:
 
             .. include:: /includes/steps/monitor-appdb-on-s390x.rhel7-rpm.rst
 
