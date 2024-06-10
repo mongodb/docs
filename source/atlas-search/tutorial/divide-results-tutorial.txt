@@ -3,135 +3,201 @@
 
 .. _pagination-skip-limit-tutorial:
 
-===============================================
-How to Divide Query Results into Discrete Pages
-===============================================
+=================================
+How to Paginate the Query Results  
+=================================
 
 .. default-domain:: mongodb
 
+.. facet:: 
+   :name: genre
+   :values: tutorial
+
 .. meta::
-   :description: In this tutorial, learn how to use $skip and $limit after the $search stage to paginate query results.
+   :description: In this tutorial, learn how to use $search to paginate query results sequentially.
 
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
-.. note:: Looking for Sequential Pagination to build infinite scrolling, "Next Page", and "Previous Page" functions? 
+This tutorial demonstrates how to paginate the results of your |fts|
+queries to build functions like "Next Page" and "Previous Page" in your
+application. It also demonstrates how to jump across pages by using
+:pipeline:`$skip` and :pipeline:`$limit`. This tutorial takes you
+through the following steps: 
 
-   We recommend using the :pipeline:`$search` ``searchAfter`` and 
-   ``searchBefore`` options to return results in-order for building
-   "Next Page" and "Previous Page" functions in your application. To
-   learn more, see :ref:`fts-paginate-results`. 
-
-|fts| queries might return many results. To make navigating results 
-easier, you can use the following :manual:`aggregation pipeline stages 
-</core/aggregation-pipeline/>` to paginate your query results:
-
-1. :pipeline:`$skip` bypasses the specified number of documents that 
-   pass into the stage and passes the remaining documents to the next 
-   stage in the pipeline.
-
-#. :pipeline:`$limit` restricts the number of documents passed to the 
-   next stage in the pipeline.
-
-You can extend this method in your applications to jump across pages and
-show results non-sequentially. 
-
-.. note:: Optimize performance with ``$search`` ``searchSequenceToken``
-
-   We recommend using :pipeline:`$skip` after :pipeline:`$search` with
-   the ``searchAfter`` or ``searchBefore`` options. To learn more, see  :ref:`fts-paginate-results-usage-non-sequential`.    
-
-You can also use the :ref:`fts-facet-aggregation-variable` to return 
-the total number of search results. You can use this information in 
-your applications to show the total number of search results, or the 
-number of pages available to your application user.
-
-This tutorial takes you through the following steps:
-
-1. Set up an |fts| index with dynamic mapping for the 
+1. Set up an |fts| index with static mappings for the 
    ``sample_mflix.movies`` collection.
 
-#. Run an |fts| query using the following:
-
-   - :pipeline:`$skip` and :pipeline:`$limit` 
-     after the :pipeline:`$search` stage to paginate the results.
-
-   - :ref:`fts-facet-aggregation-variable` to return the 
-     total number of search results.
+#. Run |fts| queries against the indexed fields to return sequential
+   results that allow you to do the following: 
+   
+   - Traverse pages in-order to build functions like "Next Page"
+     and "Previous Page".
+   - Jump from the second to the fifth page and skip pages in the results. 
+   - Retrieve a count of the total number of movies in each genre in the
+     results. 
 
 Before you begin, ensure that your |service| {+cluster+} meets the 
 requirements described in the :ref:`Prerequisites 
-<fts-tutorials-prereqs>`.
+<fts-tutorials-prereqs>`. 
+
+.. note:: 
+
+   To use the |fts| :pipeline:`$search` ``searchSequenceToken`` to
+   retrieve sequential results, your |service| {+cluster+} must run
+   MongoDB v6.0.13+ or v7.0.5+. 
+
+Create the |fts| Index With Static Mappings 
+-------------------------------------------
+
+In this section, you create an |fts| index that uses :ref:`static 
+mappings <static-dynamic-mappings>` to index the fields in the 
+``sample_mflix.movies`` collection. 
+
+Required Roles 
+~~~~~~~~~~~~~~
 
 .. include:: /includes/atlas-roles/create-search-index.rst
 
-Create the |fts| Index With Dynamic Mapping 
--------------------------------------------
+Procedure 
+~~~~~~~~~
 
-In this section, we create an |fts| index that uses :ref:`dynamic 
-mapping <static-dynamic-mappings>` to index the fields in the 
-``sample_mflix.movies`` collection. 
+.. include:: /includes/steps-fts-tutorial-sequential-pagination-index.txt
 
-.. include:: /includes/steps/fts-pagination-tutorial-create-index.rst
-   
 Run a Query and Paginate the Results
 ------------------------------------
 
-----------
+In this section, you run queries to retrieve results for movies with the
+term ``summer`` in the title. In the queries, you retrieve a point of 
+reference, which you then use in the subsequent queries to retrieve
+additional results for the same term before and after the specified
+point of reference. 
 
-.. |arrow| unicode:: U+27A4
+.. note:: 
 
-|arrow| Use the **Select your language** drop-down menu to set the
-language of the example in this section.
+   By default, |fts| sorts the documents in the results by the relevance
+   score of the documents. If multiple documents in the results have
+   identical scores, |fts| returns arbitrarily ordered results. To
+   return documents in a determined order, the queries specify a unique 
+   field, ``released``, to sort the results.
 
-----------
+This section demonstrates how to do the following:
 
-.. tabs-selector:: drivers
+1. :ref:`sequential-pagination-tutorial-por-query`
+2. :ref:`sequential-pagination-tutorial-after-query`
+3. :ref:`sequential-pagination-tutorial-before-query`
+4. :ref:`sequential-pagination-tutorial-skip-query`
+5. :ref:`sequential-pagination-tutorial-facet-query`
 
-.. include:: /includes/extracts/fts-divide-results-query-desc.rst
+Procedure 
+~~~~~~~~~
 
-.. tabs-drivers::
+To run these queries, you must first do the following:
 
-   .. tab::
-      :tabid: shell
+.. include:: /includes/steps-fts-tutorial-pagination-run-query-mongosh.txt
 
-      .. include:: /includes/steps-fts-divide-results-tutorial-run-query-shell.txt
+.. _sequential-pagination-tutorial-por-query:
 
-   .. tab::
-      :tabid: compass
+Retrieve Page 1 and Generate Pagination Tokens
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      .. include:: /includes/steps-fts-divide-results-tutorial-run-query-compass.txt
+.. include:: /includes/extracts/fts-sequential-pagination-point-of-ref-query-desc.rst
 
-   .. tab::
-      :tabid: csharp
+.. io-code-block::
+   :copyable: true
+      
+   .. input:: /includes/fts-tutorial/sequential-pagination/point-of-ref-query-mongosh.json 
+      :language: json
 
-      .. include:: /includes/steps-fts-divide-results-tutorial-run-query-cs.txt
+   .. output:: /includes/fts-tutorial/sequential-pagination/point-of-ref-mongosh-query-results.json
+      :language: json
+      :visible: false
 
-   .. tab:: 
-      :tabid: go
+.. _sequential-pagination-tutorial-after-query:
 
-      .. include:: /includes/steps-fts-divide-results-tutorial-run-query-go.txt
+Retrieve Page 2 Using ``searchAfter``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   .. tab:: 
-      :tabid: java-sync 
+To retrieve additional results, you specify the point of reference after
+which you want to retrieve the results. This query demonstrates how to
+retrieve results to build a function like "Next Page" in your
+application. 
 
-      .. include:: /includes/steps-fts-divide-results-tutorial-run-query-java.txt
+.. include:: /includes/extracts/fts-sequential-pagination-search-after-query-desc.rst
 
-   .. tab:: 
-      :tabid: kotlin-coroutine
+.. io-code-block::
+   :copyable: true
+      
+   .. input:: /includes/fts-tutorial/sequential-pagination/search-after-query-mongosh.json 
+      :language: json
 
-      .. include:: /includes/steps-fts-divide-results-tutorial-run-query-kotlin.txt
+   .. output:: /includes/fts-tutorial/sequential-pagination/search-after-mongosh-query-results.json 
+      :language: json
+      :visible: false
 
-   .. tab::
-      :tabid: nodejs
+.. _sequential-pagination-tutorial-before-query:
 
-      .. include:: /includes/steps-fts-divide-results-tutorial-run-query-nodejs.txt
+Return to Page 1 Using ``searchBefore``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   .. tab::
-      :tabid: python
+To retrieve previous results, you specify the point of reference before
+which you want to retrieve the results. This query demonstrates how to
+retrieve results to build a function like "Previous Page" in your 
+application. 
 
-      .. include:: /includes/steps-fts-divide-results-tutorial-run-query-python.txt
+.. include:: /includes/extracts/fts-sequential-pagination-search-before-query-desc.rst
 
+.. io-code-block::
+   :copyable: true
+      
+   .. input:: /includes/fts-tutorial/sequential-pagination/search-before-query-mongosh.json
+      :language: json
+
+   .. output:: /includes/fts-tutorial/sequential-pagination/search-before-mongosh-query-results.json
+      :language: json
+      :visible: false 
+
+.. _sequential-pagination-tutorial-skip-query:
+
+Jump from Page 2 to Page 5 Using ``searchAfter`` and ``$skip``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To skip results and jump from page 2 to 5, you use the token generated by
+``searchSequenceToken`` to specify the point of reference after which you
+want to retrieve the results and then skip twenty documents in the
+results. This query demonstrates how to retrieve results to build a
+function in your application that allows skipping pages.
+
+.. include:: /includes/extracts/fts-sequential-pagination-skip-results-query-desc.rst
+
+.. io-code-block::
+   :copyable: true
+      
+   .. input:: /includes/fts-tutorial/sequential-pagination/skip-results-query-mongosh.json 
+      :language: json
+
+   .. output:: /includes/fts-tutorial/sequential-pagination/skip-results-mongosh-query-results.json 
+      :language: json
+      :visible: false
+
+.. _sequential-pagination-tutorial-facet-query:
+
+Use Facet with the Paginated Results  
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This section demonstrates how ``searchSequenceToken`` can be used with Atlas Search facets.
+
+.. include:: /includes/extracts/fts-sequential-pagination-facet-query-desc.rst
+
+.. io-code-block::
+   :copyable: true
+      
+   .. input:: /includes/fts-tutorial/sequential-pagination/facet-query-mongosh.json 
+      :language: json
+
+   .. output:: /includes/fts-tutorial/sequential-pagination/facet-mongosh-query-results.json 
+      :language: json
+      :visible: false
