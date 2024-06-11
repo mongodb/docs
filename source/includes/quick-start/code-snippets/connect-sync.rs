@@ -15,7 +15,9 @@ fn main() -> mongodb::error::Result<()> {
     let my_coll: Collection<Document> = database.collection("movies");
 
     // Find a movie based on the title value
-    let my_movie = my_coll.find_one(doc! { "title": "The Perils of Pauline" }, None)?;
+    let my_movie = my_coll
+        .find_one(doc! { "title": "The Perils of Pauline" })
+        .run()?;
 
     // Print the document
     println!("Found a movie:\n{:#?}", my_movie);

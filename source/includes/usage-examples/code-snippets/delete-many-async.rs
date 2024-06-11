@@ -20,7 +20,7 @@ async fn main() -> mongodb::error::Result<()> {
        ]
     };
 
-    let result = my_coll.delete_many(filter, None).await?;
+    let result = my_coll.delete_many(filter).await?;
 
     println!("Deleted documents: {}", result.deleted_count);
 

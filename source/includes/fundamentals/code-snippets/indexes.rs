@@ -15,7 +15,7 @@ async fn main() -> mongodb::error::Result<()> {
     // begin-single-field
     let index = IndexModel::builder().keys(doc! { "city": 1 }).build();
 
-    let idx = my_coll.create_index(index, None).await?;
+    let idx = my_coll.create_index(index).await?;
     println!("Created index:\n{}", idx.index_name);
     // end-single-field
 
@@ -25,7 +25,7 @@ async fn main() -> mongodb::error::Result<()> {
         .keys(doc! { "city": 1, "pop": -1 })
         .build();
 
-    let idx = my_coll.create_index(index, None).await?;
+    let idx = my_coll.create_index(index).await?;
     println!("Created index:\n{}", idx.index_name);
     // end-compound
 
@@ -33,18 +33,16 @@ async fn main() -> mongodb::error::Result<()> {
     // begin-multikey
     let index = IndexModel::builder().keys(doc! { "tags": 1 }).build();
 
-    let idx = my_coll.create_index(index, None).await?;
+    let idx = my_coll.create_index(index).await?;
     println!("Created index:\n{}", idx.index_name);
     // end-multikey
-
     // begin-clustered
     let db = client.database("sample_training");
     let cl_idx = ClusteredIndex::default();
-    let opts = CreateCollectionOptions::builder()
-        .clustered_index(cl_idx)
-        .build();
 
-    db.create_collection("items", opts).await?;
+    db.create_collection("items")
+        .clustered_index(cl_idx)
+        .await?;
     // end-clustered
 
     let my_coll: Collection<Document> = client.database("sample_training").collection("posts");
@@ -58,7 +56,7 @@ async fn main() -> mongodb::error::Result<()> {
         .options(idx_opts)
         .build();
 
-    let idx = my_coll.create_index(index, None).await?;
+    let idx = my_coll.create_index(index).await?;
     println!("Created index:\n{}", idx.index_name);
     // end-text
 
@@ -85,7 +83,7 @@ async fn main() -> mongodb::error::Result<()> {
         .name("example_index".to_string())
         .build();
 
-    let result = my_coll.create_search_index(idx_model, None).await?;
+    let result = my_coll.create_search_index(idx_model).await?;
     println!("Created Atlas Search index:\n{}", result);
     // end-atlas-create-one
 
@@ -102,12 +100,12 @@ async fn main() -> mongodb::error::Result<()> {
         .build();
 
     let models = vec![dyn_idx, static_idx];
-    let result = my_coll.create_search_indexes(models, None).await?;
+    let result = my_coll.create_search_indexes(models).await?;
     println!("Created Atlas Search indexes:\n{:?}", result);
     // end-atlas-create-many
 
     // begin-atlas-list
-    let mut cursor = my_coll.list_search_indexes(None, None, None).await?;
+    let mut cursor = my_coll.list_search_indexes().await?;
     while let Some(index) = cursor.try_next().await? {
         println!("{}\n", index);
     }
@@ -116,12 +114,12 @@ async fn main() -> mongodb::error::Result<()> {
     // begin-atlas-update
     let name = "static_index";
     let definition = doc! { "mappings": doc! {"dynamic": true} };
-    my_coll.update_search_index(name, definition, None).await?;
+    my_coll.update_search_index(name, definition).await?;
     // end-atlas-update
 
     // begin-atlas-drop
     let name = "example_index";
-    my_coll.drop_search_index(name, None).await?;
+    my_coll.drop_search_index(name).await?;
     // end-atlas-drop
 
     let my_coll: Collection<Document> = client.database("sample_mflix").collection("theaters");
@@ -130,7 +128,7 @@ async fn main() -> mongodb::error::Result<()> {
         .keys(doc! { "location.geo": "2dsphere" })
         .build();
 
-    let idx = my_coll.create_index(index, None).await?;
+    let idx = my_coll.create_index(index).await?;
     println!("Created index:\n{}", idx.index_name);
     // end-geo
 
@@ -145,7 +143,7 @@ async fn main() -> mongodb::error::Result<()> {
 
     let my_coll: Collection<Document> = client.database("sample_training").collection("zips");
     // begin-drop
-    my_coll.drop_index("city_1".to_string(), None).await?;
+    my_coll.drop_index("city_1".to_string()).await?;
     // end-drop
 
     Ok(())

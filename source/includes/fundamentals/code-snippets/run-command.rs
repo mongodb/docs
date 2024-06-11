@@ -15,7 +15,7 @@ async fn main() -> mongodb::error::Result<()> {
         "verbosity": "queryPlanner"
     };
 
-    let result = my_db.run_command(explain_command, None).await?;
+    let result = my_db.run_command(explain_command).await?;
     // end-runcommand
 
     println!("{}", result);

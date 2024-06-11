@@ -19,9 +19,8 @@ fn main() -> mongodb::error::Result<()> {
         .collection("restaurants");
 
     let mut cursor = my_coll.find(
-        doc! { "cuisine": "French" },
-        None
-    )?;
+        doc! { "cuisine": "French" }
+    ).run()?;
     
     for result in cursor {
         println!("{:?}", result?);

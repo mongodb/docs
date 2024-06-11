@@ -19,7 +19,7 @@ fn main() -> mongodb::error::Result<()> {
     };
     let update = doc! { "$set": doc! { "near_me": true } };
 
-    let res = my_coll.update_many(filter, update, None)?;
+    let res = my_coll.update_many(filter, update).run()?;
     println!("Updated documents: {}", res.modified_count);
 
     Ok(())

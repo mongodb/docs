@@ -57,11 +57,11 @@ async fn main() -> mongodb::error::Result<()> {
     //end-sample-docs
 
     // Inserts sample documents into the collection
-    let insert_many_result = my_coll.insert_many(docs, None).await?;
+    let insert_many_result = my_coll.insert_many(docs).await?;
 
     //begin-literal
     let query = doc! { "name": "pear" };
-    let mut cursor = my_coll.find(query, None).await?;
+    let mut cursor = my_coll.find(query).await?;
     while let Some(doc) = cursor.try_next().await? {
         println!("{:?}", doc);
     }
@@ -70,7 +70,7 @@ async fn main() -> mongodb::error::Result<()> {
     //begin-comparison
     // $gt means "greater than"
     let query = doc! { "quantity": doc! { "$gt": 5 } };
-    let mut cursor = my_coll.find(query, None).await?;
+    let mut cursor = my_coll.find(query).await?;
     while let Some(doc) = cursor.try_next().await? {
         println!("{:?}", doc);
     }
@@ -83,7 +83,7 @@ async fn main() -> mongodb::error::Result<()> {
            doc! { "quantity": doc! { "$mod": [ 3, 0 ] } }
        ]
     };
-    let mut cursor = my_coll.find(query, None).await?;
+    let mut cursor = my_coll.find(query).await?;
     while let Some(doc) = cursor.try_next().await? {
         println!("{:?}", doc);
     }
@@ -91,7 +91,7 @@ async fn main() -> mongodb::error::Result<()> {
     println!("");
     //begin-element
     let query = doc! { "description": doc! { "$exists": true } };
-    let mut cursor = my_coll.find(query, None).await?;
+    let mut cursor = my_coll.find(query).await?;
     while let Some(doc) = cursor.try_next().await? {
         println!("{:?}", doc);
     }
@@ -100,7 +100,7 @@ async fn main() -> mongodb::error::Result<()> {
     //begin-evaluation
     // $mod means "modulo" and checks if the remainder is a specific value
     let query = doc! { "quantity": doc! { "$mod": [ 3, 0 ] } };
-    let mut cursor = my_coll.find(query, None).await?;
+    let mut cursor = my_coll.find(query).await?;
     while let Some(doc) = cursor.try_next().await? {
         println!("{:?}", doc);
     }
@@ -108,7 +108,7 @@ async fn main() -> mongodb::error::Result<()> {
     println!("");
     //begin-bitwise
     let query = doc! { "quantity": doc! { "$bitsAllSet": 7 } };
-    let mut cursor = my_coll.find(query, None).await?;
+    let mut cursor = my_coll.find(query).await?;
     while let Some(doc) = cursor.try_next().await? {
         println!("{:?}", doc);
     }
@@ -116,7 +116,7 @@ async fn main() -> mongodb::error::Result<()> {
     println!("");
     //begin-array
     let query = doc! { "vendors": doc! { "$elemMatch": { "$eq": "C" } } };
-    let mut cursor = my_coll.find(query, None).await?;
+    let mut cursor = my_coll.find(query).await?;
     while let Some(doc) = cursor.try_next().await? {
         println!("{:?}", doc);
     }

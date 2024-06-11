@@ -13,7 +13,7 @@ fn main() -> mongodb::error::Result<()> {
         .collection("restaurants");
 
     let filter = doc! { "cuisine": "Turkish" };
-    let boroughs = my_coll.distinct("borough", filter, None)?;
+    let boroughs = my_coll.distinct("borough", filter).run()?;
 
     println!("List of field values for 'borough':");
     for b in boroughs.iter() {

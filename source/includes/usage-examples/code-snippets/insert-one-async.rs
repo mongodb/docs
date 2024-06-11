@@ -24,7 +24,7 @@ async fn main() -> mongodb::error::Result<()> {
         borough: "Queens".to_string(),
     };
 
-    let res = my_coll.insert_one(doc, None).await?;
+    let res = my_coll.insert_one(doc).await?;
     println!("Inserted a document with _id: {}", res.inserted_id);
 
     Ok(())

@@ -10,6 +10,6 @@ for i in 0..5 {
             .database("items")
             .collection::<Document>(&format!("coll{}", i));
 
-        collection.insert_one(data_ref, None).await
+        collection.insert_one(data_ref).await
     });
 }

@@ -13,7 +13,7 @@ fn main() -> mongodb::error::Result<()> {
     let client = Client::with_options(client_options)?;
 
     // Send a ping to confirm a successful connection
-    client.database("admin").run_command(doc! { "ping": 1 }, None)?;
+    client.database("admin").run_command(doc! { "ping": 1 }).run()?;
     println!("Pinged your deployment. You successfully connected to MongoDB!");
 
     Ok(())

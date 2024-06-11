@@ -17,7 +17,8 @@ fn main() -> mongodb::error::Result<()> {
 
     client
         .database("admin")
-        .run_command(doc! { "ping": 1 }, None)?;
+        .run_command(doc! { "ping": 1 }, None)
+        .run()?;
     println!("Pinged your deployment. You successfully connected to MongoDB!");
 
     Ok(())

@@ -26,7 +26,7 @@ async fn main() -> mongodb::error::Result<()> {
         doc! { "name": "Arthur Ray", "age": 66, "genre_interests": vec!["sci-fi", "fantasy", "fiction"], "last_active": DateTime::builder().year(2023).month(11).day(27).build().unwrap() }
     ];
 
-    my_coll.insert_many(docs, None).await?;
+    my_coll.insert_many(docs).await?;
     // end-insert
 
     // begin-age-agg
@@ -40,10 +40,10 @@ async fn main() -> mongodb::error::Result<()> {
         } }
     ];
 
-    let mut results = my_coll.aggregate(age_pipeline, None).await?;
+    let mut results = my_coll.aggregate(age_pipeline).await?;
     while let Some(result) = results.try_next().await? {
-        let doc = bson::from_document(result)?;
-        println!("* {}", doc);
+        let doc = mongodb::bson::from_document(result)?;
+        println!("* {:?}", doc);
     }
     // end-age-agg
 
@@ -55,10 +55,10 @@ async fn main() -> mongodb::error::Result<()> {
         doc! { "$sort": { "_id.month_last_active" : 1 } }
     ];
 
-    let mut results = my_coll.aggregate(last_active_pipeline, None).await?;
+    let mut results = my_coll.aggregate(last_active_pipeline).await?;
     while let Some(result) = results.try_next().await? {
-        let doc = bson::from_document(result)?;
-        println!("* {}", doc);
+        let doc = mongodb::bson::from_document(result)?;
+        println!("* {:?}", doc);
     }
     // end-lastactive-agg
 
@@ -70,12 +70,13 @@ async fn main() -> mongodb::error::Result<()> {
         doc! { "$limit": 3 }
     ];
 
-    let mut results = my_coll.aggregate(popularity_pipeline, None).await?;
+    let mut results = my_coll.aggregate(popularity_pipeline).await?;
     while let Some(result) = results.try_next().await? {
-        let doc = bson::from_document(result)?;
-        println!("* {}", doc);
+        let doc = mongodb::bson::from_document(result)?;
+        println!("* {:?}", doc);
     }
     // end-popular-agg
 
     Ok(())
 }
+

@@ -40,10 +40,10 @@ async fn main() -> mongodb::error::Result<()> {
     //end-sample-data
 
     // Inserts sample documents into the collection
-    let insert_many_result = my_coll.insert_many(docs, None).await?;
+    let insert_many_result = my_coll.insert_many(docs).await?;
 
     // start-indiv-builtin
-    let mut cursor = my_coll.find(doc! { "color": "red" }, None).await?;
+    let mut cursor = my_coll.find(doc! { "color": "red" }).await?;
     while cursor.advance().await? {
         println!("{:?}", cursor.deserialize_current()?);
     }
@@ -52,14 +52,14 @@ async fn main() -> mongodb::error::Result<()> {
     println!();
 
     // start-indiv-stream
-    let mut cursor = my_coll.find(doc! { "color": "red" }, None).await?;
+    let mut cursor = my_coll.find(doc! { "color": "red" }).await?;
     println!("Output from next() iteration:");
     while let Some(doc) = cursor.next().await {
         println!("{:?}", doc?);
     }
 
     println!();
-    let mut cursor = my_coll.find(doc! { "color": "yellow" }, None).await?;
+    let mut cursor = my_coll.find(doc! { "color": "yellow" }).await?;
     println!("Output from try_next() iteration:");
     while let Some(doc) = cursor.try_next().await? {
         println!("{:?}", doc);
@@ -69,24 +69,24 @@ async fn main() -> mongodb::error::Result<()> {
     println!();
     
     // start-array
-    let cursor = my_coll.find(doc! { "color": "red" }, None).await?;
+    let cursor = my_coll.find(doc! { "color": "red" }).await?;
     println!("Output from collect():");
     let v: Vec<Result<Fruit>> = cursor.collect().await;
     println!("{:?}", v);
 
     println!();
-    let cursor = my_coll.find(doc! { "color": "yellow" }, None).await?;
+    let cursor = my_coll.find(doc! { "color": "yellow" }).await?;
     println!("Output from try_collect():");
     let v: Vec<Fruit> = cursor.try_collect().await?;
     println!("{:?}", v);
     // end-array
 
     // start-options
-    let opts: FindOptions = FindOptions::builder()
+    let mut cursor = my_coll.find(doc! { "color": "red" })
         .batch_size(5)
         .cursor_type(CursorType::Tailable)
         .no_cursor_timeout(true)
-        .build();
+        .await?;
     // end-options
 
     Ok(())

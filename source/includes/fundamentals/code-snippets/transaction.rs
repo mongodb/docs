@@ -16,20 +16,21 @@ async fn insert_media(session: &mut ClientSession) -> Result<(), Error> {
         .database("db")
         .collection::<Document>("films");
 
-    books_coll.insert_one_with_session(
-        doc! { 
-            "name": "Sula", 
+    books_coll
+        .insert_one(doc! {
+            "name": "Sula",
             "author": "Toni Morrison"
-        },
-        None,
-        session
-    ).await?;
+        })
+        .session(&mut *session)
+        .await?;
 
-    films_coll.insert_one_with_session(
-        doc! { "name": "Nostalgia", "year": 1983 },
-        None,
-        session
-    ).await?;
+    films_coll
+        .insert_one(doc! {
+            "name": "Nostalgia",
+            "year": 1983
+        })
+        .session(&mut *session)
+        .await?;
 
     Ok(())
 }
@@ -41,9 +42,11 @@ async fn main() -> mongodb::error::Result<()> {
     let client = Client::with_uri_str(uri).await?;
 
     // begin-session
-    let mut session = client.start_session(None).await?;
+    let mut session = client.start_session().await?;
+
     session
-        .with_transaction((), |session, _| insert_media(session).boxed(), None)
+        .start_transaction()
+        .and_run((), |session, _| insert_media(session).boxed())
         .await?;
     println!("Successfully committed transaction!");
     // end-session

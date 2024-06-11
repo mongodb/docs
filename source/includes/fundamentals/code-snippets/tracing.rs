@@ -12,7 +12,7 @@ async fn main() -> Result<()> {
 
     // start-operation
     let my_coll = client.database("db").collection("test_coll");
-    my_coll.insert_one(doc! { "x" : 1 }, None).await?;
+    my_coll.insert_one(doc! { "x" : 1 }).await?;
     // end-operation
 
     Ok(())

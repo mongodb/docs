@@ -39,7 +39,7 @@ async fn main() -> mongodb::error::Result<()> {
         tropical: true,
     };
 
-    my_coll.insert_one(calabash, None).await?;
+    my_coll.insert_one(calabash).await?;
     // end-insert-veg
 
     // begin-multiple-types

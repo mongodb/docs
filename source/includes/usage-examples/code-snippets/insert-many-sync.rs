@@ -29,7 +29,7 @@ fn main() -> mongodb::error::Result<()> {
         }
     ];
     
-    let insert_many_result = my_coll.insert_many(docs, None)?;
+    let insert_many_result = my_coll.insert_many(docs).run()?;
     println!("Inserted documents with _ids:");
     for (_key, value) in &insert_many_result.inserted_ids {
         println!("{}", value);

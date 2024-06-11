@@ -12,6 +12,6 @@ fn main() {
             .database("items")
             .collection::<Document>(&format!("coll{}", i));
 
-        collection.insert_one(somedata_ref, None);
+        collection.insert_one(somedata_ref);
     }
 }

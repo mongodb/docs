@@ -23,7 +23,7 @@ async fn main() -> mongodb::error::Result<()> {
     };
 
     let res = my_coll
-        .update_many(doc! { "department": "Marketing" }, update_doc, None)
+        .update_many(doc! { "department": "Marketing" }, update_doc)
         .await?;
     println!("Modified documents: {}", res.modified_count);
     // end-update
@@ -37,7 +37,7 @@ async fn main() -> mongodb::error::Result<()> {
     };
 
     let res = my_coll
-        .update_one(filter_doc, update_doc, None)
+        .update_one(filter_doc, update_doc)
         .await?;
     println!("Modified documents: {}", res.modified_count);
     // end-update-by-id
@@ -50,7 +50,7 @@ async fn main() -> mongodb::error::Result<()> {
     };
 
     let res = my_coll
-        .replace_one(doc! { "name": "Matt DeGuy" }, replace_doc, None)
+        .replace_one(doc! { "name": "Matt DeGuy" }, replace_doc)
         .await?;
     println!(
         "Matched documents: {}\nModified documents: {}",
@@ -61,8 +61,10 @@ async fn main() -> mongodb::error::Result<()> {
     let filter_doc = doc! {};
 
     // begin-options
-    let opts: UpdateOptions = UpdateOptions::builder().upsert(true).build();
-    let res = my_coll.update_one(filter_doc, update_doc, opts).await?;
+    let res = my_coll
+        .update_one(filter_doc, update_doc)
+        .upsert(true)
+        .await?;
     // end-options
 
     Ok(())

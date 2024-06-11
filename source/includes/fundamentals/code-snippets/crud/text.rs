@@ -39,8 +39,7 @@ async fn main() -> mongodb::error::Result<()> {
                 name: "Garlic Butter Trout".to_string(),
                 description: "Baked trout seasoned with garlic, lemon, dill, and, of course, butter. Serves 2.".to_string(),
             },
-        ],
-        None
+        ]
     ).await?;
 
     // begin-idx
@@ -48,13 +47,13 @@ async fn main() -> mongodb::error::Result<()> {
         .keys(doc! { "description": "text" })
         .build();
 
-    let idx_res = my_coll.create_index(index, None).await?;
+    let idx_res = my_coll.create_index(index).await?;
     // end-idx
 
     // begin-by-term
     let filter = doc! { "$text": { "$search": "herb" } };
 
-    let mut cursor = my_coll.find(filter, None).await?;
+    let mut cursor = my_coll.find(filter).await?;
     while let Some(doc) = cursor.try_next().await? {
         println!("{:?}", doc);
     }
@@ -63,7 +62,7 @@ async fn main() -> mongodb::error::Result<()> {
     // begin-by-phrase
     let filter = doc! { "$text": { "$search": "\"serves 2\"" } };
 
-    let mut cursor = my_coll.find(filter, None).await?;
+    let mut cursor = my_coll.find(filter).await?;
     while let Some(doc) = cursor.try_next().await? {
         println!("{:?}", doc);
     }
@@ -72,7 +71,7 @@ async fn main() -> mongodb::error::Result<()> {
     // begin-exclude-term
     let filter = doc! { "$text": { "$search": "vegan -tofu" } };
 
-    let mut cursor = my_coll.find(filter, None).await?;
+    let mut cursor = my_coll.find(filter).await?;
     while let Some(doc) = cursor.try_next().await? {
         println!("{:?}", doc);
     }
@@ -88,10 +87,12 @@ async fn main() -> mongodb::error::Result<()> {
         "name": 1, 
         "score": { "$meta": "textScore" } 
     };
-    let opts = FindOptions::builder().sort(sort).projection(projection).build();
 
     let doc_coll: Collection<Document> = my_coll.clone_with_type();
-    let mut cursor = doc_coll.find(filter, opts).await?;
+    let mut cursor = doc_coll.find(filter)
+        .sort(sort)
+        .projection(projection)
+        .await?;
 
     while let Some(doc) = cursor.try_next().await? {
         println!("{:?}", doc);
@@ -101,7 +102,7 @@ async fn main() -> mongodb::error::Result<()> {
     // begin-agg-term
     let match_stage = doc! { "$match": { "$text": { "$search": "herb" } } };
 
-    let mut cursor = my_coll.aggregate([match_stage], None).await?;
+    let mut cursor = my_coll.aggregate([match_stage]).await?;
     while let Some(doc) = cursor.try_next().await? {
         println!("{:?}", doc);
     }
@@ -118,7 +119,7 @@ async fn main() -> mongodb::error::Result<()> {
     } };
 
     let pipeline = [match_stage, sort_stage, proj_stage];
-    let mut cursor = my_coll.aggregate(pipeline, None).await?;
+    let mut cursor = my_coll.aggregate(pipeline).await?;
     while let Some(doc) = cursor.try_next().await? {
         println!("{:?}", doc);
     }

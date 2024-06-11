@@ -37,10 +37,10 @@ async fn main() -> mongodb::error::Result<()> {
     ];
     // end-docs
     
-    let insert_many_result = my_coll.insert_many(docs, None).await?;
+    let insert_many_result = my_coll.insert_many(docs).await?;
 
     // start-open
-    let mut change_stream = my_coll.watch(None, None).await?;
+    let mut change_stream = my_coll.watch().await?;
 
     while let Some(event) = change_stream.next().await.transpose()? {
         println!("Operation performed: {:?}", event.operation_type);
@@ -49,11 +49,10 @@ async fn main() -> mongodb::error::Result<()> {
     // end-open
 
     // start-pipeline
-    let pipeline = vec![
-        doc! { "$match" : doc! { "operationType" : "update" } }
-    ];
+    let mut update_change_stream = my_coll.watch()
+        .pipeline(vec![doc! { "$match" : doc! { "operationType" : "update" } }])
+        .await?;
 
-    let mut update_change_stream = my_coll.watch(pipeline, None).await?;
     while let Some(event) = update_change_stream.next().await.transpose()? {
         println!("Update performed: {:?}", event.update_description);
     }
@@ -61,20 +60,19 @@ async fn main() -> mongodb::error::Result<()> {
 
     // start-create-coll
     let enable = ChangeStreamPreAndPostImages::builder().enabled(true).build();
-    let opts = CreateCollectionOptions::builder()
-        .change_stream_pre_and_post_images(enable)
-        .build();
 
-    let result = my_db.create_collection("directors", opts).await?;
+    let result = my_db.create_collection("directors")
+        .change_stream_pre_and_post_images(enable)
+        .await?;
     // end-create-coll
 
     // start-pre
-    let pre_image = Some(FullDocumentBeforeChangeType::Required);
-    let opts = ChangeStreamOptions::builder()
-        .full_document_before_change(pre_image)
-        .build();
+    let pre_image = FullDocumentBeforeChangeType::Required;
 
-    let mut change_stream = my_coll.watch(None, opts).await?;
+    let mut change_stream = my_coll.watch()
+        .full_document_before_change(pre_image)
+        .await?;
+
     while let Some(event) = change_stream.next().await.transpose()? {
         println!("Operation performed: {:?}", event.operation_type);
         println!("Pre-image: {:?}", event.full_document_before_change);
@@ -82,12 +80,12 @@ async fn main() -> mongodb::error::Result<()> {
     // end-pre
 
     // start-post
-    let post_image = Some(FullDocumentType::WhenAvailable);
-    let opts = ChangeStreamOptions::builder()
-        .full_document(post_image)
-        .build();
+    let post_image = FullDocumentType::WhenAvailable;
 
-    let mut change_stream = my_coll.watch(None, opts).await?;
+    let mut change_stream = my_coll.watch()
+        .full_document(post_image)
+        .await?;
+
     while let Some(event) = change_stream.next().await.transpose()? {
         println!("Operation performed: {:?}", event.operation_type);
         println!("Post-image: {:?}", event.full_document);

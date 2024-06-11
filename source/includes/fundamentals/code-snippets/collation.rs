@@ -21,7 +21,7 @@ async fn main() -> mongodb::error::Result<()> {
         doc! {"name" : "Cryptonomicon", "length" : "918"},
         doc! {"name" : "Ça", "length" : "1138"}
     ];
-    let result = my_coll.insert_many(docs, None).await?;
+    let result = my_coll.insert_many(docs).await?;
 
     // start-collation
     let collation = Collation::builder()
@@ -35,16 +35,14 @@ async fn main() -> mongodb::error::Result<()> {
         .strength(CollationStrength::Primary)
         .build();
 
-    let opts = CreateCollectionOptions::builder()
+    let result = my_db.create_collection("books")
         .collation(collation)
-        .build();
-
-    let result = my_db.create_collection("books", opts).await?;
+        .await?;
     // end-create-collection
 
     // start-default-query
     let query = doc! { "name": doc! { "$lt": "Infinite Jest" } };
-    let mut cursor = my_coll.find(query, None).await?;
+    let mut cursor = my_coll.find(query).await?;
     
     while let Some(doc) = cursor.try_next().await? {
        println!("{}", doc);
@@ -65,7 +63,7 @@ async fn main() -> mongodb::error::Result<()> {
         .options(index_opts)
         .build();
 
-    let result = my_coll.create_index(index, None).await?;
+    let result = my_coll.create_index(index).await?;
     println!("Created index: {}", result.index_name);
     // end-index
 
@@ -74,13 +72,11 @@ async fn main() -> mongodb::error::Result<()> {
         .locale("en_US")
         .numeric_ordering(true)
         .build();
-
-    let opts = FindOptions::builder()
-        .collation(collation)
-        .build();
     
     let filter = doc! { "length": doc! { "$gt": "1000" } };
-    let mut cursor = my_coll.find(filter, opts).await?;
+    let mut cursor = my_coll.find(filter)
+        .collation(collation)
+        .await?;
 
     while let Some(result) = cursor.try_next().await? {
         println!("{}", result);

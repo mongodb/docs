@@ -17,7 +17,7 @@ async fn main() -> mongodb::error::Result<()> {
     let filter = doc! { "name": "Spice Market" };
     let update = doc! { "$set": doc! {"price": "$$$"} };
 
-    let res = my_coll.update_one(filter, update, None).await?;
+    let res = my_coll.update_one(filter, update).await?;
     println!("Updated documents: {}", res.modified_count);
 
     Ok(())

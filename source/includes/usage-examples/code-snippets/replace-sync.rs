@@ -24,7 +24,7 @@ fn main() -> mongodb::error::Result<()> {
         name: "Harvest Moon Café".to_string(),
     };
 
-    let res = my_coll.replace_one(filter, replacement, None)?;
+    let res = my_coll.replace_one(filter, replacement).run()?;
     println!("Replaced documents: {}", res.modified_count);
 
     Ok(())

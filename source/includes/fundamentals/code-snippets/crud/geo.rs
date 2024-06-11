@@ -56,7 +56,7 @@ async fn main() -> mongodb::error::Result<()> {
         .keys(doc! { "location.geo": "2dsphere" })
         .build();
 
-    let idx = my_coll.create_index(index, None).await?;
+    let idx = my_coll.create_index(index).await?;
     println!("Created index:\n{}", idx.index_name);
     // end-2dsphere
 
@@ -65,7 +65,7 @@ async fn main() -> mongodb::error::Result<()> {
         .keys(doc! { "location.geo.coordinates": "2d" })
         .build();
 
-    let idx = my_coll.create_index(index, None).await?;
+    let idx = my_coll.create_index(index).await?;
     println!("Created index:\n{}", idx.index_name);
     // end-2d
 
@@ -81,7 +81,7 @@ async fn main() -> mongodb::error::Result<()> {
         }
     };
 
-    let mut cursor = my_coll.find(query, None).await?;
+    let mut cursor = my_coll.find(query).await?;
     while let Some(doc) = cursor.try_next().await? {
         println!("{}", doc);
     }
@@ -105,7 +105,7 @@ async fn main() -> mongodb::error::Result<()> {
         doc! { "$geoWithin": { "$geometry": chicago }}
     };
 
-    let mut cursor = my_coll.find(query, None).await?;
+    let mut cursor = my_coll.find(query).await?;
     while let Some(doc) = cursor.try_next().await? {
         println!("{}", doc);
     }

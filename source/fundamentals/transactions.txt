@@ -64,17 +64,17 @@ describes these methods:
      - Description
 
    * - ``start_transaction()``
-     - | Starts a new transaction, configured according to an optional
-         ``TransactionOptions`` parameter, on this session. The session
+     - | Starts a new transaction on this session. The session
          must be passed into each operation within the transaction, or
          the operation will run outside of the transaction.
+       |
+       | You can set transaction options by chaining ``TransactionOptions``
+         option builder methods to ``start_transaction()``.
        |
        | Errors returned from operations run within the transaction
          might include a ``TRANSIENT_TRANSACTION_ERROR`` label, which
          indicates that the entire transaction can be ended, then retried
          with the expectation that it will succeed.
-       |
-       | **Parameter**: ``TransactionOptions``
 
    * - ``commit_transaction()``
      - | Commits the active transaction for this session. This method returns an
@@ -93,30 +93,29 @@ describes these methods:
          error if there is no active transaction for the session or if the
          transaction was committed or ended.
 
-   * - ``with_transaction()``
-     - | Starts a transaction on this session and runs the given
-         callback, then commits or ends the transaction. When you use
-         this method to perform a transaction, the driver automatically
+   * - ``and_run()``
+     - | Runs the given callback, then commits or ends the transaction. When you
+         use this method to perform a transaction, the driver automatically
          handles any errors, so you can choose to omit error handling code.
        |
        | Because the callback returns a future and can be run multiple
          times, the Rust language closure borrowing rules for captured
-         values can be restrictive. So, the ``with_transaction()``
+         values can be restrictive. So, the ``and_run()``
          method accepts a context parameter that is passed to the callback.
        |
        | **Parameters**: context ``C``, callback ``FnMut(&'a mut
-         ClientSession, &'a mut C)``, ``TransactionOptions``
+         ClientSession, &'a mut C)``
 
 .. important:: Methods That Can Run in Transactions
 
-   To run MongoDB tasks within transactions, you must use the
-   ``_with_session()`` suffixed methods. These methods accept a
+   To run MongoDB operations within transactions, you must chain the
+   ``session()`` method to the operation. This method accepts a
    ``ClientSession`` instance as a parameter.
 
    For example, to delete a document, you can generally use the
    ``delete_one()`` method. However, to delete a document within
-   a transaction, you must use the ``delete_one_with_session()``
-   method and pass the session as a parameter.
+   a transaction, you must chain the ``session()`` method to
+   ``delete_one()`` and pass the session as a parameter.
 
 Example
 -------
@@ -134,8 +133,9 @@ The following code completes the following actions to perform the
 transaction:
 
 1. Creates a session from the client by using the ``start_session()`` method.
-#. Uses the ``with_transaction()`` method to start a transaction and run
-   the ``insert_media()`` callback function within the transaction.
+#. Calls the ``start_transaction()`` method to start a transaction.
+#. Calls the ``and_run()`` method to run the ``insert_media()`` callback function
+   within the transaction.
 
 .. io-code-block::
 
@@ -183,5 +183,5 @@ guide, see the following API documentation:
 - `start_transaction() <{+api+}/struct.ClientSession.html#method.start_transaction>`__
 - `commit_transaction() <{+api+}/struct.ClientSession.html#method.commit_transaction>`__
 - `abort_transaction() <{+api+}/struct.ClientSession.html#method.abort_transaction>`__
-- `with_transaction() <{+api+}/struct.ClientSession.html#method.with_transaction>`__
+- `and_run() <{+api+}/struct.ClientSession.html#method.and_run>`__
 - `TransactionOptions <{+api+}/options/struct.TransactionOptions.html>`__

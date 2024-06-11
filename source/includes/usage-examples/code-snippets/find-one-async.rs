@@ -21,8 +21,7 @@ async fn main() -> mongodb::error::Result<()> {
         .collection("restaurants");
 
     let result = my_coll.find_one(
-        doc! { "name": "Tompkins Square Bagels" },
-        None
+        doc! { "name": "Tompkins Square Bagels" }
     ).await?;
 
     println!("{:#?}", result);

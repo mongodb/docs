@@ -31,7 +31,7 @@ async fn main() -> mongodb::error::Result<()> {
         }
     ];
     
-    let insert_many_result = my_coll.insert_many(docs, None).await?;
+    let insert_many_result = my_coll.insert_many(docs).await?;
     println!("Inserted documents with _ids:");
     for (_key, value) in &insert_many_result.inserted_ids {
         println!("{}", value);

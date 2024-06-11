@@ -18,7 +18,7 @@ async fn main() -> mongodb::error::Result<()> {
     let my_coll: Collection<Inventory> = client.database("db").collection("inventory");
 
     // start-sample
-    let docs = vec! [
+    let docs = vec![
         Inventory {
             item: "candle".to_string(),
             category: "decor".to_string(),
@@ -38,41 +38,35 @@ async fn main() -> mongodb::error::Result<()> {
             item: "watering can".to_string(),
             category: "garden".to_string(),
             unit_price: 11.99,
-        }
+        },
     ];
     // end-sample
 
     // Inserts sample documents into the collection
-    let insert_many_result = my_coll.insert_many(docs, None).await?;
+    let insert_many_result = my_coll.insert_many(docs).await?;
 
     // begin-find-many
-    let opts = FindOptions::builder()
+    let mut cursor = my_coll
+        .find(doc! { "$and": vec!
+        [
+            doc! { "unit_price": doc! { "$lt": 12.00 } },
+            doc! { "category": doc! { "$ne": "kitchen" } }
+        ] })
         .sort(doc! { "unit_price": -1 })
-        .build();
-
-    let mut cursor = my_coll.find(
-        doc! { "$and": vec!
-            [
-                doc! { "unit_price": doc! { "$lt": 12.00 } },
-                doc! { "category": doc! { "$ne": "kitchen" } }
-            ] },
-        opts
-    ).await?;
+        .await?;
 
     while let Some(result) = cursor.try_next().await? {
         println!("{:?}", result);
-    };
-    
+    }
+
     // end-find-many
     print!("\n");
 
     // begin-find-one
-    let opts = FindOneOptions::builder().skip(2).build();
-    let result = my_coll.find_one(
-        doc! { "unit_price":
-            doc! { "$lte": 20.00 } },
-        opts
-    ).await?;
+    let result = my_coll
+        .find_one(doc! { "unit_price": doc! { "$lte": 20.00 } })
+        .skip(2)
+        .await?;
 
     println!("{:#?}", result);
     // end-find-one
@@ -81,14 +75,14 @@ async fn main() -> mongodb::error::Result<()> {
     // begin-agg
     let pipeline = vec![
         doc! { "$group": doc! { "_id" : doc! {"category": "$category"} ,
-                                "avg_price" : doc! { "$avg" : "$unit_price" } } },
-        doc! { "$sort": { "_id.avg_price" : 1 } }
+        "avg_price" : doc! { "$avg" : "$unit_price" } } },
+        doc! { "$sort": { "_id.avg_price" : 1 } },
     ];
 
-    let mut cursor = my_coll.aggregate(pipeline, None).await?;
+    let mut cursor = my_coll.aggregate(pipeline).await?;
     while let Some(result) = cursor.try_next().await? {
         println!("{:?}", result);
-    };
+    }
     // end-agg
 
     Ok(())

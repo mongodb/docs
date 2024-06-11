@@ -18,16 +18,14 @@ async fn main() -> mongodb::error::Result<()> {
         .meta_field(Some("location".to_string()))
         .granularity(Some(TimeseriesGranularity::Minutes))
         .build();
-
-    let coll_opts = CreateCollectionOptions::builder()
-        .timeseries(ts_opts)
-        .build();
     
-    db.create_collection("sept2023", coll_opts).await?;
+    db.create_collection("sept2023")
+        .timeseries(ts_opts)
+        .await?;
     // end-create-ts
 
     // begin-list-colls
-    let mut coll_list = db.list_collections(None, None).await?;
+    let mut coll_list = db.list_collections().await?;
     while let Some(c) = coll_list.try_next().await? {
         println!("{:#?}", c);
     }
