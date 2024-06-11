@@ -109,7 +109,7 @@ see errors similar to the following messages:
    SSL handshake failed: localhost:27017: [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:997)
    SSL handshake failed: localhost:27017: EOF occurred in violation of protocol (_ssl.c:997)
 
-The MongoDB Server logs might also show the following error:
+The {+mdb-server+} logs might also show the following error:
 
 .. code-block:: python
 
@@ -121,5 +121,5 @@ with MongoDB versions earlier than v4.0. To resolve this issue, try one or more 
 following steps:
 
 - Downgrade Python to v3.9 or earlier
-- Upgrade MongoDB Server to v4.2 or later
+- Upgrade {+mdb-server+} to v4.2 or later
 - Install {+driver-short+} with the :ref:`OCSP <pymongo-disable-ocsp>` option, which relies on PyOpenSSL

@@ -3,7 +3,7 @@ Unrecognized field 'apiVersion' on server
 
 {+driver-short+} raises this exception if you specify an API version and connect to a
 MongoDB server that doesn't support the {+stable-api+}. Ensure you're connecting to a
-deployment running MongoDB Server v5.0 or later.
+deployment running {+mdb-server+} v5.0 or later.
 
 Provided apiStrict:true, but the command count is not in API Version
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
