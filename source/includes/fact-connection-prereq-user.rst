@@ -9,5 +9,5 @@ databases, while |service| users have access to the |service|
 application itself.
 
 You can create a database user to access your |service| {+database-deployment+} in
-the :guilabel:`Connect` dialog. You can also add the database user from
+the :guilabel:`Connect` dialog box. You can also add the database user from
 the :ref:`{+Database-Deployment+} view <mongodb-users>`.

@@ -1,5 +1,5 @@
 The :guilabel:`Cluster Tier` section of the 
-:guilabel:`Create New Cluster` dialog displays the available
+:guilabel:`Create New Cluster` dialog box displays the available
 |service| cluster tiers. |service| categorizes the cluster tiers
 into tiers as follows:
 

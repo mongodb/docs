@@ -16,7 +16,7 @@
 
       a. Click the :guilabel:`Indexes` tab, then select
          :guilabel:`Search Indexes`. 
-      #. Click :guilabel:`Create Index` to open the index creation dialog.
+      #. Click :guilabel:`Create Index` to open the index creation dialog box.
       #. Specify a name for the index and then the search index
          definition. 
 

@@ -32,12 +32,12 @@ To configure VPC Peering for a GCP-backed cluster:
             * - :guilabel:`Project ID`
 
               - |gcp| Project ID of the peer VPC. Refer to the
-                dialog for instructions on finding your :guilabel:`GCP
+                dialog box for instructions on finding your :guilabel:`GCP
                 Project ID`.
 
             * - :guilabel:`VPC Name`
 
-              - The name of the peer VPC. Refer to the dialog
+              - The name of the peer VPC. Refer to the dialog box
                 for instructions on finding your :guilabel:`VPC Name`.
 
       #. Click :guilabel:`Initiate Peering`.
