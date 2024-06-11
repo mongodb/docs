@@ -1,0 +1,564 @@
+.. _rust-bulk-guide:
+
+===============
+Bulk Operations
+===============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to
+perform **bulk operations**.
+
+Bulk operations perform multiple write operations against one or more
+**namespaces**. A namespace is a combination of the database name and
+the collection name, in the format ``<database>.<collection>``. Since
+you perform bulk operations on a ``Client`` instance, you can perform
+bulk operations against any namespace in the cluster accessed by your client.
+
+You can perform bulk operations to reduce the number of calls to the
+server. Instead of sending a request for each operation, bulk operations
+perform multiple operations within one action.
+
+This guide includes the following sections:
+
+- :ref:`rust-bulk-sample-data` presents the sample data that is used by the
+  bulk operation examples
+- :ref:`rust-bulk-operation-types` describes how to use ``WriteModel`` types to
+  perform bulk insert, replace, update, and delete operations
+- :ref:`rust-bulk-return-type` describes the return value of the ``bulk_write()``
+  method and how to access information about the bulk operation
+- :ref:`rust-bulk-modify-behavior` describes how to modify the default behavior of
+  the ``bulk_write()`` method
+- :ref:`rust-bulk-mixed-namespaces` describes how to perform a bulk operation on
+  multiple namespaces in one method call
+- :ref:`rust-bulk-addtl-info` provides links to resources and API documentation for
+  types and methods mentioned in this guide
+
+.. important::
+
+   To perform bulk write operations, ensure that your application meets the
+   following requirements:
+
+   - You are connected to MongoDB Server version 8.0 or later.
+   - You are using {+driver-short+} version 3.0 or later.
+
+.. _rust-bulk-sample-data:
+
+Sample Data
+-----------
+
+The examples in this guide use the following sample documents, which
+are stored in the ``mushrooms`` collection in the ``db`` database:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/crud/bulk.rs
+   :language: rust
+   :dedent:
+   :start-after: begin-sample-data
+   :end-before: end-sample-data
+
+You can also use custom struct types to represent your sample data. For
+an example that performs a bulk operation by using ``Mushroom`` structs
+to model the same data, see the :ref:`bulk-insert-structs-example` on this
+page.
+
+.. _rust-bulk-operation-types:
+
+Bulk Operation Types
+--------------------
+
+To perform a bulk write operation, pass an array of ``WriteModel`` enum instances to the 
+``bulk_write()`` method. 
+
+In this section, you can learn how to perform the following bulk write operations
+by defining their corresponding ``WriteModel`` types:
+
+- :ref:`Bulk insert operations <rust-bulk-insert-operation>`
+- :ref:`Bulk replace operations <rust-bulk-replace-operation>`
+- :ref:`Bulk update operations <rust-bulk-update-operation>`
+- :ref:`Bulk delete operations <rust-bulk-delete-operation>`
+
+.. tip::
+
+   You can also perform multiple types of write operations in a single ``bulk_write()``
+   method call. To view an example that passes an ``UpdateOneModel`` and an ``InsertOneModel`` to
+   the same ``bulk_write()`` call, see the :ref:`Modify Behavior example <rust-bulk-opts-example>`
+   in this guide.
+
+.. _rust-bulk-insert-operation:
+
+Insert
+~~~~~~
+
+To perform a bulk insert operation, create an ``InsertOneModel`` instance for each document
+you want to insert. Then, pass a list of models to the ``bulk_write()`` method.
+
+The following table describes ``InsertOneModel`` fields that you can set by calling their
+corresponding builder methods:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``namespace`` 
+     - | The namespace on which the insert is performed.
+       | Type: ``Namespace``
+
+   * - ``document`` 
+     - | The document to insert.
+       | Type: ``Document``
+
+.. _bulk-insert-docs-example:
+
+Insert Documents Example
+````````````````````````
+
+This example performs the following actions:
+
+- Specifies two ``InsertOneModel`` instances in an array. Each ``InsertOneModel`` represents
+  a document to be inserted into the ``db.mushrooms`` namespace.
+- Passes the array of models to the ``bulk_write()`` method.
+- Prints the number of inserted documents.
+
+.. io-code-block::
+
+   .. input:: /includes/fundamentals/code-snippets/crud/bulk.rs
+      :start-after: begin-insert
+      :end-before: end-insert
+      :language: rust
+      :dedent:
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      Inserted documents: 2
+
+.. _bulk-insert-structs-example:
+
+Insert Structs Example
+``````````````````````
+
+You can also model your documents by using structs and bulk insert struct instances into the
+``db.mushrooms`` namespace.
+
+This example performs the same operation as the preceding :ref:`bulk-insert-docs-example` but
+inserts instances of the following ``Mushroom`` struct type:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/crud/bulk.rs
+   :language: rust
+   :dedent:
+   :start-after: begin-mushroom-struct
+   :end-before: end-mushroom-struct
+
+The following code uses the ``insert_one_model()`` method to construct an ``InsertOneModel``
+from each ``Mushroom`` instance, then inserts both models in a bulk operation:
+
+.. io-code-block::
+
+   .. input:: /includes/fundamentals/code-snippets/crud/bulk.rs
+      :start-after: begin-insert-structs
+      :end-before: end-insert-structs
+      :language: rust
+      :dedent:
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      Inserted documents: 2
+
+.. tip::
+
+   To learn more about custom struct types and serialization in the {+driver-short+}, see the
+   guide on :ref:`rust-serialization`.
+
+.. _rust-bulk-replace-operation:
+
+Replace
+~~~~~~~
+
+To perform a bulk replace operation, create a ``ReplaceOneModel`` instance for each document
+you want to replace. Then, pass a list of models to the ``bulk_write()`` method.
+
+The following table describes ``ReplaceOneModel`` fields that you can set by calling their
+corresponding builder methods:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``namespace`` 
+     - | The namespace on which the operation is performed.
+       | Type: ``Namespace``
+
+   * - ``filter`` 
+     - | The filter that matches the document you want to replace.
+       | Type: ``Document``
+
+   * - ``replacement`` 
+     - | The replacement document.
+       | Type: ``Document``
+
+   * - ``collation`` 
+     - | (Optional) The collation to use when sorting results. To learn more about collations,
+         see the :ref:`rust-collations` guide.
+       | Type: ``Document``
+
+   * - ``hint`` 
+     - | (Optional) The index to use for the operation. To learn more about
+         indexes, see the :ref:`rust-indexes` guide.
+       | Type: ``Bson``
+
+   * - ``upsert`` 
+     - | (Optional) Whether a new document is created if no document matches the filter.
+       | By default, this field is set to ``false``.
+       | Type: ``bool``
+
+Example
+```````
+This example performs the following actions:
+
+- Specifies two ``ReplaceOneModel`` instances in an array. The ``ReplaceOneModel`` instances
+  contain instructions to replace documents representing mushrooms in the
+  ``db.mushrooms`` namespace.
+- Passes the array of models to the ``bulk_write()`` method.
+- Prints the number of modified documents.
+
+.. io-code-block::
+
+   .. input:: /includes/fundamentals/code-snippets/crud/bulk.rs
+      :start-after: begin-replace
+      :end-before: end-replace
+      :language: rust
+      :dedent:
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      Modified documents: 2
+
+.. _rust-bulk-update-operation:
+
+Update
+~~~~~~
+
+To perform a bulk update operation, create an ``UpdateOneModel`` or ``UpdateManyModel``
+instance for each update you want to make. Then, pass a list of models to the ``bulk_write()`` method.
+An ``UpdateOneModel`` updates only one document that matches a filter, while an ``UpdateManyModel``
+updates all documents that match a filter.
+
+The following table describes ``UpdateOneModel`` and ``UpdateManyModel`` fields that you can set
+by calling their corresponding builder methods:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``namespace`` 
+     - | The namespace on which the operation is performed.
+       | Type: ``Namespace``
+
+   * - ``filter`` 
+     - | The filter that matches one or more documents you want to update. When specified in an ``UpdateOneModel``,
+         only the first matching document will be updated. When specified in an ``UpdateManyModel``, all
+         matching documents will be updated.
+       | Type: ``Document``
+
+   * - ``update`` 
+     - | The update to perform.
+       | Type: ``UpdateModifications``
+
+   * - ``array_filters`` 
+     - | (Optional) A set of filters specifying which array elements an update applies to if you are updating an
+         array-valued field.
+       | Type: ``Array``
+
+   * - ``collation`` 
+     - | (Optional) The collation to use when sorting results. To learn more about collations,
+         see the :ref:`rust-collations` guide.
+       | Type: ``Document``
+
+   * - ``hint`` 
+     - | (Optional) The index to use for the operation. To learn more about
+         indexes, see the :ref:`rust-indexes` guide.
+       | Type: ``Bson``
+
+   * - ``upsert`` 
+     - | (Optional) Whether a new document is created if no document matches the filter.
+         By default, this field is set to ``false``.
+       | Type: ``bool``
+
+Example
+```````
+
+This example performs the following actions:
+
+- Specifies an ``UpdateOneModel`` and an ``UpdateManyModel`` instance in an array. These models
+  contain instructions to update documents representing mushrooms in the
+  ``db.mushrooms`` namespace.
+- Passes the array of models to the ``bulk_write()`` method.
+- Prints the number of modified documents.
+
+.. io-code-block::
+
+   .. input:: /includes/fundamentals/code-snippets/crud/bulk.rs
+      :start-after: begin-update
+      :end-before: end-update
+      :language: rust
+      :dedent:
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      Modified documents: 2
+
+.. _rust-bulk-delete-operation:
+
+Delete
+~~~~~~
+
+To perform a bulk delete operation, create a ``DeleteOneModel`` or ``DeleteManyModel``
+instance for each delete operation. Then, pass a list of models to the ``bulk_write()`` method.
+A ``DeleteOneModel`` deletes only one document that matches a filter, while a ``DeleteManyModel``
+deletes all documents that match a filter.
+
+The following table describes ``DeleteOneModel`` and ``DeleteManyModel`` fields that you can set
+by calling their corresponding builder methods:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``namespace`` 
+     - | The namespace on which the operation is performed.
+       | Type: ``Namespace``
+
+   * - ``filter`` 
+     - | The filter that matches one or more documents you want to delete. When specified in a ``DeleteOneModel``,
+         only the first matching document will be deleted. When specified in a ``DeleteManyModel``, all
+         matching documents will be deleted.
+       | Type: ``Document``
+
+   * - ``collation`` 
+     - | (Optional) The collation to use when sorting results. To learn more about collations,
+         see the :ref:`rust-collations` guide.
+       | Type: ``Document``
+
+   * - ``hint`` 
+     - | (Optional) The index to use for the operation. To learn more about
+         indexes, see the :ref:`rust-indexes` guide.
+       | Type: ``Bson``
+
+Example
+```````
+
+This example performs the following actions:
+
+- Specifies a ``DeleteOneModel`` and a ``DeleteManyModel`` instance in an array. These models
+  contain instructions to delete documents representing mushrooms in the
+  ``db.mushrooms`` namespace.
+- Passes the array of models to the ``bulk_write()`` method.
+- Prints the number of deleted documents.
+
+.. io-code-block::
+
+   .. input:: /includes/fundamentals/code-snippets/crud/bulk.rs
+      :start-after: begin-delete
+      :end-before: end-delete
+      :language: rust
+      :dedent:
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      Deleted documents: 4
+
+.. _rust-bulk-return-type:
+
+Return Type
+-----------
+
+The ``bulk_write()`` method returns a ``SummaryBulkWriteResult`` struct instance from which
+you can access information about your bulk operation.
+
+The ``SummaryBulkWriteResult`` type has the following fields:
+
+- ``inserted_count``: the number of inserted documents
+- ``matched_count``: the number of matched documents
+- ``modified_count``: the number of updated documents
+- ``upserted_count``: the number of upserted documents
+- ``deleted_count``: the number of deleted documents
+
+You can also use the ``verbose_results()`` method to see detailed information about each
+operation. The ``verbose_results()`` method returns a ``VerboseBulkWriteResult`` struct
+instance, which has the following fields:
+
+- ``delete_results``: the results of each successful delete operation
+- ``insert_results``: the results of each successful insert operation
+- ``update_results``: the results of each successful update operation
+- ``summary``: a summary of the results of each operation type
+
+The following example chains the ``verbose_results()`` method to the ``bulk_write()`` method
+and prints the results of the update and delete operations:
+
+.. io-code-block::
+
+   .. input:: /includes/fundamentals/code-snippets/crud/bulk.rs
+      :start-after: begin-verbose
+      :end-before: end-verbose
+      :language: rust
+      :dedent:
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      Update results: {1: UpdateResult { matched_count: 1, modified_count: 1, upserted_id: None }}
+      Delete results: {0: DeleteResult { deleted_count: 1 }}
+
+
+.. _rust-bulk-modify-behavior:
+
+Modify Behavior
+---------------
+
+You can modify the behavior of the ``bulk_write()`` method by setting ``BulkWriteOptions`` field
+values. To set these struct fields, chain the fields' corresponding methods to the ``bulk_write()``
+method.
+
+The ``BulkWriteOptions`` struct contains the following fields:
+
+.. list-table::
+   :widths: 20 60 20
+   :header-rows: 1
+
+   * - Field
+     - Description
+     - Default Value
+
+   * - ``ordered`` 
+     - | Whether the operations run in the order in which they were specified.
+       | When set to ``true``, one failed operation prevents subsequent operations from running.
+       | When set to ``false``, the server continues to attempt write operations if one fails.
+       | Type: ``bool``
+     - ``true``
+
+   * - ``bypass_document_validation``
+     - | Whether document-level validation is bypassed.
+       | Type: ``bool``
+     - ``false``
+
+   * - ``comment``
+     - | An arbitrary comment to help trace the operation through the database profiler, currentOp,
+         and logs.
+       | Type: ``Bson``
+     - ``None``
+
+   * - ``let_vars``
+     - | A map of parameter names and values to apply to all operations within the bulk write.
+         Values must be constant or closed expressions that do not reference document fields.
+       | Type: ``Document``
+     - ``None``
+
+   * - ``write_concern``
+     - | The write concern to use for this bulk operation.
+       | Type: ``WriteConcern``
+     - Inherits the namespace's write concern
+
+.. _rust-bulk-opts-example:
+
+Example
+~~~~~~~
+
+This example attempts to perform update and insert operations on the ``mushrooms``
+collection. The following code sets the ``ordered`` field to ``false`` by chaining
+the ``ordered()`` method to the ``bulk_write()`` method:
+
+.. io-code-block::
+
+   .. input:: /includes/fundamentals/code-snippets/crud/bulk.rs
+      :start-after: begin-options
+      :end-before: end-options
+      :language: rust
+      :dedent:
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      Error: Error { kind: BulkWrite(BulkWriteError { write_concern_errors: [], write_errors:
+      {0: WriteError { code: 66, code_name: None, message: "Plan executor error during update ::
+      caused by :: Performing an update on the path '_id' would modify the immutable field '_id'",
+      details: None }}, partial_result: Some(Summary(SummaryBulkWriteResult { inserted_count: 1,
+      matched_count: 0, modified_count: 0, upserted_count: 0, deleted_count: 0 })) }),
+      labels: ... }
+
+The ``_id`` field is immutable and cannot be changed in an update operation. Since the ``UpdateOneModel``
+includes instructions to update this field, the bulk operation returns a ``BulkWriteError`` and performs
+only the insert operation. If you set the ``ordered`` field to ``true``, the driver does not attempt any
+subsequent operations after the unsuccessful update operation, and the driver does not insert any
+documents.
+
+.. _rust-bulk-mixed-namespaces:
+
+Write to Mixed Namespaces
+-------------------------
+
+The preceding examples on this page perform bulk operations on the ``db.mushrooms`` namespace. However,
+you can perform bulk writes on multiple namespaces in a single method call.
+
+The following example inserts one document into the ``ingredients.sweet`` namespace and one document into
+the ``meals.dessert`` namespace:
+
+.. io-code-block::
+
+   .. input:: /includes/fundamentals/code-snippets/crud/bulk.rs
+      :start-after: begin-mixed-namespaces
+      :end-before: end-mixed-namespaces
+      :language: rust
+      :dedent:
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      Inserted documents: 2
+
+.. _rust-bulk-addtl-info:
+
+Additional Information
+----------------------
+
+To learn more about bulk operations, see :manual:`Bulk Write Operations </core/bulk-write-operations/>`
+in the Server manual.
+
+.. TODO: add API links once they exist
+    API Documentation
+    ~~~~~~~~~~~~~~~~~
+
+    To learn more about any of the methods or types discussed in this
+    guide, see the following API documentation:
+
+
