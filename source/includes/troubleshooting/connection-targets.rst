@@ -1,7 +1,7 @@
 Server Reports Wire Version X, PyMongo Requires Y
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you try to connect to MongoDB Server v3.4 or earlier,
+If you try to connect to {+mdb-server+} v3.4 or earlier,
 {+driver-short+} might raise the following error:
 
 .. code-block:: 
@@ -10,7 +10,7 @@ If you try to connect to MongoDB Server v3.4 or earlier,
 
 This occurs when the driver version is too new for the server it's connecting to.
 To resolve this issue, upgrade your MongoDB deployment to v3.6 or later, or downgrade to
-{+driver-short+} v3.x, which supports MongoDB Server v2.6 and later.
+{+driver-short+} v3.x, which supports {+mdb-server+} v2.6 and later.
 
 AutoReconnect
 ~~~~~~~~~~~~~
