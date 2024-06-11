@@ -28,6 +28,7 @@ CDC events from each of the preceding datastores:
          change.data.capture.handler=com.mongodb.kafka.connect.sink.cdc.debezium.mongodb.ChangeStreamHandler
 
       .. note::
+
          If you are using a Debezium CDC version earlier than 2.0, set the value of the
          ``change.data.capture.handler`` property to ``com.mongodb.kafka.connect.sink.cdc.debezium.mongodb.MongoDbHandler``.
 
