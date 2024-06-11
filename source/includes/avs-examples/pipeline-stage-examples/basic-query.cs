@@ -32,7 +32,8 @@ public class vectorSearchBasicQuery
                 .VectorSearch(m => m.Embedding, vector, 10, options)
                 .Project(Builders<EmbeddedMovie>.Projection
                   .Include(m => m.Title)
-                  .Include(movie => movie.Plot))
+                  .Include(m => m.Plot)
+                  .MetaVectorSearchScore(m => m.Score))
                 .ToList();
 
     // print results
@@ -51,4 +52,5 @@ public class EmbeddedMovie
     public string Plot { get; set; }
     [BsonElement("plot_embedding")]
     public double[] Embedding { get; set; }
+    public double Score { get; set; }
 }

@@ -39,7 +39,8 @@ public class vectorSearchFilterQuery
                 .Project(Builders<EmbeddedMovie>.Projection
                   .Include(m => m.Title)
                   .Include(movie => movie.Plot)
-                  .Include(movie => movie.Year))
+                  .Include(movie => movie.Year)
+                  .MetaVectorSearchScore(m => m.Score))
                 .ToList();
 
     // print results
@@ -59,4 +60,5 @@ public class EmbeddedMovie
     public int Year { get; set; }
     [BsonElement("plot_embedding")]
     public double[] Embedding { get; set; }
+    public double Score { get; set; }
 }
