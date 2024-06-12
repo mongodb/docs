@@ -28,10 +28,19 @@ supports :ref:`auditing <auditing>` of various operations. When
 :ref:`enabled <configure-auditing>`, the audit facility, by
 default, records all auditable operations as detailed in
 :ref:`audit-action-details-results`. You can specify event filters to
-limit which events are recorded. Filters can be configured at
-:ref:`startup <configure-audit-filters-at-startup>` or MongoDB can be
-configured to allow
-:ref:`runtime specification <configure-audit-filters-at-runtime>`.
+limit which events are recorded.
+
+You can configure audit filters at :ref:`startup
+<configure-audit-filters-at-startup>` or you can configure MongoDB to
+allow filter configuration at :ref:`runtime
+<configure-audit-filters-at-runtime>`.
+
+Audit Filter Syntax
+-------------------
+
+Audit filters have the same form as query predicate documents specified
+to :dbcommand:`find` commands. To see example audit filters, see
+:ref:`audit-filter-examples`.
 
 .. _configure-audit-filters-at-runtime:
 
@@ -62,8 +71,16 @@ below for sample configurations.
    :ref:`configuration file <configuration-options>` cannot be used to
    specify audit filters.
 
+.. _audit-filter-examples:
+
 Examples
 --------
+
+Record All Auditable Events
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To record all auditable events, do not specify an audit filter. By
+default, the audit facility records all auditable operations.
 
 Filter for Multiple Operation Types
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -323,14 +340,53 @@ The audited operations include:
       filter: '{ atype: "authCheck", "param.ns": "test.orders", "param.command": { $in: [ "find", "insert", "delete", "update", "findAndModify" ] } }'
    setParameter: { auditAuthorizationSuccess: true }
 
-.. seealso::
+Specify Top-Level Query Operators ($or)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   - :ref:`configure-auditing`
-   - :ref:`auditing`
-   - :ref:`audit-message`
-   - :ref:`auditConfig`
+To filter on multiple audit message fields, you can specify a top-level
+query operator like :query:`$or`. For example, the following filter
+captures operations where either ``atype`` is ``authenticate`` or the
+operation was performed by a user with the ``readWrite`` role:
+
+.. code-block:: javascript
+
+   {
+      $or: [
+         { atype: "authenticate" },
+         { "roles.role": "readWrite" }
+      ]
+   }
+
+.. include:: /includes/fact-audit-filter-single-quotes.rst
+
+.. code-block:: javascript
+
+   mongod --dbpath data/db --auth --setParameter auditAuthorizationSuccess=true --auditDestination file --auditFilter '{ $or: [ { atype: "authenticate" }, { "roles.role": "readWrite" } ] }' --auditFormat BSON --auditPath data/db/auditLog.bson
+
+.. include:: /includes/extracts/default-bind-ip-security-additional-command-line.rst
+
+.. include:: /includes/fact-audit-filter-yaml-configuration.rst
+
+.. code-block:: yaml
+
+   storage:
+      dbPath: data/db
+   security:
+      authorization: enabled
+   auditLog:
+      destination: file
+      format: BSON
+      path: data/db/auditLog.bson
+      filter: '{ $or: [ { atype: "authenticate" }, { "roles.role": "readWrite" } ] }'
+
+Learn More
+----------
+
+- :ref:`configure-auditing`
+- :ref:`auditing`
+- :ref:`audit-message`
+- :ref:`auditConfig`
 
 .. [#authorization-agnostic] You can enable :parameter:`auditAuthorizationSuccess`
    parameter without enabling ``--auth``; however, all operations will
    return success for authorization checks.
-
