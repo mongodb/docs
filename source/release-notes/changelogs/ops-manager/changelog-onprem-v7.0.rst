@@ -5,7 +5,7 @@
 
 *Released 2024-06-06*
 
-- Improved release automation. Fixed a potential issue that can could
+- Improved release automation. Fixed a potential issue that could
   cause termination jobs to timeout.
 
 .. _opsmgr-server-7.0.6: 
