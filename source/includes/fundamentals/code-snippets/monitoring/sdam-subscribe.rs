@@ -1,35 +1,20 @@
-use std::{ env, sync::Arc };
-
-use bson::Document;
 use mongodb::{
-    Client,
-    Collection,
-    event::sdam::{ SdamEventHandler, ServerOpeningEvent },
+    bson::{doc, Document},
+    event::EventHandler,
     options::ClientOptions,
+    Client, Collection,
 };
 
-fn main() -> mongodb::error::Result<()> {
-    let uri = "<connection string>";
-
-    let mut client_options = ClientOptions::parse_async(uri).await?;
-
+#[tokio::main]
+async fn main() -> mongodb::error::Result<()> {
     // begin-sdam
-    struct ServerOpenHandler;
-
-    impl SdamEventHandler for ServerOpenHandler {
-        fn handle_server_opening_event(&self, event: ServerOpeningEvent) {
-            eprintln!("Server opening: {:?}", event);
-        }
-    }
-
-    let handler: Arc<dyn SdamEventHandler> = Arc::new(ServerOpenHandler);
-    client_options.sdam_event_handler = Some(handler);
+    let mut client_options = ClientOptions::parse("<connection string>").await?;
+    client_options.sdam_event_handler = Some(EventHandler::callback(|ev| println!("{:?}", ev)));
 
     let client = Client::with_options(client_options)?;
 
     // ... perform actions with the client to generate events
 
     // end-sdam
-
     Ok(())
 }
