@@ -75,7 +75,22 @@ Click on the tab to learn more about creating a collection or a view.
       :tabid: views 
 
       This tab contains the syntax and parameters for creating a view 
-      for a collection.
+      for a source collection or collection that you specify through an
+      SQL statement inside in the pipeline.
+
+      .. tabs:: 
+
+         .. tab:: Standard View
+            :tabid: source 
+
+            This tab describes the syntax and parameters for creating a 
+            standard view that runs an aggregation pipeline on another collection.
+
+         .. tab:: SQL View
+            :tabid: sql 
+
+            This tab describes the syntax and parameters for creating an 
+            SQL view using the :ref:`adf-sql-stage` stage.
 
 .. _dl-collections-views-create-cmd-syntax:
 
@@ -134,9 +149,22 @@ Syntax
    .. tab:: Views 
       :tabid: views
 
-      .. code-block:: sh
+      .. tabs:: 
+         :hidden: 
 
-         db.runCommand({ "create" : "<view-name>", "viewOn" :" <collection-name>", "pipeline" : ["<stage1>","<stage2>",...] })
+         .. tab:: Standard View 
+            :tabid: source
+
+            .. code-block:: sh
+
+               db.runCommand({ "create" : "<view-name>", "viewOn" :" <collection-name>", "pipeline" : ["<stage1>","<stage2>",...] })
+
+         .. tab:: SQL View 
+            :tabid: sql
+
+            .. code-block:: sh
+
+               db.runCommand({ "create" : "<view-name>", "pipeline" : ["$sql": {"statement": "<SQL-statement>", "excludeNamespaces": true | false ]} })
 
 .. _dl-collections-views-create-cmd-params:
 
@@ -489,46 +517,80 @@ Parameters
    .. tab:: Views
       :tabid: views 
 
-      .. list-table::
-         :header-rows: 1
-         :widths: 25 15 50 10 
+      .. tabs:: 
+         :hidden: 
 
-         * - Parameter 
-           - Type 
-           - Description 
-           - Necessity
+         .. tab:: Standard View 
+            :tabid: source
 
-         * - ``<view-name>``
-           - string
-           - The name of the :manual:`view </core/views/>`. A view name 
-             **must** be unique. It cannot be the same as a collection 
-             name or any other view name in the same database.
-           - Required
+            .. list-table::
+               :header-rows: 1
+               :widths: 25 15 50 10 
 
-         * - ``viewOn``
-           - string 
-           - The name of the source collection on which to create the 
-             view.
-           - Required
+               * - Parameter 
+                 - Type 
+                 - Description 
+                 - Necessity
 
-         * - ``pipeline``
-           - array of :manual:`stages </core/aggregation-pipeline/#id1>`
-           - The array of :manual:`aggregation pipeline stages 
-             </core/aggregation-pipeline/#id1>` to use to create the 
-             view.
+               * - ``<view-name>``
+                 - string
+                 - The name of the :manual:`view </core/views/>`. A view name 
+                   **must** be unique. It cannot be the same as a collection 
+                   name or any other view name in the same database.
+                 - Required
 
-             The view definition pipeline cannot include the 
-             :manual:`$out 
-             </reference/operator/aggregation/out/#pipe._S_out>` or the 
-             :manual:`$merge 
-             </reference/operator/aggregation/merge/#pipe._S_merge>` 
-             stage, even inside nested pipeline stages like 
-             :manual:`$lookup 
-             </reference/operator/aggregation/lookup/#pipe._S_lookup>` 
-             or 
-             :manual:`$facet 
-             </reference/operator/aggregation/facet/#pipe._S_facet>`.
-           - Required
+               * - ``viewOn``
+                 - string 
+                 - The name of the source collection on which to create the 
+                   view.
+                 - Required
+
+               * - ``pipeline``
+                 - array of :manual:`stages </core/aggregation-pipeline/#id1>`
+                 - The array of :manual:`aggregation pipeline stages 
+                   </core/aggregation-pipeline/#id1>` to use to create the 
+                   view.
+
+                   The view definition pipeline cannot include the 
+                   :manual:`$out 
+                   </reference/operator/aggregation/out/#pipe._S_out>` or the 
+                   :manual:`$merge 
+                   </reference/operator/aggregation/merge/#pipe._S_merge>` 
+                   stage, even inside nested pipeline stages like 
+                   :manual:`$lookup 
+                   </reference/operator/aggregation/lookup/#pipe._S_lookup>` 
+                   or 
+                   :manual:`$facet 
+                   </reference/operator/aggregation/facet/#pipe._S_facet>`.
+                 - Required
+
+         .. tab:: SQL View 
+            :tabid: sql
+
+            .. list-table::
+               :header-rows: 1
+               :widths: 20 10 60 10 
+
+               * - Parameter 
+                 - Type 
+                 - Description 
+                 - Necessity
+
+               * - ``<view-name>``
+                 - string
+                 - The name of the :manual:`view </core/views/>`. A view name 
+                   **must** be unique. It cannot be the same as a collection 
+                   name or any other view name in the same database. 
+                 - Required
+
+               * - ``pipeline``
+                 - array of :manual:`stages </core/aggregation-pipeline/#id1>`
+                 - The :manual:`Aggregation pipeline stages
+                   </core/aggregation-pipeline/#id1>` to apply to the
+                   collection. For SQL views, ``pipeline`` must start with a
+                   :ref:`adf-sql-stage` stage that specifies a source collection
+                   in the SQL statement.
+                 - Required
 
 .. _dl-collections-views-create-cmd-output:
 
@@ -1594,69 +1656,15 @@ Examples
    .. tab:: Create Views Example
       :tabid: views
 
-      The following command creates a view named ``listings`` on the 
-      ``airbnb`` collection in the ``sample`` database with the 
-      ``name`` and ``property_type`` fields:
-
-      .. io-code-block::
-         :copyable: true 
-   
-         .. input::
-            :language: javascript 
-
-            use sampleDB
-            db.runCommand({ "create" : "listings", "viewOn" : "airbnb", "pipeline" : [{$project: {"property_type":1, "name": 1}}] })
-
-         .. output::
-            :language: json 
-
-            { "ok" : 1 }
-
-      The ``listCollections`` and ``storageGetConfig`` commands return 
-      the following output: 
+      The following command creates a view named ``listings`` on the
+      ``airbnb`` collection in the ``sample`` database with the ``name``
+      and ``property_type`` fields: 
 
       .. tabs:: 
+         :hidden: 
 
-         .. tab:: listCollections
-            :tabid: listCollections
-
-            .. io-code-block::
-               :copyable: true 
-   
-               .. input::
-                  :language: javascript
-
-                  db.runCommand({"listCollections":1})
-
-               .. output::
-                  :language: json
-
-                  {
-	                 "ok" : 1,
-	                 "cursor" : {
-		                "firstBatch" : [
-			               {
-				              "name" : "airbnb",
-				              "type" : "collection",
-				              "info" : {
-					             "readOnly" : true
-				              }
-			               },
-			               {
-				              "name" : "listings",
-				              "type" : "view",
-				              "info" : {
-					             "readOnly" : true
-				              }
-		   	            }
-		                ],
-		                "id" : NumberLong(0),
-		                "ns" : "egS3Store.$cmd.listCollections"
-	                 }
-                  }
-
-         .. tab:: storageGetConfig
-            :tabid: storageGetConfig
+         .. tab:: Standard View 
+            :tabid: source
 
             .. io-code-block::
                :copyable: true 
@@ -1664,57 +1672,134 @@ Examples
                .. input::
                   :language: javascript 
 
-                  db.runCommand({"storageGetConfig":1})
+                  use sampleDB
+                  db.runCommand({ "create" : "listings", "viewOn" : "airbnb", "pipeline" : [{$project: {"property_type":1, "name": 1}}] })
 
                .. output::
-                  :language: json
+                  :language: json 
 
-                  {
-	                  "ok" : 1,
-	                  "storage" : {
-		                 "stores" : [
-			                {
-				               "name" : "egS3Store",
-				               "provider" : "s3",
-				               "region" : "us-east-2",
-				               "bucket" : "test-data-federation",
-	  			               "delimiter" : "/"
-			                }
-		                  ],
-		                  "databases" : [
-			                 {
-				                "name" : "sample",
-				                "collections" : [
-					               {
-						              "name" : "airbnb",
-					   	           "dataSources" : [
-						   	          {
-								            "storeName" : "egS3Store",
-								            "path" : "json/airbnb/*"
-							             }
-						              ]
-					               },
-					               {
-						              "name" : "*",
-						              "dataSources" : [
-							             {
-								            "storeName" : "egS3Store",
-								            "path" : "json/{collectionName()}"
-				   			          }
-						              ]
-					               }
-				                ],
-				                "views" : [
-					               {
-						              "name" : "listings",
-	  					              "source" : "airbnb",
-						              "pipeline" : "[{\"$project\":{\"property_type\":{\"$numberInt\":\"1\"},\"name{\"$numberInt\":\"1\"}}}]"
-					               }
-			   	             ]
-			                 }
-		                  ]
-	                  }
-                  }
+                  { "ok" : 1 }
+
+         .. tab:: SQL View 
+            :tabid: sql
+
+            .. io-code-block::
+               :copyable: true 
+   
+               .. input::
+                  :language: javascript
+                  
+                  use sampleDB
+                  db.runCommand({ "create" : "listings", "pipeline": [{$sql: {statement: "SELECT property_type, name FROM airbnb"} }] })
+
+               .. output::
+                  :language: json 
+
+                  { "ok" : 1 }
+
+            The ``listCollections`` and ``storageGetConfig`` commands return 
+            the following output: 
+
+            .. tabs:: 
+
+               .. tab:: listCollections
+                  :tabid: listCollections
+
+                  .. io-code-block::
+                     :copyable: true 
+   
+                     .. input::
+                        :language: javascript
+
+                        db.runCommand({"listCollections":1})
+
+                     .. output::
+                        :language: json
+
+                        {
+      	                 "ok" : 1,
+	                       "cursor" : {
+		                      "firstBatch" : [
+			                     {
+				                    "name" : "airbnb",
+      				              "type" : "collection",
+		      		              "info" : {
+				      	             "readOnly" : true
+				                    }
+			                     },
+			                     {
+      				              "name" : "listings",
+		      		              "type" : "view",
+				                    "info" : {
+					                   "readOnly" : true
+				                    }
+		   	                  }
+		                      ],
+      		                "id" : NumberLong(0),
+		                      "ns" : "egS3Store.$cmd.listCollections"
+	                       }
+                        }
+
+               .. tab:: storageGetConfig
+                  :tabid: storageGetConfig
+
+                  .. io-code-block::
+                     :copyable: true 
+   
+                     .. input::
+                        :language: javascript 
+
+                        db.runCommand({"storageGetConfig":1})
+
+                     .. output::
+                        :language: json
+
+                        {
+	                        "ok" : 1,
+      	                  "storage" : {
+		                       "stores" : [
+			                      {
+				                     "name" : "egS3Store",
+				                     "provider" : "s3",
+      				               "region" : "us-east-2",
+		      		               "bucket" : "test-data-federation",
+	  			                     "delimiter" : "/"
+			                      }
+		                        ],
+      		                  "databases" : [
+		      	                 {
+				                      "name" : "sample",
+				                      "collections" : [
+					                     {
+						                    "name" : "airbnb",
+      					   	           "dataSources" : [
+		      				   	          {
+				      				            "storeName" : "egS3Store",
+						      		            "path" : "json/airbnb/*"
+							                   }
+						                    ]
+					                     },
+					                     {
+      						              "name" : "*",
+		      				              "dataSources" : [
+				      			             {
+						      		            "storeName" : "egS3Store",
+								                  "path" : "json/{collectionName()}"
+				   			                }
+						                    ]
+					                     }
+				                      ],
+      				                "views" : [
+		      			               {
+				      		              "name" : "listings",
+	  					                    "source" : "airbnb",
+						                    "pipeline" : "[{\"$project\":{\"property_type\":{\"$numberInt\":\"1\"},\"name{\"$numberInt\":\"1\"}}}]"
+					                     }
+			   	                   ]
+			                       }
+		                        ]
+	                        }
+                        }
 
 .. _dl-collections-views-create-cmd-verify:
 
