@@ -1,3 +1,13 @@
+.. _opsmgr-server-7.0.7:
+
+|onprem| Server 7.0.7
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2024-06-06*
+
+- Improved release automation. Fixed a potential issue that could
+  cause termination jobs to timeout.
+
 .. _opsmgr-server-7.0.6: 
 
 |onprem| Server 7.0.6
