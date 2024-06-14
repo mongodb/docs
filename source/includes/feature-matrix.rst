@@ -94,7 +94,7 @@
      - :icon-fa5:`check`
      - 
 
-   * - MongoDB Realm
+   * - Atlas Device SDKs
      - :icon-fa5:`check`
      - 
 
