@@ -1,5 +1,5 @@
 - You cannot run |CQA| on Atlas :ref:`shared clusters <shared-tier-cluster>` and
-  :ref:`serverless instances <atlas-choose-serverless>`
+  :ref:`serverless instances <atlas-choose-serverless>`.
 - You cannot run |CQA| on standalone deployments.
 - You cannot run |CQA| directly 
   against a :option:`--shardsvr <mongod --shardsvr>` replica set. 
