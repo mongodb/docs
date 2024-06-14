@@ -7,7 +7,7 @@
 
       .. code-block:: python
 
-         !pip install llama-index llama-index-vector-stores-mongodb llama-index-embeddings-openai pymongo
+         pip install --quiet --upgrade llama-index llama-index-vector-stores-mongodb llama-index-embeddings-openai pymongo
 
       Then, run the following code to import the required packages:
 

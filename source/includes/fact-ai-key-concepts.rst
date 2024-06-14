@@ -17,8 +17,8 @@ Retrieval-Augmented Generation (RAG)
    applications that's designed to address these limitations. In |rag|, 
    you perform the following actions:
    
-   1. Store your custom data in a :website:`vector database 
-      </basics/vector-databases>`.
+   1. Store your custom data as :term:`vector embeddings` 
+      in a :website:`vector database </basics/vector-databases>`.
 
    #. Use vector search to retrieve semantically similar documents 
       from the vector database. These documents augment the existing 
