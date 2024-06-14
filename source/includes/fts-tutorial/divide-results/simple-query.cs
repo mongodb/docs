@@ -26,7 +26,7 @@ public class DivideQueryResults
                 .Include(movie => movie.Cast)
                 .Include(movie => movie.Title)
                 .Exclude(movie => movie.Id)
-                .MetaSearchScore("score"))
+                .MetaSearchScore(movie => movie.Score))
             .Skip(10)
             .Limit(10)
             .ToList();

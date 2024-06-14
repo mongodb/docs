@@ -46,7 +46,7 @@ public class GeoQuery
                 .Include(airbnb => airbnb.Address.Location)
                 .Include(airbnb => airbnb.Name)
                 .Exclude(airbnb => airbnb.Id)
-                .MetaSearchScore("score"))
+                .MetaSearchScore(airbnb => airbnb.Score))
             .ToList();
 
         // print results

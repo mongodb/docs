@@ -34,7 +34,7 @@ public class SortByStrings
             .Project<MovieDocument>(Builders<MovieDocument>.Projection
                 .Include(movie => movie.Title)
                 .Exclude(movie => movie.Id)
-                .MetaSearchScore("score"))
+                .MetaSearchScore(movie => movie.Score))
             .Limit(5)
             .ToList();
 

@@ -35,7 +35,7 @@ public class NestedArrayWithinArrayExample
             )
             .Project<SchoolDocument>(Builders<SchoolDocument>.Projection
                 .Include(school => school.Teachers)
-                .MetaSearchScore("score")
+                .MetaSearchScore(school => school.Score)
                 .MetaSearchHighlights("highlights"))
             .ToList();
 

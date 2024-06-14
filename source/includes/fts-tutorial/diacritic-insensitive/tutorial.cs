@@ -29,7 +29,7 @@ public class DiacriticInsensitiveExample
                 .Include(movie => movie.Title)
                 .Include(movie => movie.Genres)
                 .Exclude(movie => movie.Id)
-                .MetaSearchScore("score"))
+                .MetaSearchScore(movie => movie.Score))
             .ToList();
 
         // print results

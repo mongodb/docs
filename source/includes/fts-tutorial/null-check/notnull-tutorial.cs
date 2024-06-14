@@ -33,7 +33,7 @@ public class NotNullQuery
                 .Project<UserDocument>(Builders<UserDocument>.Projection
                     .Include(user => user.Name)
                     .Include(user => user.Password)
-                    .MetaSearchScore("score")
+                    .MetaSearchScore(user => user.Score)
                     .Exclude(user => user.Id))
                 .ToList();
 

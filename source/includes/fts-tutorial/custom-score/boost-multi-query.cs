@@ -31,7 +31,7 @@ public class CompoundBoostMultipleExample
                 .Include(movie => movie.Title)
                 .Include(movie => movie.Year)
                 .Exclude(movie => movie.Id)
-                .MetaSearchScore("score"))
+                .MetaSearchScore(movie => movie.Score))
             .Limit(10)
             .ToList();
         

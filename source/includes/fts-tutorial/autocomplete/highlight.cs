@@ -25,7 +25,7 @@ public class AutocompleteHighlightExample
             .Project<MovieDocument>(Builders<MovieDocument>.Projection
                 .Include(movie => movie.Title)
                 .Exclude(movie => movie.Id)
-                .MetaSearchScore("score")
+                .MetaSearchScore(movie => movie.Score)
                 .MetaSearchHighlights("highlights"))
             .Limit(5)
             .ToList();

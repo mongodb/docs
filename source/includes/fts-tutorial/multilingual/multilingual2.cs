@@ -36,7 +36,7 @@ public class TwoLanguagesExample
                 .Include(movie => movie.Released)
                 .Include(movie => movie.Title)
                 .Exclude(movie => movie.Id)
-                .MetaSearchScore("score"))
+                .MetaSearchScore(movie => movie.Score))
             .ToList();
 
         // print results

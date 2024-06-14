@@ -35,7 +35,7 @@ public class NestedArrayExample
                 .Include(school => school.Name)
                 .Include(school => school.Mascot)
                 .Include(school => school.Teachers)
-                .MetaSearchScore("score")
+                .MetaSearchScore(school => school.Score)
                 .MetaSearchHighlights("highlights"))
             .ToList();
 

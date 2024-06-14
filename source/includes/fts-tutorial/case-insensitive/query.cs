@@ -33,7 +33,7 @@ public class CaseInsensitiveSort
                 .Include(movie => movie.Id)
                 .Include(movie => movie.Title)
                 .Include(movie => movie.Awards)
-                .MetaSearchScore("score"))
+                .MetaSearchScore(movie => movie.Score))
             .ToList();
 
         // print results
