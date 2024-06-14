@@ -47,6 +47,7 @@
             :headline: Java
             :url: https://www.mongodb.com/docs/languages/java/
             :icon: /images/icons/java.svg
+            :icon-dark: /images/icons/java-dark.svg
             :icon-alt: Java Driver icon
          
          .. card::
@@ -59,6 +60,7 @@
             :headline: Node.js
             :url: https://www.mongodb.com/docs/languages/javascript/
             :icon: /images/icons/node.svg
+            :icon-dark: /images/icons/node-dark.svg
             :icon-alt: Node Driver icon
 
          .. card::
@@ -83,6 +85,7 @@
             :headline: Rust
             :url: https://www.mongodb.com/docs/languages/rust/
             :icon: /images/icons/rust.svg
+            :icon-dark: /images/icons/rust-dark.svg
             :icon-alt: Rust Driver icon
 
          .. card::
