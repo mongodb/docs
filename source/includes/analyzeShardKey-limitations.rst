@@ -1,6 +1,6 @@
 - You cannot run |analyzeShardKey| on Atlas
-  :atlas:`multi-tenant </build-multi-tenant-arch>`
-  configurations.
+  :ref:`shared clusters <shared-tier-cluster>` and
+  :ref:`serverless instances <atlas-choose-serverless>`.
 - You cannot run |analyzeShardKey| on standalone deployments.
 - You cannot run |analyzeShardKey| directly against a
   :option:`--shardsvr <mongod --shardsvr>` replica set.
