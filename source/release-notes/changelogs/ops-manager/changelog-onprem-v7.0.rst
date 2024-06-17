@@ -5,8 +5,9 @@
 
 *Released 2024-06-06*
 
-- Improved release automation. Fixed a potential issue that could
-  cause termination jobs to timeout.
+- Updates the {+mdbagent+} to :ref:`107.0.7.8596 <mongodb-107.0.7.8596>`.
+- Fixes an issue that could cause termination jobs to timeout due to unassigned blockstores.
+- Fixes an issue where required backup job fields could become null.
 
 .. _opsmgr-server-7.0.6: 
 
