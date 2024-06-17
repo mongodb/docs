@@ -1,1 +1,1 @@
-You cannot use the ``$text`` operator to search for multiple phrases.
+You cannot use the ``$text`` operator with multiple phrases.
