@@ -1,0 +1,432 @@
+.. _csharp-indexes:
+
+=======
+Indexes
+=======
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, Atlas search
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use indexes with the {+driver-long+}. Indexes can
+improve the efficiency of queries and add functionality to querying and storing
+documents.
+
+Without indexes, MongoDB must scan *every* document in a collection to find the documents
+that match each query. These collection scans are slow and can negatively affect the
+performance of your application. However, if an appropriate index exists for a query,
+MongoDB can use the index to limit the documents it must inspect.
+
+Query Coverage and Performance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you execute a query against MongoDB, your query can include various
+elements:
+
+- Query criteria that specify fields and values that you are looking for
+- Options that affect the query's execution, such as read concern
+- Projection criteria to specify the fields you want MongoDB to return
+- Sort criteria to specify the order of documents returned from MongoDB
+
+When all the fields specified in the query, projection, and sort are in the same index,
+MongoDB returns results directly from that index, also called a **covered query**.
+
+For more information about how to ensure your index covers your query
+criteria and projection, see the :manual:`Covered Query </core/query-optimization/#covered-query>`
+section in the MongoDB server manual.
+
+Operational Considerations
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To improve query performance, build indexes on fields that appear often in your
+application's queries and operations that return sorted results. Each index that you add
+consumes disk space and memory when active, so it might be necessary to track index memory
+and disk usage for capacity planning. In addition, when a write operation updates an
+indexed field, MongoDB also updates the related index.
+
+Since MongoDB supports dynamic schemas, applications can query against fields whose names
+cannot be known in advance or are arbitrary. MongoDB 4.2 introduced :manual:`wildcard indexes </core/index-wildcard/>`
+to help support these queries. Wildcard indexes are not designed to replace workload-based
+index planning.
+
+For more information about designing your data model and choosing indexes
+appropriate for your application, see the Server documentation on
+:manual:`Indexing Strategies </applications/indexes>` and
+:manual:`Data Modeling and Indexes </core/data-model-operations/#indexes>`.
+
+Index Types
+-----------
+
+MongoDB provides several different index types to support querying
+your data. The following sections describe the most common index types
+and provide sample code for creating each index type.
+
+.. note::
+  
+  These example uses the ``sample_mflix.movies`` and ``sample_mflix.theaters`` collections
+  from the :atlas:`Atlas sample datasets </sample-data>`. To learn how to create a
+  free MongoDB Atlas cluster and load the sample datasets, see :ref:`csharp-quickstart`.
+
+Single Field Indexes
+~~~~~~~~~~~~~~~~~~~~
+
+**Single-field indexes**  are indexes with a reference to a single field within a
+collection's documents. They improve single field query and sort performance, and support
+:manual:`TTL Indexes </core/index-ttl>` that automatically remove documents from a
+collection after a certain amount of time or at a specific clock time.
+
+.. note::
+
+   The ``_id_`` index is an example of a single-field index. This index is automatically
+   created on the ``_id`` field when a new collection is created.
+
+The following example creates an index in ascending order on the ``title`` field within
+the ``sample_mflix.movies`` collection:
+
+.. literalinclude:: /includes/fundamentals/code-examples/Indexes.cs
+   :language: csharp
+   :start-after: begin-single-index
+   :end-before: end-single-index
+   :dedent:
+
+The following is an example of a query that is covered by the index
+created in the preceding code snippet:
+
+.. literalinclude:: /includes/fundamentals/code-examples/Indexes.cs
+   :language: csharp
+   :start-after: begin-single-index-query
+   :end-before: end-single-index-query
+   :dedent:
+
+For more information, see :manual:`Single Field Indexes </core/index-single>` in the Server manual.
+
+Compound Indexes
+~~~~~~~~~~~~~~~~
+
+**Compound indexes**  hold references to multiple fields within a collection's documents,
+improving query and sort performance.
+
+The following example creates a compound index on the ``type`` and ``rated`` fields within
+the ``sample_mflix.movies`` collection:
+
+.. literalinclude:: /includes/fundamentals/code-examples/Indexes.cs
+   :language: csharp
+   :start-after: begin-compound-index
+   :end-before: end-compound-index
+   :dedent:
+
+The following is an example of a query that is covered by the index
+created in the preceding code snippet:
+
+.. literalinclude:: /includes/fundamentals/code-examples/Indexes.cs
+   :language: csharp
+   :start-after: begin-compound-index-query
+   :end-before: end-compound-index-query
+   :dedent:
+
+For more information, see :manual:`Compound Indexes </core/index-compound>` in the Server manual.
+
+Multikey Indexes
+~~~~~~~~~~~~~~~~
+
+**Multikey indexes** collect and sort data from fields containing array values. You can
+define a multikey index using the same syntax as a single field or compound index.
+
+The following example creates a compound, multikey index on the ``rated``, ``genres``
+(an array of Strings), and ``title`` fields within the ``sample_mflix.movies`` collection:
+
+.. literalinclude:: /includes/fundamentals/code-examples/Indexes.cs
+   :language: csharp
+   :start-after: begin-multi-key-index
+   :end-before: end-multi-key-index
+   :dedent:
+
+The following is an example of a query that is covered by the index created in the
+preceding code snippet:
+
+.. literalinclude:: /includes/fundamentals/code-examples/Indexes.cs
+   :language: csharp
+   :start-after: begin-multi-key-query
+   :end-before: end-multi-key-query
+   :dedent:
+
+Multikey indexes behave differently from other indexes in terms of
+query coverage, index bound computation, and sort behavior. To learn more about multikey
+indexes, including a discussion of their behavior and limitations, see the
+:manual:`Multikey Indexes page </core/index-multikey>` in the Server manual.
+
+Clustered Indexes
+~~~~~~~~~~~~~~~~~
+
+**Clustered indexes** instruct a collection to store documents ordered by a key value.
+To create a clustered index, specify the clustered index
+option with the ``_id`` field as the key and the ``Unique`` property as
+``true`` when you create your collection. A collection can only contain a single clustered
+index. If you want to create a clustered index, then it must be specified when you create
+a collection.
+
+The following example creates a clustered index on the ``_id`` field while creating a new
+``sample_mflix.reviews`` collection:
+
+.. code-block:: csharp
+
+    var database = mongoClient.GetDatabase("sample_mflix");
+    var clusteredIndexOptions = new ClusteredIndexOptions<Review>
+    { 
+        Key = Builders<Review>.IndexKeys.Ascending(r => r.Id),
+        Unique = true
+    };
+
+    database.CreateCollection("reviews", new CreateCollectionOptions<Review>
+    {
+        ClusteredIndex = clusteredIndexOptions
+    });
+
+To learn more, see
+:manual:`Clustered Indexes </reference/method/db.createCollection/#std-label-db.createCollection.clusteredIndex>` and
+:manual:`Clustered Collections </core/clustered-collections>` in the Server manual.
+
+.. _search-indexes:
+
+Atlas Search Indexes
+~~~~~~~~~~~~~~~~~~~~
+
+The Atlas Search feature enables you to perform full-text searches on collections hosted
+on MongoDB Atlas. The indexes specify the behavior of the search and which fields to
+index.
+
+To learn more about MongoDB Atlas Search, see the :atlas:`Atlas Search Indexes </atlas-search/atlas-search-overview/#fts-indexes>`
+documentation.
+
+.. note::
+
+   The Atlas Search Index management methods run asynchronously. The
+   driver methods can return before confirming that they ran
+   successfully. To determine the current status of the indexes, call the
+   `IMongoSearchIndexManager.List() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.Search.IMongoSearchIndexManager.List.html>`__ method.
+
+The following sections contain links to tutorials that demonstrate how to create and
+interact with Atlas Search indexes.
+
+Create a Search Index
++++++++++++++++++++++
+
+Before you can perform a search on an Atlas collection, you must first
+create an Atlas Search index on the collection. To learn how to create an Atlas Search
+index using the {+driver-short+}, see :atlas:`Create an Atlas Search Index </atlas-search/create-index/>`
+in the Atlas manual and select :guilabel:`C#` from the language dropdown.
+
+List Search Indexes
++++++++++++++++++++
+
+To learn how to view a list of your Atlas Search indexes using the {+driver-short+}, see
+:atlas:`View an Atlas Search Index </atlas-search/view-index/>` in the Atlas manual
+and select :guilabel:`C#` from the language dropdown.
+
+Update a Search Index
++++++++++++++++++++++
+
+To learn how to modify an existing Atlas Search index using the {+driver-short+}, see
+:atlas:`Edit an Atlas Search Index </atlas-search/edit-index/>` in the Atlas manual
+and select :guilabel:`C#` from the language dropdown.
+
+Drop a Search Index
++++++++++++++++++++
+
+To learn how to delete an Atlas Search index using the {+driver-short+}, see
+:atlas:`Delete an Atlas Search Index </atlas-search/delete-index/>` in the Atlas manual
+and select :guilabel:`C#` from the language dropdown.
+
+Text Indexes
+~~~~~~~~~~~~
+
+**Text indexes**  support text search queries on string content. These indexes can
+include any field whose value is a string or an array of string elements. MongoDB supports
+text search for various languages. You can specify the default language as an option when
+creating the index.
+
+.. tip::
+
+   MongoDB offers an improved full-text search solution,
+   :atlas:`Atlas Search </atlas-search/>`. To learn more about Atlas Search
+   indexes and how to use them, see the :ref:`search-indexes` section of this
+   guide.
+
+   Note that text indexes cannot support Atlas Search queries, and Atlas Search indexes
+   cannot support text queries.
+
+Single Field
+++++++++++++
+
+The following example creates a text index on the ``plot`` field within the
+``sample_mflix.movies`` collection:
+
+.. literalinclude:: /includes/fundamentals/code-examples/Indexes.cs
+   :language: csharp
+   :start-after: begin-text-index
+   :end-before: end-text-index
+   :dedent:
+
+The following query uses the text index created in the preceding code snippet:
+
+.. literalinclude:: /includes/fundamentals/code-examples/Indexes.cs
+   :language: js
+   :start-after: begin-text-query
+   :end-before: end-text-query
+   :dedent:
+
+Multiple Fields
++++++++++++++++
+
+A collection can only contain one text index. If you want to create a
+text index for multiple text fields, you must create a compound
+index. A text search runs on all the text fields within the compound
+index.
+
+The following snippet creates a compound text index for the ``title`` and ``genre``
+fields within the ``sample_mflix.movies`` collection:
+
+.. code-block:: csharp
+
+    var indexModel = new CreateIndexModel<Movie>(Builders<Movie>.IndexKeys
+        .Text(m => m.Title)
+        .Text(m => m.Genre));
+    collection.Indexes.CreateOne(indexModel);
+
+For more information, see :manual:`Compound Text Index Restrictions </core/indexes/index-types/index-text/text-index-restrictions/#compound-text-index>`
+and :manual:`Text Indexes </core/index-text>` in the Server manual.
+
+Geospatial Indexes
+~~~~~~~~~~~~~~~~~~
+
+MongoDB supports queries of geospatial coordinate data using **2dsphere
+indexes**. With a 2dsphere index, you can query the geospatial data for
+inclusion, intersection, and proximity.
+
+To create a 2dsphere index, you must specify a field that contains
+only **GeoJSON objects**. For more details about this type, see :manual:`GeoJSON objects </reference/geojson>`
+in the MongoDB Server manual.
+
+The ``location.geo`` field in the following sample document from the
+``sample_mflix.theaters`` collection is a GeoJSON Point object that describes the
+coordinates of the theater:
+
+.. code-block:: json
+
+   {
+      "_id" : ObjectId("59a47286cfa9a3a73e51e75c"),
+      "theaterId" : 104,
+      "location" : {
+         "address" : {
+            "street1" : "5000 W 147th St",
+            "city" : "Hawthorne",
+            "state" : "CA",
+            "zipcode" : "90250"
+         },
+         "geo" : {
+            "type" : "Point",
+            "coordinates" : [
+               -118.36559,
+               33.897167
+            ]
+         }
+      }
+   }
+
+The following example creates a ``2dsphere`` index on the ``location.geo`` field:
+
+.. important::
+
+   Attempting to create a geospatial index on a field that is already covered by a geospatial index results in an error.
+
+.. literalinclude:: /includes/fundamentals/code-examples/Indexes.cs
+   :language: csharp
+   :start-after: begin-geospatial-index
+   :end-before: end-geospatial-index
+   :dedent:
+
+The following is an example of a geospatial query using the "location.geo" index:
+
+.. literalinclude:: /includes/fundamentals/code-examples/Indexes.cs
+   :language: csharp
+   :start-after: begin-geospatial-query
+   :end-before: end-geospatial-query
+   :dedent:
+
+MongoDB also supports ``2d`` indexes for calculating distances on a Euclidean plane and
+for working with the "legacy coordinate pairs" syntax used in MongoDB 2.2 and earlier.
+To learn more, see :manual:`Geospatial Queries </geospatial-queries>` in the Server manual.
+
+Unique Indexes
+~~~~~~~~~~~~~~
+
+**Unique indexes**  ensure that the indexed fields do not store duplicate values. By
+default, MongoDB creates a unique index on the ``_id`` field during the creation of a
+collection. To create a unique index, specify the fields that you want to prevent
+duplication on and set the ``Unique`` option to ``true``.
+
+The following example creates a unique, descending index on the ``theaterId`` field within
+the ``sample_mflix.theaters`` collection.
+
+.. literalinclude:: /includes/fundamentals/code-examples/Indexes.cs
+   :language: csharp
+   :start-after: begin-unique-index
+   :end-before: end-unique-index
+   :dedent:
+
+If you attempt to perform a write operation that stores a duplicate value
+that violates the unique index, MongoDB will throw an error that resembles
+the following:
+
+.. code-block:: none
+   :copyable: false
+
+   E11000 duplicate key error index
+
+To learn more, see :manual:`Unique Indexes </core/index-unique>` in the Server manual.
+
+Wildcard Indexes
+~~~~~~~~~~~~~~~~
+
+**Wildcard indexes** enable queries against unknown or arbitrary fields.
+These indexes can be beneficial if you are using a dynamic schema.
+
+The following example creates an ascending wildcard index on all
+values of the ``location`` field within the ``sample_mflix.theaters`` collection,
+including values nested in subdocuments and arrays:
+
+.. literalinclude:: /includes/fundamentals/code-examples/Indexes.cs
+   :language: csharp
+   :start-after: begin-wildcard-index
+   :end-before: end-wildcard-index
+   :dedent:
+
+For more information, see the :manual:`Wildcard Indexes</core/index-wildcard>` page in the
+Server manual.
+
+List Indexes
+------------
+
+You can use the `List() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.IMongoIndexManager-1.List.html>`__
+method to retrieve a list of indexes in your collection.
+
+The following example uses the ``List()`` method to list
+all indexes in a collection:
+
+.. literalinclude:: /includes/fundamentals/code-examples/Indexes.cs
+   :language: csharp
+   :start-after: begin-list-indexes
+   :end-before: end-list-indexes
+   :dedent:
