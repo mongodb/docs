@@ -1,0 +1,111 @@
+.. _ak8so-verify-packages:
+
+======================================================
+Verify Integrity of {+ak8so+} Packages 
+======================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Starting in {+ak8so+} 2.2.0, the MongoDB release team
+digitally signs {+ak8so+} packages to certify that they are valid and
+unaltered MongoDB releases.
+
+You can verify {+ak8so+} packages using a :ref:`makefile rule
+<verify-with-makefile-rule>`, or :ref:`cosign <verify-with-cosign>`.
+
+Prerequisites
+-------------
+
+Before you can verify {+ak8so+} packages, you must have a local copy of
+:github:`the Atlas Kubernetes Operator repository <mongodb/mongodb-atlas-kubernetes>`.
+
+.. _verify-with-makefile-rule:
+
+Verify with Makefile Rule
+-------------------------
+
+The makefile rule ``verify`` verifies an {+ak8so+} multi-architecture
+image's signature. 
+
+Run the following command to verify with the signatures at the
+``mongodb/signatures`` MongoDB registry.  Replace the following
+placeholders with your values:
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Placeholder
+     - Description
+
+   * - ``IMG``
+     - The image reference you want to verify.
+
+   * - ``SIGNATURE_REPO``
+     - The repository that contains all the signatures you want to
+       verify against.
+
+.. code-block::
+   :copyable: true
+
+   make verify {IMG}=mongodb/mongodb-atlas-kubernetes-operator:2.2.0 {SIGNATURE_REPO}=mongodb/signatures
+
+If the command is successful, it prints ``VERIFIED OK``. Otherwise, it
+prints an error such as ``Error: no matching signatures``.
+
+.. _verify-with-cosign:
+
+Verify with Cosign
+------------------
+
+.. procedure:: 
+
+   .. step:: Install `Cosign <https://docs.sigstore.dev/system_config/installation/>`__.
+    
+   .. step:: Obtain our signing key.
+      
+      Run the following command to obtain the signing key from our team to
+      verify the signatures against:
+  
+      .. code-block::
+     
+         curl -LO https://cosign.mongodb.com/atlas-kubernetes-operator.pem
+
+   .. step:: Obtain the image reference you want to verify. 
+     
+      Cosign prefers the image reference to include the SHA, such as the following:
+
+      .. code-block::
+         :copyable: false
+
+         mongodb/mongodb-atlas-kubernetes-operator@sha256:c7420df24f236831d21cd591c32aeafcd41787382eb093afcc2ce456c30f3a17
+
+   .. step:: Verify the package.
+      
+      Run the following command to verify the {+ak8so+} package. Replace the following placeholders with your values:
+
+      .. list-table::
+        :widths: 25 75
+        :header-rows: 1
+
+        * - Placeholder
+          - Description
+
+        * - ``IMG``
+          - The image reference you want to verify.
+
+        * - ``KEY_FILENAME``
+          - The name of the file you downloaded the signature key PEM to.
+
+      .. code-block::
+
+         COSIGN_REPOSITORY=mongodb/signatures cosign verify --insecure-ignore-tlog --key="${KEY_FILENAME}" "${IMG}" && echo PASS
+   
+      If the command is successful, it prints ``PASS``. Otherwise, it
+      prints an error such as ``Error: no matching signatures``.
