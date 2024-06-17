@@ -43,7 +43,7 @@ func main() {
 		Course{Title: "World Fiction", Department: "English", Enrollment: 35},
 		Course{Title: "Abstract Algebra", Department: "Mathematics", Enrollment: 60},
 		Course{Title: "Modern Poetry", Department: "English", Enrollment: 12},
-		Course{Title: "Plate Tectonics", Department: "Earth Science", Enrollment: 30},
+		Course{Title: "Plate Tectonics", Department: "Geology", Enrollment: 30},
 	}
 
 	result, err := coll.InsertMany(context.TODO(), docs)
@@ -57,13 +57,14 @@ func main() {
 	// Retrieves and prints distinct values of the "department" field in
 	// documents that match the filter
 	// begin distinct
-	results, err := coll.Distinct(context.TODO(), "department", bson.D{{"enrollment", bson.D{{"$lt", 50}}}})
+	filter := bson.D{{"enrollment", bson.D{{"$lt", 50}}}}
+
+	var arr []string
+	err = coll.Distinct(context.TODO(), "department", filter).Decode(&arr)
 	if err != nil {
 		panic(err)
 	}
 
-	for _, result := range results {
-		fmt.Println(result)
-	}
+	fmt.Printf("%s\n", arr)
 	// end distinct
 }
