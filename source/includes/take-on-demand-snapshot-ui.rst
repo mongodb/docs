@@ -1,23 +1,41 @@
 To take an on-demand snapshot:
 
-1. Click :guilabel:`Database` in the top-left corner of |service|.
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-db-deployments-page.rst
+
+   .. step:: Open the :guilabel:`On-Demand Snapshot` modal.
    
-#. From the :guilabel:`{+Database-Deployments+}` view, click the 
-   :icon:`ellipsis-h` button below the cluster name then click
-   :guilabel:`Take Snapshot Now`.
+      a. Click the :icon:`ellipsis-h` button below the {+cluster+} name.
+         
+      #. Click :guilabel:`Take Snapshot Now`.
 
-#. In the :guilabel:`On-Demand Snapshot` modal, enter the following:
+   .. step:: Take the snapshot.
 
-   a. In the :guilabel:`Retention` box, enter the number of days that
-      you want |service| to retain the snapshot.
+      a. In the :guilabel:`On-Demand Snapshot` modal, enter the   
+         following information:
 
-   b. In the :guilabel:`Description` box, enter a descriptive name
-      for the snapshot.
+         i. In the :guilabel:`Retention` box, enter the number of days 
+            that you want |service| to retain the snapshot.
 
-#. Click :guilabel:`Take Snapshot`.
+         #. In the :guilabel:`Description` box, enter a descriptive name
+            for the snapshot.
 
-Click the :guilabel:`Backup` tab, then click :guilabel:`Snapshots` for
-the cluster to view the on-demand snapshot.
+      #. Click :guilabel:`Take Snapshot`.
+
+To view an on-demand snapshot:
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-db-deployments-page.rst
+
+   .. step:: View the on-demand snapshot.
+
+      a. Click the :guilabel:`Backup` tab.
+      
+      #. Click :guilabel:`Snapshots` for the {+cluster+}.
 
 .. note::
 

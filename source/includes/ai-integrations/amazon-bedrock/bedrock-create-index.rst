@@ -5,8 +5,8 @@
 
    .. step:: Create the ``bedrock_db.test`` collection.
 
-      a. From the |service| :guilabel:`{+Database-Deployments+}` view, click the
-         :guilabel:`Browse Collections` button for your {+cluster+}.
+      a. Click the :guilabel:`Browse Collections` button for your 
+         {+cluster+}.
       #. Click the :guilabel:`+ Create Database` button. 
       #. For the :guilabel:`Database name` enter ``bedrock_db``.
       #. For the :guilabel:`Collection name`,  enter ``test``.

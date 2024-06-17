@@ -1,11 +1,16 @@
 To view the metrics for a specific MongoDB process using the 
-{+atlas-ui+}, click :guilabel:`Database` in the top-left corner of 
-|service|, then click that process from the 
-:guilabel:`{+Database-Deployments+}` view. You can monitor
-different aspects of your cluster in one place focused on a
-process. For more information about the 
-:guilabel:`{+Database-Deployments+}` view, see
-:ref:`view-cluster-details`.
+{+atlas-ui+}:
+
+.. procedure::
+   :style: normal
+   
+   .. include:: /includes/nav/steps-db-deployments-page.rst
+    
+   .. step::  Click the process.
+    
+You can monitor different aspects of your cluster in one place focused 
+on a process. To learn more about the 
+:guilabel:`Clusters` view, see :ref:`view-cluster-details`.
 
 The |service| process view displays three tabs for monitoring metrics for the process:
  
