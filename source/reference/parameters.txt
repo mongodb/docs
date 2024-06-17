@@ -1711,6 +1711,11 @@ General Parameters
 
 .. parameter:: tcmallocAggressiveMemoryDecommit
 
+   .. note:: Deprecated in 8.0 
+      
+      To release memory back to the operating system, consider using 
+      :parameter:`tcmallocEnableBackgroundThread` instead.
+
    *Type*: integer (``0`` or ``1`` only)
 
    Default: 0
@@ -1731,29 +1736,53 @@ General Parameters
    only on memory-constrained systems and after pursuing other memory and 
    performance options.
 
-   Despite the potential performance degradation when using 
-   ``tcmallocAggressiveMemoryDecommit``, it is often preferred over using 
-   :parameter:`tcmallocReleaseRate`.
+.. parameter:: tcmallocEnableBackgroundThread
+
+   .. versionadded:: 8.0
+
+   *Type*: boolean
+
+   Default: true
+
+   If set to ``true``, ``tcmallocEnableBackgroundThread`` creates a background 
+   thread that periodically releases memory back to the operating system. The 
+   value of :parameter:`tcmallocReleaseRate` determines the rate, in bytes per 
+   second, at which the background thread releases memory. 
+
+   .. include:: /includes/fact-background-thread-release-rate.rst
+
+   For improved memory usage, we recommend using the default value 
+   of ``true``. To learn more about improvements to performance and memory 
+   management, see :ref:`8.0-tcmalloc-upgrade`.
+   
+   .. include:: /includes/fact-startup-parameter.rst
+
+   The following operation sets ``tcmallocEnableBackgroundThread``
+   to ``false``:
+
+   .. code-block:: bash
+
+      mongod --setParameter "tcmallocEnableBackgroundThread=false"
 
 .. parameter:: tcmallocReleaseRate
 
-   Default: 1.0
+   .. versionchanged:: 8.0
+   
+   Default: 0
 
-   Specifies the tcmalloc release rate (`TCMALLOC_RELEASE_RATE
-   <https://gperftools.github.io/gperftools/tcmalloc.html#runtime>`_).
-   Per https://gperftools.github.io/gperftools/tcmalloc.html#runtime
-   TCMALLOC_RELEASE_RATE is described as the "Rate at which we release
-   unused memory to the system, via
-   madvise(MADV_DONTNEED), on systems that support it. Zero means we
-   never release memory back to the system. Increase this flag to
-   return memory faster; decrease it to return memory slower.
-   Reasonable rates are in the range [0,10]."
+   Specifies the `tcmalloc release rate <https://github.com/google/tcmalloc/blob/master/docs/tuning.md>`__
+   in bytes per second. Release rate refers to the rate at which MongoDB 
+   releases unused memory to the system. If ``tcmallocReleaseRate`` is set to 
+   ``0`` MongoDB doesn't release memory back to the system. Increase 
+   this value to return memory faster; decrease it to return memory slower.
 
-   .. note::
+   .. include:: /includes/fact-background-thread-release-rate.rst
 
-      Consider using :parameter:`tcmallocAggressiveMemoryDecommit` instead of 
-      :parameter:`tcmallocReleaseRate`, unless you see a significant performance 
-      degradation when using ``tcmallocAggressiveMemoryDecommit``.
+   Starting in MongoDB 8.0, the default value of ``tcmallocReleaseRate`` is 
+   reduced to ``0`` due to a :ref:`tcmalloc upgrade <8.0-tcmalloc-upgrade>` 
+   that prioritizes CPU performance over memory release. Earlier versions of 
+   MongoDB used an older version of ``tcmalloc`` that set the default 
+   ``tcmallocReleaseRate`` to ``1`` to balance memory release and performance.
 
    .. include:: /includes/fact-runtime-startup-parameter
 
