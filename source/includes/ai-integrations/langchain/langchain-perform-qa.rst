@@ -7,10 +7,8 @@
 
       - Instantiates {+avs+} as a `retriever 
         <https://python.langchain.com/docs/modules/data_connection/retrievers/>`__
-        to query for similar documents, including the following optional parameters:
-         
-        - ``k`` to search for only the ``10`` most relevant documents.
-        - ``score_threshold`` to use only documents with a relevance score above ``0.75``.
+        to query for similar documents, including the optional ``k`` 
+        parameter to search for only the ``10`` most relevant documents.
 
       .. include:: /includes/ai-integrations/langchain/langchain-perform-qa-description.rst
       
@@ -21,9 +19,9 @@
             :language: python
 
             # Instantiate Atlas Vector Search as a retriever
-            retriever = vector_search.as_retriever(
+            retriever = vector_store.as_retriever(
                search_type = "similarity",
-               search_kwargs = {"k": 10, "score_threshold": 0.75}
+               search_kwargs = { "k": 10 }
             )
 
             # Define a prompt template
@@ -99,6 +97,15 @@
          
         - ``k`` to search for only the ``10`` most relevant documents.
         - ``score_threshold`` to use only documents with a relevance score above ``0.75``.
+
+          .. note::
+
+             This parameter refers to a relevance score that Langchain uses
+             to normalize your results, and not the :ref:`relevance score <scoring-ref>`
+             used in |fts| queries. To use |fts| scores in your |rag| implementation,
+             define a custom retriever that uses the ``similarity_search_with_score`` method 
+             and filters by the |fts| score.
+           
         - ``pre_filter`` to filter on the ``page`` field for documents that appear on page 17 only.
 
       .. include:: /includes/ai-integrations/langchain/langchain-perform-qa-description.rst
@@ -110,8 +117,8 @@
             :language: python
 
             # Instantiate Atlas Vector Search as a retriever
-            retriever = vector_search.as_retriever(
-               search_type = "similarity",
+            retriever = vector_store.as_retriever(
+               search_type = "similarity_score_threshold",
                search_kwargs = {
                   "k": 10, 
                   "score_threshold": 0.75,

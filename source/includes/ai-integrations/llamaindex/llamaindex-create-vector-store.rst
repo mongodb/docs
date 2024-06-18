@@ -48,7 +48,7 @@
    .. step:: Instantiate the vector store.
 
       Run the following code to create a vector store 
-      named ``atlas_vector_search`` by using the 
+      named ``atlas_vector_store`` by using the 
       ``MongoDBAtlasVectorSearch`` method, which
       specifies the following:
       
@@ -67,13 +67,13 @@
          mongodb_client = pymongo.MongoClient(ATLAS_CONNECTION_STRING)
 
          # Instantiate the vector store
-         atlas_vector_search = MongoDBAtlasVectorSearch(
+         atlas_vector_store = MongoDBAtlasVectorSearch(
              mongodb_client, 
              db_name = "llamaindex_db", 
              collection_name = "test",
              index_name = "vector_index"
          ) 
-         vector_store_context = StorageContext.from_defaults(vector_store=atlas_vector_search)
+         vector_store_context = StorageContext.from_defaults(vector_store=atlas_vector_store)
 
    .. step:: Store your data as vector embeddings.
 

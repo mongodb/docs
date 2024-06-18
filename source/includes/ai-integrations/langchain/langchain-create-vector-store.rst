@@ -63,7 +63,7 @@
    .. step:: Instantiate the vector store.
 
       Run the following code to create a vector store 
-      named ``vector_search`` from the sample documents. 
+      named ``vector_store`` from the sample documents. 
       This snippet uses the ``MongoDBAtlasVectorSearch.from_documents``
       method and specifies the following parameters:
       
@@ -76,7 +76,7 @@
       .. code-block:: python
        
          # Create the vector store
-         vector_search = MongoDBAtlasVectorSearch.from_documents(
+         vector_store = MongoDBAtlasVectorSearch.from_documents(
              documents = docs,
              embedding = OpenAIEmbeddings(disallowed_special=()),
              collection = atlas_collection,

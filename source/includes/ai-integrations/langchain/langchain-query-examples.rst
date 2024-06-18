@@ -15,7 +15,7 @@
             :language: python
 
             query = "MongoDB Atlas security"
-            results = vector_search.similarity_search(query)
+            results = vector_store.similarity_search(query)
 
             pprint.pprint(results)
          
@@ -53,7 +53,7 @@
             :language: python
 
             query = "MongoDB Atlas security"
-            results = vector_search.similarity_search_with_score(
+            results = vector_store.similarity_search_with_score(
                query = query, k = 3
             )
 
@@ -106,7 +106,7 @@
 
             query = "MongoDB Atlas security"
 
-            results = vector_search.similarity_search_with_score(
+            results = vector_store.similarity_search_with_score(
                query = query, 
                k = 3, 
                pre_filter = { "page": { "$eq": 17 } }
