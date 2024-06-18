@@ -7,6 +7,6 @@
    #. If it's not already displayed, select your project 
       from the :guilabel:`Projects` menu in the navigation bar.
 
-   #. In the left-hand menu, click :guilabel:`Migration` under 
+   #. In the sidebar, click :guilabel:`Migration` under 
       the :guilabel:`Services` heading.
    

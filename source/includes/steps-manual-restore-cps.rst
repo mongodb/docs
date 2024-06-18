@@ -2,12 +2,12 @@
    :style: normal
    
    .. include:: /includes/nav/steps-db-deployments-page.rst
+
+   .. include:: /includes/nav/steps-backup-page.rst
       
    .. step:: Request your snapshot.
       
-      a. Click the name of your |service| {+cluster+}.
-      #. Click the :guilabel:`Backup` tab.
-      #. Click the :guilabel:`Snapshots` sub-tab.
+      a. Click the :guilabel:`Snapshots` sub-tab.
       #. In the :guilabel:`Actions` column, expand the 
          :icon-fa5:`ellipsis-v` :guilabel:`Actions` menu, and click 
          :guilabel:`Download` for the snapshot that you want to download.
@@ -38,11 +38,11 @@
 
    .. include:: /includes/nav/steps-db-deployments-page.rst
 
+   .. include:: /includes/nav/steps-backup-page.rst
+
    .. step:: Retrieve your snapshot.
       
-      a. Click the name of your |service| {+cluster+}.
-      #. Click the :guilabel:`Backup` tab.
-      #. Click the :guilabel:`Restores & Downloads` sub-tab.
+      a. Click the :guilabel:`Restores & Downloads` sub-tab.
       #. Navigate to the restore snapshot you created.
       #. Click :guilabel:`Download`.
       

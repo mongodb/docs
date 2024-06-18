@@ -11,8 +11,16 @@ already taken:
 
    .. step:: Click :guilabel:`Snapshots`.
 
-Alternatively, you can view a list of all ``M10+`` {+clusters+} with
-{+cloud-backup+} enabled by clicking :guilabel:`Backup` in the left
-navigation pane. If you choose to retain backups from a {+cluster+} you
-terminate, they remain accessible here under their source {+cluster+}
-name until they expire or you delete them.
+Alternatively, to view a list of all ``M10+`` {+clusters+} with
+{+cloud-backup+} enabled:
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-backup-details.rst
+
+   .. step:: View the list of {+clusters+}.
+
+      If you choose to retain backups from a {+cluster+} you
+      terminate, they remain accessible here under their source 
+      {+cluster+} name until they expire or you delete them.

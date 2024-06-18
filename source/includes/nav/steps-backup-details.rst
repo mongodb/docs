@@ -1,4 +1,4 @@
-.. step:: Go to the :guilabel:`Advanced` page for your project.
+.. step:: Go to the :guilabel:`Backup` details for your project.
 
    a. If it's not already displayed, select the 
       organization that contains your project from the
@@ -7,5 +7,5 @@
    #. If it's not already displayed, select your project 
       from the :guilabel:`Projects` menu in the navigation bar.
 
-   #. In the sidebar, click :guilabel:`Advanced` under 
+   #. In the sidebar, click :guilabel:`Backup` under 
       the :guilabel:`Security` heading.

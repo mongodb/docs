@@ -7,6 +7,6 @@
    #. If it's not already displayed, select your project 
       from the :guilabel:`Projects` menu in the navigation bar.
 
-   #. In the left-hand menu, click :guilabel:`Stream Processing` under 
+   #. In the sidebar, click :guilabel:`Stream Processing` under 
       the :guilabel:`Services` heading.
       

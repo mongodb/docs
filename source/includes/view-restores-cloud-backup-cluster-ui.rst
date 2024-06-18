@@ -1,7 +1,15 @@
 |service| provides a detailed list of completed and in-progress
 snapshot restorations, including when |service| took the snapshot and
-the snapshot's delivery type. To view this list, from a cluster's
-:guilabel:`Backup` tab, click the :guilabel:`Restores & Downloads` tab.
+the snapshot's delivery type. To view this list: 
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-db-deployments-page.rst
+
+   .. include:: /includes/nav/steps-backup-page.rst
+
+   .. step:: Click the :guilabel:`Restores & Downloads` tab.
 
 The :guilabel:`Status` column of the table displays the results of
 completed snapshots, and the progress of snapshots currently

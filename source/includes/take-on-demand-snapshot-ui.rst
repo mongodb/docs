@@ -31,11 +31,11 @@ To view an on-demand snapshot:
 
    .. include:: /includes/nav/steps-db-deployments-page.rst
 
+   .. include:: /includes/nav/steps-backup-page.rst
+
    .. step:: View the on-demand snapshot.
 
-      a. Click the :guilabel:`Backup` tab.
-      
-      #. Click :guilabel:`Snapshots` for the {+cluster+}.
+      Click :guilabel:`Snapshots` for the {+cluster+}.
 
 .. note::
 

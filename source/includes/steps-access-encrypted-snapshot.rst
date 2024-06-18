@@ -3,12 +3,12 @@
       
    .. include:: /includes/nav/steps-db-deployments-page.rst
 
+   .. include:: /includes/nav/steps-backup-page.rst
+
    .. step:: Download the encrypted snapshot.
       
-      a. Click the name of the {+database-deployment+} for which you 
-         want to download a snapshot.
-      
-      #. Click the :guilabel:`Backup` tab.
+      a. If it isn't already selected, click the :guilabel:`Snapshots` 
+         tab.
       
       #. In the :guilabel:`Actions` column, expand the 
          :icon-fa5:`ellipsis-v` :guilabel:`Actions`
@@ -28,16 +28,16 @@
       
       .. tip::
          
-         You can also download the |kmip| Proxy Standalone from the
-         following locations in the |service| user interface: 
-      
-         - On the :guilabel:`Security` :icon-fa5:`arrow-right`
-           :guilabel:`Advanced` page, in the :guilabel:`Encryption at Rest
-           using your Key Management` section.
-         - In the
-           :guilabel:`Backup` :icon-fa5:`arrow-right`
-           :guilabel:`Restores & Downloads` 
-           tab of the cluster. 
+         You can also do one of the following steps to access the
+         :guilabel:`download KMIP Proxy Standalone` link:
+
+         - Click the :guilabel:`Restores & Downloads` tab.
+
+         - .. include:: /includes/nav/list-advanced.rst
+           
+           The link appears in the 
+           :guilabel:`Encryption at Rest using your Key Management` 
+           section.
       
    .. step:: Start the |kmip| Proxy Standalone.
       

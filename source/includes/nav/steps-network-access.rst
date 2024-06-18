@@ -7,5 +7,5 @@
    #. If it's not already displayed, select your project 
       from the :guilabel:`Projects` menu in the navigation bar.
 
-   #. In the left-hand menu, click :guilabel:`Network Access` under 
+   #. In the sidebar, click :guilabel:`Network Access` under 
       the :guilabel:`Security` heading.
