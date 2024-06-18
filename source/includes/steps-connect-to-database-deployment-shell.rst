@@ -45,9 +45,11 @@
             .. note:: Peer must be available
       
                You can't select this option unless one of your peers
-               is marked as ``AVAILABLE``. Navigate to
-               :guilabel:`Network Access` to
-               :doc:`check the status of your peers </security-vpc-peering>`.
+               is marked as ``AVAILABLE``. To
+               :doc:`check the status of your peers
+               </security-vpc-peering>`:
+
+               .. include:: /includes/nav/list-network-access.rst
       
             .. note:: Multi-Cloud Clusters
       
@@ -85,9 +87,11 @@
             .. note::
       
                You can't select this option unless your configured
-               PrivateLink connection is ready to use. Navigate to
-               :guilabel:`Network Access` to :ref:`check the status of your
-               {+aws-pl+} <atlas-troubleshoot-private-endpoint>`.
+               PrivateLink connection is ready to use. To 
+               :ref:`check the status of your {+aws-pl+} 
+               <atlas-troubleshoot-private-endpoint>`:
+
+               .. include:: /includes/nav/list-network-access.rst
       
    .. step:: Choose how you want to limit connections to your {+database-deployment+}.
       
