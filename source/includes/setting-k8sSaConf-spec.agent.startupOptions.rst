@@ -5,7 +5,7 @@
    
    {+mdbagent+} settings with which you want to start MongoDB database resource.
    
-   You must provide MongoDB Agent settings as key-value pairs. The values
+   You must provide {+mdbagent+} settings as key-value pairs. The values
    must be strings.
    
    For a list of supported {+mdbagent+} settings, see:

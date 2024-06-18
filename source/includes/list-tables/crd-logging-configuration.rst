@@ -11,7 +11,7 @@
      - :setting:`spec.agent.startupOptions`
 
    * - MongoDB
-     - Monitoring agent logs
+     - {+monitoring-agent+} logs
      - Ops Manager API or UI
 
    * - MongoDB
@@ -30,19 +30,19 @@
      - Readiness Probe
      - `Container Environment Variables <https://www.mongodb.com/docs/kubernetes-operator/master/reference/kubectl-operator-settings/#readiness-probe-logger-max-size>`__
 
-   * - Application Database
+   * - {+appdb+}
      - MongoDB Logs
      - :opsmgrkube:`spec.applicationDatabase.agent.logRotate`
 
-   * - Application Database
+   * - {+appdb+}
      - Automation Agent Logs
      - :opsmgrkube:`spec.applicationDatabase.agent.startupOptions`
 
-   * - Application Database
-     - Monitoring agent logs
+   * - {+appdb+}
+     - {+monitoring-agent+} logs
      - Forwarded to ``stdout`` only (kubectl logs). 
        Managed and stored in the |k8s| control plane.
 
-   * - Application Database
+   * - {+appdb+}
      - Audit logs
      - :opsmgrkube:`spec.applicationDatabase.agent.logRotate.includeAuditLogsWithMongoDBLogs`

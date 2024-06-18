@@ -1,7 +1,7 @@
 .. _om-multi-k8s-diagram:
 
 =========================================================================
-Multi-Cluster Architecture Diagram: |onprem| and the Application Database
+Multi-Cluster Architecture Diagram: |onprem| and the {+appdb+}
 =========================================================================
 
 .. default-domain:: mongodb
@@ -12,13 +12,13 @@ Multi-Cluster Architecture Diagram: |onprem| and the Application Database
    :depth: 1
    :class: singlecol
 
-The following diagram shows the |application|, the Application Database,
+The following diagram shows the |application|, the {+appdb+},
 the Backup Daemon, and the corresponding |k8s-pvs| deployed on multiple
 |k8s| clusters.
 
 .. figure:: /images/om-multicluster-arch.svg
    :alt: Diagram showing the high-level deployment of the Ops Manager,
-         its UI application, the Application Database, and the Backup Daemon
+         its UI application, the {+appdb+}, and the Backup Daemon
          on multiple Kubernetes clusters. The diagram also shows network
          connections between the components.
    :figwidth: 100%
@@ -44,11 +44,11 @@ In this diagram:
    it stores the resources it needs, such as ConfigMaps and secrets about
    the clusters that it is going to manage. These resources belong to the
    same namespace as the |k8s-op-short|. The |k8s-op-short| uses these
-   resources to deploy the |application| and the Application Database on
+   resources to deploy the |application| and the {+appdb+} on
    multiple |k8s| clusters.
 
 3. The |k8s-op-short| also creates and maintains some additional multi-cluster
-   deployment state ConfigMaps for each |application| and Application Database
+   deployment state ConfigMaps for each |application| and {+appdb+}
    deployment it manages. The ``Member Cluster 0`` stores this configuration,
    which includes the following ConfigMaps:
 
@@ -61,7 +61,7 @@ In this diagram:
      mapping of member cluster names listed in the :opsmgrkube:`spec.applicationDatabase.clusterSpecList`
      to cluster indexes.
    - The ``<om_resource_name>-db-member-spec`` ConfigMap contains the number
-     of Application Database replicas configured for each member cluster.
+     of {+appdb+} replicas configured for each member cluster.
      Having this information allows the |k8s-op-short| to correctly scale
      or reconfigure the replica set as part of disaster recovery, such as
      after losing the entire member cluster.
@@ -120,13 +120,13 @@ In this diagram:
      :opsmgrkube:`spec.clusterSpecList.externalConnectivity`. For example,
      you can change the service's type or define annotations.
 
-7. Application Database. The |k8s-op-short| deploys the Application Database on two clusters.
+7. {+appdb+}. The |k8s-op-short| deploys the {+appdb+} on two clusters.
 
    - The ``Member Cluster 1`` contains three |mongod| processes for the
-     Application Database, and the ``Member Cluster 2`` contains two |mongod|
+     {+appdb+}, and the ``Member Cluster 2`` contains two |mongod|
      processes..
 
-   - You define the Application Database configuration using the
+   - You define the {+appdb+} configuration using the
      :opsmgrkube:`spec.applicationDatabase` settings. On each member cluster,
      the |k8s-op-short| creates a StatefulSet named ``<om_resource_name>-db-<cluster_index>``
      with the number of member clusters defined in :opsmgrkube:`spec.applicationDatabase.clusterSpecList.members`.
@@ -150,7 +150,7 @@ In this diagram:
 
    - To form a replica set from all |mongod| processes, each process must
      connect to each other process for replication purposes. To achieve this,
-     include all member clusters on which you deploy the Application Database
+     include all member clusters on which you deploy the {+appdb+}
      into the same service mesh configuration.
 
      The service mesh handles cross-cluster DNS queries and routes the traffic accordingly.
@@ -170,20 +170,20 @@ In this diagram:
      and the DNS resolution of ``om-db-2-1-svc.om-ns.svc.cluster.local``
      would fail.
 
-   - When the Application Database and the |application| instances are in a
+   - When the {+appdb+} and the |application| instances are in a
      ``Running`` state, the |k8s-op-short| adds an additional monitoring
-     container to the Application Database StatefulSets. This results in
-     a rolling restart of all Application Database Pods in all clusters.
+     container to the {+appdb+} StatefulSets. This results in
+     a rolling restart of all {+appdb+} Pods in all clusters.
      The |k8s-op-short| updates the StatefulSets across all clusters
      sequentially, so that during the rolling restart process, in each
      cluster, only one replica set's member becomes temporarily unavailable.
 
-   - The Monitoring Agent connects to the |application| instances using
+   - The {+monitoring-agent+} connects to the |application| instances using
      the |onprem| service's |fqdn|, ``<om_resource_name>-svc.<namespace>.svc.cluster.local``,
      or the value in :opsmgrkube:`spec.opsManagerURL` if you specify it.
 
      The |application| and the Backup Daemon always use the connection string
-     to the Application Database that contains all replica set members in it.
+     to the {+appdb+} that contains all replica set members in it.
      The connection string is always constructed using the service-per-pod
      FQDNs.
 
@@ -197,7 +197,7 @@ In this diagram:
      Alternatively, you can configure the number of Backup Daemon instances
      for each cluster in :opsmgrkube:`spec.clusterSpecList[*].backup.members`.
 
-   - The Backup Daemon instances connect only to the Application Database
+   - The Backup Daemon instances connect only to the {+appdb+}
      replica set using the same connection string as the |application|
      instances.
 
@@ -211,6 +211,6 @@ networking connections between the components:
   equally distributed to all instances, for example by using using a
   round-robin load balancer.
 
-- The dotted lines surrounding the Application Database across member
+- The dotted lines surrounding the {+appdb+} across member
   clusters indicate that these instances communicate with each other and
   form a single MongoDB replica set.

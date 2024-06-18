@@ -63,7 +63,7 @@
      - Require the following permissions:
   
        - ``get``, ``list``, ``watch``. The |k8s-op-short| queries the
-         Application Database Pods to get information about its state.
+         {+appdb+} Pods to get information about its state.
   
    * - Namespaces
      - Require the following permissions:

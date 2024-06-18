@@ -1,4 +1,4 @@
-- Your project's MongoDB Agent. For the MongoDB Agent certificate, 
+- Your project's {+mdbagent+}. For the {+mdbagent+} certificate, 
   ensure that you meet the following requirements:
 
   - The Common Name in the |tls| certificate is not empty.

@@ -1,7 +1,7 @@
 .. _recover-appdb-forced-reconfig:
 
 ======================================================================
-Recover the Application Database if its Replica Set Loses Majority
+Recover the {+appdb+} if its Replica Set Loses Majority
 ======================================================================
 
 .. default-domain:: mongodb
@@ -12,47 +12,47 @@ Recover the Application Database if its Replica Set Loses Majority
    :depth: 1
    :class: singlecol
 
-In the event that the |k8s| member clusters fail and the Application Database
+In the event that the |k8s| member clusters fail and the {+appdb+}
 loses a majority of replica set's nodes available to elect a primary,
 the |k8s-op-short| doesn't automatically trigger a forced replica set reconfiguration.
 You must manually initiate a forced replica set reconfiguration and restore
-the Application Database replica set to a healthy state.
+the {+appdb+} replica set to a healthy state.
 
 Overview
 ---------
 
-In certain severe |k8s| cluster outages your Application Database's
+In certain severe |k8s| cluster outages your {+appdb+}'s
 replica set deployment could lose the majority of the replica set's nodes.
-For example, if you have an Application Database deployment with two nodes
+For example, if you have an {+appdb+} deployment with two nodes
 in ``cluster 1`` and three nodes in ``cluster 2``, and ``cluster 2`` undergoes
-an outage, your Application Database's replica set deployment will lose the
-node majority needed to elect a primary. Without a primary, the MongoDB Agent
+an outage, your {+appdb+}'s replica set deployment will lose the
+node majority needed to elect a primary. Without a primary, the {+mdbagent+}
 can't reconfigure a replica set.
 
 To enable rescheduling replica set's nodes, the |k8s-op-short| must forcibly
 reconfigure the :opsmgr:`Automation Configuration </reference/api/automation-config/>`
-for the MongoDB Agent to enable deploying replica set nodes in the remaining
+for the {+mdbagent+} to enable deploying replica set nodes in the remaining
 healthy member clusters.
 To achieve this, the |k8s-op-short| sets
 the :opsmgr:`replicaSets[n].force </reference/api/automation-config/automation-config-parameters/#replica-sets>`
 flag in the replica set configuration.
-The flag instructs the MongoDB Agent to force a replica set to use the
+The flag instructs the {+mdbagent+} to force a replica set to use the
 current (latest) :opsmgr:`Automation Configuration version </reference/api/automation-config/automation-config-parameters/#configuration-version>`.
 Using the flag allows the |k8s-op-short| to reconfigure the replica set in
 case a primary node isn't elected.
 
-Recover the Application Database through a Forced Reconfiguration
+Recover the {+appdb+} through a Forced Reconfiguration
 ------------------------------------------------------------------
 
-To perform a forced reconfiguration of the Application Database's nodes:
+To perform a forced reconfiguration of the {+appdb+}'s nodes:
 
 1. Change the :opsmgrkube:`spec.applicationDatabase.clusterSpecList` configuration
-   settings to reconfigure the Application Database's deployment on healthy
+   settings to reconfigure the {+appdb+}'s deployment on healthy
    |k8s| clusters to allow the replica set to form a majority of healthy nodes.
 
 2. Remove failed |k8s| clusters from the :opsmgrkube:`spec.applicationDatabase.clusterSpecList`,
    or scale failed |k8s| member clusters down. This way, the replica set
-   doesn't count the Application Database's nodes hosted on those clusters
+   doesn't count the {+appdb+}'s nodes hosted on those clusters
    as voting members of the replica set. For example, having two healthy
    nodes in ``cluster 1`` and a failed ``cluster 2`` containing 3 nodes,
    you have two healthy nodes from a total of five replica set members
@@ -69,22 +69,22 @@ To perform a forced reconfiguration of the Application Database's nodes:
      healthy nodes in the replica set's StatefulSet.
 
 3. Add the annotation ``"mongodb.com/v1.forceReconfigure": "true"`` to the
-   Automation Configuration for the MongoDB Agent in the :k8sdocs:`metadata.annotations </concepts/overview/working-with-objects/annotations/>`.
+   Automation Configuration for the {+mdbagent+} in the :k8sdocs:`metadata.annotations </concepts/overview/working-with-objects/annotations/>`.
    Add the annotation at the top level of the ``MongoDBOpsManager`` custom
    resource and ensure that the value ``"true"`` is a string in quotes.
 
    Based on this annotation, the |k8s-op-short| performs a forced reconfiguration
    of the replica set in the next reconciliation process and scales
-   the Application Database's replica set nodes according to the changed
+   the {+appdb+}'s replica set nodes according to the changed
    deployment configuration.
 
    The |k8s-op-short| has no means to determine whether the nodes in the
    failed |k8s| cluster are healthy. Therefore, if the |k8s-op-short|
    can't connect to the failed member |k8s| cluster's API server, the
    |k8s-op-short| ignores the cluster during the reconciliation process
-   of the Application Database's replica set nodes.
+   of the {+appdb+}'s replica set nodes.
 
-   This means that scaling down of the Application Database nodes removes
+   This means that scaling down of the {+appdb+} nodes removes
    failed processes from the replica set configuration.
    In cases when only the API server is down, but the replica set's nodes
    are running, the |k8s-op-short| doesn't remove the Pods from the failed

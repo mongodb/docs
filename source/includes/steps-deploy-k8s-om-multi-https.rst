@@ -288,7 +288,7 @@
 
 .. step:: Prepare TLS certificates.
 
-   In this step, you enable |tls| for the Application Database and the |application|.
+   In this step, you enable |tls| for the {+appdb+} and the |application|.
    If you don't want to use TLS, remove the following fields from the ``MongoDBOpsManager``
    resources:
 
@@ -312,8 +312,8 @@
       generation step and put the keys and certificates  into the following files:
 
       - ``certs/ca.crt`` - |certauth| certificates. These are not necessary when using trusted certificates.
-      - ``certs/appdb.key`` - private key for the Application Database.
-      - ``certs/appdb.crt`` - certificate for the Application Database.
+      - ``certs/appdb.key`` - private key for the {+appdb+}.
+      - ``certs/appdb.crt`` - certificate for the {+appdb+}.
       - ``certs/om.key`` - private key for |onprem|.
       - ``certs/om.crt`` - certificate for |onprem|.
 
@@ -343,7 +343,7 @@
 
       Deploying this way shows that a single |k8s| cluster deployment is
       a special case of a multi-|k8s| cluster deployment on a single |k8s| member cluster.
-      You can start deploying the |application| and the Application Database
+      You can start deploying the |application| and the {+appdb+}
       on as many |k8s| clusters as necessary from the beginning, and don't
       have to start with the deployment with only a single member |k8s| cluster.
 
@@ -356,7 +356,7 @@
 
    c. Wait for the |k8s-op-short| to pick up the work and reach the
       ``status.applicationDatabase.phase=Pending`` state. Wait for both the
-      Application Database and |onprem| deployments to complete.
+      {+appdb+} and |onprem| deployments to complete.
 
       .. io-code-block::
          :copyable: true
@@ -373,12 +373,12 @@
    d. Deploy |onprem|. The |k8s-op-short| deploys |onprem| by performing
       the following steps. It:
 
-      - Deploys the Application Database's replica set nodes and waits
+      - Deploys the {+appdb+}'s replica set nodes and waits
         for the MongoDB processes in the replica set to start running.
-      - Deploys the |application| instance with the Application Database's
+      - Deploys the |application| instance with the {+appdb+}'s
         connection string and waits for it to become ready.
-      - Adds the Monitoring {+mdbagent+} containers to each Application Database's Pod.
-      - Waits for both the |application| and the Application Database Pods to start running.
+      - Adds the Monitoring {+mdbagent+} containers to each {+appdb+}'s Pod.
+      - Waits for both the |application| and the {+appdb+} Pods to start running.
 
       .. io-code-block::
          :copyable: true
@@ -395,7 +395,7 @@
       Now that you have deployed a single-member cluster in a :ref:`multi-cluster mode <mode-multi-or-single>`,
       you can reconfigure this deployment to span more than one |k8s| cluster.
 
-   e. On the second member cluster, deploy two additional Application Database
+   e. On the second member cluster, deploy two additional {+appdb+}
       replica set members and one additional instance of the |application|:
 
       .. literalinclude:: /includes/code-examples/ops-manager-multi-cluster/code_snippets/0320_ops_manager_add_second_cluster.sh
