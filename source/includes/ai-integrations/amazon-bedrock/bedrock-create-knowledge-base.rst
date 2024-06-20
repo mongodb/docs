@@ -8,6 +8,14 @@
       #. Click :guilabel:`Machine Learning`, and then select :guilabel:`Amazon Bedrock`.
       #. On the :guilabel:`Amazon Bedrock` landing page, click :guilabel:`Get started`.
 
+   .. step:: Manage model access.
+
+      Amazon Bedrock doesn't grant access to :abbr:`FMs (foundational models)` 
+      automatically. If you haven't already,
+      follow the steps to :aws:`add model access 
+      </bedrock/latest/userguide/model-access.html>`
+      for the **Titan Embeddings G1 - Text** and **Anthropic Claude V2.1** models.
+
    .. step:: Create the knowledge base.
       
       a. In the left navigation of the Amazon Bedrock console, 
@@ -31,7 +39,7 @@
          convert your data source's text data into vector embeddings. 
          
       #. Select :guilabel:`Titan Embeddings G1 - Text`.
-      
+
    .. step:: Connect |service| to the Knowledge Base.
 
       a. In the :guilabel:`Vector database` section, select :guilabel:`Choose a vector store you have created`.

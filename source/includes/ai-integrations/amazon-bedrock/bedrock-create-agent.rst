@@ -19,6 +19,14 @@
          and :guilabel:`Claude V2.1` as the provider and AI model 
          used to answer questions on your data. 
 
+         .. note::
+
+            Amazon Bedrock doesn't grant access to :abbr:`FMs (foundational models)` 
+            automatically. If you haven't already,
+            follow the steps to :aws:`add model access 
+            </bedrock/latest/userguide/model-access.html>`
+            for the Anthropic Claude V2.1 model.
+
       #. Provide instructions for the agent so that it knows
          how to complete the task.
 
