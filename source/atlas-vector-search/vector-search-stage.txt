@@ -28,15 +28,54 @@ Run Vector Search Queries
 :pipeline:`$vectorSearch` queries, {+avs+} returns the results of your
 semantic search.
 
+.. note:: 
+
+   {+avs+} supports |ann| search on {+clusters+} running MongoDB
+   v6.0.11, v7.0.2, or later and |enn| search on {+clusters+} running
+   MongoDB v7.0.10 and v7.3.2.
+
 .. _vectorSearch-agg-pipeline:
 
 Definition
 ----------
 
-The :pipeline:`$vectorSearch` stage performs an |ann| search on a vector
-in the specified field. The field that you want to search must be
-indexed as {+avs+} :ref:`vector <avs-types-vector>` type inside a
-:ref:`vectorSearch <avs-types-vector-search>` index type. 
+The :pipeline:`$vectorSearch` stage performs an |ann| or |enn| search on
+a vector in the specified field. 
+
+|ann| Search 
+~~~~~~~~~~~~
+
+For |ann| search, {+avs+} finds vector embeddings in your data that are
+closest to the vector embedding in your query based on their proximity
+in multi-dimensional space and based on the number of neighbors that it
+considers. It uses the |hnsw| algorithm and finds the vector embeddings
+most similar to the vector embedding in your query without scanning
+every vector. Therefore, |ann| search is ideal for querying large
+datasets without significant filtering.
+
+|enn| Search 
+~~~~~~~~~~~~
+
+For |enn| search, {+avs+} exhaustively searches all the indexed vector
+embeddings by calculating the distance between all the embeddings 
+and finds the exact nearest neighbor for the vector embedding in your
+query. This is computationally intensive and might negatively impact
+query latency. Therefore, we recommend |enn| searches for the following
+use-cases:
+
+- You want to determine the recall and accuracy of your |ann| query
+  using the ideal, exact results for the |enn| query.
+- You want to query less than 10000 documents without having to tune the 
+  number of nearest neighbors to consider.
+- Your want to include selective pre-filters in your query against
+  collections where less than 5% of your data meets the given pre-filter.
+
+Syntax 
+------
+
+The field that you want to search must be indexed as {+avs+}
+:ref:`vector <avs-types-vector>` type inside a :ref:`vectorSearch 
+<avs-types-vector-search>` index type. 
 
 .. pipeline:: $vectorSearch
 
@@ -46,12 +85,13 @@ indexed as {+avs+} :ref:`vector <avs-types-vector>` type inside a
 
       {
         "$vectorSearch": {
+          "exact": true | false,
+          "filter": {<filter-specification>},
           "index": "<index-name>",
-          "path": "<field-to-search>",
-          "queryVector": [<array-of-numbers>],
-          "numCandidates": <number-of-candidates>,
           "limit": <number-of-results>,
-          "filter": {<filter-specification>}
+          "numCandidates": <number-of-candidates>,
+          "path": "<field-to-search>",
+          "queryVector": [<array-of-numbers>]
         }
       }
 
@@ -70,6 +110,22 @@ The ``$vectorSearch`` stage takes a document with the following fields:
      - Type 
      - Necessity 
      - Description
+
+   * - ``exact``
+     - boolean
+     - Optional 
+     - This is required if ``numCandidates`` is omitted. 
+
+       Flag that specifies whether to run |enn| or |ann| search. Value
+       can be one of the following: 
+ 
+       - ``false`` - to run |ann| search 
+       - ``true`` - to run |enn| search
+
+       If omitted, defaults to ``false``. 
+
+       |enn| search is supported on |service| {+clusters+} running
+       MongoDB version 7.0.10 and 7.3.2.
 
    * - ``filter``
      - document
@@ -107,12 +163,15 @@ The ``$vectorSearch`` stage takes a document with the following fields:
      - number 
      - Required 
      - Number (of type ``int`` only) of documents to return in the
-       results. Value can't exceed the value of ``numCandidates``.
+       results. This alue can't exceed the value of ``numCandidates`` if
+       you specify ``numCandidates``.
 
    * - ``numCandidates``
      - number 
-     - Required 
-     - Number of nearest neighbors to use during the search. Value must 
+     - Optional 
+     - This field is required if ``exact`` is ``false`` or omitted.
+       
+       Number of nearest neighbors to use during the search. Value must 
        be less than or equal to (``<=``) ``10000``. You can't specify a
        number less than the number of documents to return (``limit``).
        
@@ -128,7 +187,8 @@ The ``$vectorSearch`` stage takes a document with the following fields:
      - string 
      - Required 
      - Indexed :ref:`vectorEmbedding <fts-data-types-knn-vector>`
-       type field to search. To learn more, see :ref:`Path Construction <ref-path>`.
+       type field to search. To learn more, see :ref:`Path Construction
+       <ref-path>`. 
 
    * - ``queryVector``
      - array of numbers 
@@ -361,6 +421,11 @@ OpenAI's ``text-embedding-ada-002`` embeddings model. If you added the
 for the collection, you can run the following queries against the
 collection. 
 
+.. note:: 
+
+   Pasting the ``queryVector`` from the sample code into your terminal
+   might take a while depending on your machine.  
+
 .. tabs-selector:: drivers
 
 ----------
@@ -371,6 +436,9 @@ collection.
 language of the examples in this page.
 
 ----------
+
+|ann| Examples 
+~~~~~~~~~~~~~~
 
 .. tabs-drivers::
 
@@ -383,11 +451,6 @@ language of the examples in this page.
             :tabid: basic 
 
             .. include:: /includes/extracts/avs-basic-query-desc.rst
-
-            .. note:: 
-
-               Pasting the ``queryVector`` in the sample code into your
-               terminal might take a while depending on your machine. 
 
             .. io-code-block::
                :copyable: true 
@@ -576,3 +639,67 @@ language of the examples in this page.
 
             .. include:: /includes/extracts/avs-filter-query-results.rst    
 
+|enn| Example 
+~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/avs-enn-query-description.rst
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: shell 
+
+      .. io-code-block::
+         :copyable: true 
+
+         .. input:: /includes/avs-examples/pipeline-stage-examples/enn-basic-query.sh
+            :language: shell
+            :linenos: 
+
+         .. output:: /includes/avs-examples/pipeline-stage-examples/enn-basic-query-shell-output.js 
+            :language: js
+            :linenos: 
+
+   .. tab::
+      :tabid: csharp 
+
+      .. code-block:: shell
+         :copyable: false
+
+         Not yet available.
+
+   .. tab:: 
+      :tabid: java-sync 
+
+      .. code-block:: shell
+         :copyable: false
+
+         Not yet available.
+
+   .. tab::
+      :tabid: nodejs
+
+      .. io-code-block::
+         :copyable: true 
+
+         .. input:: /includes/avs-examples/pipeline-stage-examples/enn-basic-query.js
+            :language: js
+            :linenos: 
+
+         .. output:: /includes/avs-examples/pipeline-stage-examples/enn-basic-query-nodejs-output.js 
+            :language: js
+            :linenos: 
+
+   .. tab::
+      :tabid: python
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/avs-examples/pipeline-stage-examples/enn-basic-query.py
+            :language: python
+            :linenos: 
+
+         .. output:: /includes/avs-examples/pipeline-stage-examples/enn-basic-query-py-output.js 
+            :language: js
+            :linenos:
