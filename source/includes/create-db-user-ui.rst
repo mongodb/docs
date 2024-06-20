@@ -5,13 +5,13 @@
      name: Password Authentication
      content: |
 
-       .. include:: /includes/steps/add-scram-user.rst
+       .. include:: /includes/steps-add-scram-user.rst
 
    - id: x509
      name: X.509 Certificates
      content: |
 
-       .. include:: /includes/steps/add-x509-user.rst
+       .. include:: /includes/steps-add-x509-user.rst
 
    - id: aws-iam
      name: AWS IAM
@@ -22,7 +22,7 @@
           AWS IAM authentication is available only on {+database-deployments+} which use
           MongoDB version 5.0 and higher.
 
-       .. include:: /includes/steps/add-aws-iam-user.rst
+       .. include:: /includes/steps-add-aws-iam-user.rst
 
        AWS IAM Connection String Example
        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

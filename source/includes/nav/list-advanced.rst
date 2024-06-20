@@ -1,4 +1,4 @@
-Go to the :guilabel:`Advanced` page for your project.
+In |service|, go to the :guilabel:`Advanced` page for your project.
 
 a. If it's not already displayed, select the 
    organization that contains your project from the

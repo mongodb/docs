@@ -1,4 +1,4 @@
-.. step:: Go to the :guilabel:`Migration` page for your project.
+.. step:: In |service|, go to the :guilabel:`Migration` page for your project.
 
    a. If it's not already displayed, select the 
       organization that contains your project from the

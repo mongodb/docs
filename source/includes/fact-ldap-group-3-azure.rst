@@ -1,4 +1,4 @@
-c. Click :guilabel:`LDAP Group`, and then enter the full DN of the
+#. Click :guilabel:`LDAP Group`, and then enter the full DN of the
    group containing your database users, even if you enabled
    :guilabel:`User to DN Mapping`. Follow this template:
 

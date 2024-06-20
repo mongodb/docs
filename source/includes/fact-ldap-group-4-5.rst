@@ -1,2 +1,2 @@
-d. Select the database access level to grant to users in this group.
-e. Click :guilabel:`Add User`.
+#. Select the database access level to grant to users in this group.
+#. Click :guilabel:`Add User`.

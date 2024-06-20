@@ -1,7 +1,8 @@
 .. procedure::
    :style: normal
       
-      
+   .. include:: /includes/nav/steps-db-access.rst
+
    .. step:: Set up a database user in the target |service| cluster.
       
       To run |mongoimport| to write to |service| cluster, you
@@ -13,9 +14,8 @@
       
       If no such user exists, create the user:
       
-      #. In the :guilabel:`Security` section of the left navigation, click
-         :guilabel:`Database Access`. The :guilabel:`Database Users` tab
-         displays.
+      a. If it isn't already displayed, click the
+         :guilabel:`Database Users` tab.
       
       #. Click :icon-fa5:`plus` :guilabel:`Add New Database User`.
       
