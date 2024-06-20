@@ -12,7 +12,7 @@
      * - DNS Names
        - Ensure that you add |san-dns|\s or Subject Names
          for each |k8s-pod| that hosts a member of the 
-         Application Database replica set. The |san-dns| for each pod
+         {+appdb+} replica set. The |san-dns| for each pod
          must use the following format:
 
          .. code-block:: sh

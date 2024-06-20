@@ -23,7 +23,7 @@ clusters where you deploy |onprem| components.
 ``MongoDBOpsManager`` |k8s-custom-resource|\s specification defines the
 following |onprem| components:
 
-- The Application Database
+- The {+appdb+}
 - The |onprem| application
 - The Backup Daemon
 
@@ -53,54 +53,54 @@ deployment:
 Application Database
 ---------------------
 
-For the Application Database, the |k8s-op-short| deploys a MongoDB replica set
+For the {+appdb+}, the |k8s-op-short| deploys a MongoDB replica set
 as a |k8s-statefulset|.
 
-Each Pod for the Application Database has the following containers:
+Each Pod for the {+appdb+} has the following containers:
 
 - |mongod|.
 - {+mdbagent+}. To override the {+mdbagent+} version, use
   the ``$AGENT_IMAGE`` environment variable or ``agent.version``
   in the Helm chart that you use for installing the |k8s-op-short|.
-- Monitoring Agent. You can't override the Monitoring Agent's version.
+- {+monitoring-agent+}. You can't override the {+monitoring-agent+}'s version.
   The version that the |k8s-op-short| uses ensures backwards compatibility
   with the |onprem| versions.
 
-  To view the Monitoring Agent's version:
+  To view the {+monitoring-agent+}'s version:
 
   - Inspect ``/usr/local/om_version_mapping.json`` inside the Pod for
     the |k8s-op-short| or the image for the |k8s-op-short|.
-  - Check the Monitoring Agent's container image on the Pod where you deploy
-    the Application Database.
+  - Check the {+monitoring-agent+}'s container image on the Pod where you deploy
+    the {+appdb+}.
 
 In multi-cluster deployments (when you set
 :opsmgrkube:`spec.applicationDatabase.topology` to ``MultiCluster``),
 the |k8s-op-short| creates the StatefulSet in each |k8s| cluster specified
-for the Application Database in :opsmgrkube:`spec.applicationDatabase.clusterSpecList`.
+for the {+appdb+} in :opsmgrkube:`spec.applicationDatabase.clusterSpecList`.
 
 The following actions take place in each member |k8s| cluster hosting 
-MongoDB replica set nodes for the Application Database:
+MongoDB replica set nodes for the {+appdb+}:
 
 - |k8s| creates one Pod in the StatefulSet for each node that comprises
-  your Application Database replica set. Each Pod in the StatefulSet runs
+  your {+appdb+} replica set. Each Pod in the StatefulSet runs
   a ``mongod`` and the {+mdbagent+}.
 
   To enable each {+mdbagent+} to start |mongod| on its Pod in the StatefulSet,
-  you must specify a specific MongoDB Server version for the Application Database
+  you must specify a specific MongoDB Server version for the {+appdb+}
   using the :opsmgrkube:`spec.applicationDatabase.version` setting. The version
   that you specify in this setting must correspond to the tag in the
   :qr-mdb:`container registry </mongodb-enterprise-server?tab=tags>`.
   
-- Each {+mdbagent+} starts |mongod|\s on its Application Database
-  Pod. {+mdbagent+}\s add |mongod| processes to the Application Database replica set.
+- Each {+mdbagent+} starts |mongod|\s on its {+appdb+}
+  Pod. {+mdbagent+}\s add |mongod| processes to the {+appdb+} replica set.
 
   You configure the number of replicas and other configuration options
-  for the Application Database replica set in the :opsmgrkube:`spec.applicationDatabase`
+  for the {+appdb+} replica set in the :opsmgrkube:`spec.applicationDatabase`
   collection in the ``MongoDBOpsManager`` custom resource. The |k8s-op-short|
   passes this configuration to the {+mdbagent+}\s using a |k8s-secret| that the
-  |k8s-op-short| mounts to each Pod in the Application Database StatefulSet.
+  |k8s-op-short| mounts to each Pod in the {+appdb+} StatefulSet.
 
-  In multi-cluster Application Database deployments, (where :opsmgrkube:`spec.applicationDatabase.topology`
+  In multi-cluster {+appdb+} deployments, (where :opsmgrkube:`spec.applicationDatabase.topology`
   is set to ``MultiCluster``), you specify the number of nodes in each member
   cluster separately for each member cluster in
   :opsmgrkube:`spec.applicationDatabase.clusterSpecList`.
@@ -112,10 +112,10 @@ MongoDB replica set nodes for the Application Database:
   the StatefulSet specification, if applicable. If the StatefulSet specification
   changes, |k8s| upgrades the Pods in a rolling fashion and restarts each Pod.
 
-- To provide connectivity to each Application Database Pod from within each
-  |k8s| cluster hosting the Application Database, the |k8s-op-short| creates
+- To provide connectivity to each {+appdb+} Pod from within each
+  |k8s| cluster hosting the {+appdb+}, the |k8s-op-short| creates
   a headless |k8s-service|.
-  In multi-cluster deployments of the Application Database, the |k8s-op-short|
+  In multi-cluster deployments of the {+appdb+}, the |k8s-op-short|
   also creates one service per Pod named ``<om_resource_name>-db-N-svc`` (this corresponds
   to :opsmgrkube:`metadata.name`),
   and uses its |fqdn|, such as ``<om_resource_name>-db-0.<namespace>.svc.cluster.local``,
@@ -125,14 +125,14 @@ MongoDB replica set nodes for the Application Database:
   |k8s-op-short|, |k8s| might create the |k8s-pvs| using
   :k8sdocs:`dynamic volume provisioning </concepts/storage/dynamic-provisioning/>`.
 
-  You can customize the |k8s-pvcs| for the Application Database Pods using
+  You can customize the |k8s-pvcs| for the {+appdb+} Pods using
   :opsmgrkube:`spec.applicationDatabase.podSpec.persistence.single <spec.applicationDatabase>`
   or :opsmgrkube:`spec.applicationDatabase.podSpec.persistence.multiple <spec.applicationDatabase>`.
 
 Application Database Topology
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To elect a primary, a majority of the Application Database replica set's
+To elect a primary, a majority of the {+appdb+} replica set's
 nodes must be available. If a majority of replica set's nodes fail,
 the replica set can't form a voting majority to elect a primary node.
 To learn more, see :manual:`Replica Set Deployment Architectures </core/replica-set-architectures/>`.
@@ -141,19 +141,19 @@ If possible, use an odd number of member |k8s| clusters and distribute your
 Application Database nodes across data centers, zones, or |k8s| clusters.
 To learn more, see :manual:`Replica Sets Distributed Across Two or More Data Centers </core/replica-set-architecture-geographically-distributed/>`.
 
-Consider the following examples of the Application Database's topology:
+Consider the following examples of the {+appdb+}'s topology:
 
 .. tabs::
 
-   .. tab:: Five-member Application Database
+   .. tab:: Five-member {+appdb+}
       :tabid: five-member
 
-      For a five-member Application Database, some possible distributions of members include:
+      For a five-member {+appdb+}, some possible distributions of members include:
 
       - Two clusters: three members to ``Cluster 1`` and two members to ``Cluster 2``.
 
         - If ``Cluster 2`` fails, ``Cluster 1`` hosts a sufficient number of
-          Application Database's replica set members to elect a primary node.
+          {+appdb+}'s replica set members to elect a primary node.
         - If ``Cluster 1`` fails, ``Cluster 2`` doesn't have enough Application
           Database's members to elect a primary node.
 
@@ -162,18 +162,18 @@ Consider the following examples of the Application Database's topology:
         - If any single cluster fails, there are enough members on the remaining clusters to elect a primary node.
         - If two clusters fail, there are not enough members on any remaining cluster to elect a primary node.
 
-   .. tab:: Seven-member Application Database
+   .. tab:: Seven-member {+appdb+}
       :tabid: seven-member
 
-      For a seven-member Application Database, consider the following distribution of members:
+      For a seven-member {+appdb+}, consider the following distribution of members:
 
       - Two clusters: four members to ``Cluster 1`` and three members to ``Cluster 2``.
 
         - If ``Cluster 2`` fails, there are enough members on ``Cluster 1`` to elect a primary node.
         - If ``Cluster 1`` fails, there are not enough members on ``Cluster 2`` to elect a primary node.
         
-      Although ``Cluster 2`` meets the three member minimum for the Application Database,
-      a majority of the Application Database's seven members must be available
+      Although ``Cluster 2`` meets the three member minimum for the {+appdb+},
+      a majority of the {+appdb+}'s seven members must be available
       to elect a primary node.
 
 To learn more, see :ref:`disaster-recovery-om-appdb`.
@@ -183,7 +183,7 @@ To learn more, see :ref:`disaster-recovery-om-appdb`.
 |application|
 --------------------------
 
-After the Application Database reaches a **Running** state, the |k8s-op-short|
+After the {+appdb+} reaches a **Running** state, the |k8s-op-short|
 starts deploying the |application|:
 
 - It configures a StatefulSet on each member |k8s| cluster.

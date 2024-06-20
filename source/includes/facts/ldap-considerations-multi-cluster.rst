@@ -1,7 +1,7 @@
 - To configure |ldap| in |k8s-crds|, use the parameters under the
   :setting:`spec.security.authentication.ldap` and other
   :ref:`security LDAP settings <security-settings>` specific to the
-  MongoDB Agent, from the |k8s-op-short| MongoDB resource specification.
+  {+mdbagent+}, from the |k8s-op-short| MongoDB resource specification.
   The procedures in this section describe the required settings and
   provide examples of |ldap| configuration.
 
