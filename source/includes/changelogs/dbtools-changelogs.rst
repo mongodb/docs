@@ -42,10 +42,10 @@ releases.
     - October - November 2020
     - 
 
-  * - :ref:`Database Tools 1.1.0 - 1.1.1 <dbtools-100.1.0-changelog>` 
+  * - :ref:`Database Tools 100.1.0 - 100.1.1 <dbtools-100.1.0-changelog>` 
     - July 2020
     - MongoDB Server 4.4
 
-  * - :ref:`Database Tools 1.0.0 - 1.0.2 <dbtools-100.0.0-changelog>` 
+  * - :ref:`Database Tools 100.0.0 - 100.0.2 <dbtools-100.0.0-changelog>` 
     - July 2020
     - 
