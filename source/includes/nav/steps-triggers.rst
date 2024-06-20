@@ -1,4 +1,4 @@
-.. step:: Go to the {+fdi+} for your project.
+.. step:: Go to the :guilabel:`Triggers` page for your project.
 
    a. If it's not already displayed, select the 
       organization that contains your project from the
@@ -7,6 +7,6 @@
    #. If it's not already displayed, select your project 
       from the :guilabel:`Projects` menu in the navigation bar.
 
-   #. In the sidebar, click :guilabel:`Data Federation` under 
+   #. In the sidebar, click :guilabel:`Triggers` under 
       the :guilabel:`Services` heading.
       
