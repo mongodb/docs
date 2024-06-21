@@ -1,6 +1,7 @@
 - |mc| can only be run on sharded clusters.
 - |mc| can only move unsharded collections.
 - |mc| can only move a single collection at a time.
+- |mc| has a 5 minute minimum duration. 
 - Atlas Search indexes need to be rebuilt after ``moveCollection`` 
   runs.
 - You cannot make topology changes, such as add or remove shard or 

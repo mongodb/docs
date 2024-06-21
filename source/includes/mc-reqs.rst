@@ -1,4 +1,4 @@
-Before you reshard your collection, ensure that you meet the following 
+Before you move your collection, ensure that you meet the following 
 requirements:
 
 - .. include:: /includes/sharding-mc-time.rst
