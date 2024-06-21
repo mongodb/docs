@@ -5,6 +5,9 @@
    * - |k8s-op-short| Release Series
      - |onprem| Version
 
+   * - 1.26.x
+     - 6.0, 7.0
+
    * - 1.25.x
      - 6.0, 7.0
 
