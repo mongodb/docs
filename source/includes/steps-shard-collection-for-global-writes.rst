@@ -2,8 +2,8 @@
    :style: normal
       
    .. include:: /includes/nav/steps-db-deployments-page.rst
-      
-   .. step:: Click the :guilabel:`Browse Collections` button below the cluster that contains the collection that you want to shard.
+
+   .. include:: /includes/nav/steps-data-explorer.rst
       
    .. step:: Click the collection that you want to shard.
       

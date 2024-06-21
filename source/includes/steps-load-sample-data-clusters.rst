@@ -22,12 +22,13 @@
 
       The dialog box closes and |service| begins loading your sample 
       dataset into your {+database-deployment+}.
+
+   .. include:: /includes/nav/steps-data-explorer.rst
       
    .. step:: View your sample data.
 
-      To view your sample data, click your {+database-deployment+}\'s
-      :guilabel:`Browse Collections` button. You should see the 
-      following databases in your {+database-deployment+}:
+      You should see the following databases in your 
+      {+database-deployment+}:
       
       - ``sample_airbnb``
       - ``sample_geospatial``

@@ -3,11 +3,11 @@
 
    .. include:: /includes/nav/steps-db-deployments-page.rst
 
+   .. include:: /includes/nav/steps-data-explorer.rst
+
    .. step:: Create the ``bedrock_db.test`` collection.
 
-      a. Click the :guilabel:`Browse Collections` button for your 
-         {+cluster+}.
-      #. Click the :guilabel:`+ Create Database` button. 
+      a. Click the :guilabel:`+ Create Database` button. 
       #. For the :guilabel:`Database name` enter ``bedrock_db``.
       #. For the :guilabel:`Collection name`,  enter ``test``.
       #. Click :guilabel:`Create` to create the database and its 
