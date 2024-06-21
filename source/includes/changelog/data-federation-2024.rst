@@ -1,3 +1,11 @@
+.. _adf-v20240618:
+
+18 June 2024 Release:
+~~~~~~~~~~~~~~~~~~~~~
+
+- Supports the ability to read :ref:`Parquet <adf-parquet-data-format>` files with
+  :manual:`zstd </reference/glossary/#std-term-zstd>` column compression.
+
 .. _adf-v20240521:
 
 21 May 2024 Release:
