@@ -3,7 +3,7 @@
    *Type*: string
 
    
-   Specifies the |k8s-secret| that contains the {+mdbagent+}'s
+   Specifies the |k8s-secret| that contains the {+mdbagent+}\'s
    |tls| certificate. If omitted, defaults to ``agent-certs``.
    
    This secret must contain the following keys, the 
