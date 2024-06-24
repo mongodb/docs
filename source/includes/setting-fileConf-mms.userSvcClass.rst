@@ -2,7 +2,7 @@
 
    *Type*: string
 
-   *Default*: ``com.xgen.cloud.user._private.svc.UserSvcDb``
+   *Default*: ``UserSvcDb``
 
    
    Select whether to store authentication credentials in the |onprem|
@@ -19,7 +19,7 @@
         - Accepted Value
    
       * - Application Database
-        - ``com.xgen.cloud.user._private.svc.UserSvcDb``
+        - ``UserSvcDb``
           
           .. important::
    
