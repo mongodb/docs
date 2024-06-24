@@ -1,7 +1,7 @@
 .. _oidc-authentication-workforce:
 
 ================================================================
-Set up {+wif+} (Humans) with OIDC
+Set up {+wif+} with OIDC
 ================================================================
 
 .. default-domain:: mongodb
@@ -29,33 +29,38 @@ With {+wif+}, you can:
 - Grant access for a :ref:`group of users or a single user <add-db-user>`.
 
 After you configure your external |idp| and add it to your 
-{+wif+} one time, you can enable |oidc| |idp-full| for multiple 
-|service| {+cluster+} organizations. After you enable {+wif+} 
+{+wif+} one time, you can enable Workforce |idp-full| for multiple 
+|service| organizations. After you enable {+wif+} 
 in a given organization, you can use it in all projects in that organization 
 for database access.
+
+{+wif+} is supported by |service| dedicated {+clusters+}
+(M10 and above) running MongoDB version 7.0.11 and above. You need to use 
+MongoDB Shell or Compass to access |service| with {+wif+}.
 
 Required Access
 ---------------
 
-To manage |oidc| configuration, you must have
+To manage {+wif+} configuration, you must have
 :authrole:`Organization Owner` access to |service|.
-
-Prerequisites
--------------
-
-To manage user authentication and authorization using |oidc| in
-|service|, you must :ref:`map one or more domains to your Identity
-Provider <atlas-manage-fed-domain-map>`.
 
 Procedures
 ----------
 
-.. important::
+To access |service| {+clusters+} with {+wif+}, complete the following steps:
 
-   You configure {+wif+} in two stages. To link your |idp| to |service|:
+1. Configure a Workforce Identity Provider (one-time setup).
+   
+   a. :ref:`Configure your external identity provider <configure-idp-oidc>`.
 
-   - Configure your |idp| and save its metadata.
-   - Set the metadata from your |idp| to |service|.
+   b. :ref:`Configure Workforce Identity Provider in Atlas and 
+      enable it for your |service| organization(s) <configure-oidc>`.
+
+2. Grant external identities (user principals) or groups access 
+   to MongoDB clusters.
+
+3. Authenticate to your |service| {+clusters+} with MongoDB Shell or Compass.
+
 
 .. _configure-idp-oidc:
 
@@ -110,16 +115,133 @@ your registration process:
 
 After you register your application, save the ``issuer``, 
 ``clientId``, and ``audience`` values to use in the next stage of the
-:ref:`Atlas OIDC IdP configuration <apply-oidc-idp>`.
+:ref:`Atlas Workforce IdP configuration <apply-oidc-idp>`.
 
 .. _configure-azure-idp-oidc:
 
-.. tabs::
+To register your |oidc| application with |azure-ad|:
 
-   .. tab:: Configure Microsoft Entra ID
-      :tabid: microsoft-entra-id-oidc
+.. procedure::
+   :style: normal
 
-      .. sharedinclude:: cet/atlas/configure-azureAd-idp.rst
+   .. step:: Register an application.
+
+      1. Navigate to :guilabel:`App registrations`.
+               
+
+         a. In your `Azure portal <https://portal.azure.com/>`__ account, search and click :guilabel:`Microsoft Entra ID`.
+
+         #. In the :guilabel:`Manage` section of the left navigation, click :guilabel:`App registrations`.
+               
+      2. Click :guilabel:`New registration`.
+
+      3. Apply the following values.
+
+         .. list-table::
+            :header-rows: 1
+            :widths: 20 40
+
+            * - Field
+              - Value
+
+            * - :guilabel:`Name`
+              - :guilabel:`Atlas Database - Workforce`
+
+            * - :guilabel:`Supported Account Types`
+              - :guilabel:`Accounts in this organizational directory only (single tenant)`
+
+            * - :guilabel:`Redirect URI`
+              - | - :guilabel:`Public client/native (mobile & desktop)`
+                | - ``http://localhost:27097/redirect``
+
+      4. Click :guilabel:`Register`.
+
+      To learn more about registering an application, see `Azure Documentation <https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app#register-an-application>`__.
+
+   .. step:: Add a group claim.
+
+      1. Navigate to :guilabel:`Token Configuration`.
+
+         In the :guilabel:`Manage` section of the left navigation,
+         click :guilabel:`Token Configuration`.
+
+      2. Click :guilabel:`Add groups claim`.
+
+      3. In the :guilabel:`Edit groups claim` modal, select :guilabel:`Security`.
+
+         What groups you select depend on the type of groups you configured
+         in your Azure environment. You may need to select a different
+         type of group to send the appropriate group information.
+
+      4. In the :guilabel:`Customize token properties by type` section, only select :guilabel:`Group ID`.
+
+      5. Click :guilabel:`Add`.
+
+      To learn more about adding a group claim, see :azure:`Azure Documentation </active-directory/hybrid/connect/how-to-connect-fed-group-claims>`.
+
+   .. step:: Add a user identifier claim to the access token.
+
+      1. Click :guilabel:`Add optional claim`.
+
+      2. In the :guilabel:`Add optional claim` modal, select :guilabel:`Access`.
+               
+      3. Select a claim that carries a user identifier that you can
+         refer to in MongoDB access logs such as an email.
+
+         You can use the :abbr:`UPN (UserPrincipalName)` claim to identify users with their email address.
+               
+      4. Click :guilabel:`Add`.
+               
+      5. In the :guilabel:`Microsoft Graph Permissions` note, check the box, and click :guilabel:`Add`.
+
+      To learn more, see :azure:`Azure Documentation </active-directory/develop/optional-claims>`.
+
+   .. step:: Update the manifest.
+
+      1. In the :guilabel:`Manage` section of the left navigation, click :guilabel:`Manifest`.
+
+      2. Update the :guilabel:`accessTokenAcceptedVersion` from ``null`` to ``2``.
+
+         The number ``2`` represents Version 2 of Microsoft's access
+         tokens. Other applications can use this as a signed
+         attestation of the Active Directory-managed user's identity.
+         Version 2 ensures that the token is a JSON Web Token that
+         MongoDB understands.
+               
+      3. Click :guilabel:`Save`.
+
+      To learn more about adding an optional claim, see :azure:`Azure Documentation </active-directory/develop/reference-app-manifest>`.
+
+   .. step:: Remember metadata.
+
+      1. In the left navigation, click :guilabel:`Overview`.
+               
+         Copy the :guilabel:`Application (client) ID` value.
+       
+      2. In the top navigation, click :guilabel:`Endpoints`.
+                  
+         Copy the :guilabel:`OpenID Connect metadata document` value 
+         without the ``/.well-known/openid-configuration`` part.
+
+         You can also get this value by copying the value for 
+         ``issuer`` in the :guilabel:`OpenID Connect metadata document` |url|.
+
+      The following table shows what these |azure-ad| UI values map to in our |service| Configuration Properties:
+            
+      .. list-table::
+         :header-rows: 1
+         :widths: 50 50
+         :stub-columns: 1
+
+         * - Microsoft Entra ID UI 
+           - |service| Configuration Property
+
+         * - :guilabel:`Application (client) ID` 
+           - | :guilabel:`Client ID`
+             | :guilabel:`Audience`
+
+         * - :guilabel:`OpenID Connect metadata document (without /.well-known/openid-configuration)`
+           - :guilabel:`Issuer URI`. 
 
 .. _configure-oidc:
 
@@ -136,28 +258,26 @@ Configure Workforce Identity Federation Authentication
 You can configure {+wif+} with |oidc| for database access in |service|
 from the :guilabel:`Federation Management Console`.
 
-Use the :guilabel:`Federation Management Console` to:
-
-- Configure :guilabel:`Identity Providers` to authenticate users
-  belonging to specified organizations.
-- Connect |service| :guilabel:`Organizations` to your |idp|.
-
-To configure an |oidc| |idp-full| in |service|:
+To configure a Workforce |idp-full| in |service|:
 
 .. procedure::
    :style: normal
 
-   .. include:: /includes/nav/steps-data-federation.rst
-  
-   .. step:: Click :guilabel:`Begin`.
-   
-      Click the :guilabel:`Begin` button to the right of :guilabel:`Workforce Identity Federation`.
+   .. step:: Go to the Federation Management Console.
+
+      a. Navigate to Organization settings.
+
+      #. Click on :guilabel:`Open Federation Management App`.
 
    .. step:: Add and verify domain ownership.
 
-      You must verify ownership of the domain that you register with your |idp|.
+      You must verify ownership of the domain that you register with your |idp|. 
+      You can skip this step if you've already registered your 
+      domain for SAML SSO with |service|.
 
-      a. Click the :guilabel:`Add Domain` button.
+      a. Select Domains in the left sidebar.
+      
+      #. Click the :guilabel:`Add Domain` button.
 
       #. Enter a display name in the :guilabel:`Display Name` box. 
 
@@ -180,19 +300,25 @@ To configure an |oidc| |idp-full| in |service|:
          button for your newly added domain.
 
    .. step:: Configure identify providers.
-      
-      Do one of the following steps:
-      
-      - If you do not have any Identity Providers configured yet, click
-        :guilabel:`Setup Identity Provider`.
-      - Otherwise, on the :guilabel:`Identity Providers` screen, click
-        :guilabel:`Configure Identity Provider(s)`.
 
-   .. step:: Enter the following |oidc| Protocol Settings.
+      a. Click :guilabel:`Identity Providers` in the left sidebar.
+      
+      #. Do one of the following steps:
+      
+         - If you do not have any Identity Providers configured yet, click
+           :guilabel:`Setup Identity Provider`.
+         - Otherwise, on the :guilabel:`Identity Providers` screen, click
+           :guilabel:`Configure Identity Provider(s)`.
+
+      #. Select :guilabel:`Workforce Identity Provider` and click :guilabel:`Continue`.
+
+      #. Select :guilabel:`OIDC for Data Access`.
+
+   .. step:: Enter the following Workforce Identity Provider Protocol Settings.
 
       .. list-table::
          :header-rows: 1
-         :widths: 30 10 60
+         :widths: 30 20 50
          :stub-columns: 1
 
          * - Setting
@@ -202,7 +328,7 @@ To configure an |oidc| |idp-full| in |service|:
          * - :guilabel:`Configuration Name`
            - Required
            - Human-readable label that identifies this configuration. This label
-             is visible to database users.
+             is visible to your |service| users.
 
          * - :guilabel:`Configuration Description`
            - Optional
@@ -219,13 +345,13 @@ To configure an |oidc| |idp-full| in |service|:
            - Required
            - Unique identifier for your registered application. Enter
              the ``clientId`` value from the app you registered
-             with |oidc| |idp-full|.
+             with external |idp-full|.
 
          * - Audience
            - Required
-           - Entity that your |oidc| provider intends the token for. Enter
+           - Entity that your external identity provider intends the token for. Enter
              the ``audience`` value from the app you registered
-             with |oidc| |idp-full|. Generally, this value is the same as the 
+             with external |idp-full|. Generally, this value is the same as the 
              :guilabel:`Client ID`. 
 
          * - Authorization Type
@@ -239,6 +365,9 @@ To configure an |oidc| |idp-full| in |service|:
            - Tokens that give users permission to request data
              from the authorization endpoint. If you plan to support refresh tokens, 
              this field must include the value ``offline_access``. 
+
+             If your identity provider is |azure-ad|, add the default scope, 
+             which is ``<application client id>/.default``.
 
              For each additional scope you
              want to add, click :guilabel:`Add more scopes`.
@@ -262,21 +391,21 @@ To configure an |oidc| |idp-full| in |service|:
              *Default*: ``groups``
 
    .. step:: Click :guilabel:`Save and Finish`.
-   .. step:: Associate at least one domain to your OIDC |idp|.
+   .. step:: Associate at least one domain to your Workforce |idp|.
 
-      a. In your |oidc| card, click :guilabel:`Associate Domains`.
+      a. In your Workforce Identity Provider card, click :guilabel:`Associate Domains`.
       
       #. In the :guilabel:`Associate Domains with Identity Provider` modal,
          select one or more domains.
       
       #. Click :guilabel:`Submit`.
 
-   .. step:: Enable your |oidc| |idp-full| in an organization.
+   .. step:: Enable your Workforce |idp-full| in an organization.
 
       a. Click :guilabel:`Connect Organizations`.
 
-      #. For the organization you want to connect to |oidc|, click
-            :guilabel:`Configure Access`.
+      #. For the organization you want to connect to Workforce Identity Provider,
+         click :guilabel:`Configure Access`.
 
       #. Click :guilabel:`Connect Identity Provider`.
       
@@ -285,21 +414,21 @@ To configure an |oidc| |idp-full| in |service|:
             If you have another |idp| configured, this button says
             :guilabel:`Connect Identity Provider(s)`.
 
-   .. step:: Select :guilabel:`OIDC for Data Access`.
+   .. step:: Select :guilabel:`Workforce Identity Federation for Data Access`.
    
-      In the :guilabel:`Connect Identity Provider(s)` modal, select  an 
-      OIDC Identity Provider where the :guilabel:`Purpose` is 
+      In the :guilabel:`Connect Identity Provider(s)` modal, select  a
+      Workforce Identity Provider where the :guilabel:`Purpose` is 
       :guilabel:`Workforce Identity Federation`.
 
    .. step:: Click :guilabel:`Connect`.
 
-      When you connect your |oidc| |idp-full| to an organization, |service|
-      enables |oidc| for all the projects within that organization.
+      When you connect your Workforce |idp-full| to an organization, |service|
+      enables your Workforce |idp-full| for all the projects within that organization.
 
 .. _add-db-user:
 
-Add a Database User using OIDC Authentication
----------------------------------------------
+Add a Database User using Workforce Authentication
+---------------------------------------------------
 
 .. include:: /includes/steps-create-oidc-user.rst
 
@@ -315,7 +444,7 @@ Revoke JWKS
    Use the following procedure only if you manage your own signing keys.  
    
    Don't use this feature to rotate your signing keys. When you rotate 
-   your |oidc| |idp-full| signing keys, MongoDB fetches the JWKS automatically
+   your Workforce |idp-full| signing keys, MongoDB fetches the JWKS automatically
    when the existing access tokens expire.
 
 If your private key is compromised, you can immediately revoke your JSON
@@ -324,7 +453,7 @@ Web Key Sets (JWKS) cached in MongoDB nodes:
 .. procedure::
    :style: normal
 
-   .. step:: Update your signing keys in your |oidc| identity provider.
+   .. step:: Update your signing keys in your Workforce identity provider.
 
    .. step:: Open the Management Console.
 
@@ -332,7 +461,7 @@ Web Key Sets (JWKS) cached in MongoDB nodes:
 
    .. step:: Click :guilabel:`Identity Providers` in the left sidebar.
 
-   .. step:: Scroll to the |oidc| card.
+   .. step:: Scroll to the Workforce Identity Provider card.
 
    .. step:: Click the :guilabel:`Revoke` button.
 
@@ -340,39 +469,36 @@ Web Key Sets (JWKS) cached in MongoDB nodes:
       through your JWKS endpoint. You must restart your clients (such as
       {+mongosh+} or :compass:`Compass </>`) after you revoke JWKS. 
 
-Delete an {+wif+} Configuration
+Delete a Workforce Identity Provider Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To delete your |oidc| configuration:
+To delete your Workforce Identity Provider configuration:
 
 .. procedure::
    :style: normal
 
-   .. step:: Disconnect each organization you connected to your |oidc| |idp-full|.
+   .. step:: Disconnect each organization you connected to your Workforce |idp-full|.
 
-      .. procedure::
-         :style: connected
+      1. Open the Management Console.
 
-         .. step:: Open the Management Console.
+         .. include:: /includes/steps/open-fed-auth-console.rst
 
-            .. include:: /includes/steps/open-fed-auth-console.rst
+      2. Click :guilabel:`Organizations` in the left sidebar.
 
-         .. step:: Click :guilabel:`Organizations` in the left sidebar.
+      3. Click the organization that has {+wif+} enabled.
 
-         .. step:: Click the organization that has |oidc| enabled.
+      4. Click :guilabel:`Disconnect` under the :guilabel:`Manage` dropdown on the {+wif+} card.
 
-         .. step:: Click :guilabel:`Disconnect` on the |oidc| card.
+      5. In the :guilabel:`Disconnect identity provider?` modal, click
+         :guilabel:`Disconnect`.
 
-         .. step:: In the :guilabel:`Disconnect identity provider?` modal, click
-            :guilabel:`Disconnect`.
-
-            When you disconnect an |idp|, users who authenticate using the
-            |idp| lose access to |oidc| in the |service| projects
-            listed in the :guilabel:`Project` table.
+         When you disconnect an |idp|, users who authenticate using the
+         |idp| lose access to {+wif+} in the |service| projects
+         listed in the :guilabel:`Project` table.
 
    .. step:: Click :guilabel:`Identity Providers` in the left sidebar.
 
-   .. step:: In the |oidc| card, click :guilabel:`Delete`.
+   .. step:: In the Workforce Identity Provider card, click :guilabel:`Delete`.
 
    .. step:: In the :guilabel:`Delete Identity Provider?` modal, click
       :guilabel:`Delete`.

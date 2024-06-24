@@ -9,7 +9,7 @@
 
       .. note::
          
-         Until you :ref:`apply your OIDC IdP to Atlas
+         Until you :ref:`apply your Workforce IdP to Atlas
          <apply-oidc-idp>`, this button says :icon-fa5:`plus`
          :guilabel:`Add New Database User`.
       
@@ -19,7 +19,7 @@
        
       .. note::
           
-         Until you :ref:`enable OIDC IdP for your organization <configure-oidc>`,
+         Until you :ref:`enable Workforce IdP for your organization <configure-oidc>`,
          you can't select this box.
       
    .. step:: Select Identity Provider and Identifier
@@ -28,11 +28,11 @@
       |oidc| |idp-full|.
       
       #. Specify either the user identifier or group identifier associated with 
-         your configured |oidc| |idp-full|.
+         your configured Workforce |idp-full|.
 
       .. note:: 
 
-         For Azure Entra Id users, this value maps to the Object Id of your 
+         For Azure Entra ID users, this value maps to the Object Id of your 
          Azure user group rather than user group name.
       
    .. step:: Assign user or group privileges.
