@@ -133,7 +133,7 @@ The following syntax defines the ``filter`` field type:
 .. _avs-types-vector-search-options:
 
 {+avs+} Index Fields
---------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The {+avs+} index definition takes the following fields:
 
@@ -236,18 +236,500 @@ The {+avs+} index definition takes the following fields:
   create with the {+atlas-cli+}. To learn more, see :atlascli:`Create a
   Local Atlas Deployment </atlas-cli-deploy-local>`. 
 
-.. _avs-types-vector-search-manage:
+.. tabs-selector:: drivers
 
-Create and Manage {+avs+} Indexes   
----------------------------------------------
+.. _avs-create-index:
 
-You can create and manage {+avs+} indexes from the {+atlas-ui+} and
-the {+atlas-admin-api+}. To learn more, see: 
+Create an {+avs+} Index
+------------------------------------
 
-- :ref:`avs-create-index`
-- :ref:`avs-view-index`
-- :ref:`avs-edit-index`
-- :ref:`avs-delete-index`
+.. include:: /includes/facts/fts-index-description.rst
+
+You can create an {+avs+} index for all collections that contain vector
+embeddings less than or equal to 4096 dimensions in length for any kind
+of data along with other data on your |service| {+cluster+} through the
+{+atlas-ui+}, {+atlas-admin-api+}, {+atlas-cli+}, {+mongosh+},
+or a supported :driver:`MongoDB Driver </>`.
+
+.. _avs-create-index-prerequisites:
+
+Prerequisites
+~~~~~~~~~~~~~
+
+To create an {+avs+} index, you must have an |service| {+cluster+} with
+the following prerequisites: 
+
+- MongoDB version ``6.0.11``, ``7.0.2``, or higher
+- A collection for which to create the {+avs+} index 
+
+.. |command-type| replace:: create
+
+.. include:: /includes/fact-search-commands-free-tier-limitation.rst
+
+.. _avs-create-index-access:
+
+Required Access
+~~~~~~~~~~~~~~~
+
+You need the :authrole:`Project Data Access Admin` or higher role to create
+and manage {+avs+} indexes.
+
+.. _avs-types-vector-search-egs:
+.. _avs-create-index-supported-clients:
+.. _avs-create-index-procedure:
+
+Procedure 
+~~~~~~~~~
+
+----------
+
+.. |arrow| unicode:: U+27A4
+
+|arrow| Use the **Select your language** drop-down menu to select the
+client you want to use to create your index.
+
+----------
+
+.. note::
+
+   The procedure includes index definition examples for the 
+   ``embedded_movies`` collection in the ``sample_mflix`` database. If
+   you load the :ref:`sample data <mflix-embedded_movies>` on your
+   {+cluster+} and create the example |fts| indexes for this collection,
+   you can run the sample :pipeline:`$vectorSearch` queries against this
+   collection. To learn more about the sample queries that you can run,
+   see :ref:`$vectorSearch Examples <vectorSearch-agg-pipeline-egs>`. 
+
+.. tabs-drivers:: 
+
+   .. tab::  
+      :tabid: atlas-ui 
+
+      .. include:: /includes/steps-avs-create-index-atlas-ui.txt
+
+   .. tab::  
+      :tabid: atlas-api 
+
+      To create an {+avs+} index for a collection using the
+      {+atlas-admin-api+}, send a ``POST`` request to the |fts|
+      ``indexes`` endpoint with the required parameters. 
+      
+      .. literalinclude:: /includes/avs-examples/index-management/create-index/create-index-api.sh 
+         :language: shell
+         :copyable:
+         :linenos:
+      
+      To learn more about the syntax and parameters for the endpoint, see
+      :oas-atlas-op:`Create One Atlas Search Index </createAtlasSearchIndex>`.  
+      
+      .. example:: 
+
+         The following index definition indexes the ``plot_embedding``
+         field as the ``vector`` type and the ``genres`` and ``year``
+         fields as the ``filter`` type in an {+avs+} index. The
+         ``plot_embedding`` field contains embeddings created using
+         OpenAI's ``text-embedding-ada-002`` embeddings model. The index 
+         definition specifies ``1536`` vector dimensions and measures
+         similarity using ``euclidean`` distance. 
+
+         .. tabs:: 
+
+            .. tab:: Basic Example
+               :tabid: basic
+
+               The following index definition indexes only the vector
+               embeddings field for performing vector search.
+                  
+               .. literalinclude:: /includes/avs-examples/index-management/create-index/basic-example-api.sh 
+                  :language: shell
+                  :copyable:
+                  :linenos:
+
+            .. tab:: Filter Example 
+               :tabid: advanced
+
+               This index definition indexes the following fields: 
+         
+               - A string field (``genres``) and a numeric field (``year``)
+                 for pre-filtering the data. 
+               - The vector embeddings field (``plot_embedding``) for
+                 performing vector search against pre-filtered data.
+
+               .. literalinclude:: /includes/avs-examples/index-management/create-index/filter-example-api.sh 
+                  :language: shell
+                  :copyable:
+                  :linenos:
+
+   .. tab::  
+      :tabid: atlas-cli 
+
+      To create an {+avs+} index for a collection using the
+      {+atlas-cli+} v1.14.3 or later, perform the following steps: 
+
+      .. include:: /includes/steps-avs-create-index-acli.rst 
+
+   .. tab::  
+      :tabid: shell 
+
+      To create an {+avs+} index for a collection using {+mongosh+}
+      v2.1.2 or later, perform the following steps:
+      
+      .. include:: /includes/steps-avs-create-index-mongosh.rst 
+
+   .. tab::
+      :tabid: python
+
+      To create an {+avs+} index for a collection using the
+      `PyMongo <https://www.mongodb.com/docs/languages/python/pymongo-driver/current/indexes/atlas-search-index/>`__
+      driver v4.7 or later, perform the following steps: 
+
+      .. include:: /includes/steps-avs-create-index-pymongo.rst
+
+   .. tab::
+      :tabid: nodejs
+
+      To create an {+avs+} index for a collection using the
+      :driver:`MongoDB Node driver </node/current/fundamentals/indexes/>` 
+      v6.6.0 or later, perform the following steps:
+
+      .. include:: /includes/steps-avs-create-index-nodejs.rst
+
+.. _avs-view-index:
+
+View an {+avs+} Index
+------------------------------------
+
+
+You can view {+avs+} indexes for all collections from the
+{+atlas-ui+}, {+atlas-admin-api+}, {+atlas-cli+}, {+mongosh+},
+or a supported :driver:`MongoDB Driver </>`.
+
+.. _avs-view-index-access:
+
+Required Access
+~~~~~~~~~~~~~~~
+
+You need the :authrole:`Project Search Index Editor` or higher role to view
+{+avs+} indexes. 
+
+.. |command-type| replace:: retrieve
+
+.. include:: /includes/fact-search-commands-free-tier-limitation.rst
+
+.. _avs-view-index-procedure:
+
+Procedure
+~~~~~~~~~
+
+----------
+
+.. |arrow| unicode:: U+27A4
+
+|arrow| Use the **Select your language** drop-down menu to set the 
+language of the example in this section.
+
+----------
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui 
+
+      .. include:: /includes/steps-avs-view-index-atlas-ui.txt
+
+      The page displays the following details for the indexes on the page: 
+
+      .. list-table:: 
+         :stub-columns: 1 
+         :widths: 20 80
+
+         * - Name 
+           - Label that identifies the index. 
+
+         * - Index Type
+           - Label that indicates an |fts| or {+avs+} index. Values
+             include:  
+     
+             - ``search`` for |fts| indexes.
+             - ``vectorSearch`` for {+avs+} indexes.
+
+         * - Index Fields
+           - List that contains the fields that this index indexes.
+
+         * - Status
+           - Current state of the index on the primary node of the
+             {+cluster+}. For valid values, see
+             :ref:`avs-node-status-ref`. 
+
+         * - Size
+           - Size of the index on the primary node.
+
+         * - Documents 
+           - Number of indexed documents out of the total number of
+             documents in the collection.
+
+         * - Actions 
+           - Actions that you can take on the index. You can:
+     
+             - :ref:`avs-edit-index`
+             - :ref:`avs-delete-index`
+
+             .. note:: 
+
+                You can't run queries in the :guilabel:`Search Tester` UI
+                against indexes of the ``vectorSearch`` type. If you click the
+                :guilabel:`Query` button, {+avs+} displays a sample
+                :pipeline:`$vectorSearch` that you can copy, modify, and run
+                in :guilabel:`Data Explorer` and using other
+                :ref:`supported clients <vectorSearch-agg-pipeline-clients>`. 
+
+   .. tab:: 
+      :tabid: atlas-api 
+
+      To retrieve all the {+avs+} indexes for a collection using the
+      {+atlas-admin-api+}, send a ``GET`` request to the |fts|
+      ``indexes`` endpoint with the name of the database and collection. 
+
+      .. literalinclude:: /includes/avs-examples/index-management/return-index/get-indexes-api.sh
+         :language: shell
+         :copyable:
+         :linenos:
+
+      To learn more about the syntax and parameters for the endpoint,
+      see :oas-atlas-op:`Return All Atlas Search Indexes for One
+      Collection </listAtlasSearchIndexes>`.
+
+      To retrieve one {+avs+} index for a collection using the
+      {+atlas-admin-api+}, send a ``GET`` request to the |fts|
+      ``indexes`` endpoint with either the unique ID or name of the
+      index (line 4) to retrieve. 
+      
+      .. literalinclude:: /includes/avs-examples/index-management/return-index/get-index-api.sh
+         :language: shell
+         :copyable:
+         :linenos:
+
+      To learn more about the syntax and parameters for the endpoint, 
+      :oas-atlas-op:`Get One By Name </getAtlasSearchIndexByName>` and
+      :oas-atlas-op:`Get One By ID </getAtlasSearchIndex>`.
+
+   .. tab:: 
+      :tabid: atlas-cli 
+
+      To return {+avs+} indexes for a collection using {+atlas-cli+},
+      perform the following steps: 
+
+      .. include:: /includes/steps-avs-view-index-acli.rst
+
+   .. tab::  
+      :tabid: shell 
+
+      To delete an {+avs+} index for a collection using {+mongosh+},
+      perform the following steps: 
+
+      .. include:: /includes/steps-avs-view-index-mongosh.rst
+      
+   .. tab::
+      :tabid: python
+
+      To view {+avs+} indexes for a collection using 
+      `PyMongo <https://www.mongodb.com/docs/languages/python/pymongo-driver/current/indexes/atlas-search-index/>`__
+      driver v4.7 or later, perform the following steps: 
+
+      .. include:: /includes/steps-avs-view-index-pymongo.rst
+
+   .. tab::
+      :tabid: nodejs
+
+      To delete an {+avs+} index for a collection using 
+      :driver:`MongoDB Node driver </node/current/fundamentals/indexes/>` 
+      v6.6.0 or later, perform the following steps:
+
+      .. include:: /includes/steps-avs-view-index-nodejs.rst
+
+.. _avs-edit-index:
+
+Edit an {+avs+} Index
+-----------------------------------
+
+You can change the :ref:`index definition <avs-types-vector-search>`
+of an existing {+avs+} index from the {+atlas-ui+}, {+atlas-admin-api+}, 
+{+atlas-cli+}, {+mongosh+}, or a supported :driver:`MongoDB Driver </>`. 
+You can't rename an index or change the index type. If you need to
+change an index name or type, you must create a new index and delete the old one.
+
+Required Access 
+~~~~~~~~~~~~~~~
+
+You must have the :authrole:`Project Search Index Editor` or higher role to
+edit an {+avs+} index.
+
+.. |command-type| replace:: edit
+
+.. include:: /includes/fact-search-commands-free-tier-limitation.rst
+
+.. _avs-edit-index-procedure:
+
+Procedure
+~~~~~~~~~
+
+----------
+
+.. |arrow| unicode:: U+27A4
+
+|arrow| Use the **Select your language** drop-down menu to select the
+client you want to use to edit your index.
+
+----------
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui 
+
+      .. include:: /includes/steps-avs-edit-index-atlas-ui.txt
+
+   .. tab:: Atlas Administration API 
+      :tabid: atlas-api 
+
+      To edit an {+avs+} index for a collection using the
+      {+atlas-admin-api+}, send a ``PATCH`` request to the |fts|
+      ``indexes`` endpoint with either the unique ID or name of the
+      index (line 4) to edit. 
+
+      .. literalinclude:: /includes/avs-examples/index-management/update-index/edit-index-api.sh 
+         :language: shell
+         :copyable:
+         :linenos:
+      
+      To learn more about the syntax and parameters for the endpoints, see
+      :oas-atlas-op:`Update One By Name </updateAtlasSearchIndexByName>` and
+      :oas-atlas-op:`Update One By ID </updateAtlasSearchIndex>`.
+
+   .. tab:: Atlas CLI 
+      :tabid: atlas-cli 
+
+      To edit an {+avs+} index for a collection using {+atlas-cli+},
+      perform the following steps:
+
+      .. include:: /includes/steps-avs-edit-index-acli.rst 
+
+   .. tab::  
+      :tabid: shell 
+
+      To edit an {+avs+} index for a collection using {+mongosh+},
+      perform the following steps: 
+
+      .. include:: /includes/steps-avs-edit-index-mongosh.rst 
+
+   .. tab::
+      :tabid: python
+
+      To update an {+avs+} index for a collection using the
+      `PyMongo <https://www.mongodb.com/docs/languages/python/pymongo-driver/current/indexes/atlas-search-index/>`__
+      driver v4.7 or later, perform the following steps: 
+
+      .. include:: /includes/steps-avs-edit-index-pymongo.rst
+
+   .. tab::
+      :tabid: nodejs
+
+      To create an {+avs+} index for a collection using the
+      :driver:`MongoDB Node driver </node/current/fundamentals/indexes/>` 
+      v6.6.0 or later, perform the following steps:
+
+      .. include:: /includes/steps-avs-edit-index-nodejs.rst
+
+.. _avs-delete-index:
+
+Delete an {+avs+} Index
+--------------------------------------
+
+You can delete an {+avs+} index at any time from the 
+{+atlas-ui+}, {+atlas-admin-api+}, {+atlas-cli+}, {+mongosh+},
+or a supported :driver:`MongoDB Driver </>`.
+
+Required Access
+~~~~~~~~~~~~~~~
+
+You must have the :authrole:`Project Search Index Editor` or higher role to 
+delete an {+avs+} index.
+
+.. |command-type| replace:: delete
+
+.. include:: /includes/fact-search-commands-free-tier-limitation.rst
+
+.. _avs-delete-index-procedure:
+
+Procedure
+~~~~~~~~~
+
+----------
+
+.. |arrow| unicode:: U+27A4
+
+|arrow| Use the **Select your language** drop-down menu to select the
+client you want to use to delete your index.
+
+----------
+
+.. tabs-drivers::
+
+   .. tab:: 
+      :tabid: atlas-ui 
+
+      .. include:: /includes/steps-avs-delete-index-atlas-ui.txt
+
+   .. tab::  
+      :tabid: atlas-api 
+
+      To delete an {+avs+} index for a collection using the
+      {+atlas-admin-api+}, send a ``DELETE`` request to the |fts|
+      ``indexes`` endpoint with either the unique ID or the name of the 
+      index to delete. 
+      
+      .. literalinclude:: /includes/avs-examples/index-management/delete-index/delete-index-api.sh
+         :language: shell
+         :copyable:
+         :linenos:
+
+      To learn more about the syntax and parameters for the endpoint, see 
+      :oas-atlas-op:`Remove One Search Index By Name </deleteAtlasSearchIndexByName>`
+      and :oas-atlas-op:`Remove One Search Index By ID </deleteAtlasSearchIndex>`.
+
+   .. tab::  
+      :tabid: atlas-cli 
+
+      To delete an {+avs+} index for a collection using {+atlas-cli+},
+      perform the following steps: 
+
+      .. include:: /includes/steps-avs-delete-index-acli.rst
+
+   .. tab::  
+      :tabid: shell 
+
+      To delete an {+avs+} index for a collection using {+mongosh+},
+      perform the following steps:
+
+      .. include:: /includes/steps-avs-delete-index-mongosh.rst 
+      
+   .. tab::
+      :tabid: python
+
+      To delete an {+avs+} index for a collection using 
+      `PyMongo <https://www.mongodb.com/docs/languages/python/pymongo-driver/current/indexes/atlas-search-index/>`__
+      driver v4.7 or later, perform the following steps: 
+
+      .. include:: /includes/steps-avs-delete-index-pymongo.rst
+
+   .. tab::
+      :tabid: nodejs
+
+      To delete an {+avs+} index for a collection using 
+      :driver:`MongoDB Node driver </node/current/fundamentals/indexes/>` 
+      v6.6.0 or later, perform the following steps:
+
+      .. include:: /includes/steps-avs-delete-index-nodejs.rst
 
 .. _avs-node-status-ref:
 
@@ -308,3 +790,6 @@ While |service| builds the index and after the build completes, the
 :guilabel:`Documents` column shows the percentage and number of 
 documents indexed. The column also shows the total number of documents 
 in the collection.
+
+The following sections describe how to create and manage {+avs+} indexes
+from the 
