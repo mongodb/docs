@@ -25,7 +25,7 @@ These procedures are the same as the procedures for deploying |onprem| in single
 
   You can choose to deploy |onprem| on the central cluster and the Application
   Database on a subset of selected member clusters, to increase the
-  {+appdb+}'s resilience and availability in |onprem|. Configure
+  {+appdb+}\'s resilience and availability in |onprem|. Configure
   the following settings in the |onprem| CRD:
 
   - Use :opsmgrkube:`topology <spec.applicationDatabase.topology>` to specify the ``MultiCluster`` value.
