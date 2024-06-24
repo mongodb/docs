@@ -9,7 +9,7 @@ Convert a Replica Set to a Sharded Cluster
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 2
+   :depth: 1
    :class: singlecol
 
 Sharded clusters partition data across multiple servers based on a
@@ -128,30 +128,18 @@ Before You Begin
 Steps
 -----
 
-To convert a replica set to a sharded cluster:
-
-#. Deploy the :ref:`config server <sharding-config-server>` replica set.
-
-#. Deploy a :binary:`mongos`.
-
-#. Create an administrative user for the sharded cluster.
-
-#. Migrate the ``admin`` database from the initial replica set to the
-   sharded cluster.
-
-#. Restart the members of the initial replica set as shard servers.
-
-#. Add the initial replica set as a shard.
-
-#. Update your application connection string.
-
-#. Create a second shard and add it to the cluster.
-
-#. Shard a collection.
-
 .. _convert-setup-initial-set:
 
-1. Deploy the Config Server Replica Set
+1. Get the Existing Users and Roles from the Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To get existing users and roles, run ``mongodump``:
+
+.. code-block:: sh
+
+   mongodump -d=admin --out=adminDump -u <adminUser> -p <password> --host <replicaSetURI> --dumpDbUsersAndRoles
+
+2. Deploy the Config Server Replica Set
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Deploy a three-member replica set for the config servers. In this
@@ -164,7 +152,115 @@ example, the config servers use the following hosts:
 .. procedure::
    :style: normal
 
-   .. step:: Deploy the config server replica set members.
+   .. step:: Configure the Config Servers
+
+      Configure a :binary:`mongod` instance on each config server host.
+      Specify these options in the :ref:`configuration file
+      <configuration-options>` for each :binary:`mongod` instance:
+
+      .. list-table::
+         :header-rows: 1
+
+         * - Option
+           - Value
+
+         * - :setting:`replication.replSetName`
+           - ``configReplSet``
+               
+         * - :setting:`sharding.clusterRole`
+           - ``configsvr``
+
+         * - :setting:`net.bindIp`
+           - ``localhost``, followed by any other hostnames on
+             which the :binary:`mongod` should listen for client
+             connections.
+
+      .. code-block:: yaml
+
+         replication:
+           replSetName: configReplSet
+         sharding:
+           clusterRole: configsvr
+         net:
+            bindIp: localhost,<hostname(s)>
+
+      .. include:: /includes/sharding/convert-repl-set-tutorial/include-additional-options.rst
+ 
+   .. step:: Start the Config Servers
+
+      Deploy the :binary:`mongod` with your specified configuration:
+      
+      .. code-block:: sh
+
+         mongod --config <PATH_TO_CONFIG_FILE>
+         
+      The config servers use the default data directory
+      ``/data/configdb`` and the default port ``27019``.
+
+   .. step:: Connect to one of the config servers.
+      
+      Use :binary:`mongosh` to connect to one of the config
+      servers. For example:
+
+      .. code-block:: sh
+
+         mongosh "mongodb://mongodb7.example.net:27019"
+ 
+   .. step:: Initiate the config server replica set.
+
+      To initiate the replica set, run :method:`rs.initiate()`:
+
+      .. code-block:: javascript
+
+         rs.initiate( {
+            _id: "configReplSet",
+            configsvr: true,
+            members: [
+               { _id: 0, host: "mongodb7.example.net:27019" },
+               { _id: 1, host: "mongodb8.example.net:27019" },
+               { _id: 2, host: "mongodb9.example.net:27019" }
+            ]
+         } )
+
+      The preceding command uses the :ref:`localhost exception
+      <localhost-exception>` to perform administrative actions without
+      authentication.
+
+      .. important::
+
+         .. include:: /includes/fact-rs-initiate-once-only.rst
+
+3. Restore Existing Users and Roles to the New Config
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Restore the existing users and roles you got when you ran ``mongodump``.
+
+.. code-block:: sh
+
+   mongorestore ./adminDump --nsInclude "admin.*" --host <configPrimaryURI>
+
+The preceding command uses the :ref:`localhost exception
+<localhost-exception>` to perform administrative actions without
+authentication.
+
+The output from running this command may be similar to:
+
+.. code-block:: sh
+
+   0 document(s) restored successfully
+
+This message does not indicate a problem. This output means that 0 documents
+other than the users and roles were restored.
+
+4. Secure Config Server Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Reconfigure and restart the config server replica set.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Reconfigure the Config Servers
 
       Select the tab for your authentication mechanism:
 
@@ -173,35 +269,23 @@ example, the config servers use the following hosts:
          .. tab:: Keyfile Authentication
             :tabid: keyfile
 
-            Start a :binary:`mongod` instance on each of these hosts:
+            Restart a :binary:`mongod` instance on each of these hosts:
 
             - ``mongodb7.example.net``
             - ``mongodb8.example.net``
             - ``mongodb9.example.net``
-            
+
             Specify these options in the :ref:`configuration file
             <configuration-options>` for each :binary:`mongod` instance:
 
             .. list-table::
                :header-rows: 1
-            
+
                * - Option
                  - Value
 
                * - :setting:`security.keyFile`
-                 - The path to the key file used for your initial
-                   replica set.
-               
-               * - :setting:`replication.replSetName`
-                 - ``configReplSet``
-               
-               * - :setting:`sharding.clusterRole`
-                 - ``configsvr``
-
-               * - :setting:`net.bindIp`
-                 - ``localhost``, followed by any other hostnames on
-                   which the :binary:`mongod` should listen for client
-                   connections.
+                 - The path to the key file used for your initial replica set.
 
             .. code-block:: yaml
 
@@ -215,41 +299,36 @@ example, the config servers use the following hosts:
                   bindIp: localhost,<hostname(s)>
 
             .. include:: /includes/sharding/convert-repl-set-tutorial/include-additional-options.rst
-               
+
          .. tab:: x.509 Authentication
             :tabid: x509
 
-            Start a :binary:`mongod` instance on each of these hosts:
+            Restart a :binary:`mongod` instance on each of these hosts:
 
             - ``mongodb7.example.net``
             - ``mongodb8.example.net``
             - ``mongodb9.example.net``
-            
+
             Specify these options in the :ref:`configuration file
-            <configuration-options>` for each :binary:`mongod` instance:
+            <configuration-options>` for each :binary:`mongod` instance
+            in addition to the options you already configured:
 
             .. list-table::
                :header-rows: 1
-            
+
                * - Option
                  - Value
 
-               * - :setting:`sharding.clusterRole`
-                 - ``configsvr``
-
-               * - :setting:`replication.replSetName`
-                 - ``configReplSet``
-
                * - :setting:`security.clusterAuthMode`
                  - ``x509``
-               
+
                * - :setting:`net.tls.mode`
                  - ``requireTLS``
 
                * - :setting:`net.tls.certificateKeyFile`
                  - The absolute path to the ``.pem`` file that contains
                    both the TLS certificate and key.
-               
+
                * - :setting:`net.tls.CAFile`
                  - The absolute path to the ``.pem`` file that contains
                    the root certificate chain from the Certificate
@@ -279,68 +358,16 @@ example, the config servers use the following hosts:
 
             .. include:: /includes/sharding/convert-repl-set-tutorial/additional-tls-options.rst
 
-      Deploy the :binary:`mongod` with your specified configuration:
-      
+   .. step:: Restart MongoDB
+
+      Restart the :binary:`mongod` with your specified configuration:
+
       .. code-block:: sh
 
+         mongod --config <PATH_TO_CONFIG_FILE> --shutdown
          mongod --config <PATH_TO_CONFIG_FILE>
-         
-      The config servers use the default data directory
-      ``/data/configdb`` and the default port ``27019``.
 
-   .. step:: Connect to one of the config servers.
-      
-      .. tabs::
-
-         .. tab:: Keyfile Authentication
-            :tabid: keyfile
-
-            Use :binary:`mongosh` to connect to one of the config
-            servers. For example:
-
-            .. code-block:: sh
-
-               mongosh "mongodb://mongodb7.example.net:27019"
-
-         .. tab:: x.509 Authentication
-            :tabid: x509
-
-            Use :binary:`mongosh` to connect to one of the config
-            servers.
-
-            .. include:: /includes/sharding/convert-repl-set-tutorial/mongosh-tls-options.rst
-
-            For example:
-
-            .. code-block:: sh
-
-               mongosh "mongodb://mongodb7.example.net:27019" --tls --tlsCAFile <CA_FILE> --tlsCertificateKeyFile <filename>
-   
-   .. step:: Initiate the config server replica set.
-
-      To initiate the replica set, run :method:`rs.initiate()`:
-
-      .. code-block:: javascript
-
-         rs.initiate( {
-            _id: "configReplSet",
-            configsvr: true,
-            members: [
-               { _id: 0, host: "mongodb7.example.net:27019" },
-               { _id: 1, host: "mongodb8.example.net:27019" },
-               { _id: 2, host: "mongodb9.example.net:27019" }
-            ]
-         } )
-
-      The preceding command uses the :ref:`localhost exception
-      <localhost-exception>` to perform administrative actions without
-      authentication.
-
-      .. important::
-
-         .. include:: /includes/fact-rs-initiate-once-only.rst
-
-2. Deploy the ``mongos``
+5. Deploy the ``mongos``
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 The :binary:`mongos` provides the interface between the client
@@ -355,12 +382,12 @@ applications and the sharded cluster.
 
          .. tab:: Keyfile Authentication
             :tabid: keyfile
-            
+
             Specify these options in your :binary:`mongos` configuration file:
 
             .. list-table::
                :header-rows: 1
-            
+
                * - Option
                  - Value
 
@@ -415,7 +442,7 @@ applications and the sharded cluster.
                  - The absolute path to the ``.pem`` file that contains
                    the root certificate chain from the Certificate
                    Authority.
-               
+
                * - :setting:`net.bindIp`
                  - ``localhost``, followed by any other hostnames on which the
                    :binary:`~bin.mongos` should listen for client connections.
@@ -436,158 +463,16 @@ applications and the sharded cluster.
             Include any additional options appropriate for your deployment.
 
    .. step:: Deploy the mongos.
-   
+
       Deploy the :binary:`mongos` with your specified configuration:
 
       .. code-block:: sh
 
          mongos --config <PATH_TO_CONFIG_FILE>
 
-
-3. Create an Administrative User for the Sharded Cluster
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-After you deploy the ``mongos``, use the :ref:`localhost exception
-<localhost-exception>` to create the first user on the cluster.
-
-.. procedure::
-   :style: normal
-
-   .. step:: Connect to the ``mongos``.
-
-      Use :binary:`mongosh` to connect to the ``mongos``.
-      
-      .. tabs::
-
-         .. tab:: Keyfile Authentication
-            :tabid: keyfile
-
-            .. code-block:: sh
-
-               mongosh "mongodb://mongodb6.example.net:27017"
-
-         .. tab:: x.509 Authentication
-            :tabid: x509
-
-            .. include:: /includes/sharding/convert-repl-set-tutorial/mongosh-tls-options.rst
-
-            .. code-block:: sh
-
-               mongosh "mongodb://mongodb6.example.net:27017" --tls --tlsCAFile <CA_FILE> --tlsCertificateKeyFile <filename>
-
-   .. step:: Create an administrative user.
-
-      .. tip::
-
-         Specify a different username for your sharded cluster
-         administrative user than the usernames in your initial replica
-         set.
-         
-         Using different names avoids conflicts when restoring the users
-         from the initial replica set to the sharded cluster.
-
-      The following :method:`db.createUser()` method creates a user
-      named ``admin01`` with the :authrole:`clusterManager` and
-      :authrole:`restore` roles:
-
-      .. code-block:: javascript
-
-         use admin
-
-         db.createUser(
-            {
-               user: "admin01",
-               pwd: passwordPrompt(),
-               roles: [
-                  { role: "clusterManager", db: "admin" },
-                  { role: "restore", db: "admin" }
-               ]
-            }
-         )
-
-      After you run the command, the database prompts you to enter a
-      password for the ``admin01`` user.
-
-4. Migrate the ``admin`` Database from the Initial Replica Set
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The ``admin`` database contains user and system information. To migrate
-the ``admin`` database from your initial replica set to the sharded
-cluster, perform the following steps.
-
-.. tabs::
-
-   .. tab:: Keyfile Authentication
-      :tabid: keyfile
-
-      .. procedure::
-         :style: normal
-
-         .. step:: Create a backup of the replica set's admin database.
-
-            Run the following :binary:`mongodump` command **from the
-            command line**. Use the authentication credentials for your
-            initial replica set:
-
-            .. code-block:: sh
-
-               mongodump --uri="mongodb://mongodb0.example.net:27017,mongodb1.example.net:27017,mongodb2.example.net:27017/?replicaSet=rs0" \
-               --db=admin --username=<USERNAME> --out=<PATH_TO_DUMP_DIRECTORY>
-
-            After you enter the ``mongodump`` command, the server
-            prompts you to enter your database user's password.
-
-         .. step:: Restore the ``admin`` database to the sharded cluster.
-
-            Run the following :binary:`mongorestore` command **from the
-            command line**:
-
-            .. code-block:: sh
-
-               mongorestore --uri="mongodb://mongodb6.example.net:27017" --nsInclude="admin.*" \
-               --username=<USERNAME> <PATH_TO_DUMP_DIRECTORY>
-               
-            After you enter the ``mongorestore`` command, the server
-            prompts you to enter your database user's password.
-
-   .. tab:: x.509 Authentication
-      :tabid: x509
-   
-      .. procedure::
-         :style: normal
-
-         .. step:: Create a backup of the replica set's admin database.
-
-            Run the following :binary:`mongodump` command **from the
-            command line**. Use the authentication credentials for your
-            initial replica set:
-
-            .. code-block:: sh
-
-              mongodump --uri="mongodb://mongodb0.example.net:27017,mongodb1.example.net:27017,mongodb2.example.net:27017/?replicaSet=rs0" \
-              --ssl --sslCAFile=<CA_FILE> --sslPEMKeyFile=<FILE_WITH_COMBINED_CERT_AND_KEY> \
-              --username=<USERNAME> --db=admin --out=<PATH_TO_DUMP_DIRECTORY>
-              
-            After you enter the ``mongodump`` command, the server
-            prompts you to enter your database user's password.
-
-         .. step:: Restore the ``admin`` database to the sharded cluster.
-
-            Run the following :binary:`mongorestore` command **from the
-            command line**:
-
-            .. code-block:: sh
-
-               mongorestore --uri="mongodb://mongodb6.example.net:27017" \
-               --ssl --sslCAFile=<CA_FILE> --sslPEMKeyFile=<FILE_WITH_COMBINED_CERT_AND_KEY> \
-               --username=<USERNAME> --nsInclude="admin.*" <PATH_TO_DUMP_DIRECTORY>
-
-            After you enter the ``mongorestore`` command, the server
-            prompts you to enter your database user's password.
-
 .. _convert-deploy-sharding-infrastructure:
 
-5. Restart the Initial Replica Set as a Shard
+6. Restart the Initial Replica Set as a Shard
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In this example, your initial replica set is a three-member replica set.
@@ -630,7 +515,7 @@ the server role, set the :setting:`sharding.clusterRole` setting in the
 
          .. tab:: x.509 Authentication
             :tabid: x509
-            
+
             .. include:: /includes/sharding/convert-repl-set-tutorial/mongosh-tls-options.rst
 
             For example:
@@ -663,7 +548,7 @@ the server role, set the :setting:`sharding.clusterRole` setting in the
          connected to that secondary return a
          ``CannotVerifyAndSignLogicalTime`` error until you perform the
          steps in :ref:`convert-add-initial-shard`.
-         
+
          You can also restart your application to stop it from receiving
          ``CannotVerifyAndSignLogicalTime`` errors.
 
@@ -679,7 +564,7 @@ the server role, set the :setting:`sharding.clusterRole` setting in the
 
                   Use :binary:`mongosh` to connect to one of the
                   secondaries.
-                  
+
                   .. code-block:: sh
 
                      mongosh "mongodb://<username>@<host>:<port>"
@@ -709,17 +594,17 @@ the server role, set the :setting:`sharding.clusterRole` setting in the
                      net:
                         port: 27017
                         bindIp: localhost,<hostname(s)>
-               
+
                   .. include:: /includes/sharding/convert-repl-set-tutorial/include-additional-options.rst
 
                .. step:: Restart the secondary as a shard server.
-                
+
                   Run the following command on the host containing the secondary:
 
                   .. code-block:: sh
 
                      mongod --config <PATH_TO_CONFIG_FILE>
-             
+
                .. step:: Repeat the shut down and restart steps for the other secondary.
 
          .. tab:: x.509 Authentication
@@ -729,7 +614,7 @@ the server role, set the :setting:`sharding.clusterRole` setting in the
                :style: connected
 
                .. step:: Connect to a secondary.
-                 
+
                   Use :binary:`mongosh` to connect to one of the secondaries.
 
                   .. include:: /includes/sharding/convert-repl-set-tutorial/mongosh-tls-options.rst
@@ -737,7 +622,7 @@ the server role, set the :setting:`sharding.clusterRole` setting in the
                   .. code-block:: sh
 
                      mongosh "mongodb://<username>@<host>:<port>" --tls --tlsCAFile <CA_FILE> --tlsCertificateKeyFile <filename>
-                     
+
                .. step:: Shut down the secondary.
 
                   Run the following commands:
@@ -771,13 +656,13 @@ the server role, set the :setting:`sharding.clusterRole` setting in the
                   .. include:: /includes/sharding/convert-repl-set-tutorial/additional-tls-options.rst
 
                .. step:: Restart the secondary as a shard server.
-                
+
                   Run the following command on the host containing the secondary:
 
                   .. code-block:: sh
 
                      mongod --config <PATH_TO_CONFIG_FILE>
-             
+
                .. step:: Repeat the shut down and restart steps for the other secondary.
 
    .. step:: Restart the primary with the ``--shardsvr`` option.
@@ -791,7 +676,7 @@ the server role, set the :setting:`sharding.clusterRole` setting in the
          connected to the primary return a
          ``CannotVerifyAndSignLogicalTime`` error until you perform the
          steps in :ref:`convert-add-initial-shard`.
-         
+
          You can also restart your application to stop it from receiving
          ``CannotVerifyAndSignLogicalTime`` errors.
 
@@ -807,17 +692,17 @@ the server role, set the :setting:`sharding.clusterRole` setting in the
 
                   Use :binary:`mongosh` to connect to the primary:
 
-                  .. code-block:: 
+                  .. code-block::
 
                      mongosh "mongodb://<username>@<host>:<port>"
-               
+
                .. step:: Step down the primary.
 
                   Run the following command:
 
                   .. code-block:: javascript
 
-                      rs.stepDown()
+                     rs.stepDown()
 
                .. step:: Verify that the step down is complete.
 
@@ -855,11 +740,11 @@ the server role, set the :setting:`sharding.clusterRole` setting in the
                      net:
                         port: 27017
                         bindIp: localhost,<hostname(s)>
-               
+
                   .. include:: /includes/sharding/convert-repl-set-tutorial/include-additional-options.rst
 
                .. step:: Restart the primary as a shard server.
-                
+
                   Run the following command on the host containing the primary:
 
                   .. code-block:: sh
@@ -884,14 +769,14 @@ the server role, set the :setting:`sharding.clusterRole` setting in the
                   .. code-block:: sh
 
                      mongosh "mongodb://<username>@<host>:<port>" --tls --tlsCAFile <CA_FILE> --tlsCertificateKeyFile <filename>
-            
+
                .. step:: Step down the primary.
 
                   Run the following command:
 
                   .. code-block:: javascript
 
-                      rs.stepDown()
+                     rs.stepDown()
 
                .. step:: Verify that the step down is complete.
 
@@ -935,9 +820,9 @@ the server role, set the :setting:`sharding.clusterRole` setting in the
                         bindIp: localhost,<hostname(s)>
 
                   .. include:: /includes/sharding/convert-repl-set-tutorial/additional-tls-options.rst
-                
+
                .. step:: Restart the primary as a shard server.
-                
+
                   Run the following command on the host containing the primary:
 
                   .. code-block:: sh
@@ -946,7 +831,7 @@ the server role, set the :setting:`sharding.clusterRole` setting in the
 
 .. _convert-add-initial-shard:
 
-6. Add the Initial Replica Set as a Shard
+7. Add the Initial Replica Set as a Shard
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 After you convert the initial replica set (``rs0``) to a shard, add it
@@ -959,7 +844,7 @@ to the sharded cluster.
 
       The ``mongos`` instance is running on host
       ``mongodb6.example.net``.
-      
+
       .. tabs::
 
          .. tab:: Keyfile Authentication
@@ -983,21 +868,21 @@ to the sharded cluster.
             .. code-block:: sh
 
                mongosh "mongodb://admin01@mongodb6.example.net:27017" --tls --tlsCAFile <CA_FILE> --tlsCertificateKeyFile <filename>
-      
+
       This command authenticates you as the ``admin01`` user you created
       on the sharded cluster. After you enter the command, enter your
       user's password.
 
    .. step:: Add the shard.
 
-       To add a shard to the cluster, run the :method:`sh.addShard`
-       method:
-       
-       .. code-block:: javascript
+      To add a shard to the cluster, run the :method:`sh.addShard`
+      method:
 
-          sh.addShard( "rs0/mongodb0.example.net:27017,mongodb1.example.net:27017,mongodb2.example.net:27017" )
-          
-.. warning:: 
+      .. code-block:: javascript
+
+         sh.addShard( "rs0/mongodb0.example.net:27017,mongodb1.example.net:27017,mongodb2.example.net:27017" )
+
+.. warning::
 
    Once the new shard is active, ``mongosh`` and other clients must
    **always** connect to the ``mongos`` instance. Do not connect
@@ -1006,7 +891,7 @@ to the sharded cluster.
 
 .. _convert-update-app-strings:
 
-7. Update Your Application Connection String
+8. Update Your Application Connection String
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 After you add the first shard to your cluster, update the
@@ -1016,8 +901,8 @@ applications.
 
 .. _convert-add-second-shard:
 
-8. Deploy a Second Replica Set
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9. Deploy a Second Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Deploy a new replica set called ``rs1``. The members of replica set
 ``rs1`` are on the following hosts:
@@ -1041,17 +926,17 @@ Deploy a new replica set called ``rs1``. The members of replica set
 
             .. list-table::
                :header-rows: 1
-            
+
                * - Option
                  - Value
 
                * - :setting:`security.keyFile`
                  - The path to the key file used for your initial
                    replica set.
-               
+
                * - :setting:`replication.replSetName`
                  - ``rs1``
-               
+
                * - :setting:`sharding.clusterRole`
                  - ``shardsvr``
 
@@ -1081,26 +966,26 @@ Deploy a new replica set called ``rs1``. The members of replica set
 
             .. list-table::
                :header-rows: 1
-            
+
                * - Option
                  - Value
 
                * - :setting:`replication.replSetName`
                  - ``rs1``
-               
+
                * - :setting:`sharding.clusterRole`
                  - ``shardsvr``
 
                * - :setting:`security.clusterAuthMode`
                  - ``x509``
-               
+
                * - :setting:`net.tls.mode`
                  - ``requireTLS``
 
                * - :setting:`net.tls.certificateKeyFile`
                  - The absolute path to the ``.pem`` file that contains
                    both the TLS certificate and key.
-               
+
                * - :setting:`net.tls.CAFile`
                  - The absolute path to the ``.pem`` file that contains
                    the root certificate chain from the Certificate
@@ -1127,7 +1012,7 @@ Deploy a new replica set called ``rs1``. The members of replica set
                   bindIp: localhost,<hostname(s)>
 
       Deploy the :binary:`mongod` with your specified configuration:
-      
+
       .. code-block:: sh
 
          mongod --config <PATH_TO_CONFIG_FILE>
@@ -1151,14 +1036,14 @@ Deploy a new replica set called ``rs1``. The members of replica set
          .. tab:: Keyfile Authentication
             :tabid: keyfile
 
-            .. code-block:: sh   
+            .. code-block:: sh
 
                mongosh "mongodb://mongodb3.example.net:27018"
 
          .. tab:: x.509 Authentication
             :tabid: x509
 
-            .. code-block:: sh   
+            .. code-block:: sh
 
                mongosh "mongodb://mongodb3.example.net:27018" --tls --tlsCAFile <CA_FILE> --tlsCertificateKeyFile <filename>
 
@@ -1203,7 +1088,7 @@ Deploy a new replica set called ``rs1``. The members of replica set
             In the command output, the
             :data:`replSetGetStatus.members[n].stateStr` field indicates
             which member is the primary.
-         
+
          .. step:: Connect to the replica set primary.
 
             Connect to the replica set primary with :binary:`mongosh`.
@@ -1249,9 +1134,9 @@ Deploy a new replica set called ``rs1``. The members of replica set
 
             After you run the command, the database prompts you to enter a
             password for the ``rs1Admin`` user.
-   
-9. Add the Second Replica Set to the Cluster as a Shard
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+10. Add the Second Replica Set to the Cluster as a Shard
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Add the new replica set, ``rs1``, to the sharded cluster.
 
@@ -1270,7 +1155,7 @@ Add the new replica set, ``rs1``, to the sharded cluster.
            :tabid: keyfile
 
            .. code-block:: sh
-           
+
               mongosh "mongodb://admin01@mongodb6.example.net:27017/admin"
 
         .. tab:: x.509 Authentication
@@ -1293,8 +1178,8 @@ Add the new replica set, ``rs1``, to the sharded cluster.
       .. code-block:: javascript
 
          sh.addShard( "rs1/mongodb3.example.net:27018,mongodb4.example.net:27018,mongodb5.example.net:27018" )
-         
-10. Shard a Collection
+
+11. Shard a Collection
 ~~~~~~~~~~~~~~~~~~~~~~
 
 The final step of the procedure is to shard a collection in the sharded
