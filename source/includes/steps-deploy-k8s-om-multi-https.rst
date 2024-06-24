@@ -373,11 +373,11 @@
    d. Deploy |onprem|. The |k8s-op-short| deploys |onprem| by performing
       the following steps. It:
 
-      - Deploys the {+appdb+}'s replica set nodes and waits
+      - Deploys the {+appdb+}\'s replica set nodes and waits
         for the MongoDB processes in the replica set to start running.
-      - Deploys the |application| instance with the {+appdb+}'s
+      - Deploys the |application| instance with the {+appdb+}\'s
         connection string and waits for it to become ready.
-      - Adds the Monitoring {+mdbagent+} containers to each {+appdb+}'s Pod.
+      - Adds the Monitoring {+mdbagent+} containers to each {+appdb+}\'s Pod.
       - Waits for both the |application| and the {+appdb+} Pods to start running.
 
       .. io-code-block::
