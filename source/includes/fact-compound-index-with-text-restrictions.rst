@@ -3,7 +3,7 @@
   <geospatial-index>` index fields.
 
 - If the compound text index includes keys **preceding** the text index
-  key, to perform a :query:`$text` search, the query predicate must
+  key, to use :query:`$text`, the query predicate must
   include **equality match conditions** on the preceding keys.
 
 - When you create a compound text index, all text index keys must be
