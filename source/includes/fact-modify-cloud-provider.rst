@@ -14,5 +14,4 @@ applications with the new connection string
 |service| migrates data to the new {+cluster+}. 
 
 You can't modify the cloud provider or cloud provider region if you
-deployed Search Nodes on your |service| {+cluster+}. |service| supports
-Search Nodes on single-region {+clusters+} only.
+deployed Search Nodes on your |service| {+cluster+}.

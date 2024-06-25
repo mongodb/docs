@@ -1,4 +1,4 @@
-On :ref:`separate search nodes <configure-search-nodes>`, each node has
+On :ref:`separate Search Nodes <configure-search-nodes>`, each node has
 its own copy of a document with a different internal ID that Lucene uses
 to sort the results when multiple documents have identical scores. If
 the internal ID of the document on a node that isn't processing the
