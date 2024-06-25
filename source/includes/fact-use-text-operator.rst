@@ -1,7 +1,7 @@
 Use the :query:`$text` query operator to perform text searches on a
 collection with a :ref:`text index <index-type-text>`.
 
-:query:`$text` will tokenize the search string using whitespace and most
+``$text`` tokenizes the search string using whitespace and most
 punctuation as delimiters, and perform a logical ``OR`` of all such
 tokens in the search string.
 

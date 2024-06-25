@@ -26,10 +26,12 @@ The |meta-object| expression can specify the following values as the
        terms <match-operation-stemmed-words>`. 
 
        ``{ $meta: "textScore" }`` must be used in conjunction with a
-       :query:`$text` query.
+       ``$text`` query.
 
        In earlier versions, if not used in conjunction with a
-       :query:`$text` query, returns a score of |empty-value|.
+       ``$text`` query, returns a score of |empty-value|.
+
+       .. include:: /includes/text-search-legacy-atlas-section.rst
 
    * - ``"indexKey"``
 
