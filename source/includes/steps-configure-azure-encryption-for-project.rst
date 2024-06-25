@@ -22,8 +22,7 @@
              of the Active Directory tenant.
       
          * - Secret
-           - Enter one of the application's non-expired
-             :guilabel:`Passwords`.
+           - Enter one of the application's non-expired Client Secrets.
       
          * - Azure Environment
            - Select the Azure cloud your Active Directory tenant lives in.

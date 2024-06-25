@@ -4,7 +4,7 @@
   Active Directory tenant.
 
 - Have the :guilabel:`Client ID` (or :guilabel:`Application ID`) and a
-  non-expired application :guilabel:`Password` for an Azure Application
+  non-expired application Client Secret for an Azure Application
   associated to the Active Directory tenant.
 
 - Have the :guilabel:`Resource Group` name of an :guilabel:`Azure Resource Group`
