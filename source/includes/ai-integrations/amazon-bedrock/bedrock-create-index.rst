@@ -13,10 +13,11 @@
       #. Click :guilabel:`Create` to create the database and its 
          first collection.
 
+   .. include:: /includes/nav/steps-atlas-search.rst
+   
    .. step:: Define the {+avs+} index.
 
-      a. Click the :guilabel:`Atlas Search` tab, and then 
-         click the :guilabel:`Create Search Index` button.
+      a. Click the :guilabel:`Create Search Index` button.
       #. Under :guilabel:`{+avs+}`, select :guilabel:`JSON Editor`  and
          then click :guilabel:`Next`.
       #. In the :guilabel:`Database and Collection` section, find the 

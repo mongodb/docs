@@ -3,10 +3,8 @@
 
    .. include:: /includes/nav/steps-db-deployments-page.rst
       
-   .. step:: Click the cluster name to view cluster details.
+   .. include:: /includes/nav/steps-atlas-search.rst
 
-   .. step:: Click the :guilabel:`Atlas Search` tab.
-      
    .. step:: Click :icon-mms:`ellipsis` and choose one of the following from the dropdown.
       
       - :guilabel:`Edit with Visual Editor` for a guided experience.

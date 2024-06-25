@@ -3,9 +3,7 @@
       
    .. include:: /includes/nav/steps-db-deployments-page.rst
       
-   .. step:: Click the cluster name to view cluster details.
-
-   .. step:: Click the :guilabel:`Atlas Search` tab.
+   .. include:: /includes/nav/steps-atlas-search.rst
       
    .. step:: Click :guilabel:`Create Search Index`
       
