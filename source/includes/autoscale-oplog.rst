@@ -31,7 +31,7 @@ is enabled for the {+cluster+}.
       :guilabel:`General` and :guilabel:`Low-CPU` {+clusters+}
     - 10% of the disk size for {+clusters+} with :ref:`NVMe storage <nvme-storage>`.
 
-    |service| doesn't change the oplog size if you change the storage size.
+    |service| automatically changes the oplog size if you change the storage size.
 
   - You may choose to scale up the oplog size when you scale up the
     {+cluster+}'s storage. In this case, manually :ref:`set the oplog size <set-oplog-size>`
@@ -46,5 +46,7 @@ is enabled for the {+cluster+}.
       remain at 10% of the storage capacity, not to exceed a certain
       maximum determined according to MongoDB best practices.
 
-  If the {+cluster+}'s storage capacity decreases, |service| doesn't change
-  the oplog size.
+  If the {+cluster+}'s storage capacity decreases, |service|
+  automatically scales the oplog size down to ensure it fits in the
+  decreased storage size. 
+ 
