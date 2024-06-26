@@ -112,7 +112,7 @@
        content: |
 
          .. literalinclude:: /driver-examples/DocumentationExamples.cs
-            :language: c#
+            :language: csharp
             :dedent: 12
             :start-after: Start Example 57
             :end-before: End Example 57
