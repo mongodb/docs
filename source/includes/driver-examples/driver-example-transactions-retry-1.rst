@@ -134,7 +134,7 @@
        content: |
 
          .. literalinclude:: /driver-examples/TransactionsRetryExample1.cs
-            :language: c#
+            :language: csharp
             :dedent: 8
             :start-after: Start Transactions Retry Example 1
             :end-before: End Transactions Retry Example 1
