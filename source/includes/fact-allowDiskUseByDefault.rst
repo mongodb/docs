@@ -1,6 +1,6 @@
 Starting in MongoDB 6.0, pipeline stages that require more than 100 
 megabytes of memory to execute write temporary files to disk by 
-default. In earlier verisons of MongoDB, you must pass 
+default. In earlier versions of MongoDB, you must pass 
 ``{ allowDiskUse: true }`` to individual ``find`` and ``aggregate``
 commands to enable this behavior.
 
