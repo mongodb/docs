@@ -10,7 +10,7 @@
 .. code-block:: sh
 
    ./mongodb-backup-restore-util --https --host <targetHost> \
-     --port <targetPort> \
+     --port <ephemeralPort> \
      --opStart <opLogStartTimeStamp> \
      --opEnd <opLogEndTimeStamp> \
      --logFile <logPath> \
