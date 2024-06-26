@@ -18,8 +18,8 @@
 
    * - ``--port``
      - Required
-     - Provide the port for the host that serves the |mongod| to which
-       the :opsmgr:`oplog  </reference/glossary/#std-term-Oplog-Store-Database>` should be applied.
+     - Provide the ephemeral port for the host that serves the |mongod| 
+       to which the :opsmgr:`oplog  </reference/glossary/#std-term-Oplog-Store-Database>` should be applied.
      - :icon:`check-circle`
 
    * - ``--opStart``
