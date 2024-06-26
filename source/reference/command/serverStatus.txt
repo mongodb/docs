@@ -143,30 +143,6 @@ explicitly specify the inclusion:
 
    db.runCommand( { serverStatus: 1, mirroredReads: 1 } )
 
-Change ``tcmalloc`` Verbosity
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-By default, ``tcmalloc`` information is included in the output. This
-section provides memory allocation statistics for your database. To
-change the verbosity of the ``tcmalloc`` section, specify an integer 
-between ``0`` and ``2`` (inclusive):
-
-.. code-block:: javascript
-
-   db.runCommand( { serverStatus: 1, tcmalloc: <int> } )
-
-The command has the following behavior:
-
-- By default, ``tcmalloc`` is set to ``1``.
-- Passing a larger integer value increases the verbosity.
-- Passing ``0`` or ``false`` omits the ``tcmalloc`` section from the
-  output. 
-- Passing any other input results in the default setting.
-
-For more information about how MongoDB allocates memory, see `TCMalloc`_.
-
-.. _`TCMalloc`: http://goog-perftools.sourceforge.net/doc/tcmalloc.html
-
 .. _server-status-output:
 
 Output
@@ -5864,6 +5840,163 @@ storageEngine
 
    A boolean that indicates whether the :doc:`storage engine
    </core/storage-engines>` does or does not persist data to disk.
+
+.. _server-status-tcmalloc:
+
+tcmalloc
+~~~~~~~~
+
+.. note:: 
+   
+   ``tcmalloc`` metrics that are only for internal use are omitted from this 
+   page.
+
+.. code-block:: javascript
+   
+   tcmalloc : {
+      usingPerCPUCaches : <boolean>,  // Added in MongoDB 8.0
+      maxPerCPUCacheSizeBytes : <integer>, // Added in MongoDB 8.0
+      generic : {
+         current_allocated_bytes : <integer>, 
+         heap_size : <integer>,
+         peak_memory_usage : <integer>  // Added in MongoDB 8.0
+      },
+      tcmalloc : {
+         central_cache_free : <integer>, 
+         cpu_free : <integer>,  // Added in MongoDB 8.0
+         release_rate : <integer>, 
+         total_bytes_held : <integer>,  // Added in MongoDB 8.0
+         cpuCache : { 
+            0 : {
+               overflows : <integer>,  // Added in MongoDB 8.0
+               underflows : <integer>  // Added in MongoDB 8.0
+            },
+         }
+      },
+      tcmalloc_derived : {
+         total_free_bytes : <integer>  // Added in MongoDB 8.0
+      }
+   }
+
+.. serverstatus:: tcmalloc 
+   
+   A document that contains information on memory allocation for the server.
+   By default, ``tcmalloc`` metrics are included in the ``serverStatus`` output. 
+   To change the verbosity of the ``tcmalloc`` section, specify an integer 
+   between ``0`` and ``3`` (inclusive):
+
+   - If you set verbosity to ``0``, ``tcmalloc`` metrics aren't included in the 
+     ``serverStatus`` output.
+   - If you set verbosity to ``1``, the ``serverStatus`` output includes the 
+     default ``tcmalloc`` metrics.
+   - If you set verbosity to ``2``, the ``serverStatus`` output includes default 
+     ``tcmalloc`` metrics and the :serverstatus:`tcmalloc.tcmalloc.cpuCache` 
+     section.
+   - If you set verbosity to ``3``, the ``serverStatus`` output includes all 
+     ``tcmalloc`` metrics.
+   
+   If you specify a value higher than ``3``, MongoDB sets the ``verbosity`` 
+   to ``3``.
+   
+   For example, to call ``serverStatus`` with ``verbosity`` set to ``2``, run 
+   the following command: 
+   
+   .. code-block:: javascript
+      
+      db.runCommand( { serverStatus: 1, tcmalloc: 2 } )
+      
+   .. seealso:: 
+      
+      `tcmalloc Stats <https://github.com/google/tcmalloc/blob/master/docs/stats.md>`__
+
+.. serverstatus:: tcmalloc.usingPerCPUCaches
+
+   A boolean that indicates whether ``tcmalloc`` is running with per-CPU caches. 
+   If ``tcmalloc.usingPerCPUCaches`` is ``false``, ensure that: 
+   
+   .. ADD REF LINKS BELOW TO THE TCMALLOC PERFORMANCE ONE-PAGER IN DOCSP-39927.
+
+   - Your Linux kernel version is 4.18 or later.
+   - You have disabled glibc rseq. 
+
+   .. versionadded:: 8.0
+
+.. serverstatus:: tcmalloc.maxPerCPUCacheSizeBytes
+
+   Maximum size, in bytes, of each CPU cache.
+
+   .. versionadded:: 8.0
+
+.. serverstatus:: tcmalloc.generic.peak_memory_usage 
+
+   Maximum amount of memory, in bytes, allocated by MongoDB at any point.
+
+   .. versionadded:: 8.0
+
+.. serverstatus:: tcmalloc.generic.current_allocated_bytes 
+
+   Total number of bytes that are currently allocated to memory and actively 
+   used by MongoDB.
+
+.. serverstatus:: tcmalloc.generic.heap_size
+
+   Amount of memory, in bytes, allocated from the operating system. This value 
+   includes memory that's currently in use and memory that's been
+   allocated but isn't in use.
+
+.. serverstatus:: tcmalloc.tcmalloc.central_cache_free
+
+   Amount of memory, in bytes, held in the central free list. The central free 
+   list is a structure that manages free memory for reuse.
+
+.. serverstatus:: tcmalloc.tcmalloc.cpu_free
+
+   Amount of free memory, in bytes, available across all CPU caches. 
+
+   .. versionadded:: 8.0
+
+.. serverstatus:: tcmalloc.tcmalloc.total_bytes_held 
+
+   Amount of memory, in bytes, currently held in caches.
+
+   .. versionadded:: 8.0
+
+.. serverstatus:: tcmalloc.tcmalloc.release_rate
+
+   Rate, in bytes per second, at which unused memory is released to the 
+   operating system. The :parameter:`tcmallocReleaseRate` parameter determines 
+   the value of ``tcmalloc.tcmalloc.release_rate``.
+
+.. serverstatus:: tcmalloc.tcmalloc.cpuCache 
+
+   A document that provides data on each CPU cache. 
+   
+   ``cpuCache`` metrics are excluded at the default verbosity level. To view 
+   ``cpuCache`` metrics, you must set the ``tcmalloc`` verbosity to at least 
+   ``2``.
+
+   .. versionadded:: 8.0
+
+.. serverstatus:: tcmalloc.tcmalloc.cpuCache.N.overflows 
+
+   Number of overflows that the CPU cache experienced. Overflows occur when a 
+   user deallocates memory and the cache is full.
+
+   .. versionadded:: 8.0
+
+.. serverstatus:: tcmalloc.tcmalloc.cpuCache.N.underflows 
+
+   Number of underflows that the CPU cache experienced. Underflows occur when a 
+   user allocates memory and the cache is empty.
+
+   .. versionadded:: 8.0
+
+.. serverstatus:: tcmalloc.tcmalloc_derived.total_free_bytes 
+
+   Amount of memory remaining before ``tcmalloc`` has to request for more memory 
+   from the operating system.
+
+   .. versionadded:: 8.0
 
 .. _server-status-transactions:
 
