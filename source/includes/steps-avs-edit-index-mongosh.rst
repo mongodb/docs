@@ -18,7 +18,6 @@
 
          db.<collectionName>.updateSearchIndex(
            "<index-name>",
-           "vectorSearch", //index type
            {
              fields: [
                {
