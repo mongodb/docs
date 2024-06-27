@@ -1,2 +1,0 @@
-- ``US_EAST_2``
-- ``EUROPE_NORTH``
