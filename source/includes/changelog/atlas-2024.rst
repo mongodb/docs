@@ -1,3 +1,30 @@
+.. _atlas_2024_06_24:
+
+24 June 2024 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- Adds resource tags :ref:`defined in projects <project-tags>` to customer 
+  invoice |csv| exports and invoice |api| responses. 
+
+.. _atlas_2024_05_30:
+
+30 May 2024 Release
+~~~~~~~~~~~~~~~~~~~
+
+- Adds the ability to unlink organizations from your paying organization from 
+  the {+atlas-ui+}. To learn more, see :ref:`unlink-with-cross-org-billing`.
+
+- Removes support for legacy two-factor authentication. 
+  Use :ref:`multi-factor authentication <atlas-enable-mfa>` instead.
+
+.. _atlas_2024_04_30:
+
+30 April 2024 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Introduces the general availability of |oidc| :ref:`Workforce Identity Federation <oidc-authentication-workforce>` 
+  and :ref:`Workload Identity Federation <oidc-authentication-workload>`.
+
 .. _atlas_2024_04_17:
 
 17 April 2024 Release
