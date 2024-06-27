@@ -1,3 +1,6 @@
+- Configure the private endpoint in the same region as the |service|
+  {+cluster+} that you want to connect to.
+
 - Have either the :authrole:`Project Owner` or
   :authrole:`Organization Owner` role in |service|.
 
