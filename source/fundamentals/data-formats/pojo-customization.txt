@@ -287,6 +287,10 @@ package:
      - Specifies the BSON type used to store the value when different from the 
        POJO property.
 
+       .. seealso::
+
+          :ref:`bsonrepresentation-annotation-code-example`
+
    * - ``BsonId``
      - Marks a property to serialize as the _id property.
 
@@ -440,6 +444,59 @@ following data:
      relatedItems=null,
      additionalInfo=Document{{dimensions=3x4x5, weight=256g}}
    ]
+
+.. _bsonrepresentation-annotation-code-example:
+
+BsonRepresentation Error Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``@BsonRepresentation`` annotation allows you to store a POJO class field
+as a different data type in your MongoDB database. The :ref:`Product POJO
+<bson-annotation-code-example>` code example in the :ref:`annotations` section
+of this page uses ``@BsonRepresentation`` to store ``String`` values as
+``ObjectId`` values in the database documents.
+
+However, using the ``@BsonRepresentation`` annotation to convert between data types other
+than ``String`` and ``ObjectId`` causes the following error message:
+
+.. code-block::
+   :copyable: false
+
+   Codec must implement RepresentationConfigurable to support BsonRepresentation
+
+For example, the following code adds a ``purchaseDate`` field of type ``Long`` to the
+``Product`` POJO. This example attempts to use ``@BsonRepresentation`` to represent ``Long``
+values as ``DateTime`` values in the database:
+
+.. code-block:: java
+   :emphasize-lines: 9-10
+
+   public class Product {
+       @BsonProperty("modelName")
+       private String name;
+
+       @BsonId()
+       @BsonRepresentation(BsonType.OBJECT_ID)
+       private String serialNumber;
+      
+       @BsonRepresentation(BsonType.DATE_TIME)
+       private Long purchaseDate;
+
+       // ...
+       }
+
+The preceding code results in an error. Instead, you can create a custom Codec to
+convert the ``purchaseDate`` values from type ``Long`` to ``DateTime``:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/LongRepresentableCodec.java
+   :language: java
+   :start-after: start class
+   :end-before: end class
+
+Then, add an instance of the ``LongRepresentableCodec`` to your ``CodecRegistry``, which contains
+a mapping between your Codec and the Java object type to which it applies. For instructions
+on registering your custom Codec with the ``CodecRegistry``, see the :ref:`fundamentals-codecs`
+guide.
 
 .. _pojo-discriminators:
 
@@ -699,4 +756,3 @@ codec registry.
 
 See the documentation on the :ref:`default codec registry <codecs-default-codec-registry>`
 For more information about how to register the codecs it includes.
-
