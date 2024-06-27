@@ -29,6 +29,36 @@
                This is the name used to reference the connection in 
                {+atlas-sp+} :ref:`aggregations <stream-aggregation>`.
 
+            #. Select a :guilabel:`Network Access` type. {+atlas-sp+}
+	       supports :guilabel:`Public IP` or :guilabel:`VPC Peering`
+	       connections.
+
+	       VPC peering for {+atlas-sp+} is currently in
+	       private preview. To learn more, contact your
+	       account team.
+
+               .. tabs::
+
+                  .. tab:: Public IP
+		     :tabid: stream-connect-kafka-public-ip
+
+                     Click the :guilabel:`Public IP` button. No further
+		     configuration is needed for this network access type.
+
+                  .. tab:: VPC Peering
+		     :tabid: stream-connect-kafka-vpc-peering
+
+                     a. Click the :guilabel:`VPC Peering` button.
+
+                     #. Toggle :guilabel:`Enable VPC Peering` on.
+
+                     #. From the dropdown menu, select one of your
+                        existing :ref:`VPC Peering <vpc-peering>`
+                        connections. If you do not have a VPC peering
+                        connection, :ref:`Configure an {+service+}
+                        Network Peering Connection
+                        <create-network-peer-connection>`.
+
             #. Specify an IP address for one or more 
                `bootstrap servers <https://kafka.apache.org/documentation/#streamsconfigs_bootstrap.servers>`__
                for your {+kafka+} system.
@@ -43,6 +73,10 @@
 
                   .. tab:: ``SASL_PLAINTEXT``
                      :tabid: stream-connect-kafka-plain-auth
+
+		     ``SASL_PLAINTEXT`` is incompatible with
+		     VPC peering. To use VPC peering, you must
+		     select the ``SASL_SSL`` method.
 
                      a. From the dropdown menu, select a
                         :guilabel:`SASL Mechanism`. 
