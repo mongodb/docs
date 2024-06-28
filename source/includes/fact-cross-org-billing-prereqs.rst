@@ -32,7 +32,7 @@
 
 - A paying organization can't already be a linked organization.
 
-- A paying organization can be linked to :ref:`a self-serve organization <payment-method>``.
+- A paying organization can be linked to :ref:`a self-serve organization <payment-method>`.
 
 - A paying organization and any linked organizations can't have an active self-serve marketplace subscription plan.
 
