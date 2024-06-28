@@ -8,8 +8,7 @@
 - A paying organization and all linked organizations must be in good standing
   and have no failed payments.
 
-- A paying organization and any linked organizations
-  must be on the same subscription plan.
+- A paying organization and any linked organizations must be on the same support level.
 
 - A paying organization and any linked organizations
   must have the same minimums, uplifts, and SLA for their 
@@ -32,6 +31,10 @@
   250 other organizations, :ref:`contact support <request-support>`.
 
 - A paying organization can't already be a linked organization.
+
+- A paying organization can be linked to :ref:`a self-serve organization <payment-method>``.
+
+- A paying organization and any linked organizations can't have an active self-serve marketplace subscription plan.
 
 .. note::
 
