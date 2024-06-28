@@ -3,9 +3,13 @@ import com.mongodb.ConnectionString
 import com.mongodb.KerberosSubjectProvider
 import com.mongodb.MongoClientSettings
 import com.mongodb.MongoCredential
+import com.mongodb.MongoCredential.OidcCallbackResult
 import com.mongodb.ServerAddress
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import kotlinx.coroutines.runBlocking
+import java.nio.file.Files
+import java.nio.file.Paths
+import javax.naming.Context
 import javax.security.auth.Subject
 import javax.security.auth.login.LoginContext
 import kotlin.test.Ignore
@@ -111,6 +115,87 @@ internal class EnterpriseAuthTest {
         // :snippet-start: ldap-connection-string
         val connectionString = ConnectionString("<username>:<password>@<hostname>:<port>/?authSource=$external&authMechanism=PLAIN")
         val mongoClient = MongoClient.create(connectionString)
+        // :snippet-end:
+    }
+
+    fun oidcAzureConnectionString() = runBlocking {
+        // :snippet-start: oidc-azure-connection-string
+        val connectionString = ConnectionString(
+            "mongodb://<username>@<hostname>:<port>/?" +
+                "?authMechanism=MONGODB-OIDC" +
+                "&authMechanismProperties=ENVIRONMENT:azure,TOKEN_RESOURCE:<percent-encoded audience>")
+        val mongoClient = MongoClient.create(connectionString)
+        // :snippet-end:
+    }
+
+    fun oidcAzureCredential() = runBlocking {
+        // :snippet-start: oidc-azure-credential
+        val credential = MongoCredential.createOidcCredential("<username>")
+            .withMechanismProperty("ENVIRONMENT", "azure")
+            .withMechanismProperty("TOKEN_RESOURCE", "<audience>")
+
+        val mongoClient = MongoClient.create(
+                MongoClientSettings.builder()
+                    .applyToClusterSettings { builder ->
+                        builder.hosts(listOf(ServerAddress("<hostname>", PORT)))
+                    }
+                .credential(credential)
+                .build())
+        // :snippet-end:
+    }
+
+    fun oidcGCPConnectionString() = runBlocking {
+        // :snippet-start: oidc-gcp-connection-string
+        val connectionString = ConnectionString(
+            "mongodb://<hostname>:<port>/?" +
+                    "authMechanism=MONGODB-OIDC" +
+                    "&authMechanismProperties=ENVIRONMENT:gcp,TOKEN_RESOURCE:<percent-encoded audience>")
+        val mongoClient = MongoClient.create(connectionString)
+        // :snippet-end:
+    }
+
+    fun oidcGCPCredential() = runBlocking {
+        // :snippet-start: oidc-gcp-credential
+        val credential = MongoCredential.createOidcCredential("<username>")
+            .withMechanismProperty("ENVIRONMENT", "gcp")
+            .withMechanismProperty("TOKEN_RESOURCE", "<audience>")
+
+        val mongoClient = MongoClient.create(
+            MongoClientSettings.builder()
+                .applyToClusterSettings { builder ->
+                    builder.hosts(listOf(ServerAddress("<hostname>", PORT)))
+                }
+                .credential(credential)
+                .build())
+        // :snippet-end:
+    }
+
+    fun oidcCallback() = runBlocking {
+        // :snippet-start: oidc-callback
+        val credential = MongoCredential.createOidcCredential(null)
+            .withMechanismProperty("OIDC_CALLBACK") { context: Context ->
+                val accessToken = "..."
+                OidcCallbackResult(accessToken)
+            }
+        // :snippet-end:
+    }
+
+    fun oidcCallbackFile() = runBlocking {
+        // :snippet-start: oidc-callback-file
+        val credential = MongoCredential.createOidcCredential(null)
+            .withMechanismProperty("OIDC_CALLBACK") { context: Context ->
+                val accessToken = String(Files.readAllBytes(Paths.get("access-token.dat")))
+                OidcCallbackResult(accessToken)
+            }
+
+        val mongoClient = MongoClient.create(
+            MongoClientSettings.builder()
+                .applyToClusterSettings { builder ->
+                    builder.hosts(listOf(ServerAddress("<hostname>", PORT)))
+                }
+                .credential(credential)
+                .build()
+        )
         // :snippet-end:
     }
 }
