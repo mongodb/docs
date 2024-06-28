@@ -180,8 +180,12 @@
 
          .. step:: For each attribute, click :guilabel:`Advanced`.
 
-         .. step:: Add the following :guilabel:`Name ID Format`:
-            ``urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified``.
+         .. step:: Add your :guilabel:`Name ID Format`.
+            
+            You can have the following formats:
+            
+            - ``urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified``
+            - ``urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress``
         
          .. step:: Click :guilabel:`Continue to Next Step`.
 
