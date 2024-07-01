@@ -10,8 +10,8 @@
        This is the default profiler level.
 
    * - ``1``
-     - The profiler collects data for operations that take longer
-       than the value of ``slowms`` or that match a :ref:`filter
+     - The profiler collects data for operations that exceed the
+       ``slowms`` threshold or match a specified :ref:`filter
        <set-profiling-level-options-filter>`. 
 
        When a filter is set:
@@ -23,4 +23,3 @@
 
    * - ``2``
      - The profiler collects data for all operations.
-

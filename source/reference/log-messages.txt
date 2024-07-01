@@ -1140,17 +1140,17 @@ field to obtain the wait time (in milliseconds) for results from
 - On the :term:`shard` or :binary:`~bin.mongos` that merges the results.
 
 To determine if a merge operation or a shard issue is causing a slow
-query, compare the ``durationMillis`` and ``remoteOpWaitMillis`` time
-fields in the log. ``durationMillis`` is the total time the query took
+query, compare the ``workingMillis`` and ``remoteOpWaitMillis`` time
+fields in the log. ``workingMillis`` is the total time the query took
 to complete. Specifically:
 
-- If ``durationMillis`` is slightly longer than ``remoteOpWaitMillis``,
+- If ``workingMillis`` is slightly longer than ``remoteOpWaitMillis``,
   then most of the time was spent waiting for a shard response. For
-  example, ``durationMillis`` of 17 and ``remoteOpWaitMillis`` of 15.
+  example, ``workingMillis`` of 17 and ``remoteOpWaitMillis`` of 15.
 
-- If ``durationMillis`` is significantly longer than
+- If ``workingMillis`` is significantly longer than
   ``remoteOpWaitMillis``, then most of the time was spent performing the
-  merge. For example, ``durationMillis`` of 100 and
+  merge. For example, ``workingMillis`` of 100 and
   ``remoteOpWaitMillis`` of 15.
 
 .. _log-message-log-redaction:
@@ -1264,7 +1264,7 @@ following returns only the slow operations that took above
 
 .. code-block:: bash
 
-   jq 'select(.attr.durationMillis>=2000)' /var/log/mongodb/mongod.log
+   jq 'select(.attr.workingMillis>=2000)' /var/log/mongodb/mongod.log
 
 Consult the `jq documentation <https://stedolan.github.io/jq/manual/>`_
 for more information on the ``jq`` filters shown in this example.
@@ -1460,69 +1460,125 @@ This example shows a client connection that includes
 Slow Operation
 ~~~~~~~~~~~~~~
 
-This example shows a :ref:`slow operation message
-<log-message-slow-ops>`:
+Starting in MongoDB 8.0, slow operations are logged based on the time
+that MongoDB spends working on that operation, rather than the total
+latency for the operation.
+
+You can use the metrics in the slow operation log to identify where an
+operation spends time in its lifecycle, which helps identify possible
+performance improvements.
+
+In the following example log message:
+
+- The amount of time spent waiting for resources while executing the
+  query is shown in these metrics:
+  
+  - ``queues.execution.totalTimeQueuedMicros``
+  - ``timeAcquiringMicros``
+
+- ``workingMillis`` is the amount of time that MongoDB spends working on
+  the operation.
+   
+- ``durationMillis`` is the operation's total latency.
 
 .. code-block:: javascript
+   :emphasize-lines: 59-61,72,89,92,93
    :copyable: false
 
    {
-     "t": {
-       "$date": "2023-05-24T13:46:27.853+00:00"
-     },
-     "s": "I",
-     "c": "COMMAND",
-     "id": 51803,
-     "ctx": "conn3",
-     "svc": "R", 
-     "msg": "Slow query",
-     "attr": {
-       "type": "command",
-       "ns": "db.coll",
-       "appName": "MongoDB Shell",
-       "command": {
-         "find": "coll",
-         "filter": {
-           "b": -1
+      "t":{
+         "$date":"2024-06-01T13:24:10.034+00:00"
+      },
+      "s":"I",
+      "c":"COMMAND",
+      "id":51803,
+      "ctx":"conn3",
+      "msg":"Slow query",
+      "attr":{
+         "type":"command",
+         "isFromUserConnection":true,
+         "ns":"db.coll",
+         "collectionType":"normal",
+         "appName":"MongoDB Shell",
+         "command":{
+            "find":"coll",
+            "filter":{
+               "b":-1
+            },
+            "sort":{
+               "splitPoint":1
+            },
+            "readConcern":{ },
+            "$db":"db"
          },
-         "lsid": {
-           "id": {
-             "$uuid": "5d50b19c-8559-420a-a122-8834e012274a"
-           }
+         "planSummary":"COLLSCAN",
+         "planningTimeMicros":87,
+         "keysExamined":0,
+         "docsExamined":20889,
+         "hasSortStage":true,
+         "nBatches":1,
+         "cursorExhausted":true,
+         "numYields":164,
+         "nreturned":99,
+         "queryHash":"9C05019A",
+         "planCacheKey":"C41063D6",
+         "queryFramework":"classic",
+         "reslen":96,
+         "locks":{
+            "ReplicationStateTransition":{
+               "acquireCount":{
+                  "w":3
+               }
+            },
+            "Global":{
+               "acquireCount":{
+                  "r":327,
+                  "w":1
+               }
+            },
+            "Database":{
+               "acquireCount":{
+                  "r":1
+               },
+               "acquireWaitCount":{
+                  "r":1
+               },
+               "timeAcquiringMicros":{
+                  "r":2814
+               }
+            },
+            "Collection":{
+               "acquireCount":{
+                  "w":1
+               }
+            }
          },
-         "$db": "db"
-       },
-       "planSummary": "COLLSCAN",
-       "planningTimeMicros": 228,
-       "keysExamined": 0,
-       "docsExamined": 232922,
-       "fromPlanCache": true,
-       "nBatches": 1,
-       "cursorExhausted": true,
-       "numYields": 232,
-       "nreturned": 0,
-       "queryHash": "9C05019A",
-       "planCacheKey": "C41063D6",
-       "queryFramework": "sbe",
-       "reslen": 96,
-       "locks": {
-         "FeatureCompatibilityVersion": {
-           "acquireCount": {
-             "r": 233
-           }
+         "flowControl":{
+            "acquireCount":1,
+            "acquireWaitCount":1,
+            "timeAcquiringMicros":8387
          },
-         "Global": {
-           "acquireCount": {
-             "r": 233
-           }
-         }
-       },
-       "storage": {},
-       "cpuNanos": 111410254,
-       "remote": "127.0.0.1:47150",
-       "protocol": "op_msg",
-       "durationMillis": 111
-     }
+         "readConcern":{
+            "level":"local",
+            "provenance":"implicitDefault"
+         },
+         "storage":{ },
+         "cpuNanos":20987385,
+         "remote":"127.0.0.1:47150",
+         "protocol":"op_msg",
+         "queues":{
+            "ingress":{
+               "admissions":7,
+               "totalTimeQueuedMicros":0
+            },
+            "execution":{
+               "admissions":328,
+               "totalTimeQueuedMicros":2109
+            }
+         },
+         "workingMillis":89,
+         "durationMillis":101
+      }
    }
 
 Escaping
@@ -1632,6 +1688,7 @@ The following example log message contains a ``resolvedViews`` field for
             "storage": {},
             "remote": "127.0.0.1:34868",
             "protocol": "op_msg",
+            "workingMillis": 0,
             "durationMillis": 0
          }
       }
@@ -1871,6 +1928,7 @@ The following example includes:
        "remote": "127.0.0.1:48510",
        "protocol": "op_msg",
        "remoteOpWaitMillis": 4078,
+       "workingMillis": 20334,
        "durationMillis": 20334
      }
    }
