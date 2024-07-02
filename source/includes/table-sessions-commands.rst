@@ -10,15 +10,11 @@
 
      - Abort transaction.
 
-       .. versionadded:: 4.0
-
      - Yes
 
    * - :dbcommand:`commitTransaction`
 
      - Commit transaction.
-
-       .. versionadded:: 4.0
 
      - Yes
 
