@@ -13,7 +13,7 @@ seedlist and standard private endpoint-aware connection strings:
   .. code-block:: none
      :copyable: false
 
-     mongodb://pl-0-eastus2.uzgh6.mongodb.net:27017,pl-0-eastus2.uzgh6.mongodb.net:27017,pl-0-eastus2.uzgh6.mongodb.net:27017/?ssl=truereplicaSet=atlas-18bndf-shard-0
+     mongodb://pl-00-000-eastus2.uzgh6.mongodb.net:27017,pl-00-001-eastus2.uzgh6.mongodb.net:27017,pl-00-002-eastus2.uzgh6.mongodb.net:27017/?ssl=truereplicaSet=atlas-18bndf-shard-0
 
 When a client in your network connects to an |service| cluster using one
 of these private endpoint-aware connection strings, the client attempts to
