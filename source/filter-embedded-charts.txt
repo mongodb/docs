@@ -1,4 +1,5 @@
 .. _filter-embedded-charts:
+.. _pre-filter-embedded-charts:
 
 ======================
 Filter Embedded Charts
@@ -12,9 +13,17 @@ Filter Embedded Charts
    :depth: 2
    :class: singlecol
 
-You can customize your embedded charts by appending various
-query parameters to their iframe URLs or using the ``filter`` option 
-with the |charts-short| Embedding SDK. 
+You can customize your embedded charts by adding:
+
+- Pre-filters. Use the ``preFilter`` option with the |charts-short| Embedding SDK 
+  or append various query parameters to your iframe URLs.
+
+- Filters. Use the ``filter`` option with the |charts-short| Embedding SDK or
+  append various query parameters to your iframe URLs.
+
+You can use both pre-filters and filters in the same dashboard, even though
+using them is optional. If specified, pre-filters always run after the
+chart views and before the dashboard's queries and filters.
 
 .. note::
 
@@ -32,13 +41,13 @@ Specify Filterable Fields
 -------------------------
 
 A chart :ref:`Author <dashboard-roles>` specifies the fields that can be
-included in filters set by the embedding application code or added by
-chart viewers. A chart author can limit access to data by allowing only 
-certain fields to be filtered. By default, no fields are allowed, 
-meaning the chart cannot be filtered until you explicitly allow at 
+included in pre-filters and filters set by the embedding application code
+or added by chart viewers. A chart author can limit access to data by allowing only 
+certain fields to be pre-filtered or filtered. By default, no fields are allowed, 
+meaning the chart cannot be pre-filtered or filtered until you explicitly allow at 
 least one field.
 
-To define filterable fields:
+To define filterable fields for pre-filters and filters:
 
 1. Navigate to the :ref:`dashboard <dashboards>` that contains the chart
    where you wish to define filterable fields.
@@ -56,24 +65,25 @@ To define filterable fields:
       This option only appears if you already have **Unauthenticated** 
       or **Authenticated** embedding access enabled.
 
-   You can specify on which fields chart viewers can filter data by:
+   To specify on which fields chart viewers can pre-filter or filter
+   data, you can:
 
-   - Using the dropdown to select the fields
-   - Manually typing values to add fields not listed in the dropdown
-   - Selecting :guilabel:`Allow all fields in the data source used in
-     this chart`
+   - Use the dropdown to select the fields.
+   - Manually type values to add fields not listed in the dropdown.
+   - Select :guilabel:`Allow all fields in the data source used in
+     this chart`.
 
 #. When you have selected all desired fields, click :guilabel:`Save`
    below the dropdown.
 
 Chart :ref:`viewers <dashboard-roles>` and applications which render
-the chart can now use filters based on the specified fields to
+the chart can now use pre-filters and filters based on the specified fields to
 display subsets of the original chart data. If a viewer attempts to
 use a filter for a field not included in the :ref:`Allowed filter fields
 <specify-filter-fields>` list, |charts| returns an :ref:`error <embedded-errors>`.
 
-Filters for Embedded Documents
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Specify Filterable Sub-Fields for Fields with Embedded Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When you add a field to the :guilabel:`Allowed filter fields` list 
 whose value is an embedded document, you must also specify each 
@@ -100,6 +110,67 @@ individual sub-field you want to allow.
   of ``favorites``. Instead, you may add one or more of the sub-fields
   to the list individually by specifying ``favorites.color``,
   ``favorites.animal``, or ``favorites.season``.
+
+.. _embed-options-pre-filter:
+
+Pre-Filter Data on Charts Embedded in an iframe
+------------------------------------------------
+
+Use pre-filters for embedded charts and dashboards with large numbers of collections.
+Pre-filters run at an earlier stage in the embedded chart's pipeline and allow you
+to do the following:
+
+- Filter the data early, to reduce the query running time.
+- Apply filters before the query execution for chart queries that contain aggregations.
+
+Pre-filters behave exactly as filters and use the same syntax. Their only
+difference is that they run after the chart views and before the start of the charts queries and filters.
+To learn more about the order of pipeline segments, see :ref:`aggregation pipeline <aggregation-pipeline-generation>`.
+
+Use the ``preFilter`` query parameter to filter data before the chart query
+starts running, for the chart embedded in an iframe.
+
+You can specify an MQL document as your ``preFilter`` query parameter provided
+that the fields used in your filter are in the :ref:`list of allowed filterable fields <specify-filter-fields>`.
+
+.. _pre-filter-example:
+
+Pre-Filter Example
+~~~~~~~~~~~~~~~~~~~
+
+The following example illustrates how chart views, queries in the query bar,
+filters, and pre-filters work together.
+
+Consider the following scenario:
+
+- Charts View contains: 
+
+  .. code-block:: none
+
+     [ { $project: { accommodates: 1, "bedrooms": 1, "address.country": 1 } } ]
+
+- Query bar contains:
+
+  .. code-block:: none
+
+     [ { $match: { accommodates: { $gte: 3 } } }, { $project: { address: 0 } } ]
+
+- The filter in an embedded chart contains:
+  
+  .. code-block:: none
+
+     { "bedrooms": { $lte: 3 } }
+
+- The pre-filter in an embedded chart contains:
+
+  .. code-block:: none
+  
+     { "address.country": "Australia" }
+
+In the previous example, before the chart's query starts to run,
+the pre-filter is applied, to only look for apartments in Australia.
+After that, the chart's query runs, to identify all apartments that
+accommodate more than three people.
 
 .. _embed-options-filter:
 
@@ -226,6 +297,33 @@ an :guilabel:`Unauthenticated` chart and a
 
             {"imdb.rating": {$gte: 8}}
 
+.. _pre-filter-embedded-sdk:
+
+Pre-Filter Data on Charts Embedded with the SDK
+------------------------------------------------
+
+You can add a :ref:`preFilter <embed-options-pre-filter>` to an embedded chart
+with the ``preFilter`` option. Pre-filtering allows the chart author to run
+a filter after the chart views and before the chart query execution and chart's
+filters.
+
+In the :guilabel:`Embed Chart` modal, you must specify fields you want to
+include in the pre-filter. The :guilabel:`Embed Chart` modal contains a
+dropdown menu of fields on which to allow filtering.
+
+The following uses the ``preFilter`` option to represent only documents
+in Australia:
+
+.. code-block:: javascript
+
+   createChart({
+     baseUrl: '<your-base-url>',
+     chartId: '<your-chart-id>',
+     width: 500,
+     height: 500,
+     preFilter: { "address.country": "Australia" }
+   })
+
 .. _filter-embedded-sdk:
 
 Filter Data on Charts Embedded with the SDK
@@ -236,8 +334,8 @@ with the ``filter`` option. Filtering allows the chart author to only display
 data in the embedded chart which matches a specified :abbr:`MQL (MongoDB
 Query Language)` filter.
 
-In the :guilabel:`Embed Chart` modal, you must specify any fields
-included in the filter. The :guilabel:`Embed Chart` modal contains a
+In the :guilabel:`Embed Chart` modal, you must specify fields you want
+to include in the filter. The :guilabel:`Embed Chart` modal contains a
 dropdown menu of fields on which to allow filtering.
 
 The following uses the ``filter`` option to represent only documents in
