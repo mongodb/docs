@@ -1,8 +1,8 @@
 =================================
-{+product+} Documentation
+MongoDB C# Analyzer Documentation
 =================================
 
-This repository contains documentation for the {+product-short+}.
+This repository contains documentation for the MongoDB C# Analyzer.
 
 File JIRA Tickets
 -----------------
