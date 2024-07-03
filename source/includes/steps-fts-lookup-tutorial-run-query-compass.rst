@@ -23,7 +23,7 @@
          dropdown and adding the query for that stage. Click
          :guilabel:`Add Stage` to add additional stages. 
 
-         .. include:: /includes/fts-tutorial/lookup-with-search/list-table-compass-query.txt 
+         .. include:: /includes/fts-tutorial/lookup-with-search/list-table-compass-query.rst 
                  
          If you :compass:`enabled </aggregation-pipeline-builder/#set-the-documents-limit-or-auto-preview-documents>` 
          :guilabel:`Auto Preview`, |compass| displays the following

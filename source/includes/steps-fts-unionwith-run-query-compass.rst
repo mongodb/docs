@@ -30,7 +30,7 @@
 
                .. include:: /includes/extracts/search-with-unionwith-basic-query-desc.rst
 
-               .. include:: /includes/fts-tutorial/search-with-unionwith/list-table-compass-basic-query.txt 
+               .. include:: /includes/fts-tutorial/search-with-unionwith/list-table-compass-basic-query.rst 
                  
                If you :compass:`enabled </aggregation-pipeline-builder/#set-the-documents-limit-or-auto-preview-documents>` 
                :guilabel:`Auto Preview`, |compass| displays the following
@@ -77,7 +77,7 @@
 
                .. include:: /includes/extracts/search-with-unionwith-facet-query-desc.rst
 
-               .. include:: /includes/fts-tutorial/search-with-unionwith/list-table-compass-facet-query.txt 
+               .. include:: /includes/fts-tutorial/search-with-unionwith/list-table-compass-facet-query.rst 
                  
                If you :compass:`enabled </aggregation-pipeline-builder/#set-the-documents-limit-or-auto-preview-documents>` 
                :guilabel:`Auto Preview`, |compass| displays the following
