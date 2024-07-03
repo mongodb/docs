@@ -7,6 +7,3 @@
 
     To learn how your MongoDB driver handles numeric values, refer to your 
     :driver:`driver's documentation </>`.
-
-    
-    
