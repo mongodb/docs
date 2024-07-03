@@ -66,8 +66,9 @@
             You can't copy the command until |service| finishes 
             creating |vpc| resources in the background.
 
-         See :aws:`Creating an Interface Endpoint </vpc/latest/userguide/vpce-interface.html#create-interface-endpoint>` 
-          o perform this task using the |aws| CLI.
+         See :aws:`Creating an Interface Endpoint 
+         </vpc/latest/userguide/vpce-interface.html#create-interface-endpoint>` 
+         to perform this task using the |aws| CLI.
             
       #. Click :guilabel:`Next`.
       
