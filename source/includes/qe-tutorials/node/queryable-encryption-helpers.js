@@ -69,6 +69,13 @@ export function getKMSProviderCredentials(kmsProviderName) {
         // start-get-local-key
         // WARNING: Do not use a local key file in a production application
         const localMasterKey = readFileSync("./customer-master-key.txt");
+
+        if (localMasterKey.length !== 96) {
+          throw new Error(
+            "Expected the customer master key file to be 96 bytes."
+          );
+        }
+
         kmsProviders = {
           local: {
             key: localMasterKey,
@@ -140,28 +147,28 @@ export async function getAutoEncryptionOptions(
     const tlsOptions = getKmipTlsOptions();
 
     // start-kmip-encryption-options
-    const sharedLibraryPathOptions = {
+    const extraOptions = {
       cryptSharedLibPath: process.env.SHARED_LIB_PATH, // Path to your Automatic Encryption Shared Library
     };
 
     const autoEncryptionOptions = {
       keyVaultNamespace,
       kmsProviders,
-      sharedLibraryPathOptions,
+      extraOptions,
       tlsOptions,
     };
     // end-kmip-encryption-options
     return autoEncryptionOptions;
   } else {
     // start-auto-encryption-options
-    const sharedLibraryPathOptions = {
+    const extraOptions = {
       cryptSharedLibPath: process.env.SHARED_LIB_PATH, // Path to your Automatic Encryption Shared Library
     };
 
     const autoEncryptionOptions = {
       keyVaultNamespace,
       kmsProviders,
-      sharedLibraryPathOptions,
+      extraOptions,
     };
     // end-auto-encryption-options
 
@@ -183,7 +190,10 @@ function getKmipTlsOptions() {
 
 export function getClientEncryption(encryptedClient, autoEncryptionOptions) {
   // start-client-encryption
-  const clientEncryption = new ClientEncryption(encryptedClient, autoEncryptionOptions);
+  const clientEncryption = new ClientEncryption(
+    encryptedClient,
+    autoEncryptionOptions
+  );
   // end-client-encryption
   return clientEncryption;
 }

@@ -8,9 +8,17 @@ import (
 
 	"crypto/rand"
 
+	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+func LoadEnv() {
+	err := godotenv.Load(".env") // This file should contain your KMS credentials
+	if err != nil {
+		panic("Error loading .env file")
+	}
+}
 
 func GetKmsProviderCredentials(kmsProviderName string) map[string]map[string]interface{} {
 
@@ -75,6 +83,9 @@ func GetKmsProviderCredentials(kmsProviderName string) map[string]map[string]int
 		key, err := os.ReadFile("customer-master-key.txt")
 		if err != nil {
 			panic(fmt.Sprintf("Could not read the Customer Master Key: %v", err))
+		}
+		if len(key) != 96 {
+			panic(fmt.Sprintf("Expected the customer master key file to be 96 bytes."))
 		}
 		kmsProviderCredentials := map[string]map[string]interface{}{"local": {"key": key}}
 		// end-get-local-key

@@ -7,6 +7,5 @@
 
    Use hostnames instead of IP addresses to configure clusters across a
    split network horizon. Starting in MongoDB 5.0, nodes that are only
-   configured with an IP address will fail startup validation and will
-   not start.
+   configured with an IP address fail startup validation and do not start.
 

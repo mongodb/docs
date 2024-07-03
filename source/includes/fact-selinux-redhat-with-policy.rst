@@ -15,7 +15,7 @@ packages.
    If your MongoDB deployment uses custom settings for any of the
    following:
 
-   - :doc:`MongoDB connection ports </reference/default-mongodb-port>`
+   - :ref:`MongoDB connection ports <default-mongodb-port>`
    - :setting:`~storage.dbPath`
    - :setting:`systemLog.path`
    - :setting:`~processManagement.pidFilePath`

@@ -45,8 +45,8 @@ public final class QueryableEncryptionHelpers {
             byte[] localCustomerMasterKey = new byte[96];
 
             try (FileInputStream fis = new FileInputStream("customer-master-key.txt")) {
-                if (fis.read(localCustomerMasterKey) < 96)
-                    throw new Exception("Expected to read 96 bytes from the customer master key file");
+                if (fis.read(localCustomerMasterKey) != 96)
+                    throw new Exception("Expected the customer master key file to be 96 bytes.");
             } catch (Exception e) {
                 throw new Exception("Unable to read the Customer Master Key due to the following error: " + e.getMessage());
             }

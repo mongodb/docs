@@ -1,12 +1,8 @@
 ref: _upsert-unique-index-base
 content: |
 
-   When using the {{upsert}} option with the {{command}}
-   {{commandOrMethod}}, **and not** using a :ref:`unique index
-   <index-type-unique>` on the query field(s), multiple
-   instances of {{aOrAn}} {{command}} operation with similar query
-   field(s) could result in duplicate documents being inserted in
-   certain circumstances.
+   Upserts can create duplicate documents, unless there is a
+   :ref:`unique index <index-type-unique>` to prevent duplicates.
 
    Consider an example where no document with the name ``Andy`` exists
    and multiple clients issue the following command at roughly the same
@@ -14,26 +10,105 @@ content: |
 
    {{codeExample}}
 
-   If all {{command}} operations finish the query phase
-   before any client successfully inserts data, **and** there is no
-   :ref:`unique index <index-type-unique>` on the ``name`` field, each
-   {{command}} operation may result in an insert, creating multiple
-   documents with ``name: Andy``.
+   If all {{command}} operations finish the query phase before any
+   client successfully inserts data, **and** there is no unique index on
+   the ``name`` field, each {{command}} operation may result in an
+   insert, creating multiple documents with ``name: Andy``.
 
-   To ensure that only one such document is created, and the other
-   {{command}} operations update this new document instead, create a
-   :ref:`unique index <index-type-unique>` on the ``name`` field. This
-   guarantees that only one document with ``name: Andy`` is permitted
-   in the collection.
-   
-   With this unique index in place, the multiple {{command}} operations
-   now exhibit the following behavior:
+   A unique index on the ``name`` field ensures that only one document
+   is created. With a unique index in place, the multiple {{command}}
+   operations now exhibit the following behavior:
 
    - Exactly one {{command}} operation will successfully insert a new
      document.
 
-   - All other {{command}} operations will update the newly-inserted
-     document, incrementing the ``score`` value.
+   - Other {{command}} operations either update the newly-inserted
+     document or fail due to a unique key collision.
+     
+     In order for other {{command}} operations to update the
+     newly-inserted document, **all** of the following conditions must
+     be met:
+
+     - The target collection has a unique index that would cause a
+       duplicate key error.
+
+     - The update operation is not ``updateMany`` or ``multi`` is
+       ``false``.
+
+     - The update match condition is either:
+
+       - A single equality predicate. For example ``{ "fieldA" : "valueA" }``
+
+       - A logical AND of equality predicates. For example ``{ "fieldA" :
+         "valueA", "fieldB" : "valueB" }``
+
+     - The fields in the equality predicate match the fields in the
+       unique index key pattern.
+
+     - The update operation does not modify any fields in the
+       unique index key pattern.
+
+   The following table shows examples of ``upsert`` operations that,
+   when a key collision occurs, either result in an update or fail.
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 30 40 30
+
+      * - Unique Index Key Pattern
+        - Update Operation
+        - Result
+
+      * - .. code-block:: javascript
+             :copyable: false
+
+             { name : 1 }
+
+        - .. code-block:: javascript
+             :copyable: false
+
+             db.people.updateOne(
+                { name: "Andy" },
+                { $inc: { score: 1 } },
+                { upsert: true }
+             )
+        - The ``score`` field of the matched document is incremented by
+          1.
+
+      * - .. code-block:: javascript
+             :copyable: false
+
+             { name : 1 }
+
+        - .. code-block:: javascript
+             :copyable: false
+
+             db.people.updateOne(
+                { name: { $ne: "Joe" } },
+                { $set: { name: "Andy" } },
+                { upsert: true }
+              )
+              
+        - The operation fails because it modifies the field in the
+          unique index key pattern (``name``).
+
+      * - .. code-block:: javascript
+             :copyable: false
+             
+             { name : 1 }
+        - .. code-block:: javascript
+             :copyable: false
+
+             db.people.updateOne(
+               { name: "Andy", email: "andy@xyz.com" },
+               { $set: { active: false } },
+               { upsert: true }
+             )
+        - The operation fails because the equality predicate fields
+          (``name``, ``email``) do not match the index key field
+          (``name``).
+
+
 
 ---
 ref: upsert-unique-index-findAndModify-command

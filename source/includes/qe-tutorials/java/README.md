@@ -76,7 +76,7 @@ see [Installation Requirements](https://www.mongodb.com/docs/manual/core/queryab
    `<Your KMS Provider Name>` with a valid KMS provider name.
 
 1. Compile the project and run the `QueryableEncryptionTutorial.java` class in
-   the `/java/src/main/com/mongodb/tutorials/qe/` directory.
+   the `/java/src/main/java/com/mongodb/tutorials/qe/` directory.
 
    - If you are using `maven` on the command line, you can run the following
      commands from the project root that contains the `pom.xml` to build and run

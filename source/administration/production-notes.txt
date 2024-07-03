@@ -10,6 +10,9 @@ Production Notes
    :name: genre
    :values: reference
 
+.. meta:: 
+   :description: System configurations that affect MongoDB, especially when running in production.
+
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -43,7 +46,6 @@ x86_64
 ~~~~~~
 
 MongoDB requires the following minimum ``x86_64`` microarchitectures:
-[#microarch-intel]_
 
 - For Intel ``x86_64``, MongoDB requires one of:
 
@@ -78,12 +80,21 @@ Starting in MongoDB 5.0, :binary:`~bin.mongod`, :binary:`~bin.mongos`,
 and the legacy :binary:`~bin.mongo` shell no longer support ``arm64``
 platforms which do not meet this minimum microarchitecture requirement.
 
+.. note:: MongoDB no longer supports single board hardware lacking the proper 
+   CPU architecture (Raspberry Pi 4). See `Compatibility Changes in MongoDB 5.0 
+   <https://www.mongodb.com/docs/manual/release-notes/5.0-compatibility/#removed-raspberry-pi-support>`_ 
+   for more information.
+
 .. _prod-notes-supported-platforms-x86_64:
 .. _prod-notes-supported-platforms-PPC64LE:
 .. _prod-notes-supported-platforms-s390x:
 
 Platform Support Matrix
 -----------------------
+
+.. include:: includes/rc-available.rst
+
+.. include:: includes/platform-support-updates.rst
 
 .. sharedinclude:: server/platform-support/platform-support.rst
 
@@ -111,31 +122,22 @@ Recommended Platforms
 While MongoDB supports a variety of platforms, the following operating
 systems are recommended for production use on ``x86_64`` architecture:
 
-- Amazon Linux 2
-- Debian 10
-- :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS 7 and 8 [#rocky-almalinux]_
-- SLES 12 and 15
-- Ubuntu LTS 20.04 and 22.04
-- Windows Server 2016 and 2019
+- Amazon Linux
+- Debian
+- :abbr:`RHEL (Red Hat Enterprise Linux)` [#rocky-almalinux]_
+- SLES
+- Ubuntu LTS
+- Windows Server
 
-.. [#oracle-linux]
-
-   MongoDB only supports Oracle Linux running the  Red Hat Compatible
-   Kernel (RHCK). MongoDB does **not** support the Unbreakable
-   Enterprise Kernel (UEK).
-
-.. [#microarch-intel]
-
-   MongoDB 5.0 requires use of the AVX instruction set, available on
-   `select Intel and AMD processors
-   <https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#CPUs_with_AVX>`__.
+For best results, run the latest version of your platform. If you run an
+older version, make sure that your version is supported by its provider.
 
 .. [#rocky-almalinux]
 
-   MongoDB on-premises products released for RHEL version 8.0+ are 
-   compatible with and supported on Rocky Linux version 8.0+ and 
-   AlmaLinux version 8.0+, contingent upon those distributions meeting their 
-   obligation to deliver full RHEL compatibility.
+   MongoDB on-premises products released for RHEL version 8.0+ are
+   compatible with Rocky Linux version 8.0+ and AlmaLinux version 8.0+,
+   contingent upon those distributions meeting their obligation to
+   deliver full RHEL compatibility.
 
 .. seealso::
 
@@ -146,13 +148,25 @@ Use the Latest Stable Packages
 
 Be sure you have the latest stable release.
 
-All MongoDB releases are available on the :dl:`MongoDB Download Center <>`
-page. The :dl:`MongoDB Download Center <>` is a good place to verify the
-current stable release, even if you are installing via a package
-manager.
+MongoDB releases are available on the MongoDB Download Center:
 
-For other MongoDB products, refer either to the :dl:`MongoDB Download Center <>`
-page or their `respective documentation <https://www.mongodb.com/docs/?tck=docs_server>`_.
+- `MongoDB Enterprise Advanced 
+  <https://www.mongodb.com/try/download/enterprise-advanced>`_
+- `MongoDB Community Edition
+  <https://www.mongodb.com/try/download/community-edition>`_
+
+For details on upgrading to the most current minor release, see
+:ref:`upgrade-to-latest-revision`.
+
+The following related packages are also available on the MongoDB 
+Download Center:
+
+- `Tools <https://www.mongodb.com/try/download/tools>`_
+- `Atlas SQL Interface <https://www.mongodb.com/try/download/atlas-sql>`_
+- `Mobile & Edge <https://www.mongodb.com/try/download/realm>`_
+
+For other MongoDB products, see their `respective documentation 
+<https://www.mongodb.com/docs/?tck=docs_server>`_.
 
 MongoDB ``dbPath``
 ------------------
@@ -352,6 +366,9 @@ a memory interleave policy so that the host behaves in a non-NUMA fashion.
 MongoDB checks NUMA settings on start up when deployed on Linux (since version
 2.0) and Windows (since version 2.6) machines. If the
 NUMA configuration may degrade performance, MongoDB prints a warning.
+
+The ``numad`` daemon process can also reduce :binary:`~bin.mongod` performance. 
+You should ensure ``numad`` is not enabled on MongoDB servers.
 
 .. seealso::
 
@@ -668,7 +685,7 @@ WiredTiger uses :term:`prefix compression` on all indexes by default.
 Clock Synchronization
 ---------------------
 
-MongoDB :doc:`components </reference/program>` keep logical clocks for
+MongoDB :ref:`components <mongodb-package-components>` keep logical clocks for
 supporting time-dependent operations. Using `NTP <http://www.ntp.org/>`_
 to synchronize host machine clocks mitigates the risk of clock drift
 between components. Clock drift between components increases the
@@ -783,6 +800,14 @@ MongoDB performs best where swapping can be avoided or kept to a
 minimum. As such you should set ``vm.swappiness`` to either ``1`` or
 ``0`` depending on your application needs and cluster configuration.
 
+.. note:: 
+   
+   Most system and user processes run within a cgroup, which, by default, sets 
+   the ``vm.swappiness`` to ``60``. If you are running 
+   :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS, set 
+   ``vm.force_cgroup_v2_swappiness`` to ``1`` to ensure that the specified 
+   ``vm.swappiness`` value overrides any cgroup defaults.
+
 .. [#swappiness-kernel-version]
 
    With Linux kernel versions previous to ``3.5``, or
@@ -847,8 +872,7 @@ consider the following recommendations:
   
   .. note:: 
 
-     Starting in MongoDB 4.4, a startup error is generated if the
-     ``ulimit`` value for number of open files is under ``64000``.
+     .. include:: /includes/fact-ulimit-minimum.rst
 
 - Disable Transparent Huge Pages. MongoDB performs better with
   normal (4096 bytes) virtual memory pages. See :doc:`Transparent Huge
@@ -1021,21 +1045,18 @@ to another host and the :binary:`~bin.mongod` instance on the virtual machine is
 :term:`primary`, you must first :method:`step down <rs.stepDown>` the primary and then
 :method:`shut down the instance <db.shutdownServer>`.
 
-Follow the `networking best practices for vMotion
+Follow the networking best practices for `vMotion
 <https://docs.vmware.com/en/VMware-vSphere/7.0/com.vmware.vsphere.vcenterhost.doc/GUID-7DAD15D4-7F41-4913-9F16-567289E22977.html>`_
-and the `VMKernel
-<https://kb.vmware.com/selfservice/microsites/search.do?language=en_US&cmd=displayKC&externalId=2054994>`_.
+and `VMKernel
+<https://knowledge.broadcom.com/external/article?legacyId=2054994>`_.
 Failure to follow the best practices can result in performance problems
 and affect :doc:`replica set </core/replica-set-high-availability>` and
 :ref:`sharded cluster <sharding-sharded-cluster>` high
 availability mechanisms.
 
-It is possible to clone a virtual machine running MongoDB.
-You might use this function to
-spin up a new virtual host to add as a member of a replica
-set. If you clone a VM with journaling enabled, the clone snapshot will
-be valid. If not using journaling, first stop :binary:`~bin.mongod`,
-then clone the VM, and finally, restart :binary:`~bin.mongod`.
+You can clone a virtual machine running MongoDB. You might use this
+function to deploy a new virtual host to add as a member of a replica
+set.
 
 KVM
 ```

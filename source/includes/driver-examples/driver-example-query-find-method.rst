@@ -15,6 +15,12 @@
          :ref:`query filter parameter <query-bar-filter>` determines
          the select criteria:
 
+     - id: c
+       content: |
+         To select all documents in the collection, pass an empty
+         document as the query filter parameter to the find method. The
+         query filter parameter determines the select criteria:
+    
      - id: python
        content: |
          To select all documents in the collection, pass an empty
@@ -34,6 +40,12 @@
          query filter parameter determines the select criteria:
 
      - id: java-async
+       content: |
+         To select all documents in the collection, pass an empty
+         document as the query filter parameter to the find method. The
+         query filter parameter determines the select criteria:
+
+     - id: kotlin-coroutine
        content: |
          To select all documents in the collection, pass an empty
          document as the query filter parameter to the find method. The

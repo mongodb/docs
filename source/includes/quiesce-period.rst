@@ -64,9 +64,3 @@ quiesce period, which allows existing operations to complete. New
 operations are sent to other :binary:`~bin.mongos` nodes. In MongoDB
 versions earlier than 5.0, :binary:`~bin.mongos` shuts down immediately
 and does not use |timeout|.
-
-For a :binary:`~bin.mongod` :term:`primary` in MongoDB 4.4 and earlier,
-``timeoutSecs`` specifies the time in seconds that the :term:`primary`
-waits for a :term:`secondary` to catch up for the ``shutdownServer``
-command. If no secondaries catch up within ``timeoutSecs``, the
-``shutdownServer`` command fails.

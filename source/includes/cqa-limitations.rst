@@ -1,6 +1,6 @@
 - You cannot run |CQA| on Atlas 
-  :atlas:`multi-tenant </docs/atlas/build-multi-tenant-arch/>`
-  configurations.
+  :ref:`shared clusters <shared-tier-cluster>` and
+  :ref:`serverless instances <atlas-choose-serverless>`.
 - You cannot run |CQA| on 
   standalone deployments.
 - You cannot run |CQA| directly 

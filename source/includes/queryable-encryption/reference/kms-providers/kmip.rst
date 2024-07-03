@@ -38,7 +38,7 @@ object for a KMIP compliant {+kms-long+}:
      - Yes
      - Specifies a hostname and port number for the authentication server.
 
-.. _qe-reference-kms-providers-kmip-datakeyopts:
+.. _qe-fundamentals-kms-providers-kmip-datakeyopts:
 
 dataKeyOpts Object
 ``````````````````

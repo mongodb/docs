@@ -9,6 +9,9 @@ Write Concern
 
 .. default-domain:: mongodb
 
+.. meta::
+   :description: Understand MongoDB write concerns for write operations in replica sets or sharded clusters.
+
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -17,8 +20,8 @@ Write Concern
 
 
 Write concern describes the level of acknowledgment requested from
-MongoDB for write operations to a standalone :binary:`~bin.mongod` or
-to :ref:`Replica sets <replication>` or to :ref:`sharded clusters
+MongoDB for write operations to a standalone :binary:`~bin.mongod`, 
+:ref:`replica sets <replication>`, or :ref:`sharded clusters 
 <sharding-background>`. In sharded clusters, :binary:`~bin.mongos` 
 instances will pass the write concern on to the shards.
 
@@ -31,23 +34,15 @@ instances will pass the write concern on to the shards.
 
    .. include:: /includes/write-concern-majority-and-transactions.rst
 
-Starting in MongoDB 4.4, replica sets and sharded clusters support
-setting a global default write concern. Operations which do not 
-specify an explicit write concern inherit the global default 
-write concern settings. See :dbcommand:`setDefaultRWConcern` for 
+Replica sets and sharded clusters support setting a global default write 
+concern. Operations which do not specify an explicit write concern inherit the 
+global default write concern settings. See :dbcommand:`setDefaultRWConcern` for 
 more information.
 
-Compatibility
--------------
-
-.. |page-topic| replace:: set the write concern
-
-.. |link-topic-ing| replace:: setting the write concern
-
-.. |atlas-url| replace:: :atlas:`Build a Resilient Application with {+atlas+} </resilient-application/#write-concern>`
-
-.. include:: /includes/fact-atlas-compatible.rst
-.. include:: /includes/fact-atlas-link.rst
+To learn more about setting the write concern for deployments
+hosted in {+atlas+}, see 
+:atlas:`Build a Resilient Application with {+atlas+} 
+</resilient-application/#write-concern>`
 
 .. _wc-specs:
 
@@ -76,8 +71,15 @@ Write concern can include the following fields:
 ~~~~~~~~~~~~
 
 The ``w`` option requests acknowledgment that the write operation has
-propagated to a specified number of :binary:`~bin.mongod` instances or to
-:binary:`~bin.mongod` instances with specified tags.
+propagated to a specified number of :binary:`~bin.mongod` instances or
+to :binary:`~bin.mongod` instances with specified tags. If the write
+concern is missing the ``w`` field, MongoDB sets the ``w`` option to the
+default write concern. 
+
+.. note::
+
+  If you use the :dbcommand:`setDefaultRWConcern` to set the default
+  write concern, you must specify a ``w`` field value. 
 
 Using the ``w`` option, the following ``w: <value>`` write concerns are
 available:
@@ -345,7 +347,11 @@ the write operation in memory or after writing to the on-disk journal.
        - Acknowledgment requires writing operation to on-disk journal.
 
      * - ``j: false``
-       - Acknowledgment requires writing operation in memory.
+       - Acknowledgment requires writing operation in memory. If write 
+         concern is set to ``w: "majority"`` and 
+         :rsconf:`writeConcernMajorityJournalDefault` is set to ``true``, 
+         journaling is automatically set to ``true`` regardless of 
+         the specified ``j`` value.
 
   .. note::     
 
@@ -434,7 +440,7 @@ Calculating Majority for Write Concern
 
 .. tip::
 
-   Starting in version 4.2.1, the :method:`rs.status()` returns the
+   The :method:`rs.status()` returns the 
    :data:`~replSetGetStatus.writeMajorityCount` field which contains
    the calculated majority number.
 
@@ -494,9 +500,8 @@ For example, consider:
 Write Concern Provenance
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Starting in version 4.4, MongoDB tracks write concern ``provenance``,
-which indicates the source of a particular write concern. You may see
-``provenance`` shown in the
+MongoDB tracks write concern ``provenance``, which indicates the source of a 
+particular write concern. You may see ``provenance`` shown in the
 :serverstatus:`getLastError <metrics.getLastError>` metrics, write
 concern error objects, and MongoDB logs.
 
@@ -512,3 +517,9 @@ Write Concern Contrasted with Commit Quorum
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/indexes/commit-quorum-vs-write-concern.rst
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   /reference/write-concern/write-lifecycle

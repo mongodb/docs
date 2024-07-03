@@ -7,7 +7,14 @@ from an aggregation pipeline.
 
 - On-demand materialized views are stored on and read from disk. They
   use a :pipeline:`$merge` or :pipeline:`$out` stage to update the saved
-  data.
+  data. 
+
+  .. note:: 
+
+     When using :pipeline:`$merge`, you can use :ref:`change streams
+     <changeStreams>` to watch for changes on the materialized view.
+     When using :pipeline:`$out`, you can't watch for changes on the
+     materialized view. 
 
 Indexes
 ~~~~~~~

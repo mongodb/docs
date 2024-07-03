@@ -12,7 +12,7 @@ which voting members, including the primary, must be prepared to commit
 a :ref:`simultaneous index build <index-operations-simultaneous-build>`.
 before the primary will execute the commit.
 
-The **write concern** is the level of acknowledgement that the write has
+The **write concern** is the level of acknowledgment that the write has
 propagated to the specified number of instances.
 
 The **commit quorum** specifies how many nodes must be *ready* to finish

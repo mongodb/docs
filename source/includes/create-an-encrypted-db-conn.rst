@@ -9,10 +9,10 @@ initiated with client-side field level encryption enabled, either:
   following Key Management Service (KMS) providers for Customer
   Master Key (CMK) management:
 
-  - :ref:`Amazon Web Services KMS <field-level-encryption-aws-kms>`
-  - :ref:`Azure Key Vault <field-level-encryption-azure-keyvault>`
-  - :ref:`Google Cloud Platform KMS <field-level-encryption-gcp-kms>`
-  - :ref:`Locally Managed Key <field-level-encryption-local-kms>`
+  - :ref:`Amazon Web Services KMS <qe-fundamentals-kms-providers-aws>`
+  - :ref:`Azure Key Vault <qe-fundamentals-kms-providers-azure>`
+  - :ref:`Google Cloud Platform KMS <qe-fundamentals-kms-providers-gcp>`
+  - :ref:`Locally Managed Key <qe-fundamentals-kms-providers-local>`
 
 *or*
 
@@ -20,4 +20,4 @@ initiated with client-side field level encryption enabled, either:
   <mongosh-client-side-field-level-encryption-options>` to establish a
   connection with the required options. The command line options only
   support the :ref:`Amazon Web Services KMS
-  <field-level-encryption-aws-kms>` provider for CMK management. 
+  <qe-fundamentals-kms-providers-aws>` provider for CMK management. 

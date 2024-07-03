@@ -5,7 +5,7 @@ import org.bson.types.ObjectId;
 // start-patient-model
 public class Patient {
     public ObjectId id;
-    public String name;
+    public String patientName;
 
     public PatientRecord patientRecord;
 
@@ -13,7 +13,7 @@ public class Patient {
     }
 
     public Patient(String name, PatientRecord patientRecord) {
-        this.name = name;
+        this.patientName = name;
         this.patientRecord = patientRecord;
     }
 
@@ -25,12 +25,12 @@ public class Patient {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public String getPatientName() {
+        return patientName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setPatientName(String name) {
+        this.patientName = name;
     }
 
     public PatientRecord getPatientRecord() {
@@ -45,7 +45,7 @@ public class Patient {
     public String toString() {
         return "{" +
                 "id=" + id +
-                ", name='" + name + '\'' +
+                ", name='" + patientName + '\'' +
                 ", patientRecord=" + patientRecord +
                 '}';
     }

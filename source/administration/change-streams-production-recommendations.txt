@@ -17,16 +17,18 @@ opened against it, the change stream cursors close when they advance to
 that point in the oplog. Change stream cursors with the ``fullDocument :
 updateLookup`` option may return ``null`` for the lookup document.
 
-Attempting to resume a change stream against a dropped collection results in
-an error. Any data changes that occurred on the collection between the last
-event the change stream captured and the collection drop event are lost.
-
 Change stream response documents must adhere to the 16MB BSON document limit.
 Depending on the size of documents in the collection against which you open a
 change stream, notifications may fail if the resulting notification document
 exceeds the 16MB limit. For example, update operations on change streams
 configured to return the full updated document, or insert/replace operations
 with a document that is at or just below the limit.
+
+.. important::
+
+   Starting in version 6.0.9, you can use the 
+   :pipeline:`$changeStreamSplitLargeEvent` aggregation 
+   stage to split the events into smaller fragments. 
 
 Replica Sets
 ------------
@@ -77,14 +79,6 @@ Consider utilizing notification filters for these types of collections.
 For example, passing a :pipeline:`$match` pipeline configured to filter
 only ``insert`` operations.
 
-For sharded collections, update operations with :ref:`multi : true
-<multi-parameter>` may cause any change streams opened against that collection
-to send notifications for :term:`orphaned documents <orphaned document>`.
-
-From the moment an unsharded collection is sharded until the time the change
-stream catches up to the first chunk migration, the ``documentKey`` in the
-change stream notification document only includes the ``_id`` of the document,
-not the full shard key.
 
 Indexes and Performance
 -----------------------

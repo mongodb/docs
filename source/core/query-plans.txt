@@ -8,6 +8,11 @@ Query Plans
 
 .. default-domain:: mongodb
 
+.. facet::
+   :name: genre
+   :values: reference
+
+
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -16,27 +21,29 @@ Query Plans
 
 .. TODO Consider moving this to the mechanics of the index section
 
-For a query, the MongoDB query planner chooses and caches the most
-efficient query plan given the available indexes. The evaluation of the
-most efficient query plan is based on the number of "work units"
-(``works``) performed by the query execution plan when the query planner
-evaluates candidate plans. In general, the MongoDB query planner
-selects query plans with fewer ``works`` as the winning plan. 
+For any given query, the MongoDB query planner chooses and caches the
+most efficient query plan given the available indexes. To evaluate the
+efficiency of query plans, the query planner runs all candidate plans
+during a trial period. In general, the winning plan is the query plan
+that produces the most results during the trial period while performing
+the least amount of work.
 
 The associated plan cache entry is used for subsequent queries with the
 same query shape.
 
 The following diagram illustrates the query planner logic:
 
-.. include:: /images/query-planner-logic.rst
+.. include:: /images/general-query-planner-logic.rst
+
+.. include:: includes/explain-ignores-cache-plan.rst
 
 .. _cache-entry-state:
 
 Plan Cache Entry State
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Starting in MongoDB 4.2, each query shape is associated with one of three states
-in the cache:
+Starting in MongoDB 4.2, each query shape is associated with one of
+three states in the cache:
 
 .. list-table::
    :header-rows: 1
@@ -56,41 +63,45 @@ in the cache:
 
        #. Candidate plans are evaluated and a winning plan is selected.
 
-       #. The cache creates an entry for the query shape in state :ref:`Inactive
-          <cache-entry-inactive>` with its ``works`` value. 
+       #. The cache creates an entry for the query shape in state
+          :ref:`Inactive <cache-entry-inactive>` with a value that
+          quantifies the amount of work required by the plan. 
        
    * - :ref:`Inactive <cache-entry-inactive>`
 
      - .. _cache-entry-inactive:
 
        The entry in the cache is a placeholder entry for this shape.
-       That is, the planner has seen the shape and calculated its cost
-       (``works`` value) and stored as a placeholder entry but the query
-       shape is **not** used to generate query plans.
+       That is, the planner has seen the shape, calculated a value that
+       quantifies the amount of work required by the plan and stored the
+       shape placeholder entry but the query shape is **not** used to
+       generate query plans.
     
        For a query, if the cache entry state for a shape is
        :ref:`Inactive <cache-entry-inactive>`:
 
        #. Candidate plans are evaluated and a winning plan is selected.
   
-       #. The selected plan's ``works`` value is compared
-          to the :ref:`Inactive <cache-entry-inactive>` entry's. If the
-          selected plan's ``works`` value is:
+       #. The selected plan's value that quantifies the amount of work
+          required by the plan is compared to the :ref:`Inactive
+          <cache-entry-inactive>` entry's. If the selected plan's value is:
      
-          - Less than or equal to the :ref:`Inactive <cache-entry-inactive>` entry's,
-               The selected plan replaces the placeholder
-               :ref:`Inactive <cache-entry-inactive>` entry and has an
-               :ref:`Active <cache-entry-active>` state.
+          - Less than or equal to the :ref:`Inactive <cache-entry-inactive>` entry's:
+               The selected plan replaces the placeholder :ref:`Inactive
+               <cache-entry-inactive>` entry and has an :ref:`Active
+               <cache-entry-active>` state.
        
                If before the replacement happens, the :ref:`Inactive
                <cache-entry-inactive>` entry becomes :ref:`Active
                <cache-entry-active>` (for example, due to another query
                operation), the newly active entry will only be replaced
-               if its ``works`` value is greater than the selected plan.
+               if its value that quantifies the amount of work required
+               by the plan is greater than the selected plan.
 
-          - Greater than the :ref:`Inactive <cache-entry-inactive>` entry's,
-              The :ref:`Inactive <cache-entry-inactive>` entry remains
-              but its ``works`` value is incremented.
+          - Greater than the :ref:`Inactive <cache-entry-inactive>` entry's:
+               The :ref:`Inactive <cache-entry-inactive>` entry remains
+               but its value that quantifies the amount of work required
+               by the plan is incremented.
 
    * - :ref:`Active <cache-entry-active>`
 
@@ -99,14 +110,15 @@ in the cache:
        The entry in the cache is for the winning plan. The planner can
        use this entry to generate query plans.
 
-       For a query, if the cache entry state for a shape is
-       :ref:`Active <cache-entry-active>`:
+       For a query, if the cache entry state for a shape is :ref:`Active
+       <cache-entry-active>`:
 
        The active entry is used to generate query plans.
 
        The planner also evaluates the entry's performance and if its
-       ``works`` value no longer meets the selection criterion, it will
-       transition to :ref:`Inactive <cache-entry-inactive>` state.
+       value that quantifies the amount of work required by the plan no
+       longer meets the selection criterion, it will transition to
+       :ref:`Inactive <cache-entry-inactive>` state.
 
 See :ref:`query-plans-plan-cache-flushes` for additional scenarios that trigger
 changes to the plan cache.
@@ -118,8 +130,8 @@ Query Plan and Cache Information
 To view the query plan information for a given query, you can use
 :method:`db.collection.explain()` or the :method:`cursor.explain()` .
 
-Starting in MongoDB 4.2, you can use the :pipeline:`$planCacheStats`
-aggregation stage to view plan cache information for a collection.
+To view plan cache information for a collection, you can use the 
+:pipeline:`$planCacheStats` aggregation stage.
 
 .. _query-plans-query-revision:
 
@@ -152,13 +164,13 @@ Users can also:
 Plan Cache Debug Info Size Limit
 --------------------------------
 
-Starting in MongoDB 5.0 (and 4.4.3, 4.2.12, 4.0.23, and 3.6.23), the
-:doc:`plan cache </core/query-plans>` will save full ``plan cache``
-entries only if the cumulative size of the ``plan caches`` for all
-collections is lower than 0.5 GB. When the cumulative size of the
-``plan caches`` for all collections exceeds this threshold, additional
-``plan cache`` entries are stored without the following debug
-information:
+Starting in MongoDB 5.0, the
+:ref:`plan cache <query-plans-query-optimization>` will save full 
+``plan cache`` entries only if the cumulative size of the 
+``plan caches`` for all collections is lower than 0.5 GB. When the 
+cumulative size of the ``plan caches`` for all collections exceeds this 
+threshold, additional ``plan cache`` entries are stored without the 
+following debug information:
 
 - :ref:`createdFromQuery <plancachestats-createdFromQuery>`
 - :ref:`cachedPlan <plancachestats-cachedPlan>`
@@ -217,15 +229,15 @@ Availability
 
 The ``queryHash`` and ``planCacheKey`` are available in:
 
-- :doc:`explain() output </reference/explain-results>` fields:
+- :ref:`explain() output <explain-results>` fields:
   :data:`queryPlanner.queryHash <explain.queryPlanner.queryHash>` and
   :data:`queryPlanner.planCacheKey <explain.queryPlanner.planCacheKey>`
 
-- :doc:`profiler log messages </tutorial/manage-the-database-profiler>`
-  and :doc:`diagnostic log messages (i.e. mongod/mongos log
-  messages)</reference/log-messages>` when logging slow queries.
+- :ref:`profiler log messages <database-profiler>`
+  and :ref:`diagnostic log messages (i.e. mongod/mongos log
+  messages)<log-messages-ref>` when logging slow queries.
 
-- :pipeline:`$planCacheStats` aggregation stage (*New in MongoDB 4.2*)
+- :pipeline:`$planCacheStats` aggregation stage
 
 - ``PlanCache.listQueryShapes()``
   method/``planCacheListQueryShapes`` command

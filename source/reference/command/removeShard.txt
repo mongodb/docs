@@ -20,6 +20,17 @@ Definition
    move the shard's chunks to other shards in the cluster. Once the shard is
    drained, MongoDB removes the shard from the cluster.
 
+Compatibility
+-------------
+
+This command is available in deployments hosted in the following environments: 
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. include:: /includes/fact-environments-atlas-support-no-m10-or-serverless.rst
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
 Syntax
 ------
 
@@ -44,11 +55,7 @@ You cannot back up the cluster data during shard removal.
 Concurrent ``removeShard`` Operations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Starting in MongoDB 4.4 (and 4.2.1), you can have more than one
-:dbcommand:`removeShard` operation in progress.
-
-In MongoDB 4.2.0 and earlier, :dbcommand:`removeShard` returns an error
-if another :dbcommand:`removeShard` operation is in progress.
+You can have more than one :dbcommand:`removeShard` operation in progress.
 
 Access Requirements
 ~~~~~~~~~~~~~~~~~~~
@@ -84,6 +91,14 @@ Change Streams
 ~~~~~~~~~~~~~~
 
 .. include:: /includes/extracts/changestream-remove-shard-with-link.rst
+
+DDL Operations
+~~~~~~~~~~~~~~
+
+If you run ``removeShard`` while your cluster executes a DDL operation
+(operation that modifies a collection such as
+:dbcommand:`reshardCollection`), ``removeShard`` only executes after the
+concurrent DDL operation finishes. 
 
 Example
 -------
@@ -150,7 +165,7 @@ following:
       "remaining" : {
          "chunks" : NumberLong(2),
          "dbs" : NumberLong(2),
-         "jumboChunks" : NumberLong(0)         // Available starting in 4.2.2 (and 4.0.14)
+         "jumboChunks" : NumberLong(0)
       },
       "note" : "you need to drop or movePrimary these databases",
       "dbsToMove" : [
@@ -199,12 +214,8 @@ In the output, the ``remaining`` field includes the following fields:
        draining can complete. See :doc:`/tutorial/clear-jumbo-flag`.
 
        After the ``jumbo`` flag clears, the balancer can migrate these
-       chunks. However, if the queue of writes
-       that modify any documents being migrated surpasses 500MB of
-       memory the migration will fail. For details on the migration
-       procedure, see :ref:`range-migration-procedure`.
-
-       *Available starting in 4.2.2 (and 4.0.14)*
+       chunks. For details on the migration procedure, see 
+       :ref:`range-migration-procedure`.
 
 Continue checking the status of the :dbcommand:`removeShard` command
 (i.e. rerun the command) until the number of chunks remaining is ``0``.

@@ -6,17 +6,14 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func main() {
-	err := godotenv.Load(".env") // This file should contain your KMS credentials
-	if err != nil {
-		panic("Error loading .env file")
-	}
+
+	LoadEnv()
 
 	// start-setup-application-variables
 	// KMS provider name should be one of the following: "aws", "gcp", "azure", "kmip" or "local"
@@ -112,7 +109,7 @@ func main() {
 
 	// start-insert-document
 	patientDocument := &PatientDocument{
-		PatientName: "John Doe",
+		PatientName: "Jon Doe",
 		PatientID:   12345678,
 		PatientRecord: PatientRecord{
 			SSN: "987-65-4320",

@@ -8,7 +8,7 @@ using MongoDB.Bson.Serialization.Attributes;
 public class Patient
 {
     public ObjectId Id { get; set; }
-    public string Name { get; set; }
-    public PatientRecord Record { get; set; }
+    public string PatientName { get; set; }
+    public PatientRecord PatientRecord { get; set; }
 }
 // end-patient

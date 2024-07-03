@@ -14,22 +14,31 @@ Definition
 ----------
 
 .. dbcommand:: replSetResizeOplog
+  
+  ``replSetResizeOplog`` also supports specifying the minimum number 
+  of hours to preserve an oplog entry.
+  
+  .. versionchanged:: 5.0 
+    
+     To set the ``replSetOplog`` size in :binary:`~bin.mongosh`, use
+     the ``Double()`` constructor. 
 
-   .. versionadded:: 4.4
+  ``replSetResizeOplog`` enables you to resize the oplog or
+  its minimum retention period dynamically without restarting the
+  :binary:`~bin.mongod` process. 
 
-      :dbcommand:`replSetResizeOplog` also supports specifying the 
-      minimum number of hours to preserve an oplog entry.
+  You must run this command against the ``admin`` database.
 
-   .. versionchanged:: 5.0
+Compatibility
+-------------
 
-      To set the ``replSetOplog`` size in :binary:`~bin.mongosh`, use
-      the ``Double()`` constructor. 
+This command is available in deployments hosted in the following environments: 
 
-   :dbcommand:`replSetResizeOplog` enables you to resize the oplog or
-   its minimum retention period dynamically without restarting the
-   :binary:`~bin.mongod` process. 
+.. include:: /includes/fact-environments-atlas-only.rst
 
-   You must run this command against the ``admin`` database.
+.. include:: /includes/fact-environments-atlas-support-no-m10.rst
+
+.. include:: /includes/fact-environments-onprem-only.rst
 
 Syntax
 ------
@@ -99,8 +108,6 @@ The command takes the following fields:
        period, see the
        :serverstatus:`oplogTruncation.oplogMinRetentionHours` in the
        output of the :dbcommand:`serverStatus` command.
- 
-       .. versionadded:: 4.4
 
 .. seealso::
 
@@ -111,12 +118,13 @@ The command takes the following fields:
 Behavior
 --------
 
-You can only use :dbcommand:`replSetResizeOplog` on 
+You can use ``replSetResizeOplog`` on 
 :binary:`~bin.mongod` instances running with the 
-:ref:`Wired Tiger storage engine <storage-wiredtiger>`. 
+:ref:`Wired Tiger storage engine <storage-wiredtiger>` or the 
+:ref:`in-memory storage engine <storage-inmemory>`. 
 
 See the :ref:`tutorial-change-oplog-size` tutorial for a procedure
-on using :dbcommand:`replSetResizeOplog` command to resize the oplog.
+on using ``replSetResizeOplog`` command to resize the oplog.
 
 .. include:: /includes/fact-oplog-size.rst
 
@@ -124,7 +132,7 @@ Starting in MongoDB 4.0, MongoDB forbids dropping the ``local.oplog.rs``
 collection. For more information on this restriction, see
 :ref:`oplog-coll-behavior`.
 
-:dbcommand:`replSetResizeOplog` overrides the maximum oplog size or
+``replSetResizeOplog`` overrides the maximum oplog size or
 minimum oplog retention period set at startup by:
 
 - :setting:`replication.oplogSizeMB` / :option:`--oplogSizeMB <mongod
@@ -146,7 +154,7 @@ you use:
    Reducing the maximum oplog size results in truncation of the oldest
    oplog entries until the oplog reaches the new configured size.
    
-   Similarly, reducing the minimum oplog retention period (*new in 4.4*)
+   Similarly, reducing the minimum oplog retention period
    results in truncation of oplog entries older that the specified
    period *if* the oplog has exceeded the maximum configured size.
 
@@ -170,7 +178,7 @@ Minimum Oplog Retention Period
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A :binary:`~bin.mongod` has the following behavior when configured with
-a minimum oplog retention period (*New in 4.4*):
+a minimum oplog retention period:
 
 - The oplog can grow without constraint so as to retain oplog entries
   for the configured number of hours. This may result in reduction or
@@ -192,10 +200,10 @@ a minimum oplog retention period (*New in 4.4*):
 ``replSetResizeOplog`` Does Not Replicate To Other Members
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Changing the oplog size or minimum oplog retention period (*new in 4.4*)
-of a given replica set member with :dbcommand:`replSetResizeOplog` does
+Changing the oplog size or minimum oplog retention period 
+of a given replica set member with ``replSetResizeOplog`` does
 not change the oplog size of any other member in the replica set. You
-must run :dbcommand:`replSetResizeOplog` on each replica set member in
+must run ``replSetResizeOplog`` on each replica set member in
 your cluster to change the oplog size or minimum retention period for
 all members.
 
@@ -207,7 +215,7 @@ Reducing Oplog Size Does Not Immediately Return Disk Space
 Reducing the oplog size does not immediately reclaim that disk space.
 This includes oplog size reduction due to truncation of oplog events
 older than of the :ref:`minimum oplog retention period
-<replSetResizeOplog-cmd-minimum-retention>` (*New in 4.4*).
+<replSetResizeOplog-cmd-minimum-retention>`.
 
 To immediately free unused disk space after reducing the oplog size, run
 :dbcommand:`compact` against the ``oplog.rs`` collection in the
@@ -220,15 +228,9 @@ on resizing the oplog and compacting ``oplog.rs``, see
 Resource Locking
 ~~~~~~~~~~~~~~~~
 
-.. versionchanged:: 4.2.2
-
-- For MongoDB 4.2.2 and later, :dbcommand:`replSetResizeOplog` takes
-  an exclusive (W) lock on the :data:`oplog <local.oplog.rs>`
-  and blocks other operations on the collection until it finishes.
-
-- For MongoDB 4.2.1 and earlier, :dbcommand:`replSetResizeOplog` 
-  takes a global exclusive (W) lock and blocks all other operations
-  until it finishes.
+``replSetResizeOplog`` takes an exclusive (W) lock on the 
+:data:`oplog <local.oplog.rs>` and blocks other operations on the collection 
+until it finishes.
 
 For more information on locking in MongoDB, see :doc:`/faq/concurrency`.
 
@@ -254,7 +256,7 @@ The above command returns the oplog size of this member in megabytes:
 
    990
 
-The following command uses :dbcommand:`replSetResizeOplog` to change the
+The following command uses ``replSetResizeOplog`` to change the
 oplog size of this member to 16384 megabytes:
 
 .. code-block:: javascript
@@ -304,7 +306,7 @@ Change the Minimum Oplog Retention Period
    If the :binary:`~bin.mongod` has no minimum oplog retention period,
    the operation returns an empty result.
 
-#. Use the :dbcommand:`replSetResizeOplog` command to modify the
+#. Use the ``replSetResizeOplog`` command to modify the
    configured minimum oplog retention period. For example, the following
    sets the minimum oplog retention period to ``2`` hours:
 

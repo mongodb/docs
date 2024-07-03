@@ -1,5 +1,5 @@
 To define variables that you can access elsewhere in the command, use
-the |let-option| option.
+the ``let`` option.
 
 .. note::
 

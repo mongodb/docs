@@ -1,12 +1,15 @@
 .. list-table::
    :header-rows: 1
-   :widths: 16 40
 
    * - ``granularity``
-     - ``bucketRoundingSeconds`` and ``bucketMaxSpanSeconds`` limit (inclusive)
+     - ``bucketRoundingSeconds`` limit (inclusive)
+     - ``bucketMaxSpanSeconds`` limit (inclusive)
    * - ``seconds``
      - 60
+     - 3600
    * - ``minutes``
      - 3600
+     - 86400
    * - ``hours``
      - 86400
+     - 2592000

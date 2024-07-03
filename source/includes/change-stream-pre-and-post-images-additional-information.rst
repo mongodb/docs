@@ -8,14 +8,16 @@ Pre- and post-images are not available for a :ref:`change stream event
   ``expireAfterSeconds``.
   
   - The following example sets ``expireAfterSeconds`` to ``100``
-    seconds:
+    seconds on an entire cluster:
 
     .. code-block:: javascript
 
        use admin
        db.runCommand( {
           setClusterParameter:
-             { changeStreamOptions: { preAndPostImages: { expireAfterSeconds: 100 } } }
+             { changeStreamOptions: {
+                preAndPostImages: { expireAfterSeconds: 100 }
+             } }
        } )
 
   - The following example returns the current ``changeStreamOptions``

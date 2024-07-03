@@ -15,6 +15,7 @@ TTL Indexes
    :values: reference
 
 .. meta:: 
+   :description: TTL indexes are special single-field indexes for automatically removing documents from a collection after a certain amount of time or at a specific clock time.
    :keywords: sample dataset
 
 .. contents:: On this page
@@ -39,15 +40,13 @@ certain types of information like machine generated event data, logs,
 and session information that only need to persist in a database for a 
 finite amount of time.
 
-Compatibility
--------------
+.. |page-topic| replace:: :ref:`create and manage TTL indexes in the UI <expire-data-atlas-ui>`
 
-.. |page-topic| replace:: use TTL indexes
-.. |link-topic-ing| replace:: managing indexes
-.. |atlas-url| replace:: :atlas:`Create, View, Drop, and Hide Indexes </atlas-ui/indexes>`
+.. cta-banner::
+   :url: https://www.mongodb.com/docs/manual/tutorial/expire-data/#expire-documents-in-the-mongodb-atlas-ui
+   :icon: Cloud
 
-.. include:: /includes/fact-atlas-compatible.rst
-.. include:: /includes/fact-atlas-link.rst
+   .. include:: /includes/fact-atlas-compatible.rst
 
 Create a TTL Index
 ------------------
@@ -90,6 +89,8 @@ for matching documents. You can only create a ``partialFilterExpression`` on the
    If the ``expireAfterSeconds`` value of the collection is lower than
    the ``expireAfterSeconds`` of the partial TTL index, the collection
    deletes documents after the shorter time, so the TTL index has no effect.
+
+.. include:: /includes/time-series-ttl-deletes.rst
 
 This weather data time series collection deletes documents after 24 hours:
 
@@ -179,6 +180,27 @@ collection:
      }
    })
 
+.. important::
+
+   Consider the following before updating the ``expireAfterSeconds``
+   parameter of a TTL index:
+
+   - Changing the ``expireAfterSeconds`` parameter **does not** trigger a 
+     complete index rebuild. However, reducing the ``expireAfterSeconds`` 
+     value can make many documents eligible for immediate deletion, 
+     potentially causing performance issues due to the increased delete 
+     operations.
+
+   - The recommended approach is to manually delete documents in 
+     small batches before updating the TTL index. This helps control 
+     the impact on your cluster.
+
+   - Deleting many documents can fragment storage files, additionally 
+     impacting performance. You may need to run the 
+     :ref:`compact <compact>` command on your collection or 
+     perform a :ref:`replica-set-initial-sync` to reclaim space and 
+     optimize storage.
+
 Behavior
 --------
 
@@ -186,11 +208,11 @@ Expiration of Data
 ~~~~~~~~~~~~~~~~~~
 
 TTL indexes expire documents after the specified number of seconds has
-passed since the indexed field value; i.e. the expiration threshold is
+passed since the indexed field value. The expiration threshold is
 the indexed field value plus the specified number of seconds. 
 
 If the field is an array, and there are multiple date values in the
-index, MongoDB uses *lowest* (i.e. earliest) date value in the array to
+index, MongoDB uses *lowest* (earliest) date value in the array to
 calculate the expiration threshold.
 
 For time series collections, TTL indexes also remove a bucket of data
@@ -200,9 +222,8 @@ For example, if a bucket covers data up until ``2023-03-27T18:29:59Z``
 and ``expireAfterSeconds`` is 300, the TTL index expires the
 bucket after ``2023-03-27T18:34:59Z``.
 
-If the indexed field in a document is not a
-:ref:`date <document-bson-type-date>` or an array that holds one or
-more date values, the document will not expire.
+If the indexed field in a document doesn't contain one or more date
+values, the document will not expire. 
 
 If a document does not contain the indexed field, the document will not
 expire.
@@ -218,6 +239,8 @@ output of :method:`db.currentOp()` or in the data collected by the
 :ref:`database profiler <database-profiler>`.
 
 .. include:: /includes/multi-deletes.rst
+
+.. include:: /includes/time-series-ttl-deletes.rst
 
 Timing of the Delete Operation
 ``````````````````````````````
@@ -240,6 +263,14 @@ Support for Queries
 ~~~~~~~~~~~~~~~~~~~
 
 A TTL index supports queries in the same way non-TTL indexes do.
+
+mongod in Standalone Mode
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The TTL monitor stops when ``mongod`` runs in standalone mode and the
+``system.local.replset`` collection contains data. If you take a replica 
+set node out of the replica set and run it as a standalone, then the 
+TTL monitor is disabled.
 
 Restrictions
 ------------

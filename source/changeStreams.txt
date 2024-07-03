@@ -1,3 +1,7 @@
+.. facet::
+   :name: programming_language
+   :values: c, csharp, go, java, javascript/typescript, kotlin, php, python, ruby, swift
+
 .. _changeStreams:
 .. _collection_watch:
 
@@ -11,10 +15,6 @@ Change Streams
    :name: genre
    :values: reference
 
-.. facet:: 
-   :name: programming_language
-   :values: c, csharp, go, java, javascript/typescript, php, python, ruby, swift
-
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -23,10 +23,10 @@ Change Streams
 
 .. meta::
    :description: Change streams code examples for how to access real-time data changes in MongoDB
-   :keywords: database triggers, real time, code example, node.js, java sync, motor, swift sync, swift async
+   :keywords: database triggers, code example, node.js, motor, coroutine, java sync, swift sync, swift async, compass
 
 Change streams allow applications to access real-time data changes
-without the complexity and risk of tailing the :term:`oplog`.
+without the prior complexity and risk of manually tailing the :term:`oplog`.
 Applications can use change streams to subscribe to all data changes on
 a single collection, a database, or an entire deployment, and
 immediately react to them. Because change streams use the aggregation
@@ -139,6 +139,22 @@ operation on the change stream for the period of time that it waits for the next
 To avoid any latency issues, you should ensure that the pool size is greater than the 
 number of opened change streams. For details see the :ref:`maxPoolSize<maxpoolsize-cp-setting>` setting.
 
+Sharded Cluster Considerations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When a change stream is opened on a sharded cluster:
+
+- The :binary:`mongos` creates individual change streams on **each
+  shard**. This behavior occurs regardless of whether the change stream
+  targets a particular shard key range.
+
+- When the ``mongos`` receives change stream results, it sorts and
+  filters those results. If needed, the ``mongos`` also performs a
+  ``fullDocument`` lookup.
+
+For best performance, limit the use of :pipeline:`$lookup` queries in
+change streams.
+
 .. _open-change-stream:
 
 Open A Change Stream
@@ -172,8 +188,8 @@ upper-right to set the language of the examples on this page.
    .. tab::
       :tabid: python
          
-      The Python examples below assume that you have :api:`connected to a MongoDB replica set and have accessed a database
-      <pymongo>` that contains an ``inventory`` collection.
+      The Python examples below assume that you have :driver:`connected to a MongoDB replica set and have accessed a database
+      </pymongo>` that contains an ``inventory`` collection.
 
       .. literalinclude:: /driver-examples/test_examples.py
          :language: python
@@ -207,6 +223,19 @@ upper-right to set the language of the examples on this page.
          :start-after: Start Changestream Example 1
          :end-before: End Changestream Example 1
 
+   .. tab::
+      :tabid: kotlin-coroutine
+           
+      The Kotlin examples below assume that you are connected to a MongoDB replica set and can access a database
+      that contains the ``inventory`` collection. To learn more about completing these tasks, see the
+      :driver:`Kotlin Coroutine Driver Databases and Collections </kotlin/coroutine/current/fundamentals/databases-collections/>` guide.
+
+      .. literalinclude:: /driver-examples/kotlin_examples.kt
+         :language: kotlin
+         :dedent:
+         :start-after: Start Changestream Example 1
+         :end-before: End Changestream Example 1
+
    .. tab:: 
       :tabid: csharp
       
@@ -215,7 +244,7 @@ upper-right to set the language of the examples on this page.
       that contains an ``inventory`` collection.
 
       .. literalinclude:: /driver-examples/ChangeStreamExamples.cs
-         :language: c#
+         :language: csharp
          :dedent: 12
          :start-after: Start Changestream Example 1
          :end-before: End Changestream Example 1
@@ -333,14 +362,7 @@ To retrieve the :ref:`data change event <change-stream-output>` from
 the cursor, iterate the change stream cursor. For information on the
 change stream event, see :ref:`change-stream-output`.
 
-While the connection to the MongoDB deployment remains
-open, the cursor remains open until one of the following occurs:
-
-- The cursor is explicitly closed.
-
-- An :ref:`invalidate event <change-event-invalidate>` occurs.
-
-- .. include:: /includes/extracts/changestream-remove-shard.rst
+.. include:: /includes/extracts/changestream-cursor-open.rst
 
 .. note::
 
@@ -416,8 +438,31 @@ upper-right to set the language of the examples on this page.
          MongoCursor<Document> cursor = collection.watch(pipeline).iterator();
 
       The ``pipeline`` list includes a single :pipeline:`$match` stage that
-      filters any operations where the ``username`` is ``alice``, or
-      operations where the ``operationType`` is ``delete``.
+      filters for any operations that meet one or both of the following criteria:
+      
+      - ``username`` value is ``alice``
+      - ``operationType`` value is ``delete``
+
+      Passing the ``pipeline`` to the :method:`~db.collection.watch()` method directs the
+      change stream to return notifications after passing them through the
+      specified ``pipeline``.
+
+   .. tab::
+      :tabid: kotlin-coroutine
+           
+      .. include:: /includes/fact-change-streams-modify-output.rst
+
+      .. literalinclude:: /driver-examples/kotlin_examples.kt
+         :language: kotlin
+         :dedent:
+         :start-after: Start Changestream Example 4
+         :end-before: End Changestream Example 4
+
+      The ``pipeline`` list includes a single :pipeline:`$match` stage that
+      filters for any operations that meet one or both of the following criteria:
+      
+      - ``username`` value is ``alice``
+      - ``operationType`` value is ``delete``
 
       Passing the ``pipeline`` to the :method:`~db.collection.watch()` method directs the
       change stream to return notifications after passing them through the
@@ -429,7 +474,7 @@ upper-right to set the language of the examples on this page.
       .. include:: /includes/fact-change-streams-modify-output.rst
 
       .. literalinclude:: /driver-examples/ChangeStreamExamples.cs
-         :language: c#
+         :language: csharp
          :dedent: 16
          :start-after: Start Changestream Example 4
          :end-before: End Changestream Example 4
@@ -601,6 +646,23 @@ upper-right to set the language of the examples on this page.
          :end-before: End Changestream Example 2
 
    .. tab::
+      :tabid: kotlin-coroutine
+
+      To return the most current majority-committed version of the updated
+      document, pass ``FullDocument.UPDATE_LOOKUP``  to the
+      `ChangeStreamFlow.fullDocument() <{+java-api-docs+}/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-change-stream-flow/full-document.html>`__ method.
+
+      In the example below, all update operations notifications
+      include a ``FullDocument`` field that represents the *current*
+      version of the document affected by the update operation.
+
+      .. literalinclude:: /driver-examples/kotlin_examples.kt
+         :language: kotlin
+         :dedent:
+         :start-after: Start Changestream Example 2
+         :end-before: End Changestream Example 2
+
+   .. tab::
       :tabid: c
 
       To return the most current majority-committed version of the updated
@@ -629,7 +691,7 @@ upper-right to set the language of the examples on this page.
       version of the document affected by the update operation.
 
       .. literalinclude:: /driver-examples/ChangeStreamExamples.cs
-         :language: C#
+         :language: csharp
          :dedent: 12
          :start-after: Start Changestream Example 2
          :end-before: End Changestream Example 2
@@ -749,6 +811,14 @@ upper-right to set the language of the examples on this page.
    correctly describe the watched collection changes that applied to
    that change stream event.
 
+   The ``fullDocument`` field for an update event may be missing if one 
+   of the following is true:
+
+   - If the document is deleted or if the collection is dropped in 
+     between the update and the lookup.
+   - If the update changes the values for at least one of the fields in
+     that collection's shard key.
+
    See :ref:`change-stream-output` for more information on the change
    stream response document format.
 
@@ -828,6 +898,22 @@ See :ref:`change-stream-resume-token` for more information on the resume token.
          :end-before: End Changestream Example 3
 
    .. tab::
+      :tabid: kotlin-coroutine
+   
+      You can use the `ChangeStreamFlow.resumeAfter()
+      <{+java-api-docs+}/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-change-stream-flow/resume-after.html>`__
+      method to resume notifications after the operation specified in the resume
+      token. The ``resumeAfter()`` method takes a value that must
+      resolve to a resume token, such as the ``resumeToken`` variable in the
+      example below.
+
+      .. literalinclude:: /driver-examples/kotlin_examples.kt
+         :language: kotlin
+         :dedent:
+         :start-after: Start Changestream Example 3
+         :end-before: End Changestream Example 3
+
+   .. tab::
       :tabid: csharp
    
       In the example below, the ``resumeToken`` is retrieved from the last change stream document
@@ -839,7 +925,7 @@ See :ref:`change-stream-resume-token` for more information on the resume token.
 
 
       .. literalinclude:: /driver-examples/ChangeStreamExamples.cs
-         :language: C#
+         :language: csharp
          :dedent: 14
          :start-after: Start Changestream Example 3
          :end-before: End Changestream Example 3
@@ -852,7 +938,6 @@ See :ref:`change-stream-resume-token` for more information on the resume token.
       the change stream attempts to resume notifications starting after the
       operation specified.
    
-
 
       .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
          :language: C
@@ -959,8 +1044,6 @@ See :ref:`change-stream-resume-token` for more information on the resume token.
 ``startAfter`` for Change Streams
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. versionadded:: 4.2
-
 You can start a new change stream after a specific event by passing a resume
 token to ``startAfter`` when opening the cursor. Unlike
 :ref:`resumeAfter <change-stream-resume-after>`, ``startAfter`` can
@@ -1005,9 +1088,7 @@ The resume token is available from multiple sources:
      - The :dbcommand:`getMore` command includes a resume token on the
        ``cursor.postBatchResumeToken`` field.
 
-.. versionchanged:: 4.2
-
-   .. include:: /includes/extracts/4.2-changes-change-stream-modification-error.rst
+.. include:: /includes/extracts/4.2-changes-change-stream-modification-error.rst
 
 .. tip::
 
@@ -1178,11 +1259,8 @@ If an operation is associated with a :doc:`transaction
 Collation
 ---------
 
-Starting in MongoDB 4.2, change streams use ``simple`` binary
-comparisons unless an explicit collation is provided. In earlier
-versions, change streams opened on a single collection
-(:method:`db.collection.watch()`) would inherit that collection's
-default collation.
+Change streams use ``simple`` binary comparisons unless an explicit collation is 
+provided. 
 
 Change Streams and Orphan Documents
 -----------------------------------

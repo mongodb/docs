@@ -1,0 +1,231 @@
+.. _release-notes-8.0:
+
+=================================================
+Release Notes for MongoDB 8.0 (Release Candidate)
+=================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+.. include:: includes/rc-available.rst
+
+This page describes changes and new features introduced in MongoDB 8.0.
+
+MongoDB 8.0 is a |lts| Release, which means that it is supported for
+both MongoDB Atlas and on-premises deployments. MongoDB 8.0 includes
+changes introduced in MongoDB Rapid Releases 7.1, 7.2, and 7.3. To see
+changes introduced in these rapid releases, see
+:ref:`8.0-rapid-release-changes`. 
+
+To learn more about the differences between |lts| and Rapid releases,
+see :ref:`release-version-numbers`. 
+
+.. include:: /includes/in-dev.rst
+
+Platform Support Updates
+------------------------
+
+.. include:: includes/platform-support-updates.rst
+
+Logging
+-------
+
+Starting in MongoDB 8.0, you can configure the Database Profiler to log
+slow operations based on the time that MongoDB spends working on that
+operation, rather than the total latency for the operation. This means
+that factors such as waiting for locks and flow control do not affect
+whether an operation exceeds the slow operation threshold.
+
+This change provides the following improvements for logging and query
+analysis:
+
+- Slow queries are logged more accurately based on the time MongoDB
+  spends processing the query.
+
+- Query analysis tools such as the Query Profiler, Performance Advisor,
+  and Search Query Telemetry report slow operations based on
+  ``workingMillis`` instead of ``durationMillis``. This change provides
+  a more accurate view of problematic queries.
+
+- Slow query logs include a new metric for the time spent waiting for a
+  ticket, ``ticketWaitMillis``. This metric helps identify whether an
+  operation is slow because of the time it takes to complete, or the
+  time it spends waiting to start. 
+
+For more information, see :method:`db.setProfilingLevel()`.
+
+Database Profiler
+~~~~~~~~~~~~~~~~~
+
+When you specify a :ref:`filter <set-profiling-level-options-filter>`
+for the database profiler, you can log operations based on the new
+``workingMillis`` metric. You can log operations based on both
+``workingMillis`` and ``durationMillis`` and set each metric to a
+different threshold.
+
+Security
+--------
+
+OCSF Schema for Log Messages
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.0, you can specify the {+ocsf+} schema for audit
+log messages. The OCSF schema provides logs in a standardized format
+compatible with log processors.
+
+To set the schema used for log messages, use the
+:setting:`auditLog.schema` configuration file option.
+
+For example log messages in OCSF format, see
+:ref:`event-audit-messages-ocsf`.
+
+General Changes
+---------------
+
+Compaction Improvements
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Background Compaction 
+`````````````````````
+
+Starting in MongoDB 8.0, you can use the new :dbcommand:`autoCompact` command 
+to perform background compaction. If enabled, the server attempts to keep free 
+space within each collection and index below the specified the 
+``freeSpaceTargetMB`` value.
+
+dryRun Option 
+`````````````
+
+.. include:: /includes/fact-compact-dryrun.rst 
+
+New Bulk Write Command
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/bulkWrite-introduction.rst
+
+Read Concern on Capped Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/snapshot-capped-collections.rst
+
+DDL Operations
+~~~~~~~~~~~~~~
+
+In MongoDB 8.0, if you add or remove a shard while your cluster executes
+a DDL operation (operation that modifies a collection such as
+:dbcommand:`reshardCollection`), the operation that adds or removes a
+shard only executes after the concurrent DDL operation finishes. 
+
+Default Timeout for Queries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.0, you can use the :parameter:`defaultMaxTimeMS`
+cluster parameter to specify a default time limit for individual read
+operations to complete.
+
+Query Settings
+~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.0, use the new query settings instead of
+:ref:`index filters <index-filters>`. Index filters are deprecated
+starting in MongoDB 8.0. Query settings have more functionality
+than index filters. 
+
+- To add query settings, use :dbcommand:`setQuerySettings`.
+- To delete query settings, use :dbcommand:`removeQuerySettings`.
+- To retrieve query settings, use a :pipeline:`$querySettings` stage in
+  an aggregation pipeline.
+- To block a :ref:`query shape <queryStats-queryShape>`, see
+  :ref:`operation rejection filters <operation-rejection-filters>`.
+
+.. _8.0-tcmalloc-upgrade:
+
+Upgraded TCMalloc 
+~~~~~~~~~~~~~~~~~
+
+.. NOTE: WE WILL BE ADDING AN INTRO HERE IN DOCSP-39932.
+.. INCLUDES KEY DIFFERENCES BETWEEN OLD AND NEW TCMALLOC 
+.. PERFORMANCE CHANGES FROM PER-CPU vs PER-THREAD 
+
+The following new :dbcommand:`serverStatus` metrics report information about 
+``tcmalloc`` usage:
+
+- :serverstatus:`tcmalloc.usingPerCPUCaches`
+- :serverstatus:`tcmalloc.generic.peak_memory_usage`
+- :serverstatus:`tcmalloc.tcmalloc.cpu_free`
+- :serverstatus:`tcmalloc.tcmalloc.total_bytes_held`
+- :serverstatus:`tcmalloc.tcmalloc.cpuCache`
+- :serverstatus:`tcmalloc.tcmalloc.cpuCache.N.overflows`
+- :serverstatus:`tcmalloc.tcmalloc.cpuCache.N.underflows`
+- :serverstatus:`tcmalloc.tcmalloc_derived.total_free_bytes`
+
+tcmallocEnableBackgroundThread Parameter
+````````````````````````````````````````
+
+Starting in MongoDB 8.0, the :parameter:`tcmallocEnableBackgroundThread` is 
+enabled by default. This allows MongoDB to periodically release memory back to 
+the operating system. 
+
+.. _8.0-rapid-release-changes:
+
+Changes Introduced in 7.X-Series Rapid Releases
+-----------------------------------------------
+
+MongoDB 8.0 includes changes and features from the following Rapid
+Release versions:
+
+- :ref:`MongoDB 7.1 Release Notes <release-notes-7.1>`
+
+- :ref:`MongoDB 7.2 Release Notes <release-notes-7.2>`
+
+- :ref:`MongoDB 7.3 Release Notes <release-notes-7.3>`
+
+.. _8.0-upgrade:
+
+Upgrade Procedures
+------------------
+
+.. important:: Feature Compatibility Version
+
+   To upgrade to MongoDB 8.0 from a 7.0 deployment, the 7.0 deployment
+   must have ``featureCompatibilityVersion`` set to ``8.0``. To check
+   the version:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { getParameter: 1, featureCompatibilityVersion: 1 } )
+
+To upgrade to MongoDB 8.0, refer to the upgrade instructions specific to
+your MongoDB deployment:
+
+- :ref:`<8.0-upgrade-standalone>`
+
+- :ref:`<8.0-upgrade-replica-set>`
+
+- :ref:`<8.0-upgrade-sharded-cluster>`
+
+If you need guidance on upgrading to 8.0, MongoDB professional services
+offer major version upgrade support to help ensure a smooth transition
+without interruption to your MongoDB application. To learn more, see
+:products:`MongoDB Consulting </consulting?tck=docs_server>`.
+
+.. _8.0-download:
+
+Download
+--------
+
+To download MongoDB 8.0, go to the `MongoDB Download Center
+<https://www.mongodb.com/try/download/community-edition?tck=docs_server>`__.
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   /release-notes/8.0-compatibility
+   /release-notes/8.0-downgrade
+   /release-notes/8.0-upgrade

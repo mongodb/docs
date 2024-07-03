@@ -6,15 +6,26 @@ Replica Set Data Synchronization
 
 .. default-domain:: mongodb
 
+.. facet::
+   :name: genre
+   :values: reference
+
 .. contents:: On this page
    :local:
    :backlinks: none
    :depth: 1
    :class: singlecol
 
+.. |source| replace:: source member
+.. |destin| replace:: destination member
+.. |sources| replace:: source members
+.. |destins| replace:: destination members
+.. |Sources| replace:: Source members
+.. |Destins| replace:: Destination members
+
 In order to maintain up-to-date copies of the shared data set,
-secondary members of a replica set :term:`sync` or replicate data from
-other members. MongoDB uses two forms of data synchronization:
+secondary members of a replica set :term:`sync` or replicate data from a
+|source|. MongoDB uses two forms of data synchronization:
 initial sync to populate new members
 with the full data set, and replication to apply ongoing changes to the
 entire data set.
@@ -24,14 +35,13 @@ entire data set.
 Initial Sync
 ------------
 
-Initial sync copies all the data from one member of the replica set to
-another member. See :ref:`replica-set-initial-sync-source-selection` for
-more information on initial sync source selection criteria.
+Initial sync copies all the data from the |source| of the replica set to
+a |destin|. See :ref:`replica-set-initial-sync-source-selection` for
+more information on |source| selection criteria.
 
-Starting in MongoDB 4.4, you can specify the preferred initial sync
-source using the :parameter:`initialSyncSourceReadPreference` parameter.
-This parameter can only be specified when starting the
-:binary:`~bin.mongod`.
+You can specify the preferred initial sync source using the 
+:parameter:`initialSyncSourceReadPreference` parameter. This parameter can 
+only be specified when starting the :binary:`~bin.mongod`.
 
 Starting in MongoDB 5.2, initial syncs can be *logical* or *file copy 
 based*. 
@@ -45,26 +55,26 @@ When you perform a logical initial sync, MongoDB:
 
 #. Clones all databases except the :ref:`local
    <replica-set-local-database>` database. To clone, the
-   :binary:`~bin.mongod` scans every collection in each source database and
-   inserts all data into its own copies of these collections.
+   :binary:`~bin.mongod` scans every collection in each |source| 
+   database and inserts all data into its own copies of these 
+   collections.
 
 #. Builds all collection indexes as the documents are copied for each 
    collection.
    
 #. Pulls newly added oplog records during the data copy. Ensure that the 
-   target member has enough disk space in the ``local`` database to 
-   temporarily store these oplog records for the duration of this data 
-   copy stage.
+   |destin| has enough disk space in the ``local`` 
+   database to temporarily store these oplog records for the duration of 
+   this data copy stage.
 
 #. Applies all changes to the data set. Using the oplog from the
-   source, the :binary:`~bin.mongod` updates its data set to reflect the
-   current state of the replica set.
+   |source|, the :binary:`~bin.mongod` updates its data set to reflect 
+   the current state of the replica set.
 
 When the initial sync finishes, the member transitions from
 :replstate:`STARTUP2` to :replstate:`SECONDARY`.
 
-To perform an initial sync, see
-:doc:`/tutorial/resync-replica-set-member`.
+To perform an initial sync, see :ref:`resync-replica-member`.
 
 .. _replica-set-initial-sync-file-copy-based:
 
@@ -93,30 +103,28 @@ Enable File Copy Based Initial Sync
 
 To enable file copy based initial sync, set the
 :parameter:`initialSyncMethod` parameter to ``fileCopyBased`` on the
-destination member for the initial sync. This parameter can only be set
+|destin| for the initial sync. This parameter can only be set
 at startup.
 
 Behavior
 ````````
 
-File copy based initial sync replaces the ``local`` database on the
-member being *synced to* with the ``local`` database from the member
-being *synced from*.
+File copy based initial sync replaces the ``local`` database of the
+|destin| with the ``local`` database of the source member when 
+syncing.
 
 Limitations
 ```````````
 
 - During a file copy based initial sync:
 
-  - You cannot run a backup on the member that is being *synced to* or
-    the member that is being *synced from*.
+  - You cannot run backups on either the |source| or the |destin|.
 
-  - You cannot write to the ``local`` database on the member that is
-    being *synced to*.
+  - You cannot write to the ``local`` database on the |destin|.
 
-- You can only run an initial sync from one given member at a time. 
+- You can only run an initial sync from one |source| at a time. 
 
-- When using the encrypted storage engine, MongoDB uses the source
+- When using the encrypted storage engine, MongoDB uses the |source|
   key to encrypt the destination.
 
 .. _init-sync-retry:
@@ -124,25 +132,20 @@ Limitations
 Fault Tolerance
 ~~~~~~~~~~~~~~~
 
-If a secondary performing initial sync encounters a *non-transient*
-(i.e. persistent) network error during the sync process, the secondary
-restarts the initial sync process from the beginning. 
+If a |destin| performing initial sync encounters a persistent network 
+error during the sync process, the |destin| restarts the initial sync 
+process from the beginning. 
 
-Starting in MongoDB 4.4, a secondary performing initial sync can attempt
-to resume the sync process if interrupted by a *transient* (i.e.
-temporary) network error, collection drop, or
-collection rename. The sync source must also run MongoDB 4.4 to support
-resumable initial sync. If the sync source runs MongoDB 4.2 or earlier,
-the secondary must restart the initial sync process as if it encountered
-a non-transient network error.
+A |destin| performing initial sync can attempt to resume the sync process 
+if interrupted by a temporary network error, collection drop, or 
+collection rename.
 
-By default, the secondary tries to resume initial sync for 24 hours.
-MongoDB 4.4 adds the
-:parameter:`initialSyncTransientErrorRetryPeriodSeconds` server
-parameter for controlling the amount of time the secondary attempts to
-resume initial sync. If the secondary cannot successfully resume the
+By default, the |destin| tries to resume initial sync for 24 hours.
+You can use the :parameter:`initialSyncTransientErrorRetryPeriodSeconds` 
+server parameter to control the amount of time the |destin| attempts to
+resume initial sync. If the |destin| cannot successfully resume the
 initial sync process during the configured time period, it selects a new
-healthy source from the replica set and restarts the initial
+healthy |source| from the replica set and restarts the initial
 synchronization process from the beginning. 
 
 The secondary attempts to restart the initial sync up to ``10`` times
@@ -155,24 +158,24 @@ Initial Sync Source Selection
 
 Initial sync source selection depends on the value of the
 :binary:`~bin.mongod` startup parameter
-:parameter:`initialSyncSourceReadPreference` (*new in 4.4*):
+:parameter:`initialSyncSourceReadPreference`:
 
 - For :parameter:`initialSyncSourceReadPreference` set to
-  :readmode:`primary` (default if :rsconf:`chaining
+  :readmode:`primary` (default if :rsconf:`chainingAllowed
   <settings.chainingAllowed>` is disabled), select the :term:`primary`
-  as the sync source. If the primary is unavailable or unreachable, log
+  as the |source|. If the primary is unavailable or unreachable, log
   an error and periodically check for primary availability.
 
 - For :parameter:`initialSyncSourceReadPreference` set to
   :readmode:`primaryPreferred` (default for voting replica set
-  members), attempt to select the :term:`primary` as the sync source. If
-  the primary is unavailable or unreachable, perform sync source
+  members), attempt to select the :term:`primary` as the |source|. If
+  the primary is unavailable or unreachable, perform sync |source|
   selection from the remaining replica set members.
 
-- For all other supported read modes, perform sync source selection 
-  from the replica set members.
+- For all other supported read modes, perform sync |source| selection 
+  from the |destins|.
 
-Members performing initial sync source selection make two passes through 
+Members performing initial |source| selection make two passes through 
 the list of all replica set members:
 
 .. tabs::
@@ -182,40 +185,39 @@ the list of all replica set members:
 
       The member applies the following criteria to each replica 
       set member when making the first pass for selecting a
-      initial sync source:
+      initial |source|:
 
-      - The sync source *must* be in the :replstate:`PRIMARY` or
+      - The |source| *must* be in the :replstate:`PRIMARY` or
         :replstate:`SECONDARY` replication state.
 
-      - The sync source *must* be online and reachable.
+      - The |source| *must* be online and reachable.
 
       - If :parameter:`initialSyncSourceReadPreference` is
         :readmode:`secondary` or :readmode:`secondaryPreferred`, 
-        the sync source *must* be a :term:`secondary`.
+        the |source| *must* be a :term:`secondary`.
 
-      - The sync source *must* be :rsconf:`visible <members[n].hidden>`.
+      - The |source| *must* be :rsconf:`visible <members[n].hidden>`.
 
-      - The sync source *must* be within ``30`` seconds of the newest 
+      - The |source| *must* be within ``30`` seconds of the newest 
         oplog entry on the primary.
 
       - If the member :rsconf:`builds indexes
-        <members[n].buildIndexes>`, the sync source *must*
-        build indexes.
+        <members[n].buildIndexes>`, the |source| *must* build indexes.
 
       - If the member :rsconf:`votes <members[n].votes>` in 
-        replica set elections, the sync source *must* also vote.
+        replica set elections, the |source| *must* also vote.
 
       - If the member is *not* a :rsconf:`delayed member
-        <members[n].secondaryDelaySecs>`, the sync source *must not* be delayed.
+        <members[n].secondaryDelaySecs>`, the |source| *must not* be delayed.
 
       - If the member *is* a :rsconf:`delayed member
-        <members[n].secondaryDelaySecs>`, the sync source must have a shorter 
+        <members[n].secondaryDelaySecs>`, the |source| must have a shorter 
         configured delay.
 
-      - The sync source *must* be faster (i.e. lower latency) than 
+      - The |source| *must* be faster than 
         the current best sync source.
 
-      If no candidate sync sources remain after the first pass, 
+      If no candidate |source| remains after the first pass, 
       the member performs a second pass with relaxed criteria. 
       See :guilabel:`Sync Source Selection (Second Pass)`.
 
@@ -224,26 +226,26 @@ the list of all replica set members:
 
       The member applies the following criteria to each replica 
       set member when making the second pass for selecting a
-      initial sync source:
+      initial |source|:
 
-      - The sync source *must* be in the 
+      - The |source| *must* be in the 
         :replstate:`PRIMARY` or :replstate:`SECONDARY` replication 
         state.
 
-      - The sync source *must* be online and reachable.
+      - The |source| *must* be online and reachable.
 
       - If :parameter:`initialSyncSourceReadPreference` is
-        :readmode:`secondary`, the sync source *must* be a
+        :readmode:`secondary`, the |source| *must* be a
         :term:`secondary`.
 
       - If the member :rsconf:`builds indexes
-        <members[n].buildIndexes>`, the sync source must
+        <members[n].buildIndexes>`, the |source| must
         build indexes.
 
-      - The sync source *must* be faster (i.e. lower latency) than 
+      - The |source| *must* be faster than 
         the current best sync source.
        
-If the member cannot select an initial sync source after two passes, it
+If the |destin| cannot select a |source| after two passes, it
 logs an error and waits ``1`` second before restarting the selection
 process. The secondary :binary:`~bin.mongod` can restart the initial
 sync source selection process up to ``10`` times before exiting with an
@@ -252,11 +254,11 @@ error.
 Oplog Window
 ~~~~~~~~~~~~
 
-The :term:`oplog window` must be long enough so that a secondary can fetch any
-new :term:`oplog` entries that occur between the start and end of 
+The :term:`oplog window` must be long enough so that a |destin| can fetch 
+any new :term:`oplog` entries that occur between the start and end of 
 the :ref:`replica-set-initial-sync-logical`.
 If the window isn't long enough, there is a risk that some entries may 
-fall off the ``oplog`` before the secondary can apply them.
+fall off the ``oplog`` before the |destin| can apply them.
 
 It is recommended that you size the ``oplog`` for additional time to fetch any
 new ``oplog`` entries.  This allows for changes that may occur during initial
@@ -269,29 +271,25 @@ For more information, see :ref:`replica-set-oplog-sizing`.
 Replication
 -----------
 
-Secondary members replicate data continuously after the initial sync.
-Secondary members copy the :doc:`oplog </core/replica-set-oplog>` from
-their *sync from* source and apply these operations in an asynchronous
-process. [#slow-oplogs]_ 
+|Destins| replicate data continuously after the initial sync.
+|Destins| copy the :ref:`oplog <replica-set-oplog>` from
+the |source| and apply these operations in an asynchronous
+process.  
 
-Secondaries may automatically change their *sync from* source as needed
+|Destins| automatically change their |source| as needed
 based on changes in the ping time and state of other members'
 replication. See :ref:`replica-set-replication-sync-source-selection`
-for more information on sync source selection criteria.
-
-.. [#slow-oplogs]
-
-   .. include:: /includes/extracts/4.2-changes-slow-oplog-log-message-footnote.rst
+for more information on |source| selection criteria.
 
 .. _replica-set-streaming-replication:
 
 Streaming Replication 
 ~~~~~~~~~~~~~~~~~~~~~
 
-Starting in MongoDB 4.4, *sync from* sources send a continuous stream 
-of :doc:`oplog </core/replica-set-oplog>` entries to their syncing 
-secondaries. Streaming replication mitigates replication lag in 
-high-load and high-latency networks. It also: 
+|Sources| send a continuous stream 
+of :ref:`oplog <replica-set-oplog>` entries to their |destins|. 
+Streaming replication mitigates replication lag in high-load and 
+high-latency networks. It also: 
 
 - Reduces staleness for reads from secondaries.
 - Reduces risk of losing write operations with :ref:`w: 1 <wc-w>` due to 
@@ -300,14 +298,10 @@ high-load and high-latency networks. It also:
   <"majority">` and :ref:`w: >1 <wc-w>` (that is, any write concern that 
   requires waiting for replication).
 
-Prior to MongoDB 4.4, secondaries fetched batches of :doc:`oplog 
-</core/replica-set-oplog>` entries by issuing a request to their *sync 
-from* source and waiting for a response. This required a network roundtrip 
-for each batch of :doc:`oplog </core/replica-set-oplog>` entries. MongoDB 
-4.4 adds the :parameter:`oplogFetcherUsesExhaust` startup parameter for 
-disabling streaming replication and using the older replication behavior. 
+Use the :parameter:`oplogFetcherUsesExhaust` startup parameter to disable 
+streaming replication and using the older replication behavior. 
 Set the :parameter:`oplogFetcherUsesExhaust` parameter to ``false`` only if 
-there are any resource constraints on the *sync from* source or if you wish 
+there are any resource constraints on the |source| or if you wish 
 to limit MongoDB's usage of network bandwidth for replication.
 
 .. _replica-set-internals-multi-threaded-replication:
@@ -347,17 +341,17 @@ For more information, see :ref:`flow-control`.
 Replication Sync Source Selection
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Replication sync source selection depends on the replica set 
+Replication |source| selection depends on the replica set 
 :rsconf:`chaining <settings.chainingAllowed>` setting:
 
-- With chaining enabled (default), perform sync source selection from
-  the replica set members.
+- With chaining enabled (default), perform |source| selection from
+  the |destins|.
 
-- With chaining disabled, select the :term:`primary` as the sync 
-  source. If the primary is unavailable or unreachable, log an 
-  error and periodically check for primary availability.
+- With chaining disabled, select the :term:`primary` as the |source|. 
+  If the primary is unavailable or unreachable, log an error and 
+  periodically check for primary availability.
 
-Members performing replication sync source selection make two passes
+Members performing replication |source| selection make two passes
 through the list of all replica set members:
 
 .. tabs::
@@ -367,39 +361,38 @@ through the list of all replica set members:
 
       The member applies the following criteria to each replica 
       set member when making the first pass for selecting a
-      replication sync source:
+      |source|:
 
-      - The sync source *must* be in the :replstate:`PRIMARY` or
+      - The |source| *must* be in the :replstate:`PRIMARY` or
         :replstate:`SECONDARY` replication state.
 
-      - The sync source *must* be online and reachable.
+      - The |source| *must* be online and reachable.
 
-      - The sync source *must* have newer oplog entries than the member
-        (i.e. the sync source is *ahead* of the member).
+      - The |source| *must* have newer oplog entries than the member.
+        That is, the |source| must be *ahead* of the member.
 
-      - The sync source *must* be :rsconf:`visible <members[n].hidden>`.
+      - The |source| *must* be :rsconf:`visible <members[n].hidden>`.
 
-      - The sync source *must* be within ``30`` seconds of the newest 
+      - The |source| *must* be within ``30`` seconds of the newest 
         oplog entry on the primary.
 
       - If the member :rsconf:`builds indexes
-        <members[n].buildIndexes>`, the sync source *must*
+        <members[n].buildIndexes>`, the |source| *must*
         build indexes.
 
       - If the member :rsconf:`votes <members[n].votes>` in 
-        replica set elections, the sync source *must* also vote.
+        replica set elections, the |source| *must* also vote.
 
       - If the member is *not* a :rsconf:`delayed member
-        <members[n].secondaryDelaySecs>`, the sync source *must not* be delayed.
+        <members[n].secondaryDelaySecs>`, the |source| *must not* be delayed.
 
       - If the member *is* a :rsconf:`delayed member
-        <members[n].secondaryDelaySecs>`, the sync source must have a shorter 
+        <members[n].secondaryDelaySecs>`, the |source| must have a shorter 
         configured delay.
 
-      - The sync source *must* be faster (i.e. lower latency) than 
-        the current best sync source.
+      - The |source| *must* be faster than the current best sync source.
 
-      If no candidate sync sources remain after the first pass, 
+      If no candidate |sources| remain after the first pass, 
       the member performs a second pass with relaxed criteria. 
       See the :guilabel:`Sync Source Selection (Second Pass)`.
 
@@ -408,37 +401,34 @@ through the list of all replica set members:
      
       The member applies the following criteria to each replica 
       set member when making the second pass for selecting a
-      replication sync source:
+      |source|:
 
-      - The sync source *must* be in the 
+      - The |source| *must* be in the 
         :replstate:`PRIMARY` or :replstate:`SECONDARY` replication 
         state.
 
-      - The sync source *must* be online and reachable.
+      - The |source| *must* be online and reachable.
 
       - If the member :rsconf:`builds indexes
-        <members[n].buildIndexes>`, the sync source must
+        <members[n].buildIndexes>`, the |source| must
         build indexes.
        
-      - The sync source *must* be faster (i.e. lower latency) than 
-        the current best sync source.
+      - The |source| *must* be faster than the current best sync source.
 
 If the member cannot select a sync source after two passes, it logs an
 error and waits ``1`` second before restarting the selection process.
 
-The number of times a source can be changed per hour is
+The number of times a |source| can be changed per hour is
 configurable by setting the :parameter:`maxNumSyncSourceChangesPerHour`
 parameter. 
 
 .. note::
 
-   Starting in MongoDB 4.4, the startup parameter
-   :parameter:`initialSyncSourceReadPreference` takes precedence over
-   the replica set's :rsconf:`settings.chainingAllowed` setting when
-   selecting an initial sync source. After a replica set member
+   The startup parameter :parameter:`initialSyncSourceReadPreference` takes 
+   precedence over the replica set's :rsconf:`settings.chainingAllowed` setting 
+   when selecting an initial sync |source|. After a replica set member
    successfully performs initial sync, it defers to the value of
-   :rsconf:`~settings.chainingAllowed` when selecting a replication sync
-   source.
+   :rsconf:`~settings.chainingAllowed` when selecting a |source|.
 
    See :ref:`replica-set-initial-sync-source-selection` for more
    information on initial sync source selection.

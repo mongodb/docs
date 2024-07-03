@@ -11,7 +11,7 @@
 
    .. step:: Generate Your Key
 
-      To configure queryable encryption for a locally managed key, 
+      To configure Queryable Encryption for a locally managed key, 
       generate a base64-encoded 96-byte string with no line breaks.
 
       .. code-block:: javascript
@@ -20,7 +20,7 @@
 
    .. step:: Create the Queryable Encryption Options
    
-      Create the queryable encryption options using the generated local key string:
+      Create the Queryable Encryption options using the generated local key string:
 
       .. code-block:: javascript
          :emphasize-lines: 5

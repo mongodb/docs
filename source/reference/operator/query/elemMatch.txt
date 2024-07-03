@@ -8,6 +8,9 @@ $elemMatch (query)
    :name: programming_language
    :values: shell
 
+.. meta::
+   :description: Use the $elemMatch operator to match documents with array fields containing elements that meet specified criteria.
+
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -41,12 +44,6 @@ Syntax
 
    { <field>: { $elemMatch: { <query1>, <query2>, ... } } }
 
-If you specify only a single ``<query>`` condition in the
-:query:`$elemMatch` expression, and are not using the :query:`$not`
-or :query:`$ne` operators inside of :query:`$elemMatch`,
-:query:`$elemMatch` can be omitted. See
-:ref:`elemmatch-single-query-condition`.
-
 Behavior
 --------
 
@@ -79,7 +76,7 @@ to ``80`` and is less than ``85``:
       { results: { $elemMatch: { $gte: 80, $lt: 85 } } }
    )
 
-The query returns the following document since the element ``82`` is
+The query returns the following document because the element ``82`` is
 both greater than or equal to ``80`` and is less than ``85``:
 
 .. code-block:: javascript
@@ -104,12 +101,17 @@ This statement inserts documents into the ``survey`` collection:
       { "_id": 3, "results": [ { "product": "abc", "score": 7 },
                                { "product": "xyz", "score": 8 } ] },
       { "_id": 4, "results": [ { "product": "abc", "score": 7 },
-                               { "product": "def", "score": 8 } ] }
+                               { "product": "def", "score": 8 } ] },
+      { "_id": 5, "results": { "product": "xyz", "score": 7 } }                               
    ] )
 
-The following query matches only those documents where the ``results``
-array contains at least one element with both ``product`` equal to
-``"xyz"`` and ``score`` greater than or equal to ``8``:
+The document with an ``_id`` of ``5`` doesn't contain an array. That
+document is included to show that ``$elemMatch`` only matches array
+elements, which you will see in the following examples.
+
+The following query matches documents where ``results`` contains at
+least one element where ``product`` is ``"xyz"`` and ``score`` is
+greater than or equal to ``8``:
 
 .. code-block:: javascript
 
@@ -130,14 +132,13 @@ Specifically, the query matches the following document:
 Single Query Condition
 ~~~~~~~~~~~~~~~~~~~~~~
 
-If you specify a single query predicate in the :query:`$elemMatch`
-expression, and are not using the :query:`$not` or :query:`$ne`
-operators inside of :query:`$elemMatch`, :query:`$elemMatch` can be
-omitted.
+The following sections show the output differences when you use
+``$elemMatch`` with a single query condition, and omit ``$elemMatch``.
 
-The following examples return the same documents.
+Example 1
+`````````
 
-With :query:`$elemMatch`:
+Query with ``$elemMatch``:
 
 .. code-block:: javascript
 
@@ -145,7 +146,28 @@ With :query:`$elemMatch`:
       { results: { $elemMatch: { product: "xyz" } } }
    )
 
-Without :query:`$elemMatch`:
+The query returns documents where any ``product`` in ``results`` is
+``"xyz"``:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      {
+         _id: 1,
+         results: [ { product: 'abc', score: 10 }, { product: 'xyz', score: 5 } ]
+      },
+      {
+         _id: 2,
+         results: [ { product: 'abc', score: 8 }, { product: 'xyz', score: 7 } ]
+      },
+      {
+         _id: 3,
+         results: [ { product: 'abc', score: 7 }, { product: 'xyz', score: 8 } ]
+      }
+   ]
+
+Query without ``$elemMatch``:
 
 .. code-block:: javascript
 
@@ -153,13 +175,38 @@ Without :query:`$elemMatch`:
       { "results.product": "xyz" }
    )
 
-However, if your :query:`$elemMatch` expression contains the
-:query:`$not` or :query:`$ne` operators then omitting the
-:query:`$elemMatch` expression changes the documents returned.
+In the following output, notice that the document with an ``_id`` of
+``5`` (which doesn't contain an array) is also included:
 
-The following examples return different documents.
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 14
 
-With :query:`$elemMatch`:
+   [
+      {
+         _id: 1,
+         results: [ { product: 'abc', score: 10 }, { product: 'xyz', score: 5 } ]
+      },
+      {
+         _id: 2,
+         results: [ { product: 'abc', score: 8 }, { product: 'xyz', score: 7 } ]
+      },
+      {
+         _id: 3,
+         results: [ { product: 'abc', score: 7 }, { product: 'xyz', score: 8 } ]
+      },
+      { _id: 5, results: { product: 'xyz', score: 7 } }
+   ]
+
+Example 2
+`````````
+
+Consider the following queries:
+
+- First query has a single ``<query>`` condition in ``$elemMatch``.
+- Second query omits ``$elemMatch``.
+
+First query with ``$elemMatch``:
 
 .. code-block:: javascript
 
@@ -167,15 +214,8 @@ With :query:`$elemMatch`:
       { "results": { $elemMatch: { product: { $ne: "xyz" } } } }
    )
 
-Without :query:`$elemMatch`:
-
-.. code-block:: javascript
-
-   db.survey.find(
-      { "results.product": { $ne: "xyz" } }
-   )
-
-With :query:`$elemMatch`, the first query returns these documents:
+The query returns documents that has a ``product`` with value other than
+``"xyz"``:
 
 .. code-block:: javascript
    :copyable: false
@@ -189,8 +229,16 @@ With :query:`$elemMatch`, the first query returns these documents:
    { "_id" : 4, "results" : [ { "product" : "abc", "score" : 7 },
                               { "product" : "def", "score" : 8 } ] }
 
-Without :query:`$elemMatch`, the second query returns this
-document:
+Second query without ``$elemMatch``:
+
+.. code-block:: javascript
+
+   db.survey.find(
+      { "results.product": { $ne: "xyz" } }
+   )
+
+The query returns documents where none of the ``product`` ``results``
+are ``"xyz"``:
 
 .. code-block:: javascript
    :copyable: false
@@ -198,17 +246,14 @@ document:
    { "_id" : 4, "results" : [ { "product" : "abc", "score" : 7 },
                               { "product" : "def", "score" : 8 } ] }
 
-The first query returns the documents where any product in the
-``results`` array is not ``"xyz"``. The second query returns the
-documents where all of the products in the ``results`` array are not
-``"xyz"``.
+Both queries include the document with an ``_id`` of ``4``, and omit the
+document with an ``_id`` of ``5`` because the ``product`` is ``"xyz"``.
 
-Additional Examples
--------------------
+Learn More
+----------
 
 .. include:: /includes/extracts/additional-examples-arrays.rst
 
 .. seealso::
 
    :method:`db.collection.find()`
-

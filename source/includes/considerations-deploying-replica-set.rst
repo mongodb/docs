@@ -5,6 +5,8 @@ In production, deploy each member of the replica set to its own machine.
 If possible, ensure that MongoDB listens on the default port of 
 ``27017``.
 
+.. include:: /includes/replication/note-replica-set-major-versions.rst
+
 For more information, see :doc:`/core/replica-set-architectures`.
 
 Hostnames

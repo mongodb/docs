@@ -108,7 +108,7 @@ The search index definition takes the following fields:
      - array of :ref:`Synonym Mapping Definitions <synonyms-ref>`
      - Optional 
      - Specifies synonym mappings to use in your index. Configuring
-       synonyms allows you to you index and search for words that have
+       synonyms allows you to index and search for words that have
        the same or a similar meaning.
        
        To learn more, see :ref:`synonyms-ref`.

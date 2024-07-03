@@ -1,4 +1,4 @@
-.. _qe-reference-kms-providers-aws-architecture:
+.. _qe-fundamentals-kms-providers-aws-architecture:
 
 Architecture
 ````````````

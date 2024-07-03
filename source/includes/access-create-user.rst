@@ -8,4 +8,4 @@
 The :authrole:`userAdmin` and
 :authrole:`userAdminAnyDatabase` built-in roles provide
 :authaction:`createUser` and :authaction:`grantRole` actions on their
-respective :doc:`resources </reference/resource-document>`.
+respective :ref:`resources <resource-document>`.

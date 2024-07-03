@@ -10,6 +10,9 @@ Log Messages
    :name: programming_language 
    :values: shell
 
+.. meta:: 
+   :description:  MongoDB maintains a log of events such as incoming connections, commands run, and issues encountered for diagnosing issues, monitoring your deployment, and tuning performance.
+
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -36,12 +39,11 @@ following methods:
 Structured Logging
 ------------------
 
-Starting in MongoDB 4.4, :binary:`~bin.mongod` / :binary:`~bin.mongos`
-instances output all log messages in :ref:`structured JSON format
-<log-message-json-output-format>`. Log entries are written as a series
-of key-value pairs, where each key indicates a log message field type,
-such as "severity", and each corresponding value records the associated
-logging information for that field type, such as "informational".
+:binary:`~bin.mongod` / :binary:`~bin.mongos` instances output all log messages 
+in :ref:`structured JSON format <log-message-json-output-format>`. Log entries 
+are written as a series of key-value pairs, where each key indicates a log 
+message field type, such as "severity", and each corresponding value records 
+the associated logging information for that field type, such as "informational".
 Previously, log entries were output as plaintext.
 
 .. example::
@@ -52,7 +54,7 @@ Previously, log entries were output as plaintext.
    .. code-block:: javascript
       :copyable: false
 
-      {"t":{"$date":"2020-05-01T15:16:17.180+00:00"},"s":"I", "c":"NETWORK", "id":12345, "ctx":"listener", "msg":"Listening on","attr":{"address":"127.0.0.1"}}
+      {"t":{"$date":"2020-05-01T15:16:17.180+00:00"},"s":"I", "c":"NETWORK", "id":12345, "ctx":"listener", "svc": "R", "msg":"Listening on", "attr":{"address":"127.0.0.1"}}
 
    JSON log entries can be :ref:`pretty-printed
    <log-message-pretty-printing>` for readability. Here is the same log
@@ -69,6 +71,7 @@ Previously, log entries were output as plaintext.
         "c": "NETWORK",
         "id": 12345,
         "ctx": "listener",
+        "svc": "R",
         "msg": "Listening on",
         "attr": {
           "address": "127.0.0.1"
@@ -100,8 +103,7 @@ analyzing structured log messages can be found in the
 JSON Log Output Format
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Starting in MongoDB 4.4, all log output is in JSON format including
-output sent to:
+All log output is in JSON format including output sent to:
 
 - Log file
 - Syslog
@@ -123,10 +125,11 @@ specification, and has the following layout and field order:
      "c": <String>, // component
      "id": <Integer>, // unique identifier
      "ctx": <String>, // context
+     "svc": <String>, // service
      "msg": <String>, // message body
-     "attr": <Object> // additional attributes (optional)
-     "tags": <Array of strings> // tags (optional)
-     "truncated": <Object> // truncation info (if truncated)
+     "attr": <Object>, // additional attributes (optional)
+     "tags": <Array of strings>, // tags (optional)
+     "truncated": <Object>, // truncation info (if truncated)
      "size": <Object> // original size of entry (if truncated)
    }
 
@@ -164,6 +167,11 @@ Field descriptions:
      - String
      - Name of the thread that caused the log statement.
 
+   * - ``svc``
+     - String
+     - Name of the service in whose context the log statement was made. Will be 
+       ``S`` for "shard", ``R`` "router", or ``-`` for "unknown" or "none".
+
    * - ``msg``
      - String
      - Log output message passed from the server or driver. If
@@ -172,14 +180,14 @@ Field descriptions:
 
    * - ``attr``
      - Object
-     - One or more key-value pairs for additional log attributes. If a
-       log message does not include any additional attributes, the
-       ``attr`` object is omitted.
+     - | One or more key-value pairs for additional log attributes. If a
+       | log message does not include any additional attributes, the
+       | ``attr`` object is omitted.
        
-       Attribute values may be referenced by their key name in the
-       ``msg`` message body, depending on the message. If necessary, the
-       attributes are :ref:`escaped <log-message-json-escaping>`
-       according to the JSON specification.
+       | Attribute values may be referenced by their key name in the
+       | ``msg`` message body, depending on the message. If necessary, the
+       | attributes are :ref:`escaped <log-message-json-escaping>`
+       | according to the JSON specification.
 
    * - ``tags``
      - Array of strings
@@ -216,53 +224,115 @@ An example of message escaping is provided in the
 
 Truncation
 ``````````
+
+.. versionchanged:: 7.3
+
 Any **attributes** that exceed the maximum size defined with
 :parameter:`maxLogSizeKB` (default: 10 KB) are truncated. Truncated
 attributes omit log data beyond the configured limit, but retain the
 JSON formatting of the entry to ensure that the entry remains parsable.
 
-Here is an example of a log entry with a truncated attribute:
+For example, the following JSON object represents a ``command`` attribute
+that contains 5000 elements in the ``$in`` field without truncation.
 
-.. code-block:: javascript
-   :emphasize-lines: 10-12
-   :copyable: false
+.. note:: 
 
-   {"t":{"$date":"2020-05-19T18:12:05.702+00:00"},"s":"I",  "c":"SHARDING", "id":22104,   "ctx":"conn33",
-   "msg":"Received splitChunk request","attr":{"request":{"splitChunk":"config.system.sessions",
-   "from":"production-shard1","keyPattern":{"_id":1},"epoch":{"$oid":"5ec42172996456771753a59e"},
-   "shardVersion":[{"$timestamp":{"t":1,"i":0}},{"$oid":"5ec42172996456771753a59e"}],"min":{"_id":{"$minKey":1}},
-   "max":{"_id":{"$maxKey":1}},"splitKeys":[{"_id":{"id":{"$uuid":"00400000-0000-0000-0000-000000000000"}}},
-   {"_id":{"id":{"$uuid":"00800000-0000-0000-0000-000000000000"}}},
+   The example log entries are reformatted for readability.
 
-   ...
+.. code-block:: javascript 
+   :emphasize-lines: 6
+   :copyable: false 
    
-   {"_id":{"id":{"$uuid":"26c00000-0000-0000-0000-000000000000"}}},{"_id":{}}]}},
-   "truncated":{"request":{"splitKeys":{"155":{"_id":{"id":{"type":"binData","size":21}}}}}},
-   "size":{"request":46328}}
+   { 
+     "command": { 
+       "find": "mycoll", 
+       "filter": { 
+         "value1": {
+           "$in": [0, 1, 2, 3, ... 4999]
+         },
+         "value2": "foo"
+		 },
+		 "sort": { "value1": 1 },
+		 "lsid":{"id":{"$uuid":"80a99e49-a850-467b-a26d-aeb2d8b9f42b"}},
+		 "$db": "testdb"
+	   }
+   }
 
-In this case, the ``request`` attribute has been truncated and the
-specific instance of its subfield ``_id`` that triggered truncation
-(i.e. caused the attribute to overrun :parameter:`maxLogSizeKB`) is
-printed without data as ``{"_id":{}}``. The remainder of the ``request``
-attribute is then omitted.
+In this example, the ``$in`` array is truncated at the 376th element because the  
+size of the ``command`` attribute would exceed :parameter:`maxLogSizeKB` if 
+it included the subsequent elements. The remainder of the ``command`` 
+attribute is omitted. The truncated log entry resembles the following output: 
 
-Log entries containing one or more truncated attributes include a
-``truncated`` object which provides the following information for each
+.. code-block:: javascript 
+   :copyable: false 
+   
+   {
+     "t": { "$date": "2021-03-17T20:30:07.212+01:00" },
+     "s": "I",
+     "c": "COMMAND",
+     "id": 51803,
+     "ctx": "conn9",
+     "msg": "Slow query",
+     "attr": {
+       "command": {
+         "find": "mycoll",
+         "filter": {
+           "value1": {
+             "$in": [ 0, 1, ..., 376 ] // Values in array omitted for brevity
+           }
+         }
+       },
+       ... // Other attr fields omitted for brevity
+     },
+     "truncated": {
+       "command": {
+         "truncated": {
+           "filter": {
+             "truncated": {
+               "value1": {
+                 "truncated": {
+                   "$in": {
+                     "truncated": {
+                       "377": {
+                         "type": "double",
+                         "size": 8
+                       }
+                     },
+                     "omitted": 4623
+                   }
+                 }
+               }
+             },
+             "omitted": 1
+           }
+         },
+         "omitted": 3
+       }
+     },
+     "size": {
+       "command": 21692
+     }
+   }
+
+Log entries containing one or more truncated attributes include nested
+``truncated`` objects, which provide the following information for each
 truncated attribute in the log entry:
 
-- the attribute that was truncated
-- the specific subobject of that attribute that triggered truncation, if
-  applicable.
-- the data ``type`` of the truncated field
-- the ``size`` of the truncated field
+- The attribute that was truncated
+- The specific sub-object of that attribute that triggered truncation, if
+  applicable
+- The data ``type`` of the truncated field
+- The ``size``, in bytes, of the element that triggers truncation
+- The number of elements that were ``omitted`` under each sub-object due to 
+  truncation
 
 Log entries with truncated attributes may also include an additional
 ``size`` field at the end of the entry which indicates the original
-size of the attribute before truncation, in this case ``46328`` or about
-46KB. This final ``size`` field is only shown if it is different from
+size of the attribute before truncation, in this case ``21692`` or about
+22KB. This final ``size`` field is only shown if it is different from
 the ``size`` field in the ``truncated`` object, i.e. if the total object
 size of the attribute is different from the size of the truncated
-subobject, as is the case in the example above.
+sub-object, as is the case in the example above.
 
 Padding
 ```````
@@ -276,12 +346,12 @@ The following MongoDB log file excerpt demonstrates this padding:
 .. code-block:: javascript
    :copyable: false
 
-   {"t":{"$date":"2020-05-18T20:18:12.724+00:00"},"s":"I",  "c":"CONTROL",  "id":23285,   "ctx":"main","msg":"Automatically disabling TLS 1.0, to force-enable TLS 1.0 specify --sslDisabledProtocols 'none'"}
-   {"t":{"$date":"2020-05-18T20:18:12.734+00:00"},"s":"W",  "c":"ASIO",     "id":22601,   "ctx":"main","msg":"No TransportLayer configured during NetworkInterface startup"}
-   {"t":{"$date":"2020-05-18T20:18:12.734+00:00"},"s":"I",  "c":"NETWORK",  "id":4648601, "ctx":"main","msg":"Implicit TCP FastOpen unavailable. If TCP FastOpen is required, set tcpFastOpenServer, tcpFastOpenClient, and tcpFastOpenQueueSize."}
-   {"t":{"$date":"2020-05-18T20:18:12.814+00:00"},"s":"I",  "c":"STORAGE",  "id":4615611, "ctx":"initandlisten","msg":"MongoDB starting","attr":{"pid":10111,"port":27001,"dbPath":"/var/lib/mongo","architecture":"64-bit","host":"centos8"}}
-   {"t":{"$date":"2020-05-18T20:18:12.814+00:00"},"s":"I",  "c":"CONTROL",  "id":23403,   "ctx":"initandlisten","msg":"Build Info","attr":{"buildInfo":{"version":"4.4.0","gitVersion":"328c35e4b883540675fb4b626c53a08f74e43cf0","openSSLVersion":"OpenSSL 1.1.1c FIPS  28 May 2019","modules":[],"allocator":"tcmalloc","environment":{"distmod":"rhel80","distarch":"x86_64","target_arch":"x86_64"}}}}
-   {"t":{"$date":"2020-05-18T20:18:12.814+00:00"},"s":"I",  "c":"CONTROL",  "id":51765,   "ctx":"initandlisten","msg":"Operating System","attr":{"os":{"name":"CentOS Linux release 8.0.1905 (Core) ","version":"Kernel 4.18.0-80.11.2.el8_0.x86_64"}}}
+   {"t":{"$date":"2020-05-18T20:18:12.724+00:00"},"s":"I", "c":"CONTROL", "id":23285, "ctx":"main", "svc": "R", "msg":"Automatically disabling TLS 1.0, to force-enable TLS 1.0 specify --sslDisabledProtocols 'none'"}
+   {"t":{"$date":"2020-05-18T20:18:12.734+00:00"},"s":"W", "c":"ASIO", "id":22601, "ctx":"main", "svc": "R", "msg":"No TransportLayer configured during NetworkInterface startup"}
+   {"t":{"$date":"2020-05-18T20:18:12.734+00:00"},"s":"I", "c":"NETWORK", "id":4648601, "ctx":"main", "svc": "R", "msg":"Implicit TCP FastOpen unavailable. If TCP FastOpen is required, set tcpFastOpenServer, tcpFastOpenClient, and tcpFastOpenQueueSize."}
+   {"t":{"$date":"2020-05-18T20:18:12.814+00:00"},"s":"I", "c":"STORAGE", "id":4615611, "ctx":"initandlisten", "svc": "R", "msg":"MongoDB starting", "attr":{"pid":10111,"port":27001,"dbPath":"/var/lib/mongo","architecture":"64-bit","host":"centos8"}}
+   {"t":{"$date":"2020-05-18T20:18:12.814+00:00"},"s":"I", "c":"CONTROL", "id":23403, "ctx":"initandlisten", "svc": "R", "msg":"Build Info", "attr":{"buildInfo":{"version":"4.4.0","gitVersion":"328c35e4b883540675fb4b626c53a08f74e43cf0","openSSLVersion":"OpenSSL 1.1.1c FIPS  28 May 2019","modules":[],"allocator":"tcmalloc","environment":{"distmod":"rhel80","distarch":"x86_64","target_arch":"x86_64"}}}}
+   {"t":{"$date":"2020-05-18T20:18:12.814+00:00"},"s":"I", "c":"CONTROL", "id":51765, "ctx":"initandlisten", "svc": "R", "msg":"Operating System", "attr":{"os":{"name":"CentOS Linux release 8.0.1905 (Core) ","version":"Kernel 4.18.0-80.11.2.el8_0.x86_64"}}}
 
 .. _log-message-pretty-printing:
 
@@ -379,6 +449,7 @@ the logged event occurred.
      "c": "NETWORK",
      "id": 12345,
      "ctx": "listener",
+     "svc": "R", 
      "msg": "Listening on",
      "attr": {
        "address": "127.0.0.1"
@@ -396,8 +467,7 @@ examples that filter on the timestamp field.
 
 .. note::
 
-   Starting in MongoDB 4.4, the ``ctime`` timestamp format is no longer
-   supported.
+   The ``ctime`` timestamp format is no longer supported.
 
 .. [#syslog-ts]
 
@@ -426,6 +496,7 @@ logged event.
      "c": "NETWORK",
      "id": 12345,
      "ctx": "listener",
+     "svc": "R", 
      "msg": "Listening on",
      "attr": {
        "address": "127.0.0.1"
@@ -491,6 +562,7 @@ member of, such as **NETWORK** or **COMMAND**.
      "c": "NETWORK",
      "id": 12345,
      "ctx": "listener",
+     "svc": "R", 
      "msg": "Listening on",
      "attr": {
        "address": "127.0.0.1"
@@ -823,7 +895,7 @@ data is contained in the ``doc`` object in the **attributes** field:
 .. code-block:: javascript
    :copyable: false
 
-   {"t":{"$date":"2020-05-20T16:21:31.561+00:00"},"s":"I",  "c":"NETWORK",  "id":51800,   "ctx":"conn202","msg":"client metadata","attr":{"remote":"127.0.0.1:37106","client":"conn202","doc":{"application":{"name":"MongoDB Shell"},"driver":{"name":"MongoDB Internal Client","version":"4.4.0"},"os":{"type":"Linux","name":"CentOS Linux release 8.0.1905 (Core) ","architecture":"x86_64","version":"Kernel 4.18.0-80.11.2.el8_0.x86_64"}}}}
+   {"t":{"$date":"2020-05-20T16:21:31.561+00:00"},"s":"I", "c":"NETWORK", "id":51800, "ctx":"conn202", "svc": "R", "msg":"client metadata", "attr":{"remote":"127.0.0.1:37106","client":"conn202","doc":{"application":{"name":"MongoDB Shell"},"driver":{"name":"MongoDB Internal Client","version":"4.4.0"},"os":{"type":"Linux","name":"CentOS Linux release 8.0.1905 (Core) ","architecture":"x86_64","version":"Kernel 4.18.0-80.11.2.el8_0.x86_64"}}}}
 
 When secondary members of a
 :ref:`replica set <replica-set-members>` initiate
@@ -835,7 +907,7 @@ field:
 .. code-block:: javascript
    :copyable: false
 
-   {"t":{"$date":"2020-05-20T16:33:40.595+00:00"},"s":"I",  "c":"NETWORK",  "id":51800,   "ctx":"conn214","msg":"client metadata","attr":{"remote":"127.0.0.1:37176","client":"conn214","doc":{"driver":{"name":"NetworkInterfaceTL","version":"4.4.0"},"os":{"type":"Linux","name":"CentOS Linux release 8.0.1905 (Core) ","architecture":"x86_64","version":"Kernel 4.18.0-80.11.2.el8_0.x86_64"}}}}
+   {"t":{"$date":"2020-05-20T16:33:40.595+00:00"},"s":"I", "c":"NETWORK", "id":51800, "ctx":"conn214", "svc": "R", "msg":"client metadata", "attr":{"remote":"127.0.0.1:37176","client":"conn214","doc":{"driver":{"name":"NetworkInterfaceTL","version":"4.4.0"},"os":{"type":"Linux","name":"CentOS Linux release 8.0.1905 (Core) ","architecture":"x86_64","version":"Kernel 4.18.0-80.11.2.el8_0.x86_64"}}}}
 
 See the :ref:`examples section <log-message-json-examples>` for a
 :ref:`pretty-printed <log-message-pretty-printing>` example showing
@@ -1068,17 +1140,17 @@ field to obtain the wait time (in milliseconds) for results from
 - On the :term:`shard` or :binary:`~bin.mongos` that merges the results.
 
 To determine if a merge operation or a shard issue is causing a slow
-query, compare the ``durationMillis`` and ``remoteOpWaitMillis`` time
-fields in the log. ``durationMillis`` is the total time the query took
+query, compare the ``workingMillis`` and ``remoteOpWaitMillis`` time
+fields in the log. ``workingMillis`` is the total time the query took
 to complete. Specifically:
 
-- If ``durationMillis`` is slightly longer than ``remoteOpWaitMillis``,
+- If ``workingMillis`` is slightly longer than ``remoteOpWaitMillis``,
   then most of the time was spent waiting for a shard response. For
-  example, ``durationMillis`` of 17 and ``remoteOpWaitMillis`` of 15.
+  example, ``workingMillis`` of 17 and ``remoteOpWaitMillis`` of 15.
 
-- If ``durationMillis`` is significantly longer than
+- If ``workingMillis`` is significantly longer than
   ``remoteOpWaitMillis``, then most of the time was spent performing the
-  merge. For example, ``durationMillis`` of 100 and
+  merge. For example, ``workingMillis`` of 100 and
   ``remoteOpWaitMillis`` of 15.
 
 .. _log-message-log-redaction:
@@ -1105,7 +1177,7 @@ Parsing Structured Log Messages
 
 Log parsing is the act of programmatically searching through and
 analyzing log files, often in an automated manner. With the introduction
-of structured logging in MongoDB 4.4, log parsing is made simpler and
+of structured logging, log parsing is made simpler and
 more powerful. For example:
 
 - Log message fields are presented as key-value pairs. Log parsers can
@@ -1192,7 +1264,7 @@ following returns only the slow operations that took above
 
 .. code-block:: bash
 
-   jq '. | select(.attr.durationMillis>=2000)' /var/log/mongodb/mongod.log
+   jq 'select(.attr.workingMillis>=2000)' /var/log/mongodb/mongod.log
 
 Consult the `jq documentation <https://stedolan.github.io/jq/manual/>`_
 for more information on the ``jq`` filters shown in this example.
@@ -1213,14 +1285,14 @@ The following example prints only the log messages of
 
 .. code-block:: bash
 
-   jq '. | select(.c=="REPL")' /var/log/mongodb/mongod.log
+   jq 'select(.c=="REPL")' /var/log/mongodb/mongod.log
 
 The following example prints all log messages *except* those of
 :ref:`component <log-message-components>` type **REPL**:
 
 .. code-block:: bash
 
-   jq '. | select(.c!="REPL")' /var/log/mongodb/mongod.log
+   jq 'select(.c!="REPL")' /var/log/mongodb/mongod.log
 
 The following example print log messages of
 :ref:`component <log-message-components>` type **REPL** *or*
@@ -1228,7 +1300,7 @@ The following example print log messages of
 
 .. code-block:: bash
 
-   jq '. | select( .c as $c | ["REPL", "STORAGE"] | index($c) )' /var/log/mongodb/mongod.log
+   jq 'select( .c as $c | ["REPL", "STORAGE"] | index($c) )' /var/log/mongodb/mongod.log
 
 Consult the `jq documentation <https://stedolan.github.io/jq/manual/>`_
 for more information on the ``jq`` filters shown in this example.
@@ -1247,8 +1319,8 @@ showing a client connection followed by a disconnection:
 
 .. code-block:: javascript
 
-   {"t":{"$date":"2020-06-01T13:06:59.027-0500"},"s":"I", "c":"NETWORK", "id":22943,"ctx":"listener","msg":"connection accepted from {session_remote} #{session_id} ({connectionCount}{word} now open)","attr":{"session_remote":"127.0.0.1:61298","session_id":164,"connectionCount":11,"word":" connections"}}
-   {"t":{"$date":"2020-06-01T13:07:03.490-0500"},"s":"I", "c":"NETWORK", "id":22944,"ctx":"conn157","msg":"end connection {remote} ({connectionCount}{word} now open)","attr":{"remote":"127.0.0.1:61298","connectionCount":10,"word":" connections"}}
+   {"t":{"$date":"2020-06-01T13:06:59.027-0500"},"s":"I", "c":"NETWORK", "id":22943, "ctx":"listener", "svc": "R", "msg":"connection accepted from {session_remote} #{session_id} ({connectionCount}{word} now open)", "attr":{"session_remote":"127.0.0.1:61298", "session_id":164,"connectionCount":11,"word":" connections"}}
+   {"t":{"$date":"2020-06-01T13:07:03.490-0500"},"s":"I", "c":"NETWORK", "id":22944, "ctx":"conn157", "svc": "R", "msg":"end connection {remote} ({connectionCount}{word} now open)", "attr":{"remote":"127.0.0.1:61298","connectionCount":10,"word":" connections"}}
 
 The log IDs for these two entries are ``22943`` and ``22944``
 respectively. You could then filter your log output to show only these
@@ -1257,7 +1329,7 @@ following ``jq`` syntax:
 
 .. code-block:: bash
 
-   jq '. | select( .id as $id | [22943, 22944] | index($id) )' /var/log/mongodb/mongod.log
+   jq 'select( .id as $id | [22943, 22944] | index($id) )' /var/log/mongodb/mongod.log
 
 Consult the `jq documentation <https://stedolan.github.io/jq/manual/>`_
 for more information on the ``jq`` filters shown in this example.
@@ -1273,7 +1345,7 @@ the following returns all log entries that occurred on April 15th, 2020:
 
 .. code-block:: bash
 
-   jq '. | select(.t["$date"] >= "2020-04-15T00:00:00.000" and .t["$date"] <= "2020-04-15T23:59:59.999")' /var/log/mongodb/mongod.log
+   jq 'select(.t["$date"] >= "2020-04-15T00:00:00.000" and .t["$date"] <= "2020-04-15T23:59:59.999")' /var/log/mongodb/mongod.log
 
 Note that this syntax includes the full timestamp, including
 milliseconds but excluding the timezone offset. 
@@ -1285,7 +1357,7 @@ limit results to the month of May, 2020:
 
 .. code-block:: bash
 
-   jq '. | select(.t["$date"] >= "2020-05-01T00:00:00.000" and .t["$date"] <= "2020-05-31T23:59:59.999" and .attr.remote)' /var/log/mongodb/mongod.log
+   jq 'select(.t["$date"] >= "2020-05-01T00:00:00.000" and .t["$date"] <= "2020-05-31T23:59:59.999" and .attr.remote)' /var/log/mongodb/mongod.log
 
 Consult the `jq documentation <https://stedolan.github.io/jq/manual/>`_
 for more information on the ``jq`` filters shown in this example.
@@ -1297,12 +1369,11 @@ Log ingestion services are third-party products that intake and
 aggregate log files, usually from a distributed cluster of systems, and
 provide ongoing analysis of that data in a central location.
 
-The :ref:`JSON log format <log-message-json-output-format>`, introduced
-with MongoDB 4.4, allows for more flexibility when working with log
-ingestion and analysis services. Whereas plaintext logs generally
-require some manner of transformation before being eligible for use
-with these products, JSON files can often be consumed out of the box,
-depending on the service. Further, JSON-formatted logs offer more
+The :ref:`JSON log format <log-message-json-output-format>` allows for more 
+flexibility when working with log ingestion and analysis services. Whereas 
+plaintext logs generally require some manner of transformation before being 
+eligible for use with these products, JSON files can often be consumed out of 
+the box, depending on the service. Further, JSON-formatted logs offer more
 control when performing filtering for these services, as the
 key-value structure offers the ability to specifically import only the
 fields of interest, while omitting the rest.
@@ -1337,6 +1408,7 @@ This example shows a startup warning:
      "c": "CONTROL",
      "id": 22120,
      "ctx": "initandlisten",
+     "svc": "R", 
      "msg": "Access control is not enabled for the database. Read and write access to data and configuration is unrestricted",
      "tags": [
        "startupWarnings"
@@ -1360,6 +1432,7 @@ This example shows a client connection that includes
      "c": "NETWORK",
      "id": 51800,
      "ctx": "conn281",
+     "svc": "R", 
      "msg": "client metadata",
      "attr": {
        "remote": "192.168.14.15:37666",
@@ -1387,68 +1460,125 @@ This example shows a client connection that includes
 Slow Operation
 ~~~~~~~~~~~~~~
 
-This example shows a :ref:`slow operation message
-<log-message-slow-ops>`:
+Starting in MongoDB 8.0, slow operations are logged based on the time
+that MongoDB spends working on that operation, rather than the total
+latency for the operation.
+
+You can use the metrics in the slow operation log to identify where an
+operation spends time in its lifecycle, which helps identify possible
+performance improvements.
+
+In the following example log message:
+
+- The amount of time spent waiting for resources while executing the
+  query is shown in these metrics:
+  
+  - ``queues.execution.totalTimeQueuedMicros``
+  - ``timeAcquiringMicros``
+
+- ``workingMillis`` is the amount of time that MongoDB spends working on
+  the operation.
+   
+- ``durationMillis`` is the operation's total latency.
 
 .. code-block:: javascript
+   :emphasize-lines: 59-61,72,89,92,93
    :copyable: false
 
    {
-     "t": {
-       "$date": "2023-05-24T13:46:27.853+00:00"
-     },
-     "s": "I",
-     "c": "COMMAND",
-     "id": 51803,
-     "ctx": "conn3",
-     "msg": "Slow query",
-     "attr": {
-       "type": "command",
-       "ns": "db.coll",
-       "appName": "MongoDB Shell",
-       "command": {
-         "find": "coll",
-         "filter": {
-           "b": -1
+      "t":{
+         "$date":"2024-06-01T13:24:10.034+00:00"
+      },
+      "s":"I",
+      "c":"COMMAND",
+      "id":51803,
+      "ctx":"conn3",
+      "msg":"Slow query",
+      "attr":{
+         "type":"command",
+         "isFromUserConnection":true,
+         "ns":"db.coll",
+         "collectionType":"normal",
+         "appName":"MongoDB Shell",
+         "command":{
+            "find":"coll",
+            "filter":{
+               "b":-1
+            },
+            "sort":{
+               "splitPoint":1
+            },
+            "readConcern":{ },
+            "$db":"db"
          },
-         "lsid": {
-           "id": {
-             "$uuid": "5d50b19c-8559-420a-a122-8834e012274a"
-           }
+         "planSummary":"COLLSCAN",
+         "planningTimeMicros":87,
+         "keysExamined":0,
+         "docsExamined":20889,
+         "hasSortStage":true,
+         "nBatches":1,
+         "cursorExhausted":true,
+         "numYields":164,
+         "nreturned":99,
+         "queryHash":"9C05019A",
+         "planCacheKey":"C41063D6",
+         "queryFramework":"classic",
+         "reslen":96,
+         "locks":{
+            "ReplicationStateTransition":{
+               "acquireCount":{
+                  "w":3
+               }
+            },
+            "Global":{
+               "acquireCount":{
+                  "r":327,
+                  "w":1
+               }
+            },
+            "Database":{
+               "acquireCount":{
+                  "r":1
+               },
+               "acquireWaitCount":{
+                  "r":1
+               },
+               "timeAcquiringMicros":{
+                  "r":2814
+               }
+            },
+            "Collection":{
+               "acquireCount":{
+                  "w":1
+               }
+            }
          },
-         "$db": "db"
-       },
-       "planSummary": "COLLSCAN",
-       "planningTimeMicros": 228,
-       "keysExamined": 0,
-       "docsExamined": 232922,
-       "fromPlanCache": true,
-       "nBatches": 1,
-       "cursorExhausted": true,
-       "numYields": 232,
-       "nreturned": 0,
-       "queryHash": "9C05019A",
-       "planCacheKey": "C41063D6",
-       "queryFramework": "sbe",
-       "reslen": 96,
-       "locks": {
-         "FeatureCompatibilityVersion": {
-           "acquireCount": {
-             "r": 233
-           }
+         "flowControl":{
+            "acquireCount":1,
+            "acquireWaitCount":1,
+            "timeAcquiringMicros":8387
          },
-         "Global": {
-           "acquireCount": {
-             "r": 233
-           }
-         }
-       },
-       "storage": {},
-       "cpuNanos": 111410254,
-       "remote": "127.0.0.1:47150",
-       "protocol": "op_msg",
-       "durationMillis": 111
-     }
+         "readConcern":{
+            "level":"local",
+            "provenance":"implicitDefault"
+         },
+         "storage":{ },
+         "cpuNanos":20987385,
+         "remote":"127.0.0.1:47150",
+         "protocol":"op_msg",
+         "queues":{
+            "ingress":{
+               "admissions":7,
+               "totalTimeQueuedMicros":0
+            },
+            "execution":{
+               "admissions":328,
+               "totalTimeQueuedMicros":2109
+            }
+         },
+         "workingMillis":89,
+         "durationMillis":101
+      }
    }
 
 Escaping
@@ -1469,6 +1599,7 @@ attribute object:
      "c": "REPL",
      "id": 21752,
      "ctx": "ReplCoord-0",
+     "svc": "R",
      "msg": "Scheduling remote command request",
      "attr": {
        "context": "vote request",
@@ -1518,6 +1649,7 @@ The following example log message contains a ``resolvedViews`` field for
       "c": "COMMAND",
       "id": 51803,
       "ctx": "conn249",
+      "svc": "R",
       "msg": "Slow query",
       "attr": {
          "type": "command",
@@ -1556,6 +1688,7 @@ The following example log message contains a ``resolvedViews`` field for
             "storage": {},
             "remote": "127.0.0.1:34868",
             "protocol": "op_msg",
+            "workingMillis": 0,
             "durationMillis": 0
          }
       }
@@ -1604,6 +1737,7 @@ Example session workflow log message:
       "c": "EXECUTOR",
       "id": 6983000,
       "ctx": "conn1",
+      "svc": "R",
       "msg": "Slow network response send time",
       "attr": {
          "elapsed": {
@@ -1687,6 +1821,7 @@ Example log message:
       "c": "NETWORK",
       "id": 6496702,
       "ctx": "ReplicaSetMonitor-TaskExecutor",
+      "svc": "R",
       "msg": "Acquired connection for remote operation and completed writing to wire",
       "attr": {
          "durationMicros": 1683
@@ -1745,6 +1880,7 @@ The following example includes:
      "c": "COMMAND",
      "id": 51803,
      "ctx": "conn14",
+     "svc": "R",
      "msg": "Slow query",
      "attr": {
        "type": "command",
@@ -1792,6 +1928,7 @@ The following example includes:
        "remote": "127.0.0.1:48510",
        "protocol": "op_msg",
        "remoteOpWaitMillis": 4078,
+       "workingMillis": 20334,
        "durationMillis": 20334
      }
    }

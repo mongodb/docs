@@ -15,52 +15,79 @@ Definition
 
 .. update:: $rename
 
-   The :update:`$rename` operator updates the name of a field and has the following form:
+   The :update:`$rename` operator updates the name of a field.
+   
+Syntax
+------
 
-   .. code-block:: javascript
+.. code-block:: javascript
 
-      {$rename: { <field1>: <newName1>, <field2>: <newName2>, ... } }
+   { $rename: { <field1>: <newName1>, <field2>: <newName2>, ... } }
 
-   The new field name must differ from the existing field name. To
-   specify a ``<field>`` in an embedded document, use :term:`dot
-   notation`.
+The new field name must differ from the existing field name. To
+specify a ``<field>`` in an embedded document, use :term:`dot
+notation`.
 
-   Consider the following example:
+Consider the following example:
 
-   .. code-block:: javascript
+.. code-block:: javascript
 
-      db.students.updateOne(
-         { _id: 1 },
-         { $rename: { 'nickname': 'alias', 'cell': 'mobile' } }
-      )
+   db.students.updateOne(
+      { _id: 1 }, { $rename: { 'nickname': 'alias', 'cell': 'mobile' } }
+   )
 
-   This operation renames the field ``nickname`` to ``alias``, and the
-   field ``cell`` to ``mobile``.
+The preceding operation renames the ``nickname`` field to ``alias`` and
+the ``cell`` field to ``mobile`` in a document where ``_id`` is 1.
 
 Behavior
 --------
 
+When you run a ``$rename`` operation, MongoDB performs the following
+actions:
+
+- Delete the old ``<field>`` and field with ``<newName>`` from the
+  document (using :update:`$unset`).
+
+- Perform a :update:`$set` operation with ``<newName>``, using the value
+  from ``<field>``.
+
+Atomicity
+~~~~~~~~~
+
+Each document matched by an update command is updated in an individual
+operation. Update operations (like ``$rename``) only guarantee atomicity
+on a single-document level.
+
+Field Order
+~~~~~~~~~~~
+
+The ``$rename`` operation might not preserve the order of the fields in
+the document.
+
+Update Processing Order
+~~~~~~~~~~~~~~~~~~~~~~~
+
 .. include:: /includes/fact-update-operator-processing-order.rst
 
-The :update:`$rename` operator logically performs an :update:`$unset`
-of both the old name and the new name, and then performs a
-:update:`$set` operation with the new name. As such, the operation may
-not preserve the order of the fields in the document; i.e. the renamed
-field may move within the document.
+Rename Embedded Document Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If the document already has a field with the ``<newName>``, the
-:update:`$rename` operator removes that field and renames the specified
-``<field>`` to ``<newName>``.
+The ``$rename`` operator can move fields into and out of embedded
+documents.
 
-If the field to rename does not exist in a document, :update:`$rename`
-does nothing (i.e. no operation).
+``$rename`` does not work on embedded documents in arrays.
 
-For fields in embedded documents, the :update:`$rename` operator can
-rename these fields as well as move the fields in and out of embedded
-documents. :update:`$rename` does not work if these fields are in array
-elements.
+Other Considerations
+~~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/extracts/update-operation-empty-operand-expressions-rename.rst
+- If the document already has a field with the ``<newName>``, the
+  :update:`$rename` operator removes that field and renames the
+  specified ``<field>`` to ``<newName>``.
+
+- If the field to rename does not exist in a document, :update:`$rename`
+  does nothing.
+
+- .. include:: /includes/extracts/update-operation-empty-operand-expressions-rename.rst
 
 Examples
 --------
@@ -102,10 +129,13 @@ name of the field and the new name:
 
 .. code-block:: javascript
 
-   db.students.updateMany( {}, { $rename: { "nmae": "name" } } )
+   db.students.updateMany(
+      { "nmae": { $ne: null } },
+      { $rename: { "nmae": "name" } }
+   )
 
-This operation renames the field ``nmae`` to ``name`` for all documents
-in the collection:
+This operation checks for documents where the ``nmae`` field is not null
+and updates those documents to rename the ``nmae`` field to ``name``:
 
 .. code-block:: javascript
 
@@ -123,10 +153,12 @@ in the collection:
       "name" : { "first" : "abigail", "last" : "adams" }
    }
 
-   { "_id" : 3,
+   { 
+      "_id" : 3,
      "alias" : [ "Amazing grace" ],
      "mobile" : "111-111-1111",
-     "name" : { "first" : "grace", "last" : "hopper" } }
+     "name" : { "first" : "grace", "last" : "hopper" }
+   }
 
 .. _rename-field-in-embedded-document:
 
@@ -170,4 +202,3 @@ This operation does nothing because there is no field named ``wife``.
 
    - :method:`db.collection.updateMany()`
    - :method:`db.collection.findAndModify()`
-

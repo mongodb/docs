@@ -1,6 +1,5 @@
 Query Sampling Progress
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-When query sampling is enabled, you can check the progress of query
-sampling using the ``$currentOp`` aggregation stage. 
-
+To monitor the query sampling process, use the :pipeline:`$currentOp`
+stage. For an example, see :ref:`sampled-queries-currentOp-stage`.

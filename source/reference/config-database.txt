@@ -20,6 +20,26 @@ The collections in the ``config`` database support:
   replica sets, and sharded clusters and retryable writes for replica
   sets and sharded clusters.
 
+.. note::
+   
+   Sharded clusters may show different collections in the
+   ``config`` database, depending on whether you connect to
+   :program:`mongos` or :program:`mongod`:
+
+   - On ``mongos``, the ``config`` database shows collections
+     located on the config servers, such as
+     :data:`~config.collections` or :data:`~config.chunks`.
+
+   - On ``mongod``, the ``config`` database shows
+     collections specific to the given shard, such as
+     :data:`~config.migrationCoordinators` or
+     :data:`~config.rangeDeletions`.
+
+   When a config server and a shard are hosted on the same node,
+   :program:`mongos` may have access to some shard-local
+   collections in the ``config`` database.
+
+
 Restrictions
 ------------
 
@@ -164,7 +184,7 @@ to support sharding:
 
    .. data:: config.changelog.what
 
-      Reflects the type of change recorded. Possible values include:
+      The type of change recorded. Possible values include:
 
       - ``dropCollection``
       - ``dropCollection.start``
@@ -181,7 +201,7 @@ to support sharding:
 
    .. data:: config.changelog.details
 
-      A :term:`document` that contains  additional details regarding
+      A :term:`document` that contains additional details for
       the change. The structure of the :data:`~config.changelog.details`
       document depends on the type of change.
 
@@ -189,30 +209,40 @@ to support sharding:
 
    .. include:: /includes/admonition-config-db-is-internal.rst
 
-   The :data:`~config.chunks` collection stores a document for each chunk in
-   the cluster.  Consider the following example of a document for a
-   chunk named ``mydb.foo-a_\"cat\"``:
+   The :data:`config.chunks` collection stores a document for each
+   chunk in the cluster. The following example shows a document:
 
    .. code-block:: javascript
 
       {
-         "_id" : "mydb.foo-a_\"cat\"",
-         "lastmod" : Timestamp(2, 1), 
-         "uuid": "c025d039-e626-435e-b2d2-c1d436038041",
-         "min" : {
-               "animal" : "cat"
-         },
-         "max" : {
-               "animal" : "dog"
-         },
-         "shard" : "shard0004",
-         "history" : [ { "validAfter" : Timestamp(1569368571, 27), "shard" : "shard0004" } ] 
+         _id: ObjectId('65a954c0de11596e08e7c1dc'),
+         uuid: UUID('a4479215-a38d-478f-a82b-e5e95d455e55'),
+         min: { a: Long('121204345') },
+         max: { a: Long('993849349') },
+         shard: 'shard01',
+         lastmod: Timestamp({ t: 1, i: 0 }),
+         history: [
+            {
+               validAfter: Timestamp({ t: 1705596095, i: 14 }),
+               shard: 'shard01'
+            }
+         ]
       }
 
-   These documents store the range of values for the shard key that
-   describe the chunk in the ``min`` and ``max`` fields. Additionally
-   the ``shard`` field identifies the shard in the cluster that "owns"
-   the chunk.
+   In the document:
+
+   - ``_id`` is the chunk identifier.
+   - ``min`` and ``max`` are the range of values for the chunk's shard
+     key.
+   - ``shard`` is the name of the shard that stores the chunk in the
+     cluster.
+
+   .. tip::
+
+      To find the chunks in a collection, retrieve the collection's
+      ``uuid`` identifier from the :data:`config.collections`
+      collection. Then, use ``uuid`` to retrieve the matching document
+      with the same ``uuid`` from the ``config.chunks`` collection.
 
 .. data:: config.collections
 
@@ -270,8 +300,6 @@ to support sharding:
    :ref:`sharding-status-databases-fields` section.
 
 .. data:: config.migrationCoordinators
-
-   .. versionadded:: 4.4
 
    The :data:`~config.migrationCoordinators` collection exists on each
    shard and stores a document for each in-progress :term:`chunk`
@@ -412,7 +440,7 @@ to support sharding:
    .. include:: /includes/admonition-config-db-is-internal.rst
 
    The :data:`~config.version` collection holds the current metadata version number. This
-   collection contains only one document.  For example:
+   collection contains only one document. For example:
 
    .. code-block:: javascript
 
@@ -430,7 +458,7 @@ to support sharding:
 Collections to Support Sessions
 -------------------------------
 
-Starting in MongoDB 3.6, the ``config`` database contains the
+The ``config`` database contains the
 *internal* collections to support :ref:`causally consistent sessions
 <sessions>` for standalones, replica sets, and sharded clusters and
 retryable writes and :ref:`transactions <transactions>` for

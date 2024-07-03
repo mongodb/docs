@@ -6,6 +6,9 @@ Built-In Roles
 
 .. default-domain:: mongodb
 
+.. meta:: 
+   :description: Control access to local MongoDB and MongoDB Atlas deployments by using built-in roles and privileges.
+
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -30,13 +33,6 @@ This section describes the privileges for each built-in role. You can also
 view the privileges for a built-in role at any time by issuing the
 :dbcommand:`rolesInfo` command with the ``showPrivileges`` and
 ``showBuiltinRoles`` fields both set to ``true``.
-
-Compatibility 
--------------
-
-.. |page-topic| replace:: use built-in roles
-
-.. include:: /includes/fact-atlas-compatible.rst
 
 {+atlas+} deployments have different built-in roles than self-hosted
 deployments. See the following resources to learn more:
@@ -66,11 +62,13 @@ deployments hosted in {+atlas+}:
        - :authrole:`readAnyDatabase`
        - :authrole:`dbAdminAnyDatabase`
        - :authrole:`clusterMonitor`
+       - :authrole:`backup`
        - :authaction:`cleanupOrphaned`
        - :authaction:`enableSharding`
        - :authaction:`flushRouterConfig`
        - :authaction:`moveChunk`
        - :authaction:`viewUser`
+       - :authaction:`querySettings`
 
    * - ``readWriteAnyDatabase``
      - :guilabel:`Read and write to any database`
@@ -192,27 +190,6 @@ Every database includes the following database administration roles:
              - :authaction:`listIndexes`
              - :authaction:`listSearchIndexes`
              - :authaction:`planCacheRead`
-             
-
-          .. note:: Aside
-          
-             Starting in version 4.2, MongoDB removes the
-             :data:`system.indexes <<database>.system.indexes>` and
-             :data:`system.namespaces <<database>.system.namespaces>`
-             collections. As such, the :authrole:`dbAdmin` role no
-             longer provides privileges to access these collections.
-             Direct access to these collections has been deprecated
-             since MongoDB 3.0.
-         
-             In earlier versions, the :authrole:`dbAdmin` role provides
-             the aforementioned privilege actions (except
-             :authaction:`dropCollection` and
-             :authaction:`createCollection`) on :data:`system.indexes
-             <<database>.system.indexes>` and :data:`system.namespaces
-             <<database>.system.namespaces>` collections, thereby
-             allowing direct access to the :data:`system.indexes
-             <<database>.system.indexes>` and :data:`system.namespaces
-             <<database>.system.namespaces>` collections.
 
       * - All *non*-system collections (i.e. :ref:`database resource <resource-specific-db>`)
 
@@ -315,7 +292,8 @@ Cluster Administration Roles
              - :authaction:`checkMetadataConsistency` (New in version 7.0)
              - :authaction:`cleanupOrphaned`
              - :authaction:`flushRouterConfig`
-             - :authaction:`getDefaultRWConcern` (New in version 4.4)
+             - :dbcommand:`getClusterParameter`
+             - :authaction:`getDefaultRWConcern`
              - :authaction:`listSessions`
              - :authaction:`listShards`
              - :authaction:`removeShard`
@@ -324,7 +302,8 @@ Cluster Administration Roles
              - :authaction:`replSetGetStatus`
              - :authaction:`replSetStateChange`
              - :authaction:`resync`
-             - :authaction:`setDefaultRWConcern` (New in version 4.4)
+             - :dbcommand:`setClusterParameter`
+             - :authaction:`setDefaultRWConcern` 
              - :authaction:`setFeatureCompatibilityVersion`
 
       * - *All* :ref:`databases <resource-specific-db>`
@@ -332,10 +311,13 @@ Cluster Administration Roles
         - .. hlist::
              :columns: 1
              
-             - :authaction:`clearJumboFlag` (New in 4.2.3)
+             - :dbcommand:`analyzeShardKey` (New in version 7.0)
+             - :authaction:`clearJumboFlag`
+             - :dbcommand:`configureQueryAnalyzer`
              - :authaction:`enableSharding`
-             - :authaction:`refineCollectionShardKey` (New in 4.4)
              - :authaction:`moveChunk`
+             - :authaction:`refineCollectionShardKey`
+             - :authaction:`reshardCollection`
              - :authaction:`splitVector`
              
           :authrole:`clusterManager` provides additional privileges for the
@@ -386,26 +368,6 @@ Cluster Administration Roles
              - :authaction:`listSearchIndexes`
              - :authaction:`planCacheRead`
 
-          .. note:: Aside
-          
-             Starting in version 4.2, MongoDB removes the
-             :data:`system.indexes <<database>.system.indexes>` and
-             :data:`system.namespaces <<database>.system.namespaces>`
-             collections. As such, the :authrole:`clusterManager` role no
-             longer provides privileges to access these collections.
-             Direct access to these collections has been deprecated
-             since MongoDB 3.0.
-
-             In earlier versions, the :authrole:`clusterManager` role
-             provides the aforementioned privilege actions on the
-             :data:`system.indexes <<database>.system.indexes>` and
-             :data:`system.namespaces <<database>.system.namespaces>`
-             collections, thereby allowing direct access to the
-             :data:`system.indexes <<database>.system.indexes>` and
-             :data:`system.namespaces <<database>.system.namespaces>`
-             collections.
-          
-
    On the ``local`` database, permits the following actions:
 
    .. list-table::
@@ -453,7 +415,7 @@ Cluster Administration Roles
 
       - :authaction:`connPoolStats`
       - :authaction:`getCmdLineOpts`
-      - :authaction:`getDefaultRWConcern` (New in version 4.4)
+      - :authaction:`getDefaultRWConcern`
       - :authaction:`getLog`
       - :authaction:`getParameter`
       - :authaction:`getShardMap`
@@ -462,7 +424,6 @@ Cluster Administration Roles
       - :authaction:`listDatabases`
       - :authaction:`listSessions`
       - :authaction:`listShards`
-      - :authaction:`netstat`
       - :authaction:`replSetGetConfig`
       - :authaction:`replSetGetStatus`
       - :authaction:`serverStatus`
@@ -473,7 +434,6 @@ Cluster Administration Roles
 
    - :authaction:`collStats`
    - :authaction:`dbStats`
-   - :authaction:`getShardVersion`
    - :authaction:`indexStats`
    - :authaction:`useUUID`
 
@@ -494,7 +454,6 @@ Cluster Administration Roles
           | :authaction:`dbHash`
           | :authaction:`dbStats`
           | :authaction:`find`
-          | :authaction:`getShardVersion`
           | :authaction:`indexStats`
           | :authaction:`killCursors`
           | :authaction:`listCollections`
@@ -513,26 +472,6 @@ Cluster Administration Roles
           | :authaction:`listCollections`
           | :authaction:`listIndexes`
           | :authaction:`planCacheRead`
-          
-          
-          .. note::  Aside
-
-             Starting in version 4.2, MongoDB removes the
-             :data:`system.indexes <<database>.system.indexes>` and
-             :data:`system.namespaces <<database>.system.namespaces>`
-             collections. As such, the :authrole:`clusterMonitor` role no
-             longer provides privileges to access these collections.
-             Direct access to these collections has been deprecated
-             since MongoDB 3.0.
-      
-             In earlier versions, the role provides the aforementioned
-             privilege actions on the :data:`system.indexes
-             <<database>.system.indexes>` and :data:`system.namespaces
-             <<database>.system.namespaces>` collections, thereby allowing
-             direct access to the :data:`system.indexes
-             <<database>.system.indexes>` and :data:`system.namespaces
-             <<database>.system.namespaces>` collections.
-
 
    On the ``local`` database, permits the following actions:
 
@@ -547,7 +486,6 @@ Cluster Administration Roles
           | :authaction:`dbHash`
           | :authaction:`dbStats`
           | :authaction:`find`
-          | :authaction:`getShardVersion`
           | :authaction:`indexStats`
           | :authaction:`killCursors`
           | :authaction:`listCollections`
@@ -567,29 +505,21 @@ Cluster Administration Roles
           | :authaction:`listSearchIndexes`
           | :authaction:`planCacheRead`
 
-
-          Starting in version 4.2, MongoDB removes the
-          :data:`system.indexes <<database>.system.indexes>` and
-          :data:`system.namespaces <<database>.system.namespaces>`
-          collections. As such, the :authrole:`clusterMonitor` role no
-          longer provides privileges to access these collections.
-          Direct access to these collections has been deprecated
-          since MongoDB 3.0.
-      
-          In earlier versions, the role provides the aforementioned
-          privilege actions on the :data:`system.indexes
-          <<database>.system.indexes>` and :data:`system.namespaces
-          <<database>.system.namespaces>` collections, thereby allowing
-          direct access to the :data:`system.indexes
-          <<database>.system.indexes>` and :data:`system.namespaces
-          <<database>.system.namespaces>` collections.
-              
-
       * - | :data:`system.replset <local.system.replset>`,
           | :data:`system.profile <<database>.system.profile>`,
 
         - :authaction:`find`
-   
+
+.. authrole:: enableSharding
+
+   Provides the ability to enable sharding for a collection and modify
+   existing shard keys.
+
+   Provides the following actions on all non-system collections:
+
+   - :authaction:`enableSharding`
+   - :authaction:`refineCollectionShardKey` 
+   - :authaction:`reshardCollection`
 
 .. authrole:: hostManager
 
@@ -602,6 +532,7 @@ Cluster Administration Roles
 
       - :authaction:`applicationMessage`
       - :authaction:`closeAllDatabases`
+      - :authaction:`compact` (New in version 7.3)
       - :authaction:`connPoolSync`
       - :authaction:`flushRouterConfig`
       - :authaction:`fsync`
@@ -617,12 +548,6 @@ Cluster Administration Roles
       - :authaction:`shutdown`
       - :authaction:`touch`
       - :authaction:`unlock`
-      
-   .. versionchanged:: 4.4
-   
-      Starting in version 4.4, :authrole:`hostManager` no longer
-      provides the :authaction:`cpuProfiler` privilege action on the
-      cluster.
 
    On *all* databases in the cluster, provides the following actions:
 
@@ -658,7 +583,7 @@ Backup and Restoration Roles
    - :authaction:`appendOplogNote`
    - :authaction:`getParameter`
    - :authaction:`listDatabases`
-   - :authaction:`serverStatus` (Starting in MongoDB 4.2)
+   - :authaction:`serverStatus` 
    - :authaction:`setUserWriteBlockMode` (Starting in MongoDB 6.0)
 
    Provides the :authaction:`find` action on the following:
@@ -780,24 +705,16 @@ Backup and Restoration Roles
    modification operations, *only* modify these data using the
    :ref:`user management methods <user-management-methods>`.
 
+   Provides the following action on the :data:`<database>.system.views`
+   collection:
+
+   - :authaction:`dropCollection` (Starting in MongoDB 7.2)
+
    On the :ref:`cluster <resource-cluster>` as a whole, provides the
    following actions:
 
    * :authaction:`bypassWriteBlockingMode` (Staring in MongoDB 6.0)
    * :authaction:`setUserWriteBlockMode` (Starting in MongoDB 6.0)
-
-   .. note:: Aside
-
-      Starting in version 4.2, MongoDB removes the
-      :data:`system.namespaces <<database>.system.namespaces>`
-      collection. As such, the :authrole:`restore` role no longer
-      provides privileges to access these collections. Direct access to
-      these collections has been deprecated since MongoDB 3.0.
-
-      In earlier versions, the :authrole:`restore` role provides the
-      aforementioned privilege actions on the :data:`system.namespaces
-      <<database>.system.namespaces>` collection, thereby allowing
-      direct access to the collection.
 
 .. include:: /includes/replacement-mms.rst
 

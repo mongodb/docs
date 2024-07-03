@@ -27,21 +27,6 @@ The ``map`` function has the following requirements:
 - The ``map`` function may optionally call ``emit(key,value)`` any number of
   times to create an output document associating ``key`` with ``value``.
 
-- In MongoDB 4.2 and earlier, a single emit can only hold half of
-  MongoDB's :ref:`maximum BSON document size
-  <limit-bson-document-size>`. MongoDB removes this restriction
-  starting in version 4.4.
-
-- Starting in MongoDB 4.4, :dbcommand:`mapReduce` no longer supports
-  the deprecated :ref:`BSON Type <bson-types>` JavaScript code with 
-  scope (BSON Type 15) for its functions. The ``map`` function must be 
-  either BSON Type String (BSON Type 2) or BSON Type JavaScript 
-  (BSON Type 13). To pass constant values which will be
-  accessible in the ``map`` function, use the ``scope`` parameter.
-
-  | The use of JavaScript code with scope for the ``map`` function has
-    been deprecated since version 4.2.1.
-
 The following ``map`` function will call ``emit(key,value)`` either
 0 or 1 times depending on the value of the input document's
 ``status`` field:
@@ -99,16 +84,6 @@ The ``reduce`` function exhibits the following behaviors:
   :ref:`maximum BSON document size <limit-bson-document-size>`. This
   requirement may be violated when large documents are returned and then
   joined together in subsequent ``reduce`` steps.
-
-- Starting in MongoDB 4.4, :dbcommand:`mapReduce` no longer supports
-  the deprecated BSON Type JavaScript code with scope (BSON Type 15) 
-  for its functions. The ``reduce`` function must be either BSON Type 
-  String (BSON Type 2) or BSON Type JavaScript (BSON Type 13). To pass 
-  constant values which will be accessible in the ``reduce`` function, 
-  use the ``scope`` parameter.
-
-  | The use of JavaScript code with scope for the ``reduce`` function
-    has been deprecated since version 4.2.1.
 
 Because it is possible to invoke the ``reduce`` function
 more than once for the same key, the following
@@ -207,20 +182,6 @@ following parameters:
   operation to write its output. By default this will be the same
   database as the input collection.
 
-- ``sharded``:
-
-  .. note::
-
-     Starting in version 4.2, the use of the ``sharded`` option is
-     deprecated.
-
-  Optional. If ``true`` *and* you have enabled sharding on output
-  database, the map-reduce operation will shard the output collection
-  using the ``_id`` field as the shard key.
-
-  If ``true`` and ``collectionName`` is an existing unsharded collection,
-  map-reduce fails.
-
 Output Inline
 ~~~~~~~~~~~~~~
 
@@ -263,15 +224,5 @@ aware that:
 
 - The ``finalize`` function can access the variables defined in
   the ``scope`` parameter.
-
-- Starting in MongoDB 4.4, :dbcommand:`mapReduce` no longer supports
-  the deprecated BSON Type JavaScript code with scope (BSON Type 15) for 
-  its functions. The ``finalize`` function must be either BSON Type 
-  String (BSON Type 2) or BSON Type JavaScript (BSON Type 13). To pass 
-  constant values which will be accessible in the ``finalize`` function, 
-  use the ``scope`` parameter.
-
-  | The use of JavaScript code with scope for the ``finalize`` function
-    has been deprecated since version 4.2.1.
 
 .. end-finalize

@@ -1,6 +1,6 @@
 Starting in MongoDB 3.6, you can use :ref:`causally consistent sessions
 <sessions>` to read your own writes, if the writes request
-acknowledgement.
+acknowledgment.
 
 Prior to MongoDB 3.6, in order to read your own writes you must issue
 your write operation with :writeconcern:`{ w: "majority" } <"majority">`

@@ -4,33 +4,49 @@ $mod
 
 .. default-domain:: mongodb
 
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta:: 
+   :keywords: code example
+
 .. contents:: On this page
    :local:
    :backlinks: none
    :depth: 1
    :class: singlecol
 
+Definition
+----------
+
 .. query:: $mod
 
    Select documents where the value of a field divided by a divisor has
-   the specified remainder (i.e. perform a modulo operation to select
-   documents). To specify a :query:`$mod` expression, use the following
-   syntax:
+   the specified remainder. That is, ``$mod`` performs a modulo 
+   operation to select documents. The first argument is the dividend, 
+   and the second argument is the remainder.
 
-   .. code-block:: javascript
+Syntax
+------
 
-      { field: { $mod: [ divisor, remainder ] } }
+To specify a ``$mod`` expression, use the following syntax:
+
+.. code-block:: javascript
+
+   { field: { $mod: [ divisor, remainder ] } }
 
 .. _mod-behavior:
 
 Behavior
 --------
 
-The ``$mod`` operator returns an error if the ``[ divisor, remainder ]`` array 
-contains fewer or more than two elements. For examples, see 
-:ref:`mod-not-enough-elements` and :ref:`mod-too-many-elements` respectively.
+``$mod`` returns an error if the ``[ divisor, remainder ]`` array
+doesn't contain two elements. For examples, see
+:ref:`mod-not-enough-elements` and :ref:`mod-too-many-elements`
+respectively.
 
-Also, starting in MongoDB 5.1 (and 5.0.4 and 4.4.10), ``$mod``
+Also, starting in MongoDB 5.1 (and 5.0.4), ``$mod``
 returns an error if the ``divisor`` or ``remainder`` values evaluate to:
 
 - ``NaN`` (not a number).
@@ -42,6 +58,13 @@ returns an error if the ``divisor`` or ``remainder`` values evaluate to:
 If a document in the collection contains a field where the value is  ``NaN`` 
 (not a number) or ``Infinity``, ``$mod`` doesn't include the document in the 
 output.
+
+Negative Dividend
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/negative-dividend.rst
+
+For an example, see :ref:`<mod-qo-negative-dividend-example>`.
 
 Examples
 --------
@@ -69,11 +92,13 @@ Then, the following query selects those documents in the
 
 The query returns the following documents:
 
-.. code-block:: javascript
+.. code-block:: json
    :copyable: false
 
-   { "_id" : 1, "item" : "abc123", "qty" : 0 }
-   { "_id" : 3, "item" : "ijk123", "qty" : 12 }
+   [
+     { '_id' : 1, 'item' : 'abc123', 'qty' : 0 },
+     { '_id' : 3, 'item' : 'ijk123', 'qty' : 12 }
+   ]
 
 .. _mod-not-enough-elements:
 
@@ -156,11 +181,13 @@ The following examples demonstrate this behavior:
 
    Results:
 
-   .. code-block:: javascript
+   .. code-block:: json
       :copyable: false
 
-      { _id: 1, item: 'abc123', qty: 0 }
-      { _id: 3, item: 'ijk123', qty: 12 }
+      [
+        { _id: 1, item: 'abc123', qty: 0 },
+        { _id: 3, item: 'ijk123', qty: 12 }
+      ]
 
 .. example::
 
@@ -172,11 +199,13 @@ The following examples demonstrate this behavior:
 
    Results:
 
-   .. code-block:: javascript
+   .. code-block:: json
       :copyable: false
 
-      { _id: 1, item: 'abc123', qty: 0 }
-      { _id: 3, item: 'ijk123', qty: 12 }
+      [
+        { _id: 1, item: 'abc123', qty: 0 },
+        { _id: 3, item: 'ijk123', qty: 12 }
+      ]
 
 .. example:: 
 
@@ -188,11 +217,47 @@ The following examples demonstrate this behavior:
 
    Results:
 
-   .. code-block:: javascript
+   .. code-block:: json
       :copyable: false
 
-      { _id: 1, item: 'abc123', qty: 0 }
-      { _id: 3, item: 'ijk123', qty: 12 }
+      [
+        { _id: 1, item: 'abc123', qty: 0 },
+        { _id: 3, item: 'ijk123', qty: 12 }
+      ]
 
 Each query applies ``4`` to the ``$mod`` expression regardless of 
 decimal points, resulting in the same result set.
+
+.. _mod-qo-negative-dividend-example:
+
+Negative Dividend
+~~~~~~~~~~~~~~~~~
+
+The ``$mod`` expression produces a negative result when the dividend
+is negative. 
+
+The following example demonstrates this behavior:
+
+.. example::
+
+   Input query:
+
+   .. code-block:: javascript
+
+      db.inventory.find( { qty: { $mod: [ -4, -0 ] } } )
+
+   This query returns two documents because the ``qty`` has a remainder
+   of ``-0`` when the dividend is negative and ``-0`` equals ``0`` in 
+   JavaScript. For details on this equality, see the 
+   `official JavaScript documentation 
+   <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#number_type>`_.
+
+   Results:
+
+   .. code-block:: json
+      :copyable: false
+
+      [
+        { _id: 1, item: 'abc123', qty: 0 },
+        { _id: 3, item: 'ijk123', qty: 12 }
+      ]

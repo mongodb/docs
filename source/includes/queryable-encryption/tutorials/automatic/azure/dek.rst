@@ -266,7 +266,7 @@
 
    To view a diagram showing how your client application creates your
    {+dek-long+} when using an {+azure-kv+}, see
-   :ref:`qe-reference-kms-providers-azure-architecture`.
+   :ref:`qe-fundamentals-kms-providers-azure-architecture`.
 
    To learn more about the options for creating a {+dek-long+}
    encrypted with a {+cmk-long+} hosted in {+azure-kv+}, see

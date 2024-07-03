@@ -13,14 +13,10 @@
        In earlier versions, PBWM information was reported as part of
        the ``Global`` lock information.
      
-       .. versionadded:: 4.2
-
    * - ``ReplicationStateTransition``
 
      - Represents lock taken for :doc:`replica set member state
        </reference/replica-states>` transitions.
-
-       .. versionadded:: 4.2
       
    * - ``Global``
 

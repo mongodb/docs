@@ -4,8 +4,6 @@ MongoDB {+version+} Enterprise Edition supports the following
 
 - Amazon Linux 2023
 
-- Amazon Linux 2
-
 MongoDB only supports the 64-bit versions of this platform.
 
 MongoDB {+version+} Enterprise Edition on Amazon Linux also supports the

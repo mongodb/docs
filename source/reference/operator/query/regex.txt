@@ -15,8 +15,8 @@ $regex
    :class: singlecol
 
 .. meta::
-   :description: pattern matching on strings in MongoDB {+latest-lts-version+}
-   :keywords: regex, regular expressions, LIKE queries, wildcard matches, pattern matches, MongoDB {+latest-lts-version+}, version {+latest-lts-version+}
+   :description: Learn how to pattern match on strings in MongoDB Atlas.
+   :keywords: LIKE queries, wildcard matches
 
 .. note::
 
@@ -45,13 +45,28 @@ Compatibility
 Syntax
 ------
 
-To use :query:`$regex`, use one of the following syntaxes:
+To use ``$regex``, use one of the following syntaxes:
 
 .. code-block:: javascript
 
    { <field>: { $regex: /pattern/, $options: '<options>' } }
-   { <field>: { $regex: 'pattern', $options: '<options>' } }
+   { "<field>": { "$regex": "pattern", "$options": "<options>" } }
    { <field>: { $regex: /pattern/<options> } }
+
+.. note:: 
+
+   To use ``$regex`` with :binary:`~bin.mongodump`, you must enclose the query 
+   document in single quotes ('{ ... }') to ensure that it does not interact 
+   with your shell environment. 
+   
+   The query document must be in :ref:`Extended JSON v2 
+   <mongodb-extended-json-v2>` format (either relaxed or canonical/strict mode), 
+   which includes enclosing the field names and operators in quotes. For 
+   example:
+
+   .. code-block:: sh
+
+      mongodump -d=sample_mflix -c=movies  -q='{"year": {"$regex": "20"}}'
 
 In MongoDB, you can also use regular expression objects (i.e.
 ``/pattern/``) to specify regular expressions:
@@ -72,16 +87,14 @@ expression.
 
 .. list-table::
    :header-rows: 1
-   :widths: 10 60 30
+   :widths: 20 80
 
    * - Option
      - Description
-     - Syntax Restrictions
 
    * - ``i``
-     - Case insensitivity to match upper and lower cases.
-          For an example, see :ref:`regex-case-insensitive`.
-     -
+     - Case insensitivity to match upper and lower cases. For an
+       example, see :ref:`regex-case-insensitive`.
 
    * - ``m``
 
@@ -95,12 +108,10 @@ expression.
        no newline characters (e.g. ``\n``), the ``m`` option has no
        effect.
 
-     -
-
    * - ``x``
 
      - "Extended" capability to ignore all white space characters in
-       the :query:`$regex` pattern unless escaped or included in a
+       the ``$regex`` pattern unless escaped or included in a
        character class.
 
        Additionally, it ignores characters in-between and including
@@ -113,20 +124,21 @@ expression.
        The ``x`` option does not affect the handling of the VT
        character (i.e. code 11).
 
-     - Requires ``$regex`` with ``$options`` syntax
-
    * - ``s``
 
      - Allows the dot character (i.e. ``.``) to match all
        characters *including* newline characters. For an example,
        see :ref:`regex-dot-new-line`.
 
-     - Requires ``$regex`` with ``$options`` syntax
+   * - ``u``
+
+     -  Supports Unicode. This flag is accepted, but is redundant. UTF is set by 
+        default in the ``$regex`` operator, making the ``u`` option 
+        unnecessary. 
 
 .. note:: 
 
-   The :query:`$regex` operator does not support the global search
-   modifier ``g``.
+   The ``$regex`` operator *does not* support the global search modifier ``g``.
 
 Behavior
 --------
@@ -147,14 +159,14 @@ only use JavaScript regular expression objects (i.e. ``/pattern/``
 
    { name: { $in: [ /^acme/i, /^ack/ ] } }
 
-You *cannot* use :query:`$regex` operator expressions inside an
-:query:`$in`.
+You *cannot* use ``$regex`` operator expressions inside an
+:query:`$in` operator.
 
 Implicit ``AND`` Conditions for the Field
 `````````````````````````````````````````
 
 To include a regular expression in a comma-separated list of query
-conditions for the field, use the :query:`$regex` operator. For example:
+conditions for the field, use the ``$regex`` operator. For example:
 
 .. code-block:: javascript
 
@@ -166,7 +178,7 @@ conditions for the field, use the :query:`$regex` operator. For example:
 ```````````````````````
 
 To use either the ``x`` option or ``s`` options, you must use the
-:query:`$regex` operator expression *with* the :query:`$options`
+``$regex`` operator expression *with* the :query:`$options`
 operator. For example, to specify the ``i`` and the ``s`` options, you
 must use :query:`$options` for both:
 
@@ -179,7 +191,7 @@ PCRE Versus JavaScript
 ``````````````````````
 
 To use {+pcre-abbr+}-supported features in a regular expression that
-aren't supported in JavaScript, you must use the :query:`$regex`
+aren't supported in JavaScript, you must use the ``$regex``
 operator and specify the regular expression as a string.
 
 To match case-insensitive strings:
@@ -198,7 +210,7 @@ These strings match the example regular expression:
 - ``"acme"``
 - ``"Acme"``
 
-The following example uses the :query:`$regex` operator to find ``name``
+The following example uses the ``$regex`` operator to find ``name``
 field strings that match the regular expression ``"(?i)a(?-i)cme"``:
 
 .. code-block:: javascript
@@ -221,7 +233,7 @@ operation on both:
 
      db.inventory.find( { item: { $not: /^p.*/ } } )
 
-- :query:`$regex` operator expressions 
+- ``$regex`` operator expressions 
 
   For example:
 
@@ -235,10 +247,16 @@ operation on both:
 Index Use
 ~~~~~~~~~~
 
+Index use and performance for ``$regex`` queries varies depending on
+whether the query is case-sensitive or case-insensitive.
+
+Case-Sensitive Queries
+``````````````````````
+
 .. TODO Probably should clean up a bit of the writing here
 
-For case sensitive regular expression queries, if an index exists for
-the field, then MongoDB matches the regular expression against the
+For case sensitive regular expression queries, if an index exists
+for the field, then MongoDB matches the regular expression against the
 values in the index, which can be faster than a collection scan.
 
 Further optimization can occur if the regular expression is a "prefix
@@ -258,9 +276,10 @@ All of these expressions use an index if an appropriate index
 exists; however, ``/^a.*/``, and ``/^a.*$/`` are slower. ``/^a/``
 can stop scanning after matching the prefix.
 
-Case insensitive regular expression queries generally cannot use indexes
-effectively. The ``$regex`` implementation is not collation-aware
-and is unable to utilize case-insensitive indexes.
+Case-Insensitive Queries
+````````````````````````
+
+.. include:: /includes/indexes/case-insensitive-regex-queries.rst
 
 Examples
 --------
@@ -362,7 +381,7 @@ Without the ``m`` option, the example output is:
       { _id: 104, sku: 'Abc789', description: 'SKU starts with A' }
    ]
 
-If the :query:`$regex` pattern does not contain an anchor, the pattern
+If the ``$regex`` pattern does not contain an anchor, the pattern
 matches against the string as a whole, as in the following example:
 
 .. code-block:: javascript

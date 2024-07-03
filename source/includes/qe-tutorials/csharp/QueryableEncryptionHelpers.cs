@@ -15,10 +15,10 @@ public class QueryableEncryptionHelpers
         _appSettings = appSettings;
     }
 
-    public Dictionary<string, IReadOnlyDictionary<string, object>> GetKmsProviderCredentials(string kmsProvider,
+    public Dictionary<string, IReadOnlyDictionary<string, object>> GetKmsProviderCredentials(string kmsProviderName,
         bool generateNewLocalKey)
     {
-        if (kmsProvider == "aws")
+        if (kmsProviderName == "aws")
         {
             // start-aws-kms-credentials
             var kmsProviderCredentials = new Dictionary<string, IReadOnlyDictionary<string, object>>();
@@ -27,11 +27,11 @@ public class QueryableEncryptionHelpers
                 { "accessKeyId", _appSettings["Aws:AccessKeyId"] }, // Your AWS access key ID
                 { "secretAccessKey", _appSettings["Aws:SecretAccessKey"] } // Your AWS secret access key
             };
-            kmsProviderCredentials.Add(kmsProvider, kmsOptions);
+            kmsProviderCredentials.Add("aws", kmsOptions);
             // end-aws-kms-credentials
             return kmsProviderCredentials;
         }
-        else if (kmsProvider == "azure")
+        else if (kmsProviderName == "azure")
         {
             // start-azure-kms-credentials
             var kmsProviderCredentials = new Dictionary<string, IReadOnlyDictionary<string, object>>();
@@ -41,11 +41,11 @@ public class QueryableEncryptionHelpers
                 { "clientId", _appSettings["Azure:ClientId"] }, // Your Azure client ID
                 { "clientSecret", _appSettings["Azure:ClientSecret"] } // Your Azure client secret
             };
-            kmsProviderCredentials.Add(kmsProvider, kmsOptions);
+            kmsProviderCredentials.Add("azure", kmsOptions);
             // end-azure-kms-credentials
             return kmsProviderCredentials;
         }
-        else if (kmsProvider == "gcp")
+        else if (kmsProviderName == "gcp")
         {
             // start-gcp-kms-credentials
             var kmsProviderCredentials = new Dictionary<string, IReadOnlyDictionary<string, object>>();
@@ -54,11 +54,11 @@ public class QueryableEncryptionHelpers
                 { "email", _appSettings["Gcp:Email"] }, // Your GCP email
                 { "privateKey", _appSettings["Gcp:PrivateKey"] } // Your GCP private key
             };
-            kmsProviderCredentials.Add(kmsProvider, kmsOptions);
+            kmsProviderCredentials.Add("gcp", kmsOptions);
             // end-gcp-kms-credentials
             return kmsProviderCredentials;
         }
-        else if (kmsProvider == "kmip")
+        else if (kmsProviderName == "kmip")
         {
             // start-kmip-kms-credentials
             var kmsProviderCredentials = new Dictionary<string, IReadOnlyDictionary<string, object>>();
@@ -66,11 +66,11 @@ public class QueryableEncryptionHelpers
             {
                 { "endpoint", _appSettings["Kmip:KmsEndpoint"] } // Your KMIP KMS endpoint
             };
-            kmsProviderCredentials.Add(kmsProvider, kmsOptions);
+            kmsProviderCredentials.Add("kmip", kmsOptions);
             // end-kmip-kms-credentials
             return kmsProviderCredentials;
         }
-        else if (kmsProvider == "local")
+        else if (kmsProviderName == "local")
         {
             if (generateNewLocalKey)
             {
@@ -100,12 +100,17 @@ public class QueryableEncryptionHelpers
                 var localCustomerMasterKeyBase64 = File.ReadAllText("customer-master-key.txt");
                 var localCustomerMasterKeyBytes = Convert.FromBase64String(localCustomerMasterKeyBase64);
 
+                if (localCustomerMasterKeyBytes.Length != 96)
+                {
+                    throw new Exception("Expected the customer master key file to be 96 bytes.");
+                }
+
                 var localOptions = new Dictionary<string, object>
                 {
                     { "key", localCustomerMasterKeyBytes }
                 };
 
-                kmsProviderCredentials.Add(kmsProvider, localOptions);
+                kmsProviderCredentials.Add("local", localOptions);
             }
             // end-get-local-key
             catch (Exception e)
@@ -116,7 +121,7 @@ public class QueryableEncryptionHelpers
 
         }
 
-        throw new Exception("Unrecognized value for KMS provider name \"" + kmsProvider + "\"  encountered while retrieving KMS credentials.");
+        throw new Exception("Unrecognized value for KMS provider name \"" + kmsProviderName + "\"  encountered while retrieving KMS credentials.");
     }
 
     public BsonDocument GetCustomerMasterKeyCredentials(string kmsProvider)

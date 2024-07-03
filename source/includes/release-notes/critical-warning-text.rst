@@ -1,4 +1,3 @@
-Some past releases have critical issues. These releases are not
-recommended for production use. Use the latest available patch release
-version instead.
-
+The Critical Advisories below affect some prior MongoDB versions. If your 
+deployment depends on features impacted by a Critical Advisory, upgrade to 
+the latest available patch release. 

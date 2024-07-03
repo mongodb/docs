@@ -13,6 +13,9 @@ MongoDB Limits and Thresholds
 .. meta:: 
    :keywords: case sensitive
 
+.. meta:: 
+   :description: Hard and soft limitations of the MongoDB system in Atlas, Enterprise, and Community.  
+
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -210,7 +213,7 @@ tiers:
            - 32000
 
          * - ``M80``
-           - 96000
+           - 64000
 
          * - ``M140``
            - 96000
@@ -321,8 +324,8 @@ limits:
      - 250
 
    * - :ref:`Linked organizations <cross-org-billing>` per 
-       {+atlas+} user
-     - 50
+       cross-organization configuration
+     - 250
 
    * - Clusters per {+atlas+} project
      - 25
@@ -366,6 +369,13 @@ limits:
 
    * - Unique shard keys per {+atlas+} project
      - 40
+
+   * - `Atlas Data Lake <https://www.mongodb.com/docs/datalake/>`__
+       pipelines per {+atlas+} project
+     - 25
+
+   * - ``M0`` clusters per {+atlas+} project
+     - 1
 
 {+atlas+} Label Limits
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -491,7 +501,7 @@ Naming Restrictions
 
 .. limit:: Length of Database Names
 
-   Database names cannot be empty and must have fewer than 64 characters.
+   Database names cannot be empty and must be less than 64 bytes.
 
 .. limit:: Restriction on Collection Names
 
@@ -566,52 +576,10 @@ Namespaces
 Indexes
 -------
 
-.. _limit-index-size:
-.. limit:: Index Key Limit
-
-
-   .. note:: Changed in version 4.2
-
-
-      Starting in version 4.2, MongoDB removes the :limit:`Index Key
-      Limit` for :ref:`featureCompatibilityVersion <view-fcv>` (fCV)
-      set to ``"4.2"`` or greater.
-
-   For MongoDB 2.6 through MongoDB versions with fCV set to ``"4.0"`` or
-   earlier, the *total size* of an index entry, which can include
-   structural overhead depending on the BSON type, must be *less than*
-   1024 bytes.
-
-   .. |limit| replace:: :limit:`index key limit <Index Key Limit>`
-
-   .. include:: /includes/list-index-field-limit-behaviors.rst
-
 .. _limit-number-of-indexes-per-collection:
 .. limit:: Number of Indexes per Collection
 
    A single collection can have *no more* than 64 indexes.
-
-.. _limit-index-name-length:
-.. limit:: Index Name Length
-
-   .. note:: Changed in version 4.2
-
-
-      Starting in version 4.2, MongoDB removes the
-      :limit:`Index Name Length` limit for MongoDB versions with
-      :ref:`featureCompatibilityVersion <view-fcv>` (fCV) set to
-      ``"4.2"`` or greater.
-
-   In previous versions of MongoDB or MongoDB versions with fCV set
-   to ``"4.0"`` or earlier, fully qualified index names, which include
-   the namespace and the dot separators (i.e. ``<database
-   name>.<collection name>.$<index name>``), cannot be longer than 127
-   bytes.
-
-   By default, ``<index name>`` is the concatenation of the field names
-   and index type. You can explicitly specify the ``<index name>`` to
-   the :method:`~db.collection.createIndex()` method to ensure that the
-   fully qualified index name does not exceed the limit.
 
 .. limit:: Number of Indexed Fields in a Compound Index
 
@@ -672,7 +640,7 @@ Indexes
 
 .. limit:: Hidden Indexes
 
-   - You cannot :doc:`hide </core/index-hidden>` the ``_id`` index.
+   - You cannot :ref:`hide <index-type-hidden>` the ``_id`` index.
 
    - You cannot use :method:`~cursor.hint()` on a :doc:`hidden index
      </core/index-hidden>`.
@@ -764,30 +732,19 @@ Sharding Operational Restrictions
 Shard Key Limitations
 ~~~~~~~~~~~~~~~~~~~~~
 
-.. limit:: Shard Key Size
-
-   Starting in version 4.4, MongoDB removes the limit on the shard key size.
-
-   For MongoDB 4.2 and earlier, a shard key cannot exceed 512 bytes.
-
 .. limit:: Shard Key Index Type
 
    .. include:: /includes/limits-sharding-index-type.rst
 
-.. limit:: Shard Key Selection is Immutable in MongoDB 4.2 and Earlier
+.. limit:: Shard Key Selection 
 
    Your options for changing a shard key depend on the version of
    MongoDB that you are running:
 
    - Starting in MongoDB 5.0, you can :ref:`reshard a collection
      <sharding-resharding>` by changing a document's shard key.
-   - Starting in MongoDB 4.4, you can :ref:`refine a shard key
-     <shard-key-refine>` by adding a suffix field or fields to the
-     existing shard key.
-   - In MongoDB 4.2 and earlier, the choice of shard key cannot be
-     changed after sharding.
-
-   .. include:: /includes/limits-sharding-shardkey-immutable.rst
+   - You can :ref:`refine a shard key <shard-key-refine>` by adding a suffix 
+     field or fields to the existing shard key.
 
 .. limit:: Monotonically Increasing Shard Keys Can Limit Insert Throughput
 
@@ -807,15 +764,10 @@ Operations
    
    If MongoDB requires using more than 100 megabytes of system memory
    for the blocking sort operation, MongoDB returns an error *unless*
-   the query specifies :method:`cursor.allowDiskUse()` (*New in MongoDB
-   4.4*). :method:`~cursor.allowDiskUse()` allows MongoDB to use
-   temporary files on disk to store data exceeding the 100 megabyte
-   system memory limit while processing a blocking sort operation.
-   
-   .. versionchanged:: 4.4
-   
-      For MongoDB 4.2 and prior, blocking sort operations could not
-      exceed 32 megabytes of system memory.
+   the query specifies :method:`cursor.allowDiskUse()`. 
+   :method:`~cursor.allowDiskUse()` allows MongoDB to use temporary files on 
+   disk to store data exceeding the 100 megabyte system memory limit while 
+   processing a blocking sort operation.
 
    For more information on sorts and index use, see
    :ref:`sort-index-use`.
@@ -895,11 +847,7 @@ Operations
 
    - .. include:: /includes/extracts/views-unsupported-mapReduce.rst
 
-   - .. include:: /includes/extracts/views-unsupported-geoNear.rst
-
 .. limit:: Projection Restrictions
-
-   .. versionadded:: 4.4
 
     ``$``-Prefixed Field Path Restriction
        .. include:: /includes/extracts/projection-dollar-prefixed-field-full.rst

@@ -97,6 +97,15 @@ shard immediately, it can take some time before the cluster balances.
 See the :ref:`Add Shards to a Cluster <sharding-procedure-add-shard>` 
 tutorial for instructions on adding a shard to a cluster.
 
+.. tip::
+
+   If your application meets the :ref:`reshard-requirements`, you can use the
+   :dbcommand:`reshardCollection` command to redistribute data across the
+   cluster to include the new shards.  This process is much faster than the
+   alternative :ref:`range-migration-procedure`.
+
+   For an example, see :ref:`reshardCollection-redistribute-data`.
+
 Removing a shard from a cluster creates a similar imbalance, since data
 residing on that shard must be redistributed throughout the cluster. 
 While MongoDB begins draining a removed shard immediately, it can take 
@@ -156,6 +165,8 @@ All range migrations use the following procedure:
       the source shard, the balancer can start the next chunk migration
       without waiting for the current migration process to finish this
       deletion step. See :ref:`chunk-migration-queuing`.
+
+.. include:: /includes/secondary-reads-sharded-cluster-can-miss-docs-balancing.rst
 
 .. seealso::
 
@@ -227,15 +238,9 @@ when the migration proceeds with next document in the range.
 In the :data:`config.settings` collection:
 
 - If the ``_secondaryThrottle`` setting for the balancer is set to a
-  write concern, each document move during range migration must receive
-  the requested acknowledgement before proceeding with the next
+  :term:`write concern`, each document moved during range migration must receive
+  the requested acknowledgment before proceeding with the next
   document.
-
-- If the ``_secondaryThrottle`` setting for the balancer is set to
-  ``true``, each document move during range migration must receive
-  acknowledgement from at least one secondary before the migration
-  proceeds with the next document in the range. This is equivalent to a
-  write concern of :writeconcern:`{ w: 2 } <\<number\>>`.
 
 - If the ``_secondaryThrottle`` setting is unset, the migration process
   does not wait for replication to a secondary and instead continues

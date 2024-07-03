@@ -70,10 +70,18 @@ randomly-selected shard in the set of shards targeted by the aggregation.
 For more information on how the work of aggregation is split among
 components of a sharded cluster query, use ``explain:true`` as a
 parameter to the :method:`~db.collection.aggregate()` call. The
-return includes three json objects. ``mergeType`` shows where the
-stage of the merge happens ("primaryShard", "anyShard", or "mongos").
-``splitPipeline`` shows which operations in your pipeline have run on
-individual shards. ``shards`` shows the work each shard has done.
+return includes three JSON objects: 
+
+- ``mergeType`` shows where the
+  stage of the merge happens ("primaryShard", "anyShard", "specificShard", 
+  or "mongos"). When ``mergeType`` is ``specificShard``, the aggregate 
+  output includes a ``mergeShard`` property that contains the shard ID of the 
+  merging shard. 
+
+- ``splitPipeline`` shows which operations in your pipeline have 
+  run on individual shards. 
+
+- ``shards`` shows the work each shard has done.
 
 In some cases, when the :term:`shard key` or a prefix of the shard key
 is a part of the query, the :binary:`~bin.mongos` performs a
@@ -89,10 +97,6 @@ selectivity of the query.
 
 See :ref:`sharding-query-isolation` for more on targeted and
 broadcast operations.
-
-``mongos`` can support :ref:`hedged reads <mongos-hedged-reads>` to
-minimize latencies. See :ref:`hedged reads <mongos-hedged-reads>` for
-more information.
 
 How ``mongos`` Handles Query Modifiers
 --------------------------------------
@@ -148,7 +152,11 @@ For details on read preference and sharded clusters, see
 Hedged Reads
 ~~~~~~~~~~~~
 
-Starting in version 4.4, :binary:`~bin.mongos` instances can hedge
+.. important::
+
+   .. include:: /includes/hedged-reads-deprecated.rst
+
+:binary:`~bin.mongos` instances can hedge
 reads that use non-``primary`` :doc:`read preferences
 </core/read-preference>`. With hedged reads, the :binary:`~bin.mongos`
 instances route read operations to two replica set members per each

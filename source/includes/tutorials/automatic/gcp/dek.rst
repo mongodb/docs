@@ -181,9 +181,9 @@
 
    To view a diagram showing how your client application creates your
    {+dek-long+} when using an {+gcp-kms+}, see
-   :ref:`csfle-reference-kms-providers-gcp-architecture`.
+   :ref:`qe-fundamentals-kms-providers-gcp-architecture`.
 
    To learn more about the options for creating a {+dek-long+}
    encrypted with a {+cmk-long+} hosted in {+azure-kv+}, see
-   :ref:`csfle-kms-provider-object-gcp` and
-   :ref:`csfle-kms-datakeyopts-gcp`.
+   :ref:`qe-kms-provider-object-gcp` and
+   :ref:`qe-kms-datakeyopts-gcp`.

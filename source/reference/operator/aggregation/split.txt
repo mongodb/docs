@@ -145,13 +145,15 @@ A collection named ``deliveries`` contains the following documents:
 
 .. code-block:: javascript
 
-   { "_id" : 1, "city" : "Berkeley, CA", "qty" : 648 }
-   { "_id" : 2, "city" : "Bend, OR", "qty" : 491 }
-   { "_id" : 3, "city" : "Kensington, CA", "qty" : 233 }
-   { "_id" : 4, "city" : "Eugene, OR", "qty" : 842 }
-   { "_id" : 5, "city" : "Reno, NV", "qty" : 655 }
-   { "_id" : 6, "city" : "Portland, OR", "qty" : 408 }
-   { "_id" : 7, "city" : "Sacramento, CA", "qty" : 574 }
+   db.deliveries.insertMany( [
+      { _id: 1, city: "Berkeley, CA", qty: 648 },
+      { _id: 2, city: "Bend, OR", qty: 491 },
+      { _id: 3, city: "Kensington, CA", qty: 233 },
+      { _id: 4, city: "Eugene, OR", qty: 842 },
+      { _id: 5, city: "Reno, NV", qty: 655 },
+      { _id: 6, city: "Portland, OR", qty: 408 },
+      { _id: 7, city: "Sacramento, CA", qty: 574 }
+   ] )
 
 The goal of following aggregation operation is to find the total
 quantity of deliveries for each state and sort the list in
@@ -176,18 +178,21 @@ descending order. It has five pipeline stages:
 
 .. code-block:: javascript
 
-   db.deliveries.aggregate([
-     { $project : { city_state : { $split: ["$city", ", "] }, qty : 1 } },
-     { $unwind : "$city_state" },
-     { $match : { city_state : /[A-Z]{2}/ } },
-     { $group : { _id: { "state" : "$city_state" }, total_qty : { "$sum" : "$qty" } } },
-     { $sort : { total_qty : -1 } }
-   ]);
+   db.deliveries.aggregate( [
+     { $project: { city_state: { $split: ["$city", ", "] }, qty: 1 } },
+     { $unwind: "$city_state" },
+     { $match: { city_state: /[A-Z]{2}/ } },
+     { $group: { _id: { state: "$city_state" }, total_qty: { $sum: "$qty" } } },
+     { $sort: { total_qty: -1 } }
+   ] )
 
 The operation returns the following results:
 
 .. code-block:: javascript
+   :copyable: false
 
-   { "_id" : { "state" : "OR" }, "total_qty" : 1741 }
-   { "_id" : { "state" : "CA" }, "total_qty" : 1455 }
-   { "_id" : { "state" : "NV" }, "total_qty" : 655 }
+   [
+      { _id: { state: "OR" }, total_qty: 1741 },
+      { _id: { state: "CA" }, total_qty: 1455 },
+      { _id: { state: "NV" }, total_qty: 655 }
+   ]

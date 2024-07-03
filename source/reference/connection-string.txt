@@ -1,3 +1,7 @@
+.. facet::
+   :name: programming_language
+   :values: csharp, go, java, javascript/typescript, perl, php, python, ruby, rust, scala, shell
+
 
 
 .. _mongodb-uri:
@@ -13,7 +17,10 @@ Connection Strings
    :values: shell
 
 .. meta:: 
-   :keywords: atlas, drivers
+   :keywords: atlas, drivers, code example, node.js, compass
+
+.. meta:: 
+   :description: Use connection strings to establish connections between MongoDB instances, tools, and applications that use drivers. 
 
 .. contents:: On this page
    :local:
@@ -138,7 +145,7 @@ of the following formats:
   string that specifies all hosts that are running the 
   :binary:`~bin.mongod` or :binary:`~bin.mongos` instances.
 
-{+atlas+} database deployments use :ref:`SRV connection format
+{+atlas+} clusters use :ref:`SRV connection format
 <connections-dns-seedlist>` unless you connect to an 
 :atlas:`online archive </online-archive/manage-online-archive/>`.
 
@@ -392,6 +399,17 @@ authenticates as user ``myDatabaseUser`` with the password
        uri. For specific details, refer to your :driver:`driver </>` 
        documentation.
 
+   * - .. urioption:: directConnection
+
+     - Specifies whether the client connects directly to the ``host[:port]`` in the
+       connection URI:
+       
+       - ``true``: The client sends operations to only the specified host. It doesn't
+         attempt to discover any other members of the replica set.
+
+       - ``false``: The client attempts to discover all servers in the replica set,
+         and sends operations to the primary member. This is the default value.
+
 Connection Options
 ~~~~~~~~~~~~~~~~~~
 
@@ -401,8 +419,8 @@ TLS Options
 ```````````
 
 The following connection string to a replica set includes 
-:urioption:`tls=true <tls>` option (available starting in MongoDB 4.2).
-It authenticates as user ``myDatabaseUser`` with the password ``D1fficultP%40ssw0rd``.
+:urioption:`tls=true <tls>` option. It authenticates as user ``myDatabaseUser`` 
+with the password ``D1fficultP%40ssw0rd``.
 
 .. code-block:: none
 
@@ -440,12 +458,10 @@ Alternatively, you can also use the equivalent :urioption:`ssl=true
        If the :binary:`mongosh` shell specifies additional
        :mongosh:`tls/ssl <mongosh-tls>` options from the
        command-line, use the ``--tls`` command-line option instead.
-       
-       .. versionadded:: 4.2
 
    * - .. urioption:: ssl
 
-     - A boolean to enable or disables TLS/SSL for the connection:
+     - A boolean to enable or disable TLS/SSL for the connection:
   
        - ``true``: Initiate the connection with TLS/SSL. Default for
          :ref:`connections-dns-seedlist`.
@@ -479,8 +495,6 @@ Alternatively, you can also use the equivalent :urioption:`ssl=true
        
        .. include:: /includes/fact-uri-option-availability.rst
 
-       .. versionadded:: 4.2
-
    * - .. urioption:: tlsCertificateKeyFilePassword
 
      - Specifies the password to de-crypt the
@@ -490,8 +504,6 @@ Alternatively, you can also use the equivalent :urioption:`ssl=true
        :driver:`Drivers </>` documentation.
 
        .. include:: /includes/fact-uri-option-availability.rst
-
-       .. versionadded:: 4.2
 
    * - .. urioption:: tlsCAFile
 
@@ -505,8 +517,6 @@ Alternatively, you can also use the equivalent :urioption:`ssl=true
        :driver:`Drivers </>` documentation.
 
        .. include:: /includes/fact-uri-option-availability.rst
-
-       .. versionadded:: 4.2
 
    * - .. urioption:: tlsAllowInvalidCertificates
    
@@ -524,8 +534,6 @@ Alternatively, you can also use the equivalent :urioption:`ssl=true
        .. warning::
 
           Disabling certificate validation creates a vulnerability.
-
-       .. versionadded:: 4.2
 
    * - .. urioption:: tlsAllowInvalidHostnames
 
@@ -545,9 +553,6 @@ Alternatively, you can also use the equivalent :urioption:`ssl=true
 
           Disabling certificate validation creates a vulnerability.
 
-       .. versionadded:: 4.2
-
-
    * - .. urioption:: tlsInsecure
 
      - Disables various certificate validations. 
@@ -561,8 +566,6 @@ Alternatively, you can also use the equivalent :urioption:`ssl=true
        .. warning::
 
           Disabling certificate validation creates a vulnerability.
-
-       .. versionadded:: 4.2
 
 Timeout Options
 ````````````````
@@ -609,9 +612,9 @@ Compression Options
 
        - :term:`snappy`
 
-       - :term:`zlib` (Available in MongoDB 3.6 or greater)
+       - :term:`zlib` 
 
-       - :term:`zstd` (Available in MongoDB 4.2 or greater)
+       - :term:`zstd` 
 
        If you specify multiple compressors, then the order in which you list
        the compressors matter as well as the communication initiator. For
@@ -697,6 +700,16 @@ connecting to the MongoDB deployment.
           drivers. For information on your driver, see the
           :driver:`Drivers </>` documentation.
 
+   * - .. urioption:: maxConnecting
+
+     - Maximum number of connections a pool may be establishing
+       concurrently. The default value is ``2``.
+
+       ``maxConnecting`` is supported for all drivers **except** the
+       :driver:`Rust Driver </rust/current/>`.
+
+       .. include:: /includes/connection-pool/max-connecting-use-case.rst
+   
    * - .. urioption:: maxIdleTimeMS
 
      - The maximum number of milliseconds that a connection can remain
@@ -768,7 +781,7 @@ timeout using the :urioption:`wtimeoutMS` write concern parameter:
    * - .. urioption:: w
 
      - Corresponds to the write concern :ref:`wc-w`. The ``w`` option
-       requests acknowledgement that the write operation has propagated
+       requests acknowledgment that the write operation has propagated
        to a specified number of :binary:`~bin.mongod` instances or to
        :binary:`~bin.mongod` instances with specified tags.
 
@@ -790,7 +803,7 @@ timeout using the :urioption:`wtimeoutMS` write concern parameter:
    * - .. urioption:: journal
 
      - Corresponds to the write concern :ref:`wc-j` option. The
-       :urioption:`journal` option requests acknowledgement from
+       :urioption:`journal` option requests acknowledgment from
        MongoDB that the write operation has been written to the
        :ref:`journal <journaling-internals>`. For details, see :ref:`wc-j`.
 
@@ -847,11 +860,6 @@ Read Preference Options
 behavior of read operations with regards to :term:`replica sets
 <replica set>`. These parameters allow you to specify read preferences
 on a per-connection basis in the connection string.
-
-.. note::
-
-   To specify the hedged reads option using the drivers, refer to the
-   :driver:`drivers' read preference API </>`.
 
 For example:
 
@@ -1013,7 +1021,7 @@ credentials are authenticated against the ``admin`` database.
 
        - :ref:`MONGODB-X509 <security-auth-x509>`
 
-       - ``MONGODB-AWS`` (*Added in MongoDB 4.4*)
+       - ``MONGODB-AWS``
 
        - :ref:`GSSAPI <security-auth-kerberos>` (Kerberos)
 
@@ -1188,6 +1196,16 @@ or write operations.
        :binary:`~bin.mongos` does not support changing the frequency of
        the heartbeat checks.
 
+   * - .. urioption:: socketCheckIntervalMS
+
+     - **Single-threaded clients only**. Controls how often the client checks the
+       state of the TCP connection to the MongoDB deployment. If you specify a lower
+       value, the client detects network issues faster but uses more CPU.
+       *Default*: 5 seconds.
+
+       This option is not supported by all drivers. Refer to the
+       :driver:`Drivers </>` documentation.
+
 Miscellaneous Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1224,14 +1242,11 @@ Miscellaneous Configuration
 
        - ``true``. Enables retryable reads for the connection. 
 
-         Official MongoDB drivers compatible with 
-         MongoDB Server 4.2 and later default to ``true``.
+         Official MongoDB drivers default to ``true``.
 
        - ``false``. Disables retryable reads for the connection.
        
        :binary:`~bin.mongosh` does not support retryable reads.
-
-       .. versionadded:: 4.2
 
    * - .. urioption:: retryWrites
 
@@ -1241,7 +1256,7 @@ Miscellaneous Configuration
 
        - ``true``. Enables retryable writes for the connection. 
 
-         Official MongoDB 4.2+ compatible drivers default to ``true``.
+         Official MongoDB drivers default to ``true``.
 
        - ``false``. Disables retryable writes for the connection. 
        
@@ -1276,6 +1291,26 @@ Miscellaneous Configuration
           Not all drivers support the :urioption:`uuidRepresentation`
           option. For information on your driver, see the :driver:`drivers
           </>` documentation.
+   
+   * - .. urioption:: loadBalanced 
+     
+     - Specifies whether the client is connecting to a load balancer. This option is
+       ``false`` by default.
+
+       You can set this option to ``true`` only if you meet the following
+       requirements:
+       
+       - You specify only one host name.
+       - You aren't connecting to a replica set.
+       - The :urioption:`srvMaxHosts` option is unset or has a value of ``0``.
+       - The :urioption:`directConnection` option is unset or has a value of ``false``.
+
+   * - .. urioption:: srvMaxHosts
+
+     - Specifies the number of :binary:`~bin.mongos` connections that can be created for
+       sharded topologies. Set this option to a non-negative integer.
+       ``0`` is the default value and means there is no limit on the number of
+       :binary:`~bin.mongos` connections.
 
 .. _connections-connection-examples:
 
@@ -1299,8 +1334,6 @@ deployment.
 
 {+atlas+} Cluster that Authenticates with AWS IAM credentials
 `````````````````````````````````````````````````````````````````
-
-.. versionadded:: 4.4
 
 The following connects to a `MongoDB Atlas
 <https://www.mongodb.com/atlas/database?tck=docs_server>`_ cluster which
@@ -1481,4 +1514,3 @@ The following connects to a sharded cluster with three :binary:`~bin.mongos` ins
 ``D1fficultP%40ssw0rd``:
 
 .. include:: /includes/connection-examples-by-language-sharded.rst
-
