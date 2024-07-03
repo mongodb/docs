@@ -33,7 +33,6 @@ database it applies to, and the :manual:`privilege actions
        - :authaction:`listDatabases`
        - :authaction:`listSessions`
        - :authaction:`listShards`
-       - :authaction:`netstat`
        - :authaction:`replSetGetConfig`
        - :authaction:`replSetGetStatus`
        - :authaction:`serverStatus`
