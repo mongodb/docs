@@ -57,9 +57,3 @@
      - One license for any number of servers up to the maximum of
        the total GB of RAM you purchased across these servers.
 
-   * - Backing Database
-     - Hosts your |onprem| backing database.
-       :ref:`enable-application-database-monitoring` to enable this
-       option.
-     - None
-
