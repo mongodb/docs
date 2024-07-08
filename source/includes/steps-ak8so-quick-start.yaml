@@ -38,18 +38,18 @@ content: |
 
     .. code-block:: sh
 
-       kubectl apply -f https://raw.githubusercontent.com/mongodb/mongodb-atlas-kubernetes/<version>/deploy/all-in-one.yaml
+       kubectl apply -f https://raw.githubusercontent.com/mongodb/mongodb-atlas-kubernetes/v<version>/deploy/all-in-one.yaml
   
   - If you want |ak8so| to watch only its |k8s-ns|, you must install 
     the configuration files from the ``deploy/namespaced`` directory:
 
     .. code-block:: sh
 
-       kubectl apply -f https://raw.githubusercontent.com/mongodb/mongodb-atlas-kubernetes/<version>/deploy/namespaced/crds.yaml
+       kubectl apply -f https://raw.githubusercontent.com/mongodb/mongodb-atlas-kubernetes/v<version>/deploy/namespaced/crds.yaml
 
     .. code-block:: sh
 
-       kubectl apply -f https://raw.githubusercontent.com/mongodb/mongodb-atlas-kubernetes/<version>/deploy/namespaced/namespaced-config.yaml
+       kubectl apply -f https://raw.githubusercontent.com/mongodb/mongodb-atlas-kubernetes/v<version>/deploy/namespaced/namespaced-config.yaml
 
 ---
 
@@ -118,8 +118,10 @@ title: "Create the ``AtlasDeployment`` custom resource."
 ref: create-atlasdeployment
 content: |
 
-  Run the following command to create an 
+  Run one of the following commands to create an 
   :ref:`atlasdeployment-custom-resource` and create a {+cluster+}:
+
+  **Paid Tier:**
   
   .. code-block:: sh
 
@@ -137,16 +139,41 @@ content: |
          tags: 
            - key: "environment"
              value: "production"
-       replicationSpecs:
-         - zoneName: US-Zone
-           regionConfigs:
-             - electableSpecs:
-                  instanceSize: M10
-                  nodeCount: 3
-               providerName: AWS
-               regionName: US_EAST_1
-               priority: 7
+         replicationSpecs:
+           - zoneName: US-Zone
+             regionConfigs:
+               - electableSpecs:
+                   instanceSize: M10
+                   nodeCount: 3
+                 providerName: AWS
+                 regionName: US_EAST_1
+                 priority: 7
                  
+     EOF
+
+  **Free Tier:**
+
+  .. code-block:: sh
+
+     cat <<EOF | kubectl apply -f -
+     apiVersion: atlas.mongodb.com/v1
+     kind: AtlasDeployment
+     metadata:
+       name: my-atlas-cluster
+     spec:
+       projectRef:
+         name: my-project
+       deploymentSpec:
+         clusterType: REPLICASET
+         name: "Test-cluster"
+         replicationSpecs:
+           - regionConfigs:
+               - regionName: US_EAST_1
+                 providerName: TENANT
+                 backingProviderName: AWS
+                 electableSpecs:
+                   instanceSize: M0
+                   nodeCount: 3                 
      EOF
 
   To create a {+serverless-instance+}, see the
