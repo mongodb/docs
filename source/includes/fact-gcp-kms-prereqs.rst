@@ -15,9 +15,9 @@
 
      The key, not the key version, handles decryption.
 
-- If your |gcp| |kms| configuration requires it, use :gcp:`Accessible
-  Services from GCP </vpc-service-controls/docs/vpc-accessible-services>`
-  from :ref:`Atlas IP addresses <atlas-add-inbound-ips>` and the public 
+- If your |gcp| |kms| configuration requires it, create :gcp:`Access
+  Levels from GCP </vpc-service-controls/docs/use-access-levels>`
+  for :ref:`Atlas IP addresses <atlas-add-inbound-ips>` and the public 
   IP addresses or DNS hostnames of your cluster nodes so that |service| 
   can communicate with your |kms|. If the node IP addresses 
   :ref:`change <faq-public-ip-changes>`, you must update your 
