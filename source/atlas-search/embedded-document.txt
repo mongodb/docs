@@ -13,7 +13,7 @@ embeddedDocument
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 .. note:: 
@@ -160,8 +160,12 @@ Examples
 --------
 
 The following examples use the ``sample_supplies.sales`` collection 
-in the :ref:`sample dataset <available-sample-datasets>`. These 
-examples use the following index definition on the collection: 
+in the :ref:`sample dataset <available-sample-datasets>`. 
+
+Index Definition 
+~~~~~~~~~~~~~~~~
+
+These sample queries use the following index definition on the collection: 
 
 .. code-block:: json 
 
@@ -191,307 +195,524 @@ examples use the following index definition on the collection:
      }
    }
 
-.. tabs:: 
+Basic Query  
+~~~~~~~~~~~
 
-   .. tab:: Basic Example 
-      :tabid: basic 
+The following query searches the collection for items tagged ``school``
+with a preference for items named ``backpack``. |fts| scores the results
+in descending order based on the average (arithmetic mean) score of all
+matching embedded documents. The query includes a :pipeline:`$limit`
+stage to limit the output to ``5`` documents and a :pipeline:`$project`
+stage to: 
 
-      The following query searches the collection for items tagged 
-      ``school`` with a preference for items named ``backpack``. |fts| 
-      scores the results in descending order based on the average 
-      (arithmetic mean) score of all matching embedded documents. The 
-      query includes a :pipeline:`$limit` stage to limit the output to 
-      ``5`` documents and a :pipeline:`$project` stage to:
+- Exclude all fields except ``items.name`` and ``items.tags`` fields 
+- Add a field named ``score`` 
 
-      - Exclude all fields except ``items.name`` and ``items.tags`` fields 
-      - Add a field named ``score`` 
+.. io-code-block:: 
+   :copyable: true 
 
-      .. io-code-block:: 
-         :copyable: true 
+   .. input:: 
+      :language: json
+      :linenos: 
 
-         .. input:: 
-            :language: json
-            :linenos: 
+      db.sales.aggregate({
+        "$search": {
+          "embeddedDocument": {
+            "path": "items",
+            "operator": {
+              "compound": {
+                "must": [{
+                  "text": {
+                    "path": "items.tags",
+                    "query": "school"
+                  }
+                }],
+                "should": [{
+                  "text": {
+                    "path": "items.name",
+                    "query": "backpack"
+                  }
+                }]
+              }
+            },
+            "score": {
+              "embedded": {
+                "aggregate": "mean"
+              }
+            }
+          }
+        }
+      },
+      {
+        $limit: 5
+      },
+      {
+        $project: {
+          "_id": 0,
+          "items.name": 1,
+          "items.tags": 1,
+          "score": { $meta: "searchScore" }
+        }
+      })
 
-            db.sales.aggregate({
-              "$search": {
-                "embeddedDocument": {
-                  "path": "items",
-                  "operator": {
-                    "compound": {
-                      "must": [{
+   .. output::
+      :language: json 
+      :visible: false
+
+      [
+        { 
+          items: [ { 
+            name: 'backpack', 
+            tags: [ 'school', 'travel', 'kids' ] 
+          } ], 
+          score: 1.2907354831695557 
+        },
+        { 
+          items: [ {
+            name: 'envelopes',
+            tags: [ 'stationary', 'office', 'general' ]
+          },
+          { 
+            name: 'printer paper', 
+            tags: [ 'office', 'stationary' ] 
+          },
+          { 
+            name: 'backpack', 
+            tags: [ 'school', 'travel', 'kids' ] 
+          } ], 
+          score: 1.2907354831695557
+        },
+        { 
+          items: [ { 
+            name: 'backpack', 
+            tags: [ 'school', 'travel', 'kids' ] 
+          } ], 
+          score: 1.2907354831695557 
+        },
+        { 
+          items: [ { 
+            name: 'backpack', 
+            tags: [ 'school', 'travel', 'kids' ] 
+          } ], 
+          score: 1.2907354831695557 
+        },
+        { 
+          items: [ { 
+            name: 'backpack', 
+            tags: [ 'school', 'travel', 'kids' ] 
+          } ], 
+          score: 1.2907354831695557 
+        }
+      ]
+
+Facet Query 
+~~~~~~~~~~~
+      
+The following query searches for items tagged ``school`` with a
+preference for items named ``backpack``. It requests facet information
+on the ``purchaseMethod`` field. 
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: 
+      :language: json
+      :linenos: 
+
+      db.sales.aggregate({
+        "$searchMeta": {
+          "facet": {
+            "operator": {
+              "embeddedDocument": {
+                "path": "items",
+                "operator": {
+                  "compound": {
+                    "must": [
+                      {
                         "text": {
                           "path": "items.tags",
                           "query": "school"
                         }
-                      }],
-                      "should": [{
+                      }
+                    ],
+                    "should": [
+                      {
                         "text": {
                           "path": "items.name",
                           "query": "backpack"
                         }
-                      }]
-                    }
-                  },
-                  "score": {
-                    "embedded": {
-                      "aggregate": "mean"
-                    }
-                  }
-                }
-              }
-            },
-            {
-              $limit: 5
-            },
-            {
-              $project: {
-                "_id": 0,
-                "items.name": 1,
-                "items.tags": 1,
-                "score": { $meta: "searchScore" }
-              }
-            })
-
-         .. output::
-            :language: json 
-
-            [
-              { 
-                items: [ { 
-                  name: 'backpack', 
-                  tags: [ 'school', 'travel', 'kids' ] 
-                } ], 
-                score: 1.2907354831695557 
-              },
-              { 
-                items: [ {
-                  name: 'envelopes',
-                  tags: [ 'stationary', 'office', 'general' ]
-                },
-                { 
-                  name: 'printer paper', 
-                  tags: [ 'office', 'stationary' ] 
-                },
-                { 
-                  name: 'backpack', 
-                  tags: [ 'school', 'travel', 'kids' ] 
-                } ], 
-                score: 1.2907354831695557
-              },
-              { 
-                items: [ { 
-                  name: 'backpack', 
-                  tags: [ 'school', 'travel', 'kids' ] 
-                } ], 
-                score: 1.2907354831695557 
-              },
-              { 
-                items: [ { 
-                  name: 'backpack', 
-                  tags: [ 'school', 'travel', 'kids' ] 
-                } ], 
-                score: 1.2907354831695557 
-              },
-              { 
-                items: [ { 
-                  name: 'backpack', 
-                  tags: [ 'school', 'travel', 'kids' ] 
-                } ], 
-                score: 1.2907354831695557 
-              }
-            ]
-
-   .. tab:: Facet Example 
-      :tabid: facet 
-      
-      The following query searches for items tagged ``school`` with a 
-      preference for items named ``backpack``. It requests facet 
-      information on the ``purchaseMethod`` field.
-
-      .. io-code-block:: 
-         :copyable: true 
-
-         .. input:: 
-            :language: json
-            :linenos: 
-
-            db.sales.aggregate({
-              "$searchMeta": {
-                "facet": {
-                  "operator": {
-                    "embeddedDocument": {
-                      "path": "items",
-                      "operator": {
-                        "compound": {
-                          "must": [
-                            {
-                              "text": {
-                                "path": "items.tags",
-                                "query": "school"
-                              }
-                            }
-                          ],
-                          "should": [
-                            {
-                              "text": {
-                                "path": "items.name",
-                                "query": "backpack"
-                              }
-                            }
-                          ]
-                        }
                       }
-                    }
-                  },
-                  "facets": {
-                    "purchaseMethodFacet": {
-                      "type": "string",
-                      "path": "purchaseMethod"
-                    }
-                  }
-                }
-              }
-            })
-
-         .. output::
-            :language: json 
-
-            [
-              {
-                count: { lowerBound: Long("2309") },
-                facet: {
-                  purchaseMethodFacet: {
-                    buckets: [
-                      { _id: 'In store', count: Long("2751") },
-                      { _id: 'Online', count: Long("1535") },
-                      { _id: 'Phone', count: Long("578") }
                     ]
                   }
                 }
               }
-            ]
+            },
+            "facets": {
+              "purchaseMethodFacet": {
+                "type": "string",
+                "path": "purchaseMethod"
+              }
+            }
+          }
+        }
+      })
 
-   .. tab:: Sort Example 
-      :tabid: sort 
+   .. output::
+      :language: json 
+      :visible: false
+
+      [
+        {
+          count: { lowerBound: Long("2309") },
+          facet: {
+            purchaseMethodFacet: {
+              buckets: [
+                { _id: 'In store', count: Long("2751") },
+                { _id: 'Online', count: Long("1535") },
+                { _id: 'Phone', count: Long("578") }
+              ]
+            }
+          }
+        }
+      ]
+
+Query and Sort 
+~~~~~~~~~~~~~~
       
-      The following query searches for items named ``laptop`` and 
-      it sorts the results by the ``items.tags`` field. The query 
-      includes a :pipeline:`$limit` stage to limit the output to 
-      ``5`` documents and a :pipeline:`$project` stage to:
+The following query searches for items named ``laptop`` and it sorts the
+results by the ``items.tags`` field. The query includes a
+:pipeline:`$limit` stage to limit the output to ``5`` documents and a
+:pipeline:`$project` stage to: 
 
-      - Exclude all fields except ``items.name`` and ``items.tags``  
-      - Add a field named ``score`` 
+- Exclude all fields except ``items.name`` and ``items.tags``  
+- Add a field named ``score`` 
 
-      .. io-code-block:: 
-         :copyable: true 
+.. io-code-block:: 
+   :copyable: true 
 
-         .. input:: 
-            :language: json
-            :linenos: 
+   .. input:: 
+      :language: json
+      :linenos: 
 
-            db.sales.aggregate({
-              "$search": {
-                "embeddedDocument": {
-                  "path": "items",
-                  "operator": {
-                    "text": {
-                      "path": "items.name",
-                      "query": "laptop"
+      db.sales.aggregate({
+        "$search": {
+          "embeddedDocument": {
+            "path": "items",
+            "operator": {
+              "text": {
+                "path": "items.name",
+                "query": "laptop"
+              }
+            }
+          },
+          "sort": {
+            "items.tags": 1
+          }
+        }
+      },
+      {
+        "$limit": 5
+      },
+      {
+        "$project": {
+          "_id": 0,
+          "items.name": 1,
+          "items.tags": 1,
+          "score": { "$meta": "searchScore" }
+        }
+      })
+
+   .. output::
+      :language: json 
+      :linenos:
+      :emphasize-lines: 7, 26, 38, 44, 66
+      :visible: false
+
+      [
+        {
+          items: [
+            { name: 'envelopes',  tags: [ 'stationary', 'office', 'general' ] },
+            { name: 'binder', tags: [ 'school', 'general', 'organization' ] },
+            { name: 'notepad', tags: [ 'office', 'writing', 'school' ] },
+            { name: 'laptop', tags: [ 'electronics', 'school', 'office' ] },
+            { name: 'notepad', tags: [ 'office', 'writing', 'school' ] },
+            { name: 'printer paper', tags: [ 'office', 'stationary' ] },
+            { name: 'backpack', tags: [ 'school', 'travel', 'kids' ] },
+            { name: 'pens', tags: [ 'writing', 'office', 'school', 'stationary' ] },
+            { name: 'envelopes', tags: [ 'stationary', 'office', 'general' ] }
+          ],
+          score: 1.168686032295227
+        },
+        {
+          items: [
+            { name: 'notepad', tags: [ 'office', 'writing', 'school' ] },
+            { name: 'binder', tags: [ 'school', 'general', 'organization' ] },
+            { name: 'notepad', tags: [ 'office', 'writing', 'school' ] },
+            { name: 'pens', tags: [ 'writing', 'office', 'school', 'stationary' ] },
+            { name: 'printer paper', tags: [ 'office', 'stationary' ] },
+            { name: 'pens', tags: [ 'writing', 'office', 'school', 'stationary' ] },
+            { name: 'notepad', tags: [ 'office', 'writing', 'school' ] },
+            { name: 'backpack', tags: [ 'school', 'travel', 'kids' ] },
+            { name: 'laptop', tags: [ 'electronics', 'school', 'office' ] }
+          ],
+          score: 1.168686032295227
+        },
+        {
+          items: [
+            { name: 'backpack', tags: [ 'school', 'travel', 'kids' ] },
+            { name: 'notepad', tags: [ 'office', 'writing', 'school' ] },
+            { name: 'binder', tags: [ 'school', 'general', 'organization' ] },
+            { name: 'pens', tags: [ 'writing', 'office', 'school', 'stationary' ] },
+            { name: 'notepad', tags: [ 'office', 'writing', 'school' ] },
+            { name: 'envelopes', tags: [ 'stationary', 'office', 'general' ] },
+            { name: 'laptop', tags: [ 'electronics', 'school', 'office' ] }
+          ],
+          score: 1.168686032295227
+        },
+        {
+          items: [
+            { name: 'laptop', tags: [ 'electronics', 'school', 'office' ] },
+            { name: 'binder', tags: [ 'school', 'general', 'organization' ] },
+            { name: 'binder', tags: [ 'school', 'general', 'organization' ] },
+            { name: 'backpack', tags: [ 'school', 'travel', 'kids' ] },
+            { name: 'notepad', tags: [ 'office', 'writing', 'school' ] },
+            { name: 'printer paper', tags: [ 'office', 'stationary' ] },
+            { name: 'pens', tags: [ 'writing', 'office', 'school', 'stationary' ] },
+            { name: 'notepad', tags: [ 'office', 'writing', 'school' ] },
+            { name: 'pens', tags: [ 'writing', 'office', 'school', 'stationary' ] },
+            { name: 'notepad', tags: [ 'office', 'writing', 'school' ] }
+          ],
+          score: 1.168686032295227
+        },
+        {
+          items: [
+            { name: 'envelopes', tags: [ 'stationary', 'office', 'general' ] },
+            { name: 'notepad', tags: [ 'office', 'writing', 'school' ] },
+            { name: 'notepad', tags: [ 'office', 'writing', 'school' ] },
+            { name: 'backpack', tags: [ 'school', 'travel', 'kids' ] },
+            { name: 'envelopes', tags: [ 'stationary', 'office', 'general' ] },
+            { name: 'pens', tags: [ 'writing', 'office', 'school', 'stationary' ] },
+            { name: 'binder', tags: [ 'school', 'general', 'organization' ] },
+            { name: 'laptop', tags: [ 'electronics', 'school', 'office' ] },
+            { name: 'printer paper', tags: [ 'office', 'stationary' ] },
+            { name: 'binder', tags: [ 'school', 'general', 'organization' ] }
+          ],
+          score: 1.168686032295227
+        }
+      ]
+
+Query for Matching Embedded Documents Only 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following query returns only the nested documents that match the
+query. The query uses |fts| :ref:`compound-ref` operator clauses in the
+:pipeline:`$search` stage to find matching documents and then the
+:manual:`aggregation operators </reference/operator/aggregation/>` in
+the :pipeline:`$project` stage to return only matching embedded documents.
+Specifically, the query specifies the following pipeline stages:
+
+.. list-table:: 
+   :widths: 15 85 
+   :stub-columns: 1
+
+   * - :pipeline:`$search` 
+     - Specifies the following criteria in the :ref:`compound-ref`
+       operator ``must`` clause:
+     
+       - Check if ``items.price`` field exists in the collection.
+       - Search for the items tagged as ``office`` in the ``items.tags``
+         field. 
+       - Match only if value is more than 2 for the ``items.quantity``
+         field. 
+
+   * - :pipeline:`$limit` 
+     - Limits the output to ``5`` documents. 
+
+   * - :pipeline:`$project` 
+     - Perform the following actions: 
+     
+       - Exclude the ``_id`` field and only include the ``items`` and
+         ``storeLocation`` fields. 
+       - Use :expression:`$filter` to return only elements of the
+         ``items`` input array that match the condition specified using
+         the :expression:`$and` operator. The ``and`` operator uses the
+         following operators: 
+
+         - :expression:`$ifNull` to determine if ``items.price`` contains
+           null values and replace null values, if present, with the
+           replacement expression ``false``.  
+         - :expression:`$gt` to check if quantity is greater than 2.
+         - :expression:`$in` to check if ``office`` exists in the ``tags``
+           array. 
+
+.. io-code-block::
+   :copyable: true 
+
+   .. input:: 
+      :language: json
+      :linenos: 
+
+      db.sales.aggregate(
+        {
+          "$search": {
+            "embeddedDocument": {
+              "path": "items",
+              "operator": {
+                "compound": {
+                  "must": [
+                    {
+                      "range": {
+                        "path": "items.quantity",
+                        "gt": 2
+                      }
+                    },
+                    {
+                      "exists": {
+                        "path": "items.price"
+                      }
+                    },
+                    {
+                      "text": {
+                        "path": "items.tags",
+                        "query": "school"
+                      }
                     }
-                  }
-                },
-                "sort": {
-                  "items.tags": 1
+                  ]
                 }
               }
+            }
+          }
+        },
+        {
+          "$limit": 2
+        },
+        {
+          "$project": {
+            "_id": 0,
+            "storeLocation": 1,
+            "items": {
+              "$filter": {
+                "input": "$items",
+                "cond": {
+                  "$and": [
+                    {
+                      "$ifNull": [
+                        "$$this.price", "false"
+                      ]
+                    },
+                    {
+                      "$gt": [
+                        "$$this.quantity", 2
+                      ]
+                    },
+                    {
+                      "$in": [
+                        "office", "$$this.tags" 
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      )
+
+   .. output:: 
+      :language: json 
+      :linenos:
+      :visible: false
+
+      [
+        {
+          storeLocation: 'Austin',
+          items: [
+            {
+              name: 'laptop',
+              tags: [ 'electronics', 'school', 'office' ],
+              price: Decimal128('753.04'),
+              quantity: 3
             },
             {
-              "$limit": 5
+              name: 'pens',
+              tags: [ 'writing', 'office', 'school', 'stationary' ],
+              price: Decimal128('19.09'),
+              quantity: 4
             },
             {
-              "$project": {
-                "_id": 0,
-                "items.name": 1,
-                "items.tags": 1,
-                "score": { "$meta": "searchScore" }
-              }
-            })
+              name: 'notepad',
+              tags: [ 'office', 'writing', 'school' ],
+              price: Decimal128('30.23'),
+              quantity: 5
+            },
+            {
+              name: 'pens',
+              tags: [ 'writing', 'office', 'school', 'stationary' ],
+              price: Decimal128('20.05'),
+              quantity: 4
+            },
+            {
+              name: 'notepad',
+              tags: [ 'office', 'writing', 'school' ],
+              price: Decimal128('22.08'),
+              quantity: 3
+            },
+            {
+              name: 'notepad',
+              tags: [ 'office', 'writing', 'school' ],
+              price: Decimal128('21.67'),
+              quantity: 4
+            }
+          ]
+        },
+        {
+          storeLocation: 'Austin',
+          items: [
+            {
+              name: 'notepad',
+              tags: [ 'office', 'writing', 'school' ],
+              price: Decimal128('24.16'),
+              quantity: 5
+            },
+            {
+              name: 'notepad',
+              tags: [ 'office', 'writing', 'school' ],
+              price: Decimal128('28.04'),
+              quantity: 5
+            },
+            {
+              name: 'notepad',
+              tags: [ 'office', 'writing', 'school' ],
+              price: Decimal128('21.42'),
+              quantity: 5
+            },
+            {
+              name: 'laptop',
+              tags: [ 'electronics', 'school', 'office' ],
+              price: Decimal128('1540.63'),
+              quantity: 3
+            },
+            {
+              name: 'pens',
+              tags: [ 'writing', 'office', 'school', 'stationary' ],
+              price: Decimal128('29.43'),
+              quantity: 5
+            },
+            {
+              name: 'pens',
+              tags: [ 'writing', 'office', 'school', 'stationary' ],
+              price: Decimal128('28.48'),
+              quantity: 5
+            }
+          ]
+        }
+      ]
 
-         .. output::
-            :language: json 
-            :linenos:
-            :emphasize-lines: 7, 26, 38, 44, 66
+.. tip:: 
 
-            [
-              {
-                items: [
-                  { name: 'envelopes',  tags: [ 'stationary', 'office', 'general' ] },
-                  { name: 'binder', tags: [ 'school', 'general', 'organization' ] },
-                  { name: 'notepad', tags: [ 'office', 'writing', 'school' ] },
-                  { name: 'laptop', tags: [ 'electronics', 'school', 'office' ] },
-                  { name: 'notepad', tags: [ 'office', 'writing', 'school' ] },
-                  { name: 'printer paper', tags: [ 'office', 'stationary' ] },
-                  { name: 'backpack', tags: [ 'school', 'travel', 'kids' ] },
-                  { name: 'pens', tags: [ 'writing', 'office', 'school', 'stationary' ] },
-                  { name: 'envelopes', tags: [ 'stationary', 'office', 'general' ] }
-                ],
-                score: 1.168686032295227
-              },
-              {
-                items: [
-                  { name: 'notepad', tags: [ 'office', 'writing', 'school' ] },
-                  { name: 'binder', tags: [ 'school', 'general', 'organization' ] },
-                  { name: 'notepad', tags: [ 'office', 'writing', 'school' ] },
-                  { name: 'pens', tags: [ 'writing', 'office', 'school', 'stationary' ] },
-                  { name: 'printer paper', tags: [ 'office', 'stationary' ] },
-                  { name: 'pens', tags: [ 'writing', 'office', 'school', 'stationary' ] },
-                  { name: 'notepad', tags: [ 'office', 'writing', 'school' ] },
-                  { name: 'backpack', tags: [ 'school', 'travel', 'kids' ] },
-                  { name: 'laptop', tags: [ 'electronics', 'school', 'office' ] }
-                ],
-                score: 1.168686032295227
-              },
-              {
-                items: [
-                  { name: 'backpack', tags: [ 'school', 'travel', 'kids' ] },
-                  { name: 'notepad', tags: [ 'office', 'writing', 'school' ] },
-                  { name: 'binder', tags: [ 'school', 'general', 'organization' ] },
-                  { name: 'pens', tags: [ 'writing', 'office', 'school', 'stationary' ] },
-                  { name: 'notepad', tags: [ 'office', 'writing', 'school' ] },
-                  { name: 'envelopes', tags: [ 'stationary', 'office', 'general' ] },
-                  { name: 'laptop', tags: [ 'electronics', 'school', 'office' ] }
-                ],
-                score: 1.168686032295227
-              },
-              {
-                items: [
-                  { name: 'laptop', tags: [ 'electronics', 'school', 'office' ] },
-                  { name: 'binder', tags: [ 'school', 'general', 'organization' ] },
-                  { name: 'binder', tags: [ 'school', 'general', 'organization' ] },
-                  { name: 'backpack', tags: [ 'school', 'travel', 'kids' ] },
-                  { name: 'notepad', tags: [ 'office', 'writing', 'school' ] },
-                  { name: 'printer paper', tags: [ 'office', 'stationary' ] },
-                  { name: 'pens', tags: [ 'writing', 'office', 'school', 'stationary' ] },
-                  { name: 'notepad', tags: [ 'office', 'writing', 'school' ] },
-                  { name: 'pens', tags: [ 'writing', 'office', 'school', 'stationary' ] },
-                  { name: 'notepad', tags: [ 'office', 'writing', 'school' ] }
-                ],
-                score: 1.168686032295227
-              },
-              {
-                items: [
-                  { name: 'envelopes', tags: [ 'stationary', 'office', 'general' ] },
-                  { name: 'notepad', tags: [ 'office', 'writing', 'school' ] },
-                  { name: 'notepad', tags: [ 'office', 'writing', 'school' ] },
-                  { name: 'backpack', tags: [ 'school', 'travel', 'kids' ] },
-                  { name: 'envelopes', tags: [ 'stationary', 'office', 'general' ] },
-                  { name: 'pens', tags: [ 'writing', 'office', 'school', 'stationary' ] },
-                  { name: 'binder', tags: [ 'school', 'general', 'organization' ] },
-                  { name: 'laptop', tags: [ 'electronics', 'school', 'office' ] },
-                  { name: 'printer paper', tags: [ 'office', 'stationary' ] },
-                  { name: 'binder', tags: [ 'school', 'general', 'organization' ] }
-                ],
-                score: 1.168686032295227
-              }
-            ]
+   To return only matching embedded documents in the results, include an
+   equivalent :expression:`$filter` to match the :pipeline:`$search`
+   criteria on the embedded document field. To return only matching
+   embedded documents in the :pipeline:`$search` stage results, upvote 
+   :ftsuservoice:`this request </suggestions/40953355-return-results-from-within-arrays>` 
+   in the MongoDB Feedback Engine.
