@@ -1,10 +1,12 @@
 Starting in MongoDB 6.0, pipeline stages that require more than 100 
 megabytes of memory to execute write temporary files to disk by 
-default. In earlier versions of MongoDB, you must pass 
-``{ allowDiskUse: true }`` to individual ``find`` and ``aggregate``
-commands to enable this behavior.
+default. These temporary files last for the duration of the pipeline 
+execution and can influence storage space on your instance. In earlier 
+versions of MongoDB, you must pass  ``{ allowDiskUse: true }`` to 
+individual ``find`` and ``aggregate`` commands to enable this 
+behavior.
 
-Individual ``find`` and ``aggregate`` commands may override the 
+Individual ``find`` and ``aggregate`` commands can override the 
 :parameter:`allowDiskUseByDefault` parameter by either:
 
 - Using ``{ allowDiskUse: true }`` to allow writing temporary files out 
