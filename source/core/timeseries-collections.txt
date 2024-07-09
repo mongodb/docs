@@ -28,8 +28,11 @@ Time series data is generally composed of these components:
 
 - **Time** when the data point was recorded.
 
-- **Metadata** (sometimes referred to as source), which is a label or tag
-  that uniquely identifies a series and rarely changes.
+- **metadata** (sometimes referred to as source), which is a label or
+  tag that identifies a data series and rarely changes. Metadata is
+  stored in a metaField. You cannot add metaFields to time series
+  documents after you create them. For more information on metaField
+  behavior and selection, see :ref:`timeseries-collections-metafield`.
 
 - **Measurements** (sometimes referred to as metrics or values), which
   are the data points tracked at increments in time. Generally these are
@@ -104,8 +107,16 @@ store data in time-order. This format provides the following benefits:
 Behavior
 ~~~~~~~~
 
-Time series collections behave like typical collections. You insert
-and query data as usual.
+Time series collections generally behave like other MongoDB collections.
+You insert and query data as usual. 
+
+.. warning::
+
+   Match expressions in update and delete commands can only specify the
+   metaField. You can't update other fields in a time series document.
+   For more details, see :ref:`Time Series Delete and Update Limitations
+   <timeseries-limitations-updates-deletes>`. 
+   
 
 MongoDB treats time series collections as writable non-materialized
 :ref:`views <views-landing-page>` backed by an internal collection. When
@@ -130,6 +141,58 @@ format.
    .. include:: /includes/downgrade-for-timeseries-collections.rst
 
 .. include:: /includes/database-profiler-note.rst
+
+.. _timeseries-collections-metafield:
+
+metaFields
+~~~~~~~~~~
+
+Time series documents can contain an optional metaField to group sets of
+documents, both for internal storage optimization and query efficiency.
+A metaField should rarely change and can be any data type. A metaField
+can be an object and can contain subfields. Once you define a field as
+the metaField, you can change the value of the metaField but you cannot
+redefine the metaField as another field. For example, if you create time
+series documents with the metaField defined as field ``A``, you cannot
+later convert a field ``B`` to be the metaField. However, if the value
+of metaField ``A`` is an object, you can add new subfields to field
+``A``. 
+
+.. note::
+
+   Using an array as a metaField may cause unexpected collection
+   behavior because array equality depends on specific order.
+
+Buckets
+```````
+
+MongoDB uses the metaField to partition data for efficient organization
+and retrieval. When you create a time series collection, MongoDB groups
+documents into buckets. Documents within a bucket share an identical
+metaField value and have timeField values that are close together.
+
+The number of buckets in a time series collection depends on the number
+of unique metaField values. Collections with fine-grained or dynamic
+metaField values may generate more, sparsely packed, short-lived buckets
+than collections with simple metaFields that rarely or never change.
+Fine-grained and dynamic metaField values typically decrease storage and
+query effiency. 
+
+Indexes
+```````
+
+MongoDB automatically creates a :ref:`compound index
+<index-type-compound>` on both the metaField and timeField of a time
+series collection. 
+
+metaField Best Practices
+````````````````````````
+
+- Select fields that rarely or never change as part of your metaField.
+- If possible, select identifiers or other stable values that are common in filter
+  expressions as part of your metaField. 
+- Avoid selecting fields that are not used for filtering as part of your
+  metaField. Instead, use those fields as measurements. 
 
 .. _manual-timeseries-internal-index:
 
