@@ -20,9 +20,11 @@
       {+database-deployment+}:
       
       - ``sample_airbnb``
+      - ``sample_analytics``
       - ``sample_geospatial``
       - ``sample_guides``
       - ``sample_mflix``
+      - ``sample_restaurants``
       - ``sample_supplies``
       - ``sample_training``
       - ``sample_weatherdata``
