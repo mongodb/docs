@@ -1,6 +1,6 @@
-==================================
-{+driver-long+} Documentation
-==================================
+=================================
+MongoDB Kotlin Sync Documentation
+=================================
 
 This repository contains documentation for the {+driver-short+}.
 
