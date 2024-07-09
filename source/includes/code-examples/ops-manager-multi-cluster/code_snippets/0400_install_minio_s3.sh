@@ -1,7 +1,7 @@
-kustomize build "github.com/minio/operator/resources/?timeout=120&ref=v5.0.12" | \
+kubectl kustomize "github.com/minio/operator/resources/?timeout=120&ref=v5.0.12" | \
   kubectl --context "${K8S_CLUSTER_0_CONTEXT_NAME}" apply -f -
 
-kustomize build "github.com/minio/operator/examples/kustomization/tenant-tiny?timeout=120&ref=v5.0.12" | \
+kubectl kustomize "github.com/minio/operator/examples/kustomization/tenant-tiny?timeout=120&ref=v5.0.12" | \
   kubectl --context "${K8S_CLUSTER_0_CONTEXT_NAME}" apply -f -
 
 # add two buckets to the tenant config

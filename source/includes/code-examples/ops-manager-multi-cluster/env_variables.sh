@@ -38,7 +38,8 @@ export S3_ENDPOINT="minio.tenant-tiny.svc.cluster.local"
 export S3_ACCESS_KEY="console"
 export S3_SECRET_KEY="console123"
 
-export OPERATOR_HELM_CHART="mongodb/enterprise-operator"
+export OFFICIAL_OPERATOR_HELM_CHART="mongodb/enterprise-operator"
+export OPERATOR_HELM_CHART="${OFFICIAL_OPERATOR_HELM_CHART}"
 
 # (Optional) Change the following setting when using the external URL.
 # This env variable is used in OpenSSL configuration to generate

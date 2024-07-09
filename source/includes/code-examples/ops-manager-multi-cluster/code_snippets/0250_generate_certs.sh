@@ -6,6 +6,7 @@ default_bits       = 2048
 prompt             = no
 default_md         = sha256
 distinguished_name = dn
+x509_extensions    = v3_ca
 
 [ dn ]
 C=US
@@ -14,6 +15,12 @@ L=New York
 O=Example Company
 OU=IT Department
 CN=exampleCA
+
+[ v3_ca ]
+basicConstraints = CA:TRUE
+keyUsage = critical, keyCertSign, cRLSign
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
 EOF
 
 cat <<EOF >certs/om.cnf
