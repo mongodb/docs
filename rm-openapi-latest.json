@@ -1,0 +1,942 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+    "contact": {
+      "url": "https://support.mongodb.com/help"
+    },
+    "description": "OpenAPI specification for MongoDB Relational Migrator tool",
+    "title": "MongoDB Relational Migrator REST API",
+    "version": "1.8.0"
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8278/api/v1"
+    }
+  ],
+  "paths": {
+    "/jobs": {
+      "get": {
+        "operationId": "getJobs",
+        "description": "Get all migration jobs",
+        "parameters": [
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Order in which to retrieve the results",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "submittedAt,DESC",
+              "pattern": "^\\w+,(DESC|ASC)$"
+            },
+            "example": "submittedAt,DESC"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Limit the results",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            },
+            "example": 20
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Filter jobs to only of a specific job type",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/migration-jobs-get-type"
+            },
+            "example": "IN_PROGRESS"
+          },
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "Filter jobs by projectId",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/migration-job-status"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-response"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Job"
+        ]
+      },
+      "post": {
+        "operationId": "createJob",
+        "description": "Post a new migration job",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/post-migration-job-request"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/migration-job-status"
+                }
+              }
+            }
+          },
+          "440": {
+            "description": "Invalid as connection string did not contain a database name",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-response"
+                }
+              }
+            }
+          },
+          "470": {
+            "description": "Migration job already running",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-response"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-response"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Job"
+        ]
+      }
+    },
+    "/jobs/{jobId}": {
+      "get": {
+        "operationId": "getJob",
+        "description": "Get the status of a migration job by ID",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "description": "Job ID",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/migration-job-status"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-response"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Job"
+        ]
+      }
+    },
+    "/jobs/{jobId}/pause": {
+      "post": {
+        "operationId": "pauseJob",
+        "description": "Pause a running migration job",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "description": "Job ID",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/migration-job-status"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-response"
+                }
+              }
+            }
+          },
+          "465": {
+            "description": "Migration job not paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-response"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Job"
+        ]
+      }
+    },
+    "/jobs/{jobId}/resume": {
+      "post": {
+        "operationId": "resumeJob",
+        "description": "Resume a paused migration job",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "description": "Job ID",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/migration-job-status"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-response"
+                }
+              }
+            }
+          },
+          "466": {
+            "description": "Migration job could not be resumed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-response"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Job"
+        ]
+      }
+    },
+    "/jobs/{jobId}/stop": {
+      "post": {
+        "operationId": "stopJob",
+        "description": "Stop a running migration job",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "description": "Job ID",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/migration-job-status"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-response"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Job"
+        ]
+      }
+    },
+    "/project": {
+      "get": {
+        "operationId": "getProjects",
+        "description": "Get all projects",
+        "parameters": [
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Order in which to retrieve the results",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "lastModified,DESC",
+              "pattern": "^\\w+,(DESC|ASC)$"
+            },
+            "example": "lastModified,DESC"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/project-descriptor-summary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Project"
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "error-response": {
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "$ref": "#/components/schemas/id"
+          },
+          "message": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "message",
+          "timestamp"
+        ]
+      },
+      "id": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9\\-]+$"
+      },
+      "jdbc-connection-details": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/database-type"
+          },
+          "url": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "url"
+        ]
+      },
+      "mongodb-connection-details": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "connectionString": {
+            "type": "string"
+          },
+          "projectId": {
+            "description": "Atlas projectId",
+            "type": "string"
+          },
+          "projectName": {
+            "description": "Atlas project name",
+            "type": "string"
+          },
+          "clusterName": {
+            "description": "Atlas cluster name",
+            "type": "string"
+          },
+          "hasTimeSeriesCollection": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "connectionString"
+        ]
+      },
+      "migration-jobs-get-type": {
+        "type": "string",
+        "enum": [
+          "IN_PROGRESS"
+        ]
+      },
+      "migration-job-status": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/id"
+          },
+          "projectId": {
+            "$ref": "#/components/schemas/id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "RUNNING",
+              "FAILED",
+              "CANCELLING",
+              "CANCELLED",
+              "COMPLETED",
+              "CLEANING_UP"
+            ]
+          },
+          "cdcStatus": {
+            "type": "string",
+            "default": "NOT_STARTED",
+            "enum": [
+              "NOT_STARTED",
+              "RUNNING",
+              "COMPLETING",
+              "COMPLETED",
+              "FAILED",
+              "CANCELLED",
+              "PAUSED"
+            ]
+          },
+          "verificationJobId": {
+            "type": "string"
+          },
+          "options": {
+            "$ref": "#/components/schemas/migration-job-descriptor-options"
+          },
+          "jdbcConnectionString": {
+            "type": "string"
+          },
+          "mongoDbConnectionString": {
+            "type": "string"
+          },
+          "atlasMetadata": {
+            "$ref": "#/components/schemas/migration_job_status_atlasMetadata"
+          },
+          "submittedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "statistics": {
+            "$ref": "#/components/schemas/migration-job-statistics"
+          },
+          "cdcStatistics": {
+            "$ref": "#/components/schemas/cdc-job-statistics"
+          },
+          "jobUpdates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/job-update"
+            }
+          },
+          "failureError": {
+            "$ref": "#/components/schemas/failureError"
+          },
+          "metadata": {
+            "$ref": "#/components/schemas/migration_job_status_metadata"
+          },
+          "relationalTableFilters": {
+            "$ref": "#/components/schemas/relational-table-filters"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "options",
+          "projectId",
+          "status",
+          "submittedAt"
+        ]
+      },
+      "post-migration-job-request": {
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string"
+          },
+          "jdbcConnectionDetails": {
+            "$ref": "#/components/schemas/jdbc-connection-details"
+          },
+          "mongodbConnectionDetails": {
+            "$ref": "#/components/schemas/mongodb-connection-details"
+          },
+          "options": {
+            "$ref": "#/components/schemas/migration-job-descriptor-options"
+          },
+          "verification": {
+            "$ref": "#/components/schemas/migration-verification"
+          },
+          "relationalTableFilters": {
+            "$ref": "#/components/schemas/relational-table-filters"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "jdbcConnectionDetails",
+          "mongodbConnectionDetails",
+          "options",
+          "projectId",
+          "verification"
+        ]
+      },
+      "project-descriptor-summary": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/id"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 1
+          },
+          "type": {
+            "$ref": "#/components/schemas/database-type"
+          },
+          "lastModified": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "type"
+        ]
+      },
+      "migration-job-statistics-preview": {
+        "type": "object",
+        "properties": {
+          "totalTableCount": {
+            "type": "integer"
+          },
+          "totalEvents": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalEventSize": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "additionalProperties": false
+      },
+      "database-type": {
+        "type": "string",
+        "enum": [
+          "ORACLE",
+          "SQL_SERVER",
+          "MYSQL",
+          "POSTGRESQL",
+          "DB2",
+          "SYBASE"
+        ]
+      },
+      "migration-job-descriptor-options": {
+        "type": "object",
+        "properties": {
+          "dropCollections": {
+            "type": "boolean",
+            "default": false
+          },
+          "mode": {
+            "$ref": "#/components/schemas/migration-mode"
+          },
+          "errorHandling": {
+            "type": "string",
+            "default": "FAIL",
+            "enum": [
+              "FAIL",
+              "WARN",
+              "SKIP"
+            ]
+          },
+          "errorTolerance": {
+            "description": "The number of failures (on the record level) that should be tolerated before terminating the migration.\nThe value is strictly greater than or equal to.\n",
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "mode"
+        ]
+      },
+      "migration-job-statistics": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/migration-job-statistics-details"
+          },
+          {
+            "$ref": "#/components/schemas/migration-job-statistics-preview"
+          }
+        ]
+      },
+      "cdc-job-statistics": {
+        "type": "object",
+        "properties": {
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastEventTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "eventsInLastHour": {
+            "type": "integer",
+            "format": "int64",
+            "default": 0
+          },
+          "eventsInLastMinute": {
+            "type": "integer",
+            "format": "int64",
+            "default": 0
+          },
+          "totalEventsSeen": {
+            "type": "integer",
+            "format": "int64",
+            "default": 0
+          }
+        },
+        "additionalProperties": false
+      },
+      "job-update": {
+        "type": "object",
+        "properties": {
+          "eventType": {
+            "type": "string",
+            "enum": [
+              "DB_SETUP_ERROR",
+              "ERROR",
+              "WARNING",
+              "INFO"
+            ]
+          },
+          "stage": {
+            "type": "string",
+            "enum": [
+              "SNAPSHOTTING",
+              "STREAMING",
+              "VERIFICATION"
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "location": {
+            "$ref": "#/components/schemas/job_update_location"
+          }
+        },
+        "required": [
+          "eventType",
+          "message",
+          "timestamp"
+        ]
+      },
+      "failureError": {
+        "type": "object",
+        "properties": {
+          "errorType": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "failureAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "setupError": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "errorType",
+          "failureAt",
+          "message",
+          "setupError"
+        ]
+      },
+      "verification-status-enum": {
+        "type": "string",
+        "enum": [
+          "VERIFYING",
+          "FAILED",
+          "CANCELLING",
+          "CANCELLED",
+          "VERIFIED",
+          "ABORTED"
+        ]
+      },
+      "relational-table-filters": {
+        "description": "Schema",
+        "type": "object",
+        "additionalProperties": {
+          "additionalProperties": {
+            "$ref": "#/components/schemas/table-filter"
+          },
+          "description": "Table",
+          "type": "object"
+        }
+      },
+      "migration-verification": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "enabled"
+        ]
+      },
+      "migration-mode": {
+        "type": "string",
+        "enum": [
+          "SNAPSHOT",
+          "CDC",
+          "CDC_ONLY"
+        ]
+      },
+      "migration-job-statistics-details": {
+        "type": "object",
+        "properties": {
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "elapsedSeconds": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "remainingTableCount": {
+            "type": "integer"
+          },
+          "processingTables": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "totalEventsSeen": {
+            "type": "integer",
+            "format": "int64",
+            "default": 0
+          },
+          "snapshotCompleted": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "tableLocation": {
+        "type": "object",
+        "required": [
+          "table"
+        ]
+      },
+      "collectionLocation": {
+        "type": "object",
+        "required": [
+          "collection"
+        ]
+      },
+      "documentLocation": {
+        "type": "object",
+        "properties": {
+          "document": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "collection",
+          "document"
+        ]
+      },
+      "table-filter": {
+        "type": "object",
+        "properties": {
+          "whereClause": {
+            "type": "string"
+          },
+          "rowCount": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "additionalProperties": false
+      },
+      "migration_job_status_atlasMetadata": {
+        "type": "object",
+        "properties": {
+          "mongoDbProjectName": {
+            "type": "string"
+          },
+          "mongoDbProjectId": {
+            "type": "string"
+          },
+          "mongoDbClusterName": {
+            "type": "string"
+          }
+        }
+      },
+      "migration_job_status_metadata": {
+        "type": "object",
+        "properties": {
+          "telemetryUserId": {
+            "type": "string"
+          },
+          "verificationRequested": {
+            "type": "boolean",
+            "default": false
+          },
+          "verificationStatus": {
+            "$ref": "#/components/schemas/verification-status-enum"
+          }
+        },
+        "additionalProperties": false
+      },
+      "job_update_location": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/tableLocation"
+          },
+          {
+            "$ref": "#/components/schemas/collectionLocation"
+          },
+          {
+            "$ref": "#/components/schemas/documentLocation"
+          }
+        ]
+      }
+    }
+  },
+  "tags": [
+    {
+      "description": "Data migration",
+      "name": "Job"
+    },
+    {
+      "description": "Captures relational schemas and mappings",
+      "name": "Project"
+    }
+  ]
+}
