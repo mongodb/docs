@@ -23,9 +23,8 @@ and :method:`db.killOp()`. [#built-in-roles1]_
 
 .. note::
 
-   Starting in MongoDB 3.2.9, users do not need any specific 
-   privileges to view or kill their own operations on 
-   :binary:`~bin.mongod` instances. See :method:`db.currentOp()` 
+   Users do not need any specific privileges to view or kill their own 
+   operations on :binary:`~bin.mongod` instances. See :method:`db.currentOp()` 
    and :method:`db.killOp()` for details.
 
 .. include:: /includes/steps/create-role-manage-ops.rst

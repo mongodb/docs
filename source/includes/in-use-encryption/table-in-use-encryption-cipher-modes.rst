@@ -14,6 +14,4 @@
    
        Available only on Linux.
    
-       .. versionchanged:: 4.0
-   
-          .. include:: /includes/fact-aes.rst
+       .. include:: /includes/fact-aes.rst
