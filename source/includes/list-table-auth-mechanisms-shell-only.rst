@@ -20,8 +20,6 @@
 
        Requires featureCompatibilityVersion set to ``4.0``.
 
-       .. versionadded:: 4.0
-
    * - :ref:`MONGODB-X509 <security-auth-x509>`
 
      - MongoDB TLS/SSL certificate authentication.
