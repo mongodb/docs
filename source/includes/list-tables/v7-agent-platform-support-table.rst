@@ -12,7 +12,7 @@
       - 4.0
       - 3.6
     * - x86_64
-      - RHEL/Oracle Linux 7
+      - RHEL/Oracle Linux 7 :sup:`1`
       - :icon:`check-circle`
       - :icon:`check-circle`
       - :icon:`check-circle`
@@ -21,7 +21,7 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
     * -
-      - RHEL/Rocky/Alma Linux/Oracle Linux 8
+      - RHEL/Rocky/Alma Linux/Oracle Linux 8 :sup:`1`
       - :icon:`check-circle`
       - :icon:`check-circle`
       - :icon:`check-circle`
@@ -30,7 +30,7 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
     * - 
-      - RHEL/Rocky/Alma Linux/Oracle Linux 9
+      - RHEL/Rocky/Alma Linux/Oracle Linux 9 :sup:`1`
       - :icon:`check-circle`
       - :icon:`check-circle`
       - :icon:`check-circle`
@@ -147,7 +147,7 @@
       -
       -
     * - 
-      - Ubuntu 22.x :sup:`1`
+      - Ubuntu 22.x :sup:`2`
       - :icon:`check-circle`
       - :icon:`check-circle`
       - 
@@ -246,4 +246,9 @@
       -
       -
 
-:sup:`1` |bic-full| isn't supported on Ubuntu 22.04.
+:sup:`1` MongoDB supports Oracle Linux running
+:abbr:`RHCK (Red Hat Compatible Kernel)` only. 
+MongoDB doesn't support Oracle Linux running
+:abbr:`UEK (Unbreakable Enterprise Kernel)`.
+
+:sup:`2` |bic-full| isn't supported on Ubuntu 22.04.
