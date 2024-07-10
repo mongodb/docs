@@ -21,9 +21,7 @@ Use the :option:`--bind_ip <mongod --bind_ip>` option to ensure that
 MongoDB listens for connections from applications on configured
 addresses.
 
-.. versionchanged:: 3.6
-
-   .. include:: /includes/fact-default-bind-ip.rst
+.. include:: /includes/fact-default-bind-ip.rst
 
 Connectivity
 ~~~~~~~~~~~~

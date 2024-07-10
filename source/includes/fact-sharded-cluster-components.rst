@@ -10,5 +10,5 @@ A MongoDB :term:`sharded cluster` consists of the following components:
   :ref:`hedged reads <mongos-hedged-reads>` to minimize latencies.
 
 - :ref:`config servers <sharding-config-server>`: Config
-  servers store metadata and configuration settings for the cluster. As
-  of MongoDB 3.4, config servers must be deployed as a replica set (CSRS).
+  servers store metadata and configuration settings for the cluster. Config 
+  servers must be deployed as a replica set (CSRS).
