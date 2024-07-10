@@ -5,6 +5,3 @@ identify a transction.
 
 Only present if the operation is part of a :doc:`multi-document
 transaction </core/transactions>`.
-
-.. versionadded:: 4.0
-

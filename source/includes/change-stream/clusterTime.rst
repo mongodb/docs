@@ -14,5 +14,3 @@ transaction at all.
 To identify events for a single transaction, you can use the
 combination of ``lsid`` and ``txnNumber`` in the change stream
 event document.
-
-.. versionadded:: 4.0

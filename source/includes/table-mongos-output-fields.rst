@@ -41,5 +41,5 @@
 
    * - ``waiting``
      - Boolean
-     - As of MongoDB 3.4, this field is always ``true`` and is
-       only present for backward compatibility.
+     - This field is always ``true`` and is only included for backward 
+       compatibility.
