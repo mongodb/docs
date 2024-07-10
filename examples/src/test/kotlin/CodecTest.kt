@@ -66,7 +66,7 @@ internal class CodecTest {
 
         init {
             powerStatusCodec = registry[PowerStatus::class.java]
-            integerCodec = registry.get(Int::class.java)
+            integerCodec = IntegerCodec()
         }
 
         override fun encode(writer: BsonWriter, value: Monolight, encoderContext: EncoderContext) {

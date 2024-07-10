@@ -1,4 +1,5 @@
 
+import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Filters.eq
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import config.getConfig
@@ -35,6 +36,7 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.Date
+import kotlin.test.assertTrue
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class KotlinXSerializationTest {
@@ -173,6 +175,68 @@ internal class KotlinXSerializationTest {
 
         if (resultsFlow != null) {
             assertEquals(resultsFlow["orderDate"], Date.from(java.time.Instant.parse("2024-01-15T00:00:00Z")))
+        }
+
+        collection.drop()
+    }
+
+    // :snippet-start: polymorphic-dataclasses
+    @Serializable
+    sealed interface Person {
+        val name: String
+    }
+
+    @Serializable
+    data class Student(
+        @Contextual
+        @SerialName("_id")
+        val id: ObjectId,
+        override val name: String,
+        val grade: Int,
+    ) : Person
+
+    @Serializable
+    data class Teacher(
+        @Contextual
+        @SerialName("_id")
+        val id: ObjectId,
+        override val name: String,
+        val department: String,
+    ) : Person
+    // :snippet-end:
+
+    @Test
+    fun polymorphicSerializationTest() = runBlocking {
+
+        // :snippet-start: polymorphic-example
+        val collection = database.getCollection<Person>("school")
+
+        val teacherDoc = Teacher(ObjectId(), "Vivian Lee", "History")
+        val studentDoc = Student(ObjectId(), "Kate Parker", 10)
+
+        collection.insertOne(teacherDoc)
+        collection.insertOne(studentDoc)
+
+        println("Retrieving by using data classes")
+        collection.withDocumentClass<Teacher>()
+            .find(Filters.exists("department"))
+            .first().also { println(it) }
+
+        collection.withDocumentClass<Student>()
+            .find(Filters.exists("grade"))
+            .first().also { println(it) }
+
+        println("\nRetrieving by using Person interface")
+        val resultsFlow = collection.withDocumentClass<Person>().find()
+        resultsFlow.collect { println(it) }
+
+        println("\nRetrieving as Document type")
+        val resultsDocFlow = collection.withDocumentClass<Document>().find()
+        resultsDocFlow.collect { println(it) }
+        // :snippet-end:
+
+        if (resultsFlow != null) {
+            assertTrue(resultsFlow.firstOrNull() is Teacher)
         }
 
         collection.drop()
