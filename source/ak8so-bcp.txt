@@ -1,0 +1,161 @@
+.. _ak8so-bcp:
+
+====================================
+Configure a {+bcp+}
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+If you have strict data protection requirements, you can use |ak8so| to 
+enable a :ref:`{+bcp+} <backup-compliance-policy>` to protect your 
+backup data.
+
+.. include:: /includes/fact-you-cannot-disable-bcp.rst
+   
+.. _ak8so-bcp-prohibited-actions:
+
+Prohibited Actions
+------------------
+
+If you enable a {+bcp+}, no user, regardless of role, can do certain 
+actions. Carefully review the :ref:`prohibited actions 
+<bcp-prohibited-actions>`.
+
+.. important::
+
+   If you set this parameter to ``true``, |service| upgrades all 
+   backup policies in the project regardless of what is specified in 
+   the :ref:`atlasbackuppolicy-custom-resource`. |service| overrides 
+   the :ref:`atlasbackuppolicy-custom-resource` and the status 
+   of that custom resource updates to ``Ready: False``. You must 
+   manually update the :ref:`atlasbackuppolicy-custom-resource` to 
+   align with the {+bcp+}.
+
+   If you set this parameter to ``false``, creating the {+bcp+} fails 
+   if the existing backup policies do not satisfy the {+bcp+}.
+
+.. _ak8so-bcp-considerations:
+
+Considerations
+--------------
+
+After you enable a {+bcp+}, certain behaviors apply. Carefully 
+review the :ref:`considerations <bcp-considerations>`.
+
+Required Access
+---------------
+
+To configure a {+bcp+}, you must have :authrole:`Project Owner` access 
+to the project. Users with :authrole:`Organization Owner` access must 
+add themselves as a ``Project Owner`` to the project before configuring 
+a {+bcp+}.
+
+Prerequisites
+-------------
+
+- Only MongoDB Support can do the following actions:
+ 
+  - Disable the {+bcp+}.
+   
+  - Disable :ref:`{+PIT-Restore+} <create-cluster-backups>` if the 
+    {+bcp+} has the 
+    :guilabel:`Require Point in Time Restore to all clusters` option 
+    set to :guilabel:`On`.
+
+  - Reduce the :ref:`{+PIT-Restore+} Restore Window 
+    <create-pit-policy>`.
+
+  - Delete :ref:`policy items <creating-backup-policy>` specified in 
+    the {+bcp+}.
+    
+- Only the specified security or legal representative can 
+  :ref:`request support <request-support>`.
+
+- You can apply a {+bcp+} to ``M10+`` {+dedicated-clusters+} only.
+
+  .. note::
+
+     You can't convert a {+dedicated-cluster+} to an ``M0`` 
+     {+free-cluster+}, an ``M2`` or ``M5`` {+shared-cluster+}, or a 
+     {+serverless-instance+}.
+
+Procedure
+---------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create the {+bcp+}.
+
+      To learn more about the parameters for a {+bcp+}, see the 
+      :ref:`bcp-custom-resource`.
+
+      **Example:**
+
+      .. code-block:: sh
+
+         cat <<EOF | kubectl apply -f -
+         apiVersion: atlas.mongodb.com/v1
+         kind: AtlasBackupCompliancePolicy
+         metadata:
+           name: my-backup-compliance-policy
+           namespace: mongdb-atlas-system
+         spec:
+           authorizedEmail: john.doe@example.com
+           authorizedUserFirstName: John
+           authorizedUserLastName: Doe
+           copyProtectionEnabled: false
+           encryptionAtRestEnabled: false
+           onDemandPolicy:
+             retentionUnit: weeks
+             retentionValue: 3
+           overwriteBackupPolicies: false
+           pointInTimeEnabled: true
+           restoreWindowDays: 42
+           scheduledPolicyItems:
+           - frequencyInterval: 2
+             frequencyType: daily
+             retentionUnit: days
+             retentionValue: 7
+         EOF
+
+      .. note::
+
+         This {+bcp+} applies as the minimum backup policy to all 
+         {+clusters+} in the project. The {+bcp+} protects all 
+         existing snapshots. The {+bcp+} prevents any user, 
+         regardless of role, from modifying or deleting existing 
+         snapshots prior to their expiration. Changes made to this 
+         {+bcp+} apply only to future snapshots. If you enable a 
+         {+bcp+}, the {+bcp+} limits your ability to reduce backup 
+         storage costs. You can't adjust the retention or delete a 
+         backup to reduce the backup storage costs.
+
+   .. step:: Apply the {+bcp+} to the project.
+
+      In the :setting:`spec.backupCompliancePolicyRef` parameter in the 
+      :ref:`atlasproject-custom-resource`, specify the name and 
+      namespace of the opaque |k8s-secret| that references the 
+      :ref:`bcp-custom-resource`.
+
+      **Example:**
+
+      .. code-block:: sh
+
+         cat <<EOF | kubectl apply -f -
+         apiVersion: atlas.mongodb.com/v1
+         kind: AtlasProject
+         metadata:
+           name: my-project
+         spec:
+           backupCompliancePolicyRef:
+             name: my-backup-compliance-policy
+             namespace: mongodb-atlas-system
+         EOF
+      
