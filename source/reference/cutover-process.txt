@@ -36,12 +36,29 @@ Steps
       Ensure that the ``mongosync`` process  status indicates the 
       following values:  
 
+      - ``canCommit`` is ``true``. 
+
       - ``lagTimeSeconds`` is small (near ``0``). 
    
         If ``lagTimeSeconds`` isn't close to ``0`` when the cutover
         starts, cutover might take a long time. 
   
-      - ``canCommit`` is ``true``. 
+      The following example returns the status of the synchronization process.
+
+      Request
+      ~~~~~~~
+
+      .. literalinclude:: /includes/api/requests/progress.sh
+         :language: shell
+
+      Response
+      ~~~~~~~~
+
+      .. literalinclude:: /includes/api/responses/progress.json
+         :language: json
+         :copyable: false
+         :emphasize-lines: 5, 8
+
 
    .. step:: Stop any write operations to the synced collections on the source. 
 
@@ -50,8 +67,16 @@ Steps
         the entire source cluster during the commit (step 4) for you. 
       - If you didn't start ``mongosync`` with
         ``enableUserWriteBlocking``, ensure that writes are disabled.
-        For example, run the ``setUserWriteBlockMode`` command on the
-        source cluster.
+        For example, run the :dbcommand:`setUserWriteBlockMode` command on the
+        source cluster:
+
+        .. code-block:: javascript
+
+           db.adminCommand( {
+              setUserWriteBlockMode: 1,
+              global: true 
+           } )
+
       - If ``mongosync`` uses filtered sync, it's not necessary to
         disable writes to the entire source cluster. But you must ensure
         that write operations are stopped for the collections included
@@ -63,18 +88,66 @@ Steps
       migration, you must issue a commit request for each ``mongosync``
       instance.
 
+      Request
+      ~~~~~~~~
+
+      .. literalinclude:: /includes/api/requests/commit.sh
+         :language: shell
+
+      Response
+      ~~~~~~~~
+
+      .. literalinclude:: /includes/api/responses/success.json
+         :language: json
+         :copyable: false
+
       .. note:: 
 
-         Ensure that the ``mongosync`` process response for the
-         ``commit`` request indicates that the ``mongosync`` state is
-         ``COMMITTING`` or ``COMMITTED``, which is the correct
-         ``mongosync`` state when you send a ``commit`` request.
+         After you submit a ``commit`` request, call the ``progress`` endpoint
+         to ensure that the ``mongosync`` state is ``COMMITTING`` or 
+         ``COMMITTED``.
 
    .. step:: Wait until you can perform writes on the destination cluster.
 
       Call the ``progress`` endpoint to determine if ``canWrite`` is
       ``true``. If ``canWrite`` is ``false``, wait until ``progress``
       shows ``canWrite`` is ``true``.
+
+      Request
+      ~~~~~~~
+
+      .. literalinclude:: /includes/api/requests/progress.sh
+         :language: shell
+
+      Response
+      ~~~~~~~~
+
+      .. code-block:: json
+         :emphasize-lines: 6
+         :copyable: false
+
+         {
+            "progress":
+               {
+                  "state":"COMMITTED",
+                  "canCommit":true,
+                  "canWrite":true,
+                  "info":"change event application",
+                  "lagTimeSeconds":0,
+                  "collectionCopy":
+                     {
+                        "estimatedTotalBytes":694,
+                        "estimatedCopiedBytes":694
+                     },
+                  "directionMapping":
+                     {
+                        "Source":"cluster0: localhost:27017",
+                        "Destination":"cluster1: localhost:27018"
+                     }
+               },
+            "success": true
+         }
+
 
    .. step:: Verify data transfer.
 
@@ -101,6 +174,43 @@ Steps
       When the ``mongosync`` progress response indicates that the 
       ``mongosync`` state is ``COMMITTED``, the cutover process is
       complete. 
+
+      Request
+      ~~~~~~~
+
+      .. literalinclude:: /includes/api/requests/progress.sh
+         :language: shell
+
+      Response
+      ~~~~~~~~
+
+      .. code-block:: json
+         :emphasize-lines: 4
+         :copyable: false
+
+         {
+            "progress":
+               {
+                  "state":"COMMITTED",
+                  "canCommit":true,
+                  "canWrite":false,
+                  "info":"change event application",
+                  "lagTimeSeconds":0,
+                  "collectionCopy":
+                     {
+                        "estimatedTotalBytes":694,
+                        "estimatedCopiedBytes":694
+                     },
+                  "directionMapping":
+                     {
+                        "Source":"cluster0: localhost:27017",
+                        "Destination":"cluster1: localhost:27018"
+                     }
+               },
+            "success": true
+         }
+
+
 
 Learn More
 ----------
