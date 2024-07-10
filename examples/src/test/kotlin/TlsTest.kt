@@ -1,7 +1,6 @@
 
 import com.mongodb.ConnectionString
 import com.mongodb.MongoClientSettings
-import com.mongodb.connection.netty.NettyStreamFactoryFactory
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import config.getConfig
 import io.netty.handler.ssl.SslContextBuilder
@@ -87,25 +86,5 @@ internal class TlsTest {
         assertEquals(sslContext, settings.sslSettings.context)
     }
 
-    @Test
-    fun nettyTlsConfigurationTest() {
-        // :snippet-start: netty-tls-configuration
-        val sslContext = SslContextBuilder.forClient()
-            .sslProvider(SslProvider.OPENSSL)
-            .build()
-        val settings = MongoClientSettings.builder()
-            .applyToSslSettings { builder -> builder.enabled(true) }
-            .streamFactoryFactory(
-                NettyStreamFactoryFactory.builder()
-                    .sslContext(sslContext)
-                    .build()
-            )
-            .build()
-        val mongoClient = MongoClient.create(settings)
-        // :snippet-end:
-        mongoClient.close()
-        assertEquals(true, settings.sslSettings.isEnabled)
-        assertEquals(true, settings.streamFactoryFactory is NettyStreamFactoryFactory)
-    }
 }
 // :replace-end:
