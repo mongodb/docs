@@ -1,7 +1,5 @@
 .. note ::
 
-   *New in version 3.6:*
-
    All MongoDB collections have
    :abbr:`UUIDs (Universally unique identifiers)` by default. When
    MongoDB restores collections, the restored collections retain their
