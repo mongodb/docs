@@ -102,7 +102,7 @@ with |fcv-link| 4.2 or later, you:
 
 - Must ensure the hostnames in your replica set configuration match 
   the hostnames that the {+mdbagent+} uses, or that your 
-  :ref:`host mappings <host-map>` contain the correct hostnames. You 
+  :ref:`host mappings <host-mappings>` contain the correct hostnames. You 
   can use :manual:`rs.conf() </reference/method/rs.conf>` to verify 
   your replica set configuration. 
 
