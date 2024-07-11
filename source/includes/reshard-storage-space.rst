@@ -6,7 +6,7 @@ size, divided by the number of shards.
 .. code-block:: none
   :copyable: false
 
-  storage_req = ( ( collection_size + index_size ) * 2 ) / shard_count
+  storage_req = ( ( collection_storage_size + index_size ) * 2 ) / shard_count
 
 For example, consider a collection that contains 2 TB of
 data and has a 400 GB index distributed across four shards.
