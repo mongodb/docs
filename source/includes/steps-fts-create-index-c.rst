@@ -10,9 +10,6 @@ method.
    run an aggregation operation with the ``$listSearchIndexes`` pipeline
    stage.
 
-Example 
-~~~~~~~
-
 .. procedure:: 
    :style: normal 
 

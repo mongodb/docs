@@ -11,9 +11,6 @@ To learn more, refer to the :driver:`Driver documentation
    successfully. To determine the current status of the indexes, call the
    ``listSearchIndexes()`` method.
 
-Example 
-~~~~~~~
-
 .. procedure:: 
    :style: normal 
 

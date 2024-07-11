@@ -1,40 +1,48 @@
-To create an |fts| index through {+mongosh+}, use 
-the :method:`db.collection.createSearchIndex() 
-<db.collection.createSearchIndex()>` method.
+To create an |fts| index through {+mongosh+}:
 
-The command has the following syntax.
-If you omit the index name, |fts| names the index 
-``default``. To learn more, see :ref:`ref-index-definitions`.
+.. procedure::
+   :style: normal
 
-.. code-block:: javascript
+   .. step:: Connect using ``mongosh``.
 
-   db.<collection>.createSearchIndex(
-        "<index-name>",
-        {
-            /* search index definition */
-        }
-   )
+      To learn more, see :ref:`connect-mongo-shell`.
 
-Example
-~~~~~~~
+   .. step:: Create an |fts| index.
 
-To create a index named ``example-index`` that 
-dynamically indexes the fields in the ``movies`` 
-collection, run the following command:
+      Use the :method:`db.collection.createSearchIndex() 
+      <db.collection.createSearchIndex()>` method.
 
-.. io-code-block::
-   :copyable: true
+      The command has the following syntax.
+      If you omit the index name, |fts| names the index 
+      ``default``. To learn more, see :ref:`ref-index-definitions`.
 
-   .. input::
-      :language: shell
+      .. code-block:: javascript
 
-      db.movies.createSearchIndex(
-          "example-index",
-          { mappings: { dynamic: true } }
-      )
+         db.<collection>.createSearchIndex(
+              "<index-name>",
+              {
+                  /* search index definition */
+              }
+         )
 
-   .. output::
+      .. example::
 
-      example-index
-   
+         To create an index named ``example-index`` that 
+         dynamically indexes the fields in the ``movies`` 
+         collection, run the following command:
+
+         .. io-code-block::
+            :copyable: true
+
+            .. input::
+               :language: shell
+
+               db.movies.createSearchIndex(
+                   "example-index",
+                   { mappings: { dynamic: true } }
+               )
+
+            .. output::
+
+               example-index
     

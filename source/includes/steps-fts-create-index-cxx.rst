@@ -8,9 +8,6 @@ in your application and call the ``create_one()`` method.
    successfully. To determine the current status of the search indexes,
    call the ``list()`` method on a search index view instance.
 
-Example 
-~~~~~~~
-
 .. procedure:: 
    :style: normal 
 

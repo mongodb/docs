@@ -40,10 +40,6 @@ To create an |fts| index, you must have an |service| cluster with:
 
 - MongoDB version ``4.2`` or higher on any {+cluster+} tier.
 
-  .. note::
-
-     .. include:: /includes/fact-fts-shared-tier-limitations.rst
-
 - Collection for which to create the |fts| index.
 
 Required Access
@@ -54,7 +50,15 @@ Required Access
 You must have at least the :atlasrole:`readWriteAnyDatabase` role or
 ``readWrite`` access to the database where you want to create the
 indexes. To learn more, see :ref:`atlas-user-privileges` or
-:ref:`atlas-specific-privileges`. 
+:ref:`atlas-specific-privileges`.
+
+Free and Shared Tier {+Cluster+} Limitations
+--------------------------------------------
+
+- .. include:: /includes/fact-fts-shared-tier-limitations.rst
+
+- To create an |fts| index from {+Compass+}, you must have an ``M10`` 
+  or higher |service| {+cluster+} running MongoDB 7.0 or higher.
 
 .. _ref-create-index-programmatically:
 
@@ -97,19 +101,119 @@ language of the example in this section.
 
       .. include:: /includes/extracts/atlas-deployments-search-indexes-create.rst
 
+      Example
+      ~~~~~~~
+
+      The following example shows you how to use the
+      ``atlas clusters`` or ``atlas deployments`` command to create an
+      |fts| index in non-interactive mode with a configuration file.
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Create an ``indexDef.json`` configuration file.
+
+            .. code-block:: json
+
+               {
+                 "collectionName": "movies",
+                 "database": "sample_mflix",
+                 "definition": {
+                   "mappings": {
+                    "dynamic": true
+                   },
+                 },
+                 "name": "searchIndex"
+               }
+
+         .. step:: Create an |fts| index.
+
+            a. Run one of the following commands.
+
+               **Cloud Deployment:**
+
+               .. code-block:: sh
+
+                  atlas clusters search indexes create --file indexDef.json
+
+               **Local Deployment:**
+
+               .. code-block:: sh
+
+                  atlas deployments search indexes create --file indexDef.json
+
+            #. Specify the deployment and press :kbd:`Enter`.
+
    .. tab::
       :tabid: atlas-api
 
-      To create an |fts| index, send a ``POST`` request to the 
-      ``search/indexes`` :oas-atlas-op:`endpoint 
-      </createAtlasSearchIndex>`. To learn more about the 
-      syntax and parameters for this endpoint, see 
-      :oas-atlas-op:`Create One </createAtlasSearchIndex>`.
+      To create an |fts| index:
+      
+      .. procedure::
+         :style: normal
+         
+         .. step:: Send a ``POST`` request.
+            
+            Send a ``POST`` request to the ``search/indexes`` 
+            :oas-atlas-op:`endpoint </createAtlasSearchIndex>`.
 
-      .. note:: 
+            .. code-block:: sh
 
-         |service| doesn't create the index if the collection doesn't exist, 
-         but it still returns a ``200`` status.
+               curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+               --header "Accept: application/json" \
+               --header "Content-Type: application/json" \
+               --include \
+               --request POST "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes" \
+               --data '
+                 {
+                   "collectionName": "string",
+                   "database": "string",
+                   "name": "string",
+                   "type": "search",
+                   "definition": 
+                   {
+                     "analyzer": "lucene.<analyzer>",
+                     "analyzers": [
+                       {
+                         "charFilters": [ ... ],
+                         "name": "string",
+                         "tokenFilters": [ ... ],
+                         "tokenizer": { ... }
+                       }
+                     ],
+                     "mappings": {
+                       "dynamic": true | false,
+                       "fields": {
+                         "property1": {},
+                         ...
+                       }
+                     },
+                     "searchAnalyzer": "lucene.<analyzer>",
+                     "storedSource": {
+                       "include | exclude": [...]
+                     },
+                     "synonyms": [
+                       {
+                         "analyzer": "lucene.<analyzer>",
+                         "name": "string",
+                         "source": {
+                           "collection": "string"
+                         }
+                       }
+                     ]
+                   }
+                 }'
+            
+            To learn more about the syntax and parameters for this 
+            endpoint, see :oas-atlas-op:`Create One 
+            </createAtlasSearchIndex>`.
+
+         .. step:: Review the response.
+
+            .. note:: 
+
+               |service| doesn't create the index if the collection 
+               doesn't exist, but it still returns a ``200`` status.
 
    .. tab::
       :tabid: atlas-ui
@@ -141,9 +245,6 @@ language of the example in this section.
    
    .. tab::
       :tabid: compass
-
-      You can create an |fts| index on an ``M10`` or higher |service|
-      {+cluster+} running MongoDB 7.0 or higher from {+Compass+}.
 
       .. |database| replace:: name of the database
       .. |collection| replace:: name of the collection

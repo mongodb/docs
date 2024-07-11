@@ -1,44 +1,128 @@
-To create an |fts| index through the :driver:`Node Driver </node/current/>`,
-define the search index from your application and run
-the ``createSearchIndex`` or ``createSearchIndexes`` helper method.
+Create One Index
+~~~~~~~~~~~~~~~~
 
-Example 
-~~~~~~~
+To create an |fts| index through the :driver:`Node Driver </node/current/>`:
+
+1. Define the search index from your application.
+      
+#. Run the ``createSearchIndex`` or ``createSearchIndexes`` helper method.
 
 The following sample application named ``create-index.js`` 
 defines a search index to dynamically index the fields in your collection,
 and then runs the ``createSearchIndex`` command to create the index.
 To learn more, see :ref:`ref-index-definitions`.
 
-Specify the following values:
+.. procedure::
+   :style: normal
 
-- Your |service| connection string. To learn more, see :ref:`connect-via-driver`.
-- The database and collection for which you want to create the index. 
-- The name of your index. If you omit the index name, |fts| names the index ``default``.
+   .. step:: Create a file named ``create-index.js``.
 
-.. literalinclude:: /includes/fts-tutorial/search-index-management/create-index.js
-   :caption: create-index.js
-   :language: javascript
-   :copyable:
+   .. step:: Define the search index.
 
-To run the sample application, use the following command:
+      Replace the placeholder values in the following example:
 
-.. io-code-block::
-   :copyable: true
+      .. list-table::
+         :widths: 20 80
+         :header-rows: 1
 
-   .. input::
-      :language: shell
+         * - Value
+           - Description
 
-      node create-index.js
+         * - ``<connection-string>`` 
+           - Your |service| connection string. To learn more, see 
+             :ref:`connect-via-driver`.
 
-   .. output::
+         * - ``<databaseName>``
+           -  Database for which you want to create the index.
 
-      <index-name>
+         * - ``<collectionName>``   
+           - Collection for which you want to create the index.
+
+         * - ``<index-name>`` 
+           - Name of your index. If you omit the index name, |fts| 
+             names the index ``default``.
+
+      .. literalinclude:: /includes/fts-tutorial/search-index-management/create-index.js
+         :caption: create-index.js
+         :language: javascript
+         :copyable:
+
+   .. step:: Run the sample application to create the index.
+      
+      Use the following command:
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: shell
+
+            node create-index.js
+
+         .. output::
+
+            <index-name>
+
+Create Multiple Indexes
+~~~~~~~~~~~~~~~~~~~~~~~
    
-You can also create multiple |fts| indexes at once. In your application, 
-define an array of search indexes, and then pass the array into the 
-``createSearchIndexes`` command:
+To create multiple |fts| indexes at once:
 
-.. literalinclude:: /includes/fts-tutorial/search-index-management/create-indexes.js
-   :language: javascript
-   :copyable:
+1. In your application, define an array of search indexes.
+      
+#. Pass the array into the ``createSearchIndexes`` command.
+
+The following example shows how to use the ``createSearchIndexes`` 
+command to create multiple indexes:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create a file named ``create-index-mult.js``.
+
+   .. step:: Define the search index.
+
+      Replace the placeholder values in the following example:
+
+      .. list-table::
+         :widths: 20 80
+         :header-rows: 1
+
+         * - Value
+           - Description
+
+         * - ``<connection-string>`` 
+           - Your |service| connection string. To learn more, see 
+             :ref:`connect-via-driver`.
+
+         * - ``<databaseName>``
+           -  Database for which you want to create the index.
+
+         * - ``<collectionName>``   
+           - Collection for which you want to create the index.
+
+         * - ``<first-index-name>`` 
+           - Name of your first index.
+
+         * - ``<last-index-name>``
+           - Name of your last index. 
+
+      .. literalinclude:: /includes/fts-tutorial/search-index-management/create-indexes.js
+         :language: javascript
+         :copyable:
+
+   .. step:: Run the sample application to create the index.
+      
+      Use the following command:
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: shell
+
+            node create-index-mult.js
+
+         .. output::
+
+            <index-name>

@@ -7,7 +7,7 @@
       detailed instructions on connecting, see
       :ref:`atlas-connect-via-compass`. 
 
-   .. step:: Use the |collection| in the |database|.
+   .. step:: Specify the database and collection.
 
       On the :guilabel:`Database` screen, click the |database|, then
       click the |collection|.  

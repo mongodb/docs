@@ -1,53 +1,185 @@
-To use the :driver:`.NET/C# Driver </csharp/current/>` to create an |fts| index,
-construct a ``BsonDocument`` that defines the index, then pass this ``BsonDocument``
-to the ``CreateOne()`` or ``CreateOneAsync()`` method.
+Create One Index
+~~~~~~~~~~~~~~~~
 
-Example 
-~~~~~~~
+To use the :driver:`.NET/C# Driver </csharp/current/>` to create an |fts| index:
+
+1. Construct a ``BsonDocument`` that defines the index.
+      
+#. Pass the ``BsonDocument`` to the ``CreateOne()`` or
+   ``CreateOneAsync()`` method.
 
 The following sample application
 defines a search index to dynamically index the fields in your collection,
 then runs the ``CreateOne()`` method to create the index.
 To learn more, see :ref:`ref-index-definitions`.
 
-Specify the following values:
+.. procedure::
+   :style: normal
 
-- Your |service| connection string. To learn more, see :ref:`connect-via-driver`.
-- The database and collection for which you want to create the index. 
-- The name of your index. If you omit the index name, |fts| names the index ``default``.
+   .. step:: Create a new directory and initialize your project.
 
-.. literalinclude:: /includes/fts-tutorial/search-index-management/csharp/CreateIndex.cs
-   :caption: Program.cs
-   :language: csharp
-   :copyable:
+      a. Run the following command to create a new directory called 
+         ``csharp-create-index``.
 
-To run the sample application, create a new .NET console project named
-``csharp-create-index`` and copy the previous code example into the 
-``Program.cs`` file. Then, use the following command to run the project:
+         .. code-block:: sh
 
-.. io-code-block::
-   :copyable: true
+            mkdir csharp-create-index
 
-   .. input::
-      :language: shell
+      #. Run the following command to change to the new directory.
 
-      dotnet run csharp-create-index.csproj
+         .. code-block:: sh
 
-   .. output::
+            cd csharp-create-index
 
-      default
+      #. Run the following command to initialize your project.
 
-You can also create multiple |fts| indexes at once. To do so,
-construct an instance of ``IEnumerable<CreateSearchIndexModel>`` that contains the
-search-index definitions, then pass this collection to the
-``CreateMany()`` or ``CreateManyAsync()`` method.
+         .. code-block:: sh
 
-The following example shows how to use the ``CreateMany()`` method to create multiple
-indexes:
+            dotnet new console
 
-.. literalinclude:: /includes/fts-tutorial/search-index-management/csharp/CreateIndexes.cs
-   :language: csharp
-   :copyable:
+   .. step:: Add the .NET/C# Driver to your project as a dependency.
+
+      Run the following command:
+      
+      .. code-block:: sh
+
+         dotnet add package MongoDB.Driver
+
+   .. step:: Replace the contents of the ``Program.cs`` file with a ``BsonDocument`` that defines the index.
+
+      Replace the placeholder values in the following example:
+
+      .. list-table::
+         :widths: 20 80
+         :header-rows: 1
+
+         * - Value
+           - Description
+
+         * - ``<connection-string>`` 
+           - Your |service| connection string. To learn more, see 
+             :ref:`connect-via-driver`.
+
+         * - ``<databaseName>``
+           -  Database for which you want to create the index.
+
+         * - ``<collectionName>``   
+           - Collection for which you want to create the index. 
+  
+      You may also define the name of your index. If you omit the index 
+      name, |fts| names the index ``default``.
+
+      .. literalinclude:: /includes/fts-tutorial/search-index-management/csharp/CreateIndex.cs
+         :caption: Program.cs
+         :language: csharp
+         :copyable:
+
+   .. step:: Compile and run the ``Program.cs`` file.
+
+      Use the following command to run the project:
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: shell
+
+            dotnet run csharp-create-index.csproj
+
+         .. output::
+
+            default
+
+Create Multiple Indexes
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To create multiple |fts| indexes at once:
+
+1. Construct an instance of ``IEnumerable<CreateSearchIndexModel>`` that contains the search index definitions.
+   
+#. Pass the collection to the ``CreateMany()`` or ``CreateManyAsync()`` method.
+
+The following example shows how to use the ``CreateMany()`` method to 
+create multiple indexes:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create a new directory and initialize your project.
+
+      a. Run the following command to create a new directory called 
+         ``csharp-create-index``.
+
+         .. code-block:: sh
+
+            mkdir csharp-create-index-mult
+
+      #. Run the following command to change to the new directory.
+
+         .. code-block:: sh
+
+            cd csharp-create-index-mult
+
+      #. Run the following command to initialize your project.
+
+         .. code-block:: sh
+
+            dotnet new console
+
+   .. step:: Add the .NET/C# Driver to your project as a dependency.
+
+      Run the following command:
+      
+      .. code-block:: sh
+
+         dotnet add package MongoDB.Driver
+
+   .. step:: Replace the contents of the ``Program.cs`` file with a ``BsonDocument`` that defines the index.
+
+      Replace the placeholder values in the following example:
+
+      .. list-table::
+         :widths: 20 80
+         :header-rows: 1
+
+         * - Value
+           - Description
+
+         * - ``<connection-string>`` 
+           - Your |service| connection string. To learn more, see 
+             :ref:`connect-via-driver`.
+
+         * - ``<databaseName>``
+           -  Database for which you want to create the index.
+
+         * - ``<collectionName>``   
+           - Collection for which you want to create the index.
+
+         * - ``<first-index-name>`` 
+           - Name of your first index.
+
+         * - ``<last-index-name>``
+           - Name of your last index. 
+
+      .. literalinclude:: /includes/fts-tutorial/search-index-management/csharp/CreateIndexes.cs
+         :language: csharp
+         :copyable:
+
+   .. step:: Compile and run the ``Program.cs`` file.
+
+      Use the following command to run the project:
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: shell
+
+            dotnet run csharp-create-index-mult.csproj
+
+         .. output::
+
+            default
 
 .. tip:: API Documentation
 
