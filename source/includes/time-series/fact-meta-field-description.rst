@@ -3,8 +3,7 @@ each time series document. The metadata in the specified field
 should be data that is used to label a unique series of
 documents. The metadata should rarely, if ever, change
 The name of the specified field may not be ``_id`` or the same
-as the ``timeseries.timeField``. The field can be of any type
-except array.
+as the ``timeseries.timeField``. The field can be of any data type. 
 
 Although the ``metaField`` field is optional, using metadata can improve 
 query optimization. For example, MongoDB automatically 
