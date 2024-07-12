@@ -7,7 +7,5 @@
      - | Destination |service| Sharded Cluster
        | MongoDB Version
 
-   * - 4.4
-     - 4.4
    * - 5.0
      - 5.0

@@ -7,12 +7,9 @@
      - | Destination |service| Replica Set
        | MongoDB Version
 
-
-   * - 4.0
-     - 4.4
    * - 4.2
-     - 4.4, 5.0
+     - 5.0
    * - 4.4
-     - 4.4, 5.0
+     - 5.0
    * - 5.0
      - 5.0
