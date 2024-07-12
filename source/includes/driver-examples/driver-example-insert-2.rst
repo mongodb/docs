@@ -20,8 +20,7 @@
          documents where the ``item`` field is equal to ``canvas``.
 
          For more information on the MongoDB Compass Query Bar, see the
-         Compass
-         :compass:`Query Bar </query-bar>`
+         Compass :ref:`Query Bar <compass-query-bar>`
          documentation.
 
      - id: c
