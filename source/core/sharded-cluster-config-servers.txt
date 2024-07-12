@@ -43,6 +43,12 @@ same config servers for different sharded clusters.
    number of config servers impacted, the cluster may be read-only or
    offline for a period of time.
 
+Starting in MongoDB 8.0, you can configure a config server to store
+application data in addition to the usual sharded cluster metadata. The
+config server is then known as a *config shard*. You'll learn more later
+on this page in the :ref:`sharded-cluster-config-server-config-shards`
+section.
+
 .. _csrs:
 .. _replset-config-servers:
 
@@ -170,3 +176,72 @@ appropriate security settings in order to enforce internal authentication.
 
 See :ref:`<deploy-cluster-with-keyfile-auth>` for a tutorial on 
 deploying a secured sharded cluster.
+
+.. _sharded-cluster-config-server-config-shards:
+
+Config Shards
+-------------
+
+.. include:: /includes/config-shard-introduction.rst
+
+You cannot use the same config shard for multiple sharded clusters.
+
+Commands
+~~~~~~~~
+
+To configure a dedicated config server to run as a config shard, run the
+:dbcommand:`transitionFromDedicatedConfigServer` command. 
+
+To configure a config shard to run as a dedicated config server, run the
+:dbcommand:`transitionToDedicatedConfigServer` command.
+
+Users
+~~~~~
+
+A user created on a config shard has the same behavior as a user created
+on a dedicated config server.
+
+Config Shard Identity Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To identify the config server as a config shard, inspect the document in 
+the :data:`admin.system.version` collection. In this example, 
+``shardName`` is set to ``'config'``:
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 3
+
+   {
+      _id: 'shardIdentity',
+      shardName: 'config',
+      clusterId: ObjectId("<objectID>"),
+      configsvrConnectionString: '<config server replica set connection string>',
+   }
+
+The following example retrieves a shard identity document from
+:data:`admin.system.version` in the :term:`admin database`:
+
+.. code-block:: javascript
+
+   use admin
+   db.system.version.find()
+
+Output extract:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      _id: 'shardIdentity',
+      shardName: 'config',
+      clusterId: ObjectId("6441bdd6779584849dcac095"),
+      configsvrConnectionString: 'configRepl/localhost:27007'
+   }
+
+.. _sharded-cluster-config-server-config-shards-downgrade:
+
+Downgrade Feature Compatibility Version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/drain-config-shard-procedure.rst
