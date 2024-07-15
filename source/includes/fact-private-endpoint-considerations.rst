@@ -63,12 +63,12 @@ To enable or disable the regionalized private endpoint setting:
       Enable Regionalized Private Endpoints
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      .. include:: /includes/steps/enable-regionalized-private-endpoints.rst
+      .. include:: /includes/steps-enable-regionalized-private-endpoints.rst
 
       Disable Regionalized Private Endpoints
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      .. include:: /includes/steps/disable-regionalized-private-endpoints.rst    
+      .. include:: /includes/steps-disable-regionalized-private-endpoints.rst    
 
 (Optional) Improve Connection Performance for Sharded {+Clusters+} Behind a Private Endpoint 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

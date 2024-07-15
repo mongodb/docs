@@ -27,10 +27,12 @@ The |service| process view displays three tabs for monitoring metrics for the pr
   |service| retrieves database metrics every 20 minutes by default but
   adjusts frequency when necessary to reduce the impact on database
   performance. If the collection of database statistics still affects
-  performance, you can disable collection by clicking 
-  :guilabel:`Settings` from the left-hand navigation, 
-  then :guilabel:`Project Settings`, and then setting 
-  :guilabel:`Collect Database Specific Statistics` to :guilabel:`No`.
+  performance, you can disable collection:
+  
+  1. .. include:: /includes/nav/list-project-settings.rst
+  
+  #. Set :guilabel:`Collect Database Specific Statistics` to 
+     :guilabel:`No`.
  
   The view for each tab has three distinct sections:
 

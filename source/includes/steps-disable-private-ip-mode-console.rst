@@ -9,13 +9,8 @@
       |service| clusters to use
       :ref:`Private IP for Peering connection strings <connstring-private>`.
       
-   .. step:: Go to the :guilabel:`Settings` page for your project.
-      
-      a. Next to the :guilabel:`Projects` menu, expand the
-         :icon-fa5:`ellipsis-v` :guilabel:`Options` menu.
+   .. include:: /includes/nav/steps-project-settings.rst
 
-      #. Click :guilabel:`Project Settings`.
-      
    .. step:: Disable Connect via Peering Only.
       
       Toggle :guilabel:`Connect via Peering Only (GCP and Azure)` to Off.
