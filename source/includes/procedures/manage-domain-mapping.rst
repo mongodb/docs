@@ -7,13 +7,7 @@
       .. procedure::
          :style: connected
 
-         .. step:: Log in to |service| and
-            use the drop-down in the upper-left corner to select
-            the organization for which you want to manage
-            federation settings.
-
-         .. step:: Click :guilabel:`Settings` in the
-            left navigation pane.
+         .. include:: /includes/nav/steps-org-settings.rst
 
          .. step:: In :guilabel:`Manage Federation Settings`, click
             :guilabel:`Open Federation Management App`.
