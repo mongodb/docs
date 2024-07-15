@@ -1,0 +1,177 @@
+.. _ak8so-atlas-search:
+
+============================================
+Create an |fts| Index with |k8s|
+============================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+|ak8so| supports |fts| indexes on |service| clusters. To learn more see 
+:ref:`ref-create-index`.
+
+Prerequisites
+-------------
+
+- Running |k8s| cluster with 
+  |ak8so| :ref:`deployed <ak8so-quick-start-ref>`.
+
+- MongoDB version ``4.2`` or higher on any {+cluster+} tier.
+
+  .. note::
+
+     You can't create more than:
+
+     - 3 indexes on ``M0`` clusters.
+     - 5 indexes on ``M2`` clusters.
+     - 10 indexes on ``M5`` clusters.
+
+     There are no limits to the number of indexes you can create on 
+     ``M10+`` clusters. 
+
+- Collection to create the |fts| index for.
+
+Required Access
+---------------
+
+You must have one of the following roles to create |fts| indexes:
+
+- :authrole:`Project Search Index Editor`
+- :authrole:`Project Data Access Admin`
+
+You must have at least the :atlasrole:`readWriteAnyDatabase` role or
+:ref:`readWrite <atlas-specific-privileges>` access to the database 
+where you want to create the indexes. To learn more, see 
+:ref:`atlas-user-privileges` or :ref:`atlas-specific-privileges`. 
+
+Procedure
+---------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Configure an :ref:`atlassearchindexconfig-custom-resource`.
+
+      The following example shows an ``AtlasSearchIndexConfig`` custom 
+      resource specification configured for the ``lucene.standard`` 
+      analyzer method.
+
+      .. note::
+
+         Multiple ``atlasDeployment`` custom resources can reference 
+         the same ``atlasSearchIndexConfiguration`` custom resource.
+
+      **Example:**
+
+      Run the following command:
+
+      .. code-block::
+
+         cat <<EOF | kubectl apply -f -
+         apiVersion: atlas.mongodb.com/v1
+         kind: AtlasSearchIndexConfig
+         metadata:
+           name: atlassearchindexconfig-sample
+           namespace: mongodb-atlas-system
+         spec:
+           analyzer: lucene.standard
+           searchAnalyzer: lucene.standard
+         EOF
+
+      To learn more about the available parameters, see 
+      :ref:`atlassearchindexconfig-custom-resource`.
+
+   .. step:: Configure the :ref:`atlasdeployment-custom-resource`.
+
+      Configure the :setting:`spec.deploymentSpec.searchIndexes` 
+      object.
+
+      The following parameters apply to this object:
+
+      .. list-table::
+         :widths: 25 75
+         :header-rows: 1
+
+         * - Parameter
+           - Description
+  
+         * - ``DBName``
+           -  Human-readable label that identifies the existing
+              database that contains the collection with one or more 
+              |fts| indexes.
+
+              .. important::
+
+                 The database that you specify must already exist. If 
+                 you don't have an existing database,
+                 :atlas:`create one </create-connect-deployments/>`.
+
+         * - ``CollectionName``
+           -  Human-readable label that identifies the collection that 
+              contains one or more |fts| indexes.
+
+         * - ``Type``
+           -  Type of the index. |service| accepts the following values:
+          
+              - ``search``
+              - ``vectorSearch``
+               
+         * -  ``search.searchIndexConfigurationRef.name``
+           -  Name that references the 
+              :ref:`atlassearchindexconfig-custom-resource`.
+
+         * - ``search.searchIndexConfigurationRef.namespace``
+           -  Namespace that contains the 
+              :ref:`atlassearchindexconfig-custom-resource`.
+  
+      To learn more about the available parameters, see 
+      :ref:`atlasdeployment-custom-resource`.
+
+      **Example:**
+
+      Run the following command.
+
+      .. code-block:: sh
+         :emphasize-lines: 24-34
+
+         cat <<EOF | kubectl apply -f -
+         apiVersion: atlas.mongodb.com/v1
+         kind: AtlasDeployment
+         metadata:
+           name: my-atlas-cluster
+           namespace: mongodb-atlas-system
+         spec:
+           projectRef:
+             name: my-project
+           deploymentSpec:
+             backupEnabled: true
+             clusterType: REPLICASET
+             name: Test-cluster-M10
+             replicationSpecs:
+             - regionConfigs:
+               - backingProviderName: AWS
+                 electableSpecs:
+                   instanceSize: M10
+                   nodeCount: 3
+                 priority: 7
+                 providerName: AWS
+                 regionName: US_EAST_1
+               zoneName: Zone 1
+             searchIndexes:
+             - DBName: sample_airbnb
+               collectionName: listingsAndReviews
+               name: my-index
+               search:
+                 mappings:
+                   dynamic: true
+                 searchConfigurationRef:
+                   name: atlassearchindexconfig-sample
+                   namespace: mongodb-atlas-system
+               type: search
+             terminationProtectionEnabled: false
+         EOF
