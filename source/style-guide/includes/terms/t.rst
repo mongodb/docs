@@ -140,10 +140,19 @@ T
      *timeout* as one word when using the term as a noun or adjective.
 
    timestamp
-     Use *timestamp* as one word. Use only as a noun.
+     Use *timestamp* as one word. Use only as a noun. Use *timestamp* 
+     instead of *date* wherever applicable to avoid confusion.
+
+     .. seealso:: 
+       
+        :term:`date`
 
    time zone
      Use *time zone* as two words.
+
+   toggle
+     Use *toggle* as a noun for the UI element that switches between 
+     two modes, usually :guilabel:`On` and :guilabel:`Off`.
 
    toolbar
      **toolbox**
