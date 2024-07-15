@@ -1,0 +1,131 @@
+.. _ak8so-vector-search:
+
+===================================================
+Create an {+avs+} Index with |k8s|
+===================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+|ak8so| supports {+avs+} indexes on |service| clusters. To learn more, 
+see :ref:`avs-types-vector-search`.
+
+Prerequisites
+-------------
+
+- Running |k8s| cluster with 
+  |ak8so| :ref:`deployed <ak8so-quick-start-ref>`.
+
+- MongoDB version ``6.0.11``, ``7.0.2``, or higher on any {+cluster+} 
+  tier.
+
+  .. note::
+
+     You can't create more than:
+
+     - 3 indexes on ``M0`` clusters.
+     - 5 indexes on ``M2`` clusters.
+     - 10 indexes on ``M5`` clusters.
+
+     There are no limits to the number of indexes you can create on 
+     ``M10+`` clusters. 
+
+- Collection to create the {+avs+} index for.
+
+Required Access
+---------------
+
+You need the :authrole:`Project Data Access Admin` or higher role to 
+create and manage {+avs+} indexes.
+
+Procedure
+---------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Configure the :ref:`atlasdeployment-custom-resource`.
+
+      Configure the :setting:`spec.deploymentSpec.searchIndexes` 
+      object.
+
+      The following parameters apply to this object:
+
+      .. list-table::
+         :widths: 25 75
+         :header-rows: 1
+
+         * - Parameter
+           - Description
+  
+         * - ``DBName``
+           -  Human-readable label that identifies the existing
+              database that contains the collection with one or more 
+              |fts| indexes.
+
+              .. important::
+
+                 The database that you specify must already exist. If 
+                 you don't have an existing database,
+                 :atlas:`create one </create-connect-deployments/>`.
+
+         * - ``CollectionName``
+           -  Human-readable label that identifies the collection that 
+              contains one or more |fts| indexes.
+
+         * - ``Type``
+           -  Type of the index. |service| accepts the following values:
+          
+              - ``search``
+              - ``vectorSearch``
+  
+      To learn more about the available parameters, see 
+      :ref:`atlasdeployment-custom-resource`.
+
+      **Example:**
+
+      Run the following command.
+
+      .. code-block:: sh
+         :emphasize-lines: 24-33
+
+         cat <<EOF | kubectl apply -f -
+         apiVersion: atlas.mongodb.com/v1
+         kind: AtlasDeployment
+         metadata:
+           name: my-atlas-cluster
+           namespace: mongodb-atlas-system
+         spec:
+           projectRef:
+             name: my-project
+           deploymentSpec:
+             backupEnabled: true
+             clusterType: REPLICASET
+             name: Test-cluster-M10
+             replicationSpecs:
+             - regionConfigs:
+               - backingProviderName: AWS
+                 electableSpecs:
+                   instanceSize: M10
+                   nodeCount: 3
+                 priority: 7
+                 providerName: AWS
+                 regionName: US_EAST_1
+               zoneName: Zone 1
+             searchIndexes:
+             - DBName: sample_airbnb
+               collectionName: listingsAndReviews
+               name: my-index
+               vectorSearch:
+                 fields: |
+                   [
+                     {"my-field":{"type": "vector", { ...},
+                   ]
+               type: vectorSearch
+             terminationProtectionEnabled: false
+         EOF
