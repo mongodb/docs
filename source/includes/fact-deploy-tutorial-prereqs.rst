@@ -52,15 +52,14 @@ Before you begin, complete the following prerequisites:
   other operating systems, see :dbtools:`Installing the Database Tools 
   </installation/installation/>`.
 
-- Install `Podman <https://podman.io/>`__ version 4.4 and later.
+- Install `Docker <https://www.docker.com//>`__.
 
-  **Example (MacOS):**
-
-  .. code-block:: sh
-
-     brew install podman
+  - For MacOS or Windows, install `Docker Desktop v4.31+ <https://docs.docker.com/desktop/release-notes/#4310>`__. 
+  - For Linux, install `Docker Engine v27.0+ <https://docs.docker.com/engine/release-notes/27.0/>`__. 
 
   .. note::
 
-     Podman requires a network connection for pulling and caching 
+     Docker requires a network connection for pulling and caching 
      MongoDB images.
+
+     `Podman <https://podman.io>`__ is also supported for Linux RHEL versions.  
