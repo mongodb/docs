@@ -61,7 +61,10 @@
       provided by the newer MongoDB version. You may also find better
       performance or stability with newer driver versions. See
       :doc:`/driver-connection` for documentation on the recommended
-      MongoDB driver for a given MongoDB version and connection examples.
+      MongoDB driver for a given MongoDB version and connection
+      examples. By using the :manual:`Stable API
+      </reference/stable-api/>`, you can ensure that behavior
+      changes between MongoDB versions do not break your application. 
       
       If you encounter a bug after upgrading your application,
       file a ticket in the :driver:`JIRA project for your MongoDB driver <>`.
