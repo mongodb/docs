@@ -1,2 +1,2 @@
-A continous sync job is recoverable within 24-hours of failure. 
+A continuous sync job is recoverable within 24-hours of failure. 
 For details, see :ref:`rm-sync-jobs-recoverability`.
