@@ -17,6 +17,60 @@ Compatibility Changes in MongoDB 8.0 (Release Candidate)
 .. _8.0-downgrade-incompatible:
 .. _8.0-downgrade-considerations:
 
+Query Behavior
+--------------
+
+Queries for null Don't Match undefined Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.0, comparisons to ``null`` in equality match
+expressions don't match ``undefined`` values.
+
+For example, consider these documents and query:
+
+.. code-block:: javascript
+
+   // people collection
+   
+   { _id: 1, name: null },
+   { _id: 2, name: undefined },
+   { _id: 3, name2: "Alice" }
+
+.. code-block:: javascript
+
+   db.people.find( { name: null } )
+
+Prior to MongoDB 8.0, the preceding query would match documents where:
+
+- The ``name`` field is ``null`` (``_id: 1``)
+- The ``name`` field is ``undefined`` (``_id: 2``)
+- The ``name`` field does not exist (``_id: 3``)
+
+Starting in MongoDB 8.0, the preceding query does not match the document
+where the ``name`` field is ``undefined`` (``_id: 2``).
+
+To match documents where ``name`` is ``undefined``, you must explicitly
+specify the ``undefined`` type in your query. For example, the following
+query returns all sample documents:
+
+.. code-block:: javascript
+
+   db.people.find( { 
+      $or: [
+         { name: null },
+         { name: { $type: "undefined" } }
+      ]
+   } ) 
+
+This query behavior change also impacts these operations:
+
+- :query:`$eq`
+
+- :query:`$in`
+ 
+- :pipeline:`$lookup`, because a ``null`` local field no longer matches
+  an ``undefined`` foreign field. 
+
 Deprecations
 ------------
 
