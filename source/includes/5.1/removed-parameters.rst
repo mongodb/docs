@@ -9,7 +9,7 @@ MongoDB 5.1 removes the following server parameters:
 
     * - :option:`--tlsFIPSMode <mongod --tlsFIPSMode>`
       - This option is removed from the MongoDB Community Edition. It
-        is available in `MongoDB Enterprise`_ edition.
+        is available in MongoDB Enterprise edition.
 
         FIPS was not a supported feature in MongoDB Community Edition.
         If your installation made use of FIPS anyway, you will need to
