@@ -1,5 +1,6 @@
 .. list-table::
     :header-rows: 1
+    :widths: 10 30
 
     * - Number
       - Description

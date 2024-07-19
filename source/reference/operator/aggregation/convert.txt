@@ -35,35 +35,53 @@ Compatibility
 Syntax
 ------
 
-:expression:`$convert` has the following syntax:
+.. versionchanged:: 8.0
 
 .. code-block:: javascript
 
    {
-    $convert:
-        {
-           input: <expression>,
-           to: <type expression>,
-           onError: <expression>,  // Optional.
-           onNull: <expression>    // Optional.
+      $convert:
+         {
+            input: <expression>,
+            to: <type expression> || {
+               type: <type expression>,
+               subtype: <int>
+            },
+            format: <string>,
+            onError: <expression>,
+            onNull: <expression>
          }
    }
 
 The :expression:`$convert` takes a document with the following fields:
 
 .. list-table::
-   :widths: 20 80
+   :widths: 20 20 80
    :header-rows: 1
 
    * - Field
+     - Necessity
      - Description
 
    * - ``input``
+     - Required
      - The argument can be any valid :ref:`expression
        <aggregation-expressions>`. For more information on
        expressions, see :ref:`aggregation-expressions`.
 
    * - ``to``
+     - Required
+     - Specifies the type to convert the ``input`` expression to. You
+       can set ``to`` to one of these values:
+
+       - A string or numeric identifier for the target type. See ``to.type``.
+
+       - An object containing the fields ``to.type`` and ``to.subtype``.
+         Use this format to convert to binData and specify a binData
+         subtype.
+
+   * - ``to.type``
+     - Required if specifying ``to`` as an object
      - The argument can be any valid :ref:`expression
        <aggregation-expressions>` that resolves to one of the following
        numeric or string identifiers:
@@ -85,6 +103,11 @@ The :expression:`$convert` takes a document with the following fields:
             - 2
             - For more information on the conversion to string, see
               :ref:`convert-to-string`.
+
+          * - "binData"
+            - 5
+            - For more information on the conversion to binData, see
+              :ref:`convert-to-binData`.
 
           * - "objectId"
             - 7
@@ -119,18 +142,44 @@ The :expression:`$convert` takes a document with the following fields:
             - For more information on the conversion to decimal, see
               :ref:`convert-to-decimal`.
 
+   * - ``to.subtype``
+     - Optional
+     - If ``to.type`` is ``binData``, ``to.subtype`` specifies the
+       binData subtype to convert to. You can specify one of these
+       values for ``to.subtype``:
+
+       .. include:: /includes/binary-subtypes.rst
+
+       *Default:* 0 (Generic binary subtype)
+
+   * - ``format``
+     - Required when converting to or from binData.
+     - Specifies the binData format of the input or output. Can be one
+       of these values:
+
+       - ``base64``
+       - ``base64url``
+       - ``utf8``
+       - ``hex``
+       - ``uuid``
+
+       .. note::
+
+          If ``format`` is ``uuid``, ``to.subtype`` must be ``4``.
+
    * - ``onError``
-     - Optional. The value to return on encountering an error during
-       conversion, including unsupported type conversions. The
-       arguments can be any valid :ref:`expression
-       <aggregation-expressions>`.
+     - Optional
+     - Value to return on encountering an error during conversion,
+       including unsupported type conversions. The arguments can be any
+       valid :ref:`expression <aggregation-expressions>`.
 
        If unspecified, the operation throws an error upon
        encountering an error and stops.
 
    * - ``onNull``
-     - Optional. The value to return if the ``input`` is null or
-       missing. The arguments can be any valid :ref:`expression
+     - Optional
+     - Value to return if the ``input`` is null or missing. The
+       arguments can be any valid :ref:`expression
        <aggregation-expressions>`.
 
        If unspecified, :expression:`$convert` returns null if the
@@ -148,14 +197,166 @@ following aggregation operators as shorthand when the default
 - :expression:`$toLong`
 - :expression:`$toObjectId`
 - :expression:`$toString`
+- :expression:`$toUUID`
 
 Behavior
 --------
 
+.. _convert-to-binData:
+
+Convert to BinData
+~~~~~~~~~~~~~~~~~~
+
+You can only convert strings to binData. All other input types result in
+an error.
+
+See the following example conversions to binData:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20
+   :class: border-table
+
+   * - Example
+     - Result
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input: "hn3uUsMxSE6S0cVkebjmfg==",
+             to: {
+                type: "binData",
+                subtype: 0
+             },
+             format: "base64"
+          }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          Binary.createFromBase64('hn3uUsMxSE6S0cVkebjmfg==', 0)
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input: "hn3uUsMxSE6S0cVkebjmfg==",
+             to: "binData",
+             format: "base64"
+          }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          Binary.createFromBase64('hn3uUsMxSE6S0cVkebjmfg==', 0)
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input: "867dee52-c331-484e-92d1-c56479b8e67e",
+             to: {
+                type: "binData",
+                subtype: 0
+             },
+             format: "base64",
+             
+          }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          Failed to parse BinData '867dee52-c331-484e-92d1-c56479b8e67e'
+          in $convert with no onError value: Input is not a valid base64
+          string.
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input: "hn3uUsMxSE6S0cVkebjmfg==",
+             to: {
+                type: "binData",
+                subtype: 4
+             },
+             format: "base64"
+          }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          Failed to parse BinData 'hn3uUsMxSE6S0cVkebjmfg==' in $convert
+          with no onError value: Input is not a valid base64 string.
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input: "867dee52-c331-484e-92d1-c56479b8e67e",
+             to: {
+                type: "binData",
+                subtype: 4
+             },
+             format: "uuid"
+          }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          UUID('867dee52-c331-484e-92d1-c56479b8e67e')
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input: "äöäöä",
+             to: {
+                type: "binData",
+                subtype: 4
+             },
+             format: "uuid"
+          }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          Failed to parse BinData 'äöäöä' in $convert with no onError
+          value: Input is not a valid UUID string.
+          
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input: "867dee52-c331-484e-92d1-c56479b8e67e",
+             to: { type: "binData" },
+             format: "uuid"
+          }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          Failed to parse BinData '867dee52-c331-484e-92d1-c56479b8e67e'
+          in $convert with no onError value: Only the UUID subtype (4)
+          is allowed with the 'uuid' format.
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input: 123,
+             to: { type: "binData", subtype: 0 }
+          }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          Unsupported conversion from int to binData in $convert with no onError value
+
 .. _convert-to-bool:
 
-Converting to a Boolean
-~~~~~~~~~~~~~~~~~~~~~~~
+Convert to Boolean
+~~~~~~~~~~~~~~~~~~
 
 The following table lists the input types that can be converted to a
 boolean:
@@ -250,8 +451,8 @@ The following table lists some conversion to boolean examples:
 
 .. _convert-to-int:
 
-Converting to an Integer
-~~~~~~~~~~~~~~~~~~~~~~~~
+Convert to Integer
+~~~~~~~~~~~~~~~~~~
 
 The following table lists the input types that can be converted to an
 integer:
@@ -399,8 +600,8 @@ The following table lists some conversion to integer examples:
 
 .. _convert-to-decimal:
 
-Converting to a Decimal
-~~~~~~~~~~~~~~~~~~~~~~~
+Convert to Decimal
+~~~~~~~~~~~~~~~~~~
 
 The following table lists the input types that can be converted to a
 decimal:
@@ -513,8 +714,8 @@ The following table lists some conversion to decimal examples:
 
 .. _convert-to-double:
 
-Converting to a Double
-~~~~~~~~~~~~~~~~~~~~~~~
+Convert to Double
+~~~~~~~~~~~~~~~~~
 
 The following table lists the input types that can be converted to a
 double:
@@ -640,8 +841,8 @@ The following table lists some conversion to double examples:
 
 .. _convert-to-long:
 
-Converting to a Long
-~~~~~~~~~~~~~~~~~~~~
+Convert to Long
+~~~~~~~~~~~~~~~
 
 The following table lists the input types that can be converted to a
 long:
@@ -794,8 +995,8 @@ The following table lists some conversion to long examples:
 
 .. _convert-to-date:
 
-Converting to a Date
-~~~~~~~~~~~~~~~~~~~~
+Convert to Date
+~~~~~~~~~~~~~~~
 
 The following table lists the input types that can be converted to a
 date:
@@ -955,8 +1156,8 @@ The following table lists some conversion to date examples:
 
 .. _convert-to-objectId:
 
-Converting to an ObjectId
-~~~~~~~~~~~~~~~~~~~~~~~~~
+Convert to ObjectId
+~~~~~~~~~~~~~~~~~~~
 
 The following table lists the input types that can be converted to an
 ObjectId:
@@ -1011,8 +1212,8 @@ The following table lists some conversion to date examples:
 
 .. _convert-to-string:
 
-Converting to a String
-~~~~~~~~~~~~~~~~~~~~~~
+Convert to String
+~~~~~~~~~~~~~~~~~
 
 The following table lists the input types that can be converted to a
 string:
@@ -1024,6 +1225,9 @@ string:
    * - Input Type
      - Behavior
 
+   * - BinData
+     - Returns the binary data value as a string.
+   
    * - Boolean
      - Returns the boolean value as a string.
 
@@ -1112,6 +1316,17 @@ The following table lists some conversion to string examples:
           }
 
      - "2018-03-27T16:58:51.538Z"
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input: BinData(4, "hn3f"),
+             to: "string",
+             format: "base64"
+          }
+
+     - 'hn3f'
 
 .. seealso::
 
