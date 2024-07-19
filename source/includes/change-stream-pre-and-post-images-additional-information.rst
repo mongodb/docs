@@ -66,7 +66,8 @@ Additional considerations:
   To request a post-image, you set ``fullDocument`` using the same
   method.
 
-- Pre-images are written to the ``config.system.preimages`` collection.
+- Pre-images are written to the :data:`config.system.preimages` 
+  collection.
     
   - The ``config.system.preimages`` collection may become large. To
     limit the collection size, you can set ``expireAfterSeconds``
