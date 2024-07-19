@@ -98,3 +98,9 @@ Related Commands
 
 * :ref:`atlas-security-ldap-verify-status-watch` - Watch for an LDAP configuration request to complete.
 
+
+.. toctree::
+   :titlesonly:
+
+   watch </command/atlas-security-ldap-verify-status-watch>
+

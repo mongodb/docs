@@ -88,4 +88,4 @@ Examples
 .. code-block::
    :copyable: false
 
-   atlas privateEndpoint gcp describe vpce-abcdefg0123456789
+   atlas privateEndpoint gcp describe tester-1

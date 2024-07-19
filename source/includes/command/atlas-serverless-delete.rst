@@ -92,3 +92,17 @@ If the command succeeds, the CLI returns output similar to the following sample.
    Serverless instance '<Name>' deleted
    
 
+Examples
+--------
+
+.. code-block::
+   :copyable: false
+
+   # Remove a serverlessInstance named myInstance for the project with the ID 5e2211c17a3e5a48f5497de3:
+   atlas serverless delete myInstance --projectId 5e2211c17a3e5a48f5497de3
+   
+.. code-block::
+   :copyable: false
+
+   # Remove a serverlessInstance named myInstance for the project with the ID 5e2211c17a3e5a48f5497de3 without requiring confirmation:
+   atlas serverless delete myInstance --projectId 5e2211c17a3e5a48f5497de3 --force

@@ -46,11 +46,11 @@ Options
    * - --maxDate
      - string
      - false
-     - Maximum created date. This option returns events whose created date is less than or equal to the specified value.
+     - Maximum created date. This option returns events whose created date is less than or equal to the specified value. This parameter uses the ISO 8601 timestamp format in UTC.
    * - --minDate
      - string
      - false
-     - Minimum created date. This option returns events whose created date is greater than or equal to the specified value.
+     - Minimum created date. This option returns events whose created date is greater than or equal to the specified value. This parameter uses the ISO 8601 timestamp format in UTC.
    * - --omitCount
      - 
      - false
@@ -96,3 +96,10 @@ Examples
 
    # Return a JSON-formatted list of events for the organization with the ID 5dd5a6b6f10fab1d71a58495:
    atlas events organizations list --orgId 5dd5a6b6f10fab1d71a58495 --output json
+   
+   
+.. code-block::
+   :copyable: false
+
+   # Return a JSON-formatted list of events between 2024-03-18T14:40:03-0000 and 2024-03-18T15:00:03-0000 and for the project with the ID 5e2211c17a3e5a48f5497de3
+   atlas events projects list --output json --projectId 5e2211c17a3e5a48f5497de3  --minDate 2024-03-18T14:40:03-0000 --maxDate 2024-03-18T15:00:03-0000

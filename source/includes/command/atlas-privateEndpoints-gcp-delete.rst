@@ -98,4 +98,4 @@ Examples
 .. code-block::
    :copyable: false
 
-   atlas privateEndpoint gcp delete vpce-abcdefg0123456789 --force
+   atlas privateEndpoint gcp delete tester-1 --force

@@ -100,4 +100,4 @@ Examples
 .. code-block::
    :copyable: false
 
-   atlas privateEndpoint gcp watch vpce-abcdefg0123456789
+   atlas privateEndpoint gcp watch tester-1

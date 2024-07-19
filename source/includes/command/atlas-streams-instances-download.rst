@@ -108,6 +108,7 @@ Examples
 --------
 
 .. code-block::
+   :copyable: false
 
    # Download the audit log file from the instance myProcessor for the project with the ID 5e2211c17a3e5a48f5497de3:
    atlas streams instance download myProcessor --projectId 5e2211c17a3e5a48f5497de3

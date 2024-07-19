@@ -93,3 +93,11 @@ If the command succeeds, the CLI returns output similar to the following sample.
    <Id>   <Name>   <MongoDBVersion>   <StateName>
    
 
+Examples
+--------
+
+.. code-block::
+   :copyable: false
+
+   # Return the JSON-formatted details for the serverlessInstance named myInstance in the project with the ID 5e2211c17a3e5a48f5497de3:
+   atlas serverless describe myInstance --projectId 5e2211c17a3e5a48f5497de3

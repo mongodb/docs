@@ -14,7 +14,7 @@ atlas dataFederation queryLimits create
 
 Creates a new Data Federation query limit.
 
-To use this command, you must authenticate with a user account or an API key with the Project Owner role.
+To learn more about the query limits, see https://dochub.mongodb.org/core/adf-query-limits.To use this command, you must authenticate with a user account or an API key with the Project Owner role.
 
 Syntax
 ------

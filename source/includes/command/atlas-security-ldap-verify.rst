@@ -115,3 +115,9 @@ Related Commands
 
 * :ref:`atlas-security-ldap-verify-status` - Get the status of an LDAP configuration request.
 
+
+.. toctree::
+   :titlesonly:
+
+   status </command/atlas-security-ldap-verify-status>
+

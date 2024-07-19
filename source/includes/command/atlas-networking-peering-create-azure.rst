@@ -50,7 +50,7 @@ Options
    * - --directoryId
      - string
      - true
-     - Unique identifier for an |azure-ad| directory.
+     - Unique identifier for an Azure AD directory.
    * - -h, --help
      - 
      - false
