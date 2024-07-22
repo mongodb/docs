@@ -8,5 +8,7 @@ referenced in a :pipeline:`$lookup` stage. Limitations:
 - Indexes are not used for comparisons where the operand is an array or
   the operand type is undefined.
   
-- Indexes are not used for comparisons with more than one :ref:`field
-  path <agg-quick-ref-field-paths>` operand.
+- Indexes can only be used for comparisons between fields and 
+  constants. For example, a comparison between ``$a`` and a constant 
+  value can use an index, but a comparison between ``$a`` and ``$b`` 
+  cannot use an index.
