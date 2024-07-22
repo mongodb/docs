@@ -18,7 +18,7 @@ Export {+Cloud-Backup+} Snapshot
 .. include:: /includes/fact-atlas-free-tier-limits.rst
 
 |service| lets you export your {+Cloud-Backup+} snapshots to an |aws| 
-|s3| bucket.
+|s3| Bucket or an {+az-bs+} Container.
 
 To learn how to manage automated backup policies and schedules, see
 :ref:`configure-backup-policy`.
@@ -58,11 +58,11 @@ is a full backup of that snapshot.
    ``4`` snapshots.
 
 |service| exports snapshots for collections one at a time. As the 
-export progresses, you may see partial results in your |s3| bucket. 
-|service| queues any new job if |service| is currently exporting 5 or 
-more replica sets. For sharded clusters, |service| always exports the 
-snapshots of all the shards simultaneously, regardless of the number 
-of shards. 
+export progresses, you may see partial results in your |s3| Bucket or
+{+az-bs+} Container. |service| queues any new job if |service| is
+currently exporting 5 or more replica sets. For sharded {+clusters+},
+|service| always exports the snapshots of all the shards simultaneously,
+regardless of the number of shards. 
 
 .. include:: /includes/fact-snapshot-export-cost.rst
 
@@ -72,7 +72,7 @@ Files |service| Uploads
 |service| uploads an empty file to ``/exported_snapshots/.permissioncheck`` 
 when you:
 
-- Add a new |aws| |s3| export bucket
+- Add a new |aws| |s3| Bucket or an {+az-bs+} Container for export
 - Start an export
 
 After |service| finishes exporting, |service| uploads a metadata file 
@@ -85,7 +85,7 @@ each collection.
       :tabid: complete
 
       |service| uploads the metadata file named ``.complete`` in the 
-      following path on your |s3| bucket: 
+      following path on your |s3| Bucket: 
 
       .. code-block:: shell
          :copyable: false
@@ -142,10 +142,11 @@ each collection.
            - Date when snapshot was taken.
 
          * - ``totalFiles``
-           - Total number of files uploaded to the |s3| bucket.
+           - Total number of files uploaded to the |s3| Bucket or
+             {+az-bs+} Container.
 
          * - ``labels``
-           - Labels of the cluster whose snapshot was exported.
+           - Labels of the {+cluster+} whose snapshot was exported.
 
          * - ``customData``
            - Custom data, if any, that you specified when creating the 
@@ -191,7 +192,7 @@ each collection.
       :tabid: metadata
 
       |service| uploads the ``metadata.json`` file for each collection 
-      in the following path on your |s3| bucket: 
+      in the following path on your |s3| Bucket: 
 
       .. code-block:: shell
          :copyable: false
@@ -300,14 +301,15 @@ each collection.
 If an export job fails: 
 
 - |service| doesn't automatically try to export again.
-- |service| doesn't remove any partial data in your |s3| bucket.
+- |service| doesn't remove any partial data in your |s3| Bucket or
+  {+az-bs+} Container.
 
 Exported Data Format
 --------------------
 
-|service| uploads the contents of your database to |s3| in ``.json.gz`` 
-format with documents in extended |json| format within. The path 
-to the files on |s3| is: 
+|service| uploads the contents of your database to |s3| or {+az-bs+} in
+``.json.gz`` format with documents in extended |json| format within. The
+following is the path to the files on |s3| or {+az-bs+}:  
 
 .. code-block:: sh 
    :copyable: false 
@@ -352,73 +354,133 @@ Limitations
 
 The following limitations apply:
 
-- You can only export to |aws| |s3| buckets.
-- You can only export snapshots for `currently supported versions of MongoDB <https://www.mongodb.com/support-policy/lifecycles>`__, but you can always 
-  download saved snapshots, regardless of the version.
+- You can only export snapshots for `currently supported versions of
+  MongoDB <https://www.mongodb.com/support-policy/lifecycles>`__, but
+  you can always download saved snapshots, regardless of the version.
 - You can't export :ref:`fallback snapshots <cps-fallback-snapshots>`.
 - You can have only one active export per snapshot.
 
- 
-
 .. important::
    
-   When you export snapshots from a sharded cluster to |s3| buckets, the export from each 
-   shard might have a different timestamp. This can result in duplicate or inconsistent 
+   When you export snapshots from a sharded {+cluster+} to |s3| Buckets 
+   or {+az-bs+} Containers, the export from each shard might have a 
+   different timestamp. This can result in duplicate or inconsistent  
    data across the shards.
 
 Required Access
 ---------------
 
-To manage your {+Cloud-Backup+} snapshots, you must have :authrole:`Project Owner` 
-access to the project. Users with :authrole:`Organization Owner` access 
-must add themselves as a ``Project Owner`` 
-to the project before they can manage {+Cloud-Backup+} snapshots.
+To manage your {+Cloud-Backup+} snapshots, you must have
+:authrole:`Project Owner` access to the project. Users with
+:authrole:`Organization Owner` access must add themselves as a ``Project
+Owner`` to the project before they can manage {+Cloud-Backup+}
+snapshots. 
 
 Prerequisites
 -------------
 
-To export your {+Cloud-Backup+} snapshots to an |aws| |s3| bucket, you 
-will need the following:
+To export your {+Cloud-Backup+} snapshots, you need an ``M10`` or higher 
+|service| {+cluster+} with {+Cloud-Backup+} :ref:`enabled
+<backup-cloud-provider>`. In addition, to export to an |aws| |s3|
+Bucket or {+az-bs+} Container, you must do the following:
 
-1. ``M10`` or higher |service| cluster with {+Cloud-Backup+} 
-   :ref:`enabled <backup-cloud-provider>`.
-#. |aws| `IAM role <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use.html>`__ 
-   with ``STS:AssumeRole`` that grants |service| access to your |aws| 
-   resources. To learn more about configuring |aws| access for 
-   |service|, see :ref:`set-up-unified-aws-access`.
-#. |aws| `IAM role policy <https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html>`__ 
-   that grants |service| write access or the ``S3:PutObject`` and 
-   ``S3:GetBucketLocation`` permissions to your |aws| resources. To 
-   learn more about configuring write access to |aws| resources, see 
-   :ref:`set-up-unified-aws-access`.
+.. tabs:: 
 
-   .. example:: 
+   .. tab:: AWS 
+      :tabid: aws
 
-      .. code-block:: json
+      1. Configure |aws| `IAM role <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use.html>`__ 
+         with ``STS:AssumeRole`` that grants |service| access to your |aws| 
+         resources. To learn more about configuring |aws| access for 
+         |service|, see :ref:`set-up-unified-aws-access`.
+      #. Configure |aws| `IAM role policy <https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html>`__ 
+         that grants |service| write access or the ``S3:PutObject`` and 
+         ``S3:GetBucketLocation`` permissions to your |aws| resources. To 
+         learn more about configuring write access to |aws| resources, see 
+         :ref:`set-up-unified-aws-access`.
 
-         {
-           "Version": "2012-10-17",
-           "Statement": [
-             {
-               "Effect": "Allow",
-               "Action": "s3:GetBucketLocation",
-               "Resource": "arn:aws:s3:::bucket-name"
-             },
-             {
-               "Effect": "Allow",
-               "Action": "s3:PutObject",
-               "Resource": "arn:aws:s3:::bucket-name/*"
-             }
-           ]
-         }
+         .. example:: 
+
+            .. code-block:: json
+
+               {
+                 "Version": "2012-10-17",
+                 "Statement": [
+                   {
+                     "Effect": "Allow",
+                     "Action": "s3:GetBucketLocation",
+                     "Resource": "arn:aws:s3:::bucket-name"
+                   },
+                   {
+                     "Effect": "Allow",
+                     "Action": "s3:PutObject",
+                     "Resource": "arn:aws:s3:::bucket-name/*"
+                   }
+                 ]
+               }
+
+   .. tab:: Azure 
+      :tabid: azure 
+
+      1. Set up |azure| :ref:`Service Principal with access policy
+         <manage-azure-access>` for your |service| project.
+
+      #. Assign the *Storage Blob Delegator* and *Storage Blob Data
+         Contributor* roles to your |azure| :azure:`Service Principal
+         </powershell/azure/create-azure-service-principal-azureps>`.
+
+         To assign the roles to your Service Principal, you will need
+         the following information:  
+
+         - `Service Principal ID <https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/how-to-view-managed-identity-service-principal?pivots=identity-mi-service-principal-portal>`__
+         - :azure:`Subscription ID </azure-portal/get-subscription-tenant-id>` 
+         - :azure:`Resource Group Name </azure-resource-manager/management/manage-resource-groups-portal>`
+         - :azure:`Storage Account Name </storage/common/storage-account-get-info>` 
+         - :azure:`Container Name </storage/blobs/blob-containers-portal>` 
+
+         .. list-table:: 
+            :widths: 20 80 
+            :header-rows: 1 
+                        
+            * - Role 
+              - Description
+ 
+            * - Storage Blob Delegator
+              - This allows the Service Pricipal to sign SAS tokens to
+                access the |azure| Storage Container. To assign this
+                role, run the following command: 
+
+                .. code-block:: shell 
+                   : copyable: true 
+
+                   az role assignment create --assignee-object-id <service-principal-id> --role "Storage Blob Delegator" --scope /subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.Storage/storageAccounts/<storage-account-name>
+
+            * - Storage Blob Delegator
+              - This allows read, write, and delete access to the
+                storage Container. To assign this role, run the
+                following command:
+
+                .. code-block:: shell 
+                   :copyable: true 
+
+                   az role assignment create --assignee-principal-type ServicePrincipal --assignee-object-id <service-principal-id> --role "Storage Blob Data Contributor" --scope /subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.Storage/storageAccounts/<storage-account-name>/blobServices/default/containers/<container-name>
 
 Export Management 
 -----------------
+
+You can create and manage snapshot exports to |aws| |s3| Buckets from
+the {+atlas-cli+} and {+atlas-admin-api+} or to {+az-bs+} Containers
+from the {+atlas-admin-api+}.
 
 .. tabs::
 
    .. tab:: {+atlas-cli+}
       :tabid: atlascli
+
+      .. note:: 
+
+         You can't export snapshots to {+az-bs+} Containers using the
+         {+atlas-cli+}. 
 
       Manage Export Jobs
       ~~~~~~~~~~~~~~~~~~
@@ -458,23 +520,95 @@ Export Management
    .. tab:: {+atlas-admin-api+}
       :tabid: api
 
-      Use the following APIs to: 
+      To grant and manage cloud provider access and to create and manage
+      snapshot export jobs, the |api| that you use must have the
+      :authrole:`Project Owner` role.
 
-      - Manage export policy including :oas-atlas-op:`modifying 
-        </updateCloudBackupBackupPolicyForOneCluster>` and 
-        :oas-atlas-op:`retrieving </returnOneCloudBackupSchedule>` 
-        snapshot policy for :oas-atlas-tag:`exporting 
-        </Cloud-Backup-Export>`.
-      - :oas-atlas-tag:`Manage </Cloud-Backup-Export>` export buckets  
-        including :oas-atlas-op:`creating 
-        </grantAccessToAwsS3BucketForCloudBackupSnapshotExports>`,
-        :oas-atlas-op:`retrieving 
-        </returnAllAwsS3BucketsUsedForCloudBackupSnapshotExports>`, and 
-        :oas-atlas-op:`deleting 
-        </revokeAccessToAwsS3BucketForCloudBackupSnapshotExports>` 
-        export buckets.
-      - :oas-atlas-tag:`Manage <Cloud-Backup-Export>` export jobs 
-        including :oas-atlas-op:`creating 
-        </createOneCloudBackupSnapshotExportJob>` and 
-        :oas-atlas-op:`retrieving 
-        </returnAllCloudBackupSnapshotExportJobs>` export jobs.
+      Manage Cloud Provider Access 
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      Use the following to :oas-atlas-tag:`manage </Cloud-Backups>`
+      export Buckets or Containers.
+      
+      Grant Access to Cloud Provider 
+      ``````````````````````````````
+      
+      To grant access to |aws| |s3| Bucket or {+az-bs+} Container for
+      exporting snapshots, send a ``POST`` request to the
+      :oas-atlas-tag:`Cloud Backups </Cloud-Backups>` resource
+      :oas-atlas-op:`endpoint </createExportBucket>`. This enables the
+      |aws| |s3| Bucket or {+az-bs+} Container to receive |service|
+      Cloud Backup snapshots. When sending the request to grant access,
+      you must provide the following information: 
+
+      .. tabs:: 
+
+         .. tab:: AWS 
+            :tabid: aws 
+
+            - Unique 24-hexadecimal character string that identifies the
+              unified AWS access role ID that |service| must use to 
+              access the |aws| |s3| Bucket. To learn more, see
+              :ref:`set-up-unified-aws-access`. 
+
+         .. tab:: Azure 
+            :tabid: azure 
+
+            - Unique 24-hexadecimal digit string that identifies the
+              |azure| Service Principal that |service| must use to
+              access the {+az-bs+}. To learn more, see
+              :ref:`manage-azure-access`. 
+            - Service endpoint of your {+az-bs+} account. To learn more,
+              see :azure:`Azure Documentation </storage/common/storage-account-get-info?tabs=azure-cli#get-service-endpoints-for-the-storage-account>`.
+            - UUID string that identifies the Microsoft Entra tenant ID.
+              To learn more, see  `Microsoft Entra Documentation <https://learn.microsoft.com/en-us/entra/fundamentals/how-to-find-tenant>`__.
+      
+      Retrieve Configured Cloud Providers for Snapshot Export 
+      ```````````````````````````````````````````````````````
+
+      To retrieve all the |aws| |s3| Buckets and {+az-bs+} Containers
+      to which |service| exports snapshots, send a ``GET`` request to 
+      the :oas-atlas-tag:`Cloud Backups </Cloud-Backups>` resource
+      :oas-atlas-op:`endpoint </listExportBuckets>`. 
+      
+      Revoke Access for One Configured Cloud Provider
+      ```````````````````````````````````````````````
+      
+      To revoke access to a specified |aws| |s3| Bucket or {+az-bs+}
+      Container, you must first disable automatic export of snapshots to
+      the |aws| |s3| Bucket or {+az-bs+} Container for all {+clusters+}
+      in the project and then send a ``DEL`` request to the
+      :oas-atlas-tag:`Cloud Backups </Cloud-Backups>` resource
+      :oas-atlas-op:`endpoint </deleteExportBucket>` with the ID of the
+      export Bucket, which is the ID of the export Bucket that |service|
+      creates to store your cloud provider storage information. If
+      necessary, send a ``GET`` request to the :oas-atlas-op:`endpoint
+      </listExportBuckets>` to retrieve the export Bucket ID. 
+      
+      Manage Export Jobs 
+      ~~~~~~~~~~~~~~~~~~
+
+      Use the following to :oas-atlas-tag:`manage </Cloud-Backups>`
+      export jobs.
+
+      Create Snapshot Export Job
+      ``````````````````````````
+
+      To export one |service| backup snapshot to an |aws| |s3| Bucket or
+      {+az-bs+} Container, send a ``POST`` request to the
+      :oas-atlas-tag:`Cloud Backups </Cloud-Backups>` resource
+      :oas-atlas-op:`endpoint </createBackupExportJob>` with the ID of
+      the snapshot to export and the ID of the |aws| |s3| Bucket or
+      {+az-bs+} Container.
+
+      Retrieve Snapshot Export Job 
+      ````````````````````````````
+
+      To retrieve one snapshot export job by its ID, send a ``GET``
+      request to the :oas-atlas-tag:`Cloud Backups </Cloud-Backups>`
+      resource :oas-atlas-op:`endpoint </getBackupExportJob>` with the
+      ID of the export job. 
+
+      To retrieve all running snapshot export jobs, send a ``GET``
+      request to the :oas-atlas-tag:`Cloud Backups </Cloud-Backups>`
+      resource :oas-atlas-op:`endpoint </listBackupExportJobs>`. 
