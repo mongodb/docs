@@ -2,8 +2,8 @@ import com.mongodb.ConnectionString
 import com.mongodb.MongoClientSettings
 import com.mongodb.ServerApi
 import com.mongodb.ServerApiVersion
-import com.mongodb.kotlin.client.sync.MongoClient
-import com.mongodb.kotlin.client.sync.MongoDatabase
+import com.mongodb.kotlin.client.MongoClient
+import com.mongodb.kotlin.client.MongoDatabase
 
 // Replace the placeholder with your MongoDB deployment's connection string
 val uri = "<connection string>"
