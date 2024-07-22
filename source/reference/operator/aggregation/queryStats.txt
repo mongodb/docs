@@ -21,9 +21,10 @@ Definition
 
 .. include:: /includes/aggregation/queryStats/description.rst
 
-``$queryStats`` only collects and reports metrics for
-:method:`~db.collection.find()` queries. ``$queryStats`` does not
-collect information for queries that use :ref:`{+qe+}
+``$queryStats`` collects and reports metrics for
+:method:`~db.collection.aggregate()`, :method:`~db.collection.find()`,
+and :method:`~db.collection.distinct()` queries. ``$queryStats`` does
+not collect information for queries that use :ref:`{+qe+}
 <qe-manual-feature-qe>`.
 
 Requirements
@@ -128,6 +129,13 @@ Behavior
 The following sections describe behavioral details of the
 ``$queryStats`` stage.
 
+How $queryStats Tracks Query Statistics
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Statistics for the ``$queryStats`` stage are tracked in a virtual
+collection that is stored in-memory. The memory limit for the virtual
+collection is 1% of the system's total memory.
+
 How $queryStats Groups Returned Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -142,13 +150,13 @@ specified as ``{ item: 'card' }`` is normalized to ``{ item :
 options like ``hint`` and ``comment``.
 
 ``$queryStats`` preserves literal values for options like
-``readConcern`` and ``readPreferences``.
+``readConcern`` and ``readPreference``.
 
 For the complete list of options included in a query stats entry, see
 :ref:`queryStats-find-query-shape`.
 
-How $queryStats Transforms Data
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+How $queryStats Transforms Data Using transformIdentifiers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When an HMAC key is specified to the ``transformIdentifiers`` option,
 ``$queryStats`` uses the HMAC key to apply an HMAC-SHA-256 hash function
@@ -160,9 +168,18 @@ on the following data:
 
 - Database names
 
-``$queryStats`` **does not** apply the hash function to MQL keywords
-such as operator names (for example, ``$gte``), or parameter names (such
-as the ``partitionBy`` parameter in :pipeline:`$setWindowFields`).
+``$queryStats`` **does not** apply the HMAC transformation to the
+following data:
+
+- MQL keywords such as operator names (for example, ``$gte``).
+
+- Parameter names such as the ``partitionBy`` parameter in
+  :pipeline:`$setWindowFields`.
+
+- Field values. ``$queryStats`` normalizes field values in a query to
+  their data types (such as number or string) when the query is
+  recorded. ``$queryStats`` never stores field values that contain user
+  data.
 
 For an example of transformed output, see
 :ref:`queryStats-example-transformed`.
@@ -180,8 +197,11 @@ To learn how to control ``$queryStats`` logging behavior, see
 Output
 ------
 
-``$queryStats`` returns an array of query stats entries. Query stats
-entries contain the following top-level documents:
+``$queryStats`` returns an array of query stats entries. Some query
+stats entry properties contain literal values, and some properties are
+normalized to group common queries.
+
+Query stats entries contain the following top-level documents:
 
 .. list-table::
    :header-rows: 1
@@ -218,7 +238,7 @@ Each document in the output array contains the following fields:
 
 .. list-table::
    :header-rows: 1
-   :widths: 10 10 10 20
+   :widths: 10 25 10 55
 
    * - Field
      - Type
@@ -226,29 +246,29 @@ Each document in the output array contains the following fields:
      - Description
 
    * - ``key`` 
-     - Object
+     - Document
      - Literal
      - Contains the query shape and additional query attributes that
        group a set of queries together
 
    * - ``key.queryShape``
-     - Object
+     - Document
      - Literal
      - Contains attributes used to group similar queries together. For
        more information, see :ref:`queryStats-queryShape`.
 
    * - ``key.client``
-     - Object
+     - Document
      - Literal
      - Describes client information associated with the key
 
    * - ``key.client.application``
-     - Object
+     - Document
      - Literal
      - The client application name
 
    * - ``key.client.driver``
-     - Object
+     - Document
      - Literal
      - Describes the driver used to issue the query
 
@@ -264,7 +284,7 @@ Each document in the output array contains the following fields:
      - Version number of the driver used to issue the query
 
    * - ``key.client.os``
-     - Object
+     - Document
      - Literal
      - Describes the operating system used by the client that issued the
        query
@@ -291,7 +311,7 @@ Each document in the output array contains the following fields:
      - Version number of the operating system
 
    * - ``key.readConcern``
-     - Object
+     - Document
      - Literal
      - The :ref:`read concern <read-concern>` for the key
 
@@ -302,7 +322,7 @@ Each document in the output array contains the following fields:
        information, see :ref:`queryStats-collectionType`.
 
    * - ``key.hint``
-     - Object or String
+     - Document or String
      - Normalized
      - The index that was used as a :ref:`hint <cursor-hint>` for the
        query
@@ -360,7 +380,7 @@ Each document in the output array contains the following fields:
        key. See :ref:`Stable API Parameters <stable-api-params>`.
 
    * - ``metrics``
-     - Object
+     - Document
      - Literal
      - Describes runtime statistics for the key
 
@@ -376,6 +396,102 @@ Each document in the output array contains the following fields:
      - Number of times that queries with the given key have been
        executed
    
+   * - ``metrics.keysExamined``
+     - Document
+     - Literal
+     - Describes the number of keys examined by queries 
+
+   * - | ``metrics``
+       | ``.keysExamined``
+       | ``.sum``
+     - Integer
+     - Literal
+     - Total number of keys examined 
+
+   * - | ``metrics``
+       | ``.keysExamined``
+       | ``.max``
+     - NumberLong
+     - Literal
+     - Maximum number of keys examined 
+   
+   * - | ``metrics``
+       | ``.keysExamined``
+       | ``.min``
+     - NumberLong
+     - Literal
+     - Fewest number of keys examined 
+   
+   * - | ``metrics``
+       | ``.keysExamined``
+       | ``.sumOfSquares``
+     - NumberDecimal
+     - Literal
+     - Sum of squares of number of keys examined.
+
+       A high ``sumOfSquares`` value indicates high variance in the
+       number of keys examined in individual queries.
+
+   * - ``metrics.docsExamined``
+     - Document
+     - Literal
+     - Describes the number of documents examined by queries 
+
+   * - | ``metrics``
+       | ``.docsExamined``
+       | ``.sum``
+     - Integer
+     - Literal
+     - Total number of documents examined in the query
+
+   * - | ``metrics``
+       | ``.docsExamined``
+       | ``.max``
+     - NumberLong
+     - Literal
+     - Maximum number of documents examined
+   
+   * - | ``metrics``
+       | ``.docsExamined``
+       | ``.min``
+     - NumberLong
+     - Literal
+     - Minimum number of documents examined
+   
+   * - | ``metrics``
+       | ``.docsExamined``
+       | ``.sumOfSquares``
+     - NumberDecimal
+     - Literal
+     - Sum of squares of number of documents examined.
+
+       A high ``sumOfSquares`` value indicates high variance in the
+       number of documents examined in individual queries.
+
+   * - ``metrics.hasSortStage``
+     - Boolean
+     - Literal
+     - ``true`` when MongoDB must sort the documents after it receives 
+       the documents from a cursor. 
+
+   * - ``metrics.usedDisk``
+     - Boolean
+     - Literal
+     - ``true`` when the query writes data to temporary files due to 
+       memory restrictions.
+
+   * - ``metrics.fromMultiPlanner``
+     - Boolean
+     - Literal
+     - ``true`` when the query planner evaluates multiple plans before 
+       choosing the winning execution plan for the query.
+   
+   * - ``metrics.fromPlanCache``
+     - Boolean
+     - Literal
+     - ``true`` when the query planner is able to use a plan from the 
+       plan cache.
+
    * - ``metrics.totalExecMicros``
      - Document
      - Literal
@@ -412,7 +528,7 @@ Each document in the output array contains the following fields:
    * - | ``metrics``
        | ``.totalExecMicros``
        | ``.sumOfSquares``
-     - NumberLong
+     - NumberDecimal
      - Literal
      - Sum of squares of the total execution times for all queries
        with the given key. A high ``sumOfSquares`` value indicates
@@ -455,7 +571,7 @@ Each document in the output array contains the following fields:
    * - | ``metrics``
        | ``.firstResponseExecMicros``
        | ``.sumOfSquares``
-     - NumberLong
+     - NumberDecimal
      - Literal
      - Sum of squares of amounts of time spent from the beginning of
        query processing to when the server returns the first batch of
@@ -470,17 +586,23 @@ Each document in the output array contains the following fields:
      - Describes the number of documents returned by queries within the
        key
 
-   * - ``metrics.docsReturned.sum``
+   * - | ``metrics``
+       | ``.docsReturned``
+       | ``.sum``
      - NumberLong
      - Literal
      - Total number of documents returned by queries with the given key
 
-   * - ``metrics.docsReturned.max``
+   * - | ``metrics``
+       | ``.docsReturned``
+       | ``.max``
      - NumberLong
      - Literal
      - Maximum number of documents returned by a query with the given key
 
-   * - ``metrics.docsReturned.min``
+   * - | ``metrics``
+       | ``.docsReturned``
+       | ``.min``
      - NumberLong
      - Literal
      - Fewest number of documents returned by a query with the given key
@@ -488,7 +610,7 @@ Each document in the output array contains the following fields:
    * - | ``metrics``
        | ``.docsReturned``
        | ``.sumOfSquares``
-     - NumberLong
+     - NumberDecimal
      - Literal
      - Sum of squares of number of documents returned by a query within
        the key.
@@ -556,9 +678,13 @@ Query Shape
 
 The ``key.queryShape`` contains query attributes used to group similar
 queries together. The fields in ``key.queryShape`` vary based on the
-command that resulted in the query stats entry. Currently,
-``$queryStats`` only creates query stats entries for :dbcommand:`find`
-commands.
+command that resulted in the query stats entry. ``$queryStats`` creates
+query stats entries for :dbcommand:`aggregate`, :dbcommand:`find`, and
+:dbcommand:`distinct` commands.
+
+Each query shape property corresponds to a query option. For example,
+``key.queryShape.sort`` corresponds to the :method:`~cursor.sort()`
+specification for the query shape.
 
 .. _queryStats-find-query-shape:
 
@@ -566,9 +692,7 @@ find Command Query Shape
 ````````````````````````
 
 The following table describes the query shape properties for ``find``
-commands. Each property corresponds to a query option. For example,
-``key.queryShape.sort`` corresponds to the :method:`~cursor.sort()`
-specification for the query shape.
+commands.
 
 .. list-table::
    :header-rows: 1
@@ -579,15 +703,15 @@ specification for the query shape.
      - Literal or Normalized
 
    * - ``key.queryShape.filter``
-     - Object
+     - Document
      - Normalized
 
    * - ``key.queryShape.sort``
-     - Object
+     - Document
      - Literal
 
    * - ``key.queryShape.projection``
-     - Object
+     - Document
      - Normalized
 
    * - ``key.queryShape.skip``
@@ -611,23 +735,23 @@ specification for the query shape.
      - Normalized
 
    * - ``key.queryShape.returnKey``
-     - bool
+     - Boolean
      - Literal
 
    * - ``key.queryShape.showRecordId``
-     - bool
+     - Boolean
      - Literal
 
    * - ``key.queryShape.tailable``
-     - bool
+     - Boolean
      - Literal
 
    * - ``key.queryShape.oplogReplay``
-     - bool
+     - Boolean
      - Literal
 
    * - ``key.queryShape.awaitData``
-     - bool
+     - Boolean
      - Literal
 
    * - ``key.queryShape.collation``
@@ -635,10 +759,79 @@ specification for the query shape.
      - Literal
 
    * - ``key.queryShape.allowDiskUse``
-     - bool
+     - Boolean
      - Literal
 
    * - ``key.queryShape.let``
+     - Document
+     - Normalized
+
+.. _queryStats-aggregate-query-shape:
+
+aggregate Command Query Shape
+`````````````````````````````
+
+The following table describes the query shape properties for
+``aggregate`` commands.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 10 10
+
+   * - Field
+     - Type
+     - Literal or Normalized
+
+   * - ``key.queryShape.pipeline``
+     - Array
+     - Normalized
+
+   * - ``key.queryShape.explain``
+     - Boolean
+     - Literal
+
+   * - ``key.queryShape.allowDiskUse``
+     - Boolean
+     - Literal
+
+   * - ``key.queryShape.collation``
+     - Document
+     - Literal
+
+   * - ``key.queryShape.hint``
+     - String or Document
+     - Normalized
+
+   * - ``key.queryShape.let``
+     - Document
+     - Normalized
+
+
+.. _queryStats-distinct-query-shape:
+
+distinct Command Query Shape
+````````````````````````````
+
+The following table describes the query shape properties for
+``distinct`` commands.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 10 10
+
+   * - Field
+     - Type
+     - Literal or Normalized
+
+   * - ``key.queryShape.key``
+     - String
+     - Literal
+
+   * - ``key.queryShape.collation``
+     - Document
+     - Normalized
+
+   * - ``key.queryShape.query``
      - Document
      - Normalized
 
@@ -659,13 +852,18 @@ To run the examples in this section, start with the following data:
      ]
    )
 
-Then, run the following :method:`~db.collection.find()` commands:
+Then, run these commands:
 
 .. code-block:: javascript
 
    db.products.find( { item: "card" } )
 
-   db.products.find( { qty: { $gt: 20 } } )
+   db.products.aggregate( [
+      {
+         $match: { qty: { $gt: 20 } }
+      }
+   ] )
+
 
 The following examples show the output of ``$queryStats`` using
 different types of data transformation:
@@ -723,19 +921,19 @@ Output:
            sum: Long("4254"),
            max: Long("4254"),
            min: Long("4254"),
-           sumOfSquares: Long("18096516")
+           sumOfSquares: Decimal128("18096516")
          },
          firstResponseExecMicros: {
            sum: Long("4254"),
            max: Long("4254"),
            min: Long("4254"),
-           sumOfSquares: Long("18096516")
+           sumOfSquares: Decimal128("18096516")
          },
          docsReturned: {
            sum: Long("1"),
            max: Long("1"),
            min: Long("1"),
-           sumOfSquares: Long("1")
+           sumOfSquares: Decimal128("1")
          },
          firstSeenTimestamp: ISODate("2023-09-14T12:30:27.989Z"),
          latestSeenTimestamp: ISODate("2023-09-14T12:30:27.989Z")
@@ -746,9 +944,12 @@ Output:
        key: {
          queryShape: {
            cmdNs: { db: 'test', coll: 'products' },
-           command: 'find',
-           filter: { qty: { '$gt': '?number' } }
+           command: 'aggregate',
+           pipeline: [
+             { '$match': { qty: { '$gt': '?number' } } }
+           ]
          },
+         apiVersion: '1',
          client: {
            driver: { name: 'nodejs|mongosh', version: '5.1.0' },
            os: {
@@ -761,34 +962,35 @@ Output:
            version: '5.1.0|1.8.0',
            application: { name: 'mongosh 1.8.0' }
          },
-         collectionType: 'collection'
+         collectionType: 'collection',
+         cursor: { batchSize: '?number' }
        },
        metrics: {
-         lastExecutionMicros: Long("580"),
-         execCount: Long("1"),
+         lastExecutionMicros: Long("350"),
+         execCount: Long("3"),
          totalExecMicros: {
-           sum: Long("580"),
-           max: Long("580"),
-           min: Long("580"),
-           sumOfSquares: Long("336400")
+           sum: Long("3084"),
+           max: Long("2499"),
+           min: Long("235"),
+           sumOfSquares: Decimal128("6422726")
          },
          firstResponseExecMicros: {
-           sum: Long("580"),
-           max: Long("580"),
-           min: Long("580"),
-           sumOfSquares: Long("336400")
+           sum: Long("3084"),
+           max: Long("2499"),
+           min: Long("235"),
+           sumOfSquares: Decimal128("6422726")
          },
          docsReturned: {
-           sum: Long("1"),
+           sum: Long("3"),
            max: Long("1"),
            min: Long("1"),
-           sumOfSquares: Long("1")
+           sumOfSquares: Long("3")
          },
-         firstSeenTimestamp: ISODate("2023-09-14T12:30:52.476Z"),
-         latestSeenTimestamp: ISODate("2023-09-14T12:30:52.476Z")
+         firstSeenTimestamp: ISODate("2023-11-29T21:16:17.796Z"),
+         latestSeenTimestamp: ISODate("2023-11-29T21:17:12.385Z")
        },
-       asOf: Timestamp({ t: 1694695007, i: 0 })
-     },
+       asOf: Timestamp({ t: 1701292827, i: 0 })
+     }
    ]
 
 .. _queryStats-example-transformed:
@@ -846,6 +1048,22 @@ Output:
        metrics: {
          lastExecutionMicros: Long("4254"),
          execCount: Long("1"),
+         keysExamined: { 
+           sum: Int("5"),
+           max: Long("5"),
+           min: Long("5"),
+           sumOfSquares: Long("25") 
+         },
+         docsExamined: {
+           sum: Long("1"),
+           max: Long("1"),
+           min: Long("1"),
+           sumOfSquares: Long("1")
+         },
+         hasSortStage: false,
+         usedDisk: false,
+         fromMultiPlanner: false, 
+         fromPlanCache: true, 
          totalExecMicros: {
            sum: Long("4254"),
            max: Long("4254"),
@@ -876,11 +1094,16 @@ Output:
              db: 'Mtrt3iG7dsX5c5uCSIhSVlcu5qD3u3xx2EQnS1dJLxM=',
              coll: '3oJE6AyOuf8h5NqWiXETxulFlPm3QUXbMnMjL2EqAU4='
            },
-           command: 'find',
-           filter: {
-             'RVqrwNEPotzdKnma/T7s4YcgNvpqO29BMDoni2N4IMI=': { '$gt': '?number' }
-           }
+           command: 'aggregate',
+           pipeline: [
+             {
+               '$match': {
+                 'RVqrwNEPotzdKnma/T7s4YcgNvpqO29BMDoni2N4IMI=': { '$gt': '?number' }
+               }
+             }
+           ]
          },
+         apiVersion: '1',
          client: {
            driver: { name: 'nodejs|mongosh', version: '5.1.0' },
            os: {
@@ -893,33 +1116,50 @@ Output:
            version: '5.1.0|1.8.0',
            application: { name: 'mongosh 1.8.0' }
          },
-         collectionType: 'collection'
+         collectionType: 'collection',
+         cursor: { batchSize: '?number' }
        },
        metrics: {
-         lastExecutionMicros: Long("580"),
-         execCount: Long("1"),
-         totalExecMicros: {
-           sum: Long("580"),
-           max: Long("580"),
-           min: Long("580"),
-           sumOfSquares: Long("336400")
+         lastExecutionMicros: Long("350"),
+         execCount: Long("3"),
+         keysExamined: { 
+           sum: Int("5"),
+           max: Long("5"),
+           min: Long("5"),
+           sumOfSquares: Long("25") 
          },
-         firstResponseExecMicros: {
-           sum: Long("580"),
-           max: Long("580"),
-           min: Long("580"),
-           sumOfSquares: Long("336400")
-         },
-         docsReturned: {
+         docsExamined: {
            sum: Long("1"),
            max: Long("1"),
            min: Long("1"),
            sumOfSquares: Long("1")
          },
-         firstSeenTimestamp: ISODate("2023-09-14T12:30:52.476Z"),
-         latestSeenTimestamp: ISODate("2023-09-14T12:30:52.476Z")
+         hasSortStage: false,
+         usedDisk: false,
+         fromMultiPlanner: false, 
+         fromPlanCache: true, 
+         totalExecMicros: {
+           sum: Long("3084"),
+           max: Long("2499"),
+           min: Long("235"),
+           sumOfSquares: Long("6422726")
+         },
+         firstResponseExecMicros: {
+           sum: Long("3084"),
+           max: Long("2499"),
+           min: Long("235"),
+           sumOfSquares: Long("6422726")
+         },
+         docsReturned: {
+           sum: Long("3"),
+           max: Long("1"),
+           min: Long("1"),
+           sumOfSquares: Long("3")
+         },
+         firstSeenTimestamp: ISODate("2023-11-29T21:16:17.796Z"),
+         latestSeenTimestamp: ISODate("2023-11-29T21:17:12.385Z")
        },
-       asOf: Timestamp({ t: 1694695712, i: 0 })
+       asOf: Timestamp({ t: 1701293302, i: 0 })
      },
    ]
 
@@ -928,7 +1168,8 @@ MongoDB Atlas Data Collection
 
 MongoDB Atlas periodically uses ``$queryStats`` to collect anonymized
 data about your queries, which helps improve MongoDB products. Your data
-may also be used to make feature suggestions based on usage.
+may also be used to make feature suggestions based on usage. MongoDB
+retains the data it collects with ``$queryStats`` for four years.
 
 When Atlas runs ``$queryStats`` on your deployment, it uses a unique
 HMAC key per Atlas organization to transform your data and avoid
@@ -938,4 +1179,4 @@ collecting sensitive information.
    :titlesonly: 
    :hidden: 
 
-   /reference/operator/aggregation/queryStats/toggle-logging
+   Toggle Log Output </reference/operator/aggregation/queryStats/toggle-logging>
