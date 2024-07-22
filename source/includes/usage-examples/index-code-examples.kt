@@ -22,7 +22,7 @@ fun main() {
     val collection = database.getCollection<Document>("<collection name>")
 
     // start-single-field
-    collection.createIndex(Indexes.ascending("<field name"))
+    collection.createIndex(Indexes.ascending("<field name>"))
     // end-single-field
 
     // start-compound
