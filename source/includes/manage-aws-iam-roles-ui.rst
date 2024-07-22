@@ -1,44 +1,49 @@
 To navigate to the |service| :guilabel:`AWS IAM Role Access` screen:
 
-1. Expand the :icon-fa5:`ellipsis-v` :guilabel:`Options` menu next to 
-   your project name in the {+atlas-ui+} upper left corner. Select 
-   :guilabel:`Integrations`.
+.. procedure::
+   :style: normal
 
-#. Click the :guilabel:`Configure` button in the :guilabel:`AWS IAM
-   Role Access` panel.
+   .. include:: /includes/nav/steps-project-integrations.rst
 
-   Note: if you already have one or more roles configured, the button
-   reads :guilabel:`Edit`.
+   .. step:: Configure the |service| :guilabel:`AWS IAM Role Access`.
+      
+      Click the :guilabel:`Configure` button in the :guilabel:`AWS IAM Role Access` panel.
 
-You can perform the following actions from the |service| :guilabel:`AWS
-IAM Role Access` screen:
+      .. note::
 
-- **View the list of authorized AWS IAM roles.**
+         If you already have one or more roles configured, the button
+         reads :guilabel:`Edit`.
 
-  The list of roles displays the role's |arn|, its time of creation, and
-  any |service| services configured to use the role.
+      You can perform the following actions from the |service| 
+      :guilabel:`AWS IAM Role Access` screen:
 
-- **Authorize an AWS IAM role.**
+      - **View the list of authorized AWS IAM roles.**
 
-  Click the :guilabel:`Authorize an AWS IAM Role` button.
+        The list of roles displays the role's |arn|, its time of 
+        creation, and any |service| services configured to use the role.
 
-  .. note:: 
+      - **Authorize an AWS IAM role.**
+
+        Click the :guilabel:`Authorize an AWS IAM Role` button.
+
+        .. note:: 
   
-     If you have an authorization in progress, the associated role has
-     a :guilabel:`Resume` button next to it.
+           If you have an authorization in progress, the associated 
+           role has a :guilabel:`Resume` button next to it.
 
-  For detailed instructions, see :ref:`set-up-unified-aws-access`.
+        For detailed instructions, see :ref:`set-up-unified-aws-access`.
 
-- **Deauthorize an AWS IAM role.**
+      - **Deauthorize an AWS IAM role.**
 
-  Click the :guilabel:`Delete` button next to the role.
+        Click the :guilabel:`Delete` button next to the role.
 
-  .. note::
+        .. note::
 
-     Be sure to remove any associated |service| services from the IAM 
-     role before you deauthorize it.
+           Be sure to remove any associated |service| services from the 
+           IAM role before you deauthorize it.
 
-- **View the details of an AWS IAM role.**
+      - **View the details of an AWS IAM role.**
 
-  Click the ellipsis (:guilabel:`...`) icon next to the role and select
-  :guilabel:`View Role Details`.
+        Click the ellipsis (:guilabel:`...`) icon next to the role and 
+        select :guilabel:`View Role Details`.
+        

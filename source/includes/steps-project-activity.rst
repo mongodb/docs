@@ -1,16 +1,7 @@
 .. procedure::
    :style: normal
-
-   .. include:: /includes/nav/steps-project-settings.rst
       
-   .. step:: Navigate to the :guilabel:`Activity Feed` page for your project.
-      
-      Perform one of the following steps:
-      
-      - Click the :guilabel:`Project Activity Feed` icon in the right 
-        side of the navigation bar.
-           
-      - Click :guilabel:`Activity Feed` in the sidebar.
+   .. include:: /includes/nav/steps-project-activity-feed.rst
       
    .. step:: Filter the activity feed.
       
@@ -22,5 +13,4 @@
       
       .. include:: /includes/facts/activity-feed/filter-clusters.rst
       
-      .. include:: /includes/facts/activity-feed/filter-time-range.rst
-      
+      .. include:: /includes/facts/activity-feed/filter-time-range.rst     

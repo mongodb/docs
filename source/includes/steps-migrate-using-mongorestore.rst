@@ -82,13 +82,7 @@
       
       If no such user exists, create the user:
       
-      a. If it is not already displayed, select your desired organization
-         from the :icon-mms:`office` :guilabel:`Organizations` menu in the
-         navigation bar.
-      
-      #. Click :guilabel:`Access Manager` in the sidebar, or click
-         :guilabel:`Access Manager` in the navigation bar, then click
-         your organization.
+      a. .. include:: /includes/nav/list-org-access-manager.rst
       
       #. Click :icon-fa5:`plus` :guilabel:`Add New Database User`.
       

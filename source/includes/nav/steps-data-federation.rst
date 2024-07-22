@@ -1,4 +1,4 @@
-.. step:: In |service|, go to to your {+fdi+}.
+.. step:: In |service|, go to to your {+fdi+} for your project.
 
    a. If it's not already displayed, select the 
       organization that contains your project from the

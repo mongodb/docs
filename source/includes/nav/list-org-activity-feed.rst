@@ -1,0 +1,1 @@
+Click :guilabel:`Activity Feed` in the sidebar.

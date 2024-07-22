@@ -2,7 +2,14 @@
 and non-temporary IP access list entries in the project's Activity
 Feed.
 
-To view the project's Activity Feed, click :guilabel:`Activity Feed` in the :guilabel:`Project` section of the left navigation pane.
+To view the project's Activity Feed:
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-project-settings.rst
+
+   .. include:: /includes/nav/project-activity-feed.rst
 
 .. seealso::
 

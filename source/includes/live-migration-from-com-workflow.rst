@@ -11,13 +11,18 @@ The stages in the live migration workflow are:
   project; deployed your dedicated {+cluster+} in this project; and can
   connect to it.
 
-  a. In the |service| organization, go to :guilabel:`Live Migration`.
+  a. .. include:: /includes/nav/list-org-settings.rst
+
+  #. .. include:: /includes/nav/list-org-live-migration.rst
+  
   #. Select :guilabel:`Migrate from Ops Manager or Cloud Manager` and
      start the live migration wizard.
+
   #. If you are :opsmgr:`migrating </tutorial/migrate-community-to-atlas>`
      from MongoDB Community using |onprem|, accept
      the :opsmgr:`Ops Manager Migration Agreement
      </reference/legal/live-migration-atlas-licensing>`.
+     
   #. If you are migrating from |onprem|, enter the external IP
      addresses of your |onprem| instances to the |service| access
      list. If you are migrating from |mms|, skip this step.

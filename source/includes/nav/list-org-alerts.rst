@@ -1,0 +1,1 @@
+Click :guilabel:`Alerts` in the sidebar.

@@ -11,7 +11,10 @@ The stages in the live migration workflow are:
   project; deployed your dedicated {+cluster+} in this project; and can
   connect to it.
 
-  a. In the |service| organization, go to :guilabel:`Live Migration`.
+  a. .. include:: /includes/nav/list-org-settings.rst
+
+  #. .. include:: /includes/nav/list-org-live-migration.rst
+    
   #. Select :guilabel:`Migrate from Cloud Manager` and
      start the live migration wizard.
 

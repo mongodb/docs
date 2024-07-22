@@ -5,20 +5,27 @@ migration, please :doc:`request support </support>` through the
 
 To file a support ticket:
 
-#. Click :guilabel:`Support` in the left-hand navigation.
+.. procedure::
+   :style: normal
 
-#. Click :guilabel:`Request Support`.
+   .. include:: /includes/nav/steps-project-support.rst
 
-#. For :guilabel:`Issue Category`, select ``Help with live migration``.
+   .. step:: Request support.
 
-#. For :guilabel:`Priority`, select the appropriate priority. For
-   questions, please select ``Medium Priority``. If there was a failure
-   in migration, please select ``High Priority``.
+      a. Click :guilabel:`Request Support`.
 
-#. For :guilabel:`Request Summary`, please include ``Live Migration``
-   in your summary.
+      #. For :guilabel:`Issue Category`, select 
+         ``Help with live migration``.
 
-#. For :guilabel:`More details`, please include any other relevant
-   details to your question or migration error.
+      #. For :guilabel:`Priority`, select the appropriate priority. For
+         questions, please select ``Medium Priority``. If there was a 
+         failure in migration, please select ``High Priority``.
 
-#. Click the :guilabel:`Request Support` button to submit the form.
+      #. For :guilabel:`Request Summary`, please include 
+         ``Live Migration`` in your summary.
+
+      #. For :guilabel:`More details`, please include any other relevant
+         details to your question or migration error.
+
+      #. Click the :guilabel:`Request Support` button to submit the 
+         form.

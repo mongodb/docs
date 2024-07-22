@@ -1,3 +1,9 @@
 If you have questions on {+Cloud-Backup+} backup sizing and
-pricing, please contact |service| support by clicking
-:guilabel:`Support` from the left-hand navigation of the {+atlas-ui+}.
+pricing, contact |service| support:
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-project-support.rst
+
+   .. step:: Request support.
