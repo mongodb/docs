@@ -81,11 +81,15 @@ If the next highest {+cluster+} tier is within your
 up to the next tier if *one* of the following criteria is true for 
 *any* node in the {+cluster+}:
 
-- The :guilabel:`Average CPU Utilization` has exceeded 75% of available resources for the past hour. The 75% threshold is relative to the resources that the cluster tier has access to.
+- The :guilabel:`Average CPU Utilization` has exceeded 75% of available
+  resources for the past hour. The 75% threshold is relative to the resources
+  that the {+cluster+} tier has access to.
 
-- The :guilabel:`Memory Utilization` has exceeded 75% of available resources for the past hour. The 75% threshold is relative to the resources that the cluster tier has access to.
+- The :guilabel:`Memory Utilization` has exceeded 75% of available resources
+  for the past hour. The 75% threshold is relative to the resources that
+  the {+cluster+} tier has access to.
 
-|service| scales a {+cluster+} to the next tier when the {+cluster+} 
+|service| scales a {+cluster+} to the next tier when the {+cluster+}
 hasn't been scaled up in the past hour.
 
 .. important:: Sudden Workload Spikes
@@ -125,10 +129,10 @@ To learn more about downward auto-scaling behavior, see
 Considerations for Downward Auto-Scaling of Cluster Tier and Storage
 ````````````````````````````````````````````````````````````````````
 
-- When |service| downscales the storage capacity of your {+cluster+}, 
+- When |service| scales down the storage capacity of your {+cluster+}, 
   this can take longer than expanding storage capacity due to the 
   mechanics of the scaling process.
-- When |service| downscales your {+cluster+} to a lower {+cluster+} 
+- When |service| scales down your {+cluster+} to a lower {+cluster+} 
   tier, it uses the value in the :guilabel:`Minimum Cluster Size`. 
   Estimate your deployment's range of workloads and then set the 
   :guilabel:`Minimum Cluster Size` value to the {+cluster+} tier that 
@@ -180,67 +184,63 @@ following rules:
 How |service| Scales Cluster Storage
 ------------------------------------
 
-|service| enables {+cluster+} storage auto-scaling by default. For
-{+clusters+} with analytic nodes, if you select a different cluster
-class, such as :guilabel:`General` or :guilabel:`Low-CPU`, for the 
-:guilabel:`Base Tier` and the :guilabel:`Analytics Tier`, |service| disables 
-disk auto-scaling with the following error message:
+|service| enables {+cluster+} storage auto-scaling by default.
+|service| automatically increases {+cluster+} storage when disk space used
+reaches 90% for *any* node in the {+cluster+}.
 
-.. code-block::
-   :copyable: false
+The following considerations apply:
 
-   Disk auto-scaling is not yet available for clusters with mixed instance classes.
+- |service| automatically scales {+cluster+} storage up only. You can manually
+  reduce your {+cluster+} storage from the :ref:`Edit Cluster <scale-cluster>` page.
 
-|service| automatically increases {+cluster+} storage when disk space used 
-reaches 90% for *any* node in the {+cluster+}. 
+- The scaling behavior differs by cloud provider:
 
-.. important:: High-Speed Write Activity
+  - For {+clusters+} hosted on :ref:`AWS <amazon-aws>` and :ref:`GCP <google-gcp>`,
+    |service| increases {+cluster+} storage capacity to achieve 70% disk
+    space used. To learn more about |aws| storage change limitations and
+    how |service| works around them, see :ref:`change-storage-capacity-aws`.
 
-   Scaling up to greater storage capacity requires sufficient time to
-   prepare and copy data to new disks. Automatic scaling might not occur
-   when a {+cluster+} receives a burst of high-speed write activity, 
-   such as a bulk insert. To reduce the risk of running out of disk 
-   storage, {+cluster+} managers should plan to scale up {+clusters+} 
-   in advance of bulk inserts and other instances of high-speed write 
-   activity.
+  - For {+clusters+} hosted on :ref:`Azure <microsoft-azure>`, |service|
+    doubles the current amount of {+cluster+} storage.
 
-The scaling behavior differs by cloud provider:
+- Avoid high-speed write activity if you plan to scale up {+clusters+}.
+  Scaling up a {+cluster+} to greater storage capacity requires sufficient
+  time to  prepare and copy data to new disks. If a {+cluster+} receives
+  a burst of high-speed write activity, such as a bulk insert, automatic
+  scaling might not occur due to a temporary spike in disk storage capacity.
+  To reduce the risk of running out of disk  storage, plan to scale up
+  {+clusters+} in advance of bulk inserts and other instances of high-speed
+  write activity.
 
-- On :ref:`AWS <amazon-aws>` and :ref:`GCP <google-gcp>` {+clusters+},
-  |service| increases {+cluster+} storage capacity to achieve 70% disk 
-  space used. To learn more about |aws| storage change limitations and
-  how |service| works around them, see 
-  :ref:`change-storage-capacity-aws`.
+- |service| disables disk auto-scaling if you specify one cluster tier
+  class for the base nodes and another, different cluster tier class for
+  the analytics nodes. For example, if you specify a :guilabel:`General`
+  cluster class for operational nodes in the :guilabel:`Base Tier`, and
+  a :guilabel:`Low-CPU` cluster class for analytics nodes
+  in the :guilabel:`Analytics Tier`, |service| disables disk auto-scaling
+  with the following error message: ``Disk auto-scaling is not yet available
+  for clusters with mixed instance classes``.
 
-- On :ref:`Azure <microsoft-azure>` {+clusters+}, |service| doubles the
-  current amount of {+cluster+} storage.
-
-.. important::
-
-   |service| automatically scales {+cluster+} storage only up, and never
-   automatically scales {+cluster+} storage down. You can manually 
-   reduce your {+cluster+} storage from the :ref:`Edit Cluster 
-   <scale-cluster>` page.
+- |service| disables disk auto-scaling if you deploy the :guilabel:`Base Tier`
+  and :guilabel:`Analytics Tier` nodes in different cloud provider regions.
 
 {+Cluster+} Tier and {+Cluster+} Storage Might Scale in Parallel
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When |service| attempts to automatically scale your {+cluster+} storage
-capacity, it might need to scale your storage outside of the bounds
-supported that your current {+cluster+} tier supports. To help ensure 
-that your {+cluster+} doesn't experience any downtime, |service| will 
-scale your {+cluster+} tier (in addition to {+cluster+} storage) to 
-accommodate the new storage capacity.
+capacity, it might need to scale your storage outside of the bounds that
+your current {+cluster+} tier supports. To help ensure that your {+cluster+}
+doesn't experience any downtime, |service| scales your {+cluster+} tier
+(in addition to {+cluster+} storage) to accommodate the new storage capacity.
 
 .. example::
 
    The maximum storage capacity for an ``M30`` {+cluster+} is 480 GB. If
-   you have an ``M30`` {+cluster+} with the maximum storage allocated 
-   and your disk space used reaches 90%, a storage auto-scaling event 
-   requires raising your storage capacity to 600 GB. In this case,
-   |service| scales your {+cluster+} tier up to ``M40`` because this is
-   the lowest {+cluster+} tier that can support the new required
-   storage capacity.
+   you have an ``M30`` {+cluster+} with the maximum storage allocated and
+   your disk space used reaches 90%, a storage auto-scaling event requires
+   raising your storage capacity to 600 GB. In this case, |service| scales
+   your {+cluster+} tier up to ``M40`` because this is the lowest {+cluster+}
+   tier that can support the new required storage capacity.
 
 In the event that your specified maximum {+cluster+} tier can't support
 the new storage capacity, |service|:
@@ -252,17 +252,16 @@ the new storage capacity, |service|:
 
 .. note::
 
-   When |service| overrides your maximum {+cluster+} tier, it also
-   disables your {+cluster+} from automatically scaling down. To re-enable
-   downward auto-scaling, configure it in :ref:`Cluster Settings <scale-cluster>`.
+   When |service| overrides your maximum {+cluster+} tier, it also disables
+   your {+cluster+} from automatically scaling down. To re-enable downward
+   auto-scaling, configure it in :ref:`Cluster Settings <scale-cluster>`.
    See also :ref:`downward-scaling-considerations`.
 
 If |service| attempts to scale your {+cluster+} tier down and the target
-tier can't support your current disk capacity, provisioned |iops|,
-or both, |service| doesn't scale your {+cluster+} down. In this
-scenario, |service| updates your auto-scaling settings based on the
-relationship between your current {+cluster+} tier and the configured
-maximum {+cluster+} tier:
+tier can't support your current disk capacity, provisioned |iops|, or both,
+|service| doesn't scale your {+cluster+} down. In this scenario, |service|
+updates your auto-scaling settings based on the relationship between your
+current {+cluster+} tier and the configured maximum {+cluster+} tier:
 
 - If the {+cluster+} is currently at the configured maximum {+cluster+}
   tier, |service| disables the {+cluster+} from automatically scaling
@@ -271,17 +270,16 @@ maximum {+cluster+} tier:
   auto-scaling, you must do so manually from your :ref:`Cluster
   Settings <scale-cluster>`.
 
-- If the {+cluster+} isn't currently at the configured maximum
-  {+cluster+} tier, |service| raises the minimum {+cluster+} tier to 
-  the current {+cluster+} tier. In this case, |service| doesn't disable 
-  downward auto-scaling.
+- If the {+cluster+} isn't currently at the configured maximum {+cluster+}
+  tier, |service| raises the minimum {+cluster+} tier to the current {+cluster+}
+  tier. In this case, |service| doesn't disable downward auto-scaling.
 
-This auto-scaling logic is designed to reduce the downtime incurred by
-your storage settings not matching your workload.
+This auto-scaling logic reduces the downtime in cases when your storage
+settings don't match your workload.
 
-When an auto-scaling event modifies your configured minimum or maximum
-{+cluster+} tier, |service| sends an email to all project owners about
-the new {+cluster+} tier and any modified minimum or maximum tier bounds.
+.. important::
+
+   .. include:: /includes/opt-out-of-auto-autoscaling-emails.rst
 
 Oplog Considerations
 ~~~~~~~~~~~~~~~~~~~~
@@ -297,10 +295,13 @@ Configure Auto-Scaling Options
 You can configure auto-scaling options when you
 :ref:`create <create-new-cluster>` or :ref:`modify <scale-cluster>` a
 {+cluster+}. For new clusters, |service| automatically enables
-{+cluster+} tier auto-scaling and storage auto-scaling. You can review 
-and adjust the upper and lower {+cluster+} tiers that |service| should 
-use when auto-scaling your {+cluster+}, or you can :ref:`opt out 
-<opt-out-autoscaling>`.
+{+cluster+} tier auto-scaling and storage auto-scaling.
+
+You can do one of the following:
+
+- Review and adjust the upper and lower {+cluster+} tiers that |service|
+  should use when auto-scaling your {+cluster+}, or
+- :ref:`Opt out <opt-out-autoscaling>` of using auto-scaling.
 
 |service| displays auto-scaling options in the :guilabel:`Auto-scale`
 section of the {+cluster+} builder for :guilabel:`General` and
@@ -343,8 +344,7 @@ automatically scale to. |service| sets these values as follows:
 Review the {+Cluster+} Tier Auto-Scaling Options
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To review the enabled auto-scaling options for {+cluster+} tier and 
-storage:
+To review the enabled auto-scaling options for {+cluster+} tier and storage:
 
 1. In the selected :guilabel:`Auto-Scale` checkbox, review
    the :guilabel:`Maximum Cluster Size` and
@@ -361,13 +361,13 @@ storage:
 Opt Out of {+Cluster+} Tier and Storage Auto-Scaling
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To opt out of {+cluster+} auto-scaling (increasing the cluster tier), 
+To opt out of {+cluster+} auto-scaling (increasing the cluster tier),
 when :ref:`creating a new cluster <create-new-cluster>`, navigate to the
 :guilabel:`Cluster Tier` menu, and un-check the
 :guilabel:`Cluster Tier Scaling` checkbox in the :guilabel:`Auto-scale`
 section.
 
-To opt out of {+cluster+} auto-scaling (decreasing the cluster tier), 
+To opt out of {+cluster+} auto-scaling (decreasing the cluster tier),
 when :ref:`creating a new cluster <create-new-cluster>`, navigate to
 :guilabel:`Cluster Tier` menu, and un-check the
 :guilabel:`Allow cluster to be scaled down` checkbox in the
@@ -377,17 +377,40 @@ To opt out of cluster storage scaling, un-check the
 :guilabel:`Storage Scaling` checkbox in the :guilabel:`Auto-scale`
 section.
 
-.. _ack-auto-scaling-events:
+.. _activity-feed-auto-scaling-events:
 
-Acknowledge Auto-Scaling Events
--------------------------------
+Review Auto-scaling Activity Feed
+----------------------------------
 
-When an auto-scaling event occurs:
+You can :ref:`view Activity Feed <view-activity-feed>` to review the events
+for each |service| project. When an auto-scaling event occurs, |service| logs
+the event in the project :guilabel:`Activity Feed`.
 
-- |service| logs the event in the project Activity Feed. To
-  learn more about the Activity Feed, see
-  :ref:`project-activity-feed`.
+To view or download only auto-scaling events:
 
-- |service| sends an email to all project owners about the original
-  {+cluster+} tier and the new {+cluster+} tier after auto-scaling has
-  occurred.
+1. In the :guilabel:`Activity Feed`, click the :guilabel:`Filter by event(s)` menu and check :guilabel:`Atlas`.
+2. In the search box above the list, start typing ``auto-scaling``.
+
+   In the right-hand side of the menu, all auto-scaling events display.
+   Deselect any that you don't want to see.
+   The feed list automatically updates with each change you make.
+
+.. _custom-alerts-auto-scaling-events:
+
+Configure Alerts for Auto-scaling Events
+-----------------------------------------
+
+.. important::
+
+   .. include:: /includes/opt-out-of-auto-autoscaling-emails.rst
+
+Auto-scaling activities are a subset of :ref:`Atlas alerts <alert-conditions>`.
+
+|service| automatically sets up default alerts for :ref:`auto-scaling events <alert-conditions-autoscaling>`. You can opt out of or change alert
+configuration for some or all auto-scaling events at a project level.
+
+To modify an alert configuration, in the :guilabel:`Category` section,
+select :guilabel:`Atlas Auto Scaling` and then select the :guilabel:`Condition/Metric`
+from the list. You can then modify roles for alert recipients, change a
+notification method, such as email or SMS, and add a notifier, such as Slack.
+To learn more, see :ref:`configure-autoscaling-alert`.

@@ -1,6 +1,8 @@
-|service| audits the creation, deletion, and updates of both temporary
-and non-temporary IP access list entries in the project's Activity
-Feed.
+When you create, delete, or change temporary and non-temporary IP access
+list entries, |service| notifies you of these events in the project's
+:guilabel:`Activity Feed`. For example, if you modify the address of an
+IP access list entry, the Activity Feed reports the deletion of the old
+entry and the creation of the new entry.
 
 To view the project's Activity Feed:
 
@@ -9,7 +11,7 @@ To view the project's Activity Feed:
 
    .. include:: /includes/nav/steps-project-settings.rst
 
-   .. include:: /includes/nav/project-activity-feed.rst
+   .. include:: /includes/nav/steps-project-activity-feed.rst
 
 .. seealso::
 

@@ -24,34 +24,36 @@
       #. Click :icon:`ellipsis-h` then :guilabel:`Edit` in that alert
          setting's row.
       
-   .. step:: Select the condition that triggers the alert.
+   .. step:: Select the category and the condition or metric that triggers the alert.
 
-      In the :guilabel:`Alert if` section, select the target component and
-      the condition. To learn more about alert conditions, see
+      In the :guilabel:`Category` section, select the target component. In the :guilabel:`Condition/Metric`, select the condition. To learn more about alert conditions, see
       :doc:`/reference/alert-conditions`.
       
    .. step:: Apply the alert only to specific targets. (Optional)
       
-      If the options in the :guilabel:`For` section are available, you can
+      If the options in the :guilabel:`Select Target` section are available, you can
       optionally filter the alert to apply only to a subset of the targets.
       
       The :guilabel:`matches` field can use regular expressions.
       
-   .. step:: Select the alert recipients and delivery methods.
+   .. step:: Select the alert recipient roles and delivery methods.
       
-      In the :guilabel:`Send to` section:
-      
-      a. (Optional) To help reduce the false positives that |service| 
-         sends, in the :guilabel:`send if condition lasts 
-         at least` field, specify the minutes to elapse before the 
-         condition sends the alert. The next alert check that runs after
-         the specified time elapses sends the alert.
+      a. In the :guilabel:`Add Notification Method` section:
          
-      #. (Optional) In the :guilabel:`resend after` field, specify the 
-         minutes to elapse before the condition resends the alert.
-      
-      #. Click :guilabel:`Add` and select from the options described in the 
-         following table.
+         - Select from the list of roles.
+  
+         - (Optional) To help reduce the false positives that |service| 
+           sends, locate the :guilabel:`Recurrence` section.
+       
+           (Optional) In the :guilabel:`send if condition lasts at least` field,
+           specify the minutes to elapse before the condition sends the alert.
+           The next alert check that runs after the specified time elapses
+           sends the alert.
+     
+           (Optional) In the :guilabel:`resend after` field, specify the 
+           minutes to elapse before the condition resends the alert.
+      b. In the :guilabel:`Add Notifier` drop-down menu, select from the options
+         described in the following table.g
          
          .. include:: /includes/list-table-alert-notification-methods.rst
       
