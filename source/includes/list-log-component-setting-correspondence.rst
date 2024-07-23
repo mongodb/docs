@@ -14,6 +14,8 @@
 
 - :setting:`query <systemLog.component.query.verbosity>`
 
+- :setting:`queryStats <systemLog.component.queryStats.verbosity>`
+
 - :setting:`replication <systemLog.component.replication.verbosity>`
 
 - :setting:`replication.election <systemLog.component.replication.election.verbosity>`
