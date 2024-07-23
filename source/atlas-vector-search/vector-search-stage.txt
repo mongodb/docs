@@ -222,15 +222,48 @@ To learn more about these
 {+avs+} Score
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-{+avs+} assigns a score, in a fixed range from ``0`` to ``1`` only, to
-every document that it returns. For ``cosine`` and ``dotProduct``
-:ref:`similarities <fts-knn-vector-type-options>`, {+avs+} normalizes
-the score using the following algorithm: 
+{+avs+} assigns a score, in a fixed range from ``0`` to ``1`` 
+(where ``0`` indicates low similarity and ``1`` indicates high
+similarity), to every document that it returns. For ``cosine`` and
+``dotProduct`` :ref:`similarities <fts-knn-vector-type-options>`,
+{+avs+} normalizes the score to ensure that the score is not negative.
+
+For ``cosine``, {+avs+} uses the following algorithm to normalize the
+score: 
 
 .. code-block:: shell 
    :copyable: false 
 
-   score = (1 + cosine/dot_product(v1,v2)) / 2
+   score = (1 + cosine(v1,v2)) / 2
+
+For ``dotProduct``, {+avs+} uses the following algorithm to normalize
+the score:  
+
+.. code-block:: shell 
+   :copyable: false 
+
+   score = (1 + dotProduct(v1,v2)) / 2
+
+These algorithms show that {+avs+} normalizes the score by considering
+the similarity score of the document vector (``v1``) and the query vector
+(``v2``), which has the range [``-1``, ``1``]. {+avs+} adds ``1`` to the
+similarity score to normalize the score to a range [``0``, ``2``] and
+then divides by ``2`` to ensure a value between ``0`` and ``1``.   
+
+For ``euclidean`` similarity, {+avs+} uses the following algorithm to
+normalize the score to ensure a value between ``0`` and ``1``: 
+
+.. code-block:: shell 
+   :copyable: false 
+
+   score = 1 / (1 + euclidean(v1,v2))
+
+The preceding algorithm shows that {+avs+} normalizes the score by
+calculating the euclidean distance, which is the distance between the 
+document vector (``v1``) and the query vector (``v2``), which has the range 
+[``0``, ``∞``]. {+avs+} then transforms the distance to a similarity
+score by adding ``1`` to the distance and then divides ``1`` by the
+similarity score to ensure a value between ``0`` and ``1``.
 
 The score assigned to a returned document is part of the document's
 metadata. To include each returned document's score along with the
