@@ -18,34 +18,65 @@ has the :ref:`log verbosity level <log-messages-configure-verbosity>` set to
 
 This operation produces the following log event:
 
-.. code-block:: text
+.. code-block:: javascript
+   :copyable: false
 
-   2017-06-09T13:35:23.446-04:00 I COMMAND  [conn1] command internal.clients
-      appName: "MongoDB Shell"
-      command: insert {
-         insert: "clients",
-         documents: [ {
-               _id: ObjectId('593adc5b99001b7d119d0c97'),
-               name: "Joe",
-               PII: " Sensitive Information"
-            } ],
-         ordered: true
-      }
+   {
+      "t": { "$date": "2024-07-19T15:36:55.024-07:00" },
+      "s": "I",
+      "c": "COMMAND",
       ...
+      "attr": {
+         "type": "command",
+         ...
+         "appName": "mongosh 2.2.10",
+         "command": {
+            "insert": "clients",
+            "documents": [
+               {
+                  "name": "Joe",
+                  "PII": "Sensitive Information",
+                  "_id": { "$oid": "669aea8792c7fd822d3e1d8c" }
+               }
+            ],
+            "ordered": true,
+            ...
+         }
+         ...
+      }
+   }
+
 
 When :binary:`~bin.mongod` runs with :parameter:`redactClientLogData` and
 performs the same insert operation, it produces the following log event:
 
-.. code-block:: text
+.. code-block:: javascript
+   :copyable: false
 
-   2017-06-09T13:45:18.599-04:00 I COMMAND  [conn1] command internal.clients
-      appName: "MongoDB Shell"
-      command: insert {
-         insert: "###", documents: [ {
-            _id: "###", name: "###", PII: "###"
-         } ],
-         ordered: "###"
+   {
+      "t": { "$date": "2024-07-19T15:36:55.024-07:00" },
+      "s": "I",
+      "c": "COMMAND",
+      ...
+      "attr": {
+         "type": "command",
+         ...
+         "appName": "mongosh 2.2.10",
+         "command": {
+            "insert": "###",
+            "documents": [
+               {
+                  "name": "###",
+                  "PII": "###",
+                  "_id": "###"
+               }
+            ],
+            "ordered": "###",
+            ...
+         }
+         ...
       }
+   }
 
 Use :parameter:`redactClientLogData` in conjunction with 
 :ref:`security-encryption-at-rest` and :ref:`transport-encryption` to assist 
