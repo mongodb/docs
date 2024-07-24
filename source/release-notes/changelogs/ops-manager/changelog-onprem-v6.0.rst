@@ -8,8 +8,7 @@
 - Compatible with :dbtools:`MongoDB Database Tools 100.9.5
   </release-notes/database-tools-changelog/#100.9.5-changelog>`.
 - Adds support for |bic-full| 2.14.13.
-- Updates the {+mdbagent+} to :ref:`12.0.32.7851-1 
-  <mongodb-12.0.32.7851-1>`.
+- Updates the {+mdbagent+} to :ref:`12.0.32.7851-1 <mongodb-12.0.32.7851-1>`.
 - Releases {+mongosh+} 2.2.4 to |onprem|. To learn more, see {+mongosh+}
   :mdb-shell:`Release Notes </changelog/#v2.2.4>`.
 - Displays S3 Oplog Store DBs as a backing DB in the :guilabel:`Admin` 
