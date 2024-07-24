@@ -1,3 +1,53 @@
+.. _opsmgr-server-6.0.24:
+
+|onprem| Server 6.0.24:
+~~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2024-07-12*
+
+- Compatible with :dbtools:`MongoDB Database Tools 100.9.5
+  </release-notes/database-tools-changelog/#100.9.5-changelog>`.
+- Adds support for |bic-full| 2.14.13.
+- Updates the {+mdbagent+} to :ref:`12.0.32.7851-1 
+  <mongodb-12.0.32.7851>`.
+- Releases {+mongosh+} 2.2.4 to |onprem|. To learn more, see {+mongosh+}
+  :mdb-shell:`Release Notes </changelog/#v2.2.4>`.
+- Displays S3 Oplog Store DBs as a backing DB in the :guilabel:`Admin` 
+  interface's :guilabel:`Overview` tab.
+- Provides additional diagnostics information related to backup speed in 
+  a separate download format from :guilabel:`Diagnostic Archive`.
+- Updates snapshot history to include additional metadata for block tracking, 
+  incrementality for data and indexes, transfer speed, and duration in the 
+  :guilabel:`Admin` interface and :guilabel:`Diagnostic Archive`.
+- Updates snapshot history from 20 to 60 snapshots for each cluster.
+- Adds API support for project level MongoDB :ref:`log rotation <configure-mms-log-rotation>`
+  settings.
+- Fixes the following |cve|\s:
+
+  - `CVE-2024-3156 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-3156>`__
+  - `CVE-2024-5157 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-5157>`__
+  - `CVE-2024-5159 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-5159>`__
+  - `CVE-2024-5160 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-5160>`__
+  - `CVE-2024-5493 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-5493>`__
+  - `CVE-2024-5494 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-5494>`__
+  - `CVE-2024-5495 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-5495>`__
+  - `CVE-2024-5496 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-5496>`__
+  - `CVE-2024-5831 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-5831>`__
+  - `CVE-2024-5832 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-5832>`__
+  - `CVE-2024-6100 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-6100>`__
+  - `CVE-2024-6103 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-6103>`__
+
+- Fixes a potential restore validation error.
+- Fixes a bug where the backup configuration :opsmgr:`daemon </reference/glossary/#term-backup-daemon>` 
+  filter appears incorrectly for removed hardware.
+- Fixes a bug where a specific logger doesn't appear correctly in the UI for backup job logs.
+- Fixes a bug where the :ref:`objectid` field in snapshot history renders incorrectly.
+- Resolves a ``NullPointerException`` from bad :dbcommand:`hostInfo`.
+- Fixes a bug where altering the snapshot time skips longer retained snapshots.
+- Fixes a bug where unassigned :opsmgr:`blockstores </reference/glossary/#std-term-backup-blockstore-database>` 
+  terminate backup jobs to timeout.
+- Fixes a bug where snapshots in the process of restore are groomed.
+
 .. _opsmgr-server-6.0.23:
 
 |onprem| Server 6.0.23:
