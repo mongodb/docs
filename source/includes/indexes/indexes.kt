@@ -3,9 +3,11 @@ import com.mongodb.MongoClientSettings
 import com.mongodb.client.model.Indexes
 import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Sorts
+import com.mongodb.client.model.SearchIndexModel
 import com.mongodb.kotlin.client.MongoClient
 import org.bson.codecs.pojo.annotations.BsonId
 import org.bson.types.ObjectId
+import org.bson.Document
 
 // start-movie-class
 data class Movie(
@@ -69,4 +71,32 @@ fun main() {
         println(result)
     }
     // end-index-compound-query
+    
+    // start-create-search-index
+    val index = Document("mappings", Document("dynamic", true))
+    collection.createSearchIndex("<index name>", index)
+    // end-create-search-index
+
+    // start-create-search-indexes
+    val indexOne = SearchIndexModel("<first index name>", Document("mappings", Document("dynamic", true)))
+    val indexTwo = SearchIndexModel("<second index name>", Document("mappings", Document("dynamic", true)))
+    collection.createSearchIndexes(listOf(indexOne, indexTwo))
+    // end-create-search-indexes
+
+    // start-list-search-indexes
+    val results = collection.listSearchIndexes()
+
+    results.forEach { result ->
+        println(result)
+    }
+    // end-list-search-indexes
+
+    // start-update-search-indexes
+    val newIndex = Document("mappings", Document("dynamic", true))
+    collection.updateSearchIndex("<index to update>", newIndex)
+    // end-update-search-indexes
+
+    // start-drop-search-index
+    collection.dropIndex("<index to delete>")
+    // end-drop-search-index
 }
