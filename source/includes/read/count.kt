@@ -15,7 +15,7 @@ data class Movie(
 // end-data-class
 
 fun main() {
-    val uri = "mongodb+srv://michael:Scrubs1996@testcluster.kmosy7d.mongodb.net/?retryWrites=true&w=majority"
+    val uri = "<connection string URI>"
 
     val settings = MongoClientSettings.builder()
         .applyConnectionString(ConnectionString(uri))
