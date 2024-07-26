@@ -1,11 +1,26 @@
 .. procedure:: 
    :style: normal 
 
-   .. step:: Construct your vector search query.
+   .. step:: Install the MongoDB Node.js Driver.
 
-      .. include:: /includes/fact-avs-quick-start-intro.rst
+      a.  Run one of the following commands:
+
+      .. code-block:: sh 
+         :copyable: true 
+
+         npm install mongodb
+
+      .. code-block:: sh 
+         :copyable: true 
+
+         yarn add mongodb
+
+      For more detailed installation instructions, see the 
+      :ref:`MongoDB Node.js Driver documentation <node-quick-start-download-and-install>`.
+
+   .. step:: Construct your vector search query.
     
-      a. Create a file named ``atlas-vector-search-quick-start.js``.
+      a. Create a file named ``atlas-vector-search-quick-start.js`` .
 
       #. Copy and paste the following sample query into the 
          ``atlas-vector-search-quick-start.js`` file:
@@ -13,6 +28,9 @@
          .. literalinclude:: /includes/avs-examples/pipeline-stage-examples/basic-query.js
             :language: js
             :linenos:
+
+
+      .. include:: /includes/fact-avs-quick-start-intro.rst
 
       To learn more about this pipeline stage, see
       :ref:`return-vector-search-results`.

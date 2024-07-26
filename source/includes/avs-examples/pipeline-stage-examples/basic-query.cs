@@ -2,7 +2,6 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
-using MongoDB.Driver.Search;
 
 public class vectorSearchBasicQuery 
 {
@@ -29,11 +28,12 @@ public class vectorSearchBasicQuery
 
     // run query
     var results = moviesCollection.Aggregate()
-                .VectorSearch(m => m.Embedding, vector, 10, options)
+                .VectorSearch(movie => movie.Embedding, vector, 10, options)
                 .Project(Builders<EmbeddedMovie>.Projection
-                  .Include(m => m.Title)
-                  .Include(m => m.Plot)
-                  .MetaVectorSearchScore(m => m.Score))
+                  .Include(movie => movie.Title)
+                  .Include(movie => movie.Plot)
+                  .Exclude(movie => movie.Id)
+                  .MetaVectorSearchScore(movie => movie.Score))
                 .ToList();
 
     // print results

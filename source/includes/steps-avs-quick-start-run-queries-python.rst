@@ -1,11 +1,21 @@
 .. procedure:: 
    :style: normal 
 
-   .. step:: Construct your vector search query.
+   .. step:: Install ``pymongo``, the Python driver for MongoDB.
 
-      .. include:: /includes/fact-avs-quick-start-intro.rst
+      a. Run the following command:
+
+      .. code-block:: sh 
+         :copyable: true 
+
+         pip install pymongo
+
+      For more detailed installation instructions, see the 
+      :ref:`MongoDB Python Driver documentation <pymongo-get-started-download-and-install>`.
+
+   .. step:: Construct your vector search query.
     
-      a. Create a file named ``atlas-vector-search-quick-start.py``.
+      a. Create a file named ``atlas-vector-search-quick-start.py`` .
 
       #. Copy and paste the following sample query into the 
          ``atlas-vector-search-quick-start.py`` file:
@@ -13,6 +23,8 @@
          .. literalinclude:: /includes/avs-examples/pipeline-stage-examples/basic-query.py 
             :language: python
             :linenos:
+
+      .. include:: /includes/fact-avs-quick-start-intro.rst
 
       To learn more about this pipeline stage, see
       :ref:`return-vector-search-results`.

@@ -1,9 +1,7 @@
 .. procedure:: 
    :style: normal 
 
-   .. include:: /includes/nav/steps-db-deployments-page.rst
-
-   .. include:: /includes/nav/steps-data-explorer.rst
+   .. step:: Click the `Collections <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fmetrics%2FreplicaSet%2F%3Creplset%3E%2Fexplorer%2Fsample_mflix%2Fcomments%2Ffind>`__ tab to view the Data Explorer.
   
    .. step:: Go to the :guilabel:`Aggregation` tab for the collection.
 
@@ -16,14 +14,12 @@
 
    .. step:: Construct and run your vector search query.
 
-      .. include:: /includes/fact-avs-quick-start-intro.rst
+      a. In the aggregation pipeline pane, click the :guilabel:`</> Text` 
+         toggle to enable text mode for pipeline editing.
+      
+      #. Copy and paste the following sample query into the text editor.
 
-      a. Click :guilabel:`</> Text`.
-
-      #. Copy the following sample query.
-
-      #. Replace :guilabel:`[ ]` in the left pane with the following 
-         sample query:
+         .. include:: /includes/fact-avs-quick-start-intro.rst
       
       .. io-code-block::
          :copyable: true
@@ -41,10 +37,3 @@
 
       To learn more about this pipeline stage, see
       :ref:`return-vector-search-results`.
-
-   .. step:: Expand your query results.
-
-      The :guilabel:`Data Explorer` might not display all the values in 
-      the documents it returns. To view all the values for the fields 
-      that you searched in the :ref:`query path <ref-path>`, expand the
-      fields in the documents.

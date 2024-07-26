@@ -14,12 +14,13 @@
 
          * - ``slf4j-log4j12``
            - 1.7.30 or higher version
+  
+      For more detailed installation instructions, see the 
+      :ref:`MongoDB Java Driver documentation <add-mongodb-dependency>`.
 
    .. step:: Construct your vector search query.
 
-      .. include:: /includes/fact-avs-quick-start-intro.rst
-    
-      a. Create a file named ``BasicQuery.java``.
+      a. Create a file named ``BasicQuery.java`` .
 
       #. Copy and paste the following sample query into the 
          ``BasicQuery.java`` file:
@@ -36,6 +37,8 @@
          .. code-block:: 
 
             package com.mongodb.drivers;
+
+      .. include:: /includes/fact-avs-quick-start-intro.rst
 
       To learn more about this pipeline stage, see
       :ref:`return-vector-search-results`.

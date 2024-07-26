@@ -18,10 +18,11 @@
 
             dotnet add package MongoDB.Driver
 
+      For more detailed installation instructions, see the 
+      :ref:`MongoDB C# Driver documentation <csharp-quickstart>`.
+
    .. step:: Construct your vector search query.
 
-      .. include:: /includes/fact-avs-quick-start-intro.rst
-    
       a. Edit the ``Program.cs`` file.
 
       #. Copy and paste the following sample query into the 
@@ -31,6 +32,8 @@
             :language: csharp
             :linenos: 
 
+      .. include:: /includes/fact-avs-quick-start-intro.rst
+      
       To learn more about this pipeline stage, see
       :ref:`return-vector-search-results`.
 

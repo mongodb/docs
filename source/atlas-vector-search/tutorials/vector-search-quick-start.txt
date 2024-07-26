@@ -24,160 +24,98 @@
    :depth: 1
    :class: singlecol
 
-This quick start describes how to index vector embeddings in your data 
-on an |service| {+cluster+} and run queries that search vector 
-embeddings for similar data.
+This quick start describes how to upload sample documents that contain 
+vector embeddings into an Atlas cluster, create a Vector Search index for those 
+embeddings, and then run a semantic search to return documents that are similar 
+to your query.
 
-A vector is an array of values arranged in one or more dimensions. 
-Vector embeddings that bidirectional encoder models, like OpenAI 
-``text-embedding-ada-002``, produce can represent words, phrases, and 
-sentences. You can index vector embeddings and search for items related 
-in meaning or context. To learn more, see :ref:`fts-vector-search`.
+*Time required: 15 minutes*
 
-Objectives
-----------
-
-In this quick start, you will do the following steps:
-
-1. Create an index definition for the 
-   ``sample_mflix.embedded_movies`` collection that indexes the 
-   ``plot_embedding`` field as the ``vector`` type. The 
-   ``plot_embedding`` field contains embeddings created using 
-   OpenAI's ``text-embedding-ada-002`` embeddings model. The index 
-   definition specifies ``1536`` vector dimensions and measure 
-   similarity using ``cosine``.
-
-#. Run an {+avs+} query that searches the sample 
-   ``sample_mflix.embedded_movies`` collection. The query uses the 
-   :pipeline:`$vectorSearch` stage to search the ``plot_embedding`` 
-   field, which contains embeddings created using OpenAI's 
-   ``text-embedding-ada-002`` embeddings model. The query searches
-   the ``plot_embedding`` field using vector embeddings for the string 
-   *time travel*. It considers up to ``150`` nearest neighbors, and
-   returns ``10`` documents in the results.
-
-Prerequisites 
--------------
-
-To complete this quick start, you must meet the following prerequisites.
-
-Required Cluster Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You must have the following cluster configuration:
-
-- An |service| {+cluster+} with MongoDB version 6.0.11, or v7.0.2 or 
-  later (including :abbr:`RCs (Release Candidates)`).
-
-- The :doc:`sample data </sample-data>` loaded into your |service| 
-  {+cluster+}.
-
-Supported Clients
-~~~~~~~~~~~~~~~~~
-
-You must have one of the following applications to run queries on your 
-|service| {+cluster+}:
-
-- {+mongosh+}
-- :driver:`C# </csharp/current/>`
-- :driver:`Java </java-drivers/>`
-- :driver:`MongoDB Node Driver </node/current/>`
-- :driver:`Pymongo </pymongo/>` 
-
-You can also use {+avs+} with local |service| deployments that you 
-create with the {+atlas-cli+}. To learn more, see :atlascli:`Create a
-Local Atlas Deployment </atlas-cli-deploy-local>`.
-
-Required Access
-~~~~~~~~~~~~~~~
-
-To create an {+avs+} index, you must have 
-:authrole:`Project Data Access Admin` or higher access to the project.
-
-Index Vector Embeddings
------------------------
-
-Use the following example to index vector embeddings in your data on 
-an |service| {+cluster+}.
+Create a Vector Search Index
+----------------------------
 
 .. procedure:: 
    :style: normal 
 
-   .. include:: /includes/nav/steps-db-deployments-page.rst
+   .. step:: Set up your |service| {+cluster+}.
 
-   .. include:: /includes/nav/steps-atlas-search.rst
+      a. `Create a free Atlas account or sign in to an existing account <https://account.mongodb.com/account/register?tck=docs_atlas>`__.
 
-   .. step:: Go to the :guilabel:`JSON Editor`.
+      #. If you don't yet have an |service| cluster, `create a free M0 cluster <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23clusters%2Fedit%3Ffrom%3DctaClusterHeader>`__.
+         To learn more about creating an |service| cluster, see :ref:`Create a Cluster <create-new-cluster>`.
 
-      a. Click :guilabel:`Create Search Index`.
+         .. note:: 
 
-      #. In the :guilabel:`Atlas Vector Search` section, select 
-         :guilabel:`JSON Editor`.
+            If you are working with an existing cluster, you must have 
+            :authrole:`Project Data Access Admin` or higher :ref:`access <who-can-access-project>` to your 
+            |service| project.
+
+            If you create a new cluster, you have the necessary permissions by default. 
+
+      #. In the left sidebar, click `Atlas Search <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fclusters%2FatlasSearch>`__. 
+         Choose your cluster from the :guilabel:`Select data source` menu and click :guilabel:`Go to Atlas Search`.
+
+      #. Click :guilabel:`Load a Sample Dataset`. In the Load Sample Dataset 
+         dialog box, click :guilabel:`Load Sample Dataset` to confirm. 
+
+         Loading the sample dataset can take several minutes to complete. 
+
+   .. step:: Create a Vector Search index.
+
+      a. When the sample data finishes loading, click :guilabel:`Create Search Index`.
+
+      #. Under the :guilabel:`Atlas Vector Search` section, select the 
+         :guilabel:`JSON Editor` and click :guilabel:`Next`.
+
+      #. In the :guilabel:`Database and Collection` section, expand the 
+         ``sample_mflix`` database and select the ``embedded_movies`` collection.
+         
+         Each document in this collection contains information about a movie, 
+         including a summary of the movie's plot as a string, which has also 
+         been converted to and stored as a vector embedding in the document's ``plot_embedding`` field. 
+
+      #. In the :guilabel:`Index Name` field, specify ``vector_index``.
+
+      #. Copy and paste the following index definition into the JSON Editor. 
+
+         .. code-block:: json 
+            :copyable: true 
+            :linenos: 
+
+            {
+              "fields": [{
+                "type": "vector",
+                "path": "plot_embedding",
+                "numDimensions": 1536,
+                "similarity": "dotProduct"
+              }]
+            }
+
+         This index definition:
+
+         - Indexes the ``plot_embedding`` field as the ``vector`` type. 
+           This field contains :term:`vector embeddings` that represent the summary of a 
+           movie's plot.
+         - Specifies ``1536`` :term:`vector dimensions <vector>`.
+         - Measures :ref:`similarity <fields-similarity>` using ``dotProduct`` similarity.
 
       #. Click :guilabel:`Next`.
-   
-   .. step:: Specify the database, collection, and index name.
 
-      a. In the :guilabel:`Database and Collection` section, find the 
-         ``sample_mflix`` database, and select the ``embedded_movies``
-         collection.
-      #. In the :guilabel:`Index Name` field, specify
-         ``vector_index``. 
-   
-   .. step:: Define your {+avs+} index.
+      #. Click :guilabel:`Create Search Index`. 
 
-      The following example index definition for the 
-      ``sample_mflix.embedded_movies`` collection indexes the 
-      ``plot_embedding`` field as the ``vector`` type. The 
-      ``plot_embedding`` field contains embeddings created using 
-      OpenAI's ``text-embedding-ada-002`` embeddings model. The index 
-      definition specifies ``1536`` vector dimensions and measures 
-      similarity using ``cosine``.
-
-      .. code-block:: json 
-         :copyable: true 
-         :linenos: 
-
-         {
-           "fields": [{
-             "type": "vector",
-             "path": "plot_embedding",
-             "numDimensions": 1536,
-             "similarity": "cosine"
-           }]
-         }
-      
-      To learn more, see :ref:`avs-types-vector-search`.
-
-   .. step:: Create the search index.
-    
-      Review the index definition and click 
-      :guilabel:`Create Search Index`.
-
-      A modal window indicates that your index is building.
-
-   .. step::  Wait for the index to finish building.
-    
-      Click :guilabel:`Close` to close the :guilabel:`You're All Set!` 
-      modal window and wait for the index to finish building. 
-
-      The index should take about one minute to build. While it
-      builds, the :guilabel:`Status` column reads 
-      :guilabel:`Initial Sync`. When it finishes building, the 
-      :guilabel:`Status` column reads :guilabel:`Active`. 
+         The index should take about one minute to build. When your vector index is 
+         finished building, the :guilabel:`Status` column reads :guilabel:`Active`.
 
 Run a Vector Search Query
--------------------------
-
-Use the following example to run a query that searches vector 
-embeddings.
+--------------------------
 
 ----------
 
 .. |arrow| unicode:: U+27A4
 
-|arrow| Use the **Select your language** drop-down menu to select the
-client to use to run the example queries in this section.
+|arrow| To set the client you use to run the examples in this section, use 
+the **Select your language** drop-down menu in the right navigation pane of 
+this page. 
 
 ----------
 
@@ -214,3 +152,73 @@ client to use to run the example queries in this section.
       :tabid: python
 
       .. include:: /includes/steps-avs-quick-start-run-queries-python.rst
+
+
+Learning Summary
+----------------
+
+This quick start focused on retrieving documents from your |service| cluster
+that contain text that is semantically related to a provided query. However, 
+you can create a vector search index on embeddings that represent any type of 
+data that you might write to an |service| {+cluster+}, such as images or videos.
+
+Sample Data
+~~~~~~~~~~~
+
+This quick start uses the ``sample_mflix.embedded_movies`` collection which 
+contains details about movies. In each document in the collection, the 
+``plot_embedding`` field contains a vector embedding that represents the string 
+in the ``plot`` field. For more information on the schema of the documents in 
+the collection, see :ref:`Sample Mflix Dataset <mflix-embedded_movies>`.
+
+By storing your source data and its corresponding vector embeddings in the 
+same document, you can leverage both fields for complex queries or 
+:ref:`hybrid search <avs-reciprocal-rank-fusion>`. You can even store vector 
+embeddings generated from different :ref:`embedding models <avs-key-concepts>` 
+in the same document to streamline your workflow as you test the performance 
+of different vector embedding models for your specific use case.
+
+Vector Embeddings
+~~~~~~~~~~~~~~~~~~
+
+The vector embeddings in the ``sample_mflix.embedded_movies`` collection 
+collection and in the example query were created using the OpenAI 
+``text-embedding-ada-002`` embedding model. Your choice of embedding model 
+informs the vector dimensions and vector similarity function you use in your 
+vector search index. You can use any :ref:`embedding model <avs-key-concepts>` 
+you like, and it is worth experimenting with different models as accuracy can 
+vary from model to model depending on your specific use case.
+
+To learn how to create vector embeddings of your own data, see 
+:ref:`How to Create Vector Embeddings <create-vector-embeddings>`.
+
+Vector Index Definition
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+An index is a data structure that holds a subset of data from a collection's 
+documents that improves database performance for specific queries. A vector 
+search index points to the fields that contain your vector embeddings and includes 
+the dimensions of your vectors as well as the function used to measure similarity 
+between vectors of queries and vectors stored in the database.
+
+Because the ``text-embedding-ada-002`` embedding model used in this quick start
+converts data into vector embeddings with 1536 dimensions and supports the 
+``cosine`` function, this vector search index specifies the same number of 
+vector dimensions and similarity function.
+
+Vector Search Query
+~~~~~~~~~~~~~~~~~~~~
+
+The query you ran in this quick start is an `aggregation pipeline <https://www.mongodb.com/docs/manual/core/aggregation-pipeline>`__,
+in which the ``$vectorSearch`` stage performs an :ref:`Approximate Nearest Neighbor (ANN) <vectorSearch-ann>`
+search followed by a ``$project`` stage that refines the results. 
+To see all the options for a vector search query, including using :ref:`Exact Nearest Neighbor (ENN) <vectorSearch-enn>` or how
+to narrow the scope of your vector search with the ``filter`` option,
+see :ref:`Run Vector Search Queries <return-vector-search-results>`.
+
+Next Steps
+-----------
+
+- To create embeddings of your own data and load them into Atlas, see :ref:`Create Embeddings <create-vector-embeddings>`.
+- For a sample application and |rag| framework, review the source code for the `MongoDB Chatbot framework <https://github.com/mongodb/chatbot>`__ in GitHub.
+- To quickly leverage MongoDB in your RAG application, see the :ref:`AI Integrations <vector-search-integrations>`.

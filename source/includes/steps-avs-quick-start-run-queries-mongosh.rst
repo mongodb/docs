@@ -1,6 +1,8 @@
 .. procedure::
    :style: normal
 
+   .. step:: `Download and install <https://www.mongodb.com/try/download/shell>`__ ``mongosh`` .
+
    .. step:: Connect to your cluster in {+mongosh+}.
 
       Open {+mongosh+} in a terminal window and connect to your
@@ -24,16 +26,10 @@
 
    .. step:: Construct and run your vector search query. 
 
-      .. include:: /includes/fact-avs-quick-start-intro.rst
+      a. Copy and paste the following sample query into your terminal and then 
+         run it using {+mongosh+}.
 
-      a. Copy and paste the following sample query into your terminal
-
-         .. note:: 
-
-            Pasting the ``queryVector`` in the sample code into your
-            terminal might take a while depending on your machine.
-
-      #.  Verify your query syntax and then run it using {+mongosh+}.
+         .. include:: /includes/fact-avs-quick-start-intro.rst
       
       .. io-code-block::
          :copyable: true 
@@ -44,7 +40,7 @@
 
          .. output:: /includes/avs-examples/pipeline-stage-examples/basic-query-shell-output.js
             :language: js
-            :linenos: 
+            :linenos:   
 
       To learn more about this pipeline stage, see
-      :ref:`return-vector-search-results`.   
+      :ref:`return-vector-search-results`. 

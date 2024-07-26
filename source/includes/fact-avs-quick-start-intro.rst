@@ -1,16 +1,16 @@
-The following example query searches the sample 
-``sample_mflix.embedded_movies`` collection. It uses the 
-:pipeline:`$vectorSearch` stage to search the ``plot_embedding`` field, 
-which contains embeddings created using OpenAI's 
-``text-embedding-ada-002`` embeddings model. The query searches
-the ``plot_embedding`` field using vector embeddings for the string 
-*time travel*. It considers up to ``150`` nearest neighbors, and
-returns ``10`` documents in the results. The query also specifies a
-:pipeline:`$project` stage to do the following:  
+This query searches for documents that include text in the ``plot`` field that 
+is semantically related to the term "time travel". 
 
-- Exclude the ``_id`` field and include only the ``plot`` and ``title`` 
-  fields in the results.
-  
-- Add a field named ``score`` that shows the
-  :ref:`vector search score <vectorSearch-agg-pipeline-score>` for
-  each document in the results. 
+It uses the ``$vectorSearch`` stage to:
+
+- Compare vector embeddings of the search term against vector embeddings of 
+  movie plots in the ``plot_embedding`` field of the ``sample_mflix.embedded_moves`` 
+  collection.
+
+- Consider up to the 150 most similar movie plots and return the top 10 results.
+
+It uses the ``$project`` stage to:
+
+- Only include the movie ``plot`` and ``title`` fields in the results.
+
+- Add a ``score`` field to show the relevance of each result to the search term.
