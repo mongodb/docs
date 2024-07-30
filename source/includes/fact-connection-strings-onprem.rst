@@ -1,4 +1,4 @@
-:ref:`mongosync <c2c-mongosync>` uses a :ref:`MongoDB URI
+``mongosync`` uses a :ref:`MongoDB URI
 connection string <mongodb-uri>` to connect self-managed clusters:
 
 - The SRV connection scheme has the form:
