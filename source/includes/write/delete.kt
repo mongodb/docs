@@ -11,7 +11,7 @@ fun main() {
 
     val mongoClient = MongoClient.create(uri)
     val database = mongoClient.getDatabase("sample_restaurants")
-    val collection = database.getCollection<Movie>("restaurants")
+    val collection = database.getCollection<Restaurant>("restaurants")
 
     // start-delete-one
     val filter = eq(Restaurant::name.name, "Happy Garden")

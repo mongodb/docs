@@ -1,0 +1,252 @@
+.. _kotlin-sync-write-insert:
+
+================
+Insert Documents
+================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code examples, write, save, create
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to add
+documents to a MongoDB collection by performing **insert operations**.
+
+An insert operation inserts one or more documents into a MongoDB collection.
+You can perform an insert operation by using the ``insertOne()`` and
+``insertMany()`` methods.
+
+.. .. tip:: Interactive Lab
+   
+..    This page includes a short interactive lab that demonstrates how to
+..    insert data by using the ``insertOne()`` method. You can complete this
+..    lab directly in your browser window without installing MongoDB or a code editor.
+
+..    To start the lab, click the :guilabel:`Open Interactive Tutorial` button at the
+..    top of the page. To expand the lab to a full-screen format, click the
+..    full-screen button (:guilabel:`⛶`) in the top-right corner of the lab pane.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``sample_restaurants.restaurants`` collection
+from the :atlas:`Atlas sample datasets </sample-data>`. To learn how to create a
+free MongoDB Atlas cluster and load the sample datasets, see the
+:atlas:`Get Started with Atlas </getting-started>` guide.
+
+The documents in this collection are modeled by the following {+language+} data class:
+
+.. literalinclude:: /includes/write/delete.kt
+   :start-after: start-data-class
+   :end-before: end-data-class
+   :language: kotlin
+   :copyable:
+   :dedent:
+
+The ``_id`` Field
+-----------------
+
+In a MongoDB collection, each document *must* contain an ``_id`` field
+that has a unique value.
+
+MongoDB allows you to manage this field in two ways:
+
+- You can set this field for each document yourself, ensuring each
+  ``_id`` field value is unique.
+- You can let the driver automatically generate a unique ``ObjectId``
+  value for each document ``_id``. If you do not manually set an
+  ``_id`` value for a document, the driver populates the field
+  with an ``ObjectId``.
+
+Unless you can guarantee uniqueness, we recommend
+letting the driver automatically generate ``_id`` values.
+
+.. note:: Duplicate _id Errors
+
+   Setting duplicate ``_id`` values in a collection violates unique
+   index constraints, which causes the driver to return a ``WriteError`` from
+   the ``insertOne()`` method or a ``BulkWriteError`` from the
+   ``insertMany()`` method.
+
+To learn more about the ``_id`` field, see the
+:manual:`Unique Indexes </core/index-unique/>` guide in the
+{+mdb-server+} manual.
+
+To learn more about document structure and rules, see the
+:manual:`Documents </core/document>` guide in the {+mdb-server+} manual.
+
+Insert One Document
+-------------------
+
+To add a single document to a MongoDB collection, call the ``insertOne()``
+method and pass the document you want to add.
+
+The following example inserts a document into the ``restaurants``
+collection:
+
+.. literalinclude:: /includes/write/insert.kt
+   :start-after: start-insert-one
+   :end-before: end-insert-one
+   :language: kotlin
+   :copyable:
+   :dedent:
+
+Insert Multiple Documents
+-------------------------
+
+To add multiple documents to a MongoDB collection, user the ``insertMany()``
+method and pass a list of documents you want to add.
+
+The following example inserts a list of documents into the
+``restaurants`` collection:
+
+.. literalinclude:: /includes/write/insert.kt
+   :start-after: start-insert-many
+   :end-before: end-insert-many
+   :language: kotlin
+   :copyable:
+   :dedent:
+
+Modify Insert Behavior
+----------------------
+
+The ``insertOne()`` method optionally accepts an ``InsertOneOptions``
+parameter that sets options to configure the insert operation.
+If you don't specify any options, the driver performs the insert
+operation with default settings. Pass options as the last parameter to
+the ``insertOne()`` method.
+
+The following table describes the setter methods that you can use to
+configure an ``InsertOneOptions`` instance:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``bypassDocumentValidation()``
+     - | If set to ``true``, allows the driver to ignore
+         :manual:`document-level validation </core/schema-validation>`. 
+       | Defaults to ``false``.
+
+   * - ``comment()``
+     - | Sets a comment to attach to the operation. For more information, see the :manual:`insert command
+         fields </reference/command/insert/#command-fields>` guide in the
+         {+mdb-server+} manual for more information.
+
+You can set the preceding settings on the ``insertMany()`` method
+by configuring an ``InsertManyOptions`` instance. You can also use the
+``ordered()`` method setter method to specify the order in which the driver
+inserts documents into MongoDB:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``ordered()``
+     - | If set to ``true``, the driver sends documents to the
+         server in the order provided. If an error occurs, the driver
+         cancels all remaining insert operations. 
+       | Defaults to ``true``.
+
+Pass options as the last parameter to the ``insertMany()`` method.
+
+Modify Insert Example
+~~~~~~~~~~~~~~~~~~~~~
+
+The following code uses the ``bypassDocumentValidation()`` method to
+set the option to ignore document validation rules. Then, the example uses the
+``insertMany()`` method to add new documents to the ``restaurants``
+collection.
+
+.. literalinclude:: /includes/write/insert.kt
+   :start-after: start-insert-opts
+   :end-before: end-insert-opts
+   :language: kotlin
+   :copyable:
+   :dedent:
+
+Return Value
+------------
+
+The ``insertOne()`` method returns an ``InsertOneResult`` instance, and
+the ``insertMany()`` method returns an ``InsertManyResult`` instance.
+
+You can use the following methods to retrieve information from
+an ``InsertOneResult`` instance:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``getInsertedId()``
+     - Indicates the ``_id`` value of the inserted document.
+
+   * - ``wasAcknowledged()``
+     - Returns ``true`` if the server acknowledges the result.
+
+You can use the following methods to retrieve information from
+an ``InsertOneResult`` instance:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``getInsertedIds()``
+     - Indicates the ``_id`` values of the inserted documents.
+
+   * - ``wasAcknowledged()``
+     - Returns ``true`` if the server acknowledges the result.
+
+.. note::
+
+   If the ``wasAcknowledged()`` method returns ``false``, trying to
+   access the ``_id`` values results in an
+   ``InvalidOperation`` exception. The driver cannot 
+   determine these values if the server does not acknowledge the write
+   operation.
+
+Additional Information
+----------------------
+
+For runnable code examples that demonstrate how to insert documents by
+using the {+driver-short+}, see :ref:`kotlin-sync-write`.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `insertOne() <{+api+}/mongodb-driver-kotlin-sync/com.mongodb.kotlin.client/-mongo-collection/insert-one.html>`__
+- `insertMany() <{+api+}/mongodb-driver-kotlin-sync/com.mongodb.kotlin.client/-mongo-collection/insert-many.html>`__
+- `InsertOneOptions <{+core-api+}/com/mongodb/client/model/InsertOneOptions.html>`__
+- `InsertManyOptions <{+core-api+}/com/mongodb/client/model/InsertManyOptions.html>`__
+- `InsertOneResult <{+core-api+}/com/mongodb/client/result/InsertOneResult.html>`__
+- `InsertManyResult <{+core-api+}/com/mongodb/client/result/InsertManyResult.html>`__
+
+.. .. instruqt:: 
+..    :title: insertOne() Lesson
+..    :drawer:
