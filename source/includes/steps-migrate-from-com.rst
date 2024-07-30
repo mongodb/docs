@@ -248,7 +248,7 @@
       complete the following steps on the
       :guilabel:`Your migration is almost complete!` page:
       
-      1. Prepare to point to your |service| {+cluster+}. Copy the new
+      a. Prepare to point to your |service| {+cluster+}. Copy the new
          :manual:`connection string </reference/connection-string/>` so that
          you can update it and point your application to the destination
          |service| {+cluster+}.
@@ -275,4 +275,19 @@
          All migrated data remains on your |service| {+cluster+}.
       
          You can click :guilabel:`Cut Over` again to allow |service| to
-         complete the migration process.     
+         complete the migration process.
+      
+      #. When you are ready to redirect writes to the destination {+cluster+}   in |service|:
+
+         i. Use the destination {+cluster+}'s connection string to connect to your application.
+         #. Confirm that your application is working with the destination |service| {+cluster+}.
+         #. Verify your data on the destination {+cluster+}.
+         #. Resume writes to the destination {+cluster+}.
+      
+         |service| performs these actions to complete the process:
+
+         - Removes the MongoDB live migration server subnets from the IP access
+           list on the destination {+cluster+}.
+         - Removes the database user that live migration used to import data
+           to the destination {+cluster+}.
+         - Marks the migration process as complete.

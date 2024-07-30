@@ -239,10 +239,10 @@
          2. Wait for the optime gap to reach zero. When the counter reaches
             zero, the source and destination {+clusters+} are in sync.
          3. Check the box that states: :guilabel:`I confirm that I am ready to
-            cut over the application to the destination cluser. By proceeding,
-            Atlas will finalize the migration. This process will take a
-            few seconds. Once it is complete you can point your application
-            at the destination cluster and begin writing to it.`
+            cut over the application to the destination cluster. By proceeding,
+            Atlas will finalize the migration. This process will take a few seconds.
+            Once it is complete you can point your application at the destination
+            cluster and begin writing to it.`
       
       b. Click :guilabel:`Cutover`.
          |service| completes the migration and displays the :guilabel:`Connect` page.
@@ -267,13 +267,17 @@
       
       d. When you are ready to redirect writes to the destination {+cluster+} in |service|:
       
-         1. Use the destination {+cluster+}'s connection string to connect to your application.
-         2. Confirm that your application is working with the destination |service| {+cluster+}.
-      
+         i. Use the destination {+cluster+}'s connection string to connect to your application.
+         #. Confirm that your application is working with the destination |service| {+cluster+}.
+         #. Verify that your data is transferred to the destination {+cluster+}
+            by comparing document counts and running hash comparisons.
+            To learn more, see |c2c-verification|.
+         #. Resume writes to the destination {+cluster+}.
+
       |service| performs these actions to complete the process:
       
       - Removes the MongoDB live migration server subnets from the IP access
         list on the destination {+cluster+}.
       - Removes the database user that live migration used to import data
         to the destination {+cluster+}.
-      - Marks the migration process as complete.   
+      - Marks the migration process as complete.

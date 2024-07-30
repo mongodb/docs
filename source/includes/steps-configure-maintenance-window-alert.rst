@@ -7,18 +7,18 @@
       
       To create a new alert without cloning an existing setting:
       
-      i. Click :guilabel:`Add`.
+      a. Click :guilabel:`Add`.
       #. Select :guilabel:`New Alert`.
       
       To clone an existing alert setting:
       
-      i. Click the :guilabel:`Alert Settings` tab.
+      a. Click the :guilabel:`Alert Settings` tab.
       #. Locate the alert setting you want to clone.
       #. Click :icon:`ellipsis-h` then :guilabel:`Clone` in that alert setting's row.
       
       To update an existing alert setting:
       
-      i. Click the :guilabel:`Alert Settings` tab.
+      a. Click the :guilabel:`Alert Settings` tab.
       #. Locate the alert setting you want to update.
       #. Click :icon:`ellipsis-h` then :guilabel:`Edit` in that alert setting's row.
 

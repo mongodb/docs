@@ -1,7 +1,7 @@
 Pre-Migration Checklist
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Before starting the import process:
+Before starting the live migration procedure:
 
 - If you don't already have a destination {+cluster+}, create a
   new |service| deployment and configure it as needed. For complete
