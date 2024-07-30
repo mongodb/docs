@@ -55,6 +55,15 @@
        writes on the source cluster. The time difference becomes zero
        when ``mongosync`` commits the migration.
 
+   * - ``totalEventsApplied``
+     - integer
+     - The approximate number of change events this instance of 
+       ``mongosync`` has applied to the destination cluster.
+
+       This value may not be an accurate representation of the total 
+       number of events because it is not persisted and it omits 
+       certain events from the count.
+
    * - ``collectionCopy``
      - object
      - Estimates the total amount of data being copied from collections and the
