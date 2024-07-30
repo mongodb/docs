@@ -11,13 +11,13 @@ unique identifiers that shouldn't repeat in the data set.
             path: "patientId",
             bsonType: "int",
             queries: { queryType: "equality",
-                       contention: "0"}
+                       contention: "8"}
          },
          {
             path: "patientInfo.ssn",
             bsonType: "string",
             queries: { queryType: "equality",
-                       contention: "0"}
+                       contention: "8"}
          },
          {
             path: "medications",

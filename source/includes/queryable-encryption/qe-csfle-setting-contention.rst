@@ -1,6 +1,6 @@
 Consider increasing ``contention`` above the default value of ``8`` only if the
-field has frequent concurrent write operations. Since high contention values
-sacrifice find performance in favor of insert and update operations, the
+field has frequent concurrent write operations. Since high ``contention``
+values sacrifice find performance in favor of insert and update operations, the
 benefit of a high contention factor for a rarely updated field is unlikely to
 outweigh the drawback.
 
@@ -30,8 +30,9 @@ then ``ω = 100``. If there are 50 recent unique values for that field, then
 
 .. warning::
 
-   Don't set the contention factor on properties of the data itself, such as
-   the frequency of field/value pairs (:term:`cardinality`). Only set the contention factor based on your workload.
+   Don't set the contention factor based on properties of the data itself, such
+   as the frequency of field/value pairs (:term:`cardinality`). Only set the
+   contention factor based on your workload.
    
    Consider a case
    where ``ω = 100`` and ``valinserts = 1000``, resulting in ``ω``:sup:`∗` ``=
@@ -42,5 +43,6 @@ then ``ω = 100``. If there are 50 recent unique values for that field, then
    ``contention`` unset so that it defaults to ``8`` would prevent the attacker
    from having that information.
 
-For thorough information on contention and its cryptographic implications, see
-"Section 9: Guidelines" in MongoDB's `Queryable Encryption Technical Paper <https://www.mongodb.com/collateral/queryable-encryption-technical-paper>`_
+For thorough information on contention factor and its cryptographic
+implications, see "Section 9: Guidelines" in MongoDB's `Queryable Encryption
+Technical Paper <https://www.mongodb.com/collateral/queryable-encryption-technical-paper>`_.

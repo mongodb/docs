@@ -1,11 +1,12 @@
 Concurrent write operations, such as inserting the same field/value pair into
-multiple documents in close succession, can cause contention: conflicts that
-delay operations.
+multiple documents in close succession, can cause contention: conflicts
+that delay operations.
 
 With {+qe+}, MongoDB tracks the occurrences of each field/value pair in an
-encrypted collection using an internal counter. The contention factor
+encrypted collection using an internal counter. The :term:`contention factor`
 partitions this counter, similar to an array. This minimizes issues with
-incrementing the counter when using ``insert``, ``update``, or ``findAndModify`` to add or modify an encrypted field
+incrementing the counter when using ``insert``, ``update``, or 
+``findAndModify`` to add or modify an encrypted field
 with the same field/value pair in close succession. ``contention = 0``
 creates an array with one element at index 0. ``contention = 4`` creates an
 array with 5 elements at indexes 0-4. MongoDB increments a random array element

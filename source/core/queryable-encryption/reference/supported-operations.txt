@@ -17,9 +17,10 @@ Supported Operations for {+qe+}
 .. meta::
    :keywords: QE, read operations, write operations
 
-This page documents the specific commands, query operators, update
+This page documents the specific data types, commands, query operators, update
 operators, aggregation stages, and aggregation expressions supported for
-{+qe+} compatible drivers.
+{+qe+} compatible drivers. It outlines the behavior for operations using
+automatic encryption, and operations using {+manual-enc+}.
 
 .. note:: Enterprise Feature
 
@@ -28,16 +29,50 @@ operators, aggregation stages, and aggregation expressions supported for
 Operations Using ``BinData``
 ----------------------------
 
-MongoDB stores {+qe+} encrypted fields as a :bsontype:`BinData <data_binary>` blob.
-Read and write operations issued against the encrypted ``BinData`` value may have
-unexpected or incorrect behavior as compared to issuing that same operation against
-the decrypted value. Certain operations have strict BSON type support where issuing
-them against a ``BinData`` value returns an error. Official drivers compatible with {+qe+} parse read and write
-operations for operators or expressions that do not support ``BinData`` values
-or that have abnormal behavior when issued against ``BinData`` values.
+MongoDB stores {+qe+} encrypted fields as a :bsontype:`BinData <data_binary>`
+blob. Read and write operations issued against the encrypted ``BinData`` value
+may have unexpected or incorrect behavior as compared to issuing that same
+operation against the decrypted value. Certain operations have strict BSON type
+support where issuing them against a ``BinData`` value returns an error. 
 
-Applications using {+manual-enc+} may use this page as guidance for issuing
-read and write operations against encrypted fields.
+Official drivers compatible with {+qe+} parse read and write
+operations for operators or expressions that don't support ``BinData`` values.
+
+
+.. _qe-commands-supported-bson-types:
+
+Supported and Unsupported BSON Types
+------------------------------------
+
+{+qe+} supports equality queries against all :ref:`BSON types <bson-types>`
+except for the following:
+
+- ``double``
+- ``decimal128``
+- ``object``
+- ``array``
+
+{+qe+} supports range queries against the following :ref:`BSON types <bson-types>`:
+
+- ``int``: 32-bit integer
+- ``long``: 64-bit integer
+- ``double``: Double (IEEE 754 Binary64)
+- ``decimal``: Decimal (IEEE 754 Decimal128)
+- ``date``: UTC DateTime (Int64)
+
+CRUD
+----
+
+- {+qe+} doesn't support multi-document update or delete operations.
+  :method:`db.collection.updateMany()` and :method:`db.collection.bulkWrite()` with more than one update or delete operation aren't supported.
+
+- {+qe+} limits :method:`db.collection.findAndModify()` arguments.
+
+  - ``fields`` is not allowed
+  - ``new`` must be false
+
+- When performing an upsert operation, any encrypted fields in the
+  filter are excluded from the insert.
 
 .. _qe-commands-supported-automatic-encryption:
 
@@ -67,7 +102,7 @@ expressions, see the following sections:
 - :ref:`Supported Aggregation Expressions <qe-supported-aggregation-expressions>`
 
 The following commands do not require automatic encryption. Official drivers
-configured for Automatic Encryption pass these commands directly to the
+configured for automatic encryption pass these commands directly to the
 :binary:`~bin.mongod`:
 
 - :dbcommand:`getMore` [#]_
@@ -90,8 +125,6 @@ configured for Automatic Encryption pass these commands directly to the
 - :dbcommand:`renameCollection`
 - :dbcommand:`ping`
 
-
-
 Issuing any other command through a compatible driver configured for automatic
 encryption returns an error.
 
@@ -110,8 +143,31 @@ encryption returns an error.
 Supported Query Operators
 -------------------------
 
-Drivers configured for automatic encryption support the following query operators when
-issued against an encrypted queryable field:
+Drivers configured for automatic encryption support a limited set of query
+operators when issued against an encrypted queryable field.
+
+Querying non-encrypted fields or encrypted fields with a supported query
+type returns encrypted data that is then decrypted at the client.
+
+{+qe+} currently supports ``none``, ``equality``, and ``range`` query types. If
+the query type is unspecified, it defaults to ``none``. If the query type is
+``none``, the field is  encrypted and clients can't query it.
+
+.. important:: Comparison Support
+
+   Comparison of an encrypted field to a plaintext value is supported.
+
+   .. code-block:: json
+
+      {$expr: {$eq: ["$encrypted1", "plaintext_value"]}}
+
+   Comparison of one encrypted field to another encrypted field will fail.
+
+   .. code-block:: json
+
+      {$expr: {$eq: ["$encrypted1", "$encrypted2"]}}
+
+Fields configured for ``queryType: "equality"`` support the following expressions:
 
 - :query:`$eq`
 - :query:`$ne`
@@ -121,31 +177,31 @@ issued against an encrypted queryable field:
 - :query:`$or`
 - :query:`$not`
 - :query:`$nor`
+- :query:`$expr`
+- :query:`$exists`
 
-.. important:: Comparison Support
+Fields configured for ``queryType: "range"`` support the following expressions:
 
-   Comparison of one encrypted field to another encrypted field will fail.
+- :query:`$lt`
+- :query:`$lte`
+- :query:`$gt`
+- :query:`$gte`
+- :query:`$and`
+- :query:`$exists`
 
-   .. code-block:: json
+Queries specifying any other query operator against an
+encrypted field return an error.  
 
-      {$expr: {$eq: ["$encrypted1", "$encrypted2"]}}
+.. _qe-query-unsupported:
 
-
-   Comparison of an encrypted field to a plaintext value is supported.
-
-   .. code-block:: json
-
-      {$expr: {$eq: ["$encrypted1", "plaintext_value"]}}
+Unsupported Queries
+~~~~~~~~~~~~~~~~~~~
 
 Queries that compare an encrypted field to ``null`` or a regular expression
-*always* throw an error, even if using a supported query operator.
+always throw an error, even if using a supported query operator.
 
-The :query:`$exists` operator has normal behavior when issued against
-encrypted fields.
-
-Queries specifying any other query operator against an encrypted field return an error.
-The following query operators throw an error even if not issued against an encrypted field
-when using a MongoClient configured for {+qe+}:
+When using a MongoClient configured for {+qe+}, the following query
+operators throw an error, even if issued against an unencrypted field:
 
 - :query:`$text`
 - :query:`$where`
@@ -165,7 +221,7 @@ when issued against encrypted fields:
 Updates specifying any other update operator against an encrypted field
 return an error.
 
-Update operations with the following behavior throw an error even if
+Update operations with the following behavior throw an error, even if
 using a supported operator:
 
 - The update operation produces an array inside of an encrypted path.
@@ -276,7 +332,7 @@ collection, such as:
 - :pipeline:`$listSessions`
 - :pipeline:`$listLocalSessions`
 
-Automatic Encryption does not support the :pipeline:`$planCacheStats` stage
+Automatic encryption does not support the :pipeline:`$planCacheStats` stage
 as the result may contain sensitive information.
 
 You cannot perform a :pipeline:`$lookup` from a Queryable Encryption-enabled 
@@ -302,8 +358,8 @@ expressions against any equality query type encrypted fields:
 All other aggregation expressions return an error if issued against
 encrypted fields.
 
-Aggregation stages with the following behavior return an error
-*even if* using a supported aggregation expression:
+Aggregation stages with the following behavior return an error,
+even if using a supported aggregation expression:
 
 .. list-table::
    :widths: 10 30 60
@@ -423,6 +479,9 @@ types:
 - ``undefined``
 
 {+qe+} does not adequately hide the type information for these values.
+
+{+qe+} does not support automatic encryption on fields within an array of 
+documents.
 
 {+qe+} does not support read or write operations on an
 encrypted field where the operation compares the encrypted field to the

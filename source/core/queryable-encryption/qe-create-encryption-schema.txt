@@ -26,7 +26,20 @@ About this Task
 
 To make encrypted fields queryable, create an :term:`{+enc-schema+}`. 
 This schema defines which fields are queryable, and which
-query types are permitted. For more information, see :ref:`qe-fundamentals-encrypt-query`.
+query types are permitted. For more information, see
+:ref:`qe-fundamentals-encrypt-query`.
+
+.. important::
+
+   {+qe+} supports equality and range queries. You can configure a
+   field for only one query type.
+
+Before you Begin
+----------------
+
+When you make encrypted fields queryable, there are performance and security
+considerations to take into account. For details on how each configuration
+option affects these, see :ref:`qe-field-configuration`.
 
 .. _qe-specify-fields-for-encryption:
 
@@ -48,7 +61,7 @@ Steps
          }
    
    .. step::
-      Specify encryption parameters for each field you want to encrypt:
+      Specify fields to encrypt.
 
       a. Add the ``path`` and ``bsonType`` strings to the ``fields`` array:
 
@@ -89,12 +102,14 @@ Steps
             client, then use the ``createEncryptedCollection`` helper method
             to create your collections.
 
-      #. If you want a field to be queryable, add the ``queries`` property 
-         and list allowed ``queryTypes``
+   .. step:: Enable equality queries on desired fields.
+      
+      This enables querying with the :query:`$eq`, :query:`$ne`, :query:`$in`, 
+      and :query:`$nin` operators.
 
-         .. _qe-enable-queries:
+      .. _qe-enable-queries:
 
-         {+qe+} currently supports ``equality`` queries only.
+      a. Add the ``queries`` object and set ``queryType`` to ``"equality"``:
 
          .. code-block:: javascript
             :emphasize-lines: 4
@@ -104,10 +119,12 @@ Steps
                bsonType: "int",
                queries: { queryType: "equality" }
             }
+      
+      #. (Optional) Set :ref:`contention <qe-contention>` to favor either find 
+         performance, or write and update performance.
 
-      #. (Optional) Include the ``contention`` property on queryable fields 
-         to favor either find performance, or write and update performance
-
+         If unset, this defaults to ``8``. 
+         
          .. code-block:: javascript
             :emphasize-lines: 5
 
@@ -115,10 +132,92 @@ Steps
                path: "myDocumentField",
                bsonType: "int",
                queries: { queryType: "equality",
-                          contention: "0"}
+                          contention: 8
+               }
             }
+
+   .. step:: Enable range queries on desired fields.
+      
+      This enables querying with the :query:`$lt`, :query:`$lte`, :query:`$gt`, and :query:`$gte` operators.
+
+      For details on how the following options affect security and performance, see :ref:`qe-field-configuration`.
+
+      a. Add the ``queries`` object and set ``queryType`` to ``"range"``:
+            
+         .. code-block:: javascript
+            :emphasize-lines: 4
+
+            {
+               path: "myDocumentRangeField",
+               bsonType: "int",
+               queries: { queryType: "range" }
+            }
+      
+      #. Set the following fields:
+      
+         .. list-table::
+            :header-rows: 1
+            :widths: 20 30 50
+
+            * - Field
+              - Type
+              - Description
+
+            * - :ref:`sparsity <qe-field-sparsity>`
+              - Integer from 1-4
+              - Optional. Defaults to 2. Affects how thoroughly MongoDB indexes
+                range values. Low sparsity (dense indexing) improves query
+                performance at the cost of storage space.
+            
+            * - :ref:`min and max <qe-field-min-max>`
+              - Same as field ``bsonType``
+              - Required if ``bsonType`` is ``decimal`` or
+                ``double``. Optional but highly recommended if it is ``int``,
+                ``long``, or ``date``. Defaults to the minimum and maximum
+                values of the ``bsonType``. When possible, specifying
+                bounds on a query improves performance. If querying
+                values outside of these inclusive bounds, MongoDB returns an 
+                error.
+
+                This parameter only affects queries. The encrypted value is 
+                still stored with full precision.
+
+            * - :ref:`precision <qe-field-precision>`
+              - Integer
+              - Optional but highly recommended. Allowed only if
+                ``bsonType`` is ``decimal`` or ``double``. Sets how many 
+                digits are taken into account when querying the field.
+
+            * - :ref:`trimFactor <qe-field-trimfactor>`
+              - Integer
+              - Optional. Defaults to 6. A low ``trimFactor`` causes MongoDB to
+                store more documents in the :ref:`metadata collections
+                <qe-metadata-collections>` for each ``insert`` or ``update``
+                operation. This improves ``insert`` and ``update`` times at the
+                cost of slowing down some range operations . A high 
+                ``trimFactor`` does the opposite.
+
+            * - :ref:`contention <qe-contention>`
+              - Integer.
+              - Optional. Defaults to 8. Set  to favor either find 
+                performance, or write and update performance.
          
-         For more information, see :ref:`qe-contention`.
+         .. code-block:: javascript
+            :emphasize-lines: 5-9
+
+            {
+               path: "myDocumentRangeField",
+               bsonType: "int",
+               queries: { queryType: "range",
+                          sparsity: 1,
+                          min: 0,
+                          max: 1200,
+                          trimFactor: 1,
+                          contention: 7
+               }
+            }
+
+
 
 Example
 -------
