@@ -132,13 +132,13 @@
            read the certificate. |service| checks that the certificate is
            present and readable.
       
-         - If your destination {+cluster+} has data, and you
-           want to preserve it, keep the
-           :guilabel:`Clear any existing data on your destination cluster` option
-           unchecked. The live migration service warns you if it finds duplicate
-           namespaces. If you want to delete the existing data, check this
-           option.
-      
+         - If your destination {+cluster+} has data that you want to preserve,
+           keep the :guilabel:`Clear any existing data on your destination cluster`
+           option unchecked. The live migration service checks a sample of documents
+           during validation and warns you if it finds duplicate namespaces.
+           If you want to delete the existing data, check this option and
+           then enter the name of the destination {+cluster+}.
+
          - Choose a connection to connect to the {+cluster+}. The
            :guilabel:`Standard connection` always shows as available in
            the UI. However, other connection options are enabled only if
