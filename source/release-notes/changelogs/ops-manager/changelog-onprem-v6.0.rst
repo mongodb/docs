@@ -11,6 +11,9 @@
 - Updates the {+mdbagent+} to :ref:`12.0.32.7851-1 <mongodb-12.0.32.7851-1>`.
 - Releases {+mongosh+} 2.2.4 to |onprem|. To learn more, see {+mongosh+}
   :mdb-shell:`Release Notes </changelog/#v2.2.4>`.
+- Uses server-side random sampling to distribute data points in
+  :ref:`Profiler <profile-databases>` more evenly across the
+  scatterplot.
 - Displays S3 Oplog Store DBs as a backing DB in the :guilabel:`Admin` 
   interface's :guilabel:`Overview` tab.
 - Provides additional diagnostics information related to backup speed in 
