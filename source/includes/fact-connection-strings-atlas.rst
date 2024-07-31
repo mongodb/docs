@@ -1,5 +1,5 @@
-:ref:`mongosync <c2c-mongosync>` uses a :ref:`MongoDB URI
-connection string <mongodb-uri>` to connect clusters:
+``mongosync`` uses a :ref:`MongoDB URI
+connection string <mongodb-uri>` to connect Atlas clusters:
 
 - The SRV connection scheme has the form:
 
