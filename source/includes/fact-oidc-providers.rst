@@ -91,6 +91,7 @@
 
     - Specifies the application or service that the access token is intended for.
     
+      .. include:: /includes/fact-7-0-oidc-audience.rst
 
   * - ``requestScopes``
 
