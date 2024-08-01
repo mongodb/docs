@@ -20,9 +20,9 @@ Overview
 
 |fts| allows you to sort the results in ascending or descending order on 
 fields that you define in your |fts| index. You can sort by date, number
-(integer, float, and double values), and string fields indexed as a 
-:ref:`token <bson-data-types-token>` type using the ``sort`` option. You
-can also sort by the score of the documents in the results. 
+(integer, float, and double values), boolean, and string fields indexed
+as a :ref:`token <bson-data-types-token>` type using the ``sort``
+option. You can also sort by the score of the documents in the results. 
 
 .. note:: 
 
@@ -45,6 +45,12 @@ To sort your |fts| results, you must do the following:
    For string fields, you must manually index the field as ``token``
    type. To learn more, see :ref:`bson-data-types-token`. 
 
+   |fts| automatically indexes boolean fields in all indexes
+   created after {DATE-PLACEHOLDER} for sorting. For preexisting
+   indexes, you must trigger an index rebuild from the {+atlas-ui+} to
+   use any date and number fields in the indexes for sorting. To learn
+   more, see :ref:`sort-index-rebuild`. 
+
 #. Create and run your query with the ``sort`` option against the fields
    you defined in the index for sorting. To learn more, see 
    :ref:`sort-syntax-ref`.
@@ -52,8 +58,8 @@ To sort your |fts| results, you must do the following:
 Behavior 
 ~~~~~~~~
 
-Sort by Date, Numeric, or String Field 
-``````````````````````````````````````
+Sort by Date, Numeric, String, or Boolean Field 
+```````````````````````````````````````````````
 
 The ``sort`` option takes a document that specifies the fields to sort 
 by and the respective sort order. |fts| follows the :manual:`MongoDB
@@ -76,8 +82,8 @@ You can specify the following sort order to sort your results by:
    * - ``-1`` 
      - Sort in descending order.
 
-Sort by Score And Date or Numeric Field 
-```````````````````````````````````````
+Sort by Score and a Unique Field 
+`````````````````````````````````
 
 You can also sort by score in ascending or descending order. The
 ``sort`` option takes a document that specifies the :manual:`$meta
@@ -267,72 +273,101 @@ Syntax
 Examples 
 --------
 
-The following examples use the ``sample_mflix.movies`` collection in the
-:ref:`sample data <sample-data>`. 
+The following examples use the ``sample_mflix.movies``, 
+``sample_airbnb.listingsAndReview``, or a custom collection. 
 
 Index Definition
 ~~~~~~~~~~~~~~~~
 
-The example queries in this section use the following index. The index
-definition for the collection specifies the following: 
+The example queries in this page use either the ``sample_mflix.movies``,
+the ``sample_airbnb.listingsAndReview``, or a custom collection. If you
+create the following indexes on these collections, you can run the
+sample queries against the indexed fields.
 
-- Index ``awards.wins`` field as: 
+.. tabs:: 
 
-  - ``number`` type for sorting and querying
-  - ``numberFacet`` type for running :ref:`fts-facet-ref` queries
+   .. tab:: ``movies`` Collection
+      :tabid: movies
 
-- Index ``released`` field as: 
+      The example queries against the ``sample_mflix.movies`` collection
+      in this section use the following index. The index definition for
+      the collection specifies the following:    
 
-  - ``date`` type for sorting and querying
-  - ``dateFacet`` type for running :ref:`fts-facet-ref` queries
+      - Index ``awards.wins`` field as: 
 
-- Index ``title`` field as: 
+        - ``number`` type for sorting and querying
+        - ``numberFacet`` type for running :ref:`fts-facet-ref` queries
 
-  - ``token`` type for sorting 
-  - ``string`` type for querying  
+      - Index ``released`` field as: 
 
-.. code-block:: json
-   :copyable: true 
-   :linenos:
+        - ``date`` type for sorting and querying
+        - ``dateFacet`` type for running :ref:`fts-facet-ref` queries
 
-   {
-     "mappings": {
-       "dynamic": false,
-       "fields": {
-         "awards": {
-           "dynamic": false,
-           "fields": {
-             "wins": [
-               {
-                 "type": "number"
+      - Index ``title`` field as: 
+
+        - ``token`` type for sorting 
+        - ``string`` type for querying  
+
+      .. code-block:: json
+         :copyable: true 
+         :linenos:
+
+         {
+           "mappings": {
+             "dynamic": true,
+             "fields": {
+               "awards": {
+                 "dynamic": false,
+                 "fields": {
+                   "wins": [
+                     {
+                       "type": "number"
+                     },
+                     {
+                       "type": "numberFacet"
+                     }
+                   ]
+                 },
+                 "type": "document"
                },
-               {
-                 "type": "numberFacet"
-               }
-             ]
-           },
-           "type": "document"
-         },
-         "released": [
-           {
-             "type": "date"
-           },
-           {
-             "type": "dateFacet"
+               "released": [
+                 {
+                   "type": "date"
+                 },
+                 {
+                   "type": "dateFacet"
+                 }
+               ],
+               "title": [{
+                 "type": "token"
+               }, {
+                 "type": "string"
+               }]
+             }
            }
-         ],
-         "title": [{
-           "type": "token"
-         }, {
-           "type": "string"
-         }]
-       }
-     }
-   }
+         }
 
-For the preceding index definition, |fts| creates an index named
-``default`` with :ref:`static mappings <static-dynamic-mappings>` on the
-specified fields. 
+      For the preceding index definition, |fts| creates an index named
+      ``default`` with :ref:`static mappings <static-dynamic-mappings>`
+      on the specified fields. 
+
+   .. tab:: ``listingsAndReviews`` Collection
+      :tabid: airbnb
+
+      The example queries against the
+      ``sample_airbnb.listingsAndReviews`` collection in this section
+      use the following index. The index definition specifies dynamic
+      mappings on the fields in the collection: 
+
+      .. code-block:: json
+         :copyable: true 
+         :linenos:
+
+         {
+           "mappings": {
+             "dynamic": true
+           }
+         }
 
 Date Search and Sort 
 ~~~~~~~~~~~~~~~~~~~~
@@ -382,6 +417,7 @@ except ``title`` and ``released`` in the results.
 
    .. output::
       :language: json
+      :visible: false
 
       [
         {
@@ -451,6 +487,7 @@ except ``title`` and ``awards.wins`` in the results.
 
    .. output::
       :language: json
+      :visible: false
 
       [
         { title: '12 Years a Slave', awards: { wins: 267 } },
@@ -511,6 +548,7 @@ following:
 
    .. output::
       :language: json
+      :visible: false
 
       [
         { title: 'A Country Called Home', score: 2.536633253097534 },
@@ -570,6 +608,7 @@ UUID sorting follows the behavior of :manual:`MongoDB comparison order </referen
 
    .. output::
       :language: json
+      :visible: false
 
       "results": [
         {
@@ -639,6 +678,7 @@ since the MQL sort order treats missing and nulls equally when sorting.
 
    .. output::
       :language: json
+      :visible: false
 
       "results": [
         {
@@ -654,6 +694,122 @@ since the MQL sort order treats missing and nulls equally when sorting.
           "_id": 0
         }
       ]
+
+Sort by Boolean
+~~~~~~~~~~~~~~~
+
+The following query searches the ``sample_airbnb.listingsAndReviews``
+collection for properties in ``Portugal`` and sorts the results in 
+descending order by the ``boolean`` field ``is_location_exact``.
+
+The query uses the :pipeline:`$limit` stage to limit the output to ``5`` 
+documents. It also uses the :pipeline:`$project` stage to omit all
+fields except ``name``, ``property_type``, ``address.country``, and
+``address.location.is_location_exact`` in the results. 
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: 
+      :language: json 
+      :linenos: 
+
+      db.listingsAndReviews.aggregate([
+        {
+          "$search": {
+            "text": {
+              "path": "address.country",
+              "query": "Portugal"
+            },
+            "sort": {
+              "address.location.is_location_exact": -1,
+            }
+          }
+        },
+        {
+          "$limit": 5
+        },
+        {
+          "$project": {
+            "_id": 0,
+            "name": 1,
+            "property_type": 1,
+            "address.country": 1,
+            "address.location.is_location_exact": 1
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: javascript 
+      :linenos: 
+      :visible: false 
+
+      [
+        {
+          name: 'BBC OPORTO 4X2',
+          property_type: 'Apartment',
+          address: { country: 'Portugal', location: { is_location_exact: true } }
+        },
+        {
+          name: 'Heroísmo IV',
+          property_type: 'Apartment',
+          address: { country: 'Portugal', location: { is_location_exact: true } }
+        },
+        {
+          name: 'Spacious and well located apartment',
+          property_type: 'Apartment',
+          address: { country: 'Portugal', location: { is_location_exact: true } }
+        },
+        {
+          name: 'Renovated Classic Design Studio with Sun Room',
+          property_type: 'Apartment',
+          address: { country: 'Portugal', location: { is_location_exact: true } }
+        },
+        {
+          name: "O'Porto Studio | Historic Center",
+          property_type: 'Loft',
+          address: { country: 'Portugal', location: { is_location_exact: true } }
+        }
+      ]
+
+In the preceding results, the value of ``is_location_exact`` is ``true``
+for the documents because in a descending sort, |fts| ranks ``true``
+values above ``false`` values. If you do an ascending sort by changing
+the value on line 9 of the preceding query to ``1``, |fts| ranks the
+documents with ``false`` values higher than ``true`` values and returns
+the following documents:  
+   
+.. code-block:: json 
+   :copyable: false 
+
+   [
+     {
+       name: 'Ribeira Charming Duplex',
+       property_type: 'House',
+       address: { country: 'Portugal', location: { is_location_exact: false } }
+     },
+     {
+       name: 'Be Happy in Porto',
+       property_type: 'Loft',
+       address: { country: 'Portugal', location: { is_location_exact: false } }
+     },
+     {
+       name: 'Downtown Oporto Inn (room cleaning)',
+       property_type: 'Hostel',
+       address: { country: 'Portugal', location: { is_location_exact: false } }
+     },
+     {
+       name: 'A Casa Alegre é um apartamento T1.',
+       property_type: 'Apartment',
+       address: { country: 'Portugal', location: { is_location_exact: false } }
+     },
+     {
+       name: 'FloresRooms 3T',
+       property_type: 'Apartment',
+       address: { country: 'Portugal', location: { is_location_exact: false } }
+     }
+   ]
 
 Compound Search and Sort 
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -727,6 +883,7 @@ following:
 
    .. output::
       :language: json
+      :visible: false
 
       [
         {
@@ -885,6 +1042,7 @@ results.
 
    .. output::
       :language: json
+      :visible: false
 
       [
         {
@@ -1021,6 +1179,7 @@ the following actions:
          .. output::
             :language: json
             :emphasize-lines: 12-21
+            :visible: false
 
             [
               {
@@ -1093,6 +1252,7 @@ the following actions:
 
          .. output::
             :language: json
+            :visible: false
 
             [
               {
@@ -1172,6 +1332,7 @@ the following actions:
 
          .. output::
             :language: json
+            :visible: false
 
             [
               {
