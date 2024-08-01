@@ -22,17 +22,18 @@ Definition
 .. expression:: range
 
    The ``range`` operator supports querying and scoring numeric, date,
-   and string values. This operator can be used to perform a search
-   over: 
+   and string values. You can use this operator to find results that are
+   within a given numeric, date, objectId, or letter (from the English
+   alphabet) range. 
 
-   - Number fields of BSON ``int32``, ``int64``, and ``double`` data
-     types.
-   - Date fields of BSON ``date`` data type in :term:`ISODate` format. 
-   - String fields of BSON ``string`` data type indexed as |fts|
-     :ref:`token <bson-data-types-token>` type. 
+   ``range`` supports querying the following data types:
 
-   You can use the ``range`` operator to find results that are within a
-   given numeric, date, or letter (from the English alphabet) range.
+   - :ref:`number <bson-data-types-number>`, including ``int32``,
+     ``int64``, and ``double``  
+   - :ref:`date <bson-data-types-date>`  
+   - :ref:`string <bson-data-types-string>`, indexed as |fts|
+     :ref:`token <bson-data-types-token>` type 
+   - :ref:`objectId <objectId-ref>` 
 
 .. _range-syntax:
 
@@ -73,7 +74,7 @@ Options
      - Necessity
 
    * - ``gt`` or ``gte``
-     - BSON date or number
+     - BSON date, number, or string, or objectId
      - Find values greater than (``>``) or greater than or equal to
        (``>=``) the given value.
 
@@ -83,11 +84,14 @@ Options
          :term:`ISODate` formatted date. 
        - For string fields, the value must be indexed as |fts| ``token``
          type. 
+       - For ``ObjectId`` fields, the value must be indexed as
+         :ref:`objectId <objectId-ref>` data type or :ref:`dynamic
+         mappings <static-dynamic-mappings>` must be set to ``true``.
 
      - no
 
    * - ``lt`` or ``lte``
-     - BSON date or number
+     - BSON date, number, or string, or objectId
      - Find values less than (``<``) or less than or equal to (``<=``)
        the given value.
 
@@ -97,6 +101,9 @@ Options
          :term:`ISODate` formatted date.
        - For string fields, the value must be indexed as |fts| ``token``
          type. 
+       - For ``ObjectId`` fields, the value must be indexed as
+         :ref:`objectId <objectId-ref>` data type or :ref:`dynamic
+         mappings <static-dynamic-mappings>` must be set to ``true``.
 
      - no
 
@@ -155,8 +162,8 @@ The following examples use indexes on numeric fields in the
       Sample Index 
       ````````````
 
-      The following index definition named ``default`` indexes the
-      ``runtime`` field only in the ``movies`` collection.
+      The following index definition named ``default`` indexes all the
+      fields in the ``movies`` collection. 
 
       .. tabs:: 
 
@@ -174,6 +181,9 @@ The following examples use indexes on numeric fields in the
 
          .. tab:: Static Mapping Example 
             :tabid: static
+
+            The following index definition named ``default`` indexes the
+            ``runtime`` field only in the ``movies`` collection. 
 
             .. code-block:: javascript
                :linenos:
@@ -229,6 +239,7 @@ The following examples use indexes on numeric fields in the
 
          .. output:: 
             :language: json
+            :visible: false
 
             { "runtime" : 3, "title" : "Dots" }
             { "runtime" : 3, "title" : "Sisyphus" }
@@ -323,6 +334,7 @@ The following examples use indexes on numeric fields in the
 
          .. output:: 
             :language: json
+            :visible: false
 
             { "runtime" : 1, "title" : "Blacksmith Scene", "score" : 1 }
             { "runtime" : 2, "title" : "Andrè and Wally B.", "score" : 1 }
@@ -395,6 +407,7 @@ The following examples use indexes on numeric fields in the
          .. output:: 
             :language: javascript
             :linenos:
+            :visible: false
 
             [
               {
@@ -471,42 +484,190 @@ The following query searches for movies released between January 1,
 limit the output to 5 results and a :pipeline:`$project` stage to 
 exclude all fields except ``title`` and ``released``.
 
-.. code-block:: javascript
-   :linenos:
+.. io-code-block:: 
+   :copyable: true 
 
-   db.movies.aggregate([
-     {
-       "$search": {
-         "range": {
-           "path": "released",
-           "gt": ISODate("2010-01-01T00:00:00.000Z"),
-           "lt": ISODate("2015-01-01T00:00:00.000Z")
+   .. input::
+      :language: javascript
+      :linenos:
+
+      db.movies.aggregate([
+        {
+          "$search": {
+            "range": {
+              "path": "released",
+              "gt": ISODate("2010-01-01T00:00:00.000Z"),
+              "lt": ISODate("2015-01-01T00:00:00.000Z")
+            }
+          }
+        },
+        {
+          "$limit": 5
+        },
+        {
+          "$project": {
+            "_id": 0,
+            "title": 1,
+            "released": 1
+          }
+        }
+      ])
+
+   .. output::
+      :language: javascript
+      :linenos:
+      :visible: false
+
+      [
+        {
+          title: 'Too Much Johnson',
+          released: ISODate('2014-08-30T00:00:00.000Z')
+        },
+        {
+          title: 'Stolen Desire',
+          released: ISODate('2012-07-01T00:00:00.000Z')
+        },
+        {
+          title: 'The Monkey King',
+          released: ISODate('2012-01-12T00:00:00.000Z')
+        },
+        { title: 'The Land', released: ISODate('2012-08-04T00:00:00.000Z') },
+        {
+          title: 'My Childhood',
+          released: ISODate('2013-07-31T00:00:00.000Z')
+        }
+      ]
+
+ObjectId Example 
+~~~~~~~~~~~~~~~~
+
+The following example uses the ``range`` operator to query an
+``objectId`` field in the ``sample_mflix.movies`` collection. For this
+example, you can use either static or dynamic mappings to index the
+``objectId`` type field named ``_id`` in the collection.
+
+Sample Index 
+````````````
+
+The following index definition named ``default`` indexes all the
+fields in the ``movies`` collection. 
+
+.. tabs:: 
+   
+   .. tab:: Dynamic Mapping Example
+      :tabid: dme
+
+      The following index definition named ``default`` indexes all the 
+      dynamically indexable fields in the ``movies`` collection, 
+      including the ``_id`` field, which is of type ``objectId``.
+
+      .. code-block:: javascript
+
+         {
+            "mappings": {
+               "dynamic": true
+            }
          }
-       }
-     },
-     {
-       "$limit": 5
-     },
-     {
-       "$project": {
-         "_id": 0,
-         "title": 1,
-         "released": 1
-       }
-     }
-   ])
 
-The above query returns the following search results:
+   .. tab:: Static Mapping Example
+      :tabid: sme
 
-.. code-block:: json
-   :linenos:
-   :copyable: false
+      The following index definition named ``default`` indexes the 
+      ``_id`` field in the ``movies`` collection:
 
-   { "title" : "The Fall of the House of Usher", "released" : ISODate("2011-09-20T00:00:00Z") }
-   { "title" : "The Blood of a Poet", "released" : ISODate("2010-05-20T00:00:00Z") }
-   { "title" : "Too Much Johnson", "released" : ISODate("2014-08-30T00:00:00Z") }
-   { "title" : "Stolen Desire", "released" : ISODate("2012-07-01T00:00:00Z") }
-   { "title" : "The Monkey King", "released" : ISODate("2012-01-12T00:00:00Z") }
+      .. code-block:: javascript
+
+         {
+            "mappings": {
+               "dynamic": false,
+               "fields": {
+                  "_id": {
+                    "type": "objectId"
+                  }
+               }
+            }
+         }
+
+Sample Query 
+````````````
+
+The following example uses the ``range`` operator to query ``_id`` field
+for a range of ``objectId`` values in the ``sample_mflix.movies``
+collection.
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input::
+      :language: javascript
+      :linenos:
+
+      db.movies.aggregate([
+        {
+          "$search": {
+            "range": {
+              "path": "_id",
+              "gte": ObjectId("573a1396f29313caabce4a9a"),
+              "lte": ObjectId('573a1396f29313caabce4ae7')
+            }
+          }
+        },
+        {
+          "$project": {
+            "_id": 1,
+            "title": 1,
+            "released": 1
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: javascript
+      :linenos:
+      :visible: false
+
+      [
+        {
+          _id: ObjectId('573a1396f29313caabce4a9a'),
+          title: 'The Godfather',
+          released: ISODate('1972-03-24T00:00:00.000Z')
+        },
+        {
+          _id: ObjectId('573a1396f29313caabce4a9b'),
+          title: 'Get to Know Your Rabbit',
+          released: ISODate('1972-06-01T00:00:00.000Z')
+        },
+        {
+          _id: ObjectId('573a1396f29313caabce4aad'),
+          title: 'The Tall Blond Man with One Black Shoe',
+          released: ISODate('1973-08-30T00:00:00.000Z')
+        },
+        {
+          _id: ObjectId('573a1396f29313caabce4abe'),
+          title: 'The Great Northfield Minnesota Raid',
+          released: ISODate('1972-05-12T00:00:00.000Z')
+        },
+        {
+          _id: ObjectId('573a1396f29313caabce4ac4'),
+          title: 'The Heartbreak Kid',
+          released: ISODate('1973-02-01T00:00:00.000Z')
+        },
+        {
+          _id: ObjectId('573a1396f29313caabce4ac7'),
+          title: 'Gumshoe',
+          released: ISODate('1971-12-01T00:00:00.000Z')
+        },
+        {
+          _id: ObjectId('573a1396f29313caabce4ad9'),
+          title: 'Heat',
+          released: ISODate('1972-10-06T00:00:00.000Z')
+        },
+        {
+          _id: ObjectId('573a1396f29313caabce4ae7'),
+          title: 'Horror Express',
+          released: ISODate('1973-12-01T00:00:00.000Z')
+        }
+      ]
 
 String Example
 ~~~~~~~~~~~~~~
@@ -574,6 +735,7 @@ exclude all fields except ``title``.
 
    .. output:: 
       :language: json 
+      :visible: false
 
       [
         { title: 'Civilization' },

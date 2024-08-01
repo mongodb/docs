@@ -19,15 +19,20 @@ Overview
 --------
 
 |fts| allows you to sort the results in ascending or descending order on 
-fields that you define in your |fts| index. You can sort by date, number
-(integer, float, and double values), boolean, and string fields indexed
-as a :ref:`token <bson-data-types-token>` type using the ``sort``
-option. You can also sort by the score of the documents in the results. 
+fields that you define in your |fts| index. You can sort by the
+following field types using the ``sort`` option: 
 
-.. note:: 
+- ``boolean``
+- ``date``
+- ``number`` (integer, float, and double values)
+- ``objectId``
+- ``uuid`` 
+- ``string`` (indexed as the :ref:`token <bson-data-types-token>` type) 
 
-   |fts| :ref:`sort <sort-ref>` option is available in sharded
-   {+clusters+} only if you run MongoDB v6.0+ or higher.
+You can also sort by the score of the documents in the results and by
+null values. 
+
+.. _fts-sort-usage:
 
 Usage 
 ~~~~~
@@ -35,37 +40,29 @@ Usage
 To sort your |fts| results, you must do the following:
 
 1. Create an |fts| index on the fields to sort the results by. 
-   
-   |fts| automatically indexes number and date fields in all indexes
-   created after :ref:`July 2023 <fts20230710>` for sorting. For
-   preexisting indexes, you must trigger an index rebuild from the
-   {+atlas-ui+} to use any date and number fields in the indexes for
-   sorting. To learn more, see :ref:`sort-index-rebuild`.
 
-   For string fields, you must manually index the field as ``token``
-   type. To learn more, see :ref:`bson-data-types-token`. 
-
-   |fts| automatically indexes boolean fields in all indexes
-   created after {DATE-PLACEHOLDER} for sorting. For preexisting
-   indexes, you must trigger an index rebuild from the {+atlas-ui+} to
-   use any date and number fields in the indexes for sorting. To learn
-   more, see :ref:`sort-index-rebuild`. 
+   To sort on ``boolean``, ``date``, ``number``, ``UUID``, and
+   ``objectId`` fields, use dynamic or static mappings. To sort on
+   string fields, you must use :ref:`static mappings
+   <static-dynamic-mappings>` to index the field as the ``token`` type. 
 
 #. Create and run your query with the ``sort`` option against the fields
    you defined in the index for sorting. To learn more, see 
    :ref:`sort-syntax-ref`.
 
+.. _fts-sort-behavior:
+
 Behavior 
 ~~~~~~~~
 
-Sort by Date, Numeric, String, or Boolean Field 
-```````````````````````````````````````````````
+Sort by Boolean, Date, Numeric, UUID, ObjectId, or String Field 
+```````````````````````````````````````````````````````````````
 
 The ``sort`` option takes a document that specifies the fields to sort 
 by and the respective sort order. |fts| follows the :manual:`MongoDB
 comparison order </reference/bson-type-comparison-order/>` for the
-supported data types. It treats null and missing values as equivalent in
-its sort order. To learn more, see :manual:`non-existent fields
+supported data types. It treats UUID values like ``BinData``. To learn
+more, see :manual:`non-existent fields 
 </reference/bson-type-comparison-order/#non-existent-fields>`. 
 
 You can specify the following sort order to sort your results by: 
@@ -82,8 +79,10 @@ You can specify the following sort order to sort your results by:
    * - ``-1`` 
      - Sort in descending order.
 
-Sort by Score and a Unique Field 
-`````````````````````````````````
+.. _fts-sort-score-unique-field:
+
+Sort by Score And a Unique Field 
+````````````````````````````````
 
 You can also sort by score in ascending or descending order. The
 ``sort`` option takes a document that specifies the :manual:`$meta
@@ -103,24 +102,10 @@ You can also sort by score in ascending or descending order. The
       sort: {score: {$meta: "searchScore", order: 1}}
 
 You can use ``sort`` to also ensure that the results have a determined
-order when multiple documents in the results have identical scores. The
-following example doesn't sort the results by a unique field.   
-
-If you don't specify a unique date or numeric field to sort the results
-by, |fts| defaults to sorting the results by score in descending order
-and returns results with identical scores in an arbitrary order:  
-
-.. example:: 
-
-   .. code-block:: shell 
-      :copyable: false 
-
-      sort: {score: {$meta: "searchScore"}}
-
-However, if you sort the results by a unique date or numeric field, such
-as a date field named ``lastUpdated`` as shown in the following example,
-|fts| uses the value of the specified field to return results with
-identical scores in a determined order:  
+order when multiple documents in the results have identical scores. For
+example, if you sort the results by a unique field, such as a date field
+named ``lastUpdated`` as shown in the following example, |fts| returns
+results with identical scores in a determined order: 
 
 .. example::
 
@@ -129,7 +114,21 @@ identical scores in a determined order:
 
       sort: {score: {$meta: "searchScore"}, lastUpdated: 1}
 
+However, if you don't specify a unique field to sort the results by,
+|fts| returns the results sorted by score in descending order. |fts|
+returns results with identical scores or values in an arbitrary order.
+The following example doesn't sort the results by a unique field.   
+
+.. example:: 
+
+   .. code-block:: shell 
+      :copyable: false 
+
+      sort: {score: {$meta: "searchScore"}}
+
 To learn more, see :ref:`scoring-ref`.
+
+.. _fts-sort-arrays:
 
 Sort Arrays 
 ```````````
@@ -194,6 +193,21 @@ When comparing with elements inside an array:
         5
         -20
 
+.. _fts-sort-null:
+
+Sort by Null Values 
+```````````````````
+
+|fts| treats null as equivalent to missing fields and therefore, if you
+sort by fields that contain null values or is missing in some documents,
+the ordering of the documents in the results is non-deterministic. When
+comparing values of different |bson| types in sort operations, |fts|
+follows the :manual:`MongoDB comparison and sort order
+</reference/bson-type-comparison-order/>` and considers null values 
+lower than all other :ref:`supported <bson-data-types>` |bson| types.
+
+.. _fts-sort-embedded-documents:
+
 Sort on Embedded Documents Array Fields 
 ```````````````````````````````````````
 
@@ -241,7 +255,7 @@ Compatibility
 
 |service| supports non-sharded sort queries across all major and minor
 MongoDB 5.0 and later versions. Sharded sort queries are available on
-all major releases for 6.0 and on all major and minor releases for for
+all major releases for 6.0 and on all major and minor releases for 
 7.0 and later versions. If you use ``sort``  on sharded |service|
 {+clusters+} running MongoDB v5.0 and earlier, |fts| returns an error.
 
@@ -270,11 +284,14 @@ Syntax
      }
    }
 
+.. _fts-sort-egs:
+
 Examples 
 --------
 
 The following examples use the ``sample_mflix.movies``, 
-``sample_airbnb.listingsAndReview``, or a custom collection. 
+``sample_airbnb.listingsAndReview``, or a custom collection named
+``users``. 
 
 Index Definition
 ~~~~~~~~~~~~~~~~
@@ -289,9 +306,8 @@ sample queries against the indexed fields.
    .. tab:: ``movies`` Collection
       :tabid: movies
 
-      The example queries against the ``sample_mflix.movies`` collection
-      in this section use the following index. The index definition for
-      the collection specifies the following:    
+      The index definition for the ``movies`` collection specifies the
+      following:  
 
       - Index ``awards.wins`` field as: 
 
@@ -355,25 +371,99 @@ sample queries against the indexed fields.
       :tabid: airbnb
 
       The example queries against the
-      ``sample_airbnb.listingsAndReviews`` collection in this section
-      use the following index. The index definition specifies dynamic
-      mappings on the fields in the collection: 
+      ``sample_airbnb.listingsAndReviews`` collection use the following
+      index. The index definition specifies dynamic mappings on the
+      fields in the collection:
 
       .. code-block:: json
-         :copyable: true 
-         :linenos:
+         :copyable: true
 
          {
            "mappings": {
              "dynamic": true
            }
          }
+  
+   .. tab:: ``users`` Collection
+      :tabid: users
+
+      The ``users`` collection contains the following documents: 
+
+      .. code-block:: json
+         :copyable: true
+
+         db.users.insertMany([
+           {
+             "_id": 0,
+             "a": UUID("1a324de2-e34b-c87e-f2a1-42ce37ad74ed"),
+             "b": "hello",
+             "c": ObjectId("507f1f77bcf86cd799439011")
+           },
+           {
+             "_id": 1,
+             "a": UUID("3b241101-e2bb-4255-8caf-4136c566a962"),
+             "b": "hello",
+             "c": true
+           },
+           {
+             "_id": 2,
+             "a": UUID("dee11d4e-63c6-4d90-983c-5c9f1e79e96c"),
+             "b": "hello",
+             "c": "foo"
+           },
+           {
+             "_id": 3,
+             "b": "hello",
+             "c": UUID("3be11d4e-62cb-4e95-9a3c-5c9f1e56c732")
+           },
+           {
+             "_id": 4,
+             "a": UUID("d3c12e1c-c36e-25ed-7c3e-1e7f1e53c752"),
+             "b": "hello",
+             "c": null
+           }
+         ])
+
+      The index definition for the ``users`` collection specifies the
+      following: 
+
+      - Dynamically index all the fields except fields named ``c``.
+      - Statically index field named ``c`` as the following types for
+        sorting:  
+
+        - ``token``  
+        - ``uuid`` 
+        - ``objectId``
+        - ``boolean``
+
+      .. code-block:: json
+         :copyable: true 
+         :linenos:
+
+         {         
+           "mappings": {
+             "dynamic": true,
+             "fields": {
+               "c": [
+                { "type": "token" },
+                { "type": "uuid" },
+                { "type": "objectId" },
+                { "type": "boolean" }
+               ]
+             }
+           }
+         }
+
+      For the preceding collection, |fts| creates an index named
+      ``default`` with the specified mappings on the specified fields. 
+
+.. _fts-sort-eg-date:
 
 Date Search and Sort 
 ~~~~~~~~~~~~~~~~~~~~
 
-The following query uses the :pipeline:`$search` stage to do the
-following: 
+The following query on the ``sample_mflix.movies`` namespace uses the
+:pipeline:`$search` stage to do the following: 
 
 - Search for movies released between 01 January, 2010 and 01, January,
   2015 using the :ref:`range-ref` operator. 
@@ -421,11 +511,11 @@ except ``title`` and ``released`` in the results.
 
       [
         {
-          title: 'The Gambler',
+          title: 'Cold in July',
           released: ISODate("2014-12-31T00:00:00.000Z")
         },
         {
-          title: 'Cold in July',
+          title: 'The Gambler',
           released: ISODate("2014-12-31T00:00:00.000Z")
         },
         {
@@ -437,16 +527,18 @@ except ``title`` and ``released`` in the results.
           released: ISODate("2014-12-27T00:00:00.000Z") 
         },
         {
-          title: 'The Water Diviner',
-          released: ISODate("2014-12-26T00:00:00.000Z")
+          title: 'Peace After Marriage',
+          released: ISODate('2014-12-26T00:00:00.000Z')
         }
       ]
+
+.. _fts-sort-eg-number:
 
 Number Search and Sort 
 ~~~~~~~~~~~~~~~~~~~~~~
 
-The following query uses the :pipeline:`$search` stage to do the
-following: 
+The following query on the ``sample_mflix.movies`` namespace uses the
+:pipeline:`$search` stage to do the following: 
 
 - Search for movies that have won awards.  
 - Sort the results in descending order using ``sort`` option. 
@@ -500,11 +592,13 @@ except ``title`` and ``awards.wins`` in the results.
         { title: 'Boyhood', awards: { wins: 185 } },
       ]
 
+.. _fts-sort-eg-string:
+
 String Search and Sort 
 ~~~~~~~~~~~~~~~~~~~~~~
 
-The following query uses the :pipeline:`$search` stage to do the
-following: 
+The following query on the ``sample_mflix.movies`` namespace uses the
+:pipeline:`$search` stage to do the following: 
 
 - Search for movies that have the term ``country`` in the title.  
 - Sort the results in ascending order using ``sort`` option. 
@@ -558,35 +652,95 @@ following:
         { title: 'Another Country', score: 3.3635599613189697 }
       ]
 
-UUID Search and Sort
-~~~~~~~~~~~~~~~~~~~~
+.. _fts-sort-eg-objectid:
 
-UUID sorting follows the behavior of :manual:`MongoDB comparison order </reference/bson-type-comparison-order/>`.
+Sort by ObjectId
+~~~~~~~~~~~~~~~~
 
-.. code-block:: json
+The following query uses the :ref:`range-ref` operator to search the
+the ``released`` field in the ``sample_mflix.movies`` collection for
+movies released between ``2015-01-01`` and ``2015-12-31``. It sorts the
+results by the ``_id`` field, which contains value of type ``ObjectId``,
+in descending order. 
+
+.. io-code-block:: 
    :copyable: true
 
-   db.users.insertMany([
-     {
-       "_id": 0,
-       "a": UUID("00000000-1111-2222-3333-444444444444"),
-       "b": "hello"
-     },
-     {
-       "_id": 1,
-       "a": "foo",
-       "b": "hello"
-     },
-     {
-       "_id": 2,
-       "a": 5,
-       "b": "hello"
-     },
-     {
-       "_id": 3,
-       "b": "hello"
-     }
-   ])
+   .. input:: 
+      :language: json 
+
+      db.movies.aggregate([
+        {
+          "$search": {
+            "range": {
+              "path": "released",
+              "gt": ISODate("2015-01-01T00:00:00.000Z"),
+              "lt": ISODate("2015-12-31T00:00:00.000Z")
+            },
+            "sort": {
+              "_id": -1
+            }
+          }
+        },
+        {
+          "$limit": 5
+        },
+        {
+          "$project": {
+            "_id": 1,
+            "title": 1,
+            "released": 1,
+            "score": { "$meta": "searchScore" }
+          }
+        }
+      ])
+
+   .. output::
+      :language: json
+      :visible: false
+
+      [
+        {
+          _id: ObjectId('573a13fbf29313caabdedf31'),
+          title: 'No Home Movie',
+          released: ISODate('2015-08-10T00:00:00.000Z'),
+          score: 1
+        },
+        {
+          _id: ObjectId('573a13fbf29313caabdedf30'),
+          title: 'Our Loved Ones',
+          released: ISODate('2015-08-12T00:00:00.000Z'),
+          score: 1
+        },
+        {
+          _id: ObjectId('573a13faf29313caabded406'),
+          title: 'The Red Spider',
+          released: ISODate('2015-11-20T00:00:00.000Z'),
+          score: 1
+        },
+        {
+          _id: ObjectId('573a13faf29313caabded1d6'),
+          title: 'The Laundryman',
+          released: ISODate('2015-07-11T00:00:00.000Z'),
+          score: 1
+        },
+        {
+          _id: ObjectId('573a13faf29313caabdecaf3'),
+          title: 'Right Now, Wrong Then',
+          released: ISODate('2015-09-01T00:00:00.000Z'),
+          score: 1
+        }
+      ]
+
+.. _fts-sort-eg-uuid:
+
+Sort by UUID
+~~~~~~~~~~~~
+
+The following query searches for the term ``hello`` in field ``b`` in
+the ``users`` collection. The query sorts the results by field ``a``,
+which contains polymorphic data (to demonstrate the sort order), in
+ascending order. 
 
 .. io-code-block::
    :copyable: true
@@ -594,69 +748,63 @@ UUID sorting follows the behavior of :manual:`MongoDB comparison order </referen
    .. input::
       :language: json
 
-      {
-        $search: {
-          "text": {
-            "path": "b",
-            "query": "hello"
-          },
-          "sort": {
-            "a": 1
+      db.users.aggregate([
+        {
+          "$search": {
+            "text": {
+              "path": "b",
+              "query": "hello"
+            },
+            "sort": {
+              "a": 1
+            }
+          }
+        },
+        {
+          "$project": {
+            "_id": 1,
+            "a": 1,
+            "score": { "$meta": "searchScore" }
           }
         }
-      }
+      ])
 
    .. output::
       :language: json
       :visible: false
 
-      "results": [
+      [
+        { _id: 3, score: 0.039550621062517166 },
         {
-          "_id": 3      // missing
+          _id: 0,
+          a: UUID('1a324de2-e34b-c87e-f2a1-42ce37ad74ed'),
+          score: 0.039550621062517166
         },
         {
-          "_id": 2      // number
+          _id: 1,
+          a: UUID('3b241101-e2bb-4255-8caf-4136c566a962'),
+          score: 0.039550621062517166
         },
         {
-          "_id": 1      // string
+          _id: 4,
+          a: UUID('d3c12e1c-c36e-25ed-7c3e-1e7f1e53c752'),
+          score: 0.039550621062517166
         },
         {
-          "_id": 0      // binary data (UUID)
+          _id: 2,
+          a: UUID('dee11d4e-63c6-4d90-983c-5c9f1e79e96c'),
+          score: 0.039550621062517166
         }
       ]
 
-Null Value Search and Sort
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _fts-sort-eg-null:
 
-Fields which contain null values that are used for sorting will treat null as equivalent to missing fields.
-For example, given the following documents and query,
-the ordering between documents 2 and 3 is non-deterministic,
-since the MQL sort order treats missing and nulls equally when sorting.
+Sort by Null Value
+~~~~~~~~~~~~~~~~~~
 
-.. code-block:: json
-   :copyable: true
-
-   db.users.insertMany([
-     {
-       "_id": 0,
-       "a": 20,
-       "b": "hello"
-     },
-     {
-       "_id": 1,
-       "a": 10,
-       "b": "hello"
-     },
-     {
-       "_id": 2,
-       "a": null,
-       "b": "hello"
-     },
-     {
-       "_id": 3,
-       "b": "hello"
-     }
-   ])
+The following query searches field ``b``  for the string ``hello`` in
+the ``users`` collection using the :ref:`text-ref` operator. The query
+sorts the results by field ``a`` in ascending order.
 
 .. io-code-block::
    :copyable: true
@@ -664,36 +812,54 @@ since the MQL sort order treats missing and nulls equally when sorting.
    .. input::
       :language: json
 
-      {
-        $search: {
-          "text": {
-            "path": "b",
-            "query": "hello"
-          },
-          "sort": {
-            "a": 1
+      db.users.aggregate([
+        {
+          "$search": {
+            "text": {
+              "path": "b",
+              "query": "hello"
+            },
+            "sort": {
+              "c": 1
+            }
+          }
+        },
+        {
+          "$project": {
+            "_id": 1,
+            "c": 1,
+            "score": { "$meta": "searchScore" }
           }
         }
-      }
+      ])
 
    .. output::
       :language: json
       :visible: false
 
-      "results": [
+      [
+        { _id: 4, c: null, score: 0.039550621062517166 },
+        { _id: 2, c: 'foo', score: 0.039550621062517166 },
         {
-          "_id": 3
+          _id: 3,
+          c: UUID('3be11d4e-62cb-4e95-9a3c-5c9f1e56c732'),
+          score: 0.039550621062517166
         },
         {
-          "_id": 2
+          _id: 0,
+          c: ObjectId('507f1f77bcf86cd799439011'),
+          score: 0.039550621062517166
         },
-        {
-          "_id": 1
-        },
-        {
-          "_id": 0
-        }
+        { _id: 1, c: true, score: 0.039550621062517166 }
       ]
+
+|fts| returns all the documents, but the ordering of documents with
+``"_id": 2`` and ``"_id": 4`` is random because |fts| treats
+missing and nulls equally when sorting. For more details, see the 
+:manual:`MongoDB sort order </reference/bson-type-comparison-order/>`
+for sorting data of different BSON types.  
+
+.. _fts-sort-eg-boolean:
 
 Sort by Boolean
 ~~~~~~~~~~~~~~~
@@ -810,6 +976,8 @@ the following documents:
        address: { country: 'Portugal', location: { is_location_exact: false } }
      }
    ]
+
+.. _fts-sort-eg-compound:
 
 Compound Search and Sort 
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -948,6 +1116,8 @@ following:
         }
       ]
 
+.. _fts-sort-eg-facet:
+
 Facet Search and Sort 
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -1048,15 +1218,16 @@ results.
         {
           docs: [
             {
-              title: 'The Gambler',
-              released: ISODate("2014-12-31T00:00:00.000Z"),
-              awards: { wins: 7 }
-            },
-            {
               title: 'Cold in July',
               released: ISODate("2014-12-31T00:00:00.000Z"),
               awards: { wins: 1 }
             },
+            {
+              title: 'The Gambler',
+              released: ISODate("2014-12-31T00:00:00.000Z"),
+              awards: { wins: 7 }
+            },
+
             {
               title: 'Force Majeure',
               released: ISODate("2014-12-30T00:00:00.000Z"),
@@ -1068,9 +1239,9 @@ results.
               awards: { wins: 3 }
             },
             {
-              title: 'The Water Diviner',
-              released: ISODate("2014-12-26T00:00:00.000Z"),
-              awards: { wins: 8 }
+              title: 'Peace After Marriage',
+              released: ISODate('2014-12-26T00:00:00.000Z'),
+              awards: { wins: 5 }
             }
           ],
           meta: {
