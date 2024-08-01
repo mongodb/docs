@@ -1,0 +1,312 @@
+.. _fts-deployment-options:
+
+========================
+|fts| Deployment Options
+========================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: deployment
+   :description: Learn about deploying mongod and mongot on the same node and on separate search nodes.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can structure your |service| {+cluster+} with different deployment
+types, cloud providers, and cluster tiers to meet the needs of a
+pre-production or production environment. Use these recommendations to
+select the deployment type, cloud provider and region, and {+cluster+}
+and search tiers for performing vector search. 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 15 20 20 20 25
+   :stub-columns: 1
+
+   * - Environment 
+     - Deployment Type
+     - Cluster Tier 
+     - Cloud Provider Region  
+     - Node Architecture 
+
+   * - Testing Queries
+     - Shared or dedicated {+cluster+} 
+     - ``M0``, ``M2``, ``M5``, or higher tier
+     - All
+     - MongoDB and Search processes run on the same node
+
+   * - Prototyping Applications
+     - Dedicated {+cluster+}, sharded or unsharded
+     - ``M10``, ``M20``, or higher tier
+     - All 
+     - MongoDB and Search processes run on the same node
+
+   * - Production
+     - Dedicated {+cluster+} with separate search nodes, sharded or
+       unsharded 
+     - ``M10`` or higher {+cluster+} tier and ``S10`` or higher search
+       tier 
+     - |aws| in some regions or |gcp| and |azure| in all regions
+     - MongoDB and Search processes run on different nodes
+
+To learn more about these deployment models, review the following
+sections: 
+
+- :ref:`fts-deployment-options-testing`
+- :ref:`fts-deployment-options-production`
+
+.. _fts-deployment-options-testing:
+
+Testing and Prototyping Environments
+------------------------------------
+
+For testing your search queries and prototyping your application, we
+recommend the following configuration for your {+cluster+}. This
+configuration is best suited for the following use-cases:
+
+- Less than 2M total documents to index.
+- Less than 10GB of indexed data. 
+- Less than 10,000 queries in a 7-day period.
+
+If your usage exceeds the listed values, migrate to separate search
+nodes.
+
+Deployment Type
+~~~~~~~~~~~~~~~
+
+For testing {+avs+} queries, you can deploy shared or dedicated
+{+clusters+}.
+
+{+Cluster+} Tiers 
+~~~~~~~~~~~~~~~~~
+
+Shared {+clusters+} include the ``M0``, ``M2``, and ``M5`` tiers. These
+low-cost cluster types are available for testing your {+avs+} queries.
+However, you might experience resource contention and query latency on
+shared {+clusters+}. If you begin your project with a shared
+{+cluster+}, we recommend upgrading to a higher tier when your
+application is ready for production.
+
+Dedicated {+clusters+} include ``M10`` and higher tiers. The ``M10`` and
+``M20`` tiers are suitable for prototyping your application. You can
+upgrade to higher tiers to handle large datasets or deploy
+:ref:`dedicated search nodes <configure-search-nodes>` for workload
+isolation when your application is ready for production.  
+
+Cloud Provider and Region 
+~~~~~~~~~~~~~~~~~~~~~~~~~ 
+
+All the {+cluster+} tiers are available in all the supported cloud
+provider regions. The cloud provider and region that you choose affects
+the configuration options available for the {+cluster+} tiers and the
+:doc:`cost of running the cluster </billing>`. 
+
+Node Architecture 
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/fts-architecture-coupled.rst
+
+.. include:: /includes/extracts/fts-stored-source-architecture.rst
+
+.. seealso:: 
+
+   - :ref:`fts-about-indexing`  
+   - :ref:`fts-about-queries`
+
+Benefits 
+````````
+
+.. include:: /includes/extracts/fts-coupled-benefits.rst
+
+Limitations 
+```````````
+
+You might experience resource contention between the database ``mongod``
+and the search ``mongot`` processes. This could negatively impact the
+performance of your index and latency of your queries. We recommend this 
+deployment model for only testing and prototyping environments. For
+production-ready applications and associated search workloads, we
+recommend :ref:`migrating to dedicated search nodes
+<avs-migrate-to-decoupled>`. 
+
+Cost 
+````
+
+There are no additional fees or charges when you enable |fts| on your
+|service| {+cluster+}. However, you might observe an increase in
+resource utilization on the {+cluster+} depending on factors such as 
+the size of the indexed collections or index definitions. 
+
+.. _fts-deployment-options-production:
+
+Production Environment
+----------------------
+
+For your production-ready application, we recommend the following
+{+cluster+} configuration. This configuration in well-suited for the
+following use-cases:
+
+- Greater than 2M total documents to index.
+- Greater than 10GB of indexed data. 
+- Greater than 10,000 queries in a 7-day period.
+
+Deployment Type
+~~~~~~~~~~~~~~~
+
+For production-ready applications, you need a dedicated {+cluster+}. 
+ 
+{+Cluster+} Tiers 
+~~~~~~~~~~~~~~~~~
+
+Dedicated {+clusters+} include ``M10`` and higher tiers. The ``M10`` and
+``M20`` tiers are suitable for development and for production
+environments. However, the higher tiers can handle large datasets and
+production workloads. We recommend that you also :ref:`deploy dedicated
+search nodes <configure-search-nodes>` for your search workload. This
+allows you to scale your search deployment independently and
+appropriately. 
+
+Cloud Provider and Region
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Search nodes are available in all the regions for |gcp| and |azure|, but
+only available in a subset of |aws| :ref:`regions
+<fts-cloud-provider-regions>`. You *must* select a cloud provider and
+region where search nodes are available for your deployment.
+
+All {+cluster+} tiers are available in supported cloud provider regions.
+The cloud provider and region that you choose affects the configuration
+options and search tiers available for the {+cluster+} and the
+:doc:`cost of running the cluster </billing>`.
+
+.. _what-is-search-node:
+
+Node Architecture 
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/fts-architecture-decoupled.rst
+
+.. include:: /includes/extracts/fts-stored-source-architecture.rst
+
+.. _fts-search-node-benefits:
+
+Benefits 
+````````
+
+Deploying separate Search Nodes provides the following benefits:
+
+High Availability 
+  When you deploy separate Search Nodes, |service| enforces a minimum of
+  2 Search Nodes to ensure your workload remains operational, with
+  minimal downtime, in the event of a failure or disruption. 
+
+Scalability 
+  When you deploy separate Search Nodes, you can do the following:
+
+  - Scale the storage and compute independent of MongoDB {+cluster+}. 
+  - Scale query load independent of MongoDB.
+
+  You can scale Search Nodes both horizontally and vertically. 
+  
+  You can increase or reduce the number of Search Nodes and horizontally
+  scale your {+cluster+}. You can provision between a minimum of 2 to a
+  maximum of 32 Search Nodes, both inclusive. |fts| round robins your
+  queries for execution on the available Search Nodes, which allows it
+  to distribute query load across all provisioned nodes. 
+
+  You can select different search tiers for your Search Nodes. The
+  different search tiers enable you to select the CPU, RAM, storage
+  configurations most appropriate for your full-text and vector
+  workload.  
+
+Performance 
+  When you deploy separate Search Nodes, you improve the performance and
+  resource utilization for both the ``mongod`` and ``mongot`` processes
+  and eliminate resource contention between the two processes.  
+  
+  Dedicated Search Nodes support concurrent segment search, which allows
+  |fts| to search multiple index segments at the same time and improve
+  query response time in some cases. To learn more, see
+  :ref:`concurrent-ref`. 
+
+Size and Scale Your {+Cluster+}
+```````````````````````````````
+
+To determine the amount of memory that you will need on the Search 
+Nodes, use the following |service| metrics:  
+
+- Size of the Search Index
+- Total RAM on the Search Node
+
+For example, consider the following: 
+
+- Size of the Search Index = 10GB
+- Total RAM on the Search Node = 4GB
+
+Out of the 4GB RAM, suppose 1GB is used by other processes, only 3GB is
+available for the Lucene index data. Therefore, the remaining 7GB of the
+index data (10GB - 3GB = 7GB) will be paged in, as needed, from the
+disk. Frequent paging from disk (7GB) will cause increased page faults,
+disk I/O, and CPU IOWait, resulting in performance degradation. 
+
+A higher search tier with more RAM (8GB or more) will allow for most of
+the search index data for the index to be served from the memory,
+minimizing disk reads and page faults, thereby improving performance. 
+
+.. note:: 
+
+   The local |ssd|\s used for Search Nodes require a 20% 
+   storage overhead to support index operations.
+
+.. _fts-search-node-cost-overview:
+
+Search Nodes Cost 
+`````````````````
+
+.. include:: /includes/extracts/fts-decoupled-cost.rst
+
+.. _fts-migrate-to-decoupled:
+
+Migrate to Dedicated Search Nodes 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Dedicated Search Nodes allow you to both size and scale your search
+deployment separately from your {+database-deployment+}. It also eliminates
+any resource contention that you might experience on a {+cluster+} that
+runs both the database and search processes on the same node.
+
+To migrate to dedicated Search Nodes, make the following changes to your
+deployment: 
+
+1. If your deployment is currently using a shared tier, :ref:`upgrade
+   <change-cluster-type>` your {+cluster+} to a higher tier. Dedicated
+   Search Nodes are supported only for ``M10`` and higher {+cluster+}
+   tiers. To learn more about migrating to a different {+cluster+} 
+   tier, see :ref:`scale-cluster-instance`.
+
+2. Dedicated Search Nodes are available on a subset of the |aws|
+   regions and in all supported |gcp| and |azure| regions. Make sure to
+   deploy your {+cluster+} in regions where Search Nodes are also
+   available. If your existing {+cluster+} is in regions where Search
+   Nodes are not available, migrate your {+cluster+} to regions where
+   Search Nodes are available. To learn more, see
+   :ref:`fts-cloud-provider-regions`.   
+
+3. Enable :guilabel:`Search Nodes for workload isolation` and configure
+   Search Nodes. To learn more, see :ref:`add-search-nodes`.
+
+   When you deploy separate Search Nodes, |fts| continues to serve
+   queries using the indexes on the |service| {+cluster+} while
+   |service| builds the indexes on the Search Nodes. |service| routes
+   queries to the Search Nodes only after it completes the following: 
+   
+   a. Successfully builds all the indexes on the Search Nodes.
+   #. Removes the Search Indexes from the {+cluster+} nodes.   

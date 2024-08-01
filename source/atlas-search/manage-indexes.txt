@@ -1,4 +1,4 @@
-.. _ref-index-management:
+.. _fts-about-indexing:
 
 ===============================
 Create and Manage |fts| Indexes
@@ -15,18 +15,112 @@ Create and Manage |fts| Indexes
    :depth: 1
    :class: singlecol
 
-This section describes how to create and manage |fts| indexes from the 
-|service| User Interface, |fts| API, {+atlas-cli+}, {+mongosh+}, and
-:driver:`MongoDB drivers </>`.
+.. include:: /includes/facts/fts-index-description.rst
+
+You can specify the fields to index using the following methods: 
+
+- :ref:`Dynamic mappings <static-dynamic-mappings>`, which enables 
+  |fts| to automatically index all the fields of :ref:`supported types 
+  <bson-data-chart>` in each document. This might waste disk space to
+  index fields that you would never search and negatively impact
+  {+cluster+} performance.  
+- :ref:`Static mappings <static-dynamic-mappings>`, which allows you to 
+  selectively identify the fields to index. If fields contain
+  polymorphic data, |fts| indexes only documents that correspond to the
+  mapping in the index definition and ignores documents that contain
+  values that don't correspond to the mapping specified in the index
+  definition for the fields.
+
+Although the data stored on |fts| isn't an identical copy of data from
+the collection on your |service| {+cluster+}, |fts| indexes still take
+some disk space and memory. If you enable the ``store`` option for
+fields that contain :ref:`string <bson-data-types-string>` values or if
+you configure the :ref:`stored source fields <fts-stored-source-definition>`
+in your index, |fts| stores an identical copy of the specified fields on
+disk, which can take disk space.
+
+|fts| provides built-in analyzers for creating indexable terms that 
+correct for differences in punctuation, capitalization, stop words, 
+and more. Analyzers apply parsing and language rules to the query. You 
+can also create a custom analyzer using available built-in character 
+filters, tokenizers, and token filters. To learn more about the 
+built-in and custom analyzers, see :ref:`analyzers-ref`.
+
+To learn more about |fts| support for other data types, see 
+:ref:`bson-data-types`. The ``mongot`` 
+process stores the indexed fields and the ``_id`` field on disk per 
+index for the collections on the {+cluster+}. 
+
+If you change an existing index, |fts| rebuilds the index without
+downtime. This allows you to continue using the old index for existing
+and new queries until the index rebuild is complete. If you deployed
+separate search nodes, |fts| also rebuilds indexes for the following
+events: 
+
+- Add search nodes
+- Scale search nodes
+- Internal ``mongot`` changes that require an index resync (such as some 
+  |fts| features that require an :ref:`index update <fts-index-rebuild>`)
+
+If you deployed separate search nodes, |service| automatically deploys
+additional search nodes, if necessary, for the duration of the index
+rebuild to keep your old index up to date and available for queries
+while the new index builds. When |fts| introduces changes that require 
+reindexing your indexes, |service| automatically deploys additional
+search nodes to build the indexes, while the old nodes continue to serve 
+your queries.
+
+If you make changes to the collection for which you defined |fts| 
+indexes, the latest data might not be available immediately for 
+queries. However, ``mongot`` monitors the change streams, which allows 
+it to update stored copies of data, and |fts| indexes are eventually 
+consistent.
+
+.. note:: For Dedicated Search Nodes
+
+   Adding and adjusting :manual:`shards </sharding/>` triggers a rebuild 
+   of the |fts| index. During this index rebuild, the index might not
+   have the most current data. Therefore, queries against data on the
+   those shards might fail or return incorrect results. 
+
+   If you :manual:`reshard </core/sharding-reshard-a-collection/>` a
+   collection with |fts| indexes, |fts| indexes on the collection
+   become unavailable when the resharding operation completes. You
+   *must* delete and create new |fts| indexes once the resharding
+   operation is complete. 
+
+.. note::
+
+   |fts| doesn't support encrypting |fts| indexes with 
+   :ref:`encryption keys using Customer Key Management 
+   <security-kms-encryption>` in the {+atlas-ui+}.
+
+**Prefer to learn by watching?**
+
+Watch this video for an overview of |fts| indexes. In this video, you
+can learn more about :ref:`analyzers <analyzers-ref>` and |fts|
+:ref:`autocomplete <autocomplete-ref>` field type. 
+
+*Duration: 8 Minutes*
+
+.. video:: https://youtu.be/XrJG994YxD8
+
+.. _ref-index-management:
+
+Supported Clients
+-----------------
+
+You can create and manage |fts| indexes from the {+atlas-ui+}, |fts|
+API, {+atlas-cli+}, {+mongosh+}, |compass|, and :driver:`MongoDB drivers </>`. 
 
 {+atlas-cli+} 
--------------
+~~~~~~~~~~~~~
 
 To create and manage |fts| indexes using the {+atlas-cli+}, your
 |service| {+cluster+} must run MongoDB 6.0+ or 7.0+.
 
 ``mongosh``
------------
+~~~~~~~~~~~
 
 To create and manage |fts| indexes using the {+mongosh+} on ``M10`` and
 higher |service| {+cluster+}, your |service| {+cluster+} must run
@@ -35,7 +129,7 @@ and manage |fts| indexes on ``M0``, ``M2``, or ``M5`` |service|
 {+clusters+}. 
 
 |compass|
----------
+~~~~~~~~~
 
 To create and manage |fts| indexes using {+Compass+} on ``M10`` and
 higher |service| {+cluster+}, your |service| {+cluster+} must run
@@ -43,7 +137,7 @@ MongoDB 7.0+. You can't use the {+Compass+} to create and manage
 |fts| indexes on ``M0``, ``M2``, or ``M5`` |service| {+clusters+}. 
 
 MongoDB Drivers 
----------------
+~~~~~~~~~~~~~~~
 
 To create and manage |fts| indexes programmatically on ``M10`` and
 higher |service| {+clusters+}, you can use any of the following
@@ -89,6 +183,17 @@ higher |service| {+clusters+}, you can use any of the following
 You can't use the :driver:`MongoDB Driver </>` helper methods to create
 and manage |fts| indexes on ``M0``, ``M2``, or ``M5`` |service|
 {+clusters+}. 
+
+Next Steps 
+----------
+
+To learn how to create an |fts| index, see :ref:`ref-create-index`. 
+For hands-on experience creating |fts| indexes for the the :doc:`sample
+datasets </sample-data>` and running |fts| queries against the indexed
+data, try the tutorials in the following pages:
+
+- :ref:`fts-tutorial-ref`
+- :ref:`fts-tutorials`
 
 .. toctree::
    :titlesonly:

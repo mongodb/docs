@@ -39,417 +39,113 @@ score-based results ranking.
 |fts| Fundamentals
 ------------------
 
-The following concepts form the basis of |fts| and are essential to optimize your application.
+The following concepts form the basis of |fts| and are essential to
+optimize your application. 
 
 Indexing
 ~~~~~~~~
 
-In the context of search, an *index* is a data structure that categorizes data in an easily searchable format.
-Search indexes enable faster retrieval of documents that contain a given term without having to scan the entire collection.
-While both |fts| indexes and :manual:`MongoDB Indexes </indexes>` make data retrieval faster, note that they are not the same.
-Like the index in the back of a book,
-a search index is a mapping between terms and the documents that contain those terms.
-Search indexes also contain other relevant metadata, such as the positions of terms in documents.
+In the context of search, an *index* is a data structure that
+categorizes data in an easily searchable format. Search indexes enable
+faster retrieval of documents that contain a given term without having
+to scan the entire collection. While both |fts| indexes and
+:manual:`MongoDB Indexes </indexes>` make data retrieval faster, note
+that they are not the same. Like the index in the back of a book, a
+search index is a mapping between terms and the documents that contain
+those terms. Search indexes also contain other relevant metadata, such
+as the positions of terms in documents. 
 
-Creating at least one search index is usually required in any search application.
-For more information, see :ref:`fts-about-indexing`.
+Creating at least one search index is usually required in any search
+application. For more information, see :ref:`fts-about-indexing`.
 
 Tokenization
 ~~~~~~~~~~~~
 
-When creating a search index, data must first be transformed into a sequence of *tokens* or *terms*.
-An *analyzer* facilitates this process through steps including:
+When creating a search index, data must first be transformed into a
+sequence of *tokens* or *terms*. An *analyzer* facilitates this process
+through steps including: 
 
 - *Tokenization*: Breaking up words in a string into indexable tokens.
   For example, dividing a sentence by whitespace and punctuation.
-- *Normalization*: Organizing data so that it is consistently represented and easier to analyze.
-  For example, transforming text to lower case or removing unwanted words called *stop words*.
-- *Stemming*: Reducing words to their root form.
-  For example, ignoring suffixes, prefixes, and plural word forms.
+- *Normalization*: Organizing data so that it is consistently
+  represented and easier to analyze. For example, transforming text to
+  lower case or removing unwanted words called *stop words*. 
+- *Stemming*: Reducing words to their root form. For example, ignoring
+  suffixes, prefixes, and plural word forms. 
 
-The specifics of tokenization are language-specific and can require making additional choices.
-Which analyzer to use depends on your data and application.
-For more information, see :ref:`analyzers-ref`.
+The specifics of tokenization are language-specific and can require
+making additional choices. Which analyzer to use depends on your data
+and application. For more information, see :ref:`analyzers-ref`.
 
 Querying
 ~~~~~~~~
 
-Search queries consult the index to return a set of results.
-Search queries are different than traditional database queries,
-as they are intended to meet more general information needs.
-Where a database query must follow a strict syntax,
-search queries can be for simple text matching,
-but can also look for similar phrases, number or date ranges, or use regular expressions or wildcards.
+Search queries consult the index to return a set of results. Search
+queries are different than traditional database queries, as they are
+intended to meet more general information needs. Where a database query
+must follow a strict syntax, search queries can be for simple text
+matching, but can also look for similar phrases, number or date ranges,
+or use regular expressions or wildcards. 
 
 For more information, see :ref:`fts-about-queries`.
 
 Scoring
 ~~~~~~~
 
-Each document receives a relevancy score that enables query results to be returned in order from the highest relevance to the lowest.
-In the simplest form of scoring, documents score higher if the query term appears frequently in a document and
-lower if the query term appears across many documents in the collection.
-Scoring can also be customized.
-Tailoring search to a specific domain often means customizing the relevance-based default score by boosting, decaying, or modifying it in other ways.
+Each document receives a relevancy score that enables query results to
+be returned in order from the highest relevance to the lowest. In the
+simplest form of scoring, documents score higher if the query term
+appears frequently in a document and lower if the query term appears
+across many documents in the collection. Scoring can also be customized.
+Tailoring search to a specific domain often means customizing the
+relevance-based default score by boosting, decaying, or modifying it in
+other ways. 
 
 For more information, see :ref:`Score Documents <scoring-ref>`.
-
-|fts| Availability
-------------------
-
-|fts| is available on |service| instances running MongoDB 4.2 or higher 
-versions only. For certain features, |fts| might require a specific 
-version of MongoDB. The following table lists the |fts| features that 
-require specific MongoDB versions.
-
-.. list-table:: 
-   :header-rows: 1
-   :widths: 50 50
-
-   * - |fts| Feature 
-     - MongoDB Version for Feature 
-
-   * - :ref:`Facets <fts-facet-ref>`
-     - 5.0.4+, 6.0+, 7.0+
-
-   * - :ref:`Facets on Sharded Clusters <fts-facet-ref>`
-     - 6.0+, 7.0+
-
-   * - :ref:`Stored Source Fields <fts-stored-source-definition>`
-     - 5.0.6+, 6.0+, 7.0+
-
-   * - :ref:`Query Analytics <fts-query-analytics>`
-     - 5.0+
-
-   * - :ref:`$lookup with $search <lookup-with-search-tutorial>`
-     - 6.0+, 7.0+
-
-   * - :ref:`$unionWith with $search <search-with-unionwith-tutorial>`
-     - 6.0+, 7.0+
-
-   * - :ref:`Sort <sort-ref>`
-     - 5.0+, 6.0+, 7.0+
-
-   * - :ref:`Sort on Sharded Clusters <sort-ref>`
-     - 6.0+, 7.0+
-
-   * - :ref:`Dedicated Search Nodes <configure-search-nodes>`
-     - 6.0+, 7.0+
-
-   * - :ref:`Manage search indexes programmatically with mongosh and
-       MongoDB Drivers <ref-index-management>`
-     - 6.0+, 7.0+
-
-   * - :atlascli:`Atlas Search local deployment </atlas-cli-deploy-local/#use-atlas-search-with-a-local-atlas-deployment>` with the {+atlas-cli+}
-     - 6.0+, 7.0+
-
-   * - :pipeline:`$search` ``searchAfter`` and ``searchBefore``
-       :ref:`options <fts-paginate-results>` 
-     - 6.0.13+, 7.0.5+
-
-|fts| is not supported for :manual:`time series
-</core/timeseries-collections/>` collections.
 
 .. _fts-architecture:
 
 |fts| Architecture 
 ------------------
 
-The |fts| ``mongot`` process uses `Apache Lucene 
-<https://lucene.apache.org/>`__ and runs alongside ``mongod`` on each 
-node in the |service| cluster. The ``mongot`` process: 
+The |fts| ``mongot`` process, built on `Apache Lucene 
+<https://lucene.apache.org/>`__, interfaces with the ``mongod`` database
+process to create and manage your full-text and vector search indexes
+and queries. 
+
+.. _about-mongot:
+
+About the ``mongot`` Process
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``mongot`` process performs the following tasks: 
 
 1. Creates |fts| indexes based on the rules in the :ref:`index 
    definition <ref-index-definitions>` for the collection.
 #. Monitors :manual:`change streams </changeStreams/>` for the current 
-   state of the documents and index changes for the collections for 
-   which you defined |fts| indexes.
-#. Processes |fts| queries and returns matching documents.
+   state of the documents and indexes for the collections for which you
+   defined |fts| indexes.
+#. Processes |fts| queries and returns the document IDs and other search
+   metadata for the matching documents to ``mongod``, which then does a
+   full document lookup and returns the results to the client.
 
-.. image:: /images/fts-architecture.png
-   :alt: Atlas Search architecture 
-   :figwidth: 100%
+You can choose a deployment model where the |fts| ``mongot`` process
+runs alongside the ``mongod`` process on each node in the |service| 
+{+cluster+} or where the ``mongot`` process runs on separate search
+nodes. For testing your search queries and prototyping your application,
+you can choose the default deployment model where both the ``mongot``
+and ``mongod`` processes run on the same node. However, for
+production-ready applications, deploy ``mongot`` on separate search
+nodes to avoid any resource contention between the ``mongot`` and
+``mongod`` processes in your production environment.
 
-Stored Source Architecture 
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+For guidance on choosing a deployment type for pre-production and
+production environments, see :ref:`Atlas Search Deployment Options 
+<fts-deployment-options>` and :ref:`{+avs+} Deployment Options
+<avs-deployment-options>`.
 
-If you define :ref:`stored source <fts-stored-source-definition>` 
-fields in your |fts| index, the ``mongot`` process stores the 
-specified fields and, for matching documents, returns the stored fields 
-directly from ``mongot`` instead of doing a full document lookup on the 
-database if you specify the :ref:`returnStoredSource Option 
-<fts-return-stored-source-option>` in your query.
+.. toctree::
+   :titlesonly:
 
-.. image:: /images/fts-stored-source-architecture.png
-   :alt: Atlas Search stored source architecture 
-   :figwidth: 100%
-
-.. _what-is-search-node:
-
-Search Nodes Architecture 
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-For dedicated (``M10`` or higher) sharded and unsharded |service|
-{+clusters+} on any cloud provider, you can deploy separate Search Nodes 
-that run only the  ``mongot`` process for workload isolation. |service|
-deploys Search Nodes with each {+cluster+} or with each shard on the
-{+cluster+}. For example, if you deploy 2 Search Nodes for a {+cluster+}
-with 3 shards, |service| deploys 6 Search Nodes, 2 per shard.
-
-Deploying separate Search Nodes provides the following benefits:
-
-- Scales storage independent of MongoDB {+cluster+}. 
-- Scales query load independent of MongoDB.
-
-When you deploy separate Search Nodes, the ``mongot`` processes run on
-separate Search Nodes that you can configure independently. 
-
-.. image:: /images/fts-search-nodes-architecture.png
-   :alt: Atlas Search separate Search Nodes architecture 
-   :figwidth: 50%
-
-You can configure Search Nodes to run the ``mongot`` process separately
-from the database nodes that run the ``mongod`` process on your
-|service| {+cluster+}. You can also configure the number of Search Nodes
-and the amount of resources provisioned for each search node. 
-
-You can't deploy Search Nodes separately for
-:ref:`serverless <create-new-serverless-instance>`
-{+clusters+}. To learn more
-about deploying Search Nodes separately, see
-:ref:`configure-search-nodes`. To deploy the Search Nodes from the UI or  
-|api|, see :ref:`create-new-cluster`.
-
-When you deploy separate Search Nodes, |service| automatically assigns a
-``mongod`` for each ``mongot``. The ``mongot`` communicates with
-the ``mongod`` to listen for and sync index changes for the indexes that
-it stores. 
-
-If you delete all the Search Nodes on your {+cluster+}, there will be a
-brief interruption in processing your search query results. To learn
-more, see :ref:`Modify a Cluster <scale-cluster-cloud-provider>`. If you 
-delete your |service| {+cluster+}, |service| pauses and then  deletes
-all associated |fts| deployments (``mongot`` processes).
-
-.. note:: 
-
-   The local |ssd|\s used for Search Nodes require a 20% 
-   storage overhead to support index operations.
-
-.. _fts-about-indexing:
-
-|fts| Indexes
--------------
-
-.. include:: /includes/facts/fts-index-description.rst
-
-You can specify the fields to index using the following methods: 
-
-- :ref:`Dynamic mappings <static-dynamic-mappings>`, which enables 
-  |fts| to automatically index all the fields of :ref:`supported types 
-  <bson-data-chart>` in each document. This takes disk space and might 
-  negatively impact cluster performance. 
-- :ref:`Static mappings <static-dynamic-mappings>`, which allows you to 
-  selectively identify the fields to index. If fields contain
-  polymorphic data, |fts| indexes only documents that correspond to the
-  mapping in the index definition and ignores documents that contain
-  values that don't correspond to the mapping specified in the index
-  definition for the fields.
-
-Although the data stored on |fts| isn't an identical copy of data from
-the collection on your |service| cluster, |fts| indexes still take some
-disk space and memory. If you enable the ``store`` option for fields
-that contain :ref:`string <bson-data-types-string>` values or if you
-configure the :ref:`stored source fields <fts-stored-source-definition>`
-in your index, |fts| stores an identical copy of the specified fields on
-disk, which can take disk space.
-
-|fts| provides built-in analyzers for creating indexable terms that 
-correct for differences in punctuation, capitalization, stop words, 
-and more. Analyzers apply parsing and language rules to the query. You 
-can also create a custom analyzer using available built-in character 
-filters, tokenizers, and token filters. To learn more about the 
-built-in and custom analyzers, see :ref:`analyzers-ref`.
-
-To learn more about |fts| support for other data types, see 
-:ref:`bson-data-types`. The ``mongot`` 
-process stores the indexed fields and the ``_id`` field on disk per 
-index for the collections on the cluster. 
-
-If you change an existing index, |fts| rebuilds the index without
-downtime. This allows you to continue using the old index for existing
-and new queries until the index rebuild is complete. If you deployed
-separate Search Nodes, |fts| also rebuilds indexes for the following
-events: 
-
-- Add Search Nodes
-- Scale Search Nodes
-- Internal ``mongot`` changes that require an index resync (such as some 
-  |fts| features that require an :ref:`index update <fts-index-rebuild>`)
-
-If you deployed separate Search Nodes, |service| automatically deploys
-additional Search Nodes for the duration of the index rebuild to keep 
-your old index up to date and available for queries while the new index
-builds. 
-
-If you make changes to the collection for which you defined |fts| 
-indexes, the latest data might not be available immediately for 
-queries. However, ``mongot`` monitors the change streams, which allows 
-it to update stored copies of data, and |fts| indexes are eventually 
-consistent.
-
-.. note:: For Dedicated Search Nodes
-
-   Adding and adjusting :manual:`shards </sharding/>` triggers a rebuild 
-   of the |fts| index. During this index rebuild, the index might not
-   have the most current data. Therefore, queries against data on the
-   those shards might fail or return
-   incorrect results. 
-
-   If you :manual:`reshard </core/sharding-reshard-a-collection/>` a
-   collection with |fts| indexes, |fts| indexes on the collection
-   become unavailable when the resharding operation completes. You
-   *must* rebuild your |fts| indexes once the resharding operation
-   completes. 
-
-.. note::
-
-   |fts| doesn't support encrypting |fts| indexes with 
-   :ref:`encryption keys using Customer Key Management 
-   <security-kms-encryption>` in the {+atlas-ui+}.
-   
-.. seealso:: Learn by Watching
-
-   Watch this video for an overview of |fts| indexes. In this video, you
-   can learn more about :ref:`analyzers <analyzers-ref>` and |fts|
-   :ref:`autocomplete <autocomplete-ref>` field type. 
-
-   *Duration: 8 Minutes*
-
-   .. video:: https://youtu.be/XrJG994YxD8
-
-After you set up an |fts| index for a collection, you can run queries 
-against the indexed fields.
-
-.. _fts-about-queries:
-
-|fts| Queries 
--------------
-
-|fts| queries take the form of an :manual:`aggregation pipeline stage 
-</aggregation>`. |fts| provides :pipeline:`$search` and 
-:pipeline:`$searchMeta` stages, both of which must be the first stage 
-in the query pipeline. These stages can be used in conjunction with 
-other :manual:`aggregation pipeline stages </aggregation>` in your 
-query pipeline. To learn more about these pipeline stages, see 
-:ref:`query-syntax-ref`.
-
-|fts| also provides query :ref:`operators <operators-ref>` and 
-:ref:`collectors <collectors-ref>` that you can use inside the 
-:pipeline:`$search` and :pipeline:`$searchMeta` :ref:`aggregation
-pipeline stages <query-syntax-ref>`. The |fts| operators allow you to
-locate and retrieve matching data from the collection on your |service|
-{+cluster+}. The collector returns a document representing the search
-metadata results. 
-
-You can use |fts| operators to query terms, phrases, geographic shapes 
-and points, numeric values, similar documents, synonymous terms, and more.
-You can also search using regex and wildcard expressions. The |fts|
-:ref:`compound-ref` operator allows you to combine multiple operators 
-inside your :pipeline:`$search` stage to perform a complex search and 
-filter of data based on what *must*, *must not*, or *should* be present 
-in the documents returned by |fts|. You can use the :ref:`compound-ref` 
-operator to also match or filter documents in the :pipeline:`$search` 
-stage itself. Running :pipeline:`$match` after :pipeline:`$search` is 
-less performant than running :pipeline:`$search` with the 
-:ref:`compound-ref` operator.
-
-To learn more about the syntax, options, and usage of the |fts| operators,
-see :ref:`operators-ref`.
-
-When you run a query, |fts| uses the :ref:`configured read preference 
-<replica-set-tags>` to identify the node on which to run the query.  
-The query first goes to the MongoDB process, which is ``mongod`` for a 
-replica set cluster or ``mongos`` for a sharded cluster. For sharded 
-clusters, your cluster data is partitioned across ``mongod`` instances 
-and each ``mongot`` knows about the data on the ``mongod`` on the same 
-node only. Therefore, you can't run queries that target a particular 
-shard. ``mongos`` directs the queries to all shards, making these 
-*scatter gather* queries. If you use :manual:`zones
-</core/zone-sharding/>` to distribute a sharded collection over a subset
-of the shards in the {+cluster+}, |fts| routes the query to the zone
-that contains the shards for the collection that you are querying and
-runs your :pipeline:`$search` queries on just the shards where the
-collection is located.
-
-The MongoDB process routes the query to the ``mongot`` on the same 
-node. |fts| performs the search and scoring and returns the document 
-IDs and other search metadata for the matching results to ``mongod``. 
-The ``mongod`` then performs a full document lookup implicitly for the 
-matching results and returns the results to the client. 
-
-.. note:: For Dedicated Search Nodes
-
-   When you run a query, the query first goes to the MongoDB process
-   based on the :ref:`configured read preference <replica-set-tags>`.
-   The ``mongod`` process routes the search query through a load
-   balancer on the same node, which distributes the requests across all
-   of the ``mongot`` processes. The |fts| ``mongot`` process performs
-   the search and scoring and returns the matching results to
-   ``mongod``, which ``mongod`` then returns to the client. If you use
-   the :pipeline:`$search` :ref:`concurrent <concurrent-ref>` option in
-   your query, |fts| enables intra-query parallelism. To learn more, see 
-   :ref:`Parallelize Query Execution Across Segments <concurrent-ref>`. 
-
-|fts| associates a relevance-based score with every document in the 
-result set. The relevance-based scoring allows |fts| to return documents
-in the order from the highest score to the lowest. |fts| scores documents 
-higher if the query term appears frequently in a document and lower if 
-the query term appears across many documents in the collection. |fts| 
-also supports customizing the relevance-based default score by 
-boosting, decaying, or other modifying options. To learn more about
-customizing the resulting scores, see :ref:`scoring-ref`.
-
-.. seealso:: Learn by Watching
-
-   Watch this video for an overview of searching and tracking your
-   queries with |fts|. In this video, you can learn more about |fts|
-   :ref:`operators <operators-ref>` and how |fts| :ref:`scores
-   <scoring-ref>` documents in the results. 
-
-   *Duration: 15 Minutes*
-
-   .. video:: https://youtu.be/U-hAo_TAi9c
-
-.. _fts-search-node-cost-overview:
-
-Search Nodes Cost 
------------------
-
-MongoDB supports separate Search Nodes on
-dedicated (``M10`` or higher) {+clusters+}. Search Nodes are deployed on
-compute-intensive NVMe instances. You must deploy a minimum of
-two nodes. You will be billed daily for hourly resource usage per node. 
-To learn more, see :ref:`Search Node Costs <fts-search-node-costs>`.
-
-Next Steps 
-----------
-
-For a hands-on experience creating |fts| indexes and running |fts| 
-queries against the :doc:`sample datasets </sample-data>`, try the 
-:mdbu-course:`Atlas Search Course on MongoDB University </learning-paths/atlas-search>`
-and the tutorials in the following pages:
-
-- :ref:`fts-tutorial-ref`
-- :ref:`fts-tutorials`
-
-**Prefer to learn by watching?**
-
-Watch an overview of |service| and |fts| and get started setting up
-|fts| for your data. The video demonstrates how to load sample data on
-your {+cluster+}, create an |fts| index, and run a sample query using
-:guilabel:`Search Tester` and :guilabel:`Data Explorer`. 
-
-*Duration: 10 Minutes*
-
-.. video:: https://youtu.be/HsS0z3eOCSQ
+   /atlas-search/about/deployment-options 
+   /atlas-search/about/feature-compatibility

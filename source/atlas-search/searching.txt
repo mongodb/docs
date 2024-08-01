@@ -1,4 +1,5 @@
 .. _searching-ref:
+.. _fts-about-queries:
 
 ============================
 Create and Run |fts| Queries
@@ -20,186 +21,122 @@ Create and Run |fts| Queries
    :depth: 1
    :class: singlecol
 
-After you create :ref:`an Atlas Search index <ref-index-definitions>` on
-the collection for all fields that you want to search, you can create and
-run an |fts| query by performing the following steps:
+|fts| queries take the form of an :manual:`aggregation pipeline stage 
+</aggregation>`. |fts| provides :pipeline:`$search` and 
+:pipeline:`$searchMeta` stages, both of which must be the first stage 
+in any query pipeline, including the :pipeline:`$lookup` and
+:pipeline:`$unionWith` sub-pipelines. These stages can be used in
+conjunction with other :manual:`aggregation pipeline stages
+</aggregation>` in your query pipeline. To learn more about these
+pipeline stages, see :ref:`query-syntax-ref`.
 
-.. procedure::
-   :style: normal
+|fts| also provides query :ref:`operators <operators-ref>` and 
+:ref:`collectors <collectors-ref>` that you can use inside the 
+:pipeline:`$search` and :pipeline:`$searchMeta` :ref:`aggregation
+pipeline stages <query-syntax-ref>`. The |fts| operators allow you to
+locate and retrieve relevant data from the collection on your |service|
+{+cluster+}. The collector returns a document representing the search
+metadata results. 
 
-   .. step:: Construct your |fts| query.
-      
-      .. procedure::
-         :style: connected
+You can use |fts| operators to query terms, phrases, geographic shapes 
+and points, numeric values, similar documents, synonymous terms, and more.
+You can also search using regex and wildcard expressions. The |fts|
+:ref:`compound-ref` operator allows you to combine multiple operators 
+inside your :pipeline:`$search` stage to perform a complex search and 
+filter of data based on what *must*, *must not*, or *should* be present 
+in the documents returned by |fts|. You can use the :ref:`compound-ref` 
+operator to also match or filter documents in the :pipeline:`$search` 
+stage itself. Running :pipeline:`$match` after :pipeline:`$search` is 
+less performant than running :pipeline:`$search` with the 
+:ref:`compound-ref` operator.
 
-         .. step:: Select an aggregation pipeline stage.
+To learn more about the syntax, options, and usage of the |fts| operators,
+see :ref:`operators-ref`.
 
-            Select a tab corresponding to the aggregation pipeline stage you want to use:
-         
-            .. tabs::
+``mongod`` and ``mongot`` on the Same Node
+  When you run a query, |fts| uses the :ref:`configured read preference
+  <replica-set-tags>` to identify the node on which to run the query. The
+  query first goes to the MongoDB process, which is ``mongod`` for a
+  replica set cluster or ``mongos`` for a sharded cluster.  
 
-               .. tab:: $search
-                  :tabid: search-stage
+  For a replica set {+cluster+}, the MongoDB process routes the query to
+  the ``mongot`` on the same node. For sharded clusters, your cluster data
+  is partitioned across ``mongod`` instances and each ``mongot`` knows
+  about the data on the ``mongod`` on the same node only. Therefore, you
+  can't run queries that target a particular  shard. ``mongos`` directs
+  the queries to all shards, making these *scatter gather* queries. If you
+  use :manual:`zones </core/zone-sharding/>` to distribute a sharded
+  collection over a subset of the shards in the {+cluster+}, |fts| routes
+  the query to the zone that contains the shards for the collection that
+  you are querying and runs your :pipeline:`$search` queries on just the
+  shards where the collection is located. 
 
-                  You can use the :ref:`$search <search-agg-pipeline>` aggregation
-                  pipeline to perform a full-text search of the indexed fields for
-                  data that matches your query.
+  |fts| performs the search and scoring and returns the document IDs and
+  other search metadata for the matching results to ``mongod``. The
+  ``mongod`` then performs a full document lookup implicitly for the
+  matching results and returns the results to the client. If you use
+  the :pipeline:`$search` :ref:`concurrent <concurrent-ref>` option in
+  your query, |fts| enables intra-query parallelism. To learn more, see
+  :ref:`Parallelize Query Execution Across Segments <concurrent-ref>`.
 
-                  .. code-block:: json
-                     :emphasize-lines: 2
+``mongod`` and ``mongot`` on Different Nodes 
+  When you run a query, the query first goes to the ``mongod`` based on
+  the :ref:`configured read preference <replica-set-tags>`. The
+  ``mongod`` process routes the search query through a load balancer on
+  the same node, which distributes the requests across all of the
+  ``mongot`` processes. 
+  
+  The |fts| ``mongot`` process performs the search and scoring and
+  returns the document IDs and metadata for the matching results to
+  ``mongod``. The ``mongod`` then performs a full document lookup for
+  the matching results and returns the results to the client. If you use 
+  the :pipeline:`$search` :ref:`concurrent <concurrent-ref>` option in
+  your query, |fts| enables intra-query parallelism. To learn more, see
+  :ref:`Parallelize Query Execution Across Segments <concurrent-ref>`.   
 
-                     {
-                       $search: {
-                         "index": "<index-name>",
-                         ...
-                       }
-                     }
+|fts| associates a relevance-based score with every document in the 
+result set. The relevance-based scoring allows |fts| to return documents
+in the order from the highest score to the lowest. |fts| scores documents 
+higher if the query term appears frequently in a document and lower if 
+the query term appears across many documents in the collection. |fts| 
+also supports customizing the relevance-based default score by 
+boosting, decaying, or other modifying options. To learn more about
+customizing the resulting scores, see :ref:`scoring-ref`.
 
-               .. tab:: $searchMeta
-                  :tabid: searchMeta-stage
+.. seealso:: Learn by Watching
 
-                  You can use the :ref:`$searchMeta <searchMeta-agg-pipeline>`
-                  aggregation pipeline stage to return metadata about your search
-                  results.
+   Watch this video for an overview of searching and tracking your
+   queries with |fts|. In this video, you can learn more about |fts|
+   :ref:`operators <operators-ref>` and how |fts| :ref:`scores
+   <scoring-ref>` documents in the results. 
 
-                  .. code-block:: json
-                     :emphasize-lines: 2
+   *Duration: 15 Minutes*
 
-                     {
-                       $searchMeta: {
-                         "index": "<index-name>",
-                         ...
-                       }
-                     }
+   .. video:: https://youtu.be/U-hAo_TAi9c
 
-         .. step:: Specify operators.
-                        
-            Select one or more :ref:`operators <fts-operators>` or
-            :ref:`collectors  <collectors-ref>` to perform a  
-            specific search on your collection.
-         
-            .. tabs::
+.. _ref-query-management:
 
-               .. tab:: $search
-                  :tabid: search-stage
+Supported Clients
+-----------------
 
-                  .. code-block:: json
-                     :emphasize-lines: 4-6
+You can create and run |fts| queries using the following: 
 
-                     {
-                       $search: {
-                         "index": "<index-name>",
-                         "<operator-name>": {
-                           <operator-specifications>
-                         },
-                       }
-                     }
+- :ref:`Search Tester <atlas-search-queries>`
+- {+mongosh+}
+- |compass|
+- {+atlas-cli+}
+- :driver:`MongoDB drivers </>`
 
-               .. tab:: $searchMeta
-                  :tabid: searchMeta-stage
+Next Steps 
+----------
 
-                  .. code-block:: json
-                     :emphasize-lines: 4-6
+To learn how to create and run a query, see :ref:`fts-create-queries`. 
+For hands-on experience creating |fts| indexes and running |fts| 
+queries against the :doc:`sample datasets </sample-data>`, try the 
+tutorials in the following pages:
 
-                     {
-                       $searchMeta: {
-                         "index": "<index-name>",
-                         "<operator-name>"|"<collector-name>": {
-                            <operator-specifications>|<collector-specifications>
-                         }
-                       }
-                     }
-
-         .. step:: (Optional) Retrieve additional information about your |fts| query.
-         
-            .. tabs::
-
-               .. tab:: $search
-                  :tabid: search-stage
-
-                  Specify one or more options to adjust your |fts| query results.
-
-                  .. code-block:: json
-                     :emphasize-lines: 7-9
-
-                     {
-                       $search: {
-                         "index": "<index-name>",
-                         "<operator-name>": {
-                            <operator-specifications>
-                         },
-                         "highlight": {
-                            <highlight-options>
-                         }
-                       }
-                     }
-
-                  You can adjust your search results in the following ways:
-                  
-                  .. list-table::
-                     :widths: 30 70
-                     :header-rows: 1
-                           
-                     * - Option
-                       - Use Case
-                           
-                     * - :ref:`score <scoring-ref>`
-                       - Modify the ``score`` of the documents in the results to ensure |fts| returns relevant results.
-                           
-                     * - :ref:`scoreDetail <fts-score-details>`
-                       -  Retrieve a detailed breakdown of the score 
-                          for each document |fts| returns.
-
-                     * - :ref:`highlight <highlight-ref>`
-                       - Display your search terms in their original
-                         context as fields in your query result.
-                           
-                     * - :ref:`explain <explain-ref>`
-                       - Retrieve information and execution statistics about
-                         which Lucene queries |fts| executed to satify your
-                         query, and how much time your query spends in the
-                         various stages of execution.
-
-                     * - :ref:`returnStoredSource <fts-return-stored-source-option>`
-                       - Run your |fts| query more efficiently by only retrieving
-                         fields stored on ``mongot`` as specified in your |fts| index definition for a collection.
-
-                     * - :ref:`count <count-ref>` 
-                       - Display the number of results from your |fts| query.
-
-                     * - :ref:`sort <sort-ref>` 
-                       - Sort your |fts| query results by number, string, and date fields and by score.
-
-               .. tab:: $searchMeta
-                  :tabid: searchMeta-stage
-                  
-                  Return metadata, such as the number of results, along with your |fts| query.
-
-                  .. code-block:: json
-                     :emphasize-lines: 7-9
-
-                     {
-                       $searchMeta: {
-                         "index": "<index-name>",
-                         "<operator-name>": {
-                            <operator-specifications>
-                         },
-                         "count": {
-                            <count-options>
-                         }
-                       }
-                     }
-
-   .. step:: Run your |fts| query.
-
-      Review your |fts| query syntax and then run it in 
-      your application using a :ref:`driver <atlas-search-query-drivers>`, 
-      {+mongosh+}, :ref:`Compass <atlas-search-query-compass>`,
-      or the :ref:`Search Tester <atlas-search-query-ui>`.
-
-.. note:: 
-
-   .. include:: /includes/fact-fts-troubleshooting.rst
+- :ref:`fts-tutorial-ref`
+- :ref:`fts-tutorials`
 
 .. toctree::
    :titlesonly:
