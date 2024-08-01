@@ -1,5 +1,3 @@
-.. sharedinclude:: dbx/compatibility-table-legend.rst
-  
 .. list-table::
    :header-rows: 1
    :stub-columns: 1

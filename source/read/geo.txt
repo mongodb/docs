@@ -1,0 +1,83 @@
+.. _java-rs-geo:
+
+=================
+Geospatial Search
+=================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, search coordinates, location
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+To support geospatial queries, MongoDB provides geospatial
+indexes and geospatial query operators.
+
+To learn more about performing geospatial queries, see
+:manual:`Geospatial Queries </geospatial-queries/>` in the
+Server manual.
+
+Prerequisites
+-------------
+
+.. include:: /includes/prereq-restaurants.rst
+
+.. code-block:: java
+
+   import com.mongodb.reactivestreams.client.MongoClients;
+   import com.mongodb.reactivestreams.client.MongoClient;
+   import com.mongodb.reactivestreams.client.MongoCollection;
+   import com.mongodb.reactivestreams.client.MongoDatabase;
+   import com.mongodb.client.model.geojson.*;
+   import com.mongodb.client.model.Indexes;
+   import com.mongodb.client.model.Filters;
+   import org.bson.Document;
+
+.. include:: /includes/subscriber-note.rst
+
+Connect to a MongoDB Deployment
+-------------------------------
+
+.. include:: /includes/connect-section.rst
+
+Create the 2dsphere Index
+-------------------------
+
+To create a ``2dsphere`` index, use the ``Indexes.geo2dsphere()``
+helper to create a specification for the ``2dsphere`` index. Pass the
+specification to the ``MongoCollection.createIndex()`` method to create
+the index.
+
+The following example creates a ``2dsphere`` index on the
+``"contact.location"`` field in the ``restaurants`` collection:
+
+.. code-block:: java
+
+   MongoCollection<Document> collection = database.getCollection("restaurants");
+   collection.createIndex(Indexes.geo2dsphere("contact.location"))
+       .subscribe(new PrintSubscriber<String>());
+
+Query for Locations Near a GeoJSON Point
+----------------------------------------
+
+MongoDB provides various geospatial query operators. To facilitate
+the creation of geospatial query filters, the driver provides
+the ``Filters`` class and the ``com.mongodb.client.model.geojson``
+package.
+
+The following example returns documents that are at least 1000 meters
+and at most 5000 meters from the specified GeoJSON ``Point`` instance,
+sorted from nearest to farthest:
+
+.. code-block:: java
+
+   Point refPoint = new Point(new Position(-73.9667, 40.78));
+   collection.find(Filters.near("contact.location", refPoint, 5000.0, 1000.0))
+       .subscribe(new PrintDocumentSubscriber());

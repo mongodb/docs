@@ -1,0 +1,232 @@
+.. _java-rs-count:
+
+===============
+Count Documents
+===============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: number, amount, estimation, code example
+
+Overview
+---------
+
+In this guide, you can learn how to retrieve an exact and an estimated count of the
+number of documents in a collection.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``sample_restaurants.restaurants`` collection
+from the :atlas:`Atlas sample datasets </sample-data>`. To learn how to create a
+free MongoDB Atlas cluster and load the sample datasets, see
+:ref:`<java-rs-getting-started>`.
+
+.. include:: includes/reactor-note.rst
+
+.. _java-rs-accurate-count:
+
+Retrieve an Exact Count
+-----------------------
+
+Use the ``countDocuments()`` method to count the number of documents in a
+collection. To count the number of documents that match specific search
+criteria, pass a query filter to the ``countDocuments()`` method.
+
+To learn more about specifying a query, see :ref:`java-rs-specify-query`.
+
+Count All Documents
+~~~~~~~~~~~~~~~~~~~
+
+To return a count of all documents in the collection, call the ``countDocuments()``
+method and pass in no parameters, as shown in the following example:
+
+.. code-block:: java
+
+   Publisher<Long> countPublisher = restaurants.countDocuments();
+   Mono.from(countPublisher).doOnNext(System.out::println).blockLast();
+
+Count Specific Documents
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To return a count of documents that match specific search criteria, specify your
+query in the ``countDocuments()`` method, as shown in the following example. To
+learn more about how to specify a query, see the :ref:`java-rs-specify-query` guide.
+
+.. code-block:: java
+   
+   Publisher<Long> countPublisher = restaurants.countDocuments(
+           eq("cuisine", "Italian"));
+   Mono.from(countPublisher)
+           .doOnNext(System.out::println)
+           .blockLast();
+
+Customize Count Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can modify the behavior of the ``countDocuments()`` method by passing
+optional parameters to the method. The ``CountOptions`` class provides methods that modify
+the behavior of the ``countDocuments()`` method. To use the ``CountOptions``
+class, construct a new instance of the class, then call one or more of its methods
+to modify the count operation. You can chain these method calls together.
+
+To modify the behavior of the count operation, pass the class instance and
+chained method calls as the last argument to the ``countDocuments()`` method. 
+
+The following table describes the methods in the ``CountOptions`` class:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method
+     - Description
+      
+   * - ``collation(Collation collation)``
+     - | Specifies the kind of language collation to use when sorting
+         results. For more information, see :manual:`Collation </reference/collation/#std-label-collation>`
+         in the {+mdb-server+} manual.  
+
+   * - ``comment(BsonValue comment)``
+     - | Attaches a ``BsonValue`` comment to the operation. For more information, see the :manual:`insert command
+         fields </reference/command/insert/#command-fields>` guide in the
+         {+mdb-server+} manual.  
+
+   * - ``comment(String comment)``
+     - | Attaches a ``String`` comment to the operation. For more information, see the :manual:`insert command
+         fields </reference/command/insert/#command-fields>` guide in the
+         {+mdb-server+} manual.  
+
+   * - ``hint(Bson hint)``
+     - | Sets the index for the operation as a ``Bson`` value. 
+         For more information, see the :manual:`hint statement </reference/command/update/#std-label-update-command-hint>`
+         in the {+mdb-server+} manual.
+
+   * - ``hintString(String hint)``
+     - | Sets the index for the operation as a ``String`` value.
+         For more information, see the :manual:`hint statement </reference/command/update/#std-label-update-command-hint>`
+         in the {+mdb-server+} manual.
+
+   * - ``limit(int limit)``
+     - | Sets a limit for the maximum number of documents the cursor
+         returns. For more information, see :manual:`cursor
+         </reference/glossary/#std-term-cursor>` in the {+mdb-server+} documentation.
+
+   * - ``MaxTime(long maxTime, TimeUnit timeUnit)``
+     - | Sets the maximum execution time on the server for the operation. If the
+         operation does not complete before the time limit, the driver terminates
+         the operation.
+
+   * - ``skip(int skip)``
+     - | Sets the number of documents the query skips before returning results.
+         For more information, see :manual:`skip </reference/method/cursor.skip/#cursor.skip>` in the
+         {+mdb-server+} manual.
+
+
+Modify Count Example
+~~~~~~~~~~~~~~~~~~~~
+
+The following code uses the ``countDocuments()`` method to count all the documents in the
+``restaurants`` collection with a ``cuisine`` value of ``"Italian"``. It also
+attaches the comment ``"Count all Italian restaurants"`` to the operation as a ``String``.
+
+.. code-block:: java
+
+   Publisher<Long> countPublisher = restaurants.countDocuments(
+           eq("cuisine", "Italian"),
+          new CountOptions().comment("Count all Italian restaurants"));
+
+   Mono.from(countPublisher)
+           .doOnNext(System.out::println)
+           .blockLast();
+
+.. _java-rs-estimated-count:
+
+Retrieve an Estimated Count
+---------------------------
+
+You can get an estimate of the number of documents in a collection by calling
+the ``estimatedDocumentCount()`` method. The method estimates the number of
+documents based on collection metadata, which might be faster than performing an 
+accurate count.
+
+The following example estimates the number of documents in a collection:
+
+.. code-block:: java
+   
+   Publisher<Long> countPublisher = restaurants.estimatedDocumentCount();
+   Mono.from(countPublisher)
+           .doOnNext(System.out::println)
+           .blockLast();
+
+Customize Estimated Count Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can modify the behavior of the ``estimatedDocumentCount()`` method by passing
+optional parameters to the method. The ``EstimatedDocumentCountOptions`` class provides methods that modify
+the behavior of the ``estimatedDocumentCount()`` method. To use the ``EstimatedDocumentCountOptions``
+class, construct a new instance of the class, then call one or more of its methods
+to modify the count operation. You can chain these method calls together.
+
+To modify the behavior of the count operation, pass the class instance and
+chained method calls as the only argument to the ``estimatedDocumentCount()`` method. 
+
+The following table describes the options you can set to customize ``estimatedDocumentCount()``:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Property
+     - Description
+
+   * - ``comment(BsonValue comment)``
+     - | Attaches a ``BsonValue`` comment to the operation. For more information, see the :manual:`insert command
+         fields </reference/command/insert/#command-fields>` guide in the
+         {+mdb-server+} manual.  
+
+   * - ``comment(String comment)``
+     - | Attaches a ``String`` comment to the operation. For more information, see the :manual:`insert command
+         fields </reference/command/insert/#command-fields>` guide in the
+         {+mdb-server+} manual. 
+
+   * - ``MaxTime(long maxTime, TimeUnit timeUnit)``
+     - | Sets the maximum execution time on the server for the operation. If the
+         operation does not complete before the time limit, the driver terminates
+         the operation.
+
+Modify Estimated Count Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following code uses the ``estimatedDocumentCount()`` method to estimate the
+count of documents in the ``restaurants`` collection. It also attaches
+``"Estimated count of all documents"`` to the operation as a ``String``.
+
+.. code-block:: java
+
+   Publisher<Long> countPublisher = restaurants.estimatedDocumentCount(
+           new EstimatedDocumentCountOptions()
+                   .comment("Estimated count of all documents"));
+
+   Mono.from(countPublisher)
+           .doOnNext(System.out::println)
+           .blockLast();
+
+API Documentation
+-----------------
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `countDocuments() <{+api+}/mongodb-driver-reactivestreams/com/mongodb/reactivestreams/client/MongoCollection.html#countDocuments()>`__
+- `estimatedDocumentCount() <{+api+}/mongodb-driver-reactivestreams/com/mongodb/reactivestreams/client/MongoCollection.html#estimatedDocumentCount()>`__
+- `Collation <{+api+}/mongodb-driver-reactivestreams/com/mongodb/reactivestreams/client/FindPublisher.html#collation(com.mongodb.client.model.Collation)>`__

@@ -1,0 +1,188 @@
+.. _java-rs-retrieve:
+
+=============
+Retrieve Data
+=============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: code examples, read, search, cursor
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-long+} to retrieve
+data from a MongoDB collection by using read operations. 
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``sample_restaurants.restaurants`` collection
+from the :atlas:`Atlas sample datasets </sample-data>`. To learn how to create a
+free MongoDB Atlas cluster and load the sample datasets, see the
+:ref:`<java-rs-getting-started>`.
+
+.. include:: includes/reactor-note.rst
+
+.. _java-rs-retrieve-find:
+
+Find Documents
+--------------
+
+The {+driver-short+} includes one method for retrieving documents from a collection:
+``find()``.
+
+This method takes a **query filter** and returns one or more matching documents.
+A query filter is an object that specifies the documents you want to retrieve in
+your query. 
+
+To learn more about query filters, see the :ref:`java-rs-specify-query` guide.
+
+.. _java-rs-retrieve-find-one:
+
+Find One Document
+~~~~~~~~~~~~~~~~~
+
+To find a single document in a collection, chain the ``first()`` method to your
+``find()`` method call and pass a query filter to the ``find()`` method call
+that specifies the criteria of the document you want to find. If more than one document matches the query
+filter, the ``find().first()`` construct returns the *first* matching document from the retrieved
+results. If no documents match the query filter, the construct returns ``None``.
+
+.. tip::
+   
+   The ``find().first()`` construct is useful when you know there's only one matching document,
+   or you're interested only in the first match.  
+
+The following example uses the ``find().first()`` construct to find the first document where
+the ``"cuisine"`` field has the value ``"Bakery"``:
+
+.. code-block:: java
+   :copyable: true
+
+   Publisher<Document> findDocPublisher = restaurants.find(
+       eq("cuisine", "Bakery")).first();
+   Mono.from(findDocPublisher)
+           .doOnNext(System.out::println)
+           .blockLast();
+   
+.. tip:: Sort Order
+
+   If you do not specify a sort order, the ``find().first()`` construct returns the first document in 
+   :manual:`natural order </reference/glossary/#std-term-natural-order>`
+   on disk.
+
+To learn more about sorting, see the :ref:`<java-rs-specify-documents-to-return>` guide.
+
+.. _java-rs-retrieve-find-multiple:
+
+Find Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To find multiple documents in a collection, pass a query filter to the ``find()``
+method that specifies the criteria of the documents you want to retrieve.
+
+The following example uses the ``find()`` method to find all documents where
+the ``"cuisine"`` field has the value ``"Spanish"``:
+
+.. code-block:: java
+   :copyable: true
+
+   FindPublisher<Document> findDocPublisher = restaurants.find(
+           eq("cuisine", "Spanish"));
+   Flux.from(findDocPublisher)
+           .doOnNext(System.out::println)
+           .blockLast();   
+
+.. note:: Find All Documents
+
+   To find all documents in a collection, pass no parameters to the ``find()`` method:
+
+   .. code-block:: java
+
+      Publisher<Document> findAllPublisher = restaurants.find();
+      Flux.from(findAllPublisher)
+              .doOnNext(System.out::println)
+              .blockLast();
+      
+
+Modify Find Behavior
+~~~~~~~~~~~~~~~~~~~~
+
+You can modify the behavior of the ``find()`` method by chaining other methods
+to it. The following table describes commonly used methods:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Argument
+     - Description
+
+   * - ``batchSize(int batchSize)`` 
+     - | Limits the number of documents to hold in a cursor at a given time. To
+         learn more about cursors, see :manual:`cursor
+         </reference/glossary/#std-term-cursor>` in the MongoDB Server documentation.
+
+   * - ``collation(Collation collation)`` 
+     - | Sets the collation options as an instance of the ``Collation`` class. 
+
+   * - ``comment(String comment)`` 
+     - | Attaches a string to the query. This can help you trace and interpret the
+         operation in the server logs and in profile data. To learn more about query comments, 
+         see the :manual:`$comment </reference/operator/query/comment/>` page.
+   
+   * - ``hint(Bson hint)`` 
+     - | Gets or sets the index to scan for documents. 
+         For more information, see the :manual:`hint statement </reference/command/delete/#std-label-deletes-array-hint>`
+         in the MongoDB Server manual.
+
+   * - ``maxTime(long maxTime, TimeUnit timeUnit)`` 
+     - | Sets the maximum execution time on the server for this operation. If this time is
+         exceeded, the {+driver-short+} aborts the operation and raises an ``ExecutionTimeout``.
+
+The following example uses the ``find()`` method to find all documents where
+the ``"cuisine"`` field has the value ``"Italian"`` and sets a maximum execution
+time of 10 seconds:
+
+.. code-block:: java
+   :copyable: true
+
+   FindPublisher<Document> findDocPublisher = restaurants.find(
+           eq("cuisine", "Italian")).maxTime(10L, TimeUnit.SECONDS);
+   Flux.from(findDocPublisher)
+           .doOnNext(System.out::println)
+           .blockLast();
+
+For a full list of available arguments, see the
+`API documentation <{+api+}/mongodb-driver-reactivestreams/com/mongodb/reactivestreams/client/FindPublisher.html>`__
+for the ``FindPublisher`` interface.
+
+.. _java-rs-retrieve-additional-information:
+
+Additional Information
+----------------------
+
+To learn more about query filters, see the :ref:`java-rs-specify-query` guide.
+
+For runnable code examples of retrieving documents by using the {+driver-short+},
+see the :ref:`java-rs-read` guide.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `find() <{+api+}/mongodb-driver-reactivestreams/com/mongodb/reactivestreams/client/MongoCollection.html#find()>`__
+- `FindPublisher <{+api+}/mongodb-driver-reactivestreams/com/mongodb/reactivestreams/client/FindPublisher.html>`__
+- `Collation <{+api+}/mongodb-driver-reactivestreams/com/mongodb/reactivestreams/client/FindPublisher.html#collation(com.mongodb.client.model.Collation)>`__

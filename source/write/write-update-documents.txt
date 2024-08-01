@@ -1,0 +1,283 @@
+.. _java-rs-write-update-docs:
+
+=================
+Update Documents
+=================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code examples, write, change, edit, new
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to update
+documents in a MongoDB collection by performing update operations.
+
+An update operation updates one or more documents in a MongoDB collection.
+You can perform an update operation by using the ``updateOne()`` or
+``updateMany()`` methods.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``restaurants`` collection
+from the ``sample_restaurants`` database in the :atlas:`Atlas sample datasets </sample-data>`. 
+
+To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see the
+:ref:`<java-rs-getting-started>` tutorial.
+
+.. include:: /includes/reactor-note.rst
+
+Update Operations
+-----------------
+
+You can perform update operations in MongoDB by using the following methods:
+
+- ``updateOne()``, which updates *the first document* that matches the search criteria
+- ``updateMany()``, which updates *all documents* that match the search criteria
+
+Each update method requires the following parameters:
+
+- **Query filter** document, which determines the documents to update. For more
+  information about using query filters, see the :ref:`Filters
+  <java-rs-update-filters>` section.
+
+- **Update** document, which specifies the update operator (the kind of update to
+  perform) and the fields and values to change. For more information
+  about update operators, see the :ref:`Update Operators
+  <java-rs-update-operators>` section.
+
+.. _java-rs-update-filters:
+
+Filters
+~~~~~~~
+
+Each update method requires a **query filter**, which specifies the
+search criteria that determine which documents to select for updates. To facilitate the creation of filter objects, the
+driver provides the ``Filters`` class that provides filter condition helper
+methods. 
+
+To view a list of ``Filters`` helpers, see the `Filters
+API documentation <{+api+}/mongodb-driver-core/com/mongodb/client/model/Filters.html>`__.
+For more information about query filters, see the 
+:manual:`Query Filter Documents section </core/document/#query-filter-documents>` in
+the MongoDB Server manual. 
+
+.. _java-rs-update-operators:
+
+Update Operators
+~~~~~~~~~~~~~~~~
+
+To change a field in a document, MongoDB provides update operators.
+To specify the modification to perform using the update operators,
+create an update document. To facilitate the creation of update documents, the driver
+provides the ``Updates`` helper class that contains filter condition helper methods.
+
+.. important::
+
+   The ``_id`` field is immutable, so you cannot change the value of the
+   ``_id`` field in a document.
+
+To learn more about update operators, see
+:manual:`Update Operators </reference/operator/update/>` in the Server manual.
+
+Update One Document
+-------------------
+
+To update a single document in a MongoDB collection, call the ``updateOne()``
+method and pass your query filter and update operators. Then, pass the
+``updateOne()`` result to the static ``Mono.from()`` method from
+``Mono``. ``Mono`` is a class from the {+pr+} library. In {+java-rs+}, 
+the driver methods return cold ``Publisher`` instances, which means that the
+corresponding operation does not happen unless you subscribe to the returned
+``Publisher``. This guide uses the {+pr+} library to consume them. To learn more
+about ``Mono``, see `Mono <https://projectreactor.io/docs/core/release/reference/#mono>`__ in the Project
+Reactor documentation.
+
+The following example uses the ``updateOne()`` method to update the ``name``
+value of a matching document from ``"Bagels N Buns"`` to ``"2 Bagels 2 Buns"``:
+
+.. code-block:: java
+   :copyable: true
+
+    Publisher<UpdateResult> updatePublisher = 
+            restaurants.updateOne(eq("name", "Bagels N Buns"),
+                    set("name", "2 Bagels 2 Buns"));
+    Mono.from(updatePublisher).block();
+
+Update Multiple Documents
+-------------------------
+
+To update multiple documents in a MongoDB collection, call the ``updateMany()``
+method and pass your query filter and update operators. Then, pass the ``updateMany()`` result to the static ``Mono.from()`` method from
+``Mono``. ``Mono`` is a class from the {+pr+} library. In {+java-rs+}, 
+the driver methods return cold ``Publisher`` instances, which means that the
+corresponding operation does not happen unless you subscribe to the returned
+``Publisher``. This guide uses the {+pr+} library to consume them. To learn more
+about ``Mono``, see `Mono <https://projectreactor.io/docs/core/release/reference/#mono>`__ in the Project
+Reactor documentation.
+
+The following example uses the ``updateMany()`` method to update all documents that have a ``cuisine`` value of
+``"Pizza"`` to have a ``cuisine`` value of ``"Pasta"``:
+
+.. code-block:: java
+   :copyable: true
+
+    Publisher<UpdateResult> updatePublisher = 
+            restaurants.updateMany(eq("cuisine", "Pizza"),
+                    set("cuisine", "Pasta"));
+    Mono.from(updatePublisher).block();
+    
+Customize the Update Operation
+------------------------------
+
+The ``UpdateOptions`` class contains methods that modify
+the behavior of update methods. To use the ``UpdateOptions``
+class, construct a new instance of the class, then call one or more of its methods
+to modify the update operation. You can chain these method calls together.
+To modify the behavior of the update operation, pass the class instance and
+chained method calls as the third argument to the
+``updateOne()`` or ``updateMany()`` method.
+
+You can use the following optional methods in the ``UpdateOptions`` class
+to modify an update operation:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``arrayFilters(List<? extends Bson> arrayFilters)``
+     - | Specifies which array elements an update applies
+         to.
+
+   * - ``bypassDocumentValidation(Boolean bypassDocumentValidation)``
+     - | Specifies whether the update operation bypasses document validation. This lets you 
+         update documents that don't meet the schema validation requirements, if any 
+         exist. For more information about schema validation, see :manual:`Schema
+         Validation </core/schema-validation/#schema-validation>` in the MongoDB
+         Server manual.
+      
+   * - ``collation(Collation collation)``
+     - | Specifies the kind of language collation to use when sorting
+         results. For more information, see :manual:`Collation </reference/collation/#std-label-collation>`
+         in the MongoDB Server manual.  
+
+   * - ``comment(Bson comment)``
+     - | Attaches a ``Bson`` comment to the operation. For more information, see the :manual:`insert command
+         fields </reference/command/insert/#command-fields>` guide in the
+         MongoDB Server manual.  
+
+   * - ``comment(String comment)``
+     - | Attaches a ``String`` comment to the operation. For more information, see the :manual:`insert command
+         fields </reference/command/insert/#command-fields>` guide in the
+         MongoDB Server manual.  
+
+   * - ``hint(Bson hint)``
+     - | Sets the index for the operation as a ``Bson`` value. 
+         For more information, see the :manual:`hint statement </reference/command/update/#std-label-update-command-hint>`
+         in the MongoDB Server manual.
+
+   * - ``hint(String hint)``
+     - | Sets the index for the operation as a ``String`` value.
+         For more information, see the :manual:`hint statement </reference/command/update/#std-label-update-command-hint>`
+         in the MongoDB Server manual.
+
+   * - ``let(Bson variables)``
+     - | Specifies a map of parameter names and values. Values must be constant or closed
+         expressions that don't reference document fields. For more information,
+         see the :manual:`let statement
+         </reference/command/update/#std-label-update-let-syntax>` in the
+         MongoDB Server manual.
+
+   * - ``upsert(Boolean upsert)``
+     - | Specifies whether the update operation performs an upsert operation if no 
+         documents match the query filter. For more information, see the :manual:`upsert
+         statement </reference/command/update/#std-label-update-command-upsert>`
+         in the MongoDB Server manual.
+
+Example
+~~~~~~~
+
+The following code uses the ``updateMany()`` method to find all documents where the 
+``borough`` field has the value ``"Manhattan"``. It then updates the ``borough``
+value in these documents to ``"Manhattan (north)"``. Because the ``upsert`` option is
+set to ``true``, the {+driver-short+} inserts a new document if the query filter doesn't 
+match any existing documents.
+
+.. code-block:: java
+   :copyable: true
+
+    Publisher<UpdateResult> updatePublisher = restaurants.updateMany(
+            eq("borough", "Manhattan"),
+            set("borough", "Manhattan (north)"),
+            new UpdateOptions().upsert(true));
+    Mono.from(updatePublisher).block();
+
+
+Return Value
+------------
+
+The ``updateOne()`` and ``updateMany()`` methods each return an ``UpdateResult`` 
+object. The ``UpdateResult`` type contains the following instance methods:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``getMatchedCount()``
+     - | The number of documents that matched the query filter, regardless of
+         how many were updated.
+
+   * - ``getModifiedCount()``
+     - | The number of documents modified by the update operation. If an updated
+         document is identical to the original, it is not included in this
+         count.
+
+   * - ``getUpsertedId()``
+     - | The ID of the document that was upserted in the database, if the driver
+         performed an upsert. Otherwise ``null``.
+         
+   * - ``wasAcknowledged()``
+     - | Returns true if the update was acknowledged.
+
+Additional Information
+-----------------------
+
+For additional information about update operators, see :manual:`Update Operators
+</reference/operator/update>` in the MongoDB Server manual.
+
+For runnable code examples of inserting documents with the {+driver-short+}, see the
+:ref:`java-rs-write` guide. 
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `updateOne() <https://mongodb.github.io/mongo-java-driver/5.1/apidocs/mongodb-driver-reactivestreams/com/mongodb/reactivestreams/client/MongoCollection.html#updateOne(com.mongodb.reactivestreams.client.ClientSession,org.bson.conversions.Bson,java.util.List)>`__
+- `updateMany()
+  <https://mongodb.github.io/mongo-java-driver/5.1/apidocs/mongodb-driver-reactivestreams/com/mongodb/reactivestreams/client/MongoCollection.html#updateMany(com.mongodb.reactivestreams.client.ClientSession,org.bson.conversions.Bson,java.util.List)>`__
+- `UpdateOptions
+  <https://mongodb.github.io/mongo-java-driver/5.1/apidocs/mongodb-driver-core/com/mongodb/client/model/UpdateOptions.html>`__
+- `UpdateResult <https://mongodb.github.io/mongo-java-driver/5.1/apidocs/mongodb-driver-core/com/mongodb/client/result/UpdateResult.html>`__
+- `BsonValue
+  <https://mongodb.github.io/mongo-java-driver/5.1/apidocs/bson/org/bson/BsonValue.html>`__
+- `Collation
+  <https://mongodb.github.io/mongo-java-driver/5.1/apidocs/mongodb-driver-core/com/mongodb/client/model/Collation.html>`__

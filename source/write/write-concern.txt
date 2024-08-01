@@ -1,0 +1,111 @@
+.. _java-rs-write-concern:
+
+=============
+Write Concern
+=============
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, acknowledgement, operations
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to specify a write
+concern. Write concern describes the level of acknowledgment requested from
+MongoDB for write operations.
+
+You can configure a write concern at the following levels:
+
+- For your MongoDB deployment
+- For your database
+- For your collection
+
+Configure Write Concern at the Deployment Level
+-----------------------------------------------
+
+You can configure the write concern at the deployment level in the following
+ways:
+
+- By creating a ``MongoClientSettings`` instance, as shown in the following code:
+
+  .. code-block:: java
+
+     MongoClient mongoClient = MongoClients.create(MongoClientSettings.builder()
+           .applyConnectionString(new ConnectionString("mongodb://host1,host2"))
+           .writeConcern(WriteConcern.MAJORITY)
+           .build());
+
+- By creating a ``ConnectionString`` instance, as shown in the following code:
+
+  .. code-block:: java
+
+     MongoClient mongoClient =
+     MongoClients.create("mongodb://host1:27017,host2:27017/?w=majority");
+
+Configure Write Concern at the Database or Collection Level
+-----------------------------------------------------------
+
+You can configure the write concern at the database or collection level in the following
+ways:
+
+- In a ``MongoDatabase`` by using the ``withWriteConcern()`` method, as shown in
+  the following code:
+
+  .. code-block:: java
+
+     MongoDatabase database = mongoClient.getDatabase("test").withWriteConcern(WriteConcern.MAJORITY);
+
+- In a ``MongoCollection`` by using the ``withWriteConcern()`` method, as shown
+  in the following code:
+
+  .. code-block:: java
+
+     MongoCollection<Document> collection = database
+         .getCollection("restaurants")
+         .withWriteConcern(WriteConcern.MAJORITY);
+
+``MongoDatabase`` and ``MongoCollection`` instances are immutable. Calling
+``withWriteConcern()`` on an existing ``MongoDatabase`` or
+``MongoCollection`` instance returns a new instance and does not affect
+the instance on which the method is called.
+
+In the following example, the ``collWithWriteConcern`` instance
+has the write concern of ``majority`` whereas the read
+preference of the ``collection`` is unaffected:
+
+.. code-block:: java
+
+   MongoCollection<Document> collWithWriteConcern = collection
+       .withWriteConcern(WriteConcern.MAJORITY);
+
+Combine Read Concern, Read Preference, and Write Concern
+--------------------------------------------------------
+
+You can build ``MongoClientSettings``, ``MongoDatabase``, or
+``MongoCollection`` instances to include combinations of read concerns, read
+preferences, and write concerns.
+
+For example, the following code sets all three at the collection level:
+
+.. code-block:: java
+
+   Collection = database.getCollection("restaurants")
+       .withReadPreference(ReadPreference.primary())
+       .withReadConcern(ReadConcern.MAJORITY)
+       .withWriteConcern(WriteConcern.MAJORITY);
+
+Additional Information
+----------------------
+
+To learn more about write concerns, see the :manual:`Write Concern guide
+</reference/write-concern/>` in the MongoDB Server manual.

@@ -1,0 +1,195 @@
+.. _java-rs-connect:
+
+==================
+Connect to MongoDB
+==================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :description: Learn how to use the Java Reactive Streams driver to connect to MongoDB.
+   :keywords: client, deploy, replica
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   /connect-to-mongo/create-a-mongo-client/
+   /connect-to-mongo/choose-connection-target/
+   /connect-to-mongo/connection-options/
+   /connect-to-mongo/tls/
+   /connect-to-mongo/compression/
+
+Overview
+--------
+
+This page contains code examples that show how to connect your {+java-rs+} application
+to MongoDB with various settings.
+
+.. tip::
+
+  To learn more about the connection options on this page, see the link
+  provided in each section.
+
+To use a connection example from this page, copy the code example into the
+:ref:`sample application <java-rs-connect-sample>` or your own application.
+Be sure to replace all placeholders in the code examples, such as ``<Atlas
+connection string>``, with the relevant values for your MongoDB deployment.
+
+.. include:: /includes/reactor-note.rst
+
+.. _java-rs-connect-sample:
+
+.. include:: /includes/connect/sample-connect-app-intro.rst
+
+.. literalinclude:: /includes/connect/sample-connect-app.java
+   :language: java
+   :copyable: true
+   :linenos:
+   :emphasize-lines: 18-20
+
+Connection
+----------
+
+Local Deployment
+~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+   String uri = "mongodb://<hostname>:<port>/";
+
+   try (MongoClient mongoClient = MongoClients.create(uri))
+
+
+Atlas
+~~~~~
+
+.. code-block:: java
+
+   String uri = "<Atlas connection string>";
+   
+   ServerApi serverApi = ServerApi.builder()
+                .version(ServerApiVersion.V1)
+                .build();
+
+    MongoClientSettings settings = MongoClientSettings.builder()
+                .applyConnectionString(new ConnectionString(uri))
+                .serverApi(serverApi)
+                .build();
+    
+    try (MongoClient mongoClient = MongoClients.create(settings))
+
+Replica Set
+~~~~~~~~~~~
+
+.. code-block:: java
+   
+   String uri = "mongodb://<replica set member>:<port>/?replicaSet=<replica set name>";
+   
+   try (MongoClient mongoClient = MongoClients.create(uri))
+
+Sharded Cluster
+~~~~~~~~~~~~~~~
+
+To connect to a sharded cluster, specify the ``mongos`` instance or
+instances to the ``MongoClients.create()`` method. To learn more about
+sharded clusters, see :manual:`Sharding </sharding/>` in the Server
+manual.
+
+You can connect to a single ``mongos`` instance in the following ways:
+
+- Specify the hostname and the port in a connection string, as shown in the
+  following code:
+
+  .. code-block:: java
+     
+     MongoClient mongoClient = MongoClients.create( "mongodb://<hostname>:<port>" );
+
+- Exclude connection string if the ``mongos`` is running on
+  ``localhost:27017``, as shown in the following code:
+
+  .. code-block:: java
+     
+     MongoClient mongoClient = MongoClients.create();
+
+You can connect to multiple ``mongos`` instances in the following ways:
+
+- Specify the connection string to contain their hostnames and ports, as shown in the
+  following code:
+
+  .. code-block:: java
+     
+     MongoClient mongoClient = MongoClients.create("mongodb://<first hostname>:<first port>,<second hostname>:<second port>");
+
+- Specify a list of the ``ServerAddress`` objects corresponding to
+  each instance, as shown in the following code:
+
+  .. code-block:: java
+     
+     MongoClient mongoClient = MongoClients.create(
+         MongoClientSettings.builder()
+             .applyToClusterSettings(builder ->
+                 builder.hosts(Arrays.asList(
+                     new ServerAddress("<first hostname>", <first port>),
+                     new ServerAddress("<second hostname", <second port>))))
+             .build());
+
+Connection Options
+~~~~~~~~~~~~~~~~~~
+
+You can specify connection settings by using either the
+connection string or ``MongoClientSettings`` types, or both.
+
+For example, you can specify TLS/SSL and authentication settings in the
+connection string, as shown in the following code:
+
+.. code-block:: java
+     
+   MongoClient mongoClient = MongoClients.create("mongodb://user1:pwd1@host1/?authSource=db1&ssl=true");
+
+You can also use a ``MongoClientSettings`` instance to specify TLS/SSL
+and the ``MongoCredential`` type to store the authentication information, as shown in the
+following code:
+
+.. code-block:: java
+     
+   String user; // the username
+   String database; // the name of the database in which the user is defined
+   char[] password; // the password as a character array
+   // ...
+    
+   MongoCredential credential = MongoCredential.createCredential(user, database, password);
+    
+   MongoClientSettings settings = MongoClientSettings.builder()
+       .credential(credential)
+       .applyToSslSettings(builder -> builder.enabled(true))
+       .applyToClusterSettings(builder -> 
+           builder.hosts(Arrays.asList(new ServerAddress("host1", 27017))))
+       .build();
+    
+   MongoClient mongoClient = MongoClients.create(settings);
+
+In some cases, you might need to combine a connection string
+with programmatic configuration, as shown in the following code:
+
+.. code-block:: java
+     
+   ConnectionString connectionString = new ConnectionString("mongodb://host1:27107,host2:27017/?ssl=true");
+   CommandListener myCommandListener = ...;
+   MongoClientSettings settings = MongoClientSettings.builder()
+       .addCommandListener(myCommandListener)
+       .applyConnectionString(connectionString)
+       .build();
+    
+   MongoClient mongoClient = MongoClients.create(settings);
+
+
+

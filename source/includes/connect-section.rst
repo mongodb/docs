@@ -13,4 +13,4 @@ the ``collection`` variable to refer to the ``restaurants`` collection:
    MongoCollection<Document> collection = database.getCollection("restaurants");
 
 To learn more about connecting to MongoDB deployments,
-see the :ref:`javars-connect` tutorial.
+see the :ref:`java-rs-connect` tutorial.

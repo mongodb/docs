@@ -1,0 +1,166 @@
+.. _java-rs-project:
+
+========================
+Specify Fields To Return
+========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: read, filter, project, select, choose
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to specify which fields to 
+return from a read operation. You can select these fields by using a
+**projection**, a document that specifies which fields MongoDB returns from a query.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``sample_restaurants.restaurants`` collection
+from the :atlas:`Atlas sample datasets </sample-data>`. To learn how to create a
+free MongoDB Atlas cluster and load the sample datasets, see the
+:ref:`<java-rs-getting-started>` guide.
+
+.. include:: /includes/reactor-note.rst
+
+Projection Types
+----------------
+
+You can use a projection to specify which fields to include and exclude in retrieved
+documents. By default, including certain fields excludes all other fields, so you cannot
+combine inclusion and exclusion statements in a single projection,
+unless you are excluding the ``_id`` field from results.
+
+Specify Fields to Include
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use the following syntax to specify the fields to include in the result of a
+read operation:
+
+.. code-block:: java
+
+   projection(fields(include("<field name>")))
+
+To use a projection, pass a query filter to the ``find()`` method. Then, chain
+the ``projection()`` method to the ``find()`` method call. 
+
+The following example uses the ``find()`` method to retrieve documents in which
+the ``name`` field value is ``"Emerald Pub"``. It then uses a projection to
+include only the ``name``, ``cuisine``, and ``borough`` fields from the returned documents.
+
+.. io-code-block::
+    
+   .. input:: /includes/project.java
+      :start-after: start-project-include
+      :end-before: end-project-include
+      :language: java
+      :dedent:
+
+   .. output::
+
+      {'_id': ObjectId('...'), 'borough': 'Manhattan', 'cuisine': 'American', 'name': 'Emerald Pub'}
+      {'_id': ObjectId('...'), 'borough': 'Queens', 'cuisine': 'American', 'name': 'Emerald Pub'}
+
+When you use a projection to specify fields to include in the return
+document, the ``_id`` field is also included by default. All other fields are
+implicitly excluded. You must :ref:`explicitly exclude the _id field <java-rs-project-remove-id>`
+to omit it from the returned documents.
+
+.. _java-rs-project-remove-id:
+
+Exclude the _id Field
+~~~~~~~~~~~~~~~~~~~~~
+
+You can exclude the ``_id`` field from returned documents by using the ``excludeId()`` method.
+
+The following example performs the same query as in the preceding example, but also
+excludes the ``_id`` field in the returned documents:
+
+.. io-code-block::
+    
+   .. input:: /includes/project.java
+      :start-after: start-project-include-without-id
+      :end-before: end-project-include-without-id
+      :language: java
+      :dedent:
+
+   .. output::
+
+      {'borough': 'Manhattan', 'cuisine': 'American', 'name': 'Emerald Pub'}
+      {'borough': 'Queens', 'cuisine': 'American', 'name': 'Emerald Pub'}
+
+Specify Fields to Exclude
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use the following syntax to specify the fields to exclude from the result of a
+read operation:
+
+.. code-block:: java
+
+   projection(fields(exclude("<field name>")))
+
+To use a projection, pass a query filter to the ``find()`` method. Then,
+chain the ``projection()`` method to the ``find()`` method call.  
+
+The following Example uses the ``find()`` method to find all restaurants in which
+the ``name`` field value is ``"Emerald Pub"``. It then uses a projection to
+exclude the ``grades`` and ``address`` fields from the returned documents.
+
+.. io-code-block::
+    
+   .. input:: /includes/project.java
+      :start-after: start-project-exclude
+      :end-before: end-project-exclude
+      :language: java
+      :dedent:
+
+   .. output:: 
+
+      {'_id': ObjectId('...'), 'borough': 'Manhattan', 'cuisine': 'American', 'name': 'Emerald Pub', 'restaurant_id': '40367329'}
+      {'_id': ObjectId('...'), 'borough': 'Queens', 'cuisine': 'American', 'name': 'Emerald Pub', 'restaurant_id': '40668598'}
+
+When you use a projection to specify which fields to exclude,
+any unspecified fields are implicitly included in the return document.
+
+Projection Errors
+-----------------
+
+The following section describes an error you might encounter when using projections.
+
+Inclusion and Exclusion Error
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The driver returns the following if you attempt to
+include and exclude fields in a single projection:
+
+.. code-block:: none
+
+   OperationFailure: ... Cannot Do Exclusion on Field <field> in Inclusion Projection
+
+To resolve this error, ensure that your projection specifies only fields to include or only fields to exclude.
+
+Additional Information
+----------------------
+
+To learn more about projections, see the :manual:`Project Fields guide
+</tutorial/project-fields-from-query-results/>` in the MongoDB Server manual.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API Documentation:
+
+- `find() <{+api+}/mongodb-driver-reactivestreams/com/mongodb/reactivestreams/client/MongoCollection.html#find()>`__
+- `FindPublisher <{+api+}/mongodb-driver-reactivestreams/com/mongodb/reactivestreams/client/FindPublisher.html>`__
