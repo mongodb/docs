@@ -17,7 +17,15 @@
          :language: sh
          :linenos:
 
-   b. Obtain credentials and save contexts to the current ``kubeconfig``
+   
+   #. Set your default gcloud project:
+
+      .. literalinclude:: /includes/code-examples/ops-manager-multi-cluster/code_snippets/0011_gcloud_set_current_project.sh
+            :language: sh
+            :linenos:
+
+
+   #. Obtain credentials and save contexts to the current ``kubeconfig``
       file. By default, this file is located in the ``~/.kube/config`` directory
       and referenced by the ``$KUBECONFIG`` :ref:`environment variable <set-env-vars-om-mc>`.
 
@@ -31,7 +39,7 @@
       - ``$K8S_CLUSTER_1_CONTEXT_NAME``
       - ``$K8S_CLUSTER_2_CONTEXT_NAME``
 
-   c. Verify that ``kubectl`` has access to |k8s| clusters:
+   #. Verify that ``kubectl`` has access to |k8s| clusters:
 
       .. io-code-block:: 
          :copyable: true 
@@ -45,12 +53,13 @@
             :language: sh
             :visible: false
 
-   d. Install |istio| service mesh to allow cross-cluster |dns| resolution
+   #. Install |istio| service mesh to allow cross-cluster |dns| resolution
       and network connectivity between |k8s| clusters:
      
       .. literalinclude:: /includes/code-examples/ops-manager-multi-cluster/code_snippets/0040_install_istio.sh
          :language: sh
          :linenos:
+
 
 .. step:: Create namespaces.
 
@@ -249,8 +258,21 @@
 
 .. step:: Install the |k8s-op-short| using the Helm chart.
 
+   a. Add and update the MongoDB Helm repository. Verify that the local Helm cache refers to the correct |k8s-op-short| version:
 
-   a. Install the |k8s-op-short| into the ``$OPERATOR_NAMESPACE``, configured to watch
+      .. io-code-block::
+         :copyable: true 
+
+         .. input:: /includes/code-examples/ops-manager-multi-cluster/code_snippets/0205_helm_configure_repo.sh
+            :linenos:
+            :language: sh
+
+         .. output:: /includes/code-examples/ops-manager-multi-cluster/output/0205_helm_configure_repo.out
+            :linenos:
+            :language: sh
+            :visible: false
+
+   b. Install the |k8s-op-short| into the ``$OPERATOR_NAMESPACE``, configured to watch
       ``$NAMESPACE`` and to manage three member |k8s| clusters. At this point
       in the procedure, :k8sdocs:`ServiceAccounts </tasks/configure-pod-container/configure-service-account/>`
       and :k8sdocs:`roles </reference/access-authn-authz/rbac/#role-and-clusterrole>`
@@ -272,7 +294,7 @@
             :language: sh
             :visible: false
 
-   b. Check the |k8s-op-short| deployment:
+   c. Check the |k8s-op-short| deployment:
 
       .. io-code-block::
          :copyable: true
