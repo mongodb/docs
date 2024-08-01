@@ -77,14 +77,16 @@ Static Containers (Public Preview)
 
 .. include:: /includes/static-containers-description.rst
 
-Starting with |k8s-op-full| 1.25, you can use the Public Preview of static containers instead of 
-the existing non-static containers that download the MongoDB binary from |com| 
-or the Internet at runtime. You can use the following procedures to enable or disable 
-static containers for all or individual MongoDB deployments.
+Starting with |k8s-op-full| 1.25, you can use the Public Preview of
+static containers instead of the existing non-static containers, which 
+downloads the MongoDB binary from |com| or the Internet at runtime.
+You can use the procedures on this page to enable or disable static
+containers for all or individual MongoDB deployments. 
 
-Static containers use the image from the 
-:qr-mdb:`mongodb-enterprise-server </mongodb-enterprise-server?tab=tags&tag=latest>` 
-Quay.io repository.
+Static containers use the image from the :qr-mdb:`mongodb-enterprise-server 
+</mongodb-enterprise-server?tab=tags&tag=latest>` Quay.io repository by
+default, but you can use your own registry if you configured it for your
+Kubernetes |k8s-nodes|. 
 
 .. _arch-static-containers:
 
@@ -112,12 +114,45 @@ Static Container Architecture
 The static container architecture uses Kubernetes' :k8sdocs:`shared namespace feature </tasks/configure-pod-container/share-process-namespace/>`
 to run the {+mdbagent+} as a separate process so it can control the full |mongod| lifecycle and avoid downloading files over a network.
 
-.. include:: /includes/static-containers-description.rst
-
 .. figure:: /images/mdb-deployment-static.svg
    :alt: Diagram showing the high-level architecture of a MongoDB deployment with
          static containers configured using the MongoDB Enterprise Kubernetes Operator.
    :figwidth: 600px
+
+.. _local-remote-mode: 
+
+Compatibility With Local or Remote Mode 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you use static containers, you don't need to configure |onprem| to
+run in :ref:`Local Mode <deploy-om-container-local-mode>` or
+:ref:`Remote Mode <deploy-om-container-remote-mode>`, unless you use
+queryable backups. In static container architecture, the binaries
+for the agent and ``mongod`` have their own container images and these
+are not downloaded from |onprem|. 
+
+Queryable backups are the exception because in the non-static container
+architecture, by default, the Backup Daemon downloads and runs the
+MongoDB Server binaries for all versions that are backed-up. This
+default MongoDB behavior undermines the fully static nature of the
+containers used to run the Backup Daemon. If you use queryable backups,
+you must still host the relevant MongoDB Server binaries using local or
+remote mode. To learn more, see :ref:`deploy-om-container-local-mode` or
+:ref:`deploy-om-container-remote-mode`.  
+
+If you used Remote or Local mode before and don't want to use queryable
+backups, do the following to ensure that ``mongodb-enterprise-server``
+`images <https://quay.io/repository/mongodb/mongodb-enterprise-server?tab=tags&tag=latest>`__  
+can be downloaded on the |k8s-nodes| used by the pods: 
+
+1. Configure an internal container registry for your Kubernetes nodes. 
+
+   The |k8s-nodes| will download the images from `Quay.io
+   <https://quay.io/repository/mongodb/mongodb-enterprise-server?tab=tags&tag=latest>`__ 
+   unless you use a local container registry.
+
+2. Download and add the ``mongodb-enterprise-server`` `images
+   <https://quay.io/repository/mongodb/mongodb-enterprise-server?tab=tags&tag=latest>`__. 
 
 .. _limitations-static-containers:
 
@@ -126,9 +161,9 @@ Limitations
 
 If you enable static containers:
 
-- You must :ref:`disable-queryable-backups` so the :ref:`backup-daemon` doesn't 
-  attempt to download the MongoDB binaries from |onprem|, which undermines the immutable
-  nature of static containers.  
+- You must :ref:`disable-queryable-backups` so the :ref:`backup-daemon`
+  doesn't attempt to download the MongoDB binaries from |onprem|, which
+  undermines the immutable nature of static containers.
 
 - With |onprem|, only versions 6.0.24, 7.0.5, or later are compatible.
   The {+k8s-op-short+} automatically uses the correct version of the
@@ -167,6 +202,33 @@ If you enable static containers:
   health status file so you can't tell from the health status that a version change 
   happened, only the current health status.
 
+FAQs  
+~~~~
+
+Do static containers support local or remote mode?
+``````````````````````````````````````````````````
+
+No, if you use static containers, you don't need to configure |onprem|
+to run in :ref:`Local Mode <deploy-om-container-local-mode>` or
+:ref:`Remote Mode <deploy-om-container-remote-mode>` unless you use
+queryable backups. To learn more, see :ref:`Local and Remote Modes
+<local-remote-mode>`. 
+
+What are the changes for static containers?
+```````````````````````````````````````````
+
+Static containers don't download the MongoDB binary at runtime.
+Instead, it uses the images from the :qr-mdb:`mongodb-enterprise-server
+</mongodb-enterprise-server?tab=tags&tag=latest>` Quay.io repository. To
+learn more about the changes, see :ref:`step 6 <migrate-to-static-containers>`. 
+
+How can I verify if my deployment is running in static?
+```````````````````````````````````````````````````````
+
+There are many ways to determine if your deployment is using static
+container. To learn more, see :ref:`step 7
+<migrate-to-static-containers>`. 
+
 .. _migrate-to-static-containers:
 
 Migrate to Static Containers
@@ -175,7 +237,7 @@ Migrate to Static Containers
 To migrate from non-static to static containers, set the {+mdbagent+} environment
 variables and enable static containers by following the steps below.
 You can also enable static containers during 
-:ref:`installation <install-k8s>` or :ref:`upgrade <upgrade-k8s-operator>`.
+:ref:`installation <install-k8s>` or :ref:`upgrade <upgrade-k8s-operator>`. 
 
 .. procedure::
    :style: normal
@@ -185,6 +247,12 @@ You can also enable static containers during
    .. step:: Disable queryable backups.
     
       Follow the procedure in :ref:`disable-queryable-backups`.
+
+      If you want to use :ref:`queryable backups
+      <configure-om-queryable-backups>`, you must configure |onprem|
+      resource to use :ref:`Local Mode <deploy-om-container-local-mode>`
+      or :ref:`Remote Mode <deploy-om-container-remote-mode>` so that
+      the binaries for all versions in-use can be pulled from |onprem|.
 
    .. step:: Set environment variables for the {+mdbagent+} image.
 
@@ -294,6 +362,32 @@ You can also enable static containers during
       and MongoDB database, to a new configuration with two separate containers: one for 
       the {+mdbagent+} and another for the MongoDB database. This update initiates a 
       rolling restart.
+
+      When you migrate to static containers, the following changes apply:
+      
+      - Kubernetes |k8s-nodes| use their configured container registry
+        to perform the downloads. 
+      - Monitoring agent and automation agent versions are aligned. 
+      - |k8s-op-short|, instead of the agent, handles MongoDB upgrades.  
+      - |k8s-op-short| replaces the existing images, which will cause a
+        rolling restart. 
+
+   .. step:: Verify that deployment is running in static. 
+
+      - Check the value for one of the following variables, which you
+        must've set to ``static``:   
+
+        .. list-table:: 
+           :widths: 60 30
+
+           * - ``MDB_DEFAULT_ARCHITECTURE`` 
+             - Variable for all deployments. 
+           * - ``metadata.annotations[mongodb.com/v1.architecture]`` 
+             - Per-deployment variable. 
+
+      - Check the database deployment to verify the usage of two separate
+        images, one for the agent and one for MongoDB, and ensure that no
+        init containers are deployed.
 
 .. _migrate-to-non-static-containers:
 
