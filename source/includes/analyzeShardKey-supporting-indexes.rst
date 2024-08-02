@@ -22,7 +22,7 @@ This table shows the supporting indexes for the same shard key for both
 
    * - ``shardCollection``
      - ``{ a.x: 1, b: "hashed" }``
-     - ``{ a.x: 1, b: “hashed”, ... }``
+     - ``{ a.x: 1, b: "hashed", ... }``
 
 This allows you to analyze a shard key that may not yet have a 
 supporting index required for sharding it. 

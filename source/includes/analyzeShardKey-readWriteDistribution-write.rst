@@ -66,10 +66,10 @@
 
    * - ``percentageOfShardKeyUpdates``
      - double
-     - Percentage of write queries that update a document’s shard key 
+     - Percentage of write queries that update a document's shard key 
        value.
      - Avoid a shard key with a high ``percentageOfShardKeyUpdates``.
-       Updates to a document’s shard key value may cause 
+       Updates to a document's shard key value may cause 
        the document to move to a different shard, which requires 
        executing an internal transaction on the shard that the query 
        targets. For details on changing a document's shard key value, 
