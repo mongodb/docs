@@ -1,0 +1,140 @@
+.. _c2c-beta-namespace-remapping:
+
+===================
+Namespace Remapping
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/beta-feature.rst
+
+.. include:: /includes/namespace-remapping-intro.rst
+
+To use namespace remapping, both the source cluster and destination cluster must 
+use MongoDB 6.0 or later. 
+
+Syntax
+------
+
+The :ref:`/start <c2c-api-start>` API endpoint accepts an optional ``namespaceRemap``
+parameter with the following syntax:
+
+.. code-block:: sh
+
+   curl <host>:<port>/api/v1/start -XPOST \
+   --data '
+      {
+         "source": "cluster0",
+         "destination": "cluster1"
+         "namespaceRemap": [
+            {
+               "from": {
+                  "database": "<source-database>"
+               },
+               "to": {
+                  "database": "<destination-database>"
+               }
+            }
+         ]
+      } '
+
+Parameter Fields
+----------------
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 20 13 13 54
+
+   * - Field
+     - Type
+     - Required
+     - Description
+   * - ``namespaceRemap``
+     - array
+     - Optional
+     - Array of documents that specify namespace changes to make during sync.
+
+       .. versionadded:: 1.8 Beta
+
+   * - ``namespaceRemap[n].`` ``from``
+     - document
+     - Required
+     - Document that specifies the database on the source cluster
+       to migrate from in the remapping operation.
+
+       .. versionadded:: 1.8 Beta
+
+   * - ``namespaceRemap[n].`` ``from.database``
+     - string
+     - Required
+     - Database to migrate from on the source cluster.
+
+       .. versionadded:: 1.8 Beta
+
+   * - ``namespaceRemap[n].`` ``to``
+     - document
+     - Required
+     - Document that specifies the database on the destination cluster
+       to migrate to in the remapping operation.
+
+       .. versionadded:: 1.8 Beta
+
+   * - ``namespaceRemap[n].`` ``to.database``
+     - string
+     - Required
+     - Database to migrate to on the destination cluster.
+
+       .. versionadded:: 1.8 Beta
+
+
+Behavior
+--------
+
+Valid Namespace Remapping
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-valid-namespace-remap
+
+Steps
+-----
+
+.. procedure::
+   :style: normal
+
+   .. step:: Connect the source and destination clusters
+
+      The following example connects a source cluster (``cluster0``)
+      with a destination cluster (``cluster1``):
+
+      .. code-block:: shell
+
+         mongosync \
+            --cluster0 "mongodb://localhost:27000" \
+            --cluster1 "mongodb://localhost:35000"
+
+   .. step:: Sync the clusters with namespace remapping
+
+      The following :ref:`/start <c2c-api-start>` call starts sync and remaps the
+      ``accounts`` database on the source cluster to
+      ``sales`` database on the destination cluster:
+
+      .. literalinclude:: /includes/api/requests/start-namespace-remap.sh
+         :language: shell
+
+      Example response:
+
+      .. literalinclude:: /includes/api/responses/success.json
+         :language: json
+         :copyable: false
+
+Learn More
+----------
+
+- :ref:`/start <c2c-api-start>`

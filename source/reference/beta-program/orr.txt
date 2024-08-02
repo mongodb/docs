@@ -1,0 +1,66 @@
+.. _c2c-beta-orr:
+
+=========================
+Oplog Rollover Resilience
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/beta-feature.rst
+
+Starting in {+c2c-beta-program-short+} 1.8, you can enable Oplog Rollover 
+Resilience (ORR). With ORR,  ``mongosync`` applies changes made on 
+the source cluster to the destination cluster concurrently with initial sync.
+
+By applying changes earlier in the sync process, ``mongosync`` maintains a more 
+recent position in the :term:`oplog`. For source clusters with a high write 
+rate, ORR significantly lowers the risk of oplog rollover during initial sync 
+and reduces the need to restart the sync.
+
+Syntax 
+------
+
+To enable ORR, use ``--oplogRolloverResilienceIntervalSeconds`` and specify the 
+interval, in seconds, in which ``mongosync`` checks for eligible change events 
+in the oplog. The default value is ``-1``, which disables ORR.
+
+For example, to start ``mongosync`` with the 
+``oplogRolloverResilienceIntervalSeconds`` set to ``60`` seconds, run the 
+following command: 
+
+.. code-block:: shell 
+   :copyable: false
+
+   ./bin/mongosync \
+         --cluster0 "mongodb://localhost:27000" \
+         --cluster1 "mongodb://localhost:27001" \
+         --oplogRolloverResilienceIntervalSeconds 60
+
+Behavior 
+--------
+
+ORR increases the resilience of ``mongosync`` to oplog rollover during initial 
+sync but does not prevent rollover entirely.
+
+You might exceed the :term:`oplog window` if you: 
+
+- Sync from a high write rate source cluster for an extended
+  period.
+- Pause sync for an extended period.
+
+To increase the size of the oplog on the source cluster, use
+:setting:`~replication.oplogSizeMB`. 
+
+Learn More 
+----------
+
+- :ref:`c2c-beta-program`
+- :ref:`Change Oplog Size <tutorial-change-oplog-size>`
+- :ref:`Workloads that Might Requre a Large Oplog Size 
+  <replica-set-large-oplog-required>`
