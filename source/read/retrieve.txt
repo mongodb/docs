@@ -1,0 +1,238 @@
+.. _cpp-retrieve:
+
+=============
+Retrieve Data
+=============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: code examples, read, query, cursor
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to retrieve
+data from a MongoDB collection by using **read operations**. You can call the
+``find()`` or ``find_one()`` method on a collection to retrieve documents
+that match a set of criteria.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``companies`` collection in the ``sample_training``
+database from the :atlas:`Atlas sample datasets </sample-data>`. To access this collection
+from your C++ application, instantiate a ``mongocxx::client`` that connects to an Atlas
+cluster and assign the following values to your ``db`` and ``collection`` variables:
+
+.. literalinclude:: /includes/read/retrieve.cpp
+    :language: cpp
+    :dedent:
+    :start-after: start-db-coll
+    :end-before: end-db-coll
+
+To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see the
+:atlas:`Get Started with Atlas </getting-started>` guide.
+
+.. _cpp-retrieve-find:
+
+Find Documents
+--------------
+
+The {+driver-short+} includes two methods for retrieving documents from a collection:
+``find_one()`` and ``find()``.
+These methods take a **query filter** and return one or more matching documents.
+A query filter is an object that specifies the documents you want to retrieve in
+your query. 
+
+.. TODO:
+ To learn more about query filters, see :ref:`cpp-specify-query`.
+
+.. _cpp-retrieve-find-one:
+
+Find One Document
+~~~~~~~~~~~~~~~~~
+
+To find a single document in a collection, call the ``find_one()`` method and pass a query
+filter that specifies the criteria of the document you want to find.
+
+The ``find_one()`` method returns an instance of ``std::optional< bsoncxx::document::value >``.
+If the query filter matches a document, the ``optional`` object contains a value of type
+``bsoncxx::document::value``. If the query filter does not match any documents, the ``optional``
+object contains no value.
+
+If the query filter matches more than one document, the ``find_one()`` method returns the *first*
+matching document from the retrieved results.
+
+.. tip::
+   
+   The ``find_one()`` method is useful when you know there's only one matching document
+   or if you're only interested in the first match.  
+
+The following example uses the ``find_one()`` method to find the first document in which
+the ``name`` field has the value ``"LinkedIn"``:
+
+.. io-code-block::
+
+   .. input:: /includes/read/retrieve.cpp
+      :start-after: start-find-one
+      :end-before: end-find-one
+      :language: cpp
+      :dedent:
+
+   .. output::
+
+      { "_id" : { "$oid" : "52cdef7c4bab8bd675297e0c" }, "name" : "LinkedIn", "permalink" : "linkedin",
+      "crunchbase_url" : "http://www.crunchbase.com/company/linkedin", "homepage_url" : "http://linkedin.com",
+      ...
+   
+.. tip:: Sort Order
+
+   The ``find_one()`` method returns the first document in 
+   :manual:`natural order </reference/glossary/#std-term-natural-order>`
+   on disk if no sort criteria is specified.
+
+.. TODO:
+ To learn more about sorting, see the :ref:`sort guide <cpp-sort>`.
+
+.. _cpp-retrieve-find-multiple:
+
+Find Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To find multiple documents in a collection, pass a query filter to the ``find()``
+method that specifies the criteria of the documents you want to retrieve. 
+
+The following example uses the ``find()`` method to find all documents in which
+the ``founded_year`` field has the value ``1970``:
+
+.. literalinclude:: /includes/read/retrieve.cpp
+    :language: cpp
+    :dedent:
+    :start-after: start-find-many
+    :end-before: end-find-many
+
+The ``find()`` method returns an instance of ``mongocxx::cursor``, which you can
+iterate over to see the matching documents. A cursor is a mechanism that allows an
+application to iterate over database results while holding only a subset of them in
+memory at a given time. Cursors are useful when your ``find()`` method returns a large
+amount of documents.
+
+You can iterate over the documents in a cursor by using a ``for-in`` loop, as shown in
+the following example:
+
+.. io-code-block::
+
+   .. input:: /includes/read/retrieve.cpp
+      :start-after: start-cursor
+      :end-before: end-cursor
+      :language: cpp
+      :dedent:
+
+   .. output::
+
+      { "_id" : { "$oid" : "52cdef7d4bab8bd675298be4" }, "name" : "Mitsubishi Motors",
+      "permalink" : "mitsubishi-motors", "crunchbase_url" : "http://www.crunchbase.com/company/mitsubishi-motors",
+      ...
+
+      { "_id" : { "$oid" : "52cdef7e4bab8bd67529b996" }, "name" : "Western Digital",
+      "permalink" : "western-digital", "crunchbase_url" : "http://www.crunchbase.com/company/western-digital",
+      ...
+
+      { "_id" : { "$oid" : "52cdef7e4bab8bd67529b9f1" }, "name" : "Celarayn", "permalink" : "celarayn",
+      "crunchbase_url" : "http://www.crunchbase.com/company/celarayn",
+      ...
+
+.. note:: Find All Documents
+
+   To find all documents in a collection, pass an empty filter 
+   to the ``find()`` method:
+
+   .. code-block:: cpp
+
+      auto cursor = collection.find({})
+
+Modify Find Behavior
+~~~~~~~~~~~~~~~~~~~~
+
+You can modify the behavior of the ``find()`` and ``find_one()`` methods by passing
+an instance of the ``mongocxx::options::find`` class as a parameter. The following table
+describes some of the fields you can set in a ``mongocxx::options::find`` instance:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``batch_size`` 
+     - | The number of documents to return per batch.
+       | **Type**: ``std::int32_t``
+
+   * - ``collation`` 
+     - | The collation to use for the operation.
+       | **Type**: ``bsoncxx::document::view_or_value``
+
+   * - ``comment`` 
+     - | The comment to attach to the operation.
+       | **Type**: ``bsoncxx::string::view_or_value``
+
+   * - ``cursor_type`` 
+     - | The type of cursor to use for the operation.
+       | **Type**: ``cursor::type``
+
+   * - ``limit`` 
+     - | The maximum number of documents the operation can return.
+       | **Type**: ``std::int64_t``
+
+   * - ``skip`` 
+     - | The number of documents to skip before returning results.
+       | **Type**: ``std::int64_t``
+
+   * - ``sort`` 
+     - | The order in which the operation returns matching documents.
+       | **Type**: ``bsoncxx::document::view_or_value``
+
+The following example uses the ``find()`` method to find all documents in which
+the ``number_of_employees`` field has the value ``1000`` and instructs the
+operation to return a maximum of ``5`` results:
+
+.. literalinclude:: /includes/read/retrieve.cpp
+    :language: cpp
+    :dedent:
+    :start-after: start-modify
+    :end-before: end-modify
+
+For a full list of ``mongocxx::options::find`` object fields, see the
+`API documentation <{+api+}/classmongocxx_1_1v__noabi_1_1options_1_1find.html>`__.
+
+.. _cpp-retrieve-additional-information:
+
+Additional Information
+----------------------
+
+.. TODO:
+ To learn more about query filters, see :ref:`cpp-specify-query`.
+ For runnable code examples of retrieving documents with {+driver-short+}, see :ref:`cpp-read`.
+
+For more examples that use the ``find()`` and ``find_one()`` methods, see the :ref:`cpp-tutorial-find`
+section of the Tutorial page.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `find() <{+api+}/classmongocxx_1_1v__noabi_1_1collection.html#ada76e1596a65c7615e7af7d34a8140d6>`__
+- `find_one() <{+api+}/classmongocxx_1_1v__noabi_1_1collection.html#a85f4d18d0d3bb3426109a445196ac587>`__
+- `limit() <{+api+}/classmongocxx_1_1v__noabi_1_1options_1_1find.html#aa8245eed102202a625dab67047903738>`__

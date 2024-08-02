@@ -1,0 +1,174 @@
+.. _cpp-whats-new:
+
+==========
+What's New
+==========
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: update, new feature, deprecation, upgrade, driver
+
+Overview
+--------
+
+Learn what's new in:
+
+* :ref:`Version 3.10 <version-3.10>`
+* :ref:`Version 3.9 <version-3.9>`
+
+Types of Breaking Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+New versions of the {+driver-short+} can introduce the following types of breaking changes:
+
+- **API** changes concern the API of the {+driver-short+} libraries. These changes are
+  accompanied by an API major version bump. You might need to edit C++ source code
+  in your project to address these changes.
+
+  .. example::
+
+     - Removes the declaration of function ``v1::func()``. (The definition is still provided for ABI compatibility.)
+     - Removes the inline function ``v_noabi::func()``.
+     - Removes ``v_noabi::func()``.
+     - Changes the redeclaration of ``bsoncxx::foo`` from ``v1::foo`` to ``v2::foo``.
+       To continue using the old interface, qualify ``bsoncxx::foo`` as ``bsoncxx::v1::foo``.
+
+- **ABI** changes concern the ABI of the {+driver-short+} libraries. These changes are
+  accompanied by an ABI version bump, and may also be accompanied by an API major version
+  bump. You might need to rebuild your project or edit your C++ source code to address
+  these changes.
+
+  ABI stability is **not** supported for symbols corresponding to entities declared in
+  the ``v_noabi`` namespace. Breaking changes for such symbols are not necessarily
+  accompanied by an ABI version bump.
+
+  .. example::
+
+     - Removes the exported symbol ``v_noabi::func()``.
+     - Removes the exported symbol ``v1::func()``.
+     - Removes the exported symbols for ``v1::type``.
+
+- **Build system** changes concern the build system or packaging of the {+driver-short+}
+  libraries. These changes are not necessarily accompanied by either an API major version
+  bump or an ABI version bump.
+  To address these changes, you might need to modify your build system configurations or
+  update your project's package or dependency management settings. You might also need to
+  modify or rebuild your C++ source code.
+
+  .. example::
+
+     - Removes the ``ENABLE_FOO`` configuration variable.
+     - Changes the default value of the ``ENABLE_BAR`` configuration variable from
+       ``OFF`` to ``ON``.
+     - Drops support for platform A, compiler B, or architecture C.
+
+.. _upcoming-breaking-changes:
+
+.. _version-3.10:
+
+What's New in 3.10
+------------------
+
+.. warning:: Build System Breaking Changes
+
+   The v3.10 driver introduces the following breaking changes to the build system:
+   
+   - Drops support for calling ``find_package(libbsoncxx)`` and ``find_package(libmongocxx)``.
+     Use ``find_package(bsoncxx)`` and ``find_package(mongocxx)``
+     instead.
+   - Drops support for the ``LIBBSONCXX_*`` and ``LIBMONGOCXX_*`` CMake variables
+     provided by the legacy CMake package config files. Use the ``mongo::bsoncxx_*`` and
+     ``mongo::mongocxx_*`` CMake targets instead.
+   - Removes the ``BSONCXX_POLY_USE_STD_EXPERIMENTAL`` CMake option and drops support for selecting the experimental C++ standard library as a polyfill option.
+
+The v3.10.0 driver release includes the following new features:
+
+- Adds forward headers that provide non-defining declarations of ``bsoncxx`` and
+  ``mongocxx`` class types. The driver does not support user-defined forward declarations
+  of any library entity. To obtain the declaration or definition of a library entity,
+  always include the corresponding header.
+- The CMake option ``ENABLE_BSONCXX_USE_POLY_IMPLS`` allows selecting
+  ``bsoncxx`` implementations of C++17 polyfills by default when no polyfill library is
+  requested. This option is ``OFF`` by default.
+- The CMake option ``BSONCXX_POLY_USE_IMPLS`` allows selecting ``bsoncxx`` implementations
+  of C++17 polyfills instead of external libraries or the C++ standard library. This
+  option is ``OFF`` by default.
+- The ``bsoncxx::v_noabi`` and ``mongocxx::v_noabi`` namespaces are no longer declared inline.
+  Root namespace declarations are still supported and expected to remain equivalent to
+  their prior definitions. For example, ``bsoncxx::document`` is still equivalent to
+  ``bsoncxx::v_noabi::document``, and ``mongocxx::client`` is still equivalent to
+  ``mongocxx::v_noabi::client``.
+- By default, when library filenames are compiled with MSVC (as detected by CMake's ``MSVC``
+  variable), they are embedded with an ABI tag string. These strings are similar to
+  the following:
+  
+  .. code-block:: bash
+
+     bsoncxx-v_noabi-rhs-x64-v142-md.lib
+
+  To disable this behavior, set ``ENABLE_ABI_TAG_IN_LIBRARY_FILENAMES=OFF`` as part of
+  your CMake configuration.
+
+  The ABI tag string can also be embedded in pkg-config metadata filenames, similar to the
+  following:
+    
+  .. code-block:: bash
+      
+     libbsoncxx-v_noabi-rhs-x64-v142-md.pc
+       
+  To enable this behavior, set ``ENABLE_ABI_TAG_IN_LIBRARY_FILENAMES=ON`` and
+  ``ENABLE_ABI_TAG_IN_PKGCONFIG_FILENAMES=ON`` as part of your CMake configuration.
+
+To learn more about this release, see the
+`v3.10 Release Notes <https://github.com/mongodb/mongo-cxx-driver/releases/tag/r3.10.0>`__
+on GitHub.
+
+.. _version-3.9:
+
+What's New in 3.9
+-----------------
+
+.. warning:: Build System Breaking Changes
+
+   The v3.9 driver introduces the following breaking changes:
+
+   - Removes support for exported targets from the CMake project build tree
+   - Drops support for macOS 10.14, macOS 10.15, and Ubuntu 14.04
+   - Requires MongoDB C Driver v1.25.0 or later
+   - Requires CMake v3.15 or later to support the ``FetchContent`` module
+
+The v3.9 driver release includes the following new features:
+
+- The {+driver-short+} container image is now available on
+  `Docker hub <https://hub.docker.com/r/mongodb/mongo-cxx-driver>`__.
+- The driver automatically downloads the MongoDB C Driver dependency if you don't provide
+  it.
+- The driver no longer builds tests as part of the ``all`` target. To build tests,
+  set ``BUILD_TESTING=ON`` as part of your CMake configuration.
+- The driver uses the ``FetchContent`` module to download and build the
+  `MNMLSTC Core <https://github.com/mnmlstc/core>`__ polyfill library, if not
+  provided by the system, instead of the ``ExternalProject`` module. It also does not
+  patch ``include`` directives in MNMLSTC Core headers.
+- Adds the CMake option ``MONGOCXX_OVERRIDE_DEFAULT_INSTALL_PREFIX``. If this option is set to
+  ``TRUE``, the ``CMAKE_INSTALL_PREFIX`` option defaults to the build directory.
+  The default value of this option is ``TRUE``.
+- Adds an API for managing
+  :atlas:`Atlas Search indexes <atlas-search/index-definitions/#std-label-ref-index-definitions>`.
+- Adds the ``VERSIONINFO`` resource to ``bsoncxx.dll`` and ``mongocxx.dll``.
+- Explicitly documents that throwing an exception from an APM callback is undefined behavior.
+- Does not prematurely install MNMLSTC Core headers during the CMake build step.
+- Requires that a MongoDB C Driver CMake package is found via ``find_dependency()`` for all
+  installed {+driver-short+} package configurations.
+
+To learn more about this release, see the
+`v3.9 Release Notes <https://github.com/mongodb/mongo-cxx-driver/releases/tag/r3.9.0>`__
+on GitHub.

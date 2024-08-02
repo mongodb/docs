@@ -1,0 +1,196 @@
+.. _cpp-specify-documents-to-return:
+
+===========================
+Specify Documents to Return
+===========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: read, paginate, pagination, order, code example
+
+Overview
+--------
+
+In this guide, you can learn how to specify which documents to return from a read
+operation by using the following methods:
+
+- :ref:`mongocxx::options::find::limit() <cpp-return-documents-limit>`: Specifies the maximum number of documents
+  to return from a query.
+- :ref:`mongocxx::options::find::sort() <cpp-return-documents-sort>`: Specifies the sort order for the returned documents.
+- :ref:`mongocxx::options::find::skip() <cpp-return-documents-skip>`: Specifies the number of documents to skip before
+  returning query results.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``restaurants`` collection in the ``sample_restaurants``
+database from the :atlas:`Atlas sample datasets </sample-data>`. To access this collection
+from your C++ application, instantiate a ``mongocxx::client`` that connects to an Atlas cluster
+and assign the following values to your ``db`` and ``collection`` variables:
+
+.. literalinclude:: /includes/read/limit-skip-sort.cpp
+    :language: cpp
+    :dedent:
+    :start-after: start-db-coll
+    :end-before: end-db-coll
+
+To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see
+the :atlas:`Get Started with Atlas </getting-started>` guide.
+
+.. _cpp-return-documents-limit:
+
+Limit
+-----
+
+To specify the maximum number of documents returned from a read operation, create
+an instance of the ``mongocxx::options::find`` class and set its ``limit`` field.
+Then, pass your ``mongocxx::options::find`` instance as an argument to the
+``find()`` method.
+
+The following example finds all restaurants that have a ``cuisine`` field value
+of ``"Italian"`` and limits the results to ``5`` documents:
+
+.. io-code-block::
+
+   .. input:: /includes/read/limit-skip-sort.cpp
+      :start-after: start-limit-method
+      :end-before: end-limit-method
+      :language: cpp
+      :dedent:
+
+   .. output::
+
+      { "_id" : { "$oid" : "..." }, ..., "name" : "Philadelphia Grille Express", "restaurant_id" : "40364305" }
+      { "_id" : { "$oid" : "..." }, ..., "name" : "Isle Of Capri Restaurant", "restaurant_id" : "40364373" }
+      { "_id" : { "$oid" : "..." }, ..., "name" : "Marchis Restaurant", "restaurant_id" : "40364668" }
+      { "_id" : { "$oid" : "..." }, ..., "name" : "Crystal Room", "restaurant_id" : "40365013" }
+      { "_id" : { "$oid" : "..." }, ..., "name" : "Forlinis Restaurant", "restaurant_id" : "40365098" }
+
+.. tip::
+
+   The preceding example returns the first five documents matched by the query
+   according to their :manual:`natural order </reference/glossary/#std-term-natural-order>`
+   in the database. The following section describes how to return the documents
+   in a specified order.
+
+.. _cpp-return-documents-sort:
+
+Sort
+----
+
+To return documents in a specified order, create a document that includes
+the field to sort the results by and the sort direction. A value of ``1`` sorts
+values from lowest to highest, and a value of ``-1`` sorts them from highest to
+lowest. Then, call the ``mongocxx::options::find::sort()`` method on a
+``mongocxx::options::find`` instance and pass this document as an argument.
+
+The following example returns all documents that have a ``cuisine`` value of ``"Italian"``,
+sorted in ascending order of ``name`` field values:
+
+.. io-code-block::
+
+   .. input:: /includes/read/limit-skip-sort.cpp
+      :start-after: start-sort-method
+      :end-before: end-sort-method
+      :language: cpp
+      :dedent:
+
+   .. output::
+
+      { "_id" : { "$oid" : "..." }, ..., "name" : "(Lewis Drug Store) Locanda Vini E Olii", "restaurant_id" : "40804423" }
+      { "_id" : { "$oid" : "..." }, ..., "name" : "101 Restaurant And Bar", "restaurant_id" : "40560108" }
+      { "_id" : { "$oid" : "..." }, ..., "name" : "44 Sw Ristorante & Bar", "restaurant_id" : "40698807" }
+      ...
+      { "_id" : { "$oid" : "..." }, ..., "name" : "Zucchero E Pomodori", "restaurant_id" : "41189590" }
+
+.. _cpp-return-documents-skip:
+
+Skip
+----
+
+To skip a specified number of documents before returning your query results, create
+an instance of the ``mongocxx::options::find`` class and set its ``skip`` field.
+Then, pass your ``mongocxx::options::find`` instance as an argument to the
+``find()`` method.
+
+The following example returns all documents that have a ``borough`` field value
+of ``"Manhattan"`` and skips the first ``10`` documents:
+
+.. io-code-block::
+
+   .. input:: /includes/read/limit-skip-sort.cpp
+      :start-after: start-skip-method
+      :end-before: end-skip-method
+      :language: cpp
+      :dedent:
+
+   .. output::
+
+      { "_id" : { "$oid" : "..." }, ...,  "name" : "Cafe Metro", "restaurant_id" : "40363298" }
+      { "_id" : { "$oid" : "..." }, ..., "name" : "Lexler Deli", "restaurant_id" : "40363426" }
+      { "_id" : { "$oid" : "..." }, ..., "name" : "Domino'S Pizza", "restaurant_id" : "40363644" }
+      ...
+
+.. _cpp-return-documents-combine:
+
+Combine Limit, Sort, and Skip
+-----------------------------
+
+You can set the ``limit``, ``sort``, and ``skip`` fields of a single
+``mongocxx::options::find`` instance. This allows you to set a maximum
+number of sorted documents to return, skipping a specified number of
+documents before returning.
+
+The following example returns ``5`` documents that have a ``cuisine`` value of
+``"Italian"``. The results are sorted in ascending order by ``name`` field value,
+skipping the first ``10`` documents:
+
+.. io-code-block::
+
+   .. input:: /includes/read/limit-skip-sort.cpp
+      :start-after: start-limit-sort-skip
+      :end-before: end-limit-sort-skip
+      :language: cpp
+      :dedent:
+
+   .. output::
+      
+      { "_id" : { "$oid" : "..." }, ..., "name" : "Acqua", "restaurant_id" : "40871070" }
+      { "_id" : { "$oid" : "..." }, ..., "name" : "Acqua Restaurant", "restaurant_id" : "41591488" }
+      { "_id" : { "$oid" : "..." }, ..., "name" : "Acqua Santa", "restaurant_id" : "40735858" }
+      { "_id" : { "$oid" : "..." }, ..., "name" : "Acquista Trattoria", "restaurant_id" : "40813992" }
+      { "_id" : { "$oid" : "..." }, ..., "name" : "Acquolina Catering", "restaurant_id" : "41381423" }
+
+.. note::
+
+   The order in which you call these methods doesn't change the documents
+   that are returned. The driver automatically reorders the calls to perform the
+   sort operation first, the skip operation next, and then the limit operation.
+
+Additional Information
+----------------------
+
+For more information about retrieving documents, see the :ref:`cpp-retrieve` guide.
+
+For more information about specifying a query, see the :ref:`cpp-specify-query` guide.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `mongocxx::collection::find() <{+api+}/classmongocxx_1_1v__noabi_1_1collection.html#ada76e1596a65c7615e7af7d34a8140d6>`__
+- `mongocxx::options::find <{+api+}/classmongocxx_1_1v__noabi_1_1options_1_1find.html>`__
+- `mongocxx::options::find::limit() <{+api+}/classmongocxx_1_1v__noabi_1_1options_1_1find.html#a3eb2bdc65a762bb31cbb64aa3ff2522a>`__
+- `mongocxx::options::find::sort() <{+api+}/classmongocxx_1_1v__noabi_1_1options_1_1find.html#a39e497bf0c084d9ddb1ccc68edee4b3a>`__
+- `mongocxx::options::find::skip() <{+api+}/classmongocxx_1_1v__noabi_1_1options_1_1find.html#a7f5688e726d8c460d016e5007a47e001>`__

@@ -1,0 +1,259 @@
+.. _cpp-specify-query:
+
+===============
+Specify a Query
+===============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: expressions, operations, read, write, filter
+
+Overview
+--------
+
+In this guide, you can learn how to specify a query by using the {+driver-short+}.
+
+You can refine the set of documents that a query returns by creating a
+**query filter**. A query filter is an expression that specifies the search
+criteria that MongoDB uses to match documents in a read or write operation.
+In a query filter, you can prompt the driver to search for documents that have
+an exact match to your query, or you can compose query filters to express more
+complex matching criteria.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide run operations on a collection called
+``fruits``, which contains documents representing fruits. The following
+code example shows how to create a database and collection, then
+insert the sample documents into your collection:
+
+.. literalinclude:: /includes/read/specify-queries.cpp
+   :start-after: start-setup
+   :end-before: end-setup
+   :language: cpp
+   :dedent:
+   :copyable:
+
+.. include:: /includes/assumes-instance.rst
+
+Exact Match
+-----------
+
+Literal value queries return documents that have an exact match to your query filter.
+
+The following example specifies a query filter as a parameter to the ``find()``
+method. The code returns all documents in which the value of the ``color`` field
+is ``"yellow"``:
+
+.. io-code-block::
+   :copyable: 
+
+   .. input:: /includes/read/specify-queries.cpp
+      :start-after: start-find-exact
+      :end-before: end-find-exact
+      :language: cpp
+      :dedent:
+
+   .. output::
+      
+      { "_id" : 2, "name" : "bananas", "qty" : 7, "rating" : 4, "color" : "yellow", "type" : [ "cavendish" ] }
+      { "_id" : 4, "name" : "pineapple", "qty" : 3, "rating" : 5, "color" : "yellow" }
+
+.. tip:: Find All Documents
+
+   To find all documents in a collection, call the ``find()`` method and pass it an
+   empty query filter. The following example finds all documents in a
+   collection:
+
+   .. literalinclude:: /includes/read/specify-queries.cpp
+      :start-after: start-find-all
+      :end-before: end-find-all
+      :language: cpp
+      :dedent:
+      :copyable:
+
+Comparison Operators
+--------------------
+
+Comparison operators evaluate a document field value against a specified value
+in your query filter. The following list defines common comparison operators:
+
+- ``$gt``: Greater than
+- ``$lte``: Less than or Equal
+- ``$ne``: Not equal
+
+To view a full list of comparison operators, see the :manual:`Comparison Query Operators
+</reference/operator/query-comparison/>` guide in the {+mdb-server+} manual.
+
+The following example specifies a comparison operator in a query filter as a
+parameter to the ``find()`` method. The code returns all documents that have a
+``rating`` field value greater than ``2``:
+
+.. io-code-block::
+   :copyable: 
+
+   .. input:: /includes/read/specify-queries.cpp
+      :start-after: start-find-comparison
+      :end-before: end-find-comparison
+      :language: cpp
+      :dedent:
+
+   .. output::
+
+      { "_id" : 1, "name" : "apples", "qty" : 5, "rating" : 3, "color" : "red", "type" : [ "fuji", "honeycrisp" ] }
+      { "_id" : 2, "name" : "bananas", "qty" : 7, "rating" : 4, "color" : "yellow", "type" : [ "cavendish" ] }
+      { "_id" : 4, "name" : "pineapples", "qty" : 3, "rating" : 5, "color" : "yellow" }
+
+Logical Operators
+-----------------
+
+Logical operators match documents by using logic applied to the results of two or
+more sets of expressions. The following list describes each logical operator: 
+
+- ``$and``: Returns all documents that match the conditions of *all* clauses
+- ``$or``: Returns all documents that match the conditions of *one* clause
+- ``$nor``: Returns all documents that *do not* match the conditions of any clause
+- ``$not``: Returns all documents that *do not* match the expression
+
+To learn more about logical operators, see the :manual:`Logical Query Operators
+</reference/operator/query-logical/>` guide in the {+mdb-server+} manual.
+
+The following example specifies a logical operator in a query filter as a
+parameter to the ``find()`` method. The code returns all documents in which the
+``qty`` field value is greater than ``5`` **or** the ``color`` field value is
+``"yellow"``:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/specify-queries.cpp
+      :start-after: start-find-logical
+      :end-before: end-find-logical
+      :language: cpp
+      :dedent:
+
+   .. output::
+
+      { "_id" : 2, "name" : "bananas", "qty" : 7, "rating" : 4, "color" : "yellow", "type" : [ "cavendish" ] }
+      { "_id" : 3, "name" : "oranges", "qty" : 6, "rating" : 2, "type" : [ "naval", "mandarin" ] }
+      { "_id" : 4, "name" : "pineapples", "qty" : 3, "rating" : 5, "color" : "yellow" }
+
+Array Operators
+---------------
+
+Array operators match documents based on the value or quantity of elements in an
+array field. The following list describes the available array operators:
+
+- ``$all``: Returns documents with arrays that contain all elements in the query
+- ``$elemMatch``: Returns documents if an element in their array field matches all conditions in the query
+- ``$size``: Returns all documents with arrays of a specified size
+
+To learn more about array operators, see the :manual:`Array Query Operators
+</reference/operator/query-array/>` guide in the {+mdb-server+} manual.
+
+The following example specifies an array operator in a query filter as a
+parameter to the ``find()`` method. The code returns all documents in which the
+``type`` array field contains ``2`` elements:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/specify-queries.cpp
+      :start-after: start-find-array
+      :end-before: end-find-array
+      :language: cpp
+      :dedent:
+
+   .. output::
+
+      { "_id" : 1, "name" : "apples", "qty" : 5, "rating" : 3, "color" : "red", "type" : [ "fuji", "honeycrisp" ] }
+      { "_id" : 3, "name" : "oranges", "qty" : 6, "rating" : 2, "type" : [ "naval", "mandarin" ] }
+
+Element Operators
+-----------------
+
+Element operators query data based on the presence or type of a field.
+
+To learn more about element operators, see the :manual:`Element Query Operators
+</reference/operator/query-element/>` guide in the {+mdb-server+} manual.
+
+The following example specifies an element operator in a query filter as a
+parameter to the ``find()`` method. The code returns all documents that have a
+``color`` field:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/specify-queries.cpp
+      :start-after: start-find-element
+      :end-before: end-find-element
+      :language: cpp
+      :dedent:
+
+   .. output::
+
+      { "_id" : 1, "name" : "apples", "qty" : 5, "rating" : 3, "color" : "red", "type" : [ "fuji", "honeycrisp" ] }
+      { "_id" : 2, "name" : "bananas", "qty" : 7, "rating" : 4, "color" : "yellow", "type" : [ "cavendish" ] }
+      { "_id" : 4, "name" : "pineapples", "qty" : 3, "rating" : 5, "color" : "yellow" }
+
+Evaluation Operators
+--------------------
+
+Evaluation operators return data based on evaluations of either individual
+fields or the entire collection's documents.
+
+The following list describes common evaluation operators:
+
+- ``$text``: Performs a text search on the documents
+- ``$regex``: Returns documents that match a specified regular expression
+- ``$mod``: Performs a modulo operation on the value of a field and
+  returns documents where the remainder is a specified value
+
+To view a full list of evaluation operators, see the :manual:`Evaluation Query Operators
+</reference/operator/query-evaluation/>` guide in the {+mdb-server+} manual.
+
+The following example specifies an evaluation operator in a query filter as a
+parameter to the ``find()`` method. The code uses a regular expression to return
+all documents in which the ``name`` field value has at least two consecutive
+``"p"`` characters:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/specify-queries.cpp
+      :start-after: start-find-evaluation
+      :end-before: end-find-evaluation
+      :language: cpp
+      :dedent:
+
+   .. output::
+
+      { "_id" : 1, "name" : "apples", "qty" : 5, "rating" : 3, "color" : "red", "type" : [ "fuji", "honeycrisp" ] }
+      { "_id" : 4, "name" : "pineapples", "qty" : 3, "rating" : 5, "color" : "yellow" }
+
+Additional Information
+----------------------
+
+To learn more about querying documents, see the :manual:`Query Documents
+</tutorial/query-documents/>` guide in the {+mdb-server+} manual.
+
+To learn more about retrieving documents with the {+driver-short+}, see the
+:ref:`cpp-retrieve` guide.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `find() <{+api+}/classmongocxx_1_1v__noabi_1_1collection.html#adcbb56b329ffbc28e517ba7a2e111908>`__

@@ -1,0 +1,368 @@
+.. _cpp-bulk-write:
+
+=====================
+Bulk Write Operations
+=====================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: insert, update, replace, code example
+
+Overview
+--------
+
+In this guide, you can learn how to perform multiple write operations
+in a single database call by using **bulk write operations**.
+
+Consider a scenario in which you want to insert a document into a collection,
+update multiple other documents, then delete a document. If you use
+individual methods, each operation requires its own database call. Instead,
+you can use a bulk operation to reduce the number of calls to the database.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``restaurants`` collection in the ``sample_restaurants``
+database from the :atlas:`Atlas sample datasets </sample-data>`. To access this collection
+from your C++ application, instantiate a ``mongocxx::client`` that connects to an Atlas cluster
+and assign the following values to your ``db`` and ``collection`` variables:
+
+.. literalinclude:: /includes/write/bulk-write.cpp
+    :start-after: start-db-coll
+    :end-before: end-db-coll
+    :language: cpp
+    :dedent:
+
+To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see the
+:atlas:`Get Started with Atlas </getting-started>` guide.
+
+.. _cpp-bulk-start-operation:
+
+Create a Bulk Write Instance
+----------------------------
+
+Before running a bulk write operation, call the ``create_bulk_write()`` method on
+a collection. This method returns an instance of the ``mongocxx::bulk_write``
+class that you can use to store instructions about which types of bulk writes to
+perform.
+
+The following example calls the ``create_bulk_write()`` method on the ``restaurants``
+collection:
+
+.. literalinclude:: /includes/write/bulk-write.cpp
+    :start-after: start-create-bulk-write
+    :end-before: end-create-bulk-write
+    :language: cpp
+    :dedent:
+
+You can then append write models to your ``mongocxx::bulk_write`` instance to define
+the bulk operation. For more information, see the following :ref:`cpp-bulk-define-write-models`
+section.
+
+.. _cpp-bulk-define-write-models:
+
+Define the Write Operations
+---------------------------
+
+For each write operation you want to perform, create an instance of one of
+the following model classes:
+
+- ``mongocxx::model::insert_one``
+- ``mongocxx::model::update_one``
+- ``mongocxx::model::update_many``
+- ``mongocxx::model::replace_one``
+- ``mongocxx::model::delete_one``
+- ``mongocxx::model::delete_many``
+
+Then, append each write model to the ``mongocxx::bulk_write`` instance returned
+by the ``create_bulk_write()`` method.
+
+The following sections show how to create and use instances of the preceding
+write model classes.
+
+.. _cpp-bulk-insert-model:
+
+Insert Operations
+~~~~~~~~~~~~~~~~~
+
+To perform an insert operation, create an instance of the ``mongocxx::model::insert_one``
+class and specify the document you want to insert. Then, append the model instance
+to an instance of the ``mongocxx::bulk_write`` class.
+
+The following example creates an instance of ``mongocxx::model::insert_one`` and appends
+it to a ``mongocxx::bulk_write`` instance called ``bulk``:
+
+.. literalinclude:: /includes/write/bulk-write.cpp
+   :start-after: start-bulk-insert-one
+   :end-before: end-bulk-insert-one
+   :language: cpp
+   :dedent:
+
+To insert multiple documents, create an instance of ``mongocxx::model::insert_one``
+for each document.
+
+.. _cpp-bulk-update-model:
+
+Update Operations
+~~~~~~~~~~~~~~~~~
+
+To update a document, create an instance of ``mongocxx::model::update_one``. This model
+instructs the driver to update *the first* document that matches your query filter. Then,
+append the model instance to an instance of the ``mongocxx::bulk_write`` class. 
+
+Pass the following arguments to the ``mongocxx::model::update_one`` model:
+
+- **Query filter** document, which specifies the criteria used to match documents
+  in your collection.
+- **Update** document, which specifies the kind of update to perform. For more information
+  about update operations, see the :manual:`Field Update Operators
+  </reference/operator/update-field/>` guide in the {+mdb-server+} manual.
+
+The following example creates an instance of ``mongocxx::model::update_one`` and appends
+it to a ``mongocxx::bulk_write`` instance called ``bulk``:
+
+.. literalinclude:: /includes/write/bulk-write.cpp
+   :start-after: start-bulk-update-one
+   :end-before: end-bulk-update-one
+   :language: cpp
+   :dedent:
+
+To update multiple documents, create an instance of ``mongocxx::model::update_many``
+and pass in the same arguments. This model instructs the driver to update *all* documents
+that match your query filter.
+
+The following example creates an instance of ``mongocxx::model::update_many`` and appends
+it to ``bulk``:
+
+.. literalinclude:: /includes/write/bulk-write.cpp
+   :start-after: start-bulk-update-many
+   :end-before: end-bulk-update-many
+   :language: cpp
+   :dedent:
+
+.. _cpp-bulk-replace-model:
+
+Replace Operations
+~~~~~~~~~~~~~~~~~~
+
+A replace operation removes all fields and values of a specified document and
+replaces them with new ones. To perform a replace operation, create an instance
+of the ``mongocxx::model::replace_one`` class and pass it a query filter and
+the fields and values you want to store in the matching document. Then, append
+the model instance to an instance of the ``mongocxx::bulk_write`` class.
+
+The following example creates an instance of ``mongocxx::model::replace_one`` and appends
+it to a ``mongocxx::bulk_write`` instance called ``bulk``:
+
+.. literalinclude:: /includes/write/bulk-write.cpp
+   :start-after: start-bulk-replace-one
+   :end-before: end-bulk-replace-one
+   :language: cpp
+   :dedent:
+
+To replace multiple documents, you must create a new instance of ``mongocxx::model::replace_one``
+for each document.
+
+.. _cpp-bulk-delete-model:
+
+Delete Operations
+~~~~~~~~~~~~~~~~~
+
+To delete a document, create an instance of the ``mongocxx::model::delete_one`` class and
+pass in a query filter specifying the document you want to delete. This model instructs
+the driver to delete only *the first* document that matches your query filter. Then, append
+the model instance to an instance of the ``mongocxx::bulk_write`` class.
+
+The following example creates an instance of ``mongocxx::model::delete_one`` and appends
+it to a ``mongocxx::bulk_write`` instance called ``bulk``:
+
+.. literalinclude:: /includes/write/bulk-write.cpp
+   :start-after: start-bulk-delete-one
+   :end-before: end-bulk-delete-one
+   :language: cpp
+   :dedent:
+
+To delete multiple documents, create an instance of the ``mongocxx::model::delete_many``
+class and pass in a query filter specifying the document you want to delete. This model
+instructs the driver to delete *all* documents that match your query filter.
+
+The following example creates an instance of ``mongocxx::model::delete_many`` and appends
+it to ``bulk``:
+
+.. literalinclude:: /includes/write/bulk-write.cpp
+   :start-after: start-bulk-delete-many
+   :end-before: end-bulk-delete-many
+   :language: cpp
+   :dedent:
+
+Run the Bulk Operation
+----------------------
+
+To run a bulk operation, call the ``execute()`` method on an instance of the 
+``mongocxx::bulk_write`` class that contains your write models. By default, the
+``execute()`` method runs the operations in the order they're appended to the
+``mongocxx::bulk_write`` instance.
+
+The following example performs the :ref:`insert <cpp-bulk-insert-model>`,
+:ref:`update <cpp-bulk-update-model>`, :ref:`replace <cpp-bulk-replace-model>`,
+and :ref:`delete <cpp-bulk-delete-model>` operations specified in the preceding
+sections of this guide by appending each corresponding write model to an instance
+of ``mongocxx::bulk_write`` and calling the ``execute()`` method. Then, it prints
+the number of modified documents:
+
+.. io-code-block::
+
+   .. input:: /includes/write/bulk-write.cpp
+      :start-after: start-bulk-run
+      :end-before: end-bulk-run
+      :language: cpp
+      :dedent:
+      :emphasize-lines: 30
+
+   .. output::
+      
+      Modified documents: 2
+
+If any of the write operations fail, the {+driver-short+} raises a
+``mongocxx::bulk_write_exception`` and does not perform any further operations.
+
+.. tip::
+
+   To learn more about the ``modified_count()`` function, see the :ref:`cpp-bulk-return-value`
+   section of this guide.
+
+Customize Bulk Write Operations
+-------------------------------
+
+You can modify the behavior of the ``create_bulk_write()`` method by passing
+an instance of the ``mongocxx::options::bulk_write`` class as a parameter. The following
+table describes the fields you can set in a ``mongocxx::options::bulk_write``
+instance:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``ordered``
+     - | If ``true``, the driver performs the write operations in the order
+         provided. If an error occurs, the remaining operations are not
+         attempted. 
+       |
+       | If ``false``, the driver performs the operations in an
+         arbitrary order and attempts to perform all operations.
+       | Defaults to ``true``.
+
+   * - ``bypass_document_validation``
+     - | Specifies whether the operation bypasses document-level validation. For more
+         information, see :manual:`Schema
+         Validation </core/schema-validation/#schema-validation>` in the MongoDB
+         Server manual.
+       | Defaults to ``false``.
+
+   * - ``write_concern``
+     - | Specifies the write concern for the bulk operation. For more information, see
+         :manual:`Write Concern </reference/write-concern/>` in the {+mdb-server+} manual.
+
+   * - ``comment``
+     - | Attaches a comment to the operation. For more information, see the :manual:`delete command
+         fields </reference/command/delete/#command-fields>` guide in the
+         {+mdb-server+} manual.
+
+   * - ``let``
+     - | Specifies a document with a list of values to improve operation readability. Values
+         must be constant or closed expressions that don't reference document fields. For more
+         information, see the :manual:`let statement
+         </reference/command/delete/#std-label-delete-let-syntax>` in the {+mdb-server+} manual.
+
+The following example calls the ``create_bulk_write()`` method from the
+:ref:`cpp-bulk-start-operation` example on this page, but sets the ``ordered`` field
+of a ``mongocxx::options::bulk_write`` instance to ``false``:
+
+.. literalinclude:: /includes/write/bulk-write.cpp
+   :start-after: start-bulk-write-unordered
+   :end-before: end-bulk-write-unordered
+   :language: cpp
+   :dedent:
+
+If any of the write operations in an unordered bulk write fail, the {+driver-short+}
+reports the errors only after attempting all operations.
+
+.. note::
+
+   Unordered bulk operations do not guarantee order of execution. The order can
+   differ from the way you list them to optimize the runtime.
+
+.. _cpp-bulk-return-value:
+
+Return Value
+------------
+
+The ``execute()`` method returns an instance of the ``mongocxx::result::bulk_write`` class.
+The ``mongocxx::result::bulk_write`` class contains the following member functions:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Function
+     - Description
+         
+   * - ``deleted_count()``
+     - | Returns the number of documents deleted, if any.
+
+   * - ``inserted_count()``
+     - | Returns the number of documents inserted, if any.
+
+   * - ``matched_count()``
+     - | Returns the number of documents matched for an update, if applicable.
+
+   * - ``modified_count()``
+     - | Returns the number of documents modified, if any.
+
+   * - ``upserted_count()``
+     - | Returns the number of documents upserted, if any.
+
+   * - ``upserted_ids()``
+     - | Returns a map of the operation's index to the ``_id`` of the upserted documents, if
+         applicable.
+
+Additional Information
+----------------------
+
+To learn how to perform individual write operations, see the following guides:
+
+- :ref:`cpp-write-insert`
+- :ref:`cpp-write-update`
+- :ref:`cpp-write-delete`
+
+.. TODO:
+ - :ref:`cpp-write-replace`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `create_bulk_write() <{+api+}/classmongocxx_1_1v__noabi_1_1collection.html#abbf0932175201384cc902c80740adfdc>`__
+- `mongocxx::model::insert_one <{+api+}/classmongocxx_1_1v__noabi_1_1model_1_1insert__one.html>`__
+- `mongocxx::model::update_one <{+api+}/classmongocxx_1_1v__noabi_1_1model_1_1update__one.html>`__
+- `mongocxx::model::update_many <{+api+}/classmongocxx_1_1v__noabi_1_1model_1_1update__many.html>`__
+- `mongocxx::model::replace_one <{+api+}/classmongocxx_1_1v__noabi_1_1model_1_1replace__one.html>`__
+- `mongocxx::model::delete_one <{+api+}/classmongocxx_1_1v__noabi_1_1model_1_1delete__one.html>`__
+- `mongocxx::model::delete_many <{+api+}/classmongocxx_1_1v__noabi_1_1model_1_1delete__many.html>`__
+- `execute() <{+api+}/classmongocxx_1_1v__noabi_1_1bulk__write.html#a13476d87ed6d00dca52c39dc04b98568>`__
+- `mongocxx::options::bulk_write <{+api+}/classmongocxx_1_1v__noabi_1_1options_1_1bulk__write.html>`__
+- `mongocxx::result::bulk_write <{+api+}/classmongocxx_1_1v__noabi_1_1result_1_1bulk__write.html>`__
