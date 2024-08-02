@@ -13,13 +13,9 @@
          Copy the following filter into the Compass query bar and click
          :guilabel:`Find`:
 
-
          .. code-block:: javascript
 
             { dim_cm: { $gt: 25 } }
-
-         .. figure:: /images/compass-array-query-op.png
-            :alt:  Query array for at least one matching element
 
      - id: c
        content: |

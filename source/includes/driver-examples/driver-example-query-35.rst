@@ -13,13 +13,9 @@
          Copy the following filter into the Compass query bar and click
          :guilabel:`Find`:
 
-
          .. code-block:: javascript
 
             { "instock": { $elemMatch: { qty: { $gt: 10, $lte: 20 } } } }
-
-         .. figure:: /images/compass-array-multiple-cond-single-doc-2.png
-            :alt: Query for single document matching multiple conditions
      
      - id: c
        content: |
