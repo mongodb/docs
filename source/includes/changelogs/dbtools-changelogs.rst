@@ -10,6 +10,10 @@ releases.
     - Release Dates
     - MongoDB Server Support
 
+  * - :ref:`Database Tools 100.10.0 <dbtools-100.10.0-changelog>`
+    - July 2024
+    - MongoDB Server 8.0
+
   * - :ref:`Database Tools 100.9.0 - 100.9.5 <dbtools-100.9.0-changelog>`
     - June 2024
     - MongoDB Server 7.0
