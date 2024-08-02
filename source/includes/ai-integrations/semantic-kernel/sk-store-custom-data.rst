@@ -58,7 +58,7 @@
             storage=mongodb_atlas_memory_store, 
             embeddings_generator=embedding_service
          )
-         kernel.import_plugin_from_object(TextMemoryPlugin(memory), "TextMemoryPlugin")
+         kernel.add_plugin(TextMemoryPlugin(memory), "TextMemoryPlugin")
 
    .. step:: Load sample data on your |service| {+cluster+}.
 

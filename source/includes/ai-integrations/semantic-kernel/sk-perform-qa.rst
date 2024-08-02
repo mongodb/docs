@@ -34,7 +34,7 @@ context-aware response.
           template=prompt_template
        )
 
-       prompt = kernel.create_function_from_prompt(
+       prompt = kernel.add_function(
           function_name="RAG",
           plugin_name="TextMemoryPlugin",
           prompt_template_config=chat_prompt_template_config,

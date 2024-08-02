@@ -7,7 +7,7 @@
 
          .. code-block:: python
 
-            pip install --quiet --upgrade semantic-kernel openai
+            pip install --quiet --upgrade semantic-kernel openai motor
 
       #. Run the following code to import the required packages:
 
