@@ -9,7 +9,3 @@
 #. Open |compass|.
   
 #. Click :guilabel:`Yes` to auto-fill the connection settings.
-
-   .. figure:: /images/compass/autofill-connect.png
-      :scale: 55%
-      :alt: Image showing autofill connection dialog
