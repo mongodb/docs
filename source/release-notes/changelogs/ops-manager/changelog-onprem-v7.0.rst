@@ -1,3 +1,56 @@
+.. _opsmgr-server-7.0.9:
+
+|onprem| Server 7.0.9
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2024-07-18*
+
+- Updates the {+mdbagent+} to :ref:`107.0.9.8621-1 <mongodb-107.0.9.8621-1>`.
+- Adds support for |bic-full| 2.14.14.
+- Compatible with :dbtools:`MongoDB Database Tools 100.9.5
+  </release-notes/database-tools-changelog/#100.9.5-changelog>`.
+- Improves validation for :ref:`regional backup <regional-backup>`
+  configurations. 
+- Fixes the following |cve|\s:
+  
+  - `CVE-2024-5157 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-5157>`__.
+  - `CVE-2024-5159 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-5159>`__.
+  - `CVE-2024-5160 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-5160>`__.
+  - `CVE-2024-5493 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-5493>`__.
+  - `CVE-2024-5494 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-5494>`__.
+  - `CVE-2024-5495 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-5495>`__.
+  - `CVE-2024-5496 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-5496>`__.
+  - `CVE-2024-6100 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-6100>`__.
+  - `CVE-2024-6103 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-6103>`__.
+  - `CVE-2024-24786 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-24786>`__.
+
+- Fixes a potential restore validation error.
+- Fixes a bug where altering the snapshot time skips longer retained snapshots.
+
+.. _opsmgr-server-7.0.8:
+
+|onprem| Server 7.0.8
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2024-06-27*
+
+- Updates the {+mdbagent+} to :ref:`107.0.8.8615-1 <mongodb-107.0.8.8615-1>`.
+- Adds support for |bic-full| 2.14.13.
+- Improves a snapshot's ability to use the same node from a previous
+  snapshot.
+- Improves the warning when file system stores doesn't exist.
+- Ensures that a groom job has enough space to run before starting.
+- Fixes the following |cve|\s:
+  
+  - `CVE-2024-3156 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-3156>`__.
+  - `CVE-2024-5831 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-5831>`__.
+  - `CVE-2024-5832 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-5832>`__.
+  - `CVE-2024-22017 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-22017>`__.
+
+- Fixes an issue where the |http| transport for automation didn't always
+  use the configured |tls| configuration. 
+- Improves the redaction of sensitive fields.
+
 .. _opsmgr-server-7.0.7:
 
 |onprem| Server 7.0.7
