@@ -55,6 +55,15 @@ func main() {
 
 	fmt.Printf("Inserted _id values: %v\n", result)
 
+	// begin-session-txn-options
+	txnOpts := options.Transaction().SetReadConcern(readconcern.Majority())
+	sessOpts := options.Session().SetDefaultTransactionOptions(txnOpts)
+	session, err := client.StartSession(sessOpts)
+	if err != nil {
+		return err
+	}
+	// end-session-txn-options
+
 	// MANUAL TRANSACTION EXAMPLE
 	// uncomment this section to run this code
 
