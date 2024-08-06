@@ -4,6 +4,7 @@
    :class: compatibility-large
 
    * - Rust Driver Version
+     - MongoDB 8.0
      - MongoDB 7.0
      - MongoDB 6.0
      - MongoDB 5.0
@@ -11,8 +12,18 @@
      - MongoDB 4.2
      - MongoDB 4.0
      - MongoDB 3.6
+   * - 3.1 [#2.5-onwards-limitation]_
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - 
    * - 3.0 [#2.5-onwards-limitation]_
      - ⊛
+     - ✓
      - ✓
      - ✓
      - ✓
@@ -27,8 +38,10 @@
      - ✓
      - ✓
      - ✓
+     - ✓
    * - 2.7 [#2.5-onwards-limitation]_
      - ⊛
+     - ✓
      - ✓
      - ✓
      - ✓
@@ -43,7 +56,9 @@
      - ✓
      - ✓
      - ✓
+     - ✓
    * - 2.5 [#2.5-onwards-limitation]_
+     - ⊛
      - ⊛
      - ⊛
      - ✓
@@ -54,12 +69,14 @@
    * - 2.4 [#2.4-limitation]_
      - ⊛
      - ⊛
+     - ⊛
      - ✓
      - ✓
      - ✓
      - ✓
      - ✓
    * - 2.3 [#2.2-2.3-limitation]_
+     - ⊛
      - ⊛
      - ⊛
      - ✓
@@ -70,6 +87,7 @@
    * - 2.2 [#2.2-2.3-limitation]_
      - ⊛
      - ⊛
+     - ⊛
      - ✓
      - ✓
      - ✓
@@ -78,12 +96,14 @@
    * - 2.1 [#2.1-limitation]_
      - ⊛
      - ⊛
+     - ⊛
      - ✓
      - ✓
      - ✓
      - ✓
      - ✓
    * - 2.0 [#2.0-limitation]_
+     - ⊛
      - ⊛
      - ⊛
      - ✓
