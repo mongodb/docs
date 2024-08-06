@@ -13,13 +13,9 @@
          Copy the following filter into the Compass query bar and click
          :guilabel:`Find`:
 
-
          .. code-block:: javascript
 
             { "tags": { $size: 3 } }
-
-         .. figure:: /images/compass-array-query-by-size.png
-            :alt: Query for array by number of elements
 
      - id: c
        content: |
