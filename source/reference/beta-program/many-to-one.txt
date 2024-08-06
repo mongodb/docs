@@ -1,0 +1,100 @@
+.. _c2c-beta-many-to-one:
+
+======================
+Many-to-One Migrations
+======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/beta-feature.rst
+
+.. include:: /includes/many-to-one-cluster.rst
+
+Syntax 
+------
+
+To sync multiple source clusters with one destination cluster, run the following 
+commands when starting :ref:`mongosync <c2c-mongosync>`: 
+
+.. code-block:: shell
+
+   ./bin/mongosync \
+         --cluster0 <source-A-connection-string> \
+         --cluster1 <destination-connection-string> \
+         --migrationName <string>
+
+   ./bin/mongosync \
+         --cluster0 <source-B-connection-string> \
+         --cluster1 <destination-connection-string> \
+         --migrationName <string>
+
+To start the sync operation between the source clusters and the
+destination cluster, see :ref:`c2c-quickstart-synchronize`.
+
+Behavior 
+--------
+
+A namespace is a ``database_name.collection_name`` combination. You can only 
+sync namespaces that don't conflict. 
+   
+For example, consider this scenario:
+
+- Two source clusters S1 and S2.
+- A destination cluster D.
+- Databases named ``inventory`` and ``sales`` on both S1 and S2.
+- Collections named ``products``, ``orderLines``, ``orderStatus``, and 
+  ``orders`` on both S1 and S2.
+- You can sync both of these combinations:
+  
+  - ``inventory.products`` and ``sales.orderStatus`` on S1 with D.
+  - ``inventory.orderLines`` and ``sales.orders`` on S2 with D.
+
+- You cannot sync both of these combinations because they conflict:
+
+  - ``inventory.products`` and ``inventory.orderLines`` on S1 with D. If D is 
+    initially empty, you can sync S1 with D. ``inventory.products`` and 
+    ``inventory.orderLines`` are copied from S1 to D.
+  - ``inventory.products`` and ``inventory.orderLines`` on S2 with D. You cannot 
+    sync S2 with D because ``inventory.products`` and ``inventory.orderLines`` 
+    conflict with the namespaces already on D from the scenario in the previous 
+    point.
+
+Migration Name 
+~~~~~~~~~~~~~~
+
+.. include:: /includes/migration-name-limitation.rst
+
+.. _c2c-beta-many-to-one-example: 
+
+Example 
+-------
+
+The following example connects source clusters running on port ``27000``
+and ``27001`` with a destination cluster running on port ``35000``. The command 
+also sets the :option:`--migrationName` option to 
+describe the operations and store migration metadata for each sync.
+
+.. code-block:: shell
+
+   ./bin/mongosync \
+         --cluster0 "mongodb://localhost:27000" \
+         --cluster1 "mongodb://localhost:35000" \
+         --migrationName "cluster_27000_to_cluster_35000_sync"
+
+   ./bin/mongosync \
+         --cluster0 "mongodb://localhost:27001" \
+         --cluster1 "mongodb://localhost:35000" \
+         --migrationName "cluster_27001_to_cluster_35000_sync"
+
+Learn More 
+----------
+
+- :ref:`c2c-beta-program`
+- :ref:`c2c-config`
+- :ref:`c2c-mongosync`
