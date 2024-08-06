@@ -1,3 +1,18 @@
+.. _opsmgr-server-7.0.10:
+
+|onprem| Server 7.0.10
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2024-08-01*
+
+- Updates the {+mdbagent+} to :ref:`107.0.10.8627-1 <mongodb-107.0.10.8627-1>`.
+- Updates :abbr:`JDK (Java Development Kit)` to ``jdk-17.0.12+7``. 
+- Improves metadata clean up when terminating backup jobs.
+- Fixes the following issues:
+
+  - Creating a new regional backup errors on internal sync store assignment. 
+  - Agent potentially crashes during restart due to a race condition.
+
 .. _opsmgr-server-7.0.9:
 
 |onprem| Server 7.0.9
