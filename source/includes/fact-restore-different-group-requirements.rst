@@ -1,4 +1,5 @@
-You can choose to restore to a cluster of a different project:
+You can choose to restore to a cluster of a different project in the
+same or different organization:
 
 - To restore to another |mms| project, you must have
   :ref:`Automation Admin <automation-admin-role>` or
