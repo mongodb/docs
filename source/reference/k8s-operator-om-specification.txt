@@ -20,7 +20,7 @@ After you create or update an |onprem| resource specification, you
 direct |k8s-op-full| to apply this specification to your |k8s|
 environment. |k8s-op-short| creates the services and custom |k8s|
 resources that |onprem| requires, then deploys |onprem| and its backing
-application database in containers in your |k8s| environment.
+{+appdb+} in containers in your |k8s| environment.
 
 Each |onprem| resource uses an |k8s-obj| specification in |yaml| to
 define the characteristics and settings of the deployment.
@@ -272,7 +272,7 @@ resources.
    This |certauth| signs the certificates that:
 
    - clients use to connect to the |application|, and
-   - agents in the application database |k8s-pods| use to communicate
+   - agents in the {+appdb+} |k8s-pods| use to communicate
      with |onprem|.
 
    .. include:: /includes/admonitions/warning-concatenate-download-certs.rst
@@ -1019,12 +1019,12 @@ snapshots, and secure connections to |s3| with |tls| using keys
 issued by custom |certauth|. 
 
 To configure custom CA keys, use the ConfigMap with which you 
-configured |tls| for your application database as described on
+configured |tls| for your {+appdb+} as described on
 the :guilabel:`TLS-Encrypted Connection (HTTPS)` tab of 
 :ref:`deploy-om-container`.
 Set :opsmgrkube:`spec.applicationDatabase.security.tls.ca` to this ConfigMap.
 
-You can use |tls| for both |s3| and your application database, or for 
+You can use |tls| for both |s3| and your {+appdb+}, or for 
 |s3| only. 
 
 - To use |tls| for both, get certificates for both purposes from the 
@@ -1134,7 +1134,7 @@ You can use |tls| for both |s3| and your application database, or for
 
    .. note::
 
-      Omit this setting to use the application database to store
+      Omit this setting to use the {+appdb+} to store
       metadata for the |s3| oplog store.
 
       If you omit this setting, you must also omit the
@@ -1350,7 +1350,7 @@ You can use |tls| for both |s3| and your application database, or for
 
    .. note::
 
-      Omit this setting to use the application database to store
+      Omit this setting to use the {+appdb+} to store
       metadata for the |s3| snapshot store.
 
       If you omit this setting, you must also omit the
@@ -1640,11 +1640,58 @@ database settings specific to your |multi-cluster-om|, see
       especially when the system is under heavy load. We recommend using the ``file``
       option for production systems to ensure accurate timestamps.
 
-.. opsmgrkube:: spec.applicationDatabase.memberConfig.priority
+.. setting:: spec.applicationDatabase.memberConfig
+
+   *Type*: array of objects
+
+   Specification for each {+appdb+} replica set member in your |onprem| deployment.
+   
+   .. important::
+
+      If you set :opsmgrkube:`spec.topology` to ``MultiCluster``, use 
+      :setting:`spec.applicationDatabase.clusterSpecList.memberConfig` instead 
+      of :setting:`spec.applicationDatabase.memberConfig`.
+      In a |multi-cluster-om|, the |k8s-op-short| ignores all parameters under 
+      :setting:`spec.applicationDatabase.memberConfig`.      
+   
+   The number of elements in the ``memberConfig`` list must equal 
+   :setting:`spec.applicationDatabase.members <spec.members>`.
+   
+   The order of the elements in the ``memberConfig`` list must reflect the order 
+   of members in the replica set. For example, the first element of the array 
+   affects the Pod at index ``0``, the second element affects index ``1``, and so on.
+   
+   .. example::
+   
+      Consider the following example specification for a 
+      three-member replica set for the {+appdb+}:
+
+      .. code-block:: yaml
+   
+         spec:
+           applicationDatabase:
+             memberConfig:
+               - votes: 1
+                 priority: "0.5"
+                 tags:
+                   tag1: "value1"
+                   environment: "prod"
+               - votes: 1
+                 priority: "1.5"
+                 tags:
+                   tag2: "value2"
+                   environment: "prod"
+               - votes: 0
+                 priority: "0"
+                 tags:
+                   tag2: "value2"
+                   environment: "prod"
+
+.. setting:: spec.applicationDatabase.memberConfig.priority
 
    *Type*: string
    
-   Number that indicates the relative likelihood of an application database replica set member to become the `primary <https://www.mongodb.com/docs/manual/reference/glossary/#std-term-primary>`__.
+   Number that indicates the relative likelihood of an {+appdb+} replica set member to become the `primary <https://www.mongodb.com/docs/manual/reference/glossary/#std-term-primary>`__.
 
    * To increase the relative likelihood that a replica set member becomes the primary, specify a higher ``priority`` value.
    
@@ -1654,18 +1701,18 @@ database settings specific to your |multi-cluster-om|, see
    
    A member with a ``memberConfig.priority`` of ``0`` is ineligible to become the primary. To learn more, see :manual:`Member Priority </core/replica-set-elections/#voting-members>`.
 
-.. opsmgrkube:: spec.applicationDatabase.memberConfig.tags
+.. setting:: spec.applicationDatabase.memberConfig.tags
 
    *Type*: map
 
    Map of :manual:`replica set tags </tutorial/configure-replica-set-tag-sets/>` for directing
-   read and write operations to specific members of your application database replica set.
+   read and write operations to specific members of your {+appdb+} replica set.
 
-.. opsmgrkube:: spec.applicationDatabase.memberConfig.votes
+.. setting:: spec.applicationDatabase.memberConfig.votes
 
    *Type*: number
 
-   Determines whether an application database replica set member can vote in an :manual:`election </core/replica-set-elections/#voting-members>`. Set to ``1`` to allow the member to vote. Set to ``0`` to exclude the member from an election. 
+   Determines whether an {+appdb+} replica set member can vote in an :manual:`election </core/replica-set-elections/#voting-members>`. Set to ``1`` to allow the member to vote. Set to ``0`` to exclude the member from an election. 
 
 .. opsmgrkube:: spec.applicationDatabase.passwordSecretKeyRef.name
 
@@ -1692,7 +1739,7 @@ database settings specific to your |multi-cluster-om|, see
    *Type*: string
 
    Text to prefix to the |k8s| |k8s-secret| that you
-   created that contains your application database's |tls| key and 
+   created that contains your {+appdb+}'s |tls| key and 
    certificate.
 
    You must name your secret ``<prefix>-<metadata.name>-db-cert``.
@@ -1705,15 +1752,15 @@ database settings specific to your |multi-cluster-om|, see
    *Type*: string
 
    Name of the |k8s| |k8s-configmap| containing the |certauth| file for
-   the application database.
+   the {+appdb+}.
 
    .. important::
 
       :opsmgrkube:`spec.applicationDatabase.security.tls.ca` is required
-      if you use a custom |certauth| to sign your application database's
+      if you use a custom |certauth| to sign your {+appdb+}'s
       |tls| certificates.
 
-      The |k8s-op-short| requires that you name the application database's
+      The |k8s-op-short| requires that you name the {+appdb+}'s
       certificate ``ca-pem`` in the ConfigMap.
 
       The |certauth| specified in this section is also used for 
@@ -1724,9 +1771,9 @@ database settings specific to your |multi-cluster-om|, see
 
    This |certauth| signs the certificates that:
    
-   - the application database replica set members use to communicate
+   - the {+appdb+} replica set members use to communicate
      with one another, and
-   - |onprem| uses to communicate with the application database replica
+   - |onprem| uses to communicate with the {+appdb+} replica
      set.
 
    .. include:: /includes/admonitions/warning-concatenate-download-certs.rst
@@ -1742,7 +1789,7 @@ database settings specific to your |multi-cluster-om|, see
      setting.
 
   Encrypts communications using |tls| certificates between |onprem| and
-  the application database.
+  the {+appdb+}.
 
 .. _om-prometheus-settings:
 
@@ -1750,7 +1797,7 @@ Prometheus Settings
 ~~~~~~~~~~~~~~~~~~~
 
 The following settings apply when you use Prometheus with your 
-application database:
+{+appdb+}:
 
 .. setting:: spec.applicationDatabase.prometheus
 
@@ -1773,7 +1820,7 @@ application database:
 
    *Conditional* Object that contains the details of the |k8s-secret| for 
    basic HTTP authentication. If you want to use Prometheus with your 
-   application database, you must specify this setting.
+   {+appdb+}, you must specify this setting.
 
 .. setting:: spec.applicationDatabase.prometheus.passwordSecretRef.key
 
@@ -1793,7 +1840,7 @@ application database:
 
    Human-readable label that identifies the |k8s-secret| that contains 
    the password for basic HTTP authentication. If you want to use 
-   Prometheus with your application database, you must specify this 
+   Prometheus with your {+appdb+}, you must specify this 
    setting.
 
 .. setting:: spec.applicationDatabase.prometheus.port
@@ -1828,7 +1875,7 @@ application database:
 
    *Conditional*. Human-readable label that identifies the |k8s-secret|
    that contains the password for |tls| authentication. If you want to use
-   Prometheus with your application database and you want to use |tls|
+   Prometheus with your {+appdb+} and you want to use |tls|
    authentication, you must specify this setting.
 
 .. setting:: spec.applicationDatabase.prometheus.username
@@ -2108,4 +2155,103 @@ This section describes settings specific to your
      field.
 
    To learn more, see the :ref:`example of the multi-cluster resource specification <om_resource_spec_example_multi_cluster>`.
+
+{+appdb+} Optional Settings 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This section describes settings specific to your 
+|multi-cluster-om| that you can use for your {+appdb+}.
+
+.. setting:: spec.applicationDatabase.clusterSpecList.memberConfig
+
+   *Type*: array of strings
+
+   Specification for each {+appdb+} replica set member in your |multi-cluster-om|.
+   
+   .. important::
+
+      If you set :opsmgrkube:`spec.topology` to ``SingleCluster``, use 
+      :setting:`spec.applicationDatabase.memberConfig` instead of :setting:`spec.applicationDatabase.clusterSpecList.memberConfig`.      
+   
+   The number of elements in the ``memberConfig`` list must equal 
+   :opsmgrkube:`spec.applicationDatabase.clusterSpecList.members`.
+   
+   The order of the elements in the ``memberConfig`` list must reflect the order 
+   of members in the replica set. For example, the first element of the array 
+   affects the Pod at index ``0``, the second element affects index ``1``, and so on.
+   
+   .. example::
+   
+      Consider the following example specification for a 
+      three-member replica set for the {+appdb+}:
+   
+      .. code-block:: yaml
+   
+         spec:
+           replicas: 3
+           version: 4.4.1
+           backup:
+             enabled: true
+           storage:
+             resources:
+               requests:
+                 storage: 10Gi
+               storageClassName: standard
+           applicationDatabase:
+             clusterSpecList:
+               - name: appdb
+                 members: 3
+                 memberConfig:
+                   - votes: 1
+                     priority: "0.5"
+                     tags:
+                       tag1: "value1"
+                       environment: "prod"
+                   - votes: 1
+                     priority: "1.5"
+                     tags:
+                       tag2: "value2"
+                       environment: "prod"
+                   - votes: 0
+                     priority: "0"
+                     tags:
+                       tag2: "value2"
+                       environment: "prod"         
+
+.. setting:: spec.applicationDatabase.clusterSpecList.memberConfig.priority
+
+   *Type*: string
+   
+   Number that indicates the relative likelihood of an {+appdb+} replica 
+   set member to become the 
+   `primary <https://www.mongodb.com/docs/manual/reference/glossary/#std-term-primary>`__.
+
+   * To increase the relative likelihood that a replica set member becomes the 
+     primary, specify a higher ``priority`` value.
+   
+   * To decrease the relative likelihood that a replica set member becomes the 
+     primary, specify a lower ``priority`` value.
+   
+   For example, a member with a ``memberConfig.priority`` of ``1.5`` is more 
+   likely than a member with a ``memberConfig.priority`` of ``0.5`` to become the 
+   primary. 
+   
+   A member with a ``memberConfig.priority`` of ``0`` is ineligible to become the 
+   primary. To learn more, 
+   see :manual:`Member Priority </core/replica-set-elections/#voting-members>`.
+
+.. setting:: spec.applicationDatabase.clusterSpecList.memberConfig.tags
+
+   *Type*: map
+
+   Map of :manual:`replica set tags </tutorial/configure-replica-set-tag-sets/>` 
+   for directing read and write operations to specific members of your {+appdb+} replica set.
+
+.. setting:: spec.applicationDatabase.clusterSpecList.memberConfig.votes
+
+   *Type*: number
+
+   Determines whether an {+appdb+} replica set member can vote in an 
+   :manual:`election </core/replica-set-elections/#voting-members>`. Set to ``1`` 
+   to allow the member to vote. Set to ``0`` to exclude the member from an election.
 
