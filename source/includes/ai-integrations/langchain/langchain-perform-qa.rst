@@ -57,7 +57,7 @@
             print("Answer: " + answer)
 
             # Return source documents
-            documents = retriever.get_relevant_documents(question)
+            documents = retriever.invoke(question)
             print("\nSource documents:")
             pprint.pprint(documents)
 
@@ -159,7 +159,7 @@
             print("Answer: " + answer)
 
             # Return source documents
-            documents = retriever.get_relevant_documents(question)
+            documents = retriever.invoke(question)
             print("\nSource documents:")
             pprint.pprint(documents)
 
