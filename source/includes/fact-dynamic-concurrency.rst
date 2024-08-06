@@ -1,7 +1,7 @@
 Starting in version 7.0, MongoDB uses a default algorithm to dynamically
 adjust the maximum number of concurrent storage engine transactions
 (read and write tickets). The dynamic concurrent storage engine
-transaction algirithm optimizes database throughput during cluster 
+transaction algorithm optimizes database throughput during cluster 
 overload. The maximum number of concurrent storage engine transactions
 (read and write tickets) never exceeds 128 read tickets and 128
 write tickets and may differ across nodes in a cluster. The maximum
