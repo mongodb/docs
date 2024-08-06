@@ -671,3 +671,144 @@ Behavior
 
 :pipeline:`$source` must be the first stage of any pipeline it appears 
 in. You can use only one :pipeline:`$source` stage per pipeline.
+
+.. _atlas-sp-agg-source-examples:
+
+Examples
+~~~~~~~~
+
+A streaming data source generates detailed weather reports from
+various locations, conformant to the schema of the :ref:`Sample
+Weather Dataset <sample-weather>`. The following aggregation has three
+stages:
+
+1. The :pipeline:`$source` stage establishes a connection with the
+   {+kafka+} broker collecting these reports in a topic named
+   ``my_weatherdata``, exposing each record as it is ingested to the
+   subsequent aggregation stages. This stage also overrides the name
+   of the timestamp field it projects, setting it to
+   ``ingestionTime``.
+
+2. The :pipeline:`$match` stage excludes documents that have a
+   ``dewPoint.value`` of less than or equal to ``5.0`` and passes
+   along the documents with ``dewPoint.value`` greater than ``5.0`` to
+   the next stage.
+
+3. The :pipeline:`$merge` stage writes the output to an {+service+}
+   collection named ``stream`` in the ``sample_weatherstream``
+   database. If no such database or collection exist, {+service+}
+   creates them.
+
+.. code-block:: json
+   :copyable: true
+   
+   {
+     '$source': {
+       connectionName: 'sample_weatherdata',
+       topic: 'my_weatherdata',
+       tsFieldName: 'ingestionTime'
+     }
+   },
+   { '$match': { 'dewPoint.value': { '$gt': 5 } } },
+   {
+     '$merge': {
+       into: {
+	 connectionName: 'weatherStreamOutput',
+	 db: 'sample_weatherstream',
+	 coll: 'stream'
+       }
+     }
+   }
+
+To view the documents in the resulting ``sample_weatherstream.sample``
+collection, connect to your {+service+} cluster and run the following command:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: json
+
+      db.getSiblingDB("sample_weatherstream").stream.find()
+
+   .. output::
+      :language: json
+ 
+      {
+	_id: ObjectId('66ad2edfd4fcac13b1a28ce3'),
+	_stream_meta: {
+	  source: {
+	    type: 'kafka',
+	    topic: 'my_weatherdata',
+	    partition: 0,
+	    offset: Long('165235')
+	  }
+	},
+	airTemperature: { quality: '1', value: 27.7 },
+	atmosphericPressureChange: {
+	  quantity24Hours: { quality: '9', value: 99.9 },
+	  quantity3Hours: { quality: '1' },
+	  tendency: { code: '1', quality: '1' }
+	},
+	atmosphericPressureObservation: {
+	  altimeterSetting: { quality: '1', value: 1015.9 },
+	  stationPressure: { quality: '1', value: 1021.9 }
+	},
+	callLetters: 'CGDS',
+	dataSource: '4',
+	dewPoint: { quality: '9', value: 25.7 },
+	elevation: 9999,
+	extremeAirTemperature: { code: 'N', period: 99.9, quantity: '9', value: -30.4 },
+	ingestionTime: ISODate('2024-08-02T19:09:18.071Z'),
+	liquidPrecipitation: { condition: '9', depth: 160, period: 24, quality: '2' },
+	pastWeatherObservationManual: {
+	  atmosphericCondition: { quality: '1', value: '8' },
+	  period: { quality: '9', value: 3 }
+	},
+	position: { coordinates: [ 153.3, 50.7 ], type: 'Point' },
+	precipitationEstimatedObservation: { discrepancy: '4', estimatedWaterDepth: 4 },
+	presentWeatherObservationManual: { condition: '53', quality: '1' },
+	pressure: { quality: '1', value: 1016.3 },
+	qualityControlProcess: 'V020',
+	seaSurfaceTemperature: { quality: '9', value: 27.6 },
+	sections: [ 'AA2', 'SA1', 'MW1', 'AG1', 'GF1' ],
+	skyCondition: {
+	  cavok: 'N',
+	  ceilingHeight: { determination: 'C', quality: '1', value: 6900 }
+	},
+	skyConditionObservation: {
+	  highCloudGenus: { quality: '1', value: '05' },
+	  lowCloudGenus: { quality: '9', value: '03' },
+	  lowestCloudBaseHeight: { quality: '9', value: 150 },
+	  lowestCloudCoverage: { quality: '1', value: '05' },
+	  midCloudGenus: { quality: '9', value: '08' },
+	  totalCoverage: { opaque: '99', quality: '1', value: '06' }
+	},
+	skyCoverLayer: {
+	  baseHeight: { quality: '9', value: 99999 },
+	  cloudType: { quality: '9', value: '05' },
+	  coverage: { quality: '1', value: '04' }
+	},
+	st: 'x+35700-027900',
+	type: 'SAO',
+	visibility: {
+	  distance: { quality: '1', value: 4000 },
+	  variability: { quality: '1', value: 'N' }
+	},
+	waveMeasurement: {
+	  method: 'I',
+	  seaState: { code: '99', quality: '9' },
+	  waves: { height: 99.9, period: 14, quality: '9' }
+	},
+	wind: {
+	  direction: { angle: 280, quality: '9' },
+	  speed: { quality: '1', rate: 30.3 },
+	  type: '9'
+	}
+      }
+
+.. note::
+
+   The preceding is a representative example. Streaming data are
+   not static, and each user sees distinct documents.
+
