@@ -12,5 +12,5 @@
 - :dbcommand:`update`
 
 These operations are also included in the logging of
-slow queries (see :setting:`~operationProfiling.slowOpThresholdMs` for
-more information about slow query logging).
+slow queries. See :setting:`~operationProfiling.slowOpThresholdMs` for
+more information about slow query logging.
