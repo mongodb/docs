@@ -11,6 +11,9 @@ The following restrictions apply to namespace remapping:
 
 - Remapped database names on the destination cluster cannot differ only in case.
 
+- You can't specify a namespace remap and set the ``reversible`` flag to
+  ``true``.
+
 - The remap cannot produce namespace conflicts on the destination cluster.
 
   For example:
