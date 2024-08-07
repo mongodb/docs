@@ -5,10 +5,10 @@
       
    .. step:: Open the Cluster Creation View.
       
-      Click the :guilabel:`Add` arrow in the top-right of the
-      :guilabel:`Deployment` page. Select :guilabel:`New Cluster`
-      from the drop-down menu to open the :guilabel:`Create New Cluster`
-      view.
+      a. Click the :guilabel:`Add` arrow in the top-right of the page. 
+      
+      #. Select :guilabel:`New Cluster` from the drop-down menu to open 
+         the :guilabel:`Create New Cluster` view.
       
    .. step:: Configure Cluster-Wide Settings.
       
@@ -220,10 +220,12 @@
    .. step:: Set any advanced configuration options for your MongoDB sharded cluster.
       
    .. step:: Click :guilabel:`Create Cluster`.
+
       |mms| redirects you to the :guilabel:`Deployment` view, where you
       must review the cluster configuration before |mms| begins deployment.
       
    .. step:: Click :guilabel:`Review & Deploy` to review your changes.
+    
    .. step:: Review and approve your changes.
       
       |mms| displays your proposed changes.

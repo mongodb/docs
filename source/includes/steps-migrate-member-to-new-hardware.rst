@@ -91,16 +91,20 @@
       Otherwise, click :guilabel:`Cancel` and you can make
       additional changes.
       
+   .. include:: /includes/nav/steps-deployment.rst
+   
    .. step:: Verify that the new member has synchronized.
 
-      On the :guilabel:`Deployment` page, click the name of the replica
+      Click the name of the replica
       set to open the cluster view. Verify that the
       :manual:`status </reference/replica-states>` for each
       new member is no longer in the ``Recovering`` state.
+
+   .. include:: /includes/nav/steps-deployment.rst
       
    .. step:: Remove the old member from the replica set.
       
-      1. From the :guilabel:`Deployment` view, click :guilabel:`Modify`. 
+      1. Click :guilabel:`Modify`. 
       #. Navigate to the :guilabel:`Member Configuration` section.
       #. Click the :icon:`ellipsis-h` ellipses button for the member you want 
          to remove.
@@ -114,17 +118,18 @@
          completes. For complete documentation on replica set elections,
          see :manual:`Replica Set Elections </core/replica-set-elections>`.
       
-      Click :guilabel:`Save` to return to the :guilabel:`Deployment`
-      screen. 
+      #. Click :guilabel:`Save`. 
       
-      Click :guilabel:`Review Changes` and then click
+      #. Click :guilabel:`Review Changes` and then click
       :guilabel:`Confirm & Deploy`. |mms| converts the removed
       replica set member to a standalone cluster visible in the
       :guilabel:`Deployment` view.
       
+   .. include:: /includes/nav/steps-deployment.rst
+   
    .. step:: Shut down the old member.
       
-      From the :guilabel:`Deployment` view, click the standalone's ellipsis 
+      Click the standalone's ellipsis 
       icon and select :guilabel:`Shutdown`. Click :guilabel:`Review Changes` 
       and then click :guilabel:`Confirm & Deploy`.
       

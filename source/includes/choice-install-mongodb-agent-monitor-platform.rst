@@ -6,7 +6,7 @@
       Use this procedure to install the {+mdbagent+} on x86_64
       architecture running Microsoft Windows:
 
-      .. include:: /includes/steps/install-mongodb-agent-monitor-on-windows.rst
+      .. include:: /includes/steps-install-mongodb-agent-monitor-on-windows.rst
 
    .. tab::
       :tabid: debian

@@ -6,7 +6,7 @@
       Use this procedure to update to the {+mdbagent+} on x86_64
       architecture running Microsoft Windows:
 
-      .. include:: /includes/steps/update-backup-to-mongodb-agent-on-windows.rst
+      .. include:: /includes/steps-update-backup-to-mongodb-agent-on-windows.rst
 
    .. tab::
       :tabid: debian

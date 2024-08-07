@@ -5,10 +5,10 @@
       
    .. step:: Open the Cluster Creation View.
 
-      Click the :guilabel:`Add` arrow in the top-right of the
-      :guilabel:`Deployment` page. Select :guilabel:`New Replica Set`
-      from the drop-down menu to open the :guilabel:`Create New Replica Set`
-      view.
+      a. Click the :guilabel:`Add` arrow in the top-right of the page. 
+      
+      #. Select :guilabel:`New Replica Set` from the drop-down menu to 
+         open the :guilabel:`Create New Replica Set` view.
       
    .. step:: Configure Cluster-Wide Settings.
       
@@ -204,6 +204,7 @@
       Options`, see :doc:`/reference/deployment-advanced-options`.
       
    .. step:: Click :guilabel:`Create Replica Set`.
+
       |mms| automatically deploys the replica set as configured.
       You can monitor the progress of cluster deployment from the
       :guilabel:`Deployment` view.

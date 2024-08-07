@@ -5,8 +5,6 @@
 
    .. include:: /includes/nav/steps-processes.rst
       
-   .. step:: Navigate to the :guilabel:`Processes` tab for your deployment.
-      
    .. step:: Choose :guilabel:`New BI Connector`.
 
       a. Click the :guilabel:`Add New` dropdown menu.

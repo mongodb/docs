@@ -3,7 +3,7 @@
       
    .. include:: /includes/nav/steps-deployment.rst
       
-   .. step:: Navigate to the :guilabel:`Processes` tab for your deployment.
+   .. include:: /includes/nav/steps-processes.rst
       
    .. step:: Click :guilabel:`MODIFY` next to the deployment that you wish to edit.
       
