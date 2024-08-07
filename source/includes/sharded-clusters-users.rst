@@ -8,4 +8,4 @@ administrative user.
 
 Shard-local users exist only in the specific shard and should only be
 used for shard-specific maintenance and configuration. You cannot
-connect to the :binary:`~bin.mongos` with shard-local users.
+connect to the ``mongos`` with shard-local users.
