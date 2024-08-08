@@ -13,13 +13,9 @@
          Copy the following filter into the Compass query bar and click
          :guilabel:`Find`:
 
-
          .. code-block:: javascript
 
             { status: "D" }
-
-         .. figure:: /images/compass-find-filter-inventory.png
-            :alt: Query using equality condition
 
      - id: c
        content: |

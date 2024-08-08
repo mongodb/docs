@@ -13,13 +13,10 @@
          Copy the following filter into the Compass query bar and click
          :guilabel:`Find`:
 
-
          .. code-block:: javascript
 
             { status: "A", qty: { $lt: 30 } }
 
-         .. figure:: /images/compass-find-filter-and.png
-            :alt: Query using multiple conditions with AND
 
      - id: c
        content: |

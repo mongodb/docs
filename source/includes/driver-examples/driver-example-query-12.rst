@@ -13,13 +13,9 @@
          Copy the following filter into the Compass query bar and click
          :guilabel:`Find`:
 
-
          .. code-block:: javascript
 
             { $or: [ { status: "A" }, { qty: { $lt: 30 } } ] }
-
-         .. figure:: /images/compass-find-filter-or.png
-            :alt: Query using OR
 
      - id: c
        content: |

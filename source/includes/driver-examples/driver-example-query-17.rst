@@ -13,13 +13,9 @@
          Copy the following filter into the Compass query bar and click
          :guilabel:`Find`:
 
-
          .. code-block:: javascript
 
             { "size.uom": "in" }
-
-         .. figure:: /images/compass-find-nested-field.png
-            :alt: Query single nested field
 
      - id: c
        content: |
