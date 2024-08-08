@@ -68,29 +68,29 @@
       
           Open the :setting:`mmsConfigBackup` file in your preferred text editor and find the ``autoPwd`` value.
 
-          .. example::
+    .. example::
 
-             If the |mms| project has :doc:`Username/Password 
-             </tutorial/enable-mongodbcr-authentication-for-group>`
-             mechanism selected for its authentication settings, add the
-             project's |mms| {+mdbagent+}s User ``mms-automation`` to
-             the ``admin`` database in the MongoDB deployment to import.
+        If the |mms| project is using :doc:`Username/Password 
+        </tutorial/enable-mongodbcr-authentication-for-group>`
+        authentication, add the
+        project's |mms| {+mdbagent+}s User ``mms-automation`` to
+        the ``admin`` database in the MongoDB deployment to import.
 
-             .. code-block:: javascript
+        .. code-block:: javascript
 
-                db.getSiblingDB("admin").createUser(
-                   {
-                     user: "mms-automation",
-                     pwd: <password>,
-                     roles: [
-                       'clusterAdmin',
-                       'dbAdminAnyDatabase',
-                       'readWriteAnyDatabase',
-                       'userAdminAnyDatabase',
-                       'restore',
-                       'backup'
-                     ]
-                   }
+          db.getSiblingDB("admin").createUser(
+              {
+                user: "mms-automation",
+                pwd: <password>,
+                roles: [
+                  'clusterAdmin',
+                  'dbAdminAnyDatabase',
+                  'readWriteAnyDatabase',
+                  'userAdminAnyDatabase',
+                  'restore',
+                  'backup'
+                ]
+              }
 
 - When you add a cluster under |mms|, |mms| automatically enables log
   :manual:`rotation </tutorial/rotate-log-files/>`, which could collide
