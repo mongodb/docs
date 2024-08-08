@@ -4,20 +4,20 @@
    .. step:: Create the ``init.d`` script 
     
       Create the following file and save it at 
-      ``/etc/init.d/enable-transparent-hugepages``:
+      ``/etc/init.d/disable-transparent-hugepages``:
 
       .. code-block:: sh
         
          #!/bin/bash
          ### BEGIN INIT INFO
-         # Provides:          enable-transparent-hugepages
+         # Provides:          disable-transparent-hugepages
          # Required-Start:    $local_fs
          # Required-Stop:
          # X-Start-Before:    mongod mongodb-mms-automation-agent
          # Default-Start:     2 3 4 5
          # Default-Stop:      0 1 6
-         # Short-Description: Enable Linux Transparent Hugepages
-         # Description:       Enable Linux Transparent Hugepages, to improve
+         # Short-Description: Disable Linux Transparent Hugepages
+         # Description:       Disable Linux Transparent Hugepages, to improve
          #                    database performance.
          ### END INIT INFO
 
@@ -31,7 +31,7 @@
                return 0
              fi
 
-             echo 'always' | tee ${thp_path}/enabled > /dev/null && echo defer+madvise | tee ${thp_path}/defrag > /dev/null && echo 0 | tee ${thp_path}/khugepaged/max_ptes_none > /dev/null && echo 1 | tee /proc/sys/vm/overcommit_memory > /dev/null'
+             echo 'never' | tee /sys/kernel/mm/transparent_hugepage/enabled > /dev/null && echo 'never' | tee /sys/kernel/mm/transparent_hugepage/defrag > /dev/null
 
              unset thp_path
              ;;
@@ -43,7 +43,7 @@
 
       .. code-block:: sh 
         
-         sudo chmod 755 /etc/init.d/enable-transparent-hugepages
+         sudo chmod 755 /etc/init.d/disable-transparent-hugepages
 
    .. step:: Run the script 
     
@@ -51,31 +51,29 @@
 
       .. code-block:: sh 
         
-         sudo /etc/init.d/enable-transparent-hugepages start
+         sudo /etc/init.d/disable-transparent-hugepages start
 
       To verify that the relevant THP settings have changed, run the
       following command:
       
       .. code-block:: sh 
         
-         cat /sys/kernel/mm/transparent_hugepage/enabled && cat /sys/kernel/mm/transparent_hugepage/defrag && cat /sys/kernel/mm/transparent_hugepage/khugepaged/max_ptes_none && cat /proc/sys/vm/overcommit_memory
+         cat /sys/kernel/mm/transparent_hugepage/enabled && cat /sys/kernel/mm/transparent_hugepage/defrag
          
       On Red Hat Enterprise Linux and potentially other Red Hat-based
       derivatives, you may instead need to use the following:
       
       .. code-block:: sh 
         
-         cat /sys/kernel/mm/redhat_transparent_hugepage/enabled
+         cat /sys/kernel/mm/redhat_transparent_hugepage/enabled && cat /sys/kernel/mm/redhat_transparent_hugepage/defrag
 
       The output should resemble the following: 
 
       .. code-block:: bash
          :copyable: false 
 
-         always 
-         defer+madvise
-         0
-         1
+         never 
+         never
 
    .. step:: Configure your operating system to run it on boot 
     
@@ -94,19 +92,19 @@
 
            - .. code:: sh
 
-                sudo update-rc.d enable-transparent-hugepages defaults
+                sudo update-rc.d disable-transparent-hugepages defaults
 
          * - SUSE
 
            - .. code:: sh
 
-                sudo insserv /etc/init.d/enable-transparent-hugepages
+                sudo insserv /etc/init.d/disable-transparent-hugepages
 
          * - Red Hat, CentOS, Amazon Linux, and derivatives
 
            - .. code:: sh
 
-                sudo chkconfig --add enable-transparent-hugepages
+                sudo chkconfig --add disable-transparent-hugepages
 
 
    .. step:: (*Optional*) Customize tuned or ktune profile 

@@ -4,19 +4,19 @@
    .. step:: Create the ``systemd`` unit file
 
       Create the following file and save it at 
-      ``/etc/systemd/system/enable-transparent-huge-pages.service``:
+      ``/etc/systemd/system/disable-transparent-huge-pages.service``:
 
       .. code-block:: sh
 
          [Unit]
-         Description=Enable Transparent Hugepages (THP)
+         Description=Disable Transparent Hugepages (THP)
          DefaultDependencies=no
          After=sysinit.target local-fs.target
          Before=mongod.service
          
          [Service]
          Type=oneshot
-         ExecStart=/bin/sh -c 'echo always | tee /sys/kernel/mm/transparent_hugepage/enabled > /dev/null && echo defer+madvise | tee /sys/kernel/mm/transparent_hugepage/defrag > /dev/null && echo 0 | tee /sys/kernel/mm/transparent_hugepage/khugepaged/max_ptes_none > /dev/null && echo 1 | tee /proc/sys/vm/overcommit_memory > /dev/null'
+         ExecStart=/bin/sh -c 'echo never | tee /sys/kernel/mm/transparent_hugepage/enabled > /dev/null && echo never | tee /sys/kernel/mm/transparent_hugepage/defrag > /dev/null
          
          [Install]
          WantedBy=basic.target
@@ -32,12 +32,12 @@
             /sys/kernel/mm/redhat_transparent_hugepage/enabled 
             
          Verify which path is in use on your system and update the 
-         ``enable-transparent-huge-pages.service`` file accordingly.
+         ``disable-transparent-huge-pages.service`` file accordingly.
       
    .. step:: Reload ``systemd`` unit files 
     
       To reload the ``systemd`` unit files and make 
-      ``enable-transparent-huge-pages.service`` available for use, run the 
+      ``disable-transparent-huge-pages.service`` available for use, run the 
       following command :
 
       .. code-block:: sh 
@@ -50,7 +50,7 @@
 
       .. code-block:: sh 
           
-         sudo systemctl start enable-transparent-huge-pages
+         sudo systemctl start disable-transparent-huge-pages
          
       To verify that the relevant THP settings have changed, run the
       following command:
@@ -58,36 +58,34 @@
       .. code-block:: sh 
          :copyable: true
 
-         cat /sys/kernel/mm/transparent_hugepage/enabled && cat /sys/kernel/mm/transparent_hugepage/defrag && cat /sys/kernel/mm/transparent_hugepage/khugepaged/max_ptes_none && cat /proc/sys/vm/overcommit_memory
+         cat /sys/kernel/mm/transparent_hugepage/disabled && cat /sys/kernel/mm/transparent_hugepage/defrag
 
       On Red Hat Enterprise Linux and potentially other Red Hat-based 
       derivatives, you may instead need to use the following:
 
       .. code-block:: sh
         
-         cat /sys/kernel/mm/redhat_transparent_hugepage/enabled && cat /sys/kernel/mm/redhat_transparent_hugepage/defrag && cat /sys/kernel/mm/redhat_transparent_hugepage/khugepaged/max_ptes_none && cat /proc/sys/vm/overcommit_memory
+         cat /sys/kernel/mm/redhat_transparent_hugepage/enabled && cat /sys/kernel/mm/redhat_transparent_hugepage/defrag 
 
       The output should resemble the following: 
 
       .. code-block:: bash
          :copyable: false 
 
-         always 
-         defer+madvise
-         0
-         1
+         never
+         never
 
-   .. step:: Configure your operating system to run it on boot.
+   .. step:: Configure your operating system to run it on boot
     
       To ensure that this setting is applied each time the operating system 
       starts, run the following command:
 
       .. code-block:: sh
         
-         sudo systemctl enable enable-transparent-huge-pages
+         sudo systemctl enable disable-transparent-huge-pages
 
    .. step:: (*Optional*) Customize tuned or ktune profile 
   
-      If you use ``tuned`` or ``ktune`` proffiles on 
+      If you use ``tuned`` or ``ktune`` profiles on 
       :abbr:`RHEL (Red Hat Enterprise Linux)`/ CentOS, you must also create 
       a custom ``tuned`` profile.
