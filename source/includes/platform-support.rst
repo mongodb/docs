@@ -742,8 +742,8 @@
    * - RHEL/Rocky/Alma 9 [#RHEL9-tcmalloc-support]_
      - s390x
      - Enterprise
-     - 
-     - 
+     - |checkmark|
+     - |checkmark|
      - 
      - 
      -
