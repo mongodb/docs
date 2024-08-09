@@ -20,6 +20,8 @@
     - The issuer URI of the IDP that the server should accept tokens from. This 
       must match the ``iss`` field in any JWT used for authentication.
 
+      .. include:: /includes/fact-oidc-multiple-config-for-same-issuer.rst
+
       If you specify an unreachable issuer URI, MongoDB:
       
       1. Logs a warning.
@@ -28,7 +30,9 @@
       #. Reattempts issuer contact. If MongoDB reaches the issuer URI
          and validates the access token, authentication succeeds. If
          the issuer URI remains unreachable, authentication fails.
-    
+
+      .. versionchanged:: 8.0 (*Also available in 7.3 and 7.0*)  
+
 
   * - ``authNamePrefix``
 
@@ -93,6 +97,9 @@
     
       .. include:: /includes/fact-7-0-oidc-audience.rst
 
+      When more than one IDP is defined, this must be a unique value for 
+      each configuration that shares an ``issuer``. 
+
   * - ``requestScopes``
 
     - Optional
@@ -152,7 +159,7 @@
             { user: "mdbinc/spencer.jackson@example.com", 
               db: "$external" }
         
-      .. versionadded:: 7.2 (Also, available in 7.0.5).
+      .. versionadded:: 7.2 (*Also available in 7.0.5*)
 
   * - ``authorizationClaim`` 
 
@@ -184,6 +191,9 @@
     - Frequency, in seconds, to request an updated JSON Web Key Set (JWKS) from the IDP. 
       A setting of 0 disables polling.
 
+      When more than one IDP is defined, this must be the same value for 
+      each configuration that shares an ``issuer``.  
+    
 
   * - ``supportsHumanFlows``
 
