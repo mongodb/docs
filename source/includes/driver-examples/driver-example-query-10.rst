@@ -13,13 +13,9 @@
          Copy the following filter into the Compass query bar and click
          :guilabel:`Find`:
 
-
          .. code-block:: javascript
 
             { status: { $in: [ "A", "D" ] } }
-
-         .. figure:: /images/compass-find-filter-query-op.png
-            :alt: Query using query operators
 
      - id: c
        content: |

@@ -8,11 +8,6 @@
 
             db.inventory.find( { "instock": { qty: 5, warehouse: "A" } } )
 
-     - id: compass
-       content: |
-         .. figure:: /images/compass-find-nested-array-no-match.png
-            :alt: Query for nested array element
-
      - id: c
        content: |
 
