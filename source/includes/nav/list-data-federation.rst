@@ -10,3 +10,4 @@ a. If it's not already displayed, select the
 #. In the sidebar, click :guilabel:`Data Federation` under 
    the :guilabel:`Services` heading.
    
+   The `Data Federation <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2FdataFederation>`__ page displays.

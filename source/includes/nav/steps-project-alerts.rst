@@ -16,3 +16,5 @@
         :icon-fa5:`ellipsis-v` :guilabel:`Options` menu, click 
         :guilabel:`Project Settings`, and click 
         :guilabel:`Alerts` in the sidebar.
+
+      The `Project Alerts <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Falerts%2FopenAlerts>`__ page displays.

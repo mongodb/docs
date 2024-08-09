@@ -10,3 +10,6 @@ a. If it's not already displayed, select your desired organization
      :guilabel:`Access Manager` menu in the navigation bar.
 
    - Click :guilabel:`Access Manager` in the sidebar.
+
+   The `Organization Access Manager <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%23%2Forg%2F%3Corganization%3E%2Faccess%2Fusers>`__ page 
+   displays.

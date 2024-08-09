@@ -15,4 +15,7 @@
 
       - Expand the :guilabel:`Projects` menu in the navigation bar, 
         then click :guilabel:`View All Projects`.
+
+      The `Projects <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%23%2Forg%2F%3Corganization%3E%2Fprojects>`__ 
+      page displays.
     

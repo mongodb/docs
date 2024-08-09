@@ -16,3 +16,6 @@
         :icon-fa5:`ellipsis-v` :guilabel:`Options` menu, click 
         :guilabel:`Project Settings`, and click 
         :guilabel:`Activity Feed` in the sidebar.
+
+      The `Project Activity Feed <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Factivity>`__ page displays.
+      

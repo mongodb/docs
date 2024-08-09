@@ -9,3 +9,7 @@
 
    #. In the sidebar, click :guilabel:`Database Access` under 
       the :guilabel:`Security` heading.
+
+      The `Database Access <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fsecurity%2Fdatabase>`__ page 
+      displays.
+      

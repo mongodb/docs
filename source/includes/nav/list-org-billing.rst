@@ -9,4 +9,7 @@ a. If it's not already displayed, select your desired organization
    - Click :guilabel:`Billing` in the navigation bar.
 
    - Click :guilabel:`Billing` in the sidebar.
+
+   The `Billing <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%23%2Forg%2F%3Corganization%3E%2Fbilling%2Foverview>`__ page 
+   displays.
   

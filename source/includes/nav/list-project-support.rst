@@ -10,3 +10,5 @@ a. If it's not already displayed, select the organization that
 #. Next to the :guilabel:`Projects` menu, expand the
    :icon-fa5:`ellipsis-v` :guilabel:`Options` menu, then click 
    :guilabel:`Project Support`.
+
+   The `Project Support <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Finfo%2Fsupport>`__ page displays.

@@ -9,3 +9,6 @@ a. If it's not already displayed, select the
 
 #. In the sidebar, click :guilabel:`Network Access` under 
    the :guilabel:`Security` heading.
+
+   The `Network Access <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fsecurity%2Fnetwork%2FaccessList>`__ 
+   page displays.

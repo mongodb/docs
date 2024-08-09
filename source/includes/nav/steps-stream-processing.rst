@@ -9,4 +9,6 @@
 
    #. In the sidebar, click :guilabel:`Stream Processing` under 
       the :guilabel:`Services` heading.
+
+      The `Stream Processing <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2FstreamProcessing>`__ page displays.
       

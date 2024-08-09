@@ -9,3 +9,6 @@
 
    #. In the sidebar, click :guilabel:`Advanced` under 
       the :guilabel:`Security` heading.
+
+      The `Advanced <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fsecurity%2Fadvanced>`__ 
+      page displays.
