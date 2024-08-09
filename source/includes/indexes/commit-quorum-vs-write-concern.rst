@@ -9,7 +9,7 @@ Each data-bearing node in a cluster is a voting member.
 
 The **commit quorum** specifies how many data-bearing voting members, or
 which voting members, including the primary, must be prepared to commit
-a :ref:`simultaneous index build <index-operations-simultaneous-build>`.
+a :ref:`simultaneous index build <index-operations-simultaneous-build>`
 before the primary will execute the commit.
 
 The **write concern** is the level of acknowledgment that the write has
