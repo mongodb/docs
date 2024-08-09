@@ -13,13 +13,24 @@
          Copy the following filter into the Compass query bar and click
          :guilabel:`Find`:
 
-
          .. code-block:: javascript
 
             { status: "D" }
 
+<<<<<<< HEAD
          .. figure:: /images/compass-find-filter-inventory.png
             :alt: Query using equality condition
+=======
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 9
+            :end-before: End Example 9
+         
+>>>>>>> 7fcf92768 (DOCSP-40501 Remove Compass image files (#8676))
 
      - id: python
        content: |
