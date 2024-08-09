@@ -60,6 +60,88 @@ Free and Shared {+Cluster+} Limitations
 - To create an |fts| index from {+Compass+}, you must have an ``M10`` 
   or higher |service| {+cluster+} running MongoDB 7.0 or higher.
 
+Estimate the Size of Your Index 
+-------------------------------
+
+You can estimate the size of your index by creating an index on a subset
+of your collection:
+
+1. Take a sample of your data and create a new collection with the
+   sample data. 
+#. Create a search index on the collection with the sample data. 
+
+   .. note:: 
+
+      The index definition for the sample data must be the same as 
+      the index definition you want to create on the full collection.
+
+#. Scale the size of the sample data index based on the total size of
+   your data. 
+
+   .. code-block:: shell 
+      :copyable: false 
+
+      estimated-index-size = ( subset-data-index-size / subset-data-size ) x total-collection-data-size
+
+.. example:: 
+
+   This example uses the ``sample_mflix.movies`` namespace. We first run
+   :pipeline:`$sample` to randomly select 10 documents from the
+   ``movies`` collection and create a new collection named
+   ``sample_data`` that contains the ``$sample`` output documents: 
+
+   .. io-code-block:: 
+      :copyable: true 
+
+      .. input:: 
+         :language: js 
+
+         db.movies.aggregate([
+           { $sample: { size: 10 } },
+           { $out: "sample_data" }
+         ]) 
+   
+      .. output:: /includes/fts-tutorial/search-index-management/estimate-index-size-sample-data.js 
+         :language: js 
+         :visible: false
+
+   Next, for the ``$sample`` output data that we added to the
+   ``sample_data`` collection by using :pipeline:`$out`, we create an
+   index on just the ``title`` field:  
+
+   .. code-block:: 
+      :copyable: true 
+
+      {
+        "mappings": {
+          "dynamic": false,
+          "fields": {
+            "title": {
+              "type": "string"
+            }
+          }
+        }
+      }
+
+   The size of the index on the ``title`` field in the ``sample_data`` 
+   collection with 10 documents is 4.34 KB. The size of the
+   ``sample_data`` collection is 14.19 KB. The total size of the
+   ``movies`` collection is 32.54 MB, which is 32540 KB. We use the
+   following calculations to estimate the index size for the entire
+   ``movies`` collection: 
+
+   .. code-block:: 
+      :copyable: false 
+
+      4.34 KB / 14.19 KB = 0.30584918957012 KB (per document) 
+      0.30584918957012 KB x 32540 KB = 9952.3326286117048 KB 
+      9265.466 KB x 0.001 MB = 9.952332628611705 MB 
+   
+   The estimated size index size for the ``title`` field in the
+   ``movies`` collection is 9.95 MB. However, the index size for the
+   ``movies`` collection might vary based on the length of the titles in
+   the other non-sampled documents.  
+
 .. _ref-create-index-programmatically:
 
 Create an |fts| Index
