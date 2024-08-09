@@ -35,7 +35,7 @@ Examples of stages that can write temporary files to disk when
 .. note::
 
    Pipeline stages operate on streams of documents with each pipeline
-   stage taking in documents, processing them, and then outputing the
+   stage taking in documents, processing them, and then outputting the
    resulting documents.
 
    Some stages can't output any documents until they have processed all
