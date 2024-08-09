@@ -118,6 +118,55 @@ resources.
 
 |onprem| resources can also use the following settings:
 
+.. setting:: spec.backup.logging.logBackAccessRef
+
+   *Type:* string 
+
+   Reference to a ConfigMap that contains a custom ``logback-access.xml`` file 
+   for configuring |onprem| backup logs.
+
+   The key in the ConfigMap must exactly match the name of the ``logback-access.xml`` 
+   to ensure it replaces the default file in the |onprem| Pods.
+
+   To learn more, see :ref:`k8s-om-log-rotation-crd`.
+
+.. setting:: spec.backup.logging.logBackRef
+
+   *Type:* string 
+
+   Reference to a ConfigMap that contains a custom ``logback.xml`` file. This file
+   configures the general logging behavior for |onprem| backups, including log rotation
+   policies, log levels, and other logging parameters.
+
+   The key in the ConfigMap must exactly match the name of the ``logback-access.xml`` 
+   to ensure it replaces the default file in the |onprem| Pods.
+   To learn more, see :ref:`k8s-om-log-rotation-crd`.
+
+.. setting:: spec.logging.logBackAccessRef
+
+   *Type:* string 
+
+   Reference to a ConfigMap that contains a custom ``logback-access.xml`` file 
+   for configuring |onprem| logs.
+
+   The key in the ConfigMap must be exactly ``logback-access.xml`` to ensure it 
+   replaces the default file in the |onprem| Pods.
+
+   To learn more, see :ref:`k8s-om-log-rotation-crd`.
+
+.. setting:: spec.logging.logBackRef
+
+   *Type:* string 
+
+   Reference to a ConfigMap that contains a custom ``logback.xml`` file. This file
+   configures the general logging behavior for |onprem|, including log rotation
+   policies, log levels, and other logging parameters.
+
+   The key in the ConfigMap must be exactly ``logback.xml`` to ensure it replaces
+   the default file in the |onprem| Pods.
+
+   To learn more, see :ref:`k8s-om-log-rotation-crd`.
+
 .. opsmgrkube:: spec.opsManagerURL
 
    *Type*: string
@@ -1517,71 +1566,136 @@ database settings specific to your |multi-cluster-om|, see
    and Monitoring separately in ``spec.applicationDatabase.agent`` and
    ``spec.applicationDatabase.monitoringAgent``.
 
-.. opsmgrkube:: spec.applicationDatabase.agent.logRotate
+.. opsmgrkube:: spec.applicationDatabase.agent.<component>.logRotate
 
    *Type*: object
 
+   .. include:: /includes/meko-component-replacement.rst
+
    MongoDB configuration object for rotating the MongoDB logs of a process. To use 
-   the ``agent.logRotate`` settings, you must set 
+   the ``agent.<component>.logRotate`` settings, you must set 
    :opsmgrkube:`systemLog.destination <spec.applicationDatabase.agent.systemLog.destination>` 
-   to ``file`` because you can't use the ``agent.logRotate`` settings if you're writing 
+   to ``file`` because you can't use the ``agent.<component>.logRotate`` settings if you're writing 
    logs to the host's :manual:`syslog </reference/glossary/#std-term-syslog>` system.
 
-.. opsmgrkube:: spec.applicationDatabase.agent.logRotate.numTotal
+.. opsmgrkube:: spec.applicationDatabase.agent.mongod.logRotate.numTotal
 
    *Type*: integer
 
    *Default*: ``0``
-
+   
    Total number of log files that |mms| retains. If you don't change the default,
-   |mms| bases rotation on your other ``agent.logRotate`` settings.
+   |mms| bases rotation on your other ``agent.<compenet>.logRotate`` settings.
 
-.. opsmgrkube:: spec.applicationDatabase.agent.logRotate.numUncompressed
+.. opsmgrkube:: spec.applicationDatabase.agent.mongod.logRotate.numUncompressed
 
    *Type*: integer
 
    *Default*: ``5``
-    
+
    Maximum number of total log files to leave uncompressed,
    including the current log file.
 
-.. opsmgrkube:: spec.applicationDatabase.agent.logRotate.percentOfDiskspace
+.. opsmgrkube:: spec.applicationDatabase.agent.mongod.logRotate.percentOfDiskspace
 
    *Type*: number
 
    *Default*: ``0.02``
-     
+
    Maximum percentage of total disk space that |mms| can use to
    store the log files expressed as decimal. If this limit is
    exceeded, |mms| deletes compressed log files until it meets this
    limit. |mms| deletes the oldest log files first.
 
-.. opsmgrkube:: spec.applicationDatabase.agent.logRotate.sizeThresholdMB
+.. opsmgrkube:: spec.applicationDatabase.agent.<component>.logRotate.sizeThresholdMB
      
    *Type*: number
+
+   .. include:: /includes/meko-component-replacement.rst
 
    *Required if rotating logs.* Maximum size in MB for an individual log file
    before |mms| rotates it. |mms| rotates the log file immediately if it meets
    the value given in either this ``sizeThresholdMB`` or the
-   :opsmgrkube:`logRotate.timeThresholdHrs <spec.applicationDatabase.agent.logRotate.timeThresholdHrs>` limit.
+   :opsmgrkube:`logRotate.timeThresholdHrs <spec.applicationDatabase.agent.<component>.logRotate.timeThresholdHrs>` limit.
 
-.. opsmgrkube:: spec.applicationDatabase.agent.logRotate.timeThresholdHrs
+.. opsmgrkube:: spec.applicationDatabase.agent.<component>.logRotate.timeThresholdHrs
     
    *Type*: integer
    
+   .. include:: /includes/meko-component-replacement.rst
+
    *Required if rotating logs*. Maximum duration in hours for an individual
    log file before the next rotation. The time is since the last rotation.
    |mms| rotates the log file immediately if it meets the value given in
    either ``timeThresholdHrs`` or
-   the :opsmgrkube:`logRotate.sizeThresholdM <spec.applicationDatabase.agent.logRotate.sizeThresholdMB>`
+   the :opsmgrkube:`logRotate.sizeThresholdM <spec.applicationDatabase.agent.<component>.logRotate.sizeThresholdMB>`
    limit.
 
 .. opsmgrkube:: spec.applicationDatabase.agent.logRotate.includeAuditLogsWithMongoDBLogs
+
+   *Deprecated*. Use
+   :opsmgrkube:`spec.applicationDatabase.agent.mongod.auditlogRotate`
+   instead. 
 
    *Type*: boolean
 
    Set to ``true`` to have the Automation Agent rotate 
    the audit files along with MongoDB log files.
+
+.. opsmgrkube:: spec.applicationDatabase.agent.mongod.auditlogRotate
+
+   *Type*: object
+
+   MongoDB configuration object for rotating the MongoDB audit logs of a process.
+
+.. opsmgrkube:: spec.applicationDatabase.agent.mongod.auditlogRotate.numTotal
+
+   *Type*: integer
+
+   *Default*: ``0``
+   
+   Total number of audit log files that |mms| retains. If you don't change the default value,
+   |mms| bases rotation on your other ``agent.mongod.auditlogRotate`` settings.
+
+.. opsmgrkube:: spec.applicationDatabase.agent.mongod.auditlogRotate.numUncompressed
+
+   *Type*: integer
+
+   *Default*: ``5``
+
+   Maximum number of total audit log files to leave uncompressed,
+   including the current audit log file.
+
+.. opsmgrkube:: spec.applicationDatabase.agent.mongod.auditlogRotate.percentOfDiskspace
+
+   *Type*: number
+
+   *Default*: ``0.02``
+
+   Maximum percentage of total disk space that |mms| can use to
+   store the audit log files expressed as decimal. If you exceed this limit, 
+   |mms| deletes compressed audit log files until it meets this
+   limit. |mms| deletes the oldest audit log files first.
+
+.. opsmgrkube:: spec.applicationDatabase.agent.mongod.auditlogRotate.sizeThresholdMB
+     
+   *Type*: number
+
+   *Required if rotating audit logs.* Maximum size in MB for an individual audit log file
+   before |mms| rotates it. |mms| rotates the audit log file immediately if it reaches
+   the value in either ``sizeThresholdMB`` or the
+   :opsmgrkube:`auditlogRotate.timeThresholdHrs <spec.applicationDatabase.agent.mongod.auditlogRotate.timeThresholdHrs>` limit.
+
+.. opsmgrkube:: spec.applicationDatabase.agent.mongod.auditlogRotate.timeThresholdHrs
+    
+   *Type*: integer
+
+   *Required if rotating audit logs*. Maximum duration in hours for an individual
+   audit log file before the next rotation. The time is since the last rotation.
+   |mms| rotates the audit log file immediately if it reaches the value in
+   either ``timeThresholdHrs`` or
+   the :opsmgrkube:`auditlogRotate.sizeThresholdM <spec.applicationDatabase.agent.mongod.auditlogRotate.sizeThresholdMB>`
+   limit.
 
 .. opsmgrkube:: spec.applicationDatabase.agent.startupOptions
 
