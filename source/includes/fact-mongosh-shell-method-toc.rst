@@ -6,10 +6,5 @@ In most cases, :binary:`~bin.mongosh` methods work the same way as the
 legacy ``mongo`` shell methods. However, some legacy methods
 are unavailable in ``mongosh``.
 
-For the legacy ``mongo`` shell documentation, refer to the
-documentation for the corresponding MongoDB Server release:
-
-:v4.4:`mongo shell v4.4 </mongo>`
-
 For MongoDB API drivers, refer to the language specific
 :driver:`MongoDB driver </>` documentation.
