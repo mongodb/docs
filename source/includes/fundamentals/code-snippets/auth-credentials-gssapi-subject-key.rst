@@ -4,6 +4,6 @@
    loginContext.login();
    Subject subject = loginContext.getSubject();
 
-   MongoCredential credential = MongoCredential.createGSSAPICredential(<username>);
+   MongoCredential credential = MongoCredential.createGSSAPICredential(<db_username>);
    credential = credential.withMechanismProperty(MongoCredential.JAVA_SUBJECT_KEY, subject);
 
