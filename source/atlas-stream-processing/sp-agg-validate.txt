@@ -177,7 +177,7 @@ or earlier.
 .. _atlas-sp-agg-validate-example:
 
 Validator Example
-`````````````````
+-----------------
 
 The following document shows an example validator expression using 
 :manual:`$and </reference/operator/query/and/>` to perform a logical 
@@ -236,3 +236,262 @@ AND operation:
    (26th of June, 2023) it is not slated for private preview and has
    been removed. Refer to the aforementioned commit for the text rather
    than rewriting the whole section when it's implemented.
+
+.. _atlas-sp-agg-validate-examples:
+
+Examples
+~~~~~~~~
+
+Consider a streaming data source that generates detailed weather
+reports from various locations. In the following example aggregation
+pipeline, you include a :pipeline:`$validate` stage to ensure the
+documents conform to the schema of the :ref:`Sample Weather Dataset
+<sample-weather>`. The aggregation has four stages:
+
+1. The :pipeline:`$source` stage establishes a connection with the
+   {+kafka+} broker collecting these reports in a topic named
+   ``my_weatherdata``, passing each record as it is ingested to the
+   subsequent aggregation stages.
+
+2. The :pipeline:`$validate` stage checks whether a document has array
+   values for the ``position.coordinates`` and ``sections`` fields,
+   passing documents that do to the rest of the pipeline, and passing
+   documents that don't to a :ref:`DLQ <atlas-sp-dlq>`.
+
+3. The :pipeline:`$match` stage excludes documents that have a
+   ``wind.speed.rate`` value of greater than or equal to ``30`` and
+   passes along the documents with a ``wind.speed.rate`` value of less
+   than ``30``.
+
+4. The :pipeline:`$merge` stage writes the output to an {+service+}
+   collection named ``stream`` in the ``sample_weatherstream``
+   database. If no such database or collection exist, {+service+}
+   creates them.
+
+.. code-block:: json
+   :copyable: true
+
+   {
+     '$source': {
+       connectionName: 'sample_weatherdata',
+       topic: 'my_weatherdata',
+       tsFieldName: 'ingestionTime'
+     }
+   },
+   {
+     '$validate': {
+       validator: {
+	 '$jsonSchema': { properties: { position: [Object], sections: [Object] } }
+       },
+       validationAction: 'dlq'
+     }
+   },
+   { '$match': { 'wind.speed.rate': { '$lt': 30 } } },
+   {
+     '$merge': {
+       into: {
+	 connectionName: 'weatherStreamOutput',
+	 db: 'sample_weatherstream',
+	 coll: 'stream'
+       }
+     }
+   }
+    
+To view the documents in the resulting ``sample_weatherstream.sample``
+collection, you can connect to your {+service+} cluster using
+{+mongosh+} to run the following command:
+
+.. note::
+
+   The following is a representative example. Streaming data are
+   not static, and each user sees distinct documents.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: json
+
+      db.getSiblingDB("sample_weatherstream").stream.find()
+
+   .. output::
+      :language: json
+
+      {
+	_id: ObjectId('66b25302fe8bbac5f39dbdba'),
+	_stream_meta: {
+	  source: {
+	    type: 'kafka',
+	    topic: 'my_weatherdata',
+	    partition: 0,
+	    offset: Long('168843')
+	  }
+	},
+	airTemperature: { quality: '9', value: 3.5 },
+	atmosphericPressureChange: {
+	  quantity24Hours: { quality: '9', value: 99.9 },
+	  quantity3Hours: { quality: '1', value: 10.9 },
+	  tendency: { code: '3', quality: '1' }
+	},
+	atmosphericPressureObservation: {
+	  altimeterSetting: { quality: '1', value: 1015.9 },
+	  stationPressure: { quality: '9', value: 1022.5 }
+	},
+	callLetters: 'JIVX',
+	dataSource: '4',
+	dewPoint: { quality: '9', value: 20.5 },
+	elevation: 9999,
+	extremeAirTemperature: { code: 'N', period: 99.9, quantity: '9', value: -30.4 },
+	ingestionTime: ISODate('2024-08-06T16:44:50.322Z'),
+	liquidPrecipitation: { condition: '9', depth: 7000, period: 12, quality: '9' },
+	pastWeatherObservationManual: {
+	  atmosphericCondition: { quality: '1', value: '7' },
+	  period: { quality: '1', value: 3 }
+	},
+	position: { coordinates: [ 120.7, -98.2 ], type: 'Point' },
+	precipitationEstimatedObservation: { discrepancy: '5', estimatedWaterDepth: 999 },
+	presentWeatherObservationManual: { condition: '90', quality: '1' },
+	pressure: { quality: '1', value: 1028.2 },
+	qualityControlProcess: 'V020',
+	seaSurfaceTemperature: { quality: '9', value: 11.1 },
+	sections: [ 'UG1', 'MA1', 'GA3', 'KA1', 'UA1' ],
+	skyCondition: {
+	  cavok: 'N',
+	  ceilingHeight: { determination: 'C', quality: '1', value: 390 }
+	},
+	skyConditionObservation: {
+	  highCloudGenus: { quality: '1', value: '06' },
+	  lowCloudGenus: { quality: '9', value: '07' },
+	  lowestCloudBaseHeight: { quality: '1', value: 800 },
+	  lowestCloudCoverage: { quality: '9', value: '06' },
+	  midCloudGenus: { quality: '9', value: '07' },
+	  totalCoverage: { opaque: '99', quality: '1', value: '99' }
+	},
+	skyCoverLayer: {
+	  baseHeight: { quality: '9', value: 1200 },
+	  cloudType: { quality: '9', value: '04' },
+	  coverage: { quality: '1', value: '09' }
+	},
+	st: 'x+36700+144300',
+	type: 'FM-13',
+	visibility: {
+	  distance: { quality: '9', value: 9000 },
+	  variability: { quality: '9', value: 'N' }
+	},
+	waveMeasurement: {
+	  method: 'I',
+	  seaState: { code: '00', quality: '9' },
+	  waves: { height: 9.5, period: 4, quality: '9' }
+	},
+	wind: {
+	  direction: { angle: 140, quality: '1' },
+	  speed: { quality: '2', rate: 15.9 },
+	  type: 'N'
+	}
+      }
+
+Observe that all documents in this collection have the expected
+``array``-type values for ``position.coordinates`` and
+``sections``. To view the documents that failed validation, given a
+dead letter queue named ``dlq``, run the following command:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: json
+
+      db.getSiblingDB("sample_weatherstream").dlq.find()
+
+   .. output::
+      :language: json
+
+      {
+	_id: ObjectId('66b254d3a045fb1406047394'),
+	_stream_meta: {
+	  source: {
+	    type: 'kafka',
+	    topic: 'my_weatherdata',
+	    partition: 0,
+	    offset: Long('168949'),
+	    key: Binary.createFromBase64('', 0),
+	    headers: []
+	  }
+	},
+	errInfo: { reason: 'Input document found to be invalid in $validate stage' },
+	doc: {
+	  airTemperature: { quality: '9', value: 7.6 },
+	  atmosphericPressureChange: {
+	    quantity24Hours: { quality: '9', value: 99.9 },
+	    quantity3Hours: { quality: '1', value: 0.3 },
+	    tendency: { code: '8', quality: '1' }
+	  },
+	  atmosphericPressureObservation: {
+	    altimeterSetting: { quality: '9', value: 1015.9 },
+	    stationPressure: { quality: '1', value: 1017 }
+	  },
+	  callLetters: 'WRGL',
+	  dataSource: '4',
+	  dewPoint: { quality: '9', value: 25.3 },
+	  elevation: 9999,
+	  extremeAirTemperature: { code: 'M', period: 99.9, quantity: '1', value: -30.9 },
+	  liquidPrecipitation: { condition: '9', period: 99, quality: '9' },
+	  pastWeatherObservationManual: {
+	    atmosphericCondition: { quality: '1', value: '2' },
+	    period: { quality: '1', value: 6 }
+	  },
+	  position: { coordinates: -100.2, type: 'Point' },
+	  precipitationEstimatedObservation: { discrepancy: '5', estimatedWaterDepth: 17 },
+	  presentWeatherObservationManual: { condition: '08', quality: '1' },
+	  pressure: { quality: '9', value: 1001 },
+	  qualityControlProcess: 'V020',
+	  seaSurfaceTemperature: { quality: '9', value: 10.4 },
+	  sections: [ 'GA2', 'GA1', 'KA1', 'AA1', 'OA1' ],
+	  skyCondition: {
+	    cavok: 'N',
+	    ceilingHeight: { determination: 'C', quality: '1', value: 240 }
+	  },
+	  skyConditionObservation: {
+	    highCloudGenus: { quality: '1', value: '02' },
+	    lowCloudGenus: { quality: '9', value: '02' },
+	    lowestCloudBaseHeight: { quality: '1', value: 150 },
+	    lowestCloudCoverage: { quality: '1', value: '03' },
+	    midCloudGenus: { quality: '1', value: '06' },
+	    totalCoverage: { opaque: '99', quality: '1', value: '06' }
+	  },
+	  skyCoverLayer: {
+	    baseHeight: { quality: '9', value: 450 },
+	    cloudType: { quality: '9', value: '03' },
+	    coverage: { quality: '1', value: '07' }
+	  },
+	  st: 'x+20500-074300',
+	  type: 'SAO',
+	  visibility: {
+	    distance: { quality: '9', value: 3800 },
+	    variability: { quality: '9', value: 'N' }
+	  },
+	  waveMeasurement: {
+	    method: 'I',
+	    seaState: { code: '00', quality: '9' },
+	    waves: { height: 37.5, period: 7, quality: '9' }
+	  },
+	  wind: {
+	    direction: { angle: 230, quality: '1' },
+	    speed: { quality: '1', rate: 46.3 },
+	    type: 'N'
+	  },
+	  ingestionTime: ISODate('2024-08-06T16:52:35.287Z'),
+	  _stream_meta: {
+	    source: {
+	      type: 'kafka',
+	      topic: 'my_weatherdata',
+	      partition: 0,
+	      offset: Long('168949')
+	    }
+	  }
+	},
+	processorName: 'sampleWeather'
+      }
+
+Observe that all documents in the dead letter queue have invalid
+values for either ``position.coordinates``, ``sections``, or both.
