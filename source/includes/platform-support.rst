@@ -739,15 +739,6 @@
      - |checkmark| 
      - |checkmark|
 
-   * - RHEL/Rocky/Alma 9
-     - s390x
-     - Enterprise
-     - |checkmark|
-     - |checkmark|
-     - 
-     - 
-     -
-
    * - RHEL/Rocky/Alma 8
      - s390x
      - Enterprise
