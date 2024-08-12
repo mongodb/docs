@@ -1,6 +1,6 @@
 .. code-block:: java
 
-   MongoCredential credential = MongoCredential.createPlainCredential(<username>, "$external", <password>);
+   MongoCredential credential = MongoCredential.createPlainCredential(<db_username>, "$external", <db_password>);
 
    MongoClient mongoClient = MongoClients.create(
        MongoClientSettings.builder()

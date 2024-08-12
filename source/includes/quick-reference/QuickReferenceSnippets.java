@@ -171,7 +171,7 @@ public class QuickReferenceSnippets {
     
     public static void main(String[] args) {
         // Replace the uri string with your MongoDB deployment's connection string
-        String uri = "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&w=majority";
+        String uri = "mongodb+srv://<db_username>:<db_password>@<cluster-url>?retryWrites=true&w=majority";
         try (MongoClient mongoClient = MongoClients.create(uri)) {
 
             MongoDatabase database = mongoClient.getDatabase("movies");

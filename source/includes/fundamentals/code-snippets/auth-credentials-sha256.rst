@@ -1,6 +1,6 @@
 .. code-block:: java
 
-   MongoCredential credential = MongoCredential.createScramSha256Credential("<username>", "<authenticationDb>", "<password>");
+   MongoCredential credential = MongoCredential.createScramSha256Credential("<db_username>", "<authenticationDb>", "<db_password>");
 
    MongoClient mongoClient = MongoClients.create(
        MongoClientSettings.builder()
