@@ -34,7 +34,7 @@ public class FaqExample {
                 fromProviders(pojoCodecProvider));
         // end myDateAsStringCodec
 
-        String uri = "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&w=majority";
+        String uri = "mongodb+srv://<db_username>:<db_password>@<cluster-url>?retryWrites=true&w=majority";
 
         try (MongoClient mongoClient = MongoClients.create(uri)) {
 
