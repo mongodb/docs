@@ -15,7 +15,7 @@
 
          .. code-block:: javascript
 
-            { status: { $in: [ "A", "D" ] } }
+            { status: { $in: [ "A", "D" ] } } 
 
      - id: python
        content: |
