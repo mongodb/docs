@@ -68,7 +68,7 @@ your MongoDB instance.
 The last part of the connection string specifies connection and authentication
 options. In the example, we set two connection options:
 ``maxPoolSize=20`` and ``w=majority``. To learn more about connection
-options, read the :ref:`golang-connection-options` section of this guide.
+options, see the :ref:`golang-connection-options` guide.
 
 Connection Example
 ~~~~~~~~~~~~~~~~~~
@@ -172,169 +172,12 @@ When connecting to a replica set, the driver takes the following actions by defa
 Direct Connection
 `````````````````
 
-To force operations on the host designated in the connection URI, specify the ``directConnection`` option. Direct
-connections:
+To force operations on the host designated in the connection URI,
+specify the ``directConnection`` option. Direct connections exhibit the
+following behavior:
 
-- Don't support SRV strings.
-- Fail on writes when the specified host is not the **primary**.
-- Require you to :manual:`specify a secondary read preference </core/read-preference/#mongodb-readmode-secondary>`
-  when the specified host isn't the **primary**.
-
-.. _golang-connection-options:
-
-------------------
-Connection Options
-------------------
-
-This section explains several common MongoDB connection and authentication
-options. You can pass the connection options as parameters of the connection
-URI to specify the behavior of the client.
-
-.. list-table::
-   :header-rows: 1
-   :widths: 34 10 12 44
-
-   * - Option Name
-     - Type
-     - Default Value
-     - Description
-
-   * - **timeoutMS**
-     - integer
-     - ``null``
-     - Specifies the number of milliseconds that a single operation run on the
-       ``Client`` can take before returning a timeout error. Operations honor
-       this setting only if there is no deadline on the operation Context.
-
-   * - **connectTimeoutMS**
-     - integer
-     - ``30000``
-     - Specifies the number of milliseconds to wait before timeout on a TCP
-       connection.
-
-   * - **maxPoolSize**
-     - integer
-     - ``100``
-     - Specifies the maximum number of connections that a connection pool may
-       have at a given time.
-
-   * - **replicaSet**
-     - string
-     - ``null``
-     - Specifies the replica set name for the cluster. All nodes in the
-       replica set must have the same replica set name, or the Client will not
-       consider them as part of the set.
-
-   * - **maxIdleTimeMS**
-     - integer
-     - ``0``
-     - Specifies the maximum amount of time a connection can remain idle
-       in the connection pool before being removed and closed. The
-       default is ``0``, meaning a connection can remain unused
-       indefinitely.
-
-   * - **minPoolSize**
-     - integer
-     - ``0``
-     - Specifies the minimum number of connections that the driver maintains
-       in a single connection pool.
-
-   * - **socketTimeoutMS**
-     - integer
-     - ``0``
-     - Specifies the number of milliseconds to wait for a socket read or
-       write to return before returning a network error. The ``0``
-       default value indicates that there is no timeout.
-
-   * - **serverSelectionTimeoutMS**
-     - integer
-     - ``30000``
-     - Specifies the number of milliseconds to wait to find an available,
-       suitable server to execute an operation.
-
-   * - **heartbeatFrequencyMS**
-     - integer
-     - ``10000``
-     - Specifies the number of milliseconds to wait between periodic
-       background server checks.
-
-   * - **tls**
-     - boolean
-     - ``false``
-     - Specifies whether to establish a Transport Layer Security (TLS)
-       connection with the instance. This is automatically set to ``true``
-       when using a DNS seedlist (SRV) in the connection string. You can
-       override this behavior by setting the value to ``false``.
-
-   * - **w**
-     - string or integer
-     - ``null``
-     - Specifies the write concern. To learn more about values, see the
-       server documentation on
-       :manual:`Write Concern options </reference/write-concern>`.
-
-   * - **directConnection**
-     - boolean
-     - ``false``
-     - Specifies whether to force dispatch **all** operations to the host
-       specified in the connection URI.
-
-For a full list of connection options, see the `ClientOptions API
-documentation
-<{+api+}/mongo/options#ClientOptions>`__.
-
-.. _golang-timeout-setting:
-
-Single Timeout Setting
-~~~~~~~~~~~~~~~~~~~~~~
-
-You can set a single ``Timeout`` option on your ``Client`` to govern the
-amount of time that a single operation can take to execute using the
-``SetTimeout()`` method or specifying the ``timeoutMS`` option in your
-connection URI string. ``Database``, ``Collection``,
-``Session``, ``ChangeStream``, and ``Bucket`` instances elsewhere in
-your code inherit the ``Timeout`` option from ``Client`` if you do not set a
-Context for operations against the same entity.
-
-If you pass a Context into an operation with a deadline, the driver uses
-that Context deadline for the operation. If the context does not have a
-deadline, the driver derives a new Context from the given Context using
-the ``Timeout`` option set on the ``Client``.
-
-.. note:: Retries under Timeout Specification
-
-   With default settings, if you set a ``Timeout`` option on your ``Client``
-   and your operation requires a retry, the driver retries the operation
-   as many times as possible before the timeout expires. Once the timeout
-   expires, the driver returns a timeout error. Versions 1.1 and later
-   of the {+driver-short+} enable retryable reads and writes by default.
-   See the Server manual for more information about :ref:`retryable
-   reads <retryable-reads>` and :manual:`retryable writes </core/retryable-writes/>`.
-
-The following code shows how to set the ``Timeout`` option on a ``Client``
-with the ``SetTimeout`` option:
-
-.. code-block:: go
-
-   opts := options.Client().SetTimeout(5 * time.Second)
-
-The following example shows how you can set a single timeout with the
-URI option and execute an operation that inherits this setting:
-
-.. code-block:: go
-
-   uri := "mongodb://user:pass@sample.host:27017/?timeoutMS=5000"
-   
-   client, err := mongo.Connect(options.Client().ApplyURI(uri))
-   coll := client.Database("<db>").Collection("<collection>")
-   
-   ...
-   coll.InsertOne(context.Background(), doc)
-
-.. important:: Legacy Timeout Options
-
-   ``SocketTimeout``, ``wTimeout``, ``MaxTime``, and ``MaxCommitTime``
-   will be deprecated in an upcoming release. The driver ignores ``MaxTime`` and
-   ``MaxCommitTime`` if you set ``Timeout``. The driver still honors
-   ``SocketTimeout`` and ``wTimeout``, but these settings may result in
-   undefined behavior. Consider using only the single timeout option instead.
+- They don't support SRV strings.
+- They fail on writes when the specified host is not the **primary**.
+- They require you to specify a :manual:`secondary read preference
+  </core/read-preference/#mongodb-readmode-secondary>` when the
+  specified host isn't the **primary** node.

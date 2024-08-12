@@ -1,0 +1,197 @@
+.. _golang-connection-options:
+
+==================
+Connection Options
+==================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, timeout, customize connection
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+This guide explains several common MongoDB connection and authentication
+options. You can pass the connection options as parameters in the connection
+URI to specify the behavior of the client.
+
+Options
+-------
+
+The following table describes the connection options that you can set in
+your connection URI. Each entry provides the option name, value type,
+default value, and a description of the option.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 34 10 12 44
+
+   * - Option Name
+     - Type
+     - Default Value
+     - Description
+
+   * - **timeoutMS**
+     - integer
+     - ``null``
+     - Specifies the number of milliseconds that a single operation run on the
+       ``Client`` can take before returning a timeout error. Operations honor
+       this setting only if there is no deadline on the operation Context.
+
+   * - **connectTimeoutMS**
+     - integer
+     - ``30000``
+     - Specifies the time in milliseconds to attempt a connection before
+       timing out.
+
+   * - **maxPoolSize**
+     - integer
+     - ``100``
+     - Specifies the maximum number of connections that a connection pool may
+       have at a given time.
+
+   * - **replicaSet**
+     - string
+     - ``null``
+     - Specifies the replica set name for the cluster. All nodes in the
+       replica set must have the same replica set name, or the Client will not
+       consider them as part of the set.
+
+   * - **maxIdleTimeMS**
+     - integer
+     - ``0``
+     - Specifies the maximum amount of time a connection can remain idle
+       in the connection pool before being removed and closed. The
+       default is ``0``, meaning a connection can remain unused
+       indefinitely.
+
+   * - **minPoolSize**
+     - integer
+     - ``0``
+     - Specifies the minimum number of connections that the driver maintains
+       in a single connection pool.
+
+   * - **serverSelectionTimeoutMS**
+     - integer
+     - ``30000``
+     - Specifies the number of milliseconds to wait to find an available,
+       suitable server to execute an operation.
+
+   * - **heartbeatFrequencyMS**
+     - integer
+     - ``10000``
+     - Specifies the number of milliseconds to wait between periodic
+       background server checks.
+
+   * - **tls**
+     - boolean
+     - ``false``
+     - Specifies whether to establish a Transport Layer Security (TLS)
+       connection with the instance. This is automatically set to ``true``
+       when using a DNS seedlist (SRV) in the connection string. You can
+       override this behavior by setting the value to ``false``.
+
+   * - **w**
+     - string or integer
+     - ``null``
+     - Specifies the write concern. To learn more about values, see the
+       server documentation on
+       :manual:`Write Concern options </reference/write-concern>`.
+
+   * - **directConnection**
+     - boolean
+     - ``false``
+     - Specifies whether to force dispatch **all** operations to the host
+       specified in the connection URI.
+
+For a full list of connection options, see the `ClientOptions API
+documentation
+<{+api+}/mongo/options#ClientOptions>`__.
+
+.. _golang-timeout-setting:
+
+Single Timeout Setting
+----------------------
+
+You can set a single ``Timeout`` option on your ``Client`` instance to
+specify the maximum amount of time that a single operation can take to
+execute.
+
+Set a client-level timeout by calling the ``SetTimeout()`` method when
+specifying options for your ``Client`` instance or by specifying the
+``timeoutMS`` option in your connection URI. By default, all
+``Database``, ``Collection``, ``Session``, ``ChangeStream``, and
+``Bucket`` instances elsewhere in your application inherit the
+``Timeout`` option from ``Client`` if you do not set a different timeout
+on specific operations in the operation's Context.
+
+If you set a timeout on a Context passed into an operation, the driver uses
+that value for the operation. If you do not specify a Context timeout,
+the operation Context derives the timeout from the ``Client`` instance.
+
+.. note:: Retries under Timeout Specification
+
+   If you set a timeout on your ``Client`` or in an operation-level
+   Context and the server returns a retryable error, the driver retries the
+   operation as many times as possible before the timeout expires.
+   
+   Once the timeout expires, the driver returns a timeout error.
+   See the Server manual for more information about :ref:`retryable
+   reads <retryable-reads>` and :manual:`retryable writes
+   </core/retryable-writes/>`.
+
+Timeout Examples
+~~~~~~~~~~~~~~~~
+
+This section provides examples that demonstrate different ways to set a
+timeout in your application.
+
+Client Option
+^^^^^^^^^^^^^
+
+The following code shows how to set the ``Timeout`` option on a ``Client``
+by using the ``SetTimeout()`` method:
+
+.. code-block:: go
+
+   opts := options.Client().SetTimeout(5 * time.Second)
+   client, err := mongo.Connect(opts)
+
+Connection String Option
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+The following example shows how to set a single timeout by using the
+``timeoutMS`` URI option. Then, the code executes an insert operation
+that inherits the timeout:
+
+.. code-block:: go
+   :emphasize-lines: 1, 5
+
+   uri := "mongodb://user:pass@sample.host:27017/?timeoutMS=5000"
+   client, err := mongo.Connect(options.Client().ApplyURI(uri))
+   
+   ...
+   coll.InsertOne(context.Background(), doc)
+
+Operation Timeout
+^^^^^^^^^^^^^^^^^
+
+The following example shows how to set an operation-level timeout in a
+Context, which takes priority over a client-level timeout you might have
+set:
+
+.. code-block:: go
+
+   ctx, cancel := context.WithTimeout(context.TODO(), time.Second)
+   defer cancel()
+   
+   res, err := coll.InsertOne(ctx, bson.D{{"x", 2}})
