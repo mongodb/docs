@@ -7,8 +7,8 @@ async fn main() -> mongodb::error::Result<()> {
     let mut client_options = ClientOptions::parse_async(uri).await?;
 
     let default_cred = Credential::builder()
-        .username("<username>".to_string())
-        .password("<password>".to_string())
+        .username("<db_username>".to_string())
+        .password("<db_password>".to_string())
         .source("<db>".to_string())
         .build();
 
@@ -21,8 +21,8 @@ async fn main() -> mongodb::error::Result<()> {
     let mut client_options = ClientOptions::parse_async(uri).await?;
 
     let scram_sha_256_cred = Credential::builder()
-        .username("<username>".to_string())
-        .password("<password>".to_string())
+        .username("<db_username>".to_string())
+        .password("<db_password>".to_string())
         .mechanism(AuthMechanism::ScramSha256)
         .source("<db>".to_string())
         .build();
@@ -36,8 +36,8 @@ async fn main() -> mongodb::error::Result<()> {
     let mut client_options = ClientOptions::parse_async(uri).await?;
 
     let scram_sha_1_cred = Credential::builder()
-        .username("<username>".to_string())
-        .password("<password>".to_string())
+        .username("<db_username>".to_string())
+        .password("<db_password>".to_string())
         .mechanism(AuthMechanism::ScramSha1)
         .source("<db>".to_string())
         .build();
