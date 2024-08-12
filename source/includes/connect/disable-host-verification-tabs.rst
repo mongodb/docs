@@ -5,7 +5,7 @@
 
       .. code-block:: python
 
-         client = pymongo.MongoClient("mongodb://<username>:<password>@<hostname>:<port>",
+         client = pymongo.MongoClient("mongodb://<db_username>:<db_password>@<hostname>:<port>",
                                       tls=True,
                                       tlsAllowInvalidHostnames=True)
 
@@ -14,7 +14,7 @@
 
       .. code-block:: python
 
-         uri = ("mongodb://<username>:<password>@<hostname>:<port>/?"
+         uri = ("mongodb://<db_username>:<db_password>@<hostname>:<port>/?"
                 "tls=true"
                 "&tlsAllowInvalidHostnames=true")
          client = pymongo.MongoClient(uri)
