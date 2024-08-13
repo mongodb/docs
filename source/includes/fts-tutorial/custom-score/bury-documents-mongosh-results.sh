@@ -1,0 +1,72 @@
+[
+  {
+    _id: ObjectId('573a139af29313caabcefcce'),
+    plot: 'Adaption of the famous Oscar Wilde tale about a young American girl that helps a British ghost find rest and forgiveness.',
+    genres: [ 'Family', 'Drama', 'Fantasy' ],
+    title: 'The Canterville Ghost',
+    score: 5.909613132476807
+  },
+  {
+    _id: ObjectId('573a13d8f29313caabda5dc1'),
+    plot: 'The Little Ghost lives in the castle over looking a small town and awakens for precisely one hour after the clock strikes midnight. Follow him on this adventure to see his first sunrise ever!',
+    genres: [ 'Family', 'Fantasy' ],
+    title: 'The Little Ghost',
+    score: 5.367666244506836
+  },
+  {
+    _id: ObjectId('573a13c0f29313caabd6139d'),
+    plot: 'Renowned "ghost hunter", Carter Simms is paid to conduct a paranormal investigation of a supposedly haunted house. Along with a cameraman, a reporter, and a spiritual advocate, she embarks on a three night journey into terror.',
+    genres: [ 'Horror', 'Thriller' ],
+    title: 'Death of a Ghost Hunter',
+    score: 4.676314353942871
+  },
+  {
+    _id: ObjectId('573a1398f29313caabcebf6f'),
+    plot: 'After an accident leaves a young man dead, his spirit stays behind to warn his lover of impending danger, with the help of a reluctant psychic.',
+    genres: [ 'Drama', 'Fantasy', 'Romance' ],
+    title: 'Ghost',
+    score: 3.9638845920562744
+  },
+  {
+    _id: ObjectId('573a13c3f29313caabd6a149'),
+    plot: 'What kind of scenes in a horror film scares you the most? When a ghost appears totally unexpectedly? When the main character does not see the ghost sneaking up behind him? When at the very ...',
+    genres: [ 'Horror', 'Thriller' ],
+    title: 'Coming Soon',
+    score: 3.526711940765381
+  },
+  {
+    _id: ObjectId('573a1398f29313caabce912c'),
+    plot: 'Three unemployed parapsychology professors set up shop as a unique ghost removal service.',
+    genres: [ 'Comedy', 'Fantasy' ],
+    title: 'Ghostbusters',
+    score: 3.5241782665252686
+  },
+  {
+    _id: ObjectId('573a139cf29313caabcf5a48'),
+    plot: 'Casper, a ghost, teams up with Wendy, a witch, against an evil warlock.',
+    genres: [ 'Adventure', 'Comedy', 'Family' ],
+    title: 'Casper Meets Wendy',
+    score: 3.5241782665252686
+  },
+  {
+    _id: ObjectId('573a13bdf29313caabd58274'),
+    plot: 'Banku, his mother, Anjali Sharma and father move in to their new house -- the Nath villa, unaware of the fact that the house is inhabited by a ghost. It is learnt the ghost is not too happy...',
+    genres: [ 'Comedy', 'Drama', 'Fantasy' ],
+    title: 'Bhoothnath',
+    score: 3.4605300426483154
+  },
+  {
+    _id: ObjectId('573a1397f29313caabce7ea1'),
+    plot: "Four successful elderly gentlemen, members of the Chowder Society, share a gruesome, 50-year old secret. When one of Edward Wanderley's twin sons dies in a bizarre accident, the group ...",
+    genres: [ 'Drama', 'Horror', 'Thriller' ],
+    title: 'Ghost Story',
+    score: 3.3177831172943115
+  },
+  {
+    _id: ObjectId('573a1398f29313caabcebf79'),
+    plot: 'Elliot Hopper is a widower with three children, he is currently working on a deal. It seems like his wife illness was very costly and this deal could put them out of the red. However he ...',
+    genres: [ 'Comedy', 'Family', 'Fantasy' ],
+    title: 'Ghost Dad',
+    score: 3.3177831172943115
+  }
+]

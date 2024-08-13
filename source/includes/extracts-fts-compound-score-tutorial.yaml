@@ -61,7 +61,6 @@ content: |
       field.
 
 ---
-
 ref: fts-compound-highlight-desc
 content: | 
 
@@ -70,6 +69,57 @@ content: |
   matching text specified with ``type: 'hit'``, and adjacent text
   specified with ``type: 'text'``.
 
+---
+ref: fts-compound-bury-category-stages
+content: | 
+  This query uses the following pipeline stages:
+
+  .. list-table:: 
+     :stub-columns: 1
+  
+     * - :pipeline:`$search` 
+       - - Searches for movies that contain the term ``ghost`` in the plot or 
+           title (``must`` clause) and aren't in the ``comedy`` genre
+           (``mustNot`` clause).
+         - Searches for movies that contain the term ``ghost`` in the
+           plot or title (``must`` clause) and are in the ``comedy``
+           genre (``filter`` clause), but reduces the ``score`` by 50% (``boost``). 
+  
+     * - :pipeline:`$limit` 
+       - Limits the number of results to ``10`` documents.
+  
+     * - :pipeline:`$project`
+       - - Includes only the ``_id``, ``title``, ``plot``, and
+           ``genres`` fields from the documents in the results.
+         - Adds a field named ``score`` that shows the score in the
+           results.  
+
+---
+ref: fts-compound-bury-id-stages
+content: | 
+  This query uses the following pipeline stages:
+
+  .. list-table:: 
+     :stub-columns: 1
+  
+     * - :pipeline:`$search` 
+       - - Searches for movies that contain the term ``ghost`` in the plot or 
+           title (``must`` clause), but doesn't have the specified ObjectIds
+           (``mustNot`` clause).
+         - Searches for movies that contain the term ``ghost`` in the plot or 
+           title (``must`` clause) and have the specified ObjectIds
+           (``filter`` clause), but reduces the ``score``
+           by 50% (``boost``) .
+  
+     * - :pipeline:`$limit` 
+       - Limits the number of results to ``10`` documents.
+  
+     * - :pipeline:`$project`
+       - - Includes only the ``title``, ``plot``, and ``_id`` fields from
+           the documents in the results.
+         - Adds a field named ``score`` that shows the score of the document
+           in the results. 
+      
 ---
 ref: fts-compound-score-stages
 content: | 
@@ -111,5 +161,26 @@ content: |
   documents with ``snow`` in the title. The ``should`` clause also 
   alters the score for the query term ``snow`` using the ``function`` 
   option.
+
+---
+ref: fts-compound-bury-genre-results
+content: | 
+  The movie documents in the results contain the query term ``ghost`` in
+  the ``plot`` or ``title`` field and aren't in the ``Comedy`` genre.
+  |fts| didn't return documents in the ``Comedy`` genre with the term
+  ``ghost`` in the ``plot`` or ``title`` field because those documents
+  didn't rank in the top 10 documents since the query reduced the score
+  of those documents by 50%.
+
+---
+ref: fts-compound-bury-id-results
+content: | 
+  The movie documents in the results contain the query term ``ghost`` in
+  the ``plot`` or ``title`` field and don't have the specified
+  ObjectIds in the ``_id`` field. |fts| didn't return the documents with
+  the specified ObjectsIds, even though they contain the query term
+  ``ghost`` in the ``title`` field, because the query reduced the score
+  of these documents by 50% and so, these documents didn't rank in the
+  top 10 documents. 
 
 ...
