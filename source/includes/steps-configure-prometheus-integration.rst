@@ -6,6 +6,14 @@
    .. step:: Click :guilabel:`Configure` for the Prometheus integration card.
       
    .. step:: Enter your preferred username and password.
+
+      Prometheus authentication credentials are specifically designed
+      for use with the Prometheus integration in |mms|. |mms| uses these
+      credentials to only access the Prometheus discovery endpoint and
+      scrape Prometheus metrics from |mms| nodes. They are strictly
+      limited to these functions and do not have any additional
+      permissions or capabilities beyond accessing and collecting
+      monitoring data. 
       
       .. important::
       
