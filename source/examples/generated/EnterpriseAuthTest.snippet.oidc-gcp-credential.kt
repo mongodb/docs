@@ -1,4 +1,4 @@
-val credential = MongoCredential.createOidcCredential("<username>")
+val credential = MongoCredential.createOidcCredential("<OIDC principal>")
     .withMechanismProperty("ENVIRONMENT", "gcp")
     .withMechanismProperty("TOKEN_RESOURCE", "<audience>")
 

@@ -1,4 +1,4 @@
-val credential = MongoCredential.createGSSAPICredential("<username>")
+val credential = MongoCredential.createGSSAPICredential("<Kerberos principal>")
 
 val settings = MongoClientSettings.builder()
         .applyToClusterSettings { builder ->

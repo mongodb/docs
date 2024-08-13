@@ -47,7 +47,7 @@ internal class AuthTest {
     fun defaultConnectionStringTest() = runBlocking {
         // :replace-start: {
         //    "terms": {
-        //       "CONNECTION_URI_PLACEHOLDER": "\"mongodb://<username>:<password>@<hostname>:<port>/?authSource=<authenticationDb>\""
+        //       "CONNECTION_URI_PLACEHOLDER": "\"mongodb://<db_username>:<db_password>@<hostname>:<port>/?authSource=<authenticationDb>\""
         //    }
         // }
         // :snippet-start: default-cred-string
@@ -70,7 +70,7 @@ internal class AuthTest {
     fun scramSha256ConnectionStringTest() = runBlocking {
         // :replace-start: {
         //    "terms": {
-        //       "CONNECTION_URI_PLACEHOLDER": "\"mongodb://<username>:<password>@<hostname>:<port>/?authSource=<authenticationDb>&authMechanism=SCRAM-SHA-256\""
+        //       "CONNECTION_URI_PLACEHOLDER": "\"mongodb://<db_username>:<db_password>@<hostname>:<port>/?authSource=<authenticationDb>&authMechanism=SCRAM-SHA-256\""
         //    }
         // }
         // :snippet-start: scram-sha-256-string
@@ -93,7 +93,7 @@ internal class AuthTest {
     fun scramSha1ConnectionStringTest() = runBlocking {
         // :replace-start: {
         //    "terms": {
-        //       "CONNECTION_URI_PLACEHOLDER": "\"mongodb://<username>:<password>@<hostname>:<port>/?authSource=<authenticationDb>&authMechanism=SCRAM-SHA-1\""
+        //       "CONNECTION_URI_PLACEHOLDER": "\"mongodb://<db_username>:<db_password>@<hostname>:<port>/?authSource=<authenticationDb>&authMechanism=SCRAM-SHA-1\""
         //    }
         // }
         // :snippet-start: scram-sha-1-string
@@ -116,7 +116,7 @@ internal class AuthTest {
     fun x509ConnectionStringTest() = runBlocking {
         // :replace-start: {
         //    "terms": {
-        //       "CONNECTION_URI_PLACEHOLDER": "\"mongodb://<username>:<password>@<hostname>:<port>/?authSource=<authenticationDb>&authMechanism=MONGODB-X509&tls=true\""
+        //       "CONNECTION_URI_PLACEHOLDER": "\"mongodb://<db_username>:<db_password>@<hostname>:<port>/?authSource=<authenticationDb>&authMechanism=MONGODB-X509&tls=true\""
         //    }
         // }
         // :snippet-start: x-509-string
@@ -137,8 +137,8 @@ internal class AuthTest {
 
     // :replace-start: {
     //    "terms": {
-    //       "USERNAME": "\"<username>\"",
-    //       "PASSWORD": "\"<password>\"",
+    //       "USERNAME": "\"<db_username>\"",
+    //       "PASSWORD": "\"<db_password>\"",
     //       "AUTH_DB": "\"<authenticationDb>\"",
     //       "HOSTNAME": "\"<hostname>\"",
     //       "PORT": "\"<port>\""
