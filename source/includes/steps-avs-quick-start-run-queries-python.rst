@@ -14,6 +14,8 @@
       :ref:`MongoDB Python Driver documentation <pymongo-get-started-download-and-install>`.
 
    .. step:: Construct your vector search query.
+
+      .. include:: /includes/fact-avs-quick-start-intro.rst
     
       a. Create a file named ``atlas-vector-search-quick-start.py`` .
 
@@ -24,7 +26,7 @@
             :language: python
             :linenos:
 
-      .. include:: /includes/fact-avs-quick-start-intro.rst
+      .. include:: /includes/fact-avs-quick-start-intro-II.rst
 
       To learn more about this pipeline stage, see
       :ref:`return-vector-search-results`.
@@ -35,8 +37,8 @@
          |service| connection string.
 
          Ensure that your connection string includes your database 
-         user's credentials. To learn more, see 
-         :ref:`connect-via-driver`.
+         user's credentials. To learn more about finding your connection string, 
+         see :ref:`connect-via-driver`. 
 
       #. Save the file.
 

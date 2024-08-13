@@ -20,6 +20,8 @@
 
    .. step:: Construct your vector search query.
 
+      .. include:: /includes/fact-avs-quick-start-intro.rst
+
       a. Create a file named ``BasicQuery.java`` .
 
       #. Copy and paste the following sample query into the 
@@ -38,7 +40,7 @@
 
             package com.mongodb.drivers;
 
-      .. include:: /includes/fact-avs-quick-start-intro.rst
+      .. include:: /includes/fact-avs-quick-start-intro-II.rst
 
       To learn more about this pipeline stage, see
       :ref:`return-vector-search-results`.
@@ -49,8 +51,8 @@
          connection string.
 
          Ensure that your connection string includes your database 
-         user's credentials. To learn more, see 
-         :ref:`connect-via-driver`. 
+         user's credentials. To learn more about finding your connection string, 
+         see :ref:`connect-via-driver`. 
     
       #. Save the file.
 

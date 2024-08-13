@@ -32,6 +32,8 @@
             :language: javascript
             :linenos:
 
+      .. include:: /includes/fact-avs-quick-start-intro-II.rst
+
       The :guilabel:`Pipeline Output` pane displays the results of
       your query.
 
