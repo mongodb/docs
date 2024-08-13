@@ -832,6 +832,35 @@ If you call an ``<association>_ids`` method, such as ``member_ids``, on an
 association previously loaded into memory, Mongoid 8.0 uses the in-memory collection to satisfy the query
 instead of issuing a new query to the database.
 
-To force an ``<association>_ids`` method to issue a new database query,
-you can either reset the association or reload the parent record.
+For example, the following code calls the ``member_ids`` method and uses the in-memory
+collection to retrieve the ``id`` values. The ``id`` of the ``new_member`` is not included
+in the output:
 
+.. code-block:: ruby
+
+   ids = band.member_ids
+   # ...
+
+   new_member = Member.create(band_id: band.id)
+
+   # Prior to 8.0, the method output includes the newly-created member's id.
+   # Starting in 8.0, the output does not include the newly-created member's id.
+   p band.member_ids
+
+You can force an ``<association>_ids`` method to issue a new database query
+by resetting the association before calling ``<association>_ids``, as shown
+in the following code: 
+
+.. code-block:: ruby
+
+   band.members.reset
+
+   # Queries the database rather than the in-memory collection
+   p band.member_ids
+
+You can also issue a new database query by reloading the parent record
+and calling the ``<association>_ids`` method, as shown in the following code:
+
+.. code-block:: ruby
+
+   band.reload.member_ids
