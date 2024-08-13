@@ -14,8 +14,8 @@ var client = new MongoClient(connectionString);
 
 var db = MflixDbContext.Create(client.GetDatabase("sample_mflix"));
 
-var movie = db.Movies.First(m => m.title == "Back to the Future");
-Console.WriteLine(movie.plot);
+var movie = db.Movies.First(m => m.Title == "Back to the Future");
+Console.WriteLine(movie.Plot);
 
 internal class MflixDbContext : DbContext
 {
@@ -42,7 +42,7 @@ internal class MflixDbContext : DbContext
 internal class Movie
 {
     public ObjectId _id { get; set; }
-    public string title { get; set; }
-    public string rated { get; set; }
-    public string plot { get; set; }
+    public string Title { get; set; }
+    public string Rated { get; set; }
+    public string Plot { get; set; }
 }
