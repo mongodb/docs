@@ -16,7 +16,7 @@ import kotlin.test.Ignore
 // :replace-start: {
 //    "terms": {
 //       "uri": "\"<your connection string>\"",
-//       "uriString": "\"mongodb+srv:/<username>:<password>@<hostname>:<port>?connectTimeoutMS(2000)\"",
+//       "uriString": "\"mongodb+srv:/<db_username>:<db_password>@<hostname>:<port>?connectTimeoutMS(2000)\"",
 //       "uriAcmeString": "\"mongodb+srv://host1.acme.com\""
 //    }
 // }
