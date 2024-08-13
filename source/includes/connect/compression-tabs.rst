@@ -22,6 +22,6 @@
 
       .. code-block:: kotlin
 
-         val uri = ConnectionString("mongodb+srv://<user>:<password>@<cluster-url>/?compressors=snappy,zlib,zstd")
+         val uri = ConnectionString("mongodb+srv://<db_username>:<db_password>@<cluster-url>/?compressors=snappy,zlib,zstd")
          
          val mongoClient = MongoClient.create(uri)

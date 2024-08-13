@@ -20,5 +20,5 @@
 
       .. code-block:: kotlin
 
-         val uri = "mongodb://<username>:<password>@<hostname>:<port>/?"tls=true&tlsAllowInvalidHostnames=true"
+         val uri = "mongodb://<db_username>:<db_password>@<hostname>:<port>/?"tls=true&tlsAllowInvalidHostnames=true"
          val mongoClient = MongoClient.create(uri)

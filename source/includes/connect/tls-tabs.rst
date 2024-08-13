@@ -20,5 +20,5 @@
 
       .. code-block:: kotlin
 
-         val uri = "mongodb+srv://<user>:<password>@<cluster-url>?tls=true"
+         val uri = "mongodb+srv://<db_username>:<db_password>@<cluster-url>?tls=true"
          val mongoClient = MongoClient.create(uri)
