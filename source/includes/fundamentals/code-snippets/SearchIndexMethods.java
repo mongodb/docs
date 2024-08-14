@@ -26,21 +26,36 @@ public class SearchIndexMethods {
             MongoCollection<Document> collection = database.getCollection(COLL_NAME);
 
             // start create-search-index
-            Document index = new Document("mappings",
+            Document searchIdx = new Document("mappings",
                     new Document("dynamic", true));
-            collection.createSearchIndex("myIndex", index);
+            collection.createSearchIndex("myIndex", searchIdx);
             // end create-search-index
-
+            
             // start create-search-indexes
-            SearchIndexModel indexOne = new SearchIndexModel("myIndex1",
-                    new Document("analyzer", "lucene.standard").append(
-                            "mappings", new Document("dynamic", true)));
+            SearchIndexModel searchIdxMdl = new SearchIndexModel(
+                "searchIdx",
+                new Document("analyzer", "lucene.standard").append(
+                    "mappings", new Document("dynamic", true)),
+                SearchIndexType.search()
+            );
 
-            SearchIndexModel indexTwo = new SearchIndexModel("myIndex2",
-                    new Document("analyzer", "lucene.simple").append(
-                            "mappings", new Document("dynamic", true)));
+            SearchIndexModel vectorSearchIdxMdl = new SearchIndexModel(
+                "vsIdx",
+                new Document(
+                    "fields",
+                    Arrays.asList(
+                        new Document("type", "vector")
+                            .append("path", "embeddings")
+                            .append("numDimensions", 1536)
+                            .append("similarity", "dotProduct")
+                    )
+                ),
+                SearchIndexType.vectorSearch()
+            );
 
-            collection.createSearchIndexes(Arrays.asList(indexOne, indexTwo));
+            collection.createSearchIndexes(
+                Arrays.asList(searchIdxMdl, vectorSearchIdxMdl)
+            );
             // end create-search-indexes
 
             // start update-search-index
