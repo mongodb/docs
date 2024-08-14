@@ -128,19 +128,20 @@ examples:
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-java-driver/master/driver-sync/src/examples/documentation/CausalConsistencyExamples.java -o ${DRIVERS_PATH}/CausalConsistencyExamples.java
 
 # node
-	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/examples/change_streams.js                        -o ${DRIVERS_PATH}/node_changestreams.js
-	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/examples/array_filters.js                         -o ${DRIVERS_PATH}/node_array_filters.js
-	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/examples/causal_consistency.js                    -o ${DRIVERS_PATH}/node_causal_consistency.js
-	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/examples/insert.js                                -o ${DRIVERS_PATH}/node_insert.js
-	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/examples/project_fields_from_query_results.js     -o ${DRIVERS_PATH}/node_project.js
-	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/examples/query.js                                 -o ${DRIVERS_PATH}/node_query.js
-	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/examples/query_embedded_documents.js              -o ${DRIVERS_PATH}/node_query_embedded_documents.js
-	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/examples/query_arrays.js                          -o ${DRIVERS_PATH}/node_query_arrays.js
-	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/examples/query_array_of_documents.js              -o ${DRIVERS_PATH}/node_query_array_of_documents.js
-	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/examples/query_for_null_fields.js                 -o ${DRIVERS_PATH}/node_query_for_null_fields.js
-	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/examples/remove_documents.js                      -o ${DRIVERS_PATH}/node_remove.js
-	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/examples/transactions.js                            -o ${DRIVERS_PATH}/node_transactions.js
-	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/master/test/examples/update_documents.js                      -o ${DRIVERS_PATH}/node_update.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/integration/node-specific/examples/change_streams.test.js                        -o ${DRIVERS_PATH}/node_changestreams.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/integration/node-specific/examples/array_filters.test.js                         -o ${DRIVERS_PATH}/node_array_filters.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/integration/node-specific/examples/causal_consistency.test.js                    -o ${DRIVERS_PATH}/node_causal_consistency.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/integration/node-specific/examples/insert.test.js                                -o ${DRIVERS_PATH}/node_insert.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/integration/node-specific/examples/project_fields_from_query_results.test.js     -o ${DRIVERS_PATH}/node_project.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/integration/node-specific/examples/query.test.js                                 -o ${DRIVERS_PATH}/node_query.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/integration/node-specific/examples/query_embedded_documents.test.js              -o ${DRIVERS_PATH}/node_query_embedded_documents.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/integration/node-specific/examples/query_arrays.test.js                          -o ${DRIVERS_PATH}/node_query_arrays.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/integration/node-specific/examples/query_array_of_documents.test.js              -o ${DRIVERS_PATH}/node_query_array_of_documents.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/integration/node-specific/examples/query_for_null_fields.test.js                 -o ${DRIVERS_PATH}/node_query_for_null_fields.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/integration/node-specific/examples/remove_documents.test.js                      -o ${DRIVERS_PATH}/node_remove.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/integration/node-specific/examples/transactions.test.js                          -o ${DRIVERS_PATH}/node_transactions.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/integration/node-specific/examples/update_documents.test.js                      -o ${DRIVERS_PATH}/node_update.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/4.0/test/functional/examples/versioned_api.js                               -o ${DRIVERS_PATH}/node_versioned_api.js
 
 # ruby
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-ruby-driver/master/spec/integration/shell_examples_spec.rb -o ${DRIVERS_PATH}/shell_examples_spec.rb
@@ -148,9 +149,10 @@ examples:
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-ruby-driver/master/spec/integration/transactions_examples_spec.rb -o ${DRIVERS_PATH}/transactions_examples_spec.rb
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-ruby-driver/master/spec/integration/transactions_api_examples_spec.rb -o ${DRIVERS_PATH}/with_transactions_examples_spec.rb
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-ruby-driver/master/spec/integration/versioned_api_examples_spec.rb -o ${DRIVERS_PATH}/versioned_api_examples_spec.rb
+	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-ruby-driver/master/spec/integration/snapshot_query_examples_spec.rb -o ${DRIVERS_PATH}/snapshot_query_examples_spec.rb
 
 # rust
-	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-rust-driver/main/src/test/documentation_examples/mod.rs -o ${DRIVERS_PATH}/mod.rs
+	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-rust-driver/main/src/test/documentation_examples.rs -o ${DRIVERS_PATH}/mod.rs
 
 # scala
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-scala-driver/master/driver/src/it/scala/org/mongodb/scala/DocumentationExampleSpec.scala -o ${DRIVERS_PATH}/DocumentationExampleSpec.scala
@@ -164,21 +166,25 @@ examples:
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-csharp-driver/master/tests/MongoDB.Driver.Examples/TransactionExamplesForDocs/RetryExample3.cs -o ${DRIVERS_PATH}/TransactionsRetryExample3.cs
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-csharp-driver/master/tests/MongoDB.Driver.Examples/CausalConsistencyExamples.cs  -o ${DRIVERS_PATH}/CausalConsistencyExamples.cs
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-csharp-driver/master/tests/MongoDB.Driver.Examples/TransactionExamplesForDocs/WithTransactionExample1.cs  -o ${DRIVERS_PATH}/withTxnExample1.cs
+	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-csharp-driver/master/tests/MongoDB.Driver.Examples/StableApiExamples.cs  -o ${DRIVERS_PATH}/VersionedApiExamples.cs
 
 # c
-	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-c-driver/master/src/libmongoc/tests/test-mongoc-sample-commands.c -o ${DRIVERS_PATH}/test-mongoc-sample-commands.c 
+	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-c-driver/master/src/libmongoc/tests/test-mongoc-sample-commands.c -o ${DRIVERS_PATH}/test-mongoc-sample-commands.c
 
 # c++
-	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-cxx-driver/master/src/mongocxx/test/transactions.cpp -o ${DRIVERS_PATH}/cpp-transactions.cpp 
-	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-cxx-driver/master/examples/mongocxx/with_transaction.cpp -o ${DRIVERS_PATH}/cpp-with-transaction.cpp 
+	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-cxx-driver/master/src/mongocxx/test/transactions.cpp -o ${DRIVERS_PATH}/cpp-transactions.cpp
+	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-cxx-driver/master/examples/mongocxx/with_transaction.cpp -o ${DRIVERS_PATH}/cpp-with-transaction.cpp
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-cxx-driver/master/src/mongocxx/test/versioned_api.cpp -o ${DRIVERS_PATH}/cpp-versioned_api.cpp
+	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-cxx-driver/master/examples/mongocxx/mongodb.com/documentation_examples.cpp -o ${DRIVERS_PATH}/cpp-documentation-examples.cpp
 
 # go
-	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-go-driver/master/examples/documentation_examples/examples.go -o ${DRIVERS_PATH}/go_examples.go
+	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-go-driver/master/internal/docexamples/examples.go -o ${DRIVERS_PATH}/go_examples.go
 
 # swift
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-swift-driver/master/Examples/Docs/Sources/AsyncExamples/main.swift -o ${DRIVERS_PATH}/swiftAsync.swift
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-swift-driver/master/Examples/Docs/Sources/SyncExamples/main.swift -o ${DRIVERS_PATH}/swiftSync.swift
 
+# kotlin-coroutine
+	curl -SfL https://raw.githubusercontent.com/mongodb/docs-kotlin/master/source/examples/ServerManualCodeExamples.kt -o ${DRIVERS_PATH}/kotlin_examples.kt
 changelogs:
-	python changelogs/generatechangelogs.py
+	python3 changelogs/generatechangelogs.py
