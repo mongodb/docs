@@ -1,0 +1,245 @@
+.. _avs-rag:
+.. _ai-key-concepts:
+
+=============================================================
+Retrieval-Augmented Generation (RAG) with {+avs+}              
+=============================================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: RAG, retrieval-augmented generation, AI, LLM, vector database, vector search, semantic search, generative search
+   :description: Use MongoDB Atlas Vector Search as a vector database to build retrieval-augmented-generation (RAG) applications.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Retrieval-augmented generation (RAG) is an architecture used
+to augment large language models (LLMs) with additional data
+so that they can generate more accurate responses.
+You can implement |rag| in your generative AI applications
+by combining an |llm| with a retrieval system powered by {+avs+}.
+
+.. button:: Get Started
+   :uri: https://www.mongodb.com/docs/atlas/atlas-vector-search/rag/#get-started
+
+Why use RAG?
+------------
+
+When working with |llm|\s, you might encounter the 
+following limitations:
+
+- Stale data: |llm|\s are trained on a static dataset 
+  up to a certain point in time. This means that they
+  have a limited knowledge base and might use outdated 
+  data.
+
+- No access to local data: |llm|\s don't have access to 
+  local or personalized data. Therefore, they can 
+  lack knowledge about specific domains.
+  
+- Hallucinations: When training data is incomplete or 
+  outdated, |llm|\s can generate inaccurate information.
+  
+You can address these limitations by taking
+the following steps to implement |rag|:
+
+1. **Ingestion:** Store your custom data as :term:`vector embeddings` 
+   in a vector database, such as |service-fullname|. This allows you to create a knowledge 
+   base of up-to-date and personalized data.
+
+#. **Retrieval:** Retrieve semantically similar 
+   documents from the database based on the user's question by using
+   a search solution, such as {+avs+}. These
+   documents augment the |llm| with additional, relevant data.
+
+#. **Generation:** Prompt the |llm|. The |llm| uses 
+   the retrieved documents as context to generate a more accurate 
+   and relevant response, reducing hallucinations.
+
+Because |rag| enables tasks such as question answering and 
+text generation, it's an effective architecture for building
+AI chatbots that provide personalized, domain-specific responses. 
+To create production-ready chatbots, you must configure a server 
+to route requests and build a user interface on top of your |rag| 
+implementation.
+
+RAG with {+avs+}
+----------------------------
+
+To implement |rag| with {+avs+}, you ingest data into |service|,
+retrieve documents with {+avs+}, and generate responses 
+using an |llm|. This section describes the components
+of a basic, or naive, |rag| implementation 
+with {+avs+}. For step-by-step instructions, see :ref:`basic-rag-example`.
+
+.. figure:: /images/rag-flowchart.svg
+   :figwidth: 100%
+   :alt: RAG flowchart with Atlas Vector Search
+
+.. _rag-ingestion:
+
+Ingestion
+~~~~~~~~~
+
+Data ingestion for |rag| involves processing your custom 
+data and storing it in a vector database to prepare it 
+for retrieval. To create a basic ingestion pipeline with 
+|service| as the vector database, do the following:
+
+1. Load your data. You can use tools like
+   `document loaders <https://python.langchain.com/v0.1/docs/modules/data_connection/document_loaders/>`__
+   or `data connectors <https://docs.llamaindex.ai/en/stable/module_guides/loading/connector/>`__
+   to load data from different data formats and locations.
+
+#. Process, or :website:`chunk 
+   </developer/products/atlas/choosing-chunking-strategy-rag/?tck=docs#what-is-chunking-and-why-is-it-important-for-rag->`, your data.
+   Chunking involves splitting your data into smaller parts
+   to improve performance.
+
+#. Convert your data into :term:`vector embeddings` by using 
+   an :term:`embedding model`. To learn more, 
+   see :ref:`create-vector-embeddings`.
+  
+#. Store these embeddings in |service|. You store embeddings 
+   as a field alongside other data in your collection.
+
+.. _rag-retrieval:
+
+Retrieval
+~~~~~~~~~
+
+Building a retrieval system involves searching for and returning the 
+most relevant documents from your vector database to augment the |llm| 
+with. To retrieve relevant documents with {+avs+}, you convert the user's
+question into vector embeddings and run a :ref:`vector search query 
+<avs-queries>` against your data in |service| to find documents with the
+most similar embeddings. 
+
+To perform basic retrieval with {+avs+}, do the following:
+
+1. Define an :ref:`{+avs+} index <avs-indexes>` 
+   on the collection that contains your vector embeddings.
+
+#. Choose one of the following methods to retrieve documents 
+   based on the user's question:
+
+   - Use an :ref:`{+avs+} integration <ai-integrations>` 
+     with a popular framework or service.
+     These integrations include built-in libraries and tools  
+     that enable you to easily build retrieval systems
+     with {+avs+}.
+   
+   - Build your own retrieval system. You can define
+     your own functions and pipelines to run 
+     :ref:`{+avs+} queries <avs-queries>` 
+     specific to your use case.
+
+.. _rag-generation:
+
+Generation
+~~~~~~~~~~
+
+To generate responses, combine your retrieval system with an |llm|. 
+After you perform a vector search to retrieve relevant documents, 
+you provide the user's question along with the relevant documents as 
+context to the |llm| so that it can generate a more accurate response.
+
+Choose one of the following methods to connect to an |llm|:
+
+- Use an :ref:`{+avs+} integration <ai-integrations>`
+  with a popular framework or service. These 
+  integrations include built-in libraries and tools to 
+  help you connect to |llm|\s with minimal set-up.
+
+- Call the |llm|\'s |api|. 
+  Most AI providers offer |api|\s to their generative models 
+  that you can use to generate responses.
+
+- Load an open-source |llm|.
+  If you don't have |api| keys or credits,
+  you can use an open-source |llm| by loading it locally
+  from your application.
+
+.. _basic-rag-example:
+
+Get Started
+-----------
+
+The following example demonstrates a basic |rag| implementation
+with {+avs+} by using the :ref:`MongoDB LangChain integration <langchain>`
+and `Hugging Face <https://huggingface.co/>`__ to easily load 
+and access embedding and generative models.
+
+Prerequisites
+~~~~~~~~~~~~~
+
+To complete this example, you must have the following:
+
+- An `Atlas account <https://account.mongodb.com/account/register?tck=docs_atlas>`__ 
+  with a {+cluster+} running MongoDB version 6.0.11 or 7.0.2 and later. To learn more, 
+  see :ref:`create-new-cluster`.
+
+- A `Hugging Face Access Token <https://huggingface.co/docs/hub/en/security-tokens>`__
+  with read access.
+
+- An environment to run interactive Python notebooks 
+  such as `Colab <https://colab.research.google.com>`__.
+
+Procedure
+~~~~~~~~~
+
+.. include:: /includes/steps-basic-rag-example.rst
+
+.. _rag-examples:
+
+Next Steps
+----------
+
+For more detailed |rag| tutorials, use the following resources:
+
+- To learn how to implement |rag| with popular |llm| frameworks 
+  and AI services, see :ref:`ai-integrations`.
+
+- To learn how to implement |rag| by using a local |service| deployment
+  and local models, see :ref:`local-rag`.
+
+- For use-case based tutorials and interactive Python notebooks, 
+  see :github:`Generative AI Use Cases Repository
+  </mongodb-developer/GenAI-Showcase/tree/main>`.
+
+To start building production-ready chatbots with {+avs+}, you can use
+the `MongoDB Chatbot Framework <https://mongodb.github.io/chatbot/>`__.
+This framework provides a set of libraries that enable you to
+quickly build AI chatbot applications.
+
+.. _rag-fine-tuning:
+
+Fine-Tuning
+~~~~~~~~~~~
+
+To optimize and fine-tune your |rag| applications, you can experiment with
+different embedding models, chunking strategies, and |llm|\s.
+To learn more, see the following resources:
+
+- :website:`How to Choose the Right Embedding Model for Your LLM Application
+  </developer/products/atlas/choose-embedding-model-rag/>`
+- :website:`How to Choose the Right Chunking Strategy for Your LLM Application 
+  </developer/products/atlas/choosing-chunking-strategy-rag/>`
+- :website:`How to Evaluate Your LLM Application
+  </developer/products/atlas/evaluate-llm-applications-rag>`
+
+Additionally, {+avs+} supports advanced retrieval systems.
+Because you can seamlessly index vector data along with your other 
+data in |service|, you can fine-tune your retrieval results
+by :ref:`pre-filtering <vectorSearch-agg-pipeline-filter>` 
+on other fields in your collection or performing 
+:ref:`hybrid search <as_hybrid-search>` to combine semantic search 
+with full-text search results.
