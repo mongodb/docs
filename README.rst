@@ -2,9 +2,8 @@
 Mongoid Documentation
 =====================
 
-This repository contains the files to handle the build and publication of the
-Mongoid documentation.  The actual Mongoid documentation files are located in
-the `mongoid repo <https://github.com/mongodb/mongoid/tree/master/docs>`_.
+This repository contains documentation for Mongoid, the object-document
+mapper for MongoDB in Ruby.
 
 Build Locally
 -------------
@@ -98,10 +97,6 @@ on the host system)::
 
 Contribute
 ----------
-
-Documentation sources for Mongoid are in Mongoid's primary repository:
-https://github.com/mongodb/mongoid/tree/master/docs/tutorials.
-This repository contains documentation build tooling only.
 
 To contribute to the documentation, please sign the `MongoDB
 Contributor Agreement
