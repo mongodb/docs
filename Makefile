@@ -149,9 +149,10 @@ examples:
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-ruby-driver/master/spec/integration/transactions_examples_spec.rb -o ${DRIVERS_PATH}/transactions_examples_spec.rb
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-ruby-driver/master/spec/integration/transactions_api_examples_spec.rb -o ${DRIVERS_PATH}/with_transactions_examples_spec.rb
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-ruby-driver/master/spec/integration/versioned_api_examples_spec.rb -o ${DRIVERS_PATH}/versioned_api_examples_spec.rb
+	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-ruby-driver/master/spec/integration/snapshot_query_examples_spec.rb -o ${DRIVERS_PATH}/snapshot_query_examples_spec.rb
 
 # rust
-	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-rust-driver/main/src/test/documentation_examples/mod.rs -o ${DRIVERS_PATH}/mod.rs
+	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-rust-driver/main/src/test/documentation_examples.rs -o ${DRIVERS_PATH}/mod.rs
 
 # scala
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-scala-driver/master/driver/src/it/scala/org/mongodb/scala/DocumentationExampleSpec.scala -o ${DRIVERS_PATH}/DocumentationExampleSpec.scala
@@ -165,17 +166,19 @@ examples:
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-csharp-driver/master/tests/MongoDB.Driver.Examples/TransactionExamplesForDocs/RetryExample3.cs -o ${DRIVERS_PATH}/TransactionsRetryExample3.cs
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-csharp-driver/master/tests/MongoDB.Driver.Examples/CausalConsistencyExamples.cs  -o ${DRIVERS_PATH}/CausalConsistencyExamples.cs
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-csharp-driver/master/tests/MongoDB.Driver.Examples/TransactionExamplesForDocs/WithTransactionExample1.cs  -o ${DRIVERS_PATH}/withTxnExample1.cs
+	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-csharp-driver/master/tests/MongoDB.Driver.Examples/StableApiExamples.cs  -o ${DRIVERS_PATH}/VersionedApiExamples.cs
 
 # c
-	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-c-driver/master/src/libmongoc/tests/test-mongoc-sample-commands.c -o ${DRIVERS_PATH}/test-mongoc-sample-commands.c 
+	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-c-driver/master/src/libmongoc/tests/test-mongoc-sample-commands.c -o ${DRIVERS_PATH}/test-mongoc-sample-commands.c
 
 # c++
-	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-cxx-driver/master/src/mongocxx/test/transactions.cpp -o ${DRIVERS_PATH}/cpp-transactions.cpp 
-	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-cxx-driver/master/examples/mongocxx/with_transaction.cpp -o ${DRIVERS_PATH}/cpp-with-transaction.cpp 
+	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-cxx-driver/master/src/mongocxx/test/transactions.cpp -o ${DRIVERS_PATH}/cpp-transactions.cpp
+	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-cxx-driver/master/examples/mongocxx/with_transaction.cpp -o ${DRIVERS_PATH}/cpp-with-transaction.cpp
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-cxx-driver/master/src/mongocxx/test/versioned_api.cpp -o ${DRIVERS_PATH}/cpp-versioned_api.cpp
+	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-cxx-driver/master/examples/mongocxx/mongodb.com/documentation_examples.cpp -o ${DRIVERS_PATH}/cpp-documentation-examples.cpp
 
 # go
-	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-go-driver/master/examples/documentation_examples/examples.go -o ${DRIVERS_PATH}/go_examples.go
+	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-go-driver/master/internal/docexamples/examples.go -o ${DRIVERS_PATH}/go_examples.go
 
 # swift
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-swift-driver/master/Examples/Docs/Sources/AsyncExamples/main.swift -o ${DRIVERS_PATH}/swiftAsync.swift
@@ -183,6 +186,5 @@ examples:
 
 # kotlin-coroutine
 	curl -SfL https://raw.githubusercontent.com/mongodb/docs-kotlin/master/source/examples/ServerManualCodeExamples.kt -o ${DRIVERS_PATH}/kotlin_examples.kt
-
 changelogs:
 	python3 changelogs/generatechangelogs.py
