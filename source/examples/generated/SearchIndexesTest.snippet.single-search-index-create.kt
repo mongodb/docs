@@ -1,5 +1,5 @@
-val index = Document(
+val searchIdx = Document(
     "mappings",
     Document("dynamic", true)
 )
-val resultCreateIndex = moviesCollection.createSearchIndex("myIndex", index)
+val resultCreateIndex = moviesCollection.createSearchIndex("myIndex", searchIdx)

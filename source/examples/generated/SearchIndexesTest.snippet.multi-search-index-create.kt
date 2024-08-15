@@ -1,16 +1,25 @@
-val indexOne = SearchIndexModel(
-    "myIndex1",
+val searchIdxMdl = SearchIndexModel(
+    "searchIdx",
     Document("analyzer", "lucene.standard").append(
         "mappings", Document("dynamic", true)
-    )
+    ),
+    SearchIndexType.search()
 )
 
-val indexTwo = SearchIndexModel(
-    "myIndex2",
-    Document("analyzer", "lucene.simple").append(
-        "mappings", Document("dynamic", true)
-    )
+val vectorSearchIdxMdl = SearchIndexModel(
+    "vsIdx",
+    Document(
+        "fields",
+        listOf(
+            Document("type", "vector")
+                .append("path", "embeddings")
+                .append("numDimensions", 1536)
+                .append("similarity", "dotProduct")
+        )
+    ),
+    SearchIndexType.vectorSearch()
 )
 
-val resultCreateIndexes = moviesCollection
-    .createSearchIndexes(listOf(indexOne, indexTwo))
+val resultCreateIndexes = moviesCollection.createSearchIndexes(
+    listOf(searchIdxMdl, vectorSearchIdxMdl)
+)

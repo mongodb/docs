@@ -17,6 +17,7 @@ import kotlin.test.assertFalse
 //       "CONNECTION_URI_PLACEHOLDER": "\"<connection string>\""
 //    }
 // }
+
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SearchIndexesTest {
 
@@ -42,11 +43,11 @@ class SearchIndexesTest {
     @Test
     fun singleSearchIndexTest() = runBlocking {
         // :snippet-start: single-search-index-create
-        val index = Document(
+        val searchIdx = Document(
             "mappings",
             Document("dynamic", true)
         )
-        val resultCreateIndex = moviesCollection.createSearchIndex("myIndex", index)
+        val resultCreateIndex = moviesCollection.createSearchIndex("myIndex", searchIdx)
         // :snippet-end:
         println("Index created: $resultCreateIndex")
         assertEquals("myIndex", resultCreateIndex)
@@ -56,24 +57,33 @@ class SearchIndexesTest {
     @Test
     fun multipleSearchIndexTest() = runBlocking {
         // :snippet-start: multi-search-index-create
-        val indexOne = SearchIndexModel(
-            "myIndex1",
+        val searchIdxMdl = SearchIndexModel(
+            "searchIdx",
             Document("analyzer", "lucene.standard").append(
                 "mappings", Document("dynamic", true)
-            )
+            ),
+            SearchIndexType.search()
         )
 
-        val indexTwo = SearchIndexModel(
-            "myIndex2",
-            Document("analyzer", "lucene.simple").append(
-                "mappings", Document("dynamic", true)
-            )
+        val vectorSearchIdxMdl = SearchIndexModel(
+            "vsIdx",
+            Document(
+                "fields",
+                listOf(
+                    Document("type", "vector")
+                        .append("path", "embeddings")
+                        .append("numDimensions", 1536)
+                        .append("similarity", "dotProduct")
+                )
+            ),
+            SearchIndexType.vectorSearch()
         )
 
-        val resultCreateIndexes = moviesCollection
-            .createSearchIndexes(listOf(indexOne, indexTwo))
+        val resultCreateIndexes = moviesCollection.createSearchIndexes(
+            listOf(searchIdxMdl, vectorSearchIdxMdl)
+        )
         // :snippet-end:
-        assertEquals(listOf("myIndex1", "myIndex2"), resultCreateIndexes.toList())
+        assertEquals(listOf("searchIdx", "vsIdx"), resultCreateIndexes.toList())
     }
 
     @Ignore
