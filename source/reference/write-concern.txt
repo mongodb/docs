@@ -347,11 +347,31 @@ the write operation in memory or after writing to the on-disk journal.
        - Acknowledgment requires writing operation to on-disk journal.
 
      * - ``j: false``
-       - Acknowledgment requires writing operation in memory. If write 
-         concern is set to ``w: "majority"`` and 
-         :rsconf:`writeConcernMajorityJournalDefault` is set to ``true``, 
-         journaling is automatically set to ``true`` regardless of 
-         the specified ``j`` value.
+       - Acknowledgment requires writing operation in memory.
+
+         Typically, if ``j: false`` is set, writing the operation to the
+         on-disk journal isn't required. However, if
+         ``writeConcernMajorityJournalDefault: true`` is set, writing
+         the operation to the journal is required even if ``j: false``
+         is set.
+
+         If ``j: false`` and ``writeConcernMajorityJournalDefault:
+         true`` are set, the write operations are written to the journal
+         asynchronously.
+         
+         - Writes that have ``w: majority`` set aren't acknowledged as
+           complete until the journal is flushed to disk.
+
+         - ``w: majority`` writes wait for the :readconcern:`"majority"`
+           read snapshot to complete, regardless of the ``j`` setting.
+           This is because if ``writeConcernMajorityJournalDefault:
+           true`` is set, the majority read snapshot is based on the
+           majority of journaled writes.
+
+         - After the write operation returns with a ``w: majority``
+           acknowledgment to the client application, the application can
+           read the result of the write if the ``majority`` read
+           concern is set.
 
   .. note::     
 
