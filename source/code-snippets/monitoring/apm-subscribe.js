@@ -11,9 +11,7 @@ const client = new MongoClient(uri, { monitorCommands:true });
 const eventName = "<event name>";
 
 // Subscribe to a specified event and print a message when the event is received
-client.on(eventName, event => {
-  console.log(`received ${eventName}: ${JSON.stringify(event, null, 2)}`);
-});
+client.on(eventName, event => console.log(event));
 
 async function run() {
   try {
