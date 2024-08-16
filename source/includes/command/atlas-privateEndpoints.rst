@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-privateEndpoints:
 
-========================
-atlas serverless backups
-========================
+======================
+atlas privateEndpoints
+======================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,7 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+Manage Atlas private endpoints.
 
 Options
 -------
@@ -28,7 +28,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for privateEndpoints
 
 Inherited Options
 -----------------
@@ -49,13 +49,17 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-privateEndpoints-aws` - Manage AWS Private Endpoints.
+* :ref:`atlas-privateEndpoints-azure` - Manage Azure Private Endpoints.
+* :ref:`atlas-privateEndpoints-gcp` - Manage GCP private endpoints.
+* :ref:`atlas-privateEndpoints-regionalModes` - Manage regionalized private endpoint setting for your Atlas project.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   aws </command/atlas-privateEndpoints-aws>
+   azure </command/atlas-privateEndpoints-azure>
+   gcp </command/atlas-privateEndpoints-gcp>
+   regionalModes </command/atlas-privateEndpoints-regionalModes>
 

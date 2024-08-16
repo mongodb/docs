@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-performanceAdvisor-slowQueryLogs:
 
-========================
-atlas serverless backups
-========================
+======================================
+atlas performanceAdvisor slowQueryLogs
+======================================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,7 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+Get log lines for slow queries for a specified host
 
 Options
 -------
@@ -28,7 +28,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for slowQueryLogs
 
 Inherited Options
 -----------------
@@ -49,13 +49,11 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-performanceAdvisor-slowQueryLogs-list` - Return log lines for slow queries that the Performance Advisor and Query Profiler identified.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   list </command/atlas-performanceAdvisor-slowQueryLogs-list>
 

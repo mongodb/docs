@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-backups-schedule:
 
-========================
-atlas serverless backups
-========================
+======================
+atlas backups schedule
+======================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,7 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+Return a cloud backup schedule for the cluster you specify.
 
 Options
 -------
@@ -28,7 +28,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for schedule
 
 Inherited Options
 -----------------
@@ -49,13 +49,15 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-backups-schedule-delete` - Delete all backup schedules of a cluster.
+* :ref:`atlas-backups-schedule-describe` - Describe a cloud backup schedule for the cluster you specify.
+* :ref:`atlas-backups-schedule-update` - Modify the backup schedule for the specified cluster for your project.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   delete </command/atlas-backups-schedule-delete>
+   describe </command/atlas-backups-schedule-describe>
+   update </command/atlas-backups-schedule-update>
 

@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-liveMigrations-link:
 
-========================
-atlas serverless backups
-========================
+=========================
+atlas liveMigrations link
+=========================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,7 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+Manage the link-token for your organization.
 
 Options
 -------
@@ -28,7 +28,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for link
 
 Inherited Options
 -----------------
@@ -49,13 +49,13 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-liveMigrations-link-create` - Create a new link-token for a push live migration.
+* :ref:`atlas-liveMigrations-link-delete` - Delete one link-token.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   create </command/atlas-liveMigrations-link-create>
+   delete </command/atlas-liveMigrations-link-delete>
 

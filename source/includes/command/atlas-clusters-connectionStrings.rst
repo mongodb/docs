@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-clusters-connectionStrings:
 
-========================
-atlas serverless backups
-========================
+================================
+atlas clusters connectionStrings
+================================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,7 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+Manage MongoDB cluster connection string.
 
 Options
 -------
@@ -28,7 +28,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for connectionStrings
 
 Inherited Options
 -----------------
@@ -49,13 +49,11 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-clusters-connectionStrings-describe` - Return the SRV connection string for the cluster you specify.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   describe </command/atlas-clusters-connectionStrings-describe>
 

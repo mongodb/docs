@@ -1,7 +1,7 @@
-.. _atlas-serverless-backups:
+.. _atlas-maintenanceWindows:
 
 ========================
-atlas serverless backups
+atlas maintenanceWindows
 ========================
 
 .. default-domain:: mongodb
@@ -12,7 +12,7 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+Manage Atlas maintenance windows.
 
 Options
 -------
@@ -28,7 +28,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for maintenanceWindows
 
 Inherited Options
 -----------------
@@ -49,13 +49,17 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-maintenanceWindows-clear` - Clear the current maintenance window setting for your project.
+* :ref:`atlas-maintenanceWindows-defer` - Defer scheduled maintenance for your project for one week.
+* :ref:`atlas-maintenanceWindows-describe` - Return the maintenance window details for your project.
+* :ref:`atlas-maintenanceWindows-update` - Modify the maintenance window for your project.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   clear </command/atlas-maintenanceWindows-clear>
+   defer </command/atlas-maintenanceWindows-defer>
+   describe </command/atlas-maintenanceWindows-describe>
+   update </command/atlas-maintenanceWindows-update>
 

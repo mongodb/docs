@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-clusters-sampleData:
 
-========================
-atlas serverless backups
-========================
+=========================
+atlas clusters sampleData
+=========================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,9 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+Manage sample data for your cluster.
+
+The sampleData command provides access to sample data to be loaded onto your cluster.
 
 Options
 -------
@@ -28,7 +30,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for sampleData
 
 Inherited Options
 -----------------
@@ -49,13 +51,15 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-clusters-sampleData-describe` - Return the details for the specified sample data load job.
+* :ref:`atlas-clusters-sampleData-load` - Load sample data into the specified cluster for your project.
+* :ref:`atlas-clusters-sampleData-watch` - Watch the specified sample data job in your cluster until it completes.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   describe </command/atlas-clusters-sampleData-describe>
+   load </command/atlas-clusters-sampleData-load>
+   watch </command/atlas-clusters-sampleData-watch>
 

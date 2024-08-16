@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-clusters-advancedSettings:
 
-========================
-atlas serverless backups
-========================
+===============================
+atlas clusters advancedSettings
+===============================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,7 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+Manage advanced configuration settings for your cluster.
 
 Options
 -------
@@ -28,7 +28,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for advancedSettings
 
 Inherited Options
 -----------------
@@ -49,13 +49,13 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-clusters-advancedSettings-describe` - Retrieve advanced configuration settings for one cluster.
+* :ref:`atlas-clusters-advancedSettings-update` - Update advanced configuration settings for one cluster.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   describe </command/atlas-clusters-advancedSettings-describe>
+   update </command/atlas-clusters-advancedSettings-update>
 

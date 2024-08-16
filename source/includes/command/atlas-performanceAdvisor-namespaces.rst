@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-performanceAdvisor-namespaces:
 
-========================
-atlas serverless backups
-========================
+===================================
+atlas performanceAdvisor namespaces
+===================================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,7 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+Retrieve namespaces for collections experiencing slow queries
 
 Options
 -------
@@ -28,7 +28,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for namespaces
 
 Inherited Options
 -----------------
@@ -49,13 +49,11 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-performanceAdvisor-namespaces-list` - Return up to 20 namespaces for collections experiencing slow queries on the specified host.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   list </command/atlas-performanceAdvisor-namespaces-list>
 

@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-security-ldap:
 
-========================
-atlas serverless backups
-========================
+===================
+atlas security ldap
+===================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,7 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+LDAP operations.
 
 Options
 -------
@@ -28,7 +28,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for ldap
 
 Inherited Options
 -----------------
@@ -49,13 +49,17 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-security-ldap-delete` - Remove the current LDAP configuration captured in the userToDNMapping document from your project.
+* :ref:`atlas-security-ldap-get` - Return the current LDAP configuration details for your project.
+* :ref:`atlas-security-ldap-save` - Save an LDAP configuration for your project.
+* :ref:`atlas-security-ldap-verify` - Request verification of an LDAP configuration for your project.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   delete </command/atlas-security-ldap-delete>
+   get </command/atlas-security-ldap-get>
+   save </command/atlas-security-ldap-save>
+   verify </command/atlas-security-ldap-verify>
 

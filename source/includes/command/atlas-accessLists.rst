@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-accessLists:
 
-========================
-atlas serverless backups
-========================
+=================
+atlas accessLists
+=================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,7 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+Manage the list of IP addresses that can access your Atlas project.
 
 Options
 -------
@@ -28,7 +28,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for accessLists
 
 Inherited Options
 -----------------
@@ -49,13 +49,17 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-accessLists-create` - Create an IP access list entry for your project.
+* :ref:`atlas-accessLists-delete` - Remove the specified IP access list entry from your project.
+* :ref:`atlas-accessLists-describe` - Return the details for the specified IP access list entry.
+* :ref:`atlas-accessLists-list` - Return all IP access list entries for your project.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   create </command/atlas-accessLists-create>
+   delete </command/atlas-accessLists-delete>
+   describe </command/atlas-accessLists-describe>
+   list </command/atlas-accessLists-list>
 

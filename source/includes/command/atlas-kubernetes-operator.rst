@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-kubernetes-operator:
 
-========================
-atlas serverless backups
-========================
+=========================
+atlas kubernetes operator
+=========================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,9 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+Manage Atlas Kubernetes Operator.
+
+This command manages the Atlas Kubernetes Operator.
 
 Options
 -------
@@ -28,7 +30,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for operator
 
 Inherited Options
 -----------------
@@ -49,13 +51,11 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-kubernetes-operator-install` - Install Atlas Kubernetes Operator to a cluster.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   install </command/atlas-kubernetes-operator-install>
 

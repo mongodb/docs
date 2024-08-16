@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-events:
 
-========================
-atlas serverless backups
-========================
+============
+atlas events
+============
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,7 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+Manage events for your organization or project.
 
 Options
 -------
@@ -28,7 +28,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for events
 
 Inherited Options
 -----------------
@@ -49,13 +49,13 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-events-organizations` - Organization operations.
+* :ref:`atlas-events-projects` - Project operations.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   organizations </command/atlas-events-organizations>
+   projects </command/atlas-events-projects>
 

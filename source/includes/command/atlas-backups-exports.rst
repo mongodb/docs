@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-backups-exports:
 
-========================
-atlas serverless backups
-========================
+=====================
+atlas backups exports
+=====================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,7 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+Manage cloud backup export jobs for your project.
 
 Options
 -------
@@ -28,7 +28,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for exports
 
 Inherited Options
 -----------------
@@ -49,13 +49,13 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-backups-exports-buckets` - Manage cloud backup export buckets for your project.
+* :ref:`atlas-backups-exports-jobs` - Manage cloud backup export jobs for your project.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   buckets </command/atlas-backups-exports-buckets>
+   jobs </command/atlas-backups-exports-jobs>
 

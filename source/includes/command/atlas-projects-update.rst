@@ -1,8 +1,8 @@
-.. _atlas-privateEndpoints-onlineArchive-aws-describe:
+.. _atlas-projects-update:
 
-=================================================
-atlas privateEndpoints onlineArchive aws describe
-=================================================
+=====================
+atlas projects update
+=====================
 
 .. default-domain:: mongodb
 
@@ -12,9 +12,9 @@ atlas privateEndpoints onlineArchive aws describe
    :depth: 1
    :class: singlecol
 
-Return a specific Data Lake private endpoint for your project.
+Update a project.
 
-To use this command, you must authenticate with a user account or an API key that has the Project Read Only role.
+To use this command, you must authenticate with a user account or an API key with the Project Owner role.
 
 Syntax
 ------
@@ -22,7 +22,7 @@ Syntax
 .. code-block::
    :caption: Command Syntax
 
-   atlas privateEndpoints onlineArchive aws describe <privateEndpointId> [options]
+   atlas projects update <ID> [options]
 
 .. Code end marker, please don't delete this comment
 
@@ -37,10 +37,10 @@ Arguments
      - Type
      - Required
      - Description
-   * - privateEndpointId
+   * - ID
      - string
      - true
-     - Unique 22-character alphanumeric string that identifies the private endpoint.
+     - ID of the project you want to update.
 
 Options
 -------
@@ -53,18 +53,18 @@ Options
      - Type
      - Required
      - Description
+   * - -f, --file
+     - string
+     - true
+     - Path to the JSON configuration file that defines project configuration settings. To learn more about project configuration files for the Atlas CLI, see https://dochub.mongodb.org/core/project-config-file.
    * - -h, --help
      - 
      - false
-     - help for describe
+     - help for update
    * - -o, --output
      - string
      - false
-     - Output format. Valid values are json, json-path, go-template, or go-template-file.
-   * - --projectId
-     - string
-     - false
-     - Hexadecimal string that identifies the project to use. This option overrides the settings in the configuration file or environment variable.
+     - Output format. Valid values are json, json-path, go-template, or go-template-file. To see the full output, use the -o json option.
 
 Inherited Options
 -----------------
@@ -89,14 +89,14 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
 .. code-block::
 
-   ID             ENDPOINT PROVIDER   TYPE     COMMENT
-   <EndpointId>   <Provider>          <Type>   <Comment>
+   Project '<Id>' updated.
    
 
 Examples
 --------
 
 .. code-block::
+   :copyable: false
 
-   # This example uses the profile named "myprofile" for accessing Atlas.
-   atlas privateEndpoint dataLake aws describe vpce-abcdefg0123456789 -P myprofile
+   # Update a project with the ID 5e2211c17a3e5a48f5497de3 using the JSON file named myProject.json:
+   atlas projects update 5f4007f327a3bd7b6f4103c5 --file myProject.json --output json

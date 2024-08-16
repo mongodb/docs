@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-customDns-aws:
 
-========================
-atlas serverless backups
-========================
+===================
+atlas customDns aws
+===================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,7 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+Manage DNS configuration of an Atlas project’s cluster deployed to AWS.
 
 Options
 -------
@@ -28,7 +28,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for aws
 
 Inherited Options
 -----------------
@@ -49,13 +49,15 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-customDns-aws-describe` - Describe the custom DNS configuration of an Atlas cluster deployed to AWS in the specified project.
+* :ref:`atlas-customDns-aws-disable` - Disable the custom DNS configuration of an Atlas cluster deployed to AWS in the specified project.
+* :ref:`atlas-customDns-aws-enable` - Enable the custom DNS configuration of an Atlas cluster deployed to AWS in the specified project.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   describe </command/atlas-customDns-aws-describe>
+   disable </command/atlas-customDns-aws-disable>
+   enable </command/atlas-customDns-aws-enable>
 

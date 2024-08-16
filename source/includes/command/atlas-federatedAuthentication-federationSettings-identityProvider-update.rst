@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-federatedAuthentication-federationSettings-identityProvider-update:
 
-========================
-atlas serverless backups
-========================
+========================================================================
+atlas federatedAuthentication federationSettings identityProvider update
+========================================================================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,7 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+Update Federated Authentication Identity Providers.
 
 Options
 -------
@@ -28,7 +28,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for update
 
 Inherited Options
 -----------------
@@ -49,13 +49,11 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-federatedAuthentication-federationSettings-identityProvider-update-oidc` - Update an OIDC identity provider.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   oidc </command/atlas-federatedAuthentication-federationSettings-identityProvider-update-oidc>
 

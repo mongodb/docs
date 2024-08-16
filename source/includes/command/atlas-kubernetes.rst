@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-kubernetes:
 
-========================
-atlas serverless backups
-========================
+================
+atlas kubernetes
+================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,9 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+Manage Kubernetes resources.
+
+This command provides access to Kubernetes features within Atlas.
 
 Options
 -------
@@ -28,7 +30,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for kubernetes
 
 Inherited Options
 -----------------
@@ -49,13 +51,13 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-kubernetes-config` - Manage Kubernetes configuration resources.
+* :ref:`atlas-kubernetes-operator` - Manage Atlas Kubernetes Operator.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   config </command/atlas-kubernetes-config>
+   operator </command/atlas-kubernetes-operator>
 

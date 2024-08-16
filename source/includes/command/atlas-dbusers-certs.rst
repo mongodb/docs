@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-dbusers-certs:
 
-========================
-atlas serverless backups
-========================
+===================
+atlas dbusers certs
+===================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,7 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+Manage Atlas x509 certificates for your database users.
 
 Options
 -------
@@ -28,7 +28,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for certs
 
 Inherited Options
 -----------------
@@ -49,13 +49,13 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-dbusers-certs-create` - Create a new Atlas-managed X.509 certificate for the specified database user.
+* :ref:`atlas-dbusers-certs-list` - Return all Atlas-managed, unexpired X.509 certificates for the specified database user.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   create </command/atlas-dbusers-certs-create>
+   list </command/atlas-dbusers-certs-list>
 

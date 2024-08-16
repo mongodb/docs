@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-projects-settings:
 
-========================
-atlas serverless backups
-========================
+=======================
+atlas projects settings
+=======================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,9 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+Settings operations.
+
+Manage your project settings.
 
 Options
 -------
@@ -28,7 +30,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for settings
 
 Inherited Options
 -----------------
@@ -49,13 +51,13 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-projects-settings-describe` - Retrieve details for settings to the specified project.
+* :ref:`atlas-projects-settings-update` - Updates settings for a project.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   describe </command/atlas-projects-settings-describe>
+   update </command/atlas-projects-settings-update>
 

@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-cloudProviders-accessRoles:
 
-========================
-atlas serverless backups
-========================
+================================
+atlas cloudProviders accessRoles
+================================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,7 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+Manage AWS IAM role access in Atlas.
 
 Options
 -------
@@ -28,7 +28,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for accessRoles
 
 Inherited Options
 -----------------
@@ -49,13 +49,13 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-cloudProviders-accessRoles-aws` - Manage AWS IAM role access in Atlas.
+* :ref:`atlas-cloudProviders-accessRoles-list` - List AWS IAM role access in Atlas.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   aws </command/atlas-cloudProviders-accessRoles-aws>
+   list </command/atlas-cloudProviders-accessRoles-list>
 

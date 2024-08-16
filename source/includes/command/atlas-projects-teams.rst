@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-projects-teams:
 
-========================
-atlas serverless backups
-========================
+====================
+atlas projects teams
+====================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,7 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+Manage your Atlas teams.
 
 Options
 -------
@@ -28,7 +28,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for teams
 
 Inherited Options
 -----------------
@@ -49,13 +49,17 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-projects-teams-add` - Add the specified team to your project.
+* :ref:`atlas-projects-teams-delete` - Remove the specified team from your project.
+* :ref:`atlas-projects-teams-list` - Return all teams for a project.
+* :ref:`atlas-projects-teams-update` - Modify the roles for the specified team for your project.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   add </command/atlas-projects-teams-add>
+   delete </command/atlas-projects-teams-delete>
+   list </command/atlas-projects-teams-list>
+   update </command/atlas-projects-teams-update>
 

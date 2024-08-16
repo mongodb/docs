@@ -1,8 +1,8 @@
-.. _atlas-config-set:
+.. _atlas-dataLakePipelines-pause:
 
-================
-atlas config set
-================
+=============================
+atlas dataLakePipelines pause
+=============================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,9 @@ atlas config set
    :depth: 1
    :class: singlecol
 
-Configure specific properties of a profile.
+Pause the specified data lake pipeline for your project.
+
+To use this command, you must authenticate with a user account or an API key with the Project Owner role.
 
 Syntax
 ------
@@ -20,7 +22,7 @@ Syntax
 .. code-block::
    :caption: Command Syntax
 
-   atlas config set <propertyName> <value> [options]
+   atlas dataLakePipelines pause <pipelineName> [options]
 
 .. Code end marker, please don't delete this comment
 
@@ -35,14 +37,10 @@ Arguments
      - Type
      - Required
      - Description
-   * - propertyName
+   * - pipelineName
      - string
      - true
-     - Property to set in the profile. Valid values for Atlas CLI are project_id, org_id, service, public_api_key, private_api_key, output, mongosh_path, skip_update_check, telemetry_enabled, access_token, and refresh_token.
-   * - value
-     - string
-     - true
-     - Value for the property to set in the profile.
+     - Label that identifies the pipeline
 
 Options
 -------
@@ -58,7 +56,15 @@ Options
    * - -h, --help
      - 
      - false
-     - help for set
+     - help for pause
+   * - -o, --output
+     - string
+     - false
+     - Output format. Valid values are json, json-path, go-template, or go-template-file. To see the full output, use the -o json option.
+   * - --projectId
+     - string
+     - false
+     - Hexadecimal string that identifies the project to use. This option overrides the settings in the configuration file or environment variable.
 
 Inherited Options
 -----------------
@@ -82,6 +88,6 @@ Examples
 .. code-block::
    :copyable: false
 
-  
-   Set the organization ID in the default profile to 5dd5aaef7a3e5a6c5bd12de4:
-   atlas config set org_id 5dd5aaef7a3e5a6c5bd12de4
+   # pause pipeline 'Pipeline1':
+   atlas dataLakePipelines pause Pipeline1
+

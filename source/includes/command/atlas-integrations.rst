@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-integrations:
 
-========================
-atlas serverless backups
-========================
+==================
+atlas integrations
+==================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,7 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+Configure third-party integrations for your Atlas project.
 
 Options
 -------
@@ -28,7 +28,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for integrations
 
 Inherited Options
 -----------------
@@ -49,13 +49,17 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-integrations-create` - Create operations.
+* :ref:`atlas-integrations-delete` - Remove the specified third-party integration from your project.
+* :ref:`atlas-integrations-describe` - Return the details for the specified third-party integration for your project.
+* :ref:`atlas-integrations-list` - Return all active third-party integrations for your project.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   create </command/atlas-integrations-create>
+   delete </command/atlas-integrations-delete>
+   describe </command/atlas-integrations-describe>
+   list </command/atlas-integrations-list>
 

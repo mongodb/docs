@@ -1,8 +1,8 @@
-.. _atlas-privateEndpoints-onlineArchive-aws-delete:
+.. _atlas-dataLakePipelines-watch:
 
-===============================================
-atlas privateEndpoints onlineArchive aws delete
-===============================================
+=============================
+atlas dataLakePipelines watch
+=============================
 
 .. default-domain:: mongodb
 
@@ -12,9 +12,9 @@ atlas privateEndpoints onlineArchive aws delete
    :depth: 1
    :class: singlecol
 
-Delete a specific Data Lake private endpoint for your project.
+Watch for the specified data lake pipeline to complete.
 
-To use this command, you must authenticate with a user account or an API key that has the Project Owner role.
+To use this command, you must authenticate with a user account or an API key with the Project Owner role.
 
 Syntax
 ------
@@ -22,7 +22,7 @@ Syntax
 .. code-block::
    :caption: Command Syntax
 
-   atlas privateEndpoints onlineArchive aws delete <privateEndpointId> [options]
+   atlas dataLakePipelines watch <pipelineName> [options]
 
 .. Code end marker, please don't delete this comment
 
@@ -37,10 +37,10 @@ Arguments
      - Type
      - Required
      - Description
-   * - privateEndpointId
+   * - pipelineName
      - string
      - true
-     - Unique 22-character alphanumeric string that identifies the private endpoint.
+     - Label that identifies the pipeline
 
 Options
 -------
@@ -53,14 +53,14 @@ Options
      - Type
      - Required
      - Description
-   * - --force
-     - 
-     - false
-     - Flag that indicates whether to skip the confirmation prompt before proceeding with the requested action.
    * - -h, --help
      - 
      - false
-     - help for delete
+     - help for watch
+   * - -o, --output
+     - string
+     - false
+     - Output format. Valid values are json, json-path, go-template, or go-template-file. To see the full output, use the -o json option.
    * - --projectId
      - string
      - false
@@ -89,12 +89,15 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
 .. code-block::
 
-   Private endpoint '<Name>' deleted
+   data lake pipeline created
    
 
 Examples
 --------
 
 .. code-block::
+   :copyable: false
 
-   atlas privateEndpoint dataLake aws delete vpce-0fcd9d80bbafe1607 --force
+   # watches the pipeline 'Pipeline1':
+   atlas dataLakePipelines watch Pipeline1
+

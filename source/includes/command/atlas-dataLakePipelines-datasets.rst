@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-dataLakePipelines-datasets:
 
-========================
-atlas serverless backups
-========================
+================================
+atlas dataLakePipelines datasets
+================================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,7 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+Manage datasets for the specified data lake pipeline.
 
 Options
 -------
@@ -28,7 +28,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for datasets
 
 Inherited Options
 -----------------
@@ -49,13 +49,11 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-dataLakePipelines-datasets-delete` - Remove the specified data lake pipeline dataset from your project.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   delete </command/atlas-dataLakePipelines-datasets-delete>
 

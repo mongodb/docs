@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-users:
 
-========================
-atlas serverless backups
-========================
+===========
+atlas users
+===========
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,9 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+Manage your Atlas users.
+
+Create, list and manage your Atlas users.
 
 Options
 -------
@@ -28,7 +30,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for users
 
 Inherited Options
 -----------------
@@ -49,13 +51,13 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-users-describe` - Return the details for the specified Atlas user.
+* :ref:`atlas-users-invite` - Create an Atlas user for your MongoDB Atlas application and invite the Atlas user to your organizations and projects.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   describe </command/atlas-users-describe>
+   invite </command/atlas-users-invite>
 

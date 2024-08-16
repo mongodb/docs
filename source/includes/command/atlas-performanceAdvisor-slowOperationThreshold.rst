@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-performanceAdvisor-slowOperationThreshold:
 
-========================
-atlas serverless backups
-========================
+===============================================
+atlas performanceAdvisor slowOperationThreshold
+===============================================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,7 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+Enable or disable management of the slow operation threshold for your cluster.
 
 Options
 -------
@@ -28,7 +28,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for slowOperationThreshold
 
 Inherited Options
 -----------------
@@ -49,13 +49,13 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-performanceAdvisor-slowOperationThreshold-disable` - Disable the application-managed slow operation threshold for your project.
+* :ref:`atlas-performanceAdvisor-slowOperationThreshold-enable` - Enable the application-managed slow operation threshold for your project.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   disable </command/atlas-performanceAdvisor-slowOperationThreshold-disable>
+   enable </command/atlas-performanceAdvisor-slowOperationThreshold-enable>
 

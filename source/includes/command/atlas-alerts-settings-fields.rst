@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-alerts-settings-fields:
 
-========================
-atlas serverless backups
-========================
+============================
+atlas alerts settings fields
+============================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,7 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+Manages alert configuration fields for your project.
 
 Options
 -------
@@ -28,7 +28,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for fields
 
 Inherited Options
 -----------------
@@ -49,13 +49,11 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-alerts-settings-fields-type` - Return all available field types that the matcherFieldName option accepts when you create or update an alert configuration.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   type </command/atlas-alerts-settings-fields-type>
 

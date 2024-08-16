@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-dataLakePipelines-runs:
 
-========================
-atlas serverless backups
-========================
+============================
+atlas dataLakePipelines runs
+============================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,7 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+Data Lake pipelines runs.
 
 Options
 -------
@@ -28,7 +28,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for runs
 
 Inherited Options
 -----------------
@@ -49,13 +49,15 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-dataLakePipelines-runs-describe` - Return the details for the specified data lake pipeline run for your project.
+* :ref:`atlas-dataLakePipelines-runs-list` - Returns all data lake pipeline runs for your project.
+* :ref:`atlas-dataLakePipelines-runs-watch` - Watch for the specified data lake pipeline run to complete.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   describe </command/atlas-dataLakePipelines-runs-describe>
+   list </command/atlas-dataLakePipelines-runs-list>
+   watch </command/atlas-dataLakePipelines-runs-watch>
 

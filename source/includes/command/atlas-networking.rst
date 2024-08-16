@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-networking:
 
-========================
-atlas serverless backups
-========================
+================
+atlas networking
+================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,7 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+Manage or configure network peering for your Atlas project.
 
 Options
 -------
@@ -28,7 +28,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for networking
 
 Inherited Options
 -----------------
@@ -49,13 +49,13 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-networking-containers` - Manage Network Peering containers.
+* :ref:`atlas-networking-peering` - Manage Network Peering connections.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   containers </command/atlas-networking-containers>
+   peering </command/atlas-networking-peering>
 

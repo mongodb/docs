@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-dataLakePipelines-availableSchedules:
 
-========================
-atlas serverless backups
-========================
+==========================================
+atlas dataLakePipelines availableSchedules
+==========================================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,7 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+Manage available schedules for the specified data lake pipeline.
 
 Options
 -------
@@ -28,7 +28,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for availableSchedules
 
 Inherited Options
 -----------------
@@ -49,13 +49,11 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-dataLakePipelines-availableSchedules-list` - Return all available schedules for the specified data lake pipeline.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   list </command/atlas-dataLakePipelines-availableSchedules-list>
 

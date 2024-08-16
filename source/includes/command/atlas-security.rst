@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-security:
 
-========================
-atlas serverless backups
-========================
+==============
+atlas security
+==============
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,7 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+Manage security configuration for your project.
 
 Options
 -------
@@ -28,7 +28,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for security
 
 Inherited Options
 -----------------
@@ -49,13 +49,13 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-security-customerCerts` - Manage customer x509 certificates for your project.
+* :ref:`atlas-security-ldap` - LDAP operations.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   customerCerts </command/atlas-security-customerCerts>
+   ldap </command/atlas-security-ldap>
 

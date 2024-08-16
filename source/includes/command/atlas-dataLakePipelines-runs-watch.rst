@@ -1,8 +1,8 @@
-.. _atlas-privateEndpoints-onlineArchive-aws-list:
+.. _atlas-dataLakePipelines-runs-watch:
 
-=============================================
-atlas privateEndpoints onlineArchive aws list
-=============================================
+==================================
+atlas dataLakePipelines runs watch
+==================================
 
 .. default-domain:: mongodb
 
@@ -12,9 +12,9 @@ atlas privateEndpoints onlineArchive aws list
    :depth: 1
    :class: singlecol
 
-List Data Lake private endpoints for your project.
+Watch for the specified data lake pipeline run to complete.
 
-To use this command, you must authenticate with a user account or an API key that has the Project Read Only role.
+To use this command, you must authenticate with a user account or an API key with the Project Owner role.
 
 Syntax
 ------
@@ -22,9 +22,25 @@ Syntax
 .. code-block::
    :caption: Command Syntax
 
-   atlas privateEndpoints onlineArchive aws list [options]
+   atlas dataLakePipelines runs watch <pipelineName> [options]
 
 .. Code end marker, please don't delete this comment
+
+Arguments
+---------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - pipelineName
+     - string
+     - true
+     - Label that identifies the pipeline
 
 Options
 -------
@@ -40,19 +56,15 @@ Options
    * - -h, --help
      - 
      - false
-     - help for list
-   * - --limit
-     - int
-     - false
-     - Number of items per results page, up to a maximum of 500. If you have more than 500 results, specify the --page option to change the results page. This value defaults to 100.
+     - help for watch
    * - -o, --output
      - string
      - false
-     - Output format. Valid values are json, json-path, go-template, or go-template-file.
-   * - --page
-     - int
-     - false
-     - Page number that specifies a page of results. This value defaults to 1.
+     - Output format. Valid values are json, json-path, go-template, or go-template-file. To see the full output, use the -o json option.
+   * - --pipeline
+     - string
+     - true
+     - Name of the Data lake pipeline.
    * - --projectId
      - string
      - false
@@ -81,7 +93,15 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
 .. code-block::
 
-   ID             ENDPOINT PROVIDER   TYPE     COMMENT
-   <EndpointId>   <Provider>          <Type>   <Comment>
+   data lake pipeline created
    
+
+Examples
+--------
+
+.. code-block::
+   :copyable: false
+
+   # watches the pipeline 'Pipeline1':
+   atlas dataLakePipelines watch Pipeline1
 

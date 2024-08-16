@@ -1,7 +1,7 @@
-.. _atlas-serverless-backups:
+.. _atlas-deployments-search:
 
 ========================
-atlas serverless backups
+atlas deployments search
 ========================
 
 .. default-domain:: mongodb
@@ -12,7 +12,7 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+Manage search for cloud and local deployments.
 
 Options
 -------
@@ -28,7 +28,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for search
 
 Inherited Options
 -----------------
@@ -49,13 +49,11 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-deployments-search-indexes` - Manage cloud and local search indexes.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   indexes </command/atlas-deployments-search-indexes>
 

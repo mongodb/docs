@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-metrics-databases:
 
-========================
-atlas serverless backups
-========================
+=======================
+atlas metrics databases
+=======================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,7 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+List available databases or database metrics for a given host.
 
 Options
 -------
@@ -28,7 +28,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for databases
 
 Inherited Options
 -----------------
@@ -49,13 +49,13 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-metrics-databases-describe` - Return the measurements of a database on the specified host.
+* :ref:`atlas-metrics-databases-list` - Return all databases running on the specified host for your project.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   describe </command/atlas-metrics-databases-describe>
+   list </command/atlas-metrics-databases-list>
 

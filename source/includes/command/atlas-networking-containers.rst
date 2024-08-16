@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-networking-containers:
 
-========================
-atlas serverless backups
-========================
+===========================
+atlas networking containers
+===========================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,7 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+Manage Network Peering containers.
 
 Options
 -------
@@ -28,7 +28,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for containers
 
 Inherited Options
 -----------------
@@ -49,13 +49,13 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-networking-containers-delete` - Remove the specified network peering container from your project before creating any clusters. Don't run this command if you have clusters in your project.
+* :ref:`atlas-networking-containers-list` - Return all network peering containers for your project.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   delete </command/atlas-networking-containers-delete>
+   list </command/atlas-networking-containers-list>
 

@@ -1,0 +1,67 @@
+.. _atlas-alerts:
+
+============
+atlas alerts
+============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Manage alerts for your project.
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -h, --help
+     - 
+     - false
+     - help for alerts
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Related Commands
+----------------
+
+* :ref:`atlas-alerts-acknowledge` - Acknowledges the specified alert for your project.
+* :ref:`atlas-alerts-describe` - Return the details for the specified alert for your project.
+* :ref:`atlas-alerts-list` - Return all alerts for your project.
+* :ref:`atlas-alerts-settings` - Manages alerts configuration for your project.
+* :ref:`atlas-alerts-unacknowledge` - Unacknowledge the specified alert for your project.
+
+
+.. toctree::
+   :titlesonly:
+
+   acknowledge </command/atlas-alerts-acknowledge>
+   describe </command/atlas-alerts-describe>
+   list </command/atlas-alerts-list>
+   settings </command/atlas-alerts-settings>
+   unacknowledge </command/atlas-alerts-unacknowledge>
+

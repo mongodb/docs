@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-auth:
 
-========================
-atlas serverless backups
-========================
+==========
+atlas auth
+==========
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,7 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+Manage the CLI's authentication state.
 
 Options
 -------
@@ -28,7 +28,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for auth
 
 Inherited Options
 -----------------
@@ -49,13 +49,17 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-auth-login` - Authenticate with MongoDB Atlas.
+* :ref:`atlas-auth-logout` - Log out of the CLI.
+* :ref:`atlas-auth-register` - Register with MongoDB Atlas.
+* :ref:`atlas-auth-whoami` - Verifies and displays information about your authentication state.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   login </command/atlas-auth-login>
+   logout </command/atlas-auth-logout>
+   register </command/atlas-auth-register>
+   whoami </command/atlas-auth-whoami>
 

@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-auditing:
 
-========================
-atlas serverless backups
-========================
+==============
+atlas auditing
+==============
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,7 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+Returns database auditing settings for MongoDB Cloud projects.
 
 Options
 -------
@@ -28,7 +28,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for auditing
 
 Inherited Options
 -----------------
@@ -49,13 +49,13 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-auditing-describe` - Returns the auditing configuration for the specified project.
+* :ref:`atlas-auditing-update` - Updates the auditing configuration for the specified project
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   describe </command/atlas-auditing-describe>
+   update </command/atlas-auditing-update>
 

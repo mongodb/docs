@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-metrics-disks:
 
-========================
-atlas serverless backups
-========================
+===================
+atlas metrics disks
+===================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,7 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+List available disks or disk metrics for a given host.
 
 Options
 -------
@@ -28,7 +28,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for disks
 
 Inherited Options
 -----------------
@@ -49,13 +49,13 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-metrics-disks-describe` - Return the measurements of a disk or partition on the specified host.
+* :ref:`atlas-metrics-disks-list` - Return all disks or disk partitions on the specified host for your project.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   describe </command/atlas-metrics-disks-describe>
+   list </command/atlas-metrics-disks-list>
 

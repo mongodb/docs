@@ -1,8 +1,8 @@
-.. _atlas-serverless-backups:
+.. _atlas-metrics:
 
-========================
-atlas serverless backups
-========================
+=============
+atlas metrics
+=============
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,7 @@ atlas serverless backups
    :depth: 1
    :class: singlecol
 
-Manage cloud backups for your project.
+Get metrics on the MongoDB process.
 
 Options
 -------
@@ -28,7 +28,7 @@ Options
    * - -h, --help
      - 
      - false
-     - help for backups
+     - help for metrics
 
 Inherited Options
 -----------------
@@ -49,13 +49,15 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-serverless-backups-restores` - Manage cloud backup restore jobs for your project.
-* :ref:`atlas-serverless-backups-snapshots` - Manage cloud backup snapshots for your project.
+* :ref:`atlas-metrics-databases` - List available databases or database metrics for a given host.
+* :ref:`atlas-metrics-disks` - List available disks or disk metrics for a given host.
+* :ref:`atlas-metrics-processes` - Return the process measurements for the specified host.
 
 
 .. toctree::
    :titlesonly:
 
-   restores </command/atlas-serverless-backups-restores>
-   snapshots </command/atlas-serverless-backups-snapshots>
+   databases </command/atlas-metrics-databases>
+   disks </command/atlas-metrics-disks>
+   processes </command/atlas-metrics-processes>
 
