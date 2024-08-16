@@ -29,7 +29,7 @@ that produces the most results during the trial period while performing
 the least amount of work.
 
 The associated plan cache entry is used for subsequent queries with the
-same query shape.
+same :term:`plan cache query shape`.
 
 The following diagram illustrates the query planner logic:
 
@@ -42,7 +42,7 @@ The following diagram illustrates the query planner logic:
 Plan Cache Entry State
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Starting in MongoDB 4.2, each query shape is associated with one of
+Starting in MongoDB 4.2, each plan cache query shape is associated with one of
 three states in the cache:
 
 .. list-table::
@@ -58,12 +58,12 @@ three states in the cache:
 
        No entry for this shape exists in the cache.
        
-       For a query, if the cache entry state for a query shape is
+       For a query, if the cache entry state for a plan cache query shape is
        :ref:`Missing <cache-entry-missing>`:
 
        #. Candidate plans are evaluated and a winning plan is selected.
 
-       #. The cache creates an entry for the query shape in state
+       #. The cache creates an entry for the plan cache query shape in state
           :ref:`Inactive <cache-entry-inactive>` with a value that
           quantifies the amount of work required by the plan. 
        
@@ -74,7 +74,7 @@ three states in the cache:
        The entry in the cache is a placeholder entry for this shape.
        That is, the planner has seen the shape, calculated a value that
        quantifies the amount of work required by the plan and stored the
-       shape placeholder entry but the query shape is **not** used to
+       shape placeholder entry but the plan cache query shape is **not** used to
        generate query plans.
     
        For a query, if the cache entry state for a shape is
@@ -182,20 +182,20 @@ the output of :pipeline:`$planCacheStats`.
 
 .. _query-hash-plan-cache-key:
 
-``queryHash`` and ``planCacheKey``
-----------------------------------
+planCacheShapeHash and planCacheKey
+-----------------------------------
 
 .. _query-hash:
 
-``queryHash``
-~~~~~~~~~~~~~
+planCacheShapeHash
+~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/extracts/4.2-changes-query-shapes.rst
 
 .. _plan-cache-key:
 
-``planCacheKey``
-~~~~~~~~~~~~~~~~
+planCacheKey
+~~~~~~~~~~~~
 
 .. include:: /includes/extracts/4.2-changes-plan-cache-key.rst
 
@@ -227,11 +227,14 @@ change.
 Availability
 ~~~~~~~~~~~~
 
-The ``queryHash`` and ``planCacheKey`` are available in:
+The ``planCacheShapeHash`` and ``planCacheKey`` are available in:
 
 - :ref:`explain() output <explain-results>` fields:
-  :data:`queryPlanner.queryHash <explain.queryPlanner.queryHash>` and
-  :data:`queryPlanner.planCacheKey <explain.queryPlanner.planCacheKey>`
+  
+  - :data:`queryPlanner.planCacheShapeHash <explain.queryPlanner.planCacheShapeHash>`
+  - :data:`queryPlanner.planCacheKey <explain.queryPlanner.planCacheKey>`
+
+  .. include:: /includes/plan-cache-rename.rst
 
 - :ref:`profiler log messages <database-profiler>`
   and :ref:`diagnostic log messages (i.e. mongod/mongos log
@@ -252,12 +255,12 @@ Index Filters
 
 Index filters are set with the :dbcommand:`planCacheSetFilter` command
 and determine which indexes the planner evaluates for a :term:`query
-shape`. A query shape consists of a combination of query, sort, and
+shape`. A plan cache query shape consists of a combination of query, sort, and
 projection specifications. If an index filter exists for a given query
 shape, the planner only considers those indexes specified in the
 filter.
 
-When an index filter exists for the query shape, MongoDB ignores the
+When an index filter exists for the plan cache query shape, MongoDB ignores the
 :method:`~cursor.hint()`. To see whether MongoDB applied an index
 filter for a query shape, check the :data:`~explain.queryPlanner.indexFilterSet`
 field of either the :method:`db.collection.explain()` or the
@@ -265,7 +268,7 @@ field of either the :method:`db.collection.explain()` or the
 
 Index filters only affect which indexes the planner evaluates; the
 planner may still select the collection scan as the winning plan for
-a given query shape.
+a given plan cache query shape.
 
 Index filters exist for the duration of the server process and do not
 persist after shutdown. MongoDB also provides a command to manually remove

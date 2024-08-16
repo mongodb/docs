@@ -40,7 +40,7 @@ Definition
         - .. _plancache-list-pipeline:
 
           Optional. :ref:`Aggregation pipeline <aggregation-pipeline>`
-          to filter/process the query shapes.
+          to filter/process the :term:`plan cache query shapes <plan cache query shape>`.
 
    You can run this method from a :binary:`~bin.mongod` or
    :binary:`~bin.mongos` instance. When run on a sharded cluster, the
@@ -68,7 +68,7 @@ Definition
       
    Not all queries automatically place a query plan in the cache.
    :method:`PlanCache.list()` returns an empty array if there are
-   currently no query shapes with cached query plans.
+   currently no plan cache query shapes with cached query plans.
 
    .. seealso::
 
@@ -90,14 +90,18 @@ Restrictions
 :method:`PlanCache.list()` is not allowed in :doc:`transactions
 </core/transactions>`.
 
-Query Hash and Query Shapes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Query Hash and Plan Cache Query Shapes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/extracts/4.2-changes-query-shapes.rst
 
 .. include:: /includes/fact-query-optimizer-cache-behavior.rst
 
-Each entry in the plan cache is associated with a ``queryHash``.
+Each entry in the plan cache is associated with a ``planCacheShapeHash``.
+
+.. warning::
+
+   .. include:: /includes/plan-cache-rename.rst
 
 .. _plancache-list-read-pref:
 
@@ -175,14 +179,14 @@ Run some queries against the collection:
 Return Information for All Entries in the Query Cache
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following returns the :term:`query shapes <query shape>` that have
+The following returns the :term:`plan cache query shapes <plan cache query shape>` that have
 cached plans for the ``orders`` collection:
 
 .. code-block:: javascript
 
    db.orders.getPlanCache().list()
 
-The method returns an array of the query shapes currently in the cache.
+The method returns an array of the plan cache query shapes currently in the cache.
 In the example, the ``orders`` collection had cached query plans
 associated with the following shapes:
 
@@ -196,7 +200,7 @@ associated with the following shapes:
             "sort" : { },
             "projection" : { }
          },
-         "queryHash" : "4D151C4C",
+         "planCacheShapeHash" : "4D151C4C",
          "planCacheKey" : "DD67E353",
          "isActive" : false,
          "works" : NumberLong(4),
@@ -263,7 +267,7 @@ associated with the following shapes:
             "sort" : { },
             "projection" : { }
          },
-         "queryHash" : "23B19B75",
+         "planCacheShapeHash" : "23B19B75",
          "planCacheKey" : "6F23F858",
          "isActive" : false,
          "works" : NumberLong(1),
@@ -275,7 +279,7 @@ associated with the following shapes:
             "sort" : { },
             "projection" : { }
          },
-         "queryHash" : "117A6B10",
+         "planCacheShapeHash" : "117A6B10",
          "planCacheKey" : "A1824628",
          "isActive" : false,
          "works" : NumberLong(4),
@@ -287,7 +291,7 @@ associated with the following shapes:
             "sort" : { },
             "projection" : { }
          },
-         "queryHash" : "117A6B10",
+         "planCacheShapeHash" : "117A6B10",
          "planCacheKey" : "2E6E536B",
          "isActive" : false,
          "works" : NumberLong(3),
@@ -295,34 +299,42 @@ associated with the following shapes:
       }
    ]
 
+.. warning::
+
+   .. include:: /includes/plan-cache-rename.rst
+
 For details on the output, see :ref:`$planCacheStats output
 <planCacheStats-output>`.
 
 .. planCache-list-query-shapes:
 
-List Query Shapes
-~~~~~~~~~~~~~~~~~
+List Plan Cache Query Shapes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To obtain a list of all of the query shapes for which there is a cached plan, 
 you can use the :method:`PlanCache.list()`. For example, the following operation 
 passes in a pipeline with a :pipeline:`$project` stage to only output the 
 :ref:`createdFromQuery <plancachestats-createdFromQuery>` field and the 
-:ref:`queryHash <plancachestats-queryHash>` field.
+:ref:`planCacheShapeHash <plancachestats-planCacheShapeHash>` field.
 
 .. code-block:: javascript
 
-   db.orders.getPlanCache().list( [ { $project: {createdFromQuery: 1, queryHash: 1 } } ] )
+   db.orders.getPlanCache().list( [ { $project: {createdFromQuery: 1, planCacheShapeHash: 1 } } ] )
 
-The operation returns the following query shapes:
+.. warning::
+
+   .. include:: /includes/plan-cache-rename.rst
+
+The operation returns the following plan cache query shapes:
 
 .. code-block:: javascript
    :copyable: false
 
    [
-      { "createdFromQuery" : { "query" : { "quantity" : { "$gte" : 5 }, "type" : "apparel" }, "sort" : { }, "projection" : { } }, "queryHash" : "4D151C4C" },
-      { "createdFromQuery" : { "query" : { "quantity" : { "$gte" : 20 } }, "sort" : { }, "projection" : { } }, "queryHash" : "23B19B75" },
-      { "createdFromQuery" : { "query" : { "item" : "abc", "price" : { "$gte" : NumberDecimal("5") } }, "sort" : { }, "projection" : { } }, "queryHash" : "117A6B10" },
-      { "createdFromQuery" : { "query" : { "item" : "abc", "price" : { "$gte" : NumberDecimal("10") } }, "sort" : { }, "projection" : { } }, "queryHash" : "117A6B10" }
+      { "createdFromQuery" : { "query" : { "quantity" : { "$gte" : 5 }, "type" : "apparel" }, "sort" : { }, "projection" : { } }, "planCacheShapeHash" : "4D151C4C" },
+      { "createdFromQuery" : { "query" : { "quantity" : { "$gte" : 20 } }, "sort" : { }, "projection" : { } }, "planCacheShapeHash" : "23B19B75" },
+      { "createdFromQuery" : { "query" : { "item" : "abc", "price" : { "$gte" : NumberDecimal("5") } }, "sort" : { }, "projection" : { } }, "planCacheShapeHash" : "117A6B10" },
+      { "createdFromQuery" : { "query" : { "item" : "abc", "price" : { "$gte" : NumberDecimal("10") } }, "sort" : { }, "projection" : { } }, "planCacheShapeHash" : "117A6B10" }
    ]
 
 For details on the output, see :ref:`$planCacheStats output
@@ -330,8 +342,8 @@ For details on the output, see :ref:`$planCacheStats output
 
 .. _planCache-list-cache-entry-for-query-shape:
 
-Find Cache Entry Details for a Query Shape
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Find Cache Entry Details for a Plan Cache Query Shape
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To return plan cache information for a particular query shape, pass in
 a pipeline with a :pipeline:`$match` on the :ref:`planCacheKey
@@ -363,7 +375,7 @@ The operation returns the following:
             
             }
          },
-         "queryHash" : "4D151C4C",
+         "planCacheShapeHash" : "4D151C4C",
          "planCacheKey" : "DD67E353",
          "isActive" : false,
          "works" : NumberLong(4),
@@ -527,6 +539,10 @@ The operation returns the following:
          "shard" : "shardA"                         // Available if run on sharded cluster
       }
    ]
+
+.. warning::
+
+   .. include:: /includes/plan-cache-rename.rst
 
 For details on the output, see :ref:`$planCacheStats output
 <planCacheStats-output>`.

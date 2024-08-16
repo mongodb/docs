@@ -4,6 +4,11 @@
 
 - ``command``, which details the command being explained.
 
+- ``queryShapeHash``, starting in MongoDB 8.0, which is a hexadecimal
+  string with the hash of a :term:`query shape`. For details, see
+  :ref:`query-shapes`, :ref:`explain-output-query-shape-hash`, and
+  :data:`explain.queryShapeHash`.
+
 - :ref:`queryPlanner`, which details the plan selected by the
   :ref:`query optimizer <read-operations-query-optimization>` and lists the rejected
   plans.
