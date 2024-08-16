@@ -56,7 +56,7 @@
        - **Default Storage**: 6000 GB
        - **vCPU**: 96
 
-   * - S130
+   * - S140
      - - **Default RAM**: 864 GB
        - **Default Storage**: 6000 GB
        - **vCPU**: 128
