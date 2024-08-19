@@ -1,0 +1,105 @@
+.. _atlas-events-organizations-list:
+
+===============================
+atlas events organizations list
+===============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Return all events for the specified organization.
+
+Syntax
+------
+
+.. code-block::
+   :caption: Command Syntax
+
+   atlas events organizations list [options]
+
+.. Code end marker, please don't delete this comment
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -h, --help
+     - 
+     - false
+     - help for list
+   * - --limit
+     - int
+     - false
+     - Number of items per results page, up to a maximum of 500. If you have more than 500 results, specify the --page option to change the results page. This value defaults to 100.
+   * - --maxDate
+     - string
+     - false
+     - Maximum created date. This option returns events whose created date is less than or equal to the specified value. This parameter uses the ISO 8601 timestamp format in UTC.
+   * - --minDate
+     - string
+     - false
+     - Minimum created date. This option returns events whose created date is greater than or equal to the specified value. This parameter uses the ISO 8601 timestamp format in UTC.
+   * - --omitCount
+     - 
+     - false
+     - Flag that indicates whether the JSON response returns the total number of items (totalCount) in the JSON response.
+   * - --orgId
+     - string
+     - false
+     - Organization ID to use. This option overrides the settings in the configuration file or environment variable.
+   * - -o, --output
+     - string
+     - false
+     - Output format. Valid values are json, json-path, go-template, or go-template-file. To see the full output, use the -o json option.
+   * - --page
+     - int
+     - false
+     - Page number that specifies a page of results. This value defaults to 1.
+   * - --type
+     - strings
+     - false
+     - Type of event that triggered the alert. To learn which values the CLI accepts, see the Enum for eventTypeName in the Atlas Admin API spec: https://dochub.mongodb.org/core/atlas-event-names.
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Examples
+--------
+
+.. code-block::
+   :copyable: false
+
+   # Return a JSON-formatted list of events for the organization with the ID 5dd5a6b6f10fab1d71a58495:
+   atlas events organizations list --orgId 5dd5a6b6f10fab1d71a58495 --output json
+   
+   
+.. code-block::
+   :copyable: false
+
+   # Return a JSON-formatted list of events between 2024-03-18T14:40:03-0000 and 2024-03-18T15:00:03-0000 and for the project with the ID 5e2211c17a3e5a48f5497de3
+   atlas events projects list --output json --projectId 5e2211c17a3e5a48f5497de3  --minDate 2024-03-18T14:40:03-0000 --maxDate 2024-03-18T15:00:03-0000
