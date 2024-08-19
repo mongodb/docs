@@ -1,0 +1,73 @@
+.. _atlas-dbusers:
+
+=============
+atlas dbusers
+=============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Manage database users for your project.
+
+The dbusers command retrieves, creates and modifies the MongoDB database users in your project.
+Each user has a set of roles that provide access to the project’s databases. 
+A user’s roles apply to all the clusters in the project.
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -h, --help
+     - 
+     - false
+     - help for dbusers
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Related Commands
+----------------
+
+* :ref:`atlas-dbusers-certs` - Manage Atlas x509 certificates for your database users.
+* :ref:`atlas-dbusers-create` - Create a database user for your project.
+* :ref:`atlas-dbusers-delete` - Remove the specified database user from your project.
+* :ref:`atlas-dbusers-describe` - Return the details for the specified database user for your project.
+* :ref:`atlas-dbusers-list` - Return all database users for your project.
+* :ref:`atlas-dbusers-update` - Modify the details of a database user in your project.
+
+
+.. toctree::
+   :titlesonly:
+
+   certs </command/atlas-dbusers-certs>
+   create </command/atlas-dbusers-create>
+   delete </command/atlas-dbusers-delete>
+   describe </command/atlas-dbusers-describe>
+   list </command/atlas-dbusers-list>
+   update </command/atlas-dbusers-update>
+
