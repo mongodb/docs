@@ -1,0 +1,69 @@
+.. _atlas-organizations-invitations:
+
+===============================
+atlas organizations invitations
+===============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Invitation operations.
+
+Create, list and manage your MongoDB organization invites.
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -h, --help
+     - 
+     - false
+     - help for invitations
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Related Commands
+----------------
+
+* :ref:`atlas-organizations-invitations-delete` - Remove the specified pending invitation to your organization.
+* :ref:`atlas-organizations-invitations-describe` - Return the details for the specified pending invitation to your organization.
+* :ref:`atlas-organizations-invitations-invite` - Invite the specified MongoDB user to your organization.
+* :ref:`atlas-organizations-invitations-list` - Return all pending invitations to your organization.
+* :ref:`atlas-organizations-invitations-update` - Modifies the details of the specified pending invitation to your organization.
+
+
+.. toctree::
+   :titlesonly:
+
+   delete </command/atlas-organizations-invitations-delete>
+   describe </command/atlas-organizations-invitations-describe>
+   invite </command/atlas-organizations-invitations-invite>
+   list </command/atlas-organizations-invitations-list>
+   update </command/atlas-organizations-invitations-update>
+
