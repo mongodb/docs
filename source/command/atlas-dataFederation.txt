@@ -1,0 +1,73 @@
+.. _atlas-dataFederation:
+
+====================
+atlas dataFederation
+====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Data federation.
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -h, --help
+     - 
+     - false
+     - help for dataFederation
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Related Commands
+----------------
+
+* :ref:`atlas-dataFederation-create` - Creates a new Data Federation database.
+* :ref:`atlas-dataFederation-delete` - Remove the specified data federation database from your project.
+* :ref:`atlas-dataFederation-describe` - Return the details for the specified data federation database for your project.
+* :ref:`atlas-dataFederation-list` - Returns all data federation databases for your project.
+* :ref:`atlas-dataFederation-logs` - Returns logs of the specified data federation database for your project.
+* :ref:`atlas-dataFederation-privateEndpoints` - Data federation private endpoints.
+* :ref:`atlas-dataFederation-queryLimits` - Data federation query limits.
+* :ref:`atlas-dataFederation-update` - Modify the details of the specified data federation database for your project.
+
+
+.. toctree::
+   :titlesonly:
+
+   create </command/atlas-dataFederation-create>
+   delete </command/atlas-dataFederation-delete>
+   describe </command/atlas-dataFederation-describe>
+   list </command/atlas-dataFederation-list>
+   logs </command/atlas-dataFederation-logs>
+   privateEndpoints </command/atlas-dataFederation-privateEndpoints>
+   queryLimits </command/atlas-dataFederation-queryLimits>
+   update </command/atlas-dataFederation-update>
+
