@@ -1,0 +1,63 @@
+.. _atlas-security-customerCerts:
+
+============================
+atlas security customerCerts
+============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Manage customer x509 certificates for your project.
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -h, --help
+     - 
+     - false
+     - help for customerCerts
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Related Commands
+----------------
+
+* :ref:`atlas-security-customerCerts-create` - Saves a customer-managed X.509 configuration for your project.
+* :ref:`atlas-security-customerCerts-describe` - Return the details for the current customer-managed X.509 configuration for your project.
+* :ref:`atlas-security-customerCerts-disable` - Clear customer-managed X.509 settings on a project, including the uploaded Certificate Authority, and disable self-managed X.509.
+
+
+.. toctree::
+   :titlesonly:
+
+   create </command/atlas-security-customerCerts-create>
+   describe </command/atlas-security-customerCerts-describe>
+   disable </command/atlas-security-customerCerts-disable>
+
