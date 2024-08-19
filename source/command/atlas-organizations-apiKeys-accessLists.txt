@@ -1,0 +1,63 @@
+.. _atlas-organizations-apiKeys-accessLists:
+
+=======================================
+atlas organizations apiKeys accessLists
+=======================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Manage the IP access list for your API Key.
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -h, --help
+     - 
+     - false
+     - help for accessLists
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Related Commands
+----------------
+
+* :ref:`atlas-organizations-apiKeys-accessLists-create` - Create an IP access list entry for your API Key.
+* :ref:`atlas-organizations-apiKeys-accessLists-delete` - Remove the specified IP access list entry from your API Key.
+* :ref:`atlas-organizations-apiKeys-accessLists-list` - Return all IP access list entries for your API Key.
+
+
+.. toctree::
+   :titlesonly:
+
+   create </command/atlas-organizations-apiKeys-accessLists-create>
+   delete </command/atlas-organizations-apiKeys-accessLists-delete>
+   list </command/atlas-organizations-apiKeys-accessLists-list>
+
