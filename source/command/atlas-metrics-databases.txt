@@ -1,0 +1,61 @@
+.. _atlas-metrics-databases:
+
+=======================
+atlas metrics databases
+=======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+List available databases or database metrics for a given host.
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -h, --help
+     - 
+     - false
+     - help for databases
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Related Commands
+----------------
+
+* :ref:`atlas-metrics-databases-describe` - Return the measurements of a database on the specified host.
+* :ref:`atlas-metrics-databases-list` - Return all databases running on the specified host for your project.
+
+
+.. toctree::
+   :titlesonly:
+
+   describe </command/atlas-metrics-databases-describe>
+   list </command/atlas-metrics-databases-list>
+
