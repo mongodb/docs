@@ -1,0 +1,67 @@
+.. _atlas-integrations-create:
+
+=========================
+atlas integrations create
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Create operations.
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -h, --help
+     - 
+     - false
+     - help for create
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Related Commands
+----------------
+
+* :ref:`atlas-integrations-create-DATADOG` - Create or update a Datadog integration for your project.
+* :ref:`atlas-integrations-create-OPS_GENIE` - Create or update an Opsgenie integration for your project.
+* :ref:`atlas-integrations-create-PAGER_DUTY` - Create or update a PagerDuty integration for your project.
+* :ref:`atlas-integrations-create-VICTOR_OPS` - Create or update a Splunk On-Call integration for your project.
+* :ref:`atlas-integrations-create-WEBHOOK` - Create or update a webhook integration for your project.
+
+
+.. toctree::
+   :titlesonly:
+
+   DATADOG </command/atlas-integrations-create-DATADOG>
+   OPS_GENIE </command/atlas-integrations-create-OPS_GENIE>
+   PAGER_DUTY </command/atlas-integrations-create-PAGER_DUTY>
+   VICTOR_OPS </command/atlas-integrations-create-VICTOR_OPS>
+   WEBHOOK </command/atlas-integrations-create-WEBHOOK>
+
