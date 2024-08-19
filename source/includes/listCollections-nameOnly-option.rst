@@ -1,10 +1,6 @@
 Optional. A flag to indicate whether the command should return just the
-name and type or return both the name and other information.
-
-Returning just the name and type (``view``, ``collection``, or 
-``timeseries``) does not take collection-level locks whereas 
-returning full collection information locks each collection in the 
-database.
+name and type (``view``, ``collection``, or ``timeseries``) or return 
+both the name and other information.
 
 The default value is ``false``.
 
