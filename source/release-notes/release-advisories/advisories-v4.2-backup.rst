@@ -39,13 +39,7 @@ Backup Features Supported at Present
    * - Supports Snapshots that use Local Key Encryption [#]_
      -
      - :icon:`check-circle`
-   * - Supports Saving to blockstore snapshot storage
-     - :icon:`check-circle`
-     - :icon:`check-circle`
    * - Supports Saving to |s3| Snapshot Storage
-     - :icon:`check-circle`
-     - :icon:`check-circle`
-   * - Supports Saving to File System Storage [#]_
      - :icon:`check-circle`
      - :icon:`check-circle`
    * - Supports Databases running MongoDB Enterprise
