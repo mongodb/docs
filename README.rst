@@ -2,8 +2,12 @@
 MongoDB Ecosystem Documentation
 ===============================
 
-This repository contains documentation for the MongoDB drivers ecosystem site.
+This repository contains documentation for the MongoDB drivers ecosystem site: https://www.mongodb.com/docs/drivers/
 
+Contribute to this Documentation
+--------------------------------
+
+To learn about contributing to this documentation, see the `contributing guidelines <https://github.com/mongodb/docs-ecosystem/blob/master/CONTRUBUTING.md>`__.
 
 File JIRA Tickets
 -----------------
