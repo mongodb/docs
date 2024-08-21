@@ -349,6 +349,16 @@
    
    .. include:: /includes/bic-compatibility.rst
 
+.. note::
+
+   Existing ``systemd`` unit file waits for ``network.target`` to be reached from 
+   the line ``after=network.target``. However, when only waiting on ``network.target``, it is 
+   possible that the :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` 
+   fails to start after a system reboot. Most Linux host-oriented distributions with ``systemd`` 
+   support ``network.online.target`` which indicates that your network is up and available. 
+   Therefore, MongoDB recommends that you modify ``after=network.target`` in your ``systemd`` 
+   file to ``after=network-online.target``.
+
 - Updates the {+mdbagent+} to :ref:`12.0.21.7698 
   <mongodb-12.0.21.7698>`.
 - Updates JDK to ``jdk-11.0.19+7``.
