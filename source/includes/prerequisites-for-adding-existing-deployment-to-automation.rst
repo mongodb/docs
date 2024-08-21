@@ -50,7 +50,7 @@
 
           .. code-block:: sh
 
-             curl --user "{username}:{apiKey}" --digest \
+             curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
                --header "Accept: application/json" \
                --include \
                --request GET "<host>/api/public/v1.0/groups/<Group-ID>/automationConfig"
