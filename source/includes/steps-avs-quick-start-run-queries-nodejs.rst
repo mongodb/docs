@@ -39,14 +39,7 @@
 
    .. step:: Specify the ``<connection-string>``.
 
-     a. Replace the ``<connection-string>`` in the query with your
-        |service| connection string.
-
-        Ensure that your connection string includes your database user's
-        credentials. To learn more about finding your connection string, 
-        see :ref:`connect-via-driver`. 
-
-     #. Save the file.
+      .. include:: /includes/steps-connection-string-drivers.rst
 
    .. step:: Run your query.
 

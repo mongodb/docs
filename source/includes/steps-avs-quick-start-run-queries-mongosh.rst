@@ -1,13 +1,26 @@
 .. procedure::
    :style: normal
 
-   .. step:: `Download and install <https://www.mongodb.com/try/download/shell>`__ ``mongosh`` .
+   .. step:: Download and install {+mongosh+}.
 
-   .. step:: Connect to your cluster in {+mongosh+}.
+   .. step:: Connect to your {+cluster+} or local deployment in {+mongosh+}.
 
-      Open {+mongosh+} in a terminal window and connect to your
-      {+cluster+}. For detailed instructions on connecting, see
-      :ref:`Connect via mongosh <connect-mongo-shell>`.
+      .. tabs::
+
+         .. tab:: {+service+} {+Cluster+}
+            :tabid: cloud
+
+            Open {+mongosh+} in a terminal window and connect to your |service|
+            {+cluster+}. For detailed instructions on connecting, see
+            :ref:`Connect via mongosh <connect-mongo-shell>`.
+            
+         .. tab:: Local Deployment
+            :tabid: local
+
+            In a terminal window, run ``atlas deployments connect`` and follow the prompts
+            to connect to your local |service| deployment via {+mongosh+}. 
+            For detailed instructions on connecting, see
+            :atlascli:`Manage a Local Atlas Deployment </atlas-cli-deploy-local/#manage-a-local-atlas-deployment>`.
 
    .. step:: Switch to the ``sample_mflix`` database. 
 

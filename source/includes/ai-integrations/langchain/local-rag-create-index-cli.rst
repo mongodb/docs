@@ -42,7 +42,3 @@
             :copyable: true 
 
             atlas deployments search indexes create --file <path-to-file>
-
-      #. Once prompted by the {+atlas-cli+}, 
-         select the {+deployment+} for which to create the index.
-      
