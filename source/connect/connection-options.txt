@@ -7,7 +7,7 @@ Specify Connection Options
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 .. facet::
@@ -19,3 +19,331 @@ Specify Connection Options
 
 Overview
 --------
+
+This section describes the MongoDB connection and authentication options
+available in the {+driver-short+}. You can configure your connection by
+setting options in either the connection URI or within a
+``MongoClientSettings`` instance.
+
+.. _kotlin-sync-connection-uri-settings:
+
+Set Options in the Connection URI
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you pass a connection URI to the ``MongoClient.create()`` method, you can include
+connection options in the string as ``<name>=<value>`` pairs. In the following example,
+the connection URI contains the ``connectTimeoutMS`` option with a value of ``60000``
+and the ``tls`` option with a value of ``true``:
+
+.. code-block:: kotlin
+
+   val uri = "mongodb://<hostname>:<port>/?connectTimeoutMS=60000&tls=true"
+   val mongoClient = MongoClient.create(uri)
+
+.. _kotlin-sync-mongoclientsettings:
+
+Set Options in MongoClientSettings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can set connection options in a ``MongoClientSettings`` instance by
+using methods from the ``MongoClientSettings.Builder`` class, then passing
+the settings object to the ``MongoClient.create()`` method.
+
+Configuring the connection this way makes it easier to
+change settings at runtime and can help you catch errors at compile time.
+
+The following example shows how to specify your connection target and
+set other options when creating a ``MongoClientSettings`` instance:
+
+.. code-block:: kotlin
+
+   val settings = MongoClientSettings.builder()
+       .applyToClusterSettings { builder -> builder.hosts(listOf(ServerAddress("localhost", 27017))) }
+       .applyToSocketSettings { builder -> builder.connectTimeout(60000, TimeUnit.MILLISECONDS) }
+       .applyToSslSettings { builder -> builder.enabled(true) }
+       .build()
+
+    val mongoClient = MongoClient.create(settings)
+
+If you prefer to provide a connection string instead of specifying
+the hostname and port, you can use the ``applyConnectionString()``
+method, then set other options by using builder methods, as shown in the
+following code:
+
+.. code-block:: kotlin
+   :emphasize-lines: 1, 3
+
+   val uri = "<connection string>"
+   val settings = MongoClientSettings.builder()
+       .applyConnectionString(ConnectionString(uri))
+       .applyToSocketSettings { builder -> builder.connectTimeout(60000, TimeUnit.MILLISECONDS) }
+       .applyToSslSettings { builder -> builder.enabled(true) }
+       .build()
+   
+   val mongoClient = MongoClient.create(settings)
+
+Connection Options
+------------------
+
+The following sections describe the connection options available in the
+{+driver-short+}. Each option shows the option-value pair you can use in a
+connection URI and, if available, the driver method to set it within a
+``MongoClientSettings`` instance.
+
+Network Compression
+~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Connection Option
+     - Description
+     
+   * - **compressors**
+     - | The preferred compression types, in order, for wire-protocol messages sent to
+         or received from the server. The driver uses the first of these compression types
+         that the server supports.
+       |
+       | **Data Type**: comma-delimited string
+       | **MongoClientSettings**: ``compressorList(listOf(<MongoCompressor>))``
+       | **Connection URI**: ``compressors=snappy,zstd,zlib``
+
+   * - **zlibCompressionLevel**
+     - | The compression level for zlib to use. This option accepts
+         an integer value between ``-1`` and ``9``, corresponding to the
+         following settings:
+       | 
+       | - **-1:** (Default). zlib uses its default compression level (usually ``6``).
+       | - **0:** No compression.
+       | - **1:** Fastest speed but lowest compression.
+       | - **9:** Best compression but slowest speed.
+       |
+       | **Data Type**: integer
+       | **Default**: ``-1``
+       | **MongoClientSettings**: ``compressorList(listOf(zlib.withProperty(MongoCompressor.LEVEL, 3)))``
+       | **Connection URI**: ``zlibCompressionLevel=3``
+
+Timeouts
+~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Connection Option
+     - Description
+     
+   * - **connectTimeoutMS**
+     - | The time in milliseconds to attempt a connection before timing out.
+       |
+       | **Data Type**: integer
+       | **Default**: ``10000``
+       | **MongoClientSettings**:
+       
+       .. code-block:: kotlin
+         
+          applyToSocketSettings{ builder ->
+              builder.connectTimeout(10, TimeUnit.SECONDS)
+          }
+
+       | **Connection URI**: ``timeoutMs=10000``
+
+   * - **socketTimeoutMS**
+     - | The time in milliseconds to attempt a send or receive on a
+         connection before the attempt times out.
+       |
+       | **Data Type**: integer
+       | **Default**: no timeout
+       | **MongoClientSettings**:
+
+       .. code-block:: kotlin
+         
+          applyToSocketSettings{ builder ->
+              builder.readTimeout(5, TimeUnit.SECONDS)
+          }
+
+       | **Connection URI**: ``socketTimeoutMS=5000``
+
+Server Selection
+~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Connection Option
+     - Description
+
+   * - **serverSelectionTimeoutMS**
+     - | The maximum amount of time, in milliseconds, the driver waits
+         for server selection to succeed before throwing an
+         exception.
+       |
+       | **Data Type**: integer
+       | **Default**: ``30000``
+       | **MongoClientSettings**:
+       
+       .. code-block:: kotlin
+         
+          applyToClusterSettings{ builder ->
+              builder.serverSelectionTimeout(30, TimeUnit.SECONDS)
+          }
+
+       | **Connection URI**: ``serverSelectionTimeoutMS=30000``
+
+Authentication
+~~~~~~~~~~~~~~
+
+.. TODO To learn more about authentication options, see the :ref:`kotlin-sync-auth` guide.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Connection Option
+     - Description
+
+   * - **authMechanism**
+     - | The mechanism that the {+driver-short+} uses to authenticate
+         the application.
+       |
+       | **Data Type**: string
+       | **Default**: ``"SCRAM-SHA-256"`` when connecting to MongoDB
+         v4.0 or later
+       | **MongoClientSettings**:
+
+       .. code-block:: kotlin
+         
+          credential(
+              MongoCredential.createScramSha256Credential(...)
+          )
+
+       | **Connection URI**: ``authMechanism=SCRAM-SHA-256``
+  
+   * - **authMechanismProperties**
+     - | Options specific to the authentication mechanism. This option
+         isn't needed for all authentication mechanisms.
+       |
+       | **Data Type**: string
+       | **Connection URI**: ``authMechanismProperties=AWS_SESSION_TOKEN:12435``
+
+   * - **authSource**
+     - | The database to authenticate against.
+       |
+       | **Data Type**: string
+       | **Default**: ``"admin"``
+       | **Connection URI**: ``authSource=admin``
+
+   * - **username**
+     - | The username for authentication. When this option is included in a connection
+         URI, you must percent-encode it.
+       |
+       | **Data Type**: string
+       | **Connection URI**: ``username=my+user``
+
+   * - **password**
+     - | The password for authentication. When this option is included in a connection
+         URI, you must percent-encode it.
+       |
+       | **Data Type**: string
+       | **Connection URI**: ``password=strong+password``
+
+Read and Write Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To learn more about connecting to different types of MongoDB
+deployments, see the :ref:`kotlin-sync-connection-targets` guide.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Connection Option
+     - Description
+
+   * - **replicaSet**
+     - | Specifies the name of the replica set to connect to.
+       |
+       | **Data Type**: string
+       | **Connection URI**: ``replicaSet=myRS``
+    
+   * - **directConnection**
+     - | Whether to connect only to the primary member of the replica set.
+       |
+       | **Data Type**: boolean
+       | **Default**: ``false``
+       | **MongoClientSettings**:
+       
+       .. code-block:: kotlin
+         
+          applyToClusterSettings{ builder ->
+              builder.mode(ClusterConnectionMode.SINGLE)
+          }
+
+       | **Connection URI**: ``directConnection=true``
+   
+   * - **readPreference**
+     - | Specifies the client's read preference. For more information,
+         see :manual:`Read Preference </core/read-preference/>` in the
+         Server manual.
+       |
+       | **Data Type**: string
+       | **Default**: ``primary``
+       | **MongoClientSettings**: ``readPreference(ReadPreference.primary())``
+       | **Connection URI**: ``readPreference=primary``
+
+   * - **readConcern**
+     - | Specifies the client's read concern. For more information, see
+         :manual:`Read Concern </reference/read-concern/>` in the Server
+         manual.
+       |
+       | **Data Type**: string
+       | **MongoClientSettings**: ``readConcern(ReadConcern.MAJORITY)``
+       | **Connection URI**: ``readConcern=majority``
+
+   * - **writeConcern**
+     - | Specifies the client's write concern. For more information, see
+         :manual:`Write Concern </reference/write-concern/>` in the
+         Server manual.
+       |
+       | **Data Type**: string
+       | **MongoClientSettings**: ``writeConcern(WriteConcern.MAJORITY)``
+       | **Connection URI**: ``writeConcern=majority``
+
+   * - **localThresholdMS**
+     - | The latency window for a replica-set member's eligibility. If a member's
+         round trip ping takes longer than the fastest server's round-trip ping
+         time plus this value, the server isn't eligible for selection.
+       |
+       | **Data Type**: integer
+       | **Default**: ``15``
+       | **MongoClientSettings**:
+
+       .. code-block:: kotlin
+         
+          applyToClusterSettings{ builder ->
+              builder.localThreshold(35, TimeUnit.MILLISECONDS)
+          }
+
+       | **Connection URI**: ``localThresholdMS=35``
+
+Additional Information
+----------------------
+
+To view a full list of connection options, see
+:manual:`Connection Strings </reference/connection-string/>` in the
+Server manual.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the classes and methods mentioned in this guide, see
+the following API documentation:
+
+- `MongoClientSettings <{+java-api+}/apidocs/mongodb-driver-core/com/mongodb/MongoClientSettings.html>`__
+- `MongoClientSettings.Builder <{+java-api+}/apidocs/mongodb-driver-core/com/mongodb/MongoClientSettings.Builder.html>`__
+- `ConnectionString <{+java-api+}/apidocs/mongodb-driver-core/com/mongodb/ConnectionString.html>`__
+- `SocketSettings <{+java-api+}/apidocs/mongodb-driver-core/com/mongodb/connection/SocketSettings.html>`__
+- `ClusterSettings <{+java-api+}/apidocs/mongodb-driver-core/com/mongodb/connection/ClusterSettings.html>`__
+- `MongoCredential <{+java-api+}/apidocs/mongodb-driver-core/com/mongodb/MongoCredential.html>`__
