@@ -1,0 +1,173 @@
+.. _kotlin-sync-cursors:
+
+=========================
+Access Data From a Cursor
+=========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: read, results, oplog
+
+Overview
+--------
+
+In this guide, you can learn how to access data from a **cursor** with the
+{+driver-short+}.
+
+A cursor is a mechanism that returns the results of a read operation in iterable
+batches. Because a cursor holds only a subset of documents at any given time,
+cursors reduce both memory consumption and the number of requests the driver sends to
+the server.
+
+Whenever the {+driver-short+} performs a read operation that returns multiple
+documents, it automatically returns those documents in a cursor.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``restaurants`` collection in the ``sample_restaurants``
+database from the :atlas:`Atlas sample datasets </sample-data>`. To learn how to create a
+free MongoDB Atlas cluster and load the sample datasets, see the
+:atlas:`Get Started with Atlas </getting-started>` guide.
+
+The following {+language+} data class models the documents in this collection:
+
+.. literalinclude:: /includes/read/cursors.kt
+   :start-after: start-data-class
+   :end-before: end-data-class
+   :language: kotlin
+   :copyable:
+
+.. _kotlin-sync-cursors-iterate:
+
+Access Cursor Contents Iteratively
+----------------------------------
+
+To iterate over the contents of a cursor, use the ``forEach()`` method, as shown in the
+following example:
+
+.. literalinclude:: /includes/read/cursors.kt
+   :start-after: start-cursor-iterate
+   :end-before: end-cursor-iterate
+   :language: kotlin
+   :copyable:
+   :dedent:
+
+Alternatively, use the ``use()`` method to implement a loop on the cursor:
+
+.. literalinclude:: /includes/read/cursors.kt
+   :start-after: start-cursor-iterate-alternative
+   :end-before: end-cursor-iterate-alternative
+   :language: kotlin
+   :copyable:
+   :dedent:
+
+.. note::
+
+   By default, MongoDB closes a cursor when the client has exhausted all the
+   results in the cursor. The examples in this guide explicitly close cursors by using the
+   ``close()`` method.
+
+Retrieve Documents Individually
+-------------------------------
+
+Retrieve documents from a cursor individually by calling the ``next()`` method.
+
+The following example finds all documents in a collection with a ``name`` value
+of ``"Dunkin' Donuts"``. It then prints the first document in the cursor by calling the
+``next()`` method.
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/cursors.kt
+      :start-after: start-cursor-next
+      :end-before: end-cursor-next
+      :language: kotlin
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      Restaurant(id=5eb3d668b31de5d588f42c66, name=Dunkin' Donuts)
+
+Retrieve All Documents
+----------------------
+
+.. warning::
+
+   If the number and size of documents returned by your query exceeds available
+   application memory, your program will crash. If you expect a large result
+   set, :ref:`access your cursor iteratively <kotlin-sync-cursors-iterate>`.
+
+To retrieve all documents from a cursor, convert the cursor into a ``List`` as
+shown in the following example:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/cursors.kt
+      :start-after: start-cursor-list
+      :end-before: end-cursor-list
+      :language: kotlin
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      Restaurant(id=5eb3d668b31de5d588f42c66, name=Dunkin' Donuts)
+      Restaurant(id=5eb3d668b31de5d588f42ca0, name=Dunkin' Donuts)
+      Restaurant(id=5eb3d668b31de5d588f42b08, name=Dunkin' Donuts)
+      Restaurant(id=5eb3d668b31de5d588f42cd7, name=Dunkin' Donuts)
+      ...
+
+Tailable Cursors
+----------------
+
+When querying on a :manual:`capped collection </core/capped-collections/>`, you
+can use a **tailable cursor** that remains open after the client exhausts the
+results in a cursor. To create a tailable cursor with capped collection,
+specify ``CursorType.TailableAwait`` to the ``cursorType`` method of a
+``FindIterable`` object.
+
+The following example creates a tailable cursor on a capped collection:
+
+.. literalinclude:: /includes/read/cursors.kt
+   :start-after: start-tailable-cursor
+   :end-before: end-tailable-cursor
+   :language: kotlin
+   :copyable:
+   :dedent:
+
+To learn more about tailable cursors and their usage, see the :manual:`Tailable Cursors guide
+</core/tailable-cursors/>` in the {+mdb-server+} manual.
+
+Troubleshooting
+---------------
+
+"*CursorNotFound* cursor id not valid at server"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Cursors in MongoDB can timeout on the server if they've been open for
+a long time without any operations being performed on them. This can
+lead to a ``CursorNotFound`` exception when you try to iterate through the cursor.
+
+API Documentation
+-----------------
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `find() <{+api+}/mongodb-driver-kotlin-sync/com.mongodb.kotlin.client/-mongo-collection/find.html>`__
+- `FindIterable <{+api+}/mongodb-driver-kotlin-sync/com.mongodb.kotlin.client/-find-iterable/index.html>`__
+- `MongoCursor <{+api+}/mongodb-driver-kotlin-sync/com.mongodb.kotlin.client/-mongo-cursor/index.html>`__
+- `CursorType <{+core-api+}/com/mongodb/CursorType.html>`__
