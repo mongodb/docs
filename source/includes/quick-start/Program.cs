@@ -18,7 +18,7 @@ var db = MflixDbContext.Create(client.GetDatabase("sample_mflix"));
 var movie = db.Movies.First(m => m.Title == "Back to the Future");
 Console.WriteLine(movie.Plot);
 
-internal class MflixDbContext : DbContext
+public class MflixDbContext : DbContext
 {
     public DbSet<Movie> Movies { get; init; }
 
@@ -40,7 +40,7 @@ internal class MflixDbContext : DbContext
     }
 }
 
-internal class Movie
+public class Movie
 {
     [BsonId]
     public ObjectId _id { get; set; }
