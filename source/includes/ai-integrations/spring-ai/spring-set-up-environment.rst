@@ -114,7 +114,7 @@
 
          .. code-block::
 
-            mongodb+srv://<username>:<password>@<clusterName>.<hostname>.mongodb.net/?<settings>
+            mongodb+srv://<db_username>:<db_password>@<clusterName>.<hostname>.mongodb.net/?<settings>
          
          To learn more about retrieving your connection string, see the
          :ref:`atlas-getting-started` tutorial.

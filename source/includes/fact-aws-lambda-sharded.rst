@@ -8,4 +8,4 @@ that the driver connects to. To improve driver performance, set
 
 .. code-block::
 
-    mongodb+srv://<username>:<password>@<clusterName>.mongodb.net/?retryWrites=true&w=majority&srvMaxHosts=3
+    mongodb+srv://<db_username>:<db_password>@<clusterName>.mongodb.net/?retryWrites=true&w=majority&srvMaxHosts=3

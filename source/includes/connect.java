@@ -11,7 +11,7 @@ import com.mongodb.client.MongoDatabase;
 public class Connect {
     public static void main(String[] args) {
         // Replace the placeholder with your Atlas connection string
-        String uri = "mongodb+srv://<username>:<password>@<clusterName>.mongodb.net/?retryWrites=true&w=majority";
+        String uri = "mongodb+srv://<db_username>:<db_password>@<clusterName>.mongodb.net/?retryWrites=true&w=majority";
 
         // Construct a ServerApi instance using the ServerApi.builder() method
         ServerApi serverApi = ServerApi.builder()

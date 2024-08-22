@@ -42,7 +42,7 @@
 
          .. code-block::
 
-            mongodb+srv://<username>:<password>@<clusterName>.<hostname>.mongodb.net
+            mongodb+srv://<db_username>:<db_password>@<clusterName>.<hostname>.mongodb.net
             
    .. step:: Configure LlamaIndex settings.
 

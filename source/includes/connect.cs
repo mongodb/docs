@@ -4,7 +4,7 @@ using MongoDB.Driver;
 public class Connect
 {
   // Replace the following with your Atlas connection string               
-  private const string MongoConnectionString = "mongodb+srv://<username>:<password>@<clusterName>.mongodb.net/?retryWrites=true&w=majority";
+  private const string MongoConnectionString = "mongodb+srv://<db_username>:<db_password>@<clusterName>.mongodb.net/?retryWrites=true&w=majority";
 
   public static void Main(string[] args)
   {

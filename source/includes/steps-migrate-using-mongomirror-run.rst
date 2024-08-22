@@ -69,7 +69,7 @@
          .. code-block:: shell
             :copyable: false
       
-            mongodb://<username>:<PASSWORD>@
+            mongodb://<db_username>:<db_password>@
             00.foo.mongodb.net:27017,
             01.foo.mongodb.net:27017,
             02.foo.mongodb.net:27017/test?
