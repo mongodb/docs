@@ -17,8 +17,10 @@ Authentication
    :depth: 2
    :class: singlecol
 
-The driver supports all MongoDB authentication mechanisms,
-including those available only in the MongoDB Enterprise Edition.
+In this guide, you can learn how to authenticate with MongoDB using the
+authentication mechanisms available in the MongoDB Community Edition.
+Authentication mechanisms are processes by which the driver and server confirm
+the identity of a client to ensure security before connecting.
 
 MongoCredential
 ---------------
@@ -228,112 +230,3 @@ Or, you can use a connection string that explicitly specifies
 See the :manual:`Use x.509 Certificates to Authenticate Clients </tutorial/configure-x509-client-authentication/>`
 tutorial in the Server manual to learn more about
 determining the subject name from the certificate.
-
-Kerberos (GSSAPI)
------------------
-
-MongoDB Enterprise supports proxy authentication through the Kerberos
-service. To create a credential of type Kerberos (GSSAPI), use the
-``createGSSAPICredential()`` static factory method:
-
-.. code-block:: java
-
-   String user;   // The Kerberos user name, including the realm, e.g. "user1@MYREALM.ME"
-   // ...
-   MongoCredential credential = MongoCredential.createGSSAPICredential(user);
-    
-   MongoClient mongoClient = MongoClients.create(
-       MongoClientSettings.builder()
-           .applyToClusterSettings(builder ->
-               builder.hosts(Arrays.asList(new ServerAddress("host1", 27017))))
-           .credential(credential)
-           .build());
-
-Or, you can use a connection string that explicitly specifies
-``authMechanism=GSSAPI``:
-
-.. code-block:: java
-
-   MongoClient mongoClient = MongoClients.create("mongodb://username%40REALM.ME@host1/?authMechanism=GSSAPI");
-
-.. note::
-
-   The method refers to the ``GSSAPI`` authentication mechanism instead of
-   ``Kerberos`` because the driver authenticates by using the ``GSSAPI`` SASL mechanism.
-
-To successfully authenticate by using Kerberos, the application typically
-must specify several system properties so that the underlying GSSAPI
-Java libraries can acquire a Kerberos ticket:
-
-.. code-block:: none
-
-   java.security.krb5.realm=MYREALM.ME
-   java.security.krb5.kdc=mykdc.myrealm.me
-
-Depending on the Kerberos setup, additional property specifications
-might be required, either within the application code or, in some cases,
-by using the ``withMechanismProperty()`` method of the ``MongoCredential``
-instance:
-
-- ``SERVICE_NAME``
-- ``CANONICALIZE_HOST_NAME``
-- ``JAVA_SUBJECT``
-- ``JAVA_SASL_CLIENT_PROPERTIES``
-
-The following code shows how to specify the ``SERVICE_NAME`` property within the
-``MongoCredential`` object:
-
-.. code-block:: java
-
-   credential = credential.withMechanismProperty(MongoCredential.SERVICE_NAME_KEY, "othername");
-
-Or, you can specify the ``SERVICE_NAME`` property within the ``ConnectionString``:
-
-.. code-block:: java
-
-   uri = "mongodb://username%40MYREALM.com@myserver/?authMechanism=GSSAPI&authMechanismProperties=SERVICE_NAME:othername"
-
-.. note::
-
-   On Windows, Oracles JRE uses `LSA
-   <https://msdn.microsoft.com/en-us/library/windows/desktop/aa378326.aspx>`__
-   rather than `SSPI
-   <https://msdn.microsoft.com/en-us/library/windows/desktop/aa380493.aspx>`__
-   in its implementation of GSSAPI, which limits interoperability with Windows
-   Active Directory and in particular the ability to implement single
-   sign-on.
-
-LDAP (PLAIN)
-------------
-
-MongoDB Enterprise supports proxy authentication through a
-Lightweight Directory Access Protocol (LDAP) service. To create a
-credential of type ``LDAP`` use the ``createPlainCredential()`` static
-factory method:
-
-.. code-block:: java
-
-   String user;          // The LDAP user name
-   char[] password;      // The LDAP password
-   // ...
-   MongoCredential credential = MongoCredential.createPlainCredential(user, "$external", password);
-   
-   MongoClient mongoClient = MongoClients.create(
-       MongoClientSettings.builder()
-           .applyToClusterSettings(builder ->
-               builder.hosts(Arrays.asList(new ServerAddress("host1", 27017))))
-           .credential(credential)
-           .build());
-
-Or, you can use a connection string that explicitly specifies
-``authMechanism=PLAIN``:
-
-.. code-block:: java
-
-   MongoClient mongoClient = MongoClients.create("mongodb://user1@host1/?authSource=$external&authMechanism=PLAIN");
-
-.. note::
-
-   The method refers to the ``PLAIN`` authentication mechanism instead of
-   ``LDAP`` because the driver authenticates by using the ``PLAIN``
-   SASL mechanism.
