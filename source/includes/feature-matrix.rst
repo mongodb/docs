@@ -22,6 +22,10 @@
      -
      - :icon-fa5:`check`
 
+   * - GCP Assured Workloads
+     -
+     - :icon-fa5:`check`
+       
    * - Cross-region clusters
      - :icon-fa5:`check`
      - :icon-fa5:`check` [#cross-region]_
