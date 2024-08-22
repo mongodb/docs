@@ -12,8 +12,8 @@ if (connectionString == null)
     Environment.Exit(0);
 }
 var client = new MongoClient(connectionString);
-
 var db = MflixDbContext.Create(client.GetDatabase("sample_mflix"));
+db.Database.EnsureCreated();
 
 var movie = db.Movies.First(m => m.Title == "Back to the Future");
 Console.WriteLine(movie.Plot);
@@ -44,13 +44,13 @@ internal class Movie
 {
     [BsonId]
     public ObjectId _id { get; set; }
-    
+
     [BsonElement("title")]
     public string Title { get; set; }
-    
+
     [BsonElement("rated")]
     public string Rated { get; set; }
-    
+
     [BsonElement("plot")]
     public string Plot { get; set; }
 }
