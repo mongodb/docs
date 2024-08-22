@@ -164,7 +164,7 @@ void SkipExample()
 }
 
 // start-db-context
-internal class PlanetDbContext : DbContext
+public class PlanetDbContext : DbContext
 {
     public DbSet<Planet> Planets { get; init; }
 
@@ -185,7 +185,7 @@ internal class PlanetDbContext : DbContext
     }
 }
 // end-db-context
-internal class Planet
+public class Planet
 {
     public ObjectId _id { get; set; }
     public string name { get; set; }

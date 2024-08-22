@@ -15,14 +15,14 @@ var db = new MyDbContext(dbContextOptions.Options);
 db.Customers.Add(new Customer() { name = "John Doe", Order = "1 Green Tea" });
 db.SaveChanges();
 
-internal class Customer
+public class Customer
 {
     public ObjectId Id { get; set; }
     public String Name { get; set; }
     public String Order { get; set; }
 }
 
-internal class MyDbContext : DbContext
+public class MyDbContext : DbContext
 {
     public DbSet<Customer> Customers { get; init; }
 
