@@ -1,4 +1,4 @@
-.. setting:: spec.security.authentication.ldap.automationLdapGroupDN
+.. setting:: spec.security.authentication.agents.automationLdapGroupDN
 
    *Type*: string
 
