@@ -1,9 +1,9 @@
 .. warning:: Data Import and Export Conflicts With (``$``) and (``.``)
 
-   Starting in MongoDB 5.0, document field names can be (``$``)
-   prefixed and can contain a (``.``). However,
-   :binary:`~bin.mongoimport` and :binary:`~bin.mongoexport` should not
-   be used with field names that make use of these characters.
+   Starting in MongoDB 5.0, document field names can be prefixed with a
+   dollar character (``$``) and can contain a period character (``.``).
+   However, :binary:`~bin.mongoimport` and :binary:`~bin.mongoexport`
+   won't work with field names that use those characters.
 
    :ref:`MongoDB Extended JSON v2 <extended-json-high-level-ref-v2>`
    cannot differentiate between type wrappers and fields that happen to
