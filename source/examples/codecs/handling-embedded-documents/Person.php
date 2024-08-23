@@ -8,7 +8,7 @@ final class Person
 
     public function __construct(
         public string $name,
-        public readonly ObjectId $id = new ObjectId()
+        public readonly ObjectId $id = new ObjectId(),
     ) {
     }
 }
