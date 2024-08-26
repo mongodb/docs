@@ -17,23 +17,14 @@ recommendations for the |k8s-op-full| when running in production.
 
 .. _deploy_recommended-number-sets:
 
-Deploy the Recommended Number of MongoDB Replica Sets
------------------------------------------------------
+Deploy Multiple MongoDB Replica Sets
+------------------------------------
 
 We recommend that you use a single instance of the |k8s-op-short|
-to deploy up to 20 replica sets in parallel.
+to deploy and manage your MongoDB replica sets.
 
-You **may** increase this number to 50 and expect a reasonable
-increase in the time that the |k8s-op-short| takes to download,
-install, deploy, and reconcile its resources.
-
-For 50 replica sets, the time to deploy varies and might take up to
-40 minutes. This time depends on the network bandwidth of the |k8s|
-cluster and the time it takes each {+mdbagent+} to download MongoDB
-installation binaries from the Internet for each MongoDB cluster member.
-
-To deploy more than 50 MongoDB replica sets in parallel,
-use multiple instances of the |k8s-op-short|.
+To deploy more than 10 MongoDB replica sets in parallel,
+you can :ref:`increase the thread count of your Kubernetes Operator instance <increase-thread-count-ops-manager>`. 
 
 Specify CPU and Memory Resource Requirements
 --------------------------------------------
@@ -356,12 +347,20 @@ sharded clusters and standalone deployments.
 .. _operator_pod_resources:
 
 Set CPU and Memory Utilization Bounds for the |k8s-op-short| Pod
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------------------------------------------
 
-When you deploy replica sets with the |k8s-op-short|, CPU usage for
-Pod used to host the |k8s-op-short| is initially high during the
-reconciliation process, however, by the time the deployment completes,
-it lowers.
+When you deploy MongoDB replica sets with the |k8s-op-short|, the initial 
+reconcilliation process increases CPU usage for the Pod running the 
+|k8s-op-short|. However, when the replica set deployment process completes, 
+the CPU usage by the |k8s-op-short| reduces considerably. 
+
+.. note:: 
+
+   The severity of CPU usage spikes in the |k8s-op-short| is directly impacted
+   by :ref:`the thread count <increase-thread-count-ops-manager>` of the 
+   |k8s-op-short|, as the thread count (defined by the :ref:`MDB_MAX_CONCURRENT_RECONCILES <mdb-max-concurrent-reconciles>` value) 
+   is equal to the number of reconcilliation processes that can be running in 
+   parallel at any given time.
 
 For production deployments, to satisfy deploying up to 50 MongoDB
 replica sets or sharded clusters in parallel with the |k8s-op-short|,
@@ -373,21 +372,15 @@ as follows:
 - ``spec.template.spec.containers.resources.requests.memory`` to 200Mi
 - ``spec.template.spec.containers.resources.limits.memory`` to 1Gi
 
-If you don't include the unit of measurement for CPUs, |k8s| interprets
-it as the number of cores. If you specify ``m``, such as 500m, |k8s|
-interprets it as ``millis``. To learn more, see
-:k8sdocs:`Meaning of CPU </concepts/configuration/manage-resources-containers/#meaning-of-cpu>`.
+
+If you use Helm to deploy resources, define these values in 
+the :ref:`values.yaml file <k8s-op-resources-setting>`. 
   
 The following abbreviated example shows the configuration with
 recommended CPU and memory bounds for the |k8s-op-short| Pod in your
 deployment of 50 replica sets or sharded clusters. If you are
 deploying fewer than 50 MongoDB clusters, you may use lower
 numbers in the configuration file for the |k8s-op-short| Pod.
-
-.. note::
-
-   Monitoring tools report the size of the |k8s-node| rather than the
-   actual size of the container.
 
 .. example::
 
@@ -451,7 +444,7 @@ file.
 .. _mdb_pods_resources:
 
 Set CPU and Memory Utilization Bounds for MongoDB Pods
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------------------------------
 
 The values for Pods hosting replica sets or sharded clusters map
 to the :k8sdocs:`requests field </reference/generated/kubernetes-api/{+k8s-api-version+}/#resourcerequirements-v1-core>`
@@ -470,10 +463,8 @@ for the MongoDB Pod as follows:
 - ``spec.podSpec.podTemplate.spec.containers.resources.requests.memory`` to 512M
 - ``spec.podSpec.podTemplate.spec.containers.resources.limits.memory`` to 512M
 
-If you don't include the unit of measurement for CPUs, |k8s| interprets
-it as the number of cores. If you specify ``m``, such as 500m, |k8s|
-interprets it as ``millis``. To learn more, see
-:k8sdocs:`Meaning of CPU </concepts/configuration/manage-resources-containers/#meaning-of-cpu>`.
+If you use Helm to deploy resources, define these values in 
+the :ref:`values.yaml file <k8s-op-resources-setting>`. 
 
 The following abbreviated example shows the configuration with
 recommended CPU and memory bounds for each Pod hosting a MongoDB
@@ -587,3 +578,53 @@ configurations for sharded clusters and standalone MongoDB deployments.
 
    - :k8sdocs:`Running in Multiple Zones </setup/best-practices/multiple-zones/>`
    - :k8sdocs:`Node affinity </concepts/scheduling-eviction/assign-pod-node/#node-affinity>`
+
+.. _increase-thread-count-ops-manager:
+
+Increase Thread Count to Run multiple Reconciliation Processes in Parallel
+--------------------------------------------------------------------------
+
+If you plan to deploy more than 10 MongoDB replica sets in parallel, 
+you can configure the |k8s-op-short| to run multiple reconciliation processes 
+in parallel by setting :ref:`MDB_MAX_CONCURRENT_RECONCILES <mdb-max-concurrent-reconciles>` environment variable in your |k8s-op-short| 
+deployment or or through the :ref:`operator.maxConcurrentReconciles <mdb-max-concurrent-reconciles-helm>` field in your Helm 
+``values.yaml`` file to configure a higher thread count. 
+
+Increasing the thread count of the |k8s-op-short| allows you to vertically scale your |k8s-op-short| 
+deployment to hundreds of |k8s-mdbrscs| running within your |k8s| cluster  
+and optimize CPU utilization.
+
+Please monitor |k8s| API server and |k8s-op-short| resource usage and adjust their respective 
+resource allocation if necessary.
+
+.. note:: 
+
+   - Proceed with caution when increasing the :ref:`MDB_MAX_CONCURRENT_RECONCILES <mdb-max-concurrent-reconciles>` beyond 10.
+     In particular, you must monitor the |k8s-op-short|, and the |k8s| API 
+     closely to avoid downtime resulting from increased load on those components. 
+
+     To determine the thread count that suits your deployment's needs, 
+     use the following guidelines:
+
+     - Your requirements for how responsive the |k8s-op-short| must be when 
+       reconciling many resources
+
+     - The compute resources available within your |k8s| environment and 
+       the total processing load your |k8s| compute resources are under, including 
+       resources that may be unrelated to MongoDB
+   
+   - An alternative to increasing the thread count of a single |k8s-op-short| 
+     instance, while still increasing the number of |k8s-mdbrscs| you can support 
+     in your |k8s| cluster, is to deploy multiple |k8s-op-short| instances within 
+     your |k8s| cluster. However, deploying multiple |k8s-op-short| 
+     instances requires that you ensure that no two |k8s-op-short| instances
+     are monitoring the same |k8s-mdbrscs|.
+
+     Running more than one instance of the |k8s-op-short| should be done with care, 
+     as more |k8s-op-short| instances (especially with parallel reconciliation enabled) 
+     put the API server at greater risk of being overwhelmed. 
+
+   - Scaling of the |k8s| API server is not a valid reason to run 
+     more than one instance of the |k8s-op-short|. If you observe that performance of 
+     the API server is affected, adding more instances of the |k8s-op-short| is 
+     likely to compound the problem.
