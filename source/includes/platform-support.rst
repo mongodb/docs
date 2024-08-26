@@ -712,15 +712,6 @@
      - 
      - |checkmark|
 
-   * - RHEL/Rocky/Alma 9 [#RHEL9-tcmalloc-support]_
-     - ppc64le
-     - Enterprise
-     - |checkmark|
-     - |checkmark|
-     - 
-     -
-     -
-
    * - RHEL/Rocky/Alma 8 [#RHEL8-tcmalloc-support]_
      - ppc64le
      - Enterprise
