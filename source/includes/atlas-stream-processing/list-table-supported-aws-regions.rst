@@ -11,6 +11,9 @@
    * - Oregon, USA
      - us-west-2
 
+   * - Canada (Central)
+     - ca-central-1
+
    * - Sao Paulo, Brazil
      - sa-east-1
 
@@ -25,6 +28,9 @@
     
    * - Mumbai, India
      - ap-south-1
+
+   * - Tokyo, Japan 
+     - ap-northeast-1
 
    * - Singapore
      - ap-southeast-1
