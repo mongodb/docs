@@ -351,13 +351,15 @@
 
 .. note::
 
-   Existing ``systemd`` unit file waits for ``network.target`` to be reached from 
-   the line ``after=network.target``. However, when only waiting on ``network.target``, it is 
-   possible that the :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` 
-   fails to start after a system reboot. Most Linux host-oriented distributions with ``systemd`` 
-   support ``network.online.target`` which indicates that your network is up and available. 
-   Therefore, MongoDB recommends that you modify ``after=network.target`` in your ``systemd`` 
-   file to ``after=network-online.target``.
+   ``network.target`` in a ``systemd`` unit file indicates that the network management stack 
+   has been started. Ordering after ``network.target`` has little meaning 
+   during start-up, because ``after=network.target`` doesn't define whether any network interfaces have 
+   already been configured when ``network.target`` is reached. Therefore, when waiting on ``network.target``, 
+   it is possible that the :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` fails to start 
+   after a system reboot. Most Linux host-oriented distributions with ``systemd`` support ``network-online.target`` 
+   which indicates that your network connectivity has been established. Its primary purpose is to actively delay the 
+   activation of services until the network is up. Therefore, MongoDB recommends that you modify 
+   ``after=network.target`` in your ``systemd`` file to ``after=network-online.target``.
 
 - Updates the {+mdbagent+} to :ref:`12.0.21.7698 
   <mongodb-12.0.21.7698>`.
