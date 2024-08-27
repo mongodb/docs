@@ -135,11 +135,8 @@
      - objectId
      - The :abbr:`KMIP (Key Management Interoperability Protocol)`
        master key ID used to encrypt the snapshot data.
-
-       .. note::
-        
-          This parameter appears only if this snapshot has
-          ``parts.encryptionEnabled : true``.
+       ``parts.masterKeyUUID`` appears only if this snapshot has
+       ``parts.encryptionEnabled : true``.
 
    * - parts.mongodVersion
      - string

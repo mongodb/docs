@@ -18,13 +18,10 @@
 
    * - password
      - string
-     - Password of the |mms| user.
-
-       .. note::
-
-           This field is *not* included in the entity returned from the
-           server. It can only be sent in the entity body when creating
-           a new user.
+     - Password of the |mms| user. 
+     
+       This field is *not* included in the
+       entity returned from the server. It can be sent only in the entity body when you create a new user.
 
    * - emailAddress
      - string
