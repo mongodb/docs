@@ -12,6 +12,92 @@ Release Notes for |k8s-op-full|
    :depth: 1
    :class: singlecol
 
+.. _ent-op-1.27.x:
+
+|k8s-op-full| 1.27 Series
+-------------------------
+
+.. _ent_op-1.27.0:
+
+|k8s-op-full| 1.27.0
+~~~~~~~~~~~~~~~~~~~~
+
+*Released 2024-08-27*
+
+New Features
+```````````````
+
+- **MongoDB** resource: Adds support for enabling log rotation for MongoDB
+  processes, monitoring agent, and backup agent. To learn more, see :ref:`mongodb-crd-logging-specification`.
+
+  Use the following settings to configure logs rotation per component:
+
+  - :setting:`spec.agent.mongod.logRotate` for the mongoDB processes.
+  - :setting:`spec.agent.mongod.auditlogRotate` for the mongoDB processes audit logs.
+  - :setting:`spec.agent.backupAgent.logRotate` for the backup agent.
+  - :setting:`spec.agent.monitoringAgent.logRotate` for the monitoring agent.
+  - :setting:`spec.agent.readinessProbe.environmentVariables` for the environment variables
+    the readiness probe runs with. This setting also applies to settings
+    related to the logs rotation. To learn more about the supported environment
+    settings, see `Readiness Probe <https://github.com/mongodb/mongodb-kubernetes-operator/blob/master/docs/logging.md#readinessprobe/>`__.
+
+  - :opsmgrkube:`spec.applicationDatabase.agent.<component>.logRotate` for the Application Database.
+
+  For sharded clusters, the |k8s-op-short| supports configuring log rotation
+  only under the ``spec.Agent`` settings, and not per process type, such as
+  ``mongos`` or ``configsrv``.
+
+- **OpsManager** resource: Adds support for replacing the :ref:`logback.xml configuration file <onprem-own-logs>`,
+  which configures general logging settings, such as log rotation for |onprem|
+  and |onprem| backups.
+
+  Use the following settings:
+  
+  - :setting:`spec.logging.logBackAccessRef` for the ConfigMap and access key with the ``logback``
+    access configuration file to mount on the |onprem| Pod. Name the ConfigMap's access key
+    ``logback-access.xml``. This file configures access to the logging configuration
+    file for |onprem|.
+  - :setting:`spec.logging.logBackRef` for the ConfigMap and access key with the ``logback``
+    configuration file to mount on the |onprem| Pod. This file
+    configures the general logging behavior for |onprem|,
+    including log rotation policies, log levels, and other logging parameters.
+    Name the ConfigMap's access key ``logback.xml``.
+  - :setting:`spec.backup.logging.logBackAccessRef` for the ConfigMap and access key with the ``logback``
+    access configuration file to mount on the |onprem| Pod. Name the ConfigMap's access key
+    ``logback-access.xml``. This file configures access to the logging configuration
+    file for |onprem| backups.
+  - :setting:`spec.backup.logging.logBackRef` for the ConfigMap and access key with the ``logback``
+    configuration file to mount on the |onprem| Pod. This file
+    configures the general logging behavior for |onprem| backups,
+    including log rotation policies, log levels, and other logging parameters.
+    Name the ConfigMap's access key ``logback.xml``.
+
+Deprecations
+```````````````
+
+- The ``spec.applicationDatabase.agent.logRotate`` setting for the Application Database has been deprecated.
+  Use :opsmgrkube:`spec.applicationDatabase.agent.mongod.logRotate <spec.applicationDatabase.agent.<component>.logRotate>` instead.
+
+Bug Fixes
+```````````
+
+- **Agent** launcher: Fixes an issue where, under some resync scenarios,
+  the journal data in ``/journal`` may have been corrupted. The Agent now ensures
+  that no conflicting journal data exist and prioritizes the data from ``/data/journal``.
+  To deactivate this behavior, set the environment variable ``MDB_CLEAN_JOURNAL``
+  in the |k8s-op-short| to any value other than 1.
+
+- **MongoDB**, **AppDB**, **MongoDBMulti** resources: Fixes an issue that ensures
+  that external domains are used in the ``connectionString``, if you configure it.
+
+- **MongoDB** resource: Removes panic response if you provide a Horizon
+  configuration that is shorter than the number of members. The |k8s-op-short| now
+  issues a descriptive error in the status of the MongoDB resource in such cases.
+
+- **MongoDB** resource: Fixes an issue where, when creating a resource in a new
+  project named as a prefix of another project would fail, preventing the
+  MongoDB resource from being created.
+
 .. _ent-op-1.26.x:
 
 |k8s-op-full| 1.26 Series
