@@ -14,9 +14,7 @@
      - Defines :manual:`authentication-related </core/authentication>`
        settings.
 
-       .. note::
-
-          If you omit this parameter, skip the rest of this section.
+       If you omit this parameter, skip the rest of this section.
 
    * - auth.authoritativeSet
      - boolean
@@ -97,10 +95,8 @@
 
        **Required if you enable authentication.**
 
-       .. note::
-
-          This parameter contains more than one element only when 
-          it's configured for both SCRAM-SHA-1 and SCRAM-SHA-256.
+       This parameter contains more than one element only when 
+       it's configured for both SCRAM-SHA-1 and SCRAM-SHA-256.
 
        Specify:
 
@@ -134,10 +130,8 @@
 
        Required if **you enable authentication** and **"auth.disabled" : false**.
 
-       .. note::
-
-          If you change the **auth.key** value, you must change the
-          **auth.keyfile** value.
+       If you change the **auth.key** value, you must change the
+       **auth.keyfile** value.
 
    * - auth.keyfile
      - string
@@ -147,10 +141,8 @@
 
        Required if **you enable authentication** and **"auth.disabled" : false**.
 
-       .. note::
-
-          If you change the **auth.keyfile** value, you must change the
-          **auth.key** value.
+       If you change the **auth.keyfile** value, you must change the
+       **auth.key** value.
   
    * - | auth
        | .newAutoPwd

@@ -43,6 +43,4 @@ replica set or sharded cluster without requiring a :opsmgr:`rolling restart </re
        parameter from its automation configuration, but not from the
        server.
 
-       .. seealso::
-
-          :manual:`changeStreamOptions </reference/cluster-parameters/#mongodb-parameter-param.changeStreamOptions.preAndPostImages.expireAfterSeconds>`. 
+       To learn more, see :manual:`changeStreamOptions </reference/cluster-parameters/#mongodb-parameter-param.changeStreamOptions.preAndPostImages.expireAfterSeconds>`. 

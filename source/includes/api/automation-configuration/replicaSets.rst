@@ -74,9 +74,8 @@ This field is required for deployments with replica sets.
        configuration document: **_id**; **version**; and
        **members**.
 
-       .. seealso::
+       To learn more, see :manual:`replSetGetConfig </reference/command/replSetGetConfig>`.
 
-          :manual:`replSetGetConfig </reference/command/replSetGetConfig>`
    * - replicaSets[n]._id
      - string
      - Required
@@ -96,9 +95,8 @@ This field is required for deployments with replica sets.
        **processes.name**. The {+mdbagent+} expands the **host** field
        to create a valid replica set configuration.
 
-       .. seealso::
+       To learn more, see :manual:`replSetGetConfig </reference/command/replSetGetConfig>`.
 
-          :manual:`replSetGetConfig </reference/command/replSetGetConfig>`.
    * - replicaSets[n].members[m]._id
      - integer
      - Optional
@@ -174,10 +172,6 @@ This field is required for deployments with replica sets.
        {+mdbagent+} forces the replica set to use. Set to **-1** to
        force a replica set to accept a new configuration.
 
-       .. warning::
-
-          Forcing a replica set reconfiguration might lead to a
-          :term:`rollback` of majority-committed writes.
-
-          Proceed with caution. Contact |mdb-support| if you have
-          questions about the potential impacts of this operation.
+       :red:`WARNING:` Forcing a replica set reconfiguration might lead
+       to a :term:`rollback` of majority-committed writes. Proceed with caution. Contact |mdb-support| if you have
+       questions about the potential impacts of this operation.

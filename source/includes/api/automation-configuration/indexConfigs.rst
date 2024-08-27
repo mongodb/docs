@@ -98,9 +98,8 @@ The **indexConfigs** array is optional and defines indexes to be built for speci
        This parameter applies only if you set
        **indexConfigs.collation.strength** to **1** or **2**.
 
-       .. seealso::
+       To learn more, see :manual:`Collation </reference/collation>`.
 
-          :manual:`Collation </reference/collation>`
    * - indexConfigs.collation.caseFirst
      - string
      - Optional
@@ -141,9 +140,8 @@ The **indexConfigs** array is optional and defines indexes to be built for speci
 
        The default is **false**.
 
-       .. seealso::
+       To learn more, see :manual:`Collation </reference/collation>`.
 
-          :manual:`Collation </reference/collation>`
    * - indexConfigs.collation.alternate
      - string
      - Optional
@@ -172,9 +170,8 @@ The **indexConfigs** array is optional and defines indexes to be built for speci
 
        The default is **false**.
 
-       .. seealso::
-
-          :manual:`Collation </reference/collation>`
+       To learn more, see :manual:`Collation </reference/collation>`.
+       
    * - indexConfigs.collation.backwards
      - boolean
      - Optional
@@ -186,9 +183,8 @@ The **indexConfigs** array is optional and defines indexes to be built for speci
 
        The default is **false**.
 
-       .. seealso::
-
-          :manual:`Collation </reference/collation>`
+       To learn more, see :manual:`Collation </reference/collation>`.
+       
    * - indexConfigs.options
      - document
      - Required
