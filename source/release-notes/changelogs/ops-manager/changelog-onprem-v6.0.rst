@@ -1,3 +1,32 @@
+.. _opsmgr-server-6.0.25:
+
+|onprem| Server 6.0.25:
+~~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2024-08-08*
+
+- Compatible with :dbtools:`MongoDB Database Tools 100.10.0
+  </release-notes/database-tools-changelog/#100.10.0-changelog>`.
+- Updates the {+mdbagent+} to :ref:`12.0.33.7866-1 
+  <mongodb-12.0.33.7866-1>`.
+- Updates Go to 1.22 to build the {+mdbagent+}.
+- Adds support for |bic-full| 2.14.14.
+- Removes the requirement that RHEL
+  :abbr:`OS (Operating System)` must include the ``redhat-lsb-core`` 
+  package. 
+- Removes the requirement that a Debian installation must include the
+  ``lsb-release`` package. To learn more, see `lsb-release
+  <https://packages.debian.org/sid/lsb-release>`__. 
+- Fixes the following |cve|\s:
+
+  - `CVE-2021-4279 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-4279>`__
+  - `CVE-2023-22467 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-22467>`__
+  - `CVE-2024-37298 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-37298>`__
+
+- Updates JDK to ``jdk-11.0.24+8``.
+- Fixes an issue so that a race condition no longer causes an agent to 
+  crash during restart.
+
 .. _opsmgr-server-6.0.24:
 
 |onprem| Server 6.0.24:
