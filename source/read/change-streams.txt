@@ -1,0 +1,243 @@
+.. _java-rs-change-streams:
+
+====================
+Monitor Data Changes
+====================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: code examples, watch
+
+Overview
+--------
+
+In this guide, you can learn how to use a **change stream** to monitor real-time
+changes to your data. A change stream is a {+mdb-server+} feature that
+allows your application to subscribe to data changes on a collection, database,
+or deployment.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``sample_restaurants.restaurants`` collection
+from the :atlas:`Atlas sample datasets </sample-data>`. To learn how to create a
+free MongoDB Atlas cluster and load the sample datasets, see the
+:ref:`<java-rs-getting-started>` guide.
+
+.. include:: includes/reactor-note.rst
+
+Open a Change Stream
+--------------------
+
+To open a change stream, call the ``watch()`` method. The instance on which you
+call the method determines the scope of events that the change
+stream listens for. You can call the ``watch()`` method on instances of the following
+classes:
+
+- ``MongoClient``: To monitor all changes in the MongoDB deployment
+- ``MongoDatabase``: To monitor changes in all collections in the database
+- ``MongoCollection``: To monitor changes in the collection
+
+The following example opens a change stream on the ``restaurants`` collection
+and outputs the changes as they occur:
+
+.. literalinclude:: /includes/read/change-streams.java
+   :start-after: start-open-change-stream
+   :end-before: end-open-change-stream
+   :language: java
+
+To begin watching for changes, run the application. Then, in a separate
+application or shell, perform a write operation on the ``restaurants``
+collection. Updating a document that has a ``"name"`` field value of ``"Blarney
+Castle"`` results in the following change stream output:
+
+.. code-block:: sh
+   :copyable: false
+
+   Received change: ChangeStreamDocument{ operationType=update, resumeToken={"_data": "..."}, 
+   namespace=sample_restaurants.restaurants, destinationNamespace=null, fullDocument=null, 
+   fullDocumentBeforeChange=null, documentKey={"_id": {"$oid": "..."}}, clusterTime=Timestamp{...}, 
+   updateDescription=UpdateDescription{removedFields=[], updatedFields={"cuisine": "Traditional Irish"}, 
+   truncatedArrays=[], disambiguatedPaths=null}, txnNumber=null, lsid=null, 
+   splitEvent=null, wallTime=BsonDateTime{value=...}}
+
+Modify the Change Stream Output
+-------------------------------
+
+You can pass an aggregation pipeline as a parameter to the ``watch()``
+method to modify the change stream output. This parameter allows you to watch
+for only specified change events.
+
+You can specify the following aggregation stages in the ``pipeline`` parameter:
+
+- ``$addFields``
+- ``$match``
+- ``$project``
+- ``$replaceRoot``
+- ``$replaceWith``
+- ``$redact``
+- ``$set``
+- ``$unset``
+
+The following example passes an aggregation pipeline to a change stream
+to record only update operations:
+
+.. literalinclude:: /includes/read/change-streams.java
+   :start-after: start-change-stream-pipeline
+   :end-before: end-change-stream-pipeline
+   :language: java
+
+To learn more about modifying your change stream output, see the
+:manual:`Modify Change Stream Output
+</changeStreams/#modify-change-stream-output>` section in the {+mdb-server+}
+manual.
+
+Modify ``watch()`` Behavior
+---------------------------
+
+You can chain methods to the ``watch()`` method that represent
+options you can use to configure the change stream operation. If you don't
+specify any options, the driver does not customize the operation.
+
+The following table describes the methods that you can chain to ``watch()`` to
+customize its behavior:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Option
+     - Description
+
+   * - ``fullDocument()``
+     - | Specifies whether to show the full document after the change, rather
+         than showing only the changes made to the document. To learn more about
+         this option, see :ref:`java-rs-change-stream-pre-post-image`.
+
+   * - ``fullDocumentBeforeChange()``
+     - | Specifies whether to show the full document as it was before the change, rather
+         than showing only the changes made to the document. To learn more about
+         this option, see :ref:`java-rs-change-stream-pre-post-image`.
+    
+   * - ``resumeAfter()``
+     - | Directs ``watch()`` to resume returning changes after the
+         operation specified in the resume token.
+       | Each change stream event document includes a resume token as the ``_id``
+         field. Pass the entire ``_id`` field of the change event document that
+         represents the operation you want to resume after.
+       | ``resumeAfter()`` is mutually exclusive with ``startAfter()`` and ``startAtOperationTime()``.
+
+   * - ``startAfter()``
+     - | Directs ``watch()`` to start a new change stream after the
+         operation specified in the resume token. Allows notifications to
+         resume after an invalidate event.
+       | Each change stream event document includes a resume token as the ``_id``
+         field. Pass the entire ``_id`` field of the change event document that
+         represents the operation you want to resume after.
+       | ``startAfter()`` is mutually exclusive with ``resumeAfter()`` and ``startAtOperationTime()``.
+       
+   * - ``startAtOperationTime()``
+     - | Directs ``watch()`` to return only events that occur after the
+         specified timestamp.
+       | ``startAtOperationTime()`` is mutually exclusive with ``resumeAfter()`` and ``startAfter()``.
+
+   * - ``maxAwaitTime()``
+     - | Specifies the maximum amount of time, in milliseconds, the server waits for new
+         data changes to report to the change stream cursor before returning an
+         empty batch. Defaults to 1000 milliseconds.
+
+   * - ``showExpandedEvents()``
+     - | Starting in {+mdb-server+} v6.0, change streams support change notifications
+         for Data Definition Language (DDL) events, such as the ``createIndexes`` and ``dropIndexes`` events. To
+         include expanded events in a change stream, call this method and pass
+         in the value, ``true``.
+
+   * - ``batchSize()``
+     - | Specifies the maximum number of change events to return in each batch of the
+         response from the MongoDB cluster.
+
+   * - ``collation()``
+     - | Specifies the collation to use for the change stream cursor.
+
+   * - ``comment()``
+     - | Attaches a comment to the operation.
+
+.. _java-rs-change-stream-pre-post-image:
+
+Include Pre-Images and Post-Images
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. important::
+
+   You can enable pre-images and post-images on collections only if your
+   deployment uses MongoDB v6.0 or later.
+
+By default, when you perform an operation on a collection, the
+corresponding change event includes only the delta of the fields
+modified by that operation. To see the full document before or after a
+change, chain the ``fullDocumentBeforeChange()`` or the ``fullDocument()``
+method to the ``watch()`` method.
+
+The **pre-image** is the full version of a document *before* a change. To include the
+pre-image in the change stream event, pass one of the following values to the
+``fullDocumentBeforeChange()`` method:
+
+- ``FullDocumentBeforeChange.WHEN_AVAILABLE``: The change event
+  includes a pre-image of the modified document for change events only if the
+  pre-image is available.
+- ``FullDocumentBeforeChange.REQUIRED``:
+  The change event includes a pre-image of the modified document for change
+  events. If the pre-image is not available, the driver raises an error.
+
+The **post-image** is the full version of a document *after* a change. To include the
+post-image in the change stream event, pass one of the following values to the
+``fullDocument()`` method:
+
+- ``FullDocument.UPDATE_LOOKUP``: The change event includes a
+  copy of the entire changed document from some time after the change.
+- ``FullDocument.WHEN_AVAILABLE``: The change event includes a
+  post-image of the modified document for change events only if the post-image
+  is available.
+- ``FullDocument.REQUIRED``: The change event includes a
+  post-image of the modified document for change events. If the post-image is
+  not available, the driver raises an error.
+
+The following example opens a change stream on a collection and includes the post-image
+of updated documents by chaining the ``fullDocument()`` method to the
+``watch()`` method:
+
+.. literalinclude:: /includes/read/change-streams.java
+   :start-after: start-change-stream-post-image
+   :end-before: end-change-stream-post-image
+   :emphasize-lines: 9
+   :language: java
+
+To learn more about pre-images and post-images, see 
+:manual:`Change Streams with Document Pre- and Post-Images </changeStreams#change-streams-with-document-pre--and-post-images>` 
+in the {+mdb-server+} manual.
+
+Additional Information
+----------------------
+
+To learn more about change streams, see :manual:`Change Streams
+</changeStreams>` in the {+mdb-server+} manual.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `MongoClient.watch() <{+api+}/mongodb-driver-reactivestreams/com/mongodb/reactivestreams/client/MongoClient.html#watch()>`__
+- `MongoCollection.watch() <{+api+}/mongodb-driver-reactivestreams/com/mongodb/reactivestreams/client/MongoCollection.html#watch()>`__
+- `MongoDatabase.watch() <{+api+}/mongodb-driver-reactivestreams/com/mongodb/reactivestreams/client/MongoDatabase.html#watch()>`__
+- `ChangeStreamPublisher <{+api+}/mongodb-driver-reactivestreams/com/mongodb/reactivestreams/client/ChangeStreamPublisher.html>`__
