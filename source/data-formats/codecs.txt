@@ -1,0 +1,390 @@
+.. _kotlin-sync-codecs:
+
+======
+Codecs
+======
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn about **Codecs** and supporting classes that
+handle the encoding and decoding of {+language+} objects to and from
+BSON data. The ``Codec`` abstraction allows you to map any
+{+language+} type to a corresponding BSON type. You can use this feature to map
+your domain objects directly to and from BSON instead of using classes
+such as ``Document`` or ``BsonDocument``.
+
+You can learn how to specify custom encoding and decoding logic using
+the ``Codec`` abstraction and view example implementations in the following
+sections:
+
+- :ref:`kotlin-sync-codec-class`
+- :ref:`kotlin-sync-codecregistry`
+- :ref:`kotlin-sync-codecprovider`
+- :ref:`kotlin-sync-codec-custom-example`
+
+.. tip:: {+language+} Serialization
+
+   You can use {+language+} serialization to handle your data encoding and decoding with 
+   ``@Serializable`` classes instead of implementing custom codecs. You
+   might choose {+language+} serialization if you are already familiar
+   with the ``kotlinx.serialization`` library or prefer to
+   use an idiomatic {+language+} approach. To learn more, see the
+   :ref:`kotlin-sync-serialization` guide.
+
+.. _kotlin-sync-codec-class:
+
+Codec
+-----
+
+The ``Codec`` interface contains abstract methods for serializing and
+deserializing {+language+} objects to BSON data. You can define custom
+conversion logic in your implementation of this interface.
+
+To implement the ``Codec`` interface, override the ``encode()``, ``decode()``,
+and ``getEncoderClass()`` abstract methods.
+
+encode() Method
+~~~~~~~~~~~~~~~
+
+The ``encode()`` method requires the following parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 20
+
+   * - Parameter Type
+     - Description
+
+   * - ``writer``
+     - An instance of a class that implements ``BsonWriter``, an interface type
+       that exposes methods for writing a BSON document. For example, the
+       ``BsonBinaryWriter`` implementation writes to a binary stream of data.
+       Use this instance to write your BSON value using the appropriate
+       write method.
+
+   * - ``value``
+     - The data that your implementation encodes. The type must match the type
+       variable assigned to your implementation.
+
+   * - ``encoderContext``
+     -  Contains meta-information about the {+language+} object data that it encodes
+        to BSON including whether to store the current value in a
+        MongoDB collection.
+
+The ``encode()`` method uses the ``BsonWriter`` instance to send the
+encoded value to MongoDB and does not return a value.
+
+decode() Method
+~~~~~~~~~~~~~~~
+
+The ``decode()`` method returns your {+language+} object instance populated with the
+value from the BSON data. This method requires the following parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 20
+
+   * - Parameter Type
+     - Description
+
+   * - ``reader``
+     - An instance of a class that implements ``BsonReader``, an interface type
+       that exposes methods for reading a BSON document. For example, the
+       ``BsonBinaryReader`` implementation reads from a binary stream of data.
+
+   * - ``decoderContext``
+     - Contains information about the BSON data that it decodes to a {+language+}
+       object.
+
+The ``getEncoderClass()`` method returns a class instance of the {+language+} class
+since {+language+} cannot infer the type due to type erasure.
+
+.. _kotlin-sync-powerstatus-codec:
+
+Examples
+~~~~~~~~
+
+This section contains code examples that show how you can implement a
+custom ``Codec`` interface.
+
+The ``PowerStatus`` enum contains the values ``"ON"`` and ``"OFF"`` to
+represent the states of an electrical switch:
+
+.. literalinclude:: /includes/data-formats/codecs.kt
+   :language: kotlin
+   :start-after: start-powerstatus-enum
+   :end-before: end-powerstatus-enum
+   :dedent:
+
+The ``PowerStatusCodec`` class implements the ``Codec`` interface to convert
+the {+language+} ``enum`` values to corresponding BSON boolean values. The
+``encode()`` method converts a ``PowerStatus`` value to a BSON boolean and the
+``decode()`` method performs the conversion in the opposite direction.
+
+.. literalinclude:: /includes/data-formats/codecs.kt
+   :language: kotlin
+   :start-after: start-powerstatus-codec
+   :end-before: end-powerstatus-codec
+   :dedent:
+
+You can add an instance of ``PowerStatusCodec`` to your
+``CodecRegistry``. View the :ref:`CodecRegistry
+<kotlin-sync-codecregistry>` section of this page to learn how to include
+your ``Codec`` in your registry.
+
+To learn more about the classes and interfaces mentioned in this section, see the
+following API documentation:
+
+- `Codec <{+java-api+}/apidocs/bson/org/bson/codecs/Codec.html>`__
+- `BsonWriter <{+java-api+}/apidocs/bson/org/bson/BsonWriter.html>`__
+- `BsonBinaryWriter <{+java-api+}/apidocs/bson/org/bson/BsonBinaryWriter.html>`__
+- `EncoderContext <{+java-api+}/apidocs/bson/org/bson/codecs/EncoderContext.html>`__
+- `BsonReader <{+java-api+}/apidocs/bson/org/bson/BsonReader.html>`__
+- `DecoderContext <{+java-api+}/apidocs/bson/org/bson/codecs/DecoderContext.html>`__
+- `BsonBinaryReader <{+java-api+}/apidocs/bson/org/bson/BsonBinaryReader.html>`__
+
+.. _kotlin-sync-codecregistry:
+
+CodecRegistry
+-------------
+
+A ``CodecRegistry`` is an immutable collection of ``Codec`` instances that
+encode and decode {+language+} classes. You can use any of the
+following ``CodecRegistries`` class static factory methods to construct a
+``CodecRegistry`` from the ``Codec`` instances contained in the associated
+types:
+
+- ``fromCodecs()``: Creates a registry from ``Codec`` instances
+- ``fromProviders()``: Creates a registry from ``CodecProvider`` instances
+- ``fromRegistries()``: Creates a registry from ``CodecRegistry`` instances
+
+The following code shows how to construct a ``CodecRegistry`` by using
+the ``fromCodecs()`` method:
+
+.. code-block:: kotlin
+
+   val codecRegistry = CodecRegistries
+       .fromCodecs(IntegerCodec(), PowerStatusCodec())
+
+The preceding example assigns the ``CodecRegistry`` the following ``Codec``
+implementations:
+
+- ``IntegerCodec``: ``Codec`` that converts ``Integers``. It is part of the BSON package.
+- ``PowerStatusCodec``: Sample ``Codec`` from the preceding section that
+  converts {+language+} enum values to BSON booleans.
+
+You can retrieve the ``Codec`` instances from the ``CodecRegistry`` instance
+by using the following code:
+
+.. code-block:: kotlin
+
+   val powerStatusCodec = codecRegistry.get(PowerStatus::class.java)
+   val integerCodec = codecRegistry.get(Integer::class.java)
+
+If you attempt to retrieve a ``Codec`` instance for a class that is not
+registered, the ``codecRegistry.get()`` method raises a
+``CodecConfigurationException`` exception.
+
+For more information about the classes and interfaces in this section, see the
+following API documentation:
+
+- `CodecRegistries <{+java-api+}/apidocs/bson/org/bson/codecs/configuration/CodecRegistries.html>`__
+- `IntegerCodec <{+java-api+}/apidocs/bson/org/bson/codecs/IntegerCodec.html>`__
+
+.. _kotlin-sync-codecprovider:
+
+CodecProvider
+-------------
+
+A ``CodecProvider`` is an interface that contains abstract methods to create
+``Codec`` instances and assign them to ``CodecRegistry`` instances. Similar
+to the ``CodecRegistry`` interface, the BSON library uses the ``Codec`` instances
+retrieved by the ``CodecProvider.get()`` method to convert between
+{+language+} and BSON data types.
+
+However, in cases that you add a class that contains fields requiring
+corresponding ``Codec`` objects, ensure that you instantiate the
+``Codec`` objects for the class' fields before you instantiate the
+``Codec`` for the entire class. You can use the ``CodecRegistry`` parameter in
+the ``CodecProvider.get()`` method to pass any of the ``Codec``
+instances that the ``Codec`` relies on.
+
+To see a runnable example that demonstrates read and write operations
+using ``Codec`` classes, see the :ref:`kotlin-sync-codec-custom-example`
+section of this guide.
+
+.. _codecs-default-codec-registry:
+
+Default Codec Registry
+~~~~~~~~~~~~~~~~~~~~~~
+
+The default codec registry is a set of ``CodecProvider`` classes that
+specify conversion between commonly-used {+language+} objects and
+MongoDB types. The driver automatically uses the default codec registry
+unless you specify a different one.
+
+.. _kotlin-sync-codecs-override:
+
+To override the behavior of one or more ``Codec`` classes, but
+keep the behavior from the default codec registry for the other classes,
+you can specify the registries in order of precedence. For example,
+suppose you want to override the default provider behavior of a ``Codec`` for
+enum types with your custom ``MyEnumCodec``. You must add it to the registry
+list in a position before the default codec registry as shown in the
+following example:
+
+.. code-block:: kotlin
+   :emphasize-lines: 2
+
+   val newRegistry = CodecRegistries.fromRegistries(
+       CodecRegistries.fromCodecs(MyEnumCodec()),
+       MongoClientSettings.getCodecRegistry()
+   )
+
+For more information about the classes and interfaces in this section, see
+the following API documentation:
+
+- `CodecProvider <{+java-api+}/apidocs/bson/org/bson/codecs/configuration/CodecProvider.html>`__
+- `getCodecRegistry() <{+java-api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoCollection.html#getCodecRegistry()>`__
+
+BsonTypeClassMap
+~~~~~~~~~~~~~~~~
+
+The ``BsonTypeClassMap`` class contains a recommended mapping between BSON
+and {+language+} types. You can use this class in your custom ``Codec`` or
+``CodecProvider`` to help you manage which {+language+} types to decode your BSON
+types to. It also contains container classes that implement ``Iterable``
+or ``Map`` such as the ``Document`` class.
+
+You can add or modify the ``BsonTypeClassMap`` default mapping by passing a
+``Map`` containing new or replacement entries.
+
+The following code shows how to retrieve the {+language+} class type
+that corresponds to the BSON array type in the default ``BsonTypeClassMap``
+instance:
+
+.. io-code-block::
+
+   .. input::
+      :language: kotlin
+
+      val bsonTypeClassMap = BsonTypeClassMap()
+      val clazz = bsonTypeClassMap[BsonType.ARRAY]
+      println("Kotlin class name: " + clazz.name)
+
+   .. output::
+      :language: console
+
+      Kotlin class name: java.util.List
+
+You can modify these mappings in your instance by specifying replacements in the
+``BsonTypeClassMap`` constructor. The following code snippet shows how
+you can replace the mapping for the BSON array type in your ``BsonTypeClassMap``
+instance with the ``Set`` class:
+
+.. io-code-block::
+
+   .. input::
+      :language: kotlin
+
+      val replacements = mutableMapOf<BsonType, Class<*>>(BsonType.ARRAY to MutableSet::class.java)
+      val bsonTypeClassMap = BsonTypeClassMap(replacements)
+      val clazz = bsonTypeClassMap[BsonType.ARRAY]
+      println("Class name: " + clazz.name)
+
+   .. output::
+      :language: console
+
+      Kotlin class name: java.util.Set
+
+For a complete list of the default mappings, view the
+`BsonTypeClassMap
+<{+java-api+}/apidocs/bson/org/bson/codecs/BsonTypeClassMap.html>`__ API
+documentation.
+
+.. _kotlin-sync-codec-custom-example:
+
+Custom Codec Example
+--------------------
+
+This section demonstrates how you can implement ``Codec`` and
+``CodecProvider`` interfaces to define the encoding and decoding logic
+for a custom {+language+} class. It shows how you can specify and use
+your custom implementations to perform read and write operations.
+
+The following code defines the sample data class ``Monolight``:
+
+.. literalinclude:: /includes/data-formats/codecs.kt
+   :language: kotlin
+   :start-after: start-monolight-class
+   :end-before: end-monolight-class
+   :dedent:
+
+This class contains the following fields that each require a
+corresponding ``Codec`` to handle encoding and decoding:
+
+- ``powerStatus``: Describes whether the device light is ``"ON"`` or ``"OFF"``.
+  For this field, use the :ref:`PowerStatusCodec
+  <kotlin-sync-powerstatus-codec>` which converts the ``PowerStatus``
+  enum values to BSON booleans.
+
+- ``colorTemperature``: Describes the color of the device light in
+  kelvins as an ``Int`` value. For this field, use the ``IntegerCodec``
+  provided in the BSON library.
+
+The following code shows how to can implement a ``Codec`` for the
+``Monolight`` class. The constructor expects an instance of
+``CodecRegistry`` from which it retrieves the ``Codec`` instances needed
+to encode and decode the class fields:
+
+.. literalinclude:: /includes/data-formats/codecs.kt
+   :language: kotlin
+   :start-after: start-monolight-codec
+   :end-before: end-monolight-codec
+   :dedent:
+
+To ensure that the ``Codec`` instances for the fields are available for
+the ``Monolight`` class, implement a custom ``CodecProvider`` as shown
+in the following code example:
+
+.. literalinclude:: /includes/data-formats/codecs.kt
+   :language: kotlin
+   :start-after: start-monolight-provider
+   :end-before: end-monolight-provider
+   :dedent:
+
+After defining the conversion logic, you can perform the following actions:
+
+- Store instances of ``Monolight`` in MongoDB
+- Retrieve documents from MongoDB as instances of ``Monolight``
+
+The following code assigns the ``MonolightCodecProvider`` to the
+``MongoCollection`` instance by passing it to the
+``withCodecRegistry()`` method. The example class also inserts and
+retrieves data by using the ``Monolight`` class:
+
+.. io-code-block::
+   
+   .. input:: /includes/data-formats/codecs.kt
+      :language: kotlin
+      :start-after: start-monolight-operations
+      :end-before: end-monolight-operations
+
+   .. output::
+      :language: none
+
+      Monolight { powerStatus: ON, colorTemperature: 5200 }
+      Monolight { powerStatus: OFF, colorTemperature: 3000 }
+
+For more information about the methods and classes mentioned in this section,
+see the following API documentation:
+
+- `withCodecRegistry() <{+java-api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoCollection.html#withCodecRegistry(org.bson.codecs.configuration.CodecRegistry)>`__
+- `fromRegistries() <{+java-api+}/apidocs/bson/org/bson/codecs/configuration/CodecRegistries.html#fromRegistries(org.bson.codecs.configuration.CodecRegistry...)>`__
