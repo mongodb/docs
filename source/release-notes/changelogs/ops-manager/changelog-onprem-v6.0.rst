@@ -358,8 +358,8 @@
    it is possible that the :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` fails to start 
    after a system reboot. Most Linux host-oriented distributions with ``systemd`` support ``network-online.target`` 
    which indicates that your network connectivity has been established. Its primary purpose is to actively delay the 
-   activation of services until the network is up. Therefore, MongoDB recommends that you modify 
-   ``after=network.target`` in your ``systemd`` file to ``after=network-online.target``.
+   activation of services until the network is up. To improve user experience, |onprem| server 6.0.13 updates the |onprem| 
+   systemd unit file from ``after=network.target`` to ``after=network-online.target``.
 
 - Updates the {+mdbagent+} to :ref:`12.0.21.7698 
   <mongodb-12.0.21.7698>`.
