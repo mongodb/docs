@@ -48,7 +48,8 @@
             #. Click :guilabel:`Add Field` in the :guilabel:`Field
                Mappings` section and click :guilabel:`Add` after
                configuring the settings for the following fields, one by
-               one, in the :guilabel:`Add Field Mapping` window. 
+               one, in the :guilabel:`Add Field Mapping` window
+               :guilabel:`Customized Configuration` tab. 
 
                .. list-table:: 
                   :header-rows: 1

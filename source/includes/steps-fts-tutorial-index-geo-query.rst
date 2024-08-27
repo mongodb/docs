@@ -40,7 +40,8 @@
             a. Click :guilabel:`Next`.
             #. Click :guilabel:`Refine Your Index`.
             #. In the :guilabel:`Field Mappings` section, click
-               :guilabel:`Add Field`. 
+               :guilabel:`Add Field` to open the :guilabel:`Add Field 
+               Mapping` > :guilabel:`Customized Configuration` tab. 
             #. Select :guilabel:`address.location` from the :guilabel:`Field
                Name` dropdown. 
             #. Click the :guilabel:`Data Type` dropdown and select

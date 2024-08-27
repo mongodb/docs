@@ -55,6 +55,7 @@
             #. In the :guilabel:`Field Mappings` section, click
                :guilabel:`Add Field` to display the :guilabel:`Add Field
                Mapping` window. 
+            #. Click :guilabel:`Customized Configuration`.
             #. For the following fields, one at a time, select the field
                name and data type from the corresponding dropdowns,
                configure the properties if any or accept default, and click

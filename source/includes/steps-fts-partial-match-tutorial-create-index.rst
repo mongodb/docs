@@ -38,41 +38,18 @@
                disable :guilabel:`Dynamic Mapping`. 
             #. In the :guilabel:`Field Mappings` section, click
             #. :guilabel:`Add Field` to display the :guilabel:`Add Field
-               Mapping` window. 
-            #. Select ``plot`` from the :guilabel:`Field Name` dropdown.
-            #. Click the :guilabel:`Data Type` dropdown to specify the field
-               type and the settings for the operator you want to use to run
-               the query. 
+               Mapping` window.
+            #.  
       
                .. tabs:: 
       
                   .. tab:: autocomplete
                      :tabid: autocomplete
       
-                     i. Select :guilabel:`Autocomplete` from the dropdown to
-                        run the query using the :ref:`autocomplete-ref` operator.
-      
-                     #. Modify the default settings for the data type as shown 
-                        below:
-      
-                        .. list-table:: 
-                           :header-rows: 1
-                           :widths: 20 80
-       
-                           * - UI Field Name 
-                             - Configuration
-      
-                           * - :guilabel:`Max Grams`
-                             - ``15``
-      
-                           * - :guilabel:`Min Grams`
-                             - ``2``
-      
-                           * - :guilabel:`Tokenization`
-                             - :guilabel:`edgeGram`
-      
-                           * - :guilabel:`Fold Diacritics`
-                             - :guilabel:`true`
+                     i. Click :guilabel:`Quick Start for Text Fields`. 
+                     #. Select the :guilabel:`Search-as-you-type`
+                        template from the dropdown and review the
+                        default settings. 
       
                         To learn more about these settings, see 
                         :ref:`bson-data-types-autocomplete`.
@@ -80,36 +57,10 @@
                   .. tab:: phrase
                      :tabid: phrase
       
-                     i. Select :guilabel:`String` from the dropdown to run
-                        the query using the :ref:`phrase-ref` operator.
-      
-                     #. Modify the default settings for the data type as shown 
-                        below:
-      
-                        .. list-table:: 
-                           :header-rows: 1
-                           :widths: 20 80
-       
-                           * - UI Field Name 
-                             - Configuration
-      
-                           * - :guilabel:`Index Analyzer`
-                             - ``lucene.standard``
-      
-                           * - :guilabel:`Search Analyzer`
-                             - ``lucene.standard``
-      
-                           * - :guilabel:`Index Options`
-                             - :guilabel:`offsets`
-      
-                           * - :guilabel:`Store`
-                             - :guilabel:`true`
-      
-                           * - :guilabel:`Ignore Above`
-                             - None
-      
-                           * - :guilabel:`Norms`
-                             - :guilabel:`include`
+                     i. Click :guilabel:`Quick Start for Text Fields`. 
+                     #. Select the :guilabel:`Full Text Search` template
+                        from the dropdown and review the default
+                        settings. 
       
                         To learn more about these settings, see 
                         :ref:`bson-data-types-string`.
@@ -117,34 +68,37 @@
                   .. tab:: regex
                      :tabid: regex
       
-                     i. Select :guilabel:`String` from the dropdown to run
-                        the query using the :ref:`regex-ref` operator.
-      
-                     #. Modify the default settings for the data type as shown 
+                     i. Select :guilabel:`Customized Configuration` from
+                        the dropdown. 
+                     #. Select :guilabel:`String` from the
+                        :guilabel:`Data Type` dropdown to run the query
+                        using the :ref:`wildcard-ref` operator. 
+
+                     #. Modify the default settings for the data type as shown
                         below:
-      
-                        .. list-table:: 
+
+                        .. list-table::
                            :header-rows: 1
                            :widths: 20 80
-       
-                           * - UI Field Name 
+
+                           * - UI Field Name
                              - Configuration
-      
+
                            * - :guilabel:`Index Analyzer`
                              - ``lucene.keyword``
-      
+
                            * - :guilabel:`Search Analyzer`
                              - ``lucene.keyword``
-      
+
                            * - :guilabel:`Index Options`
                              - :guilabel:`offsets`
-      
+
                            * - :guilabel:`Store`
                              - :guilabel:`true`
-      
+
                            * - :guilabel:`Ignore Above`
                              - None
-      
+
                            * - :guilabel:`Norms`
                              - :guilabel:`include`
       
@@ -154,40 +108,44 @@
                   .. tab:: wildcard
                      :tabid: wildcard
       
-                     i. Select :guilabel:`String` from the dropdown to run
-                        the query using the :ref:`wildcard-ref` operator.
-      
-                     #. Modify the default settings for the data type as shown 
+                     i. Select :guilabel:`Customized Configuration` from
+                        the dropdown. 
+                     #. Select :guilabel:`String` from the
+                        :guilabel:`Data Type` dropdown to run the query
+                        using the :ref:`wildcard-ref` operator. 
+
+                     #. Modify the default settings for the data type as shown
                         below:
-      
-                        .. list-table:: 
+
+                        .. list-table::
                            :header-rows: 1
                            :widths: 20 80
-       
-                           * - UI Field Name 
+
+                           * - UI Field Name
                              - Configuration
-      
+
                            * - :guilabel:`Index Analyzer`
                              - ``lucene.keyword``
-      
+
                            * - :guilabel:`Search Analyzer`
                              - ``lucene.keyword``
-      
+
                            * - :guilabel:`Index Options`
                              - :guilabel:`offsets`
-      
+
                            * - :guilabel:`Store`
                              - :guilabel:`true`
-      
+
                            * - :guilabel:`Ignore Above`
                              - None
-      
+
                            * - :guilabel:`Norms`
                              - :guilabel:`include`
       
                         To learn more about these settings, see 
                         :ref:`bson-data-types-string`.
-      
+ 
+            #. Select ``plot`` from the :guilabel:`Field Name` dropdown.
             #. Click :guilabel:`Add` to add the field to the list in
                :guilabel:`Field Mappings` section. 
             #. Click :guilabel:`Save Changes`. 

@@ -59,7 +59,7 @@
                index.
             #. In the :guilabel:`Field Mappings` section, click
                :guilabel:`Add Field Mapping` to apply the custom analyzer on the
-               ``title`` field. 
+               ``title`` field in the :guilabel:`Customized Configuration` tab. 
             #. Select ``title`` from the :guilabel:`Field Name` dropdown and
                **String** from the :guilabel:`Data Type` dropdown.
             #. In the properties section for the data type, select

@@ -37,7 +37,8 @@
             a. Click :guilabel:`Refine Your Index`.
             #. In the :guilabel:`Field Mappings` section, click
                :guilabel:`Add Field` to display the :guilabel:`Add
-               Field Mapping` window. 
+               Field Mapping` window.
+            #. Click :guilabel:`Customized Configuration`.
             #. Select ``fullplot`` for the :guilabel:`Field Name`.
             #. In the settings for the data type, you can configure whether
                to analyze the field using the Italian language only or using

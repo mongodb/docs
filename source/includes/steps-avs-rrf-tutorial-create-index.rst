@@ -95,6 +95,7 @@
             #. In the :guilabel:`Field Mappings` section, click
                :guilabel:`Add Field` to display the :guilabel:`Add Field
                Mapping` window. 
+            #. Click :guilabel:`Customized Configuration`.
             #. Select ``title`` from the :guilabel:`Field Name` dropdown.
             #. Select :guilabel:`String` from the :guilabel:`Data Type`
                dropdown.

@@ -59,6 +59,7 @@
                   #. Click :guilabel:`Refine Your Index`.
                   #. Click :guilabel:`Add Field` in the :guilabel:`Field
                      Mappings` section.
+                  #. Click :guilabel:`Customized Configuration`.
                   #. Configure the following fields in the :guilabel:`Add
                      Field Mapping` window and click :guilabel:`Add` after: 
       

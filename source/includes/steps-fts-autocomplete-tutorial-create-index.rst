@@ -37,44 +37,12 @@
             #. Click :guilabel:`Refine Your Index`.
             #. Click :guilabel:`Add Field` in the :guilabel:`Field Mappings`
                section. 
-            #. Configure the following field for autocompletion:
-                  
-               .. list-table:: 
-                  :header-rows: 1
-                  :widths: 20 80
-       
-                  * - UI Field Name 
-                    - Configuration 
-      
-                  * - :guilabel:`Field Name`
-                    - Enter ``title``.
-      
-                  * - :guilabel:`Data Type`
-                    - Select ``Autocomplete``.
-               
-            #. Review the following default settings:
-      
-               .. list-table:: 
-                  :header-rows: 1
-                  :widths: 20 80
-       
-                  * - UI Field Name 
-                    - Configuration
-      
-                  * - :guilabel:`Max Grams`
-                    - ``15``
-      
-                  * - :guilabel:`Min Grams`
-                    - ``2``
-      
-                  * - :guilabel:`Tokenization`
-                    - :guilabel:`edgeGram`
-      
-                  * - :guilabel:`Fold Diacritics`
-                    - :guilabel:`true`
-      
+            #. Click :guilabel:`Quick Start for Text Fields` if it's not 
+               already selected and select :guilabel:`Search-as-you-type` 
+               template from the dropdown.   
+            #. Select ``title`` from the :guilabel:`Field Name` dropdown.
             #. Click :guilabel:`Add`.
-            #. Repeat steps **c** through **g** for the ``plot`` field.
+            #. Repeat steps **c** through **e** for the ``plot`` field.
             #. Click :guilabel:`Save Changes`. 
       
          .. tab:: JSON Editor
