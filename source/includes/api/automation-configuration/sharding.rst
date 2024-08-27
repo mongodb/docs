@@ -174,11 +174,7 @@ clusters.
      - Conditional
      - :manual:`Namespace  </reference/glossary/#std-term-namespace>` of the collection that uses zoned
        sharding. The namespace combines the database name and the name
-       of the collection.
-
-       .. example::
-
-          testdb.testcoll
+       of the collection. For example: ``testdb.testcoll``.
 
    * - sharding.tags.min
      - array

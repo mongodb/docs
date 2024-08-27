@@ -51,10 +51,8 @@ endpoint.
      - string
      - Required
      - Version of the Monitoring Agent.
-
-       .. seealso::
-
-          :doc:`/reference/mongodb-compatibility`
+     
+       To learn more, see :doc:`/reference/mongodb-compatibility`.
 
        .. important::
 

@@ -67,11 +67,9 @@ instances. Using this array, you can:
      - Required
      - MongoDB configuration object for MongoDB versions 2.6 and later.
 
-       .. note::
-
-          The ``processes.args2_6`` object accepts most MongoDB 
-          settings and parameters for MongoDB versions 2.6 and later. 
-          To learn more, see :ref:`cm-unsupported-mdb-settings`.
+       The ``processes.args2_6`` object accepts most MongoDB 
+       settings and parameters for MongoDB versions 2.6 and later. 
+       To learn more, see :ref:`cm-unsupported-mdb-settings`.
 
    * - processes[n].alias
      - string
@@ -93,10 +91,8 @@ instances. Using this array, you can:
        - MongoDB 3.x and 4.x clusters default to **5**.
        - MongoDB 2.6 clusters default to  **3**.
 
-       .. seealso::
-
-          :manual:`Upgrade to SCRAM-SHA-1 </release-notes/3.0-scram/>`
-          in the MongoDB 3.0 release notes.
+       To learn more, see :manual:`Upgrade to SCRAM-SHA-1 
+       </release-notes/3.0-scram/>` in the MongoDB 3.0 release notes.
 
    * - processes[n].backupRestoreUrl
      - string
@@ -105,9 +101,7 @@ instances. Using this array, you can:
        restore. To cancel an in-progress restore operation, set this
        option to ``CANCEL``.
 
-       .. seealso::
-
-          :doc:`/tutorial/automate-backup-restoration-with-api`.
+       To learn more, see :doc:`/tutorial/automate-backup-restoration-with-api`.
 
    * - processes[n].cluster
      - string
@@ -184,9 +178,7 @@ instances. Using this array, you can:
        - |mms| doesn't automatically increment this parameter when you
          upgrade a host from one MongoDB version to the next.
 
-       .. seealso::
-
-          :manual:`setFeatureCompatibilityVersion </reference/command/setFeatureCompatibilityVersion/#dbcmd.setFeatureCompatibilityVersion>`
+       To learn more, see :manual:`setFeatureCompatibilityVersion </reference/command/setFeatureCompatibilityVersion/#dbcmd.setFeatureCompatibilityVersion>`.
 
    * - processes[n].hostname
      - string
@@ -238,12 +230,9 @@ instances. Using this array, you can:
        To trigger the init sync process on the node immediately, set
        this value to the current time as an |iso8601| timestamp.
 
-       .. warning::
-
-          Use this parameter with caution. During
-          :manual:`initial sync </core/replica-set-sync/#replica-set-initial-sync>`,
-          Automation removes the entire contents of the node's
-          ``dbPath`` directory.
+       :red:`WARNING:` Use this parameter with caution. During
+       :manual:`initial sync </core/replica-set-sync/#replica-set-initial-sync>`, Automation removes the entire
+       contents of the node's ``dbPath`` directory.
 
        If you set this parameter:
 
@@ -251,16 +240,14 @@ instances. Using this array, you can:
          specified timestamp is later than the time of the last resync,
          and if confirmed, starts init sync on this node.
          
-         .. example::
+         For example, to set ``processes.lastResync`` on the secondary node to 28
+         May 2021 at 2:43:52 PM US CentralStandard Time, use:
 
-            To set **processes.lastResync** on the secondary node to 28
-            May 2021 at 2:43:52 PM US CentralStandard Time, use:
-
-            ``"processes.lastResync" : "2021-05-28T14:43:52-06:00"``.
+         ``"processes.lastResync" : "2021-05-28T14:43:52-06:00"``
             
-            If the {+mdbagent+} confirms that this timestamp is later
-            than the recorded time of the last resync, it starts init
-            sync on the node.
+         If the {+mdbagent+} confirms that this timestamp is later
+         than the recorded time of the last resync, it starts init
+         sync on the node.
 
        - On the primary node, the {+mdbagent+} waits until you ask the
          primary node to become the secondary with the
@@ -276,9 +263,7 @@ instances. Using this array, you can:
          :method:`rs.stepDown` method, and then starts init sync on
          this node.
 
-       .. seealso::
-
-          :manual:`Initial Sync </core/replica-set-sync/#replica-set-initial-sync>`
+       To learn more, see :manual:`Initial Sync </core/replica-set-sync/#replica-set-initial-sync>`.
 
    * - processes[n].lastKmipMasterKeyRotation
      - string

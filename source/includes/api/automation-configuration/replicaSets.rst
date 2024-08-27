@@ -74,9 +74,7 @@ This field is required for deployments with replica sets.
        configuration document: **_id**; **version**; and
        **members**.
 
-       .. seealso::
-
-          :manual:`replSetGetConfig </reference/command/replSetGetConfig>`
+       To learn more, see :manual:`replSetGetConfig </reference/command/replSetGetConfig>`.
 
    * - replicaSets[n]._id
      - string
@@ -95,13 +93,7 @@ This field is required for deployments with replica sets.
      - Objects that define each member of the replica set. The
        **members.host** field must specify the host
 
-       .. seealso::
-
-          :manual:`replSetGetConfig </reference/command/replSetGetConfig>`.
-
-       .. seealso::
-
-          :manual:`replSetGetConfig </reference/command/replSetGetConfig>`.
+       To learn more, see :manual:`replSetGetConfig </reference/command/replSetGetConfig>` and :manual:`replSetGetConfig </reference/command/replSetGetConfig>`.
 
    * - replicaSets[n].members[m]._id
      - integer
@@ -178,10 +170,6 @@ This field is required for deployments with replica sets.
        {+mdbagent+} forces the replica set to use. Set to **-1** to
        force a replica set to accept a new configuration.
 
-       .. warning::
-
-          Forcing a replica set reconfiguration might lead to a
-          :term:`rollback` of majority-committed writes.
-
-          Proceed with caution. Contact |mdb-support| if you have
-          questions about the potential impacts of this operation.
+       :red:`WARNING:` Forcing a replica set reconfiguration might lead
+       to a :term:`rollback` of majority-committed writes. Proceed with caution. Contact |mdb-support| if you have
+       questions about the potential impacts of this operation.

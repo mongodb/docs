@@ -60,11 +60,9 @@
    * - | ``isPossibly``
        | ``Inconsistent``
      - boolean
-     - Flag that indicates the consistency of this :manual:`snapshot </reference/glossary/#std-term-snapshot>`.
-
-       .. note::
-
-          This appears for :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>` snapshots only.
+     - Flag that indicates the consistency of this :manual:`snapshot </reference/glossary/#std-term-snapshot>`. 
+       ``isPossiblyInconsistent`` appears for
+       :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>` snapshots only.
 
        To take a snapshot of a :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>` in a consistent
        state, the {+bagent+} temporarily turns off the
@@ -131,11 +129,8 @@
 
    * - ``missingShards``
      - array of objects
-     - List of shards that the :manual:`snapshot </reference/glossary/#std-term-snapshot>` is missing.
-
-       .. note::
-
-          This appears for :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>` snapshots only.
+     - List of shards that the :manual:`snapshot </reference/glossary/#std-term-snapshot>` is missing. ``missingShards`` appears for 
+       :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>` snapshots only.
 
        In steady state, this array is empty. If the {+bagent+} cannot
        connect to a shard when a :manual:`snapshot </reference/glossary/#std-term-snapshot>` is created, the shard
@@ -221,12 +216,9 @@
    * - | ``parts``
        | ``.masterKeyUUID``
      - string
-     - |kmip| master key ID used to encrypt the :manual:`snapshot </reference/glossary/#std-term-snapshot>` data.
-
-       .. note::
-        
-          This appears only if this snapshot has
-          ``parts.encryptionEnabled : true``.
+     - |kmip| master key ID used to encrypt the :manual:`snapshot </reference/glossary/#std-term-snapshot>` data. 
+       ``parts.masterKeyUUID`` appears only if this snapshot has
+       ``parts.encryptionEnabled : true``.
 
    * - | ``parts``
        | ``.mongodVersion``

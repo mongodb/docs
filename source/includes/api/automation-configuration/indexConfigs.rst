@@ -98,9 +98,7 @@ The **indexConfigs** array is optional and defines indexes to be built for speci
        This parameter applies only if you set
        **indexConfigs.collation.strength** to **1** or **2**.
 
-       .. seealso::
-
-          :manual:`Collation </reference/collation>`
+       To learn more, see :manual:`Collation </reference/collation>`.
 
    * - indexConfigs.collation.caseFirst
      - string
@@ -142,9 +140,7 @@ The **indexConfigs** array is optional and defines indexes to be built for speci
 
        The default is **false**.
 
-       .. seealso::
-
-          :manual:`Collation </reference/collation>`
+       To learn more, see :manual:`Collation </reference/collation>`.
 
    * - indexConfigs.collation.alternate
      - string
@@ -172,13 +168,7 @@ The **indexConfigs** array is optional and defines indexes to be built for speci
        - Checks if text requires `normalization <http://userguide.icu-project.org/collation/concepts#TOC-Normalization>`_.
        - Performs normalization 
 
-       .. seealso::
-
-          :manual:`Collation </reference/collation>`
-
-       .. seealso::
-
-          :manual:`Collation </reference/collation>`
+       To learn more, see :manual:`Collation </reference/collation>`.
 
    * - indexConfigs.collation.backwards
      - boolean
@@ -186,9 +176,7 @@ The **indexConfigs** array is optional and defines indexes to be built for speci
      - Flag that indicates how the index should handle diacritic
        strings.
 
-       .. seealso::
-
-          :manual:`Collation </reference/collation>`
+       To learn more, see :manual:`Collation </reference/collation>`.
 
    * - indexConfigs.options
      - document
