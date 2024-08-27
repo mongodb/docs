@@ -19,7 +19,7 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
     * -
-      - RHEL/Rocky/Alma Linux/Oracle Linux 8 :sup:`1` :sup:`2`
+      - RHEL/Rocky/Alma Linux/Oracle Linux 8 :sup:`1`
       - :icon:`check-circle`
       - :icon:`check-circle`
       - :icon:`check-circle`
@@ -27,7 +27,7 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
     * - 
-      - RHEL/Rocky/Alma Linux/Oracle Linux 9 :sup:`1` :sup:`2`
+      - RHEL/Rocky/Alma Linux/Oracle Linux 9 :sup:`1`
       - :icon:`check-circle`
       - :icon:`check-circle`
       - 
@@ -59,7 +59,7 @@
       -
       -
     * - 
-      - Debian 8 :sup:`3`
+      - Debian 8
       - 
       -
       -
@@ -67,7 +67,7 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
     * -
-      - Debian 9 :sup:`3`
+      - Debian 9
       -
       - :icon:`check-circle`
       - :icon:`check-circle`
@@ -75,7 +75,7 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
     * -
-      - Debian 10 :sup:`3`
+      - Debian 10
       - :icon:`check-circle`
       - :icon:`check-circle`
       - :icon:`check-circle`
@@ -83,7 +83,7 @@
       -
       -
     * -
-      - Debian 11 :sup:`3`
+      - Debian 11
       - :icon:`check-circle`
       - :icon:`check-circle`
       -
@@ -115,7 +115,7 @@
       -
       -
     * - 
-      - Ubuntu 22.x :sup:`4`
+      - Ubuntu 22.x :sup:`2`
       - :icon:`check-circle`
       - 
       - 
@@ -192,11 +192,4 @@
 MongoDB doesn't support Oracle Linux running
 :abbr:`UEK (Unbreakable Enterprise Kernel)`.
 
-:sup:`2` Your Rocky and Alma Linux :abbr:`OS (Operating System)`
-must include the ``redhat-lsb-core`` package. 
-
-:sup:`3` Your Debian installation must include the
-``lsb-release`` package. To learn more, see `lsb-release
-<https://packages.debian.org/sid/lsb-release>`__. 
-
-:sup:`4` |bic-full| isn't supported on Ubuntu 22.04.
+:sup:`2` |bic-full| isn't supported on Ubuntu 22.04.
