@@ -1,9 +1,8 @@
-=================================
-MongoDB for VS Code Documentation
-=================================
+=========================
+|vsce| Code Documentation
+=========================
 
-This repository contains documentation for the MongoDB for VS Code
-extension.
+This repository contains documentation for the |vsce|. 
 
 Building
 --------
