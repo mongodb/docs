@@ -39,7 +39,7 @@ following fields:
     * - ``histogram``
       - An array of embedded documents, each representing a latency range.
         Each document covers twice the previous document's range. For
-        upper values between 2048 microseconds and roughly 1 second,
+        lower values between 2048 microseconds and roughly 1 second,
         the histogram includes half-steps.
 
         This field only exists given the
@@ -55,7 +55,7 @@ following fields:
 
            * - ``micros``
              - A 64-bit integer giving the inclusive
-               upper time bound of the current latency range in
+               lower time bound of the current latency range in
                microseconds.
 
                The document's range spans between the previous document's
@@ -71,7 +71,7 @@ following fields:
         .. code-block:: javascript
 
            histogram: [
-             { micros: NumberLong(1), count: NumberLong(10) },
+             { micros: NumberLong(0), count: NumberLong(10) },
              { micros: NumberLong(2), count: NumberLong(1) },
              { micros: NumberLong(4096), count: NumberLong(1) },
              { micros: NumberLong(16384), count: NumberLong(1000) },
@@ -80,11 +80,11 @@ following fields:
 
         This indicates that there were [#inclusive_symbols]_:
 
-        - 10 operations taking 1 microsecond or less
-        - 1 operation in the range (1, 2] microseconds
-        - 1 operation in the range (3072, 4096] microseconds
-        - 1000 operations in the range (12288, 16384] microseconds
-        - 100 operations in the range (32768, 49152] microseconds
+        - 10 operations taking 2 microsecond or less
+        - 1 operation in the range [2, 4) microseconds
+        - 1 operation in the range [4096, 6144) microseconds
+        - 1000 operations in the range [16384, 24576) microseconds
+        - 100 operations in the range [49152, 65536) microseconds
 
 .. [#inclusive_symbols] 
 
