@@ -1,6 +1,6 @@
 In |cloud|, go to the :guilabel:`Deployment` page for your project.
 
-a. If it is not already displayed, select the organization that
+i. If it is not already displayed, select the organization that
    contains your desired project from the |ui-org-menu| in the
    navigation bar.
 

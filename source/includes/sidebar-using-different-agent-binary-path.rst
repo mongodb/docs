@@ -6,30 +6,28 @@ directory, follow these procedures:
 
 **To change the location of the Agent Binaries:**
 
-.. procedure::
-   :style: normal
+a. .. include:: /includes/nav/list-deployment.rst
 
-   .. include:: /includes/nav/steps-deployment.rst
+#. .. include:: /includes/nav/list-agents.rst
 
-   .. include:: /includes/nav/steps-agents.rst
+#. Change the path.
 
-   .. step:: Change the path.
+   i. Click :guilabel:`Downloads & Settings`.
 
-      a. Click :guilabel:`Downloads & Settings`.
+   #. Below the :guilabel:`Download Directory` heading, click the
+      pencil icon to the right of the path shown in
+      :guilabel:`Download Directory (Linux)`.
 
-      #. Below the :guilabel:`Download Directory` heading, click the
-         pencil icon to the right of the path shown in
-         :guilabel:`Download Directory (Linux)`.
+   #. Change the path to the new path you want.
 
-      #. Change the path to the new path you want.
+   #. Click :guilabel:`Save`.
 
-      #. Click :guilabel:`Save`.
+   #. Create the new directory you specified on each host that runs
+      an Agent.
 
-      #. Create the new directory you specified on each host that runs
-         an Agent.
-
-         .. code-block:: sh
-            sudo mkdir -m 755 -p /<newPath>
+      .. code-block:: sh
+         
+         sudo mkdir -m 755 -p /<newPath>
 
 **To change the location of the Agent configuration backup:**
 

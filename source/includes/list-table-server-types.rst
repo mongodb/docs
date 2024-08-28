@@ -10,12 +10,10 @@
    * - Production Server
      - Hosts your application to your internal or external end users.
 
-       .. important::
-
-          If an end user might use an environment, it functions as a
-          Production environment. This applies whether the environment
-          also provides testing, quality assurance, evaluation, or
-          development capabilities.
+       If an end user might use an environment, it functions as a
+       Production environment. This applies whether the environment
+       also provides testing, quality assurance, evaluation, or
+       development capabilities.
 
      - One license per server
 

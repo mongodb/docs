@@ -38,11 +38,9 @@
       
            - |mms| now manages the user.
       
-             .. note:: 
-      
-                If there are any potential conflicts with other discovered
-                users, you will be presented with the option to resolve
-                conflicts.
+             If there are any potential conflicts with other discovered
+             users, |mms| presents you with the option to resolve
+             the conflicts.
       
          * - ``YES``
       
@@ -50,18 +48,13 @@
       
            - |mms| no longer manages the user.
       
-             .. warning::
-             
-                If :guilabel:`Ensure Consistent Set` is ``YES``, the user
-                is deleted from all MongoDB databases |mms| currently
-                manages for this project.
+             :red:`WARNING:` If :guilabel:`Ensure Consistent Set` is ``YES``, the user is deleted from all MongoDB databases 
+             |mms| currently manages for this project.
       
-             .. note::
-      
-                If :guilabel:`Ensure Consistent Set` is ``NO``, |mms| no
-                longer manages the users in that MongoDB database, but
-                these users can be managed through a direct connection to
-                that database.
+             If :guilabel:`Ensure Consistent Set` is ``NO``, |mms| no
+             longer manages the users in that MongoDB database, but
+             you can still manage the users through a direct connection
+             to that database.
       
    .. step:: Click :guilabel:`Review & Deploy` to review your changes.
       
