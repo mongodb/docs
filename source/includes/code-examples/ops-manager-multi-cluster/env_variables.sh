@@ -48,5 +48,3 @@ export OPS_MANAGER_EXTERNAL_DOMAIN="om-svc.${NAMESPACE}.svc.cluster.local"
 
 export OPS_MANAGER_VERSION="7.0.4"
 export APPDB_VERSION="7.0.9-ubi8"
-
-
