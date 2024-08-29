@@ -1702,16 +1702,32 @@ metrics
          },
          apply : {
             attemptsToBecomeSecondary : Long("<num>"),
+            batchSize: <num>,
             batches : {
                num : <num>,
                totalMillis : <num>
             },
             ops : Long("<num>")
          },
+         write : {
+            batchSize: <num>,
+            batches : {
+               num : <num>,
+               totalMillis : <num>
+            }
+         },
          buffer : {
-            count : Long("<num>"),
-            maxSizeBytes : Long("<num>"),
-            sizeBytes : Long("<num>")
+            write: {
+               count : Long("<num>"),
+               maxSizeBytes : Long("<num>"),
+               sizeBytes : Long("<num>")
+            },
+            apply: {
+               count : Long("<num>"),
+               sizeBytes : Long("<num>"),
+               maxSizeBytes : Long("<num>"),
+               maxCount: Long("<num>")
+            },
          },
          initialSync : {
             completed : Long("<num>"),
@@ -2459,27 +2475,147 @@ metrics
 
       :serverstatus:`metrics.repl.apply.batchSize`
 
+.. serverstatus:: metrics.repl.write
+
+   Document that reports on entries written to the oplog.
+
+   .. versionadded:: 8.0
+
+.. serverstatus:: metrics.repl.write.batchSize
+
+   Total number of entries written to the oplog. This metric updates with the number
+   of entries in each batch as the member finishes writing the batch to the oplog.
+
+   .. versionadded:: 8.0
+
+.. serverstatus:: metrics.repl.write.batches
+
+   Document that reports on the oplog writing process for secondary members.
+
+   .. versionadded:: 8.0
+
+.. serverstatus:: metrics.repl.write.batches.num
+
+   Total number of batches written across all databases.
+
+   .. versionadded:: 8.0
+
+.. serverstatus:: metrics.repl.write.batches.totalMillis
+
+   Total time in milliseconds the member has spent writing entries to the oplog.
+
+   .. versionadded:: 8.0
+
 .. serverstatus:: metrics.repl.buffer
 
    MongoDB buffers oplog operations from the replication sync source
    buffer before applying oplog entries in a
    batch. :serverstatus:`metrics.repl.buffer` provides a way to
-   track the oplog buffer. See
+   track oplog buffers. See
    :ref:`replica-set-internals-multi-threaded-replication` for more
    information on the oplog application process.
 
+   .. versionchanged:: 8.0
+
+   Starting in MongoDB 8.0, secondaries now update the local oplog and apply
+   changes to the database in parallel. For each batch of oplog entries, MongoDB
+   uses two buffers:
+
+   - The :serverstatus:`write <metrics.repl.buffer.write>` buffer receives
+     new oplog entries from the primary. The writer adds these entries to the
+     local oplog and sends them to the applier.
+
+   - The :serverstatus:`apply <metrics.repl.buffer.apply>` buffer receives new
+     oplog entries from the writer. The applier uses these entries to update
+     the local database.
+
+   This is a breaking change as it deprecates the older ``metrics.repl.buffer``
+   status metrics.
+
+.. serverstatus:: metrics.repl.buffer.apply
+
+   Provides information on the status of the oplog apply buffer.
+
+   .. versionadded:: 8.0
+
+.. serverstatus:: metrics.repl.buffer.apply.count
+
+   The current number of operations in the oplog apply buffer.
+
+   .. versionadded:: 8.0
+
+.. serverstatus:: metrics.repl.buffer.apply.maxCount
+
+   Maximum number of operations in the oplog apply buffer. :program:`mongod`
+   sets this value using a constant, which is not configurable.
+
+   .. versionadded:: 8.0
+
+.. serverstatus:: metrics.repl.buffer.apply.maxSizeBytes
+
+   Maximum size of the apply buffer. :program:`mongod` sets this size using
+   a constant, which is not configurable.
+
+   .. versionadded:: 8.0
+
+.. serverstatus:: metrics.repl.buffer.apply.sizeBytes
+
+   The current size of the contents of the oplog apply buffer.
+
+   .. versionadded:: 8.0
+
 .. serverstatus:: metrics.repl.buffer.count
 
-   The current number of operations in the oplog buffer.
+   .. deprecated:: 8.0
+
+   Starting in MongoDB 8.0, secondaries use separate buffers to write and apply
+   oplog entries. For the current number of operations in the oplog buffers, see the
+   :serverstatus:`apply.count <metrics.repl.buffer.apply.count>` or
+   :serverstatus:`write.count <metrics.repl.buffer.write.count>` status metrics.
 
 .. serverstatus:: metrics.repl.buffer.maxSizeBytes
 
-   The maximum size of the buffer. This value is a constant setting in
-   the :binary:`~bin.mongod`, and is not configurable.
+   .. deprecated:: 8.0
+
+   Starting in MongoDB 8.0, secondaries use separate buffers to write and
+   apply oplog entries. For the maximum size of the buffers, see the
+   :serverstatus:`apply.maxSizeBytes <metrics.repl.buffer.apply.maxSizeBytes>` or
+   :serverstatus:`write.maxSizeBytes <metrics.repl.buffer.write.maxSizeBytes>`
+   status metrics.
 
 .. serverstatus:: metrics.repl.buffer.sizeBytes
 
-   The current size of the contents of the oplog buffer.
+   .. deprecated:: 8.0
+
+   Starting in MongoDB 8.0, secondaries use separate buffers to write and apply
+   oplog entries. For the current size of the oplog buffers, see the
+   :serverstatus:`apply.sizeBytes <metrics.repl.buffer.apply.sizeBytes>` or
+   :serverstatus:`write.sizeBytes <metrics.repl.buffer.write.sizeBytes>` status metrics.
+
+.. serverstatus:: metrics.repl.buffer.write
+
+   Provides information on the status of the oplog write buffer.
+
+   .. versionadded:: 8.0
+
+.. serverstatus:: metrics.repl.buffer.write.count
+
+   The current number of operations in the oplog write buffer.
+
+   .. versionadded:: 8.0
+
+.. serverstatus:: metrics.repl.buffer.write.maxSizeBytes
+
+   Maximum size of the write buffer. :program:`mongod` sets this value
+   using a constant, which is not configurable.
+
+   .. versionadded:: 8.0
+
+.. serverstatus:: metrics.repl.buffer.write.sizeBytes
+
+   The current size of the contents of the oplog write buffer.
+
+   .. versionadded:: 8.0
 
 .. serverstatus:: metrics.repl.network
 
