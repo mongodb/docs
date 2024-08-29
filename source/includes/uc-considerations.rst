@@ -2,11 +2,10 @@
 - |uc| can only operate on sharded collections.
 - |uc| can only operate on a single collection at a time.
 - |uc| has a 5 minute minimum duration.
-- Atlas Search indexes need to be rebuilt after ``unshardCollection``
-  runs.
-- You cannot make topology changes, such as add or remove shard or
-  transition between embedded and dedicated config servers, until
-  ``unshardCollection`` completes.
+- You must rebuild Atlas Search indexes after |uc| runs.
+- You cannot make topology changes, such as adding or removing shards
+  or transitioning between embedded and dedicated config servers, until
+  |uc| completes.
 - You cannot run the following operations on the collection that
   is being unsharded while |uc| is in progress:
 
