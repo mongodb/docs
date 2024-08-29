@@ -54,7 +54,6 @@ class SearchIndexesTest {
     }
 
     @Ignore
-    @Test
     fun multipleSearchIndexTest() = runBlocking {
         // :snippet-start: multi-search-index-create
         val searchIdxMdl = SearchIndexModel(
