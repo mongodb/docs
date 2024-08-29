@@ -1,0 +1,133 @@
+.. _java-rs-transactions:
+
+============
+Transactions
+============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: ACID, write, consistency, code example
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to perform
+**transactions**. Transactions allow you to run a series of operations that do
+not apply until all data changes are successful. If any operation in the
+transaction fails, the driver cancels the transaction and discards all data
+changes without ever becoming visible.
+
+In MongoDB, transactions run within logical **sessions**. A
+session is a grouping of related
+read or write operations that you intend to run sequentially. With sessions, you can
+enable :manual:`causal consistency
+</core/read-isolation-consistency-recency/#causal-consistency>` for a
+group of operations, and run :website:`ACID transactions
+</basics/acid-transactions>`. MongoDB guarantees that the data involved in your
+transaction operations remains consistent, even if the operations encounter
+unexpected errors.
+
+When using the {+driver-short+}, you can create a new session from a ``MongoClient``
+instance as a ``ClientSession`` type. We recommend that you reuse your client for
+multiple sessions and transactions instead of instantiating a new client each
+time.
+
+.. warning::
+
+   Use a ``ClientSession`` only with the ``MongoClient`` (or associated
+   ``MongoDatabase`` or ``MongoCollection``) that created it. Using a ``ClientSession`` with
+   a different ``MongoClient`` results in operation errors.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``sample_restaurants.restaurants`` and ``sample_mflix.movies`` collections
+from the :atlas:`Atlas sample datasets </sample-data>`. To learn how to create a
+free MongoDB Atlas cluster and load the sample datasets, see the
+:ref:`<java-rs-getting-started>`.
+
+.. include:: includes/reactor-note.rst
+
+Transaction Methods
+-------------------
+
+Create a ``ClientSession`` by using the ``startSession()`` method on your ``MongoClient``
+instance. You can then modify the session state by using the methods provided by
+the ``ClientSession``. The following table details the methods you can use to
+manage your transaction:
+
+.. list-table::
+   :widths: 40 60
+   :header-rows: 1
+ 
+   * - Method
+     - Description
+ 
+   * - ``startTransaction()``
+     - | Starts a new transaction, configured with the given options, on
+         this session. Throws an exception if there is already
+         a transaction in progress for the session. To learn more about
+         this method, see the :manual:`startTransaction() page
+         </reference/method/Session.startTransaction/>`  in the {+mdb-server+} manual.
+ 
+   * - ``abortTransaction()``
+     - | Ends the active transaction for this session. Throws an exception
+         if there is no active transaction for the session or if the
+         transaction is already committed or ended. To learn more about
+         this method, see the :manual:`abortTransaction() page
+         </reference/method/Session.abortTransaction/>`  in the {+mdb-server+} manual.
+ 
+   * - ``commitTransaction()``
+     - | Commits the active transaction for this session. Throws an exception
+         if there is no active transaction for the session or if the
+         transaction was ended. To learn more about
+         this method, see the :manual:`commitTransaction() page
+         </reference/method/Session.commitTransaction/>`  in the {+mdb-server+} manual.
+
+Transaction Example
+-------------------
+
+The following example demonstrates how to create a session, create a
+transaction, and insert documents into multiple collections in one transaction.
+The code executes the following steps:
+
+1. Creates a session from the client by using the ``startSession()`` method
+#. Starts a transaction by using the ``startTransaction()`` method
+#. Inserts documents into the ``restaurants`` and ``movies`` collections
+#. Commits the transaction by using the ``commitTransaction()`` method
+
+.. literalinclude:: /includes/write/transactions/transactions.java
+   :language: java
+   :copyable:
+   :emphasize-lines: 26, 29, 33-36, 38
+
+Additional Information
+----------------------
+
+To learn more about the concepts mentioned in this guide, see the
+following pages in the Server manual:
+
+- :manual:`Transactions </core/transactions/>`
+- :manual:`Server Sessions </reference/server-sessions/>`
+- :manual:`Causal Consistency </core/read-isolation-consistency-recency/#causal-consistency>`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the types or methods discussed in this
+guide, see the following API Documentation:
+
+- `MongoClient <{+api+}/mongodb-driver-reactivestreams/com/mongodb/reactivestreams/client/MongoClient.html>`__
+- `startSession() <{+api+}/mongodb-driver-reactivestreams/com/mongodb/reactivestreams/client/MongoClient.html#startSession()>`__
+- `startTransaction() <{+api+}/mongodb-driver-reactivestreams/com/mongodb/reactivestreams/client/ClientSession.html#startTransaction()>`__
+- `abortTransaction() <{+api+}/mongodb-driver-reactivestreams/com/mongodb/reactivestreams/client/ClientSession.html#abortTransaction()>`__
+- `commitTransaction() <{+api+}/mongodb-driver-reactivestreams/com/mongodb/reactivestreams/client/ClientSession.html#commitTransaction()>`__
