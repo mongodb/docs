@@ -19,10 +19,7 @@
      - Creates a custom snapshot that includes all operations up to
        but not including the selected time.
 
-       .. example::
-
-          If you select ``12:00``, the last operation in the restore is
-          ``11:59:59`` or earlier.
+       .. include:: /includes/fact-restore-doesnt-include-selected-time.rst
 
      - Select a :guilabel:`Date` and :guilabel:`Time`.
 
