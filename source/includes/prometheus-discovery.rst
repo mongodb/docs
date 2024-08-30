@@ -24,11 +24,9 @@ the following tabs or create your own script in another language.
    .. tab:: Python Script
       :tabid: python-script
 
-      .. tip::
-
-         If you need to install the ``requests`` library,
-         see their
-         `Installation Guide <https://prometheus.io/docs/prometheus/latest/installation>`__.
+      If you need to install the ``requests`` library,
+      see their
+      `Installation Guide <https://prometheus.io/docs/prometheus/latest/installation>`__.
 
       .. code-block:: python
 
