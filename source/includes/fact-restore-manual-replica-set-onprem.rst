@@ -31,10 +31,8 @@
        the "Last Oplog Applied" entry in the ``restoreInfo.txt`` file
        provided with the downloaded snapshot.
 
-       .. note::
-
-          This value must be less than or equal to the ``--opEnd``
-          value.
+       This value must be less than or equal to the ``--opEnd``
+       value.
 
      - :icon:`check-circle`
 
@@ -45,7 +43,7 @@
        for the last :cloudmgr:`oplog  </reference/glossary/#std-term-Oplog-Store-Database>` entry
        you want to include in the restore.
 
-       .. note:: This value cannot be greater than the end of the oplog.
+       This value cannot be greater than the end of the oplog.
 
      - :icon:`check-circle`
 

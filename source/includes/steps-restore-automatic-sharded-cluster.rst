@@ -34,10 +34,7 @@
                 objective for your snapshot. By default, the
                 Oplog Store stores 24 hours of data.
       
-                .. example::
-      
-                   If you select ``12:00``, the last operation in the
-                   restore is ``11:59:59`` or earlier.
+                .. include:: /includes/fact-restore-doesnt-include-selected-time.rst
       
                 .. important::
       
@@ -95,11 +92,7 @@
       
                 |mms| *must* manage the target sharded cluster.
       
-                .. warning::
-                
-                   Automation removes all existing data from the cluster.
-                   All backup data and snapshots for the existing cluster
-                   are preserved.
+                .. include:: /includes/fact-automation-removes-existing-data.rst
       
       b. Click :guilabel:`Restore`.
       

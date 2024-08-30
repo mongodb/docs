@@ -1,17 +1,13 @@
 To modify the legacy Backup Agent credentials:
 
-.. procedure::
-   :style: normal
+a. .. include:: /includes/nav/list-continuous-backup.rst
+b. Edit the credentials.
 
-   .. include:: /includes/nav/steps-continuous-backup.rst
+   i. Click :guilabel:`Overview`.
 
-   .. step:: Edit the credentials.
+   #. Click :guilabel:`<Deployment to Backup>`.
 
-      a. Click :guilabel:`Overview`.
-
-      #. Click :guilabel:`<Deployment to Backup>`.
-
-      #. Click :icon-mms:`ellipsis` under the :guilabel:`Options`` 
+   #. Click :icon-mms:`ellipsis` under the :guilabel:`Options`` 
          column.
 
-      #. Click :guilabel:`Edit Credentials`.
+   #. Click :guilabel:`Edit Credentials`.

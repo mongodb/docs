@@ -40,11 +40,7 @@
       
                 |mms| *must* manage the target replica set.
       
-                .. warning::
-                
-                   Automation removes all existing data from the
-                   cluster. All backup data and snapshots for the
-                   existing cluster are preserved.
+                .. include:: /includes/fact-automation-removes-existing-data.rst
       
       b. Click :guilabel:`Restore`.
       
