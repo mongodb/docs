@@ -13,8 +13,4 @@ on the command line or by specifying a :ref:`.js file
 
 .. note:: Legacy Shell Configuration 
 
-   The legacy :binary:`~bin.mongo` shell used a configuration file called 
-   ``.mongorc.js``. If :binary:`mongosh` detects this file on startup and 
-   ``.mongoshrc.js`` is not present, :binary:`mongosh` does not load the legacy 
-   ``.mongorc.js`` file, and suggests renaming ``.mongorc.js`` to 
-   ``.mongoshrc.js``.
+   .. include:: /includes/legacy/legacy-shell-configuration.rst
