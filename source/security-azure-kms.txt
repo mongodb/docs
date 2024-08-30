@@ -22,14 +22,14 @@ Manage Customer Keys with Azure Key Vault
 .. include:: /includes/unavailable-serverless-m0-m2-m5-clusters.rst
 
 You can use a customer-managed key (CMK) from Azure Key Vault (AKV)
-to further encrypt your data at rest in |service|.
+to further encrypt your data at rest in |service|. You can also
+configure all traffic to your |akv| to use {+az-pl+}.
 
 |service| uses your Azure Key Vault |cmk| to encrypt and decrypt 
 your MongoDB Master Keys. These MongoDB Master Keys are used to 
-encrypt cluster database files and :ref:`cloud providers snapshots 
-<backup-cloud-provider>`. To learn more
-about how |service| uses |cmk|\s for encryption,
-see :ref:`enable-cmk-akv`.
+encrypt {+cluster+} database files and :ref:`cloud providers snapshots 
+<backup-cloud-provider>`. To learn more about how |service| uses |cmk|\s
+for encryption, see :ref:`enable-cmk-akv`.
 
 .. include:: /includes/fact-atlas-key-rotation.rst
 
@@ -41,15 +41,18 @@ see :ref:`enable-cmk-akv`.
    prevent loss of {+cluster+} availability. 
 
 This page covers configuring customer key management using |akv| on
-your |service| project.
+your |service| project. You can also use the {+atlas-admin-api+} to
+automatically set up {+az-pl+} in your |akv| to ensure that all traffic
+between |service| and |akv| take place over |azure|\s private network
+interfaces. 
 
 You must configure customer key management for the |service| project
 before enabling it on clusters in that project.
 
 .. _enable-cmk-akv:
 
-Enable Customer-Managed Keys with Azure Key Vault
--------------------------------------------------
+About Customer-Managed Keys with Azure Key Vault
+------------------------------------------------
 
 .. |cloud-kms| replace:: Azure Key Vault
 .. |envelope-encryption| replace:: `envelope encryption <https://learn.microsoft.com/en-us/azure/security/fundamentals/encryption-atrest#envelope-encryption-with-a-key-hierarchy>`__
@@ -66,104 +69,16 @@ Example
    :figwidth: 100%
    :alt: Diagram of CMK workflow with AKV and Atlas
 
-Required Access
----------------
+What You Need to Know 
+---------------------
 
-.. include:: /includes/atlas-roles/kms.rst
-
-.. _azure-kms-prereqs:
-
-.. _security-azure-kms-restrictions:
-
-Prerequisites
-~~~~~~~~~~~~~
-
-To enable customer-managed keys with Azure Key Vault for a MongoDB
-project, you must:
-
-.. include:: /includes/fact-azure-kms-prereqs.rst
-
-.. _azure-kms-configure-project:
-
-Enable Customer-Managed Keys for a Project
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You must enable customer key management for a project before you can
-enable it on a cluster in that project.
-
-.. include:: /includes/steps-configure-azure-encryption-for-project.rst
-
-.. _azure-enable-cluster-encryption-at-rest:
-
-Enable Customer Key Management for an |service| Cluster
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-After you :ref:`azure-kms-configure-project`, you must enable customer key
-management for each |service| cluster that contains data that you want
-to encrypt.
-
-.. note::
-
-   You must have the :authrole:`Project Owner <Project Owner>` role to
-   enable customer key management for clusters in that project.
-
-For new clusters, toggle the
-:ref:`Manage your own encryption keys 
-<create-cluster-enable-encryption>`
-setting to :guilabel:`Yes` when you create the cluster. 
-
-For existing clusters:
-
-.. include:: /includes/steps-cluster-customer-key-management.rst
-
-Disable Customer-Managed Keys for a Project
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You must disable customer key management on each cluster in a project
-before you can disable the feature for the project.
-
-.. important::
-
-   Do *not* disable or delete any |akv| keys that any cluster in your
-   |service| project uses before you have disabled customer key
-   management within the |service| project. If |service| cannot access
-   an |akv| key, any data that key encrypted becomes inaccessible.
-
-Revoke Access to an Encryption Key
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can revoke |service|'s access to an encryption key from within |akv|.
-|service| automatically pauses your {+clusters+} when you revoke access to the
-encryption key unless your |akv| IP access list restricts the |service| control plane.
-
-To allow automatic pausing of your {+cluster+}, you must either:
-
-- Disable the IP access list for your |akv|
-- Allow access to your |akv| from the :ref:`Atlas control plane <atlas-add-inbound-ips>`.  
-  
-.. note::
-    
-   MongoDB adds new |service| control plane IP addresses over time. You must keep
-   the IP access list updated to allow automatic {+cluster+} pausing while using an
-   IP access list for your |akv|.
-
-If the IP access list for your |akv| restricts access from the |service| control plane when
-you revoke access to an encryption key, you must pause
-your {+clusters+} manually to revoke |service|'s access.
-
-Alerts
-~~~~~~
-
-|service| automatically creates an
-:alert:`encryption key rotation alert <Azure encryption key elapsed time since last rotation is above (n) days>`
-once you configure customer key management for a project.
-
-To reset this alert, :ref:`azure-kms-rotate-key`.
+After configuring |service| to use your |akv| |cmk|, learn more
+:ref:`akv-failover` and :ref:`akv-failover`. 
 
 .. _azure-kms-rotate-key:
 
-Rotate your Azure Key Identifier
---------------------------------
+About Rotating Your Azure Key Identifier
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. meta::
    :keywords: encryption
@@ -171,12 +86,12 @@ Rotate your Azure Key Identifier
 .. include:: /includes/unavailable-serverless-m0-m2-m5-clusters.rst
 
 MongoDB Master Key - MongoDB Responsibility
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+````````````````````````````````````````````
 
 .. include:: /includes/fact-atlas-key-rotation.rst
 
 Rotate your Azure Key ID - Your Responsibility
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+``````````````````````````````````````````````
 
 |service| does *not* automatically rotate the Key Identifier used for
 Azure Key Vault. 
@@ -200,38 +115,47 @@ don't want to receive the |service| alert to rotate your Azure Key
 Identifier every 90 days, you can :ref:`modify <configure-alerts>` the
 default alert period to be greater than 365 days. 
 
-Prerequisites
-~~~~~~~~~~~~~
+.. _akv-failover:
 
-You must create a new key in the Azure Key Vault associated to the
-|service| project.
+About Azure Key Vault Failover During an Outage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Procedure
-~~~~~~~~~
-
-The following procedure documents how to rotate your |service| project Key Identifier by specifying a new key identifier in |service|.
-
-.. include:: /includes/steps-rotate-azure-encryption-key.rst
-
-Alerts
-~~~~~~
-
-|service| resets the :alert:`encryption key rotation alert <Azure encryption key elapsed time since last rotation is above (n) days>`
-alert at the completion of this procedure.
-
-Azure Key Vault Failover During an Outage
------------------------------------------
-
-During a regional outage, your Azure KMS region might 
-become unavailable. If this happens, Azure automatically routes 
-incoming KMS requests to a pre-assigned secondary region. To learn more, see 
-:azure:`Azure Key Vault Failover </key-vault/general/disaster-recovery-guidance#failover>`
-and :azure:`Regional Pairings
-</reliability/cross-region-replication-azure#azure-cross-region-replication-pairings-for-all-geographies>`.
+During a regional outage, your |akv| region might become unavailable. If
+this happens, |azure| automatically routes incoming Key Vault requests
+to a pre-assigned secondary region. To learn more, see :azure:`Azure Key
+Vault Failover </key-vault/general/disaster-recovery-guidance#failover>` 
+and :azure:`Regional Pairings </reliability/cross-region-replication-azure#azure-cross-region-replication-pairings-for-all-geographies>`.
 
 If both regions are down, you can manually migrate your key to a 
 region outside of the regional pairing. To learn more, see 
-:azure:`Move a Key Vault across Regions </key-vault/general/move-region>`.
+:azure:`Move a Key Vault across Regions
+</key-vault/general/move-region>`.
+
+.. note::
+
+   If you've enabled :ref:`security-kms-encryption`, you can perform
+   encrypt and decrypt operations while at least one node is still
+   available during the outage. |service| won't shut down your
+   {+clusters+}. 
+
+For certain regions, |azure| doesn't support automatic failover. To
+learn more, see :azure:`Azure documentation
+</key-vault/general/disaster-recovery-guidance>`. 
+
+Next Steps 
+----------
+
+You can use a customer-managed key (CMK) from Azure Key Vault (AKV) over
+a public network or over |azure| Private Endpoints. To learn more, see
+the following: 
+
+- :ref:`security-azure-kms-pvt-endpoint`
+- :ref:`security-azure-kms-public-network`
+
+Required Access
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/atlas-roles/kms.rst
 
 .. note::
 
@@ -239,21 +163,8 @@ region outside of the regional pairing. To learn more, see
    perform encrypt and decrypt operations while at least one node 
    is still available during the outage.
 
-Related Topics
---------------
+.. toctree::
+   :titlesonly:
 
-- To enable Encryption at Rest using your Key Management when deploying
-  an |service| cluster, see :ref:`create-cluster-enable-encryption`.
-
-- To enable Encryption at Rest using your Key Management for an
-  existing |service| cluster, see
-  :ref:`scale-cluster-enable-encryption`.
-
-- To learn more about Encryption at Rest using your Key Management in
-  |service|, see :ref:`security-kms-encryption`.
-
-- To learn more about MongoDB Encryption at Rest, see
-  :manual:`Encryption at Rest </core/security-encryption-at-rest/>` in
-  the MongoDB server documentation.
-
-- To learn more about Encryption at Rest with {+Cloud-Backup+}s, see :ref:`encrypted-cloud-provider-snapshot`.
+   Configure Access Over Public Network </security/azure-kms-over-public-network>
+   Configure Access Over Private Endpoints </security/azure-kms-over-private-endpoint>

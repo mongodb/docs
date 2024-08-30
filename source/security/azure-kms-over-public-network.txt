@@ -1,0 +1,153 @@
+.. _security-azure-kms-public-network:
+
+===============================================================
+Manage Customer Keys with Azure Key Vault Over a Public Network 
+===============================================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: encryption
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/unavailable-serverless-m0-m2-m5-clusters.rst
+
+You can use a customer-managed key (CMK) from Azure Key Vault (AKV)
+to further encrypt your data at rest in |service|. This page describes
+how to configure customer key management using |akv| on your |service|
+project and on the {+clusters+} in that project. 
+
+.. _azure-kms-prereqs:
+
+Prerequisites
+-------------
+
+To enable customer-managed keys with Azure Key Vault for a MongoDB
+project, you must:
+
+.. include:: /includes/fact-azure-kms-prereqs.rst
+
+.. _azure-kms-configure-project:
+
+Enable Customer-Managed Keys for a Project
+------------------------------------------
+
+You must enable |cmk| for a project before you can enable it on a
+{+cluster+} in that project. You can enable |cmk| for a project from the
+{+atlas-ui+} and {+atlas-admin-api+}. 
+
+.. tabs:: 
+
+   .. tab:: Atlas UI 
+      :tabid: ui
+
+      .. include:: /includes/steps-configure-azure-encryption-for-project-ui.rst
+
+   .. tab:: Atlas Admin API 
+      :tabid: api
+
+      .. include:: /includes/steps-configure-azure-encryption-for-project-api.rst  
+
+.. _azure-enable-cluster-encryption-at-rest:
+
+Enable Customer Key Management for an |service| Cluster
+-------------------------------------------------------
+
+After you :ref:`azure-kms-configure-project`, you must enable customer key
+management for each |service| cluster that contains data that you want
+to encrypt.
+
+.. note::
+
+   You must have the :authrole:`Project Owner <Project Owner>` role to
+   enable customer key management for clusters in that project.
+
+For new clusters, toggle the :ref:`Manage your own encryption keys 
+<create-cluster-enable-encryption>` setting to :guilabel:`Yes` when you
+create the cluster.  
+
+For existing clusters:
+
+.. include:: /includes/steps-cluster-customer-key-management.rst
+
+Disable Customer-Managed Keys for a Project
+-------------------------------------------
+
+You must disable customer key management on each cluster in a project
+before you can disable the feature for the project.
+
+.. warning::
+
+   Do *not* disable or delete any |akv| keys that any cluster in your
+   |service| project uses before you have disabled customer key
+   management within the |service| project. If |service| cannot access
+   an |akv| key, any data that key encrypted becomes inaccessible.
+
+Revoke Access to an Encryption Key
+----------------------------------
+
+You can revoke |service|'s access to an encryption key from within |akv|.
+|service| automatically pauses your {+clusters+} when you revoke access to the
+encryption key unless your |akv| IP access list restricts the |service| control plane.
+
+To allow automatic pausing of your {+cluster+}, you must either:
+
+- Disable the IP access list for your |akv|
+- Allow access to your |akv| from the :ref:`Atlas control plane <atlas-add-inbound-ips>`.  
+  
+.. note::
+    
+   MongoDB adds new |service| control plane IP addresses over time. You must keep
+   the IP access list updated to allow automatic {+cluster+} pausing while using an
+   IP access list for your |akv|.
+
+If the IP access list for your |akv| restricts access from the |service| control plane when
+you revoke access to an encryption key, you must pause
+your {+clusters+} manually to revoke |service|'s access.
+
+.. _enable-cmk-akv:
+
+Rotate your Azure Key Identifier
+--------------------------------
+
+.. meta::
+   :keywords: encryption
+
+.. include:: /includes/unavailable-serverless-m0-m2-m5-clusters.rst
+
+Before you begin, learn :ref:`azure-kms-rotate-key`.
+
+You must create a new key in the Azure Key Vault associated to the
+|service| project.  The following procedure documents how to rotate your
+|service| project Key Identifier by specifying a new key identifier in
+|service|. 
+
+.. include:: /includes/steps-rotate-azure-encryption-key.rst
+
+Related Topics
+--------------
+
+- To enable Encryption at Rest using your Key Management when deploying
+  an |service| cluster, see :ref:`create-cluster-enable-encryption`.
+
+- To enable Encryption at Rest using your Key Management for an
+  existing |service| cluster, see
+  :ref:`scale-cluster-enable-encryption`.
+
+- To learn more about Encryption at Rest using your Key Management in
+  |service|, see :ref:`security-kms-encryption`.
+
+- To learn more about MongoDB Encryption at Rest, see
+  :manual:`Encryption at Rest </core/security-encryption-at-rest/>` in
+  the MongoDB server documentation.
+
+- To learn more about Encryption at Rest with {+Cloud-Backup+}s, see :ref:`encrypted-cloud-provider-snapshot`.

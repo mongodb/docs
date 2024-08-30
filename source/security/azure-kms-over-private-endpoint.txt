@@ -1,0 +1,303 @@
+.. _security-azure-kms-pvt-endpoint:
+
+================================================================
+Manage Customer Keys with Azure Key Vault Over Private Endpoints 
+================================================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: encryption
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/unavailable-serverless-m0-m2-m5-clusters.rst
+
+You can use a customer-managed key (CMK) from Azure Key Vault (AKV)
+to further encrypt your data at rest in |service|. You can also
+configure all traffic to your |akv| to use {+az-pl+}.
+
+This page describes how to use the {+atlas-admin-api+} to automatically
+set up {+az-pl+} in your |akv| to ensure that all traffic between
+|service| and |akv| take place over |azure|\'s private network
+interfaces. 
+
+Considerations 
+--------------
+
+Before you enable Encryption at Rest using |akv| over private endpoints,
+review the following use cases, benefits, limitations, and prerequisites.
+
+Use Case 
+~~~~~~~~
+
+Suppose your |service| deployment is on a single cloud service provider.
+You now have a requirement that all access to your |akv| occur over your
+cloud provider's private networking infrastructure. This page walks you
+through the steps to enable private endpoint connections for your
+|service| project. 
+
+Benefits
+~~~~~~~~
+
+You can use the {+atlas-admin-api+} to allow |service| to configure
+Encryption At Rest with |akv| using Private Endpoints. This allows all
+traffic to |akv| to pass through a set of private endpoints and avoid
+exposing |akv| to the public internet or public IP addresses. It
+eliminates the need to maintain allowed IP addresses while enhancing
+data security by keeping all |akv| traffic within |azure|'s private
+network.  
+
+Limitations
+~~~~~~~~~~~
+
+|service| doesn't support Encryption at Rest using |cmk| over
+{+az-pl+} for multi-cloud deployments. If you enable encryption at
+rest using |cmk| over {+az-pl+} in an existing project with
+multi-cloud {+clusters+}, |service| disables the multi-cloud
+{+clusters+} in your project.
+
+|service| doesn't support |akv| access over private networking for
+|aws| or |gcp| {+clusters+}.
+
+Prerequisites
+-------------
+
+To enable customer-managed keys with |akv| for a MongoDB project, you
+must:
+
+.. include:: /includes/fact-azure-kms-prereqs.rst
+
+Procedures 
+----------
+
+.. _azure-kms-configure-project-pvt-endpoint:
+
+Enable Customer-Managed Keys for a Project
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You must enable |cmk| for a project before you can enable it on a
+{+cluster+} in that project. You can enable |cmk| for a project from the
+{+atlas-ui+} and {+atlas-admin-api+}. 
+
+.. tabs:: 
+
+   .. tab:: Atlas UI 
+      :tabid: ui
+
+      .. include:: /includes/steps-configure-azure-encryption-for-project-ui.rst
+
+   .. tab:: Atlas Admin API 
+      :tabid: api
+
+      .. include:: /includes/steps-configure-azure-encryption-for-project-api.rst  
+
+.. _azure-kms-enable-pvt-endpoint:
+
+Enable and Set up Private Endpoint Connections for a Project 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can enable and set up private endpoint only by using the 
+{+atlas-admin-api+}. To enable private networking and set up a private
+endpoint in your |akv|, you must do the following: 
+
+.. include:: /includes/steps-azure-enable-private-endpoint-connections.rst
+
+After you enable Encryption at Rest Using |cmk| (Over Private
+Networking) for your project, you can enable :ref:`Encryption at Rest 
+<azure-enable-cluster-encryption-at-rest-pvt-endpoint>` using |cmk| for
+each |service| {+cluster+} in your project. 
+
+.. _azure-enable-cluster-encryption-at-rest-pvt-endpoint:
+
+Enable Customer Key Management for an |service| Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After you :ref:`azure-kms-configure-project`, you must enable customer key
+management for each |service| {+cluster+} that contains data that you want
+to encrypt. If you configured private endpoint connections for your
+|service| project, |service| automatically migrates all {+clusters+} for
+which you already enabled :ref:`customer managed keys
+<azure-enable-cluster-encryption-at-rest-pvt-endpoint>`, including
+existing {+clusters+} that allow connections using public internet, to
+use only the private endpoint connection. 
+
+.. note::
+
+   You must have the :authrole:`Project Owner <Project Owner>` role to
+   enable customer key management for {+clusters+} in that project.
+
+For new clusters, toggle the :ref:`Manage your own encryption keys 
+<create-cluster-enable-encryption>` setting to :guilabel:`Yes`, if it
+isn't already enabled, when you create the cluster.  
+
+For existing clusters:
+
+.. include:: /includes/steps-cluster-customer-key-management.rst
+
+Disable Customer-Managed Keys for a Project
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To disable |cmk| for a project, you must first :ref:`remove
+<azure-remove-reject-pvt-endpoint>` all private endpoints, regardless of
+their state, associated with the project. |service| displays an error if
+you attempt to disable |cmk| for a project that is associated with
+active private endpoints. 
+
+After removing all private endpoints for a project, you must disable
+customer key management on each {+cluster+} in the project before you 
+disable the feature for the project.
+
+.. warning::
+
+   Do *not* disable or delete any |akv| keys that any {+cluster+} in your
+   |service| project uses before you have disabled customer key
+   management within the |service| project. If |service| can't access
+   an |akv| key, any data that the key encrypted becomes inaccessible.
+
+.. _azure-disable-pvt-endpoint:
+
+Disable Private Endpoint Connections for a Project 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To disable private endpoint connections for a project, you must first
+:ref:`remove <azure-remove-reject-pvt-endpoint>` all private endpoints,
+regardless of their state, associated with the project. |service|
+doesn't disable private endpoint connections for a project if the
+project is associated with active private endpoints.
+
+After removing all private endpoints for a project, you can disable
+private endpoint connections for the project by using the
+{+atlas-admin-api+}. To disable a private endpoint connection, send a 
+``PATCH`` request to the :oas-atlas-op:`endpoint
+</updateEncryptionAtRest>` with the ``requirePrivateNetworking`` boolean
+flag value set to ``false``.
+
+.. example:: 
+
+   .. code-block:: shell 
+      :emphasize-lines: 8
+
+      {
+        "azureKeyVault": {
+          "azureEnvironment": "AZURE",
+          "clientID": "5e4ea010-a908-45a1-a70b-ebd2e4feb055",
+          "enabled": true,
+          "keyIdentifier": "https://EXAMPLEKeyVault.vault.azure.net/keys/EXAMPLEKey/d891821e3d364e9eb88fbd3d11807b86",
+          "keyVaultName": "string",
+          "requirePrivateNetworking": false,
+          "resourceGroupName": "string",
+          "secret": "string",
+          "subscriptionID": "d0dd68eb-7e97-448c-b361-f7a7213dc7e2",
+          "tenantID": "f95ac700-4c8f-4a38-a8d1-1582733edd5b"
+        }
+      }
+
+.. _azure-remove-reject-pvt-endpoint:
+
+Reject or Remove Private Endpoint Connection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To successfully remove a private endpoint, send a ``DELETE`` request to
+the {+atlas-admin-api+} :oas-atlas-op:`endpoint
+</requestEncryptionAtRestPrivateEndpointDeletion>` and specify the ID of
+the project and of the private endpoint that you want to delete. 
+
+.. example:: 
+
+   .. code-block:: json
+      
+      curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+      --header "Accept: application/json" \
+      --header "Content-Type: application/json" \
+      --include \
+      --request DELETE "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/encryptionAtRest/AZURE/privateEndpoints/{endpointId}" \ 
+      --data '
+        {
+          "cloudProvider": "AZURE",
+          "regions": [
+            "string"
+          ]
+        }'
+
+When you delete a private endpoint by using the {+atlas-admin-api+}, the
+private endpoint transitions to the ``DELETING`` status while |service|
+deletes the private endpoint.
+
+If you remove or reject an active private endpoint from the |azure| UI,
+|service| automatically attempts to recreate a new private endpoint in
+the same region. You can check the status of the private endpoint by
+sending a ``GET`` request to the {+atlas-admin-api+}
+``encryptionAtRest`` :oas-atlas-op:`get all </getEncryptionAtRestPrivateEndpointsForCloudProvider>` 
+endpoint or :oas-atlas-op:`get one </getEncryptionAtRestPrivateEndpoint>` 
+endpoint, for which you must specify the ID of the private endpoint
+in the path. 
+
+.. example:: Return All Private Endpoints for One Project
+
+   .. code-block:: 
+      :copyable: true
+
+      
+      curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+      --header "Accept: application/json" \
+      --header "Content-Type: application/json" \
+      --include \
+      --request GET "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/encryptionAtRest/AZURE/privateEndpoints/"      
+      
+While |service| attempts to create a new private endpoint, the status of
+the private endpoint that you rejected or removed transitions to
+``PENDING_RECREATION`` and the new endpoint that |service| attempts to
+create is in ``INITIATING`` state. You must approve the new private
+endpoint after it is created. 
+
+Revoke Access to an Encryption Key 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can revoke |service|'s access to an encryption key from within
+|akv| to freeze your data. |service| automatically pauses your
+{+clusters+} when you revoke access to the encryption key.
+
+Rotate your Azure Key Identifier
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. meta::
+   :keywords: encryption
+
+.. include:: /includes/unavailable-serverless-m0-m2-m5-clusters.rst
+
+Before you begin, learn :ref:`azure-kms-rotate-key`.
+
+You must create a new key in the |akv| associated with your
+|service| project. The following procedure documents how to rotate your
+|service| project Key Identifier by specifying a new key identifier in
+|service|. 
+
+.. include:: /includes/steps-rotate-azure-encryption-key.rst
+
+Related Topics
+--------------
+
+- To enable Encryption at Rest using your Key Management when deploying
+  an |service| cluster, see :ref:`create-cluster-enable-encryption`.
+
+- To enable Encryption at Rest using your Key Management for an
+  existing |service| cluster, see
+  :ref:`scale-cluster-enable-encryption`.
+
+- To learn more about Encryption at Rest using your Key Management in
+  |service|, see :ref:`security-kms-encryption`.
+
+- To learn more about MongoDB Encryption at Rest, see
+  :manual:`Encryption at Rest </core/security-encryption-at-rest/>` in
+  the MongoDB server documentation.
+
+- To learn more about Encryption at Rest with {+Cloud-Backup+}s, see :ref:`encrypted-cloud-provider-snapshot`.

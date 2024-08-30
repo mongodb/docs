@@ -3,47 +3,10 @@
       
    .. include:: /includes/nav/steps-db-deployments-page.rst
       
-   .. step:: Add IP addresses from your cluster nodes.
-      
-      Depending on your Key Management Service configuration, you may have to add |service| 
-      cluster node IP addresses to your cloud provider KMS list, so that the cluster can 
-      communicate with your KMS. To enable communication between the cluster and KMS:
-      
-      a. Send a GET request to the ``ipAddresses`` endpoint. 
-         The :oas-atlas-op:`API endpoint </returnAllIPAddresses>` returns 
-         a list of IP addresses from the existing cluster nodes, similar 
-         to the following:
-      
-         .. code-block:: json
-      
-            {
-              "groupId": "xxx", // ObjectId
-              "services": {
-                "clusters": [
-                  {
-                    "clusterName": "Cluster0",
-                    "inbound": [
-                      "3.92.113.229",
-                      "3.208.110.31",
-                      "107.22.44.69"
-                      ], 
-                    "outbound": [
-                      "3.92.113.229",
-                      "3.208.110.31",
-                      "107.22.44.69"
-                    ]
-                  }
-                ]
-              }
-            }
-      
-      b. Add the returned IP addresses to your cloud provider's IP access list.
-         See the prerequisites for managing customer keys with :ref:`AWS <aws-ksm-prereqs>`, 
-         :ref:`Azure <azure-kms-prereqs>`, and :ref:`GCP <gcp-kms-prereqs>` for more information.
-      
    .. step:: Modify the cluster's configuration.
+      
       For the cluster that contains data that you want to encrypt, click the
-      ellipses :guilabel:`...`, then select :guilabel:`Edit Configuration`.
+      :icon-fa5:`ellipsis-h`, then select :guilabel:`Edit Configuration`.
       
    .. step:: Enable cluster encryption.
     
@@ -51,6 +14,15 @@
       
       b. Toggle the :guilabel:`Manage your own encryption keys` setting to
          :guilabel:`Yes`. 
+
+      c. Verify the status of the :guilabel:`Require Private Networking`
+         setting for your {+cluster+}. 
+
+         If you configured Encryption at Rest Using |cmk| (Over Private
+         Networking) for |service| at the project level, the status is
+         :guilabel:`Active`. If you haven't configured any private
+         endpoint connection for your project, the status is
+         :guilabel:`Inactive`.  
       
    .. step:: Review and apply your changes.
       
