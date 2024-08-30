@@ -40,7 +40,7 @@
 
    * - Slack Settings
 
-       .. warning::
+       .. important::
 
           Before proceeding, you must complete the steps to 
           :ref:`integrate with Slack <integrate-with-slack>`.
