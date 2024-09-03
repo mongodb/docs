@@ -208,3 +208,137 @@ within windows. To learn more, see :ref:`atlas-sp-aggregation-support`.
 In the event of a service interruption, you can resume the internal
 pipeline of a window from its state at the point of interruption. To
 learn more, see :ref:`Checkpoints <atlas-sp-checkpointing>`.
+
+Examples
+~~~~~~~~
+
+A streaming data source generates detailed weather reports from
+various locations, conformant to the schema of the :ref:`Sample
+Weather Dataset <sample-weather>`. The following aggregation has three
+stages:
+
+1. The :pipeline:`$source` stage establishes a connection with the
+   {+kafka+} broker collecting these reports in a topic named
+   ``my_weatherdata``, exposing each record as it is ingested to the
+   subsequent aggregation stages.
+
+2. The :pipeline:`$hoppingWindow` stage defines overlapping windows of time that 
+   are 100 seconds in duration, and which begin every 20 seconds. Each window executes 
+   an internal ``pipeline`` which finds the average
+   ``liquidPrecipitation.depth``, as defined in the ``sample_weatherdata`` documents
+   streamed from the {+kafka+} broker, for the duration of a given window.
+   The ``pipeline`` then outputs a single document with an ``_id`` equivalent to the start 
+   timestamp of the window it represents and the ``averagePrecipitation`` for 
+   that window. 
+
+3. The :pipeline:`$merge` stage writes the output to an {+service+}
+   collection named ``stream`` in the ``sample_weatherstream``
+   database. If no such database or collection exist, {+service+}
+   creates them.
+
+.. code-block:: js
+   
+   pipeline = [ 
+    { $source: 
+        { 
+            "connectionName": "streamsExampleConnectionToKafka", 
+            "topic": "my_weatherdata"
+        }
+    },
+    { $hoppingWindow: 
+        {
+          "interval": {
+            "size": 100,
+            "unit": "second"
+          },
+          "hopSize": {
+            "size": 20,
+            "unit": "second"
+          },
+          "pipeline" : [
+            {
+                $group: {
+                    // The resulting document's _id is the $hoppingWindow's start timestamp 
+                    _id: "$_stream_meta.window.start",
+                    averagePrecipitation: { $avg: "$liquidPrecipitation.depth" }
+                }
+            }
+            
+          ],
+        }
+    },
+    { $merge: 
+        { 
+            "into": 
+            {
+                "connectionName":"streamsExampleConnectionToAtlas",
+                "db":"streamDB", 
+                "coll":"streamCollection"
+            }
+        }
+     }
+   ]
+
+To view the documents in the resulting ``sample_weatherstream.stream``
+collection, connect to your {+service+} cluster and run the following command:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+    :language: json
+
+      db.getSiblingDB("sample_weatherstream").stream.find()
+
+   .. output::
+    :language: json
+
+    {
+      _id: ISODate('2024-08-28T19:30:20.000Z'),
+      _stream_meta: {
+        source: { type: 'kafka' },
+        window: {
+          start: ISODate('2024-08-28T19:30:20.000Z'),
+          end: ISODate('2024-08-28T19:32:00.000Z')
+        }
+      },
+      averagePrecipitation: 2264.3973214285716
+    },
+    {
+      _id: ISODate('2024-08-28T19:30:40.000Z'),
+      _stream_meta: {
+        source: { type: 'kafka' },
+        window: {
+          start: ISODate('2024-08-28T19:30:40.000Z'),
+          end: ISODate('2024-08-28T19:32:20.000Z')
+        }
+      },
+      averagePrecipitation: 2285.7061611374406
+    },
+    {
+      _id: ISODate('2024-08-28T19:31:00.000Z'),
+      _stream_meta: {
+        source: { type: 'kafka' },
+        window: {
+          start: ISODate('2024-08-28T19:31:00.000Z'),
+          end: ISODate('2024-08-28T19:32:40.000Z')
+        }
+      },
+      averagePrecipitation: 2357.6940154440153
+    },
+    {
+      _id: ISODate('2024-08-28T19:31:20.000Z'),
+      _stream_meta: {
+        source: { type: 'kafka' },
+        window: {
+          start: ISODate('2024-08-28T19:31:20.000Z'),
+          end: ISODate('2024-08-28T19:33:00.000Z')
+        }
+      },
+      averagePrecipitation: 2378.374061433447
+    }
+
+.. note::
+
+   The preceding is a representative example. Streaming data are
+   not static, and each user sees distinct documents.
