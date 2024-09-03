@@ -26,8 +26,6 @@
        - ``TIMESERIES`` - for :manual:`time series 
          </core/timeseries-collections/>` collection
 
-         .. include:: /includes/fact-oa-timeseries-preview.rst
-
    * - criteria
      - document
      - Criteria to use for archiving data.

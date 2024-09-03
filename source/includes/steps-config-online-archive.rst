@@ -204,8 +204,6 @@
             .. tab:: Time-Series Collection 
                :tabid: timeseries
       
-               .. include:: /includes/fact-oa-timeseries-preview.rst
-      
                To archive documents in a :manual:`time series 
                </core/timeseries-collections/>` collection, select the 
                :guilabel:`This is a Time-Series Collection` checkbox and 
