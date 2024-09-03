@@ -1,0 +1,67 @@
+.. _in-use-encryption:
+  
+=================
+In-Use Encryption
+=================
+
+In-Use Encryption consists of two features:
+
+.. toctree::
+  :titlesonly:
+  :maxdepth: 1
+
+  /libmongoc/guides/client-side-field-level-encryption
+  /libmongoc/guides/queryable-encryption
+
+- :ref:`csfle`
+- :ref:`queryable-encryption`
+
+Installation
+------------
+
+Using In-Use Encryption in the C driver requires the dependency libmongocrypt. See the
+MongoDB Manual for `libmongocrypt installation instructions
+<https://www.mongodb.com/docs/manual/core/csfle/reference/libmongocrypt/>`__.
+
+Once libmongocrypt is installed, configure the C driver with ``-DENABLE_CLIENT_SIDE_ENCRYPTION=ON``
+to require In-Use Encryption be enabled.
+
+.. code-block:: bash
+
+   $ cd mongo-c-driver
+   $ mkdir cmake-build && cd cmake-build
+   $ cmake -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF -DENABLE_CLIENT_SIDE_ENCRYPTION=ON ..
+   $ cmake --build . --target install
+
+API
+---
+
+`mongoc_client_encryption_t <{+api-libmongoc+}/mongoc_client_encryption_t.html>`__ is used for explicit encryption and key management.
+`mongoc_client_enable_auto_encryption <{+api-libmongoc+}/mongoc_client_enable_auto_encryption.html>`__ and
+`mongoc_client_pool_enable_auto_encryption <{+api-libmongoc+}/mongoc_client_pool_enable_auto_encryption.html>`__
+is used to enable automatic encryption.
+
+The Queryable Encryption and CSFLE features share much of the same API with some exceptions.
+
+- The supported algorithms documented in `mongoc_client_encryption_encrypt_opts_set_algorithm <{+api-libmongoc+}/mongoc_client_encryption_encrypt_opts_set_algorithm.html>`__
+  do not apply to both features.
+- `mongoc_auto_encryption_opts_set_encrypted_fields_map <{+api-libmongoc+}/mongoc_auto_encryption_opts_set_encrypted_fields_map.html>`__
+  only applies to Queryable Encryption.
+- `mongoc_auto_encryption_opts_set_schema_map <{+api-libmongoc+}/mongoc_auto_encryption_opts_set_schema_map.html>`__ only applies to CSFLE.
+
+.. _query_analysis:
+
+Query Analysis
+--------------
+
+To support the automatic encryption feature, one of the following dependencies are required:
+
+- The ``mongocryptd`` executable. See the MongoDB Manual documentation: `Install and Configure mongocryptd
+  <https://www.mongodb.com/docs/manual/core/queryable-encryption/reference/mongocryptd/>`__
+- The ``crypt_shared`` library. See the MongoDB Manual documentation: `Automatic Encryption Shared Library
+  <https://www.mongodb.com/docs/manual/core/queryable-encryption/reference/shared-library/>`__
+
+A `mongoc_client_t <{+api-libmongoc+}/mongoc_client_t.html>`__ or `mongoc_client_pool_t <{+api-libmongoc+}/mongoc_client_pool_t.html>`__ configured with auto encryption will automatically
+try to load the ``crypt_shared`` library. If loading the ``crypt_shared`` library fails, the `mongoc_client_t <{+api-libmongoc+}/mongoc_client_t.html>`__
+or `mongoc_client_pool_t <{+api-libmongoc+}/mongoc_client_pool_t.html>`__ will try to spawn the ``mongocryptd`` process from the application's ``PATH``.
+To configure use of ``crypt_shared`` and ``mongocryptd`` see `mongoc_auto_encryption_opts_set_extra <{+api-libmongoc+}/mongoc_auto_encryption_opts_set_extra.html>`__.
