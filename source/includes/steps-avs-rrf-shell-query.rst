@@ -47,63 +47,63 @@
 
          [
            {
-             _id: '2 Days in New York',
-             vs_score: 0,
-             fts_score: 0.03333333333333333,
-             score: 0.03333333333333333
+             _id: 'Cowboys & Aliens',
+             vs_score: 0.0012658227848101266,
+             fts_score: 0,
+             score: 0.0012658227848101266
            },
            {
-             _id: 'An Englishman in New York',
-             vs_score: 0,
-             fts_score: 0.034482758620689655,
-             score: 0.034482758620689655
+             _id: 'Planet of the Apes',
+             vs_score: 0.001298701298701299,
+             fts_score: 0,
+             score: 0.001298701298701299
            },
            {
-             _id: 'New York, I Love You',
-             vs_score: 0,
-             fts_score: 0.03571428571428571,
-             score: 0.03571428571428571
+             _id: 'Starcrash',
+             vs_score: 0.0013157894736842105,
+             fts_score: 0,
+             score: 0.0013157894736842105
            },
            {
-             _id: 'New York: A Documentary Film',
-             vs_score: 0,
-             fts_score: 0.037037037037037035,
-             score: 0.037037037037037035
+             _id: 'Zathura: A Space Adventure',
+             vs_score: 0.0013333333333333335,
+             fts_score: 0,
+             score: 0.0013333333333333335
            },
            {
-             _id: 'A Couch in New York',
-             vs_score: 0,
-             fts_score: 0.038461538461538464,
-             score: 0.038461538461538464
+             _id: 'Space Raiders',
+             vs_score: 0.0013513513513513514,
+             fts_score: 0,
+             score: 0.0013513513513513514
            },
            {
-             _id: 'Sherlock Holmes in New York',
-             vs_score: 0,
-             fts_score: 0.04,
-             score: 0.04
+             _id: 'Star Wars: Episode III - Revenge of the Sith',
+             vs_score: 0.0013698630136986301,
+             fts_score: 0,
+             score: 0.0013698630136986301
            },
            {
-             _id: 'A King in New York',
-             vs_score: 0,
-             fts_score: 0.041666666666666664,
-             score: 0.041666666666666664
+             _id: 'The Ewok Adventure',
+             vs_score: 0.001388888888888889,
+             fts_score: 0,
+             score: 0.001388888888888889
            },
            {
-             _id: 'Live from New York!',
-             vs_score: 0,
-             fts_score: 0.043478260869565216,
-             score: 0.043478260869565216
+             _id: 'Dune',
+             vs_score: 0.0014084507042253522,
+             fts_score: 0,
+             score: 0.0014084507042253522
            },
            {
-             _id: 'Sleepless in New York',
-             vs_score: 0,
-             fts_score: 0.045454545454545456,
-             score: 0.045454545454545456
+             _id: 'Abiogenesis',
+             vs_score: 0.0014285714285714286,
+             fts_score: 0,
+             score: 0.0014285714285714286
            },
            {
-             _id: 'Gangs of New York',
-             vs_score: 0,
-             fts_score: 0.047619047619047616,
-             score: 0.047619047619047616
+             _id: 'Guardians of the Galaxy',
+             vs_score: 0.0014705882352941176,
+             fts_score: 0,
+             score: 0.0014705882352941176
            }
          ]

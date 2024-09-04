@@ -29,7 +29,7 @@
          ``plot_embedding`` field contains embeddings created using
          OpenAI's ``text-embedding-ada-002`` embedding model. The index
          definition specifies ``1536`` vector dimensions and measures
-         similarity using ``euclidean``.  
+         similarity using ``dotProduct``.  
 
          .. code-block:: json 
             :copyable: true 
@@ -41,7 +41,7 @@
                   "type": "vector",
                   "path": "plot_embedding",
                   "numDimensions": 1536,
-                  "similarity": "euclidean"
+                  "similarity": "dotProduct"
                 }
               ]
             }
