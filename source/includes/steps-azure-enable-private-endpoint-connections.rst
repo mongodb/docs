@@ -39,7 +39,7 @@
       communicate with your |akv|.  
     
       Send a ``POST`` request to the :oas-atlas-op:`endpoint 
-      <createEncryptionAtRestPrivateEndpoint>` with the |azure|
+      </createEncryptionAtRestPrivateEndpoint>` with the |azure|
       region in which you want |service| to create the private
       endpoint. You must send a separate request for each region
       in which you want |service| to create a private endpoint. 
