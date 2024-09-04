@@ -29,8 +29,5 @@
 
   * - App Service Name
     - The name of the service in your app service that |charts-short| 
-      uses to retrieve the data for your chart.
-
-      .. example::
-
-         ``mongodb-atlas``
+      uses to retrieve the data for your chart. For example,
+      ``mongodb-atlas``.
