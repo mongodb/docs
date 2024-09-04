@@ -1,3 +1,17 @@
+.. _atlas_2024_07_10:
+
+10 July 2024 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- Allows you to :ref:`export your cloud backup snapshots
+  <cloud-provider-snapshot-export>` to an {+az-bs+} Container.
+
+- Provides efficient :ref:`cross-project restores <aws-cross-project>`
+  for {+database-deployments+} that have {+gcp+} and {+azure+} nodes
+  created after March 27, 2024.
+
+- Allows you to enable faster restores for {+aws+}.
+
 .. _atlas_2024_06_24:
 
 24 June 2024 Release
