@@ -39,5 +39,4 @@ username as URI-style query parameters:
        Not required if :setting:`~security.defaultMechanism` is set in your
        |bi| :ref:`configuration file <config-format>`.
 
-       .. note:: 
-          X.509 is not supported.
+       **X.509 is not supported.**
