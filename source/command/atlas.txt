@@ -77,6 +77,7 @@ Related Commands
 * :ref:`atlas-networking` - Manage or configure network peering for your Atlas project.
 * :ref:`atlas-organizations` - Manage your Atlas organizations.
 * :ref:`atlas-performanceAdvisor` - Learn more about slow queries and get suggestions to improve database performance.
+* :ref:`atlas-plugin` - Manage plugins for the AtlasCLI.
 * :ref:`atlas-privateEndpoints` - Manage Atlas private endpoints.
 * :ref:`atlas-processes` - Manage MongoDB processes for your project.
 * :ref:`atlas-projects` - Manage your Atlas projects.
@@ -118,6 +119,7 @@ Related Commands
    networking </command/atlas-networking>
    organizations </command/atlas-organizations>
    performanceAdvisor </command/atlas-performanceAdvisor>
+   plugin </command/atlas-plugin>
    privateEndpoints </command/atlas-privateEndpoints>
    processes </command/atlas-processes>
    projects </command/atlas-projects>
