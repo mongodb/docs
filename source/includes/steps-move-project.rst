@@ -23,12 +23,10 @@
          any particular project during any particular hour is accrued to the
          Organization under which the project was at that time.
       
-         .. example::
+         For example, an :authrole:`Organization Owner` owns the **Telecomm** and
+         **Storage** Organizations in |service|. They decide to move
+         their **Backup** project from **Telecomm** to **Storage** at
+         11:40 am.
       
-            An :authrole:`Organization Owner` owns the **Telecomm** and
-            **Storage** Organizations in |service|. They decide to move
-            their **Backup** project from **Telecomm** to **Storage** at
-            11:40 am.
-      
-            The **Telecomm** project is billed for the full 11:00 to 11:59
-            am hour. **Storage** starts getting billed at 12:00 pm.   
+         The **Telecomm** project is billed for the full 11:00 to 11:59
+         am hour. **Storage** starts getting billed at 12:00 pm.   

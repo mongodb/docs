@@ -128,11 +128,11 @@
                     in the {+atlas-ui+} support high availability during
                     partial regional outages.
       
-                    .. seealso::
+                    To learn more, see the following pages:
       
-                       - :ref:`amazon-aws-availability-zones`.
-                       - :ref:`google-gcp-availability-zones`.
-                       - :ref:`microsoft-azure-availability-zones`.
+                    - :ref:`amazon-aws-availability-zones`.
+                    - :ref:`google-gcp-availability-zones`.
+                    - :ref:`microsoft-azure-availability-zones`.
       
                 * - :guilabel:`(Not) Available during full region outage`
       

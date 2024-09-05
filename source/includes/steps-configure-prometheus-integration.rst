@@ -49,10 +49,8 @@
                 - Select :guilabel:`Public Internet Targets`.
                 - Select :guilabel:`Private IP for Peering Targets`.
       
-                .. note::
-      
-                   |service| doesn't support private endpoints for the Prometheus
-                   integration.
+                |service| doesn't support private endpoints for the Prometheus
+                integration.
       
              c. Insert the following snippet into the ``scrape_configs`` section
                 of your ``Prometheus.yml`` file and update it with values for
@@ -102,10 +100,8 @@
                .. tab:: Python Script
                   :tabid: python-script
       
-                  .. tip::
-      
-                     If you need to install the ``requests`` library, see their
-                     `Installation Guide <https://docs.python-requests.org/en/latest/user/install/>`__.
+                  If you need to install the ``requests`` library, see their
+                  `Installation Guide <https://docs.python-requests.org/en/latest/user/install/>`__.
       
                   .. code-block:: python
       

@@ -12,11 +12,9 @@ You can set the following in the {+atlas-ui+}:
 
     - Sets your project's name.
 
-      .. note::
-
-          You must have the :authrole:`Project Owner` role for the 
-          project or the :authrole:`Organization Owner` role for the 
-          project's organization to edit the project name.
+      You must have the :authrole:`Project Owner` role for the 
+      project or the :authrole:`Organization Owner` role for the 
+      project's organization to edit the project name.
 
   * - :guilabel:`Project Time Zone`
 
@@ -24,10 +22,8 @@ You can set the following in the {+atlas-ui+}:
       timezone and alerts, but not the timezone set for individual user
       accounts. [#user-settings]_
       
-      .. note::
-        
-         There is also a :guilabel:`User Preferences` timezone, which 
-         only affects the activity feed.
+      There is also a :guilabel:`User Preferences` timezone, which 
+      only affects the activity feed.
 
   * - :guilabel:`Tags`
 
@@ -61,10 +57,8 @@ You can set the following in the {+atlas-ui+}:
       advantage of |aws| built-in split-horizon DNS across a VPC peering
       connection.
 
-      .. note::
-
-         |service| displays this setting only when you
-         :doc:`enable network peering on AWS </security-vpc-peering>`.
+      service| displays this setting only when you
+      :doc:`enable network peering on AWS </security-vpc-peering>`.
 
   * - :guilabel:`Multiple Regionalized Private Endpoints`
 
