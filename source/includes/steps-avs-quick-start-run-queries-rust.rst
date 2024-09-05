@@ -1,30 +1,30 @@
 .. procedure:: 
    :style: normal 
 
-   .. step:: Install ``pymongo``, the Python driver for MongoDB.
-
-      a. Run the following command:
-
-      .. code-block:: sh 
-         :copyable: true 
-
-         pip install pymongo
+   .. step:: Install the Rust driver for MongoDB.
 
       For more detailed installation instructions, see the 
-      :ref:`MongoDB Python Driver documentation <pymongo-get-started-download-and-install>`.
+      :ref:`MongoDB Rust Driver documentation <rust-quick-start-download-and-install>`.
 
    .. step:: Construct your vector search query.
 
       .. include:: /includes/fact-avs-quick-start-intro.rst
     
-      a. Create a file named ``atlas-vector-search-quick-start.py``.
+      In the ``main.rs`` file for your project, paste the following code:
+      
+      .. tabs::
+        
+         .. tab:: 
+            :tabid: Asynchronous API
 
-      #. Copy and paste the following sample query into the 
-         ``atlas-vector-search-quick-start.py`` file:
+            .. literalinclude:: /includes/avs-examples/pipeline-stage-examples/basic-query-async.rs 
+               :language: rust
+         
+         .. tab:: 
+            :tabid: Synchronous API
 
-         .. literalinclude:: /includes/avs-examples/pipeline-stage-examples/basic-query.py 
-            :language: python
-            :linenos:
+            .. literalinclude:: /includes/avs-examples/pipeline-stage-examples/basic-query-sync.rs 
+               :language: rust
 
       .. include:: /includes/fact-avs-quick-start-intro-II.rst
 
@@ -45,7 +45,7 @@
          .. input::
             :language: bash
      
-            python atlas-vector-search-quick-start.py
+            cargo run
         
          .. output:: /includes/avs-examples/pipeline-stage-examples/basic-query-python-output.js
             :language: js
