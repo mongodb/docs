@@ -64,7 +64,7 @@ Options
    * - --connectWith
      - string
      - false
-     - Method for connecting to the deployment. Valid values are mongosh, compass, and skip.
+     - Method for connecting to the deployment. Valid values are compass, mongosh and skip.
    * - --currentIp
      - 
      - false
