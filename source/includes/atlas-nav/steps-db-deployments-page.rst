@@ -9,3 +9,5 @@
 
    #. If the :guilabel:`Clusters` page is not 
       already displayed, click :guilabel:`Database` in the sidebar.
+
+      The `Clusters <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fclusters>`__ page displays.
