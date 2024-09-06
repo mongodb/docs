@@ -1,4 +1,4 @@
-a. Launch ODBC Manager.
+1. Launch ODBC Manager.
   
    .. note::
 
