@@ -118,6 +118,8 @@
       You can extend the time remaining by 24 hours by clicking
       :guilabel:`Extend time` below the :guilabel:`<time> left to cut over`
       timer.
+
+      .. include:: /includes/import/migration-email-expiration.rst
    
       a. Once you are prepared to cut your applications over to the destination
          |service| {+cluster+}, click :guilabel:`Prepare to Cutover`.
@@ -138,6 +140,8 @@
             Server subnets from the destination {+cluster+}\'s IP access
             list, and removes the database user that live migration used
             to import data to the destination {+cluster+}.
+
+            .. include:: /includes/import/migration-email-lm-in-progress.rst
 
             |service| is still finalizing the migration, but the destination
             {+cluster+} is ready to accept writes. You can restart your

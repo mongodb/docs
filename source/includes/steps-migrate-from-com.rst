@@ -230,7 +230,7 @@
       This lag time may fluctuate depending on the rate of oplog generation
       on the source cluster, but should decrease over time as the live
       migration process copies the oplog entries to the destination {+cluster+}.
-      
+
       a. When the lag timer and the :guilabel:`Prepare to Cutover` button
          turn green, click it to proceed to the next step.
       
@@ -244,6 +244,8 @@
       :guilabel:`Extend time` below the :guilabel:`<time> left to cut over`
       timer.
       
+      .. include:: /includes/import/migration-email-expiration.rst
+
       To finish migrating your MongoDB data to your |service| {+cluster+},
       complete the following steps on the
       :guilabel:`Your migration is almost complete!` page:
@@ -255,19 +257,10 @@
       
       #. Stop your application. This action ensures that no more writes occur
          on the source {+cluster+}.
-      
+
       #. Wait for the optime gap to reach zero. When the counter reaches zero,
          the source and destination {+clusters+} are in sync.
-      
-      #. Wait for additional time until |service| configures your destination
-         {+cluster+} and it is ready to use. For smaller clusters, this time
-         is 3-5 minutes. For larger clusters, this time can extend up to
-         10 minutes or longer, depending on the {+cluster+} size and configuration.
-      
-      #. Restart your application using the new |service| connection
-         string and confirm that your application is working with the
-         |service| {+cluster+}.
-      
+
       #. Click :guilabel:`Cut Over` to complete the migration process.
       
          If you click :guilabel:`Cancel` on the live migration progress bar,
@@ -276,7 +269,14 @@
       
          You can click :guilabel:`Cut Over` again to allow |service| to
          complete the migration process.
-      
+
+      #. Wait until |service| configures your destination {+cluster+} and
+         it is ready to use. For smaller clusters, this time is 3-5 minutes.
+         For larger clusters, this time can extend up to 10 minutes or
+         longer, depending on the {+cluster+} size and configuration.
+
+         .. include:: /includes/import/migration-email-lm-in-progress.rst
+
       #. When you are ready to redirect writes to the destination {+cluster+}   in |service|:
 
          i. Use the destination {+cluster+}'s connection string to connect to your application.

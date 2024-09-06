@@ -229,8 +229,6 @@
          A lag time value displays during the final phase of the migration process
          that represents the current lag between the source and destination {+clusters+}.
 
-         You receive an email notification when your expiration window is nearly up.
-
          When the lag timer is close to zero and the migration process is caught up,
          |service| activates the :guilabel:`Cutover to your destination cluster` button
          and indicates that your source and destination {+clusters+} are in sync.
@@ -254,6 +252,8 @@
         |service| confirms that source and destination clusters are in sync. Proceed
         with the cutover process. If the sync time expires, you can retry the migration.
 
+        .. include:: /includes/import/migration-email-expiration.rst
+
       a. Click :guilabel:`I'm ready to cutover`. Proceed with the three-step cutover
          process quickly to ensure minimal downtime to your application.
 
@@ -269,6 +269,8 @@
               list on the destination {+cluster+}.
             - Removes the database user that live migration used to import data
               to the destination {+cluster+}.
+
+            .. include:: /includes/import/migration-email-lm-in-progress.rst
 
          #. If the migration succeeds, the :guilabel:`You have successfully migrated to Atlas`
             page displays. |service| shows the status of the synced changes,
