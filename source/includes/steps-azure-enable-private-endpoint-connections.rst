@@ -69,7 +69,7 @@
    .. step:: Approve the private endpoint connections to your |akv|. 
 
       You can use the |azure| :azure:`UI </private-link/manage-private-endpoint>`, 
-      :azure:`CLI </cli/azure/keyvault/private-endpoint-connection>`, or 
+      `CLI <https://learn.microsoft.com/en-us/cli/azure/network/private-endpoint-connection>`__, or 
       Terraform to approve the private endpoint connections. 
 
       After you approve, |service| automatically migrates all
