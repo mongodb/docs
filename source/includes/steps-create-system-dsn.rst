@@ -1,4 +1,4 @@
-a. Start the Microsoft ODBC Data Sources program.
+1. Start the Microsoft ODBC Data Sources program.
    
    Choose the program version (64-bit or 32-bit) which is
    appropriate for your system and ODBC driver version.
@@ -7,9 +7,9 @@ a. Start the Microsoft ODBC Data Sources program.
 
 #. Click the ``Add`` button. 
 
-.. figure:: /images/bi-connector/windows-odbc-administrator.png
-   :alt: Screenshot of the Windows ODBC Administrator application
-   :figwidth: 550px
+   .. figure:: /images/bi-connector/windows-odbc-administrator.png
+      :alt: Screenshot of the Windows ODBC Administrator application
+      :figwidth: 550px
 
 #. Select a |odbc-driver-name| from the list of available drivers.
    
