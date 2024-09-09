@@ -4,45 +4,35 @@
    .. step:: Open the 
       |fmc|.
 
-      .. procedure::
-         :style: connected
+      a. .. include:: /includes/nav/list-org-settings.rst
 
-         .. include:: /includes/nav/steps-org-settings.rst
-
-         .. step:: In :guilabel:`Manage Federation Settings`, click
-            :guilabel:`Open Federation Management App`.
+      #. In :guilabel:`Manage Federation Settings`, click
+         :guilabel:`Open Federation Management App`.
 
    .. step:: Enter domain 
       mapping information.
 
-      .. procedure::
-         :style: connected
+      a. Click :guilabel:`Add a Domain`.
 
-         .. step:: Click
-            :guilabel:`Add a Domain`.
+      #. On the :guilabel:`Domains` screen, click :guilabel:`Add Domain`.
 
-         .. step:: On the :guilabel:`Domains` screen,
-            click :guilabel:`Add Domain`.
+      #. Enter the following information for your domain mapping:
 
-         .. step:: Enter the following information for your domain
-            mapping:
+         .. list-table::
+            :widths: 20 40
+            :header-rows: 1
 
-            .. list-table::
-               :widths: 20 40
-               :header-rows: 1
+            * - Field
+              - Description
 
-              * - Field
-                - Description
+            * - Display Name
+              - Label to easily identify the domain.
 
-              * - Display Name
-                - Label to easily identify the domain.
+            * - Domain Name
+              - :wikipedia:`Domain name <Domain_name>` to
+                map.
 
-              * - Domain Name
-                - :wikipedia:`Domain name <Domain_name>` to
-                  map.
-
-         .. step:: Click 
-            :guilabel:`Next`.
+      #. Click :guilabel:`Next`.
 
    .. step:: Choose your 
       domain verification method.
@@ -64,25 +54,18 @@
             Upload an |html| file containing a verification key to verify
             that you own your domain.
 
-            .. procedure::
-               :style: connected
+            a. Click :guilabel:`HTML File Upload`.
 
-               .. step:: Click 
-                  :guilabel:`HTML File Upload`.
+            #. Click :guilabel:`Next`.
 
-               .. step:: Click 
-                  :guilabel:`Next`.
+            #. Download the ``mongodb-site-verification.html`` 
+               file that |service| provides.
 
-               .. step:: Download the 
-                  ``mongodb-site-verification.html`` 
-                  file that |service| provides.
+            #. Upload the |html| file to a web site on your 
+               domain. You must be able to access the file at
+               ``<https://host.domain>/mongodb-site-verification.html``.
 
-               .. step:: Upload the |html| file to a web site on your 
-                  domain. You must be able to access the file at
-                  ``<https://host.domain>/mongodb-site-verification.html``.
-
-               .. step:: Click 
-                  :guilabel:`Finish`.
+            #. Click :guilabel:`Finish`.
 
          .. tab:: Create DNS Record
             :tabid: create-dns
@@ -91,31 +74,24 @@
             that you own your domain. Each |dns| record associates a
             specific |service| organization with a specific domain.
 
-            .. procedure::
-               :style: connected
+            a. Click :guilabel:`DNS Record`.
 
-               .. step:: Click 
-                  :guilabel:`DNS Record`.
+            #. Click :guilabel:`Next`.
 
-               .. step:: Click 
-                  :guilabel:`Next`.
+            #. Copy the provided TXT record. The TXT record has the
+               following form:
 
-               .. step:: Copy the provided TXT record. The TXT record has the
-                  following form:
+               .. code-block:: ini
+                  :copyable: false
 
-                  .. code-block:: ini
-                     :copyable: false
+                  mongodb-site-verification=<32-character string>
 
-                     mongodb-site-verification=<32-character string>
+            #. Log in to your domain name provider (such as 
+               GoDaddy.com or networksolutions.com).
 
-               .. step:: Log in to your domain name provider (such as 
-                  GoDaddy.com or networksolutions.com).
+            #. Add the TXT record that |service| provides to your domain.
 
-               .. step:: Add the TXT record that |service| provides to your 
-                  domain.
-
-               .. step:: Return to |service| 
-                  and click :guilabel:`Finish`.
+            #. Return to |service| and click :guilabel:`Finish`.
 
    .. step:: Verify 
       your domain.

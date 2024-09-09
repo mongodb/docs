@@ -39,11 +39,9 @@ and create a |vpc| Peering Connection to set the desired |service|
    |service| limits the number of MongoDB nodes per |vpc| based on the
    |cidr| block and the region selected for the project. 
 
-   .. example::
-   
-               A project with an |service| |vpc| |cidr| block of
-               ``/18`` is limited to approximately 80 three-node
-               replica sets per |gcp| region.
+   For example, a project with an |service| |vpc| |cidr| block of
+   ``/18`` is limited to approximately 80 three-node
+   replica sets per |gcp| region.
 
    Contact :website:`MongoDB Support </contact>` for any questions on
    |service| limits of MongoDB nodes per |vpc|.

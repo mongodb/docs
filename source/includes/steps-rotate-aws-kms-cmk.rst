@@ -37,9 +37,7 @@
             * - :guilabel:`Customer Master Key Region`
               - Select the |aws| region in which you created your |aws| |cmk|.
       
-                .. note::
-      
-                   |service| only lists |aws| regions that support |aws| |kms|.
+                |service| lists only |aws| regions that support |aws| |kms|.
       
       #. Click :guilabel:`Save`.
       

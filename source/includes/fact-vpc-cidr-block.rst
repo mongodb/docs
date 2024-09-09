@@ -22,11 +22,9 @@ then create a Network Peering Connection to set the desired |service|
    |service| limits the number of MongoDB nodes per Network Peering
    connection based on the |cidr| block and the region selected for the project. 
 
-   .. example::
-
-      A project in an |aws| region supporting 3 availability
-      zones and a |service| |cidr| |vpc| block of ``/24`` is
-      limited to the equivalent of 27 three-node replica sets.
+   For example, a project in an |aws| region supporting 3 availability
+   zones and a |service| |cidr| |vpc| block of ``/24`` is
+   limited to the equivalent of 27 three-node replica sets.
 
    Contact :website:`MongoDB Support </contact>` for any questions on
    |service| limits of MongoDB nodes per |vpc|.

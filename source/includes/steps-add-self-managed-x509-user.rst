@@ -34,7 +34,10 @@
              For more information on Distinguished Name fields, see `RFC 4514
              <https://www.rfc-editor.org/rfc/rfc4514>`_. 
            
-             .. example::
+             For example:
+             
+             .. code-block::
+                :copyable: false
       
                 CN=Jane Doe,O=MongoDB,C=US
       
@@ -70,9 +73,7 @@
                role applies to all non-``system`` collections in the
                database.
       
-               .. note::
-      
-                  .. include:: /includes/fact-read-read-write-actions.rst
+               .. include:: /includes/fact-read-read-write-actions.rst
       
              For information on the built-in |service| privileges, see
              :ref:`atlas-user-privileges`.

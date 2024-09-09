@@ -36,7 +36,7 @@
                 :copyable: false
       
                 CN=Jane Doe,O=MongoDB,C=US
-      
+
          * - :guilabel:`User Privileges`
       
            - You can assign roles in one of the following ways:

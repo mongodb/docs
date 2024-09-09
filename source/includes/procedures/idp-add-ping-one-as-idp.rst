@@ -3,93 +3,81 @@
 
    .. step:: Download your |idp-provider| origination certificate.
 
-      .. procedure::
-         :style: connected
+      a. In your |idp-provider| account, log in to the 
+         :guilabel:`Administrator` environment.
 
-         .. step:: In your |idp-provider| account, log in to the 
-            :guilabel:`Administrator` environment.
+      #. In the top navigation bar, click :guilabel:`Setup`.
 
-         .. step:: In the top navigation bar, click 
-            :guilabel:`Setup`.
+      #. In the secondary navigation bar, click
+         :guilabel:`Certificates`. A
+         :guilabel:`PingOne Account Origination Certificate` with
+         an expiration date displays.
 
-         .. step:: In the secondary navigation bar, click
-            :guilabel:`Certificates`. A
-            :guilabel:`PingOne Account Origination Certificate` with
-            an expiration date displays.
-
-         .. step:: Click the expander arrow to the right of the
-            expiration date and click :guilabel:`Download`.
+      #. Click the expander arrow to the right of the
+         expiration date and click :guilabel:`Download`.
 
    .. step:: Configure the |saml| application.
 
-      .. procedure::
-         :style: connected
+      a. In the top navigation bar, click :guilabel:`Applications`.
 
-         .. step:: In the top navigation bar, click
-            :guilabel:`Applications`.
+      #. In the :guilabel:`My Applications` tab,
+         click the :guilabel:`Add Application` dropdown menu
+         and select :guilabel:`New SAML Application`.
 
-         .. step:: In the :guilabel:`My Applications` tab,
-            click the :guilabel:`Add Application` dropdown menu
-            and select :guilabel:`New SAML Application`.
+      #. Enter a name to identify the app, such as 
+         "MongoDB Atlas", in the :guilabel:`Application Name` field.
 
-         .. step:: Enter a name to identify the app, such as 
-            "MongoDB Atlas", in the :guilabel:`Application Name` field.
+      #. Enter a description of the application in the 
+         :guilabel:`Application Description` field.
 
-         .. step:: Enter a description of the application in the 
-            :guilabel:`Application Description` field.
+      #. Select a category for the application from the
+         :guilabel:`Category` drop-down menu.
 
-         .. step:: Select a category for the application from the
-            :guilabel:`Category` drop-down menu.
-
-         .. step:: Click 
-            :guilabel:`Continue to Next Step`.
+      #. Click :guilabel:`Continue to Next Step`.
 
    .. include:: /includes/steps-source-fed-auth-management.rst
 
    .. step:: Provide |idp-provider| credentials to |service|.
 
-      .. procedure::
-         :style: connected
-        
-         .. step:: Click :guilabel:`Identity Providers` in the 
-            left-hand pane. If you have previously configured an |idp|,
-            click :guilabel:`Add Identity Provider` in the upper-right 
-            corner of the page, then click 
-            :guilabel:`Setup Identity Provider`. If you have not 
-            previously configured an |idp|, click 
-            :guilabel:`Setup Identity Provider`.
+      a. Click :guilabel:`Identity Providers` in the 
+         left-hand pane. If you have previously configured an |idp|,
+         click :guilabel:`Add Identity Provider` in the upper-right 
+         corner of the page, then click 
+         :guilabel:`Setup Identity Provider`. If you have not 
+         previously configured an |idp|, click 
+         :guilabel:`Setup Identity Provider`.
 
-         .. step:: On the :guilabel:`Configure Identity Provider` screen, enter the following 
-            information:
+      #. On the :guilabel:`Configure Identity Provider` screen, enter the following 
+         information:
 
-            .. list-table::
-                :widths: 20 40
-                :header-rows: 1
+         .. list-table::
+            :widths: 20 40
+            :header-rows: 1
 
-                * - Field
-                  - Value
+            * - Field
+              - Value
 
-                * - :guilabel:`Configuration Name`
-                  - Descriptive label that identifies the configuration
+            * - :guilabel:`Configuration Name`
+              - Descriptive label that identifies the configuration
 
-                * - :guilabel:`Issuer URI`
-                  - :guilabel:`Fill with Placeholder Values`
+            * - :guilabel:`Issuer URI`
+              - :guilabel:`Fill with Placeholder Values`
 
-                * - :guilabel:`Single Sign-On URL`
-                  - :guilabel:`Fill with Placeholder Values`
+            * - :guilabel:`Single Sign-On URL`
+              - :guilabel:`Fill with Placeholder Values`
 
-                * - :guilabel:`Identity Provider Signature Certificate`
-                  - Certificate you received from |idp-provider|
-                    in a prior step
+            * - :guilabel:`Identity Provider Signature Certificate`
+              - Certificate you received from |idp-provider|
+                in a prior step
 
-                * - :guilabel:`Request Binding`
-                  - ``HTTP POST``
+            * - :guilabel:`Request Binding`
+              - ``HTTP POST``
 
-                * - :guilabel:`Response Signature Algorithm`
-                  - ``SHA-256``
+            * - :guilabel:`Response Signature Algorithm`
+              - ``SHA-256``
 
-         .. step:: Click the :guilabel:`Next` button to see the values
-            for the |idp-provider| configuration.
+      #. Click the :guilabel:`Next` button to see the values
+         for the |idp-provider| configuration.
 
    .. step:: On the |idp-provider| configuration page, click
       :guilabel:`I have the SAML configuration` at the top and enter
@@ -149,45 +137,41 @@
 
    .. step:: Add application attributes.
 
-      .. procedure::
-         :style: connected
+      a. For each attribute, click :guilabel:`Add new attribute`.
 
-         .. step:: For each attribute, click 
-            :guilabel:`Add new attribute`.
+      #. Provide the following values for the application
+         attributes:
 
-         .. step:: Provide the following values for the application
-            attributes:
+         .. list-table::
+            :widths: 20 40 20
+            :header-rows: 1
 
-            .. list-table::
-               :widths: 20 40 20
-               :header-rows: 1
+            * - :guilabel:`Application Attribute`
+              - :guilabel:`Identity Bridge Attribute or Literal Value`
+              - :guilabel:`As Literal`
 
-               * - :guilabel:`Application Attribute`
-                 - :guilabel:`Identity Bridge Attribute or Literal Value`
-                 - :guilabel:`As Literal`
+            * - ``SAML_SUBJECT``
+              - ``Email``
+              - Unchecked
 
-               * - ``SAML_SUBJECT``
-                 - ``Email``
-                 - Unchecked
+            * - ``firstName``
+              - ``First Name``
+              - Unchecked
 
-               * - ``firstName``
-                 - ``First Name``
-                 - Unchecked
+            * - ``lastName``
+              - ``Last Name``
+              - Unchecked
 
-               * - ``lastName``
-                 - ``Last Name``
-                 - Unchecked
+      #. For each attribute, click :guilabel:`Advanced`.
 
-         .. step:: For each attribute, click :guilabel:`Advanced`.
-
-         .. step:: Add your :guilabel:`Name ID Format`.
+      #. Add your :guilabel:`Name ID Format`.
             
-            You can have the following formats:
+         You can have the following formats:
             
-            - ``urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified``
-            - ``urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress``
-        
-         .. step:: Click :guilabel:`Continue to Next Step`.
+         - ``urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified``
+         - ``urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress``
+
+      #. Click :guilabel:`Continue to Next Step`.
 
    .. step:: Add the user groups for which you wish to enable federated
       authentication and click :guilabel:`Continue to Next Step`.
