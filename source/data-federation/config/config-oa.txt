@@ -1,9 +1,9 @@
 .. _adf-configuration-file-adl:
-.. _adf-configuration-file-adl-and-oa:
+.. _adf-configuration-file-oa:
 
-====================================================
-{+adl+} Dataset or {+Online-Archive+}
-====================================================
+====================
+{+Online-Archive+}\s
+====================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,7 @@
    :values: reference
 
 .. meta:: 
-   :keywords: Atlas Data Lake datasets, Online Archive, configure federated database for Atlas Data Lake datasets, configure federated database for Online Archives, federated database configuration settings for Atlas Data Lake datasets, federated database configuration settings for Online Archives
+   :keywords: Online Archive, configure federated database for Online Archives, federated database configuration settings for Online Archives
 
 .. contents:: On this page
    :local:
@@ -26,72 +26,12 @@
    `New Online Archive with Performance Improvements and Enhanced Metrics <https://www.mongodb.com/blog/post/new-online-archive-performance-improvements-enhanced-metrics>`__
    for more information.
 
-{+adf+} supports {+adl+} datasets and |service| :ref:`online archives
-<online-archive-overview>` as {+fdi+} stores. You must define mappings
-in your {+fdi+} storage configuration to your {+dl+} dataset or online
-archive to run queries against your data.
+{+adf+} supports |service| :ref:`online archives
+<online-archive-overview>` as {+fdi+} stores. You must define mappings 
+in your {+fdi+} storage configuration to your online archive to run
+queries against your data. 
 
 .. include:: /includes/fact-info-visible-internally.rst
-
-Example Configuration for {+adl+} Data Store 
-----------------------------------------------------
-
-.. example:: 
-
-   Consider an {+adl+} pipeline named ``myDataCenter`` containing 
-   snapshot data from the ``metrics.hardware`` collection. The 
-   ``metrics.hardware`` collection contains JSON documents with metrics 
-   derived from the hardware in a datacenter. The following 
-   configuration:
-
-   - Specifies the cloud storage provider ``dls:aws`` and the provider 
-     region ``us-east-1`` as a {+fdi+} store.
-   - Maps documents from the snapshots of ``metrics.hardware`` 
-     collection on the |service| cluster name ``dlsTest`` to the 
-     ``dataCenter.inventory`` collection in the storage configuration. 
-     For example, when the {+adl+} pipeline runs on May 5, 2022 at 
-     02:00:10 UTC, {+adl+} creates a dataset with the dataset name 
-     ``v1$atlas$snapshot$dlsTest$metrics$hardware$20220510T020010Z``.
-
-   .. code-block:: json 
-
-      {
-        "stores": [
-          {
-            "name": "adlStore",
-            "provider": "dls:aws",
-            "region": "us-east-1"
-          }
-        ],
-        "databases": [
-          {
-            "name": "dataCenter",
-            "collections": [
-              {
-                "name": "inventory",
-                "dataSources": [
-                  {
-                    "storeName": "adlStore",
-                    "datasetName": "v1$atlas$snapshot$dlsTest$metrics$hardware$20220510T020010Z"
-                  }
-                ]
-              }
-            ],
-            "views": []
-          }
-        ]
-      }
-
-   {+adf+} maps all the documents in the snapshots to the 
-   ``dataCenter.inventory`` collection in the storage configuration. 
-
-   Users connected to the {+fdi+} can use the MongoDB Query Language 
-   and supported aggregations to query historical data in the snapshot 
-   through the ``dataCenter.inventory`` collection. When you run 
-   queries, the query first goes to {+adf+}. Therefore, if you run 
-   aggregation queries that are supported by your |service| cluster but 
-   not by {+adf+}, the queries will fail. To learn more about supported 
-   and unsupported commands in {+df+}, see :ref:`adf-mql-support`.
 
 Example Configuration for |service| {+Online-Archive+} Data Store
 -----------------------------------------------------------------
@@ -159,24 +99,24 @@ Example Configuration for |service| {+Online-Archive+} Data Store
    and supported aggregations to analyze data in the |service| cluster 
    through the ``dataCenter.inventory`` collection.
 
-.. _adf-adl-configuration-format:
+.. _adf-oa-configuration-format:
 
 Configuration Format
 --------------------
 
-The {+fdi+} configuration for an {+adl+} dataset or an |service| online
-archive has the following format:
+The {+fdi+} configuration for an |service| online archive has the
+following format: 
 
-.. literalinclude:: /includes/data-federation/adl-config-format.json
+.. literalinclude:: /includes/data-federation/oa-config-format.json
    :language: json
    :linenos:
 
-.. _adf-adl-stores-reference:
+.. _adf-oa-stores-reference:
 
 ``stores``
 ~~~~~~~~~~
 
-.. literalinclude:: /includes/data-federation/adl-stores-config-format.json 
+.. literalinclude:: /includes/data-federation/oa-stores-config-format.json
    :language: json
    :linenos:
 
@@ -185,9 +125,8 @@ archive has the following format:
    Array of objects where each object represents a data store to 
    associate with the {+fdi+}. The {+fdi+} store references files in an 
    |s3| bucket, documents in an |service| cluster, files stored at 
-   publicly accessible |url|\s, {+adl+} datasets, or |service| online
-   archives. {+adf+} can only access data stores defined in the
-   ``stores`` object.
+   publicly accessible |url|\s, or |service| online archives. {+adf+}
+   can only access data stores defined in the ``stores`` object.
 
 .. datalakeconf-adl:: stores.[n].name
 
@@ -204,31 +143,30 @@ archive has the following format:
 
 .. datalakeconf-adl:: stores.[n].region
 
-   Region name of your {+dl+} or online archive. Each store is
-   associated with a single region, where both the metadata and
-   snapshot data are stored. If you have multiple datasets or online
-   archives in different regions, you must add a store for each region
-   to map data in that region to virtual databases and collection in 
-   {+fdi+}.
+   Region name of your online archive. Each store is associated with a
+   single region, where the archived data is stored. If you have
+   multiple online archives in different regions, you must add a store
+   for each region to map data in that region to virtual databases and
+   collection in {+fdi+}.
 
    To learn more about the supported regions for |aws|, see 
    :ref:`atlas-data-federation-regions`. 
 
-.. _adf-adl-databases-reference:
+.. _adf-oa-databases-reference:
 
 ``databases``
 ~~~~~~~~~~~~~
 
-.. literalinclude:: /includes/data-federation/adl-databases-config-format.json
+.. literalinclude:: /includes/data-federation/oa-databases-config-format.json
    :language: json
    :linenos:
 
 .. datalakeconf-adl:: databases
 
    Array of objects that define the mapping between each {+fdi+} 
-   store defined in ``stores`` and {+adl+} datasets or online archives.
-   Each object represents a database, its collections, and, optionally,
-   any :manual:`views </core/views/>` on the collections. Each database
+   store defined in ``stores`` and online archives. Each object
+   represents a database, its collections, and, optionally, any
+   :manual:`views </core/views/>` on the collections. Each database 
    can have multiple ``collections`` and ``views`` objects.
 
 .. datalakeconf-adl:: databases.[n].name
@@ -266,7 +204,7 @@ archive has the following format:
    Array of objects where each object represents a {+fdi+} store in the 
    :datalakeconf-adl:`stores` array to map with the collection. You can 
    specify multiple ``dataSources`` for a wildcard collection only if 
-   all the ``dataSources`` for the collection map to {+adl+} dataset 
+   all the ``dataSources`` for the collection map to the online archive 
    :datalakeconf-adl:`stores`.
 
 .. datalakeconf-adl:: databases.[n].collections.[n].dataSources.[n].storeName
@@ -277,31 +215,30 @@ archive has the following format:
 
 .. datalakeconf-adl:: databases.[n].collections.[n].dataSources.[n].datasetName 
 
-   Name of the {+adl+} dataset or online archive dataset to map with the
-   collection. The {+adl+} ``datasetName`` is in the following format: 
+   Name of the online archive dataset to map with the collection. The
+   ``datasetName`` is in the following format:  
 
    .. code-block:: 
 
-      <version>$<type>$<subtype>$<clusterName>$<dbName>$<collectionName>$<snapshotId>
+      <version>$<type>$<subtype>$<clusterName>$<dbName>$<collectionName>$<archiveId>
 
    .. example:: 
 
-      Consider the following {+adl+} dataset name.
+      Consider the following online archive name.
 
       .. code-block:: 
 
-         v1$atlas$snapshot$clusterName$dbName$collectionName$snapshotId
+         v1$atlas$archive$clusterName$dbName$collections$archiveId
    
       Here: 
 
       - ``v1`` is the version 
       - ``atlas`` is the type of data source
-      - ``snapshot`` is the subtype
+      - ``archive`` is the subtype
       - ``clusterName`` is the name of the |service| cluster 
       - ``dbName`` is the name of the database on the |service| cluster 
-      - ``collectionName`` is the collection in the database 
-      - ``snapshotId`` is the unique identifier of the snapshot of the 
-        data in the collection
+      - ``collection`` is the the collections in the database 
+      - ``archiveId`` is the unique identifier of the archived data 
 
    .. note:: 
 
@@ -317,29 +254,10 @@ archive has the following format:
 
    Required for wildcard collections.
    
-   Dataset name prefix to match against the {+adl+} dataset name or 
-   online archive dataset name. When you set this for wildcard
-   collections, {+adf+} maps collections to only the {+adl+} dataset
-   names or online archive dataset names whose prefix match the value
-   specified here.
-
-   .. example:: 
-
-      .. code-block:: sh 
-         :copyable: false 
-
-         {
-           ...,
-           "name": "*",
-           "dataSources": [
-             {
-               "storeName": "aws-dl-store",
-               "datasetPrefix":
-               "v1$atlas$snapshot$MyCluster$MyDB$MyCollection",
-               "trimLevel": 3
-             }
-           ]
-         }
+   Dataset name prefix to match against the online archive dataset name.
+   When you set this for wildcard collections, {+adf+} maps collections
+   to only to the online archive dataset names whose prefix match the
+   value specified here.
 
    If you specify this setting for a non-wildcard collection, {+adf+} maps only
    the latest dataset (for the most recently captured snapshot) to the
@@ -358,7 +276,7 @@ archive has the following format:
            "dataSources": [
              {
                "storeName": "aws-dl-store",
-               "datasetPrefix": "v1$atlas$snapshot$MyCluster$MyDB$MyCollection"
+               "datasetPrefix": "v1$atlas$archive$MyCluster$MyDB$MyArchiveId"
              }
            ]
          }
@@ -370,43 +288,6 @@ archive has the following format:
    remaining fields to a wildcard collection name. Value must be 
    greater than ``0`` and less than ``7``. You can set this setting for
    wildcard collections only. 
-
-   .. example:: 
-
-      Consider the following {+adl+} dataset name: 
-
-      .. code-block:: sh 
-         :copyable: false 
-
-         v1$atlas$snapshot$MyCluster$MyDB$MyCollection$snapshotDate
-
-      {+adf+} dynamically generates the following collection names for 
-      different trim levels: 
-
-      .. list-table::
-         :header-rows: 1 
-         :widths: 10 90
-      
-         * - Trim Level
-           - Collection Name
-
-         * - ``5``
-           - ``MyCollection_snapshotDate``
-
-         * - ``4``
-           - ``MyDB_MyCollection_snapshotDate``
-         
-         * - ``3``
-           - ``MyCluster_MyDB_MyCollection_snapshotDate``
-         
-         * - ``2``
-           - ``snapshot_MyCluster_MyDB_MyCollection_snapshotDate``
-         
-         * - ``1``
-           - ``atlas_snapshot_atlas_MyCluster_MyDB_MyCollection_snapshotDate``
-         
-         * - ``0``
-           - ``v1_atlas_snapshot_atlas_MyCluster_MyDB_MyCollection_snapshotDate``
          
    You can't configure this setting using the Visual Editor in the 
    |service| UI. Therefore, this setting defaults to trim level ``5`` 
@@ -444,8 +325,7 @@ archive has the following format:
           snapshot 
    
       * - ``dataSetName``
-        - Name of the {+dl+} dataset or online archive dataset
-          (:datalakeconf-adl:`databases.[n].collections.[n].dataSources.[n].datasetName`) 
+        - Name of the online archive dataset (:datalakeconf-adl:`databases.[n].collections.[n].dataSources.[n].datasetName`) 
 
    You can't configure this setting using the Visual Editor in the 
    |service| UI. 
@@ -469,5 +349,4 @@ archive has the following format:
    :titlesonly:
    :hidden:
 
-   Create from the UI </data-federation/deployment/deploy-adl>
-   /data-federation/config/adl-gen-wildcard-collections
+   Create from the UI </data-federation/deployment/deploy-oa>

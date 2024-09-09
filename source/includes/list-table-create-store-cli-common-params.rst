@@ -11,9 +11,6 @@
      - string
      - Name of the new {+fdi+} store. The {+fdi+} store 
        name must be unique.
-
-       
-       
      - yes
 
    * - ``provider``
@@ -25,7 +22,7 @@
        - ``azure`` for {+az-bs+} container.
        - ``atlas`` for |service| cluster.
        - ``http`` for files hosted at publicly accessible |url|\s.
-       - ``dls:<subtype>`` for {+adl+} datasets. {+adf+} supports the
+       - ``dls:<subtype>`` for online archives. {+adf+} supports the
          following subtypes:
 
          - ``aws`` - for data stored on |aws|. Value must be ``dls:aws``. 

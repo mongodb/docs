@@ -24,7 +24,7 @@
 - Adds support for modifying views with ``collMod``.
 - Adds automatic recognition of ``.jsonl`` files as JSON Lines files.
 - Fixes an issue with :ref:`sqlGenerateSchema <sqlgenerateschema-cmd>` 
-  where it wouldn't run on {+Online-Archive+} or {+adl+} sources.
+  where it wouldn't run on {+Online-Archive+} source.
 
 .. _adf-v20230822:
 

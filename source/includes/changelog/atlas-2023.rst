@@ -84,7 +84,7 @@
 
 - Supports :ref:`online archives <online-archive-overview>` as a source
   for {+adf+}. To learn more, see
-  :ref:`adf-configuration-file-adl-and-oa`.
+  :ref:`adf-configuration-file-oa`.
 - Adds a new :ref:`project overview <project-overview>` that displays
   modules containing common |service| actions. You can configure the 
   project overview to display as your project's landing page.
