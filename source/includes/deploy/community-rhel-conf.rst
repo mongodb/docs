@@ -6,13 +6,13 @@ so that you can install MongoDB directly using ``yum``:
    .. tab:: 9
       :tabid: rhel9
 
-      .. include:: /includes/deploy/code/com-rhel9-conf
+      .. include:: /includes/deploy/code/community-rhel9-conf
 
 
    .. tab:: 8
       :tabid: rhel8
 
-      .. include:: /includes/deploy/code/com-rhel8-conf
+      .. include:: /includes/deploy/code/community-rhel8-conf
 
 You can also download the ``.rpm`` files directly from the
 `MongoDB repository <https://repo.mongodb.org/yum/redhat/>`_.
