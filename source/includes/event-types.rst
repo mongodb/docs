@@ -234,6 +234,24 @@
        Project maintenance window removed
      - no
 
+   * - ``ATLAS_SQL_SCHEDULED_UPDATE_CREATED``
+     - .. _atlas_event_atlas_sql_scheduled_update_created:
+
+       New Atlas SQL Scheduled Schema Update created
+     - no
+
+   * - ``ATLAS_SQL_SCHEDULED_UPDATE_MODIFIED``
+     - .. _atlas_event_atlas_sql_scheduled_update_modified:
+
+       Atlas SQL Scheduled Schema Update modified
+     - no
+
+   * - ``ATLAS_SQL_SCHEDULED_UPDATE_REMOVED``
+     - .. _atlas_event_atlas_sql_scheduled_update_removed:
+
+       Atlas SQL Scheduled Schema Update removed
+     - no
+
    * - ``ATTEMPT_KILLOP_AUDIT``
      - .. _atlas_event_attempt_killop_audit:
 
@@ -798,6 +816,18 @@
        Admin published cluster automation config
      - no
 
+   * - ``CLUSTER_BINARY_VERSION_DOWNGRADED``
+     - .. _atlas_event_cluster_binary_version_downgraded:
+
+       Cluster binary version downgrade submitted
+     - no
+
+   * - ``CLUSTER_BINARY_VERSION_UPGRADED``
+     - .. _atlas_event_cluster_binary_version_upgraded:
+
+       Cluster binary version upgrade submitted
+     - no
+
    * - ``CLUSTER_BLACKLIST_UPDATED_AUDIT``
      - .. _atlas_event_cluster_blacklist_updated_audit:
 
@@ -888,6 +918,12 @@
        Excluded namespaces were modified for cluster
      - no
 
+   * - ``CLUSTER_FCV_DOWNGRADED``
+     - .. _atlas_event_cluster_fcv_downgraded:
+
+       Cluster FCV was downgraded
+     - no
+
    * - ``CLUSTER_FCV_FIXED``
      - .. _atlas_event_cluster_fcv_fixed:
 
@@ -918,10 +954,16 @@
        Cluster data migration cancelled
      - no
 
+   * - ``CLUSTER_IMPORT_COMPLETED``
+     - .. _atlas_event_cluster_import_completed:
+
+       Cluster data migration completed
+     - no
+
    * - ``CLUSTER_IMPORT_CUTOVER``
      - .. _atlas_event_cluster_import_cutover:
 
-       Cluster data migration completed
+       Cluster data migration cutover initiated
      - no
 
    * - ``CLUSTER_IMPORT_EXPIRED``
@@ -1384,6 +1426,30 @@
      - .. _atlas_event_cps_billing_azure_snapshot_submission_caught_up:
 
        CPS billing Azure snapshot submission is caught up
+     - no
+
+   * - ``CPS_BILLING_EXPORT_SUBMISSION_BEHIND``
+     - .. _atlas_event_cps_billing_export_submission_behind:
+
+       CPS billing export submission has fallen behind
+     - yes
+
+   * - ``CPS_BILLING_EXPORT_SUBMISSION_CAUGHT_UP``
+     - .. _atlas_event_cps_billing_export_submission_caught_up:
+
+       CPS billing export submission is caught up
+     - no
+
+   * - ``CPS_BILLING_EXPORT_UPLOAD_SUBMISSION_BEHIND``
+     - .. _atlas_event_cps_billing_export_upload_submission_behind:
+
+       CPS billing export upload submission has fallen behind
+     - yes
+
+   * - ``CPS_BILLING_EXPORT_UPLOAD_SUBMISSION_CAUGHT_UP``
+     - .. _atlas_event_cps_billing_export_upload_submission_caught_up:
+
+       CPS billing export upload submission is caught up
      - no
 
    * - ``CPS_BILLING_GCP_DOWNLOAD_SUBMISSION_BEHIND``
@@ -1894,12 +1960,6 @@
      - .. _atlas_event_data_federation_query_limit_deleted:
 
        Data Federation Query Limit deleted
-     - no
-
-   * - ``DATA_LAKE_QUERY_LOGS_DOWNLOADED``
-     - .. _atlas_event_data_lake_query_logs_downloaded:
-
-       Query logs downloaded for Data Lake Tenant
      - no
 
    * - ``DATA_PROCESSING_REGION_UPDATED``
@@ -2706,6 +2766,12 @@
        Inconsistent backup configuration has been detected
      - yes
 
+   * - ``INDEPENDENT_SHARD_SCALING_AVAILABLE``
+     - .. _atlas_event_independent_shard_scaling_available:
+
+       Independent Shard Scaling is now available for the project
+     - no
+
    * - ``INDEX_FAILED_INDEX_BUILD``
      - .. _atlas_event_index_failed_index_build:
 
@@ -2716,30 +2782,6 @@
      - .. _atlas_event_index_success_index_build:
 
        Index build succeeded
-     - no
-
-   * - ``INGESTION_PIPELINE_CREATED``
-     - .. _atlas_event_ingestion_pipeline_created:
-
-       Data Lake Pipeline created
-     - no
-
-   * - ``INGESTION_PIPELINE_DELETED``
-     - .. _atlas_event_ingestion_pipeline_deleted:
-
-       Data Lake Pipeline deleted
-     - no
-
-   * - ``INGESTION_PIPELINE_DESTROYED``
-     - .. _atlas_event_ingestion_pipeline_destroyed:
-
-       Data Lake Pipeline destroyed
-     - no
-
-   * - ``INGESTION_PIPELINE_UPDATED``
-     - .. _atlas_event_ingestion_pipeline_updated:
-
-       Data Lake Pipeline updated
      - no
 
    * - ``INITIAL_SYNC_FINISHED_AUDIT``
@@ -3358,6 +3400,12 @@
      - .. _atlas_event_oidc_identity_provider_updated:
 
        Identity Provider configuration was updated
+     - no
+
+   * - ``ONDEMAND_SNAPSHOT_REQUESTED``
+     - .. _atlas_event_ondemand_snapshot_requested:
+
+       Ondemand Snapshot has been requested
      - no
 
    * - ``ONE_PRIMARY``
@@ -4140,22 +4188,10 @@
        Push-Based Log Export enabled
      - no
 
-   * - ``QUERY_ENGINE_TENANT_CREATED``
-     - .. _atlas_event_query_engine_tenant_created:
+   * - ``QUEUED_ADMIN_ACTION_CREATED``
+     - .. _atlas_event_queued_admin_action_created:
 
-       New Data Lake tenant created
-     - no
-
-   * - ``QUERY_ENGINE_TENANT_REMOVED``
-     - .. _atlas_event_query_engine_tenant_removed:
-
-       Data Lake tenant removed
-     - no
-
-   * - ``QUERY_ENGINE_TENANT_UPDATED``
-     - .. _atlas_event_query_engine_tenant_updated:
-
-       Data Lake tenant updated
+       An Admin Action has been queued
      - no
 
    * - ``REFUND_ISSUED``
@@ -4428,11 +4464,35 @@
        Request for schedule to be updated
      - no
 
+   * - ``SEARCH_DEPLOYMENT_CREATED``
+     - .. _atlas_event_search_deployment_created:
+
+       Search deployment created.
+     - no
+
+   * - ``SEARCH_DEPLOYMENT_DELETED``
+     - .. _atlas_event_search_deployment_deleted:
+
+       Search deployment deleted.
+     - no
+
+   * - ``SEARCH_DEPLOYMENT_UPDATED``
+     - .. _atlas_event_search_deployment_updated:
+
+       Search deployment updated.
+     - no
+
    * - ``SECURITY_CHECKUP_ALERTS_UPDATED``
      - .. _atlas_event_security_checkup_alerts_updated:
 
        Security checkup alerts updated
      - yes
+
+   * - ``SECURITY_CONTACT_MODIFIED``
+     - .. _atlas_event_security_contact_modified:
+
+       Atlas Security Contact was modified
+     - no
 
    * - ``SERVERLESS_AUTO_SCALING_INITIATED``
      - .. _atlas_event_serverless_auto_scaling_initiated:
