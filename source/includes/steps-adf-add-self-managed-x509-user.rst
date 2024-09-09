@@ -28,16 +28,14 @@
              certificate. For more information, see  
              `RFC 2253 <https://tools.ietf.org/html/rfc2253>`_.
            
-             .. example::
+             For example, if your common name is "Jane Doe", your organization is
+             "MongoDB", and your country is "US", insert the following
+             into the :guilabel:`Common Name` field:
       
-                If your common name is "Jane Doe", your organization is
-                "MongoDB", and your country is "US", insert the following
-                into the :guilabel:`Common Name` field:
+             .. code-block:: none
+                :copyable: false
       
-                .. code-block:: none
-                   :copyable: false
-      
-                   CN=Jane Doe,O=MongoDB,C=US
+                CN=Jane Doe,O=MongoDB,C=US
       
          * - :guilabel:`User Privileges`
       
@@ -71,9 +69,7 @@
                role applies to all non-``system`` collections in the
                database.
       
-               .. note::
-      
-                  .. include:: /includes/fact-read-read-write-actions.rst
+               .. include:: /includes/fact-read-read-write-actions.rst
       
              For information on the built-in |service| privileges, see
              :ref:`atlas-user-privileges`.

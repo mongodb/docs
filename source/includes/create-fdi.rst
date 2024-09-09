@@ -1,5 +1,5 @@
 .. procedure::
-   :style: connected
+   :style: normal
 
    .. include:: /includes/nav/steps-data-federation.rst
 
