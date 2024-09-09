@@ -22,7 +22,7 @@
      -
      - :icon-fa5:`check`
 
-   * - GCP Assured Workloads
+   * - |gaw|
      -
      - :icon-fa5:`check`
        
