@@ -17,11 +17,9 @@
        Your access list entry can include only one
        **awsSecurityGroup**, one **cidrBlock**, or one **ipAddress**.
 
-       .. note::
-
-          You must :ref:`configure VPC peering <vpc-peering>` for your
-          project before you can add an |aws| security group to an
-          access list.
+       You must :ref:`configure VPC peering <vpc-peering>` for your
+       project before you can add an |aws| security group to an
+       access list.
 
    * - cidrBlock
      - string
@@ -49,11 +47,9 @@
           You cannot set |aws| security groups as temporary access list
           entries.
 
-       .. note::
-
-          You may include an |iso8601| time zone designator to ensure
-          that the expiration date occurs with respect to the local
-          time in the specified time zone.
+       You may include an |iso8601| time zone designator to ensure
+       that the expiration date occurs with respect to the local
+       time in the specified time zone.
 
    * - ipAddress
      - string
