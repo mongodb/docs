@@ -10,6 +10,7 @@ var dbContextOptions =
     new DbContextOptionsBuilder<MyDbContext>().UseMongoDB(mongoClient, "<Database Name>");
 
 var db = new MyDbContext(dbContextOptions.Options);
+db.Database.EnsureCreated();
 
 // Add a new customer and save it to the database
 db.Customers.Add(new Customer() { name = "John Doe", Order = "1 Green Tea" });
