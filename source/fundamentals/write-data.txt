@@ -23,9 +23,9 @@ Overview
 {+framework-core+} allows you to work with data in your application without
 explicitly running database commands. You can insert, update, or delete data
 within your application and persist those changes to MongoDB by using the
-``SaveChanges()`` method.
+``SaveChanges()`` or ``SaveChangesAsync()`` method.
 
-When you call the ``SaveChanges()`` method, the {+provider-short+} automatically detects
+When you call the ``SaveChanges()`` or ``SaveChangesAsync()`` method, the {+provider-short+} automatically detects
 any changes made to your data and runs the necessary commands to update the
 database by using the MongoDB Query API.
 
@@ -37,12 +37,39 @@ an application configured to use the {+provider-short+}.
    To learn how to configure an application to use the {+provider-short+}, see
    :ref:`entity-framework-configure`.
 
+Transactional Write Operations
+-------------------------------
+
+The ``SaveChanges()`` and ``SaveChangesAsync()`` methods are transactional by
+default. This means that if an error occurs during an operation, the provider
+rolls back any changes made to the database. Because of this, your application
+must be connected to a transaction-capable deployment of MongoDB server, such as
+a replica set.
+
+You can disable automatic transactions in the ``SaveChanges()`` and
+``SaveChangesAsync()`` methods by setting the ``AutoTransactionBehavior`` property to
+``AutoTransaction.Never`` on your ``DbContext`` subclass during application
+setup. However, we do not recommend disabling this feature. Doing so causes
+any concurrency changes or operation failures during the save operation
+to leave the database in an inconsistent state.
+
+The following example shows how to disable automatic transactions in the
+``SaveChanges()`` and ``SaveChangesAsync()`` methods:
+
+.. code-block:: csharp
+
+   dbContext.Database.AutoTransactionBehavior = AutoTransactionBehavior.Never;
+
+.. warning::
+
+   Disabling automatic transactions can lead to data inconsistencies. We
+   recommend that you do not disable this feature.
+
 Insert
 ------
 
 You can use the ``Add()`` method to insert a single entity into your collection, 
 or you can use the ``AddRange()`` method to insert multiple entities at once. 
-
 
 .. _entity-framework-insert-one:
 
