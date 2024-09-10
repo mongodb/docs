@@ -38,11 +38,7 @@
 
       .. note:: 
 
-         Your connection string should use the following format:
-
-         .. code-block::
-
-            mongodb+srv://<db_username>:<db_password>@<clusterName>.<hostname>.mongodb.net
+         .. include:: /includes/fact-connection-string-format-drivers.rst
             
    .. step:: Configure LlamaIndex settings.
 

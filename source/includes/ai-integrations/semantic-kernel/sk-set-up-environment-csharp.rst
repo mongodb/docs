@@ -9,9 +9,9 @@
 
       .. code-block:: shell
 
-           mkdir sk-mongodb
-           cd sk-mongodb
-           dotnet new console
+         mkdir sk-mongodb
+         cd sk-mongodb
+         dotnet new console
 
    .. step:: Install dependencies.
 
@@ -19,12 +19,12 @@
 
       .. code-block:: shell
 
-            dotnet add package Microsoft.SemanticKernel
-            dotnet add package Microsoft.SemanticKernel.Connectors.MongoDB --prerelease
-            dotnet add package Microsoft.SemanticKernel.Connectors.OpenAI
-            dotnet add package Microsoft.SemanticKernel.Memory
-            dotnet add package Microsoft.SemanticKernel.Plugins.Memory --prerelease
- 
+         dotnet add package Microsoft.SemanticKernel
+         dotnet add package Microsoft.SemanticKernel.Connectors.MongoDB --prerelease
+         dotnet add package Microsoft.SemanticKernel.Connectors.OpenAI
+         dotnet add package Microsoft.SemanticKernel.Memory
+         dotnet add package Microsoft.SemanticKernel.Plugins.Memory --prerelease
+
    .. step:: Define environmental variables.
 
       In your terminal, run the following commands to add your |service| {+cluster+}'s |srv| :manual:`connection string 
@@ -32,13 +32,9 @@
 
       .. code-block:: shell
 
-            export OPENAI_API_KEY="<Your OpenAI API Key>"
-            export ATLAS_CONNECTION_STRING="<Your MongoDB Atlas SRV Connection String>"
+         export OPENAI_API_KEY="<Your OpenAI API Key>"
+         export ATLAS_CONNECTION_STRING="<Your MongoDB Atlas SRV Connection String>"
 
       .. note:: 
 
-            Your connection string should use the following format:
-
-            .. code-block::
-
-                mongodb+srv://<db_username>:<db_password>@<clusterName>.<hostname>.mongodb.net
+         .. include:: /includes/fact-connection-string-format-drivers.rst

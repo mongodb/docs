@@ -21,19 +21,7 @@
 
          npm install langchain @langchain/mongodb @langchain/openai pdf-parse fs
 
-   .. step:: Update your ``package.json`` file.
-
-      In your project's ``package.json`` file, specify the 
-      ``type`` field as shown in the following example,
-      and then save the file.
-
-      .. code-block:: javascript
-         :emphasize-lines: 3
-
-         {
-            "name": "langchain-mongodb",
-            "type": "module",
-            ...
+   .. include:: /includes/nav/steps-avs-nodejs-config-modules.rst
 
    .. step:: Create a file named ``get-started.js`` and paste the following code.
 

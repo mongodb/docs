@@ -7,11 +7,7 @@ a. Replace ``<connection-string>`` with the
       .. tab:: {+service+} {+Cluster+}
          :tabid: cloud
 
-         Your connection string should use the following format:
-
-         .. code-block::
-
-            mongodb+srv://<username>:<password>@<clusterName>.<hostname>.mongodb.net
+         .. include:: /includes/fact-connection-string-format-drivers.rst
       
          Ensure that your connection string includes your database 
          user's credentials. To learn more about finding your connection string, 

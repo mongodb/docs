@@ -40,10 +40,6 @@
          from langchain_huggingface import HuggingFaceEmbeddings
          from langchain_mongodb import MongoDBAtlasVectorSearch
          from pymongo import MongoClient
-         import warnings
-
-         # Ignore warnings
-         warnings.filterwarnings('ignore')
 
          # Load the PDF
          loader = PyPDFLoader("https://investors.mongodb.com/node/12236/pdf")
