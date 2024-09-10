@@ -151,13 +151,14 @@ Partitioners change the read behavior of batch reads that use the {+connector-sh
 dividing the data into partitions, you can run transformations in parallel.
 
 This section contains configuration information for the following 
-partitioners:
+partitioner:
 
 - :ref:`SamplePartitioner <conf-samplepartitioner>`
 - :ref:`ShardedPartitioner <conf-shardedpartitioner>`
 - :ref:`PaginateBySizePartitioner <conf-paginatebysizepartitioner>`
 - :ref:`PaginateIntoPartitionsPartitioner <conf-paginateintopartitionspartitioner>`
 - :ref:`SinglePartitionPartitioner <conf-singlepartitionpartitioner>`
+- :ref:`AutoBucketPartitioner <conf-autobucketpartitioner>`
 
 .. note:: Batch Reads Only
   
@@ -301,6 +302,54 @@ The ``SinglePartitionPartitioner`` configuration creates a single partition.
 
 To use this configuration, set the ``partitioner`` configuration option to
 ``com.mongodb.spark.sql.connector.read.partitioner.SinglePartitionPartitioner``.
+
+.. _conf-autobucketpartitioner:
+
+``AutoBucketPartitioner`` Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``AutoBucketPartitioner`` configuration is similar to the
+:ref:`SamplePartitioner <conf-samplepartitioner>`
+configuration, but uses the :manual:`$bucketAuto </reference/operator/aggregation/bucketAuto/>`
+aggregation stage to paginate the data. By using this configuration, 
+you can partition the data across single or multiple fields, including nested fields.
+
+To use this configuration, set the ``partitioner`` configuration option to
+``com.mongodb.spark.sql.connector.read.partitioner.AutoBucketPartitioner``.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Property name
+     - Description
+     
+   * - ``partitioner.options.partition.fieldList``
+     - The list of fields to use for partitioning. The value can be either a single field
+       name or a list of comma-separated fields.
+      
+       **Default:** ``_id``
+
+   * - ``partitioner.options.partition.chunkSize``
+     - The average size (MB) for each partition. Smaller partition sizes
+       create more partitions containing fewer documents.
+       Because this configuration uses the average document size to determine the number of
+       documents per partition, partitions might not be the same size.
+      
+       **Default:** ``64``
+    
+   * - ``partitioner.options.partition.samplesPerPartition``
+     - The number of samples to take per partition.
+
+       **Default:** ``100``
+    
+   * - ``partitioner.options.partition.partitionKeyProjectionField``
+     - The field name to use for a projected field that contains all the
+       fields used to partition the collection.
+       We recommend changing the value of this property only if each document already
+       contains the ``__idx`` field.
+      
+       **Default:** ``__idx``
 
 Specifying Properties in ``connection.uri``
 -------------------------------------------
