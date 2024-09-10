@@ -1,249 +1,278 @@
 .. _java-rs-indexes:
 
-==============
-Create Indexes
-==============
-
-.. facet::
-   :name: genre
-   :values: reference
-
-.. meta::
-   :keywords: code example, optimize, covered query
+=================================
+Optimize Queries by Using Indexes
+=================================
 
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
-Indexes support the efficient execution of queries in MongoDB. To
-create an index on a field or fields, pass an index specification
-document to the ``MongoCollection.createIndex()`` method.
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :description: Learn how to use indexes by using the MongoDB Java Reactive Streams driver.
+   :keywords: query, optimization, efficiency, usage example, code example
 
-The {+driver-short+} provides the ``Indexes`` class that includes
-static factory methods to create index specification documents for the
-various MongoDB index key types. To learn more about index types, see
-:manual:`Indexes </indexes/>` in the Server manual.
+Overview
+--------
 
-.. note::
+On this page, you can see copyable code examples that show how to manage different
+types of indexes by using the {+driver-short+}.
 
-   MongoDB only creates an index if an index of the same specification
-   does not already exist.
+.. .. tip::
 
-Prerequisites
--------------
+..   To learn more about working with indexes, see the :ref:`java-rs-work-with-indexes`
+..   guide. To learn more about any of the indexes shown on this page, see the link
+..   provided in each section.
 
-You must include the following import statements in your program to run the
-code examples in this guide:
+To use an example from this page, copy the code example into the
+:ref:`sample application <java-rs-index-sample>` or your own application.
+Be sure to replace all placeholders in the code examples, such as ``<connection string URI>``, with
+the relevant values for your MongoDB deployment.
 
-.. code-block:: java
+Project Reactor Implementation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   import com.mongodb.reactivestreams.client.MongoClient;
-   import com.mongodb.reactivestreams.client.MongoClients;
-   import com.mongodb.reactivestreams.client.MongoDatabase;
-   import com.mongodb.reactivestreams.client.MongoCollection;
-   import org.bson.Document;
+This guide uses the {+pr+} library to consume ``Publisher`` instances returned
+by the {+driver-short+} methods. To learn more about the {+pr+} library
+and how to use it, see `Getting Started <https://projectreactor.io/docs/core/release/reference/#getting-started>`__
+in the Reactor documentation.
 
-   import com.mongodb.client.model.Indexes;
-   import com.mongodb.client.model.IndexOptions;
-   import com.mongodb.client.model.Filters;
+There are also other ways to consume ``Publisher`` instances. You can use one of many alternative libraries such as
+`RxJava <https://github.com/ReactiveX/RxJava>`__ or call ``Publisher.subscribe()`` directly and pass your own
+implementation of a ``Subscriber``.
 
-.. include:: /includes/subscriber-note.rst
+This guide uses the ``Mono.block()`` method from Reactor to subscribe to a ``Publisher`` and block the current
+thread until the ``Publisher`` reaches its terminal state. To learn more about the Reactive Streams initiative, see `Reactive Streams <https://www.reactive-streams.org/>`__.
 
-Connect to a MongoDB Deployment
--------------------------------
+.. important:: Publishers Returned are Cold
 
-.. include:: /includes/connect-section.rst
+   All ``Publisher`` instances returned by the {+driver-short+} methods are cold,
+   which means that the corresponding operation does not happen unless you
+   subscribe to the returned ``Publisher``. We recommend only subscribing to 
+   the returned ``Publisher`` once, because subscribing more than once can lead
+   to errors. 
 
-Ascending Index
----------------
+Sample Application
+~~~~~~~~~~~~~~~~~~
 
-To create a specification for an ascending index, use the
-``Indexes.ascending()`` static helper method.
+.. _java-rs-index-sample:
 
-Single Ascending Index
-~~~~~~~~~~~~~~~~~~~~~~
+.. include:: /includes/usage-examples/sample-index-app-intro.rst
 
-The following example creates an ascending index on the ``name`` field:
+.. literalinclude:: /includes/usage-examples/sample-index-application.java
+   :language: java
+   :copyable:
+   :linenos:
+   :emphasize-lines: 36-38
 
-.. code-block:: java
-
-   collection.createIndex(Indexes.ascending("name"))
-       .subscribe(new PrintToStringSubscriber<String>());
-
-Compound Ascending Index
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-The following example creates an ascending compound index on the
-``stars`` field and the ``name`` field:
-
-.. code-block:: java
-
-   collection.createIndex(Indexes.ascending("stars", "name"))
-       .subscribe(new PrintToStringSubscriber<String>());
-
-To view an alternative way to create a compound index, see the :ref:`Compound
-Indexes <javars-compound-indexes>` section.
-
-Descending Index
-----------------
-
-To create a specification of a descending index, use the
-``Indexes.descending()`` static helper method.
-
-Single Descending Key Index
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The following example creates a descending index on the ``stars`` field:
-
-.. code-block:: java
-
-   collection.createIndex(Indexes.descending("stars"))
-       .subscribe(new PrintToStringSubscriber<String>());
-
-Compound Descending Key Index
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The following example creates a descending compound index on the
-``stars`` field and the ``name`` field:
-
-.. code-block:: java
-
-   collection.createIndex(Indexes.descending("stars", "name"))
-       .subscribe(new PrintToStringSubscriber<String>());
-
-To view an alternative way to create a compound index, see the :ref:`Compound
-Indexes <javars-compound-indexes>` section.
-
-.. _javars-compound-indexes:
-
-Compound Indexes
-----------------
-
-To create a specification for a compound index, use the
-``Indexes.compoundIndex()`` static helper method.
-
-.. note::
-
-   To create a specification for a compound index where all the keys are
-   ascending, you can use the ``ascending()`` method. To create a
-   specification for a compound index where all the keys are descending,
-   you can use the ``descending()`` method.
-
-The following example creates a compound index on the ``stars`` field
-in descending order and the ``name`` field in ascending order:
-
-.. code-block:: java
-
-   collection.createIndex(
-       Indexes.compoundIndex(Indexes.descending("stars"), 
-           Indexes.ascending("name"))
-   ).subscribe(new PrintToStringSubscriber<String>());
-
-Text Indexes
-------------
-
-MongoDB provides text indexes to support text search of string
-content. Text indexes can include any field whose value is a string or
-an array of string elements. To create a specification for a text
-index, use the ``Indexes.text()`` static helper method.
-
-The following example creates a text index on the ``name`` field:
-
-.. code-block:: java
-
-   collection.createIndex(Indexes.text("name"))
-       .subscribe(new PrintToStringSubscriber<String>());
-
-Hashed Index
-------------
-
-To create a specification for a hashed index index, use the
-``Indexes.hashed()`` static helper method.
-
-The following example creates a hashed index on the ``_id`` field:
-
-.. code-block:: java
-
-   collection.createIndex(Indexes.hashed("_id"))
-       .subscribe(new PrintToStringSubscriber<String>());
-
-Geospatial Indexes
+Single Field Index
 ------------------
 
-To support geospatial queries, MongoDB supports various geospatial
-indexes.
+The following example creates an ascending index on the specified field:
 
-2dsphere
-~~~~~~~~
+.. literalinclude:: /includes/usage-examples/index-code-examples.java
+   :start-after: start-single-field
+   :end-before: end-single-field
+   :language: java
+   :copyable:
+   :dedent:
 
-To create a specification for a ``2dsphere`` index, use the 
-``Indexes.geo2dsphere()`` static helper method.
+.. TODO: To learn more about single field indexes, see the :ref:`java-rs-single-field-index` guide.
 
-The following example creates a ``2dsphere`` index on the
-``contact.location`` field:
+Compound Index
+--------------
 
-.. code-block:: java
+The following example creates a compound index on the specified fields:
 
-   collection.createIndex(Indexes.geo2dsphere("contact.location"))
-       .subscribe(new PrintToStringSubscriber<String>());
+.. literalinclude:: /includes/usage-examples/index-code-examples.java
+   :start-after: start-compound
+   :end-before: end-compound
+   :language: java
+   :copyable:
+   :dedent:
 
-IndexOptions
-------------
+.. TODO: To learn more about compound indexes, see the :ref:`java-rs-compound-index`
+.. guide.
 
-In addition to the index specification document, the
-``createIndex()`` method can take an index options document, that
-directs the driver to create unique indexes or partial indexes.
+Multikey Index
+--------------
 
-The driver provides the ``IndexOptions`` class to specify various
-index options.
+The following example creates a multikey index on the specified array-valued field:
 
-Add the following import statement to your code to create an
-``IndexOptions`` instance.
+.. literalinclude:: /includes/usage-examples/index-code-examples.java
+   :start-after: start-multikey
+   :end-before: end-multikey
+   :language: java
+   :copyable:
+   :dedent:
 
-.. code-block:: java
+.. TODO To learn more about multikey indexes, see the :ref:`java-rs-multikey-index`
+.. guide.
 
-   import com.mongodb.client.model.IndexOptions;
+Geospatial Index
+----------------
+
+The following example creates a ``2dsphere`` index on the specified field that contains
+GeoJSON objects:
+
+.. literalinclude:: /includes/usage-examples/index-code-examples.java
+   :start-after: start-geo
+   :end-before: end-geo
+   :language: java
+   :copyable:
+   :dedent:
+
+.. TODO: To learn more about geospatial indexes, see the :ref:`java-rs-geospatial-index`
+.. guide.
 
 Unique Index
-~~~~~~~~~~~~
+------------
 
-The following code specifies the ``unique(true)`` option to create a
-unique index on the ``name`` and ``stars`` fields:
+The following example creates a unique index on the specified field:
 
-.. code-block:: java
+.. literalinclude:: /includes/usage-examples/index-code-examples.java
+   :start-after: start-unique
+   :end-before: end-unique
+   :language: java
+   :copyable:
+   :dedent:
 
-   IndexOptions indexOptions = new IndexOptions().unique(true);
-   collection.createIndex(Indexes.ascending("name", "stars"), indexOptions)
-       .subscribe(new PrintToStringSubscriber<String>());
+.. TODO: To learn more about unique indexes, see the :ref:`java-rs-unique-index`
+.. guide.
 
-Partial Index
-~~~~~~~~~~~~~
+Wildcard Index
+--------------
 
-To create a partial index, include the ``partialFilterExpression`` index
-option.
+The following example creates a wildcard index in the specified collection:
 
-The following example creates a partial index on documents in which the
-value of the ``status`` field is ``"A"``.
+.. literalinclude:: /includes/usage-examples/index-code-examples.java
+   :start-after: start-wildcard
+   :end-before: end-wildcard
+   :language: java
+   :copyable:
+   :dedent:
 
-.. code-block:: java
+.. TODO: To learn more about wildcard indexes, see the :ref:`java-rs-wildcard-index`
+.. guide.
 
-   IndexOptions partialFilterIndexOptions = new IndexOptions()
-       .partialFilterExpression(Filters.exists("contact.email"));
-   collection.createIndex(
-       Indexes.descending("name", "stars"), partialFilterIndexOptions)
-       .subscribe(new PrintToStringSubscriber<String>());
+Clustered Index
+---------------
 
-Get a List of Indexes on a Collection
--------------------------------------
+The following example creates a new collection with a clustered index on the ``_id``
+field:
 
-Use the ``listIndexes()`` method to get a list of indexes. The following code
-lists the indexes on the collection:
+.. literalinclude:: /includes/usage-examples/index-code-examples.java
+   :start-after: start-clustered
+   :end-before: end-clustered
+   :language: java
+   :copyable:
+   :dedent:
 
-.. code-block:: java
+.. TODO: To learn more about wildcard indexes, see the :ref:`java-rs-clustered-index`
+.. guide.
 
-   collection.listIndexes().subscribe(new PrintDocumentSubscriber());
+Atlas Search Index Management
+-----------------------------
 
-To learn about other index options, see :manual:`Index Properties
-</core/indexes/index-properties/>` in the Server manual.
+The following sections contain code examples that describe how to manage Atlas Search
+indexes.
+
+.. TODO: To learn more about Atlas Search indexes, see the :ref:`java-rs-atlas-search-index`
+.. guide.
+
+Create Search Index
+~~~~~~~~~~~~~~~~~~~
+
+The following example creates an Atlas Search index on the specified field:
+
+.. literalinclude:: /includes/usage-examples/index-code-examples.java
+   :start-after: start-search-create
+   :end-before: end-search-create
+   :language: java
+   :copyable:
+   :dedent:
+
+.. TODO: To learn more about creating search indexes, see the :ref:`java-rs-atlas-search-index-create`
+.. guide.
+
+List Search Indexes
+~~~~~~~~~~~~~~~~~~~
+
+The following example prints a list of Atlas Search indexes in the specified collection:
+
+.. literalinclude:: /includes/usage-examples/index-code-examples.java
+   :start-after: start-search-list
+   :end-before: end-search-list
+   :language: java
+   :copyable:
+   :dedent:
+
+.. TODO: To learn more about listing search indexes, see the :ref:`java-rs-atlas-search-index-list`
+.. guide.
+
+Update Search Indexes
+~~~~~~~~~~~~~~~~~~~~~
+
+The following example updates an existing Atlas Search index with the specified
+new index definition:
+
+.. literalinclude:: /includes/usage-examples/index-code-examples.java
+   :start-after: start-search-update
+   :end-before: end-search-update
+   :language: java
+   :copyable:
+   :dedent:
+
+.. TODO: To learn more about updating search indexes, see the :ref:`java-rs-atlas-search-index-update`
+.. guide.
+
+Delete Search Indexes
+~~~~~~~~~~~~~~~~~~~~~
+
+The following example deletes an Atlas Search index with the specified name:
+
+.. literalinclude:: /includes/usage-examples/index-code-examples.java
+   :start-after: start-search-delete
+   :end-before: end-search-delete
+   :language: java
+   :copyable:
+   :dedent:
+
+.. TODO: To learn more about deleting search indexes, see the :ref:`java-rs-atlas-search-index-drop`
+.. guide.
+
+Text Index
+----------
+
+The following example creates a text index on the specified string field:
+
+.. literalinclude:: /includes/usage-examples/index-code-examples.java
+   :start-after: start-text
+   :end-before: end-text
+   :language: java
+   :copyable:
+   :dedent:
+
+.. TODO: To learn more about text indexes, see the :ref:`java-rs-text-index`
+.. guide.
+
+Delete an Index
+---------------
+
+The following example deletes an index with the specified name:
+
+.. literalinclude:: /includes/usage-examples/index-code-examples.java
+   :start-after: start-remove
+   :end-before: end-remove
+   :language: java
+   :copyable:
+   :dedent:
+
+.. TODO: To learn more about removing indexes, see :ref:`java-rs-indexes-remove`
+.. in the Work with Indexes guide.
