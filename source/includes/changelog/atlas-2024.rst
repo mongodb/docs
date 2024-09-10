@@ -44,8 +44,16 @@
 17 April 2024 Release
 ~~~~~~~~~~~~~~~~~~~~~
 
+- To upgrade a replica set to a multi-sharded {+cluster+}, you must upgrade
+  to a **single** shard {+cluster+} first, restart your application and
+  **reconnect** to the {+cluster+}, and then add additional shards.
+  To learn more, see :ref:`scale-cluster-sharding`.
+
 - Adds the Migration Hub to |service|. The Migration Hub displays
   available migration resources and the status of migrations in progress.
+  To learn more, see :ref:`monitor-migrations`.
+
+
 
 .. _atlas_2024_02_28:
 
