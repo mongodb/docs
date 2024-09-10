@@ -29,3 +29,9 @@
   - :dbcommand:`dropDatabase`
   - ``transitionToDedicatedConfigServer``
   - ``transitionFromDedicatedConfigServer``
+
+- Index builds that occur while |uc| is in progress might silently fail.
+
+  - Do not create indexes while |uc| is in progress.
+
+  - Do not call |uc| if there are ongoing index builds.

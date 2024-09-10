@@ -30,3 +30,9 @@
   - :dbcommand:`dropDatabase`
   - ``transitionToDedicatedConfigServer``
   - ``transitionFromDedicatedConfigServer``
+
+- Index builds that occur while |mc| is in progress might silently fail.
+
+  - Do not create indexes while |mc| is in progress.
+
+  - Do not call |mc| if there are ongoing index builds.
