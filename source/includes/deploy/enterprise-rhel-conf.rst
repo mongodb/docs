@@ -8,12 +8,12 @@ that you can install MongoDB Enterprise directly using ``yum``:
    .. tab:: 8
       :tabid: rhel8
 
-      .. include:: /includes/deploy/code/ent-rhel8-conf
+      .. include:: /includes/deploy/code/enterprise-rhel8-conf
 
    .. tab:: 7
       :tabid: rhel7
 
-      .. include:: /includes/deploy/code/ent-rhel7-conf
+      .. include:: /includes/deploy/code/enterprise-rhel7-conf
 
 
 .. note::
