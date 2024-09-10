@@ -1,58 +1,291 @@
-.. _javars-bulk-writes:
+.. _java-rs-bulk-write:
 
 =====================
 Bulk Write Operations
 =====================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
 
 .. facet::
    :name: genre
    :values: reference
 
 .. meta::
-   :keywords: code example, multiple changes
+   :keywords: insert, update, replace, code example
 
-Starting in v2.6, MongoDB supports bulk write commands
-for insert, update, and delete operations in a way that allows the
-driver to implement the correct semantics for ``BulkWriteResult`` and
-``BulkWriteException``.
+Overview
+--------
+In this guide, you can learn how to perform multiple write operations in a single database call by using **bulk write operations**.
 
-There are two types of bulk operations, ordered and unordered bulk
-operations:
+Consider a scenario in which you want to insert a document into a collection,
+update multiple other documents, then delete a document. If you use
+individual methods, each operation requires its own database call. This guide
+shows you how to use bulk write operations to reduce the number of calls to the database.
 
-1. Ordered bulk operations execute all the operations in order and
-   error out on the first write error.
-#. Unordered bulk operations execute all the operations and report any
-   the errors. Unordered bulk operations do not guarantee an order of
-   execution.
+Sample Data
+~~~~~~~~~~~
 
-.. include:: /includes/subscriber-note.rst
+The examples in this guide use the ``sample_restaurants.restaurants`` collection
+from the :atlas:`Atlas sample datasets </sample-data>`. To learn how to create a
+free MongoDB Atlas cluster and load the sample datasets, see the
+:ref:`<java-rs-getting-started>` tutorial.
 
-The following code provides examples using ordered and unordered
-operations:
+.. include:: /includes/reactor-note.rst
 
-.. code-block:: java
+Define the Write Operations
+---------------------------
 
-   // Ordered bulk operation - order is guaranteed
-   collection.bulkWrite(
-       Arrays.asList(new InsertOneModel<>(new Document("_id", 4)),
-           new InsertOneModel<>(new Document("_id", 5)),
-           new InsertOneModel<>(new Document("_id", 6)),
-           new UpdateOneModel<>(new Document("_id", 1),
-                                new Document("$set", new Document("x", 2))),
-           new DeleteOneModel<>(new Document("_id", 2)),
-           new ReplaceOneModel<>(new Document("_id", 3),
-                                 new Document("_id", 3).append("x", 4))))
-   .subscribe(new ObservableSubscriber<BulkWriteResult>());
-    
-   // Unordered bulk operation - no guarantee of order of operation
-   collection.bulkWrite(
-       Arrays.asList(new InsertOneModel<>(new Document("_id", 4)),
-           new InsertOneModel<>(new Document("_id", 5)),
-           new InsertOneModel<>(new Document("_id", 6)),
-           new UpdateOneModel<>(new Document("_id", 1),
-                                new Document("$set", new Document("x", 2))),
-           new DeleteOneModel<>(new Document("_id", 2)),
-           new ReplaceOneModel<>(new Document("_id", 3),
-                                 new Document("_id", 3).append("x", 4))),
-       new BulkWriteOptions().ordered(false))
-   .subscribe(new ObservableSubscriber<BulkWriteResult>());
+For each write operation you want to perform, create an instance of one of
+the following classes:
+
+- ``InsertOneModel``
+- ``UpdateOneModel``
+- ``UpdateManyModel``
+- ``ReplaceOneModel``
+- ``DeleteOneModel``
+- ``DeleteManyModel``
+
+Then, pass a list of these instances to the ``bulkWrite()`` method.
+
+The following sections show how to create and use instances of the preceding classes.
+
+Insert Operations
+~~~~~~~~~~~~~~~~~
+
+To perform an insert operation, create an instance of ``InsertOneModel`` and
+pass in the document you want to insert.
+
+The following example creates an instance of ``InsertOneModel``:
+
+.. literalinclude:: /includes/write/bulk-write.java
+   :start-after: start-bulk-insert-one
+   :end-before: end-bulk-insert-one
+   :language: java
+   :copyable:
+   :dedent:
+
+To insert multiple documents, create an instance of ``InsertOneModel`` for each document.
+
+Update Operations
+~~~~~~~~~~~~~~~~~
+
+To update a document, create an instance of ``UpdateOneModel`` and pass in
+the following arguments:
+
+- **Query filter** that specifies the criteria used to match documents in your collection.
+- **Update operation** you want to perform. For more information about update
+  operations, see the :manual:`Field Update Operators
+  </reference/operator/update-field/>` guide in the {+mdb-server+} manual.
+
+``UpdateOneModel`` updates *the first* document that matches your query filter.
+
+The following example creates an instance of ``UpdateOneModel``:
+
+.. literalinclude:: /includes/write/bulk-write.java
+   :start-after: start-bulk-update-one
+   :end-before: end-bulk-update-one
+   :language: java
+   :copyable:
+   :dedent:
+
+To update multiple documents, create an instance of ``UpdateManyModel`` and pass in
+the same arguments. ``UpdateManyModel`` updates *all* documents that match your query
+filter.
+
+The following example creates an instance of ``UpdateManyModel``:
+
+.. literalinclude:: /includes/write/bulk-write.java
+   :start-after: start-bulk-update-many
+   :end-before: end-bulk-update-many
+   :language: java
+   :copyable:
+   :dedent:
+
+Replace Operations
+~~~~~~~~~~~~~~~~~~
+
+A replace operation removes all fields and values of a specified document, aside from
+the ``_id`` field, and replaces them with new ones. To perform a replace operation, create
+an instance of ``ReplaceOneModel`` and pass in a query filter and the fields and values
+you want to store in the matching document.
+
+The following example creates an instance of ``ReplaceOneModel``:
+
+.. literalinclude:: /includes/write/bulk-write.java
+   :start-after: start-bulk-replace-one
+   :end-before: end-bulk-replace-one
+   :language: java
+   :copyable:
+   :dedent:
+
+To replace multiple documents, create an instance of ``ReplaceOneModel`` for each document.
+
+Delete Operations
+~~~~~~~~~~~~~~~~~
+
+To delete a document, create an instance of ``DeleteOneModel`` and pass in a
+query filter specifying the document you want to delete. ``DeleteOneModel`` removes
+only *the first* document that matches your query filter.
+
+The following example creates an instance of ``DeleteOneModel``:
+
+.. literalinclude:: /includes/write/bulk-write.java
+   :start-after: start-bulk-delete-one
+   :end-before: end-bulk-delete-one
+   :language: java
+   :copyable:
+   :dedent:
+
+To delete multiple documents, create an instance of ``DeleteManyModel`` and pass in a
+query filter specifying the documents you want to delete. ``DeleteManyModel`` removes
+*all* documents that match your query filter.
+
+The following example creates an instance of ``DeleteManyModel``:
+
+.. literalinclude:: /includes/write/bulk-write.java
+   :start-after: start-bulk-delete-many
+   :end-before: end-bulk-delete-many
+   :language: java
+   :copyable:
+   :dedent:
+
+Call the ``bulkWrite()`` Method
+--------------------------------
+
+After you define a class instance for each operation you want to perform,
+pass a list of these instances to the ``bulkWrite()`` method.
+By default, the method runs the operations in the order
+they're defined in the list.
+
+The following example performs multiple write operations by using the
+``bulkWrite()`` method:
+
+.. io-code-block::
+   :copyable: 
+
+   .. input:: /includes/write/bulk-write.java
+      :start-after: start-bulk-write-mixed
+      :end-before: end-bulk-write-mixed
+      :language: java
+      :dedent:
+
+   .. output::
+      
+      AcknowledgedBulkWriteResult{insertedCount=2, matchedCount=2, removedCount=1, modifiedCount=2, upserts=[], inserts=[BulkWriteInsert{index=0, id=BsonObjectId{value=66a7e0a6c08025218b657208}}, BulkWriteInsert{index=1, id=BsonObjectId{value=66a7e0a6c08025218b657209}}]}
+
+If any of the write operations fail, the {+driver-short+} signals a
+``MongoBulkWriteException`` and does not perform any further individual operations.
+``MongoBulkWriteException`` includes a ``BulkWriteError`` that can be accessed by using the
+``MongoBulkWriteException.getWriteErrors()`` method, which provides details of the
+individual failure.
+
+.. note::
+
+   When the {+driver-short+} runs a bulk operation, it uses the ``writeConcern`` of the
+   collection on which the operation is running. The driver reports all write
+   concern errors after attempting all operations, regardless of execution order. 
+
+Customize Bulk Write Operations
+-------------------------------
+
+The ``BulkWriteOptions`` class contains methods that modify
+the behavior of the ``bulkWrite()`` method. To use the ``BulkWriteOptions``
+class, construct a new instance of the class, then call one or more of its methods
+to modify the write operation. You can chain these method calls together.
+To modify the behavior of the write operation, pass the class instance as the last
+argument to the ``bulkWrite()`` method.
+
+You can use the following methods in the ``BulkWriteOptions`` class
+to modify a write method. All methods are optional.
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``bypassDocumentValidation(Boolean bypassDocumentValidation)``
+     - | Specifies whether the bulk write operation bypasses document validation. This lets you 
+         perform write operations on documents that don't meet the schema validation requirements, if any 
+         exist. For more information about schema validation, see :manual:`Schema
+         Validation </core/schema-validation/#schema-validation>` in the MongoDB
+         Server manual.
+
+   * - ``comment(Bson comment)``
+     - | Attaches a ``Bson`` comment to the operation. For more information, see the :manual:`insert command
+         fields </reference/command/insert/#command-fields>` guide in the
+         MongoDB Server manual.  
+
+   * - ``comment(String comment)``
+     - | Attaches a ``String`` comment to the operation. For more information, see the :manual:`insert command
+         fields </reference/command/insert/#command-fields>` guide in the
+         MongoDB Server manual.  
+
+   * - ``let(Bson variables)``
+     - | Specifies a map of parameter names and values. Values must be constant or closed
+         expressions that don't reference document fields. For more information,
+         see the :manual:`let statement
+         </reference/command/update/#std-label-update-let-syntax>` in the
+         MongoDB Server manual.
+
+   * - ``ordered(Boolean ordered)``
+     - | If set to ``True``, the driver performs the individual operations in the order
+         provided. If an individual operation fails, the driver will not execute any
+         subsequent individual operations.
+       | Defaults to ``True``. 
+
+The following example calls the ``bulkWrite()`` method from the preceding
+example but sets the ``ordered`` option to ``False``:
+
+.. io-code-block::
+   :copyable: 
+
+   .. input:: /includes/write/bulk-write.java
+      :start-after: start-bulk-write-unordered
+      :end-before: end-bulk-write-unordered
+      :language: java
+      :dedent:
+
+   .. output::
+
+      AcknowledgedBulkWriteResult{insertedCount=2, matchedCount=2, removedCount=1, modifiedCount=2, upserts=[], inserts=[BulkWriteInsert{index=0, id=BsonObjectId{value=66a7e03cce430c5854b6caf9}}, BulkWriteInsert{index=1, id=BsonObjectId{value=66a7e03cce430c5854b6cafa}}]}
+
+If any of the write operations in an unordered bulk write fail, the {+driver-short+}
+reports the errors only after attempting all operations.
+
+.. note::
+
+   Unordered bulk operations do not guarantee order of execution. The order can
+   differ from the way you list them to optimize the runtime.
+
+Additional Information
+----------------------
+
+To learn how to perform individual write operations, see the following guides:
+
+- :ref:`java-rs-write-insert`
+- :ref:`java-rs-write-update-docs`
+- :ref:`java-rs-write-replace`
+- :ref:`java-rs-write-delete-docs`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `bulkWrite() <{+api+}/mongodb-driver-reactivestreams/com/mongodb/reactivestreams/client/MongoCollection.html#bulkWrite(com.mongodb.reactivestreams.client.ClientSession,java.util.List)>`__
+- `InsertOneModel <{+api+}/mongodb-driver-core/com/mongodb/client/model/InsertOneModel.html>`__
+- `UpdateOneModel <{+api+}/mongodb-driver-core/com/mongodb/client/model/UpdateOneModel.html>`__
+- `UpdateManyModel <{+api+}/mongodb-driver-core/com/mongodb/client/model/UpdateManyModel.html>`__
+- `ReplaceOneModel <{+api+}/mongodb-driver-core/com/mongodb/client/model/ReplaceOneModel.html>`__
+- `DeleteOneModel <{+api+}/mongodb-driver-core/com/mongodb/client/model/DeleteOneModel.html>`__
+- `DeleteManyModel <{+api+}/mongodb-driver-core/com/mongodb/client/model/DeleteManyModel.html>`__
+- `BulkWriteResult <{+api+}/mongodb-driver-core/com/mongodb/bulk/BulkWriteResult.html>`__
+- `BulkWriteError <{+api+}/mongodb-driver-core/com/mongodb/bulk/BulkWriteError.html>`__
+- `MongoBulkWriteException <{+api+}/mongodb-driver-core/com/mongodb/MongoBulkWriteException.html>`__
