@@ -235,6 +235,36 @@ output of :method:`db.currentOp()` or in the data collected by the
 
 .. include:: /includes/time-series-ttl-deletes.rst
 
+.. _ttl-monitor-deletion-process:
+
+Deletion Process
+````````````````
+
+The TTL background deletion process checks each TTL index for expired
+documents. For each TTL index, the background process deletes documents
+until one of the following conditions is met:
+
+- The process deletes 50000 documents from the current index.
+- The process spends one second deleting documents from the current
+  index.
+- All expired documents are deleted from the current index. 
+
+Then, the process moves on to the next index. After the process goes
+through each TTL index once, the current sub-pass is complete and a new
+sub-pass begins to check for remaining expired documents. A pass is
+complete when the TTL monitor has deleted all possible candidate
+documents from all TTL indexes.
+
+Additionally, the process stops the current deletion loop every 60
+seconds to prevent spending too much time on a single large delete. When
+this happens, the current sub-pass ends and a new sub-pass begins.
+
+Passes and sub-passes are tracked in the
+:serverstatus:`metrics.ttl.passes` and
+:serverstatus:`metrics.ttl.subPasses` server status metrics,
+respectively.
+
+
 Timing of the Delete Operation
 ``````````````````````````````
 
