@@ -7,9 +7,6 @@
 ## JIRA
 
 
-## BUILD LOG
-
-
 ## SELF-REVIEW CHECKLIST
 
 - [ ] Does each file have 3-5 taxonomy facet tags?
