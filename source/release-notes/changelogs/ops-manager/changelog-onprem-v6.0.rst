@@ -354,7 +354,7 @@
    To improve user experience, |onprem| server 6.0.13 updates the |onprem| systemd unit file from 
    ``after=network.target`` to ``after=network-online.target``. This prevents reboot failures caused 
    by attempting to start :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` after 
-   the network management stack has started, but before verifying that the network connectivity has 
+   the network management stack has started, but before verifying that network connectivity has 
    been established.
 
 - Updates the {+mdbagent+} to :ref:`12.0.21.7698 
