@@ -454,3 +454,124 @@
      - Gauge that indicates the number of operations currently queued
        due to :manual:`locks </faq/concurrency>` that |service|
        holds on reads, writes, or combined reads and writes.
+
+   * - | ``AVG_OBJECT_SIZE``
+       | (dbstats.avg.object.size)
+     - Gauge
+     - Average size of each document in bytes. This is the
+       :data:`~dbStats.dataSize` divided by the number of documents. The
+       :ref:`scale argument <scale-argument>` does not affect the
+       ``avgObjSize`` value.
+
+   * - | ``COLLECTIONS``
+       | (mongodb.atlas.dbstats.collections)
+     - Gauge
+     - Number of collections in the database.
+
+   * - | ``DATA_SIZE``
+       | (mongodb.atlas.dbstats.data.size)
+     - Gauge
+     - Total size of the uncompressed data held in the database.
+
+   * - | ``FILE_SIZE``
+       | (mongodb.atlas.dbstats.file.size)
+     - Gauge
+     - Total size of all disk space in use on the filesystem where MongoDB
+       stores data.
+
+   * - | ``INDEX_SIZE``
+       | (mongodb.atlas.dbstats.index.size)
+     - Gauge
+     - Sum of the disk space allocated to all indexes in the database, 
+       including free index space.
+
+   * - | ``INDEXES``
+       | (mongodb.atlas.dbstats.indexes)
+     - Gauge
+     - Total number of indexes across all collections in the database.
+
+   * - | ``NUM_EXTENTS``
+       | (mongodb.atlas.dbstats.num.extents)
+     - Gauge
+     - Contains a count of the number of extents in the database across all collections. 
+
+   * - | ``OBJECTS``
+       | (mongodb.atlas.dbstats.objects)
+     - Gauge
+     - Number of objects (specifically, :term:`documents <document>`) in the
+       database across all collections.
+
+   * - | ``STORAGE_SIZE``
+       | (mongodb.atlas.dbstats.storage.size)
+     - Gauge
+     - Sum of the disk space allocated to all collections in the database for
+       :term:`document` storage, including free space.
+
+   * - | ``VIEWS``
+       | (mongodb.atlas.dbstats.views)
+     - Gauge
+     - Number of :manual:`views </core/views/>` in the database.
+
+   * - | ``COLLECTION_READ_LATENCY``
+       | (mongodb.atlas.latencyStats.read.sum)
+       | ``COLLECTION_WRITE_LATENCY``
+       | (mongodb.atlas.latencyStats.write.sum)
+       | ``COLLECTION_COMMANDS_LATENCY``
+       | (mongodb.atlas.latencyStats.write.sum)
+       | ``COLLECTION_TOTAL_LATENCY``
+       | (mongodb.atlas.latencyStats.total.sum)
+     - Counter
+     - A 64-bit integer giving the latency in microseconds
+       for read, write, command, and total requests.
+
+   * - | ``COLLECTION_READ_OPS``
+       | (mongodb.atlas.latencyStats.read.count)
+       | ``COLLECTION_WRITE_OPS``
+       | (mongodb.atlas.latencyStats.write.count)
+       | ``COLLECTION_COMMANDS_OPS``
+       | (mongodb.atlas.latencyStats.write.count)
+       | ``COLLECTION_TOTAL_OPS``
+       | (mongodb.atlas.latencyStats.total.count)
+     - Counter
+     - A 64-bit integer giving the number of operations 
+       performed on the collection since startup for read, 
+       write, command, and total requests.
+
+   * - | ``READ_HISTOGRAM_P50``
+       | (mongodb.atlas.latencyStats.read.p50)
+       | ``WRITE_HISTOGRAM_P50``
+       | (mongodb.atlas.latencyStats.write.p50)
+       | ``COMMANDS_HISTOGRAM_P50``
+       | (mongodb.atlas.latencyStats.commands.p50)
+       | ``TOTAL_HISTOGRAM_P50``
+       | (mongodb.atlas.latencyStats.total.p50)
+     - Counter
+     - Number of operations on the 50th percentile in the :manual:`latency histogram 
+       </reference/operator/aggregation/collStats/#latencystats-document>`
+       for read, write, command, and total requests.
+
+   * - | ``READ_HISTOGRAM_P95``
+       | (mongodb.atlas.latencyStats.read.p95)
+       | ``WRITE_HISTOGRAM_P95``
+       | (mongodb.atlas.latencyStats.write.p95)
+       | ``COMMANDS_HISTOGRAM_P95``
+       | (mongodb.atlas.latencyStats.commands.p95)
+       | ``TOTAL_HISTOGRAM_P95``
+       | (mongodb.atlas.latencyStats.total.p95)
+     - Counter
+     - Number of operations on the 95th percentile in the :manual:`latency histogram 
+       </reference/operator/aggregation/collStats/#latencystats-document>`
+       for read, write, command, and total requests.
+
+   * - | ``READ_HISTOGRAM_P99``
+       | (mongodb.atlas.latencyStats.read.p99)
+       | ``WRITE_HISTOGRAM_P99``
+       | (mongodb.atlas.latencyStats.write.p99)
+       | ``COMMANDS_HISTOGRAM_P99``
+       | (mongodb.atlas.latencyStats.commands.p99)
+       | ``TOTAL_HISTOGRAM_P99``
+       | (mongodb.atlas.latencyStats.total.p99)
+     - Counter
+     - Number of operations on the 99th percentile in the :manual:`latency histogram 
+       </reference/operator/aggregation/collStats/#latencystats-document>`
+       for read, write, command, and total requests.
