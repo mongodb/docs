@@ -10,10 +10,10 @@
 
       .. include:: /includes/fact-avs-quick-start-intro.rst
 
-      a. Create a file named ``atlas_vector_search_quick_start.go.php``.
+      a. Create a file named ``atlas_vector_search_quick_start.php``.
 
       #. Copy and paste the following sample query into the
-         ``atlas_vector_search_quick_start.go.php`` file:
+         ``atlas_vector_search_quick_start.php`` file:
 
          .. literalinclude:: /includes/avs-examples/pipeline-stage-examples/basic-query.php
             :language: php
@@ -38,7 +38,7 @@
          .. input::
             :language: bash
 
-            php atlas_vector_search_quick_start.go.php
+            php atlas_vector_search_quick_start.php
 
          .. output:: /includes/avs-examples/pipeline-stage-examples/basic-query-nodejs-output.js
             :language: js
