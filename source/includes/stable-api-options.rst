@@ -13,10 +13,16 @@
           
    * - |strict|
      - boolean 
-     - If ``true``, using a command that is not
-       part of the declared API version returns an
-       :ref:`APIStrictError <api-strict-resp>` error. If you specify
-       |strict|, you must also specify |apiVersion|.  
+     - If ``true``:
+          - Using a command that is not part of the declared API 
+            version returns an :ref:`APIStrictError <api-strict-resp>` 
+            error.
+
+          - Indexes that are :ref:`unsupported<create-indexes-stable-api>` 
+            by the Stable API are ignored by the 
+            :ref:`query planner<query-plans-query-optimization>`.
+            
+       If you specify |strict|, you must also specify |apiVersion|.  
 
        If not specified, defaults to ``false``. 
 
