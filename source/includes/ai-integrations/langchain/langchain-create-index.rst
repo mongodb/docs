@@ -1,61 +1,40 @@
-.. procedure:: 
-   :style: normal 
+To enable vector search queries on your vector store,
+create an {+avs+} index on the ``langchain_db.test`` collection.
 
-   .. include:: /includes/nav/steps-db-deployments-page.rst
+In your notebook, run the following code to create
+an index of the :ref:`vectorSearch <avs-types-vector-search>` type
+that specifies indexing the following fields:
 
-   .. include:: /includes/nav/steps-atlas-search.rst
+- ``embedding`` field as the :ref:`vector <avs-types-vector-search>` type. The ``embedding`` field contains the embeddings
+  created using OpenAI's ``text-embedding-ada-002`` embedding model. The index definition specifies ``1536`` vector dimensions 
+  and measures similarity using ``cosine``.
+- ``page`` field as the :ref:`filter <avs-types-vector-search>` type for pre-filtering data by the page number in the PDF.
 
-   .. step:: Define the {+avs+} index.
+.. code-block:: python
+   :copyable: true 
+   :linenos: 
 
-      a. Click :guilabel:`Create Search Index`.
-      #. Under :guilabel:`{+avs+}`, select :guilabel:`JSON Editor`  and
-         then click :guilabel:`Next`.
-      #. In the :guilabel:`Database and Collection` section, find the 
-         ``langchain_db`` database, and select the ``test``
-         collection.
-      #. In the :guilabel:`Index Name` field, enter
-         ``vector_index``. 
-      #. Replace the default definition with the following index
-         definition and then click :guilabel:`Next`.
-
-         This index definition specifies indexing the following fields
-         in an index of the :ref:`vectorSearch
-         <avs-types-vector-search>` type: 
-         
-         - ``embedding`` field as the :ref:`vector
-           <avs-types-vector-search>` type. The ``embedding`` field
-           contains the embeddings created using OpenAI's
-           ``text-embedding-ada-002`` embedding model. The index
-           definition specifies ``1536`` vector dimensions and
-           measures similarity using ``cosine``.
-         - ``page`` field as the :ref:`filter <avs-types-vector-search>`
-           type for pre-filtering data by the page number in the PDF.
-
-         .. code-block::
-            :copyable: true 
-
+   # Create your index model, then create the search index
+   search_index_model = SearchIndexModel(
+      definition={
+         "fields": [
             {
-               "fields":[
-                  {
-                     "type": "vector",
-                     "path": "embedding",
-                     "numDimensions": 1536,
-                     "similarity": "cosine"
-                  },
-                  {
-                     "type": "filter",
-                     "path": "page"
-                  }
-               ]
+            "type": "vector",
+            "path": "embedding",
+            "numDimensions": 1536,
+            "similarity": "cosine"
+            },
+            {
+            "type": "filter",
+            "path": "page"
             }
+         ]
+      },
+      name="vector_index",
+      type="vectorSearch"
+   )
 
-   .. step:: Review the index definition and then click :guilabel:`Create Search Index`.
+   atlas_collection.create_search_index(model=search_index_model)
 
-      A modal window displays to let you know that your index is building.
-
-   .. step::  Click :guilabel:`Close` to close the :guilabel:`You're All Set!` modal window and wait for the index to finish building. 
-
-      The index should take about one minute to build. While it
-      builds, the :guilabel:`Status` column reads :guilabel:`Initial
-      Sync`. When it finishes building, the :guilabel:`Status` column
-      reads :guilabel:`Active`. 
+The index should take about one minute to build. While it builds, the index is in an :ref:`initial sync <troubleshoot-initial-sync>`
+state. When it finishes building, you can start querying the data in your collection.

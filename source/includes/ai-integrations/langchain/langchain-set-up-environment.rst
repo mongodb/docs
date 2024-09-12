@@ -7,7 +7,7 @@
 
       .. code-block:: python
 
-         %pip install --quiet langchain langchain-mongodb langchain-openai pymongo pypdf
+         %pip install --upgrade --quiet langchain langchain-community langchain-core langchain-mongodb langchain-openai pymongo pypdf
 
       Then, run the following code to import the required packages:
 
@@ -22,6 +22,7 @@
          from langchain.prompts import PromptTemplate
          from langchain.text_splitter import RecursiveCharacterTextSplitter
          from pymongo import MongoClient
+         from pymongo.operations import SearchIndexModel
 
    .. step:: Define environmental variables.
 
