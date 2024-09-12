@@ -8,6 +8,7 @@ Use the following database commands to manage {+fts+} indexes.
 
 .. important::
 
-   The following commands can only be run on deployments hosted on
-   :atlas:`MongoDB Atlas </>`, and require an Atlas cluster tier of at
-   least M10.
+   This command can only be run on a deployment hosted on
+   :atlas:`MongoDB Atlas </>`, and is **not supported** in 
+   :ref:`serverless instances <atlas-choose-serverless>`.
+
