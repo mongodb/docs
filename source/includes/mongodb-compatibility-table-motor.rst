@@ -51,5 +51,3 @@
      - ✓
      - ✓
      - ✓
-
-Motor is incompatible with MongoDB versions earlier than 3.6.
