@@ -14,6 +14,7 @@
       .. code-block:: python
 
          import getpass, os, pymongo, pprint
+         from pymongo.operations import SearchIndexModel
          from llama_index.core import SimpleDirectoryReader, VectorStoreIndex, StorageContext
          from llama_index.core.settings import Settings
          from llama_index.core.retrievers import VectorIndexRetriever

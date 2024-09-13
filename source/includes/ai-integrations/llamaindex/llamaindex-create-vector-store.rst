@@ -64,14 +64,14 @@
       .. code-block:: python
 
          # Connect to your Atlas cluster
-         mongodb_client = pymongo.MongoClient(ATLAS_CONNECTION_STRING)
+         mongo_client = pymongo.MongoClient(ATLAS_CONNECTION_STRING)
 
          # Instantiate the vector store
          atlas_vector_store = MongoDBAtlasVectorSearch(
-             mongodb_client, 
+             mongo_client,
              db_name = "llamaindex_db", 
              collection_name = "test",
-             index_name = "vector_index"
+             vector_index_name = "vector_index"
          ) 
          vector_store_context = StorageContext.from_defaults(vector_store=atlas_vector_store)
 
