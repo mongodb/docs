@@ -21,6 +21,8 @@
             from semantic_kernel.memory.semantic_text_memory import SemanticTextMemory
             from semantic_kernel.prompt_template.input_variable import InputVariable
             from semantic_kernel.prompt_template.prompt_template_config import PromptTemplateConfig
+            from pymongo import MongoClient
+            from pymongo.operations import SearchIndexModel
 
    .. step:: Define environmental variables.
 
