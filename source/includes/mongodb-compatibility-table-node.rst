@@ -17,7 +17,21 @@
      - MongoDB 3.0
      - MongoDB 2.6
 
-   * - 6.0 to 6.9
+   * - 6.9
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓ [#server-3.6-deprecated]_
+     -
+     -
+     -
+     -
+
+   * - 6.0 to 6.8
      - ⊛
      - ✓
      - ✓
@@ -214,3 +228,4 @@
      - ✓
 
 .. [#unified-topology] When using Node.js Driver version 3.7, you must set the ``useUnifiedTopology`` flag to ``true`` for certain features.
+.. [#server-3.6-deprecated] Support for MongoDB 3.6 is deprecated in {+driver-short+} v6.9.
