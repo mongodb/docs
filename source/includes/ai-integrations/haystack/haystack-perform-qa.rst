@@ -33,7 +33,7 @@ in |service|.
                {{ doc.content }}
            {% endfor %}
 
-           \Query: {{query}}
+           \nQuery: {{query}}
            \nAnswer:
        """
 

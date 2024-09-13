@@ -22,6 +22,8 @@
             from haystack.components.embedders import OpenAITextEmbedder, OpenAIDocumentEmbedder
             from haystack_integrations.document_stores.mongodb_atlas import MongoDBAtlasDocumentStore
             from haystack_integrations.components.retrievers.mongodb_atlas import MongoDBAtlasEmbeddingRetriever
+            from pymongo import MongoClient
+            from pymongo.operations import SearchIndexModel
                                     
    .. step:: Define environmental variables.
 

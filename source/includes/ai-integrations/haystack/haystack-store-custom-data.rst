@@ -66,7 +66,7 @@
             Calculating embeddings: 100%|██████████| 1/1 [00:00<00:00,  4.16it/s]
             {'doc_embedder': {'meta': {'model': 'text-embedding-ada-002',
                'usage': {'prompt_tokens': 32, 'total_tokens': 32}}},
-             'doc_writer': {'documents_written': 0}}
+             'doc_writer': {'documents_written': 3}}
 
       .. tip:: 
 
