@@ -1,9 +1,13 @@
 Architecture
 ````````````
 
-When you use a Local Key Provider, your application retrieves your
-{+cmk-long+} from the filesystem of the computer it runs on. The
-following diagram describes the architecture of a {+qe+}-enabled
+When you use a Local Key Provider for testing, your application
+retrieves your {+cmk-long+} from the computer it runs on. To
+use a Local Key Provider in production, use an approach that doesn't store the
+key on the file system. For example, you can inject the key into the client
+process via a sidecar.
+
+The following diagram describes the architecture of a {+qe+}-enabled
 application using a Local Key Provider.
 
 .. image:: /images/CSFLE_Data_Key_Local.png
