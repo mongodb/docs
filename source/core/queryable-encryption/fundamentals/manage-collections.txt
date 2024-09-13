@@ -27,9 +27,10 @@ field you choose to encrypt:
 - Requires additional storage, because MongoDB maintains an index of
   encrypted fields to improve query performance.
 
-This section lists the writes per operation and explains how to compact
-encrypted collection indexes so that you can minimize write and storage
-costs. If you want to encrypt fields and configure them for querying, see :ref:`<qe-fundamentals-encrypt-query>`.
+This section summarizes the storage and write impact of encrypting collections,
+and explains how to compact encrypted collection indexes to minimize these
+costs. If you want to encrypt fields and configure them for querying, see
+:ref:`<qe-fundamentals-encrypt-query>`.
 
 Overview
 --------
@@ -45,7 +46,7 @@ this functionality, {+qe+} uses three data structures:
 - Two metadata collections
 - A field in every document in the encrypted collection called ``__safeContent__``
 
-.. important::
+.. warning::
 
    It is critical that these data structures are not modified or
    deleted, or query results will be incorrect.
@@ -75,33 +76,29 @@ MongoDB updates the metadata collections to maintain an index
 that enables querying. The field becomes an "indexed field". This
 comes at a cost in storage and write speed for every such field.
 
-Dropping Encrypted Collections
-------------------------------
-
-When you drop an encrypted collection, drop the associated
-metadata collections ``enxcol_.<collectionName>.esc`` and
-``enxcol_.<collectionName>.ecoc`` immediately afterwards. Otherwise,
-re-creating the collection with the same name puts the metadata
-collections in a conflicted state that consumes excess storage space and
-degrades CRUD performance.
-
-Storage Costs
--------------
-
-Storage and write costs increase based on the number of indexed fields
-per document. Before any metadata compaction, the ``ESC`` and ``ECOC`` contain
-one metadata document for every field/value pair of every indexed field, so
-indexing one encrypted field/value pair across 1000 documents requires 1000
-documents in the ``ESC`` and 1000 documents in the ``ECOC``.
-
 .. important::
 
-   Expect a {+qe+} collection to have 2-3 times the storage requirements
-   of the documents, to account for metadata collections. For example, a
-   1 GB collection may have a storage requirement of 2-3 GB.
+   When you drop an encrypted collection, drop the associated metadata
+   collections immediately afterwards:
+   
+   - ``enxcol_.<collectionName>.esc``
+   - ``enxcol_.<collectionName>.ecoc``
 
-Write Costs
------------
+   Otherwise, re-creating the collection with the same name puts the metadata
+   collections in a conflicted state that consumes excess storage space and
+   degrades CRUD performance.
+
+
+Equality and Range Query Impact
+-------------------------------
+
+Equality queries carry fixed additional costs for storage and write operations.
+Range query costs depend on the queryable field's :ref:`parameters
+<qe-field-configuration>`. Tightly bounding these queries greatly decreases their performance impact.
+
+
+Write Costs for Equality Queryable Fields
+-----------------------------------------
 
 Insert Operations
 ~~~~~~~~~~~~~~~~~
@@ -140,6 +137,37 @@ Delete Operations
 ~~~~~~~~~~~~~~~~~
 
 When deleting a document, indexed fields do not require any additional writes.
+
+Storage Costs for Equality Queryable Fields
+-------------------------------------------
+
+Before any metadata compaction, the ``ESC`` and ``ECOC`` contain one metadata
+document for every field/value pair of every indexed field. Indexing one
+encrypted field/value pair across 1000 documents requires 1000 documents in 
+the ``ESC`` and 1000 documents in the ``ECOC``.
+
+.. note::
+   
+   A {+qe+} collection that encrypts every field can take up to 2-3 times the
+   storage space, to account for metadata collections. For example, a 1 GB 
+   collection may have a storage requirement of 2-3 GB. 
+
+
+Best Practices
+~~~~~~~~~~~~~~
+
+- Don't encrypt fields that don't need it. Most data only requires a small
+  subset of fields to be encrypted, such as those that contain Personally
+  Identifiable Information.
+- Don't enable range queries on a field if equality queries are sufficient for
+  your users.
+- For encrypted fields with range queries enabled, review the field
+  configuration, especially the :ref:`min, max, <qe-field-min-max>` and
+  :ref:`precision <qe-field-precision>` parameters. Setting tight bounds for
+  range queries greatly decreases the performance impact of those fields.
+- :ref:`Model your data <manual-data-modeling-intro>` and prototype it to
+  determine the actual storage and write increases for your deployment.
+
 
 .. _qe-metadata-compaction:
 
