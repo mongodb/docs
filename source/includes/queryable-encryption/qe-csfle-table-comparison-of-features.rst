@@ -1,4 +1,4 @@
-The following table describes potential security vulnerabilities and how
+The following table describes potential security threats and how
 MongoDB security features address them:
 
 .. warning::
@@ -34,7 +34,7 @@ MongoDB security features address them:
      - Reveals *size of database* and operation metadata
    * - :term:`Database exfiltration <database exfiltration>` from Disk and 
        Memory (attacker has physical disk access and multiple database 
-       snapshots)
+       snapshots) [#db-exfil]_
      - Reveals database
      - Reveals database
      - Reveals *size of database* and operation metadata
@@ -47,3 +47,9 @@ MongoDB security features address them:
        some guarantees against this threat model. See `whitepaper <https://cdn.bfldr.com/2URK6TO/as/jkwp857q2zr8fj5vqs24f5/Design__Analysis_Stateless_Document_Database_Encryption_Scheme>`__ for details.
      - While {+csfle-abbrev+} is not designed to protect against an ATP, it 
        provides some guarantees against this threat model. See `whitepaper <https://cdn.bfldr.com/2URK6TO/as/jkwp857q2zr8fj5vqs24f5/Design__Analysis_Stateless_Document_Database_Encryption_Scheme>`__ for details.
+
+.. [#db-exfil]
+   
+   This assumes exfiltration occurs between completed operations. 
+   See `whitepaper <https://cdn.bfldr.com/2URK6TO/as/jkwp857q2zr8fj5vqs24f5/Design__Analysis_Stateless_Document_Database_Encryption_Scheme>`__
+   for details.
