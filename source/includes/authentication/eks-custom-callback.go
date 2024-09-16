@@ -32,7 +32,7 @@ func main() {
 			OIDCMachineCallback: eksCallback,
 		},
 	)
-	client, err := mongo.Connect(opts)
+	client, err := mongo.Connect(context.TODO(), opts)
 	if err != nil {
 		panic(err)
 	}

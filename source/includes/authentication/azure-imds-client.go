@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -20,7 +22,7 @@ func main() {
 			AuthMechanismProperties: props,
 		},
 	)
-	client, err := mongo.Connect(opts)
+	client, err := mongo.Connect(context.TODO(), opts)
 	if err != nil {
 		panic(err)
 	}
