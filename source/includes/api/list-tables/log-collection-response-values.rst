@@ -170,7 +170,7 @@
      - Unique 24-hexadecimal digit string that identifies the user
        executing the request.
 
-   * - url
+   * - downloadUrl
      - string
      - Internet address from which you download the logs from this
        request.
