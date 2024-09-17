@@ -6,6 +6,8 @@ MongoDB Agent 107.0.10.8627-1
 :ref:`Released with Ops Manager 7.0.10 on 2024-08-01
 <opsmgr-server-7.0.10>`.
 
+- Fixes `CVE-2023-45288 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-45288>`__
+
 .. _mongodb-107.0.9.8621-1:
 
 MongoDB Agent 107.0.9.8621-1
