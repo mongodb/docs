@@ -27,10 +27,8 @@
    you need for the :guilabel:`Timestamp` and
    :guilabel:`Increment` boxes.
 
-   .. note::
-      To translate the epoch time into a human-readable
-      timestamp, try using a tool like
-      `Epoch Converter <https://www.epochconverter.com/>`__ 
-
-      MongoDB does not endorse this service. Its reference
-      is intended only as informational. 
+   To translate the epoch time into a human-readable
+   timestamp, try using a tool like
+   `Epoch Converter <https://www.epochconverter.com/>`__ 
+   MongoDB does not endorse this service. 
+   Its reference is intended only as informational. 

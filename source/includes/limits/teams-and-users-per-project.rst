@@ -9,12 +9,11 @@
 - 500 per organization, which includes the combined membership of all
   projects in the organization.
 
-|service| raises an error if an operation exceeds these limits.
+|service| raises an error if an operation exceeds these limits. 
 
-.. example::
-
-   You have an organization with five projects. Each project has 100
-   |service| users. Each |service| user belongs to only one project.
-   You cannot add any |service| users to this organization or any
-   project in that organization without first removing existing
-   |service| users from the organization or project membership.
+For example, if you have an organization with five projects, 
+such that each project has 100 |service| users and each user 
+belongs to only one project, you cannot add any |service| 
+users to this organization or any project in that organization 
+without first removing existing |service| users from the 
+organization or project membership.
