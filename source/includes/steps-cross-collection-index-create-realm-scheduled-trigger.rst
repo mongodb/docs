@@ -25,13 +25,11 @@
              
              #. For :guilabel:`Repeat once by`, select ``Day of the Month`` 
                 and set the value to your preferred date.
-           
-                .. note:: 
-      
-                   Alternatively, for testing purposes, 
-                   set :guilabel:`Repeat once by` dropdown to a more 
-                   frequent occurrence, such as :guilabel:`Minute` or 
-                   :guilabel:`Hour`
+                
+                Alternatively, for testing purposes, 
+                set :guilabel:`Repeat once by` dropdown to a more 
+                frequent occurrence, such as :guilabel:`Minute` or 
+                :guilabel:`Hour`.
       
          * - :guilabel:`Select An Event Type`
            - Select :guilabel:`Function`.
@@ -65,13 +63,11 @@
              
              #. For :guilabel:`Repeat once by`, select ``Day of the Month`` 
                 and set the value to your preferred date.
-           
-                .. note:: 
-      
-                   Alternatively, for testing purposes, 
-                   set :guilabel:`Repeat once by` dropdown to a more 
-                   frequent occurrence, such as :guilabel:`Minute` or 
-                   :guilabel:`Hour`
+                 
+                Alternatively, for testing purposes, 
+                set :guilabel:`Repeat once by` dropdown to a more 
+                frequent occurrence, such as :guilabel:`Minute` or 
+                :guilabel:`Hour`
       
          * - :guilabel:`Select An Event Type`
            - Select :guilabel:`Function`.
