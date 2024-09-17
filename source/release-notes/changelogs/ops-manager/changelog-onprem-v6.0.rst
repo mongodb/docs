@@ -21,6 +21,7 @@
 
   - `CVE-2021-4279 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-4279>`__
   - `CVE-2023-22467 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-22467>`__
+  - `CVE-2023-45288 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-45288>`__
   - `CVE-2024-37298 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-37298>`__
 
 - Updates JDK to ``jdk-11.0.24+8``.

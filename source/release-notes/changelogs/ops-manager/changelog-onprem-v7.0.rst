@@ -8,6 +8,7 @@
 - Updates the {+mdbagent+} to :ref:`107.0.10.8627-1 <mongodb-107.0.10.8627-1>`.
 - Updates :abbr:`JDK (Java Development Kit)` to ``jdk-17.0.12+7``. 
 - Improves metadata clean up when terminating backup jobs.
+- Fixes `CVE-2023-45288 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-45288>`__
 - Fixes the following issues:
 
   - Creating a new regional backup errors on internal sync store assignment. 
