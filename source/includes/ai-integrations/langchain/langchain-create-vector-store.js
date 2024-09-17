@@ -11,7 +11,10 @@ async function run() {
     };
     
     // Ensure that the collection is empty
-    await collection.deleteMany({});
+    const count = await collection.countDocuments();
+    if (count > 0) {
+      await collection.deleteMany({});
+    }
 
     // Save online PDF as a file
     const rawData = await fetch("https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP");

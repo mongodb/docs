@@ -1,72 +1,49 @@
-.. procedure:: 
-   :style: normal 
+Add the following code to the asynchronous function that you defined in your ``get-started.js`` file.
+This code creates an index of the :ref:`vectorSearch <avs-types-vector-search>` type that specifies indexing the following fields:
 
-   .. include:: /includes/nav/steps-db-deployments-page.rst
+- ``embedding`` field as the :ref:`vector <avs-types-vector-search>` type. The ``embedding`` field
+  contains the embeddings created using OpenAI's ``text-embedding-ada-002`` embedding model. The index
+  definition specifies ``1536`` vector dimensions and measures similarity using ``cosine``.
+- ``loc.pageNumber`` field as the :ref:`filter <avs-types-vector-search>` type for pre-filtering data
+  by the page number in the PDF.
 
-   .. include:: /includes/nav/steps-atlas-search.rst
+This code also uses an await function to ensure that your search index has :ref:`synced <troubleshoot-initial-sync>` to your data before it's used.
 
-   .. step:: Define the {+avs+} index.
+.. code-block:: javascript
+   :copyable: true 
+   :linenos: 
 
-      a. Click :guilabel:`Create Search Index`.
-      #. Under :guilabel:`{+avs+}`, select :guilabel:`JSON Editor`  and
-         then click :guilabel:`Next`.
-      #. In the :guilabel:`Database and Collection` section, find the 
-         ``langchain_db`` database, and select the ``test``
-         collection.
-      #. In the :guilabel:`Index Name` field, enter
-         ``vector_index``. 
-      #. Replace the default definition with the following index
-         definition and then click :guilabel:`Next`.
+   // Ensure index does not already exist, then create your Atlas Vector Search index
+   const indexes = await collection.listSearchIndexes("vector_index").toArray();
+   if(indexes.length === 0){
 
-         This index definition specifies indexing the following fields
-         in an index of the :ref:`vectorSearch
-         <avs-types-vector-search>` type: 
-         
-         - ``embedding`` field as the :ref:`vector
-           <avs-types-vector-search>` type. The ``embedding`` field
-           contains the embeddings created using OpenAI's
-           ``text-embedding-ada-002`` embedding model. The index
-           definition specifies ``1536`` vector dimensions and
-           measures similarity using ``cosine``.
-         - ``loc.pageNumber`` field as the :ref:`filter <avs-types-vector-search>`
-           type for pre-filtering data by the page number in the PDF.
+      // Define your Atlas Vector Search Index
+      const index = {
+         name: "vector_index",
+         type: "vectorSearch",
+         definition: {
+            "fields": [
+               {
+                  "type": "vector",
+                  "numDimensions": 1536,
+                  "path": "embedding",
+                  "similarity": "cosine"
+               },
+               {
+                  "type": "filter",
+                  "path": "loc.pageNumber"
+               }
+            ]
+         }
+      }
 
-         .. code-block::
-            :copyable: true
+      // Run the helper method
+      const result = await collection.createSearchIndex(index);
+      console.log(result);
 
-            {
-               "fields":[
-                  {
-                     "type": "vector",
-                     "path": "embedding",
-                     "numDimensions": 1536,
-                     "similarity": "cosine"
-                  },
-                  {
-                     "type": "filter",
-                     "path": "loc.pageNumber"
-                  }
-               ]
-            }
-
-   .. step:: Review the index definition and then click :guilabel:`Create Search Index`.
-
-      A modal window displays to let you know that your index is building.
-
-   .. step:: Click :guilabel:`Close` to close the :guilabel:`You're All Set!` modal window. 
-
-   .. step:: In your ``get-started.js`` file, add the following code.
-
-      Return to the ``get-started.js`` file and add the 
-      following code to the asynchronous function that you defined.
-      This code helps to ensure that your search index has 
-      :ref:`synced <troubleshoot-initial-sync>`
-      to your data before it's used.
-
-      .. code-block:: javascript
-
-         // Wait for Atlas to sync index
-         console.log("Waiting for initial sync...");
-         await new Promise(resolve => setTimeout(() => {
-           resolve();
-         }, 10000));
+      // Wait for Atlas to sync index
+      console.log("Waiting for initial sync...");
+      await new Promise(resolve => setTimeout(() => {
+         resolve();
+      }, 10000));
+   }

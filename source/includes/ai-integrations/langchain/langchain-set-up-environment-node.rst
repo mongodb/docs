@@ -19,7 +19,7 @@
 
       .. code-block::
 
-         npm install langchain @langchain/mongodb @langchain/openai pdf-parse fs
+         npm install langchain @langchain/community @langchain/mongodb @langchain/openai pdf-parse fs
 
    .. include:: /includes/nav/steps-avs-nodejs-config-modules.rst
 
@@ -39,7 +39,7 @@
          import { MongoClient } from "mongodb";
          import { MongoDBAtlasVectorSearch } from "@langchain/mongodb";
          import { OpenAIEmbeddings, ChatOpenAI } from "@langchain/openai";
-         import { PDFLoader } from "langchain/document_loaders/fs/pdf";
+         import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
          import { PromptTemplate } from "@langchain/core/prompts";
          import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
          import { RunnableSequence, RunnablePassthrough } from "@langchain/core/runnables";
