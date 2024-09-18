@@ -45,6 +45,8 @@ Options
      - string
      - false
      - Name of the cluster. To learn more, see https://dochub.mongodb.org/core/create-cluster-api.
+
+       Mutually exclusive with --hostname.
    * - --end
      - string
      - false
@@ -57,6 +59,8 @@ Options
      - string
      - false
      - The fully qualified domain name (FQDN) of the target node that should receive the authentication attempt.
+
+       Mutually exclusive with --clusterName.
    * - --ip
      - string
      - false
