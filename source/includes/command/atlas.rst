@@ -63,7 +63,6 @@ Related Commands
 * :ref:`atlas-customDbRoles` - Manage custom database roles for your project.
 * :ref:`atlas-customDns` - Manage DNS configuration of Atlas project’s clusters deployed to AWS.
 * :ref:`atlas-dataFederation` - Data federation.
-* :ref:`atlas-dataLakePipelines` - Data Lake pipelines.
 * :ref:`atlas-dbusers` - Manage database users for your project.
 * :ref:`atlas-deployments` - Manage cloud and local deployments.
 * :ref:`atlas-events` - Manage events for your organization or project.
@@ -105,7 +104,6 @@ Related Commands
    customDbRoles </command/atlas-customDbRoles>
    customDns </command/atlas-customDns>
    dataFederation </command/atlas-dataFederation>
-   dataLakePipelines </command/atlas-dataLakePipelines>
    dbusers </command/atlas-dbusers>
    deployments </command/atlas-deployments>
    events </command/atlas-events>

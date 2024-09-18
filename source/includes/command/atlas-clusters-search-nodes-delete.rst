@@ -62,7 +62,7 @@ Options
      - false
      - Flag that indicates whether to watch the command until it completes its execution or the watch times out.
    * - --watchTimeout
-     - uint
+     - int
      - false
      - Time in seconds until a watch times out. After a watch times out, the CLI no longer watches the command.
 

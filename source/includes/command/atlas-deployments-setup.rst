@@ -14,6 +14,8 @@ atlas deployments setup
 
 Create a local deployment.
 
+To learn more about local atlas deployments, see https://www.mongodb.com/docs/atlas/cli/current/atlas-cli-deploy-local/
+
 Syntax
 ------
 
