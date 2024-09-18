@@ -4,8 +4,7 @@
    .. step:: (Optional) In |service|, create an organization to configure as a paying organization.
 
       If you wish to create a new organization through which to pay, 
-      :doc:`Create an Organization </tutorial/manage-organizations>` 
-      first.
+      :ref:`Create an Organization <create-organization>`.
       
       .. note::
 
