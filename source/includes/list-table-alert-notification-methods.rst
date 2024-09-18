@@ -75,9 +75,8 @@
        number, use a `Google Voice <https://voice.google.com>`__
        telephone number.
 
-       .. example::
-
-          For New Zealand enter ``01164`` before the phone number.
+       For example, enter ``01164`` before the phone number to send the alert
+       to a New Zealand mobile number. 
 
    * - Slack
 

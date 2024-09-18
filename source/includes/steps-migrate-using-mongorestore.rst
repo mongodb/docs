@@ -153,11 +153,7 @@
       
          To review your project IP access list, click :guilabel:`Network
          Access` in the :guilabel:`Security` section of the sidebar. The
-         :guilabel:`IP Access List` tab displays.
-      
-         .. seealso::
-      
-            :ref:`security-ip-access-list`
+         :guilabel:`IP Access List` tab displays. To learn more, see :ref:`security-ip-access-list`. 
       
       In your preferred text editor, use the pipe ``|`` operator to
       separate the |mongodump| and |mongorestore| commands. Based on the type of connection string you use, the final
