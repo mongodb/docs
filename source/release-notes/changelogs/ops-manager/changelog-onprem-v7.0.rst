@@ -1,3 +1,25 @@
+.. _opsmgr-server-7.0.11:
+
+|onprem| Server 7.0.11
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2024-09-05*
+
+- Updates the {+mdbagent+} to :ref:`107.0.11.8645-1 <mongodb-107.0.11.8645-1>`.
+- Adds support |bic-full| 2.14.15.
+- Compatible with :dbtools:`MongoDB Database Tools 100.10.0
+  </release-notes/database-tools-changelog/#100.10.0-changelog>`.
+- Removes the {+mdbagent+} dependencies on the ``redhat-lsb-core`` 
+  package for RHEL and ``lsb-release`` pacakge for Debian.  
+- Ensures that |onprem| retains at least one snapshot regardless of expiration schedule.
+- Fixes the following issues:
+  
+  - Upgrades from |onprem| 6 to |onprem| 7 fail due to a missing field used for upgrade validation.
+  - Diagnostics archive shows incorrect free space for File System snapshot store.
+  - ``DeploymentId`` not displayed for shards with regional backup enabled.
+  - Potential error when saving updates to oplog or snapshot stores due to ``DeploymentId`` validation.
+  - Possible shutdown loop when KMIP rotation and initial sync run concurrently.
+
 .. _opsmgr-server-7.0.10:
 
 |onprem| Server 7.0.10
