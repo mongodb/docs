@@ -1,0 +1,154 @@
+.. _java-fundamentals-transactions:
+
+============
+Transactions
+============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: ACID, write, consistency, code example
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to perform 
+**transactions**. :manual:`Transactions </core/transactions/>` allow
+you to run a series of operations that do not change any data until the
+transaction is committed. If any operation in the transaction returns an
+error, the driver cancels the transaction and discards all data changes
+before they ever become visible.
+
+In MongoDB, transactions run within logical **sessions**. A
+:manual:`session </reference/server-sessions/>` is a grouping of related
+read or write operations that you intend to run sequentially. Sessions
+enable :manual:`causal consistency
+</core/read-isolation-consistency-recency/#causal-consistency>` for a
+group of operations or allow you to execute operations in an
+:website:`ACID transaction </basics/acid-transactions>`. MongoDB
+guarantees that the data involved in your transaction operations remains
+consistent, even if the operations encounter unexpected errors.
+
+When using the {+driver-short+}, you can create a new session from a 
+``MongoClient`` instance as a ``ClientSession`` type. We recommend that you reuse
+your client for multiple sessions and transactions instead of
+instantiating a new client each time.
+
+.. warning::
+
+   Use a ``ClientSession`` only with the ``MongoClient`` (or associated
+   ``MongoDatabase`` or ``MongoCollection``) that created it. Using a
+   ``ClientSession`` with a different ``MongoClient`` results in operation
+   errors.
+
+.. important::
+
+   You must include the ``session`` as a parameter for any operations that you
+   want to include in a transaction.
+
+Methods
+-------
+
+Create a ``ClientSession`` by using the ``startSession()`` method on your 
+``MongoClient`` instance. You can then modify the session state by using the 
+methods provided by the ``ClientSession``. The following table describes the 
+methods you can use to manage your transaction:
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``startTransaction()``
+     - | Starts a new transaction for this session with the
+         default transaction options. Pass an instance of ``TransactionOptions`` 
+         as a parameter to start a transaction with given options. You 
+         cannot start a transaction if there's already an active transaction
+         running in the session.
+       |
+       | **Parameter**: ``TransactionOptions transactionOptions``
+
+   * - ``abortTransaction()``
+     - | Ends the active transaction for this session. Returns an error 
+         if there is no active transaction for the
+         session or the transaction was previously ended.
+
+   * - ``commitTransaction()``
+     - | Commits the active transaction for this session. Returns an
+         error if there is no active transaction for the session or if the
+         transaction was ended.
+
+   * - ``withTransaction()``
+     - | Starts a new transaction for this session and runs the given function. This
+         method handles retries, committing, and aborting transactions. Pass an 
+         instance of ``TransactionBody`` as a parameter that defines the 
+         operations you want to execute within the transaction.
+       |
+       | **Parameter**: ``TransactionBody<T> transactionBody``
+
+A ``ClientSession`` also has methods to retrieve session properties and modify mutable 
+session properties. View the :ref:`API
+documentation <api-docs-transaction>` to learn more about these methods.
+
+Example
+-------
+
+The following example demonstrates how you can create a session, create a transaction, 
+and commit a multi-document insert operation through the following steps:
+
+1. Create a session from the client by using the ``startSession()`` method.
+#. Set transaction options to configure transaction behavior.
+#. Use the ``withTransaction()`` method to start a transaction.
+#. Insert multiple documents. The ``withTransaction()`` method executes, commits, and aborts 
+   the transaction. If any operation results in errors, ``withTransaction()`` handles canceling
+   the transaction.
+
+.. literalinclude:: /includes/fundamentals/code-snippets/Transaction.java
+   :language: java
+   :dedent:
+   :start-after: start transaction
+   :end-before: end transaction
+
+If you require more control over your transactions, you can use the ``startTransaction()``
+method. You can use this method with the ``commitTransaction()`` and ``abortTransaction()``
+methods described in the preceding section to manually manage the transaction lifecycle. 
+
+Additional Information
+----------------------
+
+To learn more about the concepts mentioned in this guide, see the following pages in 
+the Server manual:
+
+- :manual:`Transactions </core/transactions/>`
+- :manual:`Server Sessions </reference/server-sessions>`
+- :manual:`Read Isolation, Consistency, and Recency </core/read-isolation-consistency-recency/#causal-consistency>`
+
+To learn more about ACID compliance, see the :website:`What are ACID
+Properties in Database Management Systems? </basics/acid-transactions>`
+article on the MongoDB website.
+
+.. _api-docs-transaction:
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the types or methods discussed in this
+guide, see the following API Documentation:
+
+- `ClientSession <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/ClientSession.html>`_
+- `startTransaction <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/ClientSession.html#startTransaction()>`_
+- `commitTransaction <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/ClientSession.html#commitTransaction()>`_
+- `abortTransaction <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/ClientSession.html#abortTransaction()>`_
+- `withTransaction <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/ClientSession.html#withTransaction(com.mongodb.client.TransactionBody)>`_
+- `TransactionOptions <{+api+}/apidocs/mongodb-driver-core/com/mongodb/TransactionOptions.html>`_
+  
