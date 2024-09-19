@@ -19,11 +19,23 @@
 
   * - Amazon 2
     - |checkmark|
-    -
+    - |checkmark|
     -
     -
 
   * - Amazon 2013.03+
+    - |checkmark|
+    -
+    -
+    -
+
+  * - Debian 12
+    - |checkmark|
+    -
+    -
+    -
+
+  * - Debian 11
     - |checkmark|
     -
     -
@@ -74,6 +86,18 @@
   * - SUSE 12
     - |checkmark|
     -
+    -
+    -
+
+  * - Ubuntu 24.04
+    - |checkmark|
+    - |checkmark|
+    -
+    -
+
+  * - Ubuntu 22.04
+    - |checkmark|
+    - |checkmark|
     -
     -
 
