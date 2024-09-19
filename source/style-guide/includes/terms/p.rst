@@ -169,8 +169,8 @@ P
             our forums, or visit DotNetNuke's community forums.
           -
 
-   plug-in
-     Hyphenate; don't use *plugin*.
+   plugin
+     Don't hyphenate; don't use *plug-in*.
 
    PM, AM
      Use uppercase, with no period after each letter.
