@@ -25,10 +25,8 @@
       There must be enough disk space to accommodate all of the source
       oplog entries that occur during the initial :program:`mongomirror` sync.
    
-      .. example::
-   
-         If the source oplog is 10 GB and covers 24 hours of changes,
-         and :program:`mongomirror`'s sync is estimated to take 48 hours, there
-         must be at least 20 GB of free disk space in the specified
-         directory.
+      For example, if the source oplog is 10 GB and covers 24 hours of changes,
+      and :program:`mongomirror`'s sync is estimated to take 48 hours, there
+      must be at least 20 GB of free disk space in the specified
+      directory.
 

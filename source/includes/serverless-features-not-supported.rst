@@ -255,12 +255,9 @@ limitations and considerations:
        created with a :manual:`write concern option 
        </reference/connection-string/#write-concern-options>`.
 
-       .. note::
-
-          For {+clusters+} other than ``M0``, ``M2``, or ``M5`` 
-          {+clusters+}, you can verify whether you're using a write 
-          concern mode that {+serverless-instances+} don't support with 
-          the :manual:`serverStatus </reference/command/serverStatus/>` 
-          command's :manual:`opWriteConcernCounters 
-          </reference/command/serverStatus/#opwriteconcerncounters>` 
-          field.
+       For {+clusters+} other than ``M0``, ``M2``, or ``M5`` 
+       {+clusters+}, you can verify whether you're using a write 
+       concern mode that {+serverless-instances+} don't support with 
+       the :manual:`serverStatus </reference/command/serverStatus/>` 
+       command's :manual:`opWriteConcernCounters </reference/command/serverStatus/#opwriteconcerncounters>` 
+       field.

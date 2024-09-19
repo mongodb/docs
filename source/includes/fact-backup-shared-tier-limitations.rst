@@ -17,10 +17,10 @@
   that run only the two most recent major versions of MongoDB to
   ``M2`` and ``M5`` {+clusters+}.
 
-  .. example::
+  For example:
 
-     - You can restore snapshots taken from {+clusters+} that run MongoDB
-       4.4 to an ``M2`` or ``M5`` cluster that runs MongoDB 5.0.
-     - You can't restore snapshots taken from {+clusters+} that run
-       MongoDB version earlier than 4.4 to an ``M2`` or ``M5`` cluster
-       that runs MongoDB 5.0.
+  - You can restore snapshots taken from {+clusters+} that run MongoDB
+    4.4 to an ``M2`` or ``M5`` cluster that runs MongoDB 5.0.
+  - You can't restore snapshots taken from {+clusters+} that run
+    MongoDB versions earlier than 4.4 to an ``M2`` or ``M5`` cluster
+    that runs MongoDB 5.0.
