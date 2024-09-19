@@ -141,128 +141,120 @@ Upgrade Procedure
 
       .. _7.0-upgrade-config-servers:
 
-      .. procedure::
-         :style: connected
+      a. Upgrade the :ref:`secondary <replica-set-secondary-members>` 
+         members of the replica set, one at a time.
 
-         .. step:: Upgrade the :ref:`secondary <replica-set-secondary-members>` members of the replica set, one at a time.
-   
-            .. procedure:: 
-               :style: normal
-            
-               .. step:: Shut down the secondary instance.
+         i. Shut down the secondary instance.
 
-                  To shut down the :binary:`~bin.mongod` process, use 
-                  :binary:`~bin.mongosh` to connect to the cluster member and 
-                  run the following command:
+            To shut down the :binary:`~bin.mongod` process, use 
+            :binary:`~bin.mongosh` to connect to the cluster member and 
+            run the following command:
 
-                  .. code-block:: javascript
+            .. code-block:: javascript
 
-                     db.adminCommand( { shutdown: 1 } )
+               db.adminCommand( { shutdown: 1 } )
 
-               .. step:: Replace the |oldversion| binary with the |newversion| binary.
+         #. Replace the |oldversion| binary with the |newversion| binary.
                           
-               .. step:: Start the |newversion| binary. 
+         #. Start the |newversion| binary. 
+    
+            Start the |newversion| binary with the :option:`--configsvr <mongod --configsvr>`,
+            :option:`--replSet <mongod --replSet>`, and :option:`--port <mongod --port>`. 
+            Include any other options as used by the deployment.
+             
+            .. code-block:: bash
             
-                  Start the |newversion| binary with the :option:`--configsvr <mongod --configsvr>`,
-                  :option:`--replSet <mongod --replSet>`, and :option:`--port <mongod --port>`. 
-                  Include any other options as used by the deployment.
+               mongod --configsvr --replSet <replSetName> --port <port> --dbpath <path> --bind_ip localhost,<ip address>
+             
+            If using a :ref:`configuration file
+            <configuration-options>`, update the file to
+            specify :setting:`sharding.clusterRole: configsvr
+            <sharding.clusterRole>`, :setting:`replication.replSetName`,
+            :setting:`net.port`, and :setting:`net.bindIp`,
+            then start the |newversion| binary:
+                      
+            .. code-block:: yaml
+             
+               sharding:
+                  clusterRole: configsvr
+               replication:
+                  replSetName: <string>
+               net:
+                  port: <port>
+                  bindIp: localhost,<ip address>
+               storage:
+                  dbpath: <path>
+             
+            Include any other settings as appropriate for your deployment.
                      
-                  .. code-block:: bash
-                    
-                     mongod --configsvr --replSet <replSetName> --port <port> --dbpath <path> --bind_ip localhost,<ip address>
-                     
-                  If using a :ref:`configuration file
-                  <configuration-options>`, update the file to
-                  specify :setting:`sharding.clusterRole: configsvr
-                  <sharding.clusterRole>`, :setting:`replication.replSetName`,
-                  :setting:`net.port`, and :setting:`net.bindIp`,
-                  then start the |newversion| binary:
-                              
-                  .. code-block:: yaml
-                     
-                     sharding:
-                        clusterRole: configsvr
-                     replication:
-                        replSetName: <string>
-                     net:
-                        port: <port>
-                        bindIp: localhost,<ip address>
-                     storage:
-                        dbpath: <path>
-                     
-                  Include any other settings as appropriate for your deployment.
-                     
-               .. step:: Wait for the member to recover to the ``SECONDARY`` state before upgrading the next secondary member. 
+         #. Wait for the member to recover to the ``SECONDARY`` state before upgrading the next secondary member. 
                
-                  To check the member's state, issue :method:`rs.status()` in 
-                  :binary:`~bin.mongosh`.
+            To check the member's state, issue :method:`rs.status()` in 
+            :binary:`~bin.mongosh`.
             
-               .. step:: Repeat for each secondary member.
+         #. Repeat for each secondary member.
 
-         .. step:: Step down the replica set primary. 
+      #. Step down the replica set primary. 
    
-            .. procedure::
-               :style: normal
-            
-               .. step:: Step down the primary.
+         i. Step down the primary.
 
-                  Connect :binary:`~bin.mongosh` to the primary and use
-                  :method:`rs.stepDown()` to :term:`step down` the primary and force an
-                  election of a new primary:
+            Connect :binary:`~bin.mongosh` to the primary and use
+            :method:`rs.stepDown()` to :term:`step down` the primary and force an
+            election of a new primary:
+           
+            .. code-block:: javascript
+                 
+               rs.stepDown()
                
-                  .. code-block:: javascript
-                     
-                     rs.stepDown()
-               
-               .. step:: Shut down the stepped-down primary.
+         #. Shut down the stepped-down primary.
             
-                  When :method:`rs.status()` shows that the primary has stepped
-                  down and another member has assumed the ``PRIMARY`` state, shut 
-                  down the stepped-down primary. 
+            When :method:`rs.status()` shows that the primary has stepped
+            down and another member has assumed the ``PRIMARY`` state, shut 
+            down the stepped-down primary. 
 
-                  To shut down the stepped-down primary, use 
-                  :binary:`~bin.mongosh` to connect to the primary and 
-                  run the following command:
+            To shut down the stepped-down primary, use 
+            :binary:`~bin.mongosh` to connect to the primary and 
+            run the following command:
 
-                  .. code-block:: javascript
+            .. code-block:: javascript
 
-                      db.adminCommand( { shutdown: 1 } )
+               db.adminCommand( { shutdown: 1 } )
 
-               .. step:: Replace the :binary:`~bin.mongod` binary with the |newversion| binary.
+         #. Replace the :binary:`~bin.mongod` binary with the |newversion| binary.
                
-               .. step:: Start the |newversion| binary. 
+         #. Start the |newversion| binary. 
             
-                  Start the |newversion| with the :option:`--configsvr <mongod --configsvr>`, 
-                  :option:`--replSet <mongod --replSet>`,
-                  :option:`--port <mongod --port>`, and :option:`--bind_ip
-                  <mongod --bind_ip>` options. Include any optional command line
-                  options used by the previous deployment:
-            
-                  .. code-block:: bash
-            
-                     mongod --configsvr --replSet <replSetName> --port <port> --dbpath <path> --bind_ip localhost,<ip address>
-               
-                  If using a :ref:`configuration file
-                  <configuration-options>`, update the file to
-                  specify :setting:`sharding.clusterRole: configsvr
-                  <sharding.clusterRole>`, :setting:`replication.replSetName`,
-                  :setting:`net.port`, and :setting:`net.bindIp`,
-                  then start the |newversion| binary:
-               
-                        
-                  .. code-block:: yaml
-               
-                     sharding:
-                       clusterRole: configsvr
-                     replication:
-                       replSetName: <string>
-                     net:
-                       port: <port>
-                       bindIp: localhost,<ip address>
-                     storage:
-                       dbpath: <path>
-               
-                  Include any other configuration as appropriate for your deployment.
+            Start the |newversion| with the :option:`--configsvr <mongod --configsvr>`, 
+            :option:`--replSet <mongod --replSet>`,
+            :option:`--port <mongod --port>`, and :option:`--bind_ip
+            <mongod --bind_ip>` options. Include any optional command line
+            options used by the previous deployment:
+    
+            .. code-block:: bash
+    
+               mongod --configsvr --replSet <replSetName> --port <port> --dbpath <path> --bind_ip localhost,<ip address>
+       
+            If using a :ref:`configuration file
+            <configuration-options>`, update the file to
+            specify :setting:`sharding.clusterRole: configsvr
+            <sharding.clusterRole>`, :setting:`replication.replSetName`,
+            :setting:`net.port`, and :setting:`net.bindIp`,
+            then start the |newversion| binary:
+       
+                
+            .. code-block:: yaml
+       
+               sharding:
+                 clusterRole: configsvr
+               replication:
+                 replSetName: <string>
+               net:
+                 port: <port>
+                 bindIp: localhost,<ip address>
+               storage:
+                 dbpath: <path>
+       
+            Include any other configuration as appropriate for your deployment.
             
    .. step:: Upgrade the shards. 
 
@@ -272,129 +264,121 @@ Upgrade Procedure
 
       For each shard replica set:
    
-      .. procedure::
-         :style: connected
+      a. Upgrade the :ref:`secondary <replica-set-secondary-members>` 
+         members of the replica set, one at a time.
    
-         .. step:: Upgrade the :ref:`secondary <replica-set-secondary-members>` members of the replica set, one at a time.
-   
-            .. procedure:: 
-               :style: normal
-   
-               .. step:: Shut down the secondary instance.
+         i. Shut down the secondary instance.
 
-                  To shut down the :binary:`~bin.mongod` process, use 
-                  :binary:`~bin.mongosh` to connect to the cluster member and 
-                  run the following command:
+            To shut down the :binary:`~bin.mongod` process, use 
+            :binary:`~bin.mongosh` to connect to the cluster member and 
+            run the following command:
 
-                  .. code-block:: javascript
-
-                     db.adminCommand( { shutdown: 1 } )
-
-               .. step:: Replace the |oldversion| binary with the |newversion| binary.
-      
-                  Start the |newversion| binary with the :option:`--shardsvr
-                  <mongod --shardsvr>`, :option:`--replSet <mongod --replSet>`,
-                  :option:`--port <mongod --port>`, and :option:`--bind_ip
-                  <mongod --bind_ip>` options. Include any additional command line
-                  options as appropriate for your deployment:
-      
-                  .. code-block:: bash
-      
-                     mongod --shardsvr --replSet <replSetName> --port <port> --dbpath <path> --bind_ip localhost,<ip address>
-      
-      
-                  If using a :ref:`configuration file
-                  <configuration-options>`, update the file to
-                  include :setting:`sharding.clusterRole: shardsvr <sharding.clusterRole>`,
-                  :setting:`replication.replSetName`, :setting:`net.port`, and
-                  :setting:`net.bindIp`, then start the |newversion| binary:
-      
-               
-                  .. code-block:: yaml
-      
-                     sharding:
-                        clusterRole: shardsvr
-                     replication:
-                        replSetName: <string>
-                     net:
-                        port: <port>
-                        bindIp: localhost,<ip address>
-                     storage:
-                        dbpath: <path>
-      
-                  Include any other configuration as appropriate for your deployment.
-       
-               .. step:: Wait for the member to recover to the ``SECONDARY`` state before upgrading the next secondary member. 
-   
-                  To check the member's state, you can issue 
-                  :method:`rs.status()` in :binary:`~bin.mongosh`.
-      
-               .. step:: Repeat for each secondary member.
-      
-         .. step:: Step down the replica set primary.
-   
-            Connect :binary:`~bin.mongosh` to the primary and use
-            :method:`rs.stepDown()` to :term:`step down` the primary
-            and force an election of a new primary:
-   
             .. code-block:: javascript
-    
-               rs.stepDown()
+
+               db.adminCommand( { shutdown: 1 } )
+
+         #. Replace the |oldversion| binary with the |newversion| binary.
+      
+            Start the |newversion| binary with the :option:`--shardsvr
+            <mongod --shardsvr>`, :option:`--replSet <mongod --replSet>`,
+            :option:`--port <mongod --port>`, and :option:`--bind_ip
+            <mongod --bind_ip>` options. Include any additional command line
+            options as appropriate for your deployment:
+
+            .. code-block:: bash
+
+               mongod --shardsvr --replSet <replSetName> --port <port> --dbpath <path> --bind_ip localhost,<ip address>
+
+
+            If using a :ref:`configuration file
+            <configuration-options>`, update the file to
+            include :setting:`sharding.clusterRole: shardsvr <sharding.clusterRole>`,
+            :setting:`replication.replSetName`, :setting:`net.port`, and
+            :setting:`net.bindIp`, then start the |newversion| binary:
+
+       
+            .. code-block:: yaml
+
+               sharding:
+                  clusterRole: shardsvr
+               replication:
+                  replSetName: <string>
+               net:
+                  port: <port>
+                  bindIp: localhost,<ip address>
+               storage:
+                  dbpath: <path>
+
+            Include any other configuration as appropriate for your deployment.
+       
+         #. Wait for the member to recover to the ``SECONDARY`` state before upgrading the next secondary member. 
    
-         .. step:: Upgrade the stepped-down primary.
-
-            When :method:`rs.status()` shows that the primary has 
-            stepped down and another member has assumed the ``PRIMARY`` 
-            state, upgrade the stepped-down primary: 
+            To check the member's state, you can issue 
+            :method:`rs.status()` in :binary:`~bin.mongosh`.
+      
+         #. Repeat for each secondary member.
+      
+      #. Step down the replica set primary.
    
-            .. procedure::
-               :style: normal
+         Connect :binary:`~bin.mongosh` to the primary and use
+         :method:`rs.stepDown()` to :term:`step down` the primary
+         and force an election of a new primary:
 
-               .. step:: Shut down the stepped-down primary. 
+         .. code-block:: javascript
 
-                  To shut down the stepped-down primary, use 
-                  :binary:`~bin.mongosh` to connect to the replica set 
-                  member and run the following command:
-
-                  .. code-block:: javascript
-
-                     db.adminCommand( { shutdown: 1 } )
+            rs.stepDown()
    
-               .. step:: Replace the :binary:`~bin.mongod` binary. with the |newversion| binary.
+      #. Upgrade the stepped-down primary.
 
-               .. step:: Start the |newversion| binary. 
+         When :method:`rs.status()` shows that the primary has 
+         stepped down and another member has assumed the ``PRIMARY`` 
+         state, upgrade the stepped-down primary: 
+   
+         i. Shut down the stepped-down primary. 
 
-                  Start the |newversion| binary with the :option:`--shardsvr <mongod --shardsvr>`, 
-                  :option:`--replSet <mongod --replSet>`,
-                  :option:`--port <mongod --port>`, and :option:`--bind_ip
-                  <mongod --bind_ip>` options. Include any additional command line
-                  options as appropriate for your deployment:
+            To shut down the stepped-down primary, use 
+            :binary:`~bin.mongosh` to connect to the replica set 
+            member and run the following command:
+
+            .. code-block:: javascript
+
+               db.adminCommand( { shutdown: 1 } )
+   
+         #. Replace the :binary:`~bin.mongod` binary. with the |newversion| binary.
+
+         #. Start the |newversion| binary. 
+
+            Start the |newversion| binary with the :option:`--shardsvr <mongod --shardsvr>`, 
+            :option:`--replSet <mongod --replSet>`,
+            :option:`--port <mongod --port>`, and :option:`--bind_ip
+            <mongod --bind_ip>` options. Include any additional command line
+            options as appropriate for your deployment:
             
-                  .. code-block:: bash
+            .. code-block:: bash
    
-                     mongod --shardsvr --replSet <replSetName> --port <port> --dbpath <path> --bind_ip localhost,<ip address>
+               mongod --shardsvr --replSet <replSetName> --port <port> --dbpath <path> --bind_ip localhost,<ip address>
    
-                  If using a :ref:`configuration file
-                  <configuration-options>`, update the file to
-                  specify :setting:`sharding.clusterRole: shardsvr
-                  <sharding.clusterRole>`, :setting:`replication.replSetName`,
-                  :setting:`net.port`, and :setting:`net.bindIp`, then start the
-                  |newversion| binary:
-   
+            If using a :ref:`configuration file
+            <configuration-options>`, update the file to
+            specify :setting:`sharding.clusterRole: shardsvr
+            <sharding.clusterRole>`, :setting:`replication.replSetName`,
+            :setting:`net.port`, and :setting:`net.bindIp`, then start the
+            |newversion| binary:
+ 
             
-                  .. code-block:: yaml
+            .. code-block:: yaml
    
-                     sharding:
-                         clusterRole: shardsvr
-                     replication:
-                        replSetName: <string>
-                     net:
-                        port: <port>
-                        bindIp: localhost,<ip address>
-                     storage:
-                        dbpath: <path>
+               sharding:
+                 clusterRole: shardsvr
+               replication:
+                 replSetName: <string>
+               net:
+                 port: <port>
+                 bindIp: localhost,<ip address>
+               storage:
+                 dbpath: <path>
    
-                  Include any other configuration as appropriate for your deployment.
+            Include any other configuration as appropriate for your deployment.
 
    .. step:: Upgrade the ``mongos`` instances. 
 
