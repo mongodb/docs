@@ -5,6 +5,11 @@ your version of Ubuntu.
 
 .. tabs::
 
+   .. tab:: Ubuntu 24.04 (Noble)
+      :tabid: noble
+
+      .. include:: /includes/deploy/code/enterprise-ubuntu24-conf
+
    .. tab:: Ubuntu 22.04 (Jammy)
       :tabid: jammy
 

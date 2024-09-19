@@ -2,6 +2,8 @@ MongoDB {+version+} Community Edition supports the following
 :red:`64-bit` Ubuntu LTS (long-term support) releases on 
 :ref:`x86_64 <prod-notes-supported-platforms-x86_64>` architecture:
 
+- 24.04 :abbr:`LTS (Long Term Support)` ("Noble")
+
 - 22.04 :abbr:`LTS (Long Term Support)` ("Jammy")
 
 - 20.04 :abbr:`LTS (Long Term Support)` ("Focal")
