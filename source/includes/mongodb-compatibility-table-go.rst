@@ -4,6 +4,7 @@
    :class: compatibility-large
 
    * - Go Driver Version
+     - MongoDB 8.0
      - MongoDB 7.0
      - MongoDB 6.1
      - MongoDB 6.0
@@ -12,173 +13,11 @@
      - MongoDB 4.2
      - MongoDB 4.0
      - MongoDB 3.6
-     - MongoDB 3.4
-     - MongoDB 3.2
-     - MongoDB 3.0
-     - MongoDB 2.6
-   * - 1.12 to 1.16
+
+   * - 1.12 to 1.17
+     - ⊛ [#8.0-support]_
      - ✓
      - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - 
-     - 
-     - 
-     - 
-   * - 1.11
-     - ⊛
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - 
-     - 
-     - 
-     - 
-   * - 1.10
-     - ⊛
-     - ⊛
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-   * - 1.9
-     - ⊛
-     - ⊛
-     - ⊛
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-   * - 1.8
-     - ⊛
-     - ⊛
-     - ⊛
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-   * - 1.7
-     - ⊛
-     - ⊛
-     - ⊛
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-   * - 1.6
-     - ⊛
-     - ⊛
-     - ⊛
-     - ✓ [#go-1.6-driver-support]_
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-   * - 1.5
-     - ⊛
-     - ⊛
-     - ⊛
-     - ⊛
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-   * - 1.4
-     - ⊛
-     - ⊛
-     - ⊛
-     - ⊛
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-   * - 1.3
-     - ⊛
-     - ⊛
-     - ⊛
-     - ⊛
-     - ⊛
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-   * - 1.2
-     - ⊛
-     - ⊛
-     - ⊛
-     - ⊛
-     - ⊛
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-   * - 1.1
-     - ⊛
-     - ⊛
-     - ⊛
-     - ⊛
-     - ⊛
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-   * - 1.0
-     - ⊛
-     - ⊛
-     - ⊛
-     - ⊛
-     - ⊛
-     - ⊛
      - ✓
      - ✓
      - ✓
@@ -186,5 +25,15 @@
      - ✓
      - ✓
 
-.. [#go-1.6-driver-support] The 1.6 driver does not support snapshot reads on secondaries. For more
-   information, see the `MongoDB Server version 5.0 release notes <https://www.mongodb.com/docs/v5.0/release-notes/5.0/#snapshots>`__.
+   * - 1.11
+     - ⊛
+     - ⊛
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+
+.. [#8.0-support] {+driver-short+} v1.17 is partially compatible with {+mdb-server+} 8.0 but does not support client bulk write.
