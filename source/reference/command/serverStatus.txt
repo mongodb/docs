@@ -4244,6 +4244,263 @@ queryAnalyzers
    Total size of sampled write queries, in bytes. This metric is 
    only available when running ``serverStatus`` on ``mongod``.
 
+.. _server-status-queues:
+
+queues                                 
+~~~~~~
+
+As an operation proceeds through its stages, it may 
+enter a queue if the number of concurrent operations at the current
+stage exceeds a maximum threshold. This prevents excessive resource 
+contention and provides observability into the state of the database.
+
+.. versionadded:: 8.0
+
+.. code-block:: json
+
+   queues: {
+      execution: {
+         write: {
+            out: Long("<num>"),
+            available: Long("<num>"),
+            totalTickets: Long("<num>"),
+            exempt: {
+               addedToQueue: Long("<num>"),
+               removedFromQueue: Long("<num>"),
+               queueLength: Long("<num>"),
+               startedProcessing: Long("<num>"),
+               processing: Long("<num>"),
+               finishedProcessing: Long("<num>"),
+               totalTimeProcessingMicros: Long("<num>"),
+               canceled: Long("<num>"),
+               newAdmissions: Long("<num>"),
+               totalTimeQueuedMicros: Long("<num>")
+            },
+            normalPriority: {
+               addedToQueue: Long("<num>"),
+               removedFromQueue: Long("<num>"),
+               queueLength: Long("<num>"),
+               startedProcessing: Long("<num>"),
+               processing: Long("<num>"),
+               finishedProcessing: Long("<num>"),
+               totalTimeProcessingMicros: Long("<num>"),
+               canceled: Long("<num>"),
+               newAdmissions: Long("<num>"),
+               totalTimeQueuedMicros: Long("<num>")
+            }
+         },
+         read: {
+            out: Long("<num>"),
+            available: Long("<num>"),
+            totalTickets: Long("<num>"),
+            exempt: {
+               addedToQueue: Long("<num>"),
+               removedFromQueue: Long("<num>"),
+               queueLength: Long("<num>")),
+               startedProcessing: Long("<num>"),
+               processing: Long("<num>"),
+               finishedProcessing: Long("<num>"),
+               totalTimeProcessingMicros: Long("<num>"),
+               canceled: Long("<num>"),
+               newAdmissions: Long("<num>"),
+               totalTimeQueuedMicros: Long("<num>")
+            },
+            normalPriority: {
+               addedToQueue: Long("<num>"),
+               removedFromQueue: Long("<num>"),
+               queueLength: Long("<num>"),
+               startedProcessing: Long("<num>"),
+               processing: Long("<num>"),
+               finishedProcessing: Long("<num>"),
+               totalTimeProcessingMicros: Long("<num>"),
+               canceled: Long("<num>"),
+               newAdmissions: Long("<num>"),
+               totalTimeQueuedMicros: Long("<num>")
+            }
+         },
+         monitor: {
+            timesDecreased: Long("<num>"),
+            timesIncreased: Long("<num>"),
+            totalAmountDecreased: Long("<num>"),
+            totalAmountIncreased: Long("<num>"),
+            resizeDurationMicros: Long("<num>")
+         }
+      },
+      ingress: {
+         out: Long("<num>"),
+         available: Long("<num>"),
+         totalTickets: Long("<num>"),
+         exempt: {
+            addedToQueue: Long("<num>"),
+            removedFromQueue: Long("<num>"),
+            queueLength: Long("<num>"),
+            startedProcessing: Long("<num>"),
+            processing: Long("<num>"),
+            finishedProcessing: Long("<num>"),
+            totalTimeProcessingMicros: Long("<num>"),
+            canceled: Long("<num>"),
+            newAdmissions: Long("<num>"),
+            totalTimeQueuedMicros: Long("<num>")
+         },
+         normalPriority: {
+            addedToQueue: Long("<num>"),
+            removedFromQueue: Long("<num>"),
+            queueLength: Long("<num>"),
+            startedProcessing: Long("<num>"),
+            processing: Long("<num>"),
+            finishedProcessing: Long("<num>"),
+            totalTimeProcessingMicros: Long("<num>"),
+            canceled: Long("<num>"),
+            newAdmissions: Long("<num>"),
+            totalTimeQueuedMicros: Long("<num>")
+         }
+      }
+   }
+
+.. serverstatus:: queues.execution
+
+   .. versionadded:: 8.0
+
+   A document that returns :ref:`server-status-queue-information` for 
+   operations waiting to be scheduled for execution within the storage 
+   layer.
+
+.. serverstatus:: queues.ingress
+
+   .. versionadded:: 8.0
+
+   A document that returns :ref:`server-status-queue-information` for 
+   ingress admission control. Use these values to protect and mitigate 
+   against resource overload by limiting the number of operations 
+   waiting for entry to the database from the network.
+
+   The maximum number of allowed concurrent operations is constrained by   
+   :parameter:`ingressAdmissionControllerTicketPoolSize`.
+
+.. _server-status-queue-information:
+
+Queue Information
+~~~~~~~~~~~~~~~~~
+
+.. code-block:: json
+
+   out: Long("<num>"),
+   available: Long("<num>"),
+   totalTickets: Long("<num>"),
+   exempt: {
+      addedToQueue: Long("<num>"),
+      removedFromQueue: Long("<num>"),
+      queueLength: Long("<num>"),
+      startedProcessing: Long("<num>"),
+      processing: Long("<num>"),
+      finishedProcessing: Long("<num>"),
+      totalTimeProcessingMicros: Long("<num>"),
+      canceled: Long("<num>"),
+      newAdmissions: Long("<num>"),
+      totalTimeQueuedMicros: Long("<num>")
+   },
+   normalPriority: {
+      addedToQueue: Long("<num>"),
+      removedFromQueue: Long("<num>"),
+      queueLength: Long("<num>"),
+      startedProcessing: Long("<num>"),
+      processing: Long("<num>"),
+      finishedProcessing: Long("<num>"),
+      totalTimeProcessingMicros: Long("<num>"),
+      canceled: Long("<num>"),
+      newAdmissions: Long("<num>"),
+      totalTimeQueuedMicros: Long("<num>")
+   }
+
+.. serverstatus:: out
+
+   The number of currently held tickets.
+
+.. serverstatus:: available
+
+   The number of available tickets.
+
+.. serverstatus:: totalTickets
+
+   The size of the ticket pool.
+
+.. serverstatus:: exempt
+
+   A document that returns metrics for operations exempt from the 
+   queue.
+
+.. serverstatus:: exempt.startedProcessing
+
+   The total number of operations that acquired an admission ticket.
+
+.. serverstatus:: exempt.processing
+
+   The total number of operations that are currently being processed.
+
+.. serverstatus:: exempt.finishedProcessing
+
+   The total number of operations that released their admission ticket.
+
+.. serverstatus:: exempt.totalTimeProcessingMicros
+
+   The total time operations held their admission tickets.
+
+.. serverstatus:: exempt.canceled
+
+   The total number of operations that timed out in the queue.
+
+.. serverstatus:: exempt.newAdmissions
+
+   The total number of new admissions to the queue.
+
+.. serverstatus:: exempt.totalTimeQueuedMicros
+
+   The total time operations spent waiting on the queue.
+
+.. serverstatus:: normalPriority
+
+   A document that returns metrics for operations subject to 
+   the queue.
+
+.. serverstatus:: normalPriority.addedToQueue
+
+   The total number of operations add to the queue.
+
+.. serverstatus:: normalPriority.removedFromQueue
+
+   The total number of operations removed from the queue.
+
+.. serverstatus:: normalPriority.queueLength
+
+   The total number of operations in the queue.
+
+.. serverstatus:: normalPriority.startedProcessing
+
+   The total number of operations that acquired an admission ticket.
+
+.. serverstatus:: normalPriority.processing
+
+   The total number of operations that are currently being processed.
+
+.. serverstatus:: normalPriority.finishedProcessing
+
+   The total number of operations that released their admission ticket.
+
+.. serverstatus:: normalPriority.totalTimeProcessingMicros
+
+   The total time operations held their admission tickets.
+
+.. serverstatus:: normalPriority.canceled
+
+   The total number of operations that timed out in the queue.
+
+.. serverstatus:: normalPriority.newAdmissions
+
+   The total number of new admissions to the queue.
+
+.. serverstatus:: normalPriority.totalTimeQueuedMicros
+
+   The total time operations spent waiting on the queue.
 
 .. _server-status-querySettings:
 
