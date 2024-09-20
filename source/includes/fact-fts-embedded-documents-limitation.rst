@@ -1,8 +1,9 @@
-|fts| doesn't support indexing more than 2,147,483,647 index objects on a
-replica set or single shard, where each indexed embedded document counts
-as a single object. Using the ``embeddedDocuments`` field type can
-result in indexing objects over this limit, which causes an index to
-transition to a failed, non-queryable state. 
+|fts| stops replicating changes for indexes larger than 2,100,000,000
+index objects, on a replica set or single shard, where each indexed
+embedded document counts as a single object. Using the
+``embeddedDocuments`` field type can result in indexing objects over
+this limit, which causes an index to transition to a ``Stale``
+queryable state, and may result in stale results.
 
 The exact number of index objects can vary based on the rate of document
 changes and deletions. The :ref:`Search Max Number of Lucene Docs
@@ -125,6 +126,6 @@ Note that this approximation is a lower bound.
                Number of index objects per document = 7
                Total number of index objects: 1000 x 7 = 7000
 
-If your collection has large arrays that might generate 2,147,483,647
+If your collection has large arrays that might generate 2,100,000,000
 index objects, you must :ref:`shard <create-cluster-sharding>` any
 {+clusters+} that contain indexes with the ``embeddedDocuments`` type. 
