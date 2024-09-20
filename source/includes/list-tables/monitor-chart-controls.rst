@@ -27,11 +27,9 @@
        To reset to the originally selected range (zoom out), double-click
        the chart.
 
-       .. note::
-
-          When you zoom in on one period of time, the
-          :guilabel:`Current Display` date range in the chart control
-          section automatically updates to reflect the selected period.
+       When you zoom in on one period of time, the
+       :guilabel:`Current Display` date range in the chart control
+       section automatically updates to reflect the selected period.
 
    * - View statistics at a particular time.
 

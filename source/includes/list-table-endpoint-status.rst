@@ -35,13 +35,14 @@
           If your Interface Endpoint fails, you might see
           the following message:
 
-          .. example::
-
+          .. code-block:: sh
+             :copyable: false
+             
              No dns entries found for endpoint vpce-<guid>, 
-             your endpoint must be provisioned in at least one subnet 
+             your endpoint must be provisioned in at least one subnet. 
              Click "Edit" to fix the problem.
 
-          This message indicated that you didn't specify
+          This message indicates that you didn't specify
           a subnet when you created the {+aws-pl+}
           connection. To resolve this error:
             
