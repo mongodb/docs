@@ -54,15 +54,13 @@
              this field. |mms| assigns this group to your |mms|
              role.
       
-             .. note::
+             If the |idp| group doesn't exist, you can't enter a new
+             group name to create a new |idp| group.
       
-                If the |idp| group doesn't exist, you can't enter a new
-                group name to create a new |idp| group.
-      
-                If you use |azure| as your |idp| and you selected
-                :guilabel:`Group Id` as your source attribute, enter the
-                group's Object ID in this field instead of the group's name.
-                To learn more, see :ref:cm-configure-azuread-idp`.
+             If you use |azure| as your |idp| and you selected
+             :guilabel:`Group Id` as your source attribute, enter the
+             group's Object ID in this field instead of the group's name.
+             To learn more, see :ref:cm-configure-azuread-idp`.
       
          * - Assign Organization Roles
            - Click on each |mms| organization role that you want to
