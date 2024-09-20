@@ -30,11 +30,11 @@
            - Your label for this build. It must begin with a valid MongoDB
              version number.
       
-             .. example::
+             For example:
       
-                .. code-block:: sh
-      
-                   3.6.2-myCustomBuild
+             .. code-block:: sh
+
+                3.6.2-myCustomBuild
       
          * - Download |url|
            - |url| from which the {+mdbagent+} can download this build.
@@ -54,11 +54,11 @@
            - The complete 40-character ``git`` SHA-1 checksum (or *hash*)
              for this build.
       
-             .. example::
+             For example:
       
-                .. code-block:: sh
-      
-                   f3fa18bc6d8a749b7a526d83d2ad969fae1236c7
+             .. code-block:: sh
+
+                f3fa18bc6d8a749b7a526d83d2ad969fae1236c7
       
          * - Modules
            - If your Custom Build included any add-on modules, enter them
