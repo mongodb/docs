@@ -68,11 +68,9 @@
      - string
      - Units for the value. Value depends on the type of metric.
 
-       .. example::
-
-          A metric that measures memory consumption would have a byte
-          measurement, while a metric that measures time would have a
-          time unit.
+       For example, a metric that measures memory consumption would have a byte
+       measurement, while a metric that measures time would have a
+       time unit.
 
        |mms| can return:
 
