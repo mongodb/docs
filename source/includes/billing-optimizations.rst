@@ -64,6 +64,13 @@ Each month, review your invoice to assess the highest-cost services using the
 previous billing optimization suggestions. This is a recommended best practice 
 to identify cost reduction opportunities.
 
+If you see unexpected changes on your invoice, check your cloud
+computing costs, which are often the largest portion of your bill. You
+can review cloud computing costs in the :guilabel:`Summary By Service`
+card of any invoice within the |service| :guilabel:`Billing` section.
+The :guilabel:`Summary By Service` view shows the costs of all
+{+clusters+} by provider, tier, and region. 
+
 Use Support Resources
 ~~~~~~~~~~~~~~~~~~~~~
 
