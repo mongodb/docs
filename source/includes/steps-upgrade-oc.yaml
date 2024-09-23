@@ -1,58 +1,50 @@
 ---
-ref: upgrade-oc-crds
-inherit:
-  file: steps-install-master.yaml
-  ref: install-master-crds
+ref: upgrade-oc-edit-yaml
+title: Customize the |k8s-op-short| |yaml| before upgrading it.
 stepnum: 1
-replacement:
-  method: "Upgrade the |k8s-crds| for MongoDB deployments."
 content: |
 
-  Invoke the following |oc| command:
+  To avoid breaking changes, you should ensure that you select the same settings
+  as those in your existing deployment. To learn about optional |k8s-op-short| 
+  installation settings, see :ref:`Operator Helm Installation Settings <meko-op-install-settings-helm>`.
 
-  .. code-block:: sh
+  You must add your ``<openshift-pull-secret>`` to the 
+  ``ServiceAccount`` definitions:
 
-     oc replace -f crds.yaml
-
-
----
-ref: upgrade-oc-edit-yaml
-inherit:
-  file: steps-install-master.yaml
-  ref: install-master-edit-yaml
-stepnum: 2
-replacement:
-  method: upgrading
-  pullsecret: |
-
-    #. You must add your ``<openshift-pull-secret>`` to the 
-       ``ServiceAccount`` definitions:
-
-       .. literalinclude:: /includes/openshift-service-accounts.yaml
-          :language: yaml
-          :emphasize-lines: 11-12, 22-23, 33-34
-
----
-ref: remove-project-spec-oc-generic
-stepnum: 3
-inherit:
-  file: steps-install-master.yaml
-  ref: remove-project-spec
+  .. literalinclude:: /includes/openshift-service-accounts.yaml
+    :language: yaml
+    :emphasize-lines: 11-12, 22-23, 33-34
 ---
 ref: upgrade-oc-upgrade
 inherit:
   file: steps-install-master.yaml
   ref: install-master-install
-stepnum: 4
+stepnum: 2
 replacement:
   method: "Upgrade to the new version of the |k8s-op-short|."
 
 content: |
 
-  Invoke the following |oc| command:
+  Populate the ``<version>`` placeholder and run the following |oc|:
 
   .. code-block:: sh
 
-     oc apply -f mongodb-enterprise-openshift.yaml
+     oc apply -f https://raw.githubusercontent.com/mongodb/mongodb-enterprise-kubernetes/<version>/mongodb-enterprise-openshift.yaml
+---
+ref: update-meko-oc
+inherit:
+  file: steps-install-master.yaml
+  ref: install-master-crds
+stepnum: 3
+replacement:
+  method: "Upgrade the |k8s-crds| for MongoDB deployments."
+content: |
 
-...
+  Run the following |oc| command:
+
+  Populate the ``<version>`` placeholder and run the following |oc| 
+  command to deploy your chosen version of the CRDs to your |k8s| cluster:
+
+  .. code-block::
+     
+     oc apply -f https://raw.githubusercontent.com/mongodb/mongodb-enterprise-kubernetes/<version>/crds.yaml
