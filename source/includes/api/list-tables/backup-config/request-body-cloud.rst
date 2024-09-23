@@ -19,12 +19,9 @@
    * - excludedNamespaces
      - array of strings
      - Conditional
-     -
-       .. note::
-
-          |mms| accepts this parameter for backup jobs running MongoDB
-          |fcv-link| 4.0 or earlier. |mms| ignores this parameter when
-          backing up MongoDB databases running |fcv| 4.2 or later.
+     - |mms| accepts this parameter for backup jobs running MongoDB
+       |fcv-link| 4.0 or earlier. |mms| ignores this parameter when
+       backing up MongoDB databases running |fcv| 4.2 or later.
 
        List of database and collection names to *omit* from the backup.
        Each string represents one namespace. Namespaces use the format
@@ -50,12 +47,9 @@
    * - includedNamespaces
      - array of strings
      - Conditional
-     -
-       .. note::
-
-          |mms| accepts this parameter for backup jobs running MongoDB
-          |fcv-link| 4.0 or earlier. |mms| ignores this parameter when
-          backing up MongoDB databases running |fcv| 4.2 or later.
+     - |mms| accepts this parameter for backup jobs running MongoDB
+       |fcv-link| 4.0 or earlier. |mms| ignores this parameter when
+       backing up MongoDB databases running |fcv| 4.2 or later.
 
        List of database and collection names to *include* from the
        backup. Each string represents one namespace. Namespaces use the
