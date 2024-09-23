@@ -30,7 +30,7 @@ Docker.
 
 .. _atlas-cli-deploy-docker-setup:
 
-Create a Local Atlas Deployment with Docker
+Create a Local |service| Deployment with Docker
 -------------------------------------------
       
 .. procedure::
@@ -54,21 +54,89 @@ Create a Local Atlas Deployment with Docker
 
       .. tabs::
 
-         .. tab:: No Authentication
+         .. tab:: Manually Connect no Auth
             :tabid: no-auth
 
             .. code-block:: sh
 
                docker run -p 27017:27017 mongodb/mongodb-atlas-local
 
-         .. tab:: With Authentication
+         .. tab:: Manually Connect with Auth
             :tabid: with-auth
 
             .. code-block:: sh
 
                docker run -e MONGODB_INITDB_ROOT_USERNAME=user -e MONGODB_INITDB_ROOT_PASSWORD=pass -p 27017:27017 mongodb/mongodb-atlas-local
 
-      The logs display as the Docker image runs.
+         .. tab:: Automate Connection
+            :tabid: automate-connection
+
+            To automate a containerized deployment of |service|, you'll need to wait 
+            for the container to be in a healthy state before you can connect to |service|. 
+
+            The following example demonstrates deploying an |service| image in Docker
+            and polling Docker to check the state of the container. Once the 
+            container is in a healthy state, the script automates a connection 
+            to your |service| instance with `Mongosh <https://www.mongodb.com/docs/mongodb-shell/install/>`__. 
+
+            a. Create a file called ``mongodb-atlas-local.sh``, and paste the 
+               following script into your new file. 
+
+               .. code-block:: sh
+
+                  # Start mongodb-atlas-local container
+                  echo "Starting the container"
+                  CONTAINER_ID=$(docker run --rm -d -P mongodb/mongodb-atlas-local:latest)
+                  
+                  echo "waiting for container to become healthy..."
+                  function wait() {
+                  CONTAINER_ID=$1
+                  echo "waiting for container to become healthy..."
+                  for _ in $(seq 120); do
+                        STATE=$(docker inspect -f '{{ .State.Health.Status }}' "$CONTAINER_ID")
+                  
+                        case $STATE in
+                        healthy)
+                           echo "container is healthy"
+                           return 0
+                           ;;
+                        unhealthy)
+                           echo "container is unhealthy"
+                           docker logs "$CONTAINER_ID"
+                           stop
+                           exit 1
+                           ;;
+                        *)
+                        sleep 1
+                        esac     
+                  done
+                  
+                  echo "container did not get healthy within 120 seconds, quitting"
+                  docker logs mongodb_atlas_local
+                  stop
+                  exit 2
+                  }
+                  
+                  wait "$CONTAINER_ID"
+                  EXPOSED_PORT=$(docker inspect --format='{{ (index (index .NetworkSettings.Ports "27017/tcp") 0).HostPort }}' "$CONTAINER_ID")
+                  
+                  # Build the connectionstring
+                  CONNECTION_STRING="mongodb://127.0.0.1:$EXPOSED_PORT/test?directConnection=true"
+                  
+                  # Example usage of the connection string to connect to mongosh
+                  mongosh "$CONNECTION_STRING"
+
+            b. Run the following command to make the file executable. 
+
+               .. code-block:: sh
+
+                  chmod +x mongodb-atlas-local.sh
+
+            c. Run the executable. 
+
+               .. code-block:: sh
+
+                  ./mongodb-atlas-local.sh
 
    .. step:: Connect to the local |service| deployment.
 
