@@ -15,12 +15,12 @@
        that represents the point in time to which your data will be
        restored.
 
-       .. note:: Conditions
+       Conditions:
 
-          - Set ``"delivery.methodName" : "AUTOMATED_RESTORE"``.
-          - Run Sharded Clusters using |fcv-link| of 4.0 or earlier.
-          - Can't set ``oplogInc``, ``oplogTs``, or
-            ``pointInTimeUTCMillis``.
+       - Set ``"delivery.methodName" : "AUTOMATED_RESTORE"``.
+       - Run Sharded Clusters using |fcv-link| of 4.0 or earlier.
+       - Can't set ``oplogInc``, ``oplogTs``, or
+         ``pointInTimeUTCMillis``.
 
        If you provide this setting, this endpoint restores all data up
        to this :cloudmgr:`checkpoint  </reference/glossary/#std-term-checkpoint>` to the database you
@@ -67,17 +67,15 @@
        - ``AUTOMATED_RESTORE``
        - ``HTTP``
 
-       .. note::
+       If you set ``"delivery.methodName" : "AUTOMATED_RESTORE"``,
+       you must also set:
 
-          If you set ``"delivery.methodName" : "AUTOMATED_RESTORE"``,
-          you must also set:
+       - ``delivery.targetGroupId`` and
+       - ``delivery.targetClusterId``
 
-          - ``delivery.targetGroupId`` and
-          - ``delivery.targetClusterId``
-
-          In addition, the response shows the ``delivery.methodName``
-          as ``HTTP``. An automated restore uses the ``HTTP`` method
-          to deliver the restore job to the target host.
+       In addition, the response shows the ``delivery.methodName``
+       as ``HTTP``. An automated restore uses the ``HTTP`` method
+       to deliver the restore job to the target host.
 
        .. include:: /includes/note-scp-removed.rst
 
@@ -93,14 +91,12 @@
 
        ``delivery.methodName" : "AUTOMATED_RESTORE"``.
 
-       .. note::
-
-          If backup is not enabled on the target cluster, the
-          :doc:`Get All Snapshots </reference/api/snapshots/get-all-snapshots-for-one-cluster/>`
-          endpoint returns an empty ``results`` array without
-          ``clusterId`` elements, and the
-          :doc:`Get a Snapshot </reference/api/snapshots/get-all-snapshots-for-one-cluster>`
-          endpoint also does not return a ``clusterId`` element.
+       If backup is not enabled on the target cluster, the
+       :doc:`Get All Snapshots </reference/api/snapshots/get-all-snapshots-for-one-cluster/>`
+       endpoint returns an empty ``results`` array without
+       ``clusterId`` elements, and the
+       :doc:`Get a Snapshot </reference/api/snapshots/get-all-snapshots-for-one-cluster>`
+       endpoint also does not return a ``clusterId`` element.
 
    * - | ``delivery``
        | ``.targetGroupId``
@@ -124,12 +120,10 @@
        ``"delivery.methodName" : "AUTOMATED_RESTORE"``
        *for Replica Sets Only.*
 
-       .. note::
+       If you set ``oplogTs``, you:
 
-          If you set ``oplogTs``, you:
-
-          - Must set ``oplogInc``.
-          - Cannot set ``checkpointId`` or ``pointInTimeUTCMillis``.
+       - Must set ``oplogInc``.
+       - Cannot set ``checkpointId`` or ``pointInTimeUTCMillis``.
 
        If you provide this setting, this endpoint restores all data up
        to *and including* this Oplog timestamp to the database you
@@ -146,12 +140,10 @@
        ``"delivery.methodName" : "AUTOMATED_RESTORE"``
        *for Replica Sets Only.*
 
-       .. note::
+       If you set ``oplogInc``, you:
 
-          If you set ``oplogInc``, you:
-
-          - Must set ``oplogTs``.
-          - Cannot set ``checkpointId`` or ``pointInTimeUTCMillis``.
+       - Must set ``oplogTs``.
+       - Cannot set ``checkpointId`` or ``pointInTimeUTCMillis``.
 
        If you provide this setting, this endpoint restores all data up
        to *and including* this Oplog timestamp to the database you
@@ -171,13 +163,10 @@
        ``"delivery.methodName" : "AUTOMATED_RESTORE"``
        *for Replica Sets Only.*
 
-       .. note::
-
-          If you set ``pointInTimeUTCMillis``, you cannot set
-          ``oplogInc``, ``oplogTs``, or ``checkpointId``.
+       If you set ``pointInTimeUTCMillis``, you cannot set
+       ``oplogInc``, ``oplogTs``, or ``checkpointId``.
 
    * - ``snapshotId``
      - string
      - Conditional
      - Unique identifier of the :manual:`snapshot </reference/glossary/#std-term-snapshot>` to restore.
-
