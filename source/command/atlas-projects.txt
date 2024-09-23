@@ -55,7 +55,6 @@ Related Commands
 * :ref:`atlas-projects-create` - Create a project in your organization.
 * :ref:`atlas-projects-delete` - Remove the specified project.
 * :ref:`atlas-projects-describe` - Return the details for the specified project.
-* :ref:`atlas-projects-invitations` - Invitation operations.
 * :ref:`atlas-projects-list` - Return all projects.
 * :ref:`atlas-projects-settings` - Settings operations.
 * :ref:`atlas-projects-teams` - Manage your Atlas teams.
@@ -70,7 +69,6 @@ Related Commands
    create </command/atlas-projects-create>
    delete </command/atlas-projects-delete>
    describe </command/atlas-projects-describe>
-   invitations </command/atlas-projects-invitations>
    list </command/atlas-projects-list>
    settings </command/atlas-projects-settings>
    teams </command/atlas-projects-teams>

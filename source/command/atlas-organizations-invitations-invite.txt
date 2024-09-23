@@ -53,6 +53,12 @@ Options
      - Type
      - Required
      - Description
+   * - -f, --file
+     - string
+     - false
+     - Path to an optional JSON configuration file that defines invitation settings. To learn more about invitation configuration files for the Atlas CLI, see https://XXX.
+
+       Mutually exclusive with --role, --teamId.
    * - -h, --help
      - 
      - false
@@ -67,12 +73,16 @@ Options
      - Output format. Valid values are json, json-path, go-template, or go-template-file. To see the full output, use the -o json option.
    * - --role
      - strings
-     - true
+     - false
      - User's roles for the associated organization. Valid values include ORG_OWNER, ORG_MEMBER, ORG_GROUP_CREATOR, ORG_BILLING_ADMIN, and ORG_READ_ONLY.
+
+       Mutually exclusive with --file.
    * - --teamId
      - strings
      - false
      - Unique 24-digit string that identifies the team.
+
+       Mutually exclusive with --file.
 
 Inherited Options
 -----------------
