@@ -2,14 +2,9 @@
 
 .. note:: Use the same namespace throughout
 
-   The following examples assume that you created a |k8s-ns|
-   using the default |k8s-op-short| namespace of ``mongodb``.
-   If you specified a different label for your namespace when
-   you :ref:`created it <k8s-prerequisites>`, change all
-   values for ``metadata.namespace`` to that namespace.
-
-   To change the label for the namespace for the following
-   deployment to ``production``, edit all values for
+   By default, the |k8s-op-short| deploys all resources in your |k8s| cluster 
+   to the |k8s-ns| ``mongodb``. You can deploy |k8s-op-short| resources 
+   to a different namespace by editing all values for
    ``metadata.namespace`` in ``mongodb-enterprise.yaml``:
 
    .. code-block:: yaml
