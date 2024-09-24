@@ -13,14 +13,12 @@
 
        .. include:: /includes/fact-resource-name-char-limit.rst
 
-       .. seealso::
-
-          - :setting:`metadata.name`
-          - |k8s| documentation on `names <https://kubernetes.io/docs/concepts/overview/working-with-objects/names/>`__.
-            This name must follow :rfc:`RFC1123 <1123>` naming
-            conventions, using only lowercase alphanumeric
-            characters, '-' or '.', and must start and end with an
-            alphanumeric character.
+       To learn more, see :setting:`metadata.name`, and
+       |k8s| documentation on `names <https://kubernetes.io/docs/concepts/overview/working-with-objects/names/>`__.
+       This name must follow :rfc:`RFC1123 <1123>` naming
+       conventions, using only lowercase alphanumeric
+       characters, '-' or '.', and must start and end with an
+       alphanumeric character.
 
      - ``myconfigmap``
 
@@ -82,9 +80,7 @@
 
        .. include:: /includes/admonitions/data-url-config-map-external-dbs.rst
 
-       .. note::
-
-          If you're using |cloud-short|, set the ``data.baseUrl`` value
-          to ``https://cloud.mongodb.com``.
+       If you're using |cloud-short|, set the ``data.baseUrl`` value
+       to ``https://cloud.mongodb.com``.
 
      - ``https://ops.example.com:8443``

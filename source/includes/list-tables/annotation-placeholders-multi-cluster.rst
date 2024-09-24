@@ -36,14 +36,12 @@ annotations in each service for a specific Pod.
        :ref:`spec.clusterSpecList.clusterName 
        <multi-spec-agent-clusterspeclist-clustername>`.
 
-       .. note:: 
-       
-          This value might not reflect the order of the member clusters 
-          defined in :ref:`spec.clusterSpecList <multi-spec-clusterspeclist>`. 
-          Although you can change the order of
-          member clusters in :ref:`spec.clusterSpecList <multi-spec-clusterspeclist>`, 
-          the |k8s-op-short| still uses the index that it initially assigned 
-          for the current cluster name.
+       This value might not reflect the order of the member clusters 
+       defined in :ref:`spec.clusterSpecList <multi-spec-clusterspeclist>`. 
+       Although you can change the order of
+       member clusters in :ref:`spec.clusterSpecList <multi-spec-clusterspeclist>`, 
+       the |k8s-op-short| still uses the index that it initially assigned 
+       for the current cluster name.
 
    * - ``{statefulSetName}``
      - The |k8s-statefulset|. Equal to ``{resourceName}-{clusterIndex}``.
