@@ -18,7 +18,7 @@
       The following code uses the :ref:`LangChain integration <langchain>` and 
       :driver:`PyMongo driver </pymongo/>` to do the following:
       
-      - Load a PDF that contains `MongoDB's latest earnings report
+      - Load a PDF that contains a `MongoDB earnings report
         <https://investors.mongodb.com/node/12236/pdf>`__.
       - Split the data into chunks, specifying the *chunk size*
         (number of characters) and *chunk overlap* (number of overlapping characters 
@@ -77,58 +77,29 @@
       
       a. Create an {+avs+} index on your vector embeddings.
       
-         .. tabs::
+         You can create the index directly from your application with the
+         PyMongo driver. Paste and run the following code in your notebook:
 
-            .. tab:: {+Free-Clusters+}
-               :tabid: free
+         .. code-block:: python
 
-               For free and shared {+clusters+}, follow the steps to 
-               :ref:`create an index through the {+atlas-ui+} 
-               <avs-create-index>`. Name the index ``vector_index``
-               and use the following index definition:
-                   
-               .. code-block:: json
-                  :copyable: true 
+            pymongo.operations import SearchIndexModel
 
+            # Create your index model, then create the search index
+            search_index_model = SearchIndexModel(
+              definition = {
+                "fields": [
                   {
-                     "fields": [
-                        {
-                           "type": "vector",
-                           "path": "embedding",
-                           "numDimensions": 768,
-                           "similarity": "euclidean"
-                        }
-                     ]
+                    "type": "vector",
+                    "numDimensions": 768,
+                    "path": "embedding",
+                    "similarity": "cosine"
                   }
-
-            .. tab:: {+Dedicated-Clusters+}
-               :tabid: dedicated
-
-               For {+dedicated-clusters+}, you can
-               create the index directly from your application 
-               by using the PyMongo driver. Paste and run the following 
-               code in your notebook:
-
-               .. code-block:: python
-
-                  pymongo.operations import SearchIndexModel
-
-                  # Create your index model, then create the search index
-                  search_index_model = SearchIndexModel(
-                    definition = {
-                      "fields": [
-                        {
-                          "type": "vector",
-                          "numDimensions": 768,
-                          "path": "embedding",
-                          "similarity": "cosine"
-                        }
-                      ]
-                    },
-                    name = "vector_index",
-                    type = "vectorSearch" 
-                  )
-                  collection.create_search_index(model=search_index_model)
+                ]
+              },
+              name = "vector_index",
+              type = "vectorSearch" 
+            )
+            collection.create_search_index(model=search_index_model)
          
       #. Configure {+avs+} as a retriever. 
       
