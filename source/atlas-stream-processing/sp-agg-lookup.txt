@@ -27,7 +27,7 @@
 Definition
 ~~~~~~~~~~
 
-The :ref:`$lookup <streams-agg-pipeline-lookup>` performs a left outer
+The :ref:`$lookup <streams-agg-pipeline-lookup>` stage performs a left outer
 join of the stream of messages from your :pipeline:`$source` to an
 {+service+} collection in your :ref:`Connection Registry <manage-spi-connection-add>`.
 
@@ -257,3 +257,295 @@ return results that haven't yet materialized.
    depending on whether {+atlas-sp+} has processed the documents.
 
 For more information, see :pipeline:`$lookup`.
+
+.. _atlas-sp-agg-lookup-examples:
+
+Examples
+~~~~~~~~
+
+A streaming data source generates detailed weather reports from
+various locations, conformant to the schema of the :ref:`Sample
+Weather Dataset <sample-weather>`. A collection named
+``humidity_descriptions`` contains documents of the form:
+
+.. code-block: json
+   :copyable: false
+
+   {
+     'dew_point': 16.2,
+     'relative_humidity': 79,
+     'condition': 'sticky, oppressive'
+   }
+
+Where the ``relative_humidity`` field describes the relative humidity at
+room temperature (20 Celsius), and ``condition`` lists verbal
+descriptors appropriate to that level of humidity. You can use the
+:ref:`$lookup <atlas-sp-agg-lookup>` stage to enrich the streaming
+weather reports with suggested descriptors for meteorologists to use
+in weather broadcasts.
+
+The following aggregation has four stages:
+
+1. The :pipeline:`$source` stage establishes a connection with the
+   {+kafka+} broker collecting these reports in a topic named
+   ``my_weatherdata``, exposing each record as it is ingested to the
+   subsequent aggregation stages. This stage also overrides the name
+   of the timestamp field it projects, setting it to
+   ``ingestionTime``.
+
+2. The ``$lookup`` stage joins the records from the
+   ``humidity_descriptions`` database into the weather reports on the
+   ``dewPoint`` field.
+
+3. The :pipeline:`$match` stage excludes documents that have an empty
+   ``humidity_info`` field, and passes along documents with a populated
+   ``humidity_info`` field to the next stage.
+
+4. The :pipeline:`$merge` stage writes the output to an {+service+}
+   collection named ``enriched_stream`` in the
+   ``sample_weatherstream`` database. If no such database or
+   collection exist, {+service+} creates them.
+
+.. code-block:: json
+   :copyable: true
+   
+   {
+     '$source': {
+       connectionName: 'sample_weatherdata',
+       topic: 'my_weatherdata',
+       tsFieldName: 'ingestionTime'
+     }
+   },
+   {
+     '$lookup': {
+       from: {
+         connectionName: 'weatherStream',
+         db: 'humidity',
+         coll: 'humidity_descriptions'
+       },
+     'localField':'dewPoint.value',
+     'foreignField':'dewPoint',
+     'as': 'humidity_info'
+     }
+   }
+   { '$match': { 'humidity_info': { '$ne': [] } } }
+   {
+     '$merge': {
+       into: {
+	 connectionName: 'weatherStream',
+	 db: 'sample_weatherstream',
+	 coll: 'enriched_stream'
+       }
+     }
+   }
+
+To view the documents in the resulting ``sample_weatherstream.enriched_stream``
+collection, connect to your {+service+} cluster and run the following command:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: json
+
+      db.getSiblingDB("sample_weatherstream").enriched_stream.find()
+
+   .. output::
+      :language: json
+
+      {
+	st: 'x+55100+006100',
+	position: {
+	  type: 'Point',
+	  coordinates: [
+	    92.7,
+	    -53.6
+	  ]
+	},
+	elevation: 9999,
+	callLetters: 'UECN',
+	qualityControlProcess: 'V020',
+	dataSource: '4',
+	type: 'FM-13',
+	airTemperature: {
+	  value: -11,
+	  quality: '9'
+	},
+	dewPoint: {
+	  value: 12.5,
+	  quality: '1'
+	},
+	pressure: {
+	  value: 1032.7,
+	  quality: '9'
+	},
+	wind: {
+	  direction: {
+	    angle: 300,
+	    quality: '9'
+	  },
+	  type: '9',
+	  speed: {
+	    rate: 23.6,
+	    quality: '2'
+	  }
+	},
+	visibility: {
+	  distance: {
+	    value: 14000,
+	    quality: '1'
+	  },
+	  variability: {
+	    value: 'N',
+	    quality: '1'
+	  }
+	},
+	skyCondition: {
+	  ceilingHeight: {
+	    value: 390,
+	    quality: '9',
+	    determination: 'C'
+	  },
+	  cavok: 'N'
+	},
+	sections: [
+	  'SA1',
+	  'AA1',
+	  'OA1',
+	  'AY1',
+	  'AG1'
+	],
+	precipitationEstimatedObservation: {
+	  discrepancy: '4',
+	  estimatedWaterDepth: 21
+	},
+	atmosphericPressureChange: {
+	  tendency: {
+	    code: '1',
+	    quality: '1'
+	  },
+	  quantity3Hours: {
+	    value: 5.5,
+	    quality: '1'
+	  },
+	  quantity24Hours: {
+	    value: 99.9,
+	    quality: '9'
+	  }
+	},
+	seaSurfaceTemperature: {
+	  value: 1.3,
+	  quality: '9'
+	},
+	waveMeasurement: {
+	  method: 'M',
+	  waves: {
+	    period: 4,
+	    height: 2.5,
+	    quality: '9'
+	  },
+	  seaState: {
+	    code: '00',
+	    quality: '9'
+	  }
+	},
+	pastWeatherObservationManual: {
+	  atmosphericCondition: {
+	    value: '4',
+	    quality: '1'
+	  },
+	  period: {
+	    value: 6,
+	    quality: '1'
+	  }
+	},
+	skyConditionObservation: {
+	  totalCoverage: {
+	    value: '07',
+	    opaque: '99',
+	    quality: '1'
+	  },
+	  lowestCloudCoverage: {
+	    value: '06',
+	    quality: '1'
+	  },
+	  lowCloudGenus: {
+	    value: '07',
+	    quality: '9'
+	  },
+	  lowestCloudBaseHeight: {
+	    value: 2250,
+	    quality: '9'
+	  },
+	  midCloudGenus: {
+	    value: '07',
+	    quality: '9'
+	  },
+	  highCloudGenus: {
+	    value: '00',
+	    quality: '1'
+	  }
+	},
+	presentWeatherObservationManual: {
+	  condition: '75',
+	  quality: '1'
+	},
+	atmosphericPressureObservation: {
+	  altimeterSetting: {
+	    value: 9999.9,
+	    quality: '9'
+	  },
+	  stationPressure: {
+	    value: 1032.6,
+	    quality: '1'
+	  }
+	},
+	skyCoverLayer: {
+	  coverage: {
+	    value: '09',
+	    quality: '1'
+	  },
+	  baseHeight: {
+	    value: 240,
+	    quality: '9'
+	  },
+	  cloudType: {
+	    value: '99',
+	    quality: '9'
+	  }
+	},
+	liquidPrecipitation: {
+	  period: 6,
+	  depth: 3670,
+	  condition: '9',
+	  quality: '9'
+	},
+	extremeAirTemperature: {
+	  period: 99.9,
+	  code: 'N',
+	  value: -30.9,
+	  quantity: '9'
+	},
+	ingestionTime: ISODate('2024-09-19T20:04:34.346Z'),
+	humidity_info: [
+	  {
+	    _id: ObjectId('66ec805ad3cfbba767ebf7a5'),
+	    dewPoint: 12.5,
+	    relativeHumidity: 62,
+	    condition: 'humid, muggy'
+	  }
+	],
+	_stream_meta: {
+	  source: {
+	    type: 'kafka',
+	    topic: 'my_weatherdata',
+	    partition: 0,
+	    offset: 2055
+	  }
+	}
+      }
+
+.. note::
+
+   The preceding is a representative example. Streaming data are
+   not static, and each user sees distinct documents.
