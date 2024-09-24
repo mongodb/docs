@@ -12,7 +12,7 @@ Build a Local RAG Implementation with {+avs+}
 
 .. facet::
    :name: programming_language
-   :values: python
+   :values: javascript/typescript, python
 
 .. meta::
    :description: How to implement retrieval-augmented generation (RAG) for Atlas Vector Search using local embedding models and chat models.
@@ -22,6 +22,8 @@ Build a Local RAG Implementation with {+avs+}
    :backlinks: none
    :depth: 1
    :class: singlecol
+
+.. tabs-selector:: drivers
 
 This tutorial demonstrates how to implement
 retrieval-augmented generation (RAG)
@@ -35,6 +37,15 @@ Specifically, you perform the following actions:
 #. Use a local embedding model to generate vector embeddings.
 #. Create an {+avs+} index on your data.
 #. Deploy a local |llm| to answer questions on your data.
+
+----------
+
+.. |arrow| unicode:: U+27A4
+
+|arrow| Use the **Select your language** drop-down menu to set the 
+language of the examples on this page.
+
+----------
 
 Background
 ----------
@@ -54,10 +65,23 @@ To learn more, see
    Local |service| {+deployments+} are intended for testing only. 
    For production environments, :ref:`deploy a {+cluster+} <create-new-cluster>`.
 
-You also use the following open-source models in this tutorial:
+.. tabs-drivers::
 
-- `bge-large-en-v1.5 <https://huggingface.co/BAAI/bge-large-en-v1.5>`__ embedding model 
-- `Mistral 7B <https://docs.mistral.ai/getting-started/models/>`__ generative model
+   .. tab::
+      :tabid: nodejs
+
+      You also use the following open-source models in this tutorial:
+
+      - `mxbai-embed-large-v1 <https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1>`__ embedding model 
+      - `Mistral 7B <https://docs.mistral.ai/getting-started/models/>`__ generative model
+
+   .. tab::
+      :tabid: python
+
+      You also use the following open-source models in this tutorial:
+
+      - `bge-large-en-v1.5 <https://huggingface.co/BAAI/bge-large-en-v1.5>`__ embedding model 
+      - `Mistral 7B <https://docs.mistral.ai/getting-started/models/>`__ generative model
 
 There are several ways to download and deploy |llm|\s locally.
 In this tutorial, you download the Mistral 7B model
@@ -78,21 +102,42 @@ use with {+avs+}, see :ref:`ai-integrations`.
 Prerequisites
 -------------
 
-To complete this tutorial, you must have the following:
+.. tabs-drivers::
 
-- The :atlascli:`{+atlas-cli+} </>` installed and running v1.14.3 or later.
+   .. tab::
+      :tabid: nodejs
 
-- An interactive Python notebook that you can run locally. 
-  You can run interactive Python notebooks in `VS Code 
-  <https://code.visualstudio.com/docs/datascience/jupyter-notebooks>`__.
-  Ensure that your environment runs Python v3.10 or later.
+      To complete this tutorial, you must have the following:
 
-  .. note::
+      - The :atlascli:`{+atlas-cli+} </>` installed and running v1.14.3 or later.
 
-     If you use a hosted service such as `Colab 
-     <https://colab.research.google.com>`__, ensure that 
-     you have enough RAM to run this tutorial. Otherwise,
-     you might experience performance issues.
+      - A `Hugging Face Access Token <https://huggingface.co/docs/hub/en/security-tokens>`__
+        with read access.
+
+      - `Git Large File Storage <https://git-lfs.com/>`__ installed.
+
+      - A terminal and code editor to run your Node.js project.
+
+      - `npm and Node.js <https://docs.npmjs.com/downloading-and-installing-node-js-and-npm>`__ installed.
+
+   .. tab::
+      :tabid: python
+
+      To complete this tutorial, you must have the following:
+
+      - The :atlascli:`{+atlas-cli+} </>` installed and running v1.14.3 or later.
+
+      - An interactive Python notebook that you can run locally. 
+        You can run interactive Python notebooks in `VS Code 
+        <https://code.visualstudio.com/docs/datascience/jupyter-notebooks>`__.
+        Ensure that your environment runs Python v3.10 or later.
+
+      .. note::
+
+         If you use a hosted service such as `Colab 
+         <https://colab.research.google.com>`__, ensure that 
+         you have enough RAM to run this tutorial. Otherwise,
+         you might experience performance issues.
 
 Create a Local |service| Deployment
 -----------------------------------
@@ -109,12 +154,26 @@ To create the local {+deployment+}:
 Set Up the Environment
 ----------------------
 
-In this section, you set up the environment for this tutorial.
-Create an interactive Python notebook by saving a file 
-with the ``.ipynb`` extension, and then run the following code snippets 
-in the notebook.
+.. tabs-drivers::
 
-.. include:: /includes/ai-integrations/langchain/local-rag-set-up-environment.rst
+   .. tab::
+      :tabid: nodejs
+
+      In this section, you set up the environment for this tutorial. Create
+      a project, install the required packages, and define a connection
+      string:
+
+      .. include:: /includes/avs-local-rag-set-up-environment-javascript.rst
+
+   .. tab::
+      :tabid: python
+
+      In this section, you set up the environment for this tutorial.
+      Create an interactive Python notebook by saving a file 
+      with the ``.ipynb`` extension, and then run the following code snippets 
+      in the notebook.
+
+      .. include:: /includes/ai-integrations/langchain/local-rag-set-up-environment.rst
 
 Generate Embeddings with a Local Model
 --------------------------------------
@@ -122,27 +181,37 @@ Generate Embeddings with a Local Model
 In this section, you load an embedding model locally and 
 create vector embeddings using data from the 
 :ref:`sample_airbnb <sample-airbnb>` database, 
-which contains a single collection called ``listingsAndReviews``. 
-The following code snippet performs the following 
-actions:
+which contains a single collection called ``listingsAndReviews``.
 
-- Establishes a connection to your local |service| {+deployment+} or 
-  your |service| {+cluster+} and the ``sample_airbnb.listingsAndReviews`` collection. 
-- Loads the ``bge-large-en-v1.5`` embedding model from LangChain's 
-  ``HuggingFaceEmbeddings`` library. 
-- Creates a filter to include only documents that have a ``summary`` field
-  and don't have an ``embeddings`` field.
-- For each document in the collection that satisfies the filter:
+.. tabs-drivers::
 
-  - Generates an embedding from the document's ``summary`` field
-    by using the ``bge-large-en-v1.5`` embedding model.
-  - Updates the document by creating a new field called 
-    ``embeddings`` that contains the embedding.
+   .. tab::
+      :tabid: nodejs
 
-Run the following code in your notebook:
+      .. include:: /includes/avs-local-rag-generate-embeddings-with-local-model-javascript.rst
 
-.. literalinclude:: /includes/ai-integrations/langchain/local-rag-create-embeddings.py
-   :language: python
+   .. tab::
+      :tabid: python
+
+      The following code snippet performs the following actions:
+
+      - Establishes a connection to your local |service| {+deployment+} or 
+        your |service| {+cluster+} and the ``sample_airbnb.listingsAndReviews`` collection. 
+      - Loads the ``bge-large-en-v1.5`` embedding model from LangChain's 
+        ``HuggingFaceEmbeddings`` library. 
+      - Creates a filter to include only documents that have a ``summary`` field
+        and don't have an ``embeddings`` field.
+      - For each document in the collection that satisfies the filter:
+
+        - Generates an embedding from the document's ``summary`` field
+          by using the ``bge-large-en-v1.5`` embedding model.
+        - Updates the document by creating a new field called 
+          ``embeddings`` that contains the embedding.
+
+      Run the following code in your notebook:
+
+      .. literalinclude:: /includes/ai-integrations/langchain/local-rag-create-embeddings.py
+         :language: python
 
 .. tabs::
    :hidden: true
@@ -191,13 +260,37 @@ collection, create an {+avs+} index.
 
       If you're using an |service| {+cluster+}, complete the following steps:
 
-      .. include:: /includes/ai-integrations/langchain/local-rag-create-index-ui.rst
+      .. tabs-drivers::
+
+         .. tab::
+            :tabid: nodejs
+
+            .. include:: /includes/avs-examples/local-rag/create-index-programmatically-javascript.rst
+
+         .. tab::
+            :tabid: python
+
+            .. include:: /includes/avs-examples/local-rag/create-index-programmatically-python.rst
 
 Answer Questions with a Local LLM
 ---------------------------------
 
-This section demonstrates a sample |rag| implementation 
-that you can run locally by using {+avs+}, LangChain, and GPT4All.
-In your interactive Python notebook, run the following code snippets:
+.. tabs-drivers::
 
-.. include:: /includes/ai-integrations/langchain/local-rag-perform-qa.rst
+   .. tab::
+      :tabid: nodejs
+
+      This section demonstrates a sample |rag| implementation 
+      that you can run locally by using {+avs+} and GPT4All.
+
+      .. include:: /includes/avs-examples/local-rag/perform-qa-javascript.rst
+
+   .. tab::
+      :tabid: python
+
+      This section demonstrates a sample |rag| implementation 
+      that you can run locally by using {+avs+}, LangChain, and GPT4All.
+
+      In your interactive Python notebook, run the following code snippets:
+
+      .. include:: /includes/ai-integrations/langchain/local-rag-perform-qa.rst
