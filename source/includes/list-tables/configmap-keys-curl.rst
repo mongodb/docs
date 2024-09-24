@@ -13,13 +13,11 @@
 
        .. include:: /includes/fact-resource-name-char-limit.rst
 
-       .. seealso::
-
-          - |k8s| documentation on `names <https://kubernetes.io/docs/concepts/overview/working-with-objects/names/>`__.
-            This name must follow :rfc:`RFC1123 <1123>` naming
-            conventions, using only lowercase alphanumeric
-            characters, ``-`` or ``.``, and must start and end with an
-            alphanumeric character.
+       To learn more, see |k8s| documentation on `names <https://kubernetes.io/docs/concepts/overview/working-with-objects/names/>`__.
+       This name must follow :rfc:`RFC1123 <1123>` naming
+       conventions, using only lowercase alphanumeric
+       characters, ``-`` or ``.``, and must start and end with an
+       alphanumeric character.
 
      - ``my-project``
 
@@ -64,11 +62,9 @@
 
        .. include:: /includes/steps/find-org-id.rst
 
-       .. note:: 
-
-          You must have the :opsmgr:`Organization Project Creator </reference/user-roles/#Organization Project Creator>`
-          role to create a new project within an existing
-          |com| organization.
+       You must have the :opsmgr:`Organization Project Creator </reference/user-roles/#Organization Project Creator>`
+       role to create a new project within an existing
+       |com| organization.
 
        If you provide an empty string as your ``orgId``, |k8s-op-short| 
        creates an organization with the same name as your project.
@@ -82,9 +78,7 @@
 
        .. include:: /includes/admonitions/data-url-config-map-external-dbs.rst
 
-       .. note::
-
-          If you're using |cloud-short|, set the ``data.baseUrl`` value
-          to ``https://cloud.mongodb.com``.
+       If you're using |cloud-short|, set the ``data.baseUrl`` value
+       to ``https://cloud.mongodb.com``.
 
      - ``https://ops.example.com:8443``

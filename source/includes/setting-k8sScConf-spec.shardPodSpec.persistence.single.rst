@@ -35,10 +35,9 @@
    
           Default value is 16Gi.
    
-          .. example::
-   
-             If each :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>` shard member in requires 60 gigabytes of
-             storage space, set this value to ``60Gi``.
+          For example, if each :manual:`sharded cluster
+          </reference/glossary/#std-term-sharded-cluster>` shard member
+          in requires 60 gigabytes of storage space, set this value to ``60Gi``.
    
       * - ``storageClass``
         - string
@@ -46,7 +45,5 @@
           this storage type as a |k8s-sc| object before using it in this
           |k8s-obj| specification.
    
-          .. note::
-   
-             .. include:: /includes/admonitions/fact-reclaimpolicy-to-retain.rst
+          .. include:: /includes/admonitions/fact-reclaimpolicy-to-retain.rst
 

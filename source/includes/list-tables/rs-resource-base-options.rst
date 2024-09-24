@@ -13,11 +13,9 @@
 
        .. include:: /includes/fact-resource-name-char-limit.rst
 
-       .. seealso::
-
-          - :setting:`metadata.name`
-          - Kubernetes documentation on
-            :k8sdocs:`names </concepts/overview/working-with-objects/names/>`.
+       To learn more, see :setting:`metadata.name` and
+       Kubernetes documentation on
+       :k8sdocs:`names </concepts/overview/working-with-objects/names/>`.
 
      - ``myproject``
 

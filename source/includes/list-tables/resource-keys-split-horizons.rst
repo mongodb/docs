@@ -21,17 +21,17 @@
 
        You may add multiple external mappings per host.
 
-       .. note:: Split Horizon Requirements
+       Split Horizon Requirements
 
-          - Make sure that each value in this array is unique.
+       - Make sure that each value in this array is unique.
 
-          - Make sure that the number of entries in this array matches
-            the value given in :setting:`spec.members`.
+       - Make sure that the number of entries in this array matches
+         the value given in :setting:`spec.members`.
 
-          - Provide a value for the
-            :setting:`spec.security.certsSecretPrefix` setting to
-            enable |tls|. This method to use split horizons requires the
-            Server Name Indication extension of the |tls| protocol.
+       - Provide a value for the
+         :setting:`spec.security.certsSecretPrefix` setting to
+         enable |tls|. This method to use split horizons requires the
+         Server Name Indication extension of the |tls| protocol.
      - :setting:`See Setting<spec.connectivity.replicaSetHorizons>`
 
    * - | ``spec.security``
