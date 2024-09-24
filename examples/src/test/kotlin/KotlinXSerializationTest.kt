@@ -204,7 +204,6 @@ internal class KotlinXSerializationTest {
         val department: String,
     ) : Person
     // :snippet-end:
-
     @Test
     fun polymorphicSerializationTest() = runBlocking {
 
@@ -238,6 +237,35 @@ internal class KotlinXSerializationTest {
         if (resultsFlow != null) {
             assertTrue(resultsFlow.firstOrNull() is Teacher)
         }
+
+        collection.drop()
+    }
+
+    // :snippet-start: datetime-data-class
+    @Serializable
+    data class Appointment(
+        val name: String,
+        @Contextual val date: LocalDate,
+        val time: LocalTime,
+    )
+    // :snippet-end:
+
+    @Test
+    fun dateTimeSerializationTest() = runBlocking {
+
+        // :snippet-start: datetime-insertone
+        val collection = database.getCollection<Appointment>("appointments")
+
+        val apptDoc = Appointment(
+            "Daria Smith",
+            LocalDate(2024, 10, 15),
+            LocalTime(hour = 11, minute = 30)
+        )
+
+        collection.insertOne(apptDoc)
+        // :snippet-end:
+
+        assertEquals(apptDoc.name, "Daria Smith")
 
         collection.drop()
     }

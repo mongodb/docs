@@ -301,3 +301,91 @@ deserializes them accordingly.
       Retrieving as Document type
       Document{{_id=..., _t=Teacher, name=Vivian Lee, department=History}}
       Document{{_id=..., _t=Student, name=Kate Parker, grade=10}}
+
+.. _kotlin-datetime-serialization:
+
+Serialize Dates and Times
+-------------------------
+
+In this section, you can learn about using {+language+} serialization to
+work with date and time types.
+
+kotlinx-datetime Library
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+``kotlinx-datetime`` is a {+language+} library that offers
+a high level of control over how your date and time values
+are serialized. To use the library, add the ``kotlinx-datetime``
+dependency to your project's dependency list.
+
+Select from the following tabs to see how to add the ``kotlinx-datetime``
+dependency to your project by using the :guilabel:`Gradle` and
+:guilabel:`Maven` package managers:
+
+.. tabs::
+
+   .. tab::
+      :tabid: Gradle
+
+      .. code-block:: kotlin
+        :caption: build.gradle.kts
+
+        implementation("org.jetbrains.kotlinx:kotlinx-datetime:{+kotlinx-dt-version+}")
+
+   .. tab::
+      :tabid: Maven
+
+      .. code-block:: kotlin
+        :caption: pom.xml
+
+        <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-datetime-jvm</artifactId>
+            <version>{+kotlinx-dt-version+}</version>
+        </dependency>
+
+To learn more about this library, see the :github:`kotlinx-datetime repository
+</Kotlin/kotlinx-datetime>` on GitHub.
+
+Example Data Class with Dates and Times
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After you add the library dependency, you can implement serializers from
+the ``kotlinx-datetime`` library that map your data class field values
+to the expected types in BSON.
+
+In the following example, the driver serializes the fields of
+the ``Appointment`` data class with the following behavior:
+
+- ``name``: The driver serializes the value as a string.
+
+- ``date``:  The driver uses the ``kotlinx-datetime`` serializer
+  because the field has the ``@Contextual`` annotation. ``LocalDate``
+  values are serialized as BSON dates.
+
+- ``time``: The driver serializes the value as a string because it does
+  not have the ``@Contextual`` annotation. This is the default
+  serialization behavior for ``LocalTime`` values.
+
+.. literalinclude:: /examples/generated/KotlinXSerializationTest.snippet.datetime-data-class.kt
+    :language: kotlin
+
+The following example inserts an instance of the ``Appointment`` data
+class into MongoDB:
+
+.. literalinclude:: /examples/generated/KotlinXSerializationTest.snippet.datetime-insertone.kt
+    :language: kotlin
+
+In MongoDB, the ``LocalDate`` value is stored as a BSON date, and the
+``time`` field is stored  as a string by default serialization:
+
+.. code-block:: json
+
+   {
+     "_id": ...,
+     "name": "Daria Smith",
+     "date": {
+       "$date": "2024-10-15T00:00:00.000Z"
+     },
+     "time": "11:30",
+   }
