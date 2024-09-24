@@ -74,6 +74,14 @@ data class Teacher(
 ) : Person
 // end-poly-classes
 
+// start-datetime-data-class
+@Serializable
+data class Appointment(
+    val name: String,
+    @Contextual val date: LocalDate,
+    val time: LocalTime,
+)
+// end-datetime-data-class
 
 fun main() {
 
@@ -125,6 +133,18 @@ fun main() {
         println(result)
     }
     // end-poly-operations
+
+    // start-datetime-insertone
+    val collection = database.getCollection<Appointment>("appointments")
+
+    val apptDoc = Appointment(
+        "Daria Smith",
+        LocalDate(2024, 10, 15),
+        LocalTime(hour = 11, minute = 30)
+    )
+
+    collection.insertOne(apptDoc)
+    // end-datetime-insertone
 
 }
 

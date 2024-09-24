@@ -74,13 +74,35 @@ fun main() {
     
     // start-create-search-index
     val index = Document("mappings", Document("dynamic", true))
-    collection.createSearchIndex("<index name>", index)
+    collection.createSearchIndex("mySearchIdx", index)
     // end-create-search-index
 
     // start-create-search-indexes
-    val indexOne = SearchIndexModel("<first index name>", Document("mappings", Document("dynamic", true)))
-    val indexTwo = SearchIndexModel("<second index name>", Document("mappings", Document("dynamic", true)))
-    collection.createSearchIndexes(listOf(indexOne, indexTwo))
+    val searchIdxMdl = SearchIndexModel(
+        "searchIdx",
+        Document("analyzer", "lucene.standard").append(
+            "mappings", Document("dynamic", true)
+        ),
+        SearchIndexType.search()
+    )
+    
+    val vectorSearchIdxMdl = SearchIndexModel(
+        "vsIdx",
+        Document(
+            "fields",
+            listOf(
+                Document("type", "vector")
+                    .append("path", "embeddings")
+                    .append("numDimensions", 1536)
+                    .append("similarity", "dotProduct")
+            )
+        ),
+        SearchIndexType.vectorSearch()
+    )
+    
+    collection.createSearchIndexes(
+        listOf(searchIdxMdl, vectorSearchIdxMdl)
+    )
     // end-create-search-indexes
 
     // start-list-search-indexes
