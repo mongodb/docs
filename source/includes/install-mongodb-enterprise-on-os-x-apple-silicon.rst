@@ -3,7 +3,18 @@
 
     .. step:: Download the tarball. 
 
-        .. include:: /includes/macos-install-download-tarball-apple-silicon.rst
+        Download the MongoDB |edition| ``tgz`` tarball from the following link: 
+        
+        |arrow| |mdb-download-link| 
+        
+        a. In the :guilabel:`Version` dropdown, select the version of MongoDB 
+           to download. 
+        
+        #. In the :guilabel:`Platform` dropdown, select :guilabel:`macOS ARM 64`. 
+        
+        #. In the :guilabel:`Package` dropdown, select :guilabel:`tgz`. 
+        
+        #. Click :guilabel:`Download`.
 
     .. step:: Extract the files from the downloaded archive. 
 

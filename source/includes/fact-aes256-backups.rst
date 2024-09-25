@@ -4,9 +4,3 @@ process use a unique counter block value with the key.
 
 .. include:: /includes/extracts/4.2-changes-ese-key-rollover.rst
 
-
-.. tip::
-
-   In general, if using filesystem based backups for MongoDB Enterprise, use 
-   the "hot" backup feature, if possible.
-     
