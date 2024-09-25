@@ -3,7 +3,7 @@
 #. The Backup-enabled {+mdbagent+} connects to, and authenticates with,
    the databases associated with the backup job.
 
-#. The :opsmgr:`inital sync </reference/glossary/#std-term-initial-sync>` begins and enters its ``starting`` phase.
+#. The :opsmgr:`initial sync </reference/glossary/#std-term-initial-sync>` begins and enters its ``starting`` phase.
    Initial sync is a transition state between :guilabel:`Inactive` and
    :guilabel:`Active`. Initial Sync goes through a series of phases
    that are displayed on the :guilabel:`Backup` page to show progress.
