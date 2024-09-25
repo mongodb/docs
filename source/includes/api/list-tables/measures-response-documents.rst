@@ -23,9 +23,7 @@
      - |iso8601-duration| that specifies the size of the interval that
        each data point covers.
 
-       .. example:: 
-
-          ``PT5M`` specifies a 5-minute granularity.
+       For example, ``PT5M`` specifies a 5-minute granularity.
 
    * - groupId
      - string
