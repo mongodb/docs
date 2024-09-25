@@ -15,10 +15,8 @@
      - string
      - |iso8601-time| when the invitation expires.
 
-       .. tip::
-
-          Users have 30 days to accept an invitation to an |mms|
-          project.
+       Users have 30 days to accept an invitation to an |mms|
+       project.
 
    * - groupId
      - string

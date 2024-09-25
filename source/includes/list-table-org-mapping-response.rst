@@ -17,10 +17,8 @@
      - Flag that indicates whether domain restriction is enabled for 
        the connected organization.
 
-       .. note::
-
-          ``userConflicts`` returns ``null`` when 
-          ``"domainRestrictionEnabled": false``.
+       ``userConflicts`` returns ``null`` when 
+       ``"domainRestrictionEnabled": false``.
 
    * - ``identityProviderId``
      - string 
@@ -48,7 +46,5 @@
      - List that contains the usernames that don't match any domain on 
        the allowed list.
 
-       .. note::
-
-          ``userConflicts`` returns ``null`` when 
-          ``"domainRestrictionEnabled": false``.
+       ``userConflicts`` returns ``null`` when 
+       ``"domainRestrictionEnabled": false``.
