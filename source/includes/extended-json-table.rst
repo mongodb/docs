@@ -24,10 +24,8 @@
      - A string format that emphasizes readability and interoperability at 
        the expense of type preservation. That is, conversion from relaxed 
        format to BSON can lose type information.
-
-       .. warning:: 
         
-          This format is not recommended for data integrity. 
+       :red:`WARNING:` This format is not recommended for data integrity. 
       
      - 
        .. code-block:: javascript 
