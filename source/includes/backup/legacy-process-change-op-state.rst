@@ -32,9 +32,7 @@
 
      - Click :guilabel:`Terminate`.
 
-       .. warning::
-        
-          :guilabel:`Terminate` deletes all retained backups.
+       :red:`WARNING:` :guilabel:`Terminate` deletes all retained backups.
 
 .. important::
 
