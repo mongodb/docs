@@ -7,7 +7,7 @@ import static com.mongodb.client.model.Projections.*;
 import static com.mongodb.client.model.Sorts.*;
 import static com.mongodb.client.model.Accumulators.*;
 import static com.mongodb.client.model.search.SearchPath.fieldPath;
-import static com.mongodb.client.model.search.VectorSearchOptions.vectorSearchOptions;
+import static com.mongodb.client.model.search.VectorSearchOptions.exactVectorSearchOptions;
 import static java.util.Arrays.asList;
 // end static import
 
@@ -317,16 +317,14 @@ public class AggBuilders {
         List<Double> queryVector = (asList(-0.0072121937, -0.030757688, -0.012945653));
         String indexName = "mflix_movies_embedding_index";
         FieldSearchPath fieldSearchPath = fieldPath("plot_embedding");
-        int numCandidates = 2;
         int limit = 1;
-        VectorSearchOptions options = vectorSearchOptions().filter(gte("year", 2016));
+        VectorSearchOptions options = exactVectorSearchOptions().filter(gte("year", 2016));
 
         List<Bson> pipeline = asList(
                 vectorSearch(
                         fieldSearchPath,
                         queryVector,
                         indexName,
-                        numCandidates,
                         limit,
                         options),
                 project(

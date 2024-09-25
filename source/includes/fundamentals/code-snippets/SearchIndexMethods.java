@@ -2,6 +2,7 @@ package org.example;
 
 import com.mongodb.client.*;
 import com.mongodb.client.model.SearchIndexModel;
+import com.mongodb.client.model.SearchIndexType;
 import org.bson.Document;
 
 import java.util.Arrays;
