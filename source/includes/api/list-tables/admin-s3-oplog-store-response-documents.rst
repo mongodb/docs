@@ -138,7 +138,5 @@
        - ``JOURNALED``
        - ``MAJORITY``
 
-       .. seealso::
-
-          To learn about write acknowledgement levels in MongoDB, see
-          :manual:`Write Concern </reference/write-concern>`
+       To learn about write acknowledgement levels in MongoDB, see
+       :manual:`Write Concern </reference/write-concern>`.
