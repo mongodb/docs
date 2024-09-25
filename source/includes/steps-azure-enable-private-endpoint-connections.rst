@@ -16,7 +16,7 @@
             --header "Accept: application/json" \
             --header "Content-Type: application/json" \
             --include \
-            --request PATCH "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/encryptionAtRest/AZURE/privateEndpoints" \
+            --request PATCH "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/encryptionAtRest/" \
             --data '
               {
                 "azureKeyVault": {
