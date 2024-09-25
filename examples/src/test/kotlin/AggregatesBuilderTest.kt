@@ -28,7 +28,7 @@ import com.mongodb.client.model.geojson.Position
 import com.mongodb.client.model.search.SearchOperator
 import com.mongodb.client.model.search.SearchOptions
 import com.mongodb.client.model.search.SearchPath
-import com.mongodb.client.model.search.VectorSearchOptions.vectorSearchOptions
+import com.mongodb.client.model.search.VectorSearchOptions.exactVectorSearchOptions
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import config.getConfig
 import kotlinx.coroutines.flow.firstOrNull
@@ -981,13 +981,13 @@ class AggregatesBuilderTest {
                     SearchPath.fieldPath(MovieAlt::plotEmbedding.name),
                     listOf(-0.0072121937, -0.030757688, -0.012945653),
                     "mflix_movies_embedding_index",
-                    2.toLong(),
                     1.toLong(),
-                    vectorSearchOptions().filter(Filters.gte(MovieAlt::year.name, 2016))
+                    exactVectorSearchOptions().filter(Filters.gte(MovieAlt::year.name, 2016))
                 )
                 // :snippet-end:
             )
         )
+
         val results = resultsFlow.toList()
         assertEquals(1, resultsFlow.toList().size)
         assertEquals(1, results.first().get("count", Document::class.java).get("lowerBound", java.lang.Long::class.java)?.toInt())

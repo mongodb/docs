@@ -1,5 +1,6 @@
 
 import com.mongodb.client.model.SearchIndexModel
+import com.mongodb.client.model.SearchIndexType
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import config.getConfig
 import kotlinx.coroutines.flow.toList
