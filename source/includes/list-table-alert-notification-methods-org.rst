@@ -71,9 +71,7 @@
        number, use a `Google Voice <https://voice.google.com>`__
        telephone number.
 
-       .. example::
-
-          For New Zealand enter ``01164`` before the phone number. 
+       For example, for New Zealand enter ``01164`` before the phone number. 
 
    * - Slack
 
