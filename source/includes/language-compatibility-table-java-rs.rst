@@ -3,7 +3,7 @@
    :stub-columns: 1
    :class: compatibility-large
 
-   * - Java Reactive Streams Driver Version
+   * - {+java-rs+} Driver Version
      - Java 21
      - Java 17
      - Java 11 [#backwards-compatible-rs]_
@@ -11,7 +11,7 @@
      - Java 7
      - Java 6
 
-   * - 5.1
+   * - 4.11 to 5.2
      - ✓
      - ✓
      - ✓
@@ -19,63 +19,7 @@
      -
      -
 
-   * - 5.0
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     -
-     -
-
-   * - 4.11
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     -
-     -
-
-   * - 4.10
-     - ✓ [#virtual-threads-note]_
-     - ✓
-     - ✓
-     - ✓
-     -
-     -
-
-   * - 4.9
-     - ✓ [#virtual-threads-note]_
-     - ✓
-     - ✓
-     - ✓
-     -
-     -
-
-   * - 4.8
-     - ✓ [#virtual-threads-note]_
-     - ✓
-     - ✓
-     - ✓
-     -
-     -
-
-   * - 4.7
-     - ✓ [#virtual-threads-note]_
-     - ✓
-     - ✓
-     - ✓
-     -
-     -
-
-   * - 4.6
-     - ✓ [#virtual-threads-note]_
-     - ✓
-     - ✓
-     - ✓
-     -
-     -
-
-   * - 4.5
+   * - 4.5 to 4.10
      - ✓ [#virtual-threads-note]_
      - ✓
      - ✓
@@ -91,23 +35,7 @@
      -
      -
 
-   * - 4.3
-     -
-     -
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-   
-   * - 4.2
-     -
-     -
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-
-   * - 4.1
+   * - 4.1 to 4.3
      -
      -
      - ✓
