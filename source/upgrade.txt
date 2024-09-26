@@ -4,6 +4,13 @@
 Upgrade Driver Versions
 =======================
 
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   /upgrade/v2
+   /upgrade/v3
+
 .. facet::
    :name: genre
    :values: reference
@@ -20,218 +27,22 @@ Upgrade Driver Versions
 Overview
 --------
 
-In this section, you can identify essential changes you must make to your
-application when you upgrade your driver to a new version.
+Use the guides on this page to identify the potentially *breaking changes* that each
+version of the {+driver-short+} introduces. 
+A breaking change is a modification of a convention or a behavior starting in
+a specific version of the driver. This type of change may prevent your application from
+working properly if you don't address it.
 
-Before you upgrade, perform the following actions:
+.. tip:: {+stable-api+}
 
-- Ensure the new version is compatible with the {+mdb-server+} versions
-  your application connects to and the {+framework+} version your
-  application runs on. See the :ref:`.NET/C# Driver Compatibility <csharp-compatibility-tables>`
-  page for this information.
-- Address any breaking changes between the current version of the driver
-  your application is using and your planned upgrade version in the
-  :ref:`Breaking Changes <csharp-breaking-changes>` section. To learn
-  more about the {+mdb-server+} release compatibility changes, see the
-  :ref:`<csharp-server-release-changes>` section.
-
-.. tip::
-
-   To minimize the number of changes your application may require when
-   upgrading driver versions in the future, use the
+   To minimize the number of changes your application might require when
+   you upgrade driver versions in the future, consider using the
    :ref:`{+stable-api+} <csharp-stable-api>`.
 
 .. _csharp-breaking-changes:
 
-Breaking Changes
-----------------
+Upgrade Guides 
+--------------
 
-A breaking change is a modification of a convention or a behavior starting in
-a specific version of the driver. This type of change may prevent your application from
-working properly if not addressed before upgrading the driver.
-
-The breaking changes in this section are categorized by the driver version that
-introduced them. When upgrading driver versions, address all the breaking
-changes between the current and upgrade versions. For example, if you
-are upgrading the driver from v2.0 to v2.20, address all breaking changes from
-the version after v2.0 including any listed under v2.20.
-
-.. _csharp-breaking-changes-3.0:
-
-Version 3.0 Potential Breaking Change
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-- This version of the driver removes support for the
-  ``MONGODB-CR`` authentication mechanism. To learn more about
-  configuring authentication in the {+driver-short+}, see
-  :ref:`Authentication Mechanisms. <csharp-authentication-mechanisms>`
-
-- This version of the driver replaces the ``IMongoQueryable`` interface with the
-  ``IQueryable`` interface, following the pattern used by most other LINQ providers. If your
-  application contains references to ``IMongoQueryable``, replace them with ``IQueryable``.
-
-- This version removes the ``ClusterBuilder.ConfigureSdamLogging()`` method.
-  To configure logging in your application, see the :ref:`csharp-logging` guide.
-
-- The LINQ2 provider has been removed from this version of the driver.
-  You must use LINQ3 for all LINQ queries.
-
-- Previous versions of the {+driver-short+} supported two GUID representation modes.
-  In version 3.0, ``GuidRepresentationMode.V3`` is the only supported mode. This change
-  has the following effects on the driver:
-  
-  - The ``BsonBinaryData(Guid)`` constructor has been removed. To construct a ``BsonBinaryData``
-    object from a GUID, use the ``BsonBinaryData.Create(Guid, GuidRepresentation)`` constructor.
-  - The ``BsonBinaryData.GuidRepresentation`` property has been removed. 
-  - You can call the ``BsonBinaryData.ToGuid()`` method only on ``BsonBinaryData``
-    objects of subtype 4. If the object has any other subtype, you must call the
-    ``BsonBinaryData.ToGuid(GuidRepresentation)`` method and specify the subtype. 
-
-  The preceding changes affect your application only if you serialize and deserialize
-  BSON documents directly. If you map your MongoDB documents only to :ref:`csharp-poco`,
-  the ``GuidRepresentationMode`` doesn't affect your application.
-
-  To learn more about serializing GUIDs in the {+driver-short+}, see the
-  :ref:`GUIDs <csharp-guids>` page.
-
-- Exception classes and their related types no longer contain the ``[Serializable]``
-  attribute, and therefore no longer support the Microsoft legacy serialization API. To
-  learn how to use the {+driver-short+} to serialize objects, see the
-  :ref:`csharp-serialization` guide.
-
-- TLS 1.0 and 1.1 are no longer supported. You must use TLS 1.2 or higher. To learn
-  more about configuring TLS/SSL in the {+driver-short+}, see :ref:`<csharp-tls>`.
-
-.. _csharp-breaking-changes-2.28.0:
-
-Version 2.28.0 Potential Breaking Change
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-- All {+driver-short+} components are strongly named. If you are using driver version
-  2.28 or later, and your application has dependencies that reference multiple
-  {+driver-short+} versions, you must create
-  binding redirects, as shown in the following example:
-
-  .. code-block:: csharp
-
-     <configuration>
-         <runtime>
-             <assemblyBinding xmlns="urn:schemas-microsoft-com:asm.v1">
-                 <dependentAssembly>
-                     <assemblyIdentity name="MongoDB.Driver"
-                                       publicKeyToken="94992a530f44e321"
-                                       culture="neutral" />
-                     <bindingRedirect oldVersion="2.28.0.0"
-                                      newVersion="<version number to use>" />
-                 </dependentAssembly>
-                 <dependentAssembly>
-                     <assemblyIdentity name="MongoDB.Bson"
-                                       publicKeyToken="94992a530f44e321"
-                                       culture="neutral" />
-                     <bindingRedirect oldVersion="2.28.0.0"
-                                      newVersion="<version number to use>" />
-                 </dependentAssembly>
-                 <dependentAssembly>
-                     <assemblyIdentity name="MongoDB.Driver.Core"
-                                       publicKeyToken="94992a530f44e321"
-                                       culture="neutral" />
-                     <bindingRedirect oldVersion="2.28.0.0"
-                                      newVersion="<version number to use>" />
-                 </dependentAssembly>
-             </assemblyBinding>
-         </runtime>
-     </configuration>
-
-.. _csharp-breaking-changes-2.21.0:
-
-Version 2.21.0 Breaking Changes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-- The function signature of ``Render`` methods in the Atlas Search builders
-  changed. The following code snippet shows the function signature prior
-  to the change and after the change:
-
-  .. code-block:: csharp
-
-     // Render function signature prior to v2.21.0
-     Render(IBsonSerializer<TDocument> documentSerializer, IBsonSerializerRegistry serializerRegistry);
-
-     // Render function signature in v2.21.0 and later
-     Render(SearchDefinitionRenderContext<TDocument> renderContext);
-
-Version 2.19.0 Breaking Changes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-- The ``ObjectSerializer`` only allows deserialization of
-  types that are considered safe. If not specified otherwise, the
-  ``ObjectSerializer`` uses the types returned by
-  ``ObjectSerializer.DefaultAllowedTypes``.
-
-  To learn more about the ``ObjectSerializer``, visit the
-  :ref:`FAQ <csharp-faq-object-serializer>`. For more information on
-  ``DefaultAllowedTypes``, visit the `API Documentation
-  <https://mongodb.github.io/mongo-csharp-driver/2.19/apidocs/html/P_MongoDB_Bson_Serialization_Serializers_ObjectSerializer_DefaultAllowedTypes.htm>`__.
-
-- The default ``LinqProvider`` has been changed to LINQ3. The ``LinqProvider``
-  can be configured for LINQ2 in ``MongoClientSettings`` as shown in the
-  following code example:
-
-  .. code-block:: csharp
-
-     var connectionString = "<connection string>";
-     var clientSettings = MongoClientSettings
-        .FromConnectionString(connectionString);
-     clientSettings.LinqProvider = LinqProvider.V2;
-     var client = new MongoClient(clientSettings);
-
-Version 2.14.0 Breaking Changes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-- This {+driver-long+} version removed support for {+framework+} v4.5.2 or earlier; the minimum
-  {+framework+} supported is v4.7.2.
-
-- This version of the {+driver-long+} does not support .NET Standard v1.5; the minimum .NET
-  Standard supported is v2.0.
-
-Version 2.13.0 Breaking Changes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-- The ``slave0k`` connection string option was removed; the
-  ``readPreference`` option is now used instead.
-
-
-.. _csharp-server-release-changes:
-
-Server Release Compatibility Changes
-------------------------------------
-
-A server release compatibility change is a modification
-to the {+driver-long+} that discontinues support for a set of
-MongoDB Server versions.
-
-The driver discontinues support for a {+mdb-server+} version after it
-reaches end-of-life (EOL).
-
-To learn more about the MongoDB support for EOL products see the `Legacy
-Support Policy <https://www.mongodb.com/support-policy/legacy>`__.
-
-To learn more about the compatibility between .NET/C# driver versions
-and {+mdb-server+} versions, visit the
-:ref:`Compatibility <csharp-compatibility-tables>` page.
-
-Version 3.0 Release Support Changes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The v3.0 driver drops support for {+mdb-server+} v3.6 and earlier. To
-use driver v3.0 or later, your {+mdb-server+} must be v4.0 or
-later.
-
-Version 2.14 Release Support Changes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The v2.14 driver drops support for {+mdb-server+} v3.4 and earlier. To
-use any driver from v2.14 and later, your {+mdb-server+} must be v3.6 or
-later.
-
-To learn how to upgrade your {+mdb-server+} deployment, see
-:manual:`Release Notes </release-notes/>` in the {+mdb-server+} manual.
+- :ref:`csharp-upgrade-v2`
+- :ref:`csharp-upgrade-v3`
