@@ -301,3 +301,232 @@ If you specify a topic with a dynamic expression, but
 and processes subsequent messages. If there is no :term:`dead letter queue` 
 configured, then {+atlas-sp+} skips the message completely and processes 
 subsequent messages.
+
+Examples
+~~~~~~~~
+
+A streaming data source generates detailed weather reports from
+various locations, conformant to the schema of the :ref:`Sample
+Weather Dataset <sample-weather>`. The following aggregation has three
+stages:
+
+1. The :pipeline:`$source` stage establishes a connection with the
+   {+kafka+} broker collecting these reports in a topic named
+   ``my_weatherdata``, exposing each record as it is ingested to the
+   subsequent aggregation stages. This stage also overrides the name
+   of the timestamp field it projects, setting it to
+   ``ingestionTime``.
+
+2. The :pipeline:`$match` stage excludes documents that have an
+   `airTemperature.value` of greater than or equal to ``30.0`` and
+   passes along the documents with an `airTemperature.value`` less
+   than ``30.0`` to the next stage.
+
+3. The :pipeline:`$emit` stage writes the output to a topic named
+   ``stream`` over the ``weatherStreamOutput`` Kafka broker
+   connection.
+   
+.. code-block:: json
+   :copyable: true
+
+   {
+     '$source': {
+       connectionName: 'sample_weatherdata',
+       topic: 'my_weatherdata',
+       tsFieldName: 'ingestionTime'
+     }
+   },
+   { '$match': { 'airTemperature.value': { '$lt': 30 } } },
+   {
+     '$emit': {
+       connectionName: 'weatherStreamOutput',
+       topic: 'stream'
+     }
+   }
+
+Documents in the ``stream`` topic take the following form:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "st":"x+34700+119500",
+     "position": {
+       "type": "Point",
+       "coordinates": [122.8,116.1]
+     },
+     "elevation": 9999,
+     "callLetters": "6ZCM",
+     "qualityControlProcess": "V020",
+     "dataSource": "4",
+     "type": "SAO",
+     "airTemperature": {
+       "value": 6.7,
+       "quality": "9"
+     },
+     "dewPoint": {
+       "value": 14.1,
+       "quality": "1"
+     },
+     "pressure": {
+       "value": 1022.2,
+       "quality": "1"
+     },
+     "wind": {
+       "direction": {
+         "angle": 200,
+	 "quality": "9"
+       },
+       "type": "C",
+       "speed": {
+         "rate": 35,
+	 "quality": "1"
+       }
+     },
+     "visibility": {
+       "distance": {
+         "value": 700,
+	 "quality": "1"
+       },
+       "variability": {
+         "value": "N",
+         "quality": "1"
+       }
+     },
+     "skyCondition": {
+       "ceilingHeight": {
+         "value": 1800,
+	 "quality": "9",
+	 "determination": "9"
+       },
+       "cavok": "N"
+     },
+     "sections": ["AA1","AG1","UG1","SA1","MW1"],
+     "precipitationEstimatedObservation": {
+       "discrepancy": "0",
+       "estimatedWaterDepth": 999
+     },
+     "atmosphericPressureChange": {
+       "tendency": {
+         "code": "4",
+	 "quality": "1"
+       },
+       "quantity3Hours": {
+         "value": 3.8,
+	 "quality": "1"
+       },
+       "quantity24Hours": {
+         "value": 99.9,
+	 "quality": "9"
+       }
+     },
+     "seaSurfaceTemperature": {
+       "value": 9.7,
+       "quality": "9"
+     },
+     "waveMeasurement": {
+       "method": "M",
+       "waves": {
+         "period": 8,
+	 "height": 3,
+	 "quality": "9"
+       },
+       "seaState": {
+         "code": "00",
+	 "quality": "9"
+       }
+     },
+     "pastWeatherObservationManual": {
+       "atmosphericCondition": {
+         "value": "6",
+	 "quality": "1"
+       },
+       "period": {
+         "value": 3,
+	 "quality": "1"
+       }
+     },
+     "skyConditionObservation": {
+       "totalCoverage": {
+         "value": "02",
+	 "opaque": "99",
+	 "quality": "9"
+       },
+       "lowestCloudCoverage": {
+         "value": "00",
+	 "quality": "9"
+       },
+       "lowCloudGenus": {
+         "value": "00",
+	 "quality": "1"
+       },
+       "lowestCloudBaseHeight":{
+         "value": 1750,
+	 "quality": "1"
+       },
+       "midCloudGenus": {
+         "value": "99",
+	 "quality": "1"
+       },
+       "highCloudGenus": {
+         "value": "00",
+	 "quality": "1"
+       }
+     },
+     "presentWeatherObservationManual": {
+       "condition": "52",
+       "quality": "1"
+     },
+     "atmosphericPressureObservation": {
+       "altimeterSetting": {
+         "value": 1015.9,
+	 "quality": "9"
+       },
+       "stationPressure": {
+         "value": 1026,
+	 "quality": "1"
+       }
+     },
+     "skyCoverLayer": {
+       "coverage": {
+         "value": "08",
+	 "quality": "1"
+       },
+       "baseHeight": {
+         "value": 2700,
+	 "quality": "9"
+       },
+       "cloudType": {
+         "value": "99",
+	 "quality": "9"
+       }
+     },
+     "liquidPrecipitation": {
+       "period": 12,
+       "depth": 20,
+       "condition": "9",
+       "quality": "9"
+     },
+     "extremeAirTemperature": {
+       "period": 99.9,
+       "code": "N",
+       "value": -30.4,
+       "quantity": "1"
+     },
+     "ingestionTime":{
+       "$date":"2024-09-26T17:34:41.843Z"
+     },
+     "_stream_meta":{
+       "source":{
+         "type": "kafka",
+	 "topic": "my_weatherdata",
+	 "partition": 0,
+	 "offset": 4285
+       }
+     }
+   }
+
+.. note::
+
+   The preceding is a representative example. Streaming data are
+   not static, and each user sees distinct documents.
