@@ -122,12 +122,15 @@
        | ``.units``
      - string
      - Conditional
-     - Units for ``metricThreshold.threshold``. The value depends on
-       the type of metric. For example, a metric that measures memory 
-       consumption has a byte measurement, while a metric that 
-       measures time has a time unit. Accepted values are:
+     - Units for ``metricThreshold.threshold``. The units depend on
+       the type of metric. 
+       
+       Accepted values are:
 
        .. include:: /includes/possibleValues-api-units.rst
+
+       For example, a metric that measures memory consumption can use ``BYTES``, 
+       while a metric that measures time can use ``HOURS``. 
 
    * - ``notifications``
      - array of objects
@@ -311,22 +314,6 @@
      - Conditional
      - Threshold value outside of which this alert configuration
        triggers an alert.
-
-   * - ``metricThreshold.units``
-     - string
-     - Conditional
-     - Units for ``metricThreshold.threshold``. The value depends on
-       the type of metric. 
-
-       .. example:: 
-
-          A metric that measures memory consumption has a byte 
-          measurement, while a metric that measures time has a time 
-          unit. 
- 
-       Accepted values are:
-
-       .. include:: /includes/possibleValues-api-units.rst
 
    * - ``tags``
      - array of strings

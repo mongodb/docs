@@ -107,18 +107,15 @@
 
    * - ``metricThreshold.units``
      - string
-     - Units for ``metricThreshold.threshold``. The value depends on
+     - Units for ``metricThreshold.threshold``. The units depend on
        the type of metric. 
 
-       .. example::
-
-          A metric that measures memory consumption has a byte 
-          measurement, while a metric that measures time has a time 
-          unit. 
- 
-       Possible values are:
+       Accepted values are:
 
        .. include:: /includes/possibleValues-api-units.rst
+
+       For example, a metric that measures memory consumption can use ``BYTES``, 
+       while a metric that measures time can use ``HOURS``. 
 
    * - ``notifications``
      - array of objects
