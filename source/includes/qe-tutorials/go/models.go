@@ -17,8 +17,9 @@ type PatientDocument struct {
 
 // start-patient-record
 type PatientRecord struct {
-	SSN     string      `bson:"ssn"`
-	Billing PaymentInfo `bson:"billing"`
+	SSN        string      `bson:"ssn"`
+	Billing    PaymentInfo `bson:"billing"`
+	BillAmount int         `bson:"billAmount"`
 }
 
 // end-patient-record

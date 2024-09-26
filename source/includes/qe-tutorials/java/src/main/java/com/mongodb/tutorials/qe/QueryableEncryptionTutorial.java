@@ -116,7 +116,7 @@ public class QueryableEncryptionTutorial {
             MongoCollection<Patient> collection = encryptedDb.getCollection(encryptedCollectionName, Patient.class);
 
             PatientBilling patientBilling = new PatientBilling("Visa", "4111111111111111");
-            PatientRecord patientRecord = new PatientRecord("987-65-4320", patientBilling);
+            PatientRecord patientRecord = new PatientRecord("987-65-4320", patientBilling, 1500);
             Patient patientDocument = new Patient("Jon Doe", patientRecord);
 
             InsertOneResult result = collection.insertOne(patientDocument);

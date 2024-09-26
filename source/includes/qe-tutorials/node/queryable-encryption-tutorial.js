@@ -78,6 +78,7 @@ async function runExample() {
         type: "Visa",
         number: "4111111111111111",
       },
+      billAmount: 1500,
     },
   };
 

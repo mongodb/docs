@@ -107,8 +107,9 @@ public static class QueryableEncryptionTutorial
                 Billing = new PatientBilling
                 {
                     CardType = "Visa",
-                    CardNumber = 4111111111111111
-                }
+                    CardNumber = 4111111111111111,
+                },
+                BillAmount = 1500
             }
         };
 

@@ -1,4 +1,4 @@
-var qeHelper = require("./queryable-encryption-helpers.js")
+var qeHelper = require("./queryable-encryption-helpers.js");
 
 async function runExample() {
   // start-setup-application-variables
@@ -14,8 +14,10 @@ async function runExample() {
   const encryptedCollectionName = "patients";
   // end-setup-application-variables
 
-  const kmsProviderCredentials = qeHelper.getKMSProviderCredentials(kmsProviderName);
-  const customerMasterKeyCredentials = qeHelper.getCustomerMasterKeyCredentials(kmsProviderName);
+  const kmsProviderCredentials =
+    qeHelper.getKMSProviderCredentials(kmsProviderName);
+  const customerMasterKeyCredentials =
+    qeHelper.getCustomerMasterKeyCredentials(kmsProviderName);
 
   const autoEncryptionOpts = await qeHelper.getAutoEncryptionOptions(
     kmsProviderName,
@@ -45,14 +47,11 @@ async function runExample() {
   const encryptedClient = Mongo(uri, autoEncryptionOpts);
   // end-create-client
 
-  await qeHelper.dropExistingCollection(
-    encryptedClient,
-    encryptedDatabaseName
-  );
+  await qeHelper.dropExistingCollection(encryptedClient, encryptedDatabaseName);
   await qeHelper.dropExistingCollection(encryptedClient, keyVaultDatabaseName);
 
   // start-client-encryption
-  const clientEncryption = encryptedClient.getClientEncryption()
+  const clientEncryption = encryptedClient.getClientEncryption();
   // end-client-encryption
 
   try {
@@ -83,10 +82,13 @@ async function runExample() {
         type: "Visa",
         number: "4111111111111111",
       },
+      billAmount: 1500,
     },
   };
 
-  const encryptedCollection = encryptedClient.getDB(encryptedDatabaseName).getCollection(encryptedCollectionName);
+  const encryptedCollection = encryptedClient
+    .getDB(encryptedDatabaseName)
+    .getCollection(encryptedCollectionName);
 
   const insertResult = await encryptedCollection.insertOne(patientDocument);
   // end-insert-document
@@ -94,9 +96,7 @@ async function runExample() {
   try {
     assert(insertResult.acknowledged == true);
   } catch (err) {
-    throw new Error(
-      `The insert failed due to the following error: ${err}`
-    );
+    throw new Error(`The insert failed due to the following error: ${err}`);
   }
 
   // start-find-document

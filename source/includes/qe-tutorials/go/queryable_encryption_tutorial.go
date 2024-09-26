@@ -117,6 +117,7 @@ func main() {
 				Type:   "Visa",
 				Number: "4111111111111111",
 			},
+			BillAmount: 1500,
 		},
 	}
 
