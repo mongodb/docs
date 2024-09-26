@@ -93,18 +93,30 @@ available:
 
    * - .. writeconcern:: "majority"
 
-     - Requests acknowledgment that write operations have been durably committed 
-       to the :ref:`calculated majority <calculating-majority-count>` of
-       the data-bearing voting members (i.e. primary and secondaries
-       with :rsconf:`members[n].votes` greater than ``0``).
+     - Requests acknowledgment that the :ref:`calculated majority
+       <calculating-majority-count>` of data-bearing voting members
+       have durably written the change to their local :term:`oplog`.
+       The members then asynchronously apply changes as they read them
+       from their local oplogs.
+
+       .. versionchanged:: 8.0 MongoDB doesn't wait for the members to apply
+          the change before it acknowledges the write, as it did in previous
+          releases.
+
+       The data-bearing voting members of a replica set are the :term:`primary`
+       member and any :term:`secondary` members with :rsconf:`members[n].votes`
+       greater than ``0``.
+
+       For more information, see :ref:`write-concern-majority-reads`.
+
        ``{ w: "majority" }`` is the default write concern for *most* MongoDB
        deployments. See :ref:`wc-default-behavior`.
 
        For example, consider a replica set with 3 voting members,
        Primary-Secondary-Secondary (P-S-S). For this replica set,
        :ref:`calculated majority <calculating-majority-count>` is two, and
-       the write must propagate to the primary and one secondary to
-       acknowledge the write concern to the client.
+       the write must propagate to the oplogs of the primary and one secondary
+       to acknowledge the write concern to the client.
 
        .. note:: 
 
@@ -409,6 +421,25 @@ the write operation in memory or after writing to the on-disk journal.
 
    Delayed secondaries can return write acknowledgment no earlier
    than the configured :rsconf:`~members[n].secondaryDelaySecs`. 
+
+.. _write-concern-majority-reads:
+
+Reads after { w: "majority" } Writes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.0, ``{ w: "majority" }`` writes return an acknowledgment
+after a majority of data-bearing members durably write the oplog entry. The members
+then asynchronously apply the changes as they read them from their local oplogs.
+In earlier releases, MongoDB waited until after the members applied the write to
+return the acknowledgment.
+
+Queries on secondaries immediately after a ``{ w: "majority" }`` write
+returns an acknowledgment may read from the collection before the secondary
+applies changes from the write.
+
+If your application reads from secondaries and requires immediate access
+to changes made in ``{ w: "majority" }`` writes, run these operations in
+a :ref:`causally consistent <causal-consistency>` session.
 
 Additional Information
 ----------------------
