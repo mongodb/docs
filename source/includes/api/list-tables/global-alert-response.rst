@@ -61,16 +61,14 @@
 
    * - ``currentValue.units``
      - string
-     - Units in which this value is expressed. Depends on the type of metric.
+     - Units for ``currentValue.number``. The units depend on the type of metric.
 
-       .. example::
-       
-          - A metric that measures memory consumption would have a byte measurement
-          - A metric that measures time would have a time unit.
-          
-       Possible values that can be returned include:
+       Accepted values are:
 
        .. include:: /includes/possibleValues-api-units.rst
+
+       For example, a metric that measures memory consumption can use ``BYTES``, 
+       while a metric that measures time can use ``HOURS``. 
 
    * - ``eventTypeName``
      - string

@@ -54,15 +54,14 @@
    * - | currentValue
        | .units
      - string
-     - Relevant units for the value.
-
-       .. example::
-        
-          A metric that measures memory consumption would have a byte measurement, while a metric that measures time would have a time unit.
+     - Units for ``currentValue.number``. The units depend on the type of metric.
 
        Accepted values are:
 
        .. include:: /includes/possibleValues-api-units.rst
+
+       For example, a metric that measures memory consumption can use ``BYTES``, 
+       while a metric that measures time can use ``HOURS``. 
 
    * - database
      - string
