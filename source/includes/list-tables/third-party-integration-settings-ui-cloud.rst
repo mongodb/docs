@@ -40,7 +40,15 @@
 
    * - Slack Settings
 
-     - Team name, API token and a channel name for
+     - 
+       .. warning::
+
+          Before proceeding, you must:
+   
+          - Have a `Slack workspace <https://slack.com/help/articles/206845317-Create-a-Slack-workspace/>`__.
+          - Have `sufficient permissions to install a Slack app in your workspace <https://slack.com/help/articles/222386767-Manage-app-approval-for-your-workspace/>`__.
+
+       Team name, API token and a channel name for
        alert notifications sent to a Slack account. You can
        configure a Slack integration with OAuth2 by clicking
        :guilabel:`Configure` and then :guilabel:`Sign in with Slack`.
