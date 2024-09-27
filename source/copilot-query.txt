@@ -1,0 +1,141 @@
+.. _vsce-copilot-query:
+
+==============
+/query Command
+==============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The ``/query`` command assists in generating queries from a natural
+language against a connected MongoDB cluster. The |copilot| provides
+underlying schema information of the relevant collections to GitHub
+Copilot to generate a response. If you do not specify a collection in
+your prompt, the chat prompts you to select a relevant collection. 
+
+When the LLM generates a query, you can open the query in a playground
+file or run the query directly in your collection. 
+
+Examples
+~~~~~~~~
+
+Generate a Query
+````````````````
+
+Consider the ``users`` collection in the `Mflix Sample Database
+<https://www.mongodb.com/docs/atlas/sample-data/sample-mflix/#sample_mflix.users>`__.
+Each document in the collection has the following structure:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      _id: {
+         "$oid": "59b99db4cfa9a34dcd7885b6"
+      },
+      name: "Kayden Washington",
+      email: "KW@email.com",
+      password: "11222021"
+   }
+
+Once you connect to the deployment that contains the ``users``
+collection, you can ask the GitHub Copilot chat to generate a query that
+finds the document in the ``users`` collection that has the ``name``
+value of ``Kayden Washington``. 
+
+.. code-block:: javascript
+   :copyable: false
+
+   @MongoDB /query In the sample_mflix database, find a document in the
+   users collection with the name of Kayden Washington.
+
+The GitHub Copilot Chat uses the |copilot| to
+generate the following query using knowledge of your database schema:
+
+.. code-block:: javascript
+   
+   use(`sample_mflix`);
+   db.getCollection('users').findOne({ name: 'Kayden Washington' });
+
+Once the |copilot| generates the query, you can choose to run the query
+directly or open the query in a playground. 
+
+.. figure:: /images/copilot-query.png
+   :figwidth: 700px
+   :alt: Screenshot of copilot generating a query
+
+Build an Aggregation Pipeline
+`````````````````````````````
+
+You can also use the |copilot| to build aggregation pipelines. Consider
+the ``users`` collection in the `Mflix Sample Database
+<https://www.mongodb.com/docs/atlas/sample-data/sample-mflix/#sample_mflix.users>`__.
+Each document in the collection has the following structure:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      _id: {
+         "$oid": "59b99db4cfa9a34dcd7885b6"
+      },
+      name: "Kayden Washington",
+      email: "KW@email.com",
+      password: "11222021"
+   }
+
+Once you connect to the deployment that contains the ``users``
+collection, you can ask the GitHub Copilot chat to generate an aggregation pipeline. 
+
+.. code-block:: javascript
+   :copyable: false
+
+   @MongoDB /query Generate an aggregation pipeline on the users 
+   collection that first sorts documents alphabetically by name and then 
+   removes the password field from each document. 
+
+The |copilot| generates the following aggregation pipeline:
+
+.. code-block:: javascript
+
+   use('sample_mflix');
+   db.getCollection('users').aggregate([
+      { $sort: { name: 1 } },
+      { $project: { password: 0 } }
+   ]);
+
+Once the |copilot| generates the query, you can choose to run the pipeline
+directly or open the pipeline in a playground.   
+
+.. figure:: /images/copilot-agg-pipeline.png
+   :figwidth: 700px
+   :alt: Screenshot of copilot generating an aggregation pipeline
+
+You can also iteratively build on your aggregation pipeline:
+
+.. code-block:: javascript
+   :copyable: false
+
+   @MongoDB /query Add a stage to my pipeline that adds a username field 
+   to each document containing the user's email without the 
+   email domain. 
+
+The |copilot| returns the following aggregation pipeline:
+
+.. code-block:: javascript
+
+   use('sample_mflix');
+   db.getCollection('users').aggregate([
+      { $sort: { name: 1 } },
+      { $project: { password: 0 } },
+      { $addFields: { username: { $arrayElemAt: [{ $split: ["$email", "@"] }, 0] } } }
+   ]);
+
+.. figure:: /images/copilot-agg-pipeline2.png
+   :figwidth: 700px
+   :alt: Screenshot of copilot iteratively building on an aggregation pipeline
