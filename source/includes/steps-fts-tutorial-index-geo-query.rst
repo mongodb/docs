@@ -15,12 +15,12 @@
       
    .. step:: Enter the :guilabel:`Index Name`, and set the :guilabel:`Database and Collection`.
       
-      a. In the :guilabel:`Index Name` field, enter ``default``.
+      a. In the :guilabel:`Index Name` field, enter ``geo-json-tutorial``.
       
          .. include:: /includes/default-fts-index-name.rst 
       
       #. In the :guilabel:`Database and Collection` section, find the 
-         ``sample_mflix`` database, and select the ``movies`` collection.
+         ``sample_airbnb`` database, and select the ``listingsAndReviews`` collection.
       
       
    .. step:: Define an index on the ``address`` field.
