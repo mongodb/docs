@@ -22,10 +22,11 @@
       #. In the left sidebar, click `Atlas Search <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fclusters%2FatlasSearch>`__. 
          Choose your cluster from the :guilabel:`Select data source` menu and click :guilabel:`Go to Atlas Search`.
 
-      #. Click :guilabel:`Load a Sample Dataset`. In the Load Sample Dataset 
+      #. If you haven't yet loaded the sample dataset onto your {+cluster+},
+         click :guilabel:`Load a Sample Dataset`. In the Load Sample Dataset 
          dialog box, click :guilabel:`Load Sample Dataset` to confirm. 
 
-         If this cluster already has the sample dataset loaded, :ref:`check <atlas-ui-collections>` 
+         If you already loaded the sample dataset, :ref:`check <atlas-ui-collections>` 
          that the ``sample_mflix`` database contains the ``embedded_movies`` 
          collection. If it doesn't, :ref:`drop <atlas-ui-drop-a-db>` the sample databases and 
          :ref:`reload <sample-data>` the sample dataset.
@@ -52,7 +53,7 @@
       #. Copy and paste the following :ref:`vector search index definition <vector-search-quickstart-vector-index-definition>` 
          into the JSON Editor. 
 
-         .. code-block:: json 
+         .. code-block::
             :copyable: true 
             :linenos: 
 

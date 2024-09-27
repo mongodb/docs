@@ -43,7 +43,7 @@
 
       a. Run the following command in your terminal to download the sample data:
 
-         .. code-block:: sh
+         .. code-block:: 
 
             curl  https://atlas-education.s3.amazonaws.com/sampledata.archive -o sampledata.archive
 
@@ -51,7 +51,7 @@
          replacing ``<port-number>`` with the port where you're hosting the 
          {+deployment+}:
 
-         .. code-block:: sh
+         .. code-block:: 
 
             mongorestore --archive=sampledata.archive --port=<port-number>
 
@@ -61,7 +61,7 @@
 
       #. Copy and paste the following index definition into the |json| file.
 
-         .. code-block:: json
+         .. code-block:: 
            :copyable: true 
 
            {
@@ -91,7 +91,7 @@
          in your terminal, replacing ``<path-to-file>`` with the path to the 
          ``vector-index.json`` file that you created.
 
-         .. code-block:: sh
+         .. code-block:: 
             :copyable: true 
 
             atlas deployments search indexes create --file <path-to-file>
