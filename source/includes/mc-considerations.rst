@@ -28,8 +28,8 @@
   - :dbcommand:`removeShard`
   - :method:`db.createCollection()`
   - :dbcommand:`dropDatabase`
-  - ``transitionToDedicatedConfigServer``
-  - ``transitionFromDedicatedConfigServer``
+  - :dbcommand:`transitionToDedicatedConfigServer`
+  - :dbcommand:`transitionFromDedicatedConfigServer`
 
 - Index builds that occur while |mc| is in progress might silently fail.
 

@@ -27,8 +27,8 @@
   - :dbcommand:`removeShard`
   - :method:`db.createCollection()`
   - :dbcommand:`dropDatabase`
-  - ``transitionToDedicatedConfigServer``
-  - ``transitionFromDedicatedConfigServer``
+  - :dbcommand:`transitionToDedicatedConfigServer`
+  - :dbcommand:`transitionFromDedicatedConfigServer`
 
 - Index builds that occur while |uc| is in progress might silently fail.
 
