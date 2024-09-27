@@ -26,7 +26,7 @@
        | ``DISK_LATENCY_WRITES``
        | (mongodb.atlas.system.disk.latency.writes)
      - Disk
-     - Latency rate in milliseconds for read requests and
+     - Latency gauge in milliseconds for read requests and
        write requests.
 
 
