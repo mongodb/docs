@@ -4,7 +4,7 @@
        <dependency>
            <groupId>org.mongodb</groupId>
            <artifactId>mongodb-crypt</artifactId>
-           <version>{+full-version+}</version>
+           <version>{+mongocrypt-version+}</version>
        </dependency>
    </dependencies>
 
