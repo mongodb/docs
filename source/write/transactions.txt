@@ -1,0 +1,164 @@
+.. _kotlin-sync-write-transactions:
+
+============
+Transactions
+============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: ACID, write, consistency, code example
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to perform
+**transactions**. Transactions allow you to run a series of operations that do 
+not change any data until the transaction is committed. If any operation in 
+the transaction returns an error, the driver cancels the transaction and discards 
+all data changes before they ever become visible.
+
+In MongoDB, transactions run within logical **sessions**. A
+session is a grouping of related read or write operations that you intend to run 
+sequentially. Sessions enable **causal consistency** for a
+group of operations and allow you to run operations in an
+**ACID-compliant transaction**, which is a transaction that meets an expectation
+of atomicity, consistency, isolation, and durability. MongoDB guarantees that the 
+data involved in your transaction operations remains consistent, even if the 
+operations encounter unexpected errors.
+
+When using the {+driver-short+}, you can create a new session from a
+``MongoClient`` instance as a ``ClientSession`` type. We recommend that you reuse
+your ``MongoClient`` for multiple sessions and transactions instead of
+creating a new client each time.
+
+.. warning::
+
+   Use a ``ClientSession`` only with the ``MongoClient`` (or associated
+   ``MongoDatabase`` or ``MongoCollection``) that created it. Using a
+   ``ClientSession`` with a different ``MongoClient`` results in operation
+   errors.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``sample_restaurants.restaurants`` collection
+from the :atlas:`Atlas sample datasets </sample-data>`. To learn how to create a
+free MongoDB Atlas cluster and load the sample datasets, see the
+:atlas:`Get Started with Atlas </getting-started>` guide.
+
+The documents in this collection are modeled by the following {+language+} data class:
+
+.. literalinclude:: /includes/write/transaction.kt
+   :start-after: start-data-class
+   :end-before: end-data-class
+   :language: kotlin
+   :copyable:
+   :dedent:
+
+Methods
+-------
+
+Create a ``ClientSession`` by using the ``startSession()`` method on your ``MongoClient``
+instance. You can then modify the session state by using the methods provided by
+the ``ClientSession``. The following table describes the methods you can use to
+manage your transaction:
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``startTransaction()``
+     - | Starts a new transaction, configured with the given options, on
+         this session. Returns an error if there is already
+         a transaction in progress for the session. To learn more about
+         this method, see the :manual:`startTransaction() page
+         </reference/method/Session.startTransaction/>`  in the Server manual.
+       |
+       | **Parameter**: ``TransactionOptions``
+
+   * - ``abortTransaction()``
+     - | Ends the active transaction for this session. Returns an
+         error if there is no active transaction for the session or the
+         transaction has been committed or ended. To learn more about
+         this method, see the :manual:`abortTransaction() page
+         </reference/method/Session.abortTransaction/>`  in the Server manual.
+       |
+
+   * - ``commitTransaction()``
+     - | Commits the active transaction for this session. Returns an
+         error if there is no active transaction for the session or if the
+         transaction was ended. To learn more about
+         this method, see the :manual:`commitTransaction() page
+         </reference/method/Session.commitTransaction/>`  in the Server manual.
+
+   * - ``withTransaction()``
+     - | Starts a transaction on this session and runs the given function within 
+         a transaction.
+       |
+       | **Parameters**: transaction body function, ``TransactionOptions``
+
+Example
+-------
+
+The following example demonstrates how to create a session, create a
+transaction, and insert documents into a collection in one transaction
+through the following steps:
+
+1. Create a session from the client by using the ``startSession()`` method.
+#. Define the ``insertRestaurantsInTransaction()`` method to insert multiple 
+   documents into the ``restaurants`` collection. 
+#. Use the ``withTransaction()`` method to start a transaction. The ``withTransaction()`` 
+   method runs the insert operations and commits the transaction. If any 
+   operation results in errors, ``withTransaction()`` cancels the transaction.
+#. Close the connection to the server by using the ``MongoClient.close()`` method.
+
+.. literalinclude:: /includes/write/transaction.kt
+   :start-after: start-transaction
+   :end-before: end-transaction
+   :language: kotlin
+   :copyable:
+   :dedent:
+
+If you require more control over your transactions, you can use the ``startTransaction()``
+method. You can use this method with the ``commitTransaction()`` and ``abortTransaction()``
+methods described in the preceding section to manually manage the transaction lifecycle. 
+
+Additional Information
+----------------------
+
+To learn more about the concepts mentioned in this guide, see the following pages in 
+the Server manual:
+
+- :manual:`Transactions </core/transactions/>`
+- :manual:`Server Sessions </reference/server-sessions>`
+- :manual:`Read Isolation, Consistency, and Recency </core/read-isolation-consistency-recency/#causal-consistency>`
+
+To learn more about ACID compliance, see the :website:`What are ACID
+Properties in Database Management Systems? </basics/acid-transactions>`
+article on the MongoDB website.
+
+.. _kotlin-sync-api-docs-transaction:
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the types or methods discussed in this
+guide, see the following API documentation:
+
+- `ClientSession <{+api+}/com.mongodb.kotlin.client/-client-session/index.html>`_
+- `abortTransaction() <{+api+}/com.mongodb.kotlin.client/-client-session/abort-transaction.html>`_
+- `commitTransaction() <{+api+}/com.mongodb.kotlin.client/-client-session/commit-transaction.html>`_
+- `startTransaction() <{+api+}/com.mongodb.kotlin.client/-client-session/start-transaction.html>`_
+- `withTransaction() <{+api+}/com.mongodb.kotlin.client/-client-session/with-transaction.html>`_
