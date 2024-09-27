@@ -1,45 +1,31 @@
 .. procedure:: 
    :style: normal
 
-   .. step:: Connect to your {+cluster+} using {+mongosh+}. 
+   .. step:: Define the combined query pipeline. 
 
-      Open {+mongosh+} in a terminal window and connect to your 
-      {+cluster+}. For detailed instructions on connecting, see 
-      :doc:`/mongo-shell-connection`.
+      Create a file called ``combined-query.js``, and paste the following
+      code into it:
 
-   .. step:: Use the ``sample_mflix`` database. 
+      .. literalinclude:: /includes/avs-examples/rrf-tutorial/combined-query.js
+         :language: javascript
+         :linenos:
 
-      Run the following command at {+mongosh+} prompt:
-
-      .. io-code-block::
-         :copyable: true 
-
-         .. input:: 
-            :language: sh
-
-            use sample_mflix 
-
-         .. output:: 
-            :language: sh
-            :emphasize-lines: 1 
-
-            switched to db sample_mflix
-
-   .. step:: Run the following |fts| queries against the ``embedded_movies`` collection.
+   .. step:: Execute the code to run the queries against the ``embedded_movies`` collection.
 
       .. io-code-block:: 
          :copyable: true 
 
-         .. input:: /includes/avs-examples/rrf-tutorial/query.sh
-            :language: js 
-            :linenos:
+         .. input::
+            :language: shell
+
+            node --env-file=.env combined-query.js
 
          .. output:: /includes/avs-examples/rrf-tutorial/shell-query-output.js
             :language: js
             :visible: true
 
       If you sort the results in ascending order by replacing the value
-      of ``score`` on line 116 with ``1``, {+avs+} returns the following
+      of ``score`` on line 123 with ``1``, {+avs+} returns the following
       results: 
 
       .. code-block:: js 

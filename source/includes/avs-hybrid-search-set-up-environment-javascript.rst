@@ -1,13 +1,13 @@
-a. Initialize your Node.js project.
+A. Initialize your Node.js project.
 
    Run the following commands in your terminal 
-   to create a new directory named ``rag-mongodb`` and
+   to create a new directory named ``hybrid-search-mongodb`` and
    initialize your project:
 
    .. code-block::
 
-      mkdir rag-mongodb
-      cd rag-mongodb
+      mkdir hybrid-search-mongodb
+      cd hybrid-search-mongodb
       npm init -y
 
 #. Install and import dependencies.
@@ -16,7 +16,7 @@ a. Initialize your Node.js project.
 
    .. code-block::
 
-      npm install mongodb langchain @langchain/community @xenova/transformers @huggingface/inference pdf-parse
+      npm install mongodb
 
 #. Update your ``package.json`` file.
 
@@ -28,29 +28,28 @@ a. Initialize your Node.js project.
       :emphasize-lines: 3
 
       {
-         "name": "rag-mongodb",
+         "name": "hybrid-search-mongodb",
          "type": "module",
          ...
 
-#. Create a ``.env`` file.
+#. Create an ``.env`` file.
 
    In your project, create a ``.env`` file to store your Atlas connection
-   string and Hugging Face access token.
+   string.
 
    .. code-block::
+    
+      ATLAS_CONNECTION_STRING = "<connection-string>";
 
-      HUGGING_FACE_ACCESS_TOKEN = "<access-token>"
-      ATLAS_CONNECTION_STRING = "<connection-string>"
-
-   Replace the ``<access-token>`` 
-   and ``<connection-string>`` placeholder values with your Hugging Face
-   access token and the |srv| :manual:`connection string 
+   Replace the ``<api-key>`` 
+   and ``<connection-string>`` placeholder values with your |srv|
+   :manual:`connection string 
    </reference/connection-string/#find-your-mongodb-atlas-connection-string>`
    for your |service| {+cluster+}. Your connection string should use
    the following format:
-
+   
    .. code-block::
-
+   
       mongodb+srv://<db_username>:<db_password>@<clusterName>.<hostname>.mongodb.net
 
    .. include:: /includes/note-node-js-env-minimum-requirement.rst

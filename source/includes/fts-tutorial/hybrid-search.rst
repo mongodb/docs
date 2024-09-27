@@ -129,7 +129,17 @@ fields in the ``sample_mflix.embedded_movies`` collection:
 Procedure 
 ~~~~~~~~~
 
-.. include:: /includes/steps-avs-rrf-tutorial-create-index.txt 
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: nodejs
+
+      .. include:: /includes/steps-avs-rrf-tutorial-create-index-javascript.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/steps-avs-rrf-tutorial-create-index-mongosh.rst
 
 Run a Combined Semantic Search and Full-Text Search Query 
 ---------------------------------------------------------
@@ -145,7 +155,17 @@ appear at the top of the combined results.
 Procedure 
 ~~~~~~~~~
 
-.. include:: /includes/steps-avs-rrf-shell-query.rst
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: nodejs
+
+      .. include:: /includes/steps-avs-rrf-javascript-query.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/steps-avs-rrf-shell-query.rst
 
 About the Query 
 ~~~~~~~~~~~~~~~
