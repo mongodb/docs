@@ -1,0 +1,210 @@
+.. _php-write-replace:
+
+=================
+Replace Documents
+=================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: modify, change, code example
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+php-library+} to run a replace
+operation on a MongoDB collection. A replace operation performs differently
+than an update operation. An update operation modifies only the specified
+fields in a target document. A replace operation removes *all* fields
+in the target document and replaces them with new ones.
+
+To replace a document, use the ``MongoDB\Collection::replaceOne()`` method.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``restaurants`` collection in the ``sample_restaurants``
+database from the :atlas:`Atlas sample datasets </sample-data>`. To access this collection
+from your PHP application, instantiate a ``MongoDB\Client`` that connects to an Atlas cluster
+and assign the following value to your ``$collection`` variable:
+
+.. literalinclude:: /includes/read/project.php
+    :language: php
+    :dedent:
+    :start-after: start-db-coll
+    :end-before: end-db-coll
+
+To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see the
+:atlas:`Get Started with Atlas </getting-started>` guide.
+
+Replace Operation
+-----------------
+
+You can perform a replace operation by using ``MongoDB\Collection::replaceOne()``. 
+This method removes all fields except the ``_id`` field from the first document that
+matches the search criteria. It then inserts the fields and values you specify into the 
+document.
+
+Required Parameters
+~~~~~~~~~~~~~~~~~~~
+
+The ``replaceOne()`` method requires the following parameters:
+
+- **Query filter** document, which determines the documents to replace. For
+  more information about query filters, see the 
+  :manual:`Query Filter Documents section </core/document/#query-filter-documents>` in
+  the {+mdb-server+} manual. 
+- **Replace** document, which specifies the fields and values to insert in the new 
+  document.
+
+Return Value
+~~~~~~~~~~~~
+
+The ``replaceOne()`` method returns a ``MongoDB\UpdateResult`` 
+object. The ``MongoDB\UpdateResult`` type contains the following
+methods:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``getMatchedCount()``
+     - | Returns the number of documents that matched the query filter, regardless of
+         how many were updated.
+
+   * - ``getModifiedCount()``
+     - | Returns the number of documents modified by the update operation. If an updated
+         document is identical to the original, it is not included in this
+         count.
+
+   * - ``getUpsertedCount()``
+     - | Returns the number of documents upserted into the database, if any.
+
+   * - ``getUpsertedId()``
+     - | Returns the ID of the document that was upserted in the database, if the driver
+         performed an upsert.
+
+   * - ``isAcknowledged()``
+     - | Returns a boolean indicating whether the write operation was acknowledged.
+
+Example
+~~~~~~~
+
+The following example uses the ``replaceOne()`` method to replace the fields and values
+of a document in which the ``name`` field value is ``'Pizza Town'``. It then prints
+the number of modified documents:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/write/replace.php
+      :start-after: start-replace-one
+      :end-before: end-replace-one
+      :language: php
+      :dedent:
+
+   .. output:: 
+      :visible: false
+
+      Modified documents: 1
+
+.. important::
+
+   The values of ``_id`` fields are immutable. If your replacement document specifies 
+   a value for the ``_id`` field, it must match the ``_id`` value of the existing document.
+
+Modify the Replace Operation
+----------------------------
+
+You can modify the behavior of the ``MongoDB\Collection::replaceOne()`` method
+by passing an array that specifies option values as a parameter. The following
+table describes some options you can set in the array:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Option
+     - Description
+
+   * - ``upsert``
+     - | Specifies whether the replace operation performs an upsert operation if no 
+         documents match the query filter. For more information, see the :manual:`upsert
+         statement </reference/command/update/#std-label-update-command-upsert>`
+         in the {+mdb-server+} manual.
+       | Defaults to ``false``.
+
+   * - ``bypassDocumentValidation``
+     - | Specifies whether the replace operation bypasses document validation. This lets you 
+         replace documents that don't meet the schema validation requirements, if any 
+         exist. For more information about schema validation, see :manual:`Schema
+         Validation </core/schema-validation/#schema-validation>` in the MongoDB
+         Server manual.
+       | Defaults to ``false``.
+
+   * - ``collation``
+     - | Specifies the kind of language collation to use when sorting
+         results. For more information, see :manual:`Collation </reference/collation/#std-label-collation>`
+         in the {+mdb-server+} manual.
+
+   * - ``hint``
+     - | Gets or sets the index to scan for documents. 
+         For more information, see the :manual:`hint statement </reference/command/update/#std-label-update-command-hint>`
+         in the {+mdb-server+} manual.
+
+   * - ``session``
+     - | Specifies the client session to associate with the operation.
+
+   * - ``let``
+     - | Specifies a document with a list of values to improve operation readability.
+         Values must be constant or closed expressions that don't reference document
+         fields. For more information, see the :manual:`let statement
+         </reference/command/update/#std-label-update-let-syntax>` in the
+         {+mdb-server+} manual.
+
+   * - ``comment``
+     - | Attaches a comment to the operation. For more information, see the :manual:`insert command
+         fields </reference/command/insert/#command-fields>` guide in the
+         {+mdb-server+} manual.
+
+Example
+~~~~~~~
+
+The following code uses the ``replaceOne()`` method to find the first document
+in which the ``name`` field has the value ``'Food Town'``, then replaces this document 
+with a new document in which the ``name`` value is ``'Food World'``. Because the
+``upsert`` option is set to ``true``, the library inserts a new document if the query
+filter doesn't match any existing documents:
+
+.. literalinclude:: /includes/write/replace.php
+   :start-after: start-replace-options
+   :end-before: end-replace-options
+   :language: php
+   :copyable:
+
+Additional Information 
+----------------------
+
+To learn more about update operations, see the :ref:`php-write-update` guide.
+
+To learn more about creating query filters, see the :ref:`php-specify-query` guide.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- :phpmethod:`MongoDB\Collection::replaceOne()`
+- :phpclass:`MongoDB\UpdateResult`

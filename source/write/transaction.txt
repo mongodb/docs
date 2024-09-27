@@ -1,0 +1,200 @@
+.. _php-transactions:
+
+=====================
+Perform a Transaction
+=====================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, ACID compliance, multi-document
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+php-library+} to perform
+**transactions**. Transactions allow you to perform a series of operations
+that change data only if the entire transaction is committed.
+If any operation in the transaction does not succeed, the library stops the
+transaction and discards all data changes before they ever become
+visible. This feature is called **atomicity**.
+
+In MongoDB, transactions run within logical sessions. A
+session is a grouping of related read or write operations that you
+want to run sequentially. Sessions enable causal consistency for a group
+of operations and allow you to run operations in an **ACID-compliant**
+transaction, which is a transaction that meets an expectation of
+atomicity, consistency, isolation, and durability. MongoDB guarantees
+that the data involved in your transaction operations remains
+consistent, even if the operations encounter unexpected errors.
+
+When using the {+php-library+}, you can create a new session from a
+``MongoDB\Client`` instance. Then, you can use the resulting
+``MongoDB\Driver\Session`` instance to perform transactions.
+
+.. warning::
+
+   Use a ``Session`` only in operations running on the
+   ``Client`` that created it. Using a ``Session`` with a
+   different ``Client`` results in operation errors.
+
+Transaction APIs
+----------------
+
+In this section, you can learn about the transaction APIs provided by
+the {+php-library+}. Before you begin a transaction, you must create a
+``Session`` by using the ``MongoDB\Client::startSession()``
+method on your ``Client`` instance. Then, you can use either of the
+following APIs to perform a transaction:
+
+- :ref:`php-convenient-txn`
+- :ref:`php-core-txn`
+
+.. _php-convenient-txn:
+
+Convenient API
+~~~~~~~~~~~~~~
+
+The {+php-library+} provides a **Convenient Transaction API** to manage
+the transaction lifecyle. Implement this API by using the
+``MongoDB\with_transaction()`` function to run custom callback within a
+transaction. The ``with_transaction()`` function performs the following
+tasks:
+
+- Starts the transaction
+- Handles errors by either ending the transaction or retrying it, such
+  as when the operation returns a ``TransientTransactionError``
+- Commits the transaction
+
+The :ref:`php-txn-example` section of this guide demonstrates how to use
+this API to perform a transaction. 
+
+.. _php-core-txn:
+
+Core API
+~~~~~~~~
+
+Alternatively, you can have more control over your transaction lifecyle
+by using the methods provided by the ``Session`` class. The
+following table describes these methods:
+
+.. list-table::
+   :widths: 25 75
+   :stub-columns: 1
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``startTransaction()``
+     - | Starts a new transaction on this session. The session
+         must be passed into each operation within the transaction, or
+         the operation will run outside of the transaction.
+       |
+       | You can set transaction options by passing an options parameter.
+
+   * - ``commitTransaction()``
+     - | Commits the active transaction for this session. This method returns an
+         error if there is no active transaction for the session, the
+         transaction was previously ended, or if there is a write conflict.
+
+   * - ``abortTransaction()``
+     - | Ends the active transaction for this session. This method returns an
+         error if there is no active transaction for the session or if the
+         transaction was committed or ended.
+
+.. _php-txn-example:
+
+Transaction Example
+-------------------
+
+This example defines a callback function that
+modifies data in the collections of the ``bank`` database for a
+banking transaction. The code performs the following actions:
+
+- Creates ``Collection`` instances to access the target
+  collections.
+- Specifies the account number and amount to be transferred between
+  accounts.
+- Defines the callback function, which receives the ``Session`` instance
+  as a parameter.
+- Updates the customer's balances to reflect the money transfer.
+- Records a receipt of the transaction with a timestamp.
+- Prints a message if the transaction committed successfully.
+
+.. literalinclude:: /includes/write/transaction.php
+   :copyable:
+   :language: php
+   :dedent:
+   :start-after: begin-callback
+   :end-before: end-callback
+
+Then, run the following code to perform the transaction. This code
+completes the following actions:
+
+1. Creates a session from the client by using the ``startSession()`` method.
+#. Calls the ``with_transaction()`` function to manage the transaction,
+   passing the session and the callback as parameters.
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/write/transaction.php
+      :language: php
+      :dedent:
+      :start-after: begin-txn
+      :end-before: end-txn
+      :emphasize-lines: 1, 4
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      Successfully performed transaction!
+      Summary: SAVINGS +1000 CHECKING -1000
+
+Additional Information
+----------------------
+
+To learn more about the concepts mentioned in this guide, see the
+following pages in the {+mdb-server+} manual:
+
+- :manual:`Transactions </core/transactions/>`
+- :manual:`Server Sessions </reference/server-sessions/>`
+- :manual:`Read Isolation, Consistency, and Recency
+  </core/read-isolation-consistency-recency/>`
+
+To learn more about ACID compliance, see the :website:`What are ACID
+Properties in Database Management Systems? </basics/acid-transactions>`
+article on the MongoDB website.
+
+To learn more about insert operations, see the
+:ref:`php-write-insert` guide.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the methods and types mentioned in this
+guide, see the following API documentation:
+
+- :phpclass:`MongoDB\Client`
+- :phpmethod:`MongoDB\Client::startSession()`
+- :phpmethod:`MongoDB\with_transaction()`
+- :phpmethod:`MongoDB\Collection::updateOne()`
+- :phpmethod:`MongoDB\Collection::insertOne()`
+
+To learn more about the ``Session`` class and methods,
+see the following {+extension-short+} API documentation:
+
+- :php:`MongoDB\Driver\Session <mongodb-driver-session>`
+- :php:`MongoDB\Driver\Session::abortTransaction() <mongodb-driver-session.aborttransaction>`
+- :php:`MongoDB\Driver\Session::commitTransaction() <mongodb-driver-session.committransaction>`
+- :php:`MongoDB\Driver\Session::startTransaction() <mongodb-driver-session.starttransaction>`

@@ -1,0 +1,248 @@
+.. _php-retrieve:
+
+=============
+Retrieve Data
+=============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: code examples, read, query, cursor
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+php-library+} to retrieve
+data from a MongoDB collection by using **read operations**. You can call the
+``MongoDB\Collection::find()`` or ``MongoDB\Collection::findOne()`` method
+on a collection to retrieve documents that match a set of criteria.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``companies`` collection in the ``sample_training``
+database from the :atlas:`Atlas sample datasets </sample-data>`. To access this collection
+from your PHP application, instantiate a ``MongoDB\Client`` that connects to an Atlas cluster
+and assign the following value to your ``$collection`` variable:
+
+.. literalinclude:: /includes/read/retrieve.php
+    :language: php
+    :dedent:
+    :start-after: start-db-coll
+    :end-before: end-db-coll
+
+To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see the
+:atlas:`Get Started with Atlas </getting-started>` guide.
+
+.. _php-retrieve-find:
+
+Find Documents
+--------------
+
+The {+php-library+} includes two methods for retrieving documents from a collection:
+``MongoDB\Collection::findOne()`` and ``MongoDB\Collection::find()``. These methods
+take a **query filter** and return one or more matching documents. A query filter
+specifies the search criteria that the driver uses to retrieve documents in your query.
+
+.. tip::
+
+   To learn more about query filters, see the :ref:`php-specify-query` guide.
+
+.. _php-retrieve-find-one:
+
+Find One Document
+~~~~~~~~~~~~~~~~~
+
+To find a single document in a collection, call the ``MongoDB\Collection::findOne()``
+method and pass a query filter that specifies the criteria of the document you want to find.
+
+The ``findOne()`` method returns an ``array``, ``object``, or ``null`` value. If the
+query filter matches a document, the method returns an ``array|object`` instance containing
+the document. The return type depends on the value of the ``typeMap`` option. If the query
+filter does not match any documents, the method returns ``null``.
+
+.. tip::
+   
+   To learn more about ``findOne()`` options, such as ``typeMap``, see the :ref:`php-retrieve-modify`
+   section of this guide.
+
+If the query filter matches more than one document, the ``findOne()`` method returns the *first*
+matching document from the retrieved results.
+
+The following example uses the ``findOne()`` method to find the first document in which
+the ``name`` field has the value ``'LinkedIn'``:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/retrieve.php
+      :start-after: start-find-one
+      :end-before: end-find-one
+      :language: php
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      {"_id":{"$oid":"..."},"name":"LinkedIn","permalink":"linkedin","crunchbase_url":
+      "http:\/\/www.crunchbase.com\/company\/linkedin","homepage_url":"http:\/\/linkedin.com",
+      ... }
+   
+.. tip:: Sort Order
+
+   The ``findOne()`` method returns the first document in 
+   :manual:`natural order </reference/glossary/#std-term-natural-order>`
+   on disk if no sort criteria is specified.
+
+.. _php-retrieve-find-multiple:
+
+Find Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To find multiple documents in a collection, pass a query filter to the
+``MongoDB\Collection::find()`` method that specifies the criteria of the
+documents you want to retrieve. 
+
+The following example uses the ``find()`` method to find all documents in which
+the ``founded_year`` field has the value ``1970``:
+
+.. literalinclude:: /includes/read/retrieve.php
+    :language: php
+    :dedent:
+    :start-after: start-find-many
+    :end-before: end-find-many
+
+The ``find()`` method returns an instance of ``MongoDB\Driver\Cursor``, which you can
+iterate over to see the matching documents. A cursor is a mechanism that allows an
+application to iterate over database results while holding only a subset of them in
+memory at a given time. Cursors are useful when your ``find()`` method returns a large
+amount of documents.
+
+You can iterate over the documents in a cursor by using a ``foreach`` loop, as shown in
+the following example:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/retrieve.php
+      :start-after: start-cursor
+      :end-before: end-cursor
+      :language: php
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      {"_id":{"$oid":"..."},"name":"Mitsubishi Motors","permalink":"mitsubishi-motors",
+      "crunchbase_url":"http:\/\/www.crunchbase.com\/company\/mitsubishi-motors",
+      ... }
+
+      {"_id":{"$oid":"..."},"name":"Western Digital","permalink":"western-digital",
+      "crunchbase_url":"http:\/\/www.crunchbase.com\/company\/western-digital",
+      ... }
+
+      {"_id":{"$oid":"..."},"name":"Celarayn","permalink":"celarayn","crunchbase_url":
+      "http:\/\/www.crunchbase.com\/company\/celarayn",
+      ... }
+
+.. note:: Find All Documents
+
+   To find all documents in a collection, pass an empty filter 
+   to the ``find()`` method:
+
+   .. code-block:: php
+
+      $cursor = $collection->find([]);
+
+.. _php-retrieve-modify:
+
+Modify Find Behavior
+~~~~~~~~~~~~~~~~~~~~
+
+You can modify the behavior of the ``MongoDB\Collection::find()`` and
+``MongoDB\Collection::findOne()`` methods by passing an array that specifies
+option values as a parameter. The following table describes some options
+you can set in the array:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Option
+     - Description
+
+   * - ``batchSize`` 
+     - | The number of documents to return per batch. The default value is ``101``.
+       | **Type**: ``integer``
+
+   * - ``collation`` 
+     - | The collation to use for the operation. The default value is the collation
+         specified for the collection.
+       | **Type**: ``array|object``
+
+   * - ``comment`` 
+     - | The comment to attach to the operation.
+       | **Type**: any BSON type
+
+   * - ``cursorType`` 
+     - | The type of cursor to use for the operation. The default value is
+         ``MongoDB\Operation\Find::NON_TAILABLE``.
+       | **Type**: ``MongoDB\Operation\Find``
+
+   * - ``limit`` 
+     - | The maximum number of documents the operation can return.
+       | **Type**: ``integer``
+
+   * - ``skip`` 
+     - | The number of documents to skip before returning results.
+       | **Type**: ``integer``
+
+   * - ``sort`` 
+     - | The order in which the operation returns matching documents.
+       | **Type**: ``array|object``
+
+   * - ``typeMap`` 
+     - | The type map to apply to cursors, which determines how BSON documents
+         are converted to PHP values. The default value is the collection's type map.
+       | **Type**: ``array``
+
+The following example uses the ``find()`` method to find all documents in which
+the ``number_of_employees`` field has the value ``1000``. The example uses the
+``limit`` option to return a maximum of ``5`` results:
+
+.. literalinclude:: /includes/read/retrieve.php
+    :language: php
+    :emphasize-lines: 3
+    :start-after: start-modify
+    :end-before: end-modify
+
+For a full list of options, see the API documentation for the
+`findOne() <{+api+}/method/MongoDBCollection-findOne/#parameters>`__ and 
+`find() <{+api+}/method/MongoDBCollection-find/#parameters>`__ parameters.
+
+.. _php-retrieve-additional-information:
+
+Additional Information
+----------------------
+
+To learn more about query filters, see the :ref:`php-specify-query` guide.
+
+To view code examples of retrieving documents with the {+php-library+},
+see :ref:`php-read`.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods discussed in this
+guide, see the following API documentation:
+
+- :phpmethod:`MongoDB\Collection::findOne()`
+- :phpmethod:`MongoDB\Collection::find()`

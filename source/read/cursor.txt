@@ -1,0 +1,190 @@
+.. _php-cursors:
+
+=========================
+Access Data From a Cursor
+=========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: read, results, code example
+
+Overview
+--------
+
+In this guide, you can learn how to access data from a **cursor** by using the
+{+php-library+}.
+
+A cursor is a mechanism that returns the results of a read operation in iterable
+batches. Cursors reduce both memory consumption and the number of server requests
+by holding only a subset of documents at any given time, rather than returning all
+documents at once.
+
+Whenever the {+php-library+} performs a read operation by using the ``MongoDB\Collection::find()``
+method, it returns the matching documents in a ``MongoDB\Driver\Cursor`` instance.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``restaurants`` collection in the ``sample_restaurants``
+database from the :atlas:`Atlas sample datasets </sample-data>`. To access this collection
+from your PHP application, instantiate a ``MongoDB\Client`` that connects to an Atlas cluster
+and assign the following value to your ``$collection`` variable:
+
+.. literalinclude:: /includes/read/cursor.php
+   :language: php
+   :dedent:
+   :start-after: start-db-coll
+   :end-before: end-db-coll
+
+To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see the
+:atlas:`Get Started with Atlas </getting-started>` guide.
+
+.. _php-cursors-iterate:
+
+Access Cursor Contents Iteratively
+----------------------------------
+
+The ``MongoDB\Driver\Cursor`` class implements the ``Iterator`` interface, so you
+can use a ``foreach`` loop to iterate through its contents.
+
+The following example uses the ``MongoDB\Collection::find()`` method to retrieve all documents
+in which the ``name`` field value is ``'Dunkin' Donuts'``. It then prints each document from the
+cursor returned by the ``find()`` method:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/cursor.php
+      :start-after: start-cursor-iterate
+      :end-before: end-cursor-iterate
+      :language: php
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      {"_id":{"$oid":"..."},..."name":"Dunkin' Donuts","restaurant_id":"40379573"}
+      {"_id":{"$oid":"..."},..."name":"Dunkin' Donuts","restaurant_id":"40363098"}
+      {"_id":{"$oid":"..."},..."name":"Dunkin' Donuts","restaurant_id":"40395071"}
+      ...
+
+Retrieve Documents Individually
+-------------------------------
+
+To retrieve an individual document from a cursor, call the ``current()`` method on
+a ``MongoDB\Driver\Cursor`` instance. This method returns the document that the cursor
+initially points to. You can continue to advance the cursor by calling the ``next()``
+method, which instructs the cursor to point to the next retrieved document.
+
+The following example finds all documents in which the ``name`` field value is
+``'Dunkin' Donuts'``. Then, it prints the first retrieved document by calling the
+``current()`` method on a cursor:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/cursor.php
+      :start-after: start-cursor-first
+      :end-before: end-cursor-first
+      :language: php
+      :dedent:
+
+   .. output::
+      :visible: false
+      
+      {"_id":{"$oid":"..."},..."name":"Dunkin' Donuts","restaurant_id":"40379573"}
+      
+Retrieve All Documents
+----------------------
+
+.. warning::
+
+   If the number and size of documents returned by your query exceeds available
+   application memory, your program will crash. If you expect a large result
+   set, :ref:`access your cursor iteratively <php-cursors-iterate>`.
+
+To retrieve all documents from a cursor, convert the cursor into an array by using
+either of the following methods:
+
+- ``MongoDB\\Driver\\Cursor::toArray()``: Call on a ``MongoDB\Driver\Cursor`` object
+- ``iterator_to_array()``: Pass a ``MongoDB\Driver\Cursor`` object as a parameter
+
+The following example calls the ``toArray()`` method on a cursor to store its results
+in an array:
+
+.. literalinclude:: /includes/read/cursor.php
+   :language: php
+   :dedent:
+   :start-after: start-cursor-array
+   :end-before: end-cursor-array
+
+.. _php-tailable-cursor:
+
+Tailable Cursors
+----------------
+
+When querying on a :manual:`capped collection </core/capped-collections/>`, you
+can use a **tailable cursor** that remains open after the client exhausts the
+results in a cursor. To create a tailable cursor, set the ``cursorType`` option to
+``MongoDB\Operation\Find::TAILABLE`` in an array. Then, pass the array as an options
+parameter to the ``MongoDB\Collection::find()`` method.
+
+For example, you can create a capped collection called ``vegetables`` that stores
+documents representing vegetables, as shown in the following code:
+
+.. literalinclude:: /includes/read/cursor.php
+    :language: php
+    :dedent:
+    :start-after: start-capped-coll
+    :end-before: end-capped-coll
+
+The following code uses a tailable cursor to retrieve all documents in the ``vegetables``
+collection. After the cursor is exhausted, it remains open until retrieving three documents:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/cursor.php
+      :start-after: start-tailable
+      :end-before: end-tailable
+      :language: php
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      {"_id":{"$oid":"..."},"name":"cauliflower"}
+      {"_id":{"$oid":"..."},"name":"zucchini"}
+
+If you insert another document into the ``vegetables`` collection, the preceding code prints
+the new document and closes the ``while`` loop.
+
+To learn more about tailable cursors, see :manual:`Tailable Cursors
+</core/tailable-cursors/>` in the {+mdb-server+} manual.
+
+Additional Information
+----------------------
+
+To learn more about read operations, see the :ref:`php-retrieve` guide.
+
+To learn more about cursors, see the following pages in the extension API documentation:
+
+- :php:`MongoDB\Driver\Cursor <class.mongodb-driver-cursor>`
+- :php:`MongoDB\Driver\Cursor::current() <mongodb-driver-cursor.current>`
+- :php:`MongoDB\Driver\Cursor::toArray() <mongodb-driver-cursor.toarray>`
+- :php:`iterator_to_array() <function.iterator-to-array>`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the ``find()`` method, see the API documentation for
+:phpmethod:`MongoDB\Collection::find()`.

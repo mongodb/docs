@@ -1,0 +1,187 @@
+.. _php-run-command:
+
+======================
+Run a Database Command
+======================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: administration, code example
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+php-library+}
+to run a database command. You can use database commands to perform a
+variety of administrative and diagnostic tasks, such as fetching server
+statistics, initializing a replica set, or running an aggregation pipeline.
+
+.. important:: Prefer Library Methods to Database Commands
+
+   The library provides wrapper methods for many database commands.
+   We recommend using these methods instead of executing database
+   commands when possible.
+   
+   To perform administrative tasks, use the :mongosh:`MongoDB Shell </>`
+   instead of the {+php-library+}. The shell provides helper methods
+   that might not be available in the library.
+   
+   If there are no available helpers in the library or the shell, you
+   can use the ``db.runCommand()`` shell method or the library's
+   ``MongoDB\Database::command()`` method, which is described in this
+   guide.
+
+.. _php-execute-command:
+
+Execute a Command
+-----------------
+
+To run a database command, you must specify the command and any relevant
+parameters in a command document, then pass the command document to the
+``MongoDB\Database::command()`` method. Many database commands return
+multiple result documents, so the ``command()`` method returns a
+:php:`MongoDB\Driver\Cursor <mongodb-driver-cursor>` object that you can
+iterate through.
+
+The following code shows how you can use the ``command()``
+method on a :phpclass:`MongoDB\Database` instance to run the ``hello``
+command, which returns information about the server:
+
+.. literalinclude:: /includes/write/run-command.php
+   :language: php
+   :dedent:
+   :start-after: start-hello
+   :end-before: end-hello
+
+To find a link to a full list of database commands and corresponding
+parameters, see the :ref:`Additional Information section
+<php-addtl-info-runcommand>`.
+
+.. note:: Read Preference
+
+   The ``command()`` method does not inherit the read preference you might
+   have set on your ``Database`` instance elsewhere in your code. By
+   default, ``command()`` uses the ``primary`` read preference.
+   
+   You can set a read preference for command execution by setting one
+   in the options parameter, as shown in the following code:
+   
+   .. literalinclude:: /includes/write/run-command.php
+      :language: php
+      :dedent:
+      :start-after: start-readpref
+      :end-before: end-readpref
+
+   Learn more about the ``ReadPreference`` class in the
+   :php:`{+extension-short+} API documentation
+   <mongodb-driver-readpreference>`.
+
+   To learn more about read preference options, see :manual:`Read
+   Preference </core/read-preference/>` in the {+mdb-server+} manual.
+
+.. _php-command-response:
+
+Response
+--------
+
+The ``command()`` method returns a ``Cursor`` object that contains
+the response from the database for the given command. Each database
+command performs a different function, so the response
+content can vary.
+
+For commands that return a single result document,
+that result is available as the first and only document in the
+cursor. For commands that return multiple result
+documents, the library converts the cursor
+envelope in the raw command response, which includes the cursor ID and
+the first batch of results, into an iterable cursor.
+
+Before you run a command, learn about the response format of the
+command so that your application either iterates through multiple
+results or extracts the first and only document in the cursor. See the
+:ref:`php-addtl-info-runcommand` section of this guide to find a link to
+the full list of database commands.
+
+The raw command response contains the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Field
+     - Description
+
+   * - <command result>
+     - Fields specific to the database command. For example,
+       the ``count`` command returns the ``n`` field.
+
+   * - ``ok``
+     - Whether the command has succeeded (``1``) or failed (``0``). The
+       library raises a :php:`CommandException
+       <mongodb-driver-exception-commandexception.php>` if
+       the ``ok`` field is ``0``.
+
+   * - ``operationTime``
+     - The logical time of the operation. MongoDB uses the
+       logical time to order operations. To learn more about this
+       concept, see our blog post about the :website:`Global Logical
+       Clock </blog/post/transactions-background-part-4-the-global-logical-clock>`.
+
+   * - ``$clusterTime``
+     - A document that contains the signed cluster time. Cluster time is a
+       logical time used for the ordering of operations.
+
+.. _php-command-example:
+
+Command Example
+---------------
+
+The following example uses the ``command()`` method to run
+the ``dbStats`` command to retrieve storage statistics for the
+``accounts`` database:
+
+.. literalinclude:: /includes/write/run-command.php
+   :language: php
+   :dedent:
+   :start-after: start-runcommand
+   :end-before: end-runcommand
+
+The output of this command includes information about the collections in
+the database and describes the amount and size of data stored across
+collections:
+
+.. code-block:: none
+
+   {"db":"accounts","collections":2,"views":0,"objects":5,"avgObjSize":22,"dataSize":110,
+   "storageSize":40960,"totalFreeStorageSize":0,"numExtents":0,"indexes":2,"indexSize":40960,
+   "indexFreeStorageSize":0,"fileSize":0,"nsSizeMB":0,"ok":1}
+
+.. _php-addtl-info-runcommand:
+
+Additional Information
+----------------------
+
+For more information about the concepts in this guide, see the following
+documentation in the {+mdb-server+} manual:
+
+- :manual:`db.runCommand() </reference/method/db.runCommand/>`
+- :manual:`Database Commands </reference/command/>`
+- :manual:`hello Command </reference/command/hello/>`
+- :manual:`dbStats Command </reference/command/dbStats/>`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+For more information about the ``command()`` method, see the
+following {+php-library+} API documentation:
+
+- :phpmethod:`MongoDB\Database::command()`

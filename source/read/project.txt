@@ -1,0 +1,172 @@
+.. _php-project:
+
+========================
+Specify Fields To Return
+========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: read, filter, project, select
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+php-library+} to specify which fields
+to return from a read operation by using a **projection**. A projection is a document
+that specifies which fields MongoDB returns from a query.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``restaurants`` collection in the ``sample_restaurants``
+database from the :atlas:`Atlas sample datasets </sample-data>`. To access this collection
+from your PHP application, instantiate a ``MongoDB\Client`` that connects to an Atlas cluster
+and assign the following value to your ``$collection`` variable:
+
+.. literalinclude:: /includes/read/project.php
+    :language: php
+    :dedent:
+    :start-after: start-db-coll
+    :end-before: end-db-coll
+
+To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see the
+:atlas:`Get Started with Atlas </getting-started>` guide.
+
+Projection Types
+----------------
+
+You can use a projection to specify which fields to include in a return
+document, or to specify which fields to exclude. You cannot combine inclusion and
+exclusion statements in a single projection, unless you are excluding the
+``_id`` field.
+
+Specify Fields to Include
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To specify the fields to include in the result, pass an options array to the
+``MongoDB\Collection::findOne()`` or ``MongoDB\Collection::find()`` method that
+sets the ``projection`` option. Use the following syntax to set this option:
+
+.. code-block:: php
+
+   $options = [
+       'projection' => [
+           '<field name>' => 1,
+       ],
+   ];
+
+The following example creates an options array and sets the ``projection`` option
+to return only the ``name``, ``cuisine``, and ``borough`` fields of matching documents.
+It then calls the ``find()`` method to find all restaurants in which the ``name`` field
+value is ``'Emerald Pub'``, passing the options array as a parameter to ``find()``:
+
+.. io-code-block::
+   :copyable:   
+
+   .. input:: /includes/read/project.php
+      :start-after: start-project-include
+      :end-before: end-project-include
+      :language: php
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      {"_id":{"$oid":"..."},"borough":"Manhattan","cuisine":"American","name":"Emerald Pub"}
+      {"_id":{"$oid":"..."},"borough":"Queens","cuisine":"American","name":"Emerald Pub"}
+
+When you use a projection to specify fields to include in the return
+document, the ``_id`` field is also included by default. All other fields are
+implicitly excluded. To remove the ``_id`` field from the return
+document, you must :ref:`explicitly exclude it <php-project-remove-id>`.
+
+.. _php-project-remove-id:
+
+Exclude the ``_id`` Field
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When specifying fields to include, you can also exclude the ``_id`` field from
+the returned document.
+
+The following example performs the same query as the preceding example but
+excludes the ``_id`` field from the projection:
+
+.. io-code-block::
+   :copyable:   
+
+   .. input:: /includes/read/project.php
+      :start-after: start-project-include-without-id
+      :end-before: end-project-include-without-id
+      :language: php
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      {"borough":"Manhattan","cuisine":"American","name":"Emerald Pub"}
+      {"borough":"Queens","cuisine":"American","name":"Emerald Pub"}
+
+Specify Fields to Exclude
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To specify the fields to exclude from the result, pass an options array to the
+``MongoDB\Collection::findOne()`` or ``MongoDB\Collection::find()`` method that
+sets the ``projection`` option. Use the following syntax to set this option:
+
+.. code-block:: php
+
+   $options = [
+       'projection' => [
+           '<field name>' => 0,
+       ],
+   ];
+
+The following example creates an options array and sets the ``projection`` option
+to exclude the ``grades`` and ``address`` fields of matching documents.
+It then calls the ``find()`` method to find all restaurants in which the ``name``
+field value is ``'Emerald Pub'``, passing the options array as a parameter to
+``find()``:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/project.php
+      :start-after: start-project-exclude
+      :end-before: end-project-exclude
+      :language: php
+      :dedent:
+
+   .. output:: 
+      :visible: false
+
+      {"_id":{"$oid":"..."},"borough":"Manhattan","cuisine":"American",
+      "name":"Emerald Pub","restaurant_id":"40367329"}
+      {"_id":{"$oid":"..."},"borough":"Queens","cuisine":"American",
+      "name":"Emerald Pub","restaurant_id":"40668598"}
+
+When you use a projection to specify which fields to exclude,
+any unspecified fields are implicitly included in the return document.
+
+Additional Information
+----------------------
+
+To learn more about projections, see the :manual:`Project Fields
+</tutorial/project-fields-from-query-results/>` guide in the {+mdb-server+} manual.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- :phpmethod:`MongoDB\Collection::findOne()`
+- :phpmethod:`MongoDB\Collection::find()`
