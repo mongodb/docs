@@ -20,7 +20,7 @@ upgrade path you must take to upgrade to |onprem| 4.4 or later.
 
 .. note::
 
-   All upgrades for |onprem| versions 4.2.x and later use 
+   All upgrades for |onprem| versions 6.0.x and later use 
    :ref:`the same procedure <upgrade-om-procedure>`. To upgrade to a
    higher version, you must first use this procedure upgrade to the 
    latest available patch of your initial version, then use the 
@@ -40,10 +40,20 @@ The following table lists upgrade paths for all versions:
 
      - Upgrade Path
 
+   * - 8.0.x
+     - Upgrade from |onprem| 8.0.x to the latest available patch 
+       version of 8.0 using 
+       :ref:`this procedure <upgrade-om-procedure>`.
+
+       .. seealso
+
+          :ref:`Ops Manager 8.0 releases <opsmgr-server-8.0>`
+
    * - 7.0.x
      - Upgrade from |onprem| 7.0.x to the latest available patch 
-       version of 7.0 using 
-       :ref:`this procedure <upgrade-om-procedure>`.
+       version of 7.0. Then upgrade to the latest available version of 
+       8.0. Use :ref:`this procedure <upgrade-om-procedure>` for both
+       upgrades.
 
        .. seealso
 
