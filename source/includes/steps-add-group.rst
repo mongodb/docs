@@ -16,7 +16,7 @@
       
          1. Go to the :guilabel:`Admin Console`.
          2. Select :guilabel:`Organizations`.
-         3. Click :guilabel:`New Project` for the Organization for which you wish to create the project.
+         3. Click :guilabel:`New Project` for the Organisation for which you wish to create the project.
       
    .. step:: Select |mms|.
       
@@ -32,8 +32,6 @@
       :guilabel:`Organization`.
       
    .. step:: Configure |ldap| options.
-      
-      .. include:: /includes/ldap-deprecated.rst
       
       If managing |mms| users through |ldap|, enter values for the
       following **Optional LDAP Configuration** fields .
