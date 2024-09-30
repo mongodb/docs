@@ -8,6 +8,22 @@ databases.
 
 .. include:: /includes/fact-opsmanager-backingdb-version.rst
 
+Compatible MongoDB Tools
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+If |onprem| manages your MongoDB Tools, the tool versions are upgraded 
+when you upgrade |onprem|.
+
+If you run |onprem| 8.0.x in :doc:`local mode
+</tutorial/configure-local-mode>`, you must :dl:`download and
+install a compatible version of the MongoDB Tools TGZ package
+<database-tools>` to the ``versions`` directory.
+
+.. include:: /includes/list-tables/compatibility-matrix/db-tools-OMv8.0.rst
+
+To access older versions of the MongoDB Tools, click
+`Archived releases <https://www.mongodb.com/download-center/database-tools/releases/archive>`__ on the Download page.
+
 |onprem| Platform Support
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 

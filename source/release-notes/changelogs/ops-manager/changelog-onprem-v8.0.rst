@@ -3,7 +3,7 @@
 |onprem| Server 8.0.0
 ~~~~~~~~~~~~~~~~~~~~~
 
-*Released 2024-10-01*
+*Released 2024-9-30*
 
 .. note::
 
@@ -11,7 +11,10 @@
    that have been added since |onprem| 7.0.0, many of which 
    are also included in later minor releases of |onprem| 7.0.
    For details, see :ref:`Ops Manager 7.0 releases <opsmgr-server-7.0>`.
-   
+
+- Updates the {+mdbagent+} to :ref:`108.0.1
+  <mongodb-108.0.1>`.
+
 MongoDB Cluster Management
 ``````````````````````````
 
