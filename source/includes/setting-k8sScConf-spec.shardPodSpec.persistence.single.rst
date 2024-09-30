@@ -1,3 +1,5 @@
+.. _pod-spec-persistence:
+
 .. setting:: spec.shardPodSpec.persistence.single
 
    *Type*: collection
