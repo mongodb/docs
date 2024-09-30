@@ -4,31 +4,43 @@
    :widths: 34 33 33
 
    * - MongoDB Version
+     - |onprem| 8.0
      - |onprem| 7.0
      - |onprem| 6.0
 
+   * - MongoDB 8.0
+     - Supported
+     - 
+     -
+
    * - MongoDB 7.0
+     - Supported
      - Supported
      - 
 
    * - MongoDB 6.0
      - Supported
      - Supported
+     - Supported
 
    * - MongoDB 5.0
+     - Deprecated
      - Supported
      - Supported
 
    * - MongoDB 4.4
+     - Deprecated
      - Supported
      - Supported
 
    * - MongoDB 4.2
+     - 
      - Deprecated
      - Supported
 
    * - MongoDB 4.0
      - 
+     -
      - Deprecated
 
    * - MongoDB 3.6

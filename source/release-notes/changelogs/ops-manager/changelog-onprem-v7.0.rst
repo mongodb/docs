@@ -13,7 +13,7 @@
   package for RHEL and ``lsb-release`` pacakge for Debian.  
 - Ensures that |onprem| retains at least one snapshot regardless of expiration schedule.
 - Fixes the following issues:
-  
+
   - Upgrades from |onprem| 6 to |onprem| 7 fail due to a missing field used for upgrade validation.
   - Diagnostics archive shows incorrect free space for File System snapshot store.
   - ``DeploymentId`` not displayed for shards with regional backup enabled.
@@ -342,8 +342,5 @@ Automation Platform Support
 - Adds {+mdbagent+} support for RedHat Enterprise Linux 9 on x86_64 and ARM architectures.
 - Adds {+mdbagent+} support for Ubuntu 22.04 on x86_64 and ARM architectures.
 - Adds {+mdbagent+} support for Amazon Linux 2023.
-- Removes {+mdbagent+} support for Debian 10.
-- Removes {+mdbagent+} support for Ubuntu 18.04 LTS.
-- Deprecates {+mdbagent+} support for RedHat Enterprise Linux 7.
 - Deprecates {+mdbagent+} support for SUSE Linux Enterprise Server 12.
 - Deprecates {+mdbagent+} support for Ubuntu 20.04 LTS.

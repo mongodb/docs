@@ -27,8 +27,8 @@ To access older versions of the MongoDB Tools, click
 |onprem| and Automation Platform Support
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Removes |onprem| and {+mdbagent+} support for Debian 10.
-- Removes |onprem| and {+mdbagent+} support for Ubuntu 18.04 LTS.
+- Removes |onprem| support for Debian 10.
+- Removes |onprem| support for Ubuntu 18.04 LTS.
 
 .. important::
    
