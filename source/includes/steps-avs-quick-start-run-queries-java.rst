@@ -16,7 +16,7 @@
            - 1.7.30 or higher version
   
       For more detailed installation instructions, see the 
-      :ref:`MongoDB Java Driver documentation <add-mongodb-dependency>`.
+      :driver:`MongoDB Java Driver documentation </java/sync/current/quick-start/#std-label-add-mongodb-dependency>`.
 
    .. step:: Construct your vector search query.
 
