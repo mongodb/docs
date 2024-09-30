@@ -8,8 +8,6 @@ using :manual:`LDAP authorization </core/security-ldap-external>`.
    .. tab:: LDAP Authorization
       :tabid: ldap-auth-x509
 
-      .. include:: /includes/ldap-deprecated.rst
-
       If you are using |ldap| authorization in your MongoDB deployment,
       you must create an |ldap| user and |ldap| group for the
       {+mdbagent+} on the |ldap| server. After creating the |ldap| user
