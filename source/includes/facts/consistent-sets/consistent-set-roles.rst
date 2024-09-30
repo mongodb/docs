@@ -58,3 +58,11 @@ deployments.
 
 To learn how importing MongoDB deployments can affect managing users
 and roles, see :ref:`automation-updated-security-settings`.
+
+Role Names
+~~~~~~~~~~
+
+You can't name a custom role ``MongodbAutomationAgentUserRole``
+for deployments managed by {+aagent+}, as this 
+is an internal role name used by the {+mdbagent+}\'s
+``mms-automation`` user.
