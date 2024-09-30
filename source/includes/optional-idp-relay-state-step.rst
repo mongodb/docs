@@ -24,7 +24,7 @@ You can use:
      - .. code-block:: none
           :copyable: true
 
-          https://university.mongodb.com
+          https://auth.mongodb.com/home/mongodb_thoughtindustriesstaging_1/0oadne22vtcdV5riC297/alndnea8d6SkOGXbS297
    
    * - MongoDB Community Forums
      - .. code-block:: none

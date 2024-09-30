@@ -1,5 +1,5 @@
 MongoDB Federated Authentication links your credentials across 
-MongoDB systems like |mdb-support|, `MongoDB University <https://university.mongodb.com/>`_,
+MongoDB systems like |mdb-support|, `MongoDB University <https://learn.mongodb.com/>`_,
 |service-fullname|, |mms-full|, `MongoDB Community Forums <https://community.mongodb.com/>`_, and
 |mdb-feedback|. |service| implements authentication using the
 Federated Identity Management model.
