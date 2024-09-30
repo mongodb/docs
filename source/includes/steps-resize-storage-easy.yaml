@@ -6,7 +6,7 @@ title: Create or identify a persistent |k8s-custom-resource|.
 content: |
 
   Use an existing database resource or create a new one with persistent
-  storage. Wait until the persistent volume gets to the ``Running``
+  storage. Wait until the persistent volume enters the ``Running``
   state.
 
   .. example::
@@ -36,7 +36,7 @@ content: |
 stepnum: 2
 level: 4
 ref: insert-data
-title: Insert data to the database that the resource serves.
+title: Insert data into the database that the resource serves.
 content: |
 
   a. Start |mongo| in the |k8s| cluster.
@@ -65,77 +65,14 @@ content: |
 ---
 stepnum: 3
 level: 4
-ref: patch-pv
-title: Patch each persistence volume.
-content: |
-
-  Invoke the following commands for the entire replica set:
-
-  .. code-block:: sh
-
-     kubectl patch pvc/"data-<my-replica-set>-0" -p='{"spec": {"resources": {"requests": {"storage": "2Gi"}}}}'
-     kubectl patch pvc/"data-<my-replica-set>-1" -p='{"spec": {"resources": {"requests": {"storage": "2Gi"}}}}'
-     kubectl patch pvc/"data-<my-replica-set>-2" -p='{"spec": {"resources": {"requests": {"storage": "2Gi"}}}}'
-
-  Wait until each |k8s-pvc| gets to the following condition:
-
-  .. code-block:: yaml
-
-     - lastProbeTime: null
-       lastTransitionTime: "2019-08-01T12:11:39Z"
-       message: Waiting for user to (re-)start a pod to finish file
-                system resize of volume on node.
-       status: "True"
-       type: FileSystemResizePending
-
----
-stepnum: 4
-level: 4
-ref: recreate-statefulsets
-title: Stop the Operator.
-content: |
-
-   Update the |k8s-op-short| deployment definition and apply the change to your 
-   |k8s| cluster in order to scale the |k8s-op-short| down to ``0`` replicas. 
-   Scaling the |k8s-op-short| down to ``0`` replicas allows you to avoid a race 
-   condition in which the |k8s-op-short| tries to restore the state of the 
-   manually updated resource to align with the resource's original definition. 
-
-   .. code-block:: yaml
-
-      # Source: enterprise-operator/templates/operator.yaml
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata:
-        name: mongodb-enterprise-operator
-        namespace: mongodb
-      spec:
-        replicas: 0
-
----
-stepnum: 5
-level: 4
-ref: recreate-statefulsets
-title: Remove the StatefulSets.
-content: |
-
-  .. note::
-
-     This step removes the |k8s-statefulset| only. The pods remain
-     unchanged and running.
-
-  Delete a |k8s-statefulset| resource.
-
-  .. code-block:: sh
-
-     kubectl delete sts --cascade=false <my-replica-set>
-
----
-stepnum: 6
-level: 4
 ref: update-crd
 title: Update the database resource with a new storage value.
 content: |
+
+  .. important::
+     
+     You can only increase disk size for existing storage resources, not decrease. 
+     Decreasing the storage size causes an error in the reconcile stage. 
 
   a. Update the disk size. Open your preferred text editor and make
      changes similar to this example:
@@ -164,38 +101,56 @@ content: |
                  single:
                    storage: "2Gi"
 
-  b. Recreate a |k8s-statefulset| resource with the new volume size.
+  b. Update the MongoDB custom resource with the new volume size.
 
      .. code-block:: sh
 
-        kubectl apply -f my-replica-set-vol.yaml
+        kubectl apply -f my-updated-replica-set-vol.yaml
 
-  c. Wait until the MongoDB custom resource is in a ``Running`` state.
+  c. Wait until this StatefulSet achieves the ``Running`` state.
 
 ---
-stepnum: 7
+stepnum: 4
 level: 4
-ref: update-pods
-title: Update the pods in a rolling fashion.
+ref: validate-pv-resize
+title: Validate that the |k8s-pvc| has been resized.
 content: |
 
-  Invoke the following command:
+  If you reuse |k8s-pvs|, you can find the data that you inserted in **Step
+  2** on the databases stored in |k8s-pvs|:
 
   .. code-block:: sh
 
-     kubectl rollout restart sts <my-replica-set>
+     $ kubectl describe mongodb/<my-replica-set> -n mongodb
 
-  The new pods mount the resized volume.
+  The following output indicates that your PVC resize request is being processed.
+
+  .. code-block:: sh
+  
+     status:
+       clusterStatusList: {}
+       lastTransition: "2024-08-21T11:03:52+02:00"
+       message: StatefulSet not ready
+       observedGeneration: 2
+       phase: Pending
+       pvc:
+         - phase: PVC Resize - STS has been orphaned
+           statefulsetName: multi-replica-set-pvc-resize-0
+       resourcesNotReady:
+         - kind: StatefulSet
+           message: 'Not all the Pods are ready (wanted: 2, updated: 1, ready: 1, current:2)'
+           name: multi-replica-set-pvc-resize-0
+       version: ""
 
 ---
-stepnum: 8
+stepnum: 5
 level: 4
 ref: validate-pv-change
 title: Validate data exists on the updated |k8s-pvc|.
 content: |
 
-  If the |k8s-pvs| were reused, the data that you inserted in **Step
-  2** can be found on the databases stored in |k8s-pvs|:
+  If you reuse |k8s-pvs|, you can find the data that you inserted in **Step
+  2** on the databases stored in |k8s-pvs|:
 
   .. code-block:: sh
 
