@@ -27,11 +27,9 @@
      - Deprecated
      - Supported
      - Supported
-     - Supported
 
    * - MongoDB 4.4
      - Deprecated
-     - Supported
      - Supported
      - Supported
 
