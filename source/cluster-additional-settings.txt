@@ -207,8 +207,9 @@ and consist of :manual:`shards </core/sharded-cluster-shards>`,
 :term:`mongos <mongos>` routers.  To learn more, see
 :ref:`nodes-for-config-server`. Config servers must remain readable for sharded read operations to continue to function.
 
-You can also shard a collection. To learn more, see
-:ref:`atlas-ui-shard-collection`.
+If you enable {+managed-configs+}, |service| may colocate config server
+data with application data instead of using a dedicated config server.
+To learn more, see :ref:`config-server-management`.
 
 .. _nodes-per-shard:
 
@@ -231,7 +232,7 @@ the selected regions.
 About Config Servers Deployment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-|service| deploys the :ref:`config servers <sharding-config-server>`
+For dedicated config servers, |service| deploys the :ref:`config servers <sharding-config-server>`
 as a three-node replica set. The config servers run on M30 {+cluster+}
 tiers. In multi-region {+clusters+}, config servers are distributed
 across regions. 
@@ -243,7 +244,11 @@ availability zones and three distinct regions if supported by
 the selected cloud service provider and region configuration. Config
 servers must remain readable for sharded read operations to continue to
 function. To learn more, see :manual:`Config Server Availability
-</core/sharded-cluster-config-servers/#config-server-availability>`. 
+</core/sharded-cluster-config-servers/#config-server-availability>`.
+
+If you enable {+managed-configs+}, |service| may colocate config server
+data with application data instead of using a dedicated config server.
+To learn more, see :ref:`config-server-management`.
 
 .. include:: /includes/fact-outage-sharded-cluster-impact.rst
 
@@ -761,3 +766,95 @@ extensive secondary reads.
 :guilabel:`Sequential` mode is for steady-state workloads and applications
 performing latency-sensitive secondary reads, which means |service|
 scales all nodes sequentially.
+
+.. _config-server-management:
+
+{+Managed-Configs+} for Sharded {+Clusters+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Enable or disable |service| management of the :ref:`config server
+<sharding-config-server>` type for a new sharded {+cluster+}. 
+An {+managed-config+} automatically switches the 
+:ref:`config server type <config-server-types>` based on :ref:`criteria
+<config-server-change-criteria>` for optimal performance and
+cost savings. If you don't enable an {+managed-config+} for
+a sharded {+cluster+}, |service| always uses a dedicated config server
+for the {+cluster+}.
+
+To enable or disable |service| management of the config server for an
+existing {+cluster+}, contact :ref:`MongoDB Support <request-support>`.
+
+.. _config-server-types:
+
+Config Server Types
+```````````````````
+
+For each new sharded {+cluster+} with {+managed-configs+} enabled, 
+|service| either deploys an embedded
+config server or a dedicated config server.
+
+Embedded config servers colocate some
+of your application data with config data on a config shard. Embedded
+config servers cost less because they use fewer resources.
+
+Dedicated config servers use a separate, dedicated config server
+replica set for config data. Your application data is not colocated
+with config data for dedicated config servers. Dedicated config servers
+cost more because they use an additional replica set.
+
+To learn more about considerations for config server types, see
+:ref:`config-server-considerations`.
+
+.. _config-server-change-criteria:
+
+Config Server Change Criteria
+`````````````````````````````
+
+If you enable {+managed-configs+}, |service| determines the initial
+{+cluster+} config server type as follows:
+
+- If the {+cluster+} shard count is greater than three, 
+  |service| uses a dedicated config server.
+- If the {+cluster+} shard count is three or less, |service|
+  uses an embedded config server.
+
+When you add or remove shards with {+managed-configs+} enabled, 
+|service| automatically re-selects your sharded cluster's config server
+type using the same criteria.
+
+.. _config-server-considerations:
+
+Config Server Considerations
+````````````````````````````
+
+All {+clusters+} with a version lower than MongoDB 8.0 use a dedicated
+config server.
+
+{+Clusters+} using embedded config servers don't support the following features:
+
+- :manual:`Time series data </core/timeseries-collections/>`
+- :manual:`Queryable encryption </core/queryable-encryption/>`
+- :ref:`Atlas Search indexes <default-index-definition>`
+
+If you enable {+managed-configs+}, the following considerations apply:
+
+- For {+clusters+} running MongoDB 8.0 or later, replica set IDs
+  **don't** reflect the type of data stored on the replica set.
+
+  - Replica sets that contain the
+    term ``shard`` in their replica set ID might store application
+    data, config data, or both (for example: ``atlas-abc123-shard-0``).
+  - Replica sets that contain the
+    term ``config`` in their replica set ID might store application
+    data (for example: ``atlas-abc123-config-0``).
+
+Backup Snapshot Considerations
+++++++++++++++++++++++++++++++
+
+- You can restore snapshots from a {+cluster+} with a
+  dedicated config server only to a {+cluster+} that also uses a
+  dedicated config server.
+- You can restore snapshots from a {+cluster+} with an
+  embedded config server only to a {+cluster+} that also uses an
+  embedded config server.
+
