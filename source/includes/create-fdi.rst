@@ -37,29 +37,26 @@
       For this tutorial, configure your {+fdi+} as follows using the 
       :guilabel:`Federated Database Instance` panel:
       
-      .. procedure::
-         :style: normal
+      a. Rename the default collection.
 
-         .. step:: Rename the default collection.
+         Click :icon-fa4:`pencil` next to the default collection 
+         ``VirtualCollection0`` to edit its name. For this tutorial, 
+         rename your collection ``Sessions``.
+      
+      #. Create a second collection.
 
-            Click :icon-fa4:`pencil` next to the default collection 
-            ``VirtualCollection0`` to edit its name. For this tutorial, 
-            rename your collection ``Sessions``.
+         Click :icon-fa4:`plus-square` next to the default name 
+         ``VirtualDatabase0`` to add a collection to the database. 
+         For this tutorial, name your new collection ``Users``.
+      
+      #. Add data to your virtual database.
 
-         .. step:: Create a second collection.
+         Drag and drop the following data sources into the 
+         respective {+fdi+} virtual collections:
 
-            Click :icon-fa4:`plus-square` next to the default name 
-            ``VirtualDatabase0`` to add a collection to the database. 
-            For this tutorial, name your new collection ``Users``.
-
-         .. step:: Add data to your virtual database.
-
-            Drag and drop the following data sources into the 
-            respective {+fdi+} virtual collections:
-
-            - ``/mflix/sessions.json``, into the ``Sessions`` 
-              collection, and
-            - ``/mflix/users.json`` into the ``Users`` collection.
+         - ``/mflix/sessions.json``, into the ``Sessions`` 
+           collection, and
+         - ``/mflix/users.json`` into the ``Users`` collection.
 
    .. step:: Click :guilabel:`Save`.
 
