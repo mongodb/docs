@@ -99,7 +99,7 @@
          .. tab:: IBM ZSeries
             :tabid: s390x
 
-            On zSeries architecture (managing MongoDB 4.0 or
+            On zSeries architecture (managing MongoDB 4.4 or
             later deployments):
 
             Running RHEL (7.x, 8.x, or 9.x) or CentOS (7.x or 8.x) 

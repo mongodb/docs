@@ -69,39 +69,15 @@ snapshots of data from the MongoDB processes you have specified.
 Backup Workflow
 ~~~~~~~~~~~~~~~
 
-Backups rely upon the
-:manual:`MongoDB version compatibility</reference/command/setFeatureCompatibilityVersion>`
-of your database.
-This Feature Compatibility Version ranges from the current version to
-one version earlier. For MongoDB 4.2, the FCV can be ``4.0`` or
-``4.2``.
+Backups rely upon the :manual:`MongoDB version compatibility</reference/command/setFeatureCompatibilityVersion>`
+of your database. This Feature Compatibility Version ranges from the
+current version to one version earlier. For MongoDB 4.4, the FCV can be
+``4.2`` or ``4.4``.
 
-.. tabs::
+.. include:: /includes/backup/wtchk-process-overview-main-om.rst
 
-   .. tab:: FCV 4.2 or later
-      :tabid: fcv42
-
-      .. include:: /includes/backup/wtchk-process-overview-main-om.rst
-
-      The {+mdbagent+} uses WiredTiger's incremental backup cursor to
-      capture the incremental changes.
-
-   .. tab:: FCV 4.0 or earlier
-      :tabid: fcv40
-
-      Once backup has started, |mms| backs up the data as an ongoing
-      and continuous process. This process continues creating snapshots
-      as long as the head database remains synchronized with the
-      database.
-
-      .. include:: /includes/backup/legacy-process-overview-main-om.rst
-
-      The {+mdbagent+} then tails each replica set's :manual:`oplog </reference/glossary/#std-term-oplog>`
-      to maintain on disk a standalone database, called a
-      :opsmgr:`head database </reference/glossary/#std-term-head-database>`. |mms| maintains one
-      head database for each backed-up replica set. The head
-      database stays consistent with the original :manual:`primary </reference/glossary/#std-term-primary>` up
-      to the last oplog that the {+mdbagent+} supplies.
+The {+mdbagent+} uses WiredTiger's incremental backup cursor to capture
+the incremental changes. 
 
 The backup process works in this manner regardless of how snapshots are
 stored.
@@ -116,52 +92,13 @@ then can insert a marker token into all shards and config servers in
 the cluster. |mms| takes a :manual:`snapshot </reference/glossary/#std-term-snapshot>` when the marker tokens
 appear in the snapshot data.
 
-.. tabs::
-   :hidden:
+|mms| can back up data as a full or incremental backup. |mms| requires a full backup:
 
-   .. tab:: FCV 4.2 or later
-      :tabid: fcv42
+- For your first backup.
+- After a snapshot has been deleted.
+- If the blockstore block size has been changed.
 
-      |mms| can back up data as a full or incremental backup. |mms|
-      requires a full backup:
-
-      - For your first backup.
-      - After a snapshot has been deleted.
-      - If the blockstore block size has been changed.
-
-      Incremental backups reduce network transfer and storage costs.
-
-   .. tab:: FCV 4.0 or earlier
-      :tabid: fcv40
-
-      How much storage capacity you need depends on both the number
-      of snapshots and the type of snapshot storage you choose. The
-      following table outlines the differences in snapshot stores:
-
-      .. list-table::
-         :header-rows: 1
-         :widths: 25 75
-
-         * - Snapshot Store
-           - Description
-
-         * - MongoDB blockstore
-           - Only the differences between each successive
-             :manual:`snapshot </reference/glossary/#std-term-snapshot>` are stored. Compression and
-             block-level :term:`deduplication` reduce the size of
-             snapshot data.
-
-         * - |aws| |s3| bucket
-           - Only the differences between each successive
-             :manual:`snapshot </reference/glossary/#std-term-snapshot>` are stored. Compression and
-             block-level :term:`deduplication` reduce the size of
-             snapshot data.
-
-         * - File system store
-           - Depending on the configuration, compression reduces the
-             size of the :manual:`snapshot </reference/glossary/#std-term-snapshot>` data.
-
-      All snapshots represent a full backup.
+Incremental backups reduce network transfer and storage costs.
 
 To learn more about how to configure backups, see
 :doc:`Backup Configuration Options </core/backup-preparations>`.
@@ -172,62 +109,29 @@ Restore Data
 Backup can restore data from a complete scheduled snapshot or from
 a selected point between snapshots.
 
-.. tabs::
-   :hidden:
+You can restore :manual:`sharded clusters
+</reference/glossary/#std-term-sharded-cluster>` and :manual:`replica
+sets </reference/glossary/#std-term-replica-set>` from selected points
+in time.
 
-   .. tab:: FCV 4.2 or later
-      :tabid: fcv42
-
-      You can restore :manual:`sharded clusters </reference/glossary/#std-term-sharded-cluster>` and
-      :manual:`replica sets </reference/glossary/#std-term-replica-set>` from selected points in time.
-
-   .. tab:: FCV 4.0 or earlier
-      :tabid: fcv40
-
-      - For :manual:`sharded clusters </reference/glossary/#std-term-sharded-cluster>`, you can restore
-        from :ref:`checkpoints <checkpoint>` between snapshots.
-
-      - For :manual:`replica sets </reference/glossary/#std-term-replica-set>`, you can restore from
-        selected points in time.
-
-When you restore from a :manual:`snapshot </reference/glossary/#std-term-snapshot>`, |mms| reads directly from
+When you restore from a :manual:`snapshot
+</reference/glossary/#std-term-snapshot>`, |mms| reads directly from 
 the snapshot storage. You can restore the snapshot:
 
 - To another cluster.
 - To download the snapshot files from an |https| link.
 
-.. tabs::
-   :hidden:
-
-   .. tab:: FCV 4.2 or later
-      :tabid: fcv42
-
-      When you restore from a point in time, |mms| does the following:
+When you restore from a point in time, |mms| does the following:
       
-      1. Restores a full snapshot from the snapshot storage.
-      #. Applies stored :manual:`oplogs </reference/glossary/#std-term-oplog>` until it reaches the 
-         specified point.
-      #. Delivers the snapshot and oplog updates using the same
-         |https| mechanisms.
+1. Restores a full snapshot from the snapshot storage.
+#. Applies stored :manual:`oplogs </reference/glossary/#std-term-oplog>` until it reaches the 
+   specified point.
+#. Delivers the snapshot and oplog updates using the same
+   |https| mechanisms.
 
-      You can configure how much of the oplog you want to keep per
-      backup. This affects the amount of time a point-in-time restore
-      can cover.
-
-   .. tab:: FCV 4.0 or earlier
-      :tabid: fcv40
-
-      When you restore from a checkpoint or point in time, |mms| does the following:
-
-      1. Restores a full snapshot from the snapshot storage. 
-      #. Applies stored :manual:`oplogs </reference/glossary/#std-term-oplog>` until it reaches the
-         specified point. 
-      #. Delivers the snapshot and oplog updates using the same |https| mechanisms. 
-         To enable checkpoints, see :ref:`enable-cluster-checkpoints`.
-
-      You can configure how much of the oplog you want to keep per
-      backup. This affects how much time a checkpoint and
-      point-in-time restore can cover.
+You can configure how much of the oplog you want to keep per
+backup. This affects the amount of time a point-in-time restore
+can cover.
 
 .. include:: /includes/feedback/uservoice-block.rst
 

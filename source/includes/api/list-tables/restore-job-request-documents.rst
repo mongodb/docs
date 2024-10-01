@@ -15,12 +15,11 @@
        that represents the point in time to which your data will be
        restored.
 
-       Conditions:
+       .. note:: Conditions
 
-       - Set ``"delivery.methodName" : "AUTOMATED_RESTORE"``.
-       - Run Sharded Clusters using |fcv-link| of 4.0 or earlier.
-       - Can't set ``oplogInc``, ``oplogTs``, or
-         ``pointInTimeUTCMillis``.
+          - Set ``"delivery.methodName" : "AUTOMATED_RESTORE"``.
+          - Can't set ``oplogInc``, ``oplogTs``, or
+            ``pointInTimeUTCMillis``.
 
        If you provide this setting, this endpoint restores all data up
        to this :opsmgr:`checkpoint  </reference/glossary/#std-term-checkpoint>` to the database you

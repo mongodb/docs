@@ -1,7 +1,7 @@
 .. list-table:: Supported Versions of MongoDB for Each Version of |onprem|
    :header-rows: 1
    :stub-columns: 1
-   :widths: 34 33 33
+   :widths: 25 25 25 25
 
    * - MongoDB Version
      - |onprem| 8.0
@@ -32,19 +32,5 @@
      - Deprecated
      - Supported
      - Supported
-
-   * - MongoDB 4.2
-     - 
-     - Deprecated
-     - Supported
-
-   * - MongoDB 4.0
-     - 
-     -
-     - Deprecated
-
-   * - MongoDB 3.6
-     - 
-     - 
 
 .. include:: /includes/deprecated-definition.rst

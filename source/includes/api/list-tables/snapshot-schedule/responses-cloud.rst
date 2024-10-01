@@ -14,8 +14,6 @@
        granularity of point-in-time restores for sharded clusters.
        |mms| may return values of ``15``, ``30``, or ``60``.
 
-       .. include:: /includes/admonitions/important/checkpoints-fcv-4-0-only.rst
-
    * - ``clusterId``
      - string
      - Unique identifier of the cluster to which this backup
