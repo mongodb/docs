@@ -340,12 +340,6 @@ Limits
 Encryption
 ~~~~~~~~~~
 
-|onprem| can encrypt any backup job stored in a
-:opsmgr:`head database </reference/glossary/#std-term-head-database>` running
-:product:`MongoDB Enterprise <mongodb-enterprise-advanced>` between
-|fcv-link| 3.4 and 4.0 with the
-:ref:`WiredTiger <encrypted-storage-engine>` storage engine.
-
 .. include:: /includes/head-database-backup-deprecated.rst
 
 .. seealso::
@@ -360,45 +354,22 @@ Backup Considerations
 Consistency and Snapshots
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For clusters running MongoDB version 4.2 or and later: 
-
-- |mms| maintains
-  :manual:`causal consistency </core/read-isolation-consistency-recency/#std-label-sessions>` 
-  when taking snapshots except for size statistics reported by :manual:`collStats </reference/command/collStats/#mongodb-dbcommand-dbcmd.collStats>`
-  and ``db.[collection].count()``. Size statistics reported
-  by :manual:`collStats </reference/command/collStats/#mongodb-dbcommand-dbcmd.collStats>` and ``db.[collection].count()`` may be inccurate.
-- |mms| coordinates the time across all
-  shards for sharded clusters. This ensures that snapshots include all documents written to every
-  shard and node as of the scheduled snapshot time.
-
-For clusters running MongoDB version 4.0 and earlier:
-
-- |mms| maintains crash-consistent snapshots.
-- |mms| takes snapshots from each of the shards for sharded clusters
-  and the Config Server Replica Sets at approximately the same time.
-
-Databases Running FCV 4.2 and Later
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+|mms| maintains :manual:`causal consistency </core/read-isolation-consistency-recency/#std-label-sessions>` 
+when taking snapshots except for size statistics reported by
+:manual:`collStats </reference/command/collStats/#mongodb-dbcommand-dbcmd.collStats>` 
+and ``db.[collection].count()``. Size statistics reported by
+:manual:`collStats </reference/command/collStats/#mongodb-dbcommand-dbcmd.collStats>` 
+and ``db.[collection].count()`` may be inccurate. |mms| coordinates the
+time across all shards for sharded clusters. This ensures that snapshots
+include all documents written to every shard and node as of the
+scheduled snapshot time. 
 
 .. include:: /release-notes/release-advisories/advisories-v4.2-backup.rst
 
-.. cond:: onprem
+Shared File System
+++++++++++++++++++
 
-   Shared File System
-   ++++++++++++++++++
-
-   .. include:: /includes/fact-shared-file-system-reqs.rst
-
-Databases Running FCV 4.0 and Earlier
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. important::
-
-   .. include:: /includes/fact-backup-standalone-restriction.rst
-
-The following considerations apply when your databases run any version
-of MongoDB 4.0 or earlier or when they run MongoDB 4.2 with
-``"featureCompatibilityVersion" : 4.0``
+.. include:: /includes/fact-shared-file-system-reqs.rst
 
 Garbage Collection of Expired Snapshots
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -510,45 +481,6 @@ You may also want to resync your backup if you:
 
 - :manual:`Build an Index on a replica set in a rolling fashion
   </tutorial/build-indexes-on-replica-sets>`.
-
-.. _checkpoint:
-
-Checkpoints
-~~~~~~~~~~~
-
-.. include:: /includes/admonitions/important/checkpoints-fcv-4-0-only.rst
-
-For :manual:`sharded clusters </reference/glossary/#std-term-sharded-cluster>`, checkpoints provide
-additional restore points between snapshots. With checkpoints enabled,
-|mms| creates restoration points at configurable intervals of every 15,
-30 or 60 minutes between snapshots. To enable checkpoints, see
-:ref:`enable checkpoints <enable-cluster-checkpoints>`.
-
-To create a checkpoint, |mms| stops the :term:`balancer` and inserts a
-token into the :manual:`oplog </reference/glossary/#std-term-oplog>` of each :manual:`shard </reference/glossary/#std-term-shard>` and :term:`config
-server` in the cluster. These checkpoint tokens are lightweight and don't
-affect performance or disk use.
-
-Backup doesn't require checkpoints, and they are disabled by default.
-
-Restoring from a checkpoint requires |mms| to apply the :manual:`oplog </reference/glossary/#std-term-oplog>`
-of each shard and config server to the last snapshot captured before
-the checkpoint. Restoration from a checkpoint takes longer than
-restoration from a snapshot.
-
-.. _snapshot-while-balancer-enabled:
-
-Snapshots when Agent Can't Stop Balancer
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-For :manual:`sharded clusters </reference/glossary/#std-term-sharded-cluster>` running with FCV 4.0 or
-earlier, |mms| disables the :term:`balancer` before taking a cluster
-snapshot. In certain situations, such as a long migration or no running
-:manual:`mongos </reference/program/mongos/#mongodb-binary-bin.mongos>`, |mms| tries to disable the balancer but cannot. In
-such cases, |mms| continues to take cluster snapshots but flags the
-snapshots that may have incomplete or inconsistent data. Cluster
-snapshots taken during an active balancing operation run the risk of
-data loss or orphaned data.
 
 Snapshots when Agent Can't Contact a ``mongod``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

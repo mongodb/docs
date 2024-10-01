@@ -15,63 +15,30 @@ Encrypted Backup Snapshots
 Snapshot encryption depends upon which
 :manual:`version of MongoDB your database is compatible </reference/command/setFeatureCompatibilityVersion>`.
 This Feature Compatibility Version ranges from the current version
-to one version earlier. For MongoDB 4.2, the FCV can be ``4.0`` or
-``4.2``. You can only create encrypted snapshots from encrypted 
+to one version earlier. For MongoDB 4.4, the FCV can be ``4.2`` or
+``4.4``. You can only create encrypted snapshots from encrypted 
 clusters.
 
-.. tabs::
+|mms| doesn't encrypt backup snapshots for clusters running MongoDB 4.2
+or later because you can create encrypted snapshots only from encrypted
+clusters.
 
-   .. tab:: FCV 4.2 or later
-      :tabid: fcv42
+.. note::
 
-      |mms| doesn't encrypt backup snapshots for clusters running
-      MongoDB 4.2 or later because you can create encrypted snapshots
-      only from encrypted clusters.
+   .. include:: /includes/facts/fcv-backup-considerations.rst
 
-      .. note::
+.. include:: /includes/facts/how-mms-takes-fcv42-encrypted-snapshots.rst
 
-         .. include:: /includes/facts/fcv-backup-considerations.rst
+.. important::
 
-      .. include:: /includes/facts/how-mms-takes-fcv42-encrypted-snapshots.rst
+   The :opsmgr:`Backup Daemon
+   </reference/glossary/#std-term-backup-daemon>` requires a connection
+   to the |kmip| host to process a :doc:`queryable restore job
+   </tutorial/query-backup>` of an encrypted backup. 
 
-      .. important::
+.. seealso::
 
-         The :opsmgr:`Backup Daemon </reference/glossary/#std-term-backup-daemon>` requires a connection to the
-         |kmip| host to process a :doc:`queryable restore job
-         </tutorial/query-backup>` of an encrypted backup.
-
-      .. seealso::
-
-         :manual:`MongoDB Encryption at Rest </core/security-encryption-at-rest/>`
-
-   .. tab:: FCV 4.0 or earlier
-      :tabid: fcv40
-
-      |mms| supports encryption for any backup job that was
-      stored in a :opsmgr:`head database </reference/glossary/#std-term-head-database>` running
-      :product:`MongoDB Enterprise <mongodb-enterprise-advanced>`
-      3.4 or later with the
-      :ref:`WiredTiger <encrypted-storage-engine>` storage engine.
-
-
-      .. warning:: 
-         
-         .. include:: /includes/facts/fcv-transitioning-from-keyfile-to-KMIP-considerations.rst
-
-      To encrypt backups, you use a master key that a
-      |kmip|-compliant key management appliance generates and
-      maintains. This master key encrypts the
-      :opsmgr:`head databases </reference/glossary/#std-term-head-database>`. As the
-      :opsmgr:`Backup Daemon </reference/glossary/#std-term-backup-daemon>` creates snapshots from the head
-      databases, resulting snapshots from the encrypted head
-      databases are themselves encrypted.
-
-      To restore from an encrypted backup, you need the same master
-      key used to encrypt the backup and either the same certificate
-      as is on the :opsmgr:`Backup Daemon </reference/glossary/#std-term-backup-daemon>` host or a new certificate
-      provisioned with that key from the |kmip| host. This
-      corresponds to the value in the **KMIP client certificate
-      path** field.
+   :manual:`MongoDB Encryption at Rest </core/security-encryption-at-rest/>`
 
 Prerequisites
 -------------
@@ -79,29 +46,10 @@ Prerequisites
 A host running |kmip|-compliant key management to generate and store
 encryption keys.
 
-.. tabs::
-   :hidden:
+.. important::
 
-   .. tab:: FCV 4.2 or later
-      :tabid: fcv42
-
-      .. important::
-
-         Clusters running MongoDB |fcv-link| 4.2 or later must use
-         |kmip| servers. These clusters don't support local key
-         management using files.
-
-   .. tab:: FCV 4.0 or earlier
-      :tabid: fcv40
-
-      - :opsmgr:`Head databases </reference/glossary/#std-term-head-database>` use
-        :product:`MongoDB Enterprise <mongodb-enterprise-advanced>`
-        3.4 or later with the WiredTiger :manual:`storage engine </reference/glossary/#std-term-storage-engine>`.
-
-      - A valid |kmip| client certificate and |kmip| host |certauth|
-        files. These files are used to authenticate |onprem| to the
-        |kmip| host. The client certificate on the Backup Daemon
-        host must have access to all keys in the |kmip| host.
+   Clusters must use |kmip| servers. These clusters don't support local
+   key management using files.
 
 .. important::
 
@@ -129,24 +77,6 @@ Configure Your Project to Use KMIP
 Encrypt Your Backup Job
 -----------------------
 
-.. tabs::
-   :hidden:
-
-   .. tab:: FCV 4.2 or later
-      :tabid: fcv42
-
-      You can create encrypted snapshots only from encrypted clusters.
-      If you enable MongoDB Encryption at Rest for the host you are
-      backing up, the bytes that |mms| copies to the snapshot
-      store are already encrypted. 
-         
-   .. tab:: FCV 4.0 or earlier
-      :tabid: fcv40
-
-      .. important::
-
-         For existing backups in a project, enabling encryption
-         requires an initial backup sync to recreate the backups'
-         head databases.
-
-      .. include:: /includes/steps/enable-backup.rst
+You can create encrypted snapshots only from encrypted clusters. If you
+enable MongoDB Encryption at Rest for the host you are backing up, the
+bytes that |mms| copies to the snapshot store are already encrypted. 

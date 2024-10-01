@@ -10,6 +10,3 @@
 
      - The |onprem| Application Database,
      - Each blockstore.
-     - Each |onprem| Backup Daemon :opsmgr:`head database </reference/glossary/#std-term-head-database>`. This only
-       applies to FCV 4.0 and earlier. FCV 4.2 and later do not use
-       :opsmgr:`head databases </reference/glossary/#std-term-head-database>` for backups.

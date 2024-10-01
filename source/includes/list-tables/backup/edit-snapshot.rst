@@ -8,16 +8,6 @@
        the deployment and the number of days |mms| retains base
        snapshots.
 
-   * - Create cluster checkpoint every ... minutes
-       (Sharded Clusters only)
-
-     - Sets how frequently, in minutes, |mms| creates a
-       :ref:`checkpoint` in between snapshots of a sharded cluster.
-       Checkpoints provide restore points that you can use to create
-       custom *point-in-time* snapshots.
-
-       .. include:: /includes/admonitions/important/checkpoints-fcv-4-0-only.rst
-
    * - Store daily snapshots for
 
      - Sets the number of days that |mms| retains daily snapshots.

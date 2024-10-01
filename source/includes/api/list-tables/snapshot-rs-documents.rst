@@ -155,6 +155,7 @@
 
        - ``CONFIG_SERVER_REPLICA_SET``
        - ``REPLICA_SET``
+       - ``CONFIG_SHARD_REPLICA_SET``
 
    * - | ``missingShards``
        | ``.clusterName``
@@ -244,3 +245,4 @@
 
        - ``REPLICA_SET``
        - ``CONFIG_SERVER_REPLICA_SET``
+       - ``CONFIG_SHARD_REPLICA_SET``
