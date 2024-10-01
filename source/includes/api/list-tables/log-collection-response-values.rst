@@ -174,3 +174,11 @@
      - string
      - Internet address from which you download the logs from this
        request.
+
+   * - logCollectionFromDate
+     - string
+     - The start date and time for log collection in `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601>`_ format (UTC). 
+     
+   * - logCollectionToDate
+     - string
+     - The end date and time for log collection in `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601>`_ format (UTC). 
