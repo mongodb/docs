@@ -39,5 +39,7 @@
      name: LDAP
      content: |
 
+       .. include:: /includes/ldap-deprecated.rst
+
        Follow the steps to :ref:`config-auth-ldap`, then follow the
        steps to :ref:`add-db-user-group-ldap`.
