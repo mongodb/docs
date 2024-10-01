@@ -60,7 +60,7 @@
        Specify an :opsmgr:`existing Organization
        </tutorial/manage-organizations/#create-organization>`:
 
-       .. include:: /includes/steps/find-org-id.rst
+       .. include:: /includes/steps-find-org-id.rst
 
        You must have the :opsmgr:`Organization Project Creator </reference/user-roles/#Organization Project Creator>`
        role to create a new project within an existing
