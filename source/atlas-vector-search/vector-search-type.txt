@@ -25,9 +25,9 @@ How to Index Fields for Vector Search
 You can use the ``vectorSearch`` type to index fields for running 
 :pipeline:`$vectorSearch` queries. You can define the index for the
 vector embeddings that you want to query and the boolean, date, objectId, 
-numeric, string, or UUID values that you want to use to pre-filter your data. Filtering
-your data is useful to narrow the scope of your semantic search and
-ensure that certain vector embeddings are not considered for 
+numeric, string, or UUID values that you want to use to pre-filter your
+data. Filtering your data is useful to narrow the scope of your semantic
+search and ensure that certain vector embeddings are not considered for 
 comparison, such as in a multi-tenant environment.
 
 You can use the {+atlas-ui+}, {+atlas-admin-api+}, 
@@ -48,6 +48,13 @@ In a ``vectorSearch`` type index definition, you can index arrays with
 only a single element. You can't index fields inside arrays of documents
 or fields inside arrays of objects. You can index fields inside
 documents using the dot notation. 
+
+Before indexing your embeddings, we recommend converting your embeddings
+to |bson| :manual:`BinData </reference/method/BinData/>` ``vector``
+subtype ``float32`` or ``int8`` vectors for efficient storage and
+ingestion of your vectors in your |service| {+cluster+}. To learn more,
+see :ref:`how to convert your embeddings to BSON vectors
+<avs-bindata-vector-subtype>`. 
 
 Syntax 
 ------
@@ -79,10 +86,24 @@ The following syntax defines the ``vectorSearch`` index type:
 About the ``vector`` Type 
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The vector field must contain an array of numbers of the |bson|
-``double`` data type for querying using the :pipeline:`$vectorSearch`
-pipeline stage. You must index the vector field as the ``vector`` type
-inside the ``fields`` array.  
+Your index definition's ``vector`` field must contain an array of numbers of 
+*one* of the following types: 
+
+- |bson| ``double`` 
+- |bson| :manual:`BinData </reference/method/BinData/>` ``vector``
+  subtype ``float32``  
+- |bson| :manual:`BinData </reference/method/BinData/>` ``vector``
+  subtype ``int8`` 
+
+.. note:: 
+
+   To learn more about generating |bson| :manual:`BinData
+   </reference/method/BinData/>` ``vector`` subtype ``float32``
+   or ``vector`` subtype ``int8`` vectors for your data, see
+   :ref:`avs-bindata-vector-subtype`.
+
+You must index the vector field as the ``vector`` type inside the
+``fields`` array.
 
 The following syntax defines the ``vector`` field type: 
 
@@ -108,11 +129,11 @@ The following syntax defines the ``vector`` field type:
 About the ``filter`` Type 
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can optionally index boolean, date, number, objectId, string, and UUID fields to
-pre-filter your data. Filtering your data is useful to narrow the scope
-of your semantic search and ensure that not all vectors are considered
-for comparison. You must index these fields using the ``filter`` type inside
-the ``fields`` array.
+You can optionally index boolean, date, number, objectId, string, and
+UUID fields to pre-filter your data. Filtering your data is useful to
+narrow the scope of your semantic search and ensure that not all vectors
+are considered for comparison. You must index these fields using the
+``filter`` type inside the ``fields`` array.
 
 The following syntax defines the ``filter`` field type: 
 
@@ -198,13 +219,12 @@ The {+avs+} index definition takes the following fields:
 
    * - ``fields.similarity``
      - string
+     - Required
      - .. _fields-similarity:
-
-       Required
-       
-     - Vector similarity function to use to search for top K-nearest 
+      
+       Vector similarity function to use to search for top K-nearest 
        neighbors. You can set this field only for ``vector`` type
-       fields. Value include: 
+       fields. Value can be one of the following: 
 
        - ``euclidean`` - measures the distance between ends of vectors. 
          This value allows you to measure similarity based on varying 
