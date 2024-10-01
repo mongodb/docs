@@ -1,4 +1,3 @@
-.. _multi-spec-externalaccess:
 
 ``externalAccess``
   *Type*: collection
