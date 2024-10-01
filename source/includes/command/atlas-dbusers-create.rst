@@ -105,7 +105,7 @@ Options
    * - --scope
      - strings
      - false
-     - Array of clusters and Atlas Data Lakes that this user has access to.
+     - Array of clusters that this user has access to.
    * - -u, --username
      - string
      - true

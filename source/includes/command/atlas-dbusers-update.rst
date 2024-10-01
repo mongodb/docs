@@ -80,7 +80,7 @@ Options
    * - --scope
      - strings
      - false
-     - Array of clusters and Atlas Data Lakes that this user has access to. Passing this flag replaces preexisting data.
+     - Array of clusters that this user has access to. Passing this flag replaces preexisting data.
    * - -u, --username
      - string
      - false
