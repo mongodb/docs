@@ -13,7 +13,7 @@ text
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 2
+   :depth: 3
    :class: singlecol
 
 Definition
@@ -40,6 +40,7 @@ Syntax
          "query": "<search-string>",
          "path": "<field-to-search>",
          "fuzzy": <options>,
+         "matchCriteria": "any" | "all"
          "score": <options>,
          "synonyms": "<synonyms-mapping-name>"
        }
@@ -96,14 +97,28 @@ Fields
 
    * - ``fuzzy.maxExpansions``
      - integer
-     - The maximum number of variations to generate and search for. 
+     - Maximum number of variations to generate and search for. 
        This limit applies on a per-token basis. The default value is 
        ``50``.
      - Optional
 
+   * - ``matchCriteria``
+     - string
+     - Criteria to use to match the terms in the query. Value can be one
+       of the following:
+
+       - ``any`` - to return documents that contain any of the terms
+         from the ``query`` field.  
+       - ``all`` - to only return documents that contain all of the
+         terms from the ``query`` field. 
+
+       If omitted, defaults to ``any``. 
+        
+     - Optional, Recommended
+
    * - ``score``
      - document
-     - The score assigned to matching search term results. Use one of 
+     - Score assigned to matching search term results. Use one of 
        the following options to modify the score:
 
        - ``boost``: multiply the result score by the given number.
@@ -122,7 +137,19 @@ Fields
 
        Name of the :ref:`synonym mapping definition <synonyms-ref>` in 
        the :ref:`index definition <ref-index-definitions>`. Value can't 
-       be an empty string. You can't use ``fuzzy`` with ``synonyms``.
+       be an empty string. You can't use ``fuzzy`` with ``synonyms``. 
+
+       ``text`` queries that use synonyms look for a conjunction 
+       (*AND*) of query tokens. ``text`` queries that don't use 
+       synonyms search for a disjunction (*OR*) of query tokens. Use
+       ``matchCriteria`` to look for conjunction (``all``) or
+       disjunction (``any``) of query terms.
+       
+       Always use ``matchCriteria`` when using ``synonyms``. For ``text``
+       queries that use ``synonyms`` without the ``matchCriteria``,
+       |fts| only matches documents where the terms are exactly in the
+       same position as the query. This behavior might change in the
+       future and your query results might also change.
 
        The amount of time that |fts| takes to execute queries that 
        use :ref:`synonym mappings <synonyms-ref>` depends on the 
@@ -130,35 +157,7 @@ Fields
        collection. A query that uses a synonym mapping that is based 
        on very few synonym documents might be faster than a query 
        that uses a synonym mapping that is based on many synonym 
-       documents. 
-
-       ``text`` queries that use synonyms look for a conjunction 
-       (*AND*) of query tokens. ``text`` queries that don't use 
-       synonyms search for a disjunction (*OR*) of query tokens. To run 
-       ``text`` queries that use synonyms and search for a disjunction 
-       (*OR*) of query tokens also, use the :ref:`compound-ref` 
-       operator. For example:
-
-       .. code-block:: json 
-
-          "compound": {
-            "should": [
-              {
-                "text": {
-                  "path": "a", 
-                  "query": "my query", 
-                  "synonyms": "mySynonyms"
-                }
-              },
-              {
-                "text": {
-                  "path": "a", 
-                  "query": "my query"
-                }
-              }
-            ]
-          }
-
+       documents.
 
      - Optional 
 
@@ -166,21 +165,14 @@ Fields
 
 Examples 
 --------
-The :ref:`Basic <text-ref-basic-eg>` and :ref:`Fuzzy 
-<text-ref-fuzzy-eg>` examples below use the ``movies`` collection in 
-the ``sample_mflix`` database. After loading the 
-:ref:`sample dataset <available-sample-datasets>` into your cluster, 
-create the |fts| index on the ``title`` field and run the 
-example queries on your cluster. 
 
-.. include:: /includes/admonitions/get-started-atlas-search.rst
-
-The :ref:`Synonyms <text-ref-synonyms-eg>` examples below use the 
-``user_feedback.comments`` and ``user_feedback.synonyms`` collections 
-and the index definition described in :ref:`Define Synonym Mappings 
-<synonyms-egs>`. After loading the ``user_feedback.comments`` and 
-``user_feedback.synonyms`` collections and configuring the index definition 
-for the collection, you can run the queries below.
+The examples in this page use the ``movies`` collection in the
+``sample_mflix`` database. After loading the :ref:`sample dataset
+<available-sample-datasets>` into your {+cluster+}, create the |fts|
+index with dynamic mappings and run the example queries on your
+{+cluster+}. You must also define a ``synonyms`` mapping collection in the  
+index as shown in the :ref:`synonyms-index-definition-ex` to try the
+:ref:`synonyms <text-ref-synonyms-eg>` examples below.
 
 .. _text-ref-basic-eg:
 
@@ -199,34 +191,37 @@ The following |fts| example uses the ``text`` operator to search the
    - Exclude all fields except ``title``
    - Add a field named ``score``
 
-   .. code-block:: json 
+   .. io-code-block:: 
+      :copyable: true 
 
-      db.movies.aggregate([
-        {
-          $search: {
-            "text": {
-              "path": "title",
-              "query": "surfer"
-            }
-          }
-        },
-        {
-          $project: {
-            "_id": 0,
-            "title": 1,
-            score: { $meta: "searchScore" }
-          }
-        }
-      ])
+      .. input:: 
+         :language: json 
 
-   The above query returns the following results:
+         db.movies.aggregate([
+           {
+             $search: {
+               "text": {
+                 "path": "title",
+                 "query": "surfer"
+               }
+             }
+           },
+           {
+             $project: {
+               "_id": 0,
+               "title": 1,
+               score: { $meta: "searchScore" }
+             }
+           }
+         ])
 
-   .. code-block:: json 
-      :copyable: false 
+      .. output:: 
+         :language: json 
+         :visible: false 
 
-      { "title" : "Soul Surfer", "score" : 4.572484970092773 }
-      { "title" : "Little Surfer Girl", "score" : 3.9323642253875732 }
-      { "title" : "Fantastic 4: Rise of the Silver Surfer", "score" : 2.520784616470337 }
+         { "title" : "Soul Surfer", "score" : 4.518949508666992 }
+         { "title" : "Little Surfer Girl", "score" : 3.8856077194213867 }
+         { "title" : "Fantastic 4: Rise of the Silver Surfer", "score" : 2.489800453186035 }
 
 .. _text-ref-fuzzy-eg:
 
@@ -270,45 +265,48 @@ default and specified options:
             - Exclude all fields except ``title``
             - Add a field named ``score``
 
-            .. code-block:: json 
+            .. io-code-block:: 
+               :copyable: true 
 
-               db.movies.aggregate([
-                 {
-                   $search: {
-                     "text": {
-                       "path": "title",
-                       "query": "naw yark",
-                       "fuzzy": {}  
-                     }
-                   }
-                 },
-                 {
-                   $limit: 10
-                 },
-                 {
-                   $project: {
-                     "_id": 0,
-                     "title": 1,
-                     score: { $meta: "searchScore" }
-                   }
-                 }
-               ])
+               .. input:: 
+                  :language: json 
 
-            The above query returns the following results:
+                  db.movies.aggregate([
+                    {
+                      $search: {
+                        "text": {
+                          "path": "title",
+                          "query": "naw yark",
+                          "fuzzy": {}  
+                        }
+                      }
+                    },
+                    {
+                      $limit: 10
+                    },
+                    {
+                      $project: {
+                        "_id": 0,
+                        "title": 1,
+                        score: { $meta: "searchScore" }
+                      }
+                    }
+                  ])
 
-            .. code-block:: json 
-               :copyable: false 
+               .. output:: 
+                  :language: json 
+                  :visible: false 
 
-               { "title" : "New York, New York", "score" : 4.392756462097168 }
-               { "title" : "New York", "score" : 4.050914287567139 }
-               { "title" : "New York Stories", "score" : 3.4838104248046875 }
-               { "title" : "New York Minute", "score" : 3.4838104248046875 }
-               { "title" : "Synecdoche, New York", "score" : 3.4838104248046875 }
-               { "title" : "New York Doll", "score" : 3.4838104248046875 }
-               { "title" : "Little New York", "score" : 3.4838104248046875 }
-               { "title" : "Escape from New York", "score" : 3.0559897422790527 }
-               { "title" : "King of New York", "score" : 3.0559897422790527 }
-               { "title" : "Naked in New York", "score" : 3.0559897422790527 }
+                  { "title" : "New York, New York", "score" : 3.6040148735046387 }
+                  { "title" : "New York", "score" : 3.323730945587158 }
+                  { "title" : "New York Stories", "score" : 2.8579015731811523 }
+                  { "title" : "New York Minute", "score" : 2.8579015731811523 }
+                  { "title" : "Synecdoche, New York", "score" : 2.8579015731811523 }
+                  { "title" : "New York Doll", "score" : 2.8579015731811523 }
+                  { "title" : "Little New York", "score" : 2.8579015731811523 }
+                  { "title" : "Escape from New York", "score" : 2.506596088409424 }
+                  { "title" : "Naked in New York", "score" : 2.506596088409424 }
+                  { "title" : "Autumn in New York", "score" : 2.506596088409424 }
 
      - id: maxexpansions
        name: maxExpansions Example
@@ -336,48 +334,51 @@ default and specified options:
             - Exclude all fields except ``title``
             - Add a field named ``score``
 
-            .. code-block:: json 
+            .. io-code-block:: 
+               :copyable: true 
 
-               db.movies.aggregate([
-                 {
-                   $search: {
-                     "text": {
-                       "path": "title",
-                       "query": "naw yark",
-                       "fuzzy": {
-                         "maxEdits": 1,
-                         "maxExpansions": 100,
-                       }  
-                     }
-                   }
-                 },
-                 {
-                   $limit: 10
-                 },
-                 {
-                   $project: {
-                     "_id": 0,
-                     "title": 1,
-                     score: { $meta: "searchScore" }
-                   }
-                 }
-               ])
+               .. input:: 
+                  :language: json 
 
-            The above query returns the following results:
+                  db.movies.aggregate([
+                    {
+                      $search: {
+                        "text": {
+                          "path": "title",
+                          "query": "naw yark",
+                          "fuzzy": {
+                            "maxEdits": 1,
+                            "maxExpansions": 100,
+                          }  
+                        }
+                      }
+                    },
+                    {
+                      $limit: 10
+                    },
+                    {
+                      $project: {
+                        "_id": 0,
+                        "title": 1,
+                        score: { $meta: "searchScore" }
+                      }
+                    }
+                  ])
 
-            .. code-block:: json 
-               :copyable: false 
+               .. output::  
+                  :language: shell
+                  :visible: false 
 
-               { "title" : "New York, New York", "score" : 4.392756462097168 }
-               { "title" : "New York", "score" : 4.050914287567139 }
-               { "title" : "New York Stories", "score" : 3.4838104248046875 }
-               { "title" : "New York Minute", "score" : 3.4838104248046875 }
-               { "title" : "Synecdoche, New York", "score" : 3.4838104248046875 }
-               { "title" : "New York Doll", "score" : 3.4838104248046875 }
-               { "title" : "Little New York", "score" : 3.4838104248046875 }
-               { "title" : "Escape from New York", "score" : 3.0559897422790527 }
-               { "title" : "King of New York", "score" : 3.0559897422790527 }
-               { "title" : "Naked in New York", "score" : 3.0559897422790527 }
+                  { "title" : "New York, New York", "score" : 4.38106107711792 }
+                  { "title" : "New York", "score" : 4.040346145629883 }
+                  { "title" : "New York Stories", "score" : 3.4740817546844482 }
+                  { "title" : "New York Minute", "score" : 3.4740817546844482 }
+                  { "title" : "Synecdoche, New York", "score" : 3.4740817546844482 }
+                  { "title" : "New York Doll", "score" : 3.4740817546844482 }
+                  { "title" : "Little New York", "score" : 3.4740817546844482 }
+                  { "title" : "Escape from New York", "score" : 3.047032356262207 }
+                  { "title" : "Naked in New York", "score" : 3.047032356262207 }
+                  { "title" : "Autumn in New York", "score" : 3.047032356262207 }
 
      - id: prefixlength
        name: prefixLength Example
@@ -404,46 +405,111 @@ default and specified options:
             - Exclude all fields except ``_id`` and ``title``
             - Add a field named ``score``
 
-            .. code-block:: json 
+            .. io-code-block:: 
+               :copyable: true 
 
-               db.movies.aggregate([
-                 {
-                   $search: {
-                     "text": {
-                       "path": "title",
-                       "query": "naw yark",
-                       "fuzzy": {
-                         "maxEdits": 1,
-                         "prefixLength": 2,
-                       }  
-                     }
-                   }
-                 },
-                 {
-                   $limit: 8
-                 },
-                 {
-                   $project: {
-                     "_id": 1,
-                     "title": 1,
-                     score: { $meta: "searchScore" }
-                   }
-                 }
-               ])
+               .. input:: 
+                  :language: json 
 
-            The above query returns the following results:
+                  db.movies.aggregate([
+                    {
+                      $search: {
+                        "text": {
+                          "path": "title",
+                          "query": "naw yark",
+                          "fuzzy": {
+                            "maxEdits": 1,
+                            "prefixLength": 2,
+                          }  
+                        }
+                      }
+                    },
+                    {
+                      $limit: 8
+                    },
+                    {
+                      $project: {
+                        "_id": 1,
+                        "title": 1,
+                        score: { $meta: "searchScore" }
+                      }
+                    }
+                  ])
 
-            .. code-block:: json 
-               :copyable: false 
+               .. output::  
+                  :language: shell
+                  :visible: false 
 
-               { "_id" : ObjectId("573a1396f29313caabce5646", "title" : "The Longest Yard", "score" : 2.949273109436035 }
-               { "_id" : ObjectId("573a13aff29313caabd31ed8", "title" : "The Longest Yard", "score" : 2.949273109436035 }
-               { "_id" : ObjectId("573a13b7f29313caabd4ad8b", "title" : "Stomp the Yard", "score" : 2.949273109436035 }
-               { "_id" : ObjectId("573a13eaf29313caabdcf410", "title" : "Naz & Maalik", "score" : 2.581432342529297 }
-               { "_id" : ObjectId("573a1393f29313caabcddbed", "title" : "La nao capitana", "score" : 2.2200469970703125 }
-               { "_id" : ObjectId("573a1399f29313caabcee781", "title" : "Kabhi Haan Kabhi Naa", "score" : 1.9474197626113892 }
-               { "_id" : ObjectId("573a13a2f29313caabd0b815", "title" : "Kaho Naa... Pyaar Hai", "score" : 1.9474197626113892 }
-               { "_id" : ObjectId("573a13a7f29313caabd1b5c0", "title" : "Oysters at Nam Kee's", "score" : 1.9474197626113892 }
+                  { "_id" : ObjectId("573a1396f29313caabce5646", "title" : "The Longest Yard", "score" : 2.914206027984619 }
+                  { "_id" : ObjectId("573a13aff29313caabd31ed8", "title" : "The Longest Yard", "score" : 2.914206027984619 }
+                  { "_id" : ObjectId("573a13b7f29313caabd4ad8b", "title" : "Stomp the Yard", "score" : 2.914206027984619 }
+                  { "_id" : ObjectId("573a13eaf29313caabdcf410", "title" : "Naz & Maalik", "score" : 2.5460386276245117 }
+                  { "_id" : ObjectId("573a1393f29313caabcddbed", "title" : "La nao capitana", "score" : 2.1892051696777344 }
+                  { "_id" : ObjectId("573a1399f29313caabcee781", "title" : "Kabhi Haan Kabhi Naa", "score" : 1.9200985431671143 }
+                  { "_id" : ObjectId("573a13a2f29313caabd0b815", "title" : "Kaho Naa... Pyaar Hai", "score" : 1.9200985431671143 }
+                  { "_id" : ObjectId("573a13a7f29313caabd1b5c0", "title" : "Oysters at Nam Kee's", "score" : 1.9200985431671143 }
+
+.. _text-ref-match-all-eg:
+
+Match ``all``
+`````````````
+
+The following query uses the ``text`` operator to search the ``plot``
+field in the ``movies`` collection for all the terms in the query string 
+``automobile race``. 
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: 
+      :language: json 
+
+      db.movies.aggregate([
+        {
+          "$search": {
+            "text": {
+              "path": "plot",
+              "query": "automobile race",
+              "matchCriteria": "all"
+            }
+          }
+        },
+        {
+          "$limit": 20
+        },
+        {
+          "$project": {
+            "_id": 0,
+            "plot": 1,
+            "title": 1,
+            "score": { "$meta": "searchScore" }
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: shell 
+
+      [
+        {
+          plot: 'A young driver, Speed Racer, aspires to be champion of the racing world with the help of his family and his high-tech Mach 5 automobile.',
+          title: 'Speed Racer',
+          score: 6.122188568115234
+        },
+        {
+          plot: 'A gorgeous young automobile fanatic--and front to the hottest unsigned band on the West coast--finds herself caught up in illegal drag-racing competitions organized by exotic car fanatics.',
+          title: 'Redline',
+          score: 5.497724533081055
+        },
+        {
+          plot: 'When a popular daredevil proposes an automobile race across three continents, his arch rival vows to beat him, while an ambitious female reporter has her own plans for victory.',
+          title: 'The Great Race',
+          score: 5.282209396362305
+        }
+      ]
+
+|fts| returns documents that contain the terms ``automobile`` and
+``race`` anywhere in the ``plot`` field. 
 
 .. _text-ref-synonyms-eg:
 
@@ -451,100 +517,352 @@ Synonyms Examples
 ~~~~~~~~~~~~~~~~~
 
 The following examples use the ``text`` operator to search the 
-``comments`` field in the ``user_feedback.comments`` :ref:`collection 
-<synonyms-user-feedback-comments-coll>`. |fts| returns results based on 
-the :ref:`type of mapping <synonyms-ref>` in the :ref:`synonym source 
-collection <synonyms-coll-spec>`, ``user_feedback.synonyms``, specified 
-in the synonym mapping definition of the index for the 
-``user_feedback.comments`` collection. 
-
-.. note::
-
-   To learn more about the ``user_feedback.comments`` and 
-   ``user_feedback.synonyms`` collections and the index definition for the 
-   ``user_feedback.comments`` collection, see :ref:`synonyms-egs` in the 
-   :ref:`synonyms-ref` page.
+``plot`` field in the ``sample_mflix.movies`` namespace. |fts| returns
+results based on the :ref:`type of mapping <synonyms-ref>` in the
+:ref:`synonym source collection <synonyms-coll-spec>`,
+``synonymous_terms``, specified in the synonym mapping definition 
+of the index for the ``sample_mflix.movies`` collection. 
 
 .. _text-ref-synonyms-equivalent-maptype-eg:
 
-``equivalent`` Mapping Example
-``````````````````````````````
+Match ``any`` Using ``equivalent`` Mapping 
+``````````````````````````````````````````
 
-The following query searches the ``comments`` field for the word 
-``dress``. It uses the synonym mapping named ``mySynonyms`` in the 
-index for the collection to also search for words that are configured 
-to be synonyms of the word ``dress``.
+The following query searches the ``plot`` field for the phrase  
+``dress``. It uses the synonym mapping named ``mySynonyms`` in
+the index for the collection to also search for words that are
+configured to be synonyms of the word ``dress``. 
 
-.. code-block:: json 
+.. io-code-block:: 
+   :copyable: true 
 
-   db.comments.aggregate([
-     {
-       $search: {
-         "text": {
-           "path": "comments",
-           "query": "dress",
-           "synonyms": "mySynonyms"
-         }
-       }
-     }
-   ])
+   .. input:: 
+      :language: json 
 
-The preceding query returns the following results: 
+      db.movies.aggregate([
+        {
+          "$search": {
+            "text": {
+              "path": "plot",
+              "query": "dress",
+              "synonyms": "my_synonyms"
+            }
+          }
+        },
+        {
+          "$limit": 5
+        },
+        {
+          "$project": {
+            "_id": 0,
+            "plot": 1,
+            "title": 1,
+            "score": { "$meta": "searchScore" }
+          }
+        }
+      ])
 
-.. code-block:: json 
-   :copyable: false 
+   .. output:: 
+      :language: json 
+      :visible: false 
 
-   { 
-     "_id" : ObjectId("60e5f7d65f32d78cb3a3cc7a"), 
-     "type" : "apparel store", 
-     "comments" : "Beautiful apparel for the bride." 
-   }
+      [
+        {
+          plot: 'The Sanguiwon are responsible for the attire worn by royalty. Dol-Seok (Han Suk-Kyu) is the best master artisan in charge of royal attire. He views set rules as paramount to his job. ...',
+          title: 'The Royal Tailor',
+          score: 5.282291412353516
+        },
+        {
+          plot: 'The Dress is a tale filled with sex, violence, comedy and drama as it follows the life of a dress. Conceived under a cloud of frustration and despair, the dress serves as the hub in a great...',
+          title: 'The Dress',
+          score: 5.061710834503174
+        },
+        {
+          plot: 'Boardroom and dressing-room intrigues spill on to the field at the Australian Rules football club.',
+          title: 'The Club',
+          score: 3.991994857788086
+        },
+        {
+          plot: "During Christmas' holidays, the children of a village split in two gang to play a snowball war. But that half-tone war scattered some bitterness and make more difficult the mutual attirance...",
+          title: 'La guerre des tuques',
+          score: 3.8148698806762695
+        },
+        {
+          plot: 'Deserting soldier dresses as a woman to escape detection; liking the female role he goes to a dance with another soldier and is exposed.',
+          title: 'The Triple Echo',
+          score: 3.5169785022735596
+        }
+      ]
 
-|fts| returns the above document because ``dress`` is configured to be 
-synonym of ``apparel`` and ``attire`` using ``equivalent`` mappings in 
-the synonym source collection, ``user_feedback.synonyms``. |fts| 
-returns the above document for searches on ``apparel`` and ``attire`` 
-also because all three words are configured to be synonyms of one 
-another in the synonym source collection.
+|fts| returns the preceding documents because we configured  ``dress`` 
+to be synonym of ``apparel`` and ``attire`` by using ``equivalent``
+mapping in the synonym source collection, ``synonymous_terms``. |fts|
+returns these documents for searches on ``apparel`` and ``attire`` also
+because we configured all three words to be synonyms of one another in
+the synonym source collection.  
 
 .. _text-ref-synonyms-explicit-maptype-eg:
 
-``explicit`` Mapping Example
+Match ``any`` Using ``explicit`` Mapping
+````````````````````````````````````````
+
+The following query searches the ``plot`` field for the phrase ``boat
+race``. It uses the synonym mapping named ``my_synonyms`` in the index 
+for the collection to also search for words that are configured to be 
+synonyms of the word ``boat`` and ``race``.
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: 
+      :language: json 
+
+      db.movies.aggregate([
+        {
+          "$search": {
+            "text": {
+              "path": "plot",
+              "query": "vessel race",
+              "synonyms": "my_synonyms",
+              "matchCriteria": "any"
+            }
+          }
+        },
+        {
+          "$limit": 10
+        },
+        {
+          "$project": {
+            "_id": 0,
+            "plot": 1,
+            "title": 1,
+            "score": { "$meta": "searchScore" }
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: json 
+      :visible: false 
+
+      [
+        {
+          plot: 'A man is picked up by a fishing boat, bullet-riddled and suffering from amnesia, before racing to elude assassins and regain his memory.',
+          title: 'The Bourne Identity',
+          score: 15.405073165893555
+        },
+        {
+          plot: 'A few friends builds a sailing boat together. They plan trips and during the completion of the boat marriages crumble, new relations blossom and the boat burns. They rebuild it and the ...',
+          title: 's/y Glèdjen',
+          score: 13.40434741973877
+        },
+        {
+          plot: 'Famous motor-racing champion Joe Greer returns to his hometown to compete in a local race. He discovers his younger brother has aspirations to become a racing champion and during the race ...',
+          title: 'The Crowd Roars',
+          score: 10.466073036193848
+       },
+        {
+          plot: 'The claustrophobic world of a WWII German U-boat; boredom, filth, and sheer terror.',
+          title: 'Das Boot',
+          score: 10.304922103881836
+        },
+        {
+          plot: 'Several survivors of a torpedoed ship find themselves in the same boat with one of the men who sunk it.',
+          title: 'Lifeboat',
+          score: 9.776729583740234
+        },
+        {
+          plot: 'A fishing-boat crew takes on a dangerous commission to smuggle a group of illegal immigrants from China to Korea.',
+          title: 'Haemoo',
+          score: 9.532430648803711
+        },
+        {
+          plot: 'A land baron tries to reconnect with his two daughters after his wife is seriously injured in a boating accident.',
+          title: 'The Descendants',
+          score: 9.300044059753418
+        },
+        {
+          plot: 'A weekend boating party turns into a nightmare for a group of young Londoners when they stumble upon a terrifying secret hidden in the reeds.',
+          title: 'The Reeds',
+          score: 9.078716278076172
+        },
+        {
+          plot: 'Documentary telling the true story of the sinking of the liner Laconia by a German U-boat in 1942 through the eyes of six survivors.',
+          title: 'The Sinking of the Laconia',
+          score: 9.078716278076172
+        },
+        {
+          plot: 'Sabotage efforts damage an international air race.',
+          title: 'Those Magnificent Men in Their Flying Machines or How I Flew from London to Paris in 25 hours 11 minutes',
+          score: 8.983794212341309
+        }
+      ]
+
+|fts| returns the preceding documents because in the synonym source
+collection, ``synonymous_terms``, we configured ``boat`` to be a synonym
+of ``vessel`` and ``sail`` and we configured ``race`` to be a synonym of
+``rally`` and ``contest`` by using ``explicit`` mapping. |fts| results
+for a search for ``vessel`` or ``sail`` doesn't include documents that
+contain the other terms and similarly |fts| results for a search for
+``rally`` or ``contest`` doesn't include documents for the other terms
+because we didn't configure these terms to be synonyms of the other
+terms. 
+
+.. _text-ref-synonyms-match-all-eg:
+
+Match ``all`` Using Synonyms 
 ````````````````````````````
 
-The following query searches the ``comments`` field for the word 
-``boat``. It uses the synonym mapping named ``mySynonyms`` in the index 
-for the collection to also search for words that are configured to be 
-synonyms of the word ``boat``.
+The following query uses the ``text`` operator to search the ``plot``
+field in the ``movies`` collection for all terms in the query string
+``automobile race``. 
 
-.. code-block:: json 
+|fts| returns results based on the :ref:`type of
+mapping <synonyms-ref>` in the :ref:`synonym source collection
+<synonyms-coll-spec>`, ``synonymous_terms``, specified in the synonym
+mapping definition of the index for the ``sample_mflix.movies``
+collection.  
 
-   db.comments.aggregate([
-     {
-       $search: {
-         "text": {
-           "path": "comments",
-           "query": "boat",
-           "synonyms": "mySynonyms"
-         }
-       }
-     }
-   ])
+.. io-code-block:: 
+   :copyable: true 
 
-The preceding query returns the following results: 
+   .. input:: 
+      :language: json 
 
-.. code-block:: json 
-   :copyable: false 
+      db.movies.aggregate([
+        {
+          "$search": {
+            "text": {
+              "path": "plot",
+              "query": "automobile race",
+              "matchCriteria": "all",
+              "synonyms": "my_synonyms"
+            }
+          }
+        },
+        {
+          "$limit": 15
+        },
+        {
+          "$project": {
+            "_id": 0,
+            "plot": 1,
+            "title": 1,
+            "score": { "$meta": "searchScore" }
+          }
+        }
+      ])
 
-   { 
-     "_id" : ObjectId("60e5f7e25f32d78cb3a3cdc4"), 
-     "type" : "recreation rental", 
-     "comments" : "Sails as well as the day it was made." 
-   }
+   .. output:: 
+      :language: json 
+      :visible: false
 
-|fts| returns the above document because ``boat`` is configured to 
-consider words ``boat``, ``vessel``, and ``sail`` as synonyms using 
-``explicit`` mappings in the synonym source collection, 
-``user_feedback.synonyms``. However, |fts| doesn't return any results 
-for a query on ``vessel`` or ``sail`` because neither word is 
-configured to consider any of the other words as synonyms.
+      [
+        {
+          plot: 'A young driver, Speed Racer, aspires to be champion of the racing world with the help of his family and his high-tech Mach 5 automobile.',
+          title: 'Speed Racer',
+          score: 17.354578018188477
+        },
+        {
+          plot: 'A gorgeous young automobile fanatic--and front to the hottest unsigned band on the West coast--finds herself caught up in illegal drag-racing competitions organized by exotic car fanatics.',
+          title: 'Redline',
+          score: 16.085742950439453
+        },
+        {
+          plot: 'When a popular daredevil proposes an automobile race across three continents, his arch rival vows to beat him, while an ambitious female reporter has her own plans for victory.',
+          title: 'The Great Race',
+          score: 15.087226867675781
+        },
+        {
+          plot: 'A race car driver becomes a champion with a Volkswagen Beetle with a mind of its own.',
+          title: 'The Love Bug',
+          score: 5.1777167320251465
+        },
+        {
+          plot: 'A wide variety of eccentric competitors participate in a wild and illegal cross-country car race.',
+          title: 'The Cannonball Run',
+          score: 5.041530609130859
+        },
+        {
+          plot: 'The original characters from the first Cannonball movie race across the country once more in various cars and trucks.',
+          title: 'Cannonball Run II',
+          score: 4.67281436920166
+        },
+        {
+          plot: 'After a tied 1st place in a local stunt race, two drivers start a contest to decide who of them will own the prize, a dune buggy. But when a mobster destroys the car, they are determined to get it back.',
+          title: "Watch Out, We're Mad",
+          score: 4.500225067138672
+        },
+        {
+          plot: 'Four teenagers are killed in a car accident. Two of the teenagers refuse to go with "The Grim Reaper" and a race between life and death ensues!',
+          title: 'Soultaker',
+          score: 4.455573081970215
+        },
+        {
+          plot: "The driver races to locate a kidnapped victim locked in the trunk of an abandoned car somewhere on the water's edge. Linked to her only by cell phone, the driver narrows in on her location in a desperate race against time and tide.",
+          title: 'Hostage',
+          score: 4.429774284362793
+        },
+        {
+          plot: 'Race car driver Lucky Jackson goes to Las Vegas to earn money to pay for a new engine for his motor car. Working as a waiter, he still finds the time to court young Rusty Martin.',
+          title: 'Viva Las Vegas',
+          score: 4.379656791687012
+        },
+        {
+          plot: 'Barry Pepper portrays legendary race car drive Dale Earnhardt, who died in 2001 during the last lap of the Daytona 500.',
+          title: '3: The Dale Earnhardt Story',
+          score: 4.3543548583984375
+        },
+        {
+          plot: 'Bounty hunters from the future transport a doomed race-car driver to 2009 New York, where his mind will be replaced with that of a dead billionaire.',
+          title: 'Freejack',
+          score: 4.257633209228516
+        },
+        {
+          plot: 'A mechanic takes his family to a car race and a series of events occur which brings problems, betrayals, violence and the unexpected death of an elderly person.',
+          title: 'National Mechanics',
+          score: 4.257633209228516
+        },
+        {
+          plot: 'A hot-shot race-car named Lightning McQueen gets waylaid in Radiator Springs, where he finds the true meaning of friendship and family.',
+          title: 'Cars',
+          score: 4.257633209228516
+        },
+        {
+          plot: 'Star race car Lightning McQueen and his pal Mater head overseas to compete in the World Grand Prix race. But the road to the championship becomes rocky as Mater gets caught up in an intriguing adventure of his own: international espionage.',
+          title: 'Cars 2',
+          score: 4.231379985809326
+        },
+          {
+            plot: "An illegal race that takes place over the United States and nothing will stop this bunch of racers except for the occasional cop or a damsel in distress. Jackie Chan's car is not in this ...",
+            title: 'Cannonball Fever',
+            score: 4.1651153564453125
+          },
+          {
+            plot: 'Roy is mad about cars, and runs Stallion Parts while attending to his yellow Mustang, far away from his daughter, which comes on holiday, while he is to attend a race. Soon he is challenged in a illegal race through the length of Norway.',
+            title: 'Bèrning',
+            score: 4.050384521484375
+          },
+          {
+            plot: "It's time for the annual London to Brighton antique car rally, and Alan McKim and Ambrose Claverhouse are not going to let their friendship stop them from trying to humiliate each other. ...",
+            title: 'Genevieve',
+            score: 3.9916391372680664
+          },
+          {
+            plot: "After a young man's premonition of a deadly race-car crash helps saves the lives of his peers, Death sets out to collect those who evaded their end.",
+            title: 'The Final Destination',
+            score: 3.9916391372680664
+          },
+          {
+            plot: "A fast-paced comedy about a young Belgian car nut and hairdresser's apprentice, his girlfriend, and their legal and illegal attempts to get a Porsche under him for his nearing debut race.",
+            title: 'The Departure',
+            score: 3.832036256790161
+          }
+        ]
+
+The preceding results contain documents with the terms ``car`` and
+``vehicle`` and ``contest`` and ``rally``. |fts| returns the preceding
+results because we configured ``automobile`` to be a synonym of ``car``
+and ``vehicle`` by using ``equivalent`` mapping and the term ``race`` to
+be a synonym of ``contest`` and ``rally`` by using ``explicit`` mapping
+in the synonyms source collection, ``synonymous_terms``.

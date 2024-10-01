@@ -321,64 +321,28 @@ Example
 
 The examples on this page include:
 
-- A :ref:`sample collection <synonyms-user-feedback-comments-coll>`
-  titled ``user_feedback.comments``.
-- A :ref:`sample synonyms source collection <synonyms-user-feedback-synonyms-coll>` 
-  titled ``user_feedback.synonyms``.
+- A :ref:`sample synonyms source collection <sample-synonyms-coll>` 
+  named ``synonymous_terms`` in the ``sample_mflix`` database.
 - :ref:`Index definition examples <synonyms-index-definition-ex>` that 
-  rely on documents in both of these collections.
+  rely on documents in the ``sample_mflix.movies`` and 
+  ``sample_mflix.synonymous_terms`` collections.
 
-.. _synonyms-user-feedback-comments-coll:
-
-Collection Example
-~~~~~~~~~~~~~~~~~~
-
-``user_feedback.comments`` contains the following documents:
-
-.. code-block:: json 
-   
-   {
-     "type": "car dealer",
-     "comments": "Blue four-door sedan, lots of trunk space in the car."
-   }
-   
-.. code-block:: json 
-
-   {
-     "type": "winery",
-     "comments": "Beer and skittles for all."
-   }
-   
-.. code-block:: json 
-
-   {
-     "type": "apparel store",
-     "comments": "Beautiful apparel for the bride."
-   }
-   
-.. code-block:: json 
-
-   {
-     "type": "recreation rental",
-     "comments": "Sails as well as the day it was made."
-   }
-
-.. _synonyms-user-feedback-synonyms-coll:
+.. _sample-synonyms-coll:
 
 Synonym Source Collection Example
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following collection titled ``user_feedback.synonyms``
-is an example synonym source collection for 
-the ``user_feedback.comments`` collection. 
+The following collection named ``synonymous_terms`` is an example synonym
+source collection that can be used with the ``movies`` collection in the
+``sample_mflix`` database. 
 
 .. note::
    
   To learn how to format the documents in the collection, see
   :ref:`<synonyms-coll-spec>`.
 
-``user_feedback.synonyms`` contains the following
-documents:
+The ``sample_mflix.synonymous_terms`` collection contains the following
+documents: 
 
 .. code-block:: json 
    
@@ -391,8 +355,8 @@ documents:
 
    {
      "mappingType": "explicit",
-     "input": ["beer"],
-     "synonyms": ["beer", "brew", "pint"]
+     "input": ["race"],
+     "synonyms": ["contest", "rally"]
    }
    
 .. code-block:: json 
@@ -407,7 +371,7 @@ documents:
    {
      "mappingType": "explicit",
      "input": ["boat"],
-     "synonyms": ["boat", "vessel", "sail"]
+     "synonyms": ["vessel", "sail"]
    }
 
 .. _synonyms-index-definition-ex:
@@ -415,14 +379,16 @@ documents:
 Index Definition Examples
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following examples for the ``user_feedback.comments`` collection show the 
-index definitions using :ref:`static and dynamic mappings <static-dynamic-mappings>`.
+The following examples for the ``sample_mflix.movies`` collection show
+the index definitions using :ref:`static and dynamic mappings
+<static-dynamic-mappings>`. 
 
 .. note:: 
 
-   For sample queries on the ``user_feedback.comments`` collection 
-   using the following indexes, see :ref:`examples <text-ref-synonyms-eg>` 
-   in the :ref:`text-ref` operator.
+   For sample queries on the ``sample_mflix.movies`` collection 
+   using the dynamic mapping index below, see :ref:`examples
+   <text-ref-synonyms-eg>` in the :ref:`text-ref` and :ref:`phrase-ref`
+   operators. 
 
 Static Mapping 
 ``````````````
@@ -431,16 +397,16 @@ The following index:
 
 - Configures an index with a single text field and a single 
   synonym mapping definition that uses the mapping configured in 
-  the ``user_feedback.synonyms`` collection.
-- Analyzes the ``comments`` field with the ``lucene.english`` 
+  the ``synonymous_terms`` collection.
+- Analyzes the ``plot`` field with the ``lucene.english`` 
   analyzer.
-- Enables synonyms from ``synonyms`` collection for queries 
+- Enables synonyms from the ``synonymous_terms`` collection for queries  
   over fields analyzed with the ``lucene.english`` analyzer.
 
 You can use the Visual Editor or the |json| Editor in the {+atlas-ui+}
 to configure the following index. To configure this index, after you
-select your configuration method, select the ``comments`` collection in
-the ``user_feedback`` database. 
+select your configuration method, select the ``movies`` collection in
+the ``sample_mflix`` database. 
 
 .. tabs:: 
 
@@ -450,6 +416,7 @@ the ``user_feedback`` database.
       1. Click :guilabel:`Refine Your Index`.
       #. In the :guilabel:`Field Mappings` section, click :guilabel:`Add
          Field`.
+      #. Click :guilabel:`Customized Configuration`.
       #. Configure the following settings in the :guilabel:`Add
          Field Mapping` window: 
 
@@ -459,7 +426,7 @@ the ``user_feedback`` database.
             * - :guilabel:`Field Name` 
               - :guilabel:`Enable Dynamic Mapping`
               - :guilabel:`Data Type Configuration` 
-            * - Select ``comments``.
+            * - Select ``plot``.
               - Toggle to disable.
               - a. Click :guilabel:`Add Data Type`.
                 #. Select :guilabel:`String` from the dropdown.
@@ -478,8 +445,8 @@ the ``user_feedback`` database.
             * - :guilabel:`Synonym mapping name` 
               - :guilabel:`Synonym source collection`
               - :guilabel:`Analyzer`
-            * - Enter ``mySynonyms``
-              - Select ``synonyms``.
+            * - Enter ``my_synonyms``
+              - Select ``synonymous_terms``.
               - Select ``lucene.english`` under ``lucene.language`` from
                 dropdown. 
       
@@ -496,7 +463,7 @@ the ``user_feedback`` database.
             "mappings": {
               "dynamic": false,
               "fields": {
-                "comments": {
+                "plot": {
                   "type": "string",
                   "analyzer": "lucene.english"
                 }
@@ -505,9 +472,9 @@ the ``user_feedback`` database.
             "synonyms": [
               {
                 "analyzer": "lucene.english",
-                "name": "mySynonyms",
+                "name": "my_synonyms",
                 "source": {
-                  "collection": "synonyms"
+                  "collection": "synonymous_terms"
                 }
               }
             ]
@@ -520,16 +487,16 @@ The following index:
 
 - Configures an index for all the fields in the documents and a 
   single synonym mapping definition that uses the mapping 
-  configured in the ``user_feedback.synonyms`` collection.
+  configured in the ``synonymous_terms`` collection.
 - Uses the default analyzer, ``lucene.standard``, to analyze all 
   the fields.
-- Enables synonyms from ``synonyms`` collection for queries over 
+- Enables synonyms from the ``synonymous_terms`` collection for queries over  
   fields analyzed with the ``lucene.standard`` analyzer.
 
 You can use the Visual Editor or the |json| Editor in the {+atlas-ui+}
 to configure the following index. To configure this index, after you
-select your configuration method, select the ``comments`` collection in
-the ``user_feedback`` database. 
+select your configuration method, select the ``movies`` collection in
+the ``sample_mflix`` database. 
 
 .. tabs:: 
 
@@ -548,8 +515,8 @@ the ``user_feedback`` database.
             * - :guilabel:`Synonym mapping name` 
               - :guilabel:`Synonym source collection`
               - :guilabel:`Analyzer`
-            * - Enter ``mySynonyms``
-              - Select ``synonyms``.
+            * - Enter ``my_synonyms``
+              - Select ``synonymous_terms``.
               - Select ``lucene.standard`` from the dropdown if it isn't
                 already selected. 
       
@@ -567,9 +534,9 @@ the ``user_feedback`` database.
             "synonyms": [
               {
                 "analyzer": "lucene.standard",
-                "name": "mySynonyms",
+                "name": "my_synonyms",
                 "source": {
-                  "collection": "synonyms"
+                  "collection": "synonymous_terms"
                 }
               }
             ]
