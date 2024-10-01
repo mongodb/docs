@@ -138,16 +138,10 @@ Fields
        Name of the :ref:`synonym mapping definition <synonyms-ref>` in 
        the :ref:`index definition <ref-index-definitions>`. Value can't 
        be an empty string. You can't use ``fuzzy`` with ``synonyms``. 
-
-       ``text`` queries that use synonyms look for a conjunction 
-       (*AND*) of query tokens. ``text`` queries that don't use 
-       synonyms search for a disjunction (*OR*) of query tokens. Use
-       ``matchCriteria`` to look for conjunction (``all``) or
-       disjunction (``any``) of query terms.
        
        Always use ``matchCriteria`` when using ``synonyms``. For ``text``
-       queries that use ``synonyms`` without the ``matchCriteria``,
-       |fts| only matches documents where the terms are exactly in the
+       queries that use ``synonyms`` without ``matchCriteria``,
+       |fts| only matches documents where all the terms are exactly in the
        same position as the query. This behavior might change in the
        future and your query results might also change.
 
@@ -529,7 +523,7 @@ Match ``any`` Using ``equivalent`` Mapping
 ``````````````````````````````````````````
 
 The following query searches the ``plot`` field for the phrase  
-``dress``. It uses the synonym mapping named ``mySynonyms`` in
+``attire``. It uses the synonym mapping named ``mySynonyms`` in
 the index for the collection to also search for words that are
 configured to be synonyms of the word ``dress``. 
 
@@ -544,8 +538,9 @@ configured to be synonyms of the word ``dress``.
           "$search": {
             "text": {
               "path": "plot",
-              "query": "dress",
-              "synonyms": "my_synonyms"
+              "query": "attire",
+              "synonyms": "my_synonyms",
+              "matchCriteria": "any"
             }
           }
         },
@@ -570,7 +565,12 @@ configured to be synonyms of the word ``dress``.
         {
           plot: 'The Sanguiwon are responsible for the attire worn by royalty. Dol-Seok (Han Suk-Kyu) is the best master artisan in charge of royal attire. He views set rules as paramount to his job. ...',
           title: 'The Royal Tailor',
-          score: 5.282291412353516
+          score: 15.825017929077148
+        },
+        {
+          plot: "During Christmas' holidays, the children of a village split in two gang to play a snowball war. But that half-tone war scattered some bitterness and make more difficult the mutual attirance...",
+          title: 'La guerre des tuques',
+          score: 11.863945007324219
         },
         {
           plot: 'The Dress is a tale filled with sex, violence, comedy and drama as it follows the life of a dress. Conceived under a cloud of frustration and despair, the dress serves as the hub in a great...',
@@ -578,14 +578,9 @@ configured to be synonyms of the word ``dress``.
           score: 5.061710834503174
         },
         {
-          plot: 'Boardroom and dressing-room intrigues spill on to the field at the Australian Rules football club.',
+          plot: "Boardroom and dressing-room intrigues spill on to the field at the Australian Rules football club.",
           title: 'The Club',
           score: 3.991994857788086
-        },
-        {
-          plot: "During Christmas' holidays, the children of a village split in two gang to play a snowball war. But that half-tone war scattered some bitterness and make more difficult the mutual attirance...",
-          title: 'La guerre des tuques',
-          score: 3.8148698806762695
         },
         {
           plot: 'Deserting soldier dresses as a woman to escape detection; liking the female role he goes to a dance with another soldier and is exposed.',
@@ -594,12 +589,12 @@ configured to be synonyms of the word ``dress``.
         }
       ]
 
-|fts| returns the preceding documents because we configured  ``dress`` 
-to be synonym of ``apparel`` and ``attire`` by using ``equivalent``
-mapping in the synonym source collection, ``synonymous_terms``. |fts|
-returns these documents for searches on ``apparel`` and ``attire`` also
-because we configured all three words to be synonyms of one another in
-the synonym source collection.  
+|fts| returns the documents that contain the terms  ``attire``,
+``apparel``, and ``dress`` because we configured all these terms to be
+``equivalent`` synonym in the synonyms source collection, 
+``synonymous_terms``, which mean all these terms are synonyms of one
+another. Therefore, |fts| returns similar documents for searches on
+``dress`` and ``attire``.  
 
 .. _text-ref-synonyms-explicit-maptype-eg:
 
@@ -622,7 +617,7 @@ synonyms of the word ``boat`` and ``race``.
           "$search": {
             "text": {
               "path": "plot",
-              "query": "vessel race",
+              "query": "boat race",
               "synonyms": "my_synonyms",
               "matchCriteria": "any"
             }
@@ -660,8 +655,8 @@ synonyms of the word ``boat`` and ``race``.
           plot: 'Famous motor-racing champion Joe Greer returns to his hometown to compete in a local race. He discovers his younger brother has aspirations to become a racing champion and during the race ...',
           title: 'The Crowd Roars',
           score: 10.466073036193848
-       },
-        {
+        },
+       {
           plot: 'The claustrophobic world of a WWII German U-boat; boredom, filth, and sheer terror.',
           title: 'Das Boot',
           score: 10.304922103881836
@@ -681,7 +676,7 @@ synonyms of the word ``boat`` and ``race``.
           title: 'The Descendants',
           score: 9.300044059753418
         },
-        {
+       {
           plot: 'A weekend boating party turns into a nightmare for a group of young Londoners when they stumble upon a terrifying secret hidden in the reeds.',
           title: 'The Reeds',
           score: 9.078716278076172
@@ -698,15 +693,13 @@ synonyms of the word ``boat`` and ``race``.
         }
       ]
 
-|fts| returns the preceding documents because in the synonym source
-collection, ``synonymous_terms``, we configured ``boat`` to be a synonym
-of ``vessel`` and ``sail`` and we configured ``race`` to be a synonym of
-``rally`` and ``contest`` by using ``explicit`` mapping. |fts| results
-for a search for ``vessel`` or ``sail`` doesn't include documents that
-contain the other terms and similarly |fts| results for a search for
-``rally`` or ``contest`` doesn't include documents for the other terms
-because we didn't configure these terms to be synonyms of the other
-terms. 
+|fts| returns documents that contain the term ``boat``, ``vessel,`` or
+``sail``, or ``race``, ``rally``, or ``contest`` because we configured
+``boat`` to be an ``explicit`` synonym or ``vessel`` and ``sail`` and we
+configured ``race`` to be an ``explicit`` synonym of ``rally`` and
+``contest``. |fts| doesn't return any results for a query on ``vessel``
+and ``sail`` or ``rally`` and ``contest`` because we didn't configure
+these words to consider any of the other words as synonyms.   
 
 .. _text-ref-synonyms-match-all-eg:
 
@@ -741,7 +734,7 @@ collection.
           }
         },
         {
-          "$limit": 15
+          "$limit": 20
         },
         {
           "$project": {
@@ -796,7 +789,7 @@ collection.
         {
           plot: 'Four teenagers are killed in a car accident. Two of the teenagers refuse to go with "The Grim Reaper" and a race between life and death ensues!',
           title: 'Soultaker',
-          score: 4.455573081970215
+         score: 4.455573081970215
         },
         {
           plot: "The driver races to locate a kidnapped victim locked in the trunk of an abandoned car somewhere on the water's edge. Linked to her only by cell phone, the driver narrows in on her location in a desperate race against time and tide.",
@@ -828,41 +821,41 @@ collection.
           title: 'Cars',
           score: 4.257633209228516
         },
-        {
+       {
           plot: 'Star race car Lightning McQueen and his pal Mater head overseas to compete in the World Grand Prix race. But the road to the championship becomes rocky as Mater gets caught up in an intriguing adventure of his own: international espionage.',
           title: 'Cars 2',
           score: 4.231379985809326
         },
-          {
-            plot: "An illegal race that takes place over the United States and nothing will stop this bunch of racers except for the occasional cop or a damsel in distress. Jackie Chan's car is not in this ...",
-            title: 'Cannonball Fever',
-            score: 4.1651153564453125
-          },
-          {
-            plot: 'Roy is mad about cars, and runs Stallion Parts while attending to his yellow Mustang, far away from his daughter, which comes on holiday, while he is to attend a race. Soon he is challenged in a illegal race through the length of Norway.',
-            title: 'Bèrning',
-            score: 4.050384521484375
-          },
-          {
-            plot: "It's time for the annual London to Brighton antique car rally, and Alan McKim and Ambrose Claverhouse are not going to let their friendship stop them from trying to humiliate each other. ...",
-            title: 'Genevieve',
-            score: 3.9916391372680664
-          },
-          {
-            plot: "After a young man's premonition of a deadly race-car crash helps saves the lives of his peers, Death sets out to collect those who evaded their end.",
-            title: 'The Final Destination',
-            score: 3.9916391372680664
-          },
-          {
-            plot: "A fast-paced comedy about a young Belgian car nut and hairdresser's apprentice, his girlfriend, and their legal and illegal attempts to get a Porsche under him for his nearing debut race.",
-            title: 'The Departure',
-            score: 3.832036256790161
-          }
-        ]
+        {
+          plot: "An illegal race that takes place over the United States and nothing will stop this bunch of racers except for the occasional cop or a damsel in distress. Jackie Chan's car is not in this ...",
+          title: 'Cannonball Fever',
+          score: 4.1651153564453125
+        },
+        {
+          plot: 'Roy is mad about cars, and runs Stallion Parts while attending to his yellow Mustang, far away from his daughter, which comes on holiday, while he is to attend a race. Soon he is challenged in a illegal race through the length of Norway.',
+          title: 'Bèrning',
+          score: 4.050384521484375
+        },
+        {
+          plot: "It's time for the annual London to Brighton antique car rally, and Alan McKim and Ambrose Claverhouse are not going to let their friendship stop them from trying to humiliate each other. ...",
+          title: 'Genevieve',
+          score: 3.9916391372680664
+        },
+        {
+          plot: "After a young man's premonition of a deadly race-car crash helps saves the lives of his peers, Death sets out to collect those who evaded their end.",
+          title: 'The Final Destination',
+          score: 3.9916391372680664
+        },
+        {
+          plot: "A fast-paced comedy about a young Belgian car nut and hairdresser's apprentice, his girlfriend, and their legal and illegal attempts to get a Porsche under him for his nearing debut race.",
+          title: 'The Departure',
+          score: 3.832036256790161
+        }
+      ]
 
-The preceding results contain documents with the terms ``car`` and
-``vehicle`` and ``contest`` and ``rally``. |fts| returns the preceding
-results because we configured ``automobile`` to be a synonym of ``car``
-and ``vehicle`` by using ``equivalent`` mapping and the term ``race`` to
-be a synonym of ``contest`` and ``rally`` by using ``explicit`` mapping
-in the synonyms source collection, ``synonymous_terms``.
+|fts| returns documents that contain the query terms ``automobile``,
+``car``, or ``vehicle`` and ``race``, ``context``, or ``rally`` because
+we configured ``automobile``, ``vehicle``, and ``car`` to be
+``equivalent`` synonyms and we configured ``rally`` and ``contest`` to
+be ``explicit`` synonyms of ``race`` in the ``synonymous_terms``
+collection.
