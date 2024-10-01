@@ -36,5 +36,8 @@
         literal values for binary data with subtype 8. Instead, MongoDB
         logs a placeholder value of ``###``.
 
+    * - 9 
+      - Vector 
+
     * - 128
       - Custom data
