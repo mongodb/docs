@@ -15,10 +15,8 @@
      - string
      - Agent API Key.
 
-       .. note::
-
-          After creating this Agent API Key, subsequent requests 
-          return the last four characters of Agent API Keys.
+       After creating this Agent API Key, subsequent requests 
+       return the last four characters of Agent API Keys.
 
    * - desc
      - string
