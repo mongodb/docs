@@ -37,12 +37,10 @@
            - Enter the Distinguished Name for the Monitoring's |ldap|
              Group.
 
-             .. note::
-
-                Provide the Monitoring's |ldap| Group
-                :abbr:`DN (Distinguished Name)` only if you use |ldap|
-                Authorization. Each Monitoring should have and use
-                its own |ldap| Group :abbr:`DN (Distinguished Name)`.
+             Provide the Monitoring's |ldap| Group
+             :abbr:`DN (Distinguished Name)` only if you use |ldap|
+             Authorization. Each Monitoring should have and use
+             its own |ldap| Group :abbr:`DN (Distinguished Name)`.
 
    .. tab:: Kerberos
       :tabid: kerberos
@@ -76,10 +74,8 @@
                    MongoDB to grant the Monitoring the appropriate
                    privileges.
 
-                   .. note::
-
-                      You only need to provide the LDAP Group DN if
-                      you use LDAP Authorization.
+                   You only need to provide the LDAP Group DN if
+                   you use LDAP Authorization.
 
          .. tab:: Windows Active Directory
             :tabid: windows
@@ -128,7 +124,5 @@
            - Enter the Distinguished Name for the Monitoring's |ldap|
              Group.
 
-             .. note::
-              
-                You only need to provide the Monitoring's |ldap| Group
-                DN if you use |ldap| Authorization.
+             You only need to provide the Monitoring's |ldap| Group
+             DN if you use |ldap| Authorization.
