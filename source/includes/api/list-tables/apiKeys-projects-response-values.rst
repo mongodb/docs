@@ -21,7 +21,7 @@
      - Redacted Private key for this Organization |api| key assigned to
        this Project.
 
-       .. note:: This key displays unredacted when first created.
+       **This key displays unredacted when first created.**
 
    * - ``publicKey``
      - string
