@@ -55,9 +55,7 @@ The following table lists upgrade paths for all versions:
        8.0. Use :ref:`this procedure <upgrade-om-procedure>` for both
        upgrades.
 
-       .. seealso
-
-          :ref:`Ops Manager 7.0 releases <opsmgr-server-7.0>`
+       To learn more, see :ref:`Ops Manager 7.0 release notes <opsmgr-server-7.0>`.
 
    * - 6.0.x
      - Upgrade from |onprem| 6.0.x to the latest available patch 
@@ -65,9 +63,7 @@ The following table lists upgrade paths for all versions:
        7.0. Use :ref:`this procedure <upgrade-om-procedure>` for both
        upgrades.
 
-       .. seealso
-
-          :ref:`Ops Manager 6.0 releases <opsmgr-server-6.0>`
+       To learn more, see :ref:`Ops Manager 6.0 release notes <opsmgr-server-6.0>`.
 
    * - 5.0.x
      - Upgrade from |onprem| 5.0.x to the latest available patch 
@@ -75,9 +71,7 @@ The following table lists upgrade paths for all versions:
        6.0. Use :ref:`this procedure <upgrade-om-procedure>` for both
        processes.
 
-       .. seealso:
-
-          :ref:`Ops Manager 5.0 releases <opsmgr-server-5.0>`
+       To learn more, see :ref:`Ops Manager 5.0 release notes <opsmgr-server-5.0>`.
 
    * - 4.4.x
      - Upgrade from |onprem| 4.4.x to the latest available patch 
@@ -85,15 +79,13 @@ The following table lists upgrade paths for all versions:
        5.0. Use :ref:`this procedure <upgrade-om-procedure>` for both
        processes.
 
-       .. important::
+       :gold:`IMPORTANT:` |onprem| version 4.4.13 fixes a bug that would re-enable
+       |onprem| instances for |api| writes during an upgrade.
 
-          |onprem| version 4.4.13 fixes a bug that would re-enable
-          |onprem| instances for |api| writes during an upgrade.
-
-       .. seealso::
+       To learn more, see: 
           
-          :ref:`Ops Manager 4.4 releases <opsmgr-server-4.4>`
-          :ref:`Ops Manager 4.4.13 release notes <opsmgr-server-4.4.13>`
+       - :ref:`Ops Manager 4.4 release notes <opsmgr-server-4.4>`.
+       - :ref:`Ops Manager 4.4.13 release notes <opsmgr-server-4.4.13>`.
 
    * - 4.2.x
      - Upgrade from |onprem| 4.2.x to the latest available patch 
