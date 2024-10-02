@@ -107,7 +107,7 @@
       
         The major version upgrade requires at least one replica set
         election. Use the staging cluster as an opportunity to test your
-        application's resiliance to primary failover. See
+        application's resilience to primary failover. See
         :doc:`/tutorial/test-resilience/test-primary-failover` for complete
         documentation. 
       

@@ -16,8 +16,263 @@ Build a Resilient Application with MongoDB Atlas
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
+
+When building a mission-critical application, it's important to prepare
+for unexpected events that may happen in production. This includes
+unexpected slow queries, missing indexes, or a sharp rise in workload
+volume.
+
+MongoDB |service| helps you build a resilient application by equipping you
+with out-of-the-box features that allow you to prepare proactively and
+respond reactively to situations. To build a resilient application, we
+recommend that you configure your MongoDB deployment with the following
+:ref:`cluster resilience <cluster-resilience>` and :ref:`application
+and client-side <app-client-side-best-practices>` best practices. 
+
+.. _cluster-resilience:
+
+{+Cluster+} Resilience
+----------------------
+
+To improve the resiliency of your {+cluster+}, :ref:`upgrade your
+cluster to MongoDB 8.0 <upgrade-major-MongoDB-version>`. MongoDB 8.0
+introduces the following performance improvements and new features
+related to resilience:
+
+- :ref:`Improved memory management <resilient-upgraded-tcmalloc>`
+- :ref:`Operation rejection filters <resilient-operations-rejection-filters>`  to reactively mitigate expensive queries
+- :ref:`Cluster-level timeouts  <resilient-default-read-timeout>` for proactive protection against expensive read operations
+- Better workload isolation with the :ref:`moveCollection command <resilient-move-collection>`
+
+.. _resilient-upgraded-tcmalloc:
+
+Improved Memory Management
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To run your application safely in production, it's important to ensure
+that your memory utilization allows for headroom. If a node runs out of
+available memory, it can become susceptible to the `Linux Out of Memory
+Killer <https://linuxhandbook.com/oom-killer/>`__ that terminates the
+|mongod| process.
+
+MongoDB 8.0 uses an :ref:`upgraded TCMalloc <8.0-tcmalloc-upgrade>`
+for all deployments automatically, which reduces average memory
+fragmentation growth over time. This lower fragmentation improves
+operational stability during peak loads and results in overall improved
+memory utilization.
+
+.. _resilient-operations-rejection-filters:
+
+Operation Rejection Filters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An unintentional resource-intensive operation can cause problems in
+production if you don't handle it promptly. 
+
+MongoDB 8.0 allows you to minimize the impact of these operations by
+using operation rejection filters. Operation rejection filters allow
+you to configure MongoDB to reject queries from running until you
+re-enable queries with that :term:`query shape <query shape>`.
+
+In other words, once you identify a slow query, you don't need to
+wait for application teams to fix their queries to contain the slow
+query's impact. Instead, once you notice a poorly performing query in
+either your :ref:`Query Profiler <query-profiler>`, :ref:`Real Time
+Performance Panel <real-time-metrics-status-tab>`, or query logs, you
+can set a rejection filter on that query shape. MongoDB then prevents
+new instances of that incoming query shape from executing. Once you fix
+the query, you can re-enable the query shape.
+
+You should use an operation rejection filter if you want to:
+
+- Contain the impact of slow queries quickly while the fix is in progress.
+- Prioritize more important workloads during times of overload by rejecting less important queries.
+- Give the cluster time to recover if it's close to max resource utilization.
+
+Identify and Reject Slow Queries in the {+atlas-ui+}
+````````````````````````````````````````````````````
+
+To use an operation rejection filter in the {+atlas-ui+}:
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-db-deployments-page.rst
+   
+   .. step:: Go to the :ref:`Query Profiler <query-profiler>` for the specified cluster within the current project.
+      
+      a. Click :guilabel:`View Monitoring` for that instance in the project 
+         panel.
+     
+      #. Click the :guilabel:`Query Insights` tab.
+  
+      #. Click the :guilabel:`Query Profiler` tab.
+
+   .. step:: Select the slow query you want to reject.
+
+   .. step:: Extract the ``queryHash``.
+      
+      In the details on the right-hand side, copy the ``queryHash`` value.
+   
+   .. step:: Reject operations of a specific query shape.
+      
+      Use :dbcommand:`setQuerySettings` in your ``db.adminCommand()`` function.
+
+      For an example, see :ref:`operation-rejection-filters`.
+
+.. _view-operation-throttling:
+
+Monitor Your Queries After Rejection or Timeout
+```````````````````````````````````````````````
+
+You can monitor how your queries run afterwards in the
+:ref:`Metrics tab <review-available-metrics>`: 
+
+.. procedure::
+   :style: normal
+
+   .. step:: Navigate to the :guilabel:`Metrics` tab.
+    
+      a. Click on the name of the {+database-deployment+} to open the {+database-deployment+} overview.
+      #. Click the :guilabel:`Metrics` tab.
+
+   .. step:: Select a shard to monitor.
+    
+      Under :guilabel:`Shard Name`, click the shard you'd like to monitor.
+
+   .. step:: Select :guilabel:`Operation Throttling`.
+      
+      Under :guilabel:`MongoDB Metrics`, click :guilabel:`Operation Throttling`.
+
+      With this metric, the MongoDB chart shows the following:
+      
+      - :guilabel:`Killed`, which shows the number of read operations
+        that MongoDB kills over time due to exceeding the default
+        {+cluster+} timeout. 
+
+      - :guilabel:`Rejected`, which shows the number of operations that
+        MongoDB rejects over time because the query matches the
+        user-defined rejection filter.
+
+.. _resilient-default-read-timeout:
+
+Cluster-level Timeouts for Read Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+It's important to ensure that your development process carefully
+considers the efficiency of queries before they reach production.
+Exceptions may always occur, but having a proactive mitigation against
+inefficient queries can help prevent cluster performance issues.
+
+With MongoDB 8.0, you can protect your queries from unindexed operations
+with the server-side :parameter:`defaultMaxTimeMS`
+coming into the {+cluster+}. If an operation exceeds this timeout,
+MongoDB cancels the operation to prevent queries from running too long
+and holding on to resources. This allows you to:
+
+- Shift the responsibility of setting timeouts from individual
+  application teams to database focused teams.
+- Minimize the impact of a collection scan if the query is missing an
+  index.
+- Have a last-round mitigation against expensive operations that make it
+  to production.
+
+If you have queries that require a different timeout, such as analytics
+queries, you can override them by setting the operation-level timeout
+with the :manual:`maxTimeMS
+</tutorial/terminate-running-operations/#maxtimems>` method.
+
+Set the Default Timeout for Read Operations in the {+atlas-admin-api+}
+`````````````````````````````````````````````````````````````````````````````
+
+To set the :parameter:`defaultMaxTimeMS` parameter through the
+{+atlas-admin-api+}, see :oas-atlas-op:`Update Advanced Configuration
+Options for One Cluster </updateClusterAdvancedConfiguration>`.
+
+Set the Default Timeout for Read Operations in the {+atlas-ui+}
+```````````````````````````````````````````````````````````````
+
+To set the :parameter:`defaultMaxTimeMS` parameter in the {+atlas-ui+}:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Navigate to your configuration options.
+
+      a. If you have an existing {+cluster+}, navigate to the :ref:`Edit
+         Cluster <scale-cluster>` page.
+
+         If you are creating a new {+cluster+}, from the
+         :guilabel:`Select a version` dropdown, select
+         :guilabel:`MongoDB 8.0`. 
+
+      #. Click :guilabel:`Additional Settings`.
+
+      #. Scroll down and click :guilabel:`More Configuration Options`.
+
+   .. step:: Toggle :guilabel:`Default Timeout for Read Operations` to :guilabel:`Yes`.
+
+   .. step:: Enter a number greater than 0.
+    
+   .. step:: Review and apply your changes.
+      
+      a. Click :guilabel:`Review Changes`.
+      #. Review your changes, then click :guilabel:`Apply Changes` to update
+         your cluster.
+
+To view the behavior of killed operations, see
+:ref:`view-operation-throttling`. To learn more,
+see :parameter:`defaultMaxTimeMS` and
+:ref:`default-timeout-read-operations`.
+
+.. _resilient-move-collection:
+
+Isolate the Impact of Busy, Unsharded Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:manual:`Sharding </sharding>` allows you to scale your cluster
+horizontally. With MongoDB, you can shard some collections, while
+allowing other collections in the same {+cluster+} to remain unsharded.
+When you create a new database, the shard in the {+cluster+} with the
+least amount of data is picked as that database's :term:`primary shard`
+by default. All of the unsharded collections of that database live in
+that primary shard by default. This can cause increased traffic to the
+primary shard as your workload grows, especially if the workload growth
+focuses on the unsharded collections on the primary shard.
+
+To distribute this workload better, MongoDB 8.0 allows you to move an
+unsharded collection to other shards from the primary shard with the
+:dbcommand:`moveCollection` command. This allows you to place active,
+busy collections onto shards with less expected resource usage. With
+this, you can:
+
+- Optimize performance on larger, complex workloads.
+- Achieve better resource utilization.
+- Distribute date more evenly across shards.
+
+We recommended to isolate your collection in the following circumstances:
+
+- If your primary shard experiences significant workload due to the
+  presence of multiple high-throughput unsharded collections.
+
+- You anticipate an unsharded collection to experience future growth,
+  which could become a bottleneck for other collections.
+
+- You are running a one-collection-per-cluster deployment design and you
+  want to isolate those customers based on priority or workloads.  
+
+- Your shards have more than a proportional amount of data due to the
+  number of unsharded collections located on them.
+
+To learn how to move an unsharded collection with {+mongosh+}, see
+:ref:`task-move-a-collection`.
+
+.. _app-client-side-best-practices:
+
+Application and Client-Side Best Practices
+------------------------------------------
 
 You can configure features of your MongoDB deployments and the driver libraries 
 to create a resilient application that can withstand network outages and 
@@ -25,21 +280,19 @@ failover events. To write application code that takes full advantage of the
 always-on capabilities of |service-fullname|, you should perform the following 
 tasks:
 
-- Install the latest drivers.
-
-- Use the connection string provided by |service|.
-
-- Use retryable writes and retryable reads.
-
-- Use a ``majority`` write concern and a read concern that makes sense
+- :ref:`Install the latest drivers <resilient-install-drivers>`.
+- :ref:`Use the connection string provided by Atlas <resilient-connection-strings>`.
+- :ref:`Use retryable writes and retryable reads <resilient-retryable-writes-reads>`.
+- Use a ``majority`` :ref:`write concern and a read concern <resilient-write-read-concern>` that makes sense
   for your application.
+- :ref:`Handle errors <resilient-error-handling>` in your application.
 
-- Handle errors in your application.
+.. _resilient-install-drivers:
 
 Install the Latest Drivers
---------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-First, install the latest drivers for your language from
+Install the latest drivers for your language from
 :driver:`MongoDB Drivers </>`. Drivers connect and relay
 queries from your application to your database. Using the latest
 drivers enables the latest MongoDB features.
@@ -92,8 +345,10 @@ Then, in your application, import the dependency:
            compile 'org.mongodb:mongodb-driver-sync:4.0.1'
          }
 
+.. _resilient-connection-strings:
+
 Connection Strings
-------------------
+~~~~~~~~~~~~~~~~~~
 
 .. note::
    |service| provides a pre-configured connection string. For steps to
@@ -127,7 +382,7 @@ To learn more about optimized connection strings for sharded
 .. _atlas-connection-string:
 
 Atlas-Provided Connection Strings
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+`````````````````````````````````
 
 If you copy your connection string from your |service| cluster
 interface, the connection string is pre-configured for your cluster,
@@ -204,10 +459,10 @@ application:
        // Instantiate the MongoDB client with the URI
        MongoClient client = MongoClients.create(uri);
 
-.. _retryable-writes:
+.. _resilient-retryable-writes-reads:
 
 Retryable Writes and Reads
---------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. note::
 
@@ -216,7 +471,7 @@ Retryable Writes and Reads
    and reads once by default.
 
 Retryable Writes
-~~~~~~~~~~~~~~~~
+````````````````
 
 Use :manual:`retryable writes </core/retryable-writes>` to retry
 certain write operations a single time if they fail. If you
@@ -235,18 +490,20 @@ returned. If the operation fails, it is likely due to:
 - An invalid command
 
 When an operation fails, your application needs to
-:ref:`handle the error <error-handling>` itself.
+:ref:`handle the error <resilient-error-handling>` itself.
 
 Retryable Reads
-~~~~~~~~~~~~~~~
+```````````````
 
 Read operations are automatically retried a single time if they fail
 starting in MongoDB version 4.0 and with
 :driver:`4.2-compatible drivers </>`.
 No additional configuration is required to retry reads.
 
+.. _resilient-write-read-concern:
+
 Write and Read Concern
-----------------------
+~~~~~~~~~~~~~~~~~~~~~~
 
 You can tune the consistency and availability of your application using
 write concerns and read concerns. Stricter concerns imply that database
@@ -267,7 +524,7 @@ loosening consistency requirements provides higher availability.
    data.
 
 Write Concern
-~~~~~~~~~~~~~
+`````````````
 
 You can set the
 :manual:`write concern level </reference/write-concern/>`
@@ -295,7 +552,7 @@ your application context.
    concern is unachievable, the write operation will hang indefinitely.
 
 Read Concern
-~~~~~~~~~~~~
+````````````
 
 You can set the
 :manual:`read concern level </reference/connection-string/#readconcern-options>`
@@ -314,13 +571,13 @@ application receives from |service|.
    causal consistency. For more information on causal consistency
    guarantees, see :manual:`Causal Consistency and Read and Write Concerns </core/causal-consistency-read-write-concerns/>`.
 
-.. _error-handling:
+.. _resilient-error-handling:
 
 Error Handling
---------------
+~~~~~~~~~~~~~~
 
 Invalid commands, network outages, and network errors that are not
-handled by :ref:`retryable writes <retryable-writes>` return errors.
+handled by :ref:`retryable writes <resilient-retryable-writes-reads>` return errors.
 Refer to your driver's |api| documentation for error details.
 
 For example, if an application tries to insert a document that contains an 
@@ -439,9 +696,9 @@ errors include:
   resolve the error but don't want to risk losing the request data.
 
 - Retry the operation beyond the
-  :ref:`single default retry <retryable-writes>`. This is a good
-  strategy when you can solve the cause of an error programmatically,
-  then retry it.
+  :ref:`single default retry <resilient-retryable-writes-reads>`. This
+  is a good  strategy when you can solve the cause of an error
+  programmatically, then retry it.
 
 You must select the best strategies for your application context.
 
@@ -455,7 +712,7 @@ You must select the best strategies for your application context.
    so you can choose not to send an error message to the client.
 
 Planning for Network Errors
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```````````````````````````
 
 Returning an error can be desirable behavior when an operation
 would otherwise hang indefinitely and block your application from
@@ -477,8 +734,10 @@ that operation.
    5 seconds, means that your application receives feedback as soon as
    you are confident there is a network problem.
 
+.. _resilient-test-failover:
+
 Test Failover
--------------
+~~~~~~~~~~~~~
 
 In the spirit of
 `chaos testing <https://en.wikipedia.org/wiki/Chaos_engineering>`__,
