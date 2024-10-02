@@ -303,7 +303,7 @@ The ``$source`` stage takes a document with the following fields:
        declared by the source.
 
        {+atlas-sp+} pipelines internally add a field to incoming 
-       messages called ``_ts`` to store checkpointing information.
+       messages called ``_ts`` to store timestamp information.
        Sources of streaming data might also use a field named ``_ts`` 
        to store the timestamps of each message. To prevent a conflict 
        between these fields, use ``tsFieldName`` to rename any
@@ -490,7 +490,7 @@ The ``$source`` stage takes a document with the following fields:
        declared by the source.
 
        {+atlas-sp+} pipelines internally add a field to incoming 
-       messages called ``_ts`` to store checkpointing information.
+       messages called ``_ts`` to store timestamp information.
        Sources of streaming data might also use a field named ``_ts`` 
        to store the timestamps of each message. To prevent a conflict 
        between these fields, use ``tsFieldName`` to rename any
@@ -503,6 +503,177 @@ The ``$source`` stage takes a document with the following fields:
      - Name of a MongoDB database hosted on the |service| instance
        specified by ``connectionName``. The change stream of this 
        database acts as the streaming data source.
+
+   * - ``config``
+     - document 
+     - Optional
+     - Document containing fields that override various default 
+       values.  
+
+   * - ``config.startAfter`` 
+     - token
+     - Conditional
+     - The change event after which the source begins reporting.
+       This takes the form of a 
+       :manual:`resume token </changeStreams/#resume-tokens-from-change-events>`.
+
+       You can use only one of either ``config.startAfter`` or 
+       ``config.StartAtOperationTime``.
+
+   * - ``config.startAtOperationTime`` 
+     - timestamp
+     - Conditional
+     - The operation time after which the source should begin 
+       reporting.
+
+       You can use only one of either ``config.startAfter`` or 
+       ``config.StartAtOperationTime``.
+
+   * - ``config.fullDocument``
+     - string
+     - Conditional
+     - Setting that controls whether a change stream source should 
+       return a full document, or only the changes when an update 
+       occurs. Must be one of the following:
+
+       - ``updateLookup`` : Returns only changes on update.
+       - ``required`` : Must return a full document. If a full document
+         is unavailable, returns nothing.
+       - ``whenAvailable`` : Returns a full document whenever one is 
+         available, otherwise returns changes.
+      
+       If you do not specify a value for fullDocument, it defaults to
+       ``updateLookup``.
+
+       To use this field with a database change stream, you must 
+       enable change stream :ref:`Pre- and Post-Images 
+       <collMod-change-stream-pre-and-post-images>` on every collection 
+       in that database.
+
+   * - ``config.fullDocumentOnly``
+     - boolean
+     - Conditional
+     - Setting that controls whether a change stream source returns 
+       the entire change event document including all metadata, or 
+       only the contents of ``fullDocument``. If set to ``true``, the 
+       source returns only the contents of ``fullDocument``.
+
+       To use this field with a database change stream, you must 
+       enable change stream :ref:`Pre- and Post-Images 
+       <collMod-change-stream-pre-and-post-images>` on every collection 
+       in that database.
+
+   * - ``config.fullDocumentBeforeChange``
+     - string
+     - Optional
+     - Specifies whether a change stream source should include the
+       full document in its original "before changes" state
+       in the output. Must be one of the following:
+
+       - ``off`` : Omits the ``fullDocumentBeforeChange`` field.
+       - ``required`` : Must return a full document in its before
+         changes state. If a full document in its before changes state
+         is unavailable, the stream processor fails.
+       - ``whenAvailable`` : Returns a full document in its before
+         changes state whenever one is 
+         available, otherwise omits the ``fullDocumentBeforeChange`` field.
+      
+       If you do not specify a value for ``fullDocumentBeforeChange``,
+       it defaults to ``off``.
+
+       To use this field with a database change stream, you must 
+       enable change stream :ref:`Pre- and Post-Images 
+       <collMod-change-stream-pre-and-post-images>` on every collection 
+       in that database.
+
+   * - ``config.pipeline``
+     - document
+     - Optional
+     - Specifies an aggregation pipeline to filter change stream output
+       at the point of origin. This pipeline must conform to the parameters
+       described in :manual:`<change-stream-modify-output>`.
+
+.. _atlas-sp-cluster-wide-source:
+
+MongoDB Cluster-wide Change Stream Source
+------------------------------------------
+
+To operate on streaming data from an entire {+service+} cluster change
+stream, the ``$source`` stage has the following prototype form:
+
+.. code-block:: json
+
+  {
+    "$source": {
+      "connectionName": "<registered-connection>",
+      "timeField": { 
+        $toDate | $dateFromString: <expression>
+      },
+      "tsFieldName": "<timestamp>",
+      "config": { 
+        "startAfter": <start-token> | "startAtOperationTime": <timestamp>,
+        "fullDocument": "<full-doc-condition>",
+        "fullDocumentOnly": <boolean>,
+        "fullDocumentBeforeChange": "<before-change-condition>",
+	"pipeline": [{
+	  "<aggregation-stage>" : {
+	    <stage-input>,
+	    . . .
+	  },
+	  . . .
+	}]
+      },
+    }
+  }
+
+The ``$source`` stage takes a document with the following fields: 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 16 17 17 60
+
+   * - Field 
+     - Type 
+     - Necessity 
+     - Description
+
+   * - ``connectionName`` 
+     - string
+     - Conditional
+     - Label that identifies the connection in the
+       :ref:`Connection Registry <manage-spi-connection-add>`, to 
+       ingest data from.
+
+   * - ``timeField``
+     - document
+     - Optional 
+     - Document that defines an authoritative timestamp for incoming
+       messages.
+       
+       If you use ``timeField``, you must define it as one of the
+       following:
+
+       - a ``$toDate`` expression that takes a source message field as 
+         an argument
+       - a ``$dateFromString`` expression that takes a source message 
+         field as an argument.
+
+       If you do not declare a ``timeField``, {+atlas-sp+} creates a
+       timestamp from the message timestamp provided by the source.
+
+   * - ``tsFieldName``
+     - string 
+     - Optional
+     - Name that overrides the name of default timestamp fields
+       declared by the source.
+
+       {+atlas-sp+} pipelines internally add a field to incoming 
+       messages called ``_ts`` to store timestamp information.
+       Sources of streaming data might also use a field named ``_ts`` 
+       to store the timestamps of each message. To prevent a conflict 
+       between these fields, use ``tsFieldName`` to rename any
+       source-provided field named ``_ts`` before additional processing
+       takes place.
 
    * - ``config``
      - document 
@@ -649,7 +820,7 @@ The ``$source`` stage takes a document with the following fields:
        declared by the source.
 
        {+atlas-sp+} pipelines internally add a field to incoming 
-       messages called ``_ts`` to store checkpointing information.
+       messages called ``_ts`` to store timestamp information.
        Sources of streaming data might also use a field named ``_ts`` 
        to store the timestamps of each message. To prevent a conflict 
        between these fields, use ``tsFieldName`` to rename any
