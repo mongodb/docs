@@ -4,9 +4,7 @@
 
 - Project Roles
 
-  .. note::
-
-     Groups and projects are synonymous terms.
+  Groups and projects are synonymous terms.
 
   - ``GROUP_OWNER``
   - ``GROUP_READ_ONLY``

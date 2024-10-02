@@ -24,10 +24,8 @@
      - Number of days to retain daily snapshots. |mms| may return
        values between ``1`` and ``365``, inclusive.
 
-       .. note::
-
-          Setting ``dailySnapshotRetentionDays`` to ``0`` disables this
-          rule.
+       Setting ``dailySnapshotRetentionDays`` to ``0`` disables this
+       rule.
 
    * - ``fullIncrementalDayOfWeek``
      - string
@@ -49,9 +47,8 @@
      - Number of months to retain monthly snapshots. |mms| may return
        values between ``1`` and ``36``, inclusive.
 
-       .. note::
-
-          Setting ``monthlySnapshotRetentionMonths`` to ``0`` disables this rule.
+       Setting ``monthlySnapshotRetentionMonths`` to ``0`` disables this
+       rule.
 
    * - ``pointInTimeWindowHours``
      - number
@@ -73,7 +70,5 @@
      - Number of weeks to retain weekly snapshots. |mms| may return
        values between ``1`` and ``52``, inclusive.
 
-       .. note::
-
-          Setting ``weeklySnapshotRetentionWeeks`` to ``0`` disables
-          this rule.
+       Setting ``weeklySnapshotRetentionWeeks`` to ``0`` disables this
+       rule.
