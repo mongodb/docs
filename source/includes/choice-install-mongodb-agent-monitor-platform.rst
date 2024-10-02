@@ -87,7 +87,7 @@
             :tabid: ppc
 
             On RHEL / CentOS (7.x) on PowerPC architecture
-            (managing MongoDB 3.6 or later deployments):
+            (managing MongoDB 4.2 or later deployments):
 
             .. tabs::
 

@@ -6,4 +6,3 @@
    risk.**
 
    Upgrade to |onprem| 4.2.24 or later, then upgrade to |onprem| 4.4.
-

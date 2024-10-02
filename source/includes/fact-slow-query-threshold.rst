@@ -19,7 +19,7 @@ command or the :manual:`db.setProfilingLevel() </reference/method/db.setProfilin
         slowms: 200
       })
 
-If you are running MongoDB 3.6 or later, you can customize the
+If you are running MongoDB 4.2 or later, you can customize the
 percentage of slow queries in your logs used by the Performance Advisor
 by specifying the ``sampleRate`` parameter.
 
