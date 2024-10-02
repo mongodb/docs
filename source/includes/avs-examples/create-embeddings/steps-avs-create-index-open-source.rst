@@ -23,7 +23,7 @@ a. Paste the following code in your notebook.
               "type": "vector",
               "path": "embedding",
               "similarity": "euclidean",
-               "numDimensions": 768
+              "numDimensions": 768
             }
           ]
         },
