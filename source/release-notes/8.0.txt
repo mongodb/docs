@@ -16,12 +16,22 @@ This page describes changes and new features introduced in MongoDB 8.0.
 
 MongoDB 8.0 is a |lts| Release, which means that it is supported for
 both MongoDB Atlas and on-premises deployments. MongoDB 8.0 includes
-changes introduced in MongoDB Rapid Releases 7.1, 7.2, and 7.3. To see
-changes introduced in these rapid releases, see
-:ref:`8.0-rapid-release-changes`. 
+changes introduced in MongoDB Rapid Releases 7.1, 7.2, and 7.3. This page 
+describes changes introduced in those Rapid Releases and MongoDB 8.0.
 
 To learn more about the differences between |lts| and Rapid releases,
 see :ref:`release-version-numbers`. 
+
+Patch Releases
+--------------
+
+.. _8.0.0-release-notes:
+
+8.0.0 - Oct 2, 2024
+~~~~~~~~~~~~~~~~~~~
+
+The rest of this page describes changes and new features introduced in MongoDB 
+8.0.
 
 Platform Support Updates
 ------------------------
@@ -81,19 +91,62 @@ MongoDB 8.0 also includes a new helper expression,
 :expression:`$toUUID`, which provides simplified syntax for converting
 strings to :abbr:`UUID (Universally unique identifier)` values.
 
-$queryStats Change Stream Improvements
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+$queryStats 
+~~~~~~~~~~~
+
+Starting in MongoDB 7.1, the :pipeline:`$queryStats` stage returns statistics 
+for recorded queries. 
+
+Change Stream Improvements
+``````````````````````````
 
 Starting in MongoDB 8.0, :pipeline:`$queryStats` improves tracking and
 reporting metrics for change streams. For more information, see
 :ref:`$queryStats Change Streams Behavior
 <queryStats-change-stream-behavior>`.
 
-``$rank`` and ``$denseRank`` Behavior
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+$rank and $denseRank Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/fact-8-0-rank-dense-rank-fix.rst
 
+.. _8.0-security-changes:
+
+Security
+--------
+
+{+qe+} Range Queries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.0, :ref:`Queryable Encryption <qe-manual-feature-qe>`
+supports range queries on encrypted fields using the :query:`$lt`,
+:query:`$lte`, :query:`$gt`, and :query:`$gte` operators. For details, see
+:ref:`qe-reference-automatic-encryption-supported-operations`. To enable range
+queries on encrypted fields, see :ref:`qe-create-encryption-schema`.
+
+OCSF Schema for Log Messages
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.0, you can specify the {+ocsf+} schema for audit
+log messages. The OCSF schema provides logs in a standardized format
+compatible with log processors.
+
+To set the schema used for log messages, use the
+:setting:`auditLog.schema` configuration file option.
+
+For example log messages in OCSF format, see
+:ref:`event-audit-messages-ocsf`.
+
+Ingress Queue
+~~~~~~~~~~~~~
+
+MongoDB 8.0 introduces a new queue for ingress admission control. 
+Operations that wait for entry into the database from the network 
+enter the ingress queue. By default, the queue is unrestricted, 
+meaning that MongoDB allows all operations to execute through this 
+stage without any queueing. Setting the queue maximum to a specific 
+value allows you to queue operations at this stage if the number of 
+oncurrent operations reaches the specified limit.
 
 Sharding
 --------
@@ -164,16 +217,34 @@ New mongosh Methods
 - :method:`sh.shardAndDistributeCollection()`
 - :method:`sh.unshardCollection()`
 
-New serverStatus Metrics 
-~~~~~~~~~~~~~~~~~~~~~~~~
+serverStatus Metrics 
+~~~~~~~~~~~~~~~~~~~~
 
-:dbcommand:`serverStatus` includes the following new ``shardingStatistics`` 
-fields in its output:
+Starting in MongoDB 8.0, :dbcommand:`serverStatus` includes the following new 
+``shardingStatistics`` fields in its output:
 
 - :serverstatus:`shardingStatistics.countTransitionToDedicatedConfigServerStarted`
 - :serverstatus:`shardingStatistics.countTransitionToDedicatedConfigServerCompleted`
 - :serverstatus:`shardingStatistics.countTransitionFromDedicatedConfigServerCompleted`
 - :serverstatus:`shardingStatistics.configServerInShardCache`
+
+MongoDB 7.1 includes the following new sharding statistics for chunk
+migrations:
+
+- :serverstatus:`shardingStatistics.countDonorMoveChunkCommitted`
+- :serverstatus:`shardingStatistics.countDonorMoveChunkAborted`
+- :serverstatus:`shardingStatistics.totalDonorMoveChunkTimeMillis`
+- :serverstatus:`shardingStatistics.countBytesClonedOnRecipient`
+- :serverstatus:`shardingStatistics.countDocsClonedOnCatchUpOnRecipient`
+- :serverstatus:`shardingStatistics.countBytesClonedOnCatchUpOnRecipient`
+
+Default Chunks Per Shard
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 7.2, when you :ref:`shard an empty collection
+<shard-empty-collection>` with a hashed shard key, the operation
+creates one chunk per shard by default. Previously, the operation
+created two chunks by default.
 
 directShardOperations Role
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -182,6 +253,69 @@ directShardOperations Role
 
 .. include:: /includes/dSO-warning.rst
 
+Exhaust Cursors Enabled for Sharded Clusters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 7.1, :binary:`~bin.mongos` supports exhaust cursors 
+when a client's :ref:`getMore <manual-reference-commands-getMore>` request sets 
+the :ref:`exhaustAllowed <wire-msg-flags>`  flag. This can improve query 
+performance on sharded clusters when the client receives multiple replies 
+from the database server for a single request.
+
+mongos Port Range
+~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 7.1, :binary:`~bin.mongos` accepts :option:`--port <mongos --port>` values 
+from [0, 65535]. For more information, see :option:`--port <mongos --port>`. 
+
+Query with Partial Shard Key
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 7.1, :dbcommand:`findAndModify` and :method:`~db.collection.deleteOne()` 
+can use a partial shard key to query on a sharded collection.
+
+Resharding Improvements
+~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 7.2 introduces significant performance improvements in reshard
+collection operations, substantially reducing the amount of time the 
+operation takes to run.
+
+Additionally, if your application and cluster meet the necessary
+:ref:`requirements <reshard-requirements>` and :ref:`limitations
+<resharding-limitations>`, you can reshard the collection on the same key using
+the :dbcommand:`reshardCollection` command to redistribute your collection,
+which is much faster than alternative :ref:`range migration procedure
+<range-migration-procedure>`.
+
+The following options are added to the command:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``forceRedistribution``
+     - Enables same-key resharding.
+
+For examples, see :ref:`reshardCollection-redistribute-data`.
+
+Self-Managed Backups of Sharded Clusters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/release-notes/fsync-fsyncUnlock
+
+UpdateOne upsert Behavior on Sharded Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-7-1-sharded-upsert-release-comp-note.rst
+  
+$lookup Stage in Transactions with Sharded Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.0, you can use the :pipeline:`$lookup` stage within 
+a transaction while targeting a sharded collection.
 
 Replication
 -----------
@@ -248,6 +382,32 @@ MongoDB 8.0 adds the following server status metrics:
 - :serverstatus:`metrics.repl.write.batches.num`
 - :serverstatus:`metrics.repl.write.batches.totalMillis`
 
+.. _8.0-tcmalloc-upgrade:
+
+Upgraded TCMalloc 
+-----------------
+
+.. include:: /includes/8.0-tcmalloc-intro.rst
+
+The new TCMalloc version directly impacts previous production 
+recommendations for Transparent Huge Pages. To learn more, see 
+:ref:`tcmalloc-performance`.
+
+serverStatus Metrics 
+~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.0, the following new :dbcommand:`serverStatus` metrics 
+report information about ``tcmalloc`` usage:
+
+- :serverstatus:`tcmalloc.usingPerCPUCaches`
+- :serverstatus:`tcmalloc.generic.peak_memory_usage`
+- :serverstatus:`tcmalloc.tcmalloc.cpu_free`
+- :serverstatus:`tcmalloc.tcmalloc.total_bytes_held`
+- :serverstatus:`tcmalloc.tcmalloc.cpuCache`
+- :serverstatus:`tcmalloc.tcmalloc.cpuCache.N.overflows`
+- :serverstatus:`tcmalloc.tcmalloc.cpuCache.N.underflows`
+- :serverstatus:`tcmalloc.tcmalloc_derived.total_free_bytes`
+
 General Changes
 ---------------
 
@@ -264,14 +424,13 @@ application data in addition to the usual sharded cluster metadata. The
 config server is then known as a *config shard*. For details, see
 :ref:`sharded-cluster-config-server-config-shards`.
 
-$lookup Stage in Transactions with Sharded Collections
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Starting in MongoDB 8.0, you can use the :pipeline:`$lookup` stage within 
-a transaction while targeting a sharded collection.
 
 Compaction Improvements
 ~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 7.3, the :dbcommand:`compact` command includes a new 
+``freeSpaceTargetMB`` option to specify the minimum amount of storage space, in 
+megabytes, that must be recoverable for compaction to proceed.
 
 Background Compaction
 `````````````````````
@@ -286,25 +445,23 @@ dryRun Option
 
 .. include:: /includes/fact-compact-dryrun.rst 
 
-Parameter Filtering
-~~~~~~~~~~~~~~~~~~~
+Concurrent DDL Operations 
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Starting in MongoDB 8.0, the :dbcommand:`getParameter` command
-accepts a ``setAt`` field. You can use this field to filter the
-``allParameters: true`` return document to show only those
-parameters that you can set at 
-:ref:`startup <getParameters-startup>` or 
-:ref:`runtime <getParameters-runtime>`.
+Starting in MongoDB 7.1, when you run multiple :term:`DDL operations
+<DDL (Data Definition Language)>` that target different collections from the 
+same database, MongoDB runs those operations concurrently.
 
-New Bulk Write Command
-~~~~~~~~~~~~~~~~~~~~~~
+This change adds two new types to the ``serverStatus`` :serverstatus:`locks` 
+field and :data:`currentOp.locks` output: 
 
-.. include:: /includes/bulkWrite-introduction.rst
+- ``DDLDatabase``
+- ``DDLCollection``
 
-Read Concern on Capped Collections
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Database Validation on mongos Aggregation Queries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/snapshot-capped-collections.rst
+.. include:: /includes/fact-mongos-db-agg-validation.rst
 
 DDL Operations
 ~~~~~~~~~~~~~~
@@ -314,12 +471,67 @@ a DDL operation (operation that modifies a collection such as
 :dbcommand:`reshardCollection`), any operation that adds or removes a
 shard only executes after the concurrent DDL operation finishes. 
 
-Default Timeout for Queries
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Error Codes for Exceeding Pipeline Size Limit
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 7.1, an aggregation command will throw an error when a pipeline 
+exceeds the pipeline stage limit. For more details, see :ref:`stage-restrictions`.  
+
+getField Field Supports All Strings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 7.2, you can specify any valid :ref:`expression 
+<aggregation-expressions>` that resolves to a string for the ``field``
+input of the :expression:`$getField` operator. In earlier versions,
+``field`` accepts only string constants.
+
+Improved Index Builds
+~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/index-build-introduction.rst
+
+The following new index build metrics were added:
+
+- :serverstatus:`indexBuilds.killedDueToInsufficientDiskSpace`
+- :serverstatus:`indexBuilds.failedDueToDataCorruption`
+
+For full details, see :ref:`create-index-builds`.
+
+New Parameters
+~~~~~~~~~~~~~~
+
+auditConfig Parameter 
+`````````````````````
+
+MongoDB 7.1 adds the :parameter:`auditConfig` cluster parameter, which contains 
+information on audit configurations from :binary:`~bin.mongod` and 
+:binary:`~bin.mongos` server instances. 
+
+defaultMaxTimeMS Parameter
+``````````````````````````
 
 Starting in MongoDB 8.0, you can use the :parameter:`defaultMaxTimeMS`
 cluster parameter to specify a default time limit for individual read
 operations to complete.
+
+indexBuildMinAvailableDiskSpaceMB Parameter
+```````````````````````````````````````````
+
+MongoDB 7.1 adds the :parameter:`indexBuildMinAvailableDiskSpaceMB`
+parameter, which allows you to set the minimum available disk space
+required for index builds.
+
+tcmallocEnableBackgroundThread Parameter
+````````````````````````````````````````
+
+Starting in MongoDB 8.0, the :parameter:`tcmallocEnableBackgroundThread` is 
+enabled by default. This allows MongoDB to periodically release memory back to 
+the operating system.
+
+New Bulk Write Command
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/bulkWrite-introduction.rst
 
 New Query Shape and Query Settings
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -358,6 +570,47 @@ output:
 
 .. include:: /includes/plan-cache-rename.rst
 
+Parameter Filtering
+~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.0, the :dbcommand:`getParameter` command
+accepts a ``setAt`` field. You can use this field to filter the
+``allParameters: true`` return document to show only those
+parameters that you can set at 
+:ref:`startup <getParameters-startup>` or 
+:ref:`runtime <getParameters-runtime>`.
+
+Read Concern on Capped Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/snapshot-capped-collections.rst
+
+serverStatus Output Change 
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 7.1, the :dbcommand:`serverStatus` command output includes 
+the following new metrics:
+
+- :serverstatus:`changeStreamPreImages.expireAfterSeconds`
+- :serverstatus:`metrics.changeStreams.showExpandedEvents`
+- :serverstatus:`queryStats` 
+
+Starting in MongoDB 7.2, the :dbcommand:`serverStatus` command output includes 
+the following new metrics:
+
+- :serverstatus:`metrics.operation.killedDueToMaxTimeMSExpired`
+- :serverstatus:`readPreferenceCounters`
+
+Starting in MongoDB 7.3, the :dbcommand:`serverStatus` command output 
+includes the following new metrics:
+
+- :serverstatus:`metrics.repl.stateTransition.totalOperationsRunning`
+- :serverstatus:`metrics.repl.stateTransition.totalOperationsKilled`
+- :serverstatus:`metrics.repl.waiters.replication`
+- :serverstatus:`metrics.repl.waiters.opTime`
+- :serverstatus:`planCache.classic.skipped`
+- :serverstatus:`planCache.sbe.skipped`
+
 Sort Support for updateOne
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -372,38 +625,17 @@ requires these methods to copy the entire document to a special side
 collection for each node, which is a more expensive operation than the ``updateOne()``
 method with the new ``sort`` option.
 
-.. _8.0-tcmalloc-upgrade:
+Specify Query Index Hints for distinct Commands
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Upgraded TCMalloc 
-~~~~~~~~~~~~~~~~~
+Starting in MongoDB 7.1, the ``hint`` field is available in the 
+:dbcommand:`distinct` command, allowing you to specify the query's index. 
 
-.. include:: /includes/8.0-tcmalloc-intro.rst
+TTL Indexes 
+~~~~~~~~~~~
 
-The new TCMalloc version directly impacts previous production 
-recommendations for Transparent Huge Pages. To learn more, see 
-:ref:`tcmalloc-performance`.
-
-serverStatus Metrics 
-````````````````````
-
-The following new :dbcommand:`serverStatus` metrics report information about 
-``tcmalloc`` usage:
-
-- :serverstatus:`tcmalloc.usingPerCPUCaches`
-- :serverstatus:`tcmalloc.generic.peak_memory_usage`
-- :serverstatus:`tcmalloc.tcmalloc.cpu_free`
-- :serverstatus:`tcmalloc.tcmalloc.total_bytes_held`
-- :serverstatus:`tcmalloc.tcmalloc.cpuCache`
-- :serverstatus:`tcmalloc.tcmalloc.cpuCache.N.overflows`
-- :serverstatus:`tcmalloc.tcmalloc.cpuCache.N.underflows`
-- :serverstatus:`tcmalloc.tcmalloc_derived.total_free_bytes`
-
-tcmallocEnableBackgroundThread Parameter
-````````````````````````````````````````
-
-Starting in MongoDB 8.0, the :parameter:`tcmallocEnableBackgroundThread` is 
-enabled by default. This allows MongoDB to periodically release memory back to 
-the operating system.
+Starting in MongoDB 7.1, you can create :ref:`TTL indexes <index-feature-ttl>` 
+on :ref:`capped collections <manual-capped-collection>`.
 
 Query Planning and Execution
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -475,44 +707,6 @@ For details, see :ref:`$lookup subpipelines
 <lookup-example-namespaces-in-subpipelines>` and :ref:`$unionWith
 subpipelines <unionWith-example-namespaces-in-subpipelines>`.
 
-.. _8.0-security-changes:
-
-Security
---------
-
-{+qe+} Range Queries
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Starting in MongoDB 8.0, :ref:`Queryable Encryption <qe-manual-feature-qe>`
-supports range queries on encrypted fields using the :query:`$lt`,
-:query:`$lte`, :query:`$gt`, and :query:`$gte` operators. For details, see
-:ref:`qe-reference-automatic-encryption-supported-operations`. To enable range
-queries on encrypted fields, see :ref:`qe-create-encryption-schema`.
-
-OCSF Schema for Log Messages
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Starting in MongoDB 8.0, you can specify the {+ocsf+} schema for audit
-log messages. The OCSF schema provides logs in a standardized format
-compatible with log processors.
-
-To set the schema used for log messages, use the
-:setting:`auditLog.schema` configuration file option.
-
-For example log messages in OCSF format, see
-:ref:`event-audit-messages-ocsf`.
-
-Ingress Queue
-~~~~~~~~~~~~~
-
-MongoDB 8.0 introduces a new queue for ingress admission control. 
-Operations that wait for entry into the database from the network 
-enter the ingress queue. By default, the queue is unrestricted, 
-meaning that MongoDB allows all operations to execute through this 
-stage without any queueing. Setting the queue maximum to a specific 
-value allows you to queue operations at this stage if the number of 
-oncurrent operations reaches the specified limit.
-
 .. _8.0-known-issues:
 
 Known Issues
@@ -552,20 +746,6 @@ status.
        shifting clients to connect to ``mongos`` routers. Writes issued to
        ``mongos`` routers are not affected. 
      - This issue is planned to be fixed in 8.0.1.
-
-.. _8.0-rapid-release-changes:
-
-Changes Introduced in 7.X-Series Rapid Releases
------------------------------------------------
-
-MongoDB 8.0 includes changes and features from the following Rapid
-Release versions:
-
-- :ref:`MongoDB 7.1 Release Notes <release-notes-7.1>`
-
-- :ref:`MongoDB 7.2 Release Notes <release-notes-7.2>`
-
-- :ref:`MongoDB 7.3 Release Notes <release-notes-7.3>`
 
 .. _8.0-upgrade:
 
