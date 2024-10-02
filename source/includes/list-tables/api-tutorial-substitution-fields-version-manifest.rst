@@ -23,6 +23,4 @@
      - string
      - Major and minor version of your |onprem| instance.
 
-       .. example::
-
-          ``4.2``
+       For example, ``4.2``. 
