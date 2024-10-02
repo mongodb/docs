@@ -1,7 +1,9 @@
 import { MongoClient } from 'mongodb';
+
 // connect to your Atlas deployment
 const uri =  "<connectionString>";
 const client = new MongoClient(uri);
+
 async function run() {
    try {
      const database = client.db("sample_db");
@@ -15,9 +17,9 @@ async function run() {
            "fields": [
              {
                "type": "vector",
-               "numDimensions": 1536,
                "path": "embedding",
-               "similarity": "euclidean"
+               "similarity": "euclidean",
+               "numDimensions": <dimensions>
              }
            ]
          }

@@ -1,6 +1,7 @@
+
 .. procedure::
    :style: normal
-
+      
    .. step:: Set up the environment.
 
       Create an interactive Python notebook by saving a file 
@@ -11,7 +12,7 @@
 
          pip install --quiet openai pymongo
 
-   .. step:: Create a function to generate vector embeddings.
+   .. step:: Define a function to generate vector embeddings.
 
       Paste and run the following code in your notebook to create
       a function that generates vector embeddings by using a 
@@ -23,7 +24,8 @@
       - Specifies the ``text-embedding-3-small`` embedding model.
       - Creates a function named ``get_embedding`` that calls the model's |api|
         to generate an embedding for a given text input.
-      - Generates a single embedding for the string ``foo``.
+      - Tests the function by generating a single embedding 
+        for the string ``foo``.
 
       .. io-code-block:: 
          :copyable: true 
@@ -58,51 +60,3 @@
 
          For |api| details and a list of available models, refer to
          the `OpenAI documentation <https://platform.openai.com/docs/guides/embeddings>`__.
-   
-   .. include:: /includes/step-avs-store-embeddings.rst
-
-   .. io-code-block:: 
-      :copyable: true 
-      
-      .. input:: 
-         :language: python
-
-         # Generate embedding for the search query
-         query_embedding = get_embedding("ocean tragedy")
-
-         # Sample vector search pipeline
-         pipeline = [
-            {
-               "$vectorSearch": {
-                     "index": "vector_index",
-                     "queryVector": query_embedding,
-                     "path": "embedding",
-                     "exact": true,
-                     "limit": 5
-               }
-            }, 
-            {
-               "$project": {
-                  "_id": 0, 
-                  "text": 1,
-                  "score": {
-                     "$meta": "vectorSearchScore"
-                  }
-               }
-            }
-         ]
-
-         # Execute the search
-         results = collection.aggregate(pipeline)
-
-         # Print results
-         for i in results:
-            print(i)
-
-      .. output:: 
-         :language: json
-
-         {'text': 'Titanic: The story of the 1912 sinking of the largest luxury liner ever built','score': 0.4551968574523926}
-         {'text': 'Avatar: A marine is dispatched to the moon Pandora on a unique mission','score': 0.4050074517726898}
-         {'text': 'The Lion King: Lion cub and future king Simba searches for his identity','score': 0.3594386577606201}
-

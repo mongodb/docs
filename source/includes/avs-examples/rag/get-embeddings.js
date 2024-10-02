@@ -1,7 +1,7 @@
 import { pipeline } from '@xenova/transformers';
 
-// Function to generate embeddings for given data
-export async function getEmbeddings(data) {
+// Function to generate embeddings for a given data source
+export async function getEmbedding(data) {
     const embedder = await pipeline(
         'feature-extraction', 
         'Xenova/nomic-embed-text-v1');

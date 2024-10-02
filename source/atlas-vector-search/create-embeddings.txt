@@ -1,18 +1,21 @@
+:tabs-selector-position: main
+
 .. _create-vector-embeddings:
 
 ===============================
-How to Create Vector Embeddings
+How to Create Vector Embeddings          
 ===============================
 
 .. default-domain:: mongodb
 
 .. meta::
-   :description: How to choose an embedding model and create vector embeddings for semantic and vector search.
-   
+   :description: How to create vector embeddings for semantic and Atlas Vector search, choose an embedding model, and check that your embeddings are correct.
+   :keywords: vector embeddings, embedding model, RAG, retrieval-augmented generation, AI, LLM, vector database, vector search, semantic search, generative search, node.js, python
+
 .. facet::
    :name: genre
    :values: tutorial
-
+   
 .. facet::
    :name: programming_language
    :values: python, javascript/typescript
@@ -26,73 +29,43 @@ How to Create Vector Embeddings
 :term:`Vector embeddings <vector embeddings>` represent 
 your data as points in multi-dimensional space. These
 embeddings capture meaningful relationships in your data
-and enable tasks such as semantic search and retrieval. 
-You can store vector embeddings along with your other data
-in |service| and use {+avs+} to query your vectorized data.
-
-To perform vector search over your embeddings, do the following:
-
-1. Choose a method to create vector embeddings.
-#. Create vector embeddings from your data and store 
-   them in |service|.
-#. Create a vector embedding that represents your
-   search query and run the query.
-
-{+avs+} returns documents whose vector embeddings are closest 
-in distance to the embedding that represents your query.
-This indicates that they are similar in meaning. 
+and enable you to perform semantic search and implement 
+:ref:`RAG <avs-rag>`. You can store vector embeddings 
+along with your other data in |service| and use {+avs+}
+to query your vectorized data.
 
 .. _create-embeddings:
 
-Choose a Method to Create Embeddings
-------------------------------------
+Get Started
+-----------
 
-To create vector embeddings, you must use 
-an :term:`embedding model`. To connect to
-an embedding model and create embeddings 
-for {+avs+}, use one of the following methods:
+To learn how to create vector embeddings that
+you store in |service| and query using {+avs+},
+complete the following tutorial.
+Specifically, you perform the following steps:
 
-.. list-table::
-   :widths: 25 45 30
-   :header-rows: 1
+#. Define a function that uses an :ref:`embedding model 
+   <choose-embedding-method>` to generate vector embeddings 
+   from data.
+#. Create embeddings from your data and store 
+   them in |service|.
+#. Create embeddings from your search terms and 
+   run a vector search query.
 
-   * - Method
-     - Description
-     - Tutorials
+When you run the query, {+avs+} returns documents 
+whose embeddings are closest in distance to the embedding 
+from your vector search query. This indicates that they 
+are similar in meaning.
 
-   * - Load an open-source model
-     - If you don't have |api| keys or credits with an embedding service,
-       use an open-source embedding model by loading it locally
-       from your application.
- 
-     - | :ref:`Create and Store Embeddings <create-embeddings-examples>` 
-       | :ref:`Build a Local RAG Implementation <local-rag>`
-        
-   * - Call an embedding service
-     - Most AI providers offer |api|\s for their proprietary embedding models 
-       that you can use to create vector embeddings. 
-    
-     - :ref:`Create and Store Embeddings <create-embeddings-examples>`
+.. note::
 
-   * - Use an integration
-     - You can integrate {+avs+} with open-source frameworks like 
-       :ref:`LangChain <langchain>` and :ref:`LlamaIndex <llamaindex>`, 
-       services like :ref:`Amazon Bedrock <amazon-bedrock>`, and more.
-       
-       These integrations include built-in libraries and tools to help 
-       you quickly connect to open-source and proprietary embedding models 
-       and generate vector embeddings for {+avs+}.
-     - :ref:`vector-search-integrations`
+   For production applications, you typically write a script 
+   to generate vector embeddings. You can use the sample code
+   provided on this page to get started, and
+   then customize the code for your specific use case.
 
-.. _create-embeddings-examples:
-.. _create-embeddings-from-data:
-
-Create and Store Embeddings From Data
--------------------------------------
-
-The following procedure shows how to 
-create vector embeddings and store them in |service| 
-by using an open-source or proprietary embedding model.
+Prerequisites
+~~~~~~~~~~~~~
 
 ----------
 
@@ -101,14 +74,11 @@ by using an open-source or proprietary embedding model.
 |arrow| Use the **Select your language** drop-down menu to set the 
 language of the examples on this page.
 
+.. tabs-selector:: drivers
+
 ----------
 
-Prerequisites
-~~~~~~~~~~~~~
-
-To run these examples, you must have the following:
-
-.. tabs-selector:: drivers
+To complete this tutorial, you must have the following:
 
 .. tabs-drivers::
 
@@ -118,9 +88,10 @@ To run these examples, you must have the following:
       - An |service| {+cluster+} running MongoDB version 6.0.11, 7.0.2, or later.
         Ensure that your :abbr:`IP address (Internet Protocal address)` is included
         in your |service| project's :ref:`access list <access-list>`.
-      - An environment to run interactive Python notebooks 
-        such as `Colab <https://colab.research.google.com>`__.
-        
+      - An environment to run interactive Python notebooks
+        such as `VS Code <https://code.visualstudio.com/docs/datascience/jupyter-notebooks>`__
+        or `Colab <https://colab.research.google.com>`__.
+
    .. tab::
       :tabid: nodejs
 
@@ -129,21 +100,21 @@ To run these examples, you must have the following:
         in your |service| project's :ref:`access list <access-list>`.
       - A terminal and code editor to run your Node.js project.
       - `npm and Node.js <https://docs.npmjs.com/downloading-and-installing-node-js-and-npm>`__ installed.
-              
-Procedure
-~~~~~~~~~
 
-Complete the following steps to create vector embeddings
-from custom data and store them in a
-collection in |service|. You can also modify the following code
-to generate embeddings from your own data of any type.  
+Define an Embedding Function
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In this section, you define a function to generate vector embeddings
+by using an embedding model. Select a tab based on whether you want to use 
+an open-source embedding model or a proprietary model from OpenAI.
 
 .. note::
 
-   If you want to create embeddings for an 
-   existing collection, you must add a new field that contains 
-   the embedding and :manual:`update </tutorial/update-documents/>` 
-   each document in the collection.
+   Open-source embedding models are free to use and can be loaded
+   locally from your application. Most proprietary models 
+   require an |api| key to access the models. This tutorial
+   uses an open-source model from Nomic AI or a proprietary model
+   from OpenAI, but you can adapt the code to work with any model.
 
 .. tabs-drivers::
 
@@ -152,86 +123,262 @@ to generate embeddings from your own data of any type.
 
       .. tabs::
 
-         .. tab:: Open-Source Example
+         .. tab:: Open-Source
             :tabid: open-source
 
-            .. include:: /includes/steps-avs-create-embeddings-open-source.rst
+            .. include:: /includes/avs-examples/create-embeddings/steps-avs-embedding-function-python-open-source.rst
 
-         .. tab:: OpenAI Example
+         .. tab:: OpenAI
             :tabid: openai
 
-            .. include:: /includes/steps-avs-create-embeddings-openai.rst
+            .. include:: /includes/avs-examples/create-embeddings/steps-avs-embedding-function-python-openai.rst
 
    .. tab::
       :tabid: nodejs
 
       .. tabs::
          
-         .. tab:: Open-Source Example
+         .. tab:: Open-Source
             :tabid: open-source
 
-            .. include:: /includes/steps-avs-create-embeddings-open-source-nodejs.rst
+            .. include:: /includes/avs-examples/create-embeddings/steps-avs-embedding-function-node-open-source.rst
 
-         .. tab:: OpenAI Example
+         .. tab:: OpenAI
             :tabid: openai
 
-            .. include:: /includes/steps-avs-create-embeddings-openai-nodejs.rst
+            .. include:: /includes/avs-examples/create-embeddings/steps-avs-embedding-function-node-openai.rst
 
-.. _create-embeddings-for-queries:
+Create Embeddings from Data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Create Embeddings for Queries
------------------------------
+In this section, you create vector embeddings from your data 
+by using the function that you defined, and then you store these embeddings
+in a collection in |service|.
 
-The following procedure shows how to 
-create an embedding for {+avs+} queries by using an 
-open-source or proprietary embedding model.
-
-Procedure
-~~~~~~~~~
-
-Once you've :ref:`created embeddings 
-from the sample data <create-embeddings-from-data>`,
-complete the following steps to create an {+avs+}
-index on your data and embeddings for 
-vector search queries.
+Select a tab based on whether you want to 
+create embeddings from new data or from existing data that you already have 
+in |service|. 
 
 .. tabs-drivers::
 
    .. tab::
       :tabid: python
-             
+
       .. tabs::
 
-         .. tab:: Open-Source Example
-            :tabid: open-source
+         .. tab:: From New Data
+            :tabid: new-data
 
-            .. include:: /includes/steps-avs-query-embedding-open-source.rst
+            .. include:: /includes/avs-examples/create-embeddings/steps-avs-create-embeddings-new-python.rst
 
-         .. tab:: OpenAI Example
-            :tabid: openai
+         .. tab:: From Existing Data
+            :tabid: existing-data
 
-            .. include:: /includes/steps-avs-query-embedding-openai.rst
+            .. note::
 
-            .. tip::
+               This example uses the ``sample_airbnb.listingsAndReviews`` 
+               collection from our :ref:`sample data <sample-data>`, 
+               but you can adapt the code to work with any collection
+               in your {+cluster+}.
 
-               You can also create embeddings by calling the |api| endpoint directly.
-               To learn more, see `OpenAI API Reference 
-               <https://platform.openai.com/docs/api-reference/embeddings>`__.
+            .. include:: /includes/avs-examples/create-embeddings/steps-avs-create-embeddings-existing-python.rst
 
    .. tab::
       :tabid: nodejs
-             
+
       .. tabs::
 
-         .. tab:: Open-Source Example
-            :tabid: open-source
+         .. tab:: From New Data
+            :tabid: new-data
 
-            .. include:: /includes/steps-avs-query-embedding-open-source-nodejs.rst
+            .. include:: /includes/avs-examples/create-embeddings/steps-avs-create-embeddings-new-node.rst
 
-         .. tab:: OpenAI Example
-            :tabid: openai
+         .. tab:: From Existing Data
+            :tabid: existing-data
 
-            .. include:: /includes/steps-avs-query-embedding-openai-nodejs.rst
+            .. note::
 
-To learn more about running vector search queries, see 
-:ref:`return-vector-search-results`.
+               This example uses the ``sample_airbnb.listingsAndReviews`` 
+               collection from our :ref:`sample data <sample-data>`, 
+               but you can adapt the code to work with any collection
+               in your {+cluster+}.
+
+            .. include:: /includes/avs-examples/create-embeddings/steps-avs-create-embeddings-existing-node.rst
+
+Create Embeddings for Queries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In this section, you index the vector embeddings in your collection 
+and create an embedding that you use to run a sample vector search query.
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: python
+
+      .. tabs::
+         :hidden: true
+
+         .. tab:: From New Data
+            :tabid: new-data
+
+            .. include:: /includes/avs-examples/create-embeddings/steps-avs-query-embedding-new-python.rst
+
+         .. tab:: From Existing Data
+            :tabid: existing-data
+
+            .. include:: /includes/avs-examples/create-embeddings/steps-avs-query-embedding-existing-python.rst
+
+   .. tab::
+      :tabid: nodejs
+
+      .. tabs::
+         :hidden: true
+
+         .. tab:: From New Data
+            :tabid: new-data
+
+            .. include:: /includes/avs-examples/create-embeddings/steps-avs-query-embedding-new-node.rst
+
+         .. tab:: From Existing Data
+            :tabid: existing-data
+
+            .. include:: /includes/avs-examples/create-embeddings/steps-avs-query-embedding-existing-node.rst
+
+.. _embeddings-considerations:
+
+Considerations
+--------------
+
+Consider the following factors when creating vector embeddings:
+
+.. _choose-embedding-method:
+
+Choosing a Method to Create Embeddings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In order to create vector embeddings, you must use an 
+:ref:`embedding model <choose-embedding-model>`.
+Embedding models are algorithms that you use to 
+convert your data into embeddings. You can choose one of the 
+following methods to connect to an embedding model and 
+create vector embeddings:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - Load an open-source model
+     - If you don't have an |api| key for a proprietary embedding model,
+       load an open-source embedding model locally from your application.
+
+   * - Use a proprietary model
+     - Most AI providers offer |api|\s for their proprietary 
+       embedding models that you can use to create vector embeddings.
+
+   * - Leverage an integration
+     - You can :ref:`integrate <vector-search-integrations>` {+avs+} 
+       with open-source frameworks and AI services to quickly connect to 
+       both open-source and proprietary embedding models 
+       and generate vector embeddings for {+avs+}. 
+       
+       To learn more, see :ref:`vector-search-integrations`.
+
+.. _choose-embedding-model:
+
+Choosing an Embedding Model
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The embedding model you choose affects your query results
+and determines the number of dimensions you 
+specify in your {+avs+} index. Each model offers 
+different advantages depending on your data and use case.
+
+For a list of popular embedding models, see the 
+`Massive Text Embedding Benchmark (MTEB) 
+<https://huggingface.co/spaces/mteb/leaderboard>`__. This list 
+provides insights into various open-source and proprietary text
+embedding models and allows you to filter models by use case, 
+model type, and specific model metrics.
+
+When choosing an embedding model for {+avs+},
+consider the following metrics:
+
+- **Embedding Dimensions**: The length of the vector embedding.
+  Smaller embeddings are more storage efficient, while larger embeddings 
+  can capture more nuanced relationships in your data. 
+  The model you choose should strike a balance between 
+  efficiency and complexity.
+
+- **Max Tokens**: The number of `tokens 
+  <https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them>`__
+  that can be compressed in a single embedding. A max token length of 512 
+  can be used for most semantic search use cases, as
+  you typically don't want more than a paragraph of text (~100 tokens) 
+  in a single embedding. 
+
+- **Model Size**: The size of the model in gigabytes. 
+  While larger models perform better, they require
+  more computational resources as you
+  scale {+avs+} to production.
+
+- **Retrieval Average**: A score that measures the performance 
+  of retrieval systems. A higher score indicates that the model is 
+  better at ranking relevant documents higher in the list of retrieved 
+  results. This score is important when choosing a model 
+  for :ref:`RAG <avs-rag>` applications.
+
+.. seealso:: 
+    
+   :website:`How to Choose the Right Embedding Model for Your Application
+   </developer/products/atlas/choose-embedding-model-rag/#step-5--create-embeddings>`
+
+.. _validating-embeddings:
+
+Validating Your Embeddings
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider the following strategies to ensure that your 
+embeddings are correct and optimal:
+
+- **Test your functions and scripts**: Generating 
+  embeddings takes time and computational resources. 
+  Before you create embeddings from large datasets or collections, 
+  test that your embedding functions or scripts work as expected
+  on a small subset of your data.
+
+- **Ensure consistent dimensions**: Your embeddings 
+  stored in |service|, query embeddings, and {+avs+} 
+  index definition must match the dimensions of the 
+  embedding model that you choose.
+
+- **Create embeddings in batches**: If you want to generate embeddings
+  from a large dataset or a collection with many documents, 
+  create them in batches to avoid memory issues and optimize performance.
+
+- **Monitor memory usage**: If you experience performance issues 
+  when creating embeddings, check your memory usage.
+  For example, if you use a hosted service such as Colab, 
+  ensure that you have enough RAM in your environment.
+
+- **Evaluate performance**: Run test queries to check 
+  if your search results are relevant and accurately ranked.
+  
+  You can also experiment with different 
+  embedding models to improve the performance of your vector search 
+  queries. To learn more, see :website:`How to Evaluate Your LLM Application
+  </developer/products/atlas/evaluate-llm-applications-rag>`.
+
+Next Steps  
+----------
+
+Once you've learned how to create embeddings and 
+query your embeddings with {+avs+}, start building 
+generative AI applications by implementing
+retrieval-augmented generation (RAG):
+
+- :ref:`avs-rag`
+- :ref:`local-rag`

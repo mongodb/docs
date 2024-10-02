@@ -10,5 +10,5 @@
       cd my-embeddings-project
       npm init -y
 
-.. include:: /includes/nav/steps-avs-nodejs-config-modules.rst
+.. include:: /includes/steps-avs-nodejs-config-modules.rst
  

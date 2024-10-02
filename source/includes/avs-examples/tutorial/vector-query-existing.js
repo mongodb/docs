@@ -11,11 +11,11 @@ async function run() {
         await client.connect();
 
         // Specify the database and collection
-        const database = client.db("sample_db"); 
-        const collection = database.collection("embeddings"); 
+        const database = client.db("sample_airbnb"); 
+        const collection = database.collection("listingsAndReviews"); 
 
         // Generate embedding for the search query
-        const queryEmbedding = await getEmbedding("ocean tragedy");
+        const queryEmbedding = await getEmbedding("beach house");
 
         // Define the sample vector search pipeline
         const pipeline = [
@@ -31,7 +31,7 @@ async function run() {
             {
                 $project: {
                     _id: 0,
-                    text: 1,
+                    summary: 1,
                     score: {
                         $meta: "vectorSearchScore"
                     }

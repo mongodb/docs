@@ -1,20 +1,5 @@
 import { MongoClient } from 'mongodb';
-import OpenAI from 'openai';
-
-// Setup OpenAI configuration
-const openai = new OpenAI({
-    apiKey: "<apiKey>",
-});
-
-// Function to get the embeddings using the OpenAI API
-export async function getEmbedding(text) {
-    const response = await openai.embeddings.create({
-        model: "text-embedding-3-small",
-        input: text,
-        encoding_format: "float",
-    });
-    return response.data[0].embedding;
-}
+import { getEmbedding } from './get-embeddings.js';
 
 // Data to embed
 const data = [ 
@@ -33,11 +18,14 @@ async function run() {
         const db = client.db("sample_db");
         const collection = db.collection("embeddings");
 
-        // Ingest data and embeddings into Atlas
         await Promise.all(data.map(async text => {
             // Check if the document already exists
-            const embedding = await getEmbedding(text);
             const existingDoc = await collection.findOne({ text: text });
+
+            // Generate an embedding by using the function that you defined
+            const embedding = await getEmbedding(text);
+
+            // Ingest data and embedding into Atlas
             if (!existingDoc) {
                 await collection.insertOne({
                     text: text,
