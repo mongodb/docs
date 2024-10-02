@@ -62,4 +62,4 @@ Before you begin, complete the following prerequisites:
      Docker requires a network connection for pulling and caching 
      MongoDB images.
 
-     `Podman <https://podman.io>`__ is also supported for Linux RHEL versions.  
+     `Podman v5.0+ <https://podman.io>`__ is also supported for Linux RHEL versions.  
