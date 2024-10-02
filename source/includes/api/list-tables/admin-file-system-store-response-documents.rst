@@ -32,10 +32,7 @@
        snapshot store. Set this option only if you're using more than
        one snapshot store.
 
-       .. seealso::
-
-          To learn more about :guilabel:`Load Factor`, see
-          :doc:`Edit an Existing Blockstore </tutorial/manage-blockstore-storage>`
+       To learn more about :guilabel:`Load Factor`, see :ref:`Edit One Existing Blockstore <edit-blockstore>`.
 
    * - mmapv1CompressionSetting
      - string
@@ -47,9 +44,10 @@
        If the MongoDB runs |fcv-link| 4.2 or later, |onprem| ignores
        this setting.
 
-       .. important::
-
-          .. include:: /includes/fact-mmapv1-deprecated.rst
+       :gold:`IMPORTANT:` MongoDB removed support for the MMAPv1 storage engine in MongoDB 4.2.
+       If you :doc:`edit your deployment's configuration </tutorial/edit-deployment>` 
+       to change your storage engine to :ref:`storage-wiredtiger`, |mms|
+       restarts the MongoDB processes.
 
    * - storePath
      - string
