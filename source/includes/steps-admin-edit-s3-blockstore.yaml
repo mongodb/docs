@@ -138,34 +138,32 @@ content: |
          |mms| displays this field when you set
          :guilabel:`S3 Authorization Mode` to :guilabel:`Keys`.
 
-         .. note::
-
-            |mms| doesn't display the existing Secret Access Key.
+         |mms| doesn't display the existing Secret Access Key.
+       
 
      * - <hostname>:<port>
        - Required
        - Type in one or more hosts that comprise the |s3| Snapshot
          Store metadata database in the ``<hostname:port>`` format.
 
-         .. important::
+         If the |s3ss| metadata database is a Replica
+         Set or Sharded Cluster, type a comma-separated list of
+         |mongod| instances (for a Replica Set) or |mongos|
+         instances (for a Sharded Cluster).
 
-            If these hosts are changed, the blockstore they host must
-            have the same data as the original blockstore. Changing
-            the host to a new blockstore results in data loss.
+         For example:
 
-         - If the |s3ss| metadata database is a Replica
-           Set or Sharded Cluster, type a comma-separated list of
-           |mongod| instances (for a Replica Set) or |mongos|
-           instances (for a Sharded Cluster).
+         .. code-block:: ini
 
-           .. example::
+            host1.example.com:27017,host2.example.com:27017,host2.example.com:27018
 
-              ``host1.example.com:27017,host2.example.com:``
-              ``27017,host2.example.com:27018``
-
-         - If the |s3ss| metadata database is a
-           standalone MongoDB instance, type the ``hostname:port`` of
-           the instance.
+         If the |s3ss| metadata database is a
+         standalone MongoDB instance, type the ``hostname:port`` of
+         the instance.
+       
+         :gold:`IMPORTANT:` If these hosts are changed, the blockstore they host must
+         have the same data as the original blockstore. Changing the host to a new 
+         blockstore results in data loss.
 
      * - MongoDB Auth Username
        - Optional
@@ -179,12 +177,16 @@ content: |
 
          .. include:: /includes/tabsets/storage-settings-password.rst
 
+         |onprem| doesn't display the existing
+         :guilabel:`MongoDB Auth Password`.
+
          .. include:: /includes/warning-plaintext-password.rst
 
          .. note::
 
             |onprem| doesn't display the existing
             :guilabel:`MongoDB Auth Password`.
+       
 
      * - Encrypted Credentials
        - Optional
@@ -223,49 +225,58 @@ content: |
          you want this snapshot store to perform compared to another
          snapshot store.
 
-         .. important::
-         
-            If you have only one snapshot store, skip this setting.
-
          Backup work includes running backups, restoring snapshots or
-         :term:`grooming <groom>` blockstores. The term of backup work
-         ratio assigned to a single snapshot store is called its *Load
-         Factor*.
+         :term:`grooming <groom>` blockstores. The ratio of backup work
+         assigned to a single snapshot store is called its *Load
+         Factor*.         
 
-         By default, |mms| assigns each snapshot store a
-         :guilabel:`Load Factor` of ``1``. This means each snapshot
-         store would perform the same amount of backup work.
+         :gold:`IMPORTANT:` If you have only one snapshot store,
+         :guilabel:`Load Factor` represents the number of concurrent 
+         backup work processes the snapshot store performs at a time.
+         To avoid performance costs associated with running multiple 
+         concurrent processes when you have one snapshot store, 
+         omit this setting to assign your snapshot store the 
+         default :guilabel:`Load Factor` of ``1``. 
+
+         When you have multiple snapshot stores, the default :guilabel:`Load Factor` 
+         of ``1`` assigns each snapshot store the same amount of work. If a snapshot 
+         store's :guilabel:`Load Factor` is set to ``0``, 
+         it performs no backup work at all. 
+         
+         If a snapshot store's :guilabel:`Load Factor` is changed while 
+         backup work is in progress, all jobs or tasks running on that snapshot store
+         are allowed to finish. All future backup work is then re-
+         distributed among the remaining snapshot stores that have a
+         :guilabel:`Load Factor` of ``1`` or greater and 
+         :guilabel:`Assignment Enabled` selected. 
 
          As a snapshot store's :guilabel:`Load Factor` increases, it
          performs more backup work compared to another snapshot store.
-         If the :guilabel:`Load Factor` of snapshot store ``A`` is set
+         For example, if the :guilabel:`Load Factor` of snapshot store ``A`` is set
          to ``2`` and the :guilabel:`Load Factor` of snapshot store
-         ``B`` is set to ``1``, ``A`` performs two times the backup
+         ``B`` is set to ``1``, then ``A`` performs two times the backup
          work of ``B``.
 
-         .. example:: **How to estimate Load Factor**
+         Snapshot stores with greater computer or storage performance
+         should be given a greater :guilabel:`Load Factor`. 
+         For example, consider a five-shard sharded cluster with the
+         following backup storage configuration:
 
-            Consider a five-shard sharded cluster with the
-            following backup storage configuration:
+         - File system store (``F``) manages the backup work for
+           one shard in the cluster. ``F`` is running on a single
+           two-core physical server.
 
-            - File system store (``F``) manages the backup work for
-              one shard in the cluster. ``F`` is running on a single
-              two-core physical server.
+         - Blockstore (``B``) manages the backup work for four
+           shards in the cluster. ``B`` is running as a four-node
+           sharded cluster on four physical servers with two cores
+           on each server.
 
-            - Blockstore (``B``) manages the backup work for four
-              shards in the cluster. ``B`` is running as a four-node
-              sharded cluster on four physical servers with two cores
-              on each server.
+         In this example, ``B`` has four times the capability of
+         ``F``. You should set the :guilabel:`Load Factor`\s of ``B`` to ``4`` and ``F`` to ``1``. 
+         For every ``1`` backup task ``F`` performs, ``B`` performs ``4``.
 
-            In this example, ``B`` has four times the capability of
-            ``F``. ``B`` should receive the greater part of the ratio
-            of backup work: ``4:1``. For every one backup task ``F``
-            performs, ``B`` performs ``4``.
-
-            Set the Load Factors of ``B`` to ``4`` and ``F`` to ``1``.
-
-         Snapshot stores with greater compute or storage performance
-         should be given a greater :guilabel:`Load Factor`:
+         For more examples comparing the storage capabilities of 
+         different backup configurations, see:  
 
          - A file system store with 16-cores and 128 GB of RAM can
            back up more databases in less time than a file system
@@ -284,6 +295,7 @@ content: |
          distributed among the remaining snapshot stores with a
          :guilabel:`Load Factor` of ``1`` or greater and have
          :guilabel:`Assignment Enabled` selected.
+       
 
      * - Write Concern
        - Required

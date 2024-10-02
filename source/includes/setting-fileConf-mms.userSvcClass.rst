@@ -19,8 +19,13 @@
         - Accepted Value
    
       * - Application Database
-        - ``com.xgen.svc.mms.svc.user.UserSvcDb``
-   
+        - ``UserSvcDb``
+          
+          :gold:`IMPORTANT:` In |onprem| 6.0, the accepted value is 
+          ``com.xgen.svc.mms.svc.user.UserSvcDb``. 
+          If you use this old accepted value, your |mms|
+          instance will not start during preflight checks.
+              
       * - |ldap|
         - ``com.xgen.svc.mms.svc.user.UserSvcLdap``
    
