@@ -37,12 +37,10 @@
            - Enter the Distinguished Name for the Backup's |ldap|
              Group.
 
-             .. note::
-
-                Provide the Backup's |ldap| Group
-                :abbr:`DN (Distinguished Name)` only if you use |ldap|
-                Authorization. Each Backup should have and use its
-                own |ldap| Group :abbr:`DN (Distinguished Name)`.
+             Provide the Backup's |ldap| Group
+             :abbr:`DN (Distinguished Name)` only if you use |ldap|
+             Authorization. Each Backup should have and use its
+             own |ldap| Group :abbr:`DN (Distinguished Name)`.
 
    .. tab:: Kerberos
       :tabid: kerberos
@@ -76,10 +74,8 @@
                    MongoDB to grant the Backup the appropriate
                    privileges.
 
-                   .. note::
-
-                      You only need to provide the LDAP Group DN if
-                      you use LDAP Authorization.
+                   You only need to provide the LDAP Group DN if
+                   you use LDAP Authorization.
 
          .. tab:: Windows Active Directory
             :tabid: windows
@@ -129,7 +125,5 @@
            - Enter the Distinguished Name for the Backup's |ldap|
              Group.
 
-             .. note::
-              
-                You only need to provide Backup's |ldap| Group DN if
-                you use |ldap| Authorization.
+             You only need to provide Backup's |ldap| Group DN if
+             you use |ldap| Authorization.

@@ -37,12 +37,10 @@
            - Enter the Distinguished Name for the MongoDB Agent's
              |ldap| Group.
 
-             .. note::
-
-                Provide the MongoDB Agent's |ldap| Group
-                :abbr:`DN (Distinguished Name)` only if you use |ldap|
-                Authorization. Each MongoDB Agent should have and use
-                its own |ldap| Group :abbr:`DN (Distinguished Name)`.
+             Provide the MongoDB Agent's |ldap| Group
+             :abbr:`DN (Distinguished Name)` only if you use |ldap|
+             Authorization. Each MongoDB Agent should have and use
+             its own |ldap| Group :abbr:`DN (Distinguished Name)`.
 
    .. tab:: Kerberos
       :tabid: kerberos
@@ -76,10 +74,8 @@
                    MongoDB to grant the MongoDB Agent the appropriate
                    privileges.
 
-                   .. note::
-
-                      You only need to provide the LDAP Group DN if
-                      you use LDAP Authorization.
+                   You only need to provide the LDAP Group DN if
+                   you use LDAP Authorization.
 
          .. tab:: Windows Active Directory
             :tabid: windows
@@ -139,7 +135,5 @@
            - Enter the Distinguished Name for the MongoDB Agent's
              |ldap| Group.
 
-             .. note::
-              
-                You only need to provide MongoDB Agent's |ldap| Group
-                DN if you use |ldap| Authorization.
+             You only need to provide MongoDB Agent's |ldap| Group
+             DN if you use |ldap| Authorization.
