@@ -6,7 +6,7 @@
     },
     "description": "OpenAPI specification for MongoDB Relational Migrator tool",
     "title": "MongoDB Relational Migrator REST API",
-    "version": "1.9.0"
+    "version": "1.10.0"
   },
   "servers": [
     {
@@ -524,6 +524,137 @@
         ]
       }
     },
+    "/project/{projectId}/queries/bulk-convert": {
+      "delete": {
+        "operationId": "stopBulkQueryConversion",
+        "description": "Stop a running bulk query conversion job",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "description": "Project ID",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/bulk-query-conversion-info"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-response"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Query"
+        ]
+      },
+      "get": {
+        "operationId": "getBulkQueryConversion",
+        "description": "Get the status of a bulk query conversion job",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "description": "Project ID",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/bulk-query-conversion-info"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-response"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Query"
+        ]
+      },
+      "post": {
+        "operationId": "createBulkQueryConversion",
+        "description": "Create a bulk query conversion job",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "description": "Project ID",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/bulk-query-conversion-request"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/bulk-query-conversion-info"
+                }
+              }
+            }
+          },
+          "497": {
+            "description": "Operation is not allowed when there are existing query conversions jobs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-response"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Query"
+        ]
+      }
+    },
     "/project/{projectId}/queries/{queryId}": {
       "delete": {
         "operationId": "deleteQuery",
@@ -554,6 +685,16 @@
           },
           "404": {
             "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-response"
+                }
+              }
+            }
+          },
+          "497": {
+            "description": "Operation is not allowed when there are existing query conversions jobs",
             "content": {
               "application/json": {
                 "schema": {
@@ -679,6 +820,16 @@
                 }
               }
             }
+          },
+          "497": {
+            "description": "Operation is not allowed when there are existing query conversions jobs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-response"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -689,6 +840,10 @@
   },
   "components": {
     "schemas": {
+      "id": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9\\-]+$"
+      },
       "error-response": {
         "type": "object",
         "properties": {
@@ -712,10 +867,6 @@
           "timestamp"
         ]
       },
-      "id": {
-        "type": "string",
-        "pattern": "^[A-Za-z0-9\\-]+$"
-      },
       "jdbc-connection-details": {
         "type": "object",
         "properties": {
@@ -732,6 +883,12 @@
             "type": "string"
           },
           "password": {
+            "type": "string"
+          },
+          "savePassword": {
+            "type": "boolean"
+          },
+          "existingConnectionId": {
             "type": "string"
           }
         },
@@ -754,6 +911,9 @@
             "description": "Atlas projectId",
             "type": "string"
           },
+          "savePassword": {
+            "type": "boolean"
+          },
           "projectName": {
             "description": "Atlas project name",
             "type": "string"
@@ -765,6 +925,9 @@
           "hasTimeSeriesCollection": {
             "type": "boolean",
             "default": false
+          },
+          "existingConnectionId": {
+            "type": "string"
           }
         },
         "additionalProperties": false,
@@ -1076,6 +1239,61 @@
           "projectId"
         ]
       },
+      "bulk-query-conversion-info": {
+        "type": "object",
+        "properties": {
+          "pendingQueries": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "runningQueries": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "completedQueries": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "failedQueries": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "completedQueries",
+          "failedQueries",
+          "pendingQueries",
+          "runningQueries"
+        ]
+      },
+      "bulk-query-conversion-request": {
+        "type": "object",
+        "properties": {
+          "language": {
+            "$ref": "#/components/schemas/convert-query-language-type"
+          },
+          "queries": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "language",
+          "queries"
+        ]
+      },
       "query-details-response": {
         "type": "object",
         "properties": {
@@ -1179,15 +1397,7 @@
         ]
       },
       "database-type": {
-        "type": "string",
-        "enum": [
-          "ORACLE",
-          "SQL_SERVER",
-          "MYSQL",
-          "POSTGRESQL",
-          "DB2",
-          "SYBASE"
-        ]
+        "type": "string"
       },
       "migration-job-descriptor-options": {
         "type": "object",
@@ -1411,7 +1621,8 @@
           "NOT_STARTED",
           "RUNNING",
           "FAILED",
-          "COMPLETED"
+          "COMPLETED",
+          "PENDING"
         ]
       },
       "convert-query-language-type": {
