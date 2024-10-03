@@ -4,7 +4,7 @@
    .. step:: Install the MongoDB PHP Driver.
 
       For detailed installation instructions, see the
-      :ref:`MongoDB PHP Library documentation <php-library-install>`.
+      :ref:`MongoDB PHP Library documentation <php-download-and-install>`.
 
    .. step:: Construct your vector search query.
 
