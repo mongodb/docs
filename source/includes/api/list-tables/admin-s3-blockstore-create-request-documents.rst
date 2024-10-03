@@ -100,10 +100,7 @@
        snapshot store. This option is needed only if more than one
        snapshot store is in use.
 
-       .. seealso::
-
-          To learn more about :guilabel:`Load Factor`, see
-          :doc:`Edit an Existing S3 Blockstore </tutorial/manage-s3-blockstore-storage>`
+       To learn more about :guilabel:`Load Factor`, see :ref:`Edit One Existing Blockstore <edit-blockstore>`.
 
    * - pathStyleAccessEnabled
      - boolean
@@ -208,7 +205,5 @@
        - ``JOURNALED``
        - ``MAJORITY``
 
-       .. seealso::
-
-          To learn about write acknowledgement levels in MongoDB, see
-          :manual:`Write Concern </reference/write-concern>`
+       To learn about write acknowledgement levels in MongoDB, see 
+       :manual:`Write Concern </reference/write-concern>`.

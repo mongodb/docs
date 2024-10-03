@@ -40,10 +40,7 @@
        to another snapshot store. This option is needed only if more 
        than one snapshot store is in use.
 
-       .. seealso::
-
-          To learn more about :guilabel:`Load Factor`, see 
-          :doc:`Edit an Existing Blockstore </tutorial/manage-blockstore-storage>`
+       To learn more about :guilabel:`Load Factor`, see :ref:`Edit One Existing Blockstore <edit-blockstore>`.
    
    * - maxCapacityGB
      - number
@@ -72,7 +69,5 @@
        - ``JOURNALED``
        - ``MAJORITY``
 
-       .. seealso::
-
-          To learn about write acknowledgement levels in MongoDB, see 
-          :manual:`Write Concern </reference/write-concern>`
+       To learn about write acknowledgement levels in MongoDB, see 
+       :manual:`Write Concern </reference/write-concern>`.
