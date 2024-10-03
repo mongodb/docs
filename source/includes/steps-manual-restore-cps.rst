@@ -13,7 +13,10 @@
          :guilabel:`Download` for the snapshot that you want to download.
       
          |service| generates a one-time use download link that expires
-         within 1 hour after its creation.
+         within 1 hour after its creation. For |aws|, |service| also 
+         generates a one-time-use download link for any :ref:`configured 
+         private endpoints <cluster-private-endpoint>` in the same region 
+         as the snapshot.
       
          The amount of time to create this link increases with the size of
          the |service| cluster.
@@ -27,7 +30,12 @@
       .. note:: Available via API
       
          As another option, you can request a restore snapshot using the
-         :oas-atlas-op:`API </restoreOneSnapshotOfOneCluster>`.
+         :oas-atlas-op:`API </createBackupRestoreJob>`. The 
+         {+atlas-admin-api+} returns the download link in the 
+         ``deliveryUrl`` field for downloading over the public internet 
+         and in the ``privateDownloadDeliveryUrls`` field for downloading 
+         over the |aws| private endpoint in the same region as the 
+         snapshot.
       
    .. step:: Add the |ipaddr| or |cidr| address of the client to your |service| project :ref:`IP access list <access-list>`.
 
