@@ -11,7 +11,7 @@
 
          npm install mongodb openai
 
-   .. step:: Create vector embeddings and store them in |service|.
+   .. step:: Define a function to generate vector embeddings.
 
       a. Create a file named ``get-embeddings.js`` and paste 
          the following code. This code defines a function named ``getEmbedding`` 
