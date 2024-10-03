@@ -76,7 +76,7 @@ expressions to limit the data included in each event.
 Create a Database Trigger
 -------------------------
 
-You can create a database Trigger from the {+atlas-ui+} or using the
+You can create a database Trigger from the {+atlas-ui+} or with the
 App Services CLI.
 
 .. tabs::
@@ -93,6 +93,8 @@ App Services CLI.
       #. Select the :guilabel:`Database` Trigger type.
 
       #. Configure the Trigger, then click :guilabel:`Save`.
+
+      .. figure:: /images/trigger-example-db.png
 
    .. tab:: App Services CLI
       :tabid: cli
@@ -129,44 +131,7 @@ Database Triggers have the following configuration options:
 Trigger Details
 ~~~~~~~~~~~~~~~
 
-.. list-table::
-   :header-rows: 1
-   :widths: 15 30
-
-   * - Field
-     - Description
-
-   * - :guilabel:`Trigger Type`
-     - The type of the Trigger. Set this value to :guilabel:`Database` for
-       database Triggers
-
-   * - :guilabel:`Name`
-     - The name of the Trigger.
-
-   * - :guilabel:`Enabled`
-     - Enabled by default. Used to enable or disable the Trigger.
-
-   * - :guilabel:`Skip Events On Re-Enable`
-     - Disabled by default. If enabled, any change events that occurred while this
-       Trigger was disabled will not be processed.
-
-   * - :guilabel:`Event Ordering`
-     - If enabled, Trigger events are processed in the order in which they occur.
-       If disabled, events can be processed in parallel, which is faster when
-       many events occur at the same time.
-
-       If event ordering is enabled, multiple executions of this Trigger will occur
-       sequentially based on the timestamps of the change events. If event ordering is
-       disabled, multiple executions of this Trigger will occur independently.
-
-       **Tip:** To improve performance for Triggers that respond to bulk database
-       operations, :ref:`disable event
-       ordering.<atlas-database-triggers-disable-event-ordering>`
-
-Trigger Source Details
-~~~~~~~~~~~~~~~~~~~~~~
-
-Within the :guilabel:`Trigger Source Details` section, you first select the
+Within the :guilabel:`Trigger Details` section, you can select the scope that you want the Trigger to 
 :guilabel:`Watch Against`, based on the level of granularity you want. Your
 options are:
 
@@ -324,10 +289,41 @@ following table describes these options.
    You can upgrade a non-sharded cluster (with preimages) to a
    sharded cluster, as long as the cluster is running 5.3 or later.
 
-Function
-~~~~~~~~
+Trigger Configurations
+~~~~~~~~~~~~~~~~~~~~~~
 
-Within the :guilabel:`Function` section, you choose what action is taken when
+.. list-table::
+   :header-rows: 1
+   :widths: 15 30
+
+   * - Field
+     - Description
+
+   * - :guilabel:`Auto-Resume`
+
+     - .. include:: /includes/triggers/trigger-auto-resume.rst
+
+   * - :guilabel:`Event Ordering`
+     - If enabled, Trigger events are processed in the order in which they occur.
+       If disabled, events can be processed in parallel, which is faster when
+       many events occur at the same time.
+
+       If event ordering is enabled, multiple executions of this Trigger will occur
+       sequentially based on the timestamps of the change events. If event ordering is
+       disabled, multiple executions of this Trigger will occur independently.
+
+       **Tip:** To improve performance for Triggers that respond to bulk database
+       operations, :ref:`disable event
+       ordering.<atlas-database-triggers-disable-event-ordering>`
+
+   * - :guilabel:`Skip Events On Re-Enable`
+     - Disabled by default. If enabled, any change events that occurred while this
+       Trigger was disabled will not be processed.
+
+Event Type
+~~~~~~~~~~
+
+Within the :guilabel:`Event Type` section, you choose what action is taken when
 the Trigger fires. You can choose to run a :ref:`Function <atlas-functions>` or use
 :ref:`AWS EventBridge <atlas-aws-eventbridge>`.
 
@@ -344,21 +340,17 @@ options are available:
    * - Field
      - Description
 
-   * - :guilabel:`Match Expression`
-
-     - .. include:: /includes/triggers/trigger-match-expression.rst
-
    * - :guilabel:`Project Expression`
 
      - .. _atlas-trigger-project-expression:
 
        .. include:: /includes/triggers/trigger-project-expression.rst
 
-   * - :guilabel:`Auto-Resume Triggers`
+   * - :guilabel:`Match Expression`
 
-     - .. include:: /includes/triggers/trigger-auto-resume.rst
+     - .. include:: /includes/triggers/trigger-match-expression.rst
 
-   * - :guilabel:`Maximum Throughput Triggers`
+   * - :guilabel:`Maximum Throughput`
 
      - .. _atlas-triggers-maximum-throughput:
 
@@ -489,6 +481,36 @@ When the Trigger observes an ``Update`` event, it passes the
 changes to the ``shippingLocation`` field and, if it was updated, sends
 a text message to the customer with the new location of the order.
 
+.. tabs::
+   
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+
+      .. figure:: /images/trigger-example-db-update.png
+         :alt: Example UI that configures the trigger
+
+   .. tab:: App Services CLI
+      :tabid: cli
+      
+      .. code-block:: json
+         :caption: Trigger Configuration
+         
+         {
+           "type": "DATABASE",
+           "name": "shippingLocationUpdater",
+           "function_name": "textShippingUpdate",
+           "config": {
+             "service_name": "mongodb-atlas",
+             "database": "store",
+             "collection": "orders",
+             "operation_types": ["UPDATE"],
+             "unordered": false,
+             "full_document": true,
+             "match": {}
+           },
+           "disabled": false
+         }
+
 .. code-block:: javascript
    :caption: textShippingUpdate
 
@@ -586,8 +608,7 @@ before the Trigger executes.
 View your cluster's oplog throughput in the **Oplog GB/Hour** graph in the
 :atlas:`|service| cluster metrics </monitor-cluster-metrics/>`.
 
-You can restart a suspended Trigger from the {+atlas-ui+} or using the App
-Services CLI.
+You can restart a suspended Trigger from the {+atlas-ui+} or with the App Services CLI.
 
 .. tabs::
 
