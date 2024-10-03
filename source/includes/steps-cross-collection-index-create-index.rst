@@ -33,7 +33,7 @@
       
       The newly created index appears on the :guilabel:`Atlas Search` tab. While 
       the index is building, the :guilabel:`Status` field reads 
-      :guilabel:`Build in Progress`. When the index is finished building,
+      :guilabel:`Building`. When the index is finished building,
       the :guilabel:`Status` field reads :guilabel:`Active`.
       
       .. note::
