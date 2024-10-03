@@ -42,6 +42,4 @@
        - PRODUCTION_SERVER
        - RAM_POOL
 
-       .. seealso::
-
-          :ref:`admin-console-general-mongodb-usage`
+       To learn more, see :ref:`admin-console-general-mongodb-usage`.

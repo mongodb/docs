@@ -40,13 +40,6 @@ The following table lists upgrade paths for all versions:
 
      - Upgrade Path
 
-   * - 8.0.x
-     - Upgrade from |onprem| 8.0.x to the latest available patch 
-       version of 8.0 using 
-       :ref:`this procedure <upgrade-om-procedure>`.
-
-       To learn more, see :ref:`Ops Manager 8.0 release notes <opsmgr-server-8.0>`. 
-
    * - 7.0.x
      - Upgrade from |onprem| 7.0.x to the latest available patch 
        version of 7.0 using 

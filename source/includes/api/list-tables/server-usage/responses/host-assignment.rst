@@ -68,9 +68,7 @@
      - object
      - Server Type of the physical host.
 
-       .. seealso::
-
-          :ref:`admin-console-general-mongodb-usage`
+       To learn more, see :ref:`admin-console-general-mongodb-usage`.
 
    * - serverType.name
      - string
