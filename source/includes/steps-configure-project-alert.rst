@@ -53,7 +53,7 @@
            (Optional) In the :guilabel:`resend after` field, specify the 
            minutes to elapse before the condition resends the alert.
       b. In the :guilabel:`Add Notifier` drop-down menu, select from the options
-         described in the following table.g
+         described in the following table.
          
          .. include:: /includes/list-table-alert-notification-methods.rst
       

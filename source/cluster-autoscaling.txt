@@ -22,28 +22,39 @@ You can configure the {+cluster+} tier ranges that |service| uses to
 automatically scale your {+cluster+} tier, storage capacity, or both in
 response to {+cluster+} usage.
 
-{+Cluster+} auto-scaling removes the need to write scripts or use
-consulting services to make scaling decisions. To help control costs,
-you can specify a range of maximum and minimum {+cluster+} sizes that
-your {+cluster+} can automatically scale to.
+|service| auto-scaling adjusts {+cluster+} tier based on real-time resource
+usage. The improved auto-scaling engine can now more accurately detect
+sustained higher demand and short-term peak traffic for upscaling decisions.
+Similarly, |service| makes downscaling choices more promptly, for more
+optimized resource utilization and cost profile.
+
+To help control costs, you can specify a range of maximum and minimum
+{+cluster+} sizes that your {+cluster+} can automatically scale to.
 
 Auto-scaling works on a rolling basis, meaning the process doesn't
 incur any downtime.
+
 
 .. _howitworks-scale-cluster-tier:
 
 How |service| Scales {+Cluster+} Tier
 -------------------------------------
 
+.. note:: Tier Availability
+
+   Automatic scaling works on {+cluster+} tiers in :guilabel:`General` and
+   :guilabel:`Low-CPU` classes, but *not* on {+clusters+} in
+   the :guilabel:`Local NVMe SSD` class.
+
 |service| analyzes the following {+cluster+} metrics to
 determine when to scale a {+cluster+}, and whether to scale the
 {+cluster+} tier up or down:
 
-- CPU utilization
+- Normalized System CPU Utilization
 
-- Memory utilization
+- System Memory Utilization
 
-|service| calculates memory utilization based on your available memory
+|service| calculates system System Memory Utilization based on available node memory
 and total memory as follows:
 
 (``memoryTotal`` - (``memoryFree`` + ``memoryBuffers`` + ``memoryCached``)) / (``memoryTotal``) * 100
@@ -53,18 +64,15 @@ amounts of available memory that |service| can reclaim for other
 purposes. To learn more, see :guilabel:`System Memory` in
 :ref:`review-available-metrics`.
 
-|service| won't scale your {+cluster+} tier if any of the following are true:
-
-- New {+cluster+} tier would fall outside of your specified
-  :guilabel:`Minimum` and :guilabel:`Maximum Cluster Size` range. 
-- Memory utilization would exceed the available memory
-  for the new {+cluster+} tier.
+|service| won't scale your {+cluster+} tier if the new {+cluster+} 
+tier would fall outside of your specified :guilabel:`Minimum` and 
+:guilabel:`Maximum Cluster Size` range. 
 
 |service| scales your {+cluster+} to another tier in the same class.
 For example, |service| scales :guilabel:`General` {+clusters+}
-to other :guilabel:`General` {+cluster+} tiers, but doesn't scale 
+to other :guilabel:`General` {+cluster+} classes, but doesn't scale 
 :guilabel:`General` {+clusters+} to :guilabel:`Low-CPU` {+cluster+}
-tiers.
+classes.
 
 The exact auto-scaling criteria are subject to change in order to ensure
 appropriate cluster resource utilization.
@@ -78,27 +86,52 @@ Set Scaling Mode <replica-set-scaling-mode>`.
 Scaling Up a {+Cluster+} Tier
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. note:: Tier Availability
+To effectively manage dynamic workloads for your applications, |service|
+scales up nodes in your {+cluster+} under the conditions described in this
+section.
 
-   Automatic scaling works on :guilabel:`General` and
-   :guilabel:`Low-CPU` tier {+clusters+}, but *not* on
-   :guilabel:`Local NVMe SSD` tier {+clusters+}.
+If the next {+cluster+} tier is within your
+:guilabel:`Maximum Cluster Size` range, |service| scales the nodes in your
+{+cluster+} up to the next tier if at least *one* of the following criteria
+is true for *any* node of the specified type in the {+cluster+}:
 
-If the next highest {+cluster+} tier is within your
-:guilabel:`Maximum Cluster Size` range, |service| scales the {+cluster+}
-up to the next tier if *one* of the following criteria is true for 
-*any* node in the {+cluster+}:
+- :term:`Operational nodes <operational node>`:
 
-- The :guilabel:`Average CPU Utilization` has exceeded 75% of available
-  resources for the past hour. The 75% threshold is relative to the resources
-  that the {+cluster+} tier has access to.
+  - For operational nodes in ``M10`` {+clusters+},
+    the :guilabel:`Average Normalized System CPU Utilization` or the :guilabel:`System Memory Utilization`
+    has exceeded 75% of resources available to the {+cluster+} for the past
+    one hour.
+  - For operational nodes in ``M20`` {+clusters+},
+    the :guilabel:`Average Normalized System CPU Utilization` or the :guilabel:`System Memory Utilization`
+    has exceeded 90% of resources available to the {+cluster+} for at
+    least 20 minutes, or has exceeded 75% of resources available to the
+    {+cluster+} for at least one hour.
+  - For operational nodes in ``M30+`` {+clusters+}, the :guilabel:`Average Normalized System CPU Utilization`
+    or the :guilabel:`System Memory Utilization` has exceeded 90% of resources
+    available to the {+cluster+} for the past 10 minutes, or has exceeded
+    75% of resources available to the {+cluster+} for at least one hour.
+  
+    These thresholds ensure that your {+cluster+} scales up quickly in
+    response to high loads, and your application can handle spikes in
+    traffic or usage, maintaining its performance and reliability.
 
-- The :guilabel:`Memory Utilization` has exceeded 75% of available resources
-  for the past hour. The 75% threshold is relative to the resources that
-  the {+cluster+} tier has access to.
+- :term:`Analytics nodes <analytics node>`:
+
+  - The :guilabel:`Average Normalized System CPU Utilization` or the :guilabel:`System Memory Utilization`
+    has exceeded 75% of resources available to the {+cluster+} for the past
+    hour.
 
 |service| scales a {+cluster+} to the next tier when the {+cluster+}
-hasn't been scaled up in the past hour.
+hasn't been scaled up under the following conditions:
+
+- The ``M10+`` {+cluster+} hasn't been scaled up in the past hour.
+- The ``M20+`` {+cluster+} hasn't been scaled up in the past 20 minutes
+  or one hour, depending on thresholds.
+- The ``M30+`` {+cluster+} hasn't been scaled up in the past 10 minutes
+  or one hour, depending on thresholds.
+
+For example, |service| will scale an ``M30+`` {+cluster+} at ``T+10``, if the
+{+cluster+}\'s current Normalized System CPU Utilization is greater than 90%.
 
 .. important:: Sudden Workload Spikes
 
@@ -111,77 +144,119 @@ hasn't been scaled up in the past hour.
 Scaling Down a {+Cluster+} Tier
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+To optimize costs, |service| scales down nodes in your {+cluster+} under
+the conditions described in this section.
+
 If the next lowest {+cluster+} tier is within your
-:guilabel:`Minimum Cluster Size` range, |service| scales the {+cluster+}
-down to the next lowest tier if *both* of the following criteria are 
-true for *all* nodes in the {+cluster+}:
+:guilabel:`Minimum Cluster Size` range, |service| scales the nodes in your
+{+cluster+} down to the next lowest tier if *all* of the following criteria
+are true for *all* nodes of the specified {+cluster+} type:
 
-- The average :guilabel:`CPU Utilization` and
-  :guilabel:`Memory Utilization` over the past 24 hours is below 50%. The 50% threshold is
-  relative to the resources that the cluster tier has access to. 
+- :term:`Operational nodes <operational node>`:
 
-- The {+cluster+} hasn't been scaled down (manually or automatically) in
-  the past 24 hours.
+  - The :guilabel:`Average Normalized System CPU Utilization` is below 50% of resources
+    available to the {+cluster+} over at least the last 4  hours.
 
-.. note::
+  - The average :manual:`WiredTiger's cache </reference/command/serverStatus/#serverstatus.wiredTiger.cache>`
+    usage is below 80% of the maximum WiredTiger cache size for at least 4 hours
+    at the **current** {+cluster+} tier size. This indicates to |service| that
+    the current {+cluster+} isn't overloaded.
 
-   ``M10`` and ``M20`` {+clusters+} use lower thresholds to account for
-   caps on CPU usage that cloud providers set after burst periods. These
-   thresholds vary depending on your cloud provider and cluster tier.
+  - The **projected total System Memory Utilization** at the new lower {+cluster+}
+    tier is below 60% for at least 4 hours.
+    |service| calculates the **projected total memory usage** mentioned
+    in the preceding statement as follows.
 
-To learn more about downward auto-scaling behavior, see
-:ref:`downward-scaling-considerations`.
+    |service| measures the current memory usage and replaces the current
+    :manual:`WiredTiger cache </reference/command/serverStatus/#serverstatus.wiredTiger.cache>`
+    usage size with 80% of the WiredTiger cache size on the **new** lower tier {+cluster+}.
+
+    Next, |service| checks whether the **projected total memory usage**
+    would be below 60% for at least 4 hours on the new tier size.
+
+    .. note::
+
+       |service| includes the WiredTiger cache in its memory calculation
+       to make it more likely that {+clusters+} with a full cache, but
+       otherwise low traffic will scale down. In other words,
+       |service| examines the size of the WiredTiger cache to determine that it can
+       safely down scale an otherwise idle {+cluster+} with low Normalized System CPU Utilization
+       in cases where the {+cluster+}\'s WiredTiger caches might reach 80% of
+       the {+cluster+}\'s maximum WiredTiger cache size.
+
+  - The {+cluster+} hasn't been scaled down (manually or automatically) in
+    the past 24 hours.
+
+  These conditions ensure that |service| scales down operational nodes
+  in your {+cluster+} to prevent high utilization states.
+
+- :term:`Analytics nodes <analytics node>`:
+
+  - The average :guilabel:`Normalized System CPU Utilization` and
+    :guilabel:`System Memory Utilization` over the past 24 hours is below 50% of
+    resources available to the {+cluster+}.
+
+  - The {+cluster+} hasn't been scaled down (manually or automatically) in
+    the past 24 hours.
+
+  .. note::
+
+     ``M10`` and ``M20`` {+clusters+} use lower thresholds to account for
+     caps on CPU usage set by cloud providers after burst periods. These
+     thresholds vary depending on your cloud provider and {+cluster+} tier.
 
 .. _downward-scaling-considerations:
 
 Considerations for Downward Auto-Scaling of Cluster Tier and Storage
 ````````````````````````````````````````````````````````````````````
 
-- When |service| scales down the storage capacity of your {+cluster+}, 
+- When |service| scales down the storage capacity of your {+cluster+},
   this can take longer than expanding storage capacity due to the 
   mechanics of the scaling process.
-- When |service| scales down your {+cluster+} to a lower {+cluster+} 
-  tier, it uses the value in the :guilabel:`Minimum Cluster Size`. 
-  Estimate your deployment's range of workloads and then set the 
-  :guilabel:`Minimum Cluster Size` value to the {+cluster+} tier that 
-  has enough capacity to handle your deployment's workload. Account for 
+- Estimate your deployment's range of workloads and then set the
+  :guilabel:`Minimum Cluster Size` value to the {+cluster+} tier that
+  has enough capacity to handle your deployment's workload. Account for
   any possible spikes or dips in {+cluster+} activity.
 
-- You can't scale to a {+cluster+} smaller than ``M10``.
+- You can't scale to a {+cluster+} tier smaller than ``M10``.
 
 - You can't select a minimum {+cluster+} tier that is below the current
   disk configuration of your {+cluster+}. If your storage increases
   beyond what is supported by your minimum {+cluster+} tier, |service|
-  automatically adjusts your  minimum {+cluster+} tier to a tier that
+  increases your {+cluster+}\s storage configuration beyond what your
+  minimum {+cluster+} tier supports, then |service| automatically 
+  adjusts your minimum {+cluster+} tier to a tier that
   supports the current storage requirements of your {+cluster+}.
 
   .. example::
 
-     You have set your auto-scaling bounds to ``M20``-``M60`` and your
-     current {+cluster+} tier is ``M40``. |service| triggers a downward
-     auto-scaling event because the average :guilabel:`CPU Utilization` 
-     and :guilabel:`Memory Utilization` on your current {+cluster+} has 
-     been under 50% for the past 24 hours.
+     You have set your auto-scaling bounds to ``M20`` - ``M60`` and your
+     current {+cluster+} tier is ``M40`` with a disk capacity of 200GB. 
+     |service| triggers a disk auto-scaling event to increase capacity to 
+     320GB because current disk usage exceeds 180GB, which is more than 
+     90% of the 200GB capacity.
 
-     1. |service| attempts to auto-scale your {+cluster+} down to 
-        ``M30``. ``M30`` supports your current disk configuration, so 
-        the auto-scaling operation succeeds.
-
-     #. |service| determines that ``M20`` is the lowest {+cluster+} tier
-        that can support your current disk configuration, and sets
-        your minimum {+cluster+} tier to ``M20``.
+     |service|:
+     
+     1. Raises your minimum cluster tier to the next lowest tier, ``M30``,
+        that can accommodate the new storage capacity. ``M20`` supports a 
+        maximum storage capacity of 256GB, so it is no longer a 
+        valid auto-scaling bound.
+     2. |service| determines that the current instance size, ``M40``,
+        supports the new disk configuration. The disk auto-scaling event 
+        succeeds.
 
 Scaling a Sharded {+Cluster+}
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-|service| auto-scales the {+cluster+} tier for sharded {+clusters+} 
+|service| auto-scales the {+cluster+} tier for sharded {+clusters+}
 using the same criteria as replica sets. |service| applies the 
 following rules:
 
-- Auto-scaling applies to all shards in the sharded {+cluster+}. You 
-  can't apply auto-scaling for some shards and not for others within 
+- Auto-scaling applies to all shards in the sharded {+cluster+}. You
+  can't apply auto-scaling for some shards and not for others within
   the same {+cluster+}.
-- If *any* shard meets the criteria to auto-scale its {+cluster+} tier 
+- If *any* shard meets the criteria to auto-scale its {+cluster+} tier
   up, all shards will scale their {+cluster+} tier up.
 - *All* shards in the {+cluster+} must meet the criteria before
   |service| will auto-scale the {+cluster+} tier down.
@@ -219,11 +294,11 @@ The following considerations apply:
 - |service| disables disk auto-scaling if you specify one cluster tier
   class for the base nodes and another, different cluster tier class for
   the analytics nodes. For example, if you specify a :guilabel:`General`
-  cluster class for operational nodes in the :guilabel:`Base Tier`, and
-  a :guilabel:`Low-CPU` cluster class for analytics nodes
-  in the :guilabel:`Analytics Tier`, |service| disables disk auto-scaling
-  with the following error message: ``Disk auto-scaling is not yet available
-  for clusters with mixed instance classes``.
+  cluster class for :term:`operational nodes <operational node>` in
+  the :guilabel:`Base Tier`, and a :guilabel:`Low-CPU` cluster class for
+  analytics nodes in the :guilabel:`Analytics Tier`, |service| disables
+  disk auto-scaling with the following error message: ``Disk auto-scaling
+  is not yet available for clusters with mixed instance classes``.
 
 - |service| disables disk auto-scaling if you deploy the :guilabel:`Base Tier`
   and :guilabel:`Analytics Tier` nodes in different cloud provider regions.
@@ -290,10 +365,6 @@ current {+cluster+} tier and the configured maximum {+cluster+} tier:
 
 This auto-scaling logic reduces the downtime in cases when your storage
 settings don't match your workload.
-
-.. important::
-
-   .. include:: /includes/opt-out-of-auto-autoscaling-emails.rst
 
 Oplog Considerations
 ~~~~~~~~~~~~~~~~~~~~
@@ -420,8 +491,9 @@ Configure Alerts for Auto-scaling Events
 
 Auto-scaling activities are a subset of :ref:`Atlas alerts <alert-conditions>`.
 
-|service| automatically sets up default alerts for :ref:`auto-scaling events <alert-conditions-autoscaling>`. You can opt out of or change alert
-configuration for some or all auto-scaling events at a project level.
+|service| automatically sets up default alerts for :ref:`auto-scaling events <alert-conditions-autoscaling>`.
+You can opt out of or change alert configuration for some or all auto-scaling
+events at a project level.
 
 To modify an alert configuration, in the :guilabel:`Category` section,
 select :guilabel:`Atlas Auto Scaling` and then select the :guilabel:`Condition/Metric`

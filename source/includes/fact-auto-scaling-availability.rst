@@ -1,5 +1,5 @@
 .. note:: Feature Availability
 
-   |service| enables Cluster Auto-Scaling for all cluster tiers (except
-   the highest cluster tier) under the :guilabel:`General` and the
-   :guilabel:`Low-CPU` tier clusters.
+   |service| {+cluster+} tier auto-scaling is available for all dedicated
+   {+cluster+} tiers under the :guilabel:`General`
+   and the :guilabel:`Low-CPU` {+cluster+} classes.
