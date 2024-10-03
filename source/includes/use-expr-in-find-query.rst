@@ -1,7 +1,7 @@
-Compare Two Fields from A Single Document
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+``$expr`` can contain expressions that compare fields from the same
+document.
 
-Consider a ``monthlyBudget`` collection with the following documents:
+Create a ``monthlyBudget`` collection with these documents:
 
 .. code-block:: javascript
 
@@ -18,9 +18,9 @@ where the ``spent`` amount exceeds the ``budget``:
 
 .. code-block:: javascript
 
-   db.monthlyBudget.find( { $expr: { $gt: [ $spent , $budget ] } } )
+   db.monthlyBudget.find( { $expr: { $gt: [ "$spent" , "$budget" ] } } )
 
-The operation returns the following results:
+Output:
 
 .. code-block:: javascript
    :copyable: false
