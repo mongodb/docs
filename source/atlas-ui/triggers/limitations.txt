@@ -1,0 +1,184 @@
+.. _atlas-mongodb-service-limitations:
+
+====================
+Triggers Limitations
+====================
+
+.. meta::
+   :description: Follow these guidelines to avoid issues related to Triggers limitations.
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+There are several guidelines to keep in mind when architecting how your tools
+and clients interact with MongoDB through Triggers. Keep this guidance in mind
+when deciding how to structure queries, selecting which CRUD and aggregation
+operations to use, and determining how to handle concurrent workloads.
+
+.. _atlas-mongodb-service-limitations-aggregation:
+
+Aggregation
+-----------
+
+Triggers support all :manual:`aggregation pipeline stages
+</reference/operator/aggregation-pipeline/>` in :ref:`system functions
+<atlas-system-functions>` except for ``$currentOp`` and ``$indexStats``.
+
+For security reasons, only a subset of aggregation pipeline stages are
+supported in :ref:`user functions <atlas-user-functions>`.
+
+For a list of pipeline stages that are available and their allowed function
+context, see :ref:`Aggregation <mongodb-crud-and-aggregation-apis-aggregation>`.
+
+Batch Loading
+-------------
+
+When data is bulk/batch loaded into MongoDB |service|, you may see a delay in
+data appearing on devices while |service| processes changes.
+
+.. _atlas-time-series-limitation:
+
+Time Series Collections
+-----------------------
+
+You *cannot* define :ref:`Database Triggers <atlas-database-trigger>` on a :manual:`time series collections
+</core/timeseries-collections/>`. This is because time series collections do not
+yet support :manual:`change streams </changeStreams/>`.
+
+{+Serverless-Instances+}
+--------------------
+
+You *cannot* define :ref:`Database Triggers <atlas-database-trigger>` on a :manual:`{+serverless-instance+}
+<serverless-caveats>`. This is because {+serverless-instances+} do not support :manual:`change streams </changeStreams/>`.
+
+Federated Database Instances
+----------------------------
+
+You *cannot* define :ref:`Database Triggers <atlas-database-trigger>` on a :manual:`{+fdi+}
+<data-federation-caveats>`. This is because {+fdi+}s do not
+support :manual:`change streams </changeStreams/>`.
+
+.. _atlas-service-limitations-change-streams:
+
+Change Streams
+--------------
+
+|service| limits the total number of change streams open against a given
+cluster based on the cluster's size. The following table lists
+the limitations for each cluster size:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Cluster Size
+     - Maximum Number of Change Streams
+
+   * - Free Tier (``M0``)
+     - 5
+
+   * - Shared Clusters (``M2``/``M5``)
+     - 10
+
+   * - Small, Dedicated Clusters (``M10``/``M20``)
+     - 100
+
+   * - Standard Clusters (``M30``/``M40``)
+     - 1000
+
+   * - Standard Clusters (``M50`` - ``M90``)
+     - 1000
+
+   * - High-Power Clusters (``M100+``)
+     - 1000
+
+.. note::
+
+   |service| opens a single change stream on each collection that is
+   associated with a :ref:`Database Trigger <atlas-database-trigger>`.
+
+.. _atlas-mongodb-service-limitations-database-commmands:
+.. _atlas-mongodb-service-limitations-database-commands:
+
+Database Commands
+-----------------
+
+You can call a limited subset of database commands when connected to a
+MongoDB cluster over the :manual:`wire protocol </reference/mongodb-wire-protocol>`. For a list of
+supported commands, see :ref:`Database Commands
+<mongodb-crud-and-aggregation-apis-database-commands>`.
+
+.. note::
+
+   App Services does *not* support any database commands in |service| :ref:`Functions <atlas-system-functions>`.
+
+.. _atlas-mongodb-service-limitations-version-requirements:
+
+MongoDB Version Requirements
+----------------------------
+
+You can access most of the CRUD and Aggregation functionality of MongoDB
+version 3.6. However, Triggers do not support all operations and features
+available in standard tools and clients. For a list of specific MongoDB
+operations that are available when you connect to MongoDB through Triggers, see
+:ref:`the CRUD & Aggregation API reference
+<mongodb-crud-and-aggregation-apis>`.
+
+.. _atlas-mongodb-service-limitations-query-options:
+
+Query Options
+-------------
+
+Triggers support all query options in :ref:`system functions
+<atlas-system-functions>`. For a list of specific options that are available when you
+connect to MongoDB through Triggers, see :ref:`Query Options
+<mongodb-crud-and-aggregation-apis-query-options>`.
+
+.. _atlas-mongodb-service-limitations-query-results:
+
+Query Results
+-------------
+
+MongoDB queries executed through Triggers can return a maximum of 50,000
+documents. If you need to return more documents, consider paginating
+your query.
+
+.. _atlas-mongodb-service-limitations-request-traffic:
+
+Request Traffic
+---------------
+
+|service| limits request traffic to the following defaults:
+
+- 10,000 concurrent requests. Any requests made beyond
+  the concurrent request limit receive an HTTP response status
+  code of `429 - Too Many Requests <https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429>`_.
+
+|service| can handle requests many times the above limits. However, these limits are
+put in place to ensure applications scale responsibly and to prevent DOS attacks
+and unintended billing charges.
+
+You can request a higher limit by `filing a support ticket <https://support.mongodb.com/welcome>`__.
+
+.. _atlas-connection_pooling:
+
+Connection Pooling
+------------------
+
+|service| uses connection pooling to reduce the overhead of frequently
+opening and closing connections between requests and Trigger executions.
+Connections are opened as needed. Connection pooling is dependent on
+several factors:
+
+- Cluster Tier. The higher the cluster tier, the more connections available in
+  the pool.
+- Deployment Mode. Global deployments use multiple servers in each region, and
+  therefore have an overall larger connection pool.
+- Services. Each service has an independent connection pool, so the number of
+  services in your app does not impact the number of connections available.

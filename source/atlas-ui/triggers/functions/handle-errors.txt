@@ -1,0 +1,496 @@
+.. _atlas-functions-handle-errors:
+
+==========================
+Handle Errors in Functions
+==========================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. facet::
+  :name: programming_language
+  :values: javascript/typescript
+
+.. meta::
+   :description: Learn how to handle errors in Atlas Functions.
+   :robots: noindex, nosnippet
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page explains how to work with errors in Atlas Functions.
+
+.. note:: Custom Error Handling for Database Triggers Using AWS EventBridge
+
+  You can create a custom error handler specifically for database
+  Triggers using AWS EventBridge. For more information, refer to
+  :ref:`Custom Error Handling <atlas-eventbridge-error-handling>`.
+
+.. _atlas-functions-basic-error-handling:
+
+You can handle Function errors using standard JavaScript error handling techniques
+like :mdn:`try...catch statements <Web/JavaScript/Reference/Statements/try...catch>`.
+
+.. literalinclude:: /includes/triggers/willThrowAndHandleError.snippet.handle-error-try-catch.js
+   :language: js
+
+.. _atlas-functions-view-logs:
+
+View Logs
+---------
+
+You can view records of all Function executions invoked by an |service| Trigger
+on the :guilabel:`Logs` page. This includes Functions that failed to
+successfully execute due to an error.
+
+For more information, see :ref:`atlas-logs`.
+
+.. _atlas-functions-retry:
+
+Retry Functions
+---------------
+
+Atlas Functions do not have built-in retry behavior.
+
+You can add custom retry behavior. For example, you might want to add
+retry behavior if the third-party service that your Function calls has
+intermittent connectivity, and you want the Function to re-execute
+even if the third-party service is temporarily down.
+
+The following sections describe the available strategies to add retry
+behavior to your Functions:
+
+- :ref:`Recursively Call Functions in Error Handling Blocks <functions-recursive-call>`
+- :ref:`Use Database Triggers to Retry Functions <functions-database-trigger-retry>`
+
+.. _atlas-functions-recursive-call:
+
+Recursively Call Function in Error Handling Blocks
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can handle operations that might fail by calling a Function recursively.
+
+On a high level, this process includes the following components:
+
+- Execute operations that you want to retry in a ``try`` statement
+  and have the Function call itself in a ``catch`` statement.
+- To prevent indefinite execution, set a maximum number of retries.
+  Every time the Function fails and enters the ``catch`` statement,
+  increment a count of the current number of retries.
+  Stop the recursive execution when the Function's current number of retries
+  reaches the max number of retries.
+- You may also want to throttle retries to reduce the total number of executions
+  in a time frame.
+
+The following table describes some advantages and disadvantages
+of handling Function retries with the recursive call strategy.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - Advantages
+     - Disadvantages
+
+   * - - All retry logic occurs within one function.
+       - Function can return a value after a retry.
+       - Minimal additional code.
+     - - All retries must occur within a single Function's max execution time.
+
+The following code example demonstrates an implementation of retrying a Function
+by using recursion in error-handling blocks:
+
+.. literalinclude:: /includes/triggers/mightFail.snippet.recursive-error-handling.js
+   :language: js
+   :caption: Recursive Call Strategy Example
+
+.. _atlas-functions-database-trigger-retry:
+
+Use Database Triggers to Retry
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can also retry Functions by using a :ref:`Database Trigger <atlas-database-trigger>` to execute retries and a MongoDB collection to track previously-failed executions.
+
+On a high level, this process includes the following components:
+
+- **Main Function** that executes the logic you want to retry,
+  wrapped in the handler function.
+- **Failed execution tracker MongoDB collection**
+  that tracks failed executions of the main Function.
+- **Handler Function** that invokes the main Function and logs when the function fails
+  to the failed execution tracker collection.
+- **Database Trigger Function** that reruns the handler function whenever
+  the handler function adds an error to the failed execution tracker collection.
+
+You can support multiple main functions with one set of a handler Function,
+execution tracker collection, and Database Trigger Function.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - Advantages
+     - Disadvantages
+
+   * - - Each retry is its own Function execution, with own max execution time
+         and resources.
+     - - If the Function is retried, it cannot return a value.
+       - Each Function call requires two Function invocations, one for the Function
+         itself and one for the retry handler.
+       - More complex logic, which can be more difficult to write, debug, and monitor.
+
+You can create a retry mechanism for Functions in the {+atlas-ui+} or using the
+App Services CLI. The following procedure walks you through creating a handler,
+a retry Database Trigger Function, and a main Function.
+
+.. procedure::
+
+   .. step:: Create the Handler Function
+
+      First, create the handler Function ``handleRetry`` that invokes the main Function.
+
+      ``handleRetry`` accepts the following parameters:
+
+      .. list-table::
+        :header-rows: 1
+        :widths: 25 25 50
+
+        * - Parameter
+          - Type
+          - Description
+
+        * - ``functionToRetry``
+          - JavaScript Function
+          - Function to retry.
+        * - ``functionName``
+          - String
+          - Name of the function you want to retry.
+        * - ``operationId``
+          - ObjectId
+          - Unique identifier for the main function's execution, including retries.
+        * - ``previousRetries``
+          - Number
+          - How many times the main function has previously been tried.
+        * - ``...args``
+          - Rest parameters
+          - Indefinite number of arguments passed to the main function.
+
+      ``handleRetry`` performs the following operations:
+
+      a. Attempts to execute ``functionToRetry`` in a ``try`` statement.
+         If the execution is successful, ``handleRetry`` returns the value
+         returned by ``functionToRetry``.
+      #. If the execution of ``functionToRetry`` in the previous step throws an error,
+         the ``catch`` statement handles the error as follows:
+
+         i. Checks if the number of previous retries equals the
+            maximum permitted number of retries.
+            If the two numbers are the same, then the function throws an error
+            because the max retries has been reached. The function no longer attempts
+            to retry.
+         #. Build a function execution log entry object to insert into the database.
+         #. Get a reference to the failed execution tracker collection.
+         #. Insert the function log execution log entry into
+            the failed execution tracker collection. This insertion operation
+            causes the Database Trigger Function, which you will make in the next step,
+            to fire.
+
+      The main function is passed as the argument ``functionToRetry``.
+      ``handleRetry`` attempts to execute the main Function.
+      If the execution fails, this function attempts to retry the main function.
+
+      .. tabs::
+
+         .. tab:: {+atlas-ui+}
+            :tabid: ui
+
+            a. Navigate to :guilabel:`Functions`. Click the button :guilabel:`Create New Function`.
+
+            #. In the field :guilabel:`Name`, add ``handleRetry``.
+
+            #. In the :guilabel:`Function Editor` add the following code, then
+               save the Function:
+
+               .. literalinclude:: /includes/triggers/handleRetry.snippet.handle-retry.js
+                  :language: js
+                  :caption: handleRetry.js
+
+         .. tab:: App Services CLI
+            :tabid: cli
+
+            a. Add the following to :file:`functions/config.json`:
+
+               .. code-block:: js
+                  :caption: functions/config.json
+
+                  [
+                    {
+                      "name": "handleRetry",
+                      "private": true,
+                      "run_as_system": true
+                    }
+                    // ...other configuration
+                  ]
+
+            #. Create the file for the Function
+               :file:`functions/handleRetry.js`:
+
+               .. literalinclude:: /includes/triggers/handleRetry.snippet.handle-retry.js
+                   :language: js
+                   :caption: functions/handleRetry.js
+
+            #. Deploy your changes:
+
+               .. include:: /includes/triggers/app-services/cli-deploy.rst
+
+   .. step:: Create the Retry Database Trigger
+
+      .. tabs::
+
+         .. tab:: {+atlas-ui+}
+            :tabid: ui
+
+            a. Navigate to the :guilabel:`Triggers` page:
+
+               .. include:: /includes/nav/list-triggers.rst
+
+            #. Click :guilabel:`Add a Trigger`.
+
+            #. Create the Trigger with the following configuration:
+
+               .. list-table::
+                  :header-rows: 1
+                  :widths: 50 50
+
+                  * - Field
+                    - Value
+
+                  * - Name
+                    - Name of your choosing (ex: ``retryOperation``)
+
+                  * - Enabled
+                    - Yes
+
+                  * - Skip Events on Re-Enable
+                    - Yes
+
+                  * - Event Ordering
+                    - Yes
+
+                  * - Cluster Name
+                    - Name of your choosing (ex: ``mongodb-atlas``)
+
+                  * - Database Name
+                    - Name of your choosing (ex: ``logs``)
+
+                  * - Collection Name
+                    - Name of your choosing (ex: ``failed_execution_logs``)
+
+                  * - Operation Type
+                    - Insert
+
+                  * - Full Document
+                    - Yes
+
+                  * - Document Preimage
+                    - No
+
+                  * - Select An Event Type
+                    - Function
+
+                  * - Function
+                    - Click :guilabel:`+ New Function`. Refer to the following information
+                      about the contents of the function.
+
+                  * - Advanced Configuration
+                    - N/A - No advanced configuration necessary.
+
+            #. Now add the code to the Function that the Trigger invokes.
+
+               The function ``retryOperation`` takes as a parameter ``logEntry``, the document that the
+               retry handler posted to the failed execution tracker collection.
+               Then, ``retryOperation`` uses :ref:`context.functions.execute() <context-functions>`
+               to invoke the main function with information from ``logEntry``.
+
+               i. In the field :guilabel:`Function Name`, add ``retryOperationDbTrigger``.
+
+               #. For the field :guilabel:`Function`, add the following code,
+                  then save the Trigger:
+
+                  .. literalinclude:: /includes/triggers/retryOperationDbTrigger.snippet.retry-operation-db-trigger-function.js
+                     :language: js
+                     :caption: functions/retryOperationDbTrigger.js
+
+         .. tab:: App Services CLI
+            :tabid: cli
+
+            a. Authenticate a MongoDB |service| user:
+
+               .. include:: /includes/triggers/app-services/cli-login.rst
+
+            #. Pull your App's latest configuration files:
+
+               .. include:: /includes/triggers/app-services/cli-pull-latest.rst
+
+            #. Add configuration for the Database Trigger. For more information,
+               refer to the :ref:`Trigger configuration reference
+               <appconfig-triggers>`.
+
+               .. literalinclude:: /includes/triggers/retryOperation.json
+                  :language: json
+                  :caption: triggers/retryOperation.json
+
+            #. Now add the code to the :file:`functions/config.json` Function
+               that the Trigger invokes.
+
+               The function ``retryOperation`` takes as a parameter ``logEntry``, the document that the
+               retry handler posted to the failed execution tracker collection.
+               Then, ``retryOperation`` uses :ref:`context.functions.execute() <context-functions>`
+               to invoke the main function with information from ``logEntry``.
+
+               .. code-block:: js
+                  :caption: functions/config.json
+
+                  [
+                    // ...other configuration
+                    {
+                      "name": "retryOperationDbTrigger",
+                      "private": true
+                    }
+                  ]
+
+            #. Add the following code to the file :file:`functions/retryOperationDbTrigger.js`:
+
+               .. literalinclude:: /includes/triggers/retryOperationDbTrigger.snippet.retry-operation-db-trigger-function.js
+                  :language: js
+                  :caption: retryOperationDbTrigger.js
+
+            #. Deploy your changes:
+
+               .. include:: /includes/triggers/app-services/cli-deploy.rst
+
+   .. step:: Create the Main Function
+
+      Now that you have the function handler and the retry Database Trigger Function,
+      you can write the main function.
+
+      In the following example, the Function randomly throws an error when performing addition.
+      The JavaScript functions that execute this logic are the following:
+
+      - ``getRandomOneTwoThree()``: Helper function for generating errors
+        for the example.
+      - ``additionOrFailure()``: Function with the main logic.
+
+      The invocation of ``additionOrFailure()`` wrapped by the retry handler
+      occurs in the exported function ``additionWithRetryHandler()``.
+      *All* functions that use the retry handler function should resemble this function.
+
+      You must include the correct parameters to make this function work
+      with the rest of the retry logic. These parameters are:
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 25 25 50
+
+         * - Parameter
+           - Type
+           - Description
+
+         * - ``...args``
+           - Rest parameters
+           - Zero or more parameters to pass to the function with main logic.
+             In the case of this example, the two numbers added
+             in ``additionOrFailure()``, ``num1`` and ``num2``.
+
+         * - ``operationId``
+           - :ref:`BSON.Object.Id<bson-objectid>`
+           - Unique identifier for the Function
+             call and retries. Set default value to a ``new BSON.ObjectId()``.
+
+         * - ``retries``
+           - Number
+           - Set default value to 0.
+
+      The body of ``additionWithRetryHandler`` is the retry handler ``handleRetry``
+      invoked by ``context.functions.execute()``,
+      which in turn invokes ``additionOrFailure``. The arguments you pass to
+      ``context.functions.execute()`` are the following:
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 25 25 50
+
+         * - Argument
+           - Type
+           - Description
+
+         * - ``"handleRetry"``
+           - String
+           - Name of the Function you defined to invoke the main function
+             and post to the retry logs if the main function doesn't properly execute.
+
+         * - ``additionOrFailure``
+           - JavaScript function
+           - The main function that ``handleRetry()`` invokes.
+
+         * - ``operationId``
+           - BSON.ObjectId
+           - Passed in as argument from the parameter ``operationId`` of ``additionWithRetryHandler()``.
+
+         * - ``retries``
+           - Number
+           - Passed in as argument from the parameter ``retries`` of ``additionWithRetryHandler()``.
+
+         * - ``...args``
+           - Spread arguments
+           - Zero or more arguments to pass to the function with main logic.
+             Passed in as argument from the parameter ``...args`` of
+             ``additionWithRetryHandler()``
+
+      .. tabs::
+
+         .. tab:: {+atlas-ui+}
+            :tabid: ui
+
+            a. In the field :guilabel:`Function Name`, add
+               ``additionWithRetryHandler``.
+
+            #. For the field :guilabel:`Function`, add the following code:
+
+               .. literalinclude:: /includes/triggers/additionWithRetryHandler.snippet.addition-with-retry-handler.js
+                  :language: js
+                  :caption: additionWithRetryHandler.js
+
+            #. Click :guilabel:`Save`.
+
+         .. tab:: App Services CLI
+            :tabid: cli
+
+            a. Add the Function metadata to :file:`functions/config.json`:
+
+               .. code-block:: js
+                  :caption: functions/config.json
+
+                  [
+                      // ...other configuration
+                      {
+                        "name": "additionWithRetryHandler",
+                        "private": false
+                      }
+                  ]
+
+            #. Add the following code to the file :file:`functions/additionWithRetryHandler.js`:
+
+               .. literalinclude:: /includes/triggers/additionWithRetryHandler.snippet.addition-with-retry-handler.js
+                  :language: js
+                  :caption: functions/additionWithRetryHandler.js
+
+            #. Deploy your changes:
+
+               .. include:: /includes/triggers/app-services/cli-deploy.rst
+
+      Now when you invoke ``additionWithRetryHandler``, the Function will retry if it fails.

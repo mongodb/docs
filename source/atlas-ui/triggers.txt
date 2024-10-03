@@ -1,0 +1,154 @@
+.. _atlas-triggers:
+.. _atlas-triggers-overview:
+
+==============
+Atlas Triggers
+==============
+
+.. meta:: 
+   :description: Use Atlas Triggers to execute application and database logic in response to events or schedules.
+
+.. facet::
+   :name: genre 
+   :values: reference
+
+.. toctree::
+   :titlesonly:
+   :caption: Triggers
+   :hidden:
+
+   Database Triggers </atlas-ui/triggers/database-triggers>
+   Scheduled Triggers </atlas-ui/triggers/scheduled-triggers>
+   Authentication Triggers </atlas-ui/triggers/authentication-triggers>
+   Disable a Trigger </atlas-ui/triggers/disable>
+   Send Trigger Events to AWS EventBridge </atlas-ui/triggers/aws-eventbridge>
+   Functions </atlas-ui/triggers/functions>
+   Logs </atlas-ui/triggers/logs>
+   Limitations <atlas-ui/triggers/limitations>
+   Triggers Code Examples <https://github.com/mongodb/atlas-app-services-examples/tree/main/triggers-examples>
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Atlas Triggers execute application and database logic. Triggers
+can respond to events or use pre-defined schedules.
+
+Triggers listen for events of a configured type. Each Trigger links to a
+specific :ref:`Atlas Function <atlas-functions>`.
+When a Trigger observes an event that matches your
+configuration, it *"fires"*. The Trigger passes this event object as the
+argument to its linked Function.
+
+A Trigger might fire on:
+
+- A specific *operation type* in a given Collection.
+- A scheduled time.
+
+Atlas keeps track of the latest execution time for each Trigger and guarantees
+that each event is processed at least once.
+
+.. _atlas-trigger-types:
+
+Trigger Types
+-------------
+
+Atlas supports these types of triggers:
+
+- :doc:`Database triggers </atlas-ui/triggers/database-triggers>`
+  respond to document insert, changes, or deletion. You can configure 
+  Database Triggers for each linked MongoDB collection.
+
+- :doc:`Scheduled triggers </atlas-ui/triggers/scheduled-triggers>`
+  execute functions according to a pre-defined schedule.
+
+.. _atlas-trigger-limitations:
+
+Limitations
+-----------
+
+Atlas Function Constraints Apply
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Triggers invoke Atlas Functions. This means they have the same
+constraints as all Atlas Functions.
+
+Learn more about :ref:`Atlas Function constraints <atlas-function-constraints>`.
+
+.. _atlas-event_processing_throughput:
+
+Event Processing Throughput
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Triggers process events when capacity becomes available. A Trigger's
+capacity is determined by its event ordering configuration:
+
+- Ordered triggers process events from the change stream one at a time
+  in sequence. The next event begins processing only after the previous
+  event finishes processing.
+
+- Unordered triggers can process multiple events concurrently, up to
+  10,000 at once by default. If your Trigger data source is an M10+
+  Atlas cluster, you can configure individual unordered triggers to
+  exceed the 10,000 concurrent event threshold. To learn more, see
+  :ref:`Maximum Throughput Triggers <atlas-triggers-maximum-throughput>`.
+
+Trigger capacity is not a direct measure of throughput or a guaranteed
+execution rate. Instead, it is a threshold for the maximum number of
+events that a Trigger can process at one time. In practice, the rate at
+which a Trigger can process events depends on the Trigger function's run
+time logic and the number of events that it receives in a given
+timeframe.
+
+To increase the throughput of a Trigger, you can try to:
+
+- Optimize the Trigger function's run time behavior. For example, you
+  might reduce the number of network calls that you make.
+
+- Reduce the size of each event object with the Trigger's
+  :ref:`projection filter <atlas-trigger-project-expression>`. For the best
+  performance, limit the size of each change event to 2KB or less.
+
+- Use a match filter to reduce the number of events that the Trigger
+  processes. For example, you might want to do something only if a
+  specific field changed. Instead of matching every update event and
+  checking if the field changed in your Function code, you can use the
+  Trigger's match filter to fire only if the field is included in the
+  event's ``updateDescription.updatedFields`` object.
+
+Number of Triggers Cannot Exceed Available Change Streams
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Atlas limits the total number of Database Triggers. The size of your
+Atlas cluster drives this limit.
+
+Each Atlas cluster tier has a maximum number of supported change
+streams. A Database Trigger requires its own change stream. Database Triggers
+may not exceed the number of available change streams.
+
+Learn more about the number of supported change streams for Atlas tiers on the
+:ref:`Service Limitations page <atlas-service-limitations-change-streams>`.
+
+.. _trigger-diagnose-duplicate-events:
+
+Diagnose Duplicate Events
+-------------------------
+
+During normal Trigger operation, Triggers do not send duplicate events.
+However, when some failure or error conditions occur, Triggers may deliver 
+duplicate events. You may see a duplicate Trigger event when:
+
+- A server responsible for processing and tracking events experiences a 
+  failure. This failure prevents the server from recording its progress in a 
+  durable or long-term storage system, making it "forget" it has processed 
+  some of the latest events.
+- Using unordered processing where events 1 through 10 are sent simultaneously. 
+  If event 9 fails and leads to Trigger suspension, events like event 10 might 
+  get processed again when the system resumes from event 9. This can lead to 
+  duplicates, as the system doesn't strictly follow the sequence of events and 
+  may reprocess already-handled events.
+
+If you notice duplicate Trigger events, check the :ref:`Trigger logs <atlas-logs>`
+for suspended Triggers or server failures.

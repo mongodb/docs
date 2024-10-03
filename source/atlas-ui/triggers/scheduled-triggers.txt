@@ -1,0 +1,444 @@
+.. _atlas-scheduled-trigger:
+.. _atlas-scheduled-triggers:
+
+==================
+Scheduled Triggers
+==================
+
+.. meta::
+   :keywords: code example
+   :description: Use scheduled Triggers to to react to authentication events.
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Scheduled Triggers allow you to execute server-side logic on a
+:ref:`regular schedule that you define <atlas-CRON-expressions>`.
+You can use scheduled Triggers to do work that happens on a periodic
+basis, such as updating a document every minute, generating a nightly
+report, or sending an automated weekly email newsletter.
+
+.. _atlas-create-a-scheduled-trigger:
+
+Create a Scheduled Trigger
+--------------------------
+
+You can create a new scheduled Trigger from the {+atlas-ui+} or using the
+App Services CLI.
+
+.. tabs::
+
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+
+      a. Navigate to the :guilabel:`Triggers` Page
+
+         .. include:: /includes/nav/list-triggers.rst
+
+      #. Click :guilabel:`Add Trigger` to open the Trigger configuration page.
+
+      #. Click :guilabel:`Add Trigger`.
+
+      #. Select :guilabel:`Scheduled` Trigger type.
+
+      #. Configure the Trigger, then click :guilabel:`Save`.
+
+   .. tab:: App Services CLI
+      :tabid: cli
+
+      a. Authenticate a MongoDB |service| user:
+
+         .. include:: /includes/triggers/app-services/cli-login.rst
+
+      #. Pull your App's latest configuration files:
+
+         .. include:: /includes/triggers/app-services/cli-pull-latest.rst
+
+      #. Add a scheduled Trigger :ref:`configuration file
+         <config-scheduled-trigger>` to the ``triggers`` subdirectory of your local
+         application directory.
+
+         .. note::
+
+            You cannot create a Trigger that runs on a :guilabel:`Basic`
+            schedule using the App Services CLI. All imported scheduled Trigger
+            configurations *must* specify a :ref:`CRON expression
+            <atlas-CRON-expressions>`.
+
+         Scheduled Trigger configuration files have the following form:
+
+         .. code-block:: json
+            :caption: /triggers/<triggers name>.json
+
+            {
+               "type": "SCHEDULED",
+               "name": "<Trigger Name>",
+               "function_name": "<Trigger Function Name>",
+               "config": {
+                 "schedule": "<CRON expression>"
+               },
+               "disabled": <boolean>
+            }
+
+      #. Deploy your changes:
+
+         .. include:: /includes/triggers/app-services/cli-deploy.rst
+
+.. _atlas-scheduled-triggers-configuration:
+
+Configuration
+-------------
+
+Scheduled Triggers have the following configuration options:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 30
+
+   * - Field
+     - Description
+
+   * - | :guilabel:`Trigger Type`
+       | ``type: <string>``
+
+     - Select :guilabel:`Scheduled`.
+
+   * - | :guilabel:`Name`
+       | ``name: <string>``
+
+     - The name of the Trigger.
+
+   * - | :guilabel:`Enabled`
+       | ``disabled: <boolean>``
+
+     - Enabled by default. Used to enable or disable the Trigger.
+
+   * - | :guilabel:`Skip Events on Re-Enable`
+       | ``skip_catchup_event: <boolean>``
+
+     - Disabled by default. If enabled, any change events that occurred while
+       this Trigger was disabled will not be processed.
+
+   * - | :guilabel:`Schedule Type`
+       | ``config.schedule: <string>``
+
+     - Required. You can select :guilabel:`Basic` or :guilabel:`Advanced`. A Basic
+       schedule executes the Trigger periodically based on the interval you set,
+       such as "every five minutes" or "every Monday".
+
+       An Advanced schedule runs the Trigger based on the custom
+       :ref:`CRON expression <atlas-CRON-expressions>` that you define.
+
+   * - | :guilabel:`Function`
+       | ``function_name: <string>``
+
+     - Within the :guilabel:`Function` section, you choose what action is taken when
+       the Trigger fires. You can choose to run a :ref:`Function <atlas-functions>` or use
+       :ref:`AWS EventBridge <atlas-aws-eventbridge>`.
+
+       .. note::
+
+          A Scheduled Trigger does not pass any arguments to its linked
+          Function.
+
+.. _atlas-CRON-expressions:
+
+CRON Expressions
+----------------
+
+CRON expressions are user-defined strings that use standard
+:wikipedia:`cron <Cron>` job syntax to define when a scheduled
+Trigger should execute. |service| executes Trigger CRON expressions based on
+:wikipedia:`UTC time <Coordinated_Universal_Time>`. Whenever all of the fields
+in a CRON expression match the current date and time, |service| fires the
+Trigger associated with the expression.
+
+Expression Syntax
+-----------------
+
+Format
+~~~~~~
+
+CRON expressions are strings composed of five space-delimited fields.
+Each field defines a granular portion of the schedule on which its
+associated Trigger executes:
+
+.. code-block:: text
+
+   * * * * *
+   │ │ │ │ └── weekday...........[0 (SUN) - 6 (SAT)]
+   │ │ │ └──── month.............[1 (JAN) - 12 (DEC)]
+   │ │ └────── dayOfMonth........[1 - 31]
+   │ └──────── hour..............[0 - 23]
+   └────────── minute............[0 - 59]
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 25 60
+
+   * - Field
+     - Valid Values
+     - Description
+
+   * - ``minute``
+     - [0 - 59]
+     - Represents one or more minutes within an hour.
+
+       If the ``minute`` field of a CRON expression has a value of
+       ``10``, the field matches any time ten minutes after the hour
+       (e.g. ``9:10 AM``).
+
+   * - ``hour``
+     - [0 - 23]
+     - Represents one or more hours within a day on a 24-hour clock.
+
+       If the ``hour`` field of a CRON expression has a value of
+       ``15``, the field matches any time between ``3:00 PM`` and
+       ``3:59 PM``.
+
+   * - ``dayOfMonth``
+     - [1 - 31]
+     - Represents one or more days within a month.
+
+       If the ``dayOfMonth`` field of a CRON expression has a value
+       of ``3``, the field matches any time on the third day of the
+       month.
+
+   * - ``month``
+     - | ``1  (JAN)``   ``7  (JUL)``
+       | ``2  (FEB)``   ``8  (AUG)``
+       | ``3  (MAR)``   ``9  (SEP)``
+       | ``4  (APR)``   ``10 (OCT)``
+       | ``5  (MAY)``   ``11 (NOV)``
+       | ``6  (JUN)``   ``12 (DEC)``
+     - Represents one or more months within a year.
+
+       A month can be represented by either a number (e.g. ``2`` for
+       February) or a three-letter string (e.g. ``APR`` for April).
+
+       If the ``month`` field of a CRON expression has a value of
+       ``9``, the field matches any time in the month of September.
+
+   * - ``weekday``
+     - | ``0 (SUN)``
+       | ``1 (MON)``
+       | ``2 (TUE)``
+       | ``3 (WED)``
+       | ``4 (THU)``
+       | ``5 (FRI)``
+       | ``6 (SAT)``
+     - Represents one or more days within a week.
+
+       A weekday can be represented by either a number (e.g. ``2`` for a
+       Tuesday) or a three-letter string (e.g. ``THU`` for a Thursday).
+
+       If the ``weekday`` field of a CRON expression has a value of
+       ``3``, the field matches any time on a Wednesday.
+
+Field Values
+~~~~~~~~~~~~
+
+Each field in a CRON expression can contain either a specific value or
+an expression that evaluates to a set of values. The following table
+describes valid field values and expressions:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - Expression Type
+     - Description
+
+   * - | **All Values**
+       | ``(*)``
+     - Matches all possible field values.
+
+       Available in all expression fields.
+
+       The following CRON expression schedules a Trigger to execute
+       once every minute of every day:
+
+       .. code-block:: text
+
+           * * * * *
+
+   * - | **Specific Value**
+       | ``(<Value>)``
+     - Matches a specific field value. For fields other than ``weekday``
+       and ``month`` this value will always be an integer. A ``weekday``
+       or ``month`` field can be either an integer or a three-letter
+       string (e.g. ``TUE`` or ``AUG``).
+
+       Available in all expression fields.
+
+       The following CRON expression schedules a Trigger to execute
+       once every day at 11:00 AM UTC:
+
+       .. code-block:: text
+
+           0 11 * * *
+
+   * - | **List of Values**
+       | ``(<Expression1>,<Expression2>,...)``
+
+     - Matches a list of two or more field expressions or specific
+       values.
+
+       Available in all expression fields.
+
+       The following CRON expression schedules a Trigger to execute
+       once every day in January, March, and July at 11:00 AM UTC:
+
+       .. code-block:: text
+
+           0 11 * 1,3,7 *
+
+   * - | **Range of Values**
+       | ``(<Start Value>-<End Value>)``
+     - Matches a continuous range of field values between and including
+       two specific field values.
+
+       Available in all expression fields.
+
+       The following CRON expression schedules a Trigger to execute
+       once every day from January 1st through the end of April at
+       11:00 AM UTC:
+
+       .. code-block:: text
+
+           0 11 * 1-4 *
+
+   * - | **Modular Time Step**
+       | ``(<Field Expression>/<Step Value>)``
+     - Matches any time where the step value evenly divides the
+       field value with no remainder (i.e. when ``Value % Step == 0``).
+
+       Available in the ``minute`` and ``hour`` expression fields.
+
+       The following CRON expression schedules a Trigger to execute
+       on the 0th, 25th, and 50th minutes of every hour:
+
+       .. code-block:: text
+
+           */25 * * * *
+
+.. _atlas-scheduled-trigger-example:
+
+Example
+-------
+
+An online store wants to generate a daily report of all sales from the
+previous day. They record all orders in the ``store.orders`` collection
+as documents that resemble the following:
+
+.. code-block:: json
+
+   {
+     _id: ObjectId("59cf1860a95168b8f685e378"),
+     customerId: ObjectId("59cf17e1a95168b8f685e377"),
+     orderDate: ISODate("2018-06-26T16:20:42.313Z"),
+     shipDate: ISODate("2018-06-27T08:20:23.311Z"),
+     orderContents: [
+       { qty: 1, name: "Earl Grey Tea Bags - 100ct", price: Decimal128("10.99") }
+     ],
+     shippingLocation: [
+       { location: "Memphis", time: ISODate("2018-06-27T18:22:33.243Z") },
+     ]
+   }
+
+To generate the daily report, the store creates a scheduled Trigger
+that fires every day at ``7:00 AM UTC``. When the
+Trigger fires, it calls its linked |service| Function,
+``generateDailyReport``, which runs an aggregation
+query on the ``store.orders`` collection to generate the report. The
+Function then stores the result of the aggregation in the
+``store.reports`` collection.
+
+.. code-block:: javascript
+   :caption: generateDailyReport
+
+   exports = function() {
+     // Instantiate MongoDB collection handles
+     const mongodb = context.services.get("mongodb-atlas");
+     const orders = mongodb.db("store").collection("orders");
+     const reports = mongodb.db("store").collection("reports");
+
+     // Generate the daily report
+     return orders.aggregate([
+       // Only report on orders placed since yesterday morning
+       { $match: {
+           orderDate: {
+             $gte: makeYesterdayMorningDate(),
+             $lt: makeThisMorningDate()
+           }
+       } },
+       // Add a boolean field that indicates if the order has already shipped
+       { $addFields: {
+           orderHasShipped: {
+             $cond: {
+               if: "$shipDate", // if shipDate field exists
+               then: 1,
+               else: 0
+             }
+           }
+       } },
+       // Unwind individual items within each order
+       { $unwind: {
+           path: "$orderContents"
+       } },
+       // Calculate summary metrics for yesterday's orders
+       { $group: {
+           _id: "$orderDate",
+           orderIds: { $addToSet: "$_id" },
+           numSKUsOrdered: { $sum: 1 },
+           numItemsOrdered: { $sum: "$orderContents.qty" },
+           totalSales: { $sum: "$orderContents.price" },
+           averageOrderSales: { $avg: "$orderContents.price" },
+           numItemsShipped: { $sum: "$orderHasShipped" },
+       } },
+       // Add the total number of orders placed
+       { $addFields: {
+           numOrders: { $size: "$orderIds" }
+       } }
+     ]).next()
+       .then(dailyReport => {
+         reports.insertOne(dailyReport);
+       })
+       .catch(err => console.error("Failed to generate report:", err));
+   };
+
+   function makeThisMorningDate() {
+     return setTimeToMorning(new Date());
+   }
+
+   function makeYesterdayMorningDate() {
+     const thisMorning = makeThisMorningDate();
+     const yesterdayMorning = new Date(thisMorning);
+     yesterdayMorning.setDate(thisMorning.getDate() - 1);
+     return yesterdayMorning;
+   }
+
+   function setTimeToMorning(date) {
+     date.setHours(7);
+     date.setMinutes(0);
+     date.setSeconds(0);
+     date.setMilliseconds(0);
+     return date;
+   }
+
+Performance Optimization
+------------------------
+
+Use the Query API with a :manual:`$match</reference/operator/aggregation/match/>`
+expression to reduce the number of documents your Function looks at.
+This helps your Function improve performance and not reach
+:ref:`Function memory limits <atlas-function-constraints>`.
+
+See also the :ref:`Example section for a Scheduled Trigger using a $match expression <atlas-scheduled-trigger-example>`.

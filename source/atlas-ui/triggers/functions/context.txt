@@ -1,0 +1,613 @@
+.. _atlas-function-context:
+
+=======
+Context
+=======
+
+.. meta::
+   :description: Learn about the global context object available in Atlas Functions.
+   :keywords: code example
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+|service| Functions have access to a global ``context`` object that contains
+metadata for the incoming requests and provides access to components and
+services in your App.
+
+The ``context`` object exposes the following interfaces:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Property
+     - Description
+
+   * - :ref:`context.app <atlas-context-app>`
+     - Access metadata about the app running the Function.
+
+   * - :ref:`context.environment <atlas-context-environment>`
+     - Access environment values and the
+       current environment tag.
+
+   * - :ref:`context.functions <atlas-context-functions>`
+     - A client object that calls your app's :ref:`Functions <atlas-functions>`.
+
+   * - :ref:`context.http <atlas-context-http>`
+     - A built-in HTTP client.
+
+   * - :ref:`context.request <atlas-context-request>`
+     - Describes the incoming request that triggered a Function call.
+
+   * - :ref:`context.services <atlas-context-services>`
+     - Exposes client objects that can access data sources and services.
+
+   * - :ref:`context.user <atlas-context-user>`
+     - Describes the user that initiated the request.
+
+   * - :ref:`context.values <atlas-context-values>`
+     - Contains static global :ref:`values <atlas-define-value>`.
+
+.. _atlas-context-app:
+
+Get App Metadata (``context.app``)
+----------------------------------
+
+The ``context.app`` object contains metadata about the App that
+contains the Function.
+
+.. code-block:: typescript
+
+   {
+     "id": string,
+     "clientAppId": string,
+     "name": string,
+     "projectId": string,
+     "deployment": {
+       "model": string,
+       "providerRegion": string,
+     },
+     "lastDeployed": string,
+     "hostingUri": string,
+   }
+
+context.app.id
+~~~~~~~~~~~~~~
+
+The unique internal ID of the App that contains the Function.
+
+.. code-block:: json
+
+   "60c8e59866b0c33d14ee634a"
+
+context.app.clientAppId
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The unique Client App ID for the App that contains the Function.
+
+.. code-block:: json
+
+   "myapp-abcde"
+
+context.app.name
+~~~~~~~~~~~~~~~~
+
+The name of the App that contains the Function.
+
+.. code-block:: json
+
+   "myapp"
+
+context.app.projectId
+~~~~~~~~~~~~~~~~~~~~~
+
+The ID of the |service| Project that contains the App.
+
+.. code-block:: json
+
+   "5e1ec444970199272441a214"
+
+context.app.deployment
+~~~~~~~~~~~~~~~~~~~~~~
+
+An object that describes the App's deployment model and region.
+
+.. code-block:: json
+
+   {
+      "model": "LOCAL",
+      "providerRegion": "aws-us-east-1"
+   }
+
+context.app.lastDeployed
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The date and time that the App was last deployed, formatted as
+an ISODate string.
+
+.. code-block:: javascript
+
+   "2022-10-31T12:00:00.000Z"
+
+context.app.hostingUri
+~~~~~~~~~~~~~~~~~~~~~~
+
+If static hosting is enabled, this value is
+the base URL for hosted assets. (Static Hosting is deprecated.
+:ref:`Learn more <migrate-hosting-graphql>`.)
+
+.. code-block:: json
+
+   "myapp-abcde.mongodbstitch.com"
+
+.. _atlas-context-functions:
+
+Call a Function (``context.functions``)
+---------------------------------------
+
+You can call any :ref:`Function <atlas-functions>` in your application
+through the ``context.functions`` interface.
+
+context.functions.execute()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Calls a specific Function and returns the result.
+
+.. code-block:: javascript
+
+   context.functions.execute(functionName, ...args)
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 70
+
+   * - Parameter
+     - Type
+     - Description
+
+   * - ``functionName``
+     - string
+     - The name of the Function.
+
+   * - ``args``...
+     - mixed
+     - A variadic list of arguments to pass to the Function. Each
+       Function parameter maps to a separate, comma-separated
+       argument.
+
+.. code-block:: javascript
+
+   // difference: subtracts b from a using the sum function
+   exports = function(a, b) {
+         return context.functions.execute("sum", a, -1 * b);
+   };
+
+.. _atlas-context-environment:
+
+Check the App Environment (``context.environment``)
+---------------------------------------------------
+
+You can access information about your App's current environment configuration
+and access environment-specific values through the ``context.environment``
+interface.
+
+context.environment.tag
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The name of the app's current environment as a string.
+
+Possible values:
+
+- ``""``
+- ``"development"``
+- ``"testing"``
+- ``"qa"``
+- ``"production"``
+
+.. code-block:: javascript
+
+   exports = async function() {
+      switch(context.environment.tag) {
+         case "": {
+         return "There is no current environment"
+         }
+         case "development": {
+         return "The current environment is development"
+         }
+         case "testing": {
+         return "The current environment is testing"
+         }
+         case "qa": {
+         return "The current environment is qa"
+         }
+         case "production": {
+         return "The current environment is production"
+         }
+      }
+   };
+
+.. _atlas-context-environment-values:
+
+context.environment.values
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An object where each field maps the name of an environment value to its value in
+the current environment.
+
+.. code-block:: javascript
+
+   exports = async function() {
+      const baseUrl = context.environment.values.baseUrl
+   };
+
+.. _atlas-context-services:
+
+Connect to a MongoDB Data Source or Third-Party Service (``context.services``)
+------------------------------------------------------------------------------
+
+You can access a client for a linked MongoDB |service| cluster or
+federated data source through the ``context.services`` interface.
+
+context.services.get()
+~~~~~~~~~~~~~~~~~~~~~~
+
+Gets a service client for the specified service or ``undefined`` if
+no such service exists.
+
+.. code-block:: javascript
+
+   context.services.get(serviceName)
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 70
+
+   * - Parameter
+     - Type
+     - Description
+
+   * - ``serviceName``
+     - string
+     - The name of the linked cluster, {+fdi+}, or service.
+
+       Linked data sources created by your
+       app use one of the following default names:
+
+       - Cluster: ``mongodb-atlas``
+       - {+fdi+}: ``mongodb-datafederation``
+
+.. code-block:: javascript
+   :caption: Read and write data in MongoDB Atlas
+
+   exports = async function() {
+      // Get the cluster's data source client
+      const mdb = context.services.get("mongodb-atlas");
+      // Reference a specific database/collection
+      const db = mdb.db("myApp");
+      const collection = db.collection("myCollection");
+      // Run a MongoDB query
+      return await collection.find({
+         name: "Rupert",
+         age: { $lt: 50 },
+      })
+   };
+
+.. _atlas-context-request:
+
+Get Request Metadata (``context.request``)
+------------------------------------------
+
+You can access information about the incoming request with the
+:ref:`context.request <atlas-context-request>` interface.
+
+.. tip::
+
+   The ``context.request`` interface does not include request body
+   payloads.
+
+context.request
+~~~~~~~~~~~~~~~
+
+An object that contains information about the HTTP request that
+caused the Function to execute.
+
+.. code-block:: javascript
+
+   {
+      "remoteIPAddress": <string>,
+      "requestHeaders": <object>,
+      "webhookUrl": <string>,
+      "httpMethod": <string>,
+      "rawQueryString": <string>,
+      "httpReferrer": <string>,
+      "httpUserAgent": <string>,
+      "service": <string>,
+      "action": <string>
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 60
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``remoteIPAddress``
+     - string
+     - The IP address of the client that issued the Function request.
+
+   * - ``requestHeaders``
+     - object
+     - An object where each field maps to a type of :mdn:`HTTP Header
+       <Web/HTTP/Headers>` that was included in the request that caused
+       the Function to execute. The value of each field is an array of
+       strings where each string maps to a header of the specified type
+       that was included in the request.
+
+   * - ``webhookUrl``
+     - string
+     - Optional. In HTTPS endpoint Functions, the route of the endpoint.
+
+   * - ``httpMethod``
+     - string
+     - Optional. In HTTPS endpoint Functions, the :mdn:`HTTP method
+       <Web/HTTP/Methods>` of the request that called the endpoint.
+
+   * - ``rawQueryString``
+     - string
+     - The :wikipedia:`query string <Query_string>` attached to the
+       incoming HTTP request. All query parameters appear in the same
+       order as they were specified.
+
+       **Important!**  For security reasons, |service| automatically removes
+       any query string key/value pair where the key is ``secret``. For
+       example, if an incoming request has the query string
+       ``?secret=hello&someParam=42`` then the ``rawQueryString`` for
+       that request is ``"someParam=42"``.
+
+   * - ``httpReferrer``
+     - string
+     - Optional. The URL of the page from which the request was sent.
+
+       This value is derived from the :mdn:`HTTP Referer header
+       <Web/HTTP/Headers/Referer>`. If the request did not include a
+       ``Referer`` header then this is ``undefined``.
+
+   * - ``httpUserAgent``
+     - string
+     - Optional. Characteristic information that identifies the source
+       of the request, such as the software vendor, operating system, or
+       application type.
+
+       This value is derived from the :mdn:`HTTP User-Agent header
+       <Web/HTTP/Headers/User-Agent>`. If the request did not include a
+       ``User-Agent`` header then this is ``undefined``.
+
+The following ``context.request`` document reflects a Function call
+issued from ``https://myapp.example.com/`` by a user browsing with
+Chrome 73 on macOS High Sierra:
+
+.. io-code-block::
+
+   .. input::
+      :language: javascript
+
+      exports = function() {
+         return context.request
+      }
+
+   .. output::
+      :language: json
+      :visible: true
+
+      {
+         "remoteIPAddress": "54.173.82.137",
+         "httpReferrer": "https://myapp.example.com/",
+         "httpUserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36",
+         "rawQueryString": "?someParam=foo&anotherParam=42",
+         "requestHeaders": {
+            "Content-Type": ["application/json"],
+            "Cookie": [
+            "someCookie=someValue",
+            "anotherCookie=anotherValue"
+            ]
+         }
+      }
+
+.. _atlas-context-user:
+
+Get User Data (``context.user``)
+--------------------------------
+
+You can access information about the application or system user that
+called a Function with the ``context.user`` interface.
+
+context.user
+~~~~~~~~~~~~
+
+The user object of the authenticated user that
+called the Function.
+
+.. code-block:: javascript
+
+   {
+         "id": <string>,
+         "type": <string>,
+         "data": <document>,
+         "identities": <array>
+   }
+
+.. include:: /includes/triggers/user-object-fields.rst
+
+context.runningAsSystem()
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Evaluates to a boolean that is ``true`` if the Function is running as
+a system user.
+
+.. code-block:: javascript
+
+   exports = function() {
+      const isSystemUser = context.runningAsSystem()
+      if(isSystemUser) {
+         // Do some work with the system user.
+      } else {
+         // Fail.
+      }
+   }
+
+.. _atlas-context-values:
+
+Reference a Value (``context.values``)
+--------------------------------------
+
+You can access your app's static :ref:`values <atlas-define-value>` in a
+Function with the ``context.values`` interface.
+
+context.values.get(valueName)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Gets the data associated with the provided Value name or
+``undefined`` if no such value exists. This data is either a plain
+text JSON value or a :ref:`Secret <atlas-app-secret>` exposed through a
+value.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 60
+
+   * - Parameter
+     - Type
+     - Description
+
+   * - ``valueName``
+     - string
+     - The name of the Value.
+
+.. code-block:: javascript
+
+   exports = function() {
+      // Get a global value (or `undefined` if no Value has the specified name)
+      const theme = context.values.get("theme");
+      console.log(theme.colors)     // Output: { red: "#ee1111", blue: "#1111ee" }
+      console.log(theme.colors.red) // Output: "#ee1111"
+   };
+
+.. _atlas-context-http:
+
+Send an HTTP Request (``context.http``)
+---------------------------------------
+
+You can send HTTPS requests through a built-in client with the
+``context.http`` interface.
+
+context.http.get()
+~~~~~~~~~~~~~~~~~~
+
+Sends an :mdn:`HTTP GET <Web/HTTP/Methods/GET>` request to the
+specified URL. See :method:`http.get()` for detailed reference
+information, including parameter definitions and return types.
+
+.. code-block:: javascript
+
+   exports = async function() {
+      const response = await context.http.get({ url: "https://www.example.com/users" })
+      // The response body is a BSON.Binary object. Parse it and return.
+      return EJSON.parse(response.body.text());
+   };
+
+context.http.post()
+~~~~~~~~~~~~~~~~~~~
+
+Sends an :mdn:`HTTP POST <Web/HTTP/Methods/POST>` request to the
+specified URL. See :method:`http.post()` for detailed reference
+information, including parameter definitions and return types.
+
+.. code-block:: javascript
+
+   exports = async function() {
+      const response = await context.http.post({
+         url: "https://www.example.com/messages",
+         body: { msg: "This is in the body of a POST request!" },
+         encodeBodyAsJSON: true
+      })
+      // The response body is a BSON.Binary object. Parse it and return.
+      return EJSON.parse(response.body.text());
+   };
+
+context.http.put()
+~~~~~~~~~~~~~~~~~~
+
+Sends an :mdn:`HTTP PUT <Web/HTTP/Methods/PUT>` request to the
+specified URL. See :method:`http.put()` for detailed reference
+information, including parameter definitions and return types.
+
+.. code-block:: javascript
+
+   exports = async function() {
+      const response = await context.http.put({
+         url: "https://www.example.com/messages",
+         body: { msg: "This is in the body of a PUT request!" },
+         encodeBodyAsJSON: true
+      })
+      // The response body is a BSON.Binary object. Parse it and return.
+      return EJSON.parse(response.body.text());
+   };
+
+context.http.patch()
+~~~~~~~~~~~~~~~~~~~~
+
+Sends an :mdn:`HTTP PATCH <Web/HTTP/Methods/PATCH>` request to the
+specified URL. See :method:`http.patch()` for detailed reference
+information, including parameter definitions and return types.
+
+.. code-block:: javascript
+
+   exports = async function() {
+      const response = await context.http.patch({
+         url: "https://www.example.com/diff.txt",
+         body: { msg: "This is in the body of a PATCH request!" },
+         encodeBodyAsJSON: true
+      })
+      // The response body is a BSON.Binary object. Parse it and return.
+      return EJSON.parse(response.body.text());
+   };
+
+context.http.delete()
+~~~~~~~~~~~~~~~~~~~~~
+
+Sends an :mdn:`HTTP DELETE <Web/HTTP/Methods/DELETE>` request to the
+specified URL. See :method:`http.delete()` for detailed reference
+information, including parameter definitions and return types.
+
+.. code-block:: javascript
+
+   exports = async function() {
+      const response = await context.http.delete({ url: "https://www.example.com/user/8675309" })
+   };
+
+context.http.head()
+~~~~~~~~~~~~~~~~~~~
+
+Sends an :mdn:`HTTP HEAD <Web/HTTP/Methods/HEAD>` request to the
+specified URL. See :method:`http.head()` for detailed reference
+information, including parameter definitions and return types.
+
+.. code-block:: javascript
+
+   exports = async function() {
+      const response = await context.http.head({ url: "https://www.example.com/users" })
+      // The response body is a BSON.Binary object. Parse it and return.
+      EJSON.parse(response.body.text());
+   };

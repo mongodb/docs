@@ -1,0 +1,461 @@
+.. _atlas-mongodb-write:
+
+=======================================
+Write Data in MongoDB Atlas - Functions
+=======================================
+
+.. default-domain:: mongodb
+
+.. meta:: 
+  :description: Use Atlas Functions to write data to MongoDB Atlas.
+
+.. facet::
+  :name: genre
+  :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The examples on this page demonstrate how to use the MongoDB Query API
+in a function to insert, update, and delete data in your Atlas cluster.
+
+.. note::
+
+   Federated data sources :ref:`do not support write operations
+   <adf-mql-support>`.
+
+.. include:: /includes/triggers/functions/data-model.rst
+
+.. include:: /includes/triggers/functions/setup.rst
+
+.. _atlas-mongodb-insert:
+
+Insert
+------
+
+Insert operations take one or more documents and add them to a MongoDB collection.
+
+They return documents that describe the results of the operation.
+
+.. _atlas-mongodb-insert-a-single-document:
+
+Insert a Single Document (``insertOne()``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can insert a single document using the
+:method:`collection.insertOne()` method.
+
+The following :ref:`Function <atlas-functions>` snippet inserts a single item
+document into the ``items`` collection:
+
+.. include:: /includes/triggers/functions/snippets/insertOne.rst
+
+.. _atlas-mongodb-insert-one-or-more-documents:
+
+Insert One or More Documents (``insertMany()``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can insert multiple documents at the same time using the
+:method:`collection.insertMany()` method.
+
+The following :ref:`Function <atlas-functions>` snippet inserts multiple item
+documents into the ``items`` collection:
+
+.. include:: /includes/triggers/functions/snippets/insertMany.rst
+
+.. _atlas-mongodb-update:
+
+Update
+------
+
+Update operations find existing documents in a MongoDB collection and
+modify their data. You use standard MongoDB query syntax to specify
+which documents to update and :manual:`update operators
+</reference/operator/update>` to describe the changes to apply to
+matching documents.
+
+While running update operations, Atlas Functions temporarily add a
+reserved field, ``_id__baas_transaction``, to documents. Once a document is
+successfully updated, Atlas Functions remove this field.
+
+If you want to use another tool to modify data in a collection, ensure that
+you :manual:`$unset </reference/operator/update/unset>` this field prior to
+making changes.
+
+For example, if you are using the :mdb-shell:`mongosh </>` shell to
+update documents in the products collection, your command
+might resemble the following code:
+
+.. code-block:: sh
+   :emphasize-lines: 3
+
+   db.products.update(
+     { sku: "unknown" },
+     { $unset: { _id__baas_transaction: "" } }
+   )
+
+.. _atlas-mongodb-update-a-single-document:
+
+Update a Single Document (``updateOne()``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can update a single document using the
+:method:`collection.updateOne()` method.
+
+The following :ref:`Function <atlas-functions>` snippet updates the ``name``
+of a single document in the ``items`` collection from ``lego`` to
+``blocks`` and adds a ``price`` of ``20.99``:
+
+.. include:: /includes/triggers/functions/snippets/updateOneSetField.rst
+
+Alternatively, you can update a single document using 
+:method:`collection.findOneAndUpdate()` or 
+:method:`collection.findOneAndReplace()`. Both methods allow you to
+find, modify, and return the updated document in a single operation.
+
+.. _atlas-mongodb-update-one-or-more-documents:
+
+Update One or More Documents (``updateMany()``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can update multiple documents in a collection using the
+:method:`collection.updateMany()` method.
+
+The following :ref:`Function <atlas-functions>` snippet updates all documents
+in the ``items`` collection by multiplying their ``quantity`` values by
+``10``:
+
+.. include:: /includes/triggers/functions/snippets/updateMany.rst
+
+.. _atlas-mongodb-upsert-documents:
+
+Upsert Documents
+~~~~~~~~~~~~~~~~
+
+If an update operation does not match any document in the collection,
+you can automatically insert a single new document into the collection
+that matches the update query by setting the ``upsert`` option to
+``true``.
+
+The following :ref:`Function <atlas-functions>` snippet updates a document in
+the ``items`` collection that has a ``name`` of ``board game`` by
+incrementing its ``quantity`` by ``5``. The ``upsert`` option is
+enabled, so if no document has a ``name`` value of ``"board game"`` then
+MongoDB inserts a new document with the ``name`` field set to ``"board
+game"`` and the ``quantity`` value set to ``5``:
+
+.. include:: /includes/triggers/functions/snippets/updateOneUpsert.rst
+
+.. _atlas-mongodb-update-operators-fields:
+
+Field Update Operators
+~~~~~~~~~~~~~~~~~~~~~~
+
+Field operators let you modify the fields and values of a document.
+
+Set the Value of a Field
+````````````````````````
+
+You can use the :manual:`$set </reference/operator/update/set/>`
+operator to set the value of a single field without affecting other
+fields in a document.
+
+.. code-block:: javascript
+
+   { "$set": { "<Field Name>": <Value>, ... } }
+
+Rename a Field
+``````````````
+
+You can use the :manual:`$rename </reference/operator/update/rename/>`
+operator to change the name of a single field in a document.
+
+.. code-block:: javascript
+
+   { "$rename": { "<Current Field Name>": <New Field Name>, ... } }
+
+Increment a Value
+`````````````````
+
+You can use the :manual:`$inc </reference/operator/update/inc/>`
+operator to add a specified number to the current value of a field. The
+number can be positive or negative.
+
+.. code-block:: javascript
+
+   { "$inc": { "<Field Name>": <Increment Number>, ... } }
+
+Multiply a Value
+````````````````
+
+You can use the :manual:`$mul </reference/operator/update/mul/>`
+operator to multiply a specified number with the current value of a
+field. The number can be positive or negative.
+
+.. code-block:: javascript
+
+   { "$mul": { "<Field Name>": <Multiple Number>, ... } }
+
+.. _atlas-mongodb-update-operators-arrays:
+
+Array Update Operators
+~~~~~~~~~~~~~~~~~~~~~~
+
+Array operators let you work with values inside of arrays.
+
+Push an Element Into an Array
+`````````````````````````````
+
+You can use the :manual:`$push </reference/operator/update/push>`
+operator to add a value to the end of an array field.
+
+.. code-block:: javascript
+
+   { "$push": { "<Array Field Name>": <New Array Element>, ... } }
+
+Pop the Last Element out of an Array
+````````````````````````````````````
+
+You can use the :manual:`$pop </reference/operator/update/pop>` operator
+to remove either the first or last element of an array field. Specify
+``-1`` to remove the first element and ``1`` to remove the last element.
+
+.. code-block:: javascript
+
+   { "$pop": { "<Array Field Name>": <-1 | 1>, ... } }
+
+Add a Unique Element to an Array
+````````````````````````````````
+
+You can use the :manual:`$addToSet
+</reference/operator/update/addToSet>` operator to add a value to an
+array field if that value is not already included in the array. If the
+value is already present, ``$addToSet`` does nothing.
+
+.. code-block:: javascript
+
+   { "$addToSet": { "<Array Field Name>": <Potentially Unique Value>, ... } }
+
+Remove Elements from an Array
+`````````````````````````````
+
+You can use the :manual:`$pull </reference/operator/update/pull>`
+operator to remove all instances of any values that match a specified
+condition from an array field.
+
+.. code-block:: javascript
+
+   { "$pull": { "<Array Field Name>": <Value | Expression>, ... } }
+
+Update All Elements in an Array
+```````````````````````````````
+
+You can use the :manual:`$[] (All Positional Update)
+</reference/operator/update/positional-all>` operator to update all elements in
+an array field:
+
+.. example::
+   
+   Consider a ``students`` collection that describes individual students in a
+   class. The documents each include a ``grades`` field that contains an array
+   of numbers:
+   
+   .. code-block:: json
+      
+      { "_id" : 1, "grades" : [ 85, 82, 80 ] }
+      { "_id" : 2, "grades" : [ 88, 90, 92 ] }
+      { "_id" : 3, "grades" : [ 85, 100, 90 ] }
+   
+   The following update operation adds 10 to all values in the ``grades`` array
+   of every student:
+   
+   .. code-block:: javascript
+      :emphasize-lines: 3
+      
+      await students.updateMany(
+         {},
+         { $inc: { "grades.$[]": 10 } },
+      )
+   
+   After the update, every grade value has increased by 10:
+   
+   .. code-block:: json
+      
+      { "_id" : 1, "grades" : [ 95, 92, 90 ] }
+      { "_id" : 2, "grades" : [ 98, 100, 102 ] }
+      { "_id" : 3, "grades" : [ 95, 110, 100 ] }
+
+Update Specific Elements in an Array
+````````````````````````````````````
+
+You can use the :manual:`$[element] (Filtered Positional Update)
+</reference/operator/update/positional-filtered>` operator to update specific
+elements in an array field based on an array filter:
+
+.. example::
+   
+   Consider a ``students`` collection that describes individual students in a
+   class. The documents each include a ``grades`` field that contains an array
+   of numbers, some of which are greater than 100:
+   
+   .. code-block:: json
+      
+      { "_id" : 1, "grades" : [ 15, 92, 90 ] }
+      { "_id" : 2, "grades" : [ 18, 100, 102 ] }
+      { "_id" : 3, "grades" : [ 15, 110, 100 ] }
+   
+   The following update operation sets all grade values greater than 100 to
+   exactly 100:
+   
+   .. code-block:: javascript
+      :emphasize-lines: 5, 9
+      
+      await students.updateMany(
+         { },
+         {
+           $set: {
+             "grades.$[grade]" : 100
+           }
+         },
+         {
+           arrayFilters: [{ "grade": { $gt: 100 } }]
+         }
+      )
+   
+   After the update, all grade values greater than 100 are set to exactly 100
+   and all other grades are unaffected:
+   
+   .. code-block:: json
+      
+      { "_id" : 1, "grades" : [ 15, 92, 90 ] }
+      { "_id" : 2, "grades" : [ 18, 100, 100 ] }
+      { "_id" : 3, "grades" : [ 15, 100, 100 ] }
+
+.. _atlas-mongodb-delete:
+
+Delete
+------
+
+Delete operations find existing documents in a MongoDB collection and
+remove them. You use standard MongoDB query syntax to specify which
+documents to delete.
+
+.. _atlas-mongodb-delete-a-single-document:
+
+Delete a Single Document (``deleteOne()``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can delete a single document from a collection using the
+:method:`collection.deleteOne()` method.
+
+The following :ref:`Function <atlas-functions>` snippet deletes one document
+in the ``items`` collection that has a ``name`` value of ``lego``:
+
+.. include:: /includes/triggers/functions/snippets/deleteOne.rst
+
+Alternatively, you can update a single document using 
+:method:`collection.findOneAndDelete()`. This method allows you to
+find, remove, and return the deleted document in a single operation.
+
+.. _atlas-mongodb-delete-one-or-more-documents:
+
+Delete One or More Documents (``deleteMany()``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can delete multiple items from a collection using the
+:method:`collection.deleteMany()` method.
+
+The following snippet deletes all documents in the ``items`` collection
+that do not have any ``reviews``:
+
+.. include:: /includes/triggers/functions/snippets/deleteMany.rst
+
+.. _atlas-bulk-writes:
+
+Bulk Writes
+-----------
+
+A bulk write combines multiple write operations into a single operation.
+You can issue a bulk write command using the
+:method:`collection.bulkWrite()` method.
+
+.. include:: /includes/triggers/functions/snippets/bulkWrite.rst
+
+.. _atlas-transactions:
+
+Transactions
+------------
+
+MongoDB supports :manual:`multi-document transactions
+</core/transactions/>` that let you read and write multiple documents
+atomically, even across collections.
+
+To perform a transaction:
+
+1. Obtain and start a client session with ``client.startSession()``.
+
+#. Call ``session.withTransaction()`` to define the transaction. The
+   method takes an async callback function and, optionally, a
+   configuration object that defines custom :manual:`read and write
+   settings
+   </core/transactions/#read-concern-write-concern-read-preference>` for
+   the transaction.
+   
+   .. code-block:: javascript
+      
+      session.withTransaction(async () => {
+         // ... Run MongoDB operations in this callback
+      }, {
+          readPreference: "primary",
+          readConcern: { level: "local" },
+          writeConcern: { w: "majority" },
+      })
+
+#. In the transaction callback function, run the MongoDB queries that
+   you would like to include in the transaction. Be sure to pass the
+   ``session`` to each query to ensure that it is included in the
+   transaction.
+
+   .. code-block:: javascript
+      :emphasize-lines: 4
+
+      await accounts.updateOne(
+        { name: userSubtractPoints },
+        { $inc: { browniePoints: -1 * pointVolume } },
+        { session }
+      );
+
+#. If the callback encounters an error, call
+   ``session.abortTransaction()`` to stop the transaction. An aborted
+   transaction does not modify any data.
+
+   .. code-block:: javascript
+      :emphasize-lines: 4
+      
+      try {
+        // ...
+      } catch (err) {
+        await session.abortTransaction();
+      }
+
+#. When the transaction is complete, call ``session.endSession()`` to
+   end the session and free resources.
+
+   .. code-block:: javascript
+      :emphasize-lines: 4
+      
+      try {
+        // ...
+      } finally {
+        await session.endSession();
+      }
+
+The following example creates two users, "henry" and "michelle", and
+a uses a transaction to move "browniePoints" between those users
+atomically:
+
+.. literalinclude:: /includes/triggers/functions/snippets/transactions.js
+   :language: javascript
