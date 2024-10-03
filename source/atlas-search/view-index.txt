@@ -47,8 +47,8 @@ Required Access
 
 .. _ref-view-index-programmatically:
 
-View an |fts| Index
--------------------
+Procedure
+---------
 
 You can retrieve your |fts| indexes in the {+atlas-ui+}, or
 programmatically by using {+mongosh+}, the {+atlas-cli+}, the |api|, or
@@ -253,11 +253,11 @@ describes the index statuses.
    * - Stale
      - Replication encountered an error. This state commonly occurs 
        when the current replication point is no longer available on the 
-       |mongod| oplog. You can still query the existing index until it 
-       updates and its status changes to :guilabel:`Active`. Use the 
-       error in the :guilabel:`View status details` modal window to 
-       troubleshoot the issue. To learn more, see 
-       :ref:`atlas-search-alerts`.
+       ``mongod`` :ref:`oplog <replica-set-oplog>`. You can still query
+       the existing index until it updates and its status changes to
+       :guilabel:`Active`. Use the error in the :guilabel:`View status
+       details` modal window to troubleshoot the issue. To learn more,
+       see :ref:`atlas-search-alerts`.
 
    * - Failed 
      - |service| could not build the index. Use the error  
@@ -295,21 +295,22 @@ On this page, you can view the following details about the index:
 Index Serving Queries
 ~~~~~~~~~~~~~~~~~~~~~
 
-The index that is being used to serve queries. If you have only one
-version of the index with this name for the collection, the section
-contains a link to the :guilabel:`Index Overview` where you can find the
-index definition for the index being used. 
+This section displays the index that is being used to serve queries. If
+you have only one version of the index with this name for the
+collection, the section contains a link to the :guilabel:`Index
+Overview` where you can see the index definition for the index being
+used. 
 
 If you had other indexes with the same name on the collection, the
 section shows the latest index definition and also shows prior valid
-versions of the index in different tabs that you can copy. 
+versions of the index that you can copy in different tabs. 
 
 When you update an index, different nodes apply the updates at different
 speeds. Therefore, some nodes might use the latest version and some might
 use the prior version. |service| displays both versions of the index
 until the changes are applied to all the nodes. 
 
-If you update the index and the updates to the index are invalid, the
+If you attempt to update the index with an invalid index definition, the 
 index build will fail and |service| displays only the previous valid
 index definition. 
 
@@ -317,9 +318,10 @@ index definition.
 
 Status Details by Node
 ~~~~~~~~~~~~~~~~~~~~~~
-      
-The status of the index on each node of the {+cluster+}. You can
-see the following details about the index on each node: 
+
+This section displays the status of the index on each node of the
+{+cluster+}. You can see the following details about the index on each
+node:
 
 .. list-table:: 
    :stub-columns: 1 
@@ -344,7 +346,7 @@ see the following details about the index on each node:
 
    * - :guilabel:`Node Type` 
      - Type of node. Value can be one of the following types: 
-       
+
        - Primary
        - Secondary 
        - Search Node
@@ -367,9 +369,64 @@ see the following details about the index on each node:
 
 .. include:: /includes/fact-shardCollection-fts-indexes.rst
 
+.. _search-node-migration-status:
+
 Migration to Search Nodes
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The status of the in-progress migration of your |fts| and {+avs+}
-indexes to search nodes, if applicable. This is only visible if you are
-currently migrating to search nodes.
+This section displays the status of the in-progress migration of your
+|fts| and {+avs+} indexes to search nodes, if applicable. This is only
+visible if you are currently migrating to search nodes.
+
+Click the :guilabel:`View Migration Progress` link in the information
+banner under the :guilabel:`Index Status by Search Node` section for 
+details on the progress of the migration of the indexes to Search Nodes
+(on a per node basis). 
+
+The {+atlas-ui+} displays the following columns for each index on the
+{+cluster+}.  
+
+.. include:: /includes/list-tables/atlas-search/node-migration-progress.rst 
+
+The status column displays the status of the index on the Search Nodes.
+The status can be one of the following:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Status
+     - Description
+
+   * - Building 
+     - The index is currently building on the Search Node. Your queries
+       can continue to use existing indexes while the new index is
+       building.  
+
+   * - On Deck
+     - The index is successfully built on the Search Nodes, but the
+       migration is not yet complete. Note that migration is complete
+       only when |service| successfully builds all the indexes on the
+       Search Nodes. 
+
+   * - Ready 
+     - The index on the Search Node is ready for use in your queries.
+       This displays only when |service| successfully completes the
+       migration to the Search Nodes.
+
+   * - Failed 
+     - The index build failed and the migration to separate Search Nodes
+       is stalled. Your queries can continue to use the existing indexes.
+       |service| will try to rebuild the index, but will timeout after 7
+       days.  
+       
+       To migrate successfully, review error message for the index in
+       the :ref:`node-status-ref` :guilabel:`Message` column or in the
+       :guilabel:`Status Details` page for the index and address issues
+       that are causing the index build to fail on the Search Nodes.
+
+Your queries can continue to use existing indexes while the new indexes
+are building on the Search Nodes. The migration to the Search Nodes
+completes only when |service| successfully builds all the indexes
+on the Search Nodes. Then, your queries will be automatically routed to
+the use the indexes on the Search Nodes.

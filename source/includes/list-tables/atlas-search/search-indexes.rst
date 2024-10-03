@@ -44,8 +44,8 @@
      - Size of the index.
 
    * - :guilabel:`Documents`
-     - Number and percentage of indexed documents out of the total
-       number of documents in the collection during and after the
+     - Approximate number and percentage of indexed documents out of the
+       total number of documents in the collection during and after the
        index build on the primary or search node on the {+cluster+}. 
 
    * - :guilabel:`Actions`
