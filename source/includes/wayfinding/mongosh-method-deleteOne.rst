@@ -7,7 +7,7 @@
    .. wayfinding-option:: https://www.mongodb.com/docs/drivers/java/sync/current/usage-examples/deleteOne/
       :id: java-sync
 
-   .. wayfinding-option:: https://www.mongodb.com/docs/languages/java/reactive-streams-driver/current/get-started/quickstart/#delete-a-single-document-that-matches-a-filter
+   .. wayfinding-option:: https://www.mongodb.com/docs/languages/java/reactive-streams-driver/current/write/write-delete-documents/#delete-one-document
       :id: java-rs
 
    .. wayfinding-option:: https://www.mongodb.com/docs/drivers/csharp/current/usage-examples/deleteOne/
