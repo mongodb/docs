@@ -100,13 +100,13 @@
 
           "<authHeader>:<authBearer> <authValue>" <urlV2>
 
-       .. example:: 
+       For example:
 
-          .. code-block:: sh 
-             :copyable: false
+       .. code-block:: sh 
+          :copyable: false
 
-             curl -H "Authorization: Bearer {AUTH-TOKEN}" \
-                  https://{OPSMANAGER-HOST}:{PORT}/backup/restore/v3/pull/{restoreJobId}/{filename}"
+          curl -H "Authorization: Bearer {AUTH-TOKEN}" \
+              https://{OPSMANAGER-HOST}:{PORT}/backup/restore/v3/pull/{restoreJobId}/{filename}"
 
    * - ``groupId``
      - string
