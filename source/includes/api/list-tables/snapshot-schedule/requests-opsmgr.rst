@@ -28,10 +28,8 @@
      - Number of days to retain daily snapshots. You can set a value
        between ``1`` and ``365``, inclusive.
 
-       .. note::
-
-          Setting ``dailySnapshotRetentionDays`` to ``0`` disables this
-          rule.
+       Setting ``dailySnapshotRetentionDays`` to ``0`` disables this
+       rule.
 
    * - ``fullIncrementalDayOfWeek``
      - string
@@ -57,9 +55,7 @@
      - Number of months to retain monthly snapshots. You can set a
        value between ``1`` and ``36``, inclusive.
 
-       .. note::
-
-          Setting ``monthlySnapshotRetentionMonths`` to ``0`` disables this rule.
+       Setting ``monthlySnapshotRetentionMonths`` to ``0`` disables this rule.
 
    * - ``pointInTimeWindowHours``
      - number
@@ -91,12 +87,10 @@
        ``+0000`` before storing it, and adjusts the 
        ``referenceHourOfDay`` value accordingly.
 
-       .. example::
-
-          You pass in a request with a ``referenceHourOfDay`` of ``5``
-          and a ``referenceTimeZoneOffset`` of ``"+0200". |onprem|
-          stores a ``referenceHourOfDay`` of ``3`` and a 
-          ``referenceTimeZoneOffset`` of ``"+0000"``.
+       For example, you pass in a request with a ``referenceHourOfDay``
+       of ``5`` and a ``referenceTimeZoneOffset`` of ``"+0200". |onprem|
+       stores a ``referenceHourOfDay`` of ``3`` and a 
+       ``referenceTimeZoneOffset`` of ``"+0000"``.
 
    * - ``snapshotIntervalHours``
      - number

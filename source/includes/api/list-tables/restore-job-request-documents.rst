@@ -15,11 +15,11 @@
        that represents the point in time to which your data will be
        restored.
 
-       .. note:: Conditions
+       Conditions include:
 
-          - Set ``"delivery.methodName" : "AUTOMATED_RESTORE"``.
-          - Can't set ``oplogInc``, ``oplogTs``, or
-            ``pointInTimeUTCMillis``.
+       - Set ``"delivery.methodName" : "AUTOMATED_RESTORE"``.
+       - Can't set ``oplogInc``, ``oplogTs``, or
+         ``pointInTimeUTCMillis``.
 
        If you provide this setting, this endpoint restores all data up
        to this :opsmgr:`checkpoint  </reference/glossary/#std-term-checkpoint>` to the database you

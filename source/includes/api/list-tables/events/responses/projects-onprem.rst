@@ -56,11 +56,8 @@
      - string
      - Relevant units for the value.
 
-       .. example::
-        
-          A metric that measures memory consumption would have a byte
-          measurement, while a metric that measures time would have a
-          time unit.
+       For example, a metric that measures memory consumption would
+       have a byte measurement, while a metric that measures time would have a time unit.
 
        Accepted values are:
 
@@ -76,12 +73,10 @@
      - array of objects
      - Changes made to the deployment during this event.
 
-       .. note::
-
-          |mms| returns different elements depending upon what was
-          changed: user privileges or roles, restore jobs, automation
-          modules, and so on. The list of this array and its objects is
-          not exhaustive.
+       |mms| returns different elements depending upon what was
+       changed: user privileges or roles, restore jobs, automation
+       modules, and so on. The list of this array and its objects is
+       not exhaustive.
 
    * - | diffs
        | .id
@@ -205,10 +200,7 @@
      - Additional meta information about the event. This field only
        appears when the ``includeRaw`` query parameter is ``true``.
 
-       .. important::
-
-          The values in the ``raw`` document are subject to change. Do
-          not rely on ``raw`` values for formal monitoring.
+       :gold:`IMPORTANT:` The values in the ``raw`` document are subject to change. Do not rely on ``raw`` values for formal monitoring.
 
    * - remoteAddress
      - string
