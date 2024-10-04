@@ -53,12 +53,10 @@
    * - | ``roles``
        | ``.roleName``
      - string
-     - Name of the role. Accepted values are:
-
-       .. note::
-
-          The ``users`` resource returns all the roles the user
-          has in both |mms| and |service|.
+     - Name of the role. The ``users`` resource returns all the roles
+       the user has in both |mms| and |service|.
+     
+       Accepted values are:
 
        .. include:: /includes/list-tables/api-user-roles-cloud.rst
 

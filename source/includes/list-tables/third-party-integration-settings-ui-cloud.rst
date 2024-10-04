@@ -40,13 +40,9 @@
 
    * - Slack Settings
 
-     - 
-       .. warning::
-
-          Before proceeding, you must:
-   
-          - Have a `Slack workspace <https://slack.com/help/articles/206845317-Create-a-Slack-workspace/>`__.
-          - Have `sufficient permissions to install a Slack app in your workspace <https://slack.com/help/articles/222386767-Manage-app-approval-for-your-workspace/>`__.
+     - :red:`WARNING:` Before proceeding, you must have a 
+       `Slack workspace <https://slack.com/help/articles/206845317-Create-a-Slack-workspace/>`__ and have 
+       `sufficient permissions to install a Slack app in your workspace <https://slack.com/help/articles/222386767-Manage-app-approval-for-your-workspace/>`__.
 
        Team name, API token and a channel name for
        alert notifications sent to a Slack account. You can
@@ -64,12 +60,10 @@
        the integration will display your team name and |api| token, and
        allow you to change your channel name.
 
-       .. important:: Legacy Token Deprecation
-
-          Legacy tokens are deprecated and will be removed in a future
-          version of |mms|. You cannot edit a legacy token
-          integration. Instead, you must reconfigure your Slack
-          integration with OAuth2.
+       :gold:`IMPORTANT:` Legacy tokens are deprecated and will be
+       removed in a future version of |mms|. You cannot edit a legacy
+       token integration. Instead, you must reconfigure your Slack
+       integration with OAuth2.
 
    * - VictorOps Settings
 
