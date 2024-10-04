@@ -48,6 +48,7 @@ public class vectorSearchBasicQuery
 public class EmbeddedMovie
 {
     [BsonIgnoreIfDefault]
+    public ObjectId Id { get; set; }
     public string Title { get; set; }
     public string Plot { get; set; }
     [BsonElement("plot_embedding")]
