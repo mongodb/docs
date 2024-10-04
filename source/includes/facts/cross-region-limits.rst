@@ -32,13 +32,13 @@ constraint.
    1. If you exclude Region C, Region A + Region B = 40.
       :icon-fa5:`check-circle`
 
-   2. If you exclude Region B, Region A + Region C = 35, <= 40.
+   #. If you exclude Region B, Region A + Region C = 35, <= 40.
       :icon-fa5:`check-circle`
 
-   3. If you exclude Region A, Region B + Region C = 15, <= 40.
+   #. If you exclude Region A, Region B + Region C = 15, <= 40.
       :icon-fa5:`check-circle`
 
-   4. Each combination of regions with the added 5 nodes still meets
+   #. Each combination of regions with the added 5 nodes still meets
       the per-project constraint:
 
       - Region A + B = 40 :icon-fa5:`check-circle`
@@ -50,6 +50,3 @@ more clusters spanning 40 or more nodes in other regions.
 
 Contact |service| :manual:`support </support>` for questions
 or assistance with raising this limit.
-
-
-

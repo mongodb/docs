@@ -10,7 +10,7 @@
         :guilabel:`Create New Cluster` dialog box.
       - If this is your first {+database-deployment+}:
         
-        1. Click :guilabel:`Build a Database`.
+        a. Click :guilabel:`Build a Database`.
         #. Click :guilabel:`advanced configuration options` at the top of
            the screen to display the
            :guilabel:`Create New Cluster` dialog box.
@@ -318,7 +318,18 @@
          
             .. note:: Removing Zones from an Existing Global {+Cluster+}
       
-               .. include:: /includes/fact-remove-global-zone.rst
+               If you are using the :manual:`standard connection string format
+               </reference/connection-string#connections-standard-connection-string-format>`
+               rather than the :abbr:`DNS (Domain Name Service)` seedlist format,
+               removing an entire zone from an existing global cluster may result
+               in a new connection string. 
+
+               To verify the correct connection string after deploying the changes:
+               
+               a. .. include:: /includes/nav/roman-db-deployments-page.rst
+               #. Verify the connection string.
+
+                  Click :guilabel:`Connect`.
       
    .. step:: Select the :guilabel:`{+Cluster+} Tier`.
       
@@ -527,7 +538,7 @@
       
       .. important::
       
-        .. include:: /includes/fact-database-deployment-project-limit.rst
+        .. include:: /includes/fact-database-deployment-project-limit-lettered.rst
       
    .. step:: Shard a global collection.
       

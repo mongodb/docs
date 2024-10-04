@@ -69,5 +69,3 @@
       - You manually deleted the private endpoint from a region in 
         |service|. You must also delete the private endpoint in |gcp|
         to delete resources. Pending deletion of the region group. 
-
-...

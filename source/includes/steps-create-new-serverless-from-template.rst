@@ -10,7 +10,7 @@
         :guilabel:`Create New Cluster` dialog box.
       - If this is your first {+database-deployment+}:
         
-        1. Click :guilabel:`Build a Database`.
+        a. Click :guilabel:`Build a Database`.
         #. Click :guilabel:`advanced configuration options` at the top of
            the screen to display the
            :guilabel:`Create New Cluster` dialog box.
@@ -67,7 +67,7 @@
       
       .. important::
       
-        .. include:: /includes/fact-database-deployment-project-limit.rst
+        .. include:: /includes/fact-database-deployment-project-limit-lettered.rst
       
    .. step:: Update your :guilabel:`Payment Method` details as needed.
       
@@ -129,5 +129,5 @@
       
       .. important::
       
-        .. include:: /includes/fact-database-deployment-project-limit.rst
+        .. include:: /includes/fact-database-deployment-project-limit-lettered.rst
       
