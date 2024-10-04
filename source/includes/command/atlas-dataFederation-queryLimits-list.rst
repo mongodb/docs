@@ -76,6 +76,6 @@ Examples
 .. code-block::
    :copyable: false
 
-   # list all data federation query limits:
-   atlas dataFederation queryLimits list
+   # list all data federation query limits for the database federated instance "myInstance":
+   atlas dataFederation queryLimits list --dataFederation myInstance
 

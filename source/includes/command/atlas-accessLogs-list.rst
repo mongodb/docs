@@ -106,3 +106,11 @@ Examples
 
    # Return a JSON-formatted list of all authentication requests made against the cluster named Cluster0 for the project with ID 618d48e05277a606ed2496fe:		
    atlas accesslogs list --output json --projectId 618d48e05277a606ed2496fe --clusterName Cluster0
+
+   
+.. code-block::
+   :copyable: false
+
+   # Return a JSON-formatted list of all authentication requests made against the hostname named atlas-dqrlj4-shard-00-00.g1nxq.mongodb-dev.net for the project stored in the profile atlas-dev:
+   atlas accesslogs list --hostname atlas-dqrlj4-shard-00-00.g1nxq.mongodb-dev.net --profile atlas-dev --output json
+
