@@ -37,7 +37,8 @@
         logs a placeholder value of ``###``.
 
     * - 9 
-      - Vector 
+      - Vector data, which is densely packed arrays of numbers of the
+        same type. 
 
     * - 128
       - Custom data
