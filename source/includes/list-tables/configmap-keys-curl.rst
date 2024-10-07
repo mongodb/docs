@@ -55,7 +55,7 @@
        identifies your
        |com| :opsmgr:`Organization </tutorial/manage-organizations>`.
 
-       .. include:: /includes/admonitions/note-k8s-supported-in-om4.rst
+       .. include:: /includes/admonitions/note-k8s-supported-in-om4-nested.rst
 
        Specify an :opsmgr:`existing Organization
        </tutorial/manage-organizations/#create-organization>`:
@@ -76,7 +76,7 @@
      - |url| to your |application| including the |fqdn| and port
        number.
 
-       .. include:: /includes/admonitions/data-url-config-map-external-dbs.rst
+       .. include:: /includes/admonitions/data-url-config-map-external-dbs-nested.rst
 
        If you're using |cloud-short|, set the ``data.baseUrl`` value
        to ``https://cloud.mongodb.com``.
