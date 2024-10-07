@@ -43,11 +43,9 @@ a. Launch ODBC Manager.
       * - **SERVER**
         - The hostname or IP address of the |bi| host.
 
-          .. important::
-
-             Use ``127.0.0.1`` to connect via TCP to localhost.
-             Specifying a value other than an IP address, will attempt to
-             connect via Unix socket.
+          :gold:`IMPORTANT:` Use ``127.0.0.1`` to connect using TCP to
+          localhost. If you specify a value other than an IP address, 
+          the {+bi-short+} attempts to connect using Unix socket.
 
       * - **PORT**
         - The :abbr:`IANA (Internet Assigned Numbers Authority)`
