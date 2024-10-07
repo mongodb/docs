@@ -56,12 +56,10 @@
        the integration will display your team name and |api| token, and
        allow you to change your channel name.
 
-       .. important:: Legacy Token Deprecation
-
-          Legacy tokens are deprecated and will be removed in a future
-          version of |mms|. You cannot edit a legacy token
-          integration. Instead, you must reconfigure your Slack
-          integration with OAuth2.
+       :gold:`IMPORTANT:` Legacy tokens are deprecated and will be
+       removed in a future version of |mms|. You cannot edit a legacy
+       token integration. Instead, you must reconfigure your Slack
+       integration with OAuth2.
 
    * - VictorOps Settings
 

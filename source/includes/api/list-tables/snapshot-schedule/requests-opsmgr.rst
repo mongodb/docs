@@ -110,7 +110,5 @@
      - Number of weeks to retain weekly snapshots. You can set a value
        between ``1`` and ``52``, inclusive.
 
-       .. note::
-
-          Setting ``weeklySnapshotRetentionWeeks`` to ``0`` disables
-          this rule.
+       Setting ``weeklySnapshotRetentionWeeks`` to ``0`` disables
+       this rule.
