@@ -66,7 +66,7 @@
           You must have the :opsmgr:`Organization Project Creator </reference/user-roles/#Organization Project Creator>`
           role to create a new project *within an existing organization*.
 
-          .. include:: /includes/admonitions/note-k8s-supported-in-om4.rst
+          .. include:: /includes/admonitions/note-k8s-supported-in-om4-nested.rst
 
        If you provide an empty string as your ``orgId``, |k8s-op-short| 
        creates an organization with the same name as your project.
@@ -78,7 +78,7 @@
      - |url| to your |application| including the |fqdn| and port
        number.
 
-       .. include:: /includes/admonitions/data-url-config-map-external-dbs.rst
+       .. include:: /includes/admonitions/data-url-config-map-external-dbs-nested.rst
 
        If you're using |cloud-short|, set the ``data.baseUrl`` value
        to ``https://cloud.mongodb.com``.
