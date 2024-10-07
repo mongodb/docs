@@ -25,7 +25,7 @@
        The format should be ``X.Y.Z`` for the Community edition and
        ``X.Y.Z-ent`` for the Enterprise edition.
 
-       .. include:: /includes/admonitions/ubi-8-min-db-versions.rst
+       .. include:: /includes/admonitions/ubi-8-min-db-versions-nested.rst
 
        To learn more about MongoDB versioning, see
        :ref:`release-version-numbers` in the MongoDB Manual.
@@ -43,7 +43,7 @@
        
        .. include:: /includes/admonitions/note-namespace-match-configmap.rst
 
-       .. include:: /includes/admonitions/fact-k8s-operator-manages-configmap.rst
+       .. include:: /includes/admonitions/fact-k8s-operator-manages-configmap-nested.rst
 
      - ``<my-project>``
 
@@ -98,7 +98,7 @@
 
        .. include:: /includes/admonitions/note-namespace-match-secret.rst
 
-       .. include:: /includes/admonitions/fact-k8s-operator-manages-secret.rst
+       .. include:: /includes/admonitions/fact-k8s-operator-manages-secret-nested.rst
 
      - ``<mycredentials>``
 
