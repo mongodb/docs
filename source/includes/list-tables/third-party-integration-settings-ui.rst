@@ -40,10 +40,8 @@
 
    * - Slack Settings
 
-       .. important::
-
-          Before proceeding, you must complete the steps to 
-          :ref:`integrate with Slack <integrate-with-slack>`.
+       :gold:`IMPORTANT:` Before proceeding, you must complete the
+       steps to :ref:`integrate with Slack <integrate-with-slack>`.
 
      - Team name, API token and a channel name for
        alert notifications sent to a Slack account. You can
@@ -61,12 +59,10 @@
        the integration will display your team name and |api| token, and
        allow you to change your channel name.
 
-       .. important:: Legacy Token Deprecation
-
-          Legacy tokens are deprecated and will be removed in a future
-          version of |mms|. You cannot edit a legacy token
-          integration. Instead, you must reconfigure your Slack
-          integration with OAuth2.
+       :gold:`IMPORTANT:` Legacy tokens are deprecated and will be
+       removed in a future version of |mms|. You cannot edit a legacy
+       token integration. Instead, you must reconfigure your Slack
+       integration with OAuth2.
 
    * - VictorOps Settings
 
@@ -123,10 +119,8 @@
            down, but Datadog reports them as healthy and the status 
            gets older.
 
-         .. important::
-
-            If the health status is ``1``, but no other metrics appear 
-            in Datadog, the replica set might be down.
+         :gold:`IMPORTANT:` If the health status is ``1`` but no other
+         metrics appear in Datadog, the replica set might be down.
 
    * - Webhook Settings
 

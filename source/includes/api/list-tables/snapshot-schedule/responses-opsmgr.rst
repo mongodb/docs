@@ -95,7 +95,5 @@
      - Number of weeks to retain weekly snapshots. |mms| may return
        values between ``1`` and ``52``, inclusive.
 
-       .. note::
-
-          Setting ``weeklySnapshotRetentionWeeks`` to ``0`` disables
-          this rule.
+       Setting ``weeklySnapshotRetentionWeeks`` to ``0`` disables
+       this rule.

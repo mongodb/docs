@@ -37,10 +37,9 @@
        - the number of times a Backup Daemon tried if the restore
          requires a Backup Daemon
 
-       .. important:: Legacy Value
-
-          No current restore delivery method retries a restore if it
-          fails. This column applies to obsolete restore methods.
+       :gold:`IMPORTANT:` No current restore delivery method retries a
+       restore if it fails. This column applies to obsolete restore
+       methods.
 
    * - Bytes Transferred
      - Total number of bytes that transferred while the restore job was
