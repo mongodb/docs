@@ -53,12 +53,10 @@ settings, use the :ref:`update-backup-logs` endpoint.
      
        To learn more, see :doc:`/reference/mongodb-compatibility`.
 
-       .. important::
-
-          This property is read-only. Any modifications made to this
-          property are not reflected when updating the Backup Agent
-          through the |api|. To update the Backup Agent version, see
-          :ref:`this endpoint <update-monitoring-backup-versions>`.
+       :gold:`IMPORTANT:` This property is read-only. Any modifications
+       made to this property are not reflected when updating the Backup
+       Agent through the |api|. To update the Backup Agent version, see
+       :ref:`this endpoint <update-monitoring-backup-versions>`.
 
    * - backupVersions[n].hostname
      - string

@@ -105,10 +105,8 @@ clusters.
      - Names of the config server hosts. The host names match the names
        used in each host's **processes.name** parameter.
 
-       If your sharded cluster runs MongoDB 3.4 or later, use
-       **sharding.configServerReplica**.
-
-       .. important:: MongoDB 3.4 removes support for mirrored config servers.
+       :gold:`IMPORTANT:` MongoDB 3.4 removes support for mirrored config servers. If your sharded cluster runs MongoDB 3.4 or
+       later, use **sharding.configServerReplica**.
 
    * - sharding.collections
      - array of objects

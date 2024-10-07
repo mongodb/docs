@@ -19,7 +19,7 @@
        Checkpoints provide restore points that you can use to create
        custom *point-in-time* snapshots.
 
-       .. include:: /includes/admonitions/important/checkpoints-fcv-4-0-only.rst
+       .. include:: /includes/admonitions/important/checkpoints-fcv-4-0-only-nested.rst
 
    * - Store daily snapshots for
 

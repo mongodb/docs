@@ -35,11 +35,9 @@
       
            - Enter the user's password.
       
-             .. important::
-      
-                If you specified ``$external`` as the database in the
-                :guilabel:`Identifier`, you do not need to change this 
-                value.
+             :gold:`IMPORTANT:` If you specified ``$external`` as the
+             database in the :guilabel:`Identifier`, you do not need to
+             change this value.
       
          * - :guilabel:`Authentication Restrictions`
       

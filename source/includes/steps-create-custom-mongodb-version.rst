@@ -44,11 +44,9 @@
              - Point to a host running an |http|\-compatible web server.
              - Point to the Custom Build binary file.
       
-             .. important::
-      
-                The |application| does not check if this |url| exists, only
-                that it is `a complete URL
-                <https://www.w3.org/Addressing/URL/url-spec.html>`_.
+             :gold:`IMPORTANT:` The |application| does not check if
+             this |url| exists, only that it is `a complete URL
+             <https://www.w3.org/Addressing/URL/url-spec.html>`_.
       
          * - Git Version
            - The complete 40-character ``git`` SHA-1 checksum (or *hash*)

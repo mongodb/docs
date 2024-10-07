@@ -26,8 +26,6 @@ The following query parameters are optional:
       The ``raw`` document contains additional meta information about
       the event.
 
-      .. important::
-
-        The values in the ``raw`` document are subject to change. Do
-        not rely on ``raw`` values for formal monitoring.
+      :gold:`IMPORTANT:` The values in the ``raw`` document are subject
+      to change. Do not rely on ``raw`` values for formal monitoring.
     - ``false``

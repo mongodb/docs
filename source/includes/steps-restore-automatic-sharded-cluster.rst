@@ -36,21 +36,19 @@
       
                 .. include:: /includes/fact-restore-doesnt-include-selected-time.rst
       
-                .. important::
+                :gold:`IMPORTANT:` If you are restoring a sharded
+                cluster that runs |fcv-link| of 4.0 or earlier, you
+                must :ref:`enable cluster checkpoints
+                <enable-cluster-checkpoints>` to
+                perform a |pit| restore on a sharded cluster. If no
+                checkpoints that include your date and time are
+                available, |mms| asks you to
+                :guilabel:`choose another point in time`.
       
-                   - If you are restoring a sharded cluster that runs
-                     |fcv-link| of 4.0 or earlier, you must :ref:`enable
-                     cluster checkpoints <enable-cluster-checkpoints>` to
-                     perform a |pit| restore on a sharded cluster.
-      
-                     If no checkpoints that include your date and time are
-                     available, |mms| asks you to
-                     :guilabel:`choose another point in time`.
-      
-                   - You cannot perform a |pit| restore that covers any
-                     time prior to the latest backup resync. For the
-                     conditions that cause a resync, see
-                     :doc:`/tutorial/resync-backup`.
+                :gold:`IMPORTANT:` You cannot perform a |pit| restore
+                that covers any time prior to the latest backup resync.
+                For the conditions that cause a resync, see
+                :doc:`/tutorial/resync-backup`.
       
               - Select a :guilabel:`Date` and :guilabel:`Time`.
       

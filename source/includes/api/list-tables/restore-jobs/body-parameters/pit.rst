@@ -25,7 +25,7 @@
        automated restore uses the ``HTTP`` method to deliver the
        restore job to the target host.
 
-       .. include:: /includes/note-scp-removed.rst
+       .. include:: /includes/note-scp-removed-nested.rst
 
    * - | ``delivery``
        | ``.targetClusterId``

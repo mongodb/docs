@@ -122,11 +122,11 @@
       
               - Select either ``SASL`` or ``Simple``. 
       
-                .. important::
-      
-                   If you choose the ``Simple`` bind method, select ``TLS``
-                   from the :guilabel:`Transport Security` because the
-                   ``Simple`` bind method passes the password in plain text.
+                :gold:`IMPORTANT:` If you choose the ``Simple`` bind
+                method, select ``TLS`` from the 
+                :guilabel:`Transport Security` because the
+                ``Simple`` bind method passes the password in plain
+                text.
       
             * - SASL Mechanisms  
       

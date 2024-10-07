@@ -16,7 +16,7 @@
        granularity of point-in-time restores for sharded clusters.
        You can set a value of ``15``, ``30``, or ``60``.
 
-       .. include:: /includes/admonitions/important/checkpoints-fcv-4-0-only.rst
+       .. include:: /includes/admonitions/important/checkpoints-fcv-4-0-only-nested.rst
 
    * - ``clusterId``
      - string
