@@ -28,8 +28,7 @@ The repair fixes these issues:
 - If corrupt documents with invalid BSON data are found, the documents
   are removed.
 
-.. seealso::
-
-   :option:`--repair <mongod --repair>` option for :binary:`~bin.mongod`
+For more information, see the :option:`--repair <mongod --repair>` option
+for :binary:`~bin.mongod`
 
 .. versionadded:: 5.0
