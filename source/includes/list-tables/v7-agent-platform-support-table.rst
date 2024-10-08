@@ -58,13 +58,6 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
 
-    * - 
-      - Debian 8
-      - 
-      - 
-      -
-      -
-
     * -
       - Debian 9
       -
