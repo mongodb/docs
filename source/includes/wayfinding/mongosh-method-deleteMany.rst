@@ -7,7 +7,7 @@
    .. wayfinding-option:: https://www.mongodb.com/docs/drivers/java/sync/current/usage-examples/deleteMany/
       :id: java-sync
 
-   .. wayfinding-option:: https://www.mongodb.com/docs/languages/java/reactive-streams-driver/current/get-started/quickstart/#delete-all-documents-that-match-a-filter
+   .. wayfinding-option:: https://www.mongodb.com/docs/languages/java/reactive-streams-driver/current/write/write-delete-documents/#delete-multiple-documents
       :id: java-rs
 
    .. wayfinding-option:: https://www.mongodb.com/docs/drivers/csharp/current/usage-examples/deleteMany/

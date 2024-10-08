@@ -40,7 +40,7 @@
    .. wayfinding-option:: https://www.mongodb.com/docs/drivers/rust/current/usage-examples/count/
       :id: rust
    
-   .. wayfinding-option:: https://www.mongodb.com/docs/languages/java/reactive-streams-driver/current/get-started/quickstart/#count-documents-in-a-collection
+   .. wayfinding-option:: https://www.mongodb.com/docs/languages/java/reactive-streams-driver/current/read/count-documents/
       :id: java-rs
 
    .. wayfinding-option:: https://mongocxx.org/api/current/classmongocxx_1_1v__noabi_1_1collection.html#a03c8eb29bfc93cecaefc0ef9773fced7
