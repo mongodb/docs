@@ -1,28 +1,43 @@
 .. procedure:: 
    :style: normal
 
-   .. step:: Ensure that your ``CLASSPATH`` contains the following libraries.
+   .. step:: Add the MongoDB Java Sync Driver to your project.
 
-      .. list-table::
-         :widths: 30 70 
+      a. Add the Java driver version 5.2 or higher as a dependency in your project:
 
-         * - ``junit``
-           - 4.11 or higher version 
+         - If you are using Maven, add the following dependency to your
+           ``pom.xml`` dependencies list:
 
-         * - ``mongodb-driver-sync``
-           - 4.3.0 or higher version
+           .. code-block:: xml
+              :copyable: true
 
-         * - ``slf4j-log4j12``
-           - 1.7.30 or higher version
-  
-      For more detailed installation instructions, see the 
-      :driver:`MongoDB Java Driver documentation </java/sync/current/quick-start/#std-label-add-mongodb-dependency>`.
+              <dependency>
+                 <groupId>org.mongodb</groupId>
+                 <artifactId>mongodb-driver-sync</artifactId>
+                 <version>5.2.0</version>
+              </dependency>
+
+         - If you are using Gradle, add the following dependency to your
+           ``build.gradle`` dependencies list:
+
+           .. code-block:: json
+              :copyable: true
+
+              dependencies {
+                 implementation 'org.mongodb:mongodb-driver-sync:5.2.0'
+              }
+
+      #. Add the Java driver JAR files to your ``CLASSPATH``.
+
+      For more detailed installation instructions and version compatibility, see
+      the :driver:`MongoDB Java Driver documentation
+      </java/sync/current/quick-start/#std-label-add-mongodb-dependency>`.
 
    .. step:: Construct your vector search query.
 
       .. include:: /includes/fact-avs-quick-start-intro.rst
 
-      a. Create a file named ``BasicQuery.java`` .
+      a. Create a file named ``BasicQuery.java``.
 
       #. Copy and paste the following sample query into the 
          ``BasicQuery.java`` file:
@@ -30,15 +45,6 @@
          .. literalinclude:: /includes/avs-examples/pipeline-stage-examples/basic-query.java
             :language: java
             :linenos:
-
-      .. note:: 
-
-         To run the sample code in your Maven environment, add the 
-         following code above the import statements in your file.
-
-         .. code-block:: 
-
-            package com.mongodb.drivers;
 
       .. include:: /includes/fact-avs-quick-start-intro-II.rst
 

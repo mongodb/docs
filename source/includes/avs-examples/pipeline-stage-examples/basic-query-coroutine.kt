@@ -1,6 +1,7 @@
 import com.mongodb.client.model.Aggregates
 import com.mongodb.client.model.Projections
 import com.mongodb.client.model.search.SearchPath.fieldPath
+import com.mongodb.client.model.search.VectorSearchOptions
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import kotlinx.coroutines.flow.count
 import org.bson.Document
@@ -24,11 +25,17 @@ suspend fun main() {
             )
         val path = fieldPath("plot_embedding")
         val index = "vector_index"
-        val numCandidates = 150L
         val limit = 10L
+        val numCandidates = 150L
 
         val pipeline = listOf(
-            Aggregates.vectorSearch(path, queryVector, index, numCandidates, limit),
+            Aggregates.vectorSearch(
+                path,
+                queryVector,
+                index,
+                limit,
+                VectorSearchOptions.approximateVectorSearchOptions(numCandidates)
+            ),
             Aggregates.project(
                 Projections.fields(
                     Projections.excludeId(),
