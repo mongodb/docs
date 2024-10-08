@@ -19,6 +19,10 @@ is enabled for the {+cluster+}.
   complete successfully, |service| requires the :manual:`minimum oplog retention window (oplogMinRetentionHours)
   </core/replica-set-oplog/#minimum-oplog-retention-period>` up to (60 seconds) * (GB of disk space configured).
 
+  If the {+cluster+}'s storage capacity decreases, |service|
+  automatically scales the oplog size down to ensure it fits in the
+  decreased storage size.
+
 - You can opt out of {+cluster+} storage auto-scaling by un-checking the
   :guilabel:`Storage Scaling` checkbox in the :guilabel:`Auto-scale`
   section. If you opt out of storage auto-scaling, |service| manages
@@ -46,7 +50,8 @@ is enabled for the {+cluster+}.
       remain at 10% of the storage capacity, not to exceed a certain
       maximum determined according to MongoDB best practices.
 
-  If the {+cluster+}'s storage capacity decreases, |service|
-  automatically scales the oplog size down to ensure it fits in the
-  decreased storage size. 
- 
+  - If you scale down the {+cluster+}'s storage, |service| uses the previous oplog-to-disk
+    ratio to scale down the oplog proportionately. For example, if you scale 
+    from 100 GB to 50 GB with an oplog of 25 GB (ratio of 0.25), the new oplog size 
+    would also have a ratio of 0.25, which would make it 12.5 GB. The only exception is if 
+    the new oplog size is less than 5% of the storage capacity (or less than 10% for NVMe storage). In that case, |service| uses the higher value for the oplog size, which would be 5% of the storage capacity (10% for NVMe storage). 
