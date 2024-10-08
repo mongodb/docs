@@ -15,8 +15,10 @@
        content: |
 
          To create an index using the
-         :api:`Python driver <pymongo>`,
-         use :py:meth:`pymongo.collection.Collection.create_index`:
+         `Python driver <https://www.mongodb.com/docs/languages/python/pymongo-driver/current/>`_,
+         use the `pymongo.collection.Collection.create_index
+         <https://www.mongodb.com/docs/languages/python/pymongo-driver/current/work-with-indexes/#create-an-index>`_
+         method:
 
          .. code-block:: python
 
