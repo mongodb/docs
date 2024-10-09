@@ -28,6 +28,7 @@ MongoDB Cluster Management
      are not supported when you use config shards.
 
 - Deprecates support for MongoDB 4.4 and MongoDB 5.0 deployments.
+- Deprecates support for MongoDB Server 6.0 as a :ref:`backing database <om-install-backing-dbs>`.
 - Removes support for MongoDB 4.2 deployments.
 
 Backup
