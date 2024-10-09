@@ -42,10 +42,8 @@
        access list. The specified date must be in the future and within
        one week of the time you make the |api| request.
 
-       .. important::
-
-          You cannot set |aws| security groups as temporary access list
-          entries.
+       :gold:`IMPORTANT:` You cannot set |aws| security groups as temporary access list
+       entries.
 
        You may include an |iso8601| time zone designator to ensure
        that the expiration date occurs with respect to the local
