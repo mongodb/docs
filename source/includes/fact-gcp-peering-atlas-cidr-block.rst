@@ -50,14 +50,12 @@ container based on the |cidr| block you choose.
    * - ``/24``
      - 1
 
-.. important::
-
-   You can't use the |service| user interface to specify an |service| 
-   |cidr| block smaller than ``/18``. You must use the |service| 
-   :oas-atlas-op:`API </createOneNewNetworkPeeringContainer>` and
-   specify the regions (up to eight, based on the |cidr| block you
-   choose) to which to deploy the network peering container. You can 
-   deploy |service| clusters only to these regions in this project.
+:gold:`IMPORTANT:` You can't use the |service| user interface to specify an |service| 
+|cidr| block smaller than ``/18``. You must use the |service| 
+:oas-atlas-op:`API </createOneNewNetworkPeeringContainer>` and
+specify the regions (up to eight, based on the |cidr| block you
+choose) to which to deploy the network peering container. You can 
+deploy |service| clusters only to these regions in this project.
 
 |service| locks this value for all regions if an ``M10`` or greater
 cluster or a Network Peering connection already exists in that project.  
@@ -71,14 +69,8 @@ Alternatively, :ref:`create a new project <atlas-create-atlas-project>`
 and create a Network Peering Connection to set the desired |service| 
 Network Peering |cidr| block for that project.
 
-.. important::
-
-   |service| limits the number of MongoDB nodes per Network Peering
-   connection based on the |cidr| block and the region selected for the project. 
-
-   For example, a project with an |service| |vpc| |cidr| block of
-   ``/18`` is limited to approximately 80 three-node
-   replica sets per |gcp| region.
-
-   Contact :website:`MongoDB Support </contact>` for any questions on
-   |service| limits of MongoDB nodes per Network Peering connection.
+:gold:`IMPORTANT:` |service| limits the number of MongoDB nodes per Network Peering
+connection based on the |cidr| block and the region selected for the project. For example, a project with an |service| |vpc| |cidr| block of
+``/18`` is limited to approximately 80 three-node
+replica sets per |gcp| region. Contact :website:`MongoDB Support </contact>` for any questions on
+|service| limits of MongoDB nodes per Network Peering connection.
