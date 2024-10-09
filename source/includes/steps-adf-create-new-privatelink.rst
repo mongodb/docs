@@ -53,13 +53,11 @@
                 |vpc| uses. Find these values on the :guilabel:`Subnet` 
                 dashboard in your |aws| account.
       
-                .. important::
-      
-                   You must specify at least one subnet. If you don't, 
-                   |aws| won't provision an :term:`interface endpoint` in
-                   your |vpc|. An interface endpoint is required for 
-                   clients in your |vpc| to send traffic to the private 
-                   endpoint.
+                :gold:`IMPORTANT:` You must specify at least one subnet. If you don't, 
+                |aws| won't provision an :term:`interface endpoint` in
+                your |vpc|. An interface endpoint is required for 
+                clients in your |vpc| to send traffic to the private 
+                endpoint.
       
       #. Copy the command the dialog box displays and run it using the |aws| 
          CLI.

@@ -17,14 +17,11 @@ You can also :ref:`create a new project <atlas-create-atlas-project>`
 then create a Network Peering Connection to set the desired |service| 
 |vpc| |cidr| block for that project.
 
-.. important::
+:gold:`IMPORTANT:` |service| limits the number of MongoDB nodes per Network Peering
+connection based on the |cidr| block and the region selected for the project: 
 
-   |service| limits the number of MongoDB nodes per Network Peering
-   connection based on the |cidr| block and the region selected for the project. 
-
-   For example, a project in an |aws| region supporting 3 availability
-   zones and a |service| |cidr| |vpc| block of ``/24`` is
-   limited to the equivalent of 27 three-node replica sets.
-
-   Contact :website:`MongoDB Support </contact>` for any questions on
-   |service| limits of MongoDB nodes per |vpc|.
+- For example, a project in an |aws| region supporting 3 availability
+  zones and a |service| |cidr| |vpc| block of ``/24`` is
+  limited to the equivalent of 27 three-node replica sets.
+- Contact :website:`MongoDB Support </contact>` for any questions on
+  |service| limits of MongoDB nodes per |vpc|.

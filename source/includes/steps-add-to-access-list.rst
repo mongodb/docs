@@ -42,22 +42,18 @@
              IP addresses to |cidr|, such as
              `<http://www.ipaddressguide.com/cidr>`_.
       
-             .. important::
-      
-                Adding the |cidr| ``0.0.0.0/0`` allows access from anywhere.
-                Ensure that strong credentials (username and password) are
-                used for all database users when allowing access from
-                anywhere.
+             :gold:`IMPORTANT:` Adding the |cidr| ``0.0.0.0/0`` allows access from anywhere.
+             Ensure that strong credentials (username and password) are
+             used for all database users when allowing access from
+             anywhere.
       
          * - Security Group ID (AWS Only)
       
            - Access via Security Group membership from a peered VPC.
       
-             .. important::
-      
-                |service| does not support adding |aws| security groups to
-                IP access lists in projects with |vpc| peering connections
-                in multiple regions.
+             :gold:`IMPORTANT:` |service| does not support adding |aws| security groups to
+             IP access lists in projects with |vpc| peering connections
+             in multiple regions.
       
    .. step:: (Optional) Set the IP access list as temporary.
       

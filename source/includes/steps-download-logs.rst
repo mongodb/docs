@@ -71,10 +71,7 @@
              time of log activity to return. The start time must be less 
              than 30 days ago.
       
-             .. important::
-        
-                To ensure that your log data returns within the desired time 
-                frame, set the time zone in your |service|
-                :ref:`project settings <project-settings>`.
+             :gold:`IMPORTANT:` To ensure that your log data returns within the desired time 
+             frame, set the time zone in your |service| :ref:`project settings <project-settings>`.
       
    .. step:: Click :guilabel:`Download Logs`.

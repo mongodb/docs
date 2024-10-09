@@ -38,15 +38,13 @@ You can set the following in the {+atlas-ui+}:
       setting when there are no active dedicated GCP or Azure {+clusters+}
       in your project.
 
-      .. important:: Feature Deprecated
-
-         This feature has been deprecated. Existing {+clusters+} can
-         continue to use this feature. Use both Standard and Private
-         IP for Peering connection strings to connect to your project.
-         These connection strings allow you to connect using both
-         |vpc|/VNet Peering and allowed public IP addresses. To
-         learn more about support for multiple connection strings, see
-         :dochub:`this FAQ <atlas-horizon-faq>`.
+      :gold:`IMPORTANT:` This feature has been deprecated. Existing {+clusters+} can
+      continue to use this feature. Use both Standard and Private
+      IP for Peering connection strings to connect to your project.
+      These connection strings allow you to connect using both
+      |vpc|/VNet Peering and allowed public IP addresses. To
+      learn more about support for multiple connection strings, see
+      :dochub:`this FAQ <atlas-horizon-faq>`.
 
   * - :guilabel:`Using Custom DNS on AWS with VPC peering`
 
@@ -104,9 +102,7 @@ You can set the following in the {+atlas-ui+}:
 
     - Allows you to query your database with an easy-to-use interface.
 
-      .. important::
-
-         .. include:: /includes/fact-disable-de-limitations.rst
+      .. include:: /includes/fact-disable-de-limitations-nested.rst
 
   * - :guilabel:`Performance Advisor and Profiler`
 
@@ -149,7 +145,7 @@ You can set the following in the {+atlas-ui+}:
 
   * - :guilabel:`Delete Charts`
 
-    - .. include:: /includes/fact-delete-charts-warning.rst
+    - .. include:: /includes/fact-delete-charts-warning-nested.rst
       
       Allows :authrole:`Project Owners <Project Owner>` to delete the
       |charts| instance associated with your project. This setting is

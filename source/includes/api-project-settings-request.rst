@@ -22,9 +22,7 @@
        project. If enabled, you can query your database with an easy to 
        use interface.
 
-       .. important::
-
-          .. include:: /includes/fact-disable-de-limitations.rst
+       .. include:: /includes/fact-disable-de-limitations-nested.rst
      
    * - ``isPerformanceAdvisorEnabled``
      - boolean

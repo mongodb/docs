@@ -64,14 +64,12 @@
          * - Key Identifier
            - Enter the full |url| for the key created in the Key Vault.
       
-             .. important::
+             :gold:`IMPORTANT:` The key identifier must be provided in the full
+             :azure:`Azure general format </key-vault/general/about-keys-secrets-certificates>`:
       
-                The key identifier must be provided in the full
-                :azure:`Azure general format </key-vault/general/about-keys-secrets-certificates>`
+             .. code-block:: text
       
-                .. code-block:: text
-      
-                   https://{keyvault-name}.vault.azure.net/{object-type}/{object-name}/{object-version}
+                https://{keyvault-name}.vault.azure.net/{object-type}/{object-name}/{object-version}
 
    .. step:: (Optional) Configure private endpoint connections to your |akv|.
 

@@ -44,7 +44,7 @@
 
    * - :guilabel:`New Relic Settings`
 
-     - .. include:: /includes/fact-new-relic-deprecated.rst
+     - .. include:: /includes/fact-new-relic-deprecated-nested.rst
       
        Configures |service| to send metric data about your deployment
        to `New Relic <http://newrelic.com/>`_ for viewing through the
@@ -122,16 +122,10 @@
        edit the integration, |service| displays your team name and
        |api| token, and allow you to change your channel name.
 
-       .. important:: Legacy Token Deprecation
-
-          |service| deprecated legacy tokens. You can't configure a new Slack
-          integration with legacy tokens. 
-          
-          You can continue to use legacy tokens if you used them to configure a
-          Slack integration before |service| deprecated legacy tokens. However,
-          you can't edit your legacy tokens. You must
-          reconfigure your Slack integration with
-          OAuth2 if you need to edit the token configuration.
+       :gold:`IMPORTANT:` |service| deprecated legacy tokens. You can't configure a new Slack
+       integration with legacy tokens or edit any existing legacy tokens. You can continue to use legacy tokens if you 
+       used them to configure a Slack integration prior to deprecation. However,
+       you must reconfigure your Slack integration with OAuth2 if you need to edit your token configuration.
 
    * - :guilabel:`SumoLogic Settings`
 
@@ -209,11 +203,9 @@
        |service| sends an email to the project owner and eventually
        removes the Webhook settings.
 
-       .. important::
-
-          If your firewall configuration requires it, allow access from
-          :ref:`Atlas IP addresses <atlas-add-inbound-ips>` so that
-          |service| can communicate with your webhook.
+       :gold:`IMPORTANT:` If your firewall configuration requires it, allow access from
+       :ref:`Atlas IP addresses <atlas-add-inbound-ips>` so that
+       |service| can communicate with your webhook.
 
    * - :guilabel:`Prometheus Settings`
 

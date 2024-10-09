@@ -153,10 +153,8 @@
          ingestion, this metric may report incorrectly and produce a 
          false positive result.
 
-       .. important::
-
-          If the health status is ``1``, but no other metrics appear in 
-          Datadog, the replica set might be down.
+       :gold:`IMPORTANT:` If the health status is ``1``, but no other metrics appear in 
+       Datadog, the replica set might be down.
 
    * - | ``REPLICATION_STATUS_STATE``
        | (mongodb.atlas.replstatus.state)

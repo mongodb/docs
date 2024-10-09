@@ -37,10 +37,7 @@ Alternatively, :ref:`create a new project <atlas-create-atlas-project>`
 and create a Network Peering Connection to set the desired |service| 
 Network Peering |cidr| block for that project.
 
-.. important::
-
-   |service| limits the number of MongoDB nodes per Network Peering
-   connection based on the |cidr| block and the region selected for the project.
-
-   Contact :website:`MongoDB Support </contact>` for any questions on
-   |service| limits of MongoDB nodes per Network Peer.
+:gold:`IMPORTANT:` |service| limits the number of MongoDB nodes per Network Peering
+connection based on the |cidr| block and the region selected for the project. 
+Contact :website:`MongoDB Support </contact>` for any questions on 
+|service| limits of MongoDB nodes per |vpc|.

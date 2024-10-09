@@ -10,8 +10,6 @@ processed in parallel. If an error occurs while processing an
 *unordered* operation, MongoDB continues to process remaining write
 operations in the list.
 
-.. note::
-   
-   Unordered operations are theoretically faster since MongoDB can
-   execute them in parallel, but should only be used if the writes do
-   not depend on order.
+Unordered operations are theoretically faster since MongoDB can
+execute them in parallel, but should only be used if the writes do
+not depend on order.
