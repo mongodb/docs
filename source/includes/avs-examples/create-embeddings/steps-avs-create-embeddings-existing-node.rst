@@ -24,15 +24,6 @@
          :copyable:
          :caption: create-embeddings.js
 
-   .. step:: Specify the connection string.
-
-      Replace ``<connectionString>`` with your |service| {+cluster+}'s |srv| 
-      :manual:`connection string </reference/connection-string/#find-your-mongodb-atlas-connection-string>`.
-
-      .. note::
-         
-         .. include:: /includes/fact-connection-string-format-drivers.rst
-
    .. step:: Save and run the file.
 
       .. io-code-block:: 
@@ -40,7 +31,7 @@
          
          .. input:: 
 
-            node create-embeddings.js
+            node --env-file=.env create-embeddings.js
 
          .. output:: 
             :language: sh

@@ -1,0 +1,72 @@
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/steps-avs-go-config.rst
+
+   .. step:: Install and import dependencies.
+
+      In a terminal window, run the following commands:
+
+      .. code-block::
+
+         go get github.com/joho/godotenv
+         go get go.mongodb.org/mongo-driver/mongo
+         go get github.com/tmc/langchaingo/llms
+
+   .. step:: Create a ``.env`` file to manage secrets.
+
+      In your project, create a ``.env`` file to store your connection
+      string and Hugging Face access token.
+
+      .. code-block::
+
+         HUGGINGFACEHUB_API_TOKEN = "<access-token>"
+         ATLAS_CONNECTION_STRING = "<connection-string>"
+
+      Replace the ``<access-token>`` 
+      and ``<connection-string>`` placeholder values with your Hugging Face
+      access token and the |srv| :manual:`connection string 
+      </reference/connection-string/#find-your-mongodb-atlas-connection-string>`
+      for your |service| {+cluster+}.  Your connection string should use
+      the following format:
+
+      .. code-block::
+      
+         mongodb+srv://<db_username>:<db_password>@<clusterName>.<hostname>.mongodb.net
+
+      .. note::
+         
+         .. include:: /includes/fact-connection-string-format-drivers.rst
+
+   .. step:: Define a function to generate vector embeddings.
+
+      a. Create a directory in your project called ``common`` to store common code
+         that you'll use in later steps:
+
+         .. code-block::
+
+            mkdir common && cd common
+
+      #. Create a file named ``get-embeddings.go`` and paste 
+         the following code. This code defines a function named ``GetEmbeddings``
+         to generate an embedding for a given input. This function specifies:
+
+         - The ``feature-extraction`` task using the `Go port of the LangChain
+           <https://tmc.github.io/langchaingo/docs/>`__ library. To learn more,
+           see the `Tasks <https://huggingface.co/docs/transformers.js/en/index#tasks>`__
+           documentation in the LangChain JavaScript documentation.
+         - The `mxbai-embed-large-v1 <https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1>`__ 
+           embedding model.
+
+         .. literalinclude:: /includes/avs-examples/rag/get-embeddings.go
+            :language: go
+            :copyable:
+            :caption: get-embeddings.go
+
+         .. include:: /includes/avs-examples/note-hugging-face-503.rst
+
+      #. Move back into the main project root directory.
+
+         .. code-block:: console
+
+            cd ../

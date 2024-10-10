@@ -20,18 +20,15 @@
             :copyable:
             :caption: create-index.js
 
-      #. Replace the following placeholder values:
-      
-         - ``<connectionString>`` with your |service| {+cluster+}'s |srv| 
-           :manual:`connection string </reference/connection-string/#find-your-mongodb-atlas-connection-string>`.
-         - ``<dimensions>`` with ``768`` if you used the open-source model
-           and ``1536`` if you used the model from OpenAI.
+      #. Replace the ``<dimensions>`` placeholder value with ``768`` if you
+         used the open-source model and ``1536`` if you used the model from
+         OpenAI.
     
       #. Save the file, then run the following command:
 
          .. code-block::
             
-            node create-index.js
+            node --env-file=.env create-index.js
 
       .. note::
          
@@ -50,9 +47,6 @@
             :copyable:
             :caption: vector-query.js
 
-      #. Replace ``<connectionString>`` with your |service| {+cluster+}'s |srv| 
-         :manual:`connection string </reference/connection-string/#find-your-mongodb-atlas-connection-string>`.
-
       #. Save the file, then run the following command:
          
          .. tabs:: 
@@ -66,7 +60,7 @@
                   
                   .. input:: 
 
-                     node vector-query.js
+                     node --env-file=.env vector-query.js
 
                   .. output:: /includes/avs-examples/tutorial/output-new-open-source-node.json
                      :language: json
@@ -79,7 +73,7 @@
                   
                   .. input:: 
 
-                     node vector-query.js
+                     node --env-file=.env vector-query.js
 
                   .. output:: /includes/avs-examples/tutorial/output-new-openai.json
                      :language: json

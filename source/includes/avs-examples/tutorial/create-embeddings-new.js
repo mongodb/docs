@@ -10,8 +10,7 @@ const data = [
 
 async function run() {
     // Connect to your Atlas cluster
-    const uri = "<connectionString>"; 
-    const client = new MongoClient(uri);
+    const client = new MongoClient(process.env.ATLAS_CONNECTION_STRING);
     
     try {
         await client.connect();
