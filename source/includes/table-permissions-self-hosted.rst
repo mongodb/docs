@@ -44,7 +44,7 @@
      - - :authrole:`backup`
        - :authrole:`clusterManager`
        - :authrole:`clusterMonitor`
-       - :authrole:`dbAdmin`
+       - :authrole:`dbAdminAnyDatabase`
        - :authrole:`readWriteAnyDatabase`
        - :authrole:`restore`
 
