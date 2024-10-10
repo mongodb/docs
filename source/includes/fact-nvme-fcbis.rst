@@ -1,3 +1,3 @@
-:manual:`File Copy Based Initial Sync 
-</core/replica-set-sync/#file-copy-based-initial-sync>` is enabled for 
-{+dedicated-clusters+} with |nvme| running on MongoDB 6.0+.
+A :manual:`File Copy Based Initial Sync 
+</core/replica-set-sync/#file-copy-based-initial-sync>` will always be used to sync all of 
+the nodes of an |nvme| cluster whenever an initial sync is required.
