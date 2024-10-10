@@ -1,7 +1,7 @@
 .. procedure:: 
    :style: normal 
 
-   .. step:: Initialize your Node.js project.
+   .. step:: Initialize your Go project.
 
       Run the following commands in your terminal 
       to create a new directory named ``local-rag-mongodb`` and
@@ -11,37 +11,25 @@
 
          mkdir local-rag-mongodb
          cd local-rag-mongodb
-         npm init -y
+         go mod init local-rag-mongodb
 
    .. step:: Install and import dependencies.
 
-      Run the following command:
+      Run the following commands:
 
       .. code-block:: console
 
-         npm install mongodb @xenova/transformers node-gyp gpt4all
-
-   .. step:: Update your ``package.json`` file.
-
-      In your project's ``package.json`` file, specify the 
-      ``type`` field as shown in the following example,
-      and then save the file.
-
-      .. code-block:: json
-         :emphasize-lines: 3
-         :caption: package.json
-
-         {
-            "name": "local-rag-mongodb",
-            "type": "module",
-            ...
-         }
+         go get github.com/joho/godotenv
+         go get go.mongodb.org/mongo-driver/mongo
+         go get github.com/tmc/langchaingo/llms
+         go get github.com/tmc/langchaingo/llms/ollama
+         go get github.com/tmc/langchaingo/prompts
 
    .. step:: Create a ``.env`` file.
 
       In your project, create a ``.env`` file to store your connection string.
       
-      .. code-block:: javascript
+      .. code-block::
          :caption: .env
 
          ATLAS_CONNECTION_STRING = "<connection-string>"
@@ -58,9 +46,9 @@
             your connection string follows this format, replacing
             ``<port-number>`` with the port for your local {+deployment+}.
             
-            .. code-block:: javascript
+            .. code-block::
 
-               ATLAS_CONNECTION_STRING = "mongodb://localhost:<port-number>/?directConnection=true";
+               ATLAS_CONNECTION_STRING = "mongodb://localhost:<port-number>/?directConnection=true"
 
          .. tab:: Cloud {+Deployment+}
             :tabid: cloud
@@ -70,9 +58,9 @@
             with your |service| {+cluster+}'s |srv| :manual:`connection string 
             </reference/connection-string/#find-your-mongodb-atlas-connection-string>`:
             
-            .. code-block:: javascript
+            .. code-block::
 
-               ATLAS_CONNECTION_STRING = "<connection-string>";
+               ATLAS_CONNECTION_STRING = "<connection-string>"
 
             .. note:: 
 
@@ -81,5 +69,3 @@
                .. code-block::
 
                   mongodb+srv://<db_username>:<db_password>@<clusterName>.<hostname>.mongodb.net
-                  
-      .. include:: /includes/note-node-js-env-minimum-requirement.rst

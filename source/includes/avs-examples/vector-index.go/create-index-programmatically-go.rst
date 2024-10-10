@@ -3,12 +3,12 @@
 
    .. step:: Define the {+avs+} index.
     
-      Create a file named ``vector-index.js`` and paste the following code in
+      Create a file named ``vector-index.go`` and paste the following code in
       the file:
 
-      .. literalinclude:: /includes/avs-examples/local-rag/vector-index.js
+      .. literalinclude:: /includes/avs-examples/local-rag/vector-index.go
          :language: javascript
-         :caption: vector-index.js
+         :caption: vector-index.go
 
       This index definition specifies indexing the ``embeddings`` field
       in an index of the :ref:`vectorSearch <avs-types-vector-search>` type
@@ -25,4 +25,4 @@
          .. code-block:: sh
             :copyable: true 
 
-            node --env-file=.env vector-index.js
+            go run vector-index.go

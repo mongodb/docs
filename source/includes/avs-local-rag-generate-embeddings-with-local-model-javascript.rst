@@ -70,6 +70,7 @@
 
          .. literalinclude:: /includes/avs-examples/local-rag/get-embeddings.js
             :language: javascript
+            :caption: get-embeddings.js
 
          Replace the ``'/Users/<username>/local-rag-mongodb/'`` with the local
          path from the prior step.
@@ -79,6 +80,7 @@
 
          .. literalinclude:: /includes/avs-examples/local-rag/generate-embeddings.js
             :language: javascript
+            :caption: generate-embeddings.js
             :linenos:
 
          This code includes a few lines to test that you have correctly

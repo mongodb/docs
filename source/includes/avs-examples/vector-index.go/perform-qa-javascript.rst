@@ -9,7 +9,6 @@
       
       .. literalinclude:: /includes/avs-examples/local-rag/retrieve-documents.js
          :language: javascript
-         :caption: retrieve-documents.js
 
       This code performs a vector query on your local |service|
       {+deployment+} or your |service| {+cluster+}.
@@ -19,7 +18,6 @@
 
       .. literalinclude: /includes/avs-examples/local-rag/test-query.js
          :language: javascript
-         :caption: test-query.js
 
       Run the following code to execute the query:
 
@@ -57,7 +55,6 @@
 
       .. literalinclude:: /includes/avs-examples/local-rag/local-llm.js
          :language: javascript
-         :caption: local-llm.js
     
       This code does the following:
 

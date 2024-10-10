@@ -8,7 +8,6 @@
 
       .. literalinclude:: /includes/avs-examples/local-rag/vector-index.js
          :language: javascript
-         :caption: vector-index.js
 
       This index definition specifies indexing the ``embeddings`` field
       in an index of the :ref:`vectorSearch <avs-types-vector-search>` type
