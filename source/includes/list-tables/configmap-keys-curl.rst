@@ -13,11 +13,12 @@
 
        .. include:: /includes/fact-resource-name-char-limit.rst
 
-       To learn more, see |k8s| documentation on `names <https://kubernetes.io/docs/concepts/overview/working-with-objects/names/>`__.
        This name must follow :rfc:`RFC1123 <1123>` naming
-       conventions, using only lowercase alphanumeric
-       characters, ``-`` or ``.``, and must start and end with an
-       alphanumeric character.
+       conventions, containing only lowercase alphanumeric characters or ``-`` ,
+       and starting and ending with an alphanumeric 
+       character.
+       
+       To learn more, see |k8s| documentation on `names <https://kubernetes.io/docs/concepts/overview/working-with-objects/names/>`__.
 
      - ``my-project``
 
