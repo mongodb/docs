@@ -35,6 +35,10 @@ runs with an
 less than ``4.2``,
 :doc:`resync the head database </tutorial/resync-backup>` to ensure that
 the head database takes the new index into account.
+runs with an |fcv-link|
+less than ``4.2``, :doc:`resync the head database 
+</tutorial/resync-backup>` to ensure that the head database takes the 
+new index into account.
 
 |mms| automatically cancels rolling index builds 
 that do not succeed on all nodes. When a rolling index build completes 
