@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	ctx := context.TODO()
+	ctx := context.Background()
 
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found")

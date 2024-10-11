@@ -12,8 +12,7 @@ import (
 )
 
 func main() {
-
-	ctx := context.TODO()
+	ctx := context.Background()
 
 	// Replace the placeholder with your Atlas connection string
 	const uri = "<connectionString>"
@@ -22,9 +21,9 @@ func main() {
 	clientOptions := options.Client().ApplyURI(uri)
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("failed to connect to the server: %v", err)
 	}
-	defer client.Disconnect(ctx)
+	defer func() { _ = client.Disconnect(ctx) }()
 
 	// Set the namespace
 	coll := client.Database("<databaseName>").Collection("<collectionName>")
@@ -35,12 +34,18 @@ func main() {
 
 	// Get the index
 	cursor, err := coll.SearchIndexes().List(ctx, opts)
+	if err != nil {
+		log.Fatalf("failed to get the index: %v", err)
+	}
 
 	// Print the index details to the console as JSON
 	var results []bson.M
 	if err := cursor.All(ctx, &results); err != nil {
-		log.Panic(err)
+		log.Fatalf("failed to unmarshal results to bson: %v", err)
 	}
-	res, _ := json.Marshal(results)
+	res, err := json.Marshal(results)
+	if err != nil {
+		log.Fatalf("failed to marshal results to json: %v", err)
+	}
 	fmt.Println(string(res))
 }

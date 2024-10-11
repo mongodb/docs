@@ -65,6 +65,7 @@ func main() {
 
 	// Await the creation of the index.
 	log.Println("Polling to confirm successful index creation.")
+	log.Println("NOTE: This may take up to a minute.")
 	searchIndexes := coll.SearchIndexes()
 	var doc bson.Raw
 	for doc == nil {

@@ -11,8 +11,7 @@ import (
 )
 
 func main() {
-
-	ctx := context.TODO()
+	ctx := context.Background()
 
 	// Replace the placeholder with your Atlas connection string
 	const uri = "<connection-string>"
@@ -21,9 +20,9 @@ func main() {
 	clientOptions := options.Client().ApplyURI(uri)
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("failed to connect to the server: %v", err)
 	}
-	defer client.Disconnect(ctx)
+	defer func() { _ = client.Disconnect(ctx) }()
 
 	// Set the namespace
 	coll := client.Database("sample_mflix").Collection("embedded_movies")
@@ -51,7 +50,7 @@ func main() {
 
 	cursor, err := coll.Aggregate(ctx, mongo.Pipeline{vectorSearchStage, projectStage})
 	if err != nil {
-		panic(err)
+		log.Fatalf("failed to retrieve data from the server: %v", err)
 	}
 	// display the results
 	type ProjectedMovieResult struct {
@@ -62,7 +61,7 @@ func main() {
 
 	var results []ProjectedMovieResult
 	if err = cursor.All(ctx, &results); err != nil {
-		panic(err)
+		log.Fatalf("failed to unmarshal retrieved docs to ProjectedMovieResult objects: %v", err)
 	}
 	for _, result := range results {
 		fmt.Printf("Title: %v \nPlot: %v \nScore: %v \n\n", result.Title, result.Plot, result.Score)

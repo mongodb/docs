@@ -10,8 +10,7 @@ import (
 )
 
 func main() {
-
-	ctx := context.TODO()
+	ctx := context.Background()
 
 	// Replace the placeholder with your Atlas connection string
 	const uri = "<connectionString>"
@@ -20,19 +19,18 @@ func main() {
 	clientOptions := options.Client().ApplyURI(uri)
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("failed to connect to the server: %v", err)
 	}
-	defer client.Disconnect(ctx)
+	defer func() { _ = client.Disconnect(ctx) }()
 
 	// Set the namespace
 	coll := client.Database("<databaseName>").Collection("<collectionName>")
 	indexName := "<indexName>"
 
-	coll.SearchIndexes().DropOne(ctx, indexName)
-
+	err = coll.SearchIndexes().DropOne(ctx, indexName)
 	if err != nil {
-		panic(err)
+		log.Fatalf("failed to delete the index: %v", err)
 	}
 
-	fmt.Println("Successfully dropped the Vector Search index")
+	fmt.Println("Successfully deleted the Vector Search index")
 }

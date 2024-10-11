@@ -10,8 +10,7 @@ import (
 )
 
 func main() {
-
-	ctx := context.TODO()
+	ctx := context.Background()
 
 	// Replace the placeholder with your Atlas connection string
 	const uri = "<connection-string>"
@@ -20,9 +19,9 @@ func main() {
 	clientOptions := options.Client().ApplyURI(uri)
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("failed to connect to the server: %v", err)
 	}
-	defer client.Disconnect(ctx)
+	defer func() { _ = client.Disconnect(ctx) }()
 
 	// Set the namespace
 	coll := client.Database("<databaseName>").Collection("<collectionName>")
@@ -46,10 +45,10 @@ func main() {
 			NumDimensions: <numberOfDimensions>,
 			Similarity:    "euclidean | cosine | dotProduct"}},
 	}
-	coll.SearchIndexes().UpdateOne(ctx, indexName, definition)
+	err = coll.SearchIndexes().UpdateOne(ctx, indexName, definition)
 
 	if err != nil {
-		panic(err)
+		log.Fatalf("failed to update the index: %v", err)
 	}
 
 	fmt.Println("Successfully updated the search index")
