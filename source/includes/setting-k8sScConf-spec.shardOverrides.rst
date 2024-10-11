@@ -1,5 +1,7 @@
 .. setting:: spec.shardOverrides
 
+   .. include:: /includes/admonitions/note-mcsc-fields-public-preview.rst
+
    *Type*: array of objects
 
    *Optional*
