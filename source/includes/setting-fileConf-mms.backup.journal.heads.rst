@@ -10,7 +10,7 @@
    enable or disable journaling for the :opsmgr:`head database </reference/glossary/#std-term-head-database>` of a
    single backup job.
    
-   FCV |fcv-link| ``4.2`` and later use :term:`backup cursors 
+   |fcv-link| ``4.2`` and later use :term:`backup cursors 
    <backup cursor>` instead of :opsmgr:`head databases </reference/glossary/#std-term-head-database>` 
    for backups.
    
