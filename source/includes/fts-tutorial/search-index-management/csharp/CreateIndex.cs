@@ -19,5 +19,5 @@ var index = new BsonDocument
   }
 };
 
-var result = collection.SearchIndexes.CreateOne(index);
+var result = collection.SearchIndexes.CreateOne(index, "<indexName>");
 Console.WriteLine(result);

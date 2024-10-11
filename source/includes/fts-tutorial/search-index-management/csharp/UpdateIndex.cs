@@ -7,7 +7,7 @@ var uri = "<connection-string>";
 var client = new MongoClient(uri);
 
 var db = client.GetDatabase("<databaseName>");
-var collection = db.GetCollection<BsonDocument>("<collectionName");
+var collection = db.GetCollection<BsonDocument>("<collectionName>");
 
 // define your Atlas Search index
 var index = new BsonDocument

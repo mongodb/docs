@@ -66,8 +66,9 @@ To learn more, see :ref:`ref-index-definitions`.
          * - ``<collectionName>``   
            - Collection for which you want to create the index. 
   
-      You may also define the name of your index. If you omit the index 
-      name, |fts| names the index ``default``.
+         * - ``<IndexName>``   
+           - The name of your index. If you omit the index 
+             name, |fts| names the index ``default``.
 
       .. literalinclude:: /includes/fts-tutorial/search-index-management/csharp/CreateIndex.cs
          :caption: Program.cs
