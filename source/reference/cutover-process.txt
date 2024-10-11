@@ -14,36 +14,38 @@ Finalize Cutover Process
 
 You can finalize a migration and transfer your application
 workload from the source to the destination cluster using the
-:ref:`mongosync <c2c-mongosync>` cutover process. 
+:ref:`mongosync <c2c-mongosync>` cutover process.
+
+``mongosync`` should remain active until it reaches the
+:ref:`COMMITTED <c2c-state-committed>` state. This allows ``mongosync`` to sync
+any additional writes that occur during the migration.
 
 .. note::
 
    Before you switch your application workload to the
-   destination cluster, you should always verify that the sync
-   was successful. For more information, see
-   :ref:`c2c-verification`.
+   destination cluster, you should always verify a successful sync.
+   For more information, see :ref:`c2c-verification`.
 
 Steps
 -----
 
-.. procedure:: 
-   :style: normal 
+.. procedure::
+   :style: normal
 
-   .. step:: Verify the status of the ``mongosync`` 
-      process. 
-    
+   .. step:: Verify the status of the ``mongosync`` process.
+
       Call the :ref:`progress <c2c-api-progress>` endpoint to determine
-      the status of ``mongosync`` before starting the cutover process. 
-      Ensure that the ``mongosync`` process  status indicates the 
-      following values:  
+      the status of ``mongosync`` before starting the cutover process.
+      Ensure that the ``mongosync`` process status indicates the
+      following values:
 
-      - ``canCommit`` is ``true``. 
+      - ``canCommit`` is ``true``.
 
-      - ``lagTimeSeconds`` is small (near ``0``). 
-   
+      - ``lagTimeSeconds`` is small (near ``0``).
+
         If ``lagTimeSeconds`` isn't close to ``0`` when the cutover
-        starts, cutover might take a long time. 
-  
+        starts, cutover might take a long time.
+
       The following example returns the status of the synchronization process.
 
       Request
@@ -60,12 +62,11 @@ Steps
          :copyable: false
          :emphasize-lines: 5, 8
 
-
-   .. step:: Stop any write operations to the synced collections on the source. 
+   .. step:: Stop any write operations to the synced collections on the source.
 
       - If you started ``mongosync`` with ``enableUserWriteBlocking``
         set to ``true``, ``mongosync`` blocks all write operations on
-        the entire source cluster during the commit (step 4) for you. 
+        the entire source cluster during the commit (step 4) for you.
       - If you didn't start ``mongosync`` with
         ``enableUserWriteBlocking``, ensure that writes are disabled.
         For example, run the :dbcommand:`setUserWriteBlockMode` command on the
@@ -81,7 +82,7 @@ Steps
       - If ``mongosync`` uses filtered sync, it's not necessary to
         disable writes to the entire source cluster. But you must ensure
         that write operations are stopped for the collections included
-        by the filter. 
+        by the filter.
 
    .. step:: Send a :ref:`commit <c2c-api-commit>` request to ``mongosync``.
 
@@ -102,10 +103,10 @@ Steps
          :language: json
          :copyable: false
 
-      .. note:: 
+      .. note::
 
          After you submit a ``commit`` request, call the ``progress`` endpoint
-         to ensure that the ``mongosync`` state is ``COMMITTING`` or 
+         to ensure that the ``mongosync`` state is ``COMMITTING`` or
          ``COMMITTED``.
 
    .. step:: Wait until you can perform writes on the destination cluster.
@@ -114,41 +115,18 @@ Steps
       ``true``. If ``canWrite`` is ``false``, wait until ``progress``
       shows ``canWrite`` is ``true``.
 
-      Request
-      ~~~~~~~
+      .. io-code-block::
+         :copyable: true
 
-      .. literalinclude:: /includes/api/requests/progress.sh
-         :language: shell
+         .. input::
+            :language: bash
 
-      Response
-      ~~~~~~~~
+            curl -sS localhost:27182/api/v1/progress -XGET | jq ".progress.canWrite"
 
-      .. code-block:: json
-         :emphasize-lines: 6
-         :copyable: false
+         .. output::
+            :language: json
 
-         {
-            "progress":
-               {
-                  "state":"COMMITTED",
-                  "canCommit":true,
-                  "canWrite":true,
-                  "info":"change event application",
-                  "lagTimeSeconds":0,
-                  "collectionCopy":
-                     {
-                        "estimatedTotalBytes":694,
-                        "estimatedCopiedBytes":694
-                     },
-                  "directionMapping":
-                     {
-                        "Source":"cluster0: localhost:27017",
-                        "Destination":"cluster1: localhost:27018"
-                     }
-               },
-            "success": true
-         }
-
+            true
 
    .. step:: Verify data transfer.
 
@@ -164,54 +142,62 @@ Steps
       .. code-block:: javascript
 
          db.adminCommand(
-           {
-             setUserWriteBlockMode: 1,
-             global: false
-           }
+            {
+               setUserWriteBlockMode: 1,
+               global: false
+            }
          )
+
+      Then, transfer your application workload to the destination cluster.
 
    .. step:: Call the ``progress`` endpoint to determine the status of the ``mongosync`` process.
 
-      When the ``mongosync`` progress response indicates that the 
+      When the ``mongosync`` progress response indicates that the
       ``mongosync`` state is ``COMMITTED``, the cutover process is
-      complete. 
+      complete.
 
-      Request
-      ~~~~~~~
+      .. io-code-block::
+         :copyable: true
 
-      .. literalinclude:: /includes/api/requests/progress.sh
-         :language: shell
+         .. input::
+            :language: bash
 
-      Response
-      ~~~~~~~~
+            curl -sS localhost:27182/api/v1/progress -XGET | jq ".progress.state"
 
-      .. code-block:: json
-         :emphasize-lines: 4
-         :copyable: false
+         .. output::
+            :language: json
 
-         {
-            "progress":
-               {
-                  "state":"COMMITTED",
-                  "canCommit":true,
-                  "canWrite":false,
-                  "info":"change event application",
-                  "lagTimeSeconds":0,
-                  "collectionCopy":
-                     {
-                        "estimatedTotalBytes":694,
-                        "estimatedCopiedBytes":694
-                     },
-                  "directionMapping":
-                     {
-                        "Source":"cluster0: localhost:27017",
-                        "Destination":"cluster1: localhost:27018"
-                     }
-               },
-            "success": true
-         }
+            "COMMITTED"
 
+Behavior
+--------
 
+.. _c2c-canWrite-committed:
+
+canWrite and COMMITTED
+~~~~~~~~~~~~~~~~~~~~~~
+
+``mongosync`` permits writes on the destination cluster at an
+earlier stage than the ``COMMITTED`` state.
+
+In the initial sync, ``mongosync`` replicates unique indexes on
+the source cluster as non-unique indexes on the destination
+cluster. During commit, the relevant non-unique indexes on the
+destination cluster are set to ``prepareUnique``. When this is
+done, the ``/progress`` endpoint begins to return ``canWrite:
+true``. Collections with ``prepareUnique`` indexes reject
+new documents that violate the unique index constraint.
+``mongosync`` then converts the ``prepareUnique``
+indexes into unique indexes. When this is done, ``mongosync``
+changes its state to ``COMMITTED``.
+
+.. note::
+
+   The conversion of ``prepareUnique`` indexes to unique
+   indexes can be resource intensive when syncing large
+   collections. This can result in a long time between the
+   ``/progress`` endpoint returning ``canWrite: true`` and
+   ``mongosync`` reaching the ``COMMITTED`` state.
 
 Learn More
 ----------
