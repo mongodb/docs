@@ -1,5 +1,7 @@
 .. setting:: spec.shard.clusterSpecList
 
+   .. include:: /includes/admonitions/note-mcsc-fields-public-preview.rst
+
    *Type*: array of objects
 
    *Required* if ``topology=MultiCluster``
