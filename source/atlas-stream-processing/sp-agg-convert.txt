@@ -1,0 +1,370 @@
+.. _streams-agg-pipeline-convert:
+.. _atlas-sp-agg-convert:
+
+=============
+``$convert``
+=============
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: atlas stream processing, $convert expression 
+   :description: Learn how to use the $convert expression to provide schema enforcement 
+                 for your streaming data
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. _atlas-sp-agg-convert-def:
+
+Definition
+~~~~~~~~~~
+
+The ``$convert`` expression converts binary data types. This can be 
+used to convert binary data in Kafka headers.
+
+.. pipeline:: $convert
+
+   A ``$convert`` expression has the following prototype forms:
+
+   .. code-block:: json
+
+      {
+        input: "$binDataField",
+        to: <int, long, double>,
+        byteOrder: "little"|"big"
+      }
+
+      {
+        input: "$intLongOrDoubleField", 
+        to: "binData",
+        byteOrder: "little"|"big"
+      }
+
+      {
+        input: "$binDataField", 
+        to: "string",
+        format: <base64, base64url, hex, uuid, utf8>
+      }
+
+      {
+        input: "$stringField", 
+        to: "binData",
+        format: <base64, base64url, hex, uuid, utf8>
+      }
+
+.. _atlas-sp-agg-convert-syntax:
+
+Syntax
+~~~~~~
+
+The :manual:`$convert <reference/operator/aggregation/convert>` aggregation operator 
+converts between data types except for the binary data types offered in the |atlas-sp| 
+version of the ``$convert`` expression.
+
+The ``$convert`` expression takes a document with the following fields: 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 10 15 15 70
+
+   * - Field 
+     - Value 
+     - Necessity 
+     - Description
+   
+   * - ``input``
+     - ``binData``, ``int``, ``long``, ``double``, and ``string``
+     - Required
+     - Binary data that would be converted to an ``int``, 
+       ``long``, ``double``, or ``string`` type, or an ``int``, ``long``, ``double``, 
+       or ``string`` type data that would be converted to binary data.
+
+   * - ``to``
+     - ``binData``, ``int``, ``long``, ``double``, and ``string``
+     - Required
+     - Specifies the data type to which ``input`` is 
+       converted. You can specify to ``int``, ``long``, ``double``, ``string``, or 
+       ``binData``.
+
+   * - ``byteOrder``
+     - little, big
+     - Required
+     - Specifies big or little endian byte ordering of ``binData``
+       input and output. If unspecified, the default is little 
+       endian byte ordering. 
+
+       .. note::
+
+          ``byteOrder`` option specifies how to interpret input 
+          or output ``binData``, but doesn't control the internal byte 
+          order of numeric types. MongoDB suggests that you use 
+          big endian ordering, which is the default ordering for 
+          numeric to bytes conversions in the Kafka ecosystem, Java, 
+          and Python languages.
+
+   * - ``format``
+     - base64, base64url, hex, uuid, utf8
+     - Required
+     - Specifies a top-level format argument of ``string`` input and output.
+
+       .. note::
+
+          The ``$toString`` helper method doesn't interpret ``binData`` 
+          as utf-8 data by default. It defaults to ``base64``. You must 
+          use the $convert expression for utf-8 conversions.
+
+.. _atlas-sp-agg-convert-behavior:
+
+Behavior
+~~~~~~~~
+
+If the value of ``$convert.to`` is ``int``, the ``binData`` ``input`` value 
+must be ``1``, ``2``, or ``4``. If the value of ``$convert.to`` is ``long``, 
+the ``binData`` ``input`` value must be ``1``, ``2``, ``4``, or ``8``. If the 
+``input`` is of an unexpected length an error is generated. You can control this 
+behavior by configuring ``$convert.onError``.
+
+When converting to ``binData``, an ``int`` becomes a 4-byte ``binData``, a ``long`` 
+becomes an 8-byte ``binData``, and a ``double`` becomes an 8-byte ``binData``. When 
+converting from ``binData`` to ``double``, an 8-byte input is interpreted as IEEE 
+754 double-precision floating point, and a 4-byte input is interpreted as IEEE 754 
+single-precision floating point. Since :abbr:`MQL (MongoDB Query Language) only 
+supports double-precision floating point, it performs lossless conversion from the 
+single-precision floating point value to double-precision. 
+
+Converting ``binData`` to numeric types:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 25 15 15
+
+   * - $convert.to
+     - ``int``
+     - ``long``
+     - ``double``
+
+   * - Allowed widths (in bytes)
+     - 1, 2, 4
+     - 1, 2, 4, 8
+     - 4, 8
+
+   * - ``binData`` is interpreted as
+     - two's complement signed integer
+     - two's complement signed integer
+     - IEEE 754 single-precision or double-precision floating point
+
+Converting numeric types to ``binData``:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 25 15 15
+
+   * - Input
+     - ``int``
+     - ``long``
+     - ``double``
+
+   * - Output width (in bytes)
+     - 4
+     - 8
+     - 8
+
+.. _atlas-sp-agg-convert-example:
+
+Examples
+---------
+
+In the following examples, we describe ``binData`` using binary notation such as:
+
+``BinData(0b00000000 00000010)``
+
+The leftmost byte (00000000) corresponds to the lowest memory address, or the 0-th 
+index of the byte array. Similarly, we use hex notation such as:
+
+``BinData(0x0100 000A)``
+
+The leftmost byte (01) corresponds to the lowest memory address, or the 0th index of 
+the byte array.
+
+The following documents are example ``$convert`` expressions that convert values across 
+``BinData``, ``int``, ``long``, and ``double`` notations:
+
+.. code-block:: json
+
+  {
+    $convert: {
+      input: BinData(0b00000000 00000010),
+      to: “int”,
+      byteOrder: “big” }
+  }
+
+Result: 2
+
+.. code-block:: json
+
+  {
+    $convert: {
+      input: BinData(0b00000001 00000000),
+      to: “int”,
+      byteOrder: “big” }
+  }
+
+Result: 256
+
+.. code-block:: json
+
+  {
+    $convert: {
+      input: BinData(0b00000001 00000000),
+      to: “int”,
+      byteOrder: “little” }
+  }
+
+Result: 1
+
+.. code-block:: json
+
+  {
+    $convert: {
+      input: BinData(0x0001 0000),
+      to: “int”,
+      byteOrder: “big” }
+  }
+
+Result: 65536
+
+.. code-block:: json
+
+  {
+    $convert: {
+      input: BinData(0x0001 0000 0000 0000),
+      to: “long”,
+      byteOrder: “big” }
+  }
+
+Result: 281474976710656
+
+.. code-block:: json
+
+  {
+    $convert: {
+      input: BinData(0xFFFE7960),
+      to: “int”,
+      byteOrder: “big” }
+  }
+
+Result: -100000
+
+.. code-block:: json
+
+  {
+    $convert: {
+      input: BinData(0x0001 0000 0000 0000),
+      to: “int”,
+      byteOrder: “big” }
+  }
+
+Result: Error– binData length can only be 1,2, or 4 bytes when to == “int”.
+
+.. code-block:: json
+
+  {
+    $convert: {
+      input: BinData(0xC04C CCCD),
+      to: “double”,
+      byteOrder: “big” }
+  }
+
+Result: -3.2000000476837158203125
+
+.. code-block:: json
+
+  {
+    $convert: {
+      input: BinData(0x0000),
+      to: “double”,
+      byteOrder: “big” }
+  }
+
+Result: Error– binData length can only be 4 or 8 bytes when to == “double”.
+
+.. code-block:: json
+
+  {
+    $convert: {
+      input: true,
+      to: “binData” }
+  }
+
+Result: BinData(0x01)  // subtype 0
+
+.. code-block:: json
+
+  {
+    $convert: {
+      input: false,
+      to: “binData” }
+  }
+
+Result: BinData(0x00) // subtype 0
+
+.. code-block:: json
+
+  {
+    $convert: {
+      input: NumberLong(42),
+      to: “binData”,
+      byteOrder: “big” }
+  }
+
+Result: BinData(0x0000 0000 0000 002A) // subtype 0
+
+.. code-block:: json
+
+  {
+    $convert: {
+      input: NumberLong(42),
+      to: “binData”,
+      byteOrder: “little” }
+  }
+
+Result: BinData(0x2A00 0000 0000 0000) // subtype 0
+
+.. code-block:: json
+
+  {
+    $convert: {
+      input: { $toInt: “$myNumericField” },
+      to: “binData”,
+      byteOrder: “little” }
+  }
+
+Assuming myNumericField is an Int(42), Long(42), or Double(42.0)...
+
+Result: BinData(0x2A00 0000)
+
+.. code-block:: json
+
+  {
+    $convert: {
+      input: “$myIntOrLongField”,
+      to: “binData”,
+      byteOrder: “little” }
+  }
+
+If the input is Int(42): 
+
+Result: BinData(0x2A00 0000)
+
+If the input is Long(42):
+
+BinData(0x2A00 0000 0000 0000)
