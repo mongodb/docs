@@ -30,8 +30,7 @@ availability, |mms| removes one node from the cluster at a time
 starting with a :manual:`secondary </reference/glossary/#std-term-secondary>`.
 
 After you build an index in a rolling fashion, if your MongoDB database
-runs with an :manual:`FCV 
-</reference/command/setFeatureCompatibilityVersion>`
+runs with an |fcv-link|
 less than ``4.2``, :doc:`resync the head database 
 </tutorial/resync-backup>` to ensure that the head database takes the 
 new index into account.
