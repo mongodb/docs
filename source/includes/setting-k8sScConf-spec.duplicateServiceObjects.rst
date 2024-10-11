@@ -1,5 +1,7 @@
 .. setting:: spec.duplicateServiceObjects
 
+   .. include:: /includes/admonitions/note-mcsc-fields-public-preview.rst
+
    *Type*: boolean
    
    *Optional*
