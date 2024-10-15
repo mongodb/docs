@@ -138,80 +138,240 @@ following integer fields:
 
 .. example:: 
 
-   Suppose an index on the ``released`` field in the 
-   ``sample_mflix.movies`` collection: 
+   .. tabs:: 
 
-   .. code-block:: json 
+      .. tab:: Basic 
+         :tabid: basic
+
+         Suppose an index on the ``released`` field in the 
+         ``sample_mflix.movies`` collection: 
+
+         .. code-block:: json 
    
-      {
-        "mappings": {
-          "dynamic": false,
-          "fields": {
-            "released": {
-              "type": "date"
-            }
-          }
-        }
-      }
-
-   The following query searches for movies released near September 
-   01, 2011 in the ``movies`` collection. The query requests a total 
-   count of the results. The query includes a: 
-   
-   - :pipeline:`$project` stage to exclude all fields except ``title`` 
-     and ``released`` from the documents and to include the metadata 
-     results stored in the ``$$SEARCH_META`` variable as the value of a 
-     field named ``meta``.
-   - :pipeline:`$limit` stage to limit the output to ``2`` documents. 
-
-   .. code-block:: json 
-
-      db.movies.aggregate([
-        {
-          "$search": {
-            "near": {
-              "path": "released",
-              "origin": ISODate("2011-09-01T00:00:00.000+00:00"),
-              "pivot": 7776000000
-            },
-              "count": {
-                "type": "total"
+            {
+              "mappings": {
+                "dynamic": false,
+                "fields": {
+                  "released": {
+                    "type": "date"
+                  }
+                }
               }
             }
-          },
-          {
-            "$project": {
-              "meta": "$$SEARCH_META",
-              "title": 1,
-              "released": 1
+
+         The following query searches for movies released near September 
+         01, 2011 in the ``movies`` collection. The query requests a total 
+         count of the results. The query includes a: 
+   
+         The sample query uses the following stages: 
+         
+         .. list-table:: 
+            :stub-columns: 1
+            :widths: 20 80
+
+            * - :pipeline:`$search`
+              - Searches for movies released near September 01, 2011 in
+                the ``movies`` collection. The query requests a total
+                count of the results and metadata on the ``genres``
+                field. 
+         
+            * - :pipeline:`$project` 
+              - Excludes all fields except ``title`` and ``released``
+                from the documents and includes the metadata results
+                stored in the ``$$SEARCH_META`` variable as the value of
+                a  field named ``meta``.
+           
+            * - :pipeline:`$limit`  
+              - Limits the output to ``2`` documents. 
+
+         .. io-code-block:: 
+            :copyable: true 
+            
+            .. input:: 
+               :language: json 
+
+               db.movies.aggregate([
+                 {
+                   "$search": {
+                     "near": {
+                       "path": "released",
+                       "origin": ISODate("2011-09-01T00:00:00.000+00:00"),
+                       "pivot": 7776000000
+                     },
+                     "count": {
+                        "type": "total"
+                     }
+                   }
+                 },
+                 {
+                   "$project": {
+                     "meta": "$$SEARCH_META",
+                     "title": 1,
+                     "released": 1
+                   }
+                 },
+                 {
+                   "$limit": 2
+                 }
+               ])
+
+            .. output:: 
+               :language: json 
+
+               { 
+                 "_id" : ObjectId("573a13c3f29313caabd6b025"), 
+                 "title" : "Submarino", 
+                 "released" : ISODate("2011-09-01T00:00:00Z"), 
+                 "meta" : { 
+                   "count" : { "total" : NumberLong(23026) } 
+                 } 
+               }
+               { 
+                 "_id" : ObjectId("573a13c7f29313caabd748f7"), 
+                 "title" : "Devil's Playground", 
+                 "released" : ISODate("2011-09-01T00:00:00Z"), 
+                 "meta" : { 
+                   "count" : { "total" : NumberLong(23026) } 
+                 } 
+               }
+
+      .. tab:: Facet 
+         :tabid: facet
+
+         Suppose an index on the ``released`` and ``genres`` fields in
+         the ``sample_mflix.movies`` collection:
+
+         .. code-block:: json 
+   
+            {
+              "mappings": {
+                "dynamic": false,
+                "fields": {
+                  "genres": {
+                    "type": "stringFacet"
+                  },
+                  "released": {
+                    "type": "date"
+                  }
+                }
+              }
             }
-          },
-          {
-            "$limit": 2
-          }
-        ])
 
-   |fts| returns the following results for the query:
+         The sample query uses the following stages: 
+         
+         .. list-table:: 
+            :stub-columns: 1
+            :widths: 20 80
 
-   .. code-block:: json 
-      :copyable: false 
+            * - :pipeline:`$search`
+              - Searches for movies released near September 01, 2011 in
+                the ``movies`` collection. The query requests a total
+                count of the results and metadata on the ``genres``
+                field.   
 
-      { 
-        "_id" : ObjectId("573a13c3f29313caabd6b025"), 
-        "title" : "Submarino", 
-        "released" : ISODate("2011-09-01T00:00:00Z"), 
-        "meta" : { 
-          "count" : { "total" : NumberLong(23026) } 
-        } 
-      }
-      { 
-        "_id" : ObjectId("573a13c7f29313caabd748f7"), 
-        "title" : "Devil's Playground", 
-        "released" : ISODate("2011-09-01T00:00:00Z"), 
-        "meta" : { 
-          "count" : { "total" : NumberLong(23026) } 
-        } 
-      }
+            * - :pipeline:`$limit` 
+              - Limits the output to ``2`` documents.
+   
+            * - :pipeline:`$facet` 
+              - Processes the ``$search`` results by excluding all fields except
+                ``title``, ``released``, and ``genres`` from the
+                documents and including the metadata results stored in
+                the ``$$SEARCH_META`` variable inside the ``meta`` array
+                of documents.
+
+         .. io-code-block:: 
+            :copyable: true 
+            
+            .. input:: 
+               :language: json 
+
+               db.movies.aggregate([
+                 {
+                   "$search": {
+                     "facet": {
+                       "operator": {
+                         "near": {
+                           "path": "released",
+                           "origin": ISODate("2011-09-01T00:00:00.000+00:00"),
+                           "pivot": 7776000000
+                         }
+                       },
+                       "facets": {
+                         "genresFacet": {
+                           "type": "string",
+                           "path": "genres"
+                         }
+                       }
+                     },
+                     "count": {
+                       "type": "total"
+                     }
+                   }
+                 },
+                 {
+                   "$limit": 2
+                 },
+                 {
+                   "$facet": {
+                     "results": [ 
+                       { "$project":
+                         {
+                           "title": 1,
+                           "released": 1,
+                           "genres": 1
+                         }
+                       }
+                     ],
+                     "meta": [
+                       {"$replaceWith": "$$SEARCH_META"},
+                       {"$limit": 1}
+                     ]
+                   }
+                 }
+               ])
+
+            .. output:: 
+               :language: json 
+
+               [
+                 {
+                   results: [
+                     {
+                       _id: ObjectId('573a13c3f29313caabd6b025'),
+                       genres: [ 'Drama' ],
+                       title: 'Submarino',
+                       released: ISODate('2011-09-01T00:00:00.000Z')
+                     },
+                     {
+                       _id: ObjectId('573a13c7f29313caabd748f7'),
+                       genres: [ 'Action', 'Horror' ],
+                       title: "Devil's Playground",
+                       released: ISODate('2011-09-01T00:00:00.000Z')
+                     }
+                   ],
+                   meta: [
+                     {
+                       count: { total: Long('20878') },
+                       facet: {
+                         genresFacet: {
+                           buckets: [
+                             { _id: 'Drama', count: Long('12149') },
+                             { _id: 'Comedy', count: Long('6436') },
+                             { _id: 'Romance', count: Long('3274') },
+                             { _id: 'Crime', count: Long('2429') },
+                             { _id: 'Thriller', count: Long('2400') },
+                             { _id: 'Action', count: Long('2349') },
+                             { _id: 'Adventure', count: Long('1876') },
+                             { _id: 'Documentary', count: Long('1755') },
+                             { _id: 'Horror', count: Long('1432') },
+                             { _id: 'Biography', count: Long('1244') }
+                           ]
+                         }
+                       }
+                     }
+                   ]
+                 }
+               ]
 
    To learn more about the results, see :ref:`count-results`.
 
