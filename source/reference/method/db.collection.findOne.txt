@@ -29,16 +29,52 @@ Definition
    Returns one document that satisfies the specified query criteria on
    the collection or :ref:`view <views-landing-page>`. 
    
-   If multiple documents satisfy the query, this method returns the first document 
-   according to the :term:`natural order` which reflects the order of 
-   documents on the disk. In :term:`capped collections 
-   <capped collection>`, natural order is the same as insertion order. 
-   If no document satisfies the query, the method returns ``null``.
+   The returned document may vary depending on the number of documents 
+   that match the query criteria, and the 
+   :ref:`query plan<query-plans-query-optimization>` used:
 
-   If you specify a ``projection``
-   parameter, :method:`~db.collection.findOne()` returns a document
-   that only contains the ``projection`` fields. The ``_id``
-   field is always included unless you explicitly exclude it.
+   .. list-table::
+      :header-rows: 1
+      :widths: 25, 25, 50
+
+      * - Number of matching documents
+        - Query plan
+        - Result
+
+      * - 0
+        - Any
+        - The method returns ``null``
+
+      * - 1
+        - Any
+        - The method returns the document that satisfies the specified 
+          query criteria.
+      
+      * - 2 or more
+        - Collection Scan
+        - The method returns the first document according to the 
+          :term:`natural order`. In :term:`capped collections 
+          <capped collection>`, natural order is the same as 
+          insertion order.
+
+      * - 2 or more
+        - Index Scan
+        - The method returns the first document retrieved from the 
+          index.
+
+   .. important:: 
+   
+      If the query plan changes to use a different index, the method 
+      may return a different document. If your use case requires that 
+      a particular record is chosen consistently, you must use the 
+      ``options`` document to specify a sort. For details on using 
+      ``findOne()`` with an ``options`` document, see the 
+      :ref:`example <findOne-with-options>`.
+
+   If you specify a ``projection`` parameter, 
+   :method:`~db.collection.findOne()` returns a document that only 
+   contains the ``projection`` fields. The ``_id`` field is always 
+   included unless you explicitly exclude it.
 
    .. note:: 
 
@@ -218,6 +254,23 @@ all fields *except* the ``_id`` field, the ``first`` field in the
    db.bios.findOne(
       { contribs: 'OOP' },
       { _id: 0, 'name.first': 0, birth: 0 }
+   )
+
+.. _findOne-with-options:
+
+With an Option
+~~~~~~~~~~~~~~
+
+The following operation uses the ``sort`` option to return the first 
+matching document from the *sorted* ``bios`` collection. In this example, 
+the collection is sorted by ``birth`` in ascending order.
+
+.. code-block:: javascript
+
+   db.bios.findOne(
+      { },
+      { },
+      { sort: { birth: 1 } }
    )
 
 The ``findOne`` Result Document
