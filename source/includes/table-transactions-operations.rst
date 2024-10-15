@@ -61,9 +61,7 @@
      - If the update or replace operation is run with ``upsert: true`` on a 
        non-existing collection, the collection is implicitly created.
 
-       .. seealso::
-
-          :ref:`transactions-operations-ddl`
+       For more details, see :ref:`transactions-operations-ddl`.
 
    * - | :method:`db.collection.insertMany()`
        | :method:`db.collection.insertOne()`
@@ -73,9 +71,7 @@
      - If run on a non-existing collection, the collection is implicitly 
        created.
        
-       .. seealso::
-
-          :ref:`transactions-operations-ddl`
+       For more details, see :ref:`transactions-operations-ddl`.
 
    * - | :method:`db.collection.updateOne()`
        | :method:`db.collection.updateMany()`
@@ -86,9 +82,7 @@
      - If run on a non-existing collection, the collection is implicitly 
        created.
 
-       .. seealso::
-
-          :ref:`transactions-operations-ddl`
+       For more details, see :ref:`transactions-operations-ddl`.
 
    * - | :method:`db.collection.bulkWrite()`
        | Various :doc:`/reference/method/js-bulk`
@@ -96,6 +90,4 @@
      - If run on a non-existing collection, the collection is implicitly 
        created.
        
-       .. seealso::
-
-          :ref:`transactions-operations-ddl`
+       For more details, see :ref:`transactions-operations-ddl`.
