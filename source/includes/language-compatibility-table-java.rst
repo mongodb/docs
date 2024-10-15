@@ -21,13 +21,40 @@
      -
      -
 
-   * - 4.7 to 4.10
+   * - 4.5 to 4.10
      - ✓ [#virtual-threads-note]_
      - ✓
      - ✓
      - ✓
      -
      -
+     -
+
+   * - 4.4
+     - 
+     - ✓
+     - ✓
+     - ✓
+     -
+     -
+     -
+
+   * - 4.0 to 4.3
+     - 
+     - 
+     - ✓
+     - ✓
+     -
+     -
+     -
+
+   * - 3.8 to 3.12
+     - 
+     - 
+     - ✓
+     - ✓
+     - ✓
+     - ✓
      -
 
 .. [#virtual-threads-note] This driver version is not compatible with virtual threads.
