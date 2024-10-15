@@ -22,10 +22,7 @@ const masterKey = {
 const connectionString = process.env.MONGODB_URI;
 const keyVaultNamespace = "encryption.__keyVault";
 // start_mongoclient
-const client = new MongoClient(connectionString, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+const client = new MongoClient(connectionString);
 //end_mongoclient
 
 async function main() {

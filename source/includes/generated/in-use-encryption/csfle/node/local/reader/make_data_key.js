@@ -51,10 +51,7 @@ async function main() {
   // end-create-index
 
   // start-create-dek
-  const client = new MongoClient(uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+  const client = new MongoClient(uri);
   await client.connect();
 
   const encryption = new ClientEncryption(client, {
