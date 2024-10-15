@@ -1,266 +1,263 @@
-.. procedure::
-   :style: connected
+a. Specify the {+key-vault-long-title+} Namespace
+
+   Specify ``encryption.__keyVault`` as the {+key-vault-long+}
+   namespace.
 
-   .. step:: Specify the {+key-vault-long-title+} Namespace
+   .. tabs-drivers::
 
-      Specify ``encryption.__keyVault`` as the {+key-vault-long+}
-      namespace.
+      .. tab::
+         :tabid: java-sync
 
-      .. tabs-drivers::
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/aws/reader/src/main/java/com/mongodb/csfle/InsertEncryptedDocument.java
+            :start-after: start-key-vault
+            :end-before: end-key-vault
+            :language: java
+            :dedent:
 
-         .. tab::
-            :tabid: java-sync
+      .. tab::
+         :tabid: nodejs
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/aws/reader/src/main/java/com/mongodb/csfle/InsertEncryptedDocument.java
-               :start-after: start-key-vault
-               :end-before: end-key-vault
-               :language: java
-               :dedent:
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/aws/reader/insert_encrypted_document.js
+            :start-after: start-key-vault
+            :end-before: end-key-vault
+            :language: javascript
+            :dedent:
 
-         .. tab::
-            :tabid: nodejs
+      .. tab::
+         :tabid: python
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/aws/reader/insert_encrypted_document.js
-               :start-after: start-key-vault
-               :end-before: end-key-vault
-               :language: javascript
-               :dedent:
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/aws/reader/insert_encrypted_document.py
+            :start-after: start-key-vault
+            :end-before: end-key-vault
+            :language: python
+            :dedent:
 
-         .. tab::
-            :tabid: python
+      .. tab::
+         :tabid: csharp
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/aws/reader/insert_encrypted_document.py
-               :start-after: start-key-vault
-               :end-before: end-key-vault
-               :language: python
-               :dedent:
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/aws/reader/CSFLE/InsertEncryptedDocument.cs
+            :start-after: start-key-vault
+            :end-before: end-key-vault
+            :language: csharp
+            :dedent:
 
-         .. tab::
-            :tabid: csharp
+      .. tab::
+         :tabid: go
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/aws/reader/CSFLE/InsertEncryptedDocument.cs
-               :start-after: start-key-vault
-               :end-before: end-key-vault
-               :language: csharp
-               :dedent:
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/aws/reader/insert-encrypted-document.go
+            :start-after: start-key-vault
+            :end-before: end-key-vault
+            :language: go
+            :dedent:
 
-         .. tab::
-            :tabid: go
+#. Specify your AWS Credentials
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/aws/reader/insert-encrypted-document.go
-               :start-after: start-key-vault
-               :end-before: end-key-vault
-               :language: go
-               :dedent:
+   Specify the ``aws`` KMS provider and your {+aws-iam-abbr+} user
+   credentials:
 
-   .. step:: Specify your AWS Credentials
+   .. tabs-drivers::
 
-      Specify the ``aws`` KMS provider and your {+aws-iam-abbr+} user
-      credentials:
+      .. tab::
+         :tabid: java-sync
+
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/aws/reader/src/main/java/com/mongodb/csfle/InsertEncryptedDocument.java
+            :start-after: start-kmsproviders
+            :end-before: end-kmsproviders
+            :language: java
+            :dedent:
 
-      .. tabs-drivers::
+      .. tab::
+         :tabid: nodejs
 
-         .. tab::
-            :tabid: java-sync
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/aws/reader/insert_encrypted_document.js
+            :start-after: start-kmsproviders
+            :end-before: end-kmsproviders
+            :language: javascript
+            :dedent:
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/aws/reader/src/main/java/com/mongodb/csfle/InsertEncryptedDocument.java
-               :start-after: start-kmsproviders
-               :end-before: end-kmsproviders
-               :language: java
-               :dedent:
+      .. tab::
+         :tabid: python
 
-         .. tab::
-            :tabid: nodejs
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/aws/reader/insert_encrypted_document.py
+            :start-after: start-kmsproviders
+            :end-before: end-kmsproviders
+            :language: python
+            :dedent:
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/aws/reader/insert_encrypted_document.js
-               :start-after: start-kmsproviders
-               :end-before: end-kmsproviders
-               :language: javascript
-               :dedent:
+      .. tab::
+         :tabid: csharp
 
-         .. tab::
-            :tabid: python
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/aws/reader/CSFLE/InsertEncryptedDocument.cs
+            :start-after: start-kmsproviders
+            :end-before: end-kmsproviders
+            :language: csharp
+            :dedent:
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/aws/reader/insert_encrypted_document.py
-               :start-after: start-kmsproviders
-               :end-before: end-kmsproviders
-               :language: python
-               :dedent:
+      .. tab::
+         :tabid: go
 
-         .. tab::
-            :tabid: csharp
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/aws/reader/insert-encrypted-document.go
+            :start-after: start-kmsproviders
+            :end-before: end-kmsproviders
+            :language: go
+            :dedent:
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/aws/reader/CSFLE/InsertEncryptedDocument.cs
-               :start-after: start-kmsproviders
-               :end-before: end-kmsproviders
-               :language: csharp
-               :dedent:
+   .. include:: /includes/queryable-encryption/tutorials/automatic/aws/role-authentication.rst
 
-         .. tab::
-            :tabid: go
+#. Create an Encryption Schema For Your Collection
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/aws/reader/insert-encrypted-document.go
-               :start-after: start-kmsproviders
-               :end-before: end-kmsproviders
-               :language: go
-               :dedent:
+   .. tip:: Add Your {+dek-long+} Base64 ID
+
+      Make sure to update the following code to include your Base64
+      {+dek-abbr+} ID. You received this value in the
+      :ref:`Generate your {+dek-long+} <csfle-aws-create-dek>` step of this
+      guide.
 
-      .. include:: /includes/queryable-encryption/tutorials/automatic/aws/role-authentication.rst
+   .. tabs-drivers::
 
-   .. step:: Create an Encryption Schema For Your Collection
+      .. tab::
+         :tabid: java-sync
 
-      .. tip:: Add Your {+dek-long+} Base64 ID
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/aws/reader/src/main/java/com/mongodb/csfle/InsertEncryptedDocument.java
+            :start-after: start-schema
+            :end-before: end-schema
+            :language: java
+            :dedent:
 
-         Make sure to update the following code to include your Base64
-         {+dek-abbr+} ID. You received this value in the
-         :ref:`Generate your {+dek-long+} <csfle-aws-create-dek>` step of this
-         guide.
+      .. tab::
+         :tabid: nodejs
 
-      .. tabs-drivers::
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/aws/reader/insert_encrypted_document.js
+            :start-after: start-schema
+            :end-before: end-schema
+            :language: javascript
+            :dedent:
 
-         .. tab::
-            :tabid: java-sync
+      .. tab::
+         :tabid: python
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/aws/reader/src/main/java/com/mongodb/csfle/InsertEncryptedDocument.java
-               :start-after: start-schema
-               :end-before: end-schema
-               :language: java
-               :dedent:
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/aws/reader/insert_encrypted_document.py
+            :start-after: start-schema
+            :end-before: end-schema
+            :language: python
+            :dedent:
 
-         .. tab::
-            :tabid: nodejs
+      .. tab::
+         :tabid: csharp
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/aws/reader/insert_encrypted_document.js
-               :start-after: start-schema
-               :end-before: end-schema
-               :language: javascript
-               :dedent:
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/aws/reader/CSFLE/InsertEncryptedDocument.cs
+            :start-after: start-schema
+            :end-before: end-schema
+            :language: csharp
+            :dedent:
 
-         .. tab::
-            :tabid: python
+      .. tab::
+         :tabid: go
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/aws/reader/insert_encrypted_document.py
-               :start-after: start-schema
-               :end-before: end-schema
-               :language: python
-               :dedent:
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/aws/reader/insert-encrypted-document.go
+            :start-after: start-schema
+            :end-before: end-schema
+            :language: go
+            :dedent:
 
-         .. tab::
-            :tabid: csharp
+#. Specify the Location of the {+shared-library+}
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/aws/reader/CSFLE/InsertEncryptedDocument.cs
-               :start-after: start-schema
-               :end-before: end-schema
-               :language: csharp
-               :dedent:
+   .. tabs-drivers::
 
-         .. tab::
-            :tabid: go
+      .. tab::
+         :tabid: java-sync
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/aws/reader/insert-encrypted-document.go
-               :start-after: start-schema
-               :end-before: end-schema
-               :language: go
-               :dedent:
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/aws/reader/src/main/java/com/mongodb/csfle/InsertEncryptedDocument.java
+            :start-after: start-extra-options
+            :end-before: end-extra-options
+            :language: java
+            :dedent:
 
-   .. step:: Specify the Location of the {+shared-library+}
+      .. tab::
+         :tabid: nodejs
 
-      .. tabs-drivers::
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/aws/reader/insert_encrypted_document.js
+            :start-after: start-extra-options
+            :end-before: end-extra-options
+            :language: javascript
+            :dedent:
 
-         .. tab::
-            :tabid: java-sync
+      .. tab::
+         :tabid: python
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/aws/reader/src/main/java/com/mongodb/csfle/InsertEncryptedDocument.java
-               :start-after: start-extra-options
-               :end-before: end-extra-options
-               :language: java
-               :dedent:
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/aws/reader/insert_encrypted_document.py
+            :start-after: start-extra-options
+            :end-before: end-extra-options
+            :language: python
+            :dedent:
 
-         .. tab::
-            :tabid: nodejs
+      .. tab::
+         :tabid: csharp
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/aws/reader/insert_encrypted_document.js
-               :start-after: start-extra-options
-               :end-before: end-extra-options
-               :language: javascript
-               :dedent:
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/aws/reader/CSFLE/InsertEncryptedDocument.cs
+            :start-after: start-extra-options
+            :end-before: end-extra-options
+            :language: csharp
+            :dedent:
 
-         .. tab::
-            :tabid: python
+      .. tab::
+         :tabid: go
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/aws/reader/insert_encrypted_document.py
-               :start-after: start-extra-options
-               :end-before: end-extra-options
-               :language: python
-               :dedent:
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/aws/reader/insert-encrypted-document.go
+            :start-after: start-extra-options
+            :end-before: end-extra-options
+            :language: go
+            :dedent:
 
-         .. tab::
-            :tabid: csharp
+   .. include:: /includes/tutorials/csfle-shared-lib-learn-more.rst
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/aws/reader/CSFLE/InsertEncryptedDocument.cs
-               :start-after: start-extra-options
-               :end-before: end-extra-options
-               :language: csharp
-               :dedent:
+#. Create the MongoClient
 
-         .. tab::
-            :tabid: go
+   Instantiate a MongoDB client object with the following automatic
+   encryption settings that use the variables declared in the previous steps:
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/aws/reader/insert-encrypted-document.go
-               :start-after: start-extra-options
-               :end-before: end-extra-options
-               :language: go
-               :dedent:
+   .. tabs-drivers::
 
-      .. include:: /includes/tutorials/csfle-shared-lib-learn-more.rst
+      .. tab::
+         :tabid: java-sync
 
-   .. step:: Create the MongoClient
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/aws/reader/src/main/java/com/mongodb/csfle/InsertEncryptedDocument.java
+            :start-after: start-client
+            :end-before: end-client
+            :language: java
+            :dedent:
 
-      Instantiate a MongoDB client object with the following automatic
-      encryption settings that use the variables declared in the previous steps:
+      .. tab::
+         :tabid: nodejs
 
-      .. tabs-drivers::
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/aws/reader/insert_encrypted_document.js
+            :start-after: start-client
+            :end-before: end-client
+            :language: javascript
+            :dedent:
 
-         .. tab::
-            :tabid: java-sync
+      .. tab::
+         :tabid: python
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/aws/reader/src/main/java/com/mongodb/csfle/InsertEncryptedDocument.java
-               :start-after: start-client
-               :end-before: end-client
-               :language: java
-               :dedent:
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/aws/reader/insert_encrypted_document.py
+            :start-after: start-client
+            :end-before: end-client
+            :language: python
+            :dedent:
 
-         .. tab::
-            :tabid: nodejs
+      .. tab::
+         :tabid: csharp
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/aws/reader/insert_encrypted_document.js
-               :start-after: start-client
-               :end-before: end-client
-               :language: javascript
-               :dedent:
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/aws/reader/CSFLE/InsertEncryptedDocument.cs
+            :start-after: start-client
+            :end-before: end-client
+            :language: csharp
+            :dedent:
 
-         .. tab::
-            :tabid: python
+      .. tab::
+         :tabid: go
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/aws/reader/insert_encrypted_document.py
-               :start-after: start-client
-               :end-before: end-client
-               :language: python
-               :dedent:
-
-         .. tab::
-            :tabid: csharp
-
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/aws/reader/CSFLE/InsertEncryptedDocument.cs
-               :start-after: start-client
-               :end-before: end-client
-               :language: csharp
-               :dedent:
-
-         .. tab::
-            :tabid: go
-
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/aws/reader/insert-encrypted-document.go
-               :start-after: start-client
-               :end-before: end-client
-               :language: go
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/aws/reader/insert-encrypted-document.go
+            :start-after: start-client
+            :end-before: end-client
+            :language: go

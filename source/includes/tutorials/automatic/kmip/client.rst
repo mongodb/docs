@@ -1,272 +1,269 @@
-.. procedure::
-   :style: connected
+a. Specify the {+key-vault-long-title+} Namespace
+
+   Specify ``encryption.__keyVault`` as the {+key-vault-long+}
+   namespace.
 
-   .. step:: Specify the {+key-vault-long-title+} Namespace
+   .. tabs-drivers::
 
-      Specify ``encryption.__keyVault`` as the {+key-vault-long+}
-      namespace.
+      .. tab::
+         :tabid: java-sync
 
-      .. tabs-drivers::
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/kmip/reader/src/main/java/com/mongodb/csfle/InsertEncryptedDocument.java
+            :start-after: start-key-vault
+            :end-before: end-key-vault
+            :language: java
+            :dedent:
 
-         .. tab::
-            :tabid: java-sync
+      .. tab::
+         :tabid: nodejs
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/kmip/reader/src/main/java/com/mongodb/csfle/InsertEncryptedDocument.java
-               :start-after: start-key-vault
-               :end-before: end-key-vault
-               :language: java
-               :dedent:
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/kmip/reader/insert_encrypted_document.js
+            :start-after: start-key-vault
+            :end-before: end-key-vault
+            :language: javascript
+            :dedent:
 
-         .. tab::
-            :tabid: nodejs
+      .. tab::
+         :tabid: python
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/kmip/reader/insert_encrypted_document.js
-               :start-after: start-key-vault
-               :end-before: end-key-vault
-               :language: javascript
-               :dedent:
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/kmip/reader/insert_encrypted_document.py
+            :start-after: start-key-vault
+            :end-before: end-key-vault
+            :language: python
+            :dedent:
 
-         .. tab::
-            :tabid: python
+      .. tab::
+         :tabid: csharp
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/kmip/reader/insert_encrypted_document.py
-               :start-after: start-key-vault
-               :end-before: end-key-vault
-               :language: python
-               :dedent:
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/kmip/reader/CSFLE/InsertEncryptedDocument.cs
+            :start-after: start-key-vault
+            :end-before: end-key-vault
+            :language: csharp
+            :dedent:
 
-         .. tab::
-            :tabid: csharp
+      .. tab::
+         :tabid: go
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/kmip/reader/CSFLE/InsertEncryptedDocument.cs
-               :start-after: start-key-vault
-               :end-before: end-key-vault
-               :language: csharp
-               :dedent:
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/kmip/reader/insert-encrypted-document.go
+            :start-after: start-key-vault
+            :end-before: end-key-vault
+            :language: go
+            :dedent:
 
-         .. tab::
-            :tabid: go
+#. Specify your KMIP Endpoint
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/kmip/reader/insert-encrypted-document.go
-               :start-after: start-key-vault
-               :end-before: end-key-vault
-               :language: go
-               :dedent:
+   Specify ``kmip`` in your ``kmsProviders`` object and enter
+   the URI endpoint of your {+kmip-kms+}:
 
-   .. step:: Specify your KMIP Endpoint
+   .. tabs-drivers::
 
-      Specify ``kmip`` in your ``kmsProviders`` object and enter
-      the URI endpoint of your {+kmip-kms+}:
+      .. tab::
+         :tabid: java-sync
 
-      .. tabs-drivers::
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/kmip/reader/src/main/java/com/mongodb/csfle/InsertEncryptedDocument.java
+            :start-after: start-kmsproviders
+            :end-before: end-kmsproviders
+            :language: java
+            :dedent:
 
-         .. tab::
-            :tabid: java-sync
+      .. tab::
+         :tabid: nodejs
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/kmip/reader/src/main/java/com/mongodb/csfle/InsertEncryptedDocument.java
-               :start-after: start-kmsproviders
-               :end-before: end-kmsproviders
-               :language: java
-               :dedent:
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/kmip/reader/insert_encrypted_document.js
+            :start-after: start-kmsproviders
+            :end-before: end-kmsproviders
+            :language: javascript
+            :dedent:
 
-         .. tab::
-            :tabid: nodejs
+      .. tab::
+         :tabid: python
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/kmip/reader/insert_encrypted_document.js
-               :start-after: start-kmsproviders
-               :end-before: end-kmsproviders
-               :language: javascript
-               :dedent:
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/kmip/reader/insert_encrypted_document.py
+            :start-after: start-kmsproviders
+            :end-before: end-kmsproviders
+            :language: python
+            :dedent:
 
-         .. tab::
-            :tabid: python
+      .. tab::
+         :tabid: csharp
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/kmip/reader/insert_encrypted_document.py
-               :start-after: start-kmsproviders
-               :end-before: end-kmsproviders
-               :language: python
-               :dedent:
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/kmip/reader/CSFLE/InsertEncryptedDocument.cs
+            :start-after: start-kmsproviders
+            :end-before: end-kmsproviders
+            :language: csharp
+            :dedent:
 
-         .. tab::
-            :tabid: csharp
+      .. tab::
+         :tabid: go
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/kmip/reader/CSFLE/InsertEncryptedDocument.cs
-               :start-after: start-kmsproviders
-               :end-before: end-kmsproviders
-               :language: csharp
-               :dedent:
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/kmip/reader/insert-encrypted-document.go
+            :start-after: start-kmsproviders
+            :end-before: end-kmsproviders
+            :language: go
+            :dedent:
 
-         .. tab::
-            :tabid: go
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/kmip/reader/insert-encrypted-document.go
-               :start-after: start-kmsproviders
-               :end-before: end-kmsproviders
-               :language: go
-               :dedent:
+#. Create an Encryption Schema For Your Collection
 
+   Create an encryption schema that specifies how your client
+   application encrypts your documents' fields:
 
-   .. step:: Create an Encryption Schema For Your Collection
+   .. tip:: Add Your {+dek-long+} Base64 ID
 
-      Create an encryption schema that specifies how your client
-      application encrypts your documents' fields:
+      Make sure to update the following code to include your Base64
+      {+dek-abbr+} ID. You received this value in the
+      :ref:`Generate your {+dek-long+} <csfle-kmip-create-dek>` step of this
+      guide.
 
-      .. tip:: Add Your {+dek-long+} Base64 ID
+   .. tabs-drivers::
 
-         Make sure to update the following code to include your Base64
-         {+dek-abbr+} ID. You received this value in the
-         :ref:`Generate your {+dek-long+} <csfle-kmip-create-dek>` step of this
-         guide.
+      .. tab::
+         :tabid: java-sync
 
-      .. tabs-drivers::
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/kmip/reader/src/main/java/com/mongodb/csfle/InsertEncryptedDocument.java
+            :start-after: start-schema
+            :end-before: end-schema
+            :language: java
+            :dedent:
 
-         .. tab::
-            :tabid: java-sync
+      .. tab::
+         :tabid: nodejs
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/kmip/reader/src/main/java/com/mongodb/csfle/InsertEncryptedDocument.java
-               :start-after: start-schema
-               :end-before: end-schema
-               :language: java
-               :dedent:
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/kmip/reader/insert_encrypted_document.js
+            :start-after: start-schema
+            :end-before: end-schema
+            :language: javascript
+            :dedent:
 
-         .. tab::
-            :tabid: nodejs
+      .. tab::
+         :tabid: python
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/kmip/reader/insert_encrypted_document.js
-               :start-after: start-schema
-               :end-before: end-schema
-               :language: javascript
-               :dedent:
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/kmip/reader/insert_encrypted_document.py
+            :start-after: start-schema
+            :end-before: end-schema
+            :language: python
+            :dedent:
 
-         .. tab::
-            :tabid: python
+      .. tab::
+         :tabid: csharp
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/kmip/reader/insert_encrypted_document.py
-               :start-after: start-schema
-               :end-before: end-schema
-               :language: python
-               :dedent:
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/kmip/reader/CSFLE/InsertEncryptedDocument.cs
+            :start-after: start-schema
+            :end-before: end-schema
+            :language: csharp
+            :dedent:
 
-         .. tab::
-            :tabid: csharp
+      .. tab::
+         :tabid: go
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/kmip/reader/CSFLE/InsertEncryptedDocument.cs
-               :start-after: start-schema
-               :end-before: end-schema
-               :language: csharp
-               :dedent:
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/kmip/reader/insert-encrypted-document.go
+            :start-after: start-schema
+            :end-before: end-schema
+            :language: go
+            :dedent:
+   
+   .. include:: /includes/quick-start/schema/further-reading-note.rst
 
-         .. tab::
-            :tabid: go
+#. Specify the Location of the {+shared-library+}
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/kmip/reader/insert-encrypted-document.go
-               :start-after: start-schema
-               :end-before: end-schema
-               :language: go
-               :dedent:
-      
-      .. include:: /includes/quick-start/schema/further-reading-note.rst
+   .. tabs-drivers::
 
-   .. step:: Specify the Location of the {+shared-library+}
+      .. tab::
+         :tabid: java-sync
 
-      .. tabs-drivers::
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/kmip/reader/src/main/java/com/mongodb/csfle/InsertEncryptedDocument.java
+            :start-after: start-extra-options
+            :end-before: end-extra-options
+            :language: java
+            :dedent:
 
-         .. tab::
-            :tabid: java-sync
+      .. tab::
+         :tabid: nodejs
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/kmip/reader/src/main/java/com/mongodb/csfle/InsertEncryptedDocument.java
-               :start-after: start-extra-options
-               :end-before: end-extra-options
-               :language: java
-               :dedent:
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/kmip/reader/insert_encrypted_document.js
+            :start-after: start-extra-options
+            :end-before: end-extra-options
+            :language: javascript
+            :dedent:
 
-         .. tab::
-            :tabid: nodejs
+      .. tab::
+         :tabid: python
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/kmip/reader/insert_encrypted_document.js
-               :start-after: start-extra-options
-               :end-before: end-extra-options
-               :language: javascript
-               :dedent:
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/kmip/reader/insert_encrypted_document.py
+            :start-after: start-extra-options
+            :end-before: end-extra-options
+            :language: python
+            :dedent:
 
-         .. tab::
-            :tabid: python
+      .. tab::
+         :tabid: csharp
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/kmip/reader/insert_encrypted_document.py
-               :start-after: start-extra-options
-               :end-before: end-extra-options
-               :language: python
-               :dedent:
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/kmip/reader/CSFLE/InsertEncryptedDocument.cs
+            :start-after: start-extra-options
+            :end-before: end-extra-options
+            :language: csharp
+            :dedent:
 
-         .. tab::
-            :tabid: csharp
+      .. tab::
+         :tabid: go
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/kmip/reader/CSFLE/InsertEncryptedDocument.cs
-               :start-after: start-extra-options
-               :end-before: end-extra-options
-               :language: csharp
-               :dedent:
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/kmip/reader/insert-encrypted-document.go
+            :start-after: start-extra-options
+            :end-before: end-extra-options
+            :language: go
+            :dedent:
 
-         .. tab::
-            :tabid: go
+   .. include:: /includes/tutorials/csfle-shared-lib-learn-more.rst
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/kmip/reader/insert-encrypted-document.go
-               :start-after: start-extra-options
-               :end-before: end-extra-options
-               :language: go
-               :dedent:
+#. Create the MongoClient
 
-      .. include:: /includes/tutorials/csfle-shared-lib-learn-more.rst
+   Instantiate a MongoDB client object with the following automatic
+   encryption settings that use the variables declared in the previous steps:
 
-   .. step:: Create the MongoClient
+   .. tabs-drivers::
 
-      Instantiate a MongoDB client object with the following automatic
-      encryption settings that use the variables declared in the previous steps:
+      .. tab::
+         :tabid: java-sync
 
-      .. tabs-drivers::
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/kmip/reader/src/main/java/com/mongodb/csfle/InsertEncryptedDocument.java
+            :start-after: start-client
+            :end-before: end-client
+            :language: java
+            :dedent:
 
-         .. tab::
-            :tabid: java-sync
+      .. tab::
+         :tabid: nodejs
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/kmip/reader/src/main/java/com/mongodb/csfle/InsertEncryptedDocument.java
-               :start-after: start-client
-               :end-before: end-client
-               :language: java
-               :dedent:
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/kmip/reader/insert_encrypted_document.js
+            :start-after: start-client
+            :end-before: end-client
+            :language: javascript
+            :dedent:
 
-         .. tab::
-            :tabid: nodejs
+      .. tab::
+         :tabid: python
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/kmip/reader/insert_encrypted_document.js
-               :start-after: start-client
-               :end-before: end-client
-               :language: javascript
-               :dedent:
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/kmip/reader/insert_encrypted_document.py
+            :start-after: start-client
+            :end-before: end-client
+            :language: python
+            :dedent:
 
-         .. tab::
-            :tabid: python
+      .. tab::
+         :tabid: csharp
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/kmip/reader/insert_encrypted_document.py
-               :start-after: start-client
-               :end-before: end-client
-               :language: python
-               :dedent:
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/kmip/reader/CSFLE/InsertEncryptedDocument.cs
+            :start-after: start-client
+            :end-before: end-client
+            :language: csharp
+            :dedent:
 
-         .. tab::
-            :tabid: csharp
+      .. tab::
+         :tabid: go
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/kmip/reader/CSFLE/InsertEncryptedDocument.cs
-               :start-after: start-client
-               :end-before: end-client
-               :language: csharp
-               :dedent:
-
-         .. tab::
-            :tabid: go
-
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/kmip/reader/insert-encrypted-document.go
-               :start-after: start-client
-               :end-before: end-client
-               :language: go
-               :dedent:
+         .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/kmip/reader/insert-encrypted-document.go
+            :start-after: start-client
+            :end-before: end-client
+            :language: go
+            :dedent:
 
