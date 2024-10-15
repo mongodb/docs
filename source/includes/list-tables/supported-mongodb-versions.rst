@@ -24,19 +24,11 @@
      - Supported
 
    * - MongoDB 4.0
-     - Supported
+     - Deprecated
      - Supported
 
    * - MongoDB 3.6
+     - 
      - Supported
-     - Supported
-
-   * - MongoDB 3.4
-     - 
-     - 
-
-   * - MongoDB 3.2
-     - 
-     -
 
 .. include:: /includes/deprecated-definition.rst
