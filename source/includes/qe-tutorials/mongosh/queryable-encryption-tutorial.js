@@ -19,7 +19,7 @@ async function runExample() {
   const customerMasterKeyCredentials =
     qeHelper.getCustomerMasterKeyCredentials(kmsProviderName);
 
-  const autoEncryptionOpts = await qeHelper.getAutoEncryptionOptions(
+  const autoEncryptionOptions = await qeHelper.getAutoEncryptionOptions(
     kmsProviderName,
     keyVaultNamespace,
     kmsProviderCredentials
@@ -44,7 +44,7 @@ async function runExample() {
   // end-encrypted-fields-map
 
   // start-create-client
-  const encryptedClient = Mongo(uri, autoEncryptionOpts);
+  const encryptedClient = Mongo(uri, autoEncryptionOptions);
   // end-create-client
 
   await qeHelper.dropExistingCollection(encryptedClient, encryptedDatabaseName);
