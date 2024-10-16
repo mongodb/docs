@@ -1,0 +1,188 @@
+.. _c-aggregation:
+
+====================================
+Transform Your Data with Aggregation
+====================================
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: code example, transform, computed, pipeline
+   :description: Learn how to use the C driver to perform aggregation operations.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to perform
+**aggregation operations**.
+
+You can use aggregation operations to process data in your MongoDB collections and
+return computed results. The MongoDB Aggregation framework, which is
+part of the Query API, is modeled on the concept of a data processing
+pipeline. Documents enter a pipeline that contains one or more stages,
+and each stage transforms the documents to output a final aggregated result.
+
+You can think of an aggregation operation as similar to a car factory. A car factory has
+an assembly line, which contains assembly stations with specialized
+tools to do specific jobs, like drills and welders. Raw parts enter the
+factory, and then the assembly line transforms and assembles them into a
+finished product.
+
+The **aggregation pipeline** is the assembly line, **aggregation stages** are the
+assembly stations, and **operator expressions** are the
+specialized tools.
+
+Compare Aggregation and Find Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use find operations to perform the following actions:
+
+- Select which documents to return
+- Select which fields to return
+- Sort the results
+
+You can use aggregation operations to perform the following actions:
+
+- Perform find operations
+- Rename fields
+- Calculate fields
+- Summarize data
+- Group values
+
+Limitations
+~~~~~~~~~~~
+
+The following limitations apply when using aggregation operations:
+
+- Returned documents must not violate the
+  :manual:`BSON document size limit </reference/limits/#mongodb-limit-BSON-Document-Size>`
+  of 16 megabytes.
+- Pipeline stages have a memory limit of 100 megabytes by default. You can exceed this
+  limit by setting the ``allowDiskUse`` option to ``true``. 
+
+.. important:: $graphLookup exception
+
+   The :manual:`$graphLookup
+   </reference/operator/aggregation/graphLookup/>` stage has a strict
+   memory limit of 100 megabytes and ignores the ``allowDiskUse`` option.
+
+Aggregation Example
+-------------------
+
+The examples in this section use the ``restaurants`` collection in the ``sample_restaurants``
+database from the :atlas:`Atlas sample datasets </sample-data>`. To learn how to create a
+free MongoDB Atlas cluster and load the sample datasets, see the
+:atlas:`Get Started with Atlas </getting-started>` guide.
+
+Build and Execute an Aggregation Pipeline
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To perform an aggregation on the documents in a collection, pass a ``bson_t`` structure
+that represents the pipeline stages to the ``mongoc_collection_aggregate()`` function.
+
+This example outputs a count of the number of bakeries in each borough
+of New York City. The following code creates an aggregation pipeline that contains the
+following stages:
+
+- A :manual:`$match </reference/operator/aggregation/match/>` stage to filter for documents
+  in which the value of the ``cuisine`` field is ``"Bakery"``.
+
+- A :manual:`$group </reference/operator/aggregation/group/>` stage to group the matching
+  documents by the ``borough`` field, producing a count of documents for each distinct
+  value of that field.
+
+.. io-code-block::
+
+   .. input:: /includes/aggregation/aggregation.c
+      :language: c
+      :start-after: start-aggregation-pipeline
+      :end-before: end-aggregation-pipeline
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      { "_id" : "Queens", "count" : { "$numberInt" : "204" } }
+      { "_id" : "Staten Island", "count" : { "$numberInt" : "20" } }
+      { "_id" : "Missing", "count" : { "$numberInt" : "2" } }
+      { "_id" : "Bronx", "count" : { "$numberInt" : "71" } }
+      { "_id" : "Brooklyn", "count" : { "$numberInt" : "173" } }
+      { "_id" : "Manhattan", "count" : { "$numberInt" : "221" } }
+
+Explain an Aggregation
+~~~~~~~~~~~~~~~~~~~~~~
+
+To view information about how MongoDB executes your operation, you can
+run the the ``explain`` operation on your pipeline. When MongoDB explains an
+operation, it returns **execution plans** and performance statistics. An execution
+plan is a potential way MongoDB can complete an operation.
+When you instruct MongoDB to explain an operation, it returns both the
+plan MongoDB selected for the operation and any rejected execution plans.
+
+The following code example runs the same aggregation shown in the preceding section, but
+uses the ``mongoc_client_command_simple()`` function to explain the operation details:
+
+.. io-code-block::
+
+   .. input:: /includes/aggregation/aggregation.c
+      :language: c
+      :start-after: start-aggregation-explain
+      :end-before: end-aggregation-explain
+      :dedent:
+
+   .. output::
+      :visible: false
+    
+      {
+        "explainVersion": "2", 
+        "queryPlanner": {
+            "namespace": "sample_restaurants.restaurants"
+            "indexFilterSet": false,
+            "parsedQuery": {
+              "cuisine": {"$eq": "Bakery"}
+            }, 
+            "queryHash": "865F14C3", 
+            "planCacheKey": "0697561B", 
+            "optimizedPipeline": true,
+            "maxIndexedOrSolutionsReached": false,
+            "maxIndexedAndSolutionsReached": false,
+            "maxScansToExplodeReached": false,
+            "winningPlan": { ... },
+            "rejectedPlans": []
+            ...
+        }
+        ...
+      }
+
+Additional Information
+----------------------
+
+To view a full list of expression operators, see :manual:`Aggregation
+Operators </reference/operator/aggregation/>` in the {+mdb-server+} manual.
+
+To learn about assembling an aggregation pipeline and view examples, see
+:manual:`Aggregation Pipeline </core/aggregation-pipeline/>` in the {+mdb-server+} manual.
+
+To learn more about creating pipeline stages, see :manual:`Aggregation
+Stages </reference/operator/aggregation-pipeline/>` in the {+mdb-server+} manual.
+
+To learn more about explaining MongoDB operations, see
+:manual:`Explain Output </reference/explain-results/>` and
+:manual:`Query Plans </core/query-plans/>` in the {+mdb-server+} manual.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+For more information about executing aggregation operations with the {+driver-short+},
+see the following API documentation:
+
+- `mongoc_collection_aggregate() <{+api-libmongoc+}/mongoc_collection_aggregate.html>`__
+- `mongoc_client_command_simple() <{+api-libmongoc+}/mongoc_client_command_simple.html>`__

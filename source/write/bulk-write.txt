@@ -1,0 +1,298 @@
+.. _c-bulk-write:
+
+=====================
+Bulk Write Operations
+=====================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: insert, update, replace, code example
+
+Overview
+--------
+
+In this guide, you can learn how to perform multiple write operations
+in a single database call by using **bulk write operations**.
+
+Consider a scenario in which you want to insert a document into a collection,
+update multiple other documents, then delete a document. If you use
+individual functions, each operation requires its own database call. Instead,
+you can use a bulk operation to reduce the number of calls to the database.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``restaurants`` collection in the ``sample_restaurants``
+database from the :atlas:`Atlas sample datasets </sample-data>`. To learn how to create a
+free MongoDB Atlas cluster and load the sample datasets, see the
+:atlas:`Get Started with Atlas </getting-started>` guide.
+
+.. _c-bulk-start-operation:
+
+Start the Bulk Write Operation
+------------------------------
+
+Before running a bulk write operation, call the ``mongoc_collection_create_bulk_operation_with_opts()``
+function. This function returns a value of type ``mongoc_bulk_operation_t`` that you can use
+to store instructions about which bulk writes to perform. 
+
+The ``mongoc_collection_create_bulk_operation_with_opts()`` function accepts the following
+parameters:
+
+- **Collection**: Specifies the collection to modify
+- **Options document**: Specifies options to customize the operation, or ``NULL``
+
+The following example calls the ``mongoc_collection_create_bulk_operation_with_opts()`` function and
+passes the ``restaurants`` collection as a parameter:
+
+
+.. literalinclude:: /includes/write/bulk-write.c
+    :start-after: start-create-bulk-write
+    :end-before: end-create-bulk-write
+    :language: c
+    :dedent:
+
+You can then add write instructions to the bulk operation. For more information, see the
+following :ref:`c-bulk-define-operations` section.
+
+.. _c-bulk-define-operations:
+
+Define the Write Operations
+---------------------------
+
+You can define a write operation and add it to the bulk write by calling the
+following methods:
+
+- ``mongoc_bulk_operation_insert_with_opts()``
+- ``mongoc_bulk_operation_update_one_with_opts()``
+- ``mongoc_bulk_operation_update_many_with_opts()``
+- ``mongoc_bulk_operation_replace_one_with_opts()``
+- ``mongoc_bulk_operation_remove_one_with_opts()``
+- ``mongoc_bulk_operation_remove_many_with_opts()``
+
+The following sections show how to use these methods to specify their corresponding
+write operations.
+
+.. _c-bulk-add-insert:
+
+Insert Operations
+~~~~~~~~~~~~~~~~~
+
+To perform an insert operation, add the insert instructions to the ``mongoc_bulk_operation_t``,
+which queues the operation as part of the bulk write.
+
+The following example calls the ``mongoc_bulk_operation_insert_with_opts()`` function,
+passing the document to insert and the ``mongoc_bulk_operation_t`` value as parameters:
+
+.. literalinclude:: /includes/write/bulk-write.c
+   :start-after: start-bulk-insert-one
+   :end-before: end-bulk-insert-one
+   :language: c
+   :dedent:
+
+To insert multiple documents, call ``mongoc_bulk_operation_insert_with_opts()``
+for each document.
+
+.. _c-bulk-add-update:
+
+Update Operations
+~~~~~~~~~~~~~~~~~
+
+To perform an update operation, add the update instructions to the ``mongoc_bulk_operation_t``,
+which queues the operation as part of the bulk write.
+
+The following example calls the ``mongoc_bulk_operation_update_one_with_opts()`` function,
+passing a query filter, document updates, and the ``mongoc_bulk_operation_t`` value as
+parameters:
+
+.. literalinclude:: /includes/write/bulk-write.c
+   :start-after: start-bulk-update-one
+   :end-before: end-bulk-update-one
+   :language: c
+   :dedent:
+
+To update multiple documents, call ``mongoc_bulk_operation_update_many_with_opts()``
+and pass in the same parameters. This instructs the driver to update *all* documents
+that match your query filter.
+
+The following example queues an update many operation to the bulk write:
+
+.. literalinclude:: /includes/write/bulk-write.c
+   :start-after: start-bulk-update-many
+   :end-before: end-bulk-update-many
+   :language: c
+   :dedent:
+
+.. _c-bulk-add-replace:
+
+Replace Operations
+~~~~~~~~~~~~~~~~~~
+
+A replace operation removes all fields and values of a specified document and
+replaces them with new ones. To perform a replace operation, add the replacement
+instructions to the ``mongoc_bulk_operation_t``, which queues the operation as part
+of the bulk write.
+
+The following example calls the ``mongoc_bulk_operation_replace_one_with_opts()`` function,
+passing a query filter, replacement document, and the ``mongoc_bulk_operation_t`` value as
+parameters:
+
+.. literalinclude:: /includes/write/bulk-write.c
+   :start-after: start-bulk-replace-one
+   :end-before: end-bulk-replace-one
+   :language: c
+   :dedent:
+
+To replace multiple documents, call ``mongoc_bulk_operation_replace_one_with_opts()``
+for each document.
+
+.. _c-bulk-add-delete:
+
+Delete Operations
+~~~~~~~~~~~~~~~~~
+
+To perform a delete operation, add the delete instructions to the ``mongoc_bulk_operation_t``,
+which queues the operation as part of the bulk write.
+
+The following example calls the ``mongoc_bulk_operation_remove_one_with_opts()`` function,
+passing a query filter and the ``mongoc_bulk_operation_t`` value as parameters:
+
+.. literalinclude:: /includes/write/bulk-write.c
+   :start-after: start-bulk-delete-one
+   :end-before: end-bulk-delete-one
+   :language: c
+   :dedent:
+
+To delete multiple documents, call the ``mongoc_bulk_operation_remove_many_with_opts()``
+function and pass in the same parameters. This instructs the driver to delete *all* documents
+that match your query filter.
+
+The following example queues a delete many operation to the bulk write:
+
+.. literalinclude:: /includes/write/bulk-write.c
+   :start-after: start-bulk-delete-many
+   :end-before: end-bulk-delete-many
+   :language: c
+   :dedent:
+
+Run the Bulk Operation
+----------------------
+
+To run each write operation queued in the bulk write, call the ``mongoc_bulk_operation_execute()``
+function. This function accepts the following parameters:
+
+- **mongoc_bulk_operation_t value**: Contains the instructions for each write operation
+
+- **Results location**: Specifies a pointer to overwritable storage that will contain
+  operation results, or ``NULL``
+
+- **Error location**: Specifies a location for an error value, or ``NULL``
+
+The following example performs the :ref:`insert <c-bulk-add-insert>`,
+:ref:`update <c-bulk-add-update>`, :ref:`replace <c-bulk-add-replace>`,
+and :ref:`delete <c-bulk-add-delete>` operations specified in the preceding
+sections of this guide by calling the ``mongoc_bulk_operation_execute()``
+function:
+
+.. literalinclude:: /includes/write/bulk-write.c
+   :start-after: start-bulk-run
+   :end-before: end-bulk-run
+   :language: c
+   :dedent:
+
+If any of the write operations fail, the {+driver-short+} sets the output error
+and does not perform any further operations.
+
+Customize Bulk Write Operations
+-------------------------------
+
+You can modify the behavior of the ``mongoc_collection_create_bulk_operation_with_opts()``
+function by passing a BSON document that specifies option values. The following table
+describes the options you can set in the document:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Option
+     - Description
+
+   * - ``ordered``
+     - | If ``true``, the driver performs the write operations in the order
+         provided. If an error occurs, the remaining operations are not
+         attempted. 
+       |
+       | If ``false``, the driver performs the operations in an
+         arbitrary order and attempts to perform all operations.
+       | Defaults to ``true``.
+
+   * - ``writeConcern``
+     - | Specifies the write concern for the bulk operation. For more information, see
+         :manual:`Write Concern </reference/write-concern/>` in the {+mdb-server+} manual.
+
+   * - ``sessionId``
+     - | Runs the bulk operations within the specified session. For more information, see
+         :manual:`Server Sessions </reference/server-sessions/>` in the {+mdb-server+} manual.
+         
+   * - ``comment``
+     - | Attaches a comment to the operation. For more information, see the :manual:`delete command
+         fields </reference/command/delete/#command-fields>` guide in the
+         {+mdb-server+} manual.
+
+   * - ``let``
+     - | Specifies a document with a list of values to improve operation readability. Values
+         must be constant or closed expressions that don't reference document fields. For more
+         information, see the :manual:`let statement
+         </reference/command/delete/#std-label-delete-let-syntax>` in the {+mdb-server+} manual.
+
+The following example calls the ``mongoc_collection_create_bulk_operation_with_opts()`` function
+and sets the ``ordered`` option to ``false``:
+
+.. literalinclude:: /includes/write/bulk-write.c
+   :start-after: start-bulk-write-unordered
+   :end-before: end-bulk-write-unordered
+   :language: c
+   :dedent:
+
+If any of the write operations in an unordered bulk write fail, the {+driver-short+}
+reports the errors only after attempting all operations.
+
+.. note::
+
+   Unordered bulk operations do not guarantee order of execution. The order can
+   differ from the way you list them to optimize the runtime.
+
+Additional Information
+----------------------
+
+To learn how to perform individual write operations, see the following guides:
+
+- :ref:`c-write-insert`
+- :ref:`c-write-update`
+- :ref:`c-write-delete`
+- :ref:`c-write-replace`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the functions or types discussed in this
+guide, see the following API documentation:
+
+- `mongoc_bulkwrite_t <{+api-libmongoc+}/mongoc_bulkwrite_t.html>`__
+- `mongoc_collection_create_bulk_operation_with_opts() <{+api-libmongoc+}/mongoc_collection_create_bulk_operation_with_opts.html>`__
+- `mongoc_bulk_operation_insert_with_opts() <{+api-libmongoc+}/mongoc_bulk_operation_insert_with_opts.html>`__
+- `mongoc_bulk_operation_update_one_with_opts() <{+api-libmongoc+}/mongoc_bulk_operation_update_one_with_opts.html>`__
+- `mongoc_bulk_operation_update_many_with_opts() <{+api-libmongoc+}/mongoc_bulk_operation_update_many_with_opts.html>`__
+- `mongoc_bulk_operation_replace_one_with_opts() <{+api-libmongoc+}/mongoc_bulk_operation_replace_one_with_opts.html>`__
+- `mongoc_bulk_operation_remove_one_with_opts() <{+api-libmongoc+}/mongoc_bulk_operation_remove_one_with_opts.html>`__
+- `mongoc_bulk_operation_remove_many_with_opts() <{+api-libmongoc+}/mongoc_bulk_operation_remove_many_with_opts.html>`__
+- `mongoc_bulk_operation_execute() <{+api-libmongoc+}/mongoc_bulk_operation_execute.html>`__

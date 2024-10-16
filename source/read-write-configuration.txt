@@ -1,0 +1,216 @@
+.. _c-read-write-config:
+
+====================================
+Configure Operations on Replica Sets
+====================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: configuration, availability, causal consistency, code example
+
+Overview
+--------
+
+In this guide, you can learn how to use the **write concern**, **read concern**,
+and **read preference** configurations to modify the way that MongoDB runs
+create, read, update, and delete (CRUD) operations on replica sets.
+
+You can set these configurations at the following levels:
+
+1. Client, which sets the default for all operation executions unless overridden
+#. Transaction
+#. Database
+#. Collection
+
+The preceding list is in increasing order of precedence. For example, if you set
+read concerns at both the client and the database levels, the read
+concern specified at the database level overrides the read concern at the
+client level.
+
+Write Concern
+-------------
+
+Write concern specifies the level of acknowledgement requested from MongoDB for
+write operations before the operation successfully returns. Operations that
+don't specify an explicit write concern inherit the global default write concern
+setting.
+
+You can set the write concern by calling the following functions:
+
+- ``mongoc_client_set_write_concern()`` sets the write concern on a client.
+- ``mongoc_transaction_opts_set_write_concern()`` sets the write concern on a transaction.
+- ``mongoc_database_set_write_concern()`` sets the write concern on a databse.
+- ``mongoc_collection_set_write_concern()`` sets the write concern on a collection.
+
+To specify the level of your write concern, call the
+``mongoc_write_concern_set_w()`` function, and pass in your write concern and one of the following values:
+
+- ``MONGOC_WRITE_CONCERN_W_DEFAULT``: The write operation returns after the operation
+  is written to memory.
+- ``0``: The write operation returns after the primary
+  node processes the write operation.
+- ``1``: The write operation returns after only the primary node acknowledges
+  the write operation, without waiting for acknowledgement from secondary nodes.
+- ``MONGOC_WRITE_CONCERN_W_MAJORITY``: The write operation returns after a majority of the
+  replica set members acknowledge the write operation.
+- ``MONGOC_WRITE_CONCERN_W_TAG``: The write operation returns after the replica
+  set  member with the specified tag acknowledges the write operation.
+
+The following example sets the write concern to ``MONGOC_WRITE_CONCERN_W_MAJORITY`` for an instance of
+``mongoc_client_t``:
+
+.. literalinclude:: /includes/read-write-configuration.c
+   :start-after: // start-client-write-concern
+   :end-before: // end-client-write-concern
+   :language: c
+   :dedent:
+
+The following example sets the write concern to ``MONGOC_WRITE_CONCERN_W_MAJORITY`` for a collection:
+
+.. literalinclude:: /includes/read-write-configuration.c
+   :start-after: // start-collection-write-concern
+   :end-before: // end-collection-write-concern
+   :language: c
+   :dedent:
+
+.. note:: Collections and Databases are Immutable
+
+   ``mongoc_database_t`` and ``mongoc_collection_t`` instances are immutable. When you
+   set the write concern on a database or collection, the method returns a new
+   instance and does not affect the original instance.
+
+For more information about write concern, see :manual:`Write Concern
+</reference/write-concern/>` in the {+mdb-server+} manual.
+
+Read Concern
+------------
+
+Read concern specifies the following behaviors:
+
+- Level of :manual:`causal consistency
+  </core/causal-consistency-read-write-concerns>` across replica sets
+- :manual:`Isolation guarantees </core/read-isolation-consistency-recency/>` maintained
+  during a query
+
+You can specify the read concern by calling the following
+functions:
+
+- ``mongoc_client_set_read_concern()`` sets the read concern on a client.
+- ``mongoc_transaction_opts_set_read_concern()`` sets the read concern on a
+  transaction.
+- ``mongoc_database_set_read_concern()`` sets the read concern on a database.
+- ``mongoc_collection_set_read_concern()`` sets the read concern on a
+  collection.
+
+To specify the level of your read concern, call the
+``mongoc_read_concern_set_level()`` function, and pass in your read concern and one of the following values:
+
+- ``MONGOC_READ_CONCERN_LEVEL_LOCAL``: The query returns the instance's most recent data. Provides no guarantee
+  that the data has been written to a majority of the replica set members.
+- ``MONGOC_READ_CONCERN_LEVEL_AVAILABLE``: The query returns the instance's most recent data.
+  Provides no guarantee that the data has been written to a majority of the
+  replica set members. ``ReadConcern.AVAILABLE`` is not available for use with
+  causally consistent sessions and transactions.
+- ``MONGOC_READ_CONCERN_LEVEL_MAJORITY``: The query returns data that has been acknowledged by
+  a majority of the replica set members.
+- ``MONGOC_READ_CONCERN_LEVEL_LINEARIZABLE``: The query returns data that reflects all
+  successful writes that completed prior to the start of the read operation.
+  ``MONGOC_READ_CONCERN_LEVEL_LINEARIZABLE`` is not available for use with causally consistent
+  sessions and transactions.
+- ``MONGOC_READ_CONCERN_LEVEL_SNAPSHOT``: The query returns majority-committed data as it appears across shards, from a
+  specific single point in the recent past.
+
+For more information about the read concern levels, see :manual:`Read Concern
+Levels </reference/read-concern/#read-concern-levels>` in the {+mdb-server+}
+manual.
+
+The following example sets the read concern to ``MONGOC_READ_CONCERN_LEVEL_MAJORITY`` for an instance of
+``mongoc_client_t``:
+
+.. literalinclude:: /includes/read-write-configuration.c
+   :start-after: // start-client-read-concern
+   :end-before: // end-client-read-concern
+   :language: c
+   :dedent:
+
+The following example sets the read concern to ``MONGOC_READ_CONCERN_LEVEL_MAJORITY`` for a
+collection:
+
+.. literalinclude:: /includes/read-write-configuration.c
+   :start-after: // start-collection-read-concern
+   :end-before: // end-collection-read-concern
+   :language: c
+   :dedent:
+
+To learn more about read concern, see :manual:`Read Concern
+<reference/read-concern>` in the {+mdb-server+} manual.
+
+Read Preference
+---------------
+
+Read preference determines which member of a replica set MongoDB reads when
+running a query. You can set the read preference by calling the following
+functions: 
+
+- ``mongoc_client_set_read_prefs()`` sets the read preference on a client.
+- ``mongoc_transaction_opts_set_read_prefs()`` sets the read preference on a
+  transaction.
+- ``mongoc_database_set_read_prefs()`` sets the read preference on a database.
+- ``mongoc_collection_set_read_prefs()`` sets the read preference on a collection.
+
+To specify the level of your read preference, call the
+``mongoc_read_prefs_new()`` function, and pass in one of the following values:
+
+- ``MONGOC_READ_PRIMARY``: The query returns data from the primary node.
+- ``MONGOC_READ_PRIMARY_PREFERRED``: The query returns data from the primary node if
+  available. Otherwise, the query returns data from a secondary node.
+- ``MONGOC_READ_SECONDARY``: The query returns data from a secondary node.
+- ``MONGOC_READ_SECONDARY_PREFERRED``: The query returns data from a secondary node if
+  available, Otherwise, the query returns data from the primary node.
+- ``MONGOC_READ_NEAREST``: The query returns data from the node with the lowest
+  network latency.
+
+The following example sets the read preference to ``MONGOC_READ_SECONDARY``
+for an instance of ``mongoc_client_t``:
+
+.. literalinclude:: /includes/read-write-configuration.c
+   :start-after: // start-client-read-preference
+   :end-before: // end-client-read-preference
+   :language: c
+   :dedent:
+
+The following example sets the read preference to ``MONGOC_READ_SECONDARY``
+for a collection:
+
+.. literalinclude:: /includes/read-write-configuration.c
+   :start-after: // start-collection-read-preference
+   :end-before: // end-collection-read-preference
+   :language: c
+   :dedent:
+
+For more information about read preference, see :manual:`Read Preference
+</core/read-preference/>` in the {+mdb-server+} manual.
+
+API Documentation
+-----------------
+
+To learn more about any of the functions or types discussed in this
+guide, see the following API documentation:
+
+- `mongoc_write_concern_t <{+api-libmongoc+}/mongoc_write_concern_t.html#mongoc-write-concern-t>`__
+- `mongoc_write_concern_set_w <{+api-libmongoc+}/mongoc_write_concern_set_w.html#mongoc-write-concern-set-w>`__
+- `mongoc_write_concern_new <{+api-libmongoc+}/mongoc_write_concern_new.html#mongoc-write-concern-new>`__
+- `mongoc_read_concern_t <{+api-libmongoc+}/mongoc_read_concern_t.html#mongoc-read-concern-t>`__
+- `mongoc_read_concern_new <{+api-libmongoc+}/mongoc_read_concern_new.html#mongoc-read-concern-new>`__
+- `mongoc_read_concern_set_level <{+api-libmongoc+}/mongoc_read_concern_set_level.html#mongoc-read-concern-set-level>`__
+- `mongoc_read_prefs_t <{+api-libmongoc+}/mongoc_read_prefs_t.html#mongoc-read-prefs-t>`__
+- `mongoc_read_prefs_new <{+api-libmongoc+}/mongoc_read_prefs_new.html#mongoc-read-prefs-new>`__

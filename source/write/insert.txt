@@ -1,0 +1,172 @@
+.. _c-write-insert:
+
+================
+Insert Documents
+================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, write, save, create
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to add
+documents to a MongoDB collection by performing **insert operations**.
+
+An insert operation inserts one or more documents into a MongoDB collection.
+You can perform an insert operation by using the following functions:
+
+- ``mongoc_collection_insert_one()`` function to insert a single document
+- ``mongoc_collection_insert_many()`` function to insert one or more documents
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``restaurants`` collection in the ``sample_restaurants``
+database from the :atlas:`Atlas sample datasets </sample-data>`. To learn how to create a
+free MongoDB Atlas cluster and load the sample datasets, see the
+:atlas:`Get Started with Atlas </getting-started>` guide.
+
+The _id Field
+-------------
+
+In a MongoDB collection, each document *must* contain an ``_id`` field
+with a unique field value.
+
+MongoDB allows you to manage this field in two ways:
+
+- Set the ``_id`` field for each document yourself, ensuring each
+  value is unique.
+- Let the driver automatically generate unique ``bson_oid_t``
+  values for each document ``_id`` field.
+
+Unless you can guarantee uniqueness, we recommend
+letting the driver automatically generate ``_id`` values.
+
+.. note::
+
+   Duplicate ``_id`` values violate unique index constraints, which
+   causes the driver to return a ``mongoc_bulkwriteexception_t``
+   error.
+
+To learn more about the ``_id`` field, see the
+:manual:`Unique Indexes </core/index-unique/>` guide in the {+mdb-server+} manual.
+
+To learn more about document structure and rules, see the
+:manual:`Documents </core/document>` guide in the {+mdb-server+} manual.
+
+Insert One Document
+-------------------
+
+To add a single document to a MongoDB collection, call the ``mongoc_collection_insert_one()``
+function and pass the following parameters:
+
+- Collection into which you're inserting documents
+- Document to insert 
+- Options to customize the operation, or ``NULL``
+- Pointer to overwritable storage that will contain operation results, or ``NULL``
+- Location for an error value, or ``NULL``
+
+The following example inserts a document into the ``restaurants`` collection:
+
+.. literalinclude:: /includes/write/insert.c
+    :language: c
+    :dedent:
+    :start-after: start-insert-one
+    :end-before: end-insert-one
+
+Insert Multiple Documents
+-------------------------
+
+To add multiple documents to a MongoDB collection, call the ``mongoc_collection_insert_many()``
+function and pass the following parameters:
+
+- Collection into which you're inserting documents
+- Array of pointers to the documents you want to insert 
+- Number of documents to insert
+- Options to customize the operation, or ``NULL``
+- Pointer to overwritable storage that will contain operation results, or ``NULL``
+- Location for an error value, or ``NULL``
+
+The following example inserts two documents into the ``restaurants`` collection:
+
+.. literalinclude:: /includes/write/insert.c
+    :language: c
+    :dedent:
+    :start-after: start-insert-many
+    :end-before: end-insert-many
+
+Modify Insert Behavior
+----------------------
+
+You can modify the behavior of the ``mongoc_collection_insert_one()`` and
+``mongoc_collection_insert_many()`` functions by passing a BSON document that
+specifies option values. The following table describes some options
+you can set in the document:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Option
+     - Description
+
+   * - ``bypassDocumentValidation``
+     - | If set to ``true``, allows the write operation to opt out of
+         :manual:`document-level validation </core/schema-validation>`. 
+       | Defaults to ``false``.
+       | **Type**: ``bool``
+
+   * - ``writeConcern``
+     - | Sets the write concern for the operation.
+       | Defaults to the write concern of the namespace.
+       | **Type**: ``mongoc_write_concern_t``
+
+   * - ``ordered``
+     - | If set to ``true``, the operation stops inserting documents when one insert
+         fails. If ``false``, the operation continues to insert the remaining documents
+         when one insert fails. You cannot pass this option to the ``mongoc_collection_insert_one()``
+         function.
+       | Defaults to ``true``.
+       | **Type**: ``bool``
+
+   * - ``comment``
+     - | A comment to attach to the operation. For more information, see the :manual:`insert command
+         fields </reference/command/insert/#command-fields>` guide in the
+         {+mdb-server+} manual.
+       | **Type**: ``bson_value_t``
+       
+Example
+~~~~~~~
+
+The following code uses the ``mongoc_collection_insert_many()`` function to insert
+three new documents into a collection. Because the ``bypassDocumentValidation`` field
+is set to ``true``, this insert operation bypasses document-level validation:
+
+.. literalinclude:: /includes/write/insert.c
+    :language: c
+    :dedent:
+    :start-after: start-modify
+    :end-before: end-modify
+
+Additional Information
+----------------------
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the functions discussed in this
+guide, see the following API documentation:
+
+- `mongoc_collection_insert_one() <{+api-libmongoc+}/mongoc_collection_insert_one.html>`__
+- `mongoc_collection_insert_many() <{+api-libmongoc+}/mongoc_collection_insert_many.html>`__

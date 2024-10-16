@@ -1,0 +1,257 @@
+.. _c-specify-query:
+
+===============
+Specify a Query
+===============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: expressions, operations, read, write, filter
+
+Overview
+--------
+
+In this guide, you can learn how to specify a query by using the {+driver-short+}.
+
+You can define a **query filter** to retrieve specific documents from a collection when
+performing a query. A query filter is an expression that specifies the search
+criteria MongoDB uses to match documents in a read or write operation.
+By defining a query filter, you can direct the driver to search for documents with an
+exact match to your query, or you can compose query filters to express more
+complex matching criteria.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``movies`` collection in the ``sample_mflix``
+database from the :atlas:`Atlas sample datasets </sample-data>`. To learn how to create a
+free MongoDB Atlas cluster and load the sample datasets, see the
+:atlas:`Get Started with Atlas </getting-started>` guide.
+
+Exact Match
+-----------
+
+Literal value queries return documents with an exact match to your query filter.
+
+The following example specifies a query filter as a parameter to the ``mongoc_collection_find_with_opts()``
+function. The code returns all documents in which the value of the ``type`` field 
+is ``"movie"``.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/read/specify-a-query.c
+      :start-after: start-find-exact
+      :end-before: end-find-exact
+      :language: c
+      :dedent:
+   
+   .. output::
+      :visible: false
+
+      { "_id" : { "$oid" : "..." }, "title" : "Wild and Woolly", "type" : "movie", ... }
+      { "_id" : { "$oid" : "..." }, "title" : "The Devil to Pay!", "type" : "movie", ... }
+      { "_id" : { "$oid" : "..." }, "title" : "Traffic in Souls", "type" : "movie", ... }
+      { "_id" : { "$oid" : "..." }, "title" : "Now or Never", "type" : "movie", ... }
+      { "_id" : { "$oid" : "..." }, "title" : "High and Dizzy", "type" : "movie", ... }
+      ...
+
+Comparison Operators
+--------------------
+
+Comparison operators evaluate a document field value against a specified value
+in your query filter. The following is a list of common comparison operators:
+
+- ``$gt``: Greater than
+- ``$lte``: Less than or equal
+- ``$ne``: Not equal
+
+To view a full list of comparison operators, see the :manual:`Comparison Query Operators
+</reference/operator/query-comparison/>` guide in the MongoDB Server manual.
+
+The following example specifies a comparison operator in a query filter as a
+parameter to the ``mongoc_collection_find_with_opts()`` function. The code returns all documents
+in which the value of the  ``year`` field is greater than ``2015``.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/read/specify-a-query.c
+      :start-after: start-find-comparison
+      :end-before: end-find-comparison
+      :language: c
+      :dedent:
+   
+   .. output::
+      :visible: false
+
+      { "_id" : ..., "title" : "The Masked Saint", "year" : { "$numberInt" : "2016" }, ... }
+
+Logical Operators
+-----------------
+
+Logical operators match documents by using logic applied to the results of two or
+more sets of expressions. The following is a list of logical operators: 
+
+- ``$and``, which returns all documents that match the conditions of *all* clauses
+- ``$or``, which returns all documents that match the conditions of *one* clause
+- ``$nor``, which returns all documents that *do not* match the conditions of any clause
+- ``$not``, which returns all documents that *do not* match the expression
+
+To learn more about logical operators, see the :manual:`Logical Query Operators
+</reference/operator/query-logical/>` guide in the MongoDB Server manual.
+
+The following example specifies a logical operator in a query filter as a
+parameter to the ``mongoc_collection_find_with_opts()`` function. The code returns all
+documents in which the value of the ``year`` field is ``1983`` **or** ``1985``.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/read/specify-a-query.c
+      :start-after: start-find-logical
+      :end-before: end-find-logical
+      :language: c
+      :dedent:
+   
+   .. output::
+      :visible: false
+
+      { "_id" : ..., "title" : "Amityville 3-D", "year" : { "$numberInt" : "1983" }, ... }
+      { "_id" : ..., "title" : "Barefoot Gen", "year" : { "$numberInt" : "1983" }, ... }
+      { "_id" : ..., "title" : "Betrayal", "year" : { "$numberInt" : "1983" }, ... }
+      { "_id" : ..., "title" : "You're a Good Man, Charlie Brown", "year" : { "$numberInt" : "1985" }, ... }
+      { "_id" : ..., "title" : "Yes: 9012 Live", "year" : { "$numberInt" : "1985" }, ... }
+      ...
+
+Array Operators
+---------------
+
+Array operators match documents based on the value or quantity of elements in an
+array field. The following is a list of available array operators:
+
+- ``$all``, which returns documents with arrays that contain all elements in the query
+- ``$elemMatch``, which returns documents if an element in their array field matches all conditions in the query
+- ``$size``, which returns all documents with arrays of a specified size
+
+To learn more about array operators, see the :manual:`Array Query Operators
+</reference/operator/query-array/>` guide in the MongoDB Server manual.
+
+The following example specifies an array operator in a query filter as a
+parameter to the ``mongoc_collection_find_with_opts()`` function. The code returns all
+documents in which the value of the ``genres`` array field contains exactly ``2`` elements.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/read/specify-a-query.c
+      :start-after: start-find-array
+      :end-before: end-find-array
+      :language: c
+      :dedent:
+   
+   .. output::
+      :visible: false
+
+      { "_id" : ..., "genres" : [ "Comedy", "Romance" ], "title" : "The Devil to Pay!", ... }
+      { "_id" : ..., "genres" : [ "Crime", "Drama" ], "title" : "Traffic in Souls", ... }
+      { "_id" : ..., "genres" : [ "Comedy", "Short" ], "title" : "High and Dizzy", ... }
+      { "_id" : ..., "genres" : [ "Comedy", "Short" ], "title" : "Now or Never", ... }
+      { "_id" : ..., "genres" : [ "Drama", "Romance" ], "title" : "A Woman of Paris: A Drama of Fate", ... }
+      ...
+
+Element Operators
+-----------------
+
+Element operators query data based on the presence or type of a field.
+
+To learn more about element operators, see the :manual:`Element Query Operators
+</reference/operator/query-element/>` guide in the MongoDB Server manual.
+
+The following example specifies the ``$exists`` operator in a query filter as a
+parameter to the ``mongoc_collection_find_with_opts()`` function. The code returns all
+documents that have a ``num_mflix_comments`` field.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/read/specify-a-query.c
+      :start-after: start-find-element
+      :end-before: end-find-element
+      :language: kotlin
+      :dedent:
+   
+   .. output::
+      :visible: false
+
+      { "_id" : ..., "num_mflix_comments" : { "$numberInt" : "0" }, "title" : "The Park Is Mine", ...}
+      { "_id" : ..., "num_mflix_comments" : { "$numberInt" : "1" }, "title" : "The Good Father", ... }
+      { "_id" : ..., "num_mflix_comments" : { "$numberInt" : "0" }, "title" : "Alpine Fire", ... }
+      { "_id" : ..., "num_mflix_comments" : { "$numberInt" : "1" }, "title" : "Huang jia shi jie", ... }
+      { "_id" : ..., "num_mflix_comments" : { "$numberInt" : "0" }, "title" : "Twenty Years Later", ... }
+      ...
+
+Evaluation Operators
+--------------------
+
+Evaluation operators return data based on evaluations of either individual
+fields or the entire collection's documents.
+
+The following is a list of common evaluation operators:
+
+- ``$text``, which performs a text search on the documents
+- ``$regex``, which returns documents that match a specified regular expression
+- ``$mod``, which performs a :wikipedia:`modulo <w/index.php?title=Modulo&oldid=1226348145>`
+  operation on the value of a field and returns documents where the remainder is a specified
+  value
+
+To view a full list of evaluation operators, see the :manual:`Evaluation Query Operators
+</reference/operator/query-evaluation/>` guide in the MongoDB Server manual.
+
+The following example specifies an evaluation operator in a query filter as a
+parameter to the ``mongoc_collection_find_with_opts()`` function. The code uses a regular
+expression to return all documents in which the value of the ``title`` field has at least two
+consecutive ``"p"`` characters.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/read/specify-a-query.c
+      :start-after: start-find-evaluation
+      :end-before: end-find-evaluation
+      :language: c
+      :dedent:
+   
+   .. output::
+      :visible: false
+
+      { "_id" : ..., "title" : "He Who Gets Slapped", ... }
+      { "_id" : ..., "title" : "David Copperfield", ... }
+      { "_id" : ..., "title" : "Applause", ... }
+      { "_id" : ..., "title" : "Skippy", ... }
+      { "_id" : ..., "title" : "This Happy Breed", ... }
+      ...
+
+Additional Information
+----------------------
+
+To learn more about querying documents, see the :manual:`Query Documents
+</tutorial/query-documents/>` guide in the MongoDB Server manual.
+
+To learn more about using the {+driver-short+} to retrieve documents, see
+:ref:`c-retrieve`.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the ``mongoc_collection_find_with_opts()`` function, see the
+`API documentation <{+api-libmongoc+}/mongoc_collection_find_with_opts.html>`__.

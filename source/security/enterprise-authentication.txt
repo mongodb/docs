@@ -1,0 +1,127 @@
+.. _c-enterprise-auth:
+
+====================================
+Enterprise Authentication Mechanisms
+====================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: ldap, tls, security
+
+Overview
+--------
+
+MongoDB Enterprise Edition includes authentication mechanisms that aren't
+available in MongoDB Community Edition. 
+In this guide, you can learn how to authenticate to MongoDB by using these
+authentication mechanisms. To learn about the other authentication mechanisms available
+in MongoDB, see :ref:`<c-auth>`.
+
+.. _c-kerberos:
+
+Kerberos
+--------
+
+The Generic Security Services API (GSSAPI) provides an interface for Kerberos
+authentication.
+
+.. note::
+
+   To authenticate with GSSAPI, you must build the MongoDB C driver with SASL support.
+   If you are building the driver from source, you can enable SASL support with
+   the ``ENABLE_SASL`` ``cmake`` option.
+
+Complete the following steps to authenticate with GSSAPI:
+
+.. procedure::
+   :style: connected
+
+   .. step:: Obtain a Ticket-Granting Ticket
+
+      On Unix environments, you must first run the ``kinit`` command to obtain and cache
+      an initial ticket-granting ticket. If you're running a Windows environment,
+      you can skip ahead to the next step.
+
+      The following example uses the
+      ``kinit`` command to obtain a ticket-granting ticket for the principal
+      ``mongodbuser@EXAMPLE.COM``. It then uses the ``klist``
+      command to display the principal and ticket in the credentials cache.
+      
+      .. code-block:: sh
+         :copyable: false
+      
+         $ kinit mongodbuser@EXAMPLE.COM
+         mongodbuser@EXAMPLE.COM's Password:
+         $ klist
+         Credentials cache: FILE:/tmp/krb5cc_1000
+                 Principal: mongodbuser@EXAMPLE.COM
+      
+         Issued                Expires               Principal
+         Feb  9 13:48:51 2013  Feb  9 23:48:51 2013  krbtgt/mongodbuser@EXAMPLE.COM
+
+   .. step:: Set the Connection Options
+
+      Next, set the following connection options:
+
+      - ``username``: The Kerbos principal to authenticate.
+      - ``authMechanism``: Set to ``"GSSAPI"``.
+      - ``authMechanismProperties``: Optional. By default, MongoDB uses ``mongodb`` as
+        the authentication service name. To specify a different service name, set
+        this option to ``"SERVICE_NAME:<authentication service name>"``.
+
+      You can set these options through parameters in your connection URI, as shown in
+      the following example:
+
+      .. literalinclude:: /includes/security/enterprise-authentication.c
+          :language: c
+          :copyable: true
+          :start-after: // start-kerberos
+          :end-before: // end-kerberos
+
+      .. note::
+
+         You must replace the ``@`` symbol in the principal with ``%40``, as shown
+         in the preceding example.
+
+.. _c-plain:
+
+PLAIN SASL
+----------
+
+The PLAIN Simple Authentication and Security Layer (SASL), as defined
+by `RFC 4616 <https://www.rfc-editor.org/rfc/rfc4616>`__, is a username-password
+authentication mechanism often used with TLS or another encryption layer. You must
+compile the {+driver-short+} with SASL support to use PLAIN SASL authentication.
+
+.. important::
+
+   PLAIN SASL is a clear-text authentication mechanism. We strongly recommend that you
+   use TLS/SSL with certificate validation when using PLAIN SASL to authenticate to MongoDB.
+
+To authenticate with SASL, set the ``authMechanism`` connection option to ``PLAIN``.
+You can set this option through a parameter in your connection string, as shown
+in the following example:
+
+.. literalinclude:: /includes/security/enterprise-authentication.c
+    :language: c
+    :copyable: true
+    :start-after: // start-plain
+    :end-before: // end-plain
+
+API Documentation
+-----------------
+
+To learn more about authenticating your application in the {+driver-short+},
+see the following API documentation:
+
+- `mongoc_client_t <{+api-libmongoc+}/mongoc_client_t.html>`__
+- `mongoc_uri_t <{+api-libmongoc+}/mongoc_uri_t.html>`__
