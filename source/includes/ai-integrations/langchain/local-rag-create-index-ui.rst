@@ -22,7 +22,7 @@
          in an index of the :ref:`vectorSearch <avs-types-vector-search>` type
          for the ``sample_airbnb.listingsAndReviews`` collection.
          This field contains the embeddings created using the
-         ``bge-large-en-v1.5`` embedding model. The index
+         embedding model. The index
          definition specifies ``1024`` vector dimensions and
          measures similarity using ``cosine``.
            

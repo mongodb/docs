@@ -13,7 +13,7 @@
       embedding model. The index definition specifies ``768`` vector
       dimensions and measures similarity using ``cosine``.
 
-      .. code-block:: json
+      .. code-block::
          :copyable: true 
 
          {
@@ -33,11 +33,13 @@
 
    .. step:: Create the {+avs+} index.
 
-      a. Save the file, and then run the following command
-         in your terminal, replacing ``<path-to-file>`` with the path to the 
-         ``vector-index.json`` file that you created.
+      Save the file in your project directory, and then run the following command
+      in your terminal, replacing ``<path-to-file>`` with the path to the 
+      ``vector-index.json`` file that you created.
 
-         .. code-block:: sh
-            :copyable: true 
+      .. code-block:: 
+         :copyable: true 
 
-            atlas deployments search indexes create --file <path-to-file>
+         atlas deployments search indexes create --file <path-to-file>
+
+      This path should resemble: ``/Users/<username>/local-rag-mongodb/vector-index.json``.

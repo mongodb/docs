@@ -1,4 +1,4 @@
-pymongo.operations import SearchIndexModel
+from pymongo.operations import SearchIndexModel
 
 # Create your index model, then create the search index
 search_index_model = SearchIndexModel(

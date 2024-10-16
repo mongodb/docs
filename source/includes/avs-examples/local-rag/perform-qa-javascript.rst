@@ -32,6 +32,7 @@
             node --env-file=.env test-query.js
 
          .. output:: /includes/avs-examples/local-rag/test-query-output.sh
+            :visible: false
 
    .. step:: Download the local |llm| and model information mapping.
 

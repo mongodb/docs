@@ -41,4 +41,5 @@
 
       You can view your vector embeddings as they generate by 
       navigating to the ``sample_airbnb.listingsAndReviews`` collection 
-      :ref:`in the {+atlas-ui+} <atlas-ui-view-collections>`.
+      :ref:`in the {+atlas-ui+} <atlas-ui-view-collections>` and expanding 
+      the fields in a document.

@@ -97,6 +97,7 @@
 
             .. output::
                :language: console
+               :visible: false
 
                Tensor {
                   dims: [ 1, 1024 ],
@@ -141,8 +142,8 @@
                   size: 1024
                   }
 
-      #. After you have confirmed you are successfully generating embeddings
-         with the local model, uncomment the code in lines 35-52 to generate
+      #. Optionally, after you have confirmed you are successfully generating embeddings
+         with the local model, you can uncomment the code in lines 35-52 to generate
          embeddings for all the documents in the collection. Save the file.
 
          Then, run the command to execute the code:

@@ -1,13 +1,30 @@
-.. procedure::
-   :style: normal
+.. procedure:: 
+   :style: normal 
+
+   .. step:: Create a directory to store your project.
+
+      Run the following commands in your terminal 
+      to create a new directory named ``local-rag-mongodb``.
+
+      .. code-block:: console
+
+         mkdir local-rag-mongodb
+         cd local-rag-mongodb
+
+   .. step:: Create an interactive Python notebook.
+      
+      In the ``local-rag-mongodb`` directory, save a file with the 
+      ``.ipynb`` extension. You will run the remaining
+      code snippets for this tutorial in your notebook. You must create
+      a new code block for each snippet.
 
    .. step:: Install and import dependencies.
 
-      Run the following command:
+      Run the following command in your notebook:
 
       .. code-block:: python
 
-         pip install --quiet langchain langchain_community langchain_huggingface langchain-mongodb pymongo sentence-transformers gpt4all
+         pip install --quiet pymongo gpt4all sentence_transformers
 
    .. step:: Define your |service| connection string.
 
