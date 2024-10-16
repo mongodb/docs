@@ -1,3 +1,5 @@
-When running MongoDB on Linux, you cannot modify the 
-:parameter:`taskExecutorPoolSize` from the default value of ``1``.
-You may modify this parameter when running MongoDB on Windows or macOS.
+.. important::
+    
+   Before you modify the ``taskExecutorPoolSize`` value on Linux, consult
+   with a :ref:`MongoDB Support professional <technical-support>`.
+   Modifying this parameter may cause performance regressions.
