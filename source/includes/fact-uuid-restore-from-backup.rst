@@ -6,5 +6,4 @@
    original UUIDs. When restoring a collection where no UUID was
    present, MongoDB generates a UUID for the restored collection. 
 
-   For more information on collection UUIDs, see
-   `Collections <https://www.mongodb.com/docs/v3.6/core/databases-and-collections/#collections>`_.
+   For more information on collection UUIDs, see :ref:`<collections>`.
