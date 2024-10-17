@@ -1,6 +1,7 @@
 name: Add Netlify Links To Changed Pages
 on:
     workflow_call:
+    pull_request_target:
 jobs:
     get-pr-changes:
         name: Get Changed Files & Update PR Description
@@ -20,11 +21,12 @@ jobs:
               files: source/**
           - name: Build Netlify Links for Changed Pages
             id: build_page_links
+            env:
+                CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
             run: |
               new_links=""
               base_link='https://deploy-preview-${{ github.event.number }}--mongodb-docs-csharp.netlify.app'
-              changed_files=${{ steps.changed-files.outputs.all_changed_files }}
-              files=$(echo $changed_files | tr "," "\n")
+              files=$(echo "$CHANGED_FILES" | tr "," "\n")
               for file in $files; do
                 echo "processing ${file}"
                 if (! grep -s "includes/"  <<< $file) && 
