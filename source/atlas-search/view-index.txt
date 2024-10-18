@@ -205,6 +205,9 @@ language of the example in this section.
 
 .. _search-index-node-status:
 
+Search Indexes
+--------------
+
 In the {+atlas-ui+}, the |fts| page displays information about |fts| indexes
 for the collections. The page displays the following details for each
 index on the {+cluster+}. 
@@ -251,13 +254,28 @@ describes the index statuses.
      - Index is ready to use.
 
    * - Stale
-     - Replication encountered an error. This state commonly occurs 
-       when the current replication point is no longer available on the 
-       ``mongod`` :ref:`oplog <replica-set-oplog>`. You can still query
-       the existing index until it updates and its status changes to
-       :guilabel:`Active`. Use the error in the :guilabel:`View status
-       details` modal window to troubleshoot the issue. To learn more,
-       see :ref:`atlas-search-alerts`.
+     - Index is stale because of any of the following reasons: 
+       
+       - Replication stopped due to high disk utilization. 
+        
+         The pause replication threshold is 90% and the resume
+         replication threshold is 85% disk utilization. 
+         
+       - If replication stops for a long period, the |fts| ``mongot``
+         process falls off the oplog. 
+         
+         This state commonly occurs when the current replication point
+         is no longer available on the |mongod| oplog. |service|
+         rebuilds index if the ``mongot`` process falls of the oplog.
+
+       - Index reached the two billion document limit.
+       
+       You can still query the existing index. However, the results for 
+       queries against a stale index might contain stale data. You can
+       upscale your search nodes for more disk space and delete existing
+       indexes to release disk space. Alternatively, use the error in the
+       :guilabel:`View status details` modal window to troubleshoot the
+       issue. To learn more, see :ref:`atlas-search-alerts`.
 
    * - Failed 
      - |service| could not build the index. Use the error  
@@ -346,7 +364,7 @@ node:
 
    * - :guilabel:`Node Type` 
      - Type of node. Value can be one of the following types: 
-
+       
        - Primary
        - Secondary 
        - Search Node
