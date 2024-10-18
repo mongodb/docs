@@ -17,12 +17,12 @@ add |service| IP addresses to your network's IP access list:
 Fetch |service| Control Plane IP Addresses
 -------------------------------------------
 
-.. include:: /includes/fact-inbound-ip-addresses.rst
-
 Send a GET request to the ``controlPlaneIPAddresses`` endpoint 
-to fetch the current |service| control plane IP addresses. The :oas-atlas-op:`API endpoint </returnAllControlPlaneIPAddresses>` 
-returns a list of inbound and outbound |service| control plane IP addresses in |cidr| notation 
-categorized by cloud provider and region, similar to the following:
+to fetch the current |service| control plane IP addresses. The
+:oas-atlas-op:`API endpoint </returnAllControlPlaneIPAddresses>` 
+returns a list of inbound and outbound |service| control plane IP
+addresses in |cidr| notation categorized by cloud provider and region,
+similar to the following: 
 
 .. code-block:: json
 
@@ -81,48 +81,9 @@ control plane IP addresses.
 Required Inbound Access
 -----------------------
 
-.. this list encompasses lb-f in us-east-1 (cloud.mongodb.com), and lb-e in all regions (backup/restore) 
-   to generate from chef, run the following query:
-   knife search '(role:lb-f AND domain:us-east-1.aws.cloud.10gen.cc) OR (role:lb-e)' -f "ip=cloud.public_ipv4_addrs" |sort |uniq |cut -d: -f2
-
 Inbound access is traffic coming into the |service| control plane. If
 your network allows outbound HTTP requests only to specific IP
-addresses, you must allow access from the following IP addresses so that
-|service| can communicate with your webhooks and |kms|:
-
-.. code-block:: none
-   
-   100.20.244.132
-   100.21.69.82
-   13.41.37.227
-   18.132.228.73
-   18.133.128.29
-   18.159.125.67
-   18.159.172.186
-   18.232.30.107
-   18.235.209.93
-   3.104.40.37
-   3.214.160.189
-   3.93.83.52
-   3.94.56.171
-   34.194.131.15
-   34.194.251.66
-   34.195.194.204
-   34.195.55.18
-   34.200.195.130
-   34.203.104.26
-   34.227.138.166
-   34.230.213.36
-   34.240.63.74
-   44.211.4.85
-   44.216.169.184
-   44.224.106.250
-   52.27.78.36
-   52.62.201.169
-   52.86.156.12
-   54.147.76.65
-   54.204.237.208
-   54.229.218.76
-   54.253.166.79
-   54.74.18.76
-   54.93.136.153
+addresses, you must allow access from the inbound IP addresses so that
+|service| can communicate with your webhooks and |kms|. We recommend
+that you :ref:`use the Atlas Admin API <atlas-fetch-control-plane-ips>`
+to fetch the current inbound |service| control plane IP addresses.
