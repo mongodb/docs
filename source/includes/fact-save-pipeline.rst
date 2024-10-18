@@ -3,7 +3,7 @@
 
    .. step:: Click the save dropdown button
 
-      In the aggregation pipeline pane, click the :guilabel:`Save` drop-down 
+      In the :guilabel:`Aggregations` pane, click the :guilabel:`Save` drop-down 
       menu and select ``Save as``.
 
       .. figure:: /images/compass/query-save-pipeline-as.png
