@@ -1,6 +1,6 @@
 # Atlas Architecture Center
 
-[Your words here].
+A content repository for the Atlas Architecture Center documentation site.
 
 ## Report Issues
 
