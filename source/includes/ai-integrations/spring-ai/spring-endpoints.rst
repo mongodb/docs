@@ -7,6 +7,7 @@
       import the necessary classes:
       
       .. code-block:: java
+         :caption: /controller/Controller.java
          
          import org.springframework.ai.document.Document;
          import org.springframework.ai.vectorstore.VectorStore;
@@ -30,6 +31,7 @@
       - Autowire the ``VectorStore`` bean.
       
       .. code-block:: java
+         :caption: /controller/Controller.java
 
          @RestController
          @RequestMapping("/tutorial")
@@ -46,6 +48,7 @@
       endpoint that creates sample documents and saves them to your vector store as vector embeddings:
 
       .. code-block:: java
+         :caption: /controller/Controller.java
 
          @GetMapping("/add")
          public String addDocuments() {
@@ -67,6 +70,7 @@
 
       .. code-block:: java
          :linenos:
+         :caption: /controller/Controller.java
 
          @GetMapping("/search")
          public List<Map<String, Object>> searchDocuments() {
@@ -100,6 +104,7 @@
       in the preceding block) with the following code:
 
       .. code-block:: java
+         :caption: /controller/Controller.java
 
          FilterExpressionBuilder b = new FilterExpressionBuilder();
 

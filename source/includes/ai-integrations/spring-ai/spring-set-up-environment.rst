@@ -3,30 +3,29 @@
 
    .. step:: Create a Spring Java application.
       
-      Navigate to the `Spring Initializr <https://start.spring.io/>`__ and
-      configure your project with the following settings:
+      a. Navigate to the `Spring Initializr <https://start.spring.io/>`__
+         and configure your project with the following settings:
 
-      - Project: :guilabel:`Maven`
-      
-      - Language: :guilabel:`Java`
-      
-      - Spring Boot: You can use the default version that is selected.
-      
-      - Project Metadata:
-        
-        - Java: :guilabel:`21`
-        
-        - You can use default values for all other fields.
+         - Project: :guilabel:`Maven`
 
-      On the right side of the Spring Initializr, click
-      :guilabel:`ADD DEPENDENCIES`, then search for and add the
-      following dependencies:
+         - Language: :guilabel:`Java`
 
-      - :guilabel:`MongoDB Atlas Vector Database`
-      - :guilabel:`Spring Data MongoDB`
+         - Spring Boot: You can use the default version that is selected.
 
-      Finally, click :guilabel:`GENERATE` to download a zipped version
-      of your Spring project. Unzip the file and open it in your IDE.
+         - Project Metadata:
+
+         - Java: :guilabel:`21`
+
+         - You can use default values for all other fields.
+
+      #. On the right side of the Spring Initializr, click :guilabel:`ADD
+         DEPENDENCIES`, then search for and add the following dependencies:
+
+         - :guilabel:`MongoDB Atlas Vector Database`
+         - :guilabel:`Spring Data MongoDB`
+
+      #. Click :guilabel:`GENERATE` to download a zipped version of
+         your Spring project. Unzip the file and open it in your IDE.
 
    .. step:: Add dependencies.
 
@@ -38,6 +37,7 @@
          application:
 
          .. code-block:: xml
+            :caption: pom.xml
 
             <dependency>
             	<groupId>org.springframework.ai</groupId>
@@ -61,8 +61,9 @@
          .. important::
             
             Set the ``spring-ai.version`` constant used for the Spring AI
-            BOM to ``1.0.0-SNAPSHOT`` to implement the most recent Spring AI features
-            into your application.
+            BOM to ``1.0.0-SNAPSHOT`` to implement the most recent Spring AI
+            features into your application.
+
 
          To learn more about the Spring AI BOM, see the `Dependency
          Management <https://docs.spring.io/spring-ai/reference/getting-started.html#dependency-management>`__
@@ -72,6 +73,7 @@
          ``repositories`` entry in the ``pom.xml`` file:
 
          .. code-block:: xml
+            :caption: pom.xml
 
             <repository>
               <id>spring-snapshots</id>
@@ -98,6 +100,7 @@
 
       .. code-block:: none
          :emphasize-lines: 2, 5
+         :caption: src/main/resources/application.properties
 
          spring.application.name=springai-mongodb
          spring.ai.openai.api-key=<OpenAI API Key>

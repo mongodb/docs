@@ -7,6 +7,7 @@
       import the necessary classes:
       
       .. code-block:: java
+         :caption: /config/Config.java
                   
          import org.springframework.ai.embedding.EmbeddingModel;
          import org.springframework.ai.openai.OpenAiEmbeddingModel;
@@ -26,6 +27,7 @@
       reference the values that you set in your application properties file:
       
       .. code-block:: java
+         :caption: /config/Config.java
       
          @Configuration
          @SpringBootConfiguration
@@ -60,6 +62,7 @@
       that uses the OpenAI API to create vector embeddings:
 
       .. code-block:: java
+         :caption: /config/Config.java
          
          @Bean
          public EmbeddingModel embeddingModel() {
@@ -76,6 +79,7 @@
       ``OpenAiEmbeddingModel`` created in the preceding step.
 
       .. code-block:: java
+         :caption: /config/Config.java
 
          @Bean
          public VectorStore mongodbVectorStore(MongoTemplate mongoTemplate, EmbeddingModel embeddingModel) {
