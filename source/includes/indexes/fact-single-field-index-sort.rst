@@ -1,3 +1,3 @@
-For a single-field index, the sort order (ascending or descending) of
-the index key does not matter because MongoDB can traverse the index
-in either direction.
+Using a descending single-field index may negatively impact index
+performance. For best performance, only use ascending single-field
+indexes.
