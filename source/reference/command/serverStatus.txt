@@ -165,12 +165,12 @@ asserts
 
 .. code-block:: javascript
 
-   asserts : {
-      regular : <num>,
-      warning : <num>,
-      msg : <num>,
-      user : <num>,
-      rollovers : <num>
+   asserts: {
+      regular: <num>,
+      warning: <num>,
+      msg: <num>,
+      user: <num>,
+      rollovers: <num>
    },
 
 .. serverstatus:: asserts
@@ -222,17 +222,53 @@ bucketCatalog
 
 .. code-block:: javascript
 
-  bucketCatalog : {
-      numBuckets : <num>,
-      numOpenBuckets : <num>,
-      numIdleBuckets : <num>,
-      memoryUsage : <num>
+  bucketCatalog: {
+      numBuckets: <num>,
+      numOpenBuckets: <num>,
+      numIdleBuckets: <num>,
+      memoryUsage: <num>,
+      numBucketInserts: <num>,
+      numBucketUpdates: <num>,
+      numBucketsOpenedDueToMetadata: <num>,
+      numBucketsClosedDueToCount: <num>,
+      numBucketsClosedDueToSchemaChange: <num>,
+      numBucketsClosedDueToSize: <num>,
+      numBucketsClosedDueToTimeForward: <num>,
+      numBucketsClosedDueToTimeBackward: <num>,
+      numBucketsClosedDueToMemoryThreshold: <num>,
+      numCommits: <num>,
+      numMeasurementsGroupCommitted: <num>,
+      numWaits: <num>,
+      numMeasurementsCommitted: <num>,
+      avgNumMeasurementsPerCommit: <num>,
+      numBucketsClosedDueToReopening: <num>,
+      numBucketsArchivedDueToMemoryThreshold: <num>,
+      numBucketsArchivedDueToTimeBackward: <num>,
+      numBucketsReopened: <num>,
+      numBucketsKeptOpenDueToLargeMeasurements: <num>,
+      numBucketsClosedDueToCachePressure: <num>,
+      numBucketsFrozen: <num>,
+      numCompressedBucketsConvertedToUnsorted: <num>,
+      numBucketsFetched: <num>,
+      numBucketsQueried: <num>,
+      numBucketFetchesFailed: <num>,
+      numBucketQueriesFailed: <num>,
+      numBucketReopeningsFailed: <num>,
+      numDuplicateBucketsReopened: <num>,
+      stateManagement: {
+         bucketsManaged: <num>,
+         currentEra: <num>,
+         erasWithRemainingBuckets: <num>,
+         trackedClearOperations: <num>
+      }
    }
+
+
 
 .. versionadded:: 5.0
 
-A document that reports metrics related to the internal storage of
-time series collections.
+A document that reports metrics related to the :ref:`internal storage of
+time series collections <timeseries-bucket-catalog>`.
 
 The ``bucketCatalog`` returns the following metrics:
 
@@ -245,20 +281,198 @@ The ``bucketCatalog`` returns the following metrics:
 
   * - ``numBuckets``
 
-    - The number of buckets that store time series data internally.
+    - The total number of tracked buckets. Expected to be equal to the sum of 
+      ``numOpenBuckets`` and ``numArchivedBuckets``.
 
   * - ``numOpenBuckets``
 
-    - The number of active, uncommitted writes to buckets.
+    - The number of tracked buckets with a full representation stored 
+      in-cache, ready to receive new documents.
 
   * - ``numIdleBuckets``
 
-    - The number of buckets that are not full and can store incoming
-      time series data.
+    - The number of buckets that are open and currently without an uncommitted 
+      document insertion pending. A subset of numOpenBuckets.
+
+  * - ``numArchivedBuckets`` 
+
+    - The number of tracked buckets with a minimal representation stored 
+      in-cache that can be efficiently reopened to receive new documents.
 
   * - ``memoryUsage``
 
     - The number of bytes used by internal bucketing data structures.
+
+  * - ``numBucketInserts``
+
+    - The number of new buckets created.
+
+  * - ``numBucketUpdates``
+
+    - The number times an existing bucket was updated to include additional documents.
+  
+  * - ``numBucketsOpenedDueToMetadata``
+  
+    - The number of buckets opened because a document arrived with a
+      ``metaField`` value that didn't match any currently open buckets.
+  
+  * - ``numBucketsClosedDueToCount``
+  
+    - The number of buckets closed due to reaching their document count limit.
+
+  * - ``numBucketsClosedDueToSchemaChange``
+
+    - The number of buckets closed because the schema of an incoming document
+      was incompatible with that of the documents in the open bucket.
+  
+  * - ``numBucketsClosedDueToSize``
+  
+    - The number of buckets closed because an incoming document would make the
+      bucket exceed its size limit.
+  
+  * - ``numBucketsClosedDueToTimeForward``
+  
+    - The number of buckets closed because a document arrived with a
+      ``timeField`` value after the maximum time of all currently open buckets 
+      for that ``metaField`` value.
+
+  * - ``numBucketsClosedDueToTimeBackward``
+
+    - The number of buckets closed because a document arrived with a
+      ``timeField`` value before the minimum time of all currently open 
+      buckets for that ``metaField`` value.
+  
+  * - ``numBucketsClosedDueToMemoryThreshold``
+  
+    - The number of buckets closed because the set of active buckets didn't
+      fit within the allowed bucket catalog cache size.
+  
+  * - ``numCommits``
+  
+    - The number of bucket-level commits to the time series collection.
+
+  * - ``numMeasurementsGroupCommitted``
+
+    - The number of commits that included measurements from concurrent insert 
+      commands.
+
+  * - ``numWaits``
+
+    - The number of times an operation waited on another thread to either 
+      reopen a bucket or finish a group commit.
+
+  * - ``numMeasurementsCommitted``
+
+    - The number of documents committed to the time series collection.
+
+  * - ``avgNumMeasurementsPerCommit``
+
+    - The average number of documents per commit.
+
+  * - ``numBucketsClosedDueToReopening``
+
+    - The number of buckets closed because a suitable bucket was re-opened 
+      instead.
+
+  * - ``numBucketsArchivedDueToMemoryThreshold``
+    
+    - The number of buckets archived because the set of active buckets didn't
+      fit within the allowed bucket catalog cache size.
+
+  * - ``numBucketsArchivedDueToTimeBackward``
+
+    - The number of buckets archived because a document arrived with a
+      ``timeField`` value before the minimum time of all currently open 
+      buckets for that ``metaField`` value.
+
+  * - ``numBucketsReopened``
+
+    - The number of buckets re-opened because a document arrived that didn't
+      match any open buckets, but did match an existing non-full bucket.
+
+  * - ``numBucketsKeptOpenDueToLargeMeasurements``
+
+    - The number of buckets that would have been closed due size, but were kept
+      open due to not containing a minimum number of documents required to
+      achieve reasonable compression.
+
+  * - ``numBucketsClosedDueToCachePressure``
+
+    - The number of buckets closed because their size exceeds the bucket
+      catalog's dynamic :ref:`bucket size limit <timeseries-bucket-closure>`
+      derived from available storage engine cache size and ``numBuckets``. This
+      limit is distinct from the maximum bucket size limit.
+
+  * - ``numBucketsFrozen``
+
+    - The number of frozen buckets. Buckets are frozen if attempting to 
+      compress the bucket would corrupt its contents.
+  
+  * - ``numCompressedBucketsConvertedToUnsorted``
+
+    - The number of compressed buckets that contain documents not sorted by 
+      their respective ``timeField`` values.
+  
+  * - ``numBucketsFetched``
+
+    - The number of archived buckets fetched to check if they were suitable
+      for re-opening.
+  
+  * - ``numBucketsQueried``
+
+    - The total number of buckets queried to see if they could hold an  
+      incoming document.
+  
+  * - ``numBucketFetchesFailed``
+
+    - The number of archived buckets fetched that were not suitable for 
+      re-opening.
+  
+  * - ``numBucketQueriesFailed``
+
+    - The number of queries for a suitable open bucket that failed due to
+      lack of candidate availability.
+  
+  * - ``numBucketReopeningsFailed``
+
+    - The number of attempted bucket reopenings that failed due to reasons 
+      including conflicts with concurrent operations, malformed buckets, and 
+      more.
+  
+  * - ``numDuplicateBucketsReopened``
+
+    -  The number of re-opened buckets that are duplicates of currently open
+       buckets.
+
+  * - ``stateManagement``
+
+    - A document that tracks bucket catalog state information.
+  
+  * - ``stateManagement.bucketsManaged``
+
+    - The total number of buckets that are being tracked for conflict 
+      management. This includes open buckets in the bucket catalog as well as 
+      any buckets that are being directly written to, including by update and 
+      delete commands.
+  
+  * - ``stateManagement.currentEra``
+
+    - The current era of the bucket catalog. The bucket catalog starts
+      at era 0 and increments when a bucket is cleared. Attempting to insert
+      into a bucket will either cause it to be removed if it was cleared, or
+      update it to the current era.
+  
+  * - ``stateManagement.erasWithRemainingBuckets``
+
+    - The number of eras with tracked buckets.
+  
+  * - ``stateManagement.trackedClearOperations``
+
+    - The number of times the a set of buckets has been cleared, but the 
+      removal of those buckets was deferred. This can happen due to events such
+      as dropping a collection, moving a chunk in a sharded collection, or an  
+      election.
+
 
 .. _server-status-catalogStats:
 
