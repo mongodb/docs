@@ -9,9 +9,7 @@ stages:
 * :pipeline:`$replaceRoot`
 * :pipeline:`$replaceWith`
 
-.. note::
-
-   If the entire array is replaced, the truncations will be
-   reported under :ref:`updateDescription.updatedFields 
-   <|idref|-ud-updatedFields>`.
+If the entire array is replaced, the truncations will be
+reported under :ref:`updateDescription.updatedFields 
+<|idref|-ud-updatedFields>`.
 
