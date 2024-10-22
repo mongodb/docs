@@ -79,7 +79,7 @@
          limit, if the limited result set does not fit into a single batch, the
          number of documents received will be less than the specified limit. By
          passing a negative limit, the client indicates to the server that it
-         will not ask for a subsequent batch via getMore.
+         will not ask for a subsequent batch by using getMore.
 
      * - max
        - array|object
