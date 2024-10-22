@@ -18,7 +18,7 @@
        Conditions:
 
        - Set ``"delivery.methodName" : "AUTOMATED_RESTORE"``.
-       - Run Sharded Clusters using |fcv-link| of 4.0 or earlier.
+       - Run Sharded Clusters using |fcv-link| 4.0 or earlier.
        - Can't set ``oplogInc``, ``oplogTs``, or
          ``pointInTimeUTCMillis``.
 

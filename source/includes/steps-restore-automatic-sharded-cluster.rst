@@ -37,7 +37,7 @@
                 .. include:: /includes/fact-restore-doesnt-include-selected-time.rst
       
                 :gold:`IMPORTANT:` If you are restoring a sharded
-                cluster that runs |fcv-link| of 4.0 or earlier, you
+                cluster that runs |fcv-link| 4.0 or earlier, you
                 must :ref:`enable cluster checkpoints
                 <enable-cluster-checkpoints>` to
                 perform a |pit| restore on a sharded cluster. If no
@@ -54,7 +54,7 @@
       
       b. Click :guilabel:`Next`.
       
-      c. If you are restoring a sharded cluster that runs |fcv-link| of 4.0
+      c. If you are restoring a sharded cluster that runs |fcv-link| 4.0
          or earlier and you chose :guilabel:`Point In Time`:
       
          i.  A list of :guilabel:`Checkpoints` closest to the time you
