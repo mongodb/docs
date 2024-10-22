@@ -15,7 +15,7 @@ pipeline = [
    {
       "$project": {
          "_id": 0, 
-         "text": 1,
+         "summary": 1,
          "score": {
             "$meta": "vectorSearchScore"
          }
