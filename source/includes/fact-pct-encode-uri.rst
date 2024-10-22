@@ -5,6 +5,4 @@ characters must be converted using `percent encoding
 .. code-block:: none
    :copyable: false
 
-   .. code-block:: none
-
-      : / ? # [ ] @
+   $ : / ? # [ ] @
