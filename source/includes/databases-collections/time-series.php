@@ -16,7 +16,7 @@ $options = [
     ]
 ];
 
-$collection = $db->createCollection('sept2023', $options);
+$db->createCollection('sept2023', $options);
 // end-create-ts
 
 // Lists the collections in the "precipitation" database

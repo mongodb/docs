@@ -32,7 +32,7 @@ $array_results = $cursor->toArray();
 // Creates a collection with a maximum size and inserts documents representing vegetables
 // start-capped-coll
 $db = $client->db;
-$create_coll = $db->createCollection(
+$db->createCollection(
     'vegetables', 
     ['capped' => true, 'size' => 1024 * 1024]
 );
