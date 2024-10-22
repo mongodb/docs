@@ -25,8 +25,11 @@
 
    * - ``shards.ownedSizeBytes``
      - integer
-     - Storage in bytes for documents owned by the shard.
+     - Size in bytes of documents owned by the shard when
+       uncompressed.
 
    * - ``shards.orphanedSizeBytes``
      - integer
-     - Storage in bytes for orphaned documents in the shard.
+     - Size in bytes of orphaned documents in the shard when
+       uncompressed.
+
