@@ -5,7 +5,8 @@
    *Default*: False
 
    
-   This checkbox appears when you set mms.userSvcClass to ``com.xgen.cloud.user._private.svc.UserSvcDb``.
+   This checkbox appears when you set ``mms.userSvcClass`` to 
+   ``UserSvcDb``.
    
    .. list-table::
       :widths: 10 90
