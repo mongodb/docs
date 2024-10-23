@@ -20,4 +20,4 @@
       
             This button is idle if there is no |idp| configured.
       
-      #. In the :guilabel:`Revoke JWKS tokens?` modal, click :guilabel:`Revoke`. 
+      #. In the :guilabel:`Revoke JWKS tokens?` dialog box, click :guilabel:`Revoke`. 

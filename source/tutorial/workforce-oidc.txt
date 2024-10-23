@@ -1,0 +1,199 @@
+.. _cm-oidc-authentication-workforce:
+
+================================================================
+Set up {+wif+} with OIDC
+================================================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: connect
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+In MongoDB 7.0 and later, {+wif+} lets you use an 
+external |idp-full| (IdP), such as your corporate |idp|, to authenticate 
+and authorize a given workforce, such as employees, partners, 
+and contractors. 
+
+With {+wif+}, you can:
+
+- Manage your workforce access to MongoDB deployments through your
+  existing |idp|.
+- Enforce security policies such as password complexity, credential
+  rotation, and |mfa| within your |idp|.
+
+You can only create one {+wif+} per project, but you can 
+:ref:`edit <cm-edit-workforce-configuration>` or recreate the configuration 
+at any time.
+
+Required Access
+---------------
+
+To configure {+wif+}, you must have
+:authrole:`Project Owner` access to |mms|.
+
+Prerequisites
+-------------
+
+You must have the following:
+
+- {+mongosh+} 1.9.1 or later.
+- MongoDB 7.0 or later.
+- At least one other authentication mechanism with {+mdbagent+} configured.
+
+  .. note:: 
+     
+     The {+mdbagent+} cannot connect to your deployment via |oidc|. You must
+     enable an additional auth mechanism for the {+mdbagent+}. If |mms| 
+     doesn't manage {+magent+} or {+bagent+}, you must manually configure
+     them to use the alternative authentication mechanism.
+     
+Procedures
+----------
+
+To access |mms| deployments with {+wif+}, complete the following steps:
+
+1. Configure a Workforce Identity Provider (one-time setup).
+   
+   a. :ref:`Configure your external identity provider <cm-configure-idp-oidc-workforce>`.
+
+   b. :ref:`Configure Workforce Identity Provider in Cloud Manager <cm-configure-oidc-auth-workforce>`.
+
+2. :ref:`Grant external identities (user principals) or groups access <cm-create-oidc-user-workforce>`.
+
+3. :ref:`Authenticate to your Cloud Manager deployment <cm-connect-oidc-workforce>`.
+
+.. _cm-configure-idp-oidc-workforce:
+
+Configure An External Identity Provider Application
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/note-reset-auth.rst
+
+To configure {+wif+} with |oidc|, register your |oidc| 
+application with an |idp| that supports |oidc| standard, such
+as Microsoft Entra ID, Okta, or
+Ping Identity.
+
+You can configure your |oidc| application for the following grant types:
+
+- Authorization Code Flow with {+pkce+}
+- Device Authorization Flow
+
+MongoDB recommends that you use Authorization Code Flow with {+pkce+} for increased
+security. Use Device Authorization Flow only if your users need
+to access the database from machines with no browser.  
+
+The |oidc| application registration steps can vary based on your
+|idp|. Ensure that you complete the following items during
+your registration process:
+
+.. tabs::
+   
+      .. tab:: Generic
+         :tabid: generic
+
+         The generic registration steps for your OIDC application are 
+         as follows:
+
+         .. include:: /includes/steps-register-oidc-application.rst
+   
+      .. tab:: Microsoft Entra ID
+         :tabid: microsoft
+
+         To register your |oidc| application with Microsoft Entra ID:
+   
+         .. include:: /includes/steps-register-oidc-application-azure-workforce.rst
+
+.. _cm-configure-oidc-auth-workforce:
+
+Configure {+wif+} Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To configure {+wif+} with |oidc|, complete the following procedure.
+
+.. note::
+
+   {+wif+} supports only JWT for authentication. It doesn't 
+   support opaque access tokens.
+
+.. include:: /includes/steps-enable-authentication-oidc-workforce.rst
+
+.. _cm-create-oidc-user-workforce:
+
+Configure OIDC Authorization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB does not explicitly create database users for |oidc|. It maps
+|oidc| users to MongoDB roles based on the configuration.
+
+Select a tab depending on the authorization type that you selected
+when :ref:`configuring OIDC authentication <cm-configure-oidc-auth-workforce>`.
+            
+.. tabs::
+
+   .. tab:: Group Membership
+      :tabid: group
+
+      If you selected the ``Group Membership`` authorization type,
+      complete the following steps to create a custom role that grants
+      authorization based on |idp| user group membership:
+
+      .. include:: /includes/steps-configure-oidc-user-group.rst
+
+   .. tab:: User ID
+      :tabid: user
+
+      If you selected the ``User ID`` authorization type, 
+      create a new user to grant an individual user authorization:
+
+      .. include:: /includes/steps/configure-oidc-user.rst
+
+.. _cm-connect-oidc-workforce:
+
+Connect to MongoDB with {+wif+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use {+mongosh+} or :compass:`Compass </>` 
+to connect an application to MongoDB with {+wif+} authentication.
+
+Manage an Existing {+wif+} Configuration
+---------------------------------------------------------------------
+
+To manage your {+wif+} configuration,
+you can perform the following actions.
+
+Revoke JWKS
+~~~~~~~~~~~~
+
+.. note::
+   
+   Don't use this feature to rotate your signing keys. When you rotate 
+   your |oidc| |idp| signing keys, MongoDB fetches the JWKS automatically
+   upon expiration of the existing access tokens.
+
+If your private key is compromised, you can immediately revoke your JSON
+Web Key Sets (JWKS) cached in MongoDB nodes:
+
+.. include:: /includes/steps-remove-oidc-jwks-token.rst
+
+.. _cm-edit-workforce-configuration:
+
+Edit a Configuration
+~~~~~~~~~~~~~~~~~~~~~
+
+To edit your {+wif+} configuration:
+
+.. include:: /includes/steps-edit-oidc-configuration.rst
+      
+Delete a Configuration
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To delete your {+wif+} configuration:
+
+.. include:: /includes/steps-delete-oidc-configuration.rst
