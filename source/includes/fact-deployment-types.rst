@@ -15,6 +15,5 @@
   a cloud environment. You can begin your project with an ``M0``
   {+cluster+} and upgrade to a production-ready tier at a future time.
 
-To specify advanced configuration options or select other 
-{+cluster+} tiers, click :guilabel:`advanced configuration options`.
-          
+  To specify advanced configuration options or select other 
+  {+cluster+} tiers, such as ``M30``, click :guilabel:`advanced configuration options`.
