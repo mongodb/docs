@@ -7,7 +7,6 @@ using MongoDB.EntityFrameworkCore.Extensions;
 // Replace the placeholder with your connection URI
 var client = new MongoClient("<Your connection URI>");
 var db = PlanetDbContext.Create(client.GetDatabase("sample_planets"));
-db.Database.EnsureCreated();
 // end-create-instance
 
 void FindOne()

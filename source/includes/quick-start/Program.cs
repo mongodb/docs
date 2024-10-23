@@ -13,7 +13,6 @@ if (connectionString == null)
 }
 var client = new MongoClient(connectionString);
 var db = MflixDbContext.Create(client.GetDatabase("sample_mflix"));
-db.Database.EnsureCreated();
 
 var movie = db.Movies.First(m => m.Title == "Back to the Future");
 Console.WriteLine(movie.Plot);
