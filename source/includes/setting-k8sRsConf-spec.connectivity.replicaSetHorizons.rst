@@ -29,6 +29,10 @@
       themselves on the ``example-localhost`` horizon. Clients
       communicate with the replica set using the ``example-website``
       horizon.
+
+      The names of the stated horizons are arbitrary for the purposes of this 
+      example. You can name your horizon anything, but make sure the horizon
+      name is the same for all hostnames that are a part of that horizon.
    
       .. literalinclude:: /includes/code-examples/yaml-files/example-replica-set.yaml
          :language: yaml
