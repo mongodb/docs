@@ -227,7 +227,7 @@ A collection called ``fruit`` contains the following documents:
       { _id: 3, item: "grapefruit", type: "citrus" }
    ] )
 
-The following aggregration operation uses ``$addFields`` to replace
+The following aggregation operation uses ``$addFields`` to replace
 the ``_id`` field of each document with the value of the ``item``
 field, and replaces the ``item`` field with a static value.
 
@@ -287,3 +287,96 @@ The operation returns the following:
    :copyable: false
 
    [ { _id: 1, student: "Maya", homework: [ 10, 5, 10, 7 ], quiz: [ 10, 8 ], extraCredit: 0 } ]
+
+.. _addFields-remove-example:
+
+Remove Fields
+~~~~~~~~~~~~~
+
+You can use ``$addFields`` with the :variable:`$$REMOVE <REMOVE>`
+variable to remove document fields.
+
+For example, create a ``labReadings`` collection:
+
+.. code-block:: javascript
+
+   db.labReadings.insertMany( [
+      {
+         date: ISODate("2024-10-09"),
+         temperature: 80
+      },
+      {
+         date: null,
+         temperature: 83
+      },
+      {
+         date: ISODate("2024-12-09"),
+         temperature: 85
+      }
+   ] )
+
+To remove the ``date`` field from the ``labReadings`` documents, use
+``$addFields`` with the ``$$REMOVE`` variable:
+
+.. code-block:: javascript
+
+   db.labReadings.aggregate( [
+      {
+         $addFields: { date: "$$REMOVE" }
+      }
+   ] )
+
+Output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      { _id: ObjectId('671285306fd2c3b24f2e7eaa'), temperature: 80 },
+      { _id: ObjectId('671285306fd2c3b24f2e7eab'), temperature: 83 },
+      { _id: ObjectId('671285306fd2c3b24f2e7eac'), temperature: 85 }
+   ]
+
+You can also use ``$$REMOVE`` to conditionally remove fields. For
+example, the following aggregation removes the ``date`` field from
+documents where ``date`` is ``null``:
+
+.. code-block:: javascript
+
+   db.labReadings.aggregate( [
+      {
+         $addFields:
+            {
+               date: {
+                  $ifNull: [ "$date", "$$REMOVE" ]
+               }
+            }
+      }
+   ] )
+
+Output:
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 7
+
+   [
+      {
+         _id: ObjectId('671285306fd2c3b24f2e7eaa'),
+         date: ISODate('2024-10-09T00:00:00.000Z'),
+         temperature: 80
+      },
+      { _id: ObjectId('671285306fd2c3b24f2e7eab'), temperature: 83 },
+      {
+         _id: ObjectId('671285306fd2c3b24f2e7eac'),
+         date: ISODate('2024-12-09T00:00:00.000Z'),
+         temperature: 85
+      }
+   ]
+
+.. tip:: Comparison with $project
+
+   .. include:: /includes/aggregation/agg-project-remove-fields-compare.rst
+
+   For an example using ``$$REMOVE`` in a ``$project`` stage, see
+   :ref:`remove-example`.
