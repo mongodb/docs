@@ -1,8 +1,8 @@
 .. _arch-center-hierarchy:
 
-===============================================
-Organization, Project, and Deployment Hierarchy 
-===============================================
+=====================================================
+{+service+} Organizations, Projects, and {+Clusters+}
+=====================================================
 
 .. default-domain:: mongodb
 
@@ -12,22 +12,218 @@ Organization, Project, and Deployment Hierarchy
    :depth: 1
    :class: onecol
 
-Intro statement
+Organizations, projects, and {+clusters+} are the building blocks
+of your {+service+} enterprise estate: 
+
+- At the organization level, you can implement security controls and
+  create users that work across one or more projects. 
+- Projects offer a more fine-grained security isolation and
+  authorization boundary.
+- {+Clusters+} are your cloud databases in {+service+}.
+
+Use the foundational guidance on this page to plan the hierarchy and
+size for your organizations, projects, and {+clusters+}. This guidance
+helps you optimize your security and performance from the start while
+aligning with your enterprise's billing and access needs.
 
 {+service+} Features and Best Practices for Hierarchy
 -----------------------------------------------------
 
-Content here
+You can use the following levels of hierarchy to define
+security settings and governance for your {+service+} enterprise estate:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 40
+
+   * - {+service+} Hierarchy Level
+     - Description
+
+   * - (Optional) Paying Organization
+     - One organization can be a paying organization for other
+       organization(s). The MongoDB account team must enable the paying organization when you establish the |service| subscription. A paying organization lets you set up :atlas:`cross-organization billing <billing/#std-label-cross-org-billing>` to share a
+       billing subscription across multiple organizations.
+
+   * - Organization
+     - Invoicing aggregates and generates at the organization level.
+       Line items go to cluster level and below. An organization often
+       maps to a business unit (BU) or application.
+
+   * - Project
+     - Security configuration for the data plane (including database
+       clusters, network security, and other data services) occurs at the project level. A project often maps to an application and environment (for example: Customer Portal app -
+       Production environment). For each project, there is one dedicated VPC created in GCP, and one VPC/VNet per region in AWS
+       and Azure. 
+
+   * - {+Cluster+}
+     - |service| provisions each {+cluster+} within the dedicated 
+       VPC/VNet(s) for a project. The security configuration is shared
+       among {+clusters+} in the project, except for user roles and authorization, which you can apply to actions on a {+cluster+},
+       database, and collection level.
+
+**DIAGRAM**
+
+Suggested Org and Project Hierarchies
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _project-hierarchy-1:
+
+Suggested Hierarchy 1: Fewer Atlas Organizations
+````````````````````````````````````````````````
+
+Consider the following hierarchy for an example enterprise.
+This hierarchy, which creates fewer |service| organizations, might be useful if you have common teams and permissions across the business unit, and less than the raiseable limit of 250 projects per organization. 
+
+**DIAGRAM TO REPLACE TEXT**
+
+- Atlas Paying Org - Acme Inc
+
+  - Atlas Org: Consumer Products Business Unit
+
+    - Project: Consumer Customer Portal - Production (environment) 
+    - Project: Consumer Customer Portal - Test 
+    - Project: Consumer Customer Portal - Dev 
+    - Project: Product Mgmt App - Production 
+    - Project: Product Mgmt App - Test 
+    - Project: Product Mgmt App - Dev 
+
+  - Atlas Org: Corporate Products BU
+
+.. _project-hierarchy-2:
+
+Suggested Hierarchy 2: More Atlas Organizations
+```````````````````````````````````````````````
+
+Consider the following hierarchy for a different enterprise.
+This hierarchy creates a relatively large number of |service|
+organizations: one per application or scrum team. This hierarchy might
+be useful if each of your teams is fairly independent, they don't share people or permissions within a business unit, or they want to buy credits themselves through the cloud provider marketplace. There is
+no paying organization in this hierarchy.
+
+**DIAGRAM TO REPLACE TEXT**
+
+- Atlas Org: Consumer Customer Portal - paying at this level too
+
+  - Project: Portal - Production (environment)
+  - Project: Portal - Test
+  - Project: Portal - Dev 
+
+- Atlas Org: Product Mgmt App - paying at this level too
+
+  - Project: PM App - Production 
+  - Project: PM App - Test 
+  - Project: PM App - Dev
+
+.. _deployment-hierarchy:
+
+Suggested Deployment Hierarchy
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To allow fine-grained access control, we recommend one deployment
+per |service| project.
+
+DIAGRAM
+
+Grouping multiple deployments in one project by team simplifies
+administration when the same team is responsible for all stages of
+development, acceptance testing, and production. However, this
+increases the risk of human error, since DevOps members also have
+access to production {+clusters+}.
+
+DIAGRAM
+
+Grouping multiple deployments in one project by environment simplifies
+administration when a separate team is responsible for each stage of
+development, acceptance testing, and production. It allows Dev and UAT
+hosts to support multiple nodes when testing shard-level operations like adding shards, and testing new zone rules. However, there is a
+risk of human error because the same DevOps teams can access multiple
+sub-organizations' databases.
+
+DIAGRAM
 
 .. _arch-center-cluster-size-guide:
 
-Cluster Size Guide
-~~~~~~~~~~~~~~~~~~
+{+service+} {+Cluster+} Size Guide
+----------------------------------
+
+Use the following {+cluster+} size guide to select a {+cluster+} tier that ensures performance without over-provisioning.
+
+The {+cluster+}
+size guide uses "t-shirt sizing," a common analogy used in software
+development and infrastructure to describe capacity planning in a
+simplified manner. You should consider t-shirt sizes as approximate
+starting points. Sizing a {+cluster+} is an iterative process based on
+changing resource needs, performance requirements, workload
+characteristics, and growth expectations.
+
+.. important::
+   
+   This guidance excludes mission-critical applications, high-memory
+   workloads, and high-CPU workloads. For mission-critical
+   applications, high-memory workloads, and high-CPU workloads, contact
+   |mdb-support| for customized guidance.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 10 20 20 10 10 10 20
+
+   * - T-Shirt Size
+     - Cluster Tier
+     - Storage Range: AWS/{+gcp+}
+     - Storage Range: Azure
+     - CPUs (#)
+     - Default RAM
+     - IOPS
+     - Recommended For
+
+   * - Small
+     - ``M10``
+     - 10 GB to 128 GB
+     - 8 GB to 128 GB
+     - 2
+     - 2 GB
+     - 1000
+     - Dev/Test only
+
+   * - Med
+     - ``M30``
+     - 10 GB to 512 GB
+     - 8 GB to 512 GB
+     - 2
+     - 8 GB
+     - 3000
+     - Prod
+
+   * - Large
+     - ``M50``
+     - 10 GB to 4 TB
+     - 8 GB to 4 TB
+     - 16
+     - 32 GB
+     - 3000
+     - Prod
+
+   * - X-Large
+     - ``M80``
+     - 10 GB to 4 TB
+     - 8 GB to 4 TB
+     - 32
+     - 128 GB
+     - 3000
+     - Prod
+
+To learn more about {+cluster+} tiers and the regions that support
+them, see the {+service+} documentation for each cloud provider:
+
+- :atlas:`AWS </reference/amazon-aws/>`
+- :atlas:`Azure </reference/microsoft-azure/>`
+- :atlas:`{+gcp+} </reference/google-gcp/>`
 
 Examples
 --------
 
-The following examples <perform this action> using |service| using 
+The following examples create organizations, projects, and {+clusters+}
+using |service| using 
 |service| :ref:`tools for automation <arch-center-automation>`.
 
 These examples also apply other recommended configurations, including:
@@ -64,7 +260,12 @@ These examples also apply other recommended configurations, including:
       Create the Organizations
       ~~~~~~~~~~~~~~~~~~~~~~~~
 
-      Run the following command for each business unit:
+      Run the following command for each business unit. Change
+      the IDs and names to use your actual values:
+
+      .. code-block::
+
+         atlas organizations create ConsumerProducts --ownerId 508bb8f5f11b8e3488a0e99e --apiKeyRole ORG_OWNER --apiKeyDescription consumer-products-key
 
       For more configuration options and info about this example, 
       see :ref:`atlas-organizations-create`.
@@ -250,4 +451,15 @@ These examples also apply other recommended configurations, including:
       For more configuration options and info about this example, 
       see |service-terraform| and the `MongoDB Terraform Blog Post
       <https://www.mongodb.com/developer/products/atlas/deploy-mongodb-atlas-terraform-aws/>`__.
+
+Next Steps
+----------
+
+After you plan the hierarchy and size for your organizations, projects,
+and {+clusters+}, see the following suggested resources or use the left
+navigation to find features and best practices for each {+waf+} pillar.
+
+- :ref:`arch-center-monitoring-alerts`
+- :ref:`arch-center-network-security`
+- :ref:`arch-center-backups`
 
