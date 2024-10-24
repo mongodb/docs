@@ -18,12 +18,12 @@
    .. step:: Select a {+cluster+} type.
       
       Select either an ``M10`` {+dedicated-cluster+} or an ``M0`` 
-      {+free-cluster+} type from the available preset templates. You can
-      also deploy a {+serverless-instance+} from this page.
+      {+Free-cluster+} type from the available preset templates. You can
+      also deploy a {+Serverless-instance+} from this page.
       
       .. include:: /includes/fact-deployment-types.rst
       
-      To create a {+serverless-instance+}, see  
+      To create a {+Serverless-instance+}, see  
       :doc:`Create a New {+Serverless-Instance+} </tutorial/create-serverless-instance>` 
       for next steps.
       

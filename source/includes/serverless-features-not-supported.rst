@@ -11,14 +11,14 @@ features that are a part of the :manual:`Stable API v1
 </reference/stable-api/#api-v1-commands>` inline.
 
 MongoDB plans to add support for more configurations and actions on
-{+serverless-instances+} over time. Footnotes indicate that 
-MongoDB plans to support the feature for {+serverless-instances+} in 
+{+Serverless-instances+} over time. Footnotes indicate that 
+MongoDB plans to support the feature for {+Serverless-instances+} in 
 the future.
 
 Unsupported Configurations
 --------------------------
 
-Currently, {+serverless-instances+} don't support the following 
+Currently, {+Serverless-instances+} don't support the following 
 configurations:
 
 - Multi-Region Deployments
@@ -43,18 +43,18 @@ configurations:
 Unsupported Actions
 -------------------
 
-Currently, {+serverless-instances+} don't support the following actions:
+Currently, {+Serverless-instances+} don't support the following actions:
 
-- Convert |service| {+serverless-instances+} into {+clusters+}. [#f2]_
+- Convert |service| {+Serverless-instances+} into {+clusters+}. [#f2]_
 
 - Convert |service| dedicated {+clusters+} into |service| 
-  {+serverless-instances+}
+  {+Serverless-instances+}
 
   You can :ref:`convert a shared {+cluster+} to a 
-  {+serverless-instance+} <convert-to-serverless>`.
+  {+Serverless-instance+} <convert-to-serverless>`.
 
 - :doc:`Live migrate </import/live-import>` into |service|  
-  {+serverless-instances+}.
+  {+Serverless-instances+}.
 
 - Store more than 1 TB of data.
     
@@ -95,7 +95,7 @@ Currently, {+serverless-instances+} don't support the following actions:
 - Download :doc:`database logs </mongodb-logs/>`.
 
 - Use wire compression between clients and |service| 
-  {+serverless-instances+}.
+  {+Serverless-instances+}.
 
 - Use |bic-short|.
 
@@ -104,7 +104,7 @@ Currently, {+serverless-instances+} don't support the following actions:
 Operational Limitations and Considerations
 ------------------------------------------
 
-Additionally, {+serverless-instances+} have the following operational
+Additionally, {+Serverless-instances+} have the following operational
 limitations and considerations:
 
 .. list-table::
@@ -129,19 +129,19 @@ limitations and considerations:
        :manual:`$merge </reference/operator/aggregation/merge/>` 
        instead.
        
-       Aggregation fields on {+serverless-instances+} that represent 
+       Aggregation fields on {+Serverless-instances+} that represent 
        database and collection names (such as :manual:`$merge
        </reference/operator/aggregation/merge/>` values) can't be 
        expressions.
 
        .. include:: /includes/fact-unsupported-stable-api.rst
 
-       Aggregation pipelines for {+serverless-instances+} don't support
+       Aggregation pipelines for {+Serverless-instances+} don't support
        the :pipeline:`$currentOp`, :pipeline:`$listLocalSessions`,
        :pipeline:`$listSessions`, and :pipeline:`$planCacheStats` 
        stages.
 
-       Aggregation pipelines for {+serverless-instances+} can have a 
+       Aggregation pipelines for {+Serverless-instances+} can have a 
        maximum of 50 stages.
 
    * - Sort
@@ -169,7 +169,7 @@ limitations and considerations:
    * - Throughput
      - {+Serverless-instances+} don't routinely cap operation 
        throughput. |service| may throttle operations for your 
-       {+serverless-instance+} temporarily while the system scales.
+       {+Serverless-instance+} temporarily while the system scales.
 
    * - Connections
      - {+Serverless-instances+} can support up to 500 simultaneous 
@@ -181,7 +181,7 @@ limitations and considerations:
 
    * - Database Commands
      - Some database commands have limitations for \
-       {+serverless-instances+}. To learn more, see
+       {+Serverless-instances+}. To learn more, see
        :ref:`Unsupported Commands in Serverless Instances 
        <atlas-serverless-command-limitations>`.
        
@@ -189,7 +189,7 @@ limitations and considerations:
        collection to a capped collection.
 
    * - Namespaces and Database Names
-     - |service| limits {+serverless-instance+} database names to 38 characters.
+     - |service| limits {+Serverless-instance+} database names to 38 characters.
        In addition, namespace names (``<database>.<collection>``) cannot 
        exceed 95 characters.
 
@@ -199,7 +199,7 @@ limitations and considerations:
 
    * - Custom Roles
      - Changes to :doc:`custom roles </security-add-mongodb-roles/>` may
-       take up to 30 seconds to deploy in {+serverless-instances+}.
+       take up to 30 seconds to deploy in {+Serverless-instances+}.
 
    * - Access to Collections in ``local``, ``admin``, and ``config`` 
        Databases
@@ -242,7 +242,7 @@ limitations and considerations:
    * - Transaction Size
      - {+Serverless-instances+} support multi-document transactions 
        that are up to 700 MB in size. |service| aborts any 
-       {+serverless-instance+} transactions that
+       {+Serverless-instance+} transactions that
        exceed 700 MB.
 
    * - Write Concern
@@ -257,7 +257,7 @@ limitations and considerations:
 
        For {+clusters+} other than ``M0``, ``M2``, or ``M5`` 
        {+clusters+}, you can verify whether you're using a write 
-       concern mode that {+serverless-instances+} don't support with 
+       concern mode that {+Serverless-instances+} don't support with 
        the :manual:`serverStatus </reference/command/serverStatus/>` 
        command's :manual:`opWriteConcernCounters </reference/command/serverStatus/#opwriteconcerncounters>` 
        field.

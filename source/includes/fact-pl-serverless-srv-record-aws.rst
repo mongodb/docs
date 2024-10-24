@@ -2,7 +2,7 @@
 Strings**
 
 The following example shows the SRV record for an {+aws-pl+}-enabled
-{+serverless-instance+}, showing one port defined for
+{+Serverless-instance+}, showing one port defined for
 ``serverlessinstance0-pe-1.oqg5v.mongodb.net``:
 
 .. code-block:: sh
@@ -23,9 +23,9 @@ In the preceding example:
   connection string references.
 
 - ``serverlessinstance0-pe-1.oqg5v.mongodb.net`` is the hostname
-  for the |service| {+serverless-instance+} for which you have
+  for the |service| {+Serverless-instance+} for which you have
   configured {+aws-pl+}.
   
 - ``27017`` is a unique port that |service| assigns to the load
-  balancer for the |service| {+serverless-instance+} for which you
+  balancer for the |service| {+Serverless-instance+} for which you
   enabled {+aws-pl+}.

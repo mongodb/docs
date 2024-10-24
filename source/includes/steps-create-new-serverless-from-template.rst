@@ -17,9 +17,9 @@
       
    .. step:: Select the :guilabel:`Serverless` type.
       
-      Select the {+serverless-instance+} {+database-deployment+} type from
+      Select the {+Serverless-instance+} {+database-deployment+} type from
       the preset templates. You can also deploy an ``M10`` 
-      {+dedicated-cluster+} or an ``M0`` {+free-cluster+} from this page.
+      {+dedicated-cluster+} or an ``M0`` {+Free-cluster+} from this page.
       
       .. include:: /includes/fact-deployment-types.rst
       
@@ -31,8 +31,8 @@
 
       The cloud provider that you select affects the configuration
       options, network latency for clients accessing your 
-      {+serverless-instance+}, and the :doc:`cost of running the
-      {+serverless-instance+} </billing>`.
+      {+Serverless-instance+}, and the :doc:`cost of running the
+      {+Serverless-instance+} </billing>`.
       
       To learn more, see :ref:`create-cluster-cloud-provider-region`.
       
@@ -40,28 +40,28 @@
 
       |service| displays available regions for the cloud provider you
       select. The region that you select determines the geographic location
-      of the nodes in your {+serverless-instance+} and the 
-      :doc:`cost of running the {+serverless-instance+} </billing>`.
+      of the nodes in your {+Serverless-instance+} and the 
+      :doc:`cost of running the {+Serverless-instance+} </billing>`.
       
       To learn more, see :ref:`create-cluster-cloud-provider-region`.
       
-   .. step:: Specify a name for the {+serverless-instance+} in the :guilabel:`Name` box.
+   .. step:: Specify a name for the {+Serverless-instance+} in the :guilabel:`Name` box.
       
-      This label identifies the {+serverless-instance+} in |service|. 
+      This label identifies the {+Serverless-instance+} in |service|. 
       
       You can't
-      change the {+serverless-instance+} name after you deploy it. 
+      change the {+Serverless-instance+} name after you deploy it. 
       {+Serverless-instance+} names can't exceed 64 characters in length.
       
       .. include:: /includes/admonitions/importants/cluster-naming-limitations.rst
       
-   .. step:: Specify a tag key and value to apply to the {+serverless-instance+}.
+   .. step:: Specify a tag key and value to apply to the {+Serverless-instance+}.
       
       To learn more, see :ref:`apply-tags-new-cluster-template`.
       
       .. include:: /includes/fact-sensitive-info-resource-tags.rst
       
-   .. step:: Deploy your {+serverless-instance+}.
+   .. step:: Deploy your {+Serverless-instance+}.
 
       Click :guilabel:`Create`.
       
@@ -123,7 +123,7 @@
       - :guilabel:`Write Processing Unit (WPU)`
       - :guilabel:`Storage`
       
-   .. step:: Deploy your {+serverless-instance+}.
+   .. step:: Deploy your {+Serverless-instance+}.
       
       Click :guilabel:`Confirm and Deploy Instance`.
       

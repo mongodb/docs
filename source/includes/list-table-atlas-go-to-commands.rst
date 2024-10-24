@@ -109,7 +109,7 @@
 
        The ``cluster {clusterName} rtp`` and ``rtp`` commands are
        unavailable for sharded {+clusters+} and 
-       {+serverless-instances+}.
+       {+Serverless-instances+}.
 
    * - ``cluster {clusterName} search``
      - Go to the {+fts+} page for the specified cluster.
@@ -119,7 +119,7 @@
        current cluster.
 
        The ``cluster {clusterName} search`` and ``search`` commands are
-       unavailable for {+serverless-instances+}.
+       unavailable for {+Serverless-instances+}.
 
    * - ``collections``
      - Go to the :ref:`Collections <atlas-ui-view-collections>` tab for the 
@@ -210,7 +210,7 @@
      - Go to the {+fts+} page for the current cluster.
 
        The ``search`` command is unavailable for 
-       {+serverless-instances+}.
+       {+Serverless-instances+}.
 
    * - ``settings``
      - Go to the :ref:`Project Settings <project-settings>` for

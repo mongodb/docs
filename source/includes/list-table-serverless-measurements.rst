@@ -11,11 +11,11 @@ Serverless Measurements
      - Description
 
    * - ``SERVERLESS_CONNECTIONS``
-     - Number of active connections to the {+serverless-instance+} 
+     - Number of active connections to the {+Serverless-instance+} 
        meets the specified average.
 
    * - ``SERVERLESS_CONNECTIONS_PERCENT``
-     - Number of open connections to the {+serverless-instance+} 
+     - Number of open connections to the {+Serverless-instance+} 
        exceeds the specified percentage threshold.
 
    * - ``SERVERLESS_DATA_SIZE_TOTAL``

@@ -23,7 +23,7 @@
      - string
      - Required
      - Human-readable label of the target |service| {+cluster+} or
-       {+serverless-instance+} to which the restore job restores the
+       {+Serverless-instance+} to which the restore job restores the
        snapshot.
 
    * - targetGroupId

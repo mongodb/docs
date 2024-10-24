@@ -4,7 +4,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Support for auto-index creation for |service| 
-  {+serverless-instances+}. To learn more, see
+  {+Serverless-instances+}. To learn more, see
   :ref:`auto-index-serverless`.
 - Support for migrations between sharded {+clusters+} with a different
   number of shards for MongoDB 6.0+ with Atlas Live Migration. To learn
@@ -238,4 +238,4 @@
 25 January 2023 Release
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Supports converting {+shared-clusters+} (``M0``, ``M2``, ``M5``) to {+serverless-instances+}.
+Supports converting {+Shared-clusters+} (``M0``, ``M2``, ``M5``) to {+Serverless-instances+}.

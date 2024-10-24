@@ -61,7 +61,7 @@
      - Yes, for clusters using an ``M30+`` tier
 
    * - Dedicated Cluster
-     - No, ``M0`` {+free-clusters+} run in a shared environment
+     - No, ``M0`` {+Free-clusters+} run in a shared environment
      - No, ``M2`` and ``M5`` clusters run in a shared environment
      - Yes, ``M10+`` clusters deploy each :binary:`mongod` process to
        its own instance.

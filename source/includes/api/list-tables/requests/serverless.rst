@@ -11,7 +11,7 @@
    * - name
      - string
      - Required
-     - Human-readable label that identifies the {+serverless-instance+}.
+     - Human-readable label that identifies the {+Serverless-instance+}.
 
    * - providerSettings
      - object
@@ -23,7 +23,7 @@
      - string
      - Required
      - Cloud service provider on which MongoDB Cloud provisions the
-       {+serverless-instance+}.
+       {+Serverless-instance+}.
 
    * - providerSettings.providerName
      - string
@@ -34,15 +34,15 @@
      - string
      - Required
      - Human-readable label that identifies the physical location of
-       your MongoDB {+serverless-instance+}. The region you choose can
+       your MongoDB {+Serverless-instance+}. The region you choose can
        affect network latency for clients accessing your databases.
 
    * - serverlessBackupOptions.serverlessContinuousBackupEnabled
      - boolean
      - Optional
-     - Flag that indicates whether the {+serverless-instance+} uses 
+     - Flag that indicates whether the {+Serverless-instance+} uses 
        :guilabel:`Serverless Continuous Backup`. If this parameter is 
-       ``false``, the {+serverless-instance+} uses 
+       ``false``, the {+Serverless-instance+} uses 
        :guilabel:`Basic Backup`.
 
        .. include:: /includes/list-table-serverless-backup-options.rst

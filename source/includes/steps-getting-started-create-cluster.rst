@@ -30,7 +30,7 @@
       
    .. step:: Select your preferred :guilabel:`Provider`.
 
-      |service| supports ``M0`` {+free-clusters+} on
+      |service| supports ``M0`` {+Free-clusters+} on
       :ref:`Amazon Web Services (AWS) <amazon-aws>`,
       :ref:`Google Cloud Platform (GCP) <google-gcp>`, and
       :ref:`Microsoft Azure <microsoft-azure>`.
@@ -38,7 +38,7 @@
    .. step:: Select your preferred :guilabel:`Region`.
 
       |service| displays only the cloud provider
-      regions that support ``M0`` {+free-clusters+}.
+      regions that support ``M0`` {+Free-clusters+}.
       
    .. step:: Specify a name for your {+cluster+} in the :guilabel:`Name` box.
       

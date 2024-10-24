@@ -1,5 +1,5 @@
 You must precede a :query:`$regex` query on an :term:`oplog` in 
-an ``M0`` {+free-cluster+} or ``M2/M5`` {+shared-cluster+} with a 
+an ``M0`` {+Free-cluster+} or ``M2/M5`` {+Shared-cluster+} with a 
 caret (``^``). Otherwise, the following error occurs:
 
 .. code-block:: sh

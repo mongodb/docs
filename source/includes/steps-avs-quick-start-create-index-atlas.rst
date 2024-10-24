@@ -17,7 +17,7 @@
 
             If you create a new cluster, you have the necessary permissions by default.
 
-         You can create only one ``M0`` {+free-cluster+} per :ref:`project. <atlas-ui-auth-projects>`
+         You can create only one ``M0`` {+Free-cluster+} per :ref:`project. <atlas-ui-auth-projects>`
 
       #. In the left sidebar, click `Atlas Search <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fclusters%2FatlasSearch>`__. 
          Choose your cluster from the :guilabel:`Select data source` menu and click :guilabel:`Go to Atlas Search`.

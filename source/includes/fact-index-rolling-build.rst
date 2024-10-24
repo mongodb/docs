@@ -19,9 +19,9 @@
 .. note::
 
    the {+atlas-ui+} doesn't support building indexes with a rolling 
-   build for ``M0`` {+free-clusters+} and ``M2/M5`` 
-   {+shared-clusters+}. You can't build indexes with a rolling build 
-   for {+serverless-instances+}.
+   build for ``M0`` {+Free-clusters+} and ``M2/M5`` 
+   {+Shared-clusters+}. You can't build indexes with a rolling build 
+   for {+Serverless-instances+}.
 
 For workloads which cannot tolerate performance decrease due to index 
 builds, consider building indexes in a rolling fashion.

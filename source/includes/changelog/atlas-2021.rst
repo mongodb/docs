@@ -55,7 +55,7 @@
 18 October 2021 Release
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-- Supports ``M0`` {+free-clusters+} and ``M2/M5`` {+shared-clusters+}
+- Supports ``M0`` {+Free-clusters+} and ``M2/M5`` {+Shared-clusters+}
   in the following regions:
 
   - AWS Tokyo (``ap-northeast-1``)
@@ -126,7 +126,7 @@
   build secondary indexes from the :abbr:`UI (User Interface)`.
 - Introduces the ability to visualize slow queries in times series 
   collections.
-- Introduces the ability to deploy ``M0`` {+free-clusters+} using the
+- Introduces the ability to deploy ``M0`` {+Free-clusters+} using the
   :oas-atlas-op:`create </createOneCluster>` endpoint.
 
 .. _atlas_20210824:
@@ -134,7 +134,7 @@
 25 August 2021 Release
 ~~~~~~~~~~~~~~~~~~~~~~
 
-- Introduces {+serverless-instances+} into the following Azure regions:
+- Introduces {+Serverless-instances+} into the following Azure regions:
 
   - Virginia (US_EAST_2)
   - Netherlands (EUROPE_WEST)
@@ -319,7 +319,7 @@
 
 - Introduces private network access for :ref:`multi-cloud clusters
   <create-cluster-multi-region>`.
-- |service| {+free-clusters+} (**M0**) and {+shared-clusters+} (**M2**/**M5**)
+- |service| {+Free-clusters+} (**M0**) and {+Shared-clusters+} (**M2**/**M5**)
   upgraded to MongoDB 4.4.
 - Defaults new clusters to MongoDB 4.4.
 - Introduces custom archiving rules for |service| :ref:`Online Archive

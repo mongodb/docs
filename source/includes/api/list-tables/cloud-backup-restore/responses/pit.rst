@@ -51,7 +51,7 @@
        .. note::
 
           {+Serverless-instance+} snapshots don't return the
-          ``oplogTs``. You can't restore a {+serverless-instance+}
+          ``oplogTs``. You can't restore a {+Serverless-instance+}
           snapshot using an :ref:`Oplog <ref-atlas-oplog>` timestamp.
 
    * - oplogInc
@@ -64,7 +64,7 @@
        .. note::
 
           {+Serverless-instance+} snapshots don't return the
-          ``oplogInc``. You can't restore a {+serverless-instance+}
+          ``oplogInc``. You can't restore a {+Serverless-instance+}
           snapshot using an :ref:`Oplog <ref-atlas-oplog>` timestamp.
 
    * - pointInTimeUTCSeconds

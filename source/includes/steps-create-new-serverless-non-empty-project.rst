@@ -24,14 +24,14 @@
       {+Serverless-Instances+}
         {+Serverless-instances+} require minimal configuration and are best for
         applications that aren't critical and experience low or variable traffic. To learn
-        more about {+serverless-instances+}, see :ref:`Choose a
+        more about {+Serverless-instances+}, see :ref:`Choose a
         {+Database-Deployment+} Type <ref-deployment-types>`.
       
       {+Shared-Clusters+}
         {+Shared-clusters+} include the ``M0``, ``M2``, and ``M5`` tiers.
         These low-cost cluster types are suitable for teams who are
         learning MongoDB or developing small proof-of-concept applications.
-        You can begin your project with a {+shared-cluster+} and upgrade to a
+        You can begin your project with a {+Shared-cluster+} and upgrade to a
         production-ready tier at a future time.
       
       {+Dedicated-Clusters+}
@@ -44,21 +44,21 @@
       Select :guilabel:`Serverless`, then proceed to the next step to customize the
       configuration prior to deployment.
       
-      To create a {+shared-cluster+} or a {+dedicated-cluster+}, see
+      To create a {+Shared-cluster+} or a {+dedicated-cluster+}, see
       :doc:`Create a New Cluster </tutorial/create-new-cluster>` for next steps.
       
    .. step:: Select your preferred :guilabel:`Cloud Provider & Region`.
 
       The :doc:`choice of cloud provider and region </cloud-providers-regions>`
-      affects the network latency for clients accessing your {+serverless-instance+},
-      the geographic location of the nodes in your {+serverless-instance+}, and the
-      :doc:`cost of running the {+serverless-instance+} </billing>`.
+      affects the network latency for clients accessing your {+Serverless-instance+},
+      the geographic location of the nodes in your {+Serverless-instance+}, and the
+      :doc:`cost of running the {+Serverless-instance+} </billing>`.
       
       {+Serverless-instances+} support fewer regions than {+clusters+}. To learn
       more, see the region information for :doc:`AWS </reference/amazon-aws>`,
       :doc:`Google Cloud </reference/google-gcp>` and :doc:`Azure </reference/microsoft-azure>`.
       
-   .. step:: Configure backup for your {+serverless-instance+}.
+   .. step:: Configure backup for your {+Serverless-instance+}.
       
       Select one of the following backup options:
       
@@ -70,19 +70,19 @@
       
       - Specify the :guilabel:`Serverless Instance Name`.
        
-        This is the {+serverless-instance+} name as it appears in 
-        |service|. You can't change the {+serverless-instance+} name once 
+        This is the {+Serverless-instance+} name as it appears in 
+        |service|. You can't change the {+Serverless-instance+} name once 
         you deploy it.
       
         .. figure:: /images/create-serverless-instance-name.png
            :figwidth: 720px
-           :alt: Name {+serverless-instance+} input
+           :alt: Name {+Serverless-instance+} input
       
         {+Serverless-instance+} names can't exceed 64 characters in length.
       
         .. include:: /includes/admonitions/importants/serverless-instance-naming-limitations.rst
       
-      - :ref:`Apply tags to the {+serverless-instance+} 
+      - :ref:`Apply tags to the {+Serverless-instance+} 
         <apply-tags-new-cluster>`.
       
         .. include:: /includes/fact-sensitive-info-resource-tags.rst 
@@ -238,7 +238,7 @@
       - :guilabel:`Write Processing Unit (WPU)`
       - :guilabel:`Storage`
       
-   .. step:: Deploy your {+serverless-instance+}.
+   .. step:: Deploy your {+Serverless-instance+}.
       Click :guilabel:`Confirm and Deploy Instance`.
       
       .. important::

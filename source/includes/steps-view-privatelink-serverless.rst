@@ -6,18 +6,18 @@
    .. step:: Click the :guilabel:`Private Endpoint` tab and then the following tab.
       
       Click :guilabel:`Serverless Instance` to set up a private 
-      endpoint for your |service| {+serverless-instance+}.
+      endpoint for your |service| {+Serverless-instance+}.
       
    .. step:: Click the button to set up the private endpoint.
       
       Click the :guilabel:`Create New Endpoint` button. 
       
-   .. step:: Choose a {+serverless-instance+}.
+   .. step:: Choose a {+Serverless-instance+}.
       
       a. From the :guilabel:`{+Serverless-Instance+}` dropdown, select the 
-         {+serverless-instance+} you want to connect using a private
+         {+Serverless-instance+} you want to connect using a private
          endpoint. The cloud provider and region for the 
-         {+serverless-instance+} populate automatically.
+         {+Serverless-instance+} populate automatically.
       #. Click :guilabel:`Confirm`. |service| begins allocating the
          endpoint service, which might take several minutes to complete.
          You can continue to the next steps while |service| allocates the

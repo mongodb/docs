@@ -1,4 +1,4 @@
-``M0`` {+free-clusters+} and ``M2/M5`` {+shared-clusters+} don't
+``M0`` {+Free-clusters+} and ``M2/M5`` {+Shared-clusters+} don't
 support the following command line tool options:
 
 .. list-table::

@@ -27,7 +27,7 @@
 
    * - serverlessInstanceName
      - string
-     - Human-readable label given to the {+serverless-instance+} from
+     - Human-readable label given to the {+Serverless-instance+} from
        which |service| took this snapshot.
 
    * - snapshotType

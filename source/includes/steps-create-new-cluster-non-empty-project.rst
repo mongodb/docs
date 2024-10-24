@@ -38,10 +38,10 @@
       {+Serverless-Instances+}
         {+Serverless-instances+} require minimal configuration and are best for
         applications that aren't critical and experience low or variable traffic. To learn
-        more about {+serverless-instances+}, see :ref:`Choose a
+        more about {+Serverless-instances+}, see :ref:`Choose a
         {+Database-Deployment+} Type <ref-deployment-types>`.
       
-      To create a {+serverless-instance+}, see 
+      To create a {+Serverless-instance+}, see 
       :doc:`Create a New {+Serverless-Instance+} </tutorial/create-serverless-instance>` 
       for next steps.
       

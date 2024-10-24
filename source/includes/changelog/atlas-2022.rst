@@ -56,7 +56,7 @@
 24 August 2022 Release
 ~~~~~~~~~~~~~~~~~~~~~~
 
-- Supports {+az-pl+} for {+serverless-instances+}. To learn more,
+- Supports {+az-pl+} for {+Serverless-instances+}. To learn more,
   see :ref:`serverless-private-endpoint`.
 - Enhancements to the |service| billing experience for
   :ref:`tax invoices <atlas-international-tax>`.
@@ -87,7 +87,7 @@
 ~~~~~~~~~~~~~~~~~~~~
 
 - Introduces the General Availability of |service|  
-  :ref:`{+serverless-instances+} <atlas-choose-serverless>`, which 
+  :ref:`{+Serverless-instances+} <atlas-choose-serverless>`, which 
   includes the following changes:
 
   - Supports :ref:`{+aws-pl+} connections <private-endpoint>`
