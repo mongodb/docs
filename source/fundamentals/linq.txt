@@ -7,7 +7,7 @@ LINQ
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 2
+   :depth: 3
    :class: singlecol
 
 .. facet::
@@ -68,10 +68,11 @@ object that links to the collection. To create the object, use the ``AsQueryable
 as follows:
 
 .. code-block:: csharp
-   :emphasize-lines: 2
+   :emphasize-lines: 3
 
-    var restaurantsCollection = restaurantsDatabase.GetCollection<Restaurant>("restaurants");
-    var queryableCollection = restaurantsCollection.AsQueryable();
+   var restaurantsDatabase = client.GetDatabase("sample_restaurants");
+   var restaurantsCollection = restaurantsDatabase.GetCollection<Restaurant>("restaurants");
+   var queryableCollection = restaurantsCollection.AsQueryable();
 
 The ``AsQueryable()`` method returns an `IMongoQueryable
 <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.Linq.IMongoQueryable.html>`__ instance that
@@ -574,6 +575,181 @@ to incorporate them into your application, see :atlas:`Atlas Vector Search Overv
 in the Atlas manual. For more examples about running Atlas Vector Search queries using the
 {+driver-short+}, see :atlas:`Run Vector Search Queries </atlas-vector-search/vector-search-stage/>`
 in the Atlas manual and select :guilabel:`C#` from the language dropdown.
+
+Bitwise Operators
+~~~~~~~~~~~~~~~~~
+
+This section describes the :wikipedia:`bitwise operators <Bitwise_operation>`
+supported by the {+driver-short+} that you can use in an aggregation pipeline.
+You can use multiple bitwise operators in the same 
+stage. The following guidelines apply when using bitwise operators:
+
+- All operands must be of type ``int`` or ``long``.
+
+- ``$bitAnd``, ``$bitOr``, and ``$bitXor`` take two or more operands. ``$bitNot`` takes one operand.
+
+- Bitwise operations are evaluated from left to right.
+
+The examples in this section use the following documents in a collection called
+``ingredients``:
+
+.. code-block:: json
+
+   { "_id" : 1, "name" : "watermelon", "is_available" : 1, "is_cheap" : 1 },
+   { "_id" : 2, "name" : "onions", "is_available" : 1, "is_cheap" : 0 },
+   { "_id" : 3, "name" : "eggs", "is_available" : 0, "is_cheap" : 0 },
+   { "_id" : 4, "name" : "potatoes", "is_available" : 1, "is_cheap" : 1 },
+   { "_id" : 5, "name" : "pasta", "is_available" : 0, "is_cheap" : 1 },
+   { "_id" : 6, "name" : "cheese", "is_available" : 1 }
+
+The ``"is_available"`` field represents if an ingredient is available. If this
+field has a value of ``0``, the ingredient is not available. If it has a value
+of ``1``, the ingredient is available.
+
+The ``"is_cheap"`` field represents if an ingredient is cheap. If this field has
+a value of ``0``, the ingredient is not cheap. If it has a value of ``1``, the
+ingredient is cheap.
+
+The following ``Ingredient`` class models the documents in the ``ingredients``
+collection:
+
+.. literalinclude:: /includes/fundamentals/code-examples/linq.cs
+   :language: csharp
+   :dedent:
+   :start-after: start-ingredient-model
+   :end-before: end-ingredient-model
+
+.. note:: Missing or Undefined Operands
+
+   If the operands you pass to any bitwise operator are of type `nullable <https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/nullable-value-types>`__
+   ``int`` or ``long`` and contain a missing or undefined value, the entire expression 
+   evaluates to ``null``. If the operands are of type non-nullable ``int`` or 
+   ``long`` and contain a missing or undefined value, the {+driver-short+} will
+   throw an error.
+
+$bitAnd
++++++++
+
+The ``$bitAnd`` aggregation operator performs a bitwise AND operation on the given
+arguments. You can use the ``$bitAnd`` operator by connecting two or more 
+clauses with a ``&`` character. 
+
+The following example shows how to create a ``$bitAnd`` stage by using LINQ. The
+code retrieves the document in which the ``Name`` field has the 
+value ``"watermelon"``. It then performs a bitwise AND operation on the values of the 
+``IsAvailable`` and ``IsCheap`` fields in this document.
+
+.. literalinclude:: /includes/fundamentals/code-examples/linq.cs
+   :language: csharp
+   :dedent:
+   :start-after: start-bitAnd-example
+   :end-before: end-bitAnd-example
+
+The preceding code returns ``1``, the result of the AND operation on the values
+of the ``IsAvailable`` field (``1``) and the ``IsCheap`` field (``1``).
+
+The following example performs the same bitwise AND operation on all 
+documents in the collection:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-examples/linq.cs
+      :language: csharp
+      :dedent:
+      :start-after: start-bitAnd-collection-example
+      :end-before: end-bitAnd-collection-example
+
+   .. output::
+      :language: json
+      :visible: false
+      
+      1
+      0
+      0
+      1
+      0
+      null
+
+The ``null`` result comes from the document where the ``Name`` field
+has the value of ``"cheese"``. This document is missing an ``IsCheap`` field, so
+the expression evaluates to ``null``.
+
+$bitOr
+++++++
+
+The ``$bitOr`` aggregation operator performs a bitwise OR operation on the given
+arguments. You can use the ``$bitOr`` operator by connecting two or more 
+clauses with a ``|`` character. 
+
+The following example shows how to create a ``$bitOr`` stage by using LINQ. The
+code retrieves the document in which the ``Name`` field has the 
+value ``"onions"``. It then performs a bitwise OR operation on the values of the 
+``IsAvailable`` and ``IsCheap`` fields in this document.
+
+.. literalinclude:: /includes/fundamentals/code-examples/linq.cs
+   :language: csharp
+   :dedent:
+   :start-after: start-bitOr-example
+   :end-before: end-bitOr-example
+
+The preceding code returns ``1``, the result of the OR operation on the values
+of the ``IsAvailable`` field (``1``) and the ``IsCheap`` field (``0``).
+
+$bitNot
++++++++
+
+The ``$bitNot`` aggregation operator performs a bitwise NOT operation on the given
+argument. You can use the ``$bitNot`` operator by preceding an 
+operand with a ``~`` character. ``$bitNot`` only takes one argument. The 
+following example shows how to create a ``$bitNot`` stage by using LINQ:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-examples/linq.cs
+      :language: csharp
+      :dedent:
+      :start-after: start-bitNot-example
+      :end-before: end-bitNot-example
+
+   .. output:: 
+      :language: json
+      :visible: false
+
+      -2
+      -1
+      -1
+      -2
+      -2
+      null
+
+$bitXor
++++++++
+
+The ``$bitXor`` aggregation operator performs a bitwise XOR operation on the given
+arguments. You can use the ``$bitXor`` operator by connecting two or more 
+clauses with a ``^`` character. 
+
+The following example shows how to create a ``$bitXor`` stage by using LINQ. The
+code retrieves the documents in which the ``Name`` field has 
+the value ``"watermelon"`` or ``"onions"``. It then performs a bitwise XOR 
+operation on the values of the ``IsAvailable`` and ``IsCheap`` fields in these 
+documents.
+
+.. literalinclude:: /includes/fundamentals/code-examples/linq.cs
+   :language: csharp
+   :dedent:
+   :start-after: start-bitXor-example
+   :end-before: end-bitXor-example
+
+The result contains the following values:
+
+.. code-block:: json
+   
+   0
+   1
+
 
 Unsupported Aggregation Stages
 ------------------------------
