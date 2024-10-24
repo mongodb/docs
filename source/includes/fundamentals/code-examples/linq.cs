@@ -26,7 +26,7 @@ public class Address
     public string Building { get; set; }
 
     [BsonElement("coord")]
-    public float[] Coordinates { get; set; }
+    public double[] Coordinates { get; set; }
 
     public string Street { get; set; }
 
@@ -63,3 +63,58 @@ public class Review
 }
 
 // end-review-model
+
+// start-ingredient-model
+
+public class Ingredient 
+{
+    public int Id { get; set; }
+
+    public string Name { get; set; }
+
+    [BsonElement("is_available")]
+    public int? IsAvailable { get; set; }
+
+    [BsonElement("is_cheap")]
+    public int? IsCheap { get; set; }
+}
+
+// end-ingredient-model
+
+// start-bitAnd-example
+
+var query = queryableCollection
+    .Where(i => i.Name == "watermelon")
+    .Select(i => i.IsAvailable & i.IsCheap);
+
+// end-bitAnd-example
+
+// start-bitAnd-collection-example
+
+var query = queryableCollection
+    .Select(i => i.IsAvailable & i.IsCheap);
+
+// end-bitAnd-collection-example
+
+// start-bitOr-example
+
+var query = queryableCollection
+    .Where(i => i.Name == "onions")
+    .Select(i => i.IsAvailable | i.IsCheap);
+
+// end-bitOr-example
+
+// start-bitNot-example
+
+var query = queryableCollection
+    .Select(i => ~i.IsCheap);
+
+// end-bitNot-example
+
+// start-bitXor-example
+
+var query = queryableCollection
+    .Where(i => i.Name == "watermelon" || i.Name == "onions")
+    .Select(i => i.IsAvailable ^ i.IsCheap);
+
+// end-bitXor-example
