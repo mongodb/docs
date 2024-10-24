@@ -18,7 +18,7 @@
                :language: js
                :linenos:
                :dedent:
-               :emphasize-lines: 5
+               :emphasize-lines: 4
 
          .. tab:: Pre-Filter by OR and AND Operator 
             :tabid: or-and-operator
@@ -29,7 +29,7 @@
                :language: js
                :linenos:
                :dedent:
-               :emphasize-lines: 5
+               :emphasize-lines: 4
 
    .. step:: Replace the ``<connection-string>`` in the query and then save the file.
 

@@ -47,7 +47,7 @@ func main() {
 
 	vectorSearchStage := bson.D{
 		{"$vectorSearch", bson.D{
-			{"index", "vector-search-tutorial"},
+			{"index", "vector_index"},
 			{"path", "plot_embedding"},
 			{"filter", filter},
 			{"queryVector", queryVector},

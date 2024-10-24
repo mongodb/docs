@@ -14,7 +14,7 @@
          ``sample_mflix`` database, and select the ``embedded_movies``
          collection.
       #. In the :guilabel:`Index Name` field, enter
-         ``vector-search-tutorial``. 
+         ``vector_index``. 
       #. Replace the default definition with the following index
          definition and then click :guilabel:`Next`.
 

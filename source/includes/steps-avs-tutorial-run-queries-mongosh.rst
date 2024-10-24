@@ -1,5 +1,5 @@
 .. procedure:: 
-   :style: normal 
+   :style: normal
 
    .. step:: Connect to your cluster in {+mongosh+}.
 

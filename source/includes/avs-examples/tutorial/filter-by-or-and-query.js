@@ -17,7 +17,7 @@ async function run() {
     const agg = [
       {
         '$vectorSearch': {
-          'index': 'vector-search-tutorial', 
+          'index': 'vector_index', 
           'path': 'plot_embedding', 
           'filter': {
             '$or': [

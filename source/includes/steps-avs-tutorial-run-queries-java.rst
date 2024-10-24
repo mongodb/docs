@@ -1,20 +1,6 @@
 .. procedure:: 
    :style: normal
 
-   .. step:: Ensure that your ``CLASSPATH`` contains the following libraries.
-
-      .. list-table::
-         :widths: 30 70 
-
-         * - ``junit``
-           - 4.11 or higher version 
-
-         * - ``mongodb-driver-sync``
-           - 4.3.0 or higher version
-
-         * - ``slf4j-log4j12``
-           - 1.7.30 or higher version
-
    .. step:: Create a file named ``AtlasVectorSearchTutorial.java``.
 
    .. step:: Copy and paste the code for the pre-filter operator you want to try into the ``AtlasVectorSearchTutorial.java`` file.
@@ -32,7 +18,7 @@
                :language: java
                :linenos:
                :dedent:
-               :emphasize-lines: 22
+               :emphasize-lines: 21
 
 
          .. tab:: Pre-Filter by OR and AND Operator 
@@ -44,16 +30,7 @@
                :language: java
                :linenos:
                :dedent:
-               :emphasize-lines: 21
-
-      .. note:: 
-
-         To run the sample code in your Maven environment, add the 
-         following code above the import statements in your file.
-
-         .. code-block:: 
-
-            package com.mongodb.drivers;
+               :emphasize-lines: 20
 
    .. step:: Replace the ``<connection-string>`` with your |service| connection string and then save the file.
 

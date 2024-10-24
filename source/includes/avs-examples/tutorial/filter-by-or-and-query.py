@@ -1,5 +1,4 @@
 import pymongo
-import datetime
 
 # connect to your Atlas cluster
 client = pymongo.MongoClient("<connection-string>")
@@ -8,7 +7,7 @@ client = pymongo.MongoClient("<connection-string>")
 pipeline = [
   {
     '$vectorSearch': {
-      'index': 'vector-search-tutorial', 
+      'index': 'vector_index', 
       'path': 'plot_embedding', 
       'filter': {
         '$or': [
@@ -55,4 +54,3 @@ result = client["sample_mflix"]["embedded_movies"].aggregate(pipeline)
 # print results
 for i in result:
     print(i)
- 
