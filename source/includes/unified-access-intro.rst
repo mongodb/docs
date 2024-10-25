@@ -2,7 +2,7 @@ Some |service| features, including :ref:`Data Federation
 <atlas-data-federation>` and :ref:`Encryption at Rest 
 <security-aws-kms>`, authenticate with |aws| `IAM roles 
 <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use.html>`__. 
-When |service| accesses |aws| services, 
+When |service| accesses |aws| services, it
 `assumes an IAM role
 <https://docs.aws.amazon.com/IAM/latest/UserGuide/using-service-linked-roles.html>`__.
 
