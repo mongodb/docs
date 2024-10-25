@@ -645,6 +645,15 @@ The output document has the following fields:
        through the :pipeline:`$source` stage, not when it passes
        through the entire pipeline.
 
+   * - ``stats.kafkaConsumerGroup``
+     - string
+     - The ID of the Kafka `Consumer Group
+       <https://kafka.apache.org/20/documentation.html#intro_consumers>`__
+       with which the stream processor's Kafka sink is associated.
+
+       {+atlas-sp+} returns this field only if you pass in the ``verbose``
+       option.
+
    * - ``stats.outputMessageCount``
      - integer
      - The number of documents processed by the stream. A document is
@@ -684,8 +693,13 @@ The output document has the following fields:
      - The number of bytes used by windows to store processor state.
 
    * - ``stats.watermark``
-     - integer
+     - date
      - The timestamp of the current watermark.
+
+   * - ``stats.memoryTrackerBytes``
+     - integer
+     - The approximate memory used by the worker that hosts the
+       stream processor.
 
    * - ``stats.operatorStats``
      - array
@@ -723,8 +737,7 @@ The output document has the following fields:
      - array
      - Offset information for an {+kafka+} broker's partitions. 
        ``kafkaPartitions`` applies only to connections using an 
-       {+kafka+} source.
-       
+       {+kafka+} source.       
 
    * - ``stats.kafkaPartitions.partition``
      - integer
@@ -743,29 +756,122 @@ The output document has the following fields:
        partition. All messages through this offset are 
        recorded in the last checkpoint.
 
-For example, the following shows the status of a stream processor named 
-``proc01`` on a {+spi+} named ``inst01`` with item sizes displayed in 
-KB:
+   * - ``stats.kafkaPartitions.watermark``
+     - date
+     - The timestamp of the current watermark on the {+kafka+}
+       source.
+
+       {+atlas-sp+} returns this field only if you pass in the
+       ``verbose`` option.
+
+   * - ``stats.kafkaTotalOffsetLag``
+     - integer
+     - The sum of all {+kafka+} partition offset lag values.
+
+       {+atlas-sp+} returns this field only if you pass in the
+       ``verbose`` option.
+
+   * - ``stats.changeStreamState``
+     - object | timestamp
+     - The most recent read resume token or ``startAtOperationTime`` timestamp
+       if the stream processor has not subsequently ingested new messages.
+
+       ``changeStreamState`` only applies to connections using an {+service+}
+       change stream source.
+
+       {+atlas-sp+} returns this field only if you pass in the
+       ``verbose`` option.
+
+   * - ``stats.changeStreamTimeDifferenceSecs``
+     - integer
+     - The difference, in seconds, between the timestamp of the last ingested
+       message and the timestamp of the last event in the :term:`oplog`.
+
+       {+atlas-sp+} returns this field only if you pass in the
+       ``verbose`` option.
+
+For example, the following command returns the status of a stream
+processor named ``proc01`` on a {+spi+} named ``inst01``, with sizes
+displayed in bytes:
 
 .. code-block:: sh
 
-   sp.proc01.stats(1024)
-
+   sp.proc01.stats({options: {verbose: true}})
    {
      ok: 1,
-     ns: 'inst01',
+     ns: '6601da50d8907b1d52dfab1a.63c1928d768e39423386aa16.proc01',
      stats: {
        name: 'proc01',
+       processorId: '670563b6d77fb9a30b997525',
        status: 'running',
-       scaleFactor: Long("1"), 
-       inputMessageCount: Long("706028"),
-       inputMessageSize: 958685236,
-       outputMessageCount: Long("46322"),
-       outputMessageSize: 85666332,
-       dlqMessageCount: Long("0"),
-       dlqMessageSize: Long("0"),
-       stateSize: Long("2747968"),
-       watermark: ISODate("2023-12-14T14:35:32.417Z"),
+       scaleFactor: Long('1'),
+       inputMessageCount: Long('477'),
+       inputMessageSize: 1043976,
+       outputMessageCount: Long('2'),
+       outputMessageSize: 2712,
+       dlqMessageCount: Long('0'),
+       dlqMessageSize: 0,
+       stateSize: 1496,
+       memoryTrackerBytes: 33554432,
+       operatorStats: [
+	 {
+	   name: 'KafkaConsumerOperator',
+	   inputMessageCount: Long('477'),
+	   inputMessageSize: 1043976,
+	   outputMessageCount: Long('477'),
+	   outputMessageSize: 0,
+	   dlqMessageCount: Long('0'),
+	   dlqMessageSize: 0,
+	   stateSize: 0,
+	   maxMemoryUsage: 96374,
+	   executionTimeSecs: Long('0'),
+	   timeSpentMillis: Long('0')
+	 },
+	 {
+	   name: 'MergeOperator',
+	   inputMessageCount: Long('2'),
+	   inputMessageSize: 2728,
+	   outputMessageCount: Long('2'),
+	   outputMessageSize: 2712,
+	   dlqMessageCount: Long('0'),
+	   dlqMessageSize: 0,
+	   stateSize: 0,
+	   maxMemoryUsage: 0,
+	   executionTimeSecs: Long('0'),
+	   timeSpentMillis: Long('18')
+	 }
+       ],
+       watermark: ISODate('2024-10-08T18:28:43.026Z'),
+       kafkaConsumerGroup: 'asp-670563b6d77fb9a30b997525-consumer',
+       kafkaPartitions: [
+	 {
+	   topic: 'my_weatherdata',
+	   partition: 0,
+	   currentOffset: Long('4976'),
+	   checkpointOffset: Long('4499'),
+	   partitionOffsetLag: Long('0'),
+	   watermark: ISODate('2024-10-08T18:28:43.026Z')
+	 }
+       ],
+       kafkaTotalOffsetLag: Long('0'),
        ok: 1
      },
+     pipeline: [
+       {
+	 '$source': {
+	   connectionName: 'sample_weatherdata',
+	   topic: 'my_weatherdata',
+	   tsFieldName: 'ingestionTime'
+	 }
+       },
+       {
+	 '$merge': {
+	   into: {
+	     connectionName: 'weatherStreamOutput',
+	     db: 'sample_weatherstream',
+	     coll: 'stream'
+	   }
+	 }
+       }
+     ]
    }
