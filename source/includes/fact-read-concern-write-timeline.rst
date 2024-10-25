@@ -13,8 +13,8 @@ a three member replica set:
    - No other writes have occured after Write\ :sub:`0`. 
 
 .. figure:: /images/read-concern-write-timeline.svg
-   :alt: Timeline of a write operation to a three member replica set.
-   :figwidth: 330px
+   :alt: Timeline of a write operation to a three member replica set
+   :figwidth: 340px
 
 .. list-table::
    :header-rows: 1
