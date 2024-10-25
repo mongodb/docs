@@ -49,37 +49,41 @@ async fn main() -> mongodb::error::Result<()> {
     my_coll.insert_many(books).await?;
 // end-sample-data
 
-// start-sort-query
-let mut cursor = my_coll
-    .find(doc! {})
-    // 1 for ascending order, -1 for descending order
-    .sort(doc! { "author": 1 })
-    .await?;
+// Retrieves documents in the collection, sorts results by their "author" field
+// values, and skips the first two results.
+// start-skip-example
+    let mut cursor = my_coll
+        .find(doc! {})
+        .sort(doc! { "author": 1 })
+        .skip(2).await?;
 
-while let Some(result) = cursor.try_next().await? {
-    println!("{:?}", result);
-}
-// end-sort-query
+    while let Some(result) = cursor.try_next().await? {
+        println!("{:?}", result);
+    }
+// end-skip-example
 
-// start-sort-query-multiple-options
-let find_options = FindOptions::builder()
-    // 1 for ascending order, -1 for descending order
-    .sort(doc! { "author": 1 })
-    .skip(1)
-    .build();
+// Sets the values for the `FindOptions` struct to sort results by their "name"
+// field values, skip the first two results, and return the remaining results.
+// start-options-skip-example
+    let find_options = FindOptions::builder()
+        .sort(doc! { "name": -1 })
+        .skip(1)
+        .build();
 
-let mut cursor = my_coll.find(doc! {}).with_options(find_options).await?;
+    let mut cursor = my_coll.find(doc! {}).with_options(find_options).await?;
 
-while let Some(result) = cursor.try_next().await? {
-    println!("{:?}", result);
-}
-// end-sort-query-multiple-options
+    while let Some(result) = cursor.try_next().await? {
+        println!("{:?}", result);
+    }
+// end-options-skip-example
 
-// start-sort-aggregation
+// Retrieves documents in the collection, sorts results by their "author" field,
+// then skips the first two results in an aggregation pipeline.
+// start-aggregation-example
 let pipeline = vec![
     doc! { "$match": {} },
-    // 1 for ascending order, -1 for descending order
     doc! { "$sort": { "author": 1 } }
+    doc! { "$skip": 1 },
 ];
 
 let mut cursor = my_coll.aggregate(pipeline).await?;
@@ -87,29 +91,7 @@ let mut cursor = my_coll.aggregate(pipeline).await?;
 while let Some(result) = cursor.try_next().await? {
     println!("{:?}", result);
 }
-// end-sort-aggregation
-
-// start-ascending-sort
-let mut cursor = my_coll
-    .find(doc! {})
-    .sort(doc! { "name": 1 })
-    .await?;
-
-while let Some(result) = cursor.try_next().await? {
-    println!("{:?}", result);
-}
-// end-ascending-sort
-
-// start-descending-sort
-let mut cursor = my_coll
-    .find(doc! {})
-    .sort(doc! { "name": -1 })
-    .await?;
-
-while let Some(result) = cursor.try_next().await? {
-    println!("{:?}", result);
-}
-// end-descending-sort
+// end-aggregation-example
 
     Ok(())
 }
