@@ -29,7 +29,7 @@
         
          This page provides examples of |query_operations| using the
          :py:meth:`pymongo.collection.Collection.find` method in the
-         :api:`PyMongo <pymongo>`
+         `PyMongo <{+pymongo-api-docs+}>`_
          Python driver.
 
          .. include:: /includes/driver-examples/examples-intro.rst
