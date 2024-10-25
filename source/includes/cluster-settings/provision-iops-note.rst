@@ -17,8 +17,9 @@ Local |nvme| |ssd| class {+clusters+} must use standard |iops|.
 Provisioned IOPS
 ~~~~~~~~~~~~~~~~
 
-To provision |iops| for your ``M30+`` tier {+cluster+}, select :guilabel:`Provision
-IOPS` and either:
+Provisioned |iops| is supported only for ``M30+`` tier |aws|
+{+clusters+}. To provision |iops| for your ``M30+`` tier |aws|
+{+cluster+}, select :guilabel:`Provision IOPS` and either:
 
 - Specify the exact |iops| rate in the text box, *or*
 
@@ -27,6 +28,7 @@ IOPS` and either:
 
 .. note::
 
-   The available provisioned |iops| range for a {+cluster+} relates to disk
-   :ref:`storage capacity <storage-capacity-ui>`. Changing your
-   cluster's storage capacity changes the range of available provisioned |iops|.
+   The available provisioned |iops| range for a {+cluster+} relates to 
+   disk :ref:`storage capacity <storage-capacity-ui>`. Changing your
+   cluster's storage capacity changes the range of available 
+   provisioned |iops|.
