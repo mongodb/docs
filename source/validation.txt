@@ -51,16 +51,16 @@ To specify JSON Schema validation, use the
 :manual:`$jsonSchema </reference/operator/query/jsonSchema>`
 operator.
 
-.. code-block:: json
+.. code-block:: javascript
 
    {
       $jsonSchema: {
-         required: ['customer'], // the customer field is required
+         required: ['name', 'borough'], // the name and borough fields are required
          properties: {
-         purchaseMethod: {
-            enum: ['In Store','Online'],
-            description: "can only be either 'In Store' or 'Online'" 
-         }
+            cuisine: {
+               bsonType: "string",
+               description: "must be a string"
+            }
          }
       }
    }
@@ -72,41 +72,51 @@ example:
 - The ``required`` array defines required fields in your document.
 
 - The ``properties`` object defines rules for specific document
-   fields.
+  fields.
 
 Consider the following example validation:
 
-.. code-block:: json
+.. code-block:: javascript
 
    {
       $jsonSchema: {
          bsonType: "object",
-         required: [ "name", "year", "major", "gpa", "address.city", "address.street" ],
+         required: [ "address", "borough", "name" ],
          properties: {
-            name: {
+            address: {
+               bsonType: "object",
+               properties: {
+                  coord: {
+                     bsonType: "array",
+                     items: [
+                        {
+                           bsonType: "double",
+                           minimum: -180,
+                           maximum: 180,
+                           exclusiveMaximum: false,
+                           description: "must be a number in [ -180, 180 ]"
+                        },
+                        {
+                           bsonType: "double",
+                           minimum: -90,
+                           maximum: 90,
+                           exclusiveMaximum: false,
+                           description: "must be a number in [ -90, 90 ]"
+                        }
+                     ]
+                  }
+               },
+               description: "must be an object"
+            },
+            borough: {
                bsonType: "string",
-               description: "must be a string"
-            },
-            year: {
-               bsonType: "int",
-               minimum: 2017,
-               maximum: 3017,
-               exclusiveMaximum: false,
-               description: "must be an integer in [ 2017, 3017 ]"
-            },
-            major: {
-               bsonType: "string",
-               enum: [ "Math", "English", "Computer Science", "History", null ],
-               description: "can only be one of the enum values"
-            },
-            gpa: {
-               bsonType: [ "double" ],
-               minimum: 0,
-               description: "must be a double"
+               enum: [ "Manhattan", "Brooklyn", "Queens", "Bronx", "Staten Island" ],
+               description: "must be one of the enum strings"
             }
          }
       }
    }
+
 
 This validation specifies:
 
@@ -115,17 +125,14 @@ This validation specifies:
   fields.
 
 - The :manual:`bsonType </reference/operator/query/jsonSchema/#available-keywords>` for
-  all fields.
+  all required fields.
 
 - The :manual:`minimum </reference/operator/query/jsonSchema/#available-keywords>`
   and :manual:`maximum </reference/operator/query/jsonSchema/#available-keywords>`
-  values for the ``year`` field.
+  values in the ``address.coord`` array.
 
-- The acceptable values for the  ``major`` field, using
+- The acceptable values for the  ``borough`` field, using
   :manual:`enum </reference/operator/query/jsonSchema/#available-keywords>`.
-
-- The :manual:`minimum </reference/operator/query/jsonSchema/#available-keywords>`
-  value for the ``gpa`` field.
 
 For all available ``$jsonSchema`` keywords, refer to the
 :manual:`$jsonSchema </reference/operator/query/jsonSchema>` page in
@@ -139,25 +146,24 @@ You can also specify validation using
 exception of the following query operators: :query:`$near`,
 :query:`$nearSphere`, :query:`$text`, and :query:`$where`.
 
-.. code-block:: json
+.. code-block:: javascript
 
    { 
       $or: [
-         { phone: { $type: "string" } },
-         { email: { $regex: /@mongodb\.com$/ } },
-         { status: { $in: [ "Unknown", "Incomplete" ] } }
+         { name: { $type: "string" } },
+         { borough: {
+               bsonType: "string",
+               enum: [ "Manhattan", "Brooklyn", "Queens", "Bronx", "Staten Island" ],
+               description: "must be one of the enum strings"
+         } }
       ]
    }
 
 Using this validation, *one* of the following must be true:
 
-- The ``phone`` field must be BSON type string,
+- The ``name`` field must be BSON type string.
+- The ``borough`` field must be one of the enum strings.
 
-- The ``email`` field must match the
-  :manual:`regex </reference/operator/query/regex/>`
-  ``/@mongodb\.com$/``, or
-
-- The ``status`` field must be either ``Unknown`` or ``Incomplete``.
 
 .. _validation-actions-levels:
 
