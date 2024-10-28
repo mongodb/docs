@@ -36,7 +36,7 @@
            contains the vector embeddings created 
            using the embedding model that you specify when 
            you configure the knowledge base. The index definition 
-           specifies ``1536`` vector dimensions and
+           specifies ``1024`` vector dimensions and
            measures similarity using ``cosine``.
          - The ``metadata`` and ``text_chunk`` fields 
            as :ref:`filter <avs-types-vector-search>` types for 
@@ -50,7 +50,7 @@
             {
                 "fields": [
                     {
-                        "numDimensions": 1536,
+                        "numDimensions": 1024,
                         "path": "embedding",
                         "similarity": "cosine",
                         "type": "vector"
