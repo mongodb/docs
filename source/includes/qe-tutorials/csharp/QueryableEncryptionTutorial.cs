@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
+using MongoDB.Driver.Encryption;
 
 namespace QueryableEncryption;
 
@@ -31,10 +32,12 @@ public static class QueryableEncryptionTutorial
             generateNewLocalKey: true);
 
         // start-create-client
+        MongoClientSettings.Extensions.AddAutoEncryption(); // .NET/C# Driver v3.0 or later only
         var clientSettings = MongoClientSettings.FromConnectionString(uri);
         clientSettings.AutoEncryptionOptions = qeHelpers.GetAutoEncryptionOptions(
             keyVaultNamespace,
             kmsProviderCredentials);
+
         var encryptedClient = new MongoClient(clientSettings);
         // end-create-client
 

@@ -126,6 +126,7 @@ namespace Insert
             var regularCollection = regularClient.GetDatabase(db).GetCollection<BsonDocument>(coll);
 
             // start-client
+            MongoClientSettings.Extensions.AddAutoEncryption(); // .NET/C# Driver v3.0 or later only
             var clientSettings = MongoClientSettings.FromConnectionString(connectionString);
             var autoEncryptionOptions = new AutoEncryptionOptions(
                 keyVaultNamespace: keyVaultNamespace,

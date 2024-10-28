@@ -248,11 +248,25 @@ a. Specify the {+key-vault-long-title+} Namespace
       .. tab::
          :tabid: csharp
 
-         .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/azure/reader/CSFLE/InsertEncryptedDocument.cs
-            :start-after: start-client
-            :end-before: end-client
-            :language: csharp
-            :dedent:
+         .. tabs::
+
+            .. tab:: C# Driver v3.0+
+               :tabid: csharp-v3
+
+               .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/azure/reader/CSFLE/InsertEncryptedDocument.cs
+                  :start-after: start-client
+                  :end-before: end-client
+                  :language: csharp
+                  :dedent:
+            
+            .. tab:: C# Driver < v3.0
+               :tabid: csharp-v2
+
+               .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/azure/reader/CSFLE/InsertEncryptedDocument.cs
+                  :start-after: MongoClientSettings.Extensions.AddAutoEncryption(); // .NET/C# Driver v3.0 or later only
+                  :end-before: end-client
+                  :language: csharp
+                  :dedent:
 
       .. tab::
          :tabid: go
