@@ -20,7 +20,7 @@ This code performs the following actions:
 - Prepares your custom data by doing the following:
 
   - Retrieves raw data from the specified URL and saves it as PDF.
-  - Uses a `text splitter <https://js.langchain.com/docs/modules/data_connection/document_transformers/>`__
+  - Uses a `text splitter <https://js.langchain.com/docs/concepts#text-splitters>`__
     to split the data into smaller documents.
   - Specifies chunk parameters, which determines the number of characters in each document and 
     the number of characters that should overlap between two consecutive documents.

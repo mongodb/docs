@@ -1,21 +1,21 @@
 .. _langchain:
 
-==========================================
-Get Started with the LangChain Integration
-==========================================
+============================================
+Integrate {+avs+} with LangChain
+============================================
 
 .. default-domain:: mongodb
 
 .. facet::
    :name: genre
-   :values: tutorial
+   :values: reference
 
 .. facet::
    :name: programming_language
    :values: python
 
 .. meta::
-   :description: Integrate Atlas Vector Search with LangChain to build LLM and RAG applications.
+   :description: Integrate Atlas Vector Search with LangChain to build generative AI and RAG applications.
 
 .. contents:: On this page
    :local:
@@ -23,114 +23,347 @@ Get Started with the LangChain Integration
    :depth: 1
    :class: singlecol
 
+You can integrate {+avs+} with LangChain to build generative AI 
+and |rag| applications. This page provides an overview of the 
+MongoDB LangChain Python integration and the different components 
+you can use in your applications.
+
+.. button:: Get Started
+   :uri: https://www.mongodb.com/docs/atlas/atlas-vector-search/ai-integrations/langchain/get-started
+
 .. note::
 
-   This tutorial uses LangChain's `Python library 
-   <https://python.langchain.com/docs/get_started/introduction>`__. 
-   For a tutorial that uses the JavaScript library, see :ref:`langchain-js`.
+   For a full list, see 
+   `API reference <https://python.langchain.com/api_reference/mongodb/index.html>`__.
+   For the JavaScript integration, see :ref:`langchain-js`.
 
-You can integrate {+avs+} with `LangChain <https://langchain.com/>`__
-to build |llm| applications and implement 
-retrieval-augmented generation (RAG). This tutorial demonstrates
-how to start using {+avs+} with LangChain to perform
-semantic search on your data and build a |rag| implementation. 
-Specifically, you perform the following actions:
-
-#. Set up the environment.
-#. Store custom data on |service|.
-#. Create an {+avs+} index on your data.
-#. Run the following vector search queries:
-
-   - Semantic search.
-   - Semantic search with score.
-   - Semantic search with metadata pre-filtering.
-
-#. Implement |rag| by using {+avs+} to answer questions on your data.
-
-Background
-----------
-
-.. include:: /includes/ai-integrations/langchain/langchain-background.rst
-
-Prerequisites
--------------
-
-To complete this tutorial, you must have the following:
-
-- An |service| {+cluster+} running MongoDB version 6.0.11, 7.0.2, or later
-  (including :abbr:`RCs (Release Candidates)`).
-
-- An OpenAI API Key. You must have a paid OpenAI account with credits
-  available for API requests.
-
-- An environment to run interactive Python notebooks 
-  such as `Colab <https://colab.research.google.com>`__.
-
-  .. include:: /includes/fact-colab-ip-address.rst
-
-Set Up the Environment
+Installation and Setup
 ----------------------
 
-You must first set up the environment for this tutorial. 
-Create an interactive Python notebook by saving a file 
-with the ``.ipynb`` extension, and then run the 
-following code snippets in the notebook.
+To use {+avs+} with LangChain, you must first install 
+the ``langchain-mongodb`` package:
 
-.. include:: /includes/ai-integrations/langchain/langchain-set-up-environment.rst
+.. code-block:: python
 
-Use |service| as a Vector Store
--------------------------------
+   pip install langchain-mongodb
 
-Then, load custom data into |service| and instantiate |service| as 
-a vector database, also called a `vector store 
-<https://python.langchain.com/docs/modules/data_connection/vectorstores/>`__.
-Copy and paste the following code snippets into your notebook.
+Some components also require the following LangChain base packages:
 
-.. include:: /includes/ai-integrations/langchain/langchain-create-vector-store.rst
+.. code-block::
+      
+   pip install langchain langchain_community
 
-.. _langchain-create-index:
+.. _langchain-vector-store:
 
-Create the {+avs+} Index
-------------------------------------
+Vector Store
+------------
 
-.. note:: 
+``MongoDBAtlasVectorSearch`` is a `vector store 
+<https://python.langchain.com/docs/how_to/#vector-stores>`__
+that allows you to store and retrieve vector embeddings from a 
+collection in |service|. You can use this component to store 
+embeddings from your data and retrieve them using {+avs+}.
 
-   To create an {+avs+} index, you must have :authrole:`Project Data Access Admin` 
-   or higher access to the |service| project.
+This component requires an :ref:`{+avs+} Index <avs-types-vector-search>`.
 
-.. include:: /includes/ai-integrations/langchain/langchain-create-index.rst
+Usage
+~~~~~
 
-.. _langchain-run-queries:
+.. code-block:: python
 
-Run Vector Search Queries
--------------------------
+   from langchain_mongodb.vectorstores import MongoDBAtlasVectorSearch
+   from pymongo import MongoClient
 
-Once |service| builds your index, run vector search queries on your data. 
-The following examples demonstrate various queries that you can 
-run on your vectorized data.
+   # Use some embedding model to generate embeddings
+   from tests.integration_tests.vectorstores.fake_embeddings import FakeEmbeddings
 
-.. include:: /includes/ai-integrations/langchain/langchain-query-examples.rst
+   # Connect to your Atlas cluster
+   client = MongoClient("<connection-string>")
+   collection = client["<database-name>"]["<collection-name>"]
 
-.. seealso::
+   # Instantiate the vector store
+   vector_store = MongoDBAtlasVectorSearch(
+      collection = collection         # Collection to store embeddings
+      embedding = FakeEmbeddings(),   # Embedding model to use
+      index_name = "vector_index",    # Name of the vector search index
+      relevance_score_fn = "cosine"   # Similarity score function, can also be "euclidean" or "dotProduct"
+   )
 
-   For a full list of semantic search methods, refer to 
-   the `API reference 
-   <https://api.python.langchain.com/en/latest/vectorstores/langchain_mongodb.vectorstores.MongoDBAtlasVectorSearch.html>`__.
+.. note::
 
-.. _langchain-rag:
+   - :ref:`Tutorial <langchain-get-started>`
+   - `API Reference <https://python.langchain.com/api_reference/mongodb/vectorstores/langchain_mongodb.vectorstores.MongoDBAtlasVectorSearch.html>`__
+   - `LangChain Documentation <https://python.langchain.com/docs/integrations/vectorstores/mongodb_atlas>`__
 
-Answer Questions on Your Data
------------------------------
-
-This section demonstrates how to implement |rag| in your 
-application with {+avs+} and LangChain. Now that you've used {+avs+} 
-to retrieve semantically similar documents, run the following code examples 
-to prompt the |llm| to answer questions based on those documents.
-
-.. include:: /includes/ai-integrations/langchain/langchain-perform-qa.rst
-  
-Next Steps
+Retrievers
 ----------
+
+LangChain `retrievers <https://python.langchain.com/docs/concepts/#retrievers>`__
+are components that you use to get relevant documents from your 
+vector stores. You can use LangChain's built-in retrievers or the following MongoDB
+retrievers to query and retrieve data from |service|.
+
+Full-Text Retriever
+~~~~~~~~~~~~~~~~~~~
+
+``MongoDBAtlasFullTextSearchRetriever`` is a retriever that 
+performs full-text search by using :ref:`{+fts+} <fts-top-ref>`. 
+Specifically, it uses Lucene's standard `BM25 algorithm
+<https://en.wikipedia.org/wiki/Okapi_BM25>`__.
+
+This retriever requires an :ref:`{+fts+} Index <ref-create-index>`.
+
+Usage
+`````
+
+.. code-block:: python
+
+   from langchain_mongodb.retrievers.full_text_search import MongoDBAtlasFullTextSearchRetriever
+
+   # Connect to your Atlas cluster
+   client = MongoClient("<connection-string>")
+   collection = client["<database-name>"]["<collection-name>"]
+
+   # Initialize the retriever
+   retriever = MongoDBAtlasFullTextSearchRetriever(
+      collection = collection,           # MongoDB Collection in Atlas
+      search_field = "<field-name>",     # Name of the field to search
+      search_index_name = "<index-name>" # Name of the search index
+   )
+
+   # Define your query
+   query = "some search query"
+
+   # Print results
+   documents = retriever.invoke(query)
+   for doc in documents:
+      print(doc)
+
+.. note::
+   
+   - `API Reference <https://python.langchain.com/api_reference/mongodb/retrievers/langchain_mongodb.retrievers.full_text_search.MongoDBAtlasFullTextSearchRetriever.html>`__
+
+Hybrid Search Retriever
+~~~~~~~~~~~~~~~~~~~~~~~
+
+``MongoDBAtlasHybridSearchRetriever`` is a retriever 
+that combines vector search and full-text search results by using the 
+Reciprocal Rank Fusion (RRF) algorithm. To learn more, see :ref:`as_hybrid-search`.
+
+This retriever requires an existing :ref:`vector store 
+<langchain-vector-store>`, :ref:`{+avs+} Index <avs-types-vector-search>`, 
+and :ref:`{+fts+} Index <ref-create-index>`.
+
+Usage
+`````
+
+.. code-block:: python
+
+   from langchain_mongodb.retrievers.hybrid_search import MongoDBAtlasHybridSearchRetriever
+
+   # Initialize the retriever
+   retriever = MongoDBAtlasHybridSearchRetriever(
+      vectorstore = <vector-store>,        # Vector store instance 
+      search_index_name = "<index-name>",  # Name of the Atlas Search index
+      top_k = 5,                           # Number of documents to return
+      fulltext_penalty = 60.0,             # Penalty for full-text search
+      vector_penalty = 60.0                # Penalty for vector search
+   )
+
+   # Define your query
+   query = "some search query"
+
+   # Print results
+   documents = retriever.invoke(query)
+   for doc in documents:
+      print(doc)
+
+.. note::
+
+   - `API Reference <https://python.langchain.com/api_reference/mongodb/retrievers/langchain_mongodb.retrievers.hybrid_search.MongoDBAtlasHybridSearchRetriever.html>`__
+
+LLM Caches
+----------
+
+`Caches <https://python.langchain.com/docs/how_to/caching_embeddings/>`__ are
+used to optimize |llm| performance by storing repetitive responses 
+for similar or repetitive queries to avoid recomputing them.
+MongoDB provides the following caches for your LangChain applications.
+
+MongoDB Cache
+~~~~~~~~~~~~~
+
+``MongoDBCache`` allows you to store a basic cache in |service|.
+
+Usage
+`````
+
+.. code-block:: python
+
+   from langchain_mongodb import MongoDBCache
+   from langchain_core.globals import set_llm_cache
+
+   set_llm_cache(MongoDBCache(
+      connection_string = "<connection-string>", # Atlas connection string
+      database_name = "<database-name>",         # Database to store the cache
+      collection_name = "<collection-name>"      # Collection to store the cache
+   ))
+
+.. note::
+   
+   - `API Reference <https://python.langchain.com/api_reference/mongodb/cache/langchain_mongodb.cache.MongoDBCache.html>`__
+   - `LangChain Documentation <https://python.langchain.com/docs/integrations/providers/mongodb_atlas/#mongodbcache>`__
+
+Semantic Cache
+~~~~~~~~~~~~~~
+
+Semantic caching is a more advanced form of caching that 
+retrieves cached prompts based on the semantic similarity 
+between the user input and cached results.
+
+``MongoDBAtlasSemanticCache`` is a semantic cache that uses {+avs+}
+to retrieve the cached prompts. This component requires an 
+:ref:`{+avs+} index <avs-types-vector-search>`.
+
+Usage
+`````
+
+.. code-block:: python
+
+   from langchain_mongodb import MongoDBAtlasSemanticCache
+   from langchain_core.globals import set_llm_cache
+
+   # Use some embedding model to generate embeddings
+   from tests.integration_tests.vectorstores.fake_embeddings import FakeEmbeddings
+   
+   set_llm_cache(MongoDBAtlasSemanticCache(
+      embedding = FakeEmbeddings(),              # Embedding model to use
+      connection_string = "<connection-string>", # Atlas connection string
+      database_name = "<database-name>",         # Database to store the cache
+      collection_name = "<collection-name>"      # Collection to store the cache
+   ))
+
+.. note::
+   
+   - `API Reference <https://python.langchain.com/api_reference/mongodb/cache/langchain_mongodb.cache.MongoDBAtlasSemanticCache.html>`__
+   - `LangChain Documentation <https://python.langchain.com/docs/integrations/providers/mongodb_atlas/#mongodbatlassemanticcache>`__
+
+Document Loader
+---------------
+
+`Document loaders <https://python.langchain.com/docs/how_to/#document-loaders>`__
+are tools that help you to load data for your LangChain applications. 
+
+``MongodbLoader`` is a document loader that returns a list of 
+documents from a MongoDB database.
+
+Usage
+~~~~~
+
+.. code-block:: python
+
+   from langchain_community.document_loaders.mongodb import MongodbLoader
+
+   loader = MongodbLoader(
+      connection_string = "<connection-string>",  # Atlas cluster or local MongoDB instance URI
+      db_name = "<database-name>",                # Database that contains the collection
+      collection_name = "<collection-name>",      # Collection to load documents from
+      filter_criteria = { <filter-document> },    # Optional document to specify a filter
+      field_names = ["<field-name>", ... ]        # List of fields to return
+   )
+
+   docs = loader.load()
+
+.. note::
+   
+   - `API Reference <https://python.langchain.com/api_reference/community/document_loaders/langchain_community.document_loaders.mongodb.MongodbLoader.html>`__
+   - `LangChain Documentation <https://python.langchain.com/docs/integrations/document_loaders/mongodb>`__
+
+Chat History
+------------
+
+``MongoDBChatMessageHistory`` is a component that allows you to store and manage 
+chat message histories in a MongoDB database. It can 
+save both user and AI-generated messages associated with a unique session identifier. 
+This is useful for applications that require tracking 
+of interactions over time, such as chatbots.
+
+Usage
+~~~~~
+
+.. code-block:: python
+
+   from langchain_mongodb.chat_message_histories import MongoDBChatMessageHistory
+
+   chat_message_history = MongoDBChatMessageHistory(
+      session_id = "<session-id>",               # Unique session identifier
+      connection_string = "<connection-string>", # Atlas cluster or local MongoDB instance URI
+      database_name = "<database-name>",         # Database to store the chat history
+      collection_name = "<collection-name>"      # Collection to store the chat history
+   )
+
+   chat_message_history.add_user_message("Hello")
+   chat_message_history.add_ai_message("Hi")
+
+.. io-code-block:: 
+   :copyable: false 
+
+   .. input:: 
+      :language: python
+
+      chat_message_history.messages
+
+   .. output::
+
+      [HumanMessage(content='Hello'), AIMessage(content='Hi')]
+
+.. note::
+      
+   - `API Reference <https://python.langchain.com/api_reference/mongodb/chat_message_histories/langchain_mongodb.chat_message_histories.MongoDBChatMessageHistory.html>`__
+   - `LangChain Documentation <https://python.langchain.com/docs/integrations/memory/mongodb_chat_message_history/>`__
+
+Binary Storage
+--------------
+
+``MongoDBByteStore`` is a custom datastore that uses MongoDB to store 
+and manage binary data, specifically data represented in bytes. 
+You can perform CRUD operations with key-value pairs where 
+the keys are strings and the values are byte sequences.
+
+Usage
+~~~~~
+
+.. code-block:: python
+
+   from langchain.storage import MongoDBByteStore
+
+   # Instantiate the MongoDBByteStore
+   mongodb_store = MongoDBByteStore(
+      connection_string = "<connection-string>",  # Atlas cluster or local MongoDB instance URI
+      db_name = "<database-name>",                # Name of the database
+      collection_name = "<collection-name>"       # Name of the collection
+   )
+
+   # Set values for keys
+   mongodb_store.mset([("key1", b"hello"), ("key2", b"world")])
+
+   # Get values for keys
+   values = mongodb_store.mget(["key1", "key2"])
+   print(values)  # Output: [b'hello', b'world']
+
+   # Iterate over keys
+   for key in mongodb_store.yield_keys():
+      print(key)  # Output: key1, key2
+
+   # Delete keys
+   mongodb_store.mdelete(["key1", "key2"])
+   
+.. note::
+      
+   - `API Reference <https://api.python.langchain.com/en/latest/community/storage/langchain_community.storage.mongodb.MongoDBByteStore.html>`__
+
+Additional Resources
+--------------------
 
 To learn about additional |rag| use-cases with {+avs+}, 
 see the following templates provided by LangChain to help you build applications:
@@ -148,7 +381,8 @@ MongoDB also provides the following developer resources:
   <https://www.mongodb.com/developer/products/atlas/leveraging-mongodb-atlas-vector-search-langchain/>`__
 - :github:`MongoDB Developer GitHub Repository </mongodb-developer>`
 
-.. seealso:: 
+.. toctree::
+   :titlesonly:
 
-   - `LangChain Documentation <https://python.langchain.com/docs/integrations/vectorstores/mongodb_atlas>`__
-   - `LangChain API Reference <https://api.python.langchain.com/en/latest/mongodb_api_reference.html>`__
+   Get Started </atlas-vector-search/ai-integrations/langchain/get-started>
+   

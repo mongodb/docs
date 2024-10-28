@@ -1,7 +1,7 @@
 1. Load the data.
 
    Use tools like
-   `document loaders <https://js.langchain.com/v0.2/docs/concepts/#document-loaders/>`__
+   `document loaders <https://js.langchain.com/docs/concepts#document-loaders>`__
    or `data connectors <https://docs.llamaindex.ai/en/stable/module_guides/loading/connector/>`__
    to load data from different data formats and locations.
 

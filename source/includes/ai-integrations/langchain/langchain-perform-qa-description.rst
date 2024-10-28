@@ -1,12 +1,12 @@
 - Defines a LangChain `prompt template 
-  <https://python.langchain.com/docs/modules/model_io/prompts/quick_start#prompttemplate>`__
+  <https://python.langchain.com/docs/how_to/#prompt-templates>`__
   to instruct the |llm| to use 
   these documents as context for your query.
   LangChain passes these documents to the ``{context}`` input
   variable and your query to the ``{question}`` variable.
 
 - Constructs a `chain 
-  <https://python.langchain.com/docs/modules/chains>`__
+  <https://python.langchain.com/docs/concepts/#langchain-expression-language-lcel>`__
   that specifies the following:
 
   - {+avs+} as the retriever to search for documents 

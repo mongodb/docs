@@ -33,7 +33,7 @@
       It does the following:
 
       - Retrieves the PDF from the specified URL and loads the raw text data.
-      - Uses a `text splitter <https://python.langchain.com/docs/modules/data_connection/document_transformers/>`__
+      - Uses a `text splitter <https://python.langchain.com/docs/how_to/#text-splitters/>`__
         to split the data into smaller documents.
       - Specifies chunk parameters, which determines the number of characters in each document and 
         the number of characters that should overlap between two consecutive documents.

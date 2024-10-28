@@ -6,7 +6,7 @@
       This example does the following:
 
       - Instantiates {+avs+} as a `retriever 
-        <https://python.langchain.com/docs/modules/data_connection/retrievers/>`__
+        <https://python.langchain.com/docs/how_to/#retrievers>`__
         to query for similar documents, including the optional ``k`` 
         parameter to search for only the ``10`` most relevant documents.
 
@@ -92,7 +92,7 @@
       This example does the following:
 
       - Instantiates {+avs+} as a `retriever 
-        <https://python.langchain.com/docs/modules/data_connection/retrievers/>`__
+        <https://python.langchain.com/docs/how_to/#retrievers/>`__
         to query for similar documents, including the following optional parameters:
          
         - ``k`` to search for only the ``10`` most relevant documents.
