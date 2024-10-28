@@ -120,7 +120,8 @@
   the target field.
 - Improves performance and stability when writing to Parquet using :ref:`adf-out-stage` to |s3|.
 - Adds the ability to use any BSON type with the ``$comment`` operator and query in
-  :ref:`$queryHistory <adf-query-history-stage>`.
+  ``$queryHistory``. (Starting in MongoDB 5.1, the ``$comment`` operator
+  :manual:`was removed </release-notes/6.0-compatibility/#removed-operators>`).
 - {+adf+} now returns MongoDB 6.2.0 in the :ref:`buildInfo output <mql-support-diagnostic-cmd>`.
 
 .. _adf-v20230215:

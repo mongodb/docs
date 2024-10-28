@@ -124,16 +124,6 @@ fields:
      - Error, if any, returned by the query. Note that the query status 
        ``0`` indicates errors. Empty string if query ran successfully. 
 
-   * - ``queryFilterComments``
-     - array of any :manual:`BSON type </reference/bson-types/>`
-     - Comment values included with the ``$comment`` operator inside 
-       the query pipeline. Omitted if the query didn't include the 
-       ``$comment`` operator. 
-
-       The :manual:`$comment </reference/operator/query/comment/>` 
-       operator value can be any valid :manual:`BSON type
-       </reference/bson-types/>`. 
-
    * - ``ok``
      - int 
      - Status of the query. Value can be one of the following: 
@@ -326,58 +316,31 @@ following example returns information on the queries that were run by
 Filter |qh| Output for Specific Queries
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For the example below, suppose a query similar to the following is  
-run against the ``Database0.Collection0`` collection described in the 
-:ref:`Getting Started tutorial <adf-tutorials>`. The query includes 
-unique strings to help identify the query in the results returned by 
-the |qh| stage. You can attach a comment to a query using the 
+In the following example, we run a query similar to the following
+against the ``Database0.Collection0`` collection described in the
+:ref:`Getting Started tutorial <adf-tutorials>`.
+
+The query includes unique strings to help identify the query in the results
+returned by  the |qh| stage. You can attach a comment to a query using the 
 :manual:`aggregate </reference/command/aggregate/>` command ``comment`` 
-option or the :manual:`$comment </reference/operator/query/comment/>` 
-operator. This example uses both ways to attach the unique strings with 
-the query.
+option.
 
 .. code-block:: shell 
 
    use Database0
-   db.Collection0.aggregate([ { $match: {"account_id": 557378, "$comment": "test"}},{$sort: {"transactions.symbol": -1}} ],{"comment":"exampleQuery"})
+   db.Collection0.aggregate([ { $match: {"account_id": 557378}},{$sort: {"transactions.symbol": -1}} ],{"comment":"exampleQuery"})
 
-.. tabs:: 
+To retrieve the query history using the string value of the ``comment``
+option of the :manual:`aggregate </reference/command/aggregate/>` command,
+run the following commands against the ``admin`` database:
 
-   .. tab:: comment Option Example
-      :tabid: option
+.. code-block:: json
 
-      To retrieve the query history using the string value of the 
-      ``comment`` option of the :manual:`aggregate 
-      </reference/command/aggregate/>` command, run the following 
-      commands against the ``admin`` database:
+   use admin
+   db.aggregate([{$queryHistory: {}}, {$match: {"comment": "exampleQuery"}} ]) 
 
-      .. code-block:: json
-
-         use admin 
-         db.aggregate([{$queryHistory: {}}, {$match: {"comment": "exampleQuery"}} ]) 
-
-   .. tab:: $comment Operator Example
-      :tabid: operator
-
-      .. note:: 
-
-         You can provide any valid :manual:`BSON type
-         </reference/bson-types/>` as the value for the
-         :manual:`$comment </reference/operator/query/comment/>` 
-         operator. 
-
-      To retrieve the query history using the string value of the 
-      ``$comment`` operator in the :pipeline:`$match` query, run the 
-      following commands against the ``admin`` database.
-
-      .. code-block:: json
-
-         use admin 
-         db.aggregate([{$queryHistory: {}}, {$match:
-         {queryFilterComments: "test"}}]) 
-
-|qh| finds the query that included the specified string and returns 
-results similar to the following: 
+|qh| finds the query that included the specified string and returns results
+similar to the following example:
 
 .. code-block:: json
    :copyable: false
@@ -386,7 +349,7 @@ results similar to the following:
      {
        "_id": ObjectId("61e1e4c29e62172566d8e9b6"),
        "query": [
-         { "$match": { "account_id": 557378, "$comment": "test" } },
+         { "$match": { "account_id": 557378} },
          { "$sort": { "transactions.symbol": -1 } }
        ],
        "comment": "exampleQuery",
@@ -400,6 +363,5 @@ results similar to the following:
        "ok": 1,
        "error": "",
        "background": false,
-       "queryFilterComments": [ "test" ]
      }
    ]
