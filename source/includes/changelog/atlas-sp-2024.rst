@@ -1,3 +1,15 @@
+.. _atlas-sp-20241023:
+
+23 October 2024 Release
+-----------------------
+
+- Always retries processors when the target cluster is in the 
+  ``REPAIRING`` state.
+- Fixes the ``partitionIdleTimeout`` after the checkpoint restore.
+- Adds more watermark and window information to verbose stats.
+- Ensures calls to produce messages to Kafka don't hang 
+  indefinitely, even when the producer queue is full.
+
 .. _atlas-sp-20240828:
 
 28 August 2024 Release
