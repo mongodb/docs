@@ -30,7 +30,7 @@ $collection = $db->test_collection;
 
 // Explicitly creates the "example_collection" collection
 // start-create-collection
-$result = $client->test_database->createCollection('example_collection');
+$client->test_database->createCollection('example_collection');
 // end-create-collection
 
 // Lists the collections in the "test_database" database
