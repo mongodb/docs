@@ -9,3 +9,6 @@
    from |service|, preventing accidental or unexpected deletions. To learn more, 
    including how to :ref:`revert this behavior <revert-deletion-protection>` to 
    the default used prior to |ak8so| 2.0, see :ref:`deletion-protection`.
+
+   Similarly, |ak8so| does not delete teams from |service| if you remove them from an
+   |service| project in |k8s| with the |ak8so|. 
