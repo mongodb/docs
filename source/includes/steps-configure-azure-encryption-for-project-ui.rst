@@ -55,6 +55,12 @@
                - ``ENCRYPT``
                - ``DECRYPT``
 
+      .. note:: 
+
+         You can't modify the |akv| credentials here after you
+         :ref:`enable and set up private endpoint connections 
+         <azure-kms-enable-pvt-endpoint>` to your |akv|. 
+
    .. step:: Enter the :guilabel:`Encryption Key`.
       
       .. list-table::

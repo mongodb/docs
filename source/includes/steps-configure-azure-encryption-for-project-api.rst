@@ -27,6 +27,16 @@
                 }
               }'
 
+      .. note:: 
+
+         You can't modify the following settings after you :ref:`enable
+         and set up private endpoint connections 
+         <azure-kms-enable-pvt-endpoint>` to your |akv|:
+
+         - ``keyVaultName``
+         - ``resourceGroupName``
+         - ``subscriptionID``
+
    .. step:: Verify the configuration for Encryption at Rest using |cmk| for your project.
 
       To verify your request to enable and configure encryption at rest
