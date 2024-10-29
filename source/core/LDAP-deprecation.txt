@@ -18,90 +18,144 @@ LDAP Deprecation
 
 .. include:: /includes/LDAP-deprecated-introduction.rst
 
-You should migrate from LDAP to Workforce Identity Federation (OIDC
-authentication) for human users and Workload Identity Federation (OAuth
-2.0) for programmatic users.
+You should plan to migrate from LDAP to an alternative authentication
+method.
 
-With Workforce Identity Federation, you can manage human user access to
-Atlas Clusters from any identity provider that supports OIDC, including
-Microsoft Entra ID, Okta, and Ping Identity.
-
-With Workload Identity Federation, you can manage application access to
-Atlas Clusters from any authorization system that supports OAuth 2.0.
-You can use cloud provider application users, which include Azure
-Service Principals, Azure Managed Identities, and Google Cloud Platform
-(GCP) service accounts.
-
-Get Started
------------
-
-To get started with Workforce and Workload Identity Federation in Atlas,
-see:
-
-- :atlas:`Atlas Workforce Identity Federation </workforce-oidc>`
-- :atlas:`Atlas Workload Identity Federation </workload-oidc>`
-
-To get started with Workforce Identity Federation in MongoDB server,
-see :ref:`authentication-oidc`.
-
-.. COMMENT Add the following link and adjust bullet introduction later to above list
-.. COMMENT - :ref:`Workforce external provider </workforce-external-provider>`
-
-LDAP migration information will be available in the future.
+Full LDAP migration information will be available in the future.
 
 Details
 -------
 
-The following sections describe additional details with the advantages
-of Workforce and Workload Identity Federation compared to LDAP.
+The following sections introduce alternative authentication methods for
+self-managed MongoDB Enterprise Advanced, MongoDB Atlas, and MongoDB
+Atlas for Government.
 
-Atlas and Atlas for Government
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Self-Managed MongoDB Enterprise Advanced
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**Cost efficiency:** For Atlas Developer and Pro support, LDAP has a fee
-as part of the Advanced Security package. Workforce and Workload
-Identity Federation don't have an additional fee. For pricing, see:
+For human user access, MongoDB recommends migrating from LDAP to
+Workforce Identity Federation (OIDC authentication). Workforce Identity
+Federation allows single sign-on (SSO) access to your self-managed
+MongoDB databases using any identity provider that supports OIDC, such
+as Microsoft Active Directory Federation Services (ADFS), Microsoft
+Entra ID, Okta, and Ping Identity. 
 
-- `MongoDB Pricing <https://www.mongodb.com/pricing>`_
-- :atlas:`MongoDB Atlas Additional Services </billing/additional-services>`
-- `Atlas Support Plans
-  <https://www.mongodb.com/services/support/atlas-support-plans>`_
+For programmatic users, MongoDB recommends migrating from LDAP to
+Workload Identity Federation. With Workload Identity Federation, your
+applications can use databases with OAuth 2.0 access tokens provided by
+your authorization service.
 
-**Improved network security:** LDAP requires a public Fully Qualified
-Domain Name (FQDN), which creates a potential firewall vulnerability.
-With Workforce Identity Federation, you can use an Internet connected
-Identity Provider (IdP) and synchronize part of the user directory to
-your IdP to improve security with Workforce Identity Federation.
+You can also use cloud provider principals such as Microsoft Azure
+Managed Identities and Google Cloud Platform (GCP) service accounts. If
+you cannot use Workload Identity Federation, MongoDB recommends you use
+x.509 certificate authentication.
 
-**Improved credentials handling:** Unlike LDAP, user credentials aren't
-sent to or stored in MongoDB with Identity Federation.
+- To configure Workforce Identity Federation (OIDC authentication) with
+  the MongoDB server, see :manual:`Self-Managed OpenID Connect
+  Authentication </core/security-oidc/>`.
+- To configure Workforce and Workload Identity Federation with MongoDB
+  Cloud Manager, see :mms-docs:`Enable Authentication and Authorization
+  with Cloud Manager </tutorial/enable-oidc-authentication-for-group>`.
+- Details on how to configure Workload Identity Federation with the
+  MongoDB server will be provided later.
 
-**Modern authentication policies for human users:** Workforce Identity
-Federation allows authentication through IdP, which enables the use of
-modern authentication policies.
+.. COMMENT Add link to Jonathan Wilson's content to previous point
 
-**Simple configuration:** LDAP users require a complex network
-configuration for Atlas. Identity Federation has a simpler
-configuration.
+- Details on how to configure Workforce Identity Federation and Workload
+  Identity Federation with MongoDB Ops Manager 8.0.1 and above will be
+  provided later.
 
-**Authentication without passwords for application users:** Identity
-Federation supports authentication without passwords for applications
-running on specific cloud resources. This also eliminates periodically
-renewing credentials.
+.. COMMENT Add link to previous point
+.. COMMENT See https://github.com/10gen/docs-ops-manager/pull/473
+.. COMMENT (David Hou to work on)
 
-**Improved security with access tokens:** Identity Federation grants
-access through short term access tokens, which improves security when
-compared to LDAP. Access tokens are typically valid for one hour. The
-time period can be customized based on the identity provider.
+Some of the advantages of Workforce and Workload Identity Federation
+compared to LDAP for a self-managed MongoDB deployment are:
 
-MongoDB Server On-premises Implementations
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- **No credentials stored in MongoDB:** The LDAP bind user credentials
+  are stored in MongoDB. With Workforce or Workload Identity Federation,
+  MongoDB doesn't store credentials or secrets that grant access to user
+  directories.
 
-In addition to the last two points in the previous list, MongoDB
-on-premises server implementations also have the following additional
-consideration:
+- **Reduced cross-application risk:** In an LDAP connection, the user's
+  LDAP credentials are sent to MongoDB within the connection string,
+  which is a risk for cross-application access. However, with Workforce
+  and Workload Identity Federation, MongoDB never receives a secret.
+  OIDC and OAuth 2.0 grant access tokens for specific resources using
+  audience claims. If a token is compromised, the token cannot be used
+  to access other applications.
 
-**Reduced cross-application risk:** With OIDC and OAuth 2.0, access
-tokens are granted for specific resources using audience claims. If a
-token is compromised, the token has a limited lifetime and scope to
-limit access.
+- **Improved security with access tokens:** Identity Federation grants
+  access through short term access tokens, which improves security when
+  compared to LDAP. Access tokens are typically valid for one hour. The
+  time period can usually be customized based on the identity provider.
+
+- **Authentication without passwords for application users:** If your
+  applications are running in the cloud, Workload Identity Federation
+  supports authentication without passwords for applications running on
+  :atlas:`specific cloud resources
+  </workload-oidc/#built-in-authentication>`. This eliminates
+  periodically renewing credentials.
+
+MongoDB Atlas and Atlas for Government
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For human user access, MongoDB recommends migrating from LDAP to
+Workforce Identity Federation (OIDC authentication). Workforce Identity
+Federation allows single sign-on (SSO) access to your Atlas clusters
+with any identity provider that supports OIDC, such as Microsoft Entra
+ID, Okta, and Ping Identity.
+
+For programmatic users, MongoDB recommends migrating from LDAP to Amazon
+AWS-IAM authentication or Workload Identity Federation. If your
+applications are running on AWS resources, you can use AWS-IAM
+authentication to access your MongoDB Atlas clusters with AWS-IAM roles.
+
+If your applications are running on Microsoft Azure or Google Cloud
+Platform systems, you can use Workload Identity Federation to
+access Atlas clusters with Microsoft Azure Managed Identities or Google
+Cloud Platform Service Accounts. If you cannot use AWS-IAM or Workload
+Identity Federation, MongoDB recommends using x.509 certificate
+authentication.
+
+- To get started with Workforce and Workload Identity Federation,
+  see :atlas:`Authentication and Authorization with OIDC/OAuth 2.0 in
+  Atlas </security-oidc/>`.
+- To get started with AWS-IAM authentication, see :atlas:`Set Up
+  Authentication with AWS-IAM </security/aws-iam-authentication/>`.
+
+Some of the advantages of Workforce and Workload Identity Federation
+compared to LDAP in Atlas are:
+
+- **Improved network security:** LDAP requires a public Fully Qualified
+  Domain Name (FQDN), which creates a potential firewall vulnerability.
+  With Workforce Identity Federation, you can use an Internet connected
+  Identity Provider (IdP) and synchronize part of the user directory to
+  your IdP to improve security with Workforce Identity Federation.
+- **Improved credentials handling:** Unlike LDAP, user credentials
+  aren't sent to or stored in MongoDB when using Workforce or Workload
+  Identity Federation.
+- **Modern authentication policies for human users:** Workforce Identity
+  Federation allows authentication through IdP, which enables the use of
+  modern authentication policies.
+- **Simple configuration:** LDAP users require a complex network
+  configuration for Atlas. Identity Federation has a simpler
+  configuration.
+- **Improved security with access tokens:** Workforce and Workload
+  Identity Federation and AWS-IAM authentication grant access through
+  short term access tokens, which improves security when compared to
+  LDAP. Access tokens are typically valid for one hour. The time period
+  can usually be customized based on the identity provider.
+- **Authentication without passwords for application users:** Workload
+  Identity Federation supports authentication without passwords for
+  applications running on :atlas:`specific cloud resources
+  </workload-oidc/#built-in-authentication>`. This eliminates
+  periodically renewing credentials.
+- **Cost efficiency:** For Atlas Developer and Pro support, LDAP has a
+  fee as part of the Advanced Security package. Workforce and Workload
+  Identity Federation don't have an additional fee. For pricing, see:
+
+  - `MongoDB Pricing <https://www.mongodb.com/pricing>`_
+  - :atlas:`MongoDB Atlas Additional Services </billing/additional-services>`
+  - `Atlas Support Plans
+    <https://www.mongodb.com/services/support/atlas-support-plans>`_
