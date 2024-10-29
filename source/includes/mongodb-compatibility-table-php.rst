@@ -1,3 +1,5 @@
+.. Full compatibility table, for reference only. 
+
 .. sharedinclude:: dbx/compatibility-table-legend.rst
 
 .. list-table::

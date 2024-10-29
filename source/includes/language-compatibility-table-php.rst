@@ -1,3 +1,5 @@
+.. Full compatibility table, for reference only. 
+
 .. list-table::
    :header-rows: 1
    :stub-columns: 1
