@@ -5,7 +5,7 @@ list item includes the name and other general information for
 the collection or view.
 
 To access the :guilabel:`Collections` screen for a database, from the
-:doc:`Databases screen </databases>` either:
+:ref:`Databases screen <database-tab>` either:
 
 - Click a :guilabel:`Database Name` in the main :guilabel:`Databases`
   view, or

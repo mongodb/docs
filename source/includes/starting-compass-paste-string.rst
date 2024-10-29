@@ -50,7 +50,7 @@
    .. step:: Connect to your cluster.
 
       Click :guilabel:`Save` or :guilabel:`Save & Connect` to navigate to the 
-      |compass-short| :doc:`Home Page </instance>`. 
+      |compass-short| :ref:`Home Page <compass-home-screen>`. 
 
       .. important:: Required Access
         
