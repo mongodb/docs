@@ -38,16 +38,7 @@
 
    .. include:: /includes/nav/steps-embedding.rst
 
-   .. step:: Acquire an embedding key.
-
-      Click the :guilabel:`Authentication Settings` tab.
-
-      .. note::
-
-         You must be a :ref:`Project Owner <dashboard-permissions>` to
-         access the :guilabel:`Authentication Settings` page. As a 
-         non-admin user, you can still use embedded charts, but you 
-         must get a key from a Project Owner.
+   .. include:: /includes/nav/steps-auth-settings.rst
 
    .. step:: Generate an embedding key.
 
