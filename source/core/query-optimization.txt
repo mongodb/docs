@@ -4,7 +4,9 @@
 Query Optimization
 ==================
 
-.. default-domain:: mongodb
+.. facet::
+   :name: genre
+   :values: reference
 
 .. contents:: On this page
    :local:
@@ -96,23 +98,30 @@ A covered query is a query that can be satisfied entirely using an
 index and does not have to examine any documents. An index covers a 
 query when all of the following apply:
 
-- all the fields in the :ref:`query <read-operations-query-document>`
-  are part of an index, **and**
+- All the fields in the query (both as specified by the application and
+  as needed internally such as for sharding purposes) are part of an
+  index.
 
-- all the fields returned in the results are in the same index.
+- All the fields returned in the results are in the same index.
 
-- no fields in the query are equal to ``null`` (i.e. {``"field" : null``} or 
-  {``"field" : {$eq : null}}`` ).
+- No fields in the query are equal to ``null``. For example, the
+  following query predicates cannot result in covered queries:
+  
+  - ``{ "field": null }``
+  - ``{ "field": { $eq: null } }``
 
-For example, a collection ``inventory`` has the following index on the
-``type`` and ``item`` fields:
+Example
+~~~~~~~
+
+An ``inventory`` collection has the following index on the ``type`` and
+``item`` fields:
 
 .. code-block:: javascript
 
    db.inventory.createIndex( { type: 1, item: 1 } )
 
-This index will cover the following operation which queries on the
-``type`` and ``item`` fields and returns only the ``item`` field:
+The index covers the following operation which queries on the ``type``
+and ``item`` fields and returns only the ``item`` field:
 
 .. code-block:: javascript
 
@@ -130,28 +139,36 @@ Embedded Documents
 
 An index can cover a query on fields within embedded documents.
 
-For example, consider a collection ``userdata`` with documents of the
+For example, consider a ``userdata`` collection with documents of the
 following form:
 
 .. code-block:: javascript
 
-   { _id: 1, user: { login: "tester" } }
+   db.userdata.insertOne(
+      { _id: 1, user: { login: "tester" } }
+   )
 
 The collection has the following index:
 
-.. code-block:: none
+.. code-block:: javascript
 
-   { "user.login": 1 }
+   db.userdata.createIndex(
+      { "user.login": 1 }
+   )
 
-The ``{ "user.login": 1 }`` index will cover the query below:
+The ``{ "user.login": 1 }`` index covers the following query:
 
-.. code-block:: none
+.. code-block:: javascript
 
-   db.userdata.find( { "user.login": "tester" }, { "user.login": 1, _id: 0 } )
+   db.userdata.find(
+      { "user.login": "tester" },
+      { "user.login": 1, _id: 0 }
+   )
 
 .. note::
 
-   To index fields in embedded documents, use :term:`dot notation`.
+   To index fields in embedded documents, use :term:`dot notation`. See
+   :ref:`index-embedded-fields`.
 
 .. _multikey-covering:
 
@@ -163,6 +180,8 @@ if the index tracks which field or fields cause the index to be multikey.
 
 .. include:: /includes/fact-multikey-index-covered-query.rst
 
+For an example of a covered query with a multikey index, see
+:ref:`multikey-covered-queries` on the multikey indexes page.
 
 Performance
 ~~~~~~~~~~~
@@ -179,16 +198,12 @@ located sequentially on disk.
 Limitations
 ~~~~~~~~~~~
 
-Restrictions on Indexed Fields
-``````````````````````````````
+Index Types
+```````````
 
-- .. include:: /includes/fact-geospatial-index-covered-query.rst
-
-- .. include:: /includes/fact-multikey-index-covered-query.rst
-
-  .. seealso::
-
-     :ref:`multikey-covering`
+Not all :ref:`index types <index-types>` can cover queries. For details
+on covered index support, refer to the documentation page for the
+corresponding index type.
 
 .. _covered-index-sharded-collection:
 
@@ -202,11 +217,10 @@ Restrictions on Sharded Collection
 
 To determine whether a query is a covered query, use the
 :method:`db.collection.explain()` or the :method:`~cursor.explain()`
-method and review the :ref:`results <explain-output-covered-queries>`.
+method. See :ref:`explain-output-covered-queries`.
 
 .. toctree::
    :titlesonly:
-   :hidden:
 
    Analyze Performance </tutorial/evaluate-operation-performance>
    Optimize Performance </tutorial/optimize-query-performance-with-indexes-and-projections>
