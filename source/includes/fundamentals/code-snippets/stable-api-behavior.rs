@@ -1,13 +1,9 @@
-use mongodb::{
-    bson::doc,
-    options::{ClientOptions, ServerApi, ServerApiVersion},
-    sync::Client,
-};
+use mongodb::{ bson::doc, options::{ ClientOptions, ServerApi, ServerApiVersion }, sync::Client };
 
 fn main() -> mongodb::error::Result<()> {
     let uri = "<connection string>";
     // start-stable-api-behavior
-    let mut client_options = ClientOptions::parse(uri)?;
+    let mut client_options = ClientOptions::parse(uri).await?;
 
     let server_api = ServerApi::builder()
         .version(ServerApiVersion::V1)
