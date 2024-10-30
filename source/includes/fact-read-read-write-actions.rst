@@ -125,6 +125,7 @@ database it applies to, and the :manual:`privilege actions
        - :authaction:`inprog`
        - :authaction:`killop`
        - :authaction:`killAnySession`
+       - :authaction:`killCursors`
        - :authaction:`listSessions`
 
    * - ``readWriteAnyDatabase``
