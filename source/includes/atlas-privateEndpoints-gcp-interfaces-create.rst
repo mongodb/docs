@@ -14,7 +14,7 @@ atlas privateEndpoints gcp interfaces create
 
 Create a GCP private endpoint interface.
 
-To use this command, you must authenticate with a user account or an API key with the Project Owner role.
+To use this command, you must authenticate with a user account, API key, or service account with the Project Owner role.
 
 Syntax
 ------

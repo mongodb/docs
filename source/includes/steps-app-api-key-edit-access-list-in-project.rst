@@ -2,8 +2,10 @@
    :style: normal
       
    .. include:: /includes/nav/steps-project-access-manager.rst
-      
-   .. step:: Click the :guilabel:`API Keys` tab.
+
+   .. step:: Click the :guilabel:`Applications` tab.
+
+   .. step:: Click :guilabel:`API Keys`.
       
    .. step:: Edit the Access List.
 

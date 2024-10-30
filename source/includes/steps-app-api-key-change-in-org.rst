@@ -2,8 +2,10 @@
    :style: normal
 
    .. include:: /includes/nav/steps-org-access-manager.rst
-      
-   .. step:: Click the :guilabel:`API Keys` tab.
+
+   .. step:: Click the :guilabel:`Applications` tab.
+
+   .. step:: Click :guilabel:`API Keys`.
       
    .. step:: From the ellipsis menu to the right of the |api| Key you want to change, click :guilabel:`Edit`.
       

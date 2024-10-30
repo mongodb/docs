@@ -3,8 +3,10 @@
 
    .. include:: /includes/nav/steps-org-access-manager.rst
       
-   .. step:: Click the :guilabel:`API Keys` tab.
+   .. step:: Click the :guilabel:`Applications` tab.
       
+   .. step:: Click :guilabel:`API Keys`.
+
    .. step:: View the Access List.
 
       a. Click :icon-mms:`ellipsis` to the right of the |api| Key.

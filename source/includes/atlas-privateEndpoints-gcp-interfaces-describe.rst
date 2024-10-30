@@ -14,7 +14,7 @@ atlas privateEndpoints gcp interfaces describe
 
 Return a specific GCP private endpoint interface for your project.
 
-To use this command, you must authenticate with a user account or an API key with the Project Read Only role.
+To use this command, you must authenticate with a user account, API key, or service account with the Project Read Only role.
 
 Syntax
 ------
