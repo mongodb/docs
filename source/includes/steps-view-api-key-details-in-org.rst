@@ -5,8 +5,10 @@
 
    .. include:: /includes/nav/steps-org-access-manager.rst
       
-   .. step:: Click the :guilabel:`API Keys` tab.
-      
+   .. step:: Click the :guilabel:`Applications` tab.
+
+   .. step:: Click :guilabel:`API Keys`.
+
    .. step:: Navigate to :guilabel:`View Details`.
       
       a. Next to the |api| Key, click :icon-mms:`ellipsis`.

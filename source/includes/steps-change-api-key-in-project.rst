@@ -3,7 +3,9 @@
       
    .. include:: /includes/nav/steps-project-access-manager.rst
       
-   .. step:: Click the :guilabel:`API Keys` tab.
+   .. step:: Click the :guilabel:`Applications` tab.
+
+   .. step:: Click :guilabel:`API Keys`.
       
    .. step:: Select the API Key to edit.
       

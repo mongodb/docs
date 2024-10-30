@@ -21,17 +21,6 @@ The |api| has the following features:
 |json| entities
   All entities are expressed in |json|.
 
-Key-based access
-  Each |mms| user or application needing to connect to |mms|
-  must
-  :doc:`generate an API key </tutorial/configure-public-api-access>`
-  before accessing the |mms| |api|.
-
-Digest authentication
-  To ensure that your :cloudmgr:`public API key </reference/glossary/#std-term-Public-API-key>` is never sent over the
-  network, |api| requests are authenticated using
-  `HTTP Digest Authentication`_.
-
 Browsable interface
   Using a consistent linking mechanism, you can browse the entire API
   by starting at the root resource and following links to related
@@ -555,57 +544,80 @@ contains five fields:
 
 To review the list of codes, see :doc:`/reference/api-error-codes`.
 
+.. _cm-api-auth:
+
 Authentication
 --------------
 
-As previously mentioned, the |mms| |api| uses |http| Digest
-Authentication. The details of digest authentication are beyond the
-scope of this document, but it essentially requires a username and a
-password which are hashed using a unique server-generated value called
-a **nonce**. The username is the username of a registered |mms|
-account, and the password is a :cloudmgr:`public API key </reference/glossary/#std-term-Public-API-key>` associated
-with that account.
+The |mms| |api| uses one of two methods to authenticate
+requests: :cloudmgr:`API keys </reference/glossary/#std-term-Public-API-key>` 
+or service accounts. This ensures that the keys and access tokens 
+that serve as usernames and passwords are never sent over the network.
+For usage details, see :ref:`mms-prog-api-key`.
 
-Keep the following points in mind:
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
 
-- The server-generated nonce is used by the client to hash the
-  username and password before sending them back to the server to
-  authenticate a request. The nonce is only valid for a short amount
-  of time as per the digest authentication specification. This is to
-  prevent replay attacks, so you cannot cache a nonce and use it
-  forever.
+   * - API Keys
+     - Service Account
 
-- Using digest authentication in combination with |https| provides
-  an extra layer of security by ensuring that a password is never
-  transmitted back to the server.
+   * - Legacy method of authenticating to |mms| that uses 
+       `HTTP digest authentication <https://en.wikipedia.org/wiki/Digest_access_authentication>`__. 
+     - New method of authenticating to |mms| using the 
+       industry standard `OAuth 2.0 <https://oauth.net/2/>`__ protocol with the `Client Credentials flow <https://www.oauth.com/oauth2-servers/access-tokens/client-credentials/>`__. 
+       *Currently in Preview*. 
 
-- Some resource methods require even more security and are additionally
-  protected by :ref:`access lists <access-list-for-api-operations>`
-  that allow access to the resource only from the |ipaddr| addresses
-  listed. Each user configures their own access list of |ipaddr|
-  addresses that allow access to the resource.
+   * - |api| keys have two parts: a Public Key and a Private Key. These 
+       two parts serve the same function as a username and a password when you 
+       :ref:`make API requests <example-cm-api-request>` to |mms|. 
+     - A service account lets you manage permissions and create access tokens. A      
+       service account has a client ID and a secret that function as a username 
+       and a password for creating access tokens. An access token lets  you 
+       :ref:`make API requests <example-cm-api-request>` to |mms|.
 
-- The |application| has a concept of **roles**, which allow more
-  fine-grained control of the operations a user is allowed to perform.
-  The |api| resources also enforce the same authorization rules, so
-  the resources and methods that can be accessed by an |api| key are
-  governed by the roles granted to the associated user.
+   * - |mms| hashes the Public Key and Private Key using a unique value called 
+       a **nonce**.  
+       The nonce is only valid for a short amount of time as per the 
+       |http| digest specification. This is to prevent replay 
+       attacks, so you can't cache a nonce and use it forever.
+     - After you create a service account, you'll use its client ID and secret to 
+       generate an access token, which authenticates your |api| requests.
+       Access tokens are only valid for 1 hour (3600 seconds) per the 
+       OAuth 2.0 specification. Expiration of access tokens prevents 
+       replay attacks, where a leaked access token could be used without a time restriction.
 
-  .. example::
+   * - |mms| :ref:`roles <user-roles>` limit which operations |api| keys can perform. 
+       You must grant roles to 
+       |api| keys as you would for users to ensure the |api| keys can call |api| 
+       endpoints without errors.
+     - |mms| :ref:`roles <user-roles>` limit which operations a service account 
+       can perform with its access token. You must grant roles to service accounts 
+       as you would for users to ensure the access token can call |api| endpoints 
+       without errors. 
 
-     To ``DELETE`` a host, the user that owns the |api| key used to
-     make the request must be a :authrole:`Project Monitoring Admin`
-     or :authrole:`Project Owner` in the project to which the host
-     belongs.
+   * - |mms| binds many resources to a project. Many |api| resource
+       |url|\s follow the format of ``/api/public/v1.0/groups/<PROJECT-ID>/``.
+       For these resources, the |api| keys must be a member of the
+       organization that hosts the project. Otherwise, |mms|
+       responds with a `401 <https://httpstatuses.com/401>`__ error.
+     - |mms| binds many resources to a project. Many |api| resource
+       |url|\s follow the format of ``/api/public/v1.0/groups/<PROJECT-ID>/``.
+       For these resources, the service account must be a member of the
+       organization that hosts the project. Otherwise, |mms|
+       responds with a `401 <https://httpstatuses.com/401>`__ error.
 
-- Many resources are tied to a project (former known as a *group*),
-  as evidenced by |url|\s of the following form:
+   * - Each |api| key belongs to only one organization, but you can grant 
+       |api| keys access to any number of projects in that 
+       organization.
+     - Each service account belongs to only one organization, but you can grant 
+       a service account access to any number of projects in that organization.
 
-  .. code-block:: shell
-
-     /api/public/v1.0/groups/{PROJECT-ID}/
-
-  For these resources, the user tied to the |api| key must be a member of the project. Otherwise |application| responds with an |http| 401 error.
+Some resource methods require even more security and are additionally
+protected by :ref:`access lists <access-list-for-api-operations>`
+that allow access to the resource only from the |ipaddr| addresses
+listed. Each user configures their own access list of |ipaddr|
+addresses that allow access to the resource.
 
 .. _api-automation:
 

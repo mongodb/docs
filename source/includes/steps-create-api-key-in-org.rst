@@ -5,9 +5,7 @@
 
    .. include:: /includes/nav/steps-org-access-manager.rst
       
-   .. step:: Click the :guilabel:`API Keys` tab.
-      
-   .. step:: Click :guilabel:`Create API Key`.
+   .. step:: Click :guilabel:`Add new` :icon:`arrow-right` :guilabel:`Application` :icon:`arrow-right` :guilabel:`API Key`.
       
    .. step:: Complete the :guilabel:`API Key Information` form.
       

@@ -3,9 +3,7 @@
       
    .. include:: /includes/nav/steps-project-access-manager.rst
       
-   .. step:: Click the :guilabel:`API Keys` tab.
-      
-   .. step:: Click :guilabel:`Create API Key`.
+   .. step:: Click :guilabel:`Create Application` :icon:`arrow-right` :guilabel:`API Key`. 
       
    .. step:: Complete the :guilabel:`API Key Information` form.
       
