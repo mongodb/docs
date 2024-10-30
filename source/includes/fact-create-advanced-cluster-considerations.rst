@@ -6,9 +6,8 @@
 - .. include:: /includes/facts/cross-region-limits.rst
 
 - M30 and higher clusters are recommended for production environments.
-  You can use M10 and M20 clusters as production environments for
-  low-traffic applications. {+Clusters+} with sustained loads on M10
-  and M20 tiers may experience degraded performance over time.
+  {+Clusters+} with sustained loads on M10 and M20 tiers may experience
+  degraded performance over time.
 
 - .. include:: /includes/fact-database-deployment-project-limit.rst
 
