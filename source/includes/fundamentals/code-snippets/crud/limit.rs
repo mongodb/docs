@@ -49,41 +49,44 @@ async fn main() -> mongodb::error::Result<()> {
     my_coll.insert_many(books).await?;
 // end-sample-data
 
-// Retrieves documents in the collection, sorts results by their "author" field
-// values, and skips the first two results.
-// start-skip-example
+// Retrieves documents in the collection, sorts results by their "length" field
+// values, and limits the results to three documents.
+// start-limit-example
     let mut cursor = my_coll
         .find(doc! {})
-        .sort(doc! { "author": 1 })
-        .skip(2).await?;
+        .sort(doc! { "length": 1 })
+        .limit(3).await?;
 
     while let Some(result) = cursor.try_next().await? {
-        println!("{:?}", result);
+    println!("{:?}", result);
     }
-// end-skip-example
+// end-limit-example
 
-// Sets the values for the `FindOptions` struct to sort results by their "name"
-// field values, skip the first two results, and return the remaining results.
-// start-options-skip-example
+// Filters the results to only include documents where the "length" field value
+// is greater than 1000, then sorts results by their "length" field values, and
+// limits the results to the first two documents.
+// start-limit-options-example
+    let filter = doc! { "length": { "$gt": 1000 } };
+
     let find_options = FindOptions::builder()
-        .sort(doc! { "name": -1 })
-        .skip(1)
+        .sort(doc! { "length": 1 })
+        .limit(2)
         .build();
 
-    let mut cursor = my_coll.find(doc! {}).with_options(find_options).await?;
+    let mut cursor = my_coll.find(filter).with_options(find_options).await?;
 
     while let Some(result) = cursor.try_next().await? {
         println!("{:?}", result);
     }
-// end-options-skip-example
+// end-limit-options-example
 
-// Retrieves documents in the collection, sorts results by their "author" field,
-// then skips the first two results in an aggregation pipeline.
-// start-aggregation-example
+// Retrieves documents in the collection, sorts results by their "length" field
+// values, then limits the results to the first document.
+// start-aggregation-limit-example
 let pipeline = vec![
     doc! { "$match": {} },
-    doc! { "$sort": { "author": 1 } },
-    doc! { "$skip": 1 },
+    doc! { "$sort": { "length": -1 } },
+    doc! { "$limit": 2 },
 ];
 
 let mut cursor = my_coll.aggregate(pipeline).await?;
@@ -91,7 +94,7 @@ let mut cursor = my_coll.aggregate(pipeline).await?;
 while let Some(result) = cursor.try_next().await? {
     println!("{:?}", result);
 }
-// end-aggregation-example
+// end-aggregation-limit-example
 
     Ok(())
 }
