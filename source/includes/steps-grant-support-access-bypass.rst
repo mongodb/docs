@@ -12,5 +12,7 @@
          {+database-deployment+}.
       
       #. Select :guilabel:`Grant Temporary Infrastructure Access to MongoDB Support`.
+
+      #. Select :guilabel:`Atlas cluster infrastructure and all cluster logs`.
       
-      #. Click :guilabel:`Grant Access`.
+      #. Click :guilabel:`Grant Access`. 
