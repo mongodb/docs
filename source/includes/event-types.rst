@@ -642,6 +642,18 @@
        Organization has become a paying organization
      - no
 
+   * - ``BILLING_AUDITOR_ON_ALERT``
+     - .. _atlas_event_billing_auditor_on_alert:
+
+       Billing Auditor is on Alert.
+     - yes
+
+   * - ``BILLING_AUDITOR_ON_FAILURE``
+     - .. _atlas_event_billing_auditor_on_failure:
+
+       Billing Auditor has failed.
+     - yes
+
    * - ``BILLING_EMAIL_ADDRESS_ADDED``
      - .. _atlas_event_billing_email_address_added:
 
@@ -792,6 +804,24 @@
        Cloud Provider Access Azure Service Principal updated
      - no
 
+   * - ``CLOUD_PROVIDER_ACCESS_GCP_SERVICE_ACCOUNT_ADDED``
+     - .. _atlas_event_cloud_provider_access_gcp_service_account_added:
+
+       Cloud Provider Access GCP Service Account added
+     - no
+
+   * - ``CLOUD_PROVIDER_ACCESS_GCP_SERVICE_ACCOUNT_DELETED``
+     - .. _atlas_event_cloud_provider_access_gcp_service_account_deleted:
+
+       Cloud Provider Access GCP Service Account deleted
+     - no
+
+   * - ``CLOUD_PROVIDER_ACCESS_GCP_SERVICE_ACCOUNT_UPDATED``
+     - .. _atlas_event_cloud_provider_access_gcp_service_account_updated:
+
+       Cloud Provider Access GCP Service Account updated
+     - no
+
    * - ``CLUSTERSHOT_DELETED_AUDIT``
      - .. _atlas_event_clustershot_deleted_audit:
 
@@ -924,6 +954,12 @@
        Cluster FCV was downgraded
      - no
 
+   * - ``CLUSTER_FCV_EXPIRATION_DATE_UPDATED``
+     - .. _atlas_event_cluster_fcv_expiration_date_updated:
+
+       Cluster feature compatibility version expiration date was updated
+     - no
+
    * - ``CLUSTER_FCV_FIXED``
      - .. _atlas_event_cluster_fcv_fixed:
 
@@ -994,6 +1030,18 @@
      - .. _atlas_event_cluster_instance_config_updated:
 
        An instance in the cluster had its config manually updated
+     - no
+
+   * - ``CLUSTER_INSTANCE_DISABLED``
+     - .. _atlas_event_cluster_instance_disabled:
+
+       An instance in the cluster was manually disabled
+     - no
+
+   * - ``CLUSTER_INSTANCE_ENABLED``
+     - .. _atlas_event_cluster_instance_enabled:
+
+       An instance in the cluster was manually enabled
      - no
 
    * - ``CLUSTER_INSTANCE_FAMILY_UPDATED``
@@ -2130,6 +2178,18 @@
        Active Invoicing Period stopped
      - no
 
+   * - ``EMPLOYEE_ACCESS_GRANTED``
+     - .. _atlas_event_employee_access_granted:
+
+       Granted additional access to MongoDB support
+     - no
+
+   * - ``EMPLOYEE_ACCESS_REVOKED``
+     - .. _atlas_event_employee_access_revoked:
+
+       Revoked additional access from MongoDB support
+     - no
+
    * - ``ENABLE_BACKUP_PRIVATELINK_EVENT``
      - .. _atlas_event_enable_backup_privatelink_event:
 
@@ -2196,6 +2256,12 @@
        Admin granted an extra maintenance deferral for project
      - no
 
+   * - ``FEATURE_FLAG_MAINTENANCE``
+     - .. _atlas_event_feature_flag_maintenance:
+
+       Feature Flag maintenance will bypass scheduled window
+     - no
+
    * - ``FEDERATED_DATABASE_CREATED``
      - .. _atlas_event_federated_database_created:
 
@@ -2253,7 +2319,7 @@
    * - ``FREE_UPGRADE_STARTED``
      - .. _atlas_event_free_upgrade_started:
 
-       Shared cluster upgrade started
+       Tenant cluster upgrade started
      - no
 
    * - ``FTS_INDEXES_RESTORED``
@@ -2266,6 +2332,12 @@
      - .. _atlas_event_fts_indexes_restore_failed:
 
        Failed to restore Search indexes
+     - yes
+
+   * - ``FTS_INDEXES_SYNONYM_MAPPING_INVALID``
+     - .. _atlas_event_fts_indexes_synonym_mapping_invalid:
+
+       Synonym Mapping Invalid
      - yes
 
    * - ``FTS_INDEX_BUILD_COMPLETE``
@@ -2622,6 +2694,18 @@
        Mongot no longer crashing due to out of memory error
      - no
 
+   * - ``HOST_MONGOT_RESUME_REPLICATION``
+     - .. _atlas_event_host_mongot_resume_replication:
+
+       Mongot resumed replication
+     - no
+
+   * - ``HOST_MONGOT_STOP_REPLICATION``
+     - .. _atlas_event_host_mongot_stop_replication:
+
+       Mongot stopped replication
+     - yes
+
    * - ``HOST_NOT_ENOUGH_DISK_SPACE``
      - .. _atlas_event_host_not_enough_disk_space:
 
@@ -2766,10 +2850,28 @@
        Inconsistent backup configuration has been detected
      - yes
 
+   * - ``INDEPENDENT_SHARD_AUTO_SCALING_AVAILABLE``
+     - .. _atlas_event_independent_shard_auto_scaling_available:
+
+       Independent Shard AutoScaling is now available for a cluster
+     - no
+
    * - ``INDEPENDENT_SHARD_SCALING_AVAILABLE``
      - .. _atlas_event_independent_shard_scaling_available:
 
        Independent Shard Scaling is now available for the project
+     - no
+
+   * - ``INDEPENDENT_SHARD_SCALING_CLUSTER_MIGRATED``
+     - .. _atlas_event_independent_shard_scaling_cluster_migrated:
+
+       Cluster schema has been migrated to support Independent Shard Scaling
+     - no
+
+   * - ``INDEPENDENT_SHARD_SCALING_CLUSTER_ROLLED_BACK``
+     - .. _atlas_event_independent_shard_scaling_cluster_rolled_back:
+
+       Cluster schema has been rolled back and it no longer supports Independent Shard Scaling
      - no
 
    * - ``INDEX_FAILED_INDEX_BUILD``
@@ -2926,6 +3028,12 @@
      - .. _atlas_event_join_group_request_denied_audit:
 
        Request to join project was denied
+     - no
+
+   * - ``KMIP_KEY_ROTATION_SCHEDULED``
+     - .. _atlas_event_kmip_key_rotation_scheduled:
+
+       Rotating MongoDB Master Keys for Encryption at Rest
      - no
 
    * - ``LATE_WTC_SNAPSHOT``
@@ -4188,6 +4296,18 @@
        Push-Based Log Export enabled
      - no
 
+   * - ``QUEUED_ADMIN_ACTION_CANCELLED``
+     - .. _atlas_event_queued_admin_action_cancelled:
+
+       A queued Admin Action has been cancelled
+     - no
+
+   * - ``QUEUED_ADMIN_ACTION_COMPLETED``
+     - .. _atlas_event_queued_admin_action_completed:
+
+       A queued Admin Action has been completed
+     - no
+
    * - ``QUEUED_ADMIN_ACTION_CREATED``
      - .. _atlas_event_queued_admin_action_created:
 
@@ -4265,6 +4385,24 @@
 
        An overall request rate limit has been hit
      - yes
+
+   * - ``RESOURCE_POLICY_CREATED``
+     - .. _atlas_event_resource_policy_created:
+
+       Resource policy created
+     - no
+
+   * - ``RESOURCE_POLICY_DELETED``
+     - .. _atlas_event_resource_policy_deleted:
+
+       Resource policy deleted
+     - no
+
+   * - ``RESOURCE_POLICY_MODIFIED``
+     - .. _atlas_event_resource_policy_modified:
+
+       Resource policy updated
+     - no
 
    * - ``RESTORE_REQUESTED_AUDIT``
      - .. _atlas_event_restore_requested_audit:
@@ -4398,70 +4536,10 @@
        Scheduled maintenance will occur
      - no
 
-   * - ``SCHEDULE_CREATED``
-     - .. _atlas_event_schedule_created:
-
-       Request for schedule to be created
-     - no
-
-   * - ``SCHEDULE_CREATE_REQUESTED``
-     - .. _atlas_event_schedule_create_requested:
-
-       Request for schedule to be created
-     - no
-
-   * - ``SCHEDULE_DELETE_REQUESTED``
-     - .. _atlas_event_schedule_delete_requested:
-
-       Request for schedule to be deleted (no further execution)
-     - no
-
-   * - ``SCHEDULE_ENABLE_REQUESTED``
-     - .. _atlas_event_schedule_enable_requested:
-
-       Request for schedule execution to be resumed
-     - no
-
    * - ``SCHEDULE_GROOM``
      - .. _atlas_event_schedule_groom:
 
        Schedule groom
-     - no
-
-   * - ``SCHEDULE_MANUAL_TRIGGER_REQUESTED``
-     - .. _atlas_event_schedule_manual_trigger_requested:
-
-       Request for schedule to be manually triggered
-     - no
-
-   * - ``SCHEDULE_PAUSE_REQUESTED``
-     - .. _atlas_event_schedule_pause_requested:
-
-       Request for schedule execution to be paused
-     - no
-
-   * - ``SCHEDULE_RESUMED``
-     - .. _atlas_event_schedule_resumed:
-
-       Schedule has resumed execution
-     - no
-
-   * - ``SCHEDULE_RESUME_REQUESTED``
-     - .. _atlas_event_schedule_resume_requested:
-
-       Request for schedule execution to be resumed
-     - no
-
-   * - ``SCHEDULE_SIDELINED``
-     - .. _atlas_event_schedule_sidelined:
-
-       Schedule has been sidelined (no further execution)
-     - yes
-
-   * - ``SCHEDULE_UPDATE_REQUESTED``
-     - .. _atlas_event_schedule_update_requested:
-
-       Request for schedule to be updated
      - no
 
    * - ``SEARCH_DEPLOYMENT_CREATED``
