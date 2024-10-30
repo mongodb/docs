@@ -40,13 +40,13 @@
 	       1. Click the :guilabel:`VPC Peering` button.
 
 	       #. Toggle :guilabel:`Enable VPC Peering` on.
+		  {+atlas-sp+} automatically selects the appropriate
+		  VPC peering connection from your configured
+		  connections.
 
-	       #. From the dropdown menu, select one of your
-		  existing :ref:`VPC Peering <vpc-peering>`
-		  connections. If you do not have a VPC peering
-		  connection, :ref:`Configure an {+service+}
-		  Network Peering Connection
-		  <create-network-peer-connection>`.
+		  If you do not have a VPC peering connection,
+		  :ref:`Configure an {+service+} Network Peering
+		  Connection <create-network-peer-connection>`.
 
       #. Specify an IP address for one or more 
 	 `bootstrap servers <https://kafka.apache.org/documentation/#streamsconfigs_bootstrap.servers>`__
