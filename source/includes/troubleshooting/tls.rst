@@ -123,3 +123,66 @@ following steps:
 - Downgrade Python to v3.9 or earlier
 - Upgrade {+mdb-server+} to v4.2 or later
 - Install {+driver-short+} with the :ref:`OCSP <pymongo-disable-ocsp>` option, which relies on PyOpenSSL
+
+Unsafe Legacy Renegotiation Disabled
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When using OpenSSL v3 or later, you might see an error similar to the following
+message:
+
+.. code-block:: python
+
+   [SSL: UNSAFE_LEGACY_RENEGOTIATION_DISABLED] unsafe legacy renegotiation disabled
+
+These types of errors occur because of outdated or buggy SSL proxies that mistakenly
+enforce legacy `TLS renegotiation <https://www.ibm.com/docs/en/i/7.3?topic=settings-renegotiation>`__. 
+
+To resolve this issue, perform the following steps:
+
+.. procedure::
+   :style: normal
+   
+   .. step:: Check OpenSSL Version
+
+      Run the following command to ensure that you have OpenSSL vv3.0.4 or
+      later installed:
+
+      .. code-block:: bash
+
+         openssl version
+
+   .. step:: Use the ``UnsafeLegacyServerConnect`` Option
+   
+      Create a configuration file that includes the 
+      ``UnsafeLegacyServerConnect`` option. The following example shows how to set 
+      the ``UnsafeLegacyServerConnect`` option:
+
+      .. code-block:: shell
+         :emphasize-lines: 10
+
+         openssl_conf = openssl_init
+
+         [openssl_init]
+         ssl_conf = ssl_sect
+
+         [ssl_sect]
+         system_default = system_default_sect
+
+         [system_default_sect]
+         Options = UnsafeLegacyServerConnect
+
+   .. step:: Run Python with OpenSSL Configuration
+
+      Run Python while setting the ``OPENSSL_CONF`` environment variable to use
+      the OpenSSL configuration file you just created:
+
+      .. code-block:: shell
+
+         OPENSSL_CONF=/path/to/the/config/file/above.cnf python ...
+
+.. important::
+
+   Because setting the ``UnsafeLegacyServerConnect`` option has 
+   `security implications <https://docs.openssl.org/3.0/man3/SSL_CTX_set_options/#patched-openssl-client-and-unpatched-server>`__, 
+   use this workaround as a last 
+   resort to address ``unsafe legacy renegotiation disabled`` errors.
