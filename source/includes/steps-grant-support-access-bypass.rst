@@ -15,4 +15,4 @@
 
       #. Select :guilabel:`Atlas cluster infrastructure and all cluster logs`.
       
-      #. Click :guilabel:`Grant Access`. 
+      #. Click :guilabel:`Grant Access`.  
