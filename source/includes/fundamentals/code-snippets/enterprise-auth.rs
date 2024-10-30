@@ -3,7 +3,7 @@ use mongodb::{ bson::doc, options::{ ClientOptions, Credential, AuthMechanism },
 #[tokio::main]
 async fn main() -> mongodb::error::Result<()> {
     let uri = "<connection string>";
-    let mut client_options = ClientOptions::parse_async(uri).await?;
+    let mut client_options = ClientOptions::parse(uri).await?;
 
     // start-ldap
     let plain_cred = Credential::builder()
