@@ -50,6 +50,11 @@ Click on the tab to learn more about creating a collection or a view.
             This tab contains the syntax and parameters for creating a 
             collection for |azure| {+fdi+} store.
 
+         .. tab:: GCP
+            :tabid: gcp 
+
+            This tab contains the syntax and parameters for creating a 
+            collection for {+gcp+} {+fdi+} store.
 
          .. tab:: Atlas Cluster 
             :tabid: atlas
@@ -114,6 +119,14 @@ Syntax
 
          .. tab:: Azure  
             :tabid: azure
+
+            .. code-block:: sh 
+               :copyable: true
+
+               db.runCommand({ "create" : "<collection-name>|*", "dataSources" : [{ "storeName" : "<store-name>", "path" : "<path-to-files-or-folders>", "defaultFormat" : "<file-extension>", "omitAttributes": <boolean> }]})
+
+         .. tab:: GCP  
+            :tabid: gcp
 
             .. code-block:: sh 
                :copyable: true
@@ -218,7 +231,7 @@ Parameters
 
                * - ``dataSources.path``
                  - string
-                 - The path to the files and folders. Specify ``/`` to 
+                 - Path to the files and folders. Specify ``/`` to 
                    capture all files and folders from the ``prefix`` 
                    path. See :ref:`adf-path-syntax` for more 
                    information. 
@@ -288,6 +301,62 @@ Parameters
                * - ``dataSources.omitAttributes`` 
                  - boolean 
                  - .. include:: /includes/extracts/cli-param-omit-attributes.rst 
+                 - Optional
+
+         .. tab:: GCP Configuration 
+            :tabid: gcp
+
+            .. list-table::
+               :header-rows: 1
+               :widths: 20 20 45 10 
+
+               * - Parameter 
+                 - Type 
+                 - Description 
+                 - Necessity
+
+               * - ``<collection-name>|*``
+                 - string
+                 - .. include:: /includes/extracts/cli-param-collection-name.rst
+
+                   You can generate collection names dynamically from 
+                   file paths by  specifying ``*`` for the collection 
+                   name and the ``collectionName()`` function in the 
+                   ``dataSources.collection`` field. By default, 
+                   {+adf+} creates up to ``100`` wildcard collections. 
+                   You can customize the maximum number of wildcard 
+                   collections that {+adf+} automatically generates 
+                   using the :datalakeconf-aws:`databases.[n].maxWildcardCollections` 
+                   parameter. Note that each wildcard collection can 
+                   contain only one ``dataSource``.
+                 - Required
+
+               * - ``dataSources``
+                 - object 
+                 - .. include:: /includes/extracts/cli-param-data-sources.rst
+                 - Required
+
+               * - ``dataSources.storeName``
+                 - string
+                 - .. include:: /includes/extracts/cli-param-data-sources-store-name.rst
+                 - Required
+
+               * - ``dataSources.path``
+                 - string
+                 - Path to the files and folders. Specify ``/`` to 
+                   capture all files and folders from the ``prefix`` 
+                   path. See :ref:`adf-path-syntax` for more 
+                   information. 
+                 - Required
+
+               * - ``dataSources.defaultFormat`` 
+                 - string 
+                 - .. include:: /includes/extracts/cli-param-default-format.rst
+                 - Optional
+
+               * - ``dataSources.omitAttributes`` 
+                 - boolean 
+                 - .. include:: /includes/extracts/cli-param-omit-attributes.rst
                  - Optional
 
          .. tab:: Atlas Configuration 
@@ -671,6 +740,35 @@ Examples
                * - **Sample Dataset**
                  - ``airbnb``
 
+         .. tab:: GCP Example 
+            :tabid: gcp
+
+            The following examples use the sample ``airbnb`` data on an
+            {+gcp+} store with the following settings:
+
+            .. list-table:: 
+               :stub-columns: 1
+               :widths: 20 80
+
+               * - **Store Name** 
+                 - ``egGCStore``
+
+               * - **Region**
+                 - ``us-central1``
+
+               * - **Bucket**
+                 - ``test-data-federation``
+
+               * - **Prefix**
+                 - ``json``
+
+               * - **Delimiter**
+                 - ``/``
+
+               * - **Sample Dataset**
+                 - ``airbnb``
+
+
          .. tab:: Atlas Example 
             :tabid: atlas 
 
@@ -837,6 +935,79 @@ Examples
                   :language: javascript
 
                   airbnb
+
+         .. tab:: GCP Example 
+            :tabid: gcp
+      
+            The ``airbnb`` collection maps to the ``airbnb`` sample 
+            dataset in the ``json`` folder in the {+gcp+} store named 
+            ``egGCStore``.
+
+            .. io-code-block::
+               :copyable: true 
+   
+               .. input::
+                  :language: javascript
+
+                  use sampleDB
+                  db.runCommand({ "create" : "airbnb", "dataSources" : [{ "storeName" : "egGCStore", "path" : "/json/airbnb", "defaultFormat" : ".json" }]})
+
+               .. output::
+                  :language: json
+
+                  { "ok" : 1 }
+
+            The following commands show that the collection was 
+            successfully created: 
+
+            .. io-code-block::
+               :copyable: true 
+   
+               .. input::
+                  :language: javascript 
+
+                  show collections
+
+               .. output::
+                  :language: javascript
+
+                  airbnb
+
+            .. io-code-block::
+               :copyable: true 
+   
+               .. input::
+                  :language: javascript
+
+                  db.runCommand({"storageGetConfig" : 1 })
+
+               .. output::
+                  :language: json
+
+                  {
+	                  "ok" : 1,
+	                  "storage" : {
+		                  "stores" : [{
+				                "name" : "egGCStore",
+				                "provider" : "gcs",
+				                "region" : "us-central1",
+				                "bucket" : "test-data-federation",
+				                "delimiter" : "/",
+				                "prefix" : ""
+		                  }],
+		                  "databases" : [{
+			                  "name" : "sampleDB",
+			                  "collections" : [{
+				                  "name" : "airbnb",
+				                  "dataSources" : [{
+					                  "storeName" : "egGCStore",
+					                  "path" : "/json/airbnb",
+					                  "defaultFormat" : ".json"
+				                  }]
+			                  }]
+		                  }]
+	                  }
+                  }
 
          .. tab:: Atlas Example 
             :tabid: atlas
@@ -1266,6 +1437,164 @@ Examples
                         :language: javascript
 
                         egCollection
+
+         .. tab:: GCP Example 
+            :tabid: gcp
+
+            These examples show how the wildcard ``"*"`` can be 
+            specified with the ``create`` command.
+
+            .. tabs:: 
+
+               .. tab:: Collection Name Example
+                  :tabid: collnameeg
+            
+                  The following example uses the ``create`` command to 
+                  dynamically create collections.
+
+                  The following example uses the ``create`` command to 
+                  dynamically create collections for the files in the 
+                  path ``/json/`` in the ``egGCStore`` {+fdi+} store. 
+                  It uses the ``collectionName()`` function to name the 
+                  collections after the filenames in the specified path.
+
+                  .. io-code-block::
+                     :copyable: true 
+   
+                     .. input::
+                        :language: javascript 
+         
+                        use sampleDB 
+                        db.runCommand({ "create" : "*", "dataSources" : [{ "storeName" : "egGCStore", "path": "/json/{collectionName()}"}]})
+
+                     .. output::
+                        :language: json 
+
+                        { "ok" : 1 }
+      
+                  The following commands show that the collection was 
+                  successfully created:
+
+                  .. io-code-block::
+                     :copyable: true 
+   
+                     .. input::
+                        :language: javascript 
+
+                        show collections
+                    
+                     .. output::
+                        :language: javascript
+
+                        airbnb
+
+                  .. io-code-block::
+                     :copyable: true 
+   
+                     .. input::
+                        :language: javascript
+
+                        db.runCommand({"storageGetConfig" : 1 })
+
+                     .. output::
+                        :language: json
+
+                        {
+                          "ok" : 1,
+                          "storage" : {
+                            "stores" : [{
+                              "name" : "egGCStore",
+                              "provider" : "gcs",
+                              "region" : "us-central1",
+                              "bucket" : "test-data-federation",
+                              "delimiter" : "/",
+                              "prefix" : ""
+                            }],
+                            "databases" : [{
+                              "name" : "sampleDB",
+                              "collections" : [{
+                                "name" : "*",
+                                "dataSources" : [{
+                                  "storeName" : "egGCStore",
+                                  "path" : "/json/{collectionName()}"
+                                }]
+                              }]
+                            }]
+                          }
+                        }
+
+               .. tab:: Path Glob Example
+                  :tabid: pathglobeg
+
+                  The following example uses the ``create`` command to 
+                  create a collection named ``egCollection`` that maps 
+                  to a {+adf+} store named ``egGCStore``. The 
+                  ``egS3Store`` contains the sample dataset, ``airbnb``, in a folder named ``json``. 
+
+                  .. io-code-block::
+                     :copyable: true 
+   
+                     .. input::
+                        :language: javascript  
+      
+                        use sampleDB
+                        db.runCommand({ "create" : "egCollection", "dataSources" : [{ "storeName" : "egGCStore", "path": "/json/*"}]}})
+
+                     .. output::
+                        :language: json 
+
+                        { "ok" : 1 }
+
+                  The following commands show that the collection was 
+                  successfully created: 
+
+                  .. io-code-block::
+                     :copyable: true 
+   
+                     .. input::
+                        :language: javascript 
+
+                        show collections
+
+                     .. output::
+                        :language: javascript
+
+                        egCollection
+
+                  .. io-code-block::
+                     :copyable: true 
+   
+                     .. input::
+                        :language: javascript
+
+                        db.runCommand({"storageGetConfig" : 1 })
+
+                     .. output::
+                        :language: json
+
+                        {
+	                       "ok" : 1,
+	                       "storage" : {
+		                      "stores" : [{
+		                        "name" : "egGCStore",
+		                        "provider" : "gcs",
+		                        "region" : "us-central1",
+		                        "bucket" : "test-data-federation",
+		                        "delimiter" : "/",
+		                        "prefix" : ""
+		                      }],
+		                      "databases" : [{
+		                        "name" : "sample",
+		                        "collections" : [{
+			                       "name" : "egCollection",
+			                       "dataSources" : [{
+				                      "storeName" : "egGCStore",
+				                      "path" : "/json/*"
+				                    }]
+			                     }]
+		                      }]
+	                       }
+                        }
 
          .. tab:: Atlas Example 
             :tabid: atlas

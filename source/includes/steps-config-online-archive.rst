@@ -397,7 +397,7 @@
       - ``boolean``
       
       To learn more about the supported partition attribute types, see 
-      :ref:`Partition Attribute Types <adf-s3-path-attribute-types>`.
+      :ref:`Partition Attribute Types <adf-path-attribute-types>`.
       
       .. note:: 
       

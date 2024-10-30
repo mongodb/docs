@@ -189,7 +189,7 @@
 - Improves performance.
 - Supports the :manual:`$currentOp </reference/operator/aggregation/currentOp/>`
   stage so that you can monitor query progress on long-running queries.
-- Updates the :ref:`isodate <adf-s3-path-attribute-types>` attribute
+- Updates the :ref:`isodate <adf-path-attribute-types>` attribute
   to accept additional formats.
 - Refreshes the metadata catalog when you use
   :ref:`Storage Configuration <config-adf>` commands.

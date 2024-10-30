@@ -25,11 +25,7 @@ source.
       This tab contains the syntax and parameters for creating a 
       {+fdi+} store for data in |aws| |s3| bucket.
 
-      .. important:: 
-
-         You can't create a {+fdi+} that maps to both |aws| |s3| buckets
-         and {+az-bs+} containers. {+adf+} doesn't support federated
-         queries across different cloud providers. 
+      .. include:: /includes/data-federation/multi-cloud-support-warning.rst
 
    .. tab:: Azure  
       :tabid: azure
@@ -37,11 +33,15 @@ source.
       This tab contains the syntax and parameters for creating a 
       {+fdi+} store for data in {+az-bs+} containers.
 
-      .. note:: 
+      .. include:: /includes/data-federation/multi-cloud-support-warning.rst
 
-         You can't create a {+fdi+} that maps to both {+az-bs+}
-         containers and |aws| |s3| buckets. {+adf+} doesn't support
-         federated queries across different cloud providers. 
+   .. tab:: GCP
+      :tabid: gcp
+
+      This tab contains the syntax and parameters for creating a 
+      {+fdi+} store for data in {+gcs+} containers.
+
+      .. include:: /includes/data-federation/multi-cloud-support-warning.rst
 
    .. tab:: Atlas Cluster 
       :tabid: atlas 
@@ -85,6 +85,14 @@ Syntax
          :copyable: true
 
          db.runCommand({ createStore: <store-name>, provider: <storage-provider>, region: <region-name>, serviceURL: <service-account-URL>, containerName: <storage-container-name>, delimiter: <delimiter>, public: true|false })
+
+   .. tab:: GCP Configuration 
+      :tabid: gcp
+
+      .. code-block:: sh 
+         :copyable: true
+
+         db.runCommand({ createStore: <store-name>, provider: <storage-provider>, region: <region-name>, bucket: <bucket-name>, delimiter: <delimiter>, prefix: <prefix> })
 
    .. tab:: Atlas Configuration 
       :tabid: atlas 
@@ -136,8 +144,8 @@ Parameters
          * - ``bucket`` 
            - string 
            - Name of the bucket in which data is stored. Must exactly 
-             match the name of an |s3| bucket which {+df+} 
-             can access given the configured |aws| |iam| credentials.
+             match the name of an |s3| bucket that {+df+} 
+             can access using |aws| |iam| credentials.
            - yes
 
          * - ``additionalStorageClasses`` 
@@ -195,7 +203,7 @@ Parameters
              </reference/microsoft-azure/>`. 
            - yes
 
-         * - ``serviceURL`` 
+         * - ``bucket`` 
            - string 
            - |url| of the {+az-bs+} account that contains your blob
              containers. For example: 
@@ -232,6 +240,57 @@ Parameters
              If omitted, defaults to ``false``.
            - no
 
+   .. tab:: GCP Configuration
+      :tabid: gcp
+
+      .. include:: /includes/list-table-create-store-cli-common-params.rst
+
+      .. list-table::
+         :widths: 27 10 53 10 
+
+         * - ``region``
+           - string
+           - Region in which the ``bucket`` is hosted. For a list of 
+             valid region names, see :atlas:`Google Cloud Platform 
+             (GCP) </reference/google-gcp>`.
+           - yes
+
+         * - ``bucket`` 
+           - string 
+           - Name of the bucket in which data is stored. Must exactly 
+             match the name of an {+gcs+} bucket that {+df+} 
+             can access using the configured {+gcp+} |iam| credentials.
+           - yes
+
+         * - ``delimiter`` 
+           - string 
+           - Character used to separate path segments in the 
+             {+fdi+} store. If ommitted, defaults to ``"/"``.
+           - no
+
+         * - ``prefix`` 
+           - boolean 
+           - Prefix {+adf+} applies when searching for files in the
+	     {+gcs+} bucket. For example, consider a {+gcs+} bucket
+	     ``metrics`` with the following structure:
+
+	     .. code-block:: json
+
+		metrics
+		  |--hardware
+		  |--software
+		    |--computed
+
+	     The {+fdi+} store prepends the value of ``prefix`` to
+	     ``databases.[n].collections.[n].dataSources.[n].path`` to
+	     create the full path for files to ingest. Setting
+	     ``prefix`` to ``/software`` restricts any ``databases``
+	     objects using the {+fdi+} to only subpaths of
+	     ``/software``.
+
+	     Defaults to the root of the {+gcs+} bucket, retrieving
+	     all files.
+       
    .. tab:: Atlas Configuration 
       :tabid: atlas 
 
@@ -385,6 +444,24 @@ fails, see :ref:`adf-create-store-cmd-errors` for recommended solutions.
           }
         }
 
+   .. tab:: GCP Configuration 
+      :tabid: gcp
+
+      .. code-block:: json 
+         :copyable: false
+
+        {
+          "ok": 1,
+          "store": {
+            "name": "<store-name>",
+            "region": "<region-name>",
+            "bucket": "<storage-container-name>"
+            "delimiter": "<delimiter>",
+	    "prefix": "<prefix>",
+            "provider": "<storage-provider>"
+          }
+        }
+
    .. tab:: Atlas Configuration 
       :tabid: atlas 
 
@@ -505,6 +582,32 @@ The following example uses the ``createStore`` command to create a new
                 "containerName" : "my-data-container",
                 "delimiter": "/",
                 "provider": "azure"
+              }
+            }
+
+   .. tab:: GCP Configuration 
+      :tabid: gcp
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: javascript 
+
+            use sample
+            db.runCommand({ createStore: "myStore", provider: "azure", region: "us-central1", "bucket" : "my-data-container" })
+
+         .. output::
+            :language: json
+
+            {
+              "ok": 1,
+              "store": {
+                "name": "myStore",
+                "region": "us-central1",
+                "bucket" : "my-data-container",
+                "delimiter": "/",
+                "provider": "gcp"
               }
             }
 
@@ -635,6 +738,9 @@ If the command fails, it returns one of the following errors.
 
    .. tab:: Azure Configuration 
       :tabid: azure
+
+   .. tab:: GCP Configuration 
+      :tabid: gcp
 
    .. tab:: Atlas Configuration 
       :tabid: atlas 
