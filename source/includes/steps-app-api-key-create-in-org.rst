@@ -3,7 +3,7 @@
 
    .. include:: /includes/nav/steps-org-access-manager.rst
       
-   .. step:: Click :guilabel:`Create API Key`.
+   .. step:: Click :guilabel:`Add new` :icon:`arrow-right` :guilabel:`API Key`.
       
    .. step:: Enter the :guilabel:`API Key Information`.
 

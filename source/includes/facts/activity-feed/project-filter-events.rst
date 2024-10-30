@@ -17,10 +17,12 @@ Filter by event
         - Events related to |service| users. The following filters are available: 
 
           - A new API key has been created
+          - Service Account has been created
           - A third party integration has been configured
           - A third party integration has been removed
           - All users have multi-factor authentication enabled
           - An API Key has been deleted
+          - Service Account has been deleted
           - API Key Access List Entry Added
           - API Key Access List Entry Deleted
           - API Key added to Group
@@ -29,6 +31,16 @@ Filter by event
           - API Key Roles Changed
           - API Key Whitelist Entry Added
           - API Key Whitelist Entry Deleted
+          - Service Account Details have been changed
+          - Service Account had its roles changed
+          - Service Account added to Project
+          - Service Account removed from Project
+          - Service Account Access List Entry Added
+          - Service Account Access List Entry Deleted
+          - Service Account Secret Deleted
+          - Service Account Secret Added
+          - Service Account UI IP access list inheritance enabled
+          - Service Account UI IP access list inheritance disabled
           - M0 clusters per project limit exceeded
           - No pending user requests to join project
           - Number of M0 clusters per project within limit

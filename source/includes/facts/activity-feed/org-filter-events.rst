@@ -34,6 +34,19 @@ Filter by event
           - API Key Roles Changed
           - API Key Whitelist Entry Added
           - API Key Whitelist Entry Deleted
+          - Service Account has been created
+          - Service Account has been deleted
+          - Service Account Details have been changed
+          - Service Account had its roles changed
+          - Service Account added to Project
+          - Service Account removed from Project
+          - Service Account Access List Entry Added
+          - Service Account Access List Entry Deleted
+          - Service Account Secret Deleted
+          - Service Account Secret Added
+          - Maximum allowed Service Account secret validity was changed
+          - Service Account UI IP access list inheritance enabled
+          - Service Account UI IP access list inheritance disabled
           - Domain was created
           - Domain was deleted
           - Domain was verified
