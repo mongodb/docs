@@ -73,7 +73,7 @@ async fn main() -> mongodb::error::Result<()> {
     let docs = vec![
         Book { _id: 1, title: "Where the Wild Things Are".to_string(), author: "".to_string() },
         Book { _id: 2, title: "The Very Hungry Caterpillar".to_string(), author: "".to_string() },
-        Book { _id: 4, title: "Blueberries for Sal".to_string(), author: "".to_string() },
+        Book { _id: 1, title: "Blueberries for Sal".to_string(), author: "".to_string() },
         Book { _id: 3, title: "Goodnight Moon".to_string(), author: "".to_string() }
     ];
     
