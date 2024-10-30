@@ -31,7 +31,7 @@
 
       #. Create a ``.env`` file.
 
-         In your project, create a ``.env`` file to store your Atlas connection
+         In your project, create a ``.env`` file to store your |service| connection
          string and Hugging Face access token.
 
          .. code-block::

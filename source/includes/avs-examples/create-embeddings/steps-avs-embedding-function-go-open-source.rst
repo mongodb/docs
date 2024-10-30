@@ -15,7 +15,7 @@
 
    .. step:: Create a ``.env`` file to manage secrets.
 
-      In your project, create a ``.env`` file to store your connection
+      In your project, create a ``.env`` file to store your |service| connection
       string and Hugging Face access token.
 
       .. code-block::

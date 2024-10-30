@@ -13,17 +13,15 @@
 
    .. step:: Create a ``.env`` file.
 
-      In your project, create a ``.env`` file to store your Atlas connection
-      string and Hugging Face access token.
+      In your project, create a ``.env`` file to store your |service| connection
+      string.
 
       .. code-block::
 
-         HUGGING_FACE_ACCESS_TOKEN = "<access-token>"
          ATLAS_CONNECTION_STRING = "<connection-string>"
 
-      Replace the ``<access-token>`` 
-      and ``<connection-string>`` placeholder values with your Hugging Face
-      access token and the |srv| :manual:`connection string 
+      Replace the ``<connection-string>`` placeholder value with the 
+      |srv| :manual:`connection string 
       </reference/connection-string/#find-your-mongodb-atlas-connection-string>`
       for your |service| {+cluster+}. Your connection string should use
       the following format:
