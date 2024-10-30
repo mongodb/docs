@@ -88,26 +88,56 @@ index = {
 collection.create_search_index(index)
 # end-create-search-index
 
+# start-create-vector-search-index
+
+from pymongo.operations import SearchIndexModel
+
+search_index_model = SearchIndexModel(
+  definition={
+    "fields": [
+      {
+        "type": "vector",
+        "numDimensions": <number of dimensions>,
+        "path": "<field to index>",
+        "similarity":  "<select from euclidean, cosine, dotProduct>"
+      }
+    ]
+  },
+  name="<index name>",
+  type="vectorSearch",
+)
+
+collection.create_search_index(model=search_index_model)
+
+# end-create-vector-search-index
+
 # start-create-search-indexes
-index_one = {
-    "definition": {
+
+search_idx = SearchIndexModel(
+    definition ={
         "mappings": {
             "dynamic": True
         }
     },
-    "name": "my_index",
-}
+    name="my_index",
+)
 
-index_two = {
-    "definition": {
-        "mappings": {
-            "dynamic": True
-        }
-    },
-    "name": "my_other_index",
-}
+vector_idx = SearchIndexModel(
+  definition={
+    "fields": [
+      {
+        "type": "vector",
+        "numDimensions": <number of dimensions>,
+        "path": "<field to index>",
+        "similarity": "<select from euclidean, cosine, dotProduct>"
+      }
+    ]
+  },
+  name="my_vector_index",
+  type="vectorSearch",
+)
 
-indexes = [index_one, index_two]
+indexes = [search_idx, vector_idx]
 
 collection.create_search_indexes(models=indexes)
 # end-create-search-indexes
@@ -120,17 +150,29 @@ for index in results:
 # end-list-search-indexes
 
 # start-update-search-indexes
-new_index = {
-    "definition": {
-        "mappings": {
-            "dynamic": True
-        }
-    },
-    "name": "my_new_index",
+new_index_definition = {
+    "mappings": {
+        "dynamic": False
+    }
 }
 
 collection.update_search_index("my_index", new_index)
 # end-update-search-indexes
+
+# start-update-vector-search-indexes
+new_index_definition = {
+    "fields": [
+        {
+            "type": "vector",
+            "numDimensions": 1536,
+            "path": "<field to index>",
+            "similarity": "euclidean"
+        },
+    ]
+}
+
+collection.update_search_index("my_vector_index", new_index_definition)
+# end-update-vector-search-indexes
 
 # start-delete-search-indexes
 collection.drop_index("my_index")
