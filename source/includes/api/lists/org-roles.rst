@@ -14,3 +14,5 @@
      - :authrole:`Organization Billing Admin`
    * - ``ORG_READ_ONLY``
      - :authrole:`Organization Read Only`
+   * - ``ORG_BILLING_READ_ONLY``
+     - :authrole:`Organization Billing Viewer`
