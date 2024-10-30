@@ -33,10 +33,6 @@
 	       supports :guilabel:`Public IP` or :guilabel:`VPC Peering`
 	       connections.
 
-	       VPC peering for {+atlas-sp+} is currently in
-	       private preview. To learn more, contact your
-	       account team.
-
                .. tabs::
 
                   .. tab:: Public IP
