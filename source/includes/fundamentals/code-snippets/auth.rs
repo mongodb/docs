@@ -4,7 +4,7 @@ use mongodb::{ bson::doc, options::{ ClientOptions, Credential, AuthMechanism },
 async fn main() -> mongodb::error::Result<()> {
     // start-default
     let uri = "<connection string>";
-    let mut client_options = ClientOptions::parse_async(uri).await?;
+    let mut client_options = ClientOptions::parse(uri).await?;
 
     let default_cred = Credential::builder()
         .username("<db_username>".to_string())
@@ -18,7 +18,7 @@ async fn main() -> mongodb::error::Result<()> {
 
     // start-scramsha256
     let uri = "<connection string>";
-    let mut client_options = ClientOptions::parse_async(uri).await?;
+    let mut client_options = ClientOptions::parse(uri).await?;
 
     let scram_sha_256_cred = Credential::builder()
         .username("<db_username>".to_string())
@@ -33,7 +33,7 @@ async fn main() -> mongodb::error::Result<()> {
 
     // start-scramsha1
     let uri = "<connection string>";
-    let mut client_options = ClientOptions::parse_async(uri).await?;
+    let mut client_options = ClientOptions::parse(uri).await?;
 
     let scram_sha_1_cred = Credential::builder()
         .username("<db_username>".to_string())
@@ -48,7 +48,7 @@ async fn main() -> mongodb::error::Result<()> {
 
     // start-aws
     let uri = "<connection string>";
-    let mut client_options = ClientOptions::parse_async(uri).await?;
+    let mut client_options = ClientOptions::parse(uri).await?;
 
     let aws_cred = Credential::builder()
         .username("<access key ID>".to_string())
@@ -64,7 +64,7 @@ async fn main() -> mongodb::error::Result<()> {
 
     // start-aws-env-var
     let uri = "<connection string>";
-    let mut client_options = ClientOptions::parse_async(uri).await?;
+    let mut client_options = ClientOptions::parse(uri).await?;
 
     let aws_cred = Credential::builder().mechanism(AuthMechanism::MongoDbAws).build();
 
@@ -78,7 +78,7 @@ async fn main() -> mongodb::error::Result<()> {
         tlsCAFile = "<path to CA certificate>",
         tlsCertificateKeyFile = "<path to private client key>"
     );
-    let mut client_options = ClientOptions::parse_async(uri).await?;
+    let mut client_options = ClientOptions::parse(uri).await?;
     let x509_cred = Credential::builder().mechanism(AuthMechanism::MongoDbAws).build();
 
     client_options.credential = Some(x509_cred);
