@@ -2,5 +2,5 @@
 
    If you run into issues on this step, ask for help in the
    :community-forum:`MongoDB Community Forums <tag/rust/>`
-   or submit feedback by using the :guilabel:`Rate this page`
-   tab on the right or bottom right side of this page.
+   or submit feedback by using the :guilabel:`Feedback`
+   button on the top right side of this page.
