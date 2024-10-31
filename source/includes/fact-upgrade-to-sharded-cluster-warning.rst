@@ -1,5 +1,5 @@
-To upgrade a replica set to a multi-sharded {+cluster+},
-you must upgrade to a **single** shard {+cluster+} first,
+To scale up a replica set to a multi-sharded {+cluster+},
+you must scale up to a **single** shard {+cluster+} first,
 restart your application and **reconnect to the cluster**, and then add
 additional shards.
 
