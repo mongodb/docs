@@ -3,7 +3,7 @@
       
    .. include:: /includes/nav/steps-db-deployments-page.rst
 
-   .. include:: /includes/nav/steps-atlas-search.rst
+   .. include:: /includes/nav/steps-search-from-cluster.rst
       
    .. step:: Click :guilabel:`Create Search Index`.
 
@@ -77,6 +77,9 @@
       
             #. Click :guilabel:`Next`.
       
+      To learn more about the configuration options, see 
+      :ref:`fts-field-types-autocomplete-options`. 
+
    .. step:: Click :guilabel:`Create Search Index`.
 
    .. step:: Close the :guilabel:`You're All Set!` Modal Window.
