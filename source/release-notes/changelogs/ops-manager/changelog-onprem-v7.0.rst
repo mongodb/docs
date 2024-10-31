@@ -302,7 +302,7 @@ Automation
 
 - Adds support for :ref:`enabling OIDC authentication 
   <enable-oidc-auth>` through an |idp| that supports |oidc|, such as 
-  :abbr:`Azure AD (Azure Active Directory)`, Okta, or Ping Identity.
+  |azure-ad|, Okta, or Ping Identity.
 
 Migration
 `````````
