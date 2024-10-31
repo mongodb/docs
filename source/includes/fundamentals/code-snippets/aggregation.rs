@@ -1,6 +1,7 @@
-use bson::{ doc, DateTime };
+use bson::{ doc, DateTime, Document };
 use mongodb::{ Client, Collection };
 use serde::{ Deserialize, Serialize };
+use futures::stream::TryStreamExt;
 
 #[tokio::main]
 async fn main() -> mongodb::error::Result<()> {
@@ -42,8 +43,7 @@ async fn main() -> mongodb::error::Result<()> {
 
     let mut results = my_coll.aggregate(age_pipeline).await?;
     while let Some(result) = results.try_next().await? {
-        let doc = mongodb::bson::from_document(result)?;
-        println!("* {:?}", doc);
+        println!("* {:?}", result);
     }
     // end-age-agg
 
@@ -57,8 +57,7 @@ async fn main() -> mongodb::error::Result<()> {
 
     let mut results = my_coll.aggregate(last_active_pipeline).await?;
     while let Some(result) = results.try_next().await? {
-        let doc = mongodb::bson::from_document(result)?;
-        println!("* {:?}", doc);
+        println!("* {:?}", result);
     }
     // end-lastactive-agg
 
@@ -72,8 +71,7 @@ async fn main() -> mongodb::error::Result<()> {
 
     let mut results = my_coll.aggregate(popularity_pipeline).await?;
     while let Some(result) = results.try_next().await? {
-        let doc = mongodb::bson::from_document(result)?;
-        println!("* {:?}", doc);
+        println!("* {:?}", result);
     }
     // end-popular-agg
 
