@@ -1,6 +1,7 @@
-use bson::{ doc, DateTime };
+use bson::{ doc, DateTime, Document };
 use mongodb::{ Client, Collection };
 use serde::{ Deserialize, Serialize };
+use futures::stream::TryStreamExt;
 
 #[tokio::main]
 async fn main() -> mongodb::error::Result<()> {
