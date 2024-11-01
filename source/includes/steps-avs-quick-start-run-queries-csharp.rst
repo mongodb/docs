@@ -41,7 +41,7 @@
 
    .. step:: Specify the ``<connection-string>``.
 
-      .. include:: /includes/steps-connection-string-drivers.rst
+      .. include:: /includes/steps-connection-string-drivers-hidden.rst
 
    .. step:: Run your query.
     

@@ -45,14 +45,13 @@ public class VectorIndex {
             // Create the index
             try {
                 List<String> result = collection.createSearchIndexes(Collections.singletonList(indexModel));
-                System.out.println("Successfully created a vector index named: " + result);
-                System.out.println("It may take up to a minute for the index to build before you can query using it.");
+                System.out.println("New search index named " + result.get(0) + " is building.");
             } catch (Exception e) {
                 throw new RuntimeException("Error creating index: " + e);
             }
 
             // Wait for Atlas to build the index
-            System.out.println("Polling to confirm the index has completed building.");
+            System.out.println("Polling to check if the index is ready. This may take up to a minute.");
 
             ListSearchIndexesIterable<Document> searchIndexes = collection.listSearchIndexes();
             Document doc = null;
@@ -72,10 +71,9 @@ public class VectorIndex {
                     }
                 } catch (Exception e) {
                     throw new RuntimeException("Failed to list search indexes: " + e);
-                    mongoClient.close();
                 }
             }
-            System.out.println(indexName + " index is ready to query");
+            System.out.println(indexName + " is ready for querying.");
 
         } catch (Exception e) {
             throw new RuntimeException("Error connecting to MongoDB: " + e);

@@ -1,38 +1,6 @@
 .. procedure:: 
    :style: normal
 
-   .. step:: Add the MongoDB Java Sync Driver to your project.
-
-      a. Add the Java driver version 5.2 or higher as a dependency in your project:
-
-         - If you are using Maven, add the following dependency to your
-           ``pom.xml`` dependencies list:
-
-           .. code-block:: xml
-              :copyable: true
-
-              <dependency>
-                 <groupId>org.mongodb</groupId>
-                 <artifactId>mongodb-driver-sync</artifactId>
-                 <version>5.2.0</version>
-              </dependency>
-
-         - If you are using Gradle, add the following dependency to your
-           ``build.gradle`` dependencies list:
-
-           .. code-block:: json
-              :copyable: true
-
-              dependencies {
-                 implementation 'org.mongodb:mongodb-driver-sync:5.2.0'
-              }
-
-      #. Add the Java driver JAR files to your ``CLASSPATH``.
-
-      For more detailed installation instructions and version compatibility, see
-      the :driver:`MongoDB Java Driver documentation
-      </java/sync/current/quick-start/#std-label-add-mongodb-dependency>`.
-
    .. step:: Construct your vector search query.
 
       .. include:: /includes/fact-avs-quick-start-intro.rst
@@ -53,7 +21,7 @@
 
    .. step:: Specify the ``<connection-string>``.
 
-      .. include:: /includes/steps-connection-string-drivers.rst
+      .. include:: /includes/steps-connection-string-drivers-hidden.rst
 
    .. step:: Run your query.
     

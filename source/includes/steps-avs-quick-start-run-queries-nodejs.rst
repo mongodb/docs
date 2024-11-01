@@ -1,22 +1,5 @@
 .. procedure:: 
-   :style: normal 
-
-   .. step:: Install the MongoDB Node.js Driver.
-
-      a.  Run one of the following commands:
-
-      .. code-block:: sh 
-         :copyable: true 
-
-         npm install mongodb
-
-      .. code-block:: sh 
-         :copyable: true 
-
-         yarn add mongodb
-
-      For more detailed installation instructions, see the 
-      :ref:`MongoDB Node.js Driver documentation <node-quick-start-download-and-install>`.
+   :style: normal
 
    .. step:: Construct your vector search query.
 
@@ -39,7 +22,7 @@
 
    .. step:: Specify the ``<connection-string>``.
 
-      .. include:: /includes/steps-connection-string-drivers.rst
+      .. include:: /includes/steps-connection-string-drivers-hidden.rst
 
    .. step:: Run your query.
 

@@ -1,28 +1,6 @@
 .. procedure::
    :style: normal
 
-   .. step:: Add the MongoDB Go Driver to your project.
-
-      Run the following commands:
-
-      a. Initialize your Go module:
-
-         .. code-block:: sh
-            :copyable: true
-
-            mkdir go-vector-quickstart && cd go-vector-quickstart
-            go mod init go-vector-quickstart
-
-      b. Add MongoDB Go as a dependency:
-
-         .. code-block:: sh
-            :copyable: true
-
-            go get go.mongodb.org/mongo-driver/mongo
-
-      For more detailed installation instructions, see the
-      :ref:`MongoDB Go Driver documentation <golang-quickstart>`.
-
    .. step:: Construct your vector search query.
 
       .. include:: /includes/fact-avs-quick-start-intro.rst
@@ -43,7 +21,7 @@
 
    .. step:: Specify the ``<connection-string>``.
 
-      .. include:: /includes/steps-connection-string-drivers.rst
+      .. include:: /includes/steps-connection-string-drivers-hidden.rst
 
    .. step:: Run your query.
 

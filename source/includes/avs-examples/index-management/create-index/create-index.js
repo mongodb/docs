@@ -33,7 +33,23 @@ async function run() {
 
      // run the helper method
      const result = await collection.createSearchIndex(index);
-     console.log(result);
+     console.log(`New search index named ${result} is building.`);
+     // wait for the index to be ready to query
+     console.log("Polling to check if the index is ready. This may take up to a minute.")
+     let isQueryable = false;
+     while (!isQueryable) {
+       const cursor = collection.listSearchIndexes();
+       for await (const index of cursor) {
+         if (index.name === indexName) {
+           if (index.queryable) {
+             console.log(`${indexName} is ready for querying.`);
+             isQueryable = true;
+           } else {
+             await new Promise(resolve => setTimeout(resolve, 5000));
+           }
+         }
+       }
+     }
    } finally {
      await client.close();
    }

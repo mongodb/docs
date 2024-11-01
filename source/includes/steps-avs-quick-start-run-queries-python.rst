@@ -1,18 +1,6 @@
 .. procedure:: 
    :style: normal 
 
-   .. step:: Install ``pymongo``, the Python driver for MongoDB.
-
-      a. Run the following command:
-
-      .. code-block:: sh 
-         :copyable: true 
-
-         pip install pymongo
-
-      For more detailed installation instructions, see the 
-      :ref:`MongoDB Python Driver documentation <pymongo-get-started-download-and-install>`.
-
    .. step:: Construct your vector search query.
 
       .. include:: /includes/fact-avs-quick-start-intro.rst
@@ -33,7 +21,7 @@
 
    .. step:: Specify the ``<connection-string>``.
 
-      .. include:: /includes/steps-connection-string-drivers.rst
+      .. include:: /includes/steps-connection-string-drivers-hidden.rst
 
    .. step:: Run your query.
     

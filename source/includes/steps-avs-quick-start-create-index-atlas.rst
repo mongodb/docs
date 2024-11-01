@@ -36,47 +36,79 @@
 
    .. step:: Create a Vector Search index.
 
-      a. When the sample data finishes loading, click :guilabel:`Create Search Index`.
+      .. tabs-drivers::
 
-      #. Under the :guilabel:`Atlas Vector Search` section, select the 
-         :guilabel:`JSON Editor` and click :guilabel:`Next`.
+         .. tab::
+            :tabid: atlas-ui
 
-      #. In the :guilabel:`Database and Collection` section, expand the 
-         ``sample_mflix`` database and select the ``embedded_movies`` collection.
-         
-         Each :term:`document` in this :term:`collection` contains information about a movie, 
-         including a summary of the movie's plot as a string, which has also 
-         been converted to and stored as a vector embedding in the document's ``plot_embedding`` field. 
+            .. include:: /includes/avs-quick-start-ui-create-index.rst
 
-      #. In the :guilabel:`Index Name` field, specify ``vector_index``.
+         .. tab::
+            :tabid: shell
 
-      #. Copy and paste the following :ref:`vector search index definition <vector-search-quickstart-vector-index-definition>` 
-         into the JSON Editor. 
+            .. include:: /includes/avs-quick-start-mongosh-atlas-create-index.rst
 
-         .. code-block::
-            :copyable: true 
-            :linenos: 
+         .. tab::
+            :tabid: c
 
-            {
-              "fields": [{
-                "type": "vector",
-                "path": "plot_embedding",
-                "numDimensions": 1536,
-                "similarity": "dotProduct"
-              }]
-            }
+            .. include:: /includes/avs-quick-start-ui-create-index.rst
 
-         This index definition:
+         .. tab::
+            :tabid: cpp
 
-         - Indexes the ``plot_embedding`` field as the ``vector`` :ref:`type <avs-types-vector>`. 
-           This field contains :term:`vector embeddings` that represent the summary of a 
-           movie's plot.
-         - Specifies ``1536`` :term:`vector dimensions <vector>`.
-         - Measures :ref:`similarity <fields-similarity>` using ``dotProduct`` similarity.
+            .. include:: /includes/avs-quick-start-ui-create-index.rst
 
-      #. Click :guilabel:`Next`.
+         .. tab::
+            :tabid: csharp
 
-      #. Click :guilabel:`Create Search Index`. 
+            .. include:: /includes/avs-quick-start-ui-create-index.rst
 
-         The index should take about one minute to build. When your vector index is 
-         finished building, the :guilabel:`Status` column reads :guilabel:`Active`.
+         .. tab::
+            :tabid: go
+
+            .. include:: /includes/avs-quick-start-go-create-index.rst
+
+         .. tab::
+            :tabid: java-sync
+
+            .. include:: /includes/avs-quick-start-java-create-index.rst
+
+         .. tab::
+            :tabid: kotlin-coroutine
+
+            .. include:: /includes/avs-quick-start-ui-create-index.rst
+
+         .. tab::
+            :tabid: kotlin-sync
+
+            .. include:: /includes/avs-quick-start-ui-create-index.rst
+
+         .. tab::
+            :tabid: nodejs
+
+            .. include:: /includes/avs-quick-start-javascript-create-index.rst
+
+         .. tab::
+            :tabid: php
+
+            .. include:: /includes/avs-quick-start-ui-create-index.rst
+
+         .. tab::
+            :tabid: python
+
+            .. include:: /includes/avs-quick-start-python-create-index.rst
+
+         .. tab::
+            :tabid: ruby
+
+            .. include:: /includes/avs-quick-start-ui-create-index.rst
+
+         .. tab::
+            :tabid: rust
+
+            .. include:: /includes/avs-quick-start-ui-create-index.rst
+
+         .. tab::
+            :tabid: scala
+
+            .. include:: /includes/avs-quick-start-ui-create-index.rst

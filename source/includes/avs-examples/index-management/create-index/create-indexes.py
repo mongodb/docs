@@ -58,3 +58,5 @@ def create_indexes():
      # Create the search indexes
      result = collection.create_search_indexes(models=idx_models)
      print(result)
+
+     client.close()

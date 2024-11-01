@@ -57,41 +57,79 @@
 
    .. step:: Create a Vector Search index.
 
-      a. Create a file named ``vector-index.json``
+      .. tabs-drivers::
 
-      #. Copy and paste the following index definition into the |json| file.
+         .. tab::
+            :tabid: atlas-ui
 
-         .. code-block:: 
-           :copyable: true 
+            .. include:: /includes/avs-quick-start-local-create-index-with-json.rst
 
-           {
-             "database": "sample_mflix",
-             "collectionName": "embedded_movies",
-             "type": "vectorSearch",
-             "name": "vector_index",
-               "fields": [
-                 {
-                   "type": "vector",
-                   "path": "plot_embedding",
-                   "numDimensions": 1536,
-                   "similarity": "dotProduct"
-                 }
-               ]
-           }
+         .. tab::
+            :tabid: shell
 
-         This index definition:
+            .. include:: /includes/avs-quick-start-mongosh-local-create-index.rst
 
-         - Indexes the ``plot_embedding`` field as the ``vector`` type. 
-           This field contains :term:`vector embeddings` that represent the summary of a 
-           movie's plot.
-         - Specifies ``1536`` :term:`vector dimensions <vector>`.
-         - Measures :ref:`similarity <fields-similarity>` using ``dotProduct`` similarity.
-         
-      #. Save the file, and then run the following command
-         in your terminal, replacing ``<path-to-file>`` with the path to the 
-         ``vector-index.json`` file that you created.
+         .. tab::
+            :tabid: c
 
-         .. code-block:: 
-            :copyable: true 
+            .. include:: /includes/avs-quick-start-local-create-index-with-json.rst
 
-            atlas deployments search indexes create --file <path-to-file>
+         .. tab::
+            :tabid: cpp
+
+            .. include:: /includes/avs-quick-start-local-create-index-with-json.rst
+
+         .. tab::
+            :tabid: csharp
+
+            .. include:: /includes/avs-quick-start-local-create-index-with-json.rst
+
+         .. tab::
+            :tabid: go
+
+            .. include:: /includes/avs-quick-start-go-create-index.rst
+
+         .. tab::
+            :tabid: java-sync
+
+            .. include:: /includes/avs-quick-start-java-create-index.rst
+
+         .. tab::
+            :tabid: kotlin-coroutine
+
+            .. include:: /includes/avs-quick-start-local-create-index-with-json.rst
+
+         .. tab::
+            :tabid: kotlin-sync
+
+            .. include:: /includes/avs-quick-start-local-create-index-with-json.rst
+
+         .. tab::
+            :tabid: nodejs
+
+            .. include:: /includes/avs-quick-start-javascript-create-index.rst
+
+         .. tab::
+            :tabid: php
+
+            .. include:: /includes/avs-quick-start-local-create-index-with-json.rst
+
+         .. tab::
+            :tabid: python
+
+            .. include:: /includes/avs-quick-start-python-create-index.rst
+
+         .. tab::
+            :tabid: ruby
+
+            .. include:: /includes/avs-quick-start-local-create-index-with-json.rst
+
+         .. tab::
+            :tabid: rust
+
+            .. include:: /includes/avs-quick-start-local-create-index-with-json.rst
+
+         .. tab::
+            :tabid: scala
+
+            .. include:: /includes/avs-quick-start-local-create-index-with-json.rst

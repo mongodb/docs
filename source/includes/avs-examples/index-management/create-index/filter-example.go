@@ -63,15 +63,14 @@ func main() {
 	}
 
 	// Create the index
-	log.Println("Creating the index.")
 	searchIndexName, err := coll.SearchIndexes().CreateOne(ctx, indexModel)
 	if err != nil {
 		log.Fatalf("failed to create the search index: %v", err)
 	}
+	log.Println("New search index named " + searchIndexName + " is building.")
 
 	// Await the creation of the index.
-	log.Println("Polling to confirm successful index creation.")
-	log.Println("NOTE: This may take up to a minute.")
+	log.Println("Polling to check if the index is ready. This may take up to a minute.")
 	searchIndexes := coll.SearchIndexes()
 	var doc bson.Raw
 	for doc == nil {
@@ -93,5 +92,5 @@ func main() {
 		}
 	}
 
-	log.Println("Name of Index Created: " + searchIndexName)
+	log.Println(searchIndexName + " is ready for querying.")
 }
