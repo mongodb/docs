@@ -13,26 +13,23 @@ Create Ranges in a Sharded Cluster
    :depth: 1
    :class: singlecol
 
-In most situations a :term:`sharded cluster` will create/split and
+In most situations a :term:`sharded cluster` will create, split, and
 distribute ranges automatically without user intervention. However, in
-a limited number of cases, MongoDB cannot create enough ranges or
-distribute data fast enough to support the required throughput.
+some cases, MongoDB cannot create enough ranges or distribute data fast
+enough to support the required throughput.
+
+For example, if you want to ingest a large volume of data into a cluster
+where you have inserts distributed across shards, pre-splitting the
+ranges of an empty sharded collection can improve throughput.
 
 .. note::
 
-   Starting in MongoDB 6.0, you cannot pre-split ranges by creating
-   empty ranges and have the balancer automatically distribute the
-   ranges. Instead, do any of these:
-
-   - :ref:`Manually migrate chunks <migrate-chunks-sharded-cluster>`
-   - Use :ref:`zone sharding <zone-sharding>`
-   - Use :ref:`hashed sharding <sharding-hashed-sharding>`
-
-For example, if you want to ingest a large volume of data into a
-cluster that is unbalanced, or where the ingestion of data will lead to
-data imbalance, such as with monotonically increasing or decreasing
-shard keys. Pre-splitting the ranges of an empty sharded collection
-can help with the throughput in these cases.
+   Starting in MongoDB 6.0, the balancer does not distribute empty
+   ranges. To pre-split the collection, use :dbcommand:`moveRange` to
+   distribute the empty ranges across the shards in the cluster.
+   ``moveRange`` automatically splits the range to be moved, meaning
+   ``moveRange`` performs both splitting and moving. You don't need to
+   manually split the range with :dbcommand:`split`.
 
 Alternatively, by defining the :doc:`zones
 and zone ranges </core/zone-sharding>` *before* sharding an empty or a
@@ -49,28 +46,10 @@ distribution based on the zone ranges. For more information, see
    ranges and sizes as well as inefficient or ineffective balancing
    behavior.
 
-To split empty ranges manually, you can run the :dbcommand:`split` command:
-
-.. example::
-
-   To create ranges for documents in the ``myapp.users``
-   collection using the ``email`` field as the :term:`shard key`,
-   use the following operation in :binary:`~bin.mongosh`:
-
-   .. code-block:: javascript
-
-      for ( var x=97; x<97+26; x++ ){
-          for ( var y=97; y<97+26; y+=6 ) {
-              var prefix = String.fromCharCode(x) + String.fromCharCode(y);
-              db.adminCommand( { split: "myapp.users", middle: { email : prefix } } );
-          }
-      }
-
-   This assumes a collection size of 100 million documents.
-
 Learn More
 ----------
 
+- :ref:`bulk-write-sharded-collection`
 - :method:`sh.balancerCollectionStatus()`
 - Initial ranges created and distributed by the sharding command,
   see :ref:`initial-ranges-empty-collection`.
