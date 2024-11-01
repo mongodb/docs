@@ -157,41 +157,60 @@ Hashed Indexes
 Covered Queries
 ~~~~~~~~~~~~~~~
 
-Multikey indexes cannot :ref:`cover <covered-queries>` queries over
-array fields. However, multikey indexes can cover queries over non-array
-fields if the index tracks which field or fields cause the index to be
-multikey.
+Multikey indexes can cover queries when these conditions are met:
+
+- The query does not return the array field (meaning the array is not
+  included in the query projection). This means that to cover a query,
+  the multikey index must be :ref:`compound
+  <compound_multikey_indexes>`.
+
+- The query does not include :query:`$elemMatch`.
+
+- The query meets all other :ref:`covered query requirements
+  <covered-queries>`.
 
 For example, consider a ``matches`` collection with these documents:
 
 .. code-block:: javascript
 
    db.matches.insertMany( [
-      { name: "joe", event: ["open", "tournament"] },
-      { name: "bill", event: ["match", "championship"] }
+      { name: "Joe", event: [ "open", "tournament" ] },
+      { name: "Bill", event: [ "match", "championship" ] }
    ] )
 
-The ``matches`` collection has a compound multikey index on the ``name``
-and ``event`` fields:
+The ``matches`` collection has a compound multikey index on the
+``event`` and ``name`` fields:
 
 .. code-block:: javascript
 
-   db.matches.createIndex( { name: 1, event: 1 } )
+   db.matches.createIndex( { event: 1, name: 1 } )
 
-This index is a multikey index because the ``event`` field contains
+The preceding index is multikey because the ``event`` field contains
 array values.
 
-The multikey index covers the following query, even though the matched
-field (``name``) is not an array:
+The index covers these queries:
 
 .. code-block:: javascript
 
-   db.matches.find( { name: "bill" } )
+   db.matches.find(
+      { event: 'championship' },
+      { _id: 0, name: 1 }
+   )
 
-Because ``name`` field is part of the index :ref:`prefix
-<compound-index-prefix>`, the index covers queries on the ``name``
-field. The index cannot cover queries on both ``name`` and ``event``,
-because multikey indexes cannot cover queries on array fields.
+   db.matches.find(
+      { name: 'Bill', event: 'championship' },
+      { _id: 0, name: 1 }
+   )
+
+The index does not cover the following query because the projection
+contains the ``event`` array field:
+
+.. code-block:: javascript
+   
+   db.matches.find(
+      { event: 'championship' },
+      { _id: 0, event: 1 }
+   )
 
 Query on an Array Field as a Whole
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
