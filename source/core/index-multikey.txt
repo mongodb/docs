@@ -169,10 +169,60 @@ Hashed Indexes
 Covered Queries
 ~~~~~~~~~~~~~~~
 
-.. include:: /includes/fact-multikey-index-covered-query.rst
+Multikey indexes can cover queries when these conditions are met:
 
-Multikey indexes can cover queries over non-array fields if the index tracks 
-which field or fields cause the index to be multikey. 
+- The query does not return the array field (meaning the array is not
+  included in the query projection). This means that to cover a query,
+  the multikey index must be :ref:`compound
+  <compound_multikey_indexes>`.
+
+- The query does not include :query:`$elemMatch`.
+
+- The query meets all other :ref:`covered query requirements
+  <covered-queries>`.
+
+For example, consider a ``matches`` collection with these documents:
+
+.. code-block:: javascript
+
+   db.matches.insertMany( [
+      { name: "Joe", event: [ "open", "tournament" ] },
+      { name: "Bill", event: [ "match", "championship" ] }
+   ] )
+
+The ``matches`` collection has a compound multikey index on the
+``event`` and ``name`` fields:
+
+.. code-block:: javascript
+
+   db.matches.createIndex( { event: 1, name: 1 } )
+
+The preceding index is multikey because the ``event`` field contains
+array values.
+
+The index covers these queries:
+
+.. code-block:: javascript
+
+   db.matches.find(
+      { event: 'championship' },
+      { _id: 0, name: 1 }
+   )
+
+   db.matches.find(
+      { name: 'Bill', event: 'championship' },
+      { _id: 0, name: 1 }
+   )
+
+The index does not cover the following query because the projection
+contains the ``event`` array field:
+
+.. code-block:: javascript
+   
+   db.matches.find(
+      { event: 'championship' },
+      { _id: 0, event: 1 }
+   )
 
 Query on the Array Field as a Whole
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
