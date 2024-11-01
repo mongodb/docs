@@ -1,7 +1,10 @@
 The following table describes potential security threats and how
-MongoDB security features address them:
+MongoDB encryption features address them. Use these mechanisms together:
+Role-Based Access Control, Encryption at Rest, Transport Encryption, and
+In-Use Encryption. Note that you can't use both {+csfle+} and {+qe+} in the 
+same collection.
 
-.. warning::
+.. important::
 
    This is a high-level summary meant for general comparison. For detailed
    information, see the
@@ -43,13 +46,11 @@ MongoDB security features address them:
        access to network, disk, and memory while remaining undetected)
      - Reveals database
      - Reveals database
-     - While {+qe+} is not designed to protect against an ATP, it provides 
-       some guarantees against this threat model. See `whitepaper <https://cdn.bfldr.com/2URK6TO/as/jkwp857q2zr8fj5vqs24f5/Design__Analysis_Stateless_Document_Database_Encryption_Scheme>`__ for details.
-     - While {+csfle-abbrev+} is not designed to protect against an ATP, it 
-       provides some guarantees against this threat model. See `whitepaper <https://cdn.bfldr.com/2URK6TO/as/jkwp857q2zr8fj5vqs24f5/Design__Analysis_Stateless_Document_Database_Encryption_Scheme>`__ for details.
+     - {+qe+} is not designed to protect against an ATP. See `whitepaper <https://cdn.bfldr.com/2URK6TO/as/64kp46t53v34xw37gkngbrg/An_Overview_of_Queryable_Encryption>`__ for details.
+     - {+csfle-abbrev+} is not designed to protect against an ATP. See `whitepaper <https://cdn.bfldr.com/2URK6TO/as/64kp46t53v34xw37gkngbrg/An_Overview_of_Queryable_Encryption>`__ for details.
 
 .. [#db-exfil]
    
    This assumes exfiltration occurs between completed operations. 
-   See `whitepaper <https://cdn.bfldr.com/2URK6TO/as/jkwp857q2zr8fj5vqs24f5/Design__Analysis_Stateless_Document_Database_Encryption_Scheme>`__
+   See `whitepaper <https://cdn.bfldr.com/2URK6TO/as/64kp46t53v34xw37gkngbrg/An_Overview_of_Queryable_Encryption>`__
    for details.
