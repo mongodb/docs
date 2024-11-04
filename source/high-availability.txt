@@ -9,21 +9,124 @@ High Availability
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: onecol
 
-Intro statement
+MongoDB |service| allows you to create cluster configurations that meet your 
+specific availability needs while satisfying your security and compliance 
+requirements. 
 
-{+service+} Features and Best Practices for High Availability
--------------------------------------------------------------
+Consult this page to plan the appropriate cluster configuration that optimizes 
+your availability and performance while aligning with your enterprise's 
+billing and access needs.
 
-Content here
+{+service+} Features and Recommendations for High Availability
+---------------------------------------------------------------
+
+Features
+~~~~~~~~
+
+When you launch a new cluster in |service|, {+service+} automatically configures a 
+minimum three-node replica set and distributes it across availability zones. If a 
+primary member experiences an outage, |service| automatically detects this failure 
+and elects a secondary member as a replacement, and promotes this secondary member 
+to become the new primary. |service| then restores or replaces the failing member 
+to ensure that the cluster is returned to its target configuration as soon as possible. 
+The MongoDB client driver also automatically switches all client connections. The 
+entire selection and failover process happens within seconds, without manual 
+intervention. MongoDB optimizes the algorithms used to detect failure and elect a 
+new primary, reducing the failover interval. 
+
+[insert diagram]
+
+Clusters that you deploy within a single region are spread across availability 
+zones within that region, so that they can withstand partial region outages without 
+an interruption of read or write availability. You can optionally choose to spread 
+your clusters across two or more regions for greater resilience and 
+:ref:`workload isolation <create-cluster-multi-region>`.
+
+Deploying a cluster to three or more regions ensures that the cluster can withstand 
+a full region-level outage while maintaining read and write availability, provided 
+the application layer is fault-tolerant. If maintaining write operations in your 
+preferred region at all times is a high priority, MongoDB recommends deploying the 
+cluster so that at least two electable members are in at least two data centers within 
+your preferred region.
+
+For the best database performance in a worldwide deployment, users can configure a 
+:ref:`global cluster <global-clusters>` which uses location-aware sharding to minimize 
+read and write latency. If you have geographical storage requirements, you can also 
+ensure that {+service+} stores data in a particular geographical area.
+
+Recommended Deployment Topologies
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Single Region, 3 Node Replica Set / Shard (PSS)
+````````````````````````````````````````````````
+This topology is appropriate if low latency is required but high availability requirements 
+are average. This topology can tolerate any 1 node failure, easily satify majority write 
+concern with in-region secondaries, maintain a primary in the preferred region upon any node 
+failure, is inexpensive, and the least complicated. The reads from secondaries in this topology 
+encounter low latency in your preferred region.
+
+This topology, however, can't tolerate a regional outage.
+
+2-Region, 3 Node Replica Set / Shard (PS - S)
+``````````````````````````````````````````````
+This topology is a highly available cluster configuration, with strong performance and availability. 
+This topology can easily satisfy majority write concern with in-region secondary, tolerate any 
+1 node failure, maintain a primary in the preferred region upon any node failure, is inexpensive, 
+and can tolerate regional outage from the least preferred region. The reads from one secondary in 
+this topology also encounter low latency in the preferred region.
+
+This topology, however, can't tolerate a regional outage from a preferred region without manual 
+intervention, such as adding additional nodes to the least-preferred region. Furthermore, the reads 
+from secondaries in a specific region is limited to a single node, and there is potential data loss 
+during regional outage.
+
+3-Region, 3 Node Replica Set / Shard (P - S - S)
+``````````````````````````````````````````````````
+This topology is a typical multi-regional topology where high availability and data durability are 
+more important than write latency performance. This topology can tolerate any 1 node failure, any 
+1 region outage, and is inexpensive. 
+
+This topology, however, experiences higher latency because its majority write concern must replicate 
+to a second region. Furthermore, a primary node failure shifts the primary out of the preferred region, 
+and reads from secondaries always exist in a different region compared to the primary, and may exist 
+outside of the preferred region.
+
+3-Region, 5 Node Replica Set / Shard (PS - SS - S)
+````````````````````````````````````````````````````
+This topology is a typical multi-regional topology for mission-critical applications that require 
+in-region availability. This topology can tolerate any 2 nodes' failure, tolerate primary node failure 
+while keeping the new primary in the preferred region, and tolerate any 1 region outage. 
+
+This topology, however, experiences higher latency because its majority write concern must replicate 
+to a second region. Furthermore, reads from secondaries always exist in a different region compared 
+to the primary, and may exist outside of the preferred region.
+
+3-Region, 7 Node Replica Set / Shard (PSS - SSS - S)
+`````````````````````````````````````````````````````
+This topology is a non-typical multi-regional topology for mission-critical applications that require 
+in-region availability. This topology can tolerate any 3 nodes' failure, tolerate primary node failure 
+and a secondary node failure in the preferred region, and tolerate any 1 region outage.
+
+This topology, however, experiences higher latency because its majority write concern must replicate 
+to a second region.
+
+5-Region, 9 Node Replica Set / Shard (PS - SS - SS - SS - S)
+`````````````````````````````````````````````````````````````
+This topology is a non-typical multi-regional topology for the most availability-demanding applications 
+that require in-region availability. This topology can tolerate any 4 nodes' failure, tolerate primary 
+node failure while keeping the new primary in the preferred region, and tolerate any 2 region outages.
+
+This topology, however, experiences higher latency because its majority write concern must replicate 
+to two additional regions (3 regions in total).
 
 Examples
 --------
 
-The following examples <perform this action> using |service|
-:ref:`tools for automation <arch-center-automation>`.
+The following examples configure the Single Region, 3 Node Replica Set / Shard 
+deployment topology using |service| :ref:`tools for automation <arch-center-automation>`.
 
 These examples also apply other recommended configurations, including:
 
@@ -44,9 +147,177 @@ These examples also apply other recommended configurations, including:
    .. tab:: CLI
       :tabid: cli
 
-      Content here
+      .. note::
+
+         Before you
+         can create resources with the {+atlas-cli+}, you must:
+
+         - :atlas:`Create your paying organization 
+           </billing/#configure-a-paying-organization>` and :atlas:`create an API key </configure-api-access/>` for the
+           paying organization.
+         - :atlascli:`Install the {+atlas-cli+} </install-atlas-cli/>` 
+         - :atlascli:`Connect from the {+atlas-cli+} 
+           </connect-atlas-cli/>` using the steps for :guilabel:`Programmatic Use`.
+
+      Create One Deployment Per Project
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. tabs::
+
+         .. tab:: Dev and Test Environments
+            :tabid: devtest
+
+            For your development and testing environments, run the following command for each project. Change
+            the IDs and names to use your values:
+
+            .. include:: /includes/examples/cli-example-create-clusters-devtest.rst
+
+         .. tab:: Staging and Prod Environments
+            :tabid: stagingprod
+
+            For your staging and production environments, create the following ``cluster.json`` file for each project. 
+            Change the IDs and names to use your values:
+
+            .. include:: /includes/examples/cli-json-example-create-clusters.rst
+
+            After you create the ``cluster.json`` file, run the
+            following command for each project. The
+            command uses the ``cluster.json`` file to create a cluster.
+
+            .. include:: /includes/examples/cli-example-create-clusters-stagingprod.rst 
+
+      For more configuration options and info about this example, 
+      see :ref:`atlas-clusters-create`.
 
    .. tab:: Terraform
       :tabid: Terraform
 
-      Content here
+      .. note::
+
+         Before you
+         can create resources with Terraform, you must:
+
+         - :atlas:`Create your paying organization 
+           </billing/#configure-a-paying-organization>` and :atlas:`create an API key </configure-api-access/>` for the
+           paying organization. Store your API key as environment
+           variables by running the following command in the terminal:
+
+           .. code-block::
+
+              export MONGODB_ATLAS_PUBLIC_KEY="<insert your public key here>"
+              export MONGODB_ATLAS_PRIVATE_KEY="<insert your private key here>"
+
+         - `Install Terraform 
+           <https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli>`__ 
+
+      Create the Projects and Deployments
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. tabs::
+
+         .. tab:: Dev and Test Environments
+            :tabid: devtest
+
+            For your development and testing environments, create the
+            following files for each application and environment 
+            pair. Place the files for each application and environment
+            pair in their own directory. Change the IDs and names to use your values:
+
+            main.tf
+            ```````
+
+            .. include:: /includes/examples/tf-example-main-devtest.rst 
+
+            variables.tf
+            ````````````
+
+            .. include:: /includes/examples/tf-example-variables.rst
+
+            terraform.tfvars
+            ````````````````
+
+            .. include:: /includes/examples/tf-example-tfvars-devtest.rst
+
+            provider.tf
+            ```````````
+
+            .. include:: /includes/examples/tf-example-provider.rst
+
+            After you create the files, navigate to each application and environment pair's directory and run the following
+            command to initialize Terraform:
+
+            .. code-block::
+
+               terraform init
+
+            Run the following command to view the Terraform plan:
+
+            .. code-block::
+
+               terraform plan
+            
+            Run the following command to create one project and one deployment for the application and environment pair. The command uses the files and the |service-terraform| to
+            create the projects and clusters:
+
+            .. code-block::
+
+               terraform apply
+
+            When prompted, type ``yes`` and press :kbd:`Enter` to apply
+            the configuration.
+
+         .. tab:: Staging and Prod Environments
+            :tabid: stagingprod
+
+            For your staging and production environments, create the
+            following files for each application and environment 
+            pair. Place the files for each application and environment
+            pair in their own directory. Change the IDs and names to use your values:
+
+            main.tf
+            ```````
+
+            .. include:: /includes/examples/tf-example-main-stagingprod.rst 
+
+            variables.tf
+            ````````````
+
+            .. include:: /includes/examples/tf-example-variables.rst
+
+            terraform.tfvars
+            ````````````````
+
+            .. include:: /includes/examples/tf-example-tfvars-stagingprod.rst
+
+            provider.tf
+            ```````````
+
+            .. include:: /includes/examples/tf-example-provider.rst
+
+            After you create the files, navigate to each application and environment pair's directory and run the following
+            command to initialize Terraform:
+
+            .. code-block::
+
+               terraform init
+
+            Run the following command to view the Terraform plan:
+
+            .. code-block::
+
+               terraform plan
+            
+            Run the following command to create one project and one deployment for the application and environment pair. The command uses the files and the |service-terraform| to
+            create the projects and clusters:
+
+            .. code-block::
+
+               terraform apply
+
+            When prompted, type ``yes`` and press :kbd:`Enter` to apply
+            the configuration. 
+      
+      For more configuration options and info about this example, 
+      see |service-terraform| and the `MongoDB Terraform Blog Post
+      <https://www.mongodb.com/developer/products/atlas/deploy-mongodb-atlas-terraform-aws/>`__.
+
