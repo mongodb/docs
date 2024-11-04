@@ -148,9 +148,9 @@ func Insert() error {
 	}
 	fmt.Printf("%s\n", outputRegular)
 
-	fmt.Println("Finding a document with encrypted client, searching on an encrypted field")
+	fmt.Println("Finding a document with encrypted client")
 	var resultSecure bson.M
-	err = secureClient.Database(dbName).Collection(collName).FindOne(context.TODO(), bson.D{{"ssn", "241014209"}}).Decode(&resultSecure)
+	err = secureClient.Database(dbName).Collection(collName).FindOne(context.TODO(), bson.D{{"name", "Jon Doe"}}).Decode(&resultSecure)
 	if err != nil {
 		panic(err)
 	}

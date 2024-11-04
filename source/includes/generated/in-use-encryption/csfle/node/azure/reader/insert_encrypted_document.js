@@ -112,11 +112,9 @@ async function main() {
         await regularClient.db(db).collection(coll).findOne({ name: /Jon/ })
       );
 
+      console.log("Finding a document with encrypted client");
       console.log(
-        "Finding a document with encrypted client, searching on an encrypted field"
-      );
-      console.log(
-        await secureClient.db(db).collection(coll).findOne({ ssn: "241014209" })
+        await secureClient.db(db).collection(coll).findOne({ name: /Jon/ })
       );
       // end-find
     } finally {

@@ -16,7 +16,6 @@ package com.mongodb.csfle;
  *
  */
 
-
 import java.util.*;
 
 import static com.mongodb.client.model.Filters.eq;
@@ -35,7 +34,6 @@ import java.io.FileOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.SecureRandom;
-
 
 /*
  * - Reads master key from file "master-key.txt" in root directory of project
@@ -146,8 +144,8 @@ public class InsertEncryptedDocument {
         Document docRegular = mongoClientRegular.getDatabase(recordsDb).getCollection(recordsColl).find(eq("name", "Jon Doe")).first();
         System.out.println(docRegular.toJson());
         
-        System.out.println("Finding a document with encrypted client, searching on an encrypted field");
-        Document docSecure = mongoClientSecure.getDatabase(recordsDb).getCollection(recordsColl).find(eq("ssn", 241014209)).first();
+        System.out.println("Finding a document with encrypted client");
+        Document docSecure = mongoClientSecure.getDatabase(recordsDb).getCollection(recordsColl).find(eq("name", "Jon Doe")).first();
         System.out.println(docSecure.toJson());
         // end-find 
         mongoClientSecure.close();

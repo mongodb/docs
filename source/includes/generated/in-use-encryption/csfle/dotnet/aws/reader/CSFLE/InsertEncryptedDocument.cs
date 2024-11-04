@@ -171,8 +171,8 @@ namespace Insert
             var regularResult = regularCollection.Find(filter).Limit(1).ToList()[0];
             Console.WriteLine($"\n{regularResult}\n");
 
-            Console.WriteLine("Finding a document with encrypted client, searching on an encrypted field");
-            var ssnFilter = Builders<BsonDocument>.Filter.Eq("ssn", 145014000);
+            Console.WriteLine("Finding a document with encrypted client");
+            var ssnFilter = Builders<BsonDocument>.Filter.Eq("name", "Jon Doe");
             var secureResult = secureCollection.Find(ssnFilter).Limit(1).First();
             Console.WriteLine($"\n{secureResult}\n");
             // end-find

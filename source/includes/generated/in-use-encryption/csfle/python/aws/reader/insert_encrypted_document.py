@@ -110,6 +110,6 @@ print("Finding a document with regular (non-encrypted) client.")
 result = regularClient.medicalRecords.patients.find_one({"name": "Jon Doe"})
 pprint.pprint(result)
 
-print("Finding a document with encrypted client, searching on an encrypted field")
-pprint.pprint(secureClient.medicalRecords.patients.find_one({"ssn": 241014209}))
+print("Finding a document with encrypted client")
+pprint.pprint(secureClient.medicalRecords.patients.find_one({"name": "Jon Doe"}))
 # end-find
