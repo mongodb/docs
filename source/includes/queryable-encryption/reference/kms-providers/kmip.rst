@@ -10,8 +10,10 @@ The following diagram describes the architecture of a
 .. important:: Client Accesses {+cmk-long+}
 
    When your {+qe+} enabled application uses
-   a {+kmip-kms+}, your application
-   directly accesses your {+cmk-long+}.
+   a {+kmip-kms+} without specifying the ``delegated`` option, your application
+   directly accesses your {+cmk-long+}. To avoid directly accessing your
+   {+cmk-abbr+}, you can set the ``delegated`` option to ``true`` in your
+   :ref:`dataKeyOpts object <qe-fundamentals-kms-providers-kmip-datakeyopts>`.
 
 kmsProviders Object
 ```````````````````
@@ -69,3 +71,15 @@ for a KMIP compliant {+kms-long+}:
     * - endpoint
       - Yes
       - The URI of your {+kmip-kms+}.
+
+    * - delegated
+      - No
+      - Set this option to ``true`` to delegate the encryption and decryption of your {+dek-abbr+} to your
+        {+kmip-kms+}. Delegating these to the {+kmip-kms+} ensures that you
+        never have direct access to the {+cmk-abbr+}.
+        
+        If you do not set the ``delegated`` option to ``true``, your application
+        directly accesses and transports your {+cmk-long+} from the KMIP provider.
+
+        :gold:`IMPORTANT:` The ``delegated`` option is not available in the
+        Ruby, Go, or C++ drivers.
