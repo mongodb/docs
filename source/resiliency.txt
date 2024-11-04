@@ -9,45 +9,196 @@ Application and Database Resiliency
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: onecol
 
-Intro statement
+MongoDB |service| is a highly-performant database that is designed 
+to maintain uptime regardless of infrastructure outages, system maintenance, 
+and more. Use the guidance on this page to plan settings to maximize the 
+resiliency of your application and database.
 
-{+service+} Features and Best Practices for Resiliency
-------------------------------------------------------
+{+service+} Features and Recommendations for Resiliency
+-------------------------------------------------------
 
-Content here
+Features
+~~~~~~~~
 
-Examples
---------
+Database Replication 
+````````````````````
 
-The following examples <perform this action> using |service|
-:ref:`tools for automation <arch-center-automation>`.
+|service| {+clusters+} consist of a minimum of three nodes, and you can increase
+the node count to any odd number of nodes you require. |service| first writes data 
+from your application to a primary node, and then |service| incrementally replicates
+and stores that data across all secondary nodes within your {+cluster+}.
 
-These examples also apply other recommended configurations, including:
+By default, |service| distributes {+cluster+} nodes across availability zones within 
+one of your chosen cloud provider's availability regions. For example, if your 
+{+cluster+} is deployed to the cloud provider region ``us-east``, |service| deploys 
+nodes to ``us-east-a``, ``us-east-b`` and ``us-east-c`` by default. 
 
-.. tabs::
+To learn more about high availability and node distribution across regions, 
+see :ref:`arch-center-high-availability`.
 
-   .. tab:: Dev and Test Environments
-      :tabid: devtest
+Self-Healing Deployments
+````````````````````````
 
-      .. include:: /includes/shared-settings-clusters-devtest.rst
+|service| {+clusters+} must consist of an odd number of nodes, because only one 
+node can be elected as the primary node to and from which your application writes 
+and reads directly. 
 
-   .. tab:: Staging and Prod Environments
-      :tabid: stagingprod
+In the event that a primary node is unavailable, because of infrastructure 
+outages, maintenance windows or any other reason, |service| {+clusters+} self-heal 
+by converting an existing secondary node into your primary node to maintain 
+database availability. 
 
-      .. include:: /includes/shared-settings-clusters-stagingprod.rst
+Maintenance Window Uptime
+`````````````````````````
 
-.. tabs::
+|service| maintains uptime during scheduled maintenance by applying updates in 
+a rolling fashion to one node at a time. During this process, |service| elects a new 
+primary when necessary just as it does during any other unplanned primary node 
+outage.  
 
-   .. tab:: CLI
-      :tabid: cli
+Monitoring
+``````````
 
-      Content here
+|service| provides `built-in tools <https://www.mongodb.com/docs/atlas/monitoring-alerts/>`__ 
+to monitor {+cluster+} performance, query performance and more. Additionally, |service| 
+integrates easily with `third-party services <https://www.mongodb.com/docs/atlas/tutorial/third-party-service-integrations/#std-label-third-party-integrations>`__. 
 
-   .. tab:: Terraform
-      :tabid: Terraform
+By actively monitoring your {+clusters+}, you can gain valuable insights into 
+query and deployment performance. To learn more about monitoring in |service|, see 
+`Monitor Your Clusters <https://www.mongodb.com/docs/atlas/monitoring-alerts/>`__ 
+and :ref:`Monitoring and Alerts <arch-center-monitoring-alerts>`.
 
-      Content here
+Deployment Resilience Testing
+`````````````````````````````
 
+You can simulate various scenarios that require disaster recovery workflows in 
+order to measure your preparedness for such events. Specifically, with |service| 
+you can `test primary node failover <https://www.mongodb.com/docs/atlas/tutorial/test-resilience/test-primary-failover/#std-label-test-failover>`__
+and `simulate regional outages <https://www.mongodb.com/docs/atlas/tutorial/test-resilience/simulate-regional-outage/#std-label-test-outage>`__. 
+
+Cluster Termination Safeguards
+``````````````````````````````
+
+You can prevent accidental deletion of |service| {+clusters+} by enabling 
+`termination protection <https://www.mongodb.com/docs/atlas/cluster-additional-settings/#termination-protection>`__.
+To delete a cluster that has termination protection enabled, you must first 
+disable termination protection. By default, Atlas disables termination protection 
+for all clusters.
+
+Database Backups
+````````````````
+
+|service| Cloud Backups facilitate cloud backup storage using the native 
+snapshot functionality of cloud service provider on which your {+cluster+} is 
+deployed. For example, if your cluster is deployed to AWS, you can elect to 
+backup your {+cluster+}'s data with snapshots taken at configurable intervals 
+in AWS S3. 
+
+To learn more about database backup and snapshot retrieval, see `Back Up Your Cluster <https://www.mongodb.com/docs/atlas/backup/cloud-backup/overview/>`__. 
+
+Recommendations
+~~~~~~~~~~~~~~~
+
+Use MongoDB 8.0
+````````````````
+
+.. include:: /includes/cloud-docs/cluster-resilience.rst
+
+Connecting Your Application to |service|
+`````````````````````````````````````````
+
+We recommend that you use the most `current driver version <https://www.mongodb.com/docs/drivers/>`__ 
+for your application's programming language whenever possible. And while the 
+default connection string |service| provides is a good place to start, you might 
+want to tune it for performance in the context of your specific application 
+and deployment architecture. `Tuning your connection pool settings <https://www.mongodb.com/docs/manual/tutorial/connection-pool-performance-tuning/>`__ 
+is particularly important in the context of enterprise level application deployments. 
+
+Connection Pool Considerations for Performant Applications
+```````````````````````````````````````````````````````````
+
+Opening database client connections is one of the most resource intensive processes
+involved in maintaining a client connection pool that facilitates application access 
+to your |service| {+cluster+}. 
+
+Because of this, it is worth thinking about how and when you would like this 
+process of opening client connections to unfold in the context of your specific 
+application. 
+
+For example, if you are scaling your |service| {+cluster+} to meet user demand, 
+consider what the minimum pool size of connections your application will 
+consisently need, so that when the connection pool scales the additional 
+networking and compute load that comes with opening new client connections 
+doesn't undermine your application's time-sensitive need for increased 
+database operations. 
+
+Min and Max Conection Pool Size 
+```````````````````````````````
+
+If your ``minPoolSize`` and ``maxPoolSize`` values are similar, the majority of your 
+database client connections will open at application startup. In turn, the 
+additional networking load that comes with opening such connections will happen 
+at the same time. However, if there is a large range in size between your 
+minimum and maximum pool size, additional connections are opened more frequently 
+during application runtime. 
+
+This process of incrementally increasing your connection pool size during 
+application runtime distributes the total workload of connecting clients from 
+your application to |service| over a longer period of time, which often makes it 
+manageable for a given use case, but it is important to note that the associated 
+increase in network load occurs during application runtime, which has 
+the potential to impact perceived database - and by extension - application 
+performance for end-users.
+
+Your application's architecture is central to this consideration. If, for example, 
+you deploy your application as microservices in an elastic environment, consider 
+which services should call |service| directly as a means of controlling the 
+dynamic expansion and contraction of your connection pool. 
+
+Query Timeout
+`````````````
+Almost invariably, workload-specific queries from your application will vary in 
+terms of the amount of time they take to execute in |service| and in terms of 
+the amount of time your application can wait for a response. 
+
+Consider defining query classes that handle categories or buckets of similar 
+request requirements. For example, you can define a query category with a fast 
+timeout for end-user driven requests, a middle tier timeout bucket for general 
+purpose requests, and a long-running query class for things like analytics 
+queries that require the most time to execute in |service|. 
+
+You can set `query timeout <https://www.mongodb.com/docs/manual/tutorial/query-documents/specify-query-timeout/>`__ 
+behavior globally in |service|, and you can also define it at the query level. 
+
+Retryable Database Reads and Writes
+```````````````````````````````````
+
+|service| supports `retryable read <https://www.mongodb.com/docs/manual/core/retryable-reads/>`__ 
+and `retryable write <https://www.mongodb.com/docs/manual/core/retryable-writes/>`__ 
+operations. When enabled, |service| retries read and write operations once as a 
+safeguard against intermittent network outages. 
+
+Configure Read and Write Concerns 
+`````````````````````````````````
+
+|service| {+clusters+} eventually replicate all data across all nodes. However, 
+you can configure the number of nodes across which data must be repicated before 
+a read or write operation is reported to have been successful. You can define
+`read concerns <https://www.mongodb.com/docs/manual/reference/read-concern/>`__ and 
+`write concerns <https://www.mongodb.com/docs/manual/reference/write-concern/>`__ 
+globally in |service|, and you can also define them at the client level in your 
+connection string. 
+
+Disaster Recovery 
+`````````````````
+
+We strongly recommend that you prepare a comprehensive disaster recovery (DR) plan 
+that includes elements such as `data backup policies <https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#std-label-backup-compliance-policy>`__, 
+your designated recovery point objective (RPO), your designated recovery time objective (RTO), and any automated processes that 
+facilitate alignment with these objectives. 
+
+To learn more about DR with |service|, see 
+`Data Resilience with MongoDB <https://www.mongodb.com/resources/products/capabilities/data-resilience-strategy-with-mongodb-atlas>`__. 
