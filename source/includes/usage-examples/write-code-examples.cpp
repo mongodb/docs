@@ -58,6 +58,16 @@ int main() {
     }
 
     {
+        // Replaces a document that matches the specified criteria
+        // start-replace-one
+        auto query_filter = make_document(kvp("<field to match>", "<value to match>"));
+        auto replace_doc = make_document(make_document(kvp("<field name>", "<value>")));
+
+        auto result = collection.replace_one(query_filter.view(), replace_doc.view());
+        // end-replace-one 
+    }
+
+    {
         // Deletes a document that matches the specified criteria
         // start-delete-one
         auto result = collection.delete_one(make_document(kvp("<field name>", "<value>")));
