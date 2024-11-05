@@ -1,6 +1,6 @@
 # docs-mongodb-intellij
 
-[Your words here].
+This repository contains documentation for the {+intellij-full+}.
 
 ## Report Issues
 
