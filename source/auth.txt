@@ -6,48 +6,442 @@ Authorization and Authentication
 
 .. default-domain:: mongodb
 
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: atlas architecture center
+   :description: Learn about the different authorization and authentication mechanisms that Atlas supports.
+
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: onecol
 
-Intro statement
+Authentication is the process of verifying the identity of a client.
+When access control (authorization) is enabled, |service| requires all
+clients to authenticate themselves in order to determine their access. 
 
-{+service+} Features and Best Practices for Authorization and Authentication
----------------------------------------------------------------------------------------
+Although authentication and authorization are closely connected,
+authentication is distinct from authorization: 
 
-Content here
+- Authentication verifies the identity of a user.
+
+  |service| provides robust authentication mechanisms that seamlessly
+  integrate with your existing identity systems, providing secure access
+  to the UI, database, and |api|\s through strong identity federation.
+  You can manage access to |service-fullname| {+clusters+} by
+  configuring authentication. 
+
+- Authorization determines the verified user's access to resources and
+  operations. 
+
+  |service| provides Role-Based Access Control (RBAC) to govern access to
+  |service|. You must grant a user one or more roles that determine the
+  user's access to database resources and operations. Outside of role
+  assignments, the user has no access to the system.
+
+{+service+} Features and Recommendations for Authorization 
+----------------------------------------------------------
+
+Features 
+~~~~~~~~
+
+You must implement |service|' robust Role-Based Access Control (RBAC)
+to effectively manage access across all resources. |service| includes
+built-in roles that provide different levels of access commonly needed
+in a database system. You must assign and customize roles for all
+users to ensure security and flexibility. By utilizing fine-grained
+custom or built-in roles with granular scoping to address specific
+needs, you can exert precise control over operations on |service|
+resources. Always create custom roles following the principle of least
+privilege and assign those roles to the users. 
+
+Additionally, by integrating |service| with identity providers to map
+identity provider groups to |service| roles, you can streamline access
+management and ensure secure, organized role assignments throughout the
+platform. 
+
+Recommendations for {+atlas-ui+} and {+atlas-admin-api+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can assign users and API keys to predefined roles, specifying the
+actions they can perform within |service| organizations, projects, or
+both. Use Identity Federation to manage access by linking your identity
+provider groups to |service| roles through group-role mappings.  
+
+To learn more, see :ref:`user-roles`.
+
+Recommendations for Database 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Workforce and workload users can be assigned fine-grained database
+roles, predefined or custom, with permissions tailored to specific
+projects or individual {+clusters+}. In staging and production
+environments, use Identity Federation to streamline access management by
+linking your Identity Provider (IdP) to  |service|. By configuring
+'Group Membership' in your :abbr:`IdP (Identity Provider)`, you can map
+groups to database users, simplifying access control within the
+:abbr:`IdP (Identity Provider)`. However, for workload identities, we
+recommend assigning roles directly using the 'users' claim instead of
+'groups.' In development and test environments, assign users the
+``readWriteAny`` role. 
+
+To learn more, see the following: 
+
+- :ref:`mongodb-users-roles-and-privileges`
+- :ref:`mongodb-roles`
+
+{+service+} Features and Recommendations for Authentication
+-----------------------------------------------------------
+
+Features 
+~~~~~~~~
+
+|service-fullname| supports a variety of authentication methods to
+ensure robust security.   
+
+- For user authentication, |service| integrates seamlessly with identity
+  providers (IdP) using federated authentication through OpenID Connect
+  (OIDC) or SAML 2.0, and enhances security with Multi-Factor
+  Authentication (MFA). You can also configure username-password
+  authentication by using SCRAM-SHA.
+- For workload authentication, |service| supports OAuth2.0, allowing
+  seamless compatibility with authorization services. Additionally, to
+  meet diverse technical needs, you can utilize x.509 certificates for
+  authentication, following best practices such as credential rotation
+  to maintain a secure environment.
+
+|service| requires all clients to authenticate to access {+atlas-ui+}, 
+|service| database, and {+atlas-admin-api+}. The following
+authentication methods for each |service| resource ensure that
+authentication is both secure and adaptable. |service| provides the
+following authentication mechanisms:
+
+Recommendations for Deployment 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In a shared deployment, multiple users and applications share the same
+physical resources (CPU, memory, storage) on the {+cluster+}. If you use
+shared deployment, you must ensure strong isolation and security
+measures to prevent unauthorized access to data and resources. Use this
+model only for cost efficiency and collaboration in development and test
+environments. 
+
+In a dedicated deployment, resources are allocated exclusively. We
+recommend this as it provides high security and performance. However,
+you must configure strict access controls.
+
+Recommendations for {+atlas-ui+}  
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| supports the following options for {+atlas-ui+}
+authentication. 
+
+Federated Authentication
+````````````````````````
+
+Federated authentication allows you to manage all authentication to
+the {+atlas-ui+} across multiple systems and applications through a
+central identity provider. For UI access, |service| supports workforce
+identity federation using :abbr:`SAML (Security Assertion Markup
+Language)` 2.0. You can use any :abbr:`SAML (Security Assertion
+Markup Language)` compatible identity provider such as Okta, Microsoft
+Entra ID, or PingOne to enforce security policies such as password 
+complexity, credential rotation, and :abbr:`MFA (Multi-Factor
+Authentication)` within your identity provider. |service| also supports
+Google or Github account authentication. 
+
+{+atlas-ui+} manages user identities in a MongoDB-controlled Okta
+instance, encrypted and stored securely. You must also configure IP
+access list to allow only connections from those IP ranges added to the
+access list. 
+
+To learn more, see :ref:`atlas-federated-authentication`.
+
+Multi-Factor authentication 
+```````````````````````````
+
+|service| supports authentication using credentials and :abbr:`MFA (Multi-Factor
+Authentication)` for enhanced security. When :abbr:`MFA (Multi-Factor
+Authentication)` is enabled, |service| requires two forms of
+identification: 
+
+- The user's credentials 
+- One of the following recommended factors: 
+
+  - Security keys
+  - Biometrics
+  - OTP authenticators 
+  - Push notifications
+  - SMS (not recommended as primary factor)
+  - Email (not recommended as primary factor)
+
+To learn more, see :ref:`atlas-enable-mfa`.
+
+Recommendations for |service| Database  
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| supports the following options for |service| database
+authentication. In development and test environments, create separate
+project with {+cluster+} and grant users ``Project Data Access Admin``
+and ``Organization Member`` roles. In staging and production
+environments, we recommend granting only programmatic access by using
+Workforce Identity Federation. |service| also supports creating
+temporary database users that automatically expire after the predefined
+times. A user can be created for the following periods:
+
+- 6 hours
+- 1 day
+- 1 week
+
+You can create these types of users for temporary access.
+
+Workforce Identity Federation
+`````````````````````````````
+
+Workforce Identity Federation allows you to manage all authentication to 
+the |service| database through your identity provider. For database
+access, we recommend :abbr:`OIDC (OpenID Connect)`-compatible identity
+provider such as Okta, Microsoft Entra ID, or PingOne to enforce
+security policies such as password complexity, credential rotation, and
+:abbr:`MFA (Multi-Factor Authentication)` within your identity provider. 
+
+To learn more, see :ref:`oidc-authentication-workforce`.
+
+Workload Identity Federation 
+````````````````````````````
+
+Workload identity federation enables applications running in cloud
+environments like |aws|, |azure|, and Google Cloud to authenticate with
+|service| without the need to manage separate database user credentials.
+With workload identity federation, you can manage |service| database
+users using |azure| Managed Identities, Google Service Accounts, or any
+OAuth 2.0-compliant service. You can also use |aws| workload federation
+through |aws| |iam| roles. These authentication mechanisms simplify
+management and enhance security by allowing for passwordless access to
+the |service| database. 
+
+To learn more, see the following: 
+
+- :ref:`oidc-authentication-workload`
+- :ref:`set-up-pwdless-auth`
+
+X.509 Client Certificates 
+`````````````````````````
+
+|service| supports X.509 client certificates for database user
+authentication. You must follow best practices for password management
+and credential rotation. We recommend that you use complex passwords,
+automate credential rotations, or ideally, generate one-time passwords
+through a privileged access management (PAM) solution for each access.
+|service| integrates seamlessly with HashiCorp Vault, allowing secure
+management and automation of secrets and credentials for database
+access. 
+
+To learn more, see :manual:`x.509 </core/security-x.509/>`.
+
+SCRAM 
+`````
+
+|service| supports SCRAM for database user authentication. SCRAM is
+recommended only as a quick option for development or test environments.
+We recommend that you use complex passwords, automate credential
+rotations, or ideally, generate one-time passwords through a privileged
+access management (PAM) solution for each access. |service| integrates
+seamlessly with HashiCorp Vault, allowing secure management and
+automation of secrets and credentials for database access.
+
+To learn ore, see :manual:`SCRAM </core/security-scram/>`.
+
+Recommendations for {+atlas-admin-api+} 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| provides |api| key-based authentication to securely manage
+programmatic access. It uses |http| Digest to protect requests, where
+the |api| public key functions as the username, and the corresponding
+private key serves as the password. To further enhance security and
+minimize the risk of unauthorized access, follow best practices for
+rotating |api| keys regularly. 
+
+To learn more, see :ref:`api-authentication`.
 
 Examples
 --------
 
-The following examples <perform this action> using |service|
-:ref:`tools for automation <arch-center-automation>`.
-
-These examples also apply other recommended configurations, including:
+The following examples configure authentication and custom roles using
+|service| :ref:`tools for automation <arch-center-automation>`.
 
 .. tabs::
 
    .. tab:: Dev and Test Environments
       :tabid: devtest
 
-      .. include:: /includes/shared-settings-clusters-devtest.rst
+      .. tabs::
+
+         .. tab:: CLI
+            :tabid: cli
+
+            Run the following command to create a user authentication
+            with IAM credentials to a specified {+cluster+}. 
+            
+            .. include:: /includes/examples/cli-example-auth-aws-iam-devtest.rst
+
+            Run the following command to create a temporary user with
+            SCRAM authentication.
+
+            .. include:: /includes/examples/cli-example-auth-temp-user-devtest.rst
+
+         .. tab:: Terraform
+            :tabid: Terraform
+
+            The following examples demonstrate how to configure
+            authentication and authorization. Before you can create
+            resources with Terraform, you must: 
+
+            - :ref:`Create your paying organization
+              <configure-paying-org>` and :ref:`create an API key
+              <atlas-admin-api-access>` for the paying organization.
+              Store your API key as environment variables by running the
+              following command in the terminal: 
+
+              .. code-block::
+
+                 export MONGODB_ATLAS_PUBLIC_KEY="<insert your public key here>"
+                 export MONGODB_ATLAS_PRIVATE_KEY="<insert your private key here>"
+
+            - `Install Terraform <https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli>`__
+
+            Common Files 
+            ~~~~~~~~~~~~
+
+            You must create the following files for each example. Place
+            the files for each example in their own directory. Change
+            the IDs and names to use your values. Then run the commands
+            to initialize Terraform, view the Terraform plan, and apply
+            the changes. 
+
+            variables.tf 
+            ````````````
+
+            .. include:: /includes/examples/tf-example-auth-variables-devtest.rst
+
+            terraform.tfvars 
+            ````````````````
+
+            .. include:: /includes/examples/tf-example-auth-tfvars-devtest.rst
+
+            Authentication Example 
+            ~~~~~~~~~~~~~~~~~~~~~~
+
+            Use the following to create an |service| user with username
+            and password authentication.
+
+            main.tf 
+            ```````
+
+            .. include:: /includes/examples/tf-example-auth-scram-devtest.rst
+
+            Authorization Example 
+            ~~~~~~~~~~~~~~~~~~~~~
+            
+            Use the following to grant users admin rights on the
+            {+cluster+} and project member rights for the projects in the
+            {+cluster+}. 
+
+            main.tf 
+            ```````
+
+            .. include:: /includes/examples/tf-example-auth-grant-roles-devtest.rst  
 
    .. tab:: Staging and Prod Environments
       :tabid: stagingprod
 
-      .. include:: /includes/shared-settings-clusters-stagingprod.rst
+      .. tabs::
 
-.. tabs::
+         .. tab:: CLI
+            :tabid: cli
 
-   .. tab:: CLI
-      :tabid: cli
+            Run the following command to create a database user from a specific
+            group in the Identity Provider. You can manage the user
+            authentication and authorization through the identity provider,
+            Okta. The command also grants the users in the identity provider
+            group ``dbAdmin`` and ``readWrite`` privileges on the |service|
+            {+cluster+}. 
 
-      Content here
+            .. include:: /includes/examples/cli-example-auth-okta-stagingprod.rst 
 
-   .. tab:: Terraform
-      :tabid: Terraform
+            Run the following command to create an :abbr:`OIDC (OpenID
+            Connect)`-compatible identity provider from your federation
+            settings.  
 
-      Content here
+            .. include:: /includes/examples/cli-example-auth-oidc-stagingprod.rst 
 
+         .. tab:: Terraform
+            :tabid: Terraform
+
+            The following examples demonstrate how to configure
+            authentication and authorization. Before you can create
+            resources with Terraform, you must: 
+
+            - :ref:`Create your paying organization
+              <configure-paying-org>` and :ref:`create an API key
+              <atlas-admin-api-access>` for the paying organization.
+              Store your API key as environment variables by running the
+              following command in the terminal: 
+
+              .. code-block::
+
+                 export MONGODB_ATLAS_PUBLIC_KEY="<insert your public key here>"
+                 export MONGODB_ATLAS_PRIVATE_KEY="<insert your private key here>"
+
+            - `Install Terraform <https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli>`__
+
+            Common Files 
+            ~~~~~~~~~~~~
+
+            You must create the following files for each example. Place
+            the files for each example in their own directory. Change
+            the IDs and names to use your values. Then run the commands
+            to initialize Terraform, view the Terraform plan, and apply
+            the changes. 
+
+            variables.tf 
+            ````````````
+
+            .. include:: /includes/examples/tf-example-auth-variables-stagingprod.rst
+
+            terraform.tfvars 
+            ````````````````
+            .. include:: /includes/examples/tf-example-auth-tfvars-stagingprod.rst
+
+            outputs.tf 
+            ``````````
+
+            .. include:: /includes/examples/tf-example-auth-tfoutputs-stagingprod.rst
+
+            Configure Federated Settings for Identity Provider 
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+            Use the following to set up an :abbr:`OIDC (OpenID Connect)`
+            federated identity provider in |service|, for using it with
+            |azure|. It allows access by using OIDC tokens issued by |azure|
+            Active Directory. 
+
+            .. include:: /includes/examples/tf-example-auth-oidc-stagingprod.rst
+
+            Use the following to create an :abbr:`OIDC (OpenID Connect)`
+            federated authentication user. 
+
+            .. include:: /includes/examples/tf-example-auth-create-oidc-user-stagingprod.rst
+
+            Configure Custom Role 
+            ~~~~~~~~~~~~~~~~~~~~~
+
+            Use the following to create a custom role named ``my_custom_role``
+            which allows update, add, and delete operations on any collection
+            in the database named ``myDb``.
+
+            .. include:: /includes/examples/tf-example-auth-create-custom-role-stagingprod.rst
