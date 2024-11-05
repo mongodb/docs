@@ -33,7 +33,7 @@
 
             For complete reference on inserting documents in MongoDB
             Compass, see the
-            :ref:`Compass documentation <insert-documents>`.
+            :ref:`Compass documentation <compass-insert-documents>`.
 
      - id: python
        content: |
