@@ -1,3 +1,21 @@
+.. _opsmgr-server-8.0.1:
+
+|onprem| Server 8.0.1
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2024-11-01*
+
+- Updates JDK to ``jdk-21.0.5+11``.
+- Supports :ref:`Workload Identity Federation <om-oidc-authentication-workload>` on top of the already existing Workforce Identity Federation. 
+- Supports configuring separate SAML signature validation for responses and assertions so that only one is required through the AppSettings configuration.
+- Supports ability to set a custom idle session timeout using new app settings, :guilabel:`Idle Session Timeout Mode` and :guilabel:`Idle Session Timeout Max Minutes`.
+- Removes the |onprem| version number from the login page.
+- Updates the MongoDB Agent to :ref:`108.0.1.8718-1 <mongodb-108.0.1.8718-1>`.
+- Adds support for |bic-full| 2.14.17.
+- Upgrades Jetty library to 11.0.23.
+- Fixes an issue where the {+mdbagent+} gets stuck because indexes are set to the ``CANCEL`` action.
+- Fixes `CVE-2024-8184 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-8184>`__.
+
 .. _opsmgr-server-8.0.0:
 
 |onprem| Server 8.0.0
