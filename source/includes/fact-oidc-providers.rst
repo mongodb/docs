@@ -82,6 +82,8 @@
     - ID provided by the IDP to identify the client that receives the access tokens.
 
       Required when ``supportsHumanFlows`` is set to ``true`` (the default).
+
+      :gold:`IMPORTANT:` When using FCV below ``7.0``, ``clientId`` is **required**.
     
 
   * - ``audience``
@@ -114,16 +116,6 @@
       identifiers. 
 
       The default value is ``sub`` (stands for ``subject``). 
-
-  * - ``authorizationClaim`` 
-
-    - Conditional
-    
-    - string
-    
-    - Required, unless ``useAuthorizationClaim`` is set to ``false``.
-    
-      Claim extracted from access token that contains MongoDB role names.
 
   * - ``useAuthorizationClaim`` 
 
@@ -164,16 +156,22 @@
               db: "$external" }
         
       .. versionadded:: 7.0.5
+      
+      :gold:`IMPORTANT:` ``useAuthorizationClaim`` is only available in 
+      deployments with FCV ``7.0``.
 
   * - ``authorizationClaim`` 
 
-    - Conditional 
-
-    - string
-
-    - Required, unless ``useAuthorizationClaim`` is set to ``false``.
+    - Conditional
     
+    - string
+    
+    - Required, unless ``useAuthorizationClaim`` is set to ``false``.
+
       Claim extracted from access token that contains MongoDB role names.
+
+      :gold:`IMPORTANT:` When using FCV below ``7.0``, ``authorizationClaim`` 
+      is **required**.
       
   * - ``logClaims``
 
@@ -212,4 +210,7 @@
       Default: ``true``.
 
       .. versionadded:: 7.2 (*Also available in 7.0.5*)
+      
+      :gold:`IMPORTANT:` ``supportsHumanFlows`` is only available in 
+      deployments with FCV ``7.0``.
 
