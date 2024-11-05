@@ -17,4 +17,4 @@
 
 
          For details on the information displayed in this tab, refer to
-         the :ref:`Compass documentation <indexes-tab>`.
+         the :ref:`Compass documentation <compass-indexes-tab>`.
