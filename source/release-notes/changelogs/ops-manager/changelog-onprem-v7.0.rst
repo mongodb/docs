@@ -1,3 +1,22 @@
+.. _opsmgr-server-7.0.12:
+
+|onprem| Server 7.0.12
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2024-10-31*
+
+- Updates JDK to ``jdk-17.0.13+11``.
+- Supports :ref:`Workload Identity Federation <om-oidc-authentication-workload>` on top of the already existing Workforce Identity Federation. 
+- Supports configuring separate SAML signature validation for responses and assertions so that only one is required through the AppSettings configuration.
+- Supports ability to set a custom idle session timeout using new application settings, :guilabel:`Idle Session Timeout Mode` and :guilabel:`Idle Session Timeout Max Minutes`.
+- Supports taking :ref:`on-demand snapshots <on-demand-snapshots>` in addition to scheduled snapshots.
+- Removes the |onprem| version number from the login page if you set :setting:`mms.security.show.om.version` to false.
+- Updates the {+mdbagent+} to :ref:`107.0.12.8669-1 <mongodb-107.0.12.8669-1>`.
+- Adds support for |bic-full| 2.14.17.
+- Upgrades Jetty library to 11.0.23.
+- Fixes an issue where the {+mdbagent+} gets stuck because indexes are set to the ``CANCEL`` action.
+- Fixes `CVE-2024-8184 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-8184>`__.
+
 .. _opsmgr-server-7.0.11:
 
 |onprem| Server 7.0.11
