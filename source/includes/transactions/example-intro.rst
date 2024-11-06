@@ -13,7 +13,7 @@ To incorporate custom error handling, use the :ref:`Core API <txn-core-api>`
 on your transaction.
 
 The callback API incorporates retry logic for certain errors. The 
-server tries to rerun the transaction after a :ref:`TransientTransactionError
+driver tries to rerun the transaction after a :ref:`TransientTransactionError
 <transient-transaction-error>` or :ref:`UnknownTransactionCommitResult
 <unknown-transaction-commit-result>` commit error. 
 
