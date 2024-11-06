@@ -3,11 +3,11 @@ of nodes in clusters spanning across regions has a specific constraint
 on a per-project basis.
 
 |service| limits the total number of nodes in other regions in one
-project to a total of 40. This total excludes:
+project to a total of 40, **not** including:
 
-- |gcp| regions communicating with each other
-- {+Free-clusters+} or {+Shared-clusters+}
-- {+Serverless-instances+}
+- |gcp| regions communicating with each other 
+- {+Free-clusters+}
+- {+Flex-clusters+}
 
 Sharded {+clusters+} include additional nodes. The electable nodes on 
 the dedicated Config Server Replica Set (CSRS) count towards the 

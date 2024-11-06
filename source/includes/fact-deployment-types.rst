@@ -13,7 +13,8 @@
 ``M0`` {+Free-Clusters+}
   ``M0`` {+Free-clusters+} are for learning and exploring MongoDB in
   a cloud environment. You can begin your project with an ``M0``
-  {+cluster+} and upgrade to a production-ready tier at a future time.
+  {+cluster+} and upgrade to a production-ready {+Dedicated-cluster+} tier
+  at a future time.
 
   To specify advanced configuration options or select other 
   {+cluster+} tiers, such as ``M30``, click :guilabel:`advanced configuration options`.

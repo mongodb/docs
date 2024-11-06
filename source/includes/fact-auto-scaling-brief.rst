@@ -1,4 +1,4 @@
-Cluster tiers ``M10`` and greater support :ref:`Cluster Auto-Scaling
+{+Dedicated-clusters+} support :ref:`Cluster Auto-Scaling
 <cluster-autoscaling>`. Cluster tier Auto-scaling is enabled by default
 when you create new clusters in the user interface. It is disabled by
 defaut if you create new clusters in the API. With auto-scaling enabled,

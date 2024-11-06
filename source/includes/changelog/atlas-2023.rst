@@ -4,8 +4,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Support for auto-index creation for |service| 
-  {+Serverless-instances+}. To learn more, see
-  :ref:`auto-index-serverless`.
+  {+Serverless-instances+}.
 - Support for migrations between sharded {+clusters+} with a different
   number of shards for MongoDB 6.0+ with Atlas Live Migration. To learn
   more, see :ref:`c2c-pull-live-migration`.
@@ -64,7 +63,7 @@
 - Introduces the following billing improvements: 
 
   - Lowers RPU billing for serverless instances with read-heavy
-    workloads. To learn more, see :ref:`serverless-instance-costs`.
+    workloads.
   - Supports viewing and analyzing |service| usage with a billing cost
     explorer. To learn more, see :ref:`Billing Cost Explorer
     <atlas-billing>`. 
