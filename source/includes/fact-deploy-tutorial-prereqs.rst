@@ -2,8 +2,8 @@ Before you begin, complete the following prerequisites:
 
 .. important::
 
-   For compatibility information for each prerequisite product, see the 
-   related installation pages.
+   For compatibility information on each product in the 
+   dependencies list, see the product's installation documentation.
 
 - Install the :ref:`{+atlas-cli+} <install-atlas-cli>`.
 
