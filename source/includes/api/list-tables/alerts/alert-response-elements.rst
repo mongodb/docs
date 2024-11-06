@@ -184,10 +184,6 @@
      - string array
      - Identifying labels set for this alert.
 
-   * - ``typeName``
-     - string
-     - *Deprecated field. |mms| ignores it.*
-
    * - ``updated``
      - string
      - |iso8601-time| when the alert was last updated.
