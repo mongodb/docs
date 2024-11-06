@@ -1,36 +1,38 @@
 
+
 .. procedure:: 
    :style: normal 
 
    .. step:: Install the dependencies.
 
-      a. Install the :atlascli:`{+atlas-cli+} </install-atlas-cli/>`
-         and :dbtools:`MongoDB Database Tools </installation/installation/>`.
+      For detailed instructions, see :atlascli:`Prerequisites 
+      </atlas-cli-deploy-local/#complete-the-prerequisites>`.
+
+      a. Install the :atlascli:`{+atlas-cli+} </install-atlas-cli/>`.
 
          If you use `Homebrew <https://brew.sh/#install>`__, you can
-         run the following commands in your terminal:
+         run the following command in your terminal:
 
          .. code-block::
 
             brew install mongodb-atlas-cli
-            brew tap mongodb/brew && brew install mongodb-database-tools
+               
+         For installation instructions on other operating systems,
+         see :atlascli:`Install the {+atlas-cli+} </install-atlas-cli/>`
 
       #. Install `Docker <https://www.docker.com/>`__.
 
+         Docker requires a network connection for pulling and caching 
+         MongoDB images.
+
          - For MacOS or Windows, install `Docker Desktop v4.31+ <https://docs.docker.com/desktop/release-notes/#4310>`__. 
          - For Linux, install `Docker Engine v27.0+ <https://docs.docker.com/engine/release-notes/27.0/>`__.
-
-      For detailed instructions, see :atlascli:`Prerequisites 
-      </atlas-cli-deploy-local/#complete-the-prerequisites>`.
+         - For RHEL, you can also use `Podman v5.0+ <https://podman.io>`__.
 
    .. step:: Set up your local |service| {+deployment+}.
 
       a. If you don't have an existing |service| account, run ``atlas setup`` in your terminal
          or `create a new account <https://account.mongodb.com/account/register?tck=docs_atlas>`__.
-
-      #. In your terminal, run ``atlas auth login`` to authenticate with your 
-         |service| login credentials. To learn more, see 
-         :atlascli:`Connect from the {+atlas-cli+} </connect-atlas-cli/>`.
 
       #. Run ``atlas deployments setup`` and follow the prompts to create a 
          local deployment. When prompted to connect to the deployment,
