@@ -8,4 +8,13 @@ and occurs even if the client never calls :method:`Session.abortTransaction()`.
 To incorporate custom error handling, use the :ref:`Core API <txn-core-api>`
 on your transaction.
 
+The callback API incorporates retry logic for certain errors. The 
+driver tries to rerun the transaction after a :ref:`TransientTransactionError
+<transient-transaction-error>` or :ref:`UnknownTransactionCommitResult
+<unknown-transaction-commit-result>` commit error. 
+
+Starting in MongoDB 6.2, the server does not retry the transaction if
+it receives a :ref:`TransactionTooLargeForCache
+<transactionTooLargeForCache-error>` error.
+
 
