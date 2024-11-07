@@ -58,7 +58,7 @@
          .. tab::
             :tabid: cpp
 
-            .. include:: /includes/avs-quick-start-ui-create-index.rst
+            .. include:: /includes/avs-quick-start-cpp-create-index.rst
 
          .. tab::
             :tabid: csharp

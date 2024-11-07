@@ -1,29 +1,6 @@
 .. procedure:: 
    :style: normal
 
-   .. step:: Add the MongoDB C++ Driver to your project.
-
-      a. Install the C++ Driver. For detailed installation instructions, refer
-         to the `MongoDB C++ Driver documentation
-         <https://www.mongodb.com/docs/languages/cpp/cpp-driver/current/installation/>`__.
-
-      #. Create a new directory called ``query-quick-start``.
-
-         .. code-block:: bash
-
-               mkdir query-quick-start
-      
-         Enter the directory, and create a ``CMakeLists.txt`` file.
-
-         .. code-block:: bash
-
-            cd query-quick-start
-            touch CMakeLists.txt
-      
-         Copy and paste the following lines into the ``CMakeLists.txt`` file:
-
-         .. include:: /includes/avs-examples/pipeline-stage-examples/cmakelists-txt.rst
-
    .. step:: Construct your vector search query.
 
       .. include:: /includes/fact-avs-quick-start-intro.rst
@@ -35,6 +12,8 @@
 
          .. literalinclude:: /includes/avs-examples/pipeline-stage-examples/basic-query.cpp
             :language: cpp
+            :caption: atlas_vector_search_quick_start.cpp
+            :emphasize-lines: 16
             :linenos:
 
       .. include:: /includes/fact-avs-quick-start-intro-II.rst
@@ -48,13 +27,10 @@
 
    .. step:: Compile and run your query.
 
-      a. Create and enter the ``/build`` directory:
+      a. Replace the ``vector_index.cpp`` file name in your ``CMakeLists.txt``
+         file with your new ``atlas_vector_search_quick_start.cpp`` filename.
 
-         .. code-block:: bash
-
-            mkdir build && cd build
-
-      #. Prepare the project.
+      #. Navigate to the ``/build`` directory, and prepare the project.
 
          .. code-block:: bash
 

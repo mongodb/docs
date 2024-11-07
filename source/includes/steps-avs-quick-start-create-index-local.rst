@@ -79,7 +79,7 @@
          .. tab::
             :tabid: cpp
 
-            .. include:: /includes/avs-quick-start-local-create-index-with-json.rst
+            .. include:: /includes/avs-quick-start-cpp-create-index.rst
 
          .. tab::
             :tabid: csharp
