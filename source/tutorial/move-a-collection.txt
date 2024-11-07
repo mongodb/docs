@@ -51,84 +51,81 @@ Steps
 
    .. step:: Monitor the progress of the moveCollection operation.
 
-      .. procedure::
-         :style: connected
+      a. Monitor the time remaining.
 
-         .. step:: Monitor the time remaining.
+         To monitor the time remaining for the ``moveCollection`` 
+         operation, use the :pipeline:`$currentOp` pipeline stage. 
 
-            To monitor the time remaining for the ``moveCollection`` 
-            operation, use the :pipeline:`$currentOp` pipeline stage. 
+         This example shows how to check the progress of 
+         ``moveCollection`` on the ``app.inventory`` collection:
 
-            This example shows how to check the progress of 
-            ``moveCollection`` on the ``app.inventory`` collection:
+         .. code-block:: javascript
 
-            .. code-block:: javascript
+            db.getSiblingDB("admin").aggregate( [
+               { $currentOp: { allUsers: true, localOps: false } },
+               {
+                  $match: {
+                  type: "op",
+                  "originatingCommand.reshardCollection": "app.inventory"
+                  }
+               }
+            ] )
 
-               db.getSiblingDB("admin").aggregate( [
-                 { $currentOp: { allUsers: true, localOps: false } },
-                 {
-                   $match: {
-                     type: "op",
-                     "originatingCommand.reshardCollection": "app.inventory"
-                   }
-                 }
-               ] )
+         .. note::
 
-            .. note::
+            To see updated values, you need to continuously run the
+            preceeding pipeline.
 
-               To see updated values, you need to continuously run the
-               preceeding pipeline.
+         The :pipeline:`$currentOp` pipeline outputs:
 
-            The :pipeline:`$currentOp` pipeline outputs:
+         - ``totalOperationTimeElapsedSecs``: elapsed operation time in
+           seconds
+         - ``remainingOperationTimeEstimatedSecs``: estimated time 
+           remaining in seconds for the current ``moveCollection``
+           operation. It is returned as ``-1`` when a new 
+           ``moveCollection`` operation starts.
 
-            - ``totalOperationTimeElapsedSecs``: elapsed operation time in
-              seconds
-            - ``remainingOperationTimeEstimatedSecs``: estimated time 
-              remaining in seconds for the current ``moveCollection``
-              operation. It is returned as ``-1`` when a new 
-              ``moveCollection`` operation starts.
+         .. note::
 
-              .. note::
+            ``remainingOperationTimeEstimatedSecs`` is set to a pessimistic time
+            estimate:
 
-                 ``remainingOperationTimeEstimatedSecs`` is set to a pessimistic time
-                 estimate:
+            - The catch-up phase time estimate is set to the clone phase time, which
+               is a relatively long time.
+            - In practice, if there are only a few pending write operations, the
+               actual catch-up phase time is relatively short.
 
-                 - The catch-up phase time estimate is set to the clone phase time, which
-                   is a relatively long time.
-                 - In practice, if there are only a few pending write operations, the
-                   actual catch-up phase time is relatively short.
+         This pipeline stage has output similar to the following:
 
-            This pipeline stage has output similar to the following:
+         .. code-block:: javascript
+            :copyable: false
+            :emphasize-lines: 14-15
 
-            .. code-block:: javascript
-               :copyable: false
-               :emphasize-lines: 14-15
-   
-               [
-                 {
-                   shard: '<shard>',
-                   type: 'op',
-                   desc: 'ReshardingRecipientService | ReshardingDonorService | ReshardingCoordinatorService <reshardingUUID>',
-                   op: 'command',
-                   ns: '<database>.<collection>',
-                   originatingCommand: {
-                     reshardCollection: '<database>.<collection>',
-                     key: <shardkey>,
-                     unique: <boolean>,
-                     collation: { locale: 'simple' }
-                   },
-                   totalOperationTimeElapsedSecs: <number>,
-                   remainingOperationTimeEstimatedSecs: <number>,
-                   ...
-                 },
-                 ...
-               ]
+            [
+               {
+                  shard: '<shard>',
+                  type: 'op',
+                  desc: 'ReshardingRecipientService | ReshardingDonorService | ReshardingCoordinatorService <reshardingUUID>',
+                  op: 'command',
+                  ns: '<database>.<collection>',
+                  originatingCommand: {
+                  reshardCollection: '<database>.<collection>',
+                  key: <shardkey>,
+                  unique: <boolean>,
+                  collation: { locale: 'simple' }
+                  },
+                  totalOperationTimeElapsedSecs: <number>,
+                  remainingOperationTimeEstimatedSecs: <number>,
+                  ...
+               },
+               ...
+            ]
 
-         .. step:: Monitor the number of bytes transferred.
+      #. Monitor the number of bytes transferred.
 
-            To monitor the number of bytes transferred,  
-            use :serverstatus:`shardingStatistics.resharding.active.bytesCopied`
-            and compare against the number of bytes in the collection.
+         To monitor the number of bytes transferred,  
+         use :serverstatus:`shardingStatistics.resharding.active.bytesCopied`
+         and compare against the number of bytes in the collection.
 
    .. step:: Confirm the collection has been moved.
 
