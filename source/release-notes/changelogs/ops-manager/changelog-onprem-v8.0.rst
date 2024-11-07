@@ -7,7 +7,8 @@
 
 - Updates JDK to ``jdk-21.0.5+11``.
 - Supports :ref:`Workload Identity Federation <om-oidc-authentication-workload>` on top of the already existing Workforce Identity Federation. 
-- Supports configuring separate SAML signature validation for responses and assertions so that only one is required through the AppSettings configuration.
+- Supports configuring separate SAML signature validation for responses and assertions so that only one is 
+  required through the :setting:`mms.saml.signedAssertions` and :setting:`mms.saml.signedMessages` settings.
 - Supports ability to set a custom idle session timeout using new app settings, :guilabel:`Idle Session Timeout Mode` and :guilabel:`Idle Session Timeout Max Minutes`.
 - Removes the |onprem| version number from the login page.
 - Updates the MongoDB Agent to :ref:`108.0.1.8718-1 <mongodb-108.0.1.8718-1>`.
