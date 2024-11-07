@@ -6,7 +6,7 @@ This tutorial demonstrates how to run a hybrid search on the
 about movies. Specifically, this tutorial takes you through the
 following steps: 
 
-1. Create an {+avs+} index on the ``plot_embeddings`` field. This field
+1. Create an {+avs+} index on the ``plot_embedding`` field. This field
    contains vector embeddings that represent the summary of a movie's
    plot. 
 #. Create an |fts| index on the ``title`` field in the
@@ -14,7 +14,7 @@ following steps:
    movie's name as a text string. 
 #. Run a query that uses reciprocal rank fusion to combine the results
    from a :pipeline:`$vectorSearch` query against the
-   ``plot_embeddings`` field and a :pipeline:`$search` query against the
+   ``plot_embedding`` field and a :pipeline:`$search` query against the
    ``title`` field.
 
 Why Hybrid Search?
@@ -121,7 +121,7 @@ Create the {+avs+} and |fts| Indexes
 This section demonstrates how to create the following indexes on the
 fields in the ``sample_mflix.embedded_movies`` collection: 
 
-- An {+avs+} index on the ``plot_embeddings`` field for running vector
+- An {+avs+} index on the ``plot_embedding`` field for running vector
   queries against that field. 
 - An |fts| index on the ``title`` field for running full-text search
   against that field.
@@ -146,7 +146,7 @@ Run a Combined Semantic Search and Full-Text Search Query
 
 This section demonstrates how to query the data in the
 ``sample_mflix.embedded_movies`` collection for *star wars* in the
-``plot_embeddings`` and ``title`` fields by using the
+``plot_embedding`` and ``title`` fields by using the
 :pipeline:`$vectorSearch` and :pipeline:`$search` pipeline stages and 
 combine each document's scores from both stages to re-sort the documents
 in the results. This ensures that documents appearing in both searches
@@ -213,7 +213,7 @@ the documents in the results:
     :widths: 30 70 
 
     * - :pipeline:`$vectorSearch` 
-      - Searches the ``plot_embeddings`` field for the string *star
+      - Searches the ``plot_embedding`` field for the string *star
         wars* specified as vector embeddings in the ``queryVector``
         field of the query. The query uses ``ada-002-text`` embedding,
         which is the same as the vector embedding in the ``plot_embedding``

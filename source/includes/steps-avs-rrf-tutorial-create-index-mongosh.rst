@@ -3,7 +3,7 @@
 
    .. step:: Define the {+avs+} index.
 
-      The following index definition indexes the ``plot_embeddings`` field as
+      The following index definition indexes the ``plot_embedding`` field as
       the {+avs+} field when querying the collection.
 
       To create an {+avs+} index for a collection using {+mongosh+}

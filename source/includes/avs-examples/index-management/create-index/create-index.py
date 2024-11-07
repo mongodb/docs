@@ -27,7 +27,7 @@ search_index_model = SearchIndexModel(
       ...
     ]
   },
-  name="<index name>",
+  name="<indexName>",
   type="vectorSearch",
 )
 
@@ -41,7 +41,7 @@ if predicate is None:
   predicate = lambda index: index.get("queryable") is True
 
 while True:
-  indices = list(collection.list_search_indexes(name))
+  indices = list(collection.list_search_indexes(result))
   if len(indices) and predicate(indices[0]):
     break
   time.sleep(5)

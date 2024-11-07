@@ -35,6 +35,8 @@
          can take several minutes to complete. 
 
    .. step:: Create a Vector Search index.
+      
+      .. include:: /includes/fact-search-commands-cluster-tier.rst
 
       .. tabs-drivers::
 

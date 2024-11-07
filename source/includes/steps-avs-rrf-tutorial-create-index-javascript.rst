@@ -61,7 +61,7 @@
 
    .. step:: Define the {+avs+} index.
 
-      The following index definition indexes the ``plot_embeddings`` field as
+      The following index definition indexes the ``plot_embedding`` field as
       the {+avs+} field when querying the collection.
 
       A. Create a file called ``avs-index.js``, and paste the following

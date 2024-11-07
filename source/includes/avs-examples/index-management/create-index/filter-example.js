@@ -44,9 +44,9 @@ async function run() {
      while (!isQueryable) {
        const cursor = collection.listSearchIndexes();
        for await (const index of cursor) {
-         if (index.name === indexName) {
+         if (index.name === result) {
            if (index.queryable) {
-             console.log(`${indexName} is ready for querying.`);
+             console.log(`${result} is ready for querying.`);
              isQueryable = true;
            } else {
              await new Promise(resolve => setTimeout(resolve, 5000));
