@@ -7,7 +7,8 @@
 
 - Updates JDK to ``jdk-17.0.13+11``.
 - Supports :ref:`Workload Identity Federation <om-oidc-authentication-workload>` on top of the already existing Workforce Identity Federation. 
-- Supports configuring separate SAML signature validation for responses and assertions so that only one is required through the AppSettings configuration.
+- Supports configuring separate SAML signature validation for responses and assertions so that only one is 
+  required through the :setting:`mms.saml.signedAssertions` and :setting:`mms.saml.signedMessages` settings.
 - Supports ability to set a custom idle session timeout using new application settings, :guilabel:`Idle Session Timeout Mode` and :guilabel:`Idle Session Timeout Max Minutes`.
 - Supports taking :ref:`on-demand snapshots <on-demand-snapshots>` in addition to scheduled snapshots.
 - Removes the |onprem| version number from the login page if you set :setting:`mms.security.show.om.version` to false.

@@ -3,7 +3,6 @@
    *Type*: boolean
 
    
-   Indicator as to whether or not the |idp| encrypts the assertions
+   Flag that indicates whether or not the |idp| encrypts the assertions
    it sends to |onprem|.
    
-
