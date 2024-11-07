@@ -16,57 +16,47 @@ connect to ``mongos`` and perform this procedure:
             transitionToDedicatedConfigServer: 1
          } )
 
-   .. step:: List all of the databases in the cluster.
+   .. step:: List all of the databases and collections in the cluster.
 
-      To list all the databases in the cluster, run 
-      :dbcommand:`listDatabases`:
+      a. To list all the databases in the cluster, run 
+         :dbcommand:`listDatabases`:
+
+         .. code-block:: javascript
+
+            db.adminCommand( { listDatabases: 1, nameOnly: true } )
+
+         Exclude ``admin`` and ``config`` databases. 
+
+      #. For each database, list all of the collections in the database.
+
+         To list all of the collections in the database, run
+         :dbcommand:`listCollections`.
+
+         .. code-block:: javascript
+
+               db.adminCommand(
+                  { 
+                     listCollections: 1, 
+                     nameOnly: true,
+                     filter: { type: { $ne: "view" } }
+                  }
+               )
+
+         Exclude collections starting with ``system``. 
+
+   .. step:: For each non-system collection, move the collection to a new shard.
+
+      To move the collection to a new shard, run 
+      :dbcommand:`moveCollection`:
 
       .. code-block:: javascript
 
-         db.adminCommand( { listDatabases: 1, nameOnly: true } )
-
-      Exclude ``admin`` and ``config`` databases. 
-
-      For each database:
-
-      .. procedure:: 
-         :style: connected
-
-         .. step:: List all of the collections in the database.
-              
-            To list all of the collections in the database, run
-            :dbcommand:`listCollections`.
-
-            .. code-block:: javascript
-
-                 db.adminCommand(
-                    { 
-                      listCollections: 1, 
-                      nameOnly: true,
-                      filter: { type: { $ne: "view" } }
-                    }
-                 )
-
-            Exclude collections starting with ``system``. 
-
-            For each remaining collection:
-
-            .. procedure::
-               :style: normal
-
-               .. step:: Move the collection to a new shard.
-
-                  To move the collection to a new shard, run 
-                  :dbcommand:`moveCollection`:
-
-                  .. code-block:: javascript
- 
-                     db.adminCommand(
-                        {
-                          moveCollection: "<database>.<collection>",
-                          toShard: "<new shard>",
-                        }
-                     )
+         db.adminCommand(
+            {
+               moveCollection: "<database>.<collection>",
+               toShard: "<new shard>",
+            }
+            )
 
    .. step:: Wait for balancer to move sharded collection data off config server.
 
