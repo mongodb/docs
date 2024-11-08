@@ -74,7 +74,7 @@
          .. tab::
             :tabid: c
 
-            .. include:: /includes/avs-quick-start-local-create-index-with-json.rst
+            .. include:: /includes/avs-quick-start-c-create-index.rst
 
          .. tab::
             :tabid: cpp

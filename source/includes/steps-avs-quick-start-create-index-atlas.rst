@@ -53,7 +53,7 @@
          .. tab::
             :tabid: c
 
-            .. include:: /includes/avs-quick-start-ui-create-index.rst
+            .. include:: /includes/avs-quick-start-c-create-index.rst
 
          .. tab::
             :tabid: cpp
