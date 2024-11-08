@@ -167,100 +167,97 @@ Steps
       **For each database in the cluster, excluding admin and config**,
       perform these steps:
 
-      .. procedure::
-         :style: connected
+      a. List the database collections
 
-         .. step:: List the database collections
+         List the collections in the database, omitting the following
+         types of collections:
+         
+         - Internal collections that support {+csfle-abbrev+}
+         - System collections
+         - Time series collections
+         - Views
 
-            List the collections in the database, omitting the following
-            types of collections:
-            
-            - Internal collections that support {+csfle-abbrev+}
-            - System collections
-            - Time series collections
-            - Views
+         .. code-block:: javascript
+
+            use <databaseName>
+
+            db.getCollectionInfos(
+               {
+                  $and: [
+                     { type: { $nin: [ "view", "timeseries" ] } },
+                     { name: { $not: { $regex: "^system\." } } },
+                     { name: { $not: { $regex: "^enxcol_\..*(\.esc|\.ecc|\.ecoc|\.ecoc\.compact)$" } } }
+                  ]
+               },
+               { nameOnly: true }
+            )
+
+      #. Move necessary collections
+
+         For each collection returned by ``getCollectionInfos()``
+         perform the following steps.
+
+         .. note::
+
+            Only one ``moveCollection`` operation can be in progress
+            at a time. Complete all sub-steps before moving on to the
+            next collection.
+
+         i. Determine whether the collection needs to be moved.
+
+            Run the :pipeline:`$collStats` aggregation stage and
+            project the ``ns`` and ``shard`` fields:
 
             .. code-block:: javascript
 
-               use <databaseName>
-
-               db.getCollectionInfos(
-                  {
-                     $and: [
-                        { type: { $nin: [ "view", "timeseries" ] } },
-                        { name: { $not: { $regex: "^system\." } } },
-                        { name: { $not: { $regex: "^enxcol_\..*(\.esc|\.ecc|\.ecoc|\.ecoc\.compact)$" } } }
-                     ]
-                  },
-                  { nameOnly: true }
+               db.<collName>.aggregate(
+                  [
+                     {
+                        $collStats: { }
+                     },
+                     {
+                        $project: {
+                           ns: 1,
+                           shard: 1
+                        }
+                     }
+                  ]
                )
 
-         .. step:: Move necessary collections
+            If any of the following criteria are met, skip the
+            collection and return to step ``i`` for the next
+            collection in the database:
 
-            For each collection returned by ``getCollectionInfos()``
-            perform the following steps.
+            - The ``ns`` field is present in the
+              ``$shardedDataDistribution`` output from step 4.
 
+            - The ``shard`` field is not the shard being removed.
+            
+            If neither of the preceding criteria are met, continue to
+            step ``ii`` for the current collection.
+
+         #. Move the collection.
+
+            To move the collection, run :method:`sh.moveCollection()`
+            on the collection:
+
+            .. code-block:: javascript
+
+               sh.moveCollection( "<namespace>.<collection>", "<ID of recipient shard>" )
+               
             .. note::
 
-               Only one ``moveCollection`` operation can be in progress
-               at a time. Complete all sub-steps before moving on to the
+               ``moveCollection`` fails if you run the command on a
+               namespace that is sharded. If you receive this error
+               message, ignore it and return to step ``i`` for the
                next collection.
 
-            a. Determine whether the collection needs to be moved.
+         #. Return to step ``i`` for each collection in the database.
 
-               Run the :pipeline:`$collStats` aggregation stage and
-               project the ``ns`` and ``shard`` fields:
+      #. Repeat the procedure for other databases
 
-               .. code-block:: javascript
-
-                  db.<collName>.aggregate(
-                     [
-                        {
-                           $collStats: { }
-                        },
-                        {
-                           $project: {
-                              ns: 1,
-                              shard: 1
-                           }
-                        }
-                     ]
-                  )
-
-               If any of the following criteria are met, skip the
-               collection and return to step ``a`` for the next
-               collection in the database:
-
-               - The ``ns`` field is present in the
-                 ``$shardedDataDistribution`` output from step 4.
-
-               - The ``shard`` field is not the shard being removed.
-               
-               If neither of the preceding criteria are met, continue to
-               step ``b`` for the current collection.
-
-            b. Move the collection.
-
-               To move the collection, run :method:`sh.moveCollection()`
-               on the collection:
-
-               .. code-block:: javascript
-
-                  sh.moveCollection( "<namespace>.<collection>", "<ID of recipient shard>" )
-                  
-               .. note::
-
-                  ``moveCollection`` fails if you run the command on a
-                  namespace that is sharded. If you receive this error
-                  message, ignore it and return to step ``a`` for the
-                  next collection.
-
-            c. Return to step ``a`` for each collection in the database.
-
-         .. step:: Repeat the procedure for other databases
-
-            Repeat step 6, :guilabel:`Move collections off of the shard`
-            (and sub-steps) for each database in the cluster.
+         Repeat step 6, :guilabel:`Move collections off of the shard`
+         (and sub-steps) for each database in the cluster.
 
    .. step:: Change primary shard
 
