@@ -1,0 +1,194 @@
+.. cpp-run-command:
+
+=============
+Run a Command
+=============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to run a database command with the
+{+driver-short+}. You can use database commands to perform a variety of
+administrative and diagnostic tasks, such as fetching server statistics,
+initializing a replica set, or running an aggregation pipeline.
+
+.. important:: Prefer Driver Methods to Database Commands
+
+   The driver provides wrapper methods for many database commands.
+   We recommend using driver methods instead of executing database
+   commands when possible.
+   
+   To perform administrative tasks, use the :mongosh:`MongoDB Shell </>`
+   instead of the {+driver-short+}. Calling the ``db.runCommand()``
+   method inside the shell is the preferred method to issue database
+   commands, as it provides a consistent interface between the shell and
+   drivers.
+
+Execute a Command
+-----------------
+
+To run a database command, call the ``run_command()`` execution method on a ``mongocxx::database`` instance 
+and pass in a document that specifies the command and any relevant arguments. 
+The method returns the result of the command as a ``bsoncxx::document::value`` object. 
+
+You can use the ``run_command()`` method with any database command. 
+For a full list of database commands and corresponding parameters, see :manual:`Database Commands </reference/command/>` in the {+mdb-server+} manual. 
+
+The following example shows how you can use the ``run_command()``
+method to run the ``hello`` command on a database, which returns information about
+the current member's role in the replica set:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/run-command.cpp
+      :start-after: start-run-hello
+      :end-before: end-run-hello
+      :language: cpp
+      :dedent:
+   
+   .. output:: 
+      :language: cli
+      :visible: false
+   
+      { 
+        "topologyVersion" : { 
+                                "processId" : ..., 
+                                "counter" : ... 
+        }, 
+        "hosts" : [ ... ],
+        "setName" : ..., 
+        "setVersion" : ..., 
+        "isWritablePrimary" : ..., 
+        "secondary" :  ..., 
+        "primary" : ..., 
+        "tags" : { 
+                    "region" : ..., 
+                    "availabilityZone" : ..., 
+                    "provider" : ..., 
+                    "workloadType" : ..., 
+                    "nodeType" : ..., 
+                    "diskState" : ...
+        }, 
+        "me" : ..., 
+        "electionId" : ..., 
+        "lastWrite" : ..., 
+        "lastWriteDate" : ..., 
+        "majorityOpTime" : ..., 
+        "majorityWriteDate" : ...,
+        "maxBsonObjectSize" : ..., 
+        "maxMessageSizeBytes" : ..., 
+        "maxWriteBatchSize" : ..., 
+        "localTime" : ..., 
+        "logicalSessionTimeoutMinutes" : ..., 
+        "connectionId" : ..., 
+        "minWireVersion" : ..., 
+        "maxWireVersion" : ..., 
+        "readOnly" : ..., 
+        "ok" : ..., 
+        "$clusterTime" : ..., 
+        "signature" : ... 
+       } 
+
+.. cpp-command-options:
+
+Command Options
+---------------
+
+To customize command execution behavior, you can set options in the command 
+document that you pass to the ``run_command()`` method. To learn more about 
+a command and the options that it accepts, locate the command and follow the 
+corresponding link on the :manual:`Database Commands </reference/command/>` page 
+in the {+mdb-server+} manual. 
+
+For example, you can instruct the ``connectionStatus`` command 
+to return the full set of privileges that currently-authenticated users possess by setting the ``showPrivileges`` 
+option to ``true`` in the command document: 
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/run-command.cpp
+      :start-after: start-run-connectionStatus
+      :end-before: end-run-connectionStatus
+      :language: cpp
+      :dedent:
+   
+   .. output:: 
+      :language: cli
+      :visible: false
+
+      { 
+        "authInfo" : { "authenticatedUsers" : [ { "user" : ..., "db" : ... } ], 
+        "authenticatedUserRoles" : [ { "role" : ..., "db" : ... } ], 
+        "authenticatedUserPrivileges" : [ 
+                                          { "resource" : { "db" : "", "collection" : "" }, "actions" : [ ... ] }, 
+                                          { "resource" : { "db" : "config", "collection" : "system.sessions" }, "actions" : [ ... ] }, 
+                                          ..., 
+                                          { "resource" : { "db" : "", "collection" : "" }, "actions" : [ ... ] }
+        ] 
+      }, 
+         "ok" : 1 
+      }
+
+Response
+--------
+
+The ``run_command()`` method returns a ``bsoncxx::document::value`` object that contains
+the response from the database after the command has been executed. Each
+database command performs a different function, so the response content
+can vary across commands. However, every response contains documents
+with the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Field
+     - Description
+
+   * - <command result>
+     - Provides fields specific to the database command. For example,
+       ``count`` returns the ``n`` field and ``explain`` returns the
+       ``queryPlanner`` field.
+
+   * - ``ok``
+     - Indicates whether the command has succeeded (``1``)
+       or failed (``0``).
+
+   * - ``operationTime``
+     - Indicates the logical time of the operation. MongoDB uses the
+       logical time to order operations.
+       
+   * - ``$clusterTime``
+     - Provides a document that returns the signed cluster time. Cluster time is a
+       logical time used for ordering of operations.
+
+       The document contains the following fields:
+
+       - ``clusterTime``, which is the timestamp of the highest known cluster time for the member.
+       - ``signature``, which is a document that contains the hash of the cluster time and the ID
+         of the key used to sign the cluster time.
+
+.. _addl-info-runcommand:
+
+Additional Information
+----------------------
+
+For more information about the concepts in this guide, see the following documentation:
+
+- :manual:`db.runCommand() </reference/method/db.runCommand/>`
+- :manual:`Database Commands </reference/command/>`
+- :manual:`hello Command </reference/command/hello/>`
+- :manual:`connectionStatus Command </reference/command/connectionStatus/>`
+
+To learn more about the methods or types discussed in this
+guide, see the following API documentation:
+
+- `run_command() <{+api+}/classmongocxx_1_1v__noabi_1_1database.html#a1e11c0874c945f8bb9ca39f1a30c9271>`__
