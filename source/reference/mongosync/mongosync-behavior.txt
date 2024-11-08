@@ -54,19 +54,36 @@ For information on available settings, see :ref:`Configuration <c2c-config>`.
 Cluster and Collection Types
 ----------------------------
 
+.. _c2c-sharded-cluster-behavior:
+
 Sharded Clusters
 ~~~~~~~~~~~~~~~~
 
 {+c2c-product-name+} supports replication between sharded clusters.
-Individual shards are replicated in parallel from the source cluster to
-the destination cluster, however a :ref:`chunk migration
-<sharding-chunk-migration>` or similar source update could move
-documents to a new source shard during replication.
+``mongosync`` replicates individual shards in parallel from the source
+cluster to the destination cluster. However ``mongosync`` does not
+preserve the source cluster's sharding configuration.
 
-Even if documents move between source shards during replication,
-{+c2c-product-name+} maintains the :term:`eventual consistency`
-guarantee on the destination cluster. For more information, see 
-:ref:`c2c-sharded-clusters`.
+Pre-Split Chunks
+''''''''''''''''
+
+When ``mongosync`` syncs to a sharded destination cluster, it pre-splits chunks 
+for sharded collections on the destination cluster. For each sharded collection, 
+``mongosync`` creates twice as many chunks as there are shards in the 
+destination cluster. 
+
+Primary Shards
+''''''''''''''
+
+When you sync to a sharded destination cluster, ``mongosync`` assigns a
+primary shard to each database by means of a round-robin. 
+
+.. warning::
+
+   Running :dbcommand:`movePrimary` on the source or desintation cluster
+   during migration may result in a fatal error or require you to
+   restart the migration from the start. For more information, see
+   :ref:`c2c-sharded-limitations`. 
 
 Multiple Clusters
 ~~~~~~~~~~~~~~~~~
@@ -154,13 +171,6 @@ snapshot of the source data. To learn more, see :ref:`c2c-behavior-consistency`.
    call the :ref:`c2c-api-reverse` endpoint to keep the clusters in sync.
    Otherwise, start a new continuous sync operation by using a new empty 
    destination cluster. 
-
-Sharded Clusters 
-~~~~~~~~~~~~~~~~
-
-When running continuous sync with sharded clusters, you must stop 
-:ref:`balancers <sharding-balancing>` on both the source and the destination 
-for the lifetime of the sync until commit.
 
 Temporary Changes to Collection Characteristics
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
