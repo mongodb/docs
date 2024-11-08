@@ -14,3 +14,12 @@ containers. Static containers are immutable at runtime. In addition:
 - You can't run extensive ``CMD`` scripts for the static container.
 - You can't copy files between static containers using ``initContainer``. 
   
+.. note:: 
+
+   When deployed as static containers, a |k8s-op-short| deployment consists of 
+   two containers - a ``mongodb-agent`` container and a ``mongodb-enterprise-server``
+   container. The MongoDB database custom resource inherits resource limit 
+   definitions from the ``mongodb-agent`` container, which runs the ``mongod`` 
+   process in a static container deployment. In order to modify the resource 
+   limits for the MongoDB database resource, you must specify your desired 
+   resource limits on the ``mongodb-agent`` container. 
