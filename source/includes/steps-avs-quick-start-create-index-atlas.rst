@@ -93,7 +93,7 @@
          .. tab::
             :tabid: php
 
-            .. include:: /includes/avs-quick-start-ui-create-index.rst
+            .. include:: /includes/avs-quick-start-php-create-index.rst
 
          .. tab::
             :tabid: python

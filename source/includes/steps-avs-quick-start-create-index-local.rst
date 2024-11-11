@@ -114,7 +114,7 @@
          .. tab::
             :tabid: php
 
-            .. include:: /includes/avs-quick-start-local-create-index-with-json.rst
+            .. include:: /includes/avs-quick-start-php-create-index.rst
 
          .. tab::
             :tabid: python
