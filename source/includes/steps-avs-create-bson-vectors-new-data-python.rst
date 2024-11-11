@@ -4,7 +4,9 @@
    .. step:: Install the required libraries.
 
       Run the following command to install the :driver:`PyMongo Driver
-      </pymongo/>`.
+      </pymongo/>`. If necessary, you can also install libraries from 
+      your embedding model provider. This operation might take a few
+      minutes to complete.
 
       .. code-block:: shell 
 
@@ -42,11 +44,21 @@
 
       .. example:: Generate Embeddings from Sample Data Using Cohere
 
+         .. list-table:: 
+            :widths: 30 70 
+            :header-rows: 1
+
+            * - Placeholder 
+              - Valid Value 
+
+            * - ``<COHERE-API-KEY>``
+              - API key for Cohere.
+
          .. code-block:: python 
 
             import cohere
             
-            api_key = "{COHERE-API-KEY}"
+            api_key = "<COHERE-API-KEY>"
             co = cohere.Client(api_key)
 
             generated_embeddings = co.embed(
@@ -86,6 +98,19 @@
       documents in your collection, skip this step. 
 
       .. example:: Create Documents from the Sample Data
+
+         .. list-table:: 
+            :widths: 30 70 
+            :header-rows: 1
+
+            * - Placeholder 
+              - Valid Value 
+   
+            * - ``<FIELD-NAME-FOR-INT8-TYPE>``
+              - Name of field with ``int8`` values.
+
+            * - ``<FIELD-NAME-FOR-FLOAT32-TYPE>``
+              - Name of field with ``float32`` values.
          
          .. code-block:: python 
 
@@ -96,8 +121,8 @@
                  doc = {
                       "_id":i,
                       "data": text,
-                      "{FIELD-NAME-FOR-INT8-TYPE}":bson_int8_emb,
-                      "{FIELD-NAME-FOR-FLOAT32-TYPE}":bson_f32_emb,
+                      "<FIELD-NAME-FOR-INT8-TYPE>":bson_int8_emb,
+                      "<FIELD-NAME-FOR-FLOAT32-TYPE>":bson_f32_emb,
                  }
                  docs.append(doc)
               return docs
@@ -115,13 +140,24 @@
 
       a. Connect to your |service| {+cluster+}.
 
+         .. list-table:: 
+            :widths: 30 70 
+            :header-rows: 1
+
+            * - Placeholder 
+              - Valid Value 
+
+            * - ``<ATLAS-CONNECTION-STRING>``
+              - |service| connection string. To learn more, see
+                :ref:`connect-via-driver`.  
+
          .. example:: 
          
             .. code-block:: python 
 
                import pymongo
 
-               MONGO_URI = "{ATLAS-CONNECTION-STRING}"
+               MONGO_URI = "<ATLAS-CONNECTION-STRING>"
 
                def get_mongo_client(mongo_uri):
                  # establish the connection
@@ -133,15 +169,28 @@
      
       #. Load the data into your |service| {+cluster+}.
 
+         .. list-table:: 
+            :widths: 30 70 
+            :header-rows: 1
+
+            * - Placeholder 
+              - Valid Value 
+
+            * - ``<DB-NAME>``
+              - Name of the database. 
+
+            * - ``<COLLECTION-NAME>``
+              - Name of the collection in the specified database.  
+
          .. example:: 
          
             .. code-block:: python 
 
                client = pymongo.MongoClient(MONGO_URI)
 
-               db = client["{DB-NAME}"]
-               db.create_collection("{COLLECTION-NAME}")
-               col = db["{COLLECTION-NAME}"]
+               db = client["<DB-NAME>"]
+               db.create_collection("<COLLECTION-NAME>")
+               col = db["<COLLECTION-NAME>"]
 
                col.insert_many(documents)
          
@@ -152,7 +201,20 @@
       more, see :ref:`avs-types-vector-search`. 
 
       .. example:: Create Index for the Sample Collection
-         
+
+         .. list-table:: 
+            :widths: 30 70 
+            :header-rows: 1
+
+            * - Placeholder 
+              - Valid Value 
+
+            * - ``<FIELD-NAME-FOR-INT8-TYPE>``
+              - Name of field with ``int8`` values.
+
+            * - ``<FIELD-NAME-FOR-FLOAT32-TYPE>``
+              - Name of field with ``float32`` values.
+
          .. code-block:: python 
 
             import time
@@ -162,20 +224,20 @@
               "fields":[
                 {
                   "type": "vector",
-                  "path": "{FIELD-NAME-FOR-FLOAT32-TYPE}",
-                  "similarity": "euclidean",  
+                  "path": "<FIELD-NAME-FOR-FLOAT32-TYPE>",
+                  "similarity": "dotProduct",  
                   "numDimensions": 1024,  
                 },
                 {
                   "type": "vector",
-                  "path": "{FIELD-NAME-FOR-INT8-TYPE}",
-                  "similarity": "euclidean", 
+                  "path": "<FIELD-NAME-FOR-INT8-TYPE>",
+                  "similarity": "dotProduct", 
                   "numDimensions": 1024, 
                 }
               ]
             }
 
-            search_index_model = SearchIndexModel(definition=vector_search_index_definition, name="{INDEX-NAME}", type="vectorSearch")
+            search_index_model = SearchIndexModel(definition=vector_search_index_definition, name="<INDEX-NAME>", type="vectorSearch")
 
             col.create_search_index(model=search_index_model)
 
@@ -188,7 +250,26 @@
       - Define the pipeline for the {+avs+} query.
 
       .. example:: 
-         
+
+         .. list-table:: 
+            :widths: 30 70 
+            :header-rows: 1
+
+            * - Placeholder 
+              - Valid Value 
+
+            * - ``<FIELD-NAME-FOR-FLOAT32-TYPE>``
+              - Name of field with ``float32`` values.
+
+            * - ``<INDEX-NAME>``
+              - Name of ``vector`` type index. 
+
+            * - ``<NUMBER-OF-CANDIDATES-TO-CONSIDER>`` 
+              - Number of nearest neighbors to use during the search.
+
+            * - ``<NUMBER-OF-DOCUMENTS-TO-RETURN>`` 
+              - Number of documents to return in the results. 
+
          .. code-block:: python 
 
             def run_vector_search(query_text, collection, path):
@@ -199,7 +280,7 @@
                 embedding_types=["float", "int8"]
               ).embeddings
 
-              if path == "{FIELD-NAME-FOR-FLOAT32-TYPE}":
+              if path == "<FIELD-NAME-FOR-FLOAT32-TYPE>":
                 query_vector = query_text_embeddings.float[0]
                 vector_dtype = BinaryVectorDtype.FLOAT32
               else:
@@ -210,11 +291,11 @@
               pipeline = [
                 {
                   '$vectorSearch': {
-                    'index': '{INDEX-NAME}', 
+                    'index': '<INDEX-NAME>', 
                     'path': path,
                     'queryVector': bson_query_vector,
-                    'numCandidates': {NUMBER-OF-CANDIDATES-TO-CONSIDER}, 
-                    'limit': {NUMBER-OF-DOCUMENTS-TO-RETURN}
+                    'numCandidates': <NUMBER-OF-CANDIDATES-TO-CONSIDER>, 
+                    'limit': <NUMBER-OF-DOCUMENTS-TO-RETURN>
                    }
                  },
                  {
@@ -244,8 +325,8 @@
                from pprint import pprint
 
                query_text = "tell me a science fact"
-               float32_results = run_vector_search(query_text, col, "{FIELD-NAME-FOR-FLOAT32-TYPE}")
-               int8_results = run_vector_search(query_text, col, "{FIELD-NAME-FOR-INT8-TYPE}")
+               float32_results = run_vector_search(query_text, col, "<FIELD-NAME-FOR-FLOAT32-TYPE>")
+               int8_results = run_vector_search(query_text, col, "<FIELD-NAME-FOR-INT8-TYPE>")
 
                print("results from float32 embeddings")
                pprint(list(float32_results))
