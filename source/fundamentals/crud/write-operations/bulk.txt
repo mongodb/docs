@@ -16,6 +16,15 @@ Overview
 In this guide, you can learn how to use bulk operations in the
 MongoDB Java Driver. 
 
+.. note:: Improved Bulk Write Commands
+
+   In {+driver-short+} version 5.3 and later, you can use the
+   ``ClientNamespacedWriteModel`` object to represent the write
+   operations. See the :ref:`improved-bulk-write` section below
+   to see how to use this object.
+
+   <TODO: REWORD THis to focus on the bulkWrite function>
+
 To perform a create, replace, update, or delete operation,
 use its corresponding method. For example, to insert one document,
 update multiple documents, and delete one document in your collection,
@@ -44,7 +53,7 @@ document. The examples in each section use the following documents in the
    { "_id": 8, "name": "Shayla Ray", "age": 20 }
 
 For more information about the methods and classes mentioned in this section,
-see the following API Documentation:
+see the following API documentation:
 
 - `bulkWrite() <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoCollection.html#bulkWrite(java.util.List,com.mongodb.client.model.BulkWriteOptions)>`__
 - `WriteModel <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/WriteModel.html>`__
@@ -293,6 +302,80 @@ see the following API Documentation:
 - `BulkWriteOptions <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/BulkWriteOptions.html>`__
 - `ordered() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/BulkWriteOptions.html#ordered(boolean)>`__
 
+.. _improved-bulk-write:
+
+Improved Bulk Write Command
+---------------------------
+
+.. specify which library
+
+Starting with {+mdb-server+} version 8.0 and {+driver-short+} version 5.3, the 
+``bulkWrite()`` method can be used in a different way. There are four ways in 
+which you can call this method:
+
+.. TODO: describe how these can be used to write to different collections at
+.. the same time
+
+.. TODO: Namespace vs not namespace write model
+
+bulkWrite(models)
+~~~~~~~~~~~~~~~~~
+
+In the previous examples on this page, the ``bulkWrite()`` method takes a list
+of ``WriteModel`` documents. In these examples, the specified subclass of 
+``WriteModel`` represents the corresponding write operation, like ``InsertOneModel``
+represents inserting one document.
+
+Now, ``bulkWrite()`` can take a list of ``ClientWriteModel`` objects. Instead
+of having to specify different subclasses, this object has different methods to
+represent different write operations, such as ``insertOne()`` or ``updateOne()``.
+These methods take a ``MongoNamespace`` object that defines which database and
+collection to write to and a ``Document`` object that defines the document.
+
+The following example shows how to use ``ClientWriteModel`` to insert two documents
+into the ``people`` collection of our database:
+
+.. code-block:: java
+   MongoNamespace namespace = new MongoNamespace("db", "people");
+
+   ClientBulkWriteResult result = client.bulkWrite(List<>(
+      ClientNamespacedWriteModel.insertOne(namespace, new Document("name", "Julia Smith")),
+      ClientNamespacedWriteModel.insertOne(namespace, new Document("name", "Blablabla"))
+   ));
+
+.. TODO: move code to includes
+
+.. TODO: link documentation
+
+bulkWrite(models, options)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Similarly to the :ref:`orderOfExecution` above, you can use the ``ClientBulkWriteOptions`` 
+object to add options to your call of the new ``bulkWrite()`` method.
+
+As described above, by default the write operations execute in the order they're
+specified. However, we can specify ``false`` to the ``ordered()`` method on the 
+``ClientBulkWriteOptions`` object to execute write operations in any order.
+
+.. code-block:: java
+   MongoNamespace namespace = new MongoNamespace("db", "people");
+
+   ClientBulkWriteOptions options = new ClientBulkWriteOptions().ordered(false);
+
+
+   ClientBulkWriteResult result = client.bulkWrite(List<>(
+      ClientNamespacedWriteModel.insertOne(namespace, new Document("name", "Julia Smith")),
+      ClientNamespacedWriteModel.insertOne(namespace, new Document("name", "Blablabla"))
+      ), 
+      options);
+
+.. TODO: add one more example?
+
+.. TODO: link documentation
+
+.. TODO; also results and error types
+
+
 Summary
 -------
 
@@ -308,3 +391,5 @@ There are two ways to execute the ``bulkWrite()`` method:
 - Ordered, which performs the bulk operations in order until an error occurs, if any
 - Unordered, which performs all the bulk operations in any order and reports errors
   at the end, if any
+
+.. TODO: summarize results in a table i think
