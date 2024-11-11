@@ -1,0 +1,257 @@
+.. _langchain-hybrid-search:
+
+====================================================
+Perform Hybrid Search with the LangChain Integration
+====================================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. facet::
+   :name: programming_language
+   :values: python
+
+.. meta::
+   :description: Perform hybrid search by using the LangChain integration for Atlas Vector Search.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can integrate {+avs+} with `LangChain <https://langchain.com/>`__
+to perform :ref:`hybrid search <as_hybrid-search>`. 
+In this tutorial, you complete the following steps:
+
+#. Set up the environment.
+#. Use |service| as a vector store.
+#. Create an {+avs+} and |fts| index on your data.
+#. Run hybrid search queries.
+#. Pass the query results into your |rag| pipeline.
+
+Prerequisites
+-------------
+
+To complete this tutorial, you must have the following:
+
+.. include:: /includes/avs-python-openai-prerequisites.rst
+
+Set Up the Environment
+----------------------
+
+.. include:: /includes/set-up-python-notebook-environment.rst
+
+.. include:: /includes/ai-integrations/langchain/set-up-environment-hybrid-search.rst
+
+Use |service| as a Vector Store
+-------------------------------
+
+You must use |service| as a vector store for your data. 
+You can instantiate a vector store by using an 
+existing collection in |service|.
+
+.. include:: /includes/ai-integrations/langchain/create-vector-store-hybrid-search.rst
+
+.. tip::
+
+   `MongoDBAtlasVectorSearch API Reference <https://python.langchain.com/api_reference/mongodb/vectorstores/langchain_mongodb.vectorstores.MongoDBAtlasVectorSearch.html>`__
+
+Create the Indexes
+------------------
+
+.. note:: 
+
+   To create {+avs+} or |fts| indexes, you must have :authrole:`Project Data Access Admin` 
+   or higher access to the |service| project.
+
+To enable hybrid search queries on your vector store,
+create an {+avs+} and |fts| index on the collection.
+You can create the indexes by using either the 
+LangChain helper methods or the 
+:driver:`PyMongo Driver </pymongo/>` method:
+
+.. tabs::
+
+   .. tab:: LangChain
+      :tabid: langchain
+
+      .. include:: /includes/ai-integrations/langchain/create-indexes-hybrid-search-langchain.rst
+
+   .. tab:: PyMongo
+      :tabid: pymongo
+            
+      .. include:: /includes/ai-integrations/langchain/create-indexes-hybrid-search-pymongo.rst
+         
+.. include:: /includes/fact-index-build-initial-sync.rst
+
+Run a Hybrid Search Query
+--------------------------
+
+Once |service| builds your indexes, you can run hybrid search queries on your data. 
+The following code uses the ``MongoDBAtlasHybridSearchRetriever`` `retriever 
+<https://python.langchain.com/docs/how_to/#retrievers>`__ to perform a hybrid search 
+for the string ``time travel``. It also 
+specifies the following parameters:
+
+- ``vectorstore``: The name of the vector store instance.
+- ``search_index_name``: The name of the Atlas Search index.
+- ``top_k``: The number of documents to return.
+- ``fulltext_penalty``: The penalty for full-text search. 
+
+  The lower the penalty, the higher the full-text search score.
+- ``vector_penalty``: The penalty for vector search. 
+  
+  The lower the penalty, the higher the vector search score.
+
+The retriever returns a list of documents sorted by the sum of the 
+full-text search score and the vector search score. The final output
+of the code example includes the title, plot, and the 
+different scores for each document.
+
+To learn more about hybrid search query results, 
+see :ref:`hybrid-search-about`.
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: 
+      :language: python
+
+      from langchain_mongodb.retrievers.hybrid_search import MongoDBAtlasHybridSearchRetriever
+
+      # Initialize the retriever
+      retriever = MongoDBAtlasHybridSearchRetriever(
+          vectorstore = vector_store,          
+          search_index_name = "search_index",  
+          top_k = 5,                           
+          fulltext_penalty = 50,               
+          vector_penalty = 50                  
+      )
+
+      # Define your query
+      query = "time travel"
+
+      # Print results
+      documents = retriever.invoke(query)
+      for doc in documents:
+         print("Title: " + doc.metadata["title"])
+         print("Plot: " + doc.page_content)
+         print("Search score: {}".format(doc.metadata["fulltext_score"]))
+         print("Vector Search score: {}".format(doc.metadata["vector_score"]))
+         print("Total score: {}\n".format(doc.metadata["fulltext_score"] + doc.metadata["vector_score"]))
+         
+   .. output:: 
+
+      Title: Timecop
+      Plot: An officer for a security agency that regulates time travel, must fend for his life against a shady politician who has a tie to his past.
+      Search score: 0.019230769230769232
+      Vector Search score: 0.01818181818181818
+      Total score: 0.03741258741258741
+
+      Title: The Time Traveler's Wife
+      Plot: A romantic drama about a Chicago librarian with a gene that causes him to involuntarily time travel, and the complications it creates for his marriage.
+      Search score: 0.0196078431372549
+      Vector Search score: 0
+      Total score: 0.0196078431372549
+
+      Title: Thrill Seekers
+      Plot: A reporter, learning of time travelers visiting 20th century disasters, tries to change the history they know by averting upcoming disasters.
+      Search score: 0
+      Vector Search score: 0.0196078431372549
+      Total score: 0.0196078431372549
+
+      Title: About Time
+      Plot: At the age of 21, Tim discovers he can travel in time and change what happens and has happened in his own life. His decision to make his world a better place by getting a girlfriend turns out not to be as easy as you might think.
+      Search score: 0
+      Vector Search score: 0.019230769230769232
+      Total score: 0.019230769230769232
+
+      Title: My iz budushchego
+      Plot: My iz budushchego, or We Are from the Future, is a movie about time travel. Four 21st century treasure seekers are transported back into the middle of a WWII battle in Russia. The movie's ...
+      Search score: 0.018867924528301886
+      Vector Search score: 0
+      Total score: 0.018867924528301886
+
+.. tip::
+
+   `MongoDBAtlasHybridSearchRetriever API Reference <https://python.langchain.com/api_reference/mongodb/retrievers/langchain_mongodb.retrievers.hybrid_search.MongoDBAtlasHybridSearchRetriever.html>`__
+
+Pass Results to a RAG Pipeline
+------------------------------
+
+You can pass your hybrid search results
+into your |rag| pipeline to generate responses 
+on the retrieved documents. The sample code 
+does the following: 
+
+- Defines a LangChain `prompt template 
+  <https://python.langchain.com/docs/how_to/#prompt-templates>`__
+  to instruct the |llm| to use 
+  the retrieved documents as context for your query.
+  LangChain passes these documents to the ``{context}`` input
+  variable and your query to the ``{query}`` variable.
+
+- Constructs a `chain 
+  <https://python.langchain.com/docs/concepts/#langchain-expression-language-lcel>`__
+  that specifies the following:
+
+  - The hybrid search retriever you defined to 
+    retrieve relevant documents.
+    
+  - The prompt template that you defined.
+
+  - An |llm| from OpenAI to generate a 
+    context-aware response. By default, this is the 
+    ``gpt-3.5-turbo`` model.
+
+- Prompts the chain with a sample query and returns the response.
+  The generated response might vary.
+  
+.. io-code-block::
+   :copyable: true 
+
+   .. input:: 
+      :language: python
+
+      from langchain_core.output_parsers import StrOutputParser
+      from langchain_core.prompts import PromptTemplate
+      from langchain_core.runnables import  RunnablePassthrough
+      from langchain_openai import ChatOpenAI
+
+      # Define a prompt template
+      template = """
+         Use the following pieces of context to answer the question at the end.
+         {context}
+         Question: Can you recommend some movies about {query}?
+      """
+      prompt = PromptTemplate.from_template(template)
+      model = ChatOpenAI()
+
+      # Construct a chain to answer questions on your data
+      chain = (
+         {"context": retriever, "query": RunnablePassthrough()}
+         | prompt
+         | model
+         | StrOutputParser()
+      )
+
+      # Prompt the chain
+      query = "time travel"
+      answer = chain.invoke(query)
+      print(answer)
+
+   .. output::
+
+      Based on the pieces of context provided, here are some movies about time travel that you may find interesting:
+
+      1. "Timecop" (1994) - A movie about a cop who is part of a law enforcement agency that regulates time travel, seeking justice and dealing with personal loss. 
+      2. "The Time Traveler's Wife" (2009) - A romantic drama about a man with the ability to time travel involuntarily and the impact it has on his relationship with his wife.
+      3. "Thrill Seekers" (1999) - A movie about two reporters trying to prevent disasters by tracking down a time traveler witnessing major catastrophes.
+      4. "About Time" (2013) - A film about a man who discovers he can travel through time and uses this ability to improve his life and relationships.
+      5. "My iz budushchego" (2008) - A Russian movie where four treasure seekers from the 21st century are transported back to a WWII battle, exploring themes of action, drama, fantasy, and romance.
+
+      These movies offer a variety of perspectives on time travel and its impact on individuals and society.

@@ -167,6 +167,8 @@ Procedure
 
       .. include:: /includes/steps-avs-rrf-shell-query.rst
 
+.. _hybrid-search-about:
+
 About the Query 
 ~~~~~~~~~~~~~~~
 

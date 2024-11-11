@@ -7,7 +7,7 @@
 
       .. code-block:: python
 
-         %pip install --upgrade --quiet langchain langchain-community langchain-core langchain-mongodb langchain-openai pymongo pypdf
+         pip install --upgrade --quiet langchain langchain-community langchain-core langchain-mongodb langchain-openai pymongo pypdf
 
       Then, run the following code to import the required packages:
 

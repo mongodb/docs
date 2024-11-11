@@ -62,14 +62,16 @@
 
    .. step:: Instantiate the vector store.
 
-      Run the following code to create a vector store 
+      Run the following code to create a vector store instance
       named ``vector_store`` from the sample documents. 
-      This snippet uses the ``MongoDBAtlasVectorSearch.from_documents``
-      method and specifies the following parameters:
+      This snippet uses the ``from_documents``
+      method to create the ``MongoDBAtlasVectorSearch`` vector store
+      and specifies the following parameters:
       
       - The sample documents to store in the vector database.
-      - OpenAI's embedding model as the model used to convert text into 
-        vector embeddings for the ``embedding`` field.
+      - An OpenAI embedding model as the model used to convert text into 
+        vector embeddings for the ``embedding`` field. By default, this
+        model is ``text-embedding-ada-002``.
       - ``langchain_db.test`` as the |service| collection to store the documents.
       - ``vector_index`` as the index to use for querying the vector store.
 
@@ -83,8 +85,11 @@
              index_name = vector_search_index
          )
 
-      .. tip:: 
+      After running the sample code, you can
+      view your vector embeddings :ref:`in the {+atlas-ui+} <atlas-ui-view-collections>`
+      by navigating to the ``langchain_db.test`` collection in your {+cluster+}.
 
-         After running the sample code, you can
-         view your vector embeddings :ref:`in the {+atlas-ui+} <atlas-ui-view-collections>`
-         by navigating to the ``langchain_db.test`` collection in your {+cluster+}.
+      .. tip::
+
+         `MongoDBAtlasVectorSearch API Reference <https://python.langchain.com/api_reference/mongodb/vectorstores/langchain_mongodb.vectorstores.MongoDBAtlasVectorSearch.html>`__
+

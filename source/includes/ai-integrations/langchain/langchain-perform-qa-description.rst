@@ -10,12 +10,13 @@
   that specifies the following:
 
   - {+avs+} as the retriever to search for documents 
-    that are used as context by the |llm|.
+    to use as context.
     
-  - The prompt template that you constructed.
+  - The prompt template that you defined.
 
-  - OpenAI's chat model as the |llm| used to generate a 
-    context-aware response.
+  - An |llm| from OpenAI to generate a 
+    context-aware response. By default, this is the 
+    ``gpt-3.5-turbo`` model.
 
 - Prompts the chain with a sample query about |service| security 
   recommendations.

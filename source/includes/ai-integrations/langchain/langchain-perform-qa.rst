@@ -26,32 +26,24 @@
 
             # Define a prompt template
             template = """
-
-            Use the following pieces of context to answer the question at the end.
-            If you don't know the answer, just say that you don't know, don't try to make up an answer.
-
-            {context}
-
-            Question: {question}
+               Use the following pieces of context to answer the question at the end.
+               {context}
+               Question: {question}
             """
-            custom_rag_prompt = PromptTemplate.from_template(template)
-
-            llm = ChatOpenAI()
-            
-            def format_docs(docs):
-               return "\n\n".join(doc.page_content for doc in docs)
+            prompt = PromptTemplate.from_template(template)
+            model = ChatOpenAI()
 
             # Construct a chain to answer questions on your data
-            rag_chain = (
-               { "context": retriever | format_docs, "question": RunnablePassthrough()}
-               | custom_rag_prompt   
-               | llm
+            chain = (
+               { "context": retriever, "question": RunnablePassthrough()}
+               | prompt   
+               | model
                | StrOutputParser()
             )
 
             # Prompt the chain
             question = "How can I secure my MongoDB Atlas cluster?"
-            answer = rag_chain.invoke(question)
+            answer = chain.invoke(question)
 
             print("Question: " + question)
             print("Answer: " + answer)
@@ -128,26 +120,18 @@
 
             # Define a prompt template
             template = """
-
-            Use the following pieces of context to answer the question at the end.
-            If you don't know the answer, just say that you don't know, don't try to make up an answer.
-
-            {context}
-
-            Question: {question}
+               Use the following pieces of context to answer the question at the end.
+               {context}
+               Question: {question}
             """
-            custom_rag_prompt = PromptTemplate.from_template(template)
-
-            llm = ChatOpenAI()
-            
-            def format_docs(docs):
-               return "\n\n".join(doc.page_content for doc in docs)
+            prompt = PromptTemplate.from_template(template)
+            model = ChatOpenAI()
 
             # Construct a chain to answer questions on your data
-            rag_chain = (
-               { "context": retriever | format_docs, "question": RunnablePassthrough()}
-               | custom_rag_prompt   
-               | llm
+            chain = (
+               { "context": retriever, "question": RunnablePassthrough()}
+               | prompt   
+               | model
                | StrOutputParser()
             )
 
