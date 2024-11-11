@@ -14,8 +14,8 @@
      - MongoDB 4.2
      - MongoDB 4.0
      - MongoDB 3.6
-   
-   * - 1.28
+
+   * - 1.28 to 1.29
      - ✓
      - ✓
      - ✓
