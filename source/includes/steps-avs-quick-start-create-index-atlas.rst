@@ -108,7 +108,7 @@
          .. tab::
             :tabid: rust
 
-            .. include:: /includes/avs-quick-start-ui-create-index.rst
+            .. include:: /includes/avs-quick-start-rust-create-index.rst
 
          .. tab::
             :tabid: scala

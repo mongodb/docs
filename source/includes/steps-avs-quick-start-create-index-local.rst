@@ -129,7 +129,7 @@
          .. tab::
             :tabid: rust
 
-            .. include:: /includes/avs-quick-start-local-create-index-with-json.rst
+            .. include:: /includes/avs-quick-start-rust-create-index.rst
 
          .. tab::
             :tabid: scala

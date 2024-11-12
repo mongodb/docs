@@ -1,30 +1,37 @@
 .. procedure:: 
-   :style: normal 
-
-   .. step:: Install the Rust driver for MongoDB.
-
-      For more detailed installation instructions, see the 
-      :ref:`MongoDB Rust Driver documentation <rust-quick-start-download-and-install>`.
+   :style: normal
 
    .. step:: Construct your vector search query.
 
       .. include:: /includes/fact-avs-quick-start-intro.rst
     
-      In the ``main.rs`` file for your project, paste the following code:
+      a. Create a file named ``basic_query.rs``.
+
+      #. Copy and paste the following sample query into the 
+         ``basic_query.rs`` file:
       
-      .. tabs::
-        
-         .. tab:: 
-            :tabid: Asynchronous API
-
-            .. literalinclude:: /includes/avs-examples/pipeline-stage-examples/basic-query-async.rs 
-               :language: rust
+         .. tabs::
+            :hidden: true
          
-         .. tab:: 
-            :tabid: Synchronous API
+            .. tab:: 
+               :tabid: Asynchronous API
 
-            .. literalinclude:: /includes/avs-examples/pipeline-stage-examples/basic-query-sync.rs 
-               :language: rust
+               .. literalinclude:: /includes/avs-examples/pipeline-stage-examples/basic-query-async.rs 
+                  :language: rust
+                  :copyable: true
+                  :caption: basic_query.rs
+                  :emphasize-lines: 11
+                  :linenos:
+            
+            .. tab:: 
+               :tabid: Synchronous API
+
+               .. literalinclude:: /includes/avs-examples/pipeline-stage-examples/basic-query-sync.rs 
+                  :language: rust
+                  :copyable: true
+                  :caption: basic_query.rs
+                  :emphasize-lines: 9
+                  :linenos:
 
       .. include:: /includes/fact-avs-quick-start-intro-II.rst
 
@@ -37,16 +44,28 @@
 
    .. step:: Run your query.
     
-      Run the following command to query your collection:
 
-      .. io-code-block::
-         :copyable: true
+      a. Call the function from your ``main.rs``.
 
-         .. input::
-            :language: bash
-     
-            cargo run
-        
-         .. output:: /includes/avs-examples/pipeline-stage-examples/basic-query-python-output.js
-            :language: js
-            :linenos: 
+         .. code-block:: rust
+            :copyable: true
+            :caption: main.rs
+
+            fn main() {
+               basic_query().unwrap();
+            }
+
+      #. Run the file in your IDE, or execute a command from the command line to
+         run the code.
+
+         .. io-code-block::
+            :copyable: true
+
+            .. input::
+               :language: bash
+      
+               cargo run
+         
+            .. output:: /includes/avs-examples/pipeline-stage-examples/basic-query-python-output.js
+               :language: js
+               :linenos: 

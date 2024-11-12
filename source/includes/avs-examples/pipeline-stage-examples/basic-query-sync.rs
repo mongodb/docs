@@ -4,7 +4,7 @@ use mongodb::{
     sync::Client
 };
 
-fn main() -> mongodb::error::Result<()> {
+fn basic_query() -> mongodb::error::Result<()> {
     // Replace the placeholder with your Atlas connection string
     let client = Client::with_uri_str("<connection-string>")?;
 

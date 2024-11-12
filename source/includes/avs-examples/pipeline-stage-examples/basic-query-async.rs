@@ -6,7 +6,7 @@ use mongodb::{
 use futures::TryStreamExt;
 
 #[tokio::main]
-async fn main() -> mongodb::error::Result<()> {
+async fn basic_query() -> mongodb::error::Result<()> {
     // Replace the placeholder with your Atlas connection string
     let client = Client::with_uri_str("<connection-string>").await?;
     
