@@ -1,4 +1,4 @@
-To interact with data in the |mms| UI:
+To interact with your data in the |mms| UI:
 
 .. procedure::
    :style: normal
