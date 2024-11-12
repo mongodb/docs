@@ -78,12 +78,12 @@
          .. tab::
             :tabid: kotlin-coroutine
 
-            .. include:: /includes/avs-quick-start-ui-create-index.rst
+            .. include:: /includes/avs-quick-start-kotlin-coroutine-create-index.rst
 
          .. tab::
             :tabid: kotlin-sync
 
-            .. include:: /includes/avs-quick-start-ui-create-index.rst
+            .. include:: /includes/avs-quick-start-kotlin-sync-create-index.rst
 
          .. tab::
             :tabid: nodejs

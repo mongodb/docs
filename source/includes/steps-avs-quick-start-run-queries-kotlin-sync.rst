@@ -1,37 +1,6 @@
 .. procedure::
    :style: normal
 
-   .. step:: Install the MongoDB Kotlin Sync Driver.
-
-      Add the Kotlin Sync driver version 5.2 or higher as a dependency in your
-      project:
-
-      - If you are using Gradle, add the following dependency to your
-         ``build.gradle`` dependencies list:
-
-         .. code-block:: json
-            :copyable: true
-
-            dependencies {
-               implementation 'mongodb-driver-kotlin-sync:5.2.0'
-            }
-
-      - If you are using Maven, add the following dependency to your
-         ``pom.xml`` dependencies list:
-
-         .. code-block:: xml
-            :copyable: true
-
-            <dependency>
-               <groupId>org.mongodb</groupId>
-               <artifactId>mongodb-driver-kotlin-sync</artifactId>
-               <version>5.2.0</version>
-            </dependency>
-
-      For more detailed installation instructions and version compatibility,
-      see the :ref:`MongoDB Kotlin Sync Driver documentation
-      <kotlin-sync-download-install>`.
-
    .. step:: Construct your vector search query.
 
       .. include:: /includes/fact-avs-quick-start-intro.rst
