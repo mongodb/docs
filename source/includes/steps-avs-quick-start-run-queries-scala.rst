@@ -1,30 +1,19 @@
 .. procedure:: 
-   :style: normal 
-
-   .. step:: Install the MongoDB Scala Driver.
-
-      For installation instructions based on your environment and the version 
-      of Scala you are using, refer to the 
-      :ref:`MongoDB Scala Driver documentation <scala-install>`.
+   :style: normal
 
    .. step:: Construct your vector search query.
 
       .. include:: /includes/fact-avs-quick-start-intro.rst
-    
-      a. Create a new Scala project with the tools you normally use. For this 
-         quick start, we create a project named ``quick-start``, by using 
-         `sbt <https://www.scala-sbt.org>`__.
 
-         .. code-block:: sh
+      Create a file named ``VectorQuery.scala``. Copy and paste the following
+      code into the file.
 
-            sbt new scala/hello-world.g8
-        
-         When prompted, name the application ``quick-start``.
-
-      b. Open the ``Main.scala`` file and replace the contents with the following 
-         vector search query:
-
-         .. literalinclude:: /includes/avs-examples/pipeline-stage-examples/basic-query.scala
+      .. literalinclude:: /includes/avs-examples/pipeline-stage-examples/basic-query.scala
+         :language: scala
+         :copyable: true
+         :caption: VectorQuery.scala
+         :emphasize-lines: 9
+         :linenos:
 
       .. include:: /includes/fact-avs-quick-start-intro-II.rst
 
@@ -34,11 +23,19 @@
 
       .. include:: /includes/steps-connection-string-drivers-hidden.rst
 
-   .. step:: Run your query.
+   .. step:: Update your ``Main.scala`` file.
 
-      There are many tools and environments in which Scala runs. In this example, 
-      we run the new Scala project by starting the sbt server with the ``sbt`` 
-      command, then typing ``~run``.
+      Create a class instance and call the function in your project's
+      ``Main.scala`` file.
+
+      .. code-block:: scala
+
+         object Main extends App {
+            private val queryInstance = new VectorQuery
+            queryInstance.performVectorQuery()
+         }
+
+   .. step:: Run your query.
   
       .. io-code-block::
          :copyable: false

@@ -134,4 +134,4 @@
          .. tab::
             :tabid: scala
 
-            .. include:: /includes/avs-quick-start-local-create-index-with-json.rst
+            .. include:: /includes/avs-quick-start-scala-create-index.rst

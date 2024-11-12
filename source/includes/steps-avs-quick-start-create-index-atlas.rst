@@ -113,4 +113,4 @@
          .. tab::
             :tabid: scala
 
-            .. include:: /includes/avs-quick-start-ui-create-index.rst
+            .. include:: /includes/avs-quick-start-scala-create-index.rst
