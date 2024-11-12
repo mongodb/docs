@@ -101,6 +101,70 @@ for the correct environment.
 The aforementioned ``detect-extension`` script can also be used to determine the
 appropriate DLL for your PHP environment.
 
+Connection Handling and Persistence
+-----------------------------------
+
+Connections to the MongoDB deployment are handled by the ``libmongoc``
+library and the :php:`{+extension-short+} <mongodb>`. When you construct
+a :phpclass:`MongoDB\Client` instance, the {+library-short+} creates a
+:php:`MongoDB\Driver\Manager <class.mongodb-driver-manager>` instance by using the
+same connection string and options. The extension also uses those constructor
+arguments to derive a hash key for persistent ``libmongoc`` clients. If
+you previously persisted a ``libmongoc`` client by using a key, it is
+reused. Otherwise, a new ``libmongoc`` client is created and persisted
+for the lifetime of the PHP worker process. You can learn more about
+this process in the :php:`{+extension-short+} documentation
+<manual/en/mongodb.connection-handling.php>`.
+
+Each ``libmongoc`` client maintains its own connections to the MongoDB deployment
+and a view of its topology. When you reuse a persistent ``libmongoc`` client, the
+{+library-short+} can avoid the overhead of establishing new connections and
+rediscovering the topology. This approach generally improves performance and is
+the driver's default behavior.
+
+Persistent ``libmongoc`` clients are not freed until the PHP worker process
+ends. This means that connections to a MongoDB deployment might remain open
+after a ``MongoDB\Driver\Manager`` object goes out of scope. While this is
+typically not an issue for applications that connect to one MongoDB deployment,
+it might be problematic in some situations, which are described in the
+following list:
+
+- PHP-FPM is configured with ``pm.max_requests=0``, so that workers never respawn, and a
+  PHP application is deployed many times with small changes to its MongoDB
+  connection string or options. This could lead to an accumulation of ``libmongoc``
+  client objects in each worker process.
+
+- An application occasionally connects to a separate MongoDB deployment in a
+  backend component where request latency is not the most important aspect.
+
+In the first case, restarting PHP-FPM as part of the application deployment
+allows the application to release any unused ``libmongoc`` clients and still use
+a persistent client for the latest connection string.
+
+The second case requires a different solution. Specifying ``true`` for the
+``disableClientPersistence`` driver option instructs the {+library-short+} to
+create a new ``libmongoc`` client and ensure it is freed when the corresponding
+``MongoDB\Driver\Manager`` goes out of scope.
+
+The following code demonstrates how to set the
+``disableClientPersistence`` option to ``true`` when creating a client:
+
+.. code-block:: php
+   :emphasize-lines: 6
+
+   <?php
+
+   $client = new MongoDB\Client(
+       uri: getenv('MONGODB_URI') ?: 'mongodb://127.0.0.1/',
+       uriOptions: [],
+       driverOptions: ['disableClientPersistence' => true],
+   );
+
+Use the ``disableClientPersistence`` driver option after careful
+consideration, because opting out of client persistence requires more
+time to establish connections to the MongoDB deployment and discover its
+topology.
+
 Server Selection Failures
 -------------------------
 
