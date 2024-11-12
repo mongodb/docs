@@ -1,6 +1,6 @@
-# docs-mongodb-intellij
+# MongoDB for IntelliJ Plugin Documentation 
 
-This repository contains documentation for the {+intellij-full+}.
+This repository contains documentation for the MongoDB for IntelliJ Plugin.
 
 ## Report Issues
 
