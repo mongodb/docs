@@ -12,12 +12,12 @@
        content: |
 
          1. Click the :guilabel:`Table` button in the top navigation
-            to access the :ref:`Table View <compass-documents-table-view>`:
+            to access the :ref:`Table View <compass-view-documents>`:
 
             .. figure:: /images/compass-table-btn-click-2.png
                :alt: Compass Table View button
 
-         #. Use the Compass :ref:`query bar <compass-query-bar-filter>` to
+         #. Use the Compass :ref:`query bar <compass-query-bar>` to
             locate the target document.
 
             Copy the following filter document into the query bar and click

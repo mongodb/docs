@@ -79,4 +79,4 @@
 
 
          For details on the information displayed in this tab, refer to
-         the :ref:`Compass documentation <compass-indexes-tab>`.
+         the :compass:`Compass documentation </indexes/>`.

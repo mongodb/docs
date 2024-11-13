@@ -11,9 +11,8 @@
        content: |
          To select all documents in the collection, pass an empty
          document as the query filter parameter to the
-         :ref:`query bar <compass-query-bar>`. The
-         :ref:`query filter parameter <compass-query-bar-filter>` determines
-         the select criteria:
+         :ref:`query bar <compass-query-bar>`. The query filter 
+         parameter determines the select criteria:
 
      - id: python
        content: |
