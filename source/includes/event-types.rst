@@ -1152,6 +1152,18 @@
        Cluster was opted out of DB Check
      - no
 
+   * - ``CLUSTER_OS_FIXED``
+     - .. _atlas_event_cluster_os_fixed:
+
+       Cluster OS version was fixed
+     - no
+
+   * - ``CLUSTER_OS_UNFIXED``
+     - .. _atlas_event_cluster_os_unfixed:
+
+       Cluster OS version was unfixed
+     - no
+
    * - ``CLUSTER_OS_UPDATED``
      - .. _atlas_event_cluster_os_updated:
 
@@ -2316,10 +2328,16 @@
        Fixed version for cluster was updated
      - no
 
+   * - ``FLEX_UPGRADE_STARTED``
+     - .. _atlas_event_flex_upgrade_started:
+
+       Flex cluster upgrade started
+     - no
+
    * - ``FREE_UPGRADE_STARTED``
      - .. _atlas_event_free_upgrade_started:
 
-       Tenant cluster upgrade started
+       Free cluster upgrade started
      - no
 
    * - ``FTS_INDEXES_RESTORED``
@@ -3894,6 +3912,30 @@
        Maximum allowed Service Account secret validity was changed
      - no
 
+   * - ``ORG_SERVICE_ACCOUNT_SECRETS_EXPIRED``
+     - .. _atlas_event_org_service_account_secrets_expired:
+
+       Service Account Secrets have expired
+     - yes
+
+   * - ``ORG_SERVICE_ACCOUNT_SECRETS_EXPIRING``
+     - .. _atlas_event_org_service_account_secrets_expiring:
+
+       Service Account Secrets are about to expire
+     - yes
+
+   * - ``ORG_SERVICE_ACCOUNT_SECRETS_NO_LONGER_EXPIRED``
+     - .. _atlas_event_org_service_account_secrets_no_longer_expired:
+
+       Service Account Secrets are no longer expired
+     - no
+
+   * - ``ORG_SERVICE_ACCOUNT_SECRETS_NO_LONGER_EXPIRING``
+     - .. _atlas_event_org_service_account_secrets_no_longer_expiring:
+
+       Service Account Secrets are no longer about to expire
+     - no
+
    * - ``ORG_SETTINGS_CONFIGURED``
      - .. _atlas_event_org_settings_configured:
 
@@ -4336,6 +4378,12 @@
      - .. _atlas_event_reload_ssl_on_processes:
 
        Instance needs TLS certificates reloaded from disk
+     - no
+
+   * - ``RELOAD_SSL_ON_PROCESSES_REQUESTED``
+     - .. _atlas_event_reload_ssl_on_processes_requested:
+
+       Maintenance is required to reload TLS certificates from disk
      - no
 
    * - ``REMOVED_FROM_GROUP``
