@@ -21,7 +21,7 @@ Live Migrate (Pull) a Replica Set into Atlas (MongoDB Before {+c2c-version+})
 .. include:: /includes/fact-c2c.rst
 
 |service| can pull a source replica set to an |service| {+cluster+} using
-the live migration process. |service| syncs from the source to the destination
+the legacy live migration process. |service| syncs from the source to the destination
 {+cluster+} until you cut your applications over to the destination |service|
 {+cluster+}.
 
@@ -29,28 +29,27 @@ Once you reach the cutover step in the following procedure, stop
 writes to the source {+cluster+}. Stop your application instances,
 point them to the |service| {+cluster+}, and restart them.
 
+
 Restrictions
 ------------
 
 - You can't select an ``M0`` (Free Tier) or ``M2/M5`` shared {+cluster+} as the
-  source or destination for live migration. To migrate data from an
+  source or destination for legacy live migration (pull). To migrate data from an
   ``M0`` (Free Tier) or ``M2/M5`` shared {+cluster+} to a paid {+cluster+},
   :doc:`change the cluster tier and type </scale-cluster>`.
 
-- Live migration (pull) doesn't support MongoDB 8.0 or rapid releases 
+- Legacy live migration (pull) doesn't support MongoDB 8.0 or rapid releases
   as the source or destination {+cluster+} version.
 
-- Live migration (pull) doesn't support :ref:`VPC peering <vpc-peering>` or
+- Legacy live migration (pull) is not supported for sharded {+clusters+}.
+
+  .. include:: /includes/fact-no-sharded-legacy-pull-live-migration.rst
+
+- Legacy live migration (pull) doesn't support :ref:`VPC peering <vpc-peering>` or
   :ref:`private endpoints <private-endpoint>` for either the source or
   destination {+cluster+}.
-
-- To live migrate a sharded {+cluster+}, see :doc:`Live Migrate (Pull) a Sharded Cluster into Atlas </import/live-import-sharded>`.
-
-- Don't use the procedure on this page to live migrate your {+cluster+}
-  to MongoDB v6.+. To learn more, see :ref:`c2c-pull-live-migration`.
-
-  .. include:: /includes/fact-c2c.rst
-
+- Legacy live migration (pull) doesn't support migrating source replica sets
+  that contain :manual:`time series collections </core/timeseries-collections/>`.
 - .. include:: /includes/fact-live-migration-host-alerts.rst
 
 Required Access
@@ -63,7 +62,9 @@ Prerequisites
 
 - Provide the hostname of the :term:`primary` node to the live migration
   service.
+
 - .. include:: /includes/fact-migrate-drop-geoHaystack.rst
+
 - If the {+cluster+} runs with authentication, grant the user that will
   run the migration process the following permissions:
 
@@ -82,16 +83,6 @@ Migration Path
 |service| live migration (pull) supports the following migration paths:
 
 .. include:: /includes/list-tables/mongomirror-upgrade-path.rst
-
-.. important::
-
-   You can't migrate your {+cluster+} to MongoDB v6.0 or later using the
-   procedure on this page.
-
-   .. include:: /includes/fact-c2c.rst
-   
-   If you are migrating from a MongoDB 4.0 {+cluster+}, update and test
-   your applications in context of the destination |service| {+cluster+}.
 
 Network Access
 ~~~~~~~~~~~~~~~
@@ -117,14 +108,11 @@ checks on the source and destination {+clusters+}.
 - The destination |service| {+cluster+} is a replica set.
 
 .. note::
-   Unlike for :ref:`sharded clusters <live-import-sharded-migration-validation>`,
-   live migrating your replica set to |service| doesn't require that
-   |service| has connectivity to the hostname and port of each node in
-   the source {+cluster+}. To run the migration process, |service|
-   automatically discovers the host names for the replica set based on
-   the hostname you provide. If this fails, |service| migrates the
-   replica set using your provided reachable hostname. To learn more, see
-   :ref:`Network Access <live-import-ip-access-list>`.
+
+   To run the migration process for a replica set, |service| discovers
+   the host names for the replica set based on the hostname you provide.
+   If this fails, |service| migrates the replica set using your provided
+   reachable hostname. To learn more, see :ref:`Network Access <live-import-ip-access-list>`.
 
 .. _live-import-security:
 
@@ -134,8 +122,8 @@ Source {+Cluster+} Security
 .. include:: /includes/source-cluster-security.rst
 
 If the source {+cluster+} uses a different authentication mechanism to
-connect, you can use :doc:`mongomirror </import/mongomirror>` to 
-migrate data from the source {+cluster+} to the destination |service| {+cluster+}.
+connect, you can use |mongomirror| to migrate data from the source {+cluster+}
+to the destination |service| {+cluster+}.
 
 .. _live-import-pull-security-of-migration-servers:
 
@@ -166,8 +154,6 @@ credentials that your applications use on the destination |service| {+cluster+}.
 |service| uses :ref:`SCRAM <authentication-scram>` for user authentication.
 To learn more, see :doc:`/security-add-mongodb-users`.
 
-.. include:: /includes/fact-scram-pull-live-migration.rst
-
 Destination {+Cluster+} Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -181,11 +167,6 @@ When you configure the destination {+cluster+}, consider the following:
 
 - You can't select an ``M0`` (Free Tier) or ``M2/M5`` shared-tier
   {+cluster+} as the destination {+cluster+} for live migration.
-
-- You can't migrate your {+cluster+} to MongoDB v6.0 or later using the
-  procedure on this page.
-
-  .. include:: /includes/fact-c2c.rst
 
 - Don't change the ``featureCompatibilityVersion`` flag while
   |service| live migration is running.

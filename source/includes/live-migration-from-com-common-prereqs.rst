@@ -1,5 +1,5 @@
 - While the :ref:`supported migration paths <lm-upgrade-path>` allow you
-  to migrate from a source {+cluster+} on MongoDB 4.0 or 4.2 to a {+cluster+}
+  to migrate from a source {+cluster+} on MongoDB 4.2 to a {+cluster+}
   in |service|, we highly recommend that before you use this procedure,
   you upgrade the source {+cluster+} to MongoDB 5.0 or later.
 - :ref:`Create an Atlas Account <create-atlas-account>`.
@@ -8,7 +8,6 @@
 - :ref:`Deploy your cluster <create-new-cluster>` in this project.
 - :ref:`Connect to your cluster <connect-mongo-shell>`
   from all client servers where your applications run.
-- If migrating from |onprem|, upgrade |onprem| to version 5.0.
 - .. include:: /includes/fact-migrate-drop-geoHaystack.rst
 - .. include:: /includes/fact-migrate-enable-collect-dbstats.rst
 - On your source {+cluster+}  in |com|, prepare the following items:

@@ -30,7 +30,9 @@ Source MongoDB Deployment
 
 - The source replica set must run MongoDB version 2.6 or higher.
 
-- The source MongoDB replica set cannot be an ``M0`` {+Free-cluster+} or ``M2/M5`` shared cluster.
+- The source MongoDB replica set can't be an ``M0`` {+Free-cluster+} or ``M2/M5`` shared cluster.
+
+- The source MongoDB replica set can't contain data in :manual:`time series collections </core/timeseries-collections/>`.
 
 - Don't change the ``featureCompatibilityVersion`` flag at any time during the procedure.
 
@@ -71,7 +73,7 @@ Different MongoDB server versions have different built-in roles. Select a
 built-in role based on your MongoDB Server version and run the appropriate
 commands in the {+mongosh+}:
 
-.. include:: /includes/mongomirror-required-roles.rst
+.. include:: /includes/mongomirror-required-roles-full-list.rst
 
 Destination |service| Deployment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -122,14 +124,22 @@ role to run |mongomirror|. To learn more, see :ref:`add-mongodb-users`.
 Upgrade Path
 ------------
 
-|mongomirror| supports the following migration paths.
-
 .. important::
 
+   |mongomirror| is not supported for migrations between MongoDB 6.0+ source
+   {+clusters+} and 6.0+ destination {+clusters+}.
    You can't use |mongomirror| to migrate from a source replica set 6.0.x
-   or later to a destination replica set 6.0.x or later. To migrate replica sets
-   6.0.x or later, upgrade MongoDB to at least {+c2c-version+} and use
-   :ref:`this live migration procedure <c2c-pull-live-migration>`.
+   or later to a destination replica set 6.0.x or later.
+
+   You can use |mongomirror| to migrate from a source replica set on previous
+   versions to a destination replica set with MongoDB version 6.0.
+
+   Alternatively, you can :manual:`upgrade </release-notes/6.0-upgrade-replica-set/>`
+   your source replica set to {+c2c-version+}+ or {+c2c-version-7+}+ and use
+   :ref:`this live migration procedure <c2c-pull-live-migration>` to migrate
+   an upgraded replica set to |service|.
+
+|mongomirror| supports the following migration paths.
 
 .. list-table::
    :header-rows: 1
@@ -141,36 +151,31 @@ Upgrade Path
        | MongoDB Version
 
    * - 5.0
-     - 4.4, 5.0
+     - 6.0
 
    * - 4.4
-     - 4.4, 5.0
+     - 6.0
 
    * - 4.2
-     - 4.4, 5.0
+     - 6.0
 
    * - 4.0
-     - 4.4, 5.0
+     - 6.0
 
    * - 3.6
-     - 4.4, 5.0
+     - 6.0
 
    * - 3.4
-     - 4.4, 5.0
+     - 6.0
 
    * - 3.2
-     - 4.4, 5.0
+     - 6.0
 
    * - 3.0
-     - 4.4, 5.0
+     - 6.0
 
    * - 2.6
-     - 4.4, 5.0
-
-.. note::
-
-   To downgrade from 5.0 to 4.4, the source |fcv-link|
-   must match the destination.
+     - 6.0
 
 Download ``mongomirror``
 ------------------------
@@ -196,18 +201,16 @@ When you start |mongomirror|, it:
 
 #. After the initial sync, continuously tails the replica set's oplog
    for incoming changes and replays them on the destination {+cluster+} in |service|.
-   |mongomirror| doesn't copy the ``config`` database. As of version
-   0.9.0, |mongomirror| uses wire compression if you enable it on either
-   the source or the destination {+cluster+} and use :option:`--compressors`
-   to specify which compression libraries to allow.
+   |mongomirror| doesn't copy the ``config`` database. |mongomirror| uses wire
+   compression if you enable it on either the source or the destination
+   {+cluster+} and use :option:`--compressors` to specify which compression
+   libraries to allow.
 
-   .. note::
-
-      Starting in version 0.5.0, |mongomirror| builds all indexes on the
-      destination {+cluster+} in the foreground, regardless of how the indexes were
-      built on the source {+cluster+}. Foreground index builds block all other
-      operations on the database. To learn more, see :manual:`Index Build Operations on a Populated Collection
-      </core/index-creation>`.
+   |mongomirror| builds all indexes on the destination {+cluster+} in
+   the foreground, regardless of how the indexes were built on the source
+   {+cluster+}. Foreground index builds block all other operations on the
+   database. To learn more, see
+   :manual:`Index Build Operations on a Populated Collection </core/index-creation>`.
 
 Once started, |mongomirror| runs continuously until you shut it down:
 

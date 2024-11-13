@@ -8,8 +8,6 @@ the live migration procedure.
 |service| only supports :ref:`SCRAM <authentication-scram>` for
 connecting to source clusters that enforce authentication. 
 
-.. include:: /includes/fact-scram-pull-live-migration.rst
-
 .. tip:: 
 
    To conceal credentials when migrating, consider :ref:`adding a temporary user 
