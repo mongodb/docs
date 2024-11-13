@@ -132,10 +132,8 @@
              - hyphens (``-``)
              - underscores (``_``)
 
-             .. note::
-
-                After saving the configuration, 
-                you can't edit the configuration name.
+             After saving the configuration, 
+             you can't edit the configuration name.
       
          * - :guilabel:`Issuer URI`
            - Required
