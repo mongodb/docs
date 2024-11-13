@@ -91,9 +91,11 @@ Request Body Parameters
          on the destination cluster. These include both existing indexes and
          any indexes created during migration on the source cluster.
 
-       - ``never`` causes ``mongosync`` to skip building unnecessary indexes 
-         during sync.  This can improve migration performance, especially with 
+       - ``never`` causes ``mongosync`` to skip building unnecessary indexes
+         during sync. This can improve migration performance, especially with
          index heavy workloads.
+
+         .. include:: /includes/fact-verifier-buildIndexes
 
          :red:`WARNING:` Do **not** manually build indexes while ``mongosync`` is 
          performing a migration.  Wait until the migration is fully 
@@ -174,10 +176,10 @@ Request Body Parameters
      - boolean
      - Optional
      - If set to ``true``, enables the sync operation to be
-       reversed. 
+       reversed.
 
-       To reverse sync, the ``enableUserWriteBlocking`` field must be set 
-       to ``true``.      
+       To reverse sync, the ``enableUserWriteBlocking`` field must be set
+       to ``true``.
 
        This option is not supported for the following configurations:
 
@@ -186,6 +188,11 @@ Request Body Parameters
        * Sync sharded clusters that have different numbers of shards
 
        * Reversible sync when ``buildIndexes`` is set to ``never``.
+
+       * Reversible sync with the embedded verifier. The
+         verifier supports the initial forward direction of
+         reversible sync. When you call the ``/reverse``
+         endpoint it disables the verifier.
 
        For more information, see the :ref:`reverse <c2c-api-reverse>` endpoint.
        
@@ -201,6 +208,38 @@ Request Body Parameters
        For more information, see :ref:`c2c-api-start-sharding`. 
 
        .. versionadded:: 1.1
+
+   * - ``verification``
+     - Document 
+     - Optional
+     - Configures the embedded verifier.
+
+       For more information, see :ref:`c2c-start-verifier`.
+
+       .. versionadded:: 1.9
+
+   * - ``verification.enabled``
+     - Bool
+     - Optional
+     - Enables the embedded verifier. The verifier performs a
+       series of verification checks on supported collections on
+       the destination cluster to confirm that the migration was
+       successful.
+
+       If the verifier finds no errors, ``mongosync``
+       transitions to the ``COMMITTED`` state. If it does
+       encounter errors, it fails the migration.
+
+       The verifier is enabled by default for replica set to
+       replica set migrations. If the migration includes a
+       sharded cluster, the verifier is disabled.
+
+       :red:`WARNING`: The verifier does not check all
+       collections or data. For details, see
+       :ref:`c2c-verify-embedded-limitations`.
+
+       .. versionadded:: 1.9
+
 
 .. _c2c-api-start-sharding:
 
@@ -225,19 +264,19 @@ The ``sharding`` option has the following parameters:
 
    * - ``createSupportingIndexes``
      - boolean
-     - Optional. Sets whether sync creates a supporting index 
-       for the shard key, if none exists.  Defaults to ``false``.
+     - Optional. Sets whether sync creates a supporting index
+       for the shard key, if none exists. The default is ``false``.
 
        For more information and limitations, see 
        :ref:`c2c-supporting-index-behavior`.
 
    * - ``shardingEntries``
      - array of documents
-     - Required. Sets the namespace and key of collections to shard 
+     - Required. Sets the namespace and key of collections to shard
        during sync.
 
        Collections not included in this array sync to unsharded 
-       collections on the destination cluster.  If set with an empty
+       collections on the destination cluster. If set with an empty
        array, no collections are sharded.
 
    * - | ``shardingEntries``
@@ -264,7 +303,7 @@ The ``sharding`` option has the following parameters:
        For more information, see :ref:`shard-key`.
 
 ``mongosync`` throws an error if the ``sharding`` option is not set when
-syncing from a replica set to a sharded cluster.  ``mongosync`` also
+syncing from a replica set to a sharded cluster. ``mongosync`` also
 throws an error if the ``sharding`` option is set with any other
 configuration.
 
@@ -273,26 +312,27 @@ Response
 
 .. include:: /includes/api/tables/basic-response.rst
 
-Example: Start a Sync Job
--------------------------
+Examples
+--------
+
+Start a Sync Job
+~~~~~~~~~~~~~~~~
 
 .. include:: /includes/intro-start-api-example-intro.rst
 
-Request
-~~~~~~~
+Request:
 
 .. literalinclude:: /includes/api/requests/start.sh
    :language: shell
 
-Response
-~~~~~~~~
+Response:
 
 .. literalinclude:: /includes/api/responses/success.json
    :language: json
    :copyable: false
 
-Example: Start a Reversible Sync Job
-------------------------------------
+Start a Reversible Sync Job
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/intro-start-api-example-intro.rst
 
@@ -300,58 +340,97 @@ The ``reversible`` and ``enableUserWriteBlocking`` fields allow the sync
 to be reversed. To reverse the sync direction, see: :ref:`reverse
 <c2c-api-reverse>`.
 
-Request
-~~~~~~~
+Request:
 
 .. literalinclude:: /includes/api/requests/start-reversible.sh
    :language: shell
 
-Response
-~~~~~~~~
+Response:
 
 .. literalinclude:: /includes/api/responses/success.json
    :language: json
    :copyable: false
 
 
-Example: Start a Filtered Sync Job
-----------------------------------
+Start a Filtered Sync Job
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/example-filter-collection.rst
 
 The ``includeNamespaces`` option creates a filter. To filter the sync,
 see: :ref:`c2c-filtered-sync`
 
-Request
-~~~~~~~
+Request:
 
 .. literalinclude:: /includes/api/requests/start-filtered.sh
    :language: shell
 
-Response
-~~~~~~~~
+Response:
 
 .. literalinclude:: /includes/api/responses/success.json
    :language: json
    :copyable: false
 
-Example: Start Sync from Replica Set to Sharded Cluster
--------------------------------------------------------
+Start Sync from Replica Set to Sharded Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Request
-~~~~~~~
+Request:
 
 .. literalinclude:: /includes/api/requests/start-rs-shard.sh
 
-Response
-~~~~~~~~
+Response:
 
 .. literalinclude:: /includes/api/responses/success.json
    :language: json
    :copyable: false
 
+
+.. _c2c-disabled-verifier:
+
+Start with the Verifier Disabled
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in 1.9, the embedded verifier runs by default when you
+start a migration. If you need to disable it, set
+``verification.enabled`` to ``false``.
+
+Request:
+
+.. literalinclude:: /includes/api/requests/start-no-verifier.sh
+
+Response:
+
+.. literalinclude:: /includes/api/responses/success.json
+   :language: json
+   :copyable: false
+
+You should verify that a migration was successful before
+transferring your application load to the destination cluster.
+If you need to disable the verifier for any reason, use an
+alternative :ref:`method <c2c-verification>` to verify sync.
+
 Behavior
 --------
+
+.. _c2c-start-verifier:
+
+Embedded Verifier
+~~~~~~~~~~~~~~~~~
+
+Starting in 1.9, ``mongosync`` provides an embedded verifier to
+determine whether data transfer from the source cluster to the
+destination was successful.
+
+When enabled, the verifier performs a series of verification
+checks on the destination cluster. If any of these checks return
+an error, the verifier fails the migration. If all checks
+succeed, ``mongosync`` transitions to the ``COMMITTED`` state.
+
+To disable the verifier, see :ref:`c2c-disabled-verifier`.
+
+The ``/start`` endpoint returns an error if you enable
+verification checks that are not supported by the source or
+destination cluster or if there is insufficient memory. 
 
 State
 ~~~~~
@@ -380,7 +459,7 @@ Supporting Indexes
 ~~~~~~~~~~~~~~~~~~
 
 ``mongosync`` syncs indexes from the source cluster to the destination
-cluster.  But, when syncing from a replica set to a sharded cluster,
+cluster. When syncing from a replica set to a sharded cluster,
 ``mongosync`` may require an additional index to support the shard key,
 which may not exist on the source cluster.
 
@@ -436,7 +515,7 @@ to copy the collection can block the collection from sharding on the destination
 
 To check whether it is safe to rename collections, call the 
 :ref:`c2c-api-progress` endpoint and check the value of the 
-``collectionCopy.estimatedCopiedBytes`` field in the return document.  
+``collectionCopy.estimatedCopiedBytes`` field in the return document. 
 
 * A value of 0 indicates that ``mongosync`` has not started to copy the
   collection.
@@ -455,7 +534,7 @@ Required Indexes
 ~~~~~~~~~~~~~~~~
 
 When you call ``/start`` with the ``buildIndexes`` option set to ``never``,
-``mongosync`` skips building unnecessary indexes.  
+``mongosync`` skips building unnecessary indexes.
 
 Indexes that are always built include:
 
@@ -467,9 +546,9 @@ Indexes that are always built include:
   cluster. When ``buildIndexes`` is set to ``never``, ``mongosync`` 
   retains this index after commit.
 
-
 Endpoint Protection
 ~~~~~~~~~~~~~~~~~~~
 
 .. |endpoint| replace:: ``start``
 .. include:: /includes/fact-api-endpoint
+
