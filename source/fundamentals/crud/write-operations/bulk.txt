@@ -313,18 +313,16 @@ you can use the ``MongoClient.bulkWrite()`` method to write
 to multiple databases and collections in the same cluster.
 
 In the examples in preceding sections of this page, the ``MongoCollection.bulkWrite()`` method 
-takes a list of ``WriteModel`` documents in which the specified subclass of 
+takes a list of ``WriteModel`` instances in which the specified subclass of 
 ``WriteModel`` represents the corresponding write operation. For example, an
 instance of ``InsertOneModel`` represents an operation to insert one document. 
 
-.. TODO - not necessarily instances
-
 Similarly, the ``MongoClient.bulkWrite()`` method takes a 
-list of ``ClientNamespacedWriteModel`` instances to represent different write operations. 
+list of ``ClientNamespacedWriteModel`` instances to represent different write operations.
 However, you do not need to specify the subclass that represents the corresponding
 write operation. Instead, the ``ClientNamespacedWriteModel`` object contains different 
-methods to represent different write operations, such as ``insertOne()`` or 
-``updateOne()``. 
+methods to represent different write operations, such as ``ClientNamespacedWriteModel.insertOne()`` or 
+``ClientNamespacedWriteModel.updateOne()``.
 
 These methods take a ``MongoNamespace`` object that defines which
 database and collection to write to, and a ``Document`` object that defines
@@ -348,10 +346,12 @@ want each write operation to be applied to.
    MongoNamespace peopleNamespace = new MongoNamespace("db", "people");
    MongoNamespace thingsNamespace = new MongoNamespace("db", "things");
 
-   ClientBulkWriteResult result = client.bulkWrite(List<>(
-      ClientNamespacedWriteModel.insertOne(peopleNamespace, new Document("name", "Julia Smith")),
-      ClientNamespacedWriteModel.insertOne(thingsNamespace, new Document("object", "washing machine"))
-   ));
+   List<ClientNamespacedWriteModel> bulkOperations = new ArrayList<>();
+
+   bulkOperations.add(ClientNamespacedWriteModel.insertOne(peopleNamespace, new Document("name", "Julia Smith")));
+   bulkOperations.add(ClientNamespacedWriteModel.insertOne(thingsNamespace, new Document("object", "washing machine")));
+
+   ClientBulkWriteResult result = client.bulkWrite(bulkOperations);
 
 .. TODO: link documentation
 
@@ -366,18 +366,23 @@ existing documents in the ``people`` and ``things`` collections.
    MongoNamespace peopleNamespace = new MongoNamespace("db", "people");
    MongoNamespace thingsNamespace = new MongoNamespace("db", "things");
 
-   ClientBulkWriteResult result = client.bulkWrite(List<>(
-      ClientNamespacedWriteModel.replaceOne(
+   List<ClientNamespacedWriteModel> bulkOperations = new ArrayList<>();
+
+   bulkOperations.add(ClientNamespacedWriteModel.replaceOne(
          peopleNamespace, 
          Filters.eq("_id", 1),
          new Document("name", "Maximus Farquaad")
-      ),
-      ClientNamespacedWriteModel.replaceOne(
+      )
+   );
+
+   bulkOperations.add(ClientNamespacedWriteModel.replaceOne(
          thingsNamespace, 
          Filters.eq("_id", 1),
          new Document("object", "potato")
       )
-   ));
+   );
+
+   ClientBulkWriteResult result = client.bulkWrite(bulkOperations);
 
 After this example runs successfully, the document in the ``people`` collection in 
 which the ``_id`` field has the value of ``1`` is replaced with a new
@@ -389,23 +394,20 @@ document. The document in the ``things`` collection in which the
 Bulk Write Options
 ~~~~~~~~~~~~~~~~~~
 
-.. TODO: reword this 
-
-You can use the ``ClientBulkWriteOptions`` object to execute the ``bulkWrite()``
-method with options.
+You can use the ``ClientBulkWriteOptions`` interface to specify options when
+running the ``bulkWrite()`` method.
 
 Order of Execution Example
 ``````````````````````````
+
 By default, the write operations execute in the order that you specify them. However,
 you can pass ``false`` to the ``ordered()`` method on the ``ClientBulkWriteOptions``
-object to perform write operations in an unordered way. When using the unordered
+interface to perform write operations in an unordered way. When using the unordered
 option, an error-producing operation will not block execution of other bulk 
 write operations.
 
-.. TODO: the object itself is not necessarily being created
-
-The following code shows how to set the ``ordered()`` method on the 
-``ClientBulkWriteOptions`` object.
+The following code shows how to set the ``ordered()`` method when creating an
+instance of ``ClientBulkWriteOptions``.
 
 .. code-block:: java
 
@@ -413,13 +415,20 @@ The following code shows how to set the ``ordered()`` method on the
 
    ClientBulkWriteOptions options = new ClientBulkWriteOptions().ordered(false);
 
-   ClientBulkWriteResult result = client.bulkWrite(
-      List<>(
-         ClientNamespacedWriteModel.insertOne(namespace, new Document("name", "Donkey Kong")),
-         ClientNamespacedWriteModel.insertOne(namespace, new Document("name", "Mario"))
-      ), 
-      options
-   );
+   List<ClientNamespacedWriteModel> bulkOperations = new ArrayList<>();
+
+   bulkOperations.add(ClientNamespacedWriteModel.insertOne(namespace, new Document("_id", 1).append("name", "Donkey Kong)));
+   
+   // duplicate key
+   bulkOperations.add(ClientNamespacedWriteModel.insertOne(namespace, new Document("_id", 1).append("name", "Mario")));
+
+   bulkOperations.add(ClientNamespacedWriteModel.insertOne(namespace, new Document("name", "Princess Peach")));
+
+   ClientBulkWriteResult result = client.bulkWrite(bulkOperations, options);
+
+Even though the write operation inserting a document with a duplicate key will
+result in an error, the other operations will be executed because we have specified
+the ``ordered()`` option to be ``false``.
 
 .. TODO: link documentation
 
@@ -456,10 +465,6 @@ This method uses the ``ClientNamespacedWriteModel`` and its methods
 The method can also take a ``ClientBulkWriteOptions`` object to specify different
 options for how the command is executed.
 
-.. TODO: Add API Documentation
+.. TODO: insert server documentation
 
-.. OPEN QUESTIONS FOR ENGINEERING:
-   .. Should I include the extraneous types like the Client...Result object?
-   .. Should I include the different ClientNamespacedInsertModel... etc?
-   .. Is ClientWriteModel being exposed for public use? <no>
-   .. Is MongoCollection.bulkWrite() being deprecated? <no>
+.. TODO: Add API Documentation
