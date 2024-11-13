@@ -33,8 +33,9 @@
   package for RHEL and ``lsb-release`` pacakge for Debian.  
 - Ensures that |onprem| retains at least one snapshot regardless of expiration schedule.
 - Fixes the following issues:
-  
-  - Upgrades from |onprem| 6 to |onprem| 7 fail due to a missing field used for upgrade validation.
+
+  - Upgrades from |onprem| 6 to |onprem| 7 fail due to a missing field
+    in the |snmp| alert configuration used for upgrade validation.
   - Diagnostics archive shows incorrect free space for File System snapshot store.
   - ``DeploymentId`` not displayed for shards with regional backup enabled.
   - Potential error when saving updates to oplog or snapshot stores due to ``DeploymentId`` validation.
@@ -285,6 +286,9 @@
 .. important:: 
 
    .. include:: /includes/om-7.0.1-upgrade.rst
+
+- Updates the {+mdbagent+} to :ref:`107.0.0.8490-1
+  <mongodb-107.0.0.8490-1>`.
 
 MongoDB Cluster Management
 ``````````````````````````
