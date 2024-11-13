@@ -17,16 +17,27 @@ Export {+Cloud-Backup+} Snapshot
 
 .. include:: /includes/fact-atlas-free-tier-limits.rst
 
-|service| lets you export your {+Cloud-Backup+} snapshots to an |aws| 
-|s3| Bucket or an {+az-bs+} Container.
+|service| lets you export your {+Cloud-Backup+} snapshots to an object
+storage service.
 
 To learn how to manage automated backup policies and schedules, see
 :ref:`configure-backup-policy`.
 
+.. _snapshot-export-supported-storage:
+
+Supported Storage Services
+--------------------------
+
+|service| currently supports the following object
+storage services:
+
+- |aws| |s3| buckets
+- {+az-bs+}
+
 How |service| Exports Snapshots 
 -------------------------------
 
-You can  manually export individual snapshots or set up an export 
+You can manually export individual snapshots or set up an export 
 policy for automatic export of your snapshots. For automatic exports, 
 you must specify a frequency in your export policy: 
 
@@ -57,12 +68,12 @@ is a full backup of that snapshot.
    If the export frequency is set to weekly, |service| would export all 
    ``4`` snapshots.
 
-|service| exports snapshots for collections one at a time. As the 
-export progresses, you may see partial results in your |s3| Bucket or
-{+az-bs+} Container. |service| queues any new job if |service| is
-currently exporting 5 or more replica sets. For sharded {+clusters+},
-|service| always exports the snapshots of all the shards simultaneously,
-regardless of the number of shards. 
+As the export progresses, you may see partial results in your object
+storage service.
+
+|service| persists documents in snapshots irrespective of
+:manual:`Time to Live <expire-data>` settings. You can access these
+documents from your snapshot past their Time to Live deadline.
 
 .. include:: /includes/fact-snapshot-export-cost.rst
 
@@ -72,7 +83,7 @@ Files |service| Uploads
 |service| uploads an empty file to ``/exported_snapshots/.permissioncheck`` 
 when you:
 
-- Add a new |aws| |s3| Bucket or an {+az-bs+} Container for export
+- Add a new :ref:`object store <snapshot-export-supported-storage>` for export
 - Start an export
 
 After |service| finishes exporting, |service| uploads a metadata file 
@@ -85,7 +96,7 @@ each collection.
       :tabid: complete
 
       |service| uploads the metadata file named ``.complete`` in the 
-      following path on your |s3| Bucket: 
+      following path on your object store: 
 
       .. code-block:: shell
          :copyable: false
@@ -142,8 +153,7 @@ each collection.
            - Date when snapshot was taken.
 
          * - ``totalFiles``
-           - Total number of files uploaded to the |s3| Bucket or
-             {+az-bs+} Container.
+           - Total number of files uploaded to the object store.
 
          * - ``labels``
            - Labels of the {+cluster+} whose snapshot was exported.
@@ -192,7 +202,7 @@ each collection.
       :tabid: metadata
 
       |service| uploads the ``metadata.json`` file for each collection 
-      in the following path on your |s3| Bucket: 
+      in the following path on your object store: 
 
       .. code-block:: shell
          :copyable: false
@@ -239,12 +249,12 @@ each collection.
              </reference/method/db.createCollection/>` command.
 
          * - ``type``
-           - Type of collection. Value can be one of the following: 
+           - (Optional) Type of collection. This field is only supported
+	     for time series collections, with a value of ``timeseries``.
+	     Leave this field unset for standard collections.
 
-             - ``view`` - for a view on a collection 
-             - ``timeseries`` - for a timeseries collection 
-
-             This field is not returned for a standard collection.
+             |service| doesn't support export of ``view`` type
+	     collections.
 
          * - ``uuid``
            - Collection's UUID. To learn more about UUID, see 
@@ -301,15 +311,16 @@ each collection.
 If an export job fails: 
 
 - |service| doesn't automatically try to export again.
-- |service| doesn't remove any partial data in your |s3| Bucket or
-  {+az-bs+} Container.
+- |service| doesn't remove any partial data in your object store.
 
 Exported Data Format
 --------------------
 
-|service| uploads the contents of your database to |s3| or {+az-bs+} in
-``.json.gz`` format with documents in extended |json| format within. The
-following is the path to the files on |s3| or {+az-bs+}:  
+|service| uploads ``gzip``-compressed :manual:`Extended JSON (v2)
+ <reference/mongodb-extended-json>` documents. |service| doesn't
+ upload these documents in order. The following is the path to the
+ files on your :ref:`object store
+ <snapshot-export-supported-storage>`:
 
 .. code-block:: sh 
    :copyable: false 
@@ -343,7 +354,8 @@ Where:
      - Name of the |service| collection.
 
    * - ``<shardName>``
-     - Name of the replica set.
+     - Name of the replica set. For sharded collections, this is the
+       name of the :manual:`primary shard <primary-shard>`.
 
    * - ``<increment>``
      - Count that is incremented as chunks are uploaded. Starts at 
@@ -352,13 +364,18 @@ Where:
 Limitations 
 -----------
 
-The following limitations apply:
+You can't perform the following actions:
 
-- You can only export snapshots for `currently supported versions of
-  MongoDB <https://www.mongodb.com/support-policy/lifecycles>`__, but
-  you can always download saved snapshots, regardless of the version.
-- You can't export :ref:`fallback snapshots <cps-fallback-snapshots>`.
-- You can have only one active export per snapshot.
+- Eexport :ref:`fallback snapshots <cps-fallback-snapshots>`.
+- Have more than one active export per snapshot.
+- Export :manual:`view collections <views>`, or
+  :manual:`system collections <system-collections>`,
+  with the exception of ``<database>.system.js`` collections.
+- Export snapshots from {+clusters+} in |a-service| project
+  with IP-restricted :ref:`Encryption at Rest
+  <security-kms-encryption>` enabled.
+- Export snapshots from projects configured for
+  :ref:`Private Endpoints <security-configure-private-endpoints>`.
 
 Required Access
 ---------------
@@ -372,10 +389,10 @@ snapshots.
 Prerequisites
 -------------
 
-To export your {+Cloud-Backup+} snapshots, you need an ``M10`` or higher 
-|service| {+cluster+} with {+Cloud-Backup+} :ref:`enabled
-<backup-cloud-provider>`. In addition, to export to an |aws| |s3|
-Bucket or {+az-bs+} Container, you must do the following:
+To export your {+Cloud-Backup+} snapshots, you need an ``M10`` or
+higher |service| {+cluster+} with {+Cloud-Backup+} :ref:`enabled
+<backup-cloud-provider>`. In addition, to export to an object store,
+you must do the following:
 
 .. tabs:: 
 
@@ -553,9 +570,7 @@ from the {+atlas-admin-api+}.
               :ref:`manage-azure-access`. 
             - Service endpoint of your {+az-bs+} account. To learn more,
               see :azure:`Azure Documentation </storage/common/storage-account-get-info?tabs=azure-cli#get-service-endpoints-for-the-storage-account>`.
-            - UUID string that identifies the Microsoft Entra tenant ID.
-              To learn more, see  `Microsoft Entra Documentation <https://learn.microsoft.com/en-us/entra/fundamentals/how-to-find-tenant>`__.
-      
+           
       List All Export Buckets 
       ```````````````````````
 
