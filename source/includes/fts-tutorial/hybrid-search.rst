@@ -101,7 +101,7 @@ Before you begin, you must have the following:
 - The :doc:`sample data </sample-data>` loaded into your |service| 
   cluster.
   
-- One of the following applications to run queries on your |service|
+- One of the following clients to run queries on your |service|
   {+cluster+}:
 
   - :ref:`Search Tester <atlas-search-query-ui>`
@@ -111,7 +111,7 @@ Before you begin, you must have the following:
   - :driver:`Java </java-drivers/>`
   - :driver:`MongoDB Node Driver </node/current/>`
   - :driver:`PyMongo </pymongo/>`
-
+  
 - :authrole:`Project Data Access Admin` access to the project to create
   {+avs+} and |fts| indexes. 
 
