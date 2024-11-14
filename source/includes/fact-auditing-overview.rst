@@ -43,9 +43,6 @@ project. |service| audits the following specific commands:
    * - :manual:`distinct </reference/command/distinct>`
      - :manual:`delete </reference/command/delete>`
 
-   * - :manual:`eval </reference/command/eval>` [1]_
-     - :manual:`eval </reference/command/eval>` [1]_
-
    * - :manual:`count </reference/command/count>`
      - :manual:`findAndModify </reference/command/findAndModify>`
 
@@ -70,10 +67,6 @@ project. |service| audits the following specific commands:
    * - :manual:`getPrevError </reference/command/getPrevError>`
      -
 
-   * - :manual:`parallelCollectionScan </reference/command/parallelCollectionScan>` [1]_
-     -
-
-.. [1] MongoDB versions 4.2 and later don't support these commands.
 
 |service| implements the ``authCheck`` event action as the following
 four separate actions:
