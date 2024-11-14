@@ -14,7 +14,7 @@ a. Create a service account:
 #. Grant select permissions to the service account:
 
    The required permission for the service account depend on whether 
-   the tables are owned by the service account used to run the sync job.
+   the tables are owned by the service account used to run the migration job.
    To check table ownership run the following query:
 
    .. code-block:: sql

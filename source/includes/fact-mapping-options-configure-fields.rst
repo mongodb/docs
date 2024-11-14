@@ -15,5 +15,5 @@ a. Define the options for the new mapping rule. When defining the
 
    - Change field names.
 
-   - Include or exclude a field from your sync job by clicking the
+   - Include or exclude a field from your migration job by clicking the
      :icon-fa5:`check-square` icon next to the field name.
