@@ -53,10 +53,14 @@ Options
      - 
      - false
      - Flag that generates kubernetes secrets with data for projects, users, deployments entities.
+   * - --independentResources
+     - 
+     - false
+     - Flag that makes the generated resources that support independent usage, to use external IDs rather than Kubernetes references.
    * - --operatorVersion
      - string
      - false
-     - Version of Atlas Kubernetes Operator to generate resources for. This value defaults to "2.4.0".
+     - Version of Atlas Kubernetes Operator to generate resources for. This value defaults to "2.5.0".
    * - --orgId
      - string
      - false
@@ -94,6 +98,13 @@ Examples
 
    # Export Project, DatabaseUsers, Deployments resources for a specific project without connection and integration secrets:
    atlas kubernetes config generate --projectId=<projectId>
+
+   
+.. code-block::
+   :copyable: false
+
+   # Export Project, DatabaseUsers, Deployments resources for a specific project, but use external IDs where supported:
+   atlas kubernetes config generate --projectId=<projectId> --independentResources
 
    
 .. code-block::

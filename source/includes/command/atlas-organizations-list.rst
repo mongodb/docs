@@ -44,7 +44,7 @@ Options
    * - --includeDeleted
      - 
      - false
-     - Flag that indictaes whether to include deleted organizations in the list. This option applies only to Ops Manager organizations. You can't return deleted Atlas or Cloud Manager organizations.
+     - Flag that indicates whether to include deleted organizations in the list. This option applies only to Ops Manager organizations. You can't return deleted Atlas or Cloud Manager organizations.
    * - --limit
      - int
      - false
