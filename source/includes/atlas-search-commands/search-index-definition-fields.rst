@@ -55,8 +55,8 @@ The search index definition takes the following fields:
 
    * - ``mappings``
      - object
-     - Optional
-     - Specifies how to index fields on different paths for this index.
+     - Required
+     - Specifies how to index fields on different paths for this index. 
 
    * - ``mappings.dynamic``
      - boolean
