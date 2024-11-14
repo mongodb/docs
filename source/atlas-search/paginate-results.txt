@@ -67,23 +67,20 @@ a. :ref:`Create an index <ref-create-index>` on the fields you want to query.
 Considerations 
 --------------
 
-If you update your collection between your initial and subsequent
-queries, |fts| reflects the updates in your subsequent query results.
+A tie occurs when you sort on a field for which multiple documents
+have identical values. MongoDB doesn't guarantee ordering of tied
+query results, which can lead to duplication and inconsistency when
+you use ``searchAfter`` and ``searchBefore``. Apply the following
+principles to ensure deterministic search behavior:
 
-For example, suppose you sort the results by an ``updated_time`` field.
-If you update the documents between your first query and subsequent
-query, the same document might appear in both your query results. To
-avoid this, sort the results by an immutable field.
-
-By default, |fts| sorts the documents in the results by the relevance
-score of the documents. If multiple documents in the results have
-identical scores, |fts| returns arbitrarily ordered results. To return
-documents in a determined order, use a unique field to sort your query
-results.
-
-.. note:: 
-
-   .. include:: /includes/fact-fts-pagination-search-nodes.rst
+- Sort your query by a unique field to prevent relevance score ties.
+- If  you want to primarily sort by a non-unique field, add a secondary
+  sort clause on a unique field to serve as a tiebreaker.
+- Sort your query results by an immutable field. |fts| reflects
+  the updates you make to your collection between initial and
+  subsequent queries. If you sort by a mutable field such
+  as ``updated_time`` and you update your collection between your
+  first and second queries, |fts| may order the same documents differently.
 
 To learn how to sort your query results by an immutable or unique field,
 see :ref:`sort-ref`.
@@ -115,6 +112,11 @@ Syntax
        "index": "<index-name>",
        "<operator-name>"|"<collector-name>": {
          <operator-specification>|<collector-specification>
+       }
+       "sort": {
+         "score": {
+	   "$meta": "searchScore", _id:1
+	 }
        }
        ...
      },
@@ -175,6 +177,11 @@ in your application. For a demonstration of this, see the :ref:`example
          <operator-specification>|<collector-specification>
        },
        "searchAfter": "<base64-encoded-token>",
+       "sort": {
+         "score": {
+	   "$meta": "searchScore", _id:1
+	 }
+       }       
        ...
      },
      "$project": {
@@ -243,6 +250,11 @@ For a demonstration of this, see the ``searchBefore`` query :ref:`examples
          <operator-specification>|<collector-specification>
        },
        "searchBefore": "<base64-encoded-token>",
+       "sort": {
+         "score": {
+	   "$meta": "searchScore", _id:1
+	 }
+       }       
        ...
      },
      "$project": {
