@@ -1,9 +1,11 @@
 .. note::
 
-   - This feature is not available for ``M0`` {+Free-clusters+}, ``M2``, and
-     ``M5`` clusters. To learn more,
-     see :ref:`atlas-free-tier`.
-   - This feature is not supported on {+Serverless-instances+} at this time. 
-     To learn more, see 
-     :doc:`{+Serverless-Instance+} Limitations 
-     </reference/serverless-instance-limitations/>`.
+   This feature is not available for any of the following deployments:
+
+   - {+Serverless-instances+} 
+   - ``M0`` clusters
+   - ``M2/M5`` clusters
+   - {+Flex-clusters+}
+   
+   To learn more, see :ref:`Limits <limits>`.
+
