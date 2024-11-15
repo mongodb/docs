@@ -8,6 +8,12 @@
      - |k8s| Version
      - OpenShift Version
 
+   * - 1.29
+     - November 11, 2024
+     - November 11, 2025
+     - 1.28, 1.29, 1.30
+     - 4.15, 4.16
+
    * - 1.28
      - October 02, 2024
      - October 02, 2025
