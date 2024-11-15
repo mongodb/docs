@@ -1,6 +1,6 @@
-The following table highlights key differences between an ``M0`` Free 
-Tier cluster, an ``M2`` or ``M5`` {+Shared-cluster+}, and an 
-``M10+``  {+dedicated-cluster+}. 
+The following table highlights key differences between ``M0`` Free 
+Tier clusters, ``M2`` and ``M5`` {+Shared-cluster+}s, {+Flex-clusters+}, and  
+``M10+`` {+dedicated-cluster+}s. 
 
 .. include:: /includes/list-table-free-paid-compare.rst
 
