@@ -52,5 +52,10 @@ func main() {
 		panic(err)
 	}
 	fmt.Printf("New file uploaded with %d bytes written", bytes)
+
+	//  Calls the Close() method to write file metadata
+	if err := uploadStream.Close(); err != nil {
+		panic(err)
+	}
 	// end OpenUploadStream example
 }
