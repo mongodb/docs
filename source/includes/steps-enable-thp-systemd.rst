@@ -58,14 +58,14 @@
       .. code-block:: sh 
          :copyable: true
 
-         cat /sys/kernel/mm/transparent_hugepage/disabled && cat /sys/kernel/mm/transparent_hugepage/defrag && cat /sys/kernel/mm/transparent_hugepage/khugepaged/max_ptes_none && cat /proc/sys/vm/overcommit_memory
+         cat /sys/kernel/mm/transparent_hugepage/enabled && cat /sys/kernel/mm/transparent_hugepage/defrag && cat /sys/kernel/mm/transparent_hugepage/khugepaged/max_ptes_none && cat /proc/sys/vm/overcommit_memory
 
       On Red Hat Enterprise Linux and potentially other Red Hat-based 
       derivatives, you may instead need to use the following:
 
       .. code-block:: sh
         
-         cat /sys/kernel/mm/redhat_transparent_hugepage/disabled && cat /sys/kernel/mm/redhat_transparent_hugepage/defrag && cat /sys/kernel/mm/redhat_transparent_hugepage/khugepaged/max_ptes_none && cat /proc/sys/vm/overcommit_memory
+         cat /sys/kernel/mm/redhat_transparent_hugepage/enabled && cat /sys/kernel/mm/redhat_transparent_hugepage/defrag && cat /sys/kernel/mm/redhat_transparent_hugepage/khugepaged/max_ptes_none && cat /proc/sys/vm/overcommit_memory
 
       The output should resemble the following: 
 
