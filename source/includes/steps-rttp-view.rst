@@ -5,7 +5,7 @@
       
    .. step:: Click the cluster whose current operations you want to evaluate.
 
-      If the replica set resides in a sharded cluster, first click the
+      If the replica set is part of a sharded cluster, first click the
       sharded cluster containing the replica set.
       
    .. step:: Click the member of the replica set that you want to view.
