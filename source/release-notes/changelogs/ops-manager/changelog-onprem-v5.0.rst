@@ -37,6 +37,8 @@
   during backup to :guilabel:`On`.
 - Snapshots now include a flag that indicates whether or not they are incremental.
 - Fixes `CVE-2023-0342 <https://nvd.nist.gov/vuln/detail/CVE-2023-0342>`__.
+- Fixes a bug in the MongoDB Agent where the shutdown sequence might get
+  blocked under certain circumstances, resulting in failed Agent upgrades.
 
 .. _opsmgr-server-5.0.20:
 

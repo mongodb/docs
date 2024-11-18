@@ -390,6 +390,8 @@
 - Adds support for managing MongoDB deployments on the Ubuntu 22.04 (x86) operating system.
   BI Connector is not currently supported on the Ubuntu 22.04 (x86) operating system.
 - Fixes `CVE-2023-0342 <https://nvd.nist.gov/vuln/detail/CVE-2023-0342>`__.
+- Fixes a bug in the MongoDB Agent where the shutdown sequence might get
+  blocked under certain circumstances, resulting in failed Agent upgrades.
 
 .. _opsmgr-server-6.0.11:
 
