@@ -25,6 +25,8 @@ Filter and limit query results based on input and feedback from the end user.
 Ensure that you're only returning important results to reduce the amount of 
 data returned, and thus save on egress costs.
 
+.. _billing-optimizations-cluster-costs:
+
 Optimize {+Cluster+} Costs 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
