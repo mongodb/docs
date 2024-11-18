@@ -434,6 +434,14 @@
      - Measure number of bytes of data and number of bytes of dirty 
        data in :manual:`WiredTiger's cache </reference/command/serverStatus/#serverstatus.wiredTiger.cache>`.
 
+   * - | ``PAGES_READ_INTO_CACHE`` 
+       | (mongodb.atlas.wiredtiger.cache.pages_read_into_cache) 
+       | ``PAGES_REQUESTED_FROM_CACHE``
+       | (mongodb.atlas.wiredtiger.cache.pages_requested_from_the_cache)
+     - Process 
+     - Number of pages read into the cache and the number of pages
+       requested from the cache.
+
    * - | ``TICKETS_AVAILABLE_READS``
        | (mongodb.atlas.wiredtiger.concurrenttransactions.read.available)
        | ``TICKETS_AVAILABLE_WRITES``
