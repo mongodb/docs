@@ -4,4 +4,5 @@ You cannot create more than:
 - 5 indexes on ``M2`` clusters.
 - 10 indexes on ``M5`` clusters.
 
-There are no limits to the number of indexes you can create on ``M10+`` clusters. 
+We recommend that you create no more than 2,500 search indexes on a 
+single ``M10+`` cluster.
