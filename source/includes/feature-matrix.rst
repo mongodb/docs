@@ -6,7 +6,7 @@
      - Commercial |service|
      - |cloudgov-short|
 
-   * - Free/ shared tier clusters
+   * - Free, Flex, and Shared clusters
      - :icon-fa5:`check`
      -
 
