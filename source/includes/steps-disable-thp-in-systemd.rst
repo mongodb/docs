@@ -58,7 +58,7 @@
       .. code-block:: sh 
          :copyable: true
 
-         cat /sys/kernel/mm/transparent_hugepage/disabled && cat /sys/kernel/mm/transparent_hugepage/defrag
+         cat /sys/kernel/mm/transparent_hugepage/enabled && cat /sys/kernel/mm/transparent_hugepage/defrag
 
       On Red Hat Enterprise Linux and potentially other Red Hat-based 
       derivatives, you may instead need to use the following:
