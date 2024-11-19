@@ -9,20 +9,70 @@ Scalability
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: onecol
 
-Intro statement
+MongoDB {+service+} allows automated scaling, tiered storage, workload optimization, and other 
+features that can reduce your database costs as your data usage expands.
 
-{+service+} Features and Best Practices for Scalability
--------------------------------------------------------
+{+service+} Features and Recommendations for Scalability
+---------------------------------------------------------
 
-Content here
+Features
+~~~~~~~~~
+
+:ref:`Auto-scaling <cluster-autoscaling>` allows you to dynamically allocate resources based on 
+real-time workload demands. This feature ensures that you only pay for the resources you use. By 
+configuring auto-scaling within predefined limits, you can effectively manage fluctuations in data 
+processing needs, maintain optimal performanc, and achieve cost efficiency. {+service+} 
+offers cluster auto-scaling for all tiers except for the highest tier. Auto-scaling enables 
+clusters to automatically adjust their tier, storage capacity, or both in response to real-time 
+use. {+service+} analyzes the CPU and memory utilization to determine when and whether to scale 
+the cluster tier up and down. You can also specify a range of maximum and minimum cluster sizes 
+that their cluster can automatically scale to. {+service+} won't scale a cluster if the new 
+tier falls outside of your specified size range or if memory usage would exceed the capacity of 
+the new tier.
+
+{+service+} deployment templates provide you with horizontal and vertical scaling options. Upgrading 
+an {+service+} cluster to the next available {+service+} tier is available through the {+service+} 
+control plane GUI. Changing an {+service+} tier, either upscaling or downscaling, is performed in a 
+rolling fashion and allows zero downtime. Horizontal scaling occurs manually post-deployment. Some 
+cluster templates require sharded clusters. Starting with MongoDB version 8.0, you may make use of 
+:manual:`embedded config servers </reference/command/transitionFromDedicatedConfigServer>` to reduce 
+costs associated with config servers on small sharded clusters. 
+
+The low CPU option in {+service+} helps applications that require higher memory but not as much 
+processing power. This option provides instances with half the vCPUs compared to the General tier of 
+the same cluster size, reducing costs for workloads that are memory-intensive but not CPU-bound. 
+
+Data tiering and archival allows you to archive data at low-cost storage while still enabling 
+queries alongside live cluster data, which is particularly useful for long-term record retention. 
+To optimize this process, MongoDB recommends that you automate data archiving with simple, configurable 
+rules. Also, for scenarios where data retention is not a priority, {+service+} offers the option to 
+automatically delete unused data based on date criteria. For infrequently accessed data, {+service+} 
+online archive automates archiving an organization's infrequently accessed data to a fully managed S3 
+bucket while allowing you to query the archives through the same interface used for active cluster data. 
+This is particularly useful for managing large datasets, such as historical or time series data, where only 
+the most recent information needs to be quickly accessible. Additionally, :manual:`TTL indexes <core/index-ttl/>` 
+are special single-field indexes that automatically delete documents from a collection after a specified 
+period or at a set clock time. This is particularly useful for data like logs, session information, 
+or event data that only needs to be retained for a limited time. To create a TTL index, you can define 
+an index on a field that holds date values and specify a time-to-live duration in seconds.
+
+{+service+} also provides you with automated tools, such as the :opsmgr:`Performance Advisor </current/tutorial/performance-advisor/>`, 
+to monitor and identify inefficient queries. You can reduce unnecessary compute time and resource 
+consumption by following actionable recommendations to enhance your query performance. Additionally, 
+you can leverage intelligent index recommendations provided by {+service+} to further improve data 
+retrieval efficiency and minimize the resources needed for database operations. 
+
+The {+service+} CLI also helps you manage both local and cloud environments efficiently, automating 
+tasks and scaling resources as needed. This setup enables testing and development locally, minimizing 
+unnecessary cloud usage. 
 
 Examples
 --------
 
-The following examples <perform this action> using |service|
+The following examples enable auto-scaling compute and storage using |service| 
 :ref:`tools for automation <arch-center-automation>`.
 
 These examples also apply other recommended configurations, including:
@@ -44,10 +94,155 @@ These examples also apply other recommended configurations, including:
    .. tab:: CLI
       :tabid: cli
 
-      Content here
+      .. note::
+
+         Before you
+         can create resources with the {+atlas-cli+}, you must:
+
+         - :atlas:`Create your paying organization 
+           </billing/#configure-a-paying-organization>` and :atlas:`create an API key </configure-api-access/>` for the
+           paying organization.
+         - :atlascli:`Install the {+atlas-cli+} </install-atlas-cli/>` 
+         - :atlascli:`Connect from the {+atlas-cli+} 
+           </connect-atlas-cli/>` using the steps for :guilabel:`Programmatic Use`.
+
+      Create One Deployment Per Project
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. tabs::
+
+         .. tab:: Dev and Test Environments
+            :tabid: devtest
+
+            For your development and testing environments, auto-scaling compute and storage is disabled to save costs.
+
+         .. tab:: Staging and Prod Environments
+            :tabid: stagingprod
+
+            For your staging and production environments, create the following ``cluster.json`` file for each project. 
+            Change the IDs and names to use your values:
+
+            .. include:: /includes/examples/cli-json-example-create-clusters-with-autoscaling.rst
+
+            After you create the ``cluster.json`` file, run the
+            following command for each project. The
+            command uses the ``cluster.json`` file to create a cluster.
+
+            .. include:: /includes/examples/cli-example-create-clusters-stagingprod.rst 
+
+      For more configuration options and info about this example, 
+      see :ref:`atlas-clusters-create`.
 
    .. tab:: Terraform
       :tabid: Terraform
 
-      Content here
+      .. note::
 
+         Before you
+         can create resources with Terraform, you must:
+
+         - :atlas:`Create your paying organization 
+           </billing/#configure-a-paying-organization>` and :atlas:`create an API key </configure-api-access/>` for the
+           paying organization. Store your API key as environment
+           variables by running the following command in the terminal:
+
+           .. code-block::
+
+              export MONGODB_ATLAS_PUBLIC_KEY="<insert your public key here>"
+              export MONGODB_ATLAS_PRIVATE_KEY="<insert your private key here>"
+
+         - `Install Terraform 
+           <https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli>`__ 
+
+      Create the Projects and Deployments
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. tabs::
+
+         .. tab:: Dev and Test Environments
+            :tabid: devtest
+
+            For your development and testing environments, auto-scaling compute and storage is disabled to save costs.
+
+         .. tab:: Staging and Prod Environments
+            :tabid: stagingprod
+
+            Auto-scaling compute and storage are recommended for instances where your 
+            application grows organically from small to medium. Furthermore, a router 
+            based single shard cluster eliminates downtime when you migrate to a shard 
+            key with sharded collections in the future.
+
+            For your staging and production environments, create the
+            following files for each application and environment 
+            pair. Place the files for each application and environment
+            pair in their own directory. Change the IDs, names, and disk size
+            to use your values.
+
+            If ``disk_gb_enabled`` is true, then |service| will 
+            automatically scale disk size up and down. This will cause the value of 
+            ``disk_size_gb`` returned to potentially be different than what is 
+            specified in the Terraform config and if one then applies a plan, not 
+            noting this, Terraform will scale the cluster disk size back to the 
+            original ``disk_size_gb`` value. To prevent this a lifecycle 
+            customization should be used, i.e.: 
+            ``lifecycle { ignore_changes = [disk_size_gb] }``.
+
+            If ``compute_enabled`` is true, then |service| will automatically 
+            scale up to the maximum provided and down to the minimum, if provided. This will 
+            cause the value of ``provider_instance_size_name`` returned to potentially be different 
+            than what is specified in the Terraform config, and if one then applies a plan, 
+            not noting this, Terraform will scale the cluster back to the original 
+            ``instanceSizeName`` value. To prevent this a lifecycle customization should be used, 
+            i.e.: ``lifecycle { ignore_changes = [provider_instance_size_name] }``.
+
+            main.tf
+            ```````
+
+            .. include:: /includes/examples/tf-example-main-stagingprod.rst 
+
+            variables.tf
+            ````````````
+
+            .. include:: /includes/examples/tf-example-autoscaling-variables.rst
+
+            terraform.tfvars
+            ````````````````
+
+            .. include:: /includes/examples/tf-example-tfvars-autoscaling-stagingprod.rst
+
+            provider.tf
+            ```````````
+
+            .. include:: /includes/examples/tf-example-provider.rst
+
+            After you create the files, navigate to each application and environment pair's directory and run the following
+            command to initialize Terraform:
+
+            .. code-block::
+
+               terraform init
+
+            Run the following command to view the Terraform plan:
+
+            .. code-block::
+
+               terraform plan
+            
+            After adding the ``lifecycle`` block to explicitly change ``disk_size_gb`` and 
+            ``instant_size``, comment out the ``lifecycle`` block and run ``terraform apply``. 
+            Please be sure to uncomment the ``lifecycle`` block once done to prevent any accidental 
+            changes.
+
+            Run the following command to create one project and one deployment for the application and environment pair. The command uses the files and the |service-terraform| to
+            create the projects and clusters:
+
+            .. code-block::
+
+               terraform apply
+
+            When prompted, type ``yes`` and press :kbd:`Enter` to apply
+            the configuration. 
+      
+      For more configuration options and info about this example, 
+      see |service-terraform| and the `MongoDB Terraform Blog Post
+      <https://www.mongodb.com/developer/products/atlas/deploy-mongodb-atlas-terraform-aws/>`__.

@@ -6,7 +6,7 @@
      type        = string
      description = "Atlas Organization ID"
    }
-
+   
    # Atlas Project Name
    variable "atlas_project_name" {
      type        = string
@@ -41,4 +41,22 @@
    variable "mongodb_version" {
      type        = string
      description = "MongoDB Version"
+   }
+
+   # Storage Auto-scaling Enablement Flag
+   variable "auto_scaling_disk_gb" {
+     type        = boolean
+     description = "Flag that specifies whether disk auto-scaling is enabled"
+   }
+
+   # Compute Auto-scaling Enablement Flag
+   variable "auto_scaling_compute" {
+     type        = boolean
+     description = "Flag that specifies whether cluster tier auto-scaling is enabled"
+   }
+
+   # Disk Size in GB
+   variable "disk_size_gb" {
+     type        = int
+     description = "Disk Size in GB"
    }
