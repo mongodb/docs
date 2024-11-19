@@ -1,3 +1,38 @@
+.. _opsmgr-server-6.0.26:
+
+|onprem| Server 6.0.26:
+~~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2024-10-31*
+
+- Updates the {+mdbagent+} to :ref:`12.0.34.7888-1
+  <mongodb-12.0.34.7888-1>`.
+- Adds support for |bic-full| 2.14.17.
+- Updates JDK to ``jdk-11.0.25+9``.
+- Improves the metadata clean up when you terminate a backup job.
+- Fixes the following |cve|\s:
+
+  - `CVE-2024-6291 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-6291>`__
+  - `CVE-2024-6292 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-6292>`__
+  - `CVE-2024-6293 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-6293>`__
+  - `CVE-2024-6773 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-6773>`__
+  - `CVE-2024-6778 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-6778>`__
+  - `CVE-2024-6779 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-6779>`__
+  - `CVE-2024-6991 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-6991>`__
+  - `CVE-2024-7966 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-7966>`__
+  - `CVE-2024-7969 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-7969>`__
+  - `CVE-2024-7970 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-7970>`__
+  - `CVE-2024-8184 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-8184>`__
+  - `CVE-2024-8193 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-8193>`__
+  - `CVE-2024-8198 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-8198>`__
+  - `CVE-2024-8362 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-8362>`__
+  - `CVE-2024-8636 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-8636>`__
+  - `CVE-2024-8904 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-8904>`__
+  - `CVE-2024-9120 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-9120>`__
+  - `CVE-2024-9121 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-9121>`__
+  - `CVE-2024-9123 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-9123>`__
+  - `CVE-2024-9602 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-9602>`__
+
 .. _opsmgr-server-6.0.25:
 
 |onprem| Server 6.0.25:
