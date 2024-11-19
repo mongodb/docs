@@ -28,6 +28,30 @@
          region_name   = var.atlas_region
        }
      }
+     tags {
+       key   = "BU"
+       value = "ConsumerProducts"
+     }
+     tags {
+       key   = "TeamName"
+       value = "TeamA"
+     }
+     tags {
+       key   = "AppName"
+       value = "ProductManagementApp"
+     }
+     tags {
+       key   = "Env"
+       value = "Test"
+     }
+     tags {
+       key   = "Version"
+       value = "8.0"
+     }
+     tags {
+       key   = "Email"
+       value = "marissa@acme.com"
+     }
    }
    
    # Outputs to Display

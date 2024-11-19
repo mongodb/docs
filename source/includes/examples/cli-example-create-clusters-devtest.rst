@@ -9,6 +9,10 @@
      --provider GCP \
      --mdbVersion 8.0 \
      --diskSizeGB 30 \
+     --tag bu=ConsumerProducts \
+     --tag teamName=TeamA \
+     --tag appName=ProductManagementApp \
+     --tag env=Production \
+     --tag version=8.0 \
+     --tag email=marissa@acme.com \
      --watch
-
-
