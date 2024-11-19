@@ -3,11 +3,11 @@
 .. procedure::
    :style: normal
 
-   .. step:: Configure the Repository
+   .. step:: Configure the repository.
 
       .. include:: /includes/deploy/community-rhel-conf
 
-   .. step:: Install MongoDB Community Server
+   .. step:: Install MongoDB Community Server.
 
       .. include:: /includes/deploy/community-rhel-install
 

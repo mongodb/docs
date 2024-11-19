@@ -2,11 +2,11 @@
 .. procedure::
    :style: normal
 
-   .. step:: Configure the Repository
+   .. step:: Configure the repository.
 
       .. include:: /includes/deploy/enterprise-rhel-conf
 
-   .. step:: Install MongoDB Enterprise Server
+   .. step:: Install MongoDB Enterprise Server.
 
       .. include:: /includes/deploy/enterprise-rhel-install
 
