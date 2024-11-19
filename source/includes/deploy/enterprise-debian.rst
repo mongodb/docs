@@ -1,4 +1,4 @@
-.. Install Procedure for MongoDB Enterprise on Ubuntu
+.. Install Procedure for MongoDB Enterprise on Debian
 
 .. procedure::
    :style: normal
@@ -9,7 +9,7 @@
 
    .. step:: Create the list file.
 
-      .. include:: /includes/deploy/enterprise-ubuntu-conf
+      .. include:: /includes/deploy/enterprise-debian-conf
 
    .. step:: Reload the package database.
       

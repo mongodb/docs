@@ -1,4 +1,4 @@
-.. Install Procedure for MongoDB Community on Ubuntu
+.. Install Procedure for MongoDB Community on Debian
 
 .. procedure::
    :style: normal
@@ -9,7 +9,7 @@
 
    .. step:: Create the list file.
 
-      .. include:: /includes/deploy/community-ubuntu-conf
+      .. include:: /includes/deploy/community-debian-conf
 
    .. step:: Reload the package database.
       
