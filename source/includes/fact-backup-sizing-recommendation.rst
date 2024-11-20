@@ -33,4 +33,3 @@ and network bandwidth.
    into 4 shards, each shard runs its backup separately. This results
    in a backup that takes less than 8 hours to complete.
 
-
