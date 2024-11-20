@@ -14,4 +14,5 @@ lowest to highest:
 #. Date
 #. Timestamp
 #. Regular Expression
+#. JavaScript Code
 #. MaxKey (internal type)
