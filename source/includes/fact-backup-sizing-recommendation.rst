@@ -19,7 +19,7 @@ and network bandwidth.
      trip delay time.
 
    A *full* backup of your data would take *more than 30 hours to
-   complete*. [*]_
+   complete*. [#]_
 
    This doesn't account for disk read and write speeds, which can be,
    at most, 3 Gbps reads and 1 Gbps writes for a single or mirrored
@@ -33,7 +33,7 @@ and network bandwidth.
    into 4 shards, each shard runs its backup separately. This results
    in a backup that takes less than 8 hours to complete.
 
-   .. [*]
+   .. [#]
       These throughput figures were calculated using the `Network
       Throughput Calculator <https://wintelguy.com/wanperf.pl>`__ and
       assume no additional network compression.

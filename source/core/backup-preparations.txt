@@ -84,8 +84,8 @@ Backup Method Features
      - MongoDB Blockstore
 
    * - Snapshot Types
-     - Complete [1]_
-     - Complete [1]_
+     - Complete ***** 
+     - Complete ***** 
      - Many partial
      - Many partial
      - Many partial
@@ -132,20 +132,19 @@ Backup Method Features
      - Lower
      - Medium
 
-.. [1]
-       To perform an incremental backup to a
-       :term:`File System Store`, the {+mdbagent+}
-       slices each :manual:`storage engine </core/storage-engines/>`
-       file in the path specified for backup into block(s) of
-       data and transfers only changed block(s) to |onprem|.
-       |onprem| creates a new :manual:`snapshot </reference/glossary/#std-term-snapshot>` from received
-       block(s) and copies the remaining unchanged block(s)
-       from the previous full backup snapshot. Each incremental
-       backup snapshot stored to a file system saves
-       network I/O. Each such backup snapshot contains a full
-       copy of all required files from a backed up MongoDB
-       deployment and does not :term:`de-duplicate <deduplication>`
-       records.
+***** To perform an incremental backup to a
+:term:`File System Store`, the {+mdbagent+}
+slices each :manual:`storage engine </core/storage-engines/>`
+file in the path specified for backup into block(s) of
+data and transfers only changed block(s) to |onprem|.
+|onprem| creates a new :manual:`snapshot </reference/glossary/#std-term-snapshot>` from received
+block(s) and copies the remaining unchanged block(s)
+from the previous full backup snapshot. Each incremental
+backup snapshot stored to a file system saves
+network I/O. Each such backup snapshot contains a full
+copy of all required files from a backed up MongoDB
+deployment and does not :term:`de-duplicate <deduplication>`
+records.
 
 .. note:: **When Do You Use a Particular Backup Method?**
 
@@ -181,8 +180,50 @@ your database increases beyond 2 TB of uncompressed data:
 
 - Shard the database
 - Keep each shard to 2 TB or less of uncompressed data
-  
-.. include:: /includes/fact-backup-sizing-recommendation.rst
+
+.. cond:: onprem
+
+   .. include:: /includes/backup/fact-backup-with-blockstores.rst
+
+These size recommendations are a best practice. They are not a
+limitation of the MongoDB database or |mms|.
+
+Backup and restore can use large amounts of CPU, memory, storage, 
+and network bandwidth.
+
+.. example::
+
+   Your stated network throughput, such as 10 Gbps or 100 Gbps, is 
+   a *theoretical* maximum. That value doesn't account for sharing 
+   or throttling of network traffic.
+
+   Consider the following scenario:
+
+   - You want to back up a 2 TB database.
+   - Your hosts support a 10 Gbps TCP connection from |mms| to its
+     backup storage.
+   - The network connection has very low packet loss and a low round
+     trip delay time.
+
+   A *full* backup of your data would take *more than 30 hours to
+   complete*. [#]_
+
+   This doesn't account for disk read and write speeds, which can be,
+   at most, 3 Gbps reads and 1 Gbps writes for a single or mirrored
+   NVMe storage device.
+
+   The time required to complete each successive incremental backup
+   depends on write load.
+
+   If you :doc:`shard this database 
+   </tutorial/convert-replica-set-to-sharded-cluster>`
+   into 4 shards, each shard runs its backup separately. This results
+   in a backup that takes less than 8 hours to complete.
+
+   .. [#]
+      These throughput figures were calculated using the `Network
+      Throughput Calculator <https://wintelguy.com/wanperf.pl>`__ and
+      assume no additional network compression.
 
 .. _snapshot-frequency-and-retention:
 
@@ -375,6 +416,10 @@ For clusters running MongoDB version 4.0 and earlier:
 
 Databases Running FCV 4.2 and Later
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. important::
+
+   .. include:: /includes/fact-backup-standalone-restriction.rst
 
 .. include:: /release-notes/release-advisories/advisories-v4.2-backup.rst
 
