@@ -17,10 +17,12 @@ Comparison/Sort Order
 
 .. note::
 
-   :ref:`$range <range>` query and aggregation operators perform
+   Range query operators perform
    comparisons only on fields where the :ref:`BSON type
-   <bson-types>` matches the query value's type. MongoDB supports
-   limited cross-BSON comparison through :ref:`type-bracketing`.
+   <bson-types>` matches the query value's type. MongoDB enforces 
+   comparisons with :ref:`query-selectors-comparison`
+   only on documents where the BSON type of the target field 
+   matches the query operand type through :ref:`type-bracketing`.
 
 Numeric Types
 -------------
@@ -56,6 +58,13 @@ Arrays
 
 .. include:: /includes/sorting-arrays.rst
 
+.. note::
+
+   :ref:`query-selectors-comparison` enforce type-bracketing when 
+   the query is an array. If the indexed value is an array, 
+   the operator performs a type-bracketed comparison
+   element-wise over the indexed array. 
+
 Objects
 -------
 
@@ -79,6 +88,7 @@ MongoDB's comparison of :term:`BSON` objects uses the following order:
    #. Date
    #. Timestamp
    #. Regular Expression
+   #. JavaScript Code
    #. MaxKey (internal type)
 
 #. If the field types are equal, compare the
@@ -99,9 +109,9 @@ Date objects sort before Timestamp objects.
 Non-existent Fields
 -------------------
 
-The comparison treats a non-existent field as if it were an empty BSON
-Object. As such, a sort on the ``a`` field in documents ``{ }`` and ``{
-a: null }`` would treat the documents as equivalent in sort order.
+The comparison treats a non-existent field as if it were null. A
+sort on the ``a`` field in documents ``{ }`` and ``{ a: null }`` 
+would treat the documents as equivalent in sort order.
 
 BinData
 -------
@@ -112,4 +122,4 @@ MongoDB sorts ``BinData`` in the following order:
 
 #. Then, by the BSON one-byte subtype.
 
-#. Finally, by the data, performing a byte-by-byte comparison.
+#. Finally, by the data, performing a byte-by-byte comparison on unsigned bytes.
