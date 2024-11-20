@@ -1,7 +1,7 @@
 |service| supports specifying a JSON-formatted audit filter
 for customizing :manual:`MongoDB Auditing </core/auditing>`. 
 
-Custom audit filters lets users forgo the managed 
+Custom audit filters let users forgo the managed 
 {+atlas-ui+} :doc:`auditing filter builder </database-auditing>`
 in favor of hand-tailored granular control of event auditing.
 |service| checks only that the custom filter uses valid
@@ -30,5 +30,5 @@ auditing filters, see :manual:`Configure Audit Filter
    elections, see
    :doc:`/tutorial/test-resilience/test-primary-failover`. To learn more
    about how |service| provides high availability, see
-   :ref:`Atlas High Availability <high-availability>`. 
-   
+   :ref:`Atlas High Availability <high-availability>`.
+ 

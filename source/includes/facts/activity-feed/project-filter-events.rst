@@ -185,16 +185,12 @@ Filter by event
 
           - Attempted to kill operation
           - Attempted to kill session
-          - Error when user attempted to perform a Data Explorer CRUD operation, data could have been modified
           - Granted temporary infrastructure access to MongoDB Support for 24 hours
           - Revoked temporary infrastructure access to MongoDB Support
           - Sample dataset load requested
           - Unprovisioned target group deletion requested
-          - User attempted to perform a Data Explorer CRUD operation, which could modify data
           - User disabled auto defer
           - User enabled auto defer
-          - User performed a Data Explorer CRUD operation, which modifies data
-          - User performed a Data Explorer read only operation
           - User requested immediate start of project maintenance
           - User requested maintenance for the next window without 72-hours notice
 

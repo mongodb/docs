@@ -3,14 +3,7 @@ deployments with multiple users. |service| administrators can select
 the actions, database users, |service| roles, and LDAP groups that they 
 want to audit. |service| supports :manual:`auditing </core/auditing>` 
 most of the documented :ref:`system event actions 
-<audit-action-details-results>`, with the following limitations:
-
-- When an |service| user performs an action in the {+atlas-ui+} on a 
-  {+cluster+}, both the audit logs and ``mongodb.log`` file log the 
-  ``mms-automation`` database user as the user performing the auditable 
-  action. However, the :ref:`Project Activity Feed 
-  <view-activity-feed>` logs the actual username of the |service| user
-  responsible for the action.
+<audit-action-details-results>`, with the following limitation:
 
 - The |service| audit logs don't track user creation or modification 
   events because |service| performs these operations directly in the 
@@ -18,9 +11,8 @@ most of the documented :ref:`system event actions
 
 .. important:: Performing a Full Database Audit
 
-   Due to these noted limitations, you must 
-   use a combination of audit logs, the ``mongodb.log``, 
-   and the :ref:`Project Activity Feed <view-activity-feed>` 
+   Due to this limitation, you must use a combination of audit logs,
+   the ``mongodb.log``, and the :ref:`Project Activity Feed <view-activity-feed>`
    to perform a full audit.
 
 The ``authCheck`` event action logs authorization attempts by users
