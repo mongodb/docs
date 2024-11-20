@@ -3,7 +3,7 @@ const { MongoClient, Binary, ClientEncryption } = mongodb;
 
 // start-kmsproviders
 const provider = "aws";
-const kmsProviders = {
+const kmsProviderCredentials = {
   aws: {
     accessKeyId: "<Your AWS Access Key ID>",
     secretAccessKey: "<Your AWS Secret Access Key>",
@@ -49,7 +49,7 @@ async function main() {
 
   const encryption = new ClientEncryption(client, {
     keyVaultNamespace,
-    kmsProviders,
+    kmsProviderCredentials,
   });
   const key = await encryption.createDataKey(provider, {
     masterKey: masterKey,

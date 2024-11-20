@@ -50,12 +50,12 @@ public class MakeDataKey {
 
         // start-kmsproviders
         String kmsProvider = "azure";
-        Map<String, Map<String, Object>> kmsProviders = new HashMap<String, Map<String, Object>>();
+        Map<String, Map<String, Object>> kmsProviderDetails = new HashMap<String, Map<String, Object>>();
         Map<String, Object> providerDetails = new HashMap<>();
         providerDetails.put("tenantId", "<Azure account organization>");
         providerDetails.put("clientId", "<Azure client ID>");
         providerDetails.put("clientSecret", "<Azure client secret>");
-        kmsProviders.put(kmsProvider, providerDetails);
+        kmsProviderDetails.put(kmsProvider, providerDetails);
         // end-kmsproviders
 
         // start-datakeyopts
@@ -92,7 +92,7 @@ public class MakeDataKey {
                         .applyConnectionString(new ConnectionString(connectionString))
                         .build())
                 .keyVaultNamespace(keyVaultNamespace)
-                .kmsProviders(kmsProviders)
+                .kmsProviders(kmsProviderDetails)
                 .build();
         
         MongoClient regularClient = MongoClients.create(connectionString);

@@ -9,7 +9,7 @@ from bson.binary import STANDARD, UUID
 
 # start-kmsproviders
 provider = "azure"
-kms_providers = {
+kms_provider_credentials = {
     provider: {
         "tenantId": "<Azure account organization>",
         "clientId": "<Azure client ID>",
@@ -54,7 +54,7 @@ key_vault_namespace = f"{key_vault_database}.{key_vault_collection}"
 
 client = MongoClient(connection_string)
 client_encryption = ClientEncryption(
-    kms_providers,  # pass in the kms_providers variable from the previous step
+    kms_provider_credentials,  # pass in the kms_provider_credentials variable from the previous step
     key_vault_namespace,
     client,
     CodecOptions(uuid_representation=STANDARD),

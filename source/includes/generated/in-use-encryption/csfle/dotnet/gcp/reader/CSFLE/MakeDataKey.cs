@@ -17,14 +17,14 @@ namespace Key
 
 
             // start-kmsproviders
-            var kmsProviders = new Dictionary<string, IReadOnlyDictionary<string, object>>();
+            var kmsProviderCredentials = new Dictionary<string, IReadOnlyDictionary<string, object>>();
             var provider = "gcp";
             var gcpKmsOptions = new Dictionary<string, object>
             {
                { "privateKey", "<Your GCP Private Key>" },
                { "email", "<Your GCP Email>" },
             };
-            kmsProviders.Add(provider, gcpKmsOptions);
+            kmsProviderCredentials.Add(provider, gcpKmsOptions);
             // end-kmsproviders
 
             // start-datakeyopts
@@ -63,7 +63,7 @@ namespace Key
             var clientEncryptionOptions = new ClientEncryptionOptions(
                 keyVaultClient: keyVaultClient,
                 keyVaultNamespace: keyVaultNamespace,
-                kmsProviders: kmsProviders
+                kmsProviders: kmsProviderCredentials
                 );
 
             var clientEncryption = new ClientEncryption(clientEncryptionOptions);

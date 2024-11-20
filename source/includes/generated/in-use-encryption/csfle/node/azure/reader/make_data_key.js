@@ -3,7 +3,7 @@ const { MongoClient, Binary, ClientEncryption } = mongodb;
 
 // start-kmsproviders
 const provider = "azure";
-const kmsProviders = {
+const kmsProviderCredentials = {
   azure: {
     tenantId: "<Your Tenant ID>",
     clientId: "<Your Client ID>",
@@ -50,7 +50,7 @@ async function main() {
 
   const encryption = new ClientEncryption(client, {
     keyVaultNamespace,
-    kmsProviders,
+    kmsProviderCredentials,
   });
   const key = await encryption.createDataKey(provider, {
     masterKey: masterKey,

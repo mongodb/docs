@@ -2,7 +2,6 @@ var qeHelper = require("./queryable-encryption-helpers.js");
 
 async function runExample() {
   // start-setup-application-variables
-  // KMS provider name should be one of the following: "aws", "gcp", "azure", "kmip" or "local"
   const kmsProviderName = "<Your KMS Provider Name>";
 
   const uri = process.env.MONGODB_URI; // Your connection URI

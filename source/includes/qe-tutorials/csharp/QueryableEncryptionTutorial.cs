@@ -14,7 +14,6 @@ public static class QueryableEncryptionTutorial
         ConventionRegistry.Register("CamelCase", camelCaseConvention, type => true);
 
         // start-setup-application-variables
-        // KMS provider name should be one of the following: "aws", "gcp", "azure", "kmip" or "local"
         const string kmsProviderName = "<your KMS provider name>";
         const string keyVaultDatabaseName = "encryption";
         const string keyVaultCollectionName = "__keyVault";

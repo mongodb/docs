@@ -3,7 +3,7 @@ const { MongoClient, Binary, ClientEncryption } = mongodb;
 
 // start-kmsproviders
 const provider = "kmip";
-const kmsProviders = {
+const kmsProviderCredentials = {
   kmip: {
     endpoint: "<endpoint for your KMIP-compliant key provider>",
   },
@@ -55,7 +55,7 @@ async function main() {
 
   const encryption = new ClientEncryption(client, {
     keyVaultNamespace,
-    kmsProviders,
+    kmsProviderCredentials,
     tlsOptions,
   });
   const key = await encryption.createDataKey(provider, {

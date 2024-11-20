@@ -18,13 +18,13 @@ namespace Key
 
 
             // start-kmsproviders
-            var kmsProviders = new Dictionary<string, IReadOnlyDictionary<string, object>>();
+            var kmsProviderCredentials = new Dictionary<string, IReadOnlyDictionary<string, object>>();
             var provider = "kmip";
             var kmipKmsOptions = new Dictionary<string, object>
             {
                { "endpoint", "<endpoint for your KMIP-compliant key provider>" },
             };
-            kmsProviders.Add(provider, kmipKmsOptions);
+            kmsProviderCredentials.Add(provider, kmipKmsOptions);
             // end-kmsproviders
 
             // start-datakeyopts
@@ -67,7 +67,7 @@ namespace Key
             var clientEncryptionOptions = new ClientEncryptionOptions(
                 keyVaultClient: keyVaultClient,
                 keyVaultNamespace: keyVaultNamespace,
-                kmsProviders: kmsProviders,
+                kmsProviders: kmsProviderCredentials,
                 tlsOptions: tlsOptions
                 );
 

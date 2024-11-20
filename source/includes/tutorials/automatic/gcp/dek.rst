@@ -15,6 +15,20 @@ a. Add your GCP KMS Credentials
             :language: java
             :dedent:
 
+         .. include:: /includes/queryable-encryption/tutorials/automatic/named-kms-note.rst
+
+            .. replacement:: kms-provider
+
+               GCP
+                     
+            .. replacement:: kms-provider-name
+
+               "my_gcp_provider"
+
+         .. literalinclude:: /includes/queryable-encryption/tutorials/automatic/gcp/named-kms/NamedKms.java
+            :language: java
+            :dedent:
+
       .. tab::
          :tabid: nodejs
 
@@ -23,6 +37,20 @@ a. Add your GCP KMS Credentials
          .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/gcp/reader/make_data_key.js
             :start-after: start-kmsproviders
             :end-before: end-kmsproviders
+            :language: javascript
+            :dedent:
+
+         .. include:: /includes/queryable-encryption/tutorials/automatic/named-kms-note.rst
+
+            .. replacement:: kms-provider
+
+               GCP
+                     
+            .. replacement:: kms-provider-name
+
+               "my_gcp_provider"
+
+         .. literalinclude:: /includes/queryable-encryption/tutorials/automatic/gcp/named-kms/named-kms.js
             :language: javascript
             :dedent:
 
@@ -37,6 +65,20 @@ a. Add your GCP KMS Credentials
             :language: python
             :dedent:
 
+         .. include:: /includes/queryable-encryption/tutorials/automatic/named-kms-note.rst
+
+            .. replacement:: kms-provider
+
+               GCP
+                     
+            .. replacement:: kms-provider-name
+
+               "my_gcp_provider"
+
+         .. literalinclude:: /includes/queryable-encryption/tutorials/automatic/gcp/named-kms/named-kms.py
+            :language: python
+            :dedent:
+
       .. tab::
          :tabid: csharp
 
@@ -45,6 +87,20 @@ a. Add your GCP KMS Credentials
          .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/gcp/reader/CSFLE/MakeDataKey.cs
             :start-after: start-kmsproviders
             :end-before: end-kmsproviders
+            :language: csharp
+            :dedent:
+
+         .. include:: /includes/queryable-encryption/tutorials/automatic/named-kms-note.rst
+
+            .. replacement:: kms-provider
+
+               GCP
+                     
+            .. replacement:: kms-provider-name
+
+               "my_gcp_provider"
+
+         .. literalinclude:: /includes/queryable-encryption/tutorials/automatic/gcp/named-kms/NamedKms.cs
             :language: csharp
             :dedent:
 

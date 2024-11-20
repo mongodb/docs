@@ -16,7 +16,6 @@ func main() {
 	LoadEnv()
 
 	// start-setup-application-variables
-	// KMS provider name should be one of the following: "aws", "gcp", "azure", "kmip" or "local"
 	kmsProviderName := "<KMS provider name>"
 
 	uri := os.Getenv("MONGODB_URI") // Your connection URI

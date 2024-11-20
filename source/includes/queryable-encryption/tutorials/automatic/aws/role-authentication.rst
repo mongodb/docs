@@ -57,3 +57,5 @@
             kmsProviderCredentials := map[string]map[string]interface{}{
               "aws": { },
             }
+
+   You cannot automatically retrieve credentials if you are using a named KMS provider.
