@@ -69,6 +69,39 @@ The {+service+} CLI also helps you manage both local and cloud environments effi
 tasks and scaling resources as needed. This setup enables testing and development locally, minimizing 
 unnecessary cloud usage. 
 
+Recommendations
+~~~~~~~~~~~~~~~
+
+For development and testing environments, do not enable auto-scaling
+compute and auto-scaling storage. This saves costs in your 
+non-production environments.
+
+For staging and production environments, we recommend that you:
+
+- Use a
+  router-based, single-shard cluster to eliminate downtime when you
+  migrate to a shard key with sharded collections in the future.
+- Enable auto-scaling for compute and storage for instances where your 
+  application grows organically from small to medium.
+  
+  If you use IaC tools, leverage settings to ignore resource drift caused by auto-scaling. For example, in Terraform, if ``disk_gb_enabled`` is true, |service| will 
+  automatically scale disk size up and down. This will cause the value
+  of ``disk_size_gb`` returned to potentially be different than what is 
+  specified in the Terraform config and if one then applies a plan, not 
+  noting this, Terraform will scale the cluster disk size back to the 
+  original ``disk_size_gb`` value. To prevent this a lifecycle 
+  customization should be used, i.e.: 
+  ``lifecycle { ignore_changes = [disk_size_gb] }``.
+
+  Similarly, in Terraform, if ``compute_enabled`` is true, then 
+  |service| will automatically 
+  scale up to the maximum provided and down to the minimum, if provided. This will 
+  cause the value of ``provider_instance_size_name`` returned to potentially be different 
+  than what is specified in the Terraform config, and if one then applies a plan, 
+  not noting this, Terraform will scale the cluster back to the original 
+  ``instanceSizeName`` value. To prevent this a lifecycle customization should be used, 
+  i.e.: ``lifecycle { ignore_changes = [provider_instance_size_name] }``.
+
 Examples
 --------
 
@@ -167,33 +200,11 @@ These examples also apply other recommended configurations, including:
          .. tab:: Staging and Prod Environments
             :tabid: stagingprod
 
-            Auto-scaling compute and storage are recommended for instances where your 
-            application grows organically from small to medium. Furthermore, a router 
-            based single shard cluster eliminates downtime when you migrate to a shard 
-            key with sharded collections in the future.
-
             For your staging and production environments, create the
             following files for each application and environment 
             pair. Place the files for each application and environment
             pair in their own directory. Change the IDs, names, and disk size
             to use your values.
-
-            If ``disk_gb_enabled`` is true, then |service| will 
-            automatically scale disk size up and down. This will cause the value of 
-            ``disk_size_gb`` returned to potentially be different than what is 
-            specified in the Terraform config and if one then applies a plan, not 
-            noting this, Terraform will scale the cluster disk size back to the 
-            original ``disk_size_gb`` value. To prevent this a lifecycle 
-            customization should be used, i.e.: 
-            ``lifecycle { ignore_changes = [disk_size_gb] }``.
-
-            If ``compute_enabled`` is true, then |service| will automatically 
-            scale up to the maximum provided and down to the minimum, if provided. This will 
-            cause the value of ``provider_instance_size_name`` returned to potentially be different 
-            than what is specified in the Terraform config, and if one then applies a plan, 
-            not noting this, Terraform will scale the cluster back to the original 
-            ``instanceSizeName`` value. To prevent this a lifecycle customization should be used, 
-            i.e.: ``lifecycle { ignore_changes = [provider_instance_size_name] }``.
 
             main.tf
             ```````
