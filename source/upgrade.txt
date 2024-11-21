@@ -7,7 +7,7 @@ Upgrade Driver Versions
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 .. facet::
@@ -40,10 +40,8 @@ Before you upgrade, perform the following actions:
    upgrading driver versions, use the
    :ref:`{+stable-api+} <cpp-stable-api>`.
 
-.. _cpp-breaking-changes:
-
-Breaking Changes
-----------------
+Definition of Breaking Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. note::
 
@@ -61,17 +59,79 @@ The breaking changes in this section are categorized by the driver version that 
 them. When upgrading driver versions, address all the breaking changes between the current
 and upgrade versions.
 
-.. example:: Upgrading from Version 3.0
+.. example:: Upgrading to Version 4.0
 
-  If you're upgrading the {+driver-short+} from version 3.0 to version 3.10,
-  address all breaking changes listed for versions 3.1 to 3.10, if any.
+  If you're upgrading the {+driver-short+} from version 3.x to version 4.0,
+  address all breaking changes that are listed for versions 3.x up to and
+  including version 4.0
 
+Types of Breaking Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+New versions of the {+driver-short+} can introduce the following types of breaking changes:
+
+- **API** changes concern the API of the {+driver-short+} libraries. These changes are
+  accompanied by an API major version bump. You might need to edit C++ source code
+  in your project to address these changes.
+
+  .. example::
+
+     - Removes the declaration of function ``v1::func()``. (The definition is still
+       provided for ABI compatibility.)
+     - Removes the inline function ``v_noabi::func()``.
+     - Removes ``v_noabi::func()``.
+     - Changes the redeclaration of ``bsoncxx::foo`` from ``v1::foo`` to ``v2::foo``.
+       To continue using the old interface, qualify ``bsoncxx::foo`` as ``bsoncxx::v1::foo``.
+
+- **ABI** changes concern the ABI of the {+driver-short+} libraries. These changes are
+  accompanied by an ABI version bump, and may also be accompanied by an API major version
+  bump. You might need to rebuild your project or edit your C++ source code to address
+  these changes.
+
+  ABI stability is **not** supported for symbols corresponding to entities declared in
+  the ``v_noabi`` namespace. Breaking changes for such symbols are not necessarily
+  accompanied by an ABI version bump.
+
+  .. example::
+
+     - Removes the exported symbol ``v_noabi::func()``.
+     - Removes the exported symbol ``v1::func()``.
+     - Removes the exported symbols for ``v1::type``.
+
+- **Build system** changes concern the build system or packaging of the {+driver-short+}
+  libraries. These changes are not necessarily accompanied by either an API major version
+  bump or an ABI version bump.
+  To address these changes, you might need to modify your build system configurations or
+  update your project's package or dependency management settings. You might also need to
+  modify or rebuild your C++ source code.
+
+  .. example::
+
+     - Removes the ``ENABLE_FOO`` configuration variable.
+     - Changes the default value of the ``ENABLE_BAR`` configuration variable from
+       ``OFF`` to ``ON``.
+     - Drops support for platform A, compiler B, or architecture C.
+
+.. _cpp-breaking-changes:
+
+Breaking Changes
+----------------
+
+The following sections describe the breaking changes introduced by 
+each driver version release.
+
+.. _upcoming-breaking-changes:
 .. _version-4.0-breaking-changes:
 
-Version 4.0 Breaking Changes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Version 4.0
+~~~~~~~~~~~
 
-This driver version introduces the following breaking changes:
+.. _version-4.0-build-system-breaking:
+
+Build System Breaking Changes in v4.0
+`````````````````````````````````````
+
+The v4.0 driver introduces the following breaking changes to the build system:
 
 - Drops support for the Boost and MNMLSTC/core external polyfill libraries. You can no
   longer set the following configuration options:
@@ -81,61 +141,99 @@ This driver version introduces the following breaking changes:
   - ``BSONCXX_POLY_USE_SYSTEM_MNMLSTC``.
   - ``BSONCXX_POLY_USE_BOOST``.
 
+API Breaking Changes in v4.0
+````````````````````````````
+
+The v4.0 driver introduces the following breaking changes to the API:
+
+- Drops support for configuring ``bsoncxx::stdx::string_view`` and
+  ``bsoncxx::stdx::optional<T>`` as aliases for Boost or MNMLSTC/core
+  library equivalents. For context, see the :ref:`Build System Breaking Changes
+  <version-4.0-build-system-breaking>` section.
+
+ABI Breaking Changes in v4.0
+````````````````````````````
+
+The v4.0 driver introduces the following breaking changes to the ABI:
+
+- Drops support for configuring ``bsoncxx::stdx::string_view`` and
+  ``bsoncxx::stdx::optional<T>`` as aliases for Boost or MNMLSTC/core
+  library equivalents. For context, see the :ref:`Build System Breaking Changes
+  <version-4.0-build-system-breaking>` section.
+
 .. _version-3.11-breaking-changes:
 
-Version 3.11 Breaking Changes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Version 3.11
+~~~~~~~~~~~~
 
-This driver version introduces the following breaking changes:
+Build System Breaking Changes in v3.11
+``````````````````````````````````````
+
+The v3.11 driver introduces the following breaking changes to the build system:
 
 - Drops support for {+mdb-server+} v3.6.
 - Requires MongoDB C Driver v1.28.0 or later.
+
+ABI Breaking Changes in v3.11
+`````````````````````````````
+
+The v3.11 driver introduces the following breaking changes to the ABI:
+
 - Removes export of the following private member functions in the bsoncxx
   ABI:
-   
-  - ``bsoncxx::v_noabi::types::bson_value::value::value(const uint8_t*, uint32_t, uint32_t, uint32_t)``
+
+  - ``bsoncxx::v_noabi::types::bson_value::value::value(const uint8_t*,
+    uint32_t, uint32_t, uint32_t)``
   - ``bsoncxx::v_noabi::types::bson_value::view::_init(void*)``
-  - ``bsoncxx::v_noabi::types::bson_value::view::view(const uint8_t*, uint32_t, uint32_t, uint32_t)``
+  - ``bsoncxx::v_noabi::types::bson_value::view::view(const uint8_t*,
+    uint32_t, uint32_t, uint32_t)``
   - ``bsoncxx::v_noabi::types::bson_value::view::view(void*)``
 
 - Removes export of the following private member functions in the mongocxx
   ABI:
-   
+
   - ``mongocxx::v_noabi::options::change_stream::as_bson()``
-  - ``mongocxx::v_noabi::options::aggregate::append(bsoncxx::v_noabi::builder::basic::document&)``
+  - ``mongocxx::v_noabi::options::aggregate::append(
+    bsoncxx::v_noabi::builder::basic::document&)``
   - ``mongocxx::v_noabi::options::index::storage_options()``
-   
+
 - Declare all exported functions symbols with ``__cdecl`` when compiled with
   MSVC. This is an ABI breaking change if you use an alternative
   default calling convention when building projects.
 
 .. _version-3.10-breaking-changes:
 
-Version 3.10 Breaking Changes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Version 3.10
+~~~~~~~~~~~~
 
-This driver version introduces the following breaking changes:
+Build System Breaking Changes in v3.10
+``````````````````````````````````````
 
-- Drops support for ``find_package(libbsoncxx)`` and ``find_package(libmongocxx)``.
-  Use ``find_package(bsoncxx)`` and ``find_package(mongocxx)``
-  instead.
+The v3.10 driver introduces the following breaking changes to the build system:
+
+- Drops support for calling ``find_package(libbsoncxx)`` and
+  ``find_package(libmongocxx)``. Use ``find_package(bsoncxx)`` and
+  ``find_package(mongocxx)`` instead.
 - Drops support for the ``LIBBSONCXX_*`` and ``LIBMONGOCXX_*`` CMake variables
   provided by the legacy CMake package config files. Use the ``mongo::bsoncxx_*`` and
   ``mongo::mongocxx_*`` CMake targets instead.
-- Removes the experimental C++ standard library (``BSONCXX_POLY_USE_STD_EXPERIMENTAL``) as a
-  polyfill option.
+- Removes the ``BSONCXX_POLY_USE_STD_EXPERIMENTAL`` CMake option and drops support for selecting
+  the experimental C++ standard library as a polyfill option.
 
 .. _version-3.9-breaking-changes:
 
-Version 3.9 Breaking Changes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Version 3.9
+~~~~~~~~~~~
 
-This driver version introduces the following breaking changes:
+Build System Breaking Changes in v3.9
+`````````````````````````````````````
+
+The v3.9 driver introduces the following breaking changes:
 
 - Removes support for exported targets from the CMake project build tree
 - Drops support for macOS 10.14, macOS 10.15, and Ubuntu 14.04
 - Requires MongoDB C Driver v1.25.0 or later
-- Requires CMake v3.15 or later
+- Requires CMake v3.15 or later to support the ``FetchContent`` module
 
 Version 3.8 and Earlier
 ~~~~~~~~~~~~~~~~~~~~~~~
