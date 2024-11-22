@@ -1,0 +1,348 @@
+.. _scala-bulk-write:
+
+=====================
+Bulk Write Operations
+=====================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: insert, update, replace, code example, multiple changes
+
+Overview
+--------
+
+This guide shows you how to use the {+driver-short+} to perform a bulk
+write operation that makes multiple changes to your data in a single
+database call.
+
+Consider a situation that requires you to insert documents, update
+documents, and delete documents for the same task. If you use
+the individual write methods to perform each type of operation, each write
+accesses the database separately. You can use a bulk write operation to
+optimize the number of calls your application makes to the server.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``restaurants`` collection in the ``sample_restaurants``
+database from the :atlas:`Atlas sample datasets </sample-data>`. To access this collection
+from your Scala application, create a ``MongoClient`` that connects to an Atlas cluster
+and assign the following values to your ``database`` and ``collection`` variables:
+
+.. literalinclude:: /includes/write/bulk-write.scala
+   :language: scala
+   :dedent:
+   :start-after: start-db-coll
+   :end-before: end-db-coll
+
+To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see the
+:atlas:`Get Started with Atlas </getting-started>` guide.
+
+Define the Write Operations
+---------------------------
+
+For each write operation you want to perform, create a corresponding
+instance of one of the following operation classes that inherit from the
+generic ``WriteModel`` class:
+
+- ``InsertOneModel``
+- ``UpdateOneModel``
+- ``UpdateManyModel``
+- ``ReplaceOneModel``
+- ``DeleteOneModel``
+- ``DeleteManyModel``
+
+Then, pass a list of these instances to the ``bulkWrite()`` method.
+
+The following sections show how to create and use instances of the
+preceding classes. The :ref:`scala-bulkwrite-method` section
+demonstrates how to pass a list of models to the ``bulkWrite()`` method
+to perform the bulk operation.
+
+Insert Operations
+~~~~~~~~~~~~~~~~~
+
+To perform an insert operation, create an ``InsertOneModel`` instance and specify
+the document you want to insert.
+
+The following example creates an instance of ``InsertOneModel``:
+
+.. literalinclude:: /includes/write/bulk-write.scala
+   :start-after: start-bulk-insert-one
+   :end-before: end-bulk-insert-one
+   :language: scala
+   :copyable:
+   :dedent:
+
+To insert multiple documents, create an instance of ``InsertOneModel``
+for each document.
+
+.. important::
+
+   When performing a bulk operation, the ``InsertOneModel`` cannot
+   insert a document with an ``_id`` that already exists in the
+   collection. In this situation, the driver throws a
+   ``MongoBulkWriteException``.
+
+Update Operations
+~~~~~~~~~~~~~~~~~
+
+To update a document, create an instance of ``UpdateOneModel`` and pass
+the following arguments:
+
+- **Query filter** that specifies the criteria used to match documents in your collection.
+- Update operation you want to perform. For more information about update
+  operations, see the :manual:`Field Update Operators
+  </reference/operator/update-field/>` guide in the {+mdb-server+} manual.
+
+An ``UpdateOneModel`` instance specifies an update for *the first*
+document that matches your query filter.
+
+The following example creates an instance of ``UpdateOneModel``:
+
+.. literalinclude:: /includes/write/bulk-write.scala
+   :start-after: start-bulk-update-one
+   :end-before: end-bulk-update-one
+   :language: scala
+   :copyable:
+   :dedent:
+
+To update multiple documents, create an instance of ``UpdateManyModel`` and pass
+the same arguments as for ``UpdateOneModel``. The ``UpdateManyModel``
+class specifies updates for *all* documents that match your query
+filter.
+
+The following example creates an instance of ``UpdateManyModel``:
+
+.. literalinclude:: /includes/write/bulk-write.scala
+   :start-after: start-bulk-update-many
+   :end-before: end-bulk-update-many
+   :language: scala
+   :copyable:
+   :dedent:
+
+Replace Operations
+~~~~~~~~~~~~~~~~~~
+
+A replace operation removes all fields and values of a specified document and
+replaces them with new fields and values that you specify. To perform a
+replace operation, create an instance of ``ReplaceOneModel`` and pass the following
+arguments:
+
+- Query filter that specifies the criteria used to match documents in your collection
+- Replacement document that specifies the new fields and values to insert
+
+The following example creates an instance of ``ReplaceOneModel``:
+
+.. literalinclude:: /includes/write/bulk-write.scala
+   :start-after: start-bulk-replace-one
+   :end-before: end-bulk-replace-one
+   :language: scala
+   :copyable:
+   :dedent:
+
+To replace multiple documents, you must create an instance of
+``ReplaceOneModel`` for each document.
+
+Delete Operations
+~~~~~~~~~~~~~~~~~
+
+To delete a document, create an instance of ``DeleteOneModel`` and pass a
+query filter specifying the document you want to delete. A
+``DeleteOneModel`` instance provides instructions to delete
+only *the first* document that matches your query filter.
+
+The following example creates an instance of ``DeleteOneModel``:
+
+.. literalinclude:: /includes/write/bulk-write.scala
+   :start-after: start-bulk-delete-one
+   :end-before: end-bulk-delete-one
+   :language: scala
+   :copyable:
+   :dedent:
+
+To delete multiple documents, create an instance of ``DeleteManyModel`` and pass a
+query filter specifying the document you want to delete. An instance of
+``DeleteManyModel`` provides instructions to remove *all* documents that
+match your query filter.
+
+The following example creates an instance of ``DeleteManyModel``:
+
+.. literalinclude:: /includes/write/bulk-write.scala
+   :start-after: start-bulk-delete-many
+   :end-before: end-bulk-delete-many
+   :language: scala
+   :copyable:
+   :dedent:
+
+.. _scala-bulkwrite-method:
+
+Perform the Bulk Operation
+--------------------------
+
+After you define a model instance for each operation you want to perform,
+pass a list of these instances to the ``bulkWrite()`` method.
+By default, the method runs the operations in the order
+specified by the list of models.
+
+The following example performs multiple write operations by using the
+``bulkWrite()`` method:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/write/bulk-write.scala
+      :start-after: start-bulk-write-mixed
+      :end-before: end-bulk-write-mixed
+      :language: scala
+      :dedent:
+
+   .. output::
+      :visible: false
+      
+      Success: AcknowledgedBulkWriteResult{insertedCount=1, matchedCount=1, removedCount=1,
+      modifiedCount=1, upserts=[], inserts=[BulkWriteInsert{index=0, id=BsonObjectId{value=...}}]}
+      Completed
+
+If any of the write operations fail, the {+driver-short+} raises a
+``BulkWriteError`` and does not perform any further operations.
+``BulkWriteError`` provides a ``details`` item that includes the
+operation that failed and details about the exception.
+
+.. note::
+
+   When the driver runs a bulk operation, it uses the write concern of the
+   target collection. The driver reports all write concern errors after
+   attempting all operations, regardless of execution order.
+
+Customize Bulk Write Operation
+------------------------------
+
+The ``bulkWrite()`` method optionally accepts a ``BulkWriteOptions`` parameter, which
+specifies options you can use to configure the bulk write
+operation. If you don't specify any options, the driver performs the
+bulk operation with default settings.
+
+The following table describes the setter methods that you can use to
+configure a ``BulkWriteOptions`` instance:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``ordered()``
+     - | If ``true``, the driver performs the write operations in the order
+         provided. If an error occurs, the remaining operations are not
+         attempted. 
+       |
+       | If ``false``, the driver performs the operations in an
+         arbitrary order and attempts to perform all operations.
+       | Defaults to ``true``.
+
+   * - ``bypassDocumentValidation()``
+     - | Specifies whether the update operation bypasses document validation. This lets you 
+         update documents that don't meet the schema validation requirements, if any 
+         exist. For more information about schema validation, see :manual:`Schema
+         Validation </core/schema-validation/#schema-validation>` in the MongoDB
+         Server manual.
+       | Defaults to ``false``.
+
+   * - ``comment()``
+     - | Sets a comment to attach to the operation.
+
+   * - ``let()``
+     - | Provides a map of parameter names and values to set top-level
+         variables for the operation. Values must be constant or closed
+         expressions that don't reference document fields.
+
+The following code creates options and sets the ``ordered`` option to ``false`` to
+specify an unordered bulk write. Then, the example uses the
+``bulkWrite()`` method to perform a bulk operation:
+
+.. literalinclude:: /includes/write/bulk-write.scala
+   :start-after: start-bulk-write-unordered
+   :end-before: end-bulk-write-unordered
+   :language: scala
+   :copyable:
+   :dedent:
+
+If any of the write operations in an unordered bulk write fail, the {+driver-short+}
+reports the errors only after attempting all operations.
+
+.. note::
+
+   Unordered bulk operations do not guarantee an order of execution. The
+   order can differ from the way you list them to optimize the runtime.
+
+Return Value
+------------
+
+The ``bulkWrite()`` method returns a ``SingleObservable`` object that contains a
+``BulkWriteResult``. You can access information from the ``BulkWriteResult`` instance by 
+subscribing to the observable and using the following methods:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``wasAcknowledged()``
+     - | Indicates if the server acknowledged the write operation.
+         
+   * - ``getDeletedCount()``
+     - | The number of documents deleted, if any.
+
+   * - ``getInsertedCount()``
+     - | The number of documents inserted, if any.
+
+   * - ``getInserts()``
+     - | The list of inserted documents, if any.
+
+   * - ``getMatchedCount()``
+     - | The number of documents matched for an update, if applicable.
+
+   * - ``getModifiedCount()``
+     - | The number of documents modified, if any.
+
+   * - ``getUpserts()``
+     - | The list of upserted documents, if any.
+
+Additional Information
+----------------------
+
+To learn how to perform individual write operations, see the following guides:
+
+- :ref:`scala-write-insert`
+- :ref:`scala-write-update`
+- :ref:`scala-write-delete`
+- :ref:`scala-write-replace`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `bulkWrite() <{+api+}/org/mongodb/scala/MongoCollection.html#bulkWrite(clientSession:org.mongodb.scala.ClientSession,requests:Seq[_%3C:org.mongodb.scala.model.WriteModel[_%3C:TResult]],options:org.mongodb.scala.model.BulkWriteOptions):org.mongodb.scala.SingleObservable[org.mongodb.scala.BulkWriteResult]>`__
+- `InsertOneModel <{+core-api+}/com/mongodb/client/model/InsertOneModel.html>`__
+- `UpdateOneModel <{+core-api+}/com/mongodb/client/model/UpdateOneModel.html>`__
+- `UpdateManyModel <{+core-api+}/com/mongodb/client/model/UpdateManyModel.html>`__
+- `ReplaceOneModel <{+core-api+}/com/mongodb/client/model/ReplaceOneModel.html>`__
+- `DeleteOneModel <{+core-api+}/com/mongodb/client/model/DeleteOneModel.html>`__
+- `DeleteManyModel <{+core-api+}/com/mongodb/client/model/DeleteManyModel.html>`__
+- `BulkWriteOptions <{+core-api+}/com/mongodb/client/model/BulkWriteOptions.html>`__
+- `BulkWriteResult <{+core-api+}/com/mongodb/bulk/BulkWriteResult.html>`__

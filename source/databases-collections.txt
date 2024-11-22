@@ -1,0 +1,276 @@
+.. _scala-databases-collections:
+
+=========================
+Databases and Collections
+=========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: table, row, organize, storage, code example
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   Run a Command </databases-collections/run-command>
+   Time Series </databases-collections/time-series>
+
+Overview
+--------
+
+In this guide, you can learn how to interact with MongoDB databases and
+collections by using the {+driver-short+}.
+
+MongoDB organizes data into a hierarchy of the following levels:
+
+- **Databases**: Top-level data structures in a MongoDB deployment that store collections.
+- **Collections**: Groups of MongoDB documents. They are analogous to tables in relational databases.
+- **Documents**: Units that store literal data such as string, numbers, dates, and other embedded documents.
+  For more information about document field types and structure, see the
+  :manual:`Documents </core/document/>` guide in the {+mdb-server+} manual.
+
+Access a Database
+-----------------
+
+Access a database by calling the ``getDatabase()`` method on a ``MongoClient`` instance.
+
+The following example accesses a database named ``"test_database"``:
+
+.. literalinclude:: /includes/databases-collections/databases-collections.scala
+   :start-after: start-access-database
+   :end-before: end-access-database
+   :language: scala
+   :copyable:
+   :dedent:
+
+
+Access a Collection
+-------------------
+
+Access a collection by calling the ``getCollection()`` method on a ``MongoDatabase``
+instance.
+
+The following example accesses a collection named ``"test_collection"``:
+
+.. literalinclude:: /includes/databases-collections/databases-collections.scala
+   :start-after: start-access-collection
+   :end-before: end-access-collection
+   :language: scala
+   :copyable:
+   :dedent:
+
+.. tip::
+
+   If the provided collection name does not already exist in the database,
+   MongoDB implicitly creates the collection when you first insert data
+   into it.
+
+Create a Collection
+-------------------
+
+Use the ``createCollection()`` method on a ``MongoDatabase`` instance to explicitly create
+a collection in a database.
+
+The following example creates a collection named ``"example_collection"``:
+
+.. literalinclude:: /includes/databases-collections/databases-collections.scala
+   :start-after: start-create-collection
+   :end-before: end-create-collection
+   :language: scala
+   :copyable:
+   :dedent:
+
+You can specify collection options, such as maximum size and document
+validation rules, by passing a ``CreateCollectionOptions`` instance to the
+``createCollection()`` method. For a full list of
+optional parameters, see the :manual:`create command </reference/command/create>`
+documentation in the {+mdb-server+} manual.
+
+Get a List of Collections
+-------------------------
+
+You can query for a list of collections in a database by calling the
+``listCollections()`` method of a ``MongoDatabase`` instance.
+
+The following example lists all collections in a database:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/databases-collections/databases-collections.scala
+      :language: scala
+      :start-after: start-find-collections
+      :end-before: end-find-collections
+      :dedent:
+
+   .. output::
+      :language: console
+      :visible: false
+
+      Iterable((name,BsonString{value='test_collection'}), (type,BsonString{value='collection'}), ... )
+      Iterable((name,BsonString{value='example_collection'}), (type,BsonString{value='collection'}), ... )
+
+To query for only the names of the collections in the database, call the
+``listCollectionNames()`` method as follows:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/databases-collections/databases-collections.scala
+      :language: scala
+      :start-after: start-find-collection-names
+      :end-before: end-find-collection-names
+      :dedent:
+
+   .. output::
+      :language: console
+      :visible: false
+
+      test_collection
+      example_collection
+
+.. tip::
+
+   For more information about iterating over a ``Future`` instance, see :ref:`scala-observables-futures`
+   in the Access Data From an Observable guide. 
+
+Delete a Collection
+-------------------
+
+You can delete a collection by calling the ``drop()`` method on a
+``MongoCollection`` instance.
+
+The following example deletes the ``"test_collection"`` collection:
+
+.. literalinclude:: /includes/databases-collections/databases-collections.scala
+   :start-after: start-delete-collection
+   :end-before: end-delete-collection
+   :language: scala
+   :copyable:
+   :dedent:
+
+.. warning:: Dropping a Collection Deletes All Data in the Collection
+
+   Dropping a collection from your database permanently deletes all
+   documents and all indexes within that collection.
+
+   Drop a collection only if the data in it is no longer needed.
+
+Configure Read and Write Operations
+-----------------------------------
+
+You can control how the driver routes read operations by setting a **read preference**.
+You can also control options for how the driver waits for acknowledgment of
+read and write operations on a replica set by setting a **read concern** and a
+**write concern**.
+
+By default, databases inherit these settings from the ``MongoClient`` instance,
+and collections inherit them from the database. However, you can change these
+settings on your database by using the ``withReadPreference()`` method.
+
+The following example accesses a database while specifying the read preference of the
+database as ``secondary``:
+
+.. literalinclude:: /includes/databases-collections/databases-collections.scala
+   :start-after: start-database-read-prefs
+   :end-before: end-database-read-prefs
+   :language: scala
+   :copyable:
+   :dedent:
+
+You can also change the read and write settings on your collections by using the ``withReadPreference()``
+method. The following example shows how to access a collection while specifying the read
+preference of the collection as ``secondary``:
+
+.. literalinclude:: /includes/databases-collections/databases-collections.scala
+   :start-after: start-collection-read-prefs
+   :end-before: end-collection-read-prefs
+   :language: scala
+   :copyable:
+   :dedent:
+
+.. tip::
+
+   To see the types of available read preferences, see the
+   `API documentation <{+api+}/org/mongodb/scala/ReadPreference$.html>`__. 
+
+To learn more about the read and write settings, see the following guides in the
+{+mdb-server+} manual:
+
+- :manual:`Read Preference </core/read-preference/>`
+- :manual:`Read Concern </reference/read-concern/>`
+- :manual:`Write Concern </reference/write-concern/>`
+
+Tag Sets
+~~~~~~~~
+
+In the {+mdb-server+}, you can apply key-value :manual:`tags
+</core/read-preference-tags/>` to replica-set
+members according to any criteria you choose. You can then use
+those tags to target one or more members for a read operation.
+
+By default, the {+driver-short+} ignores tags when choosing a member to read from. To
+instruct the {+driver-short+} to prefer certain tags, pass a ``TagSet`` instance to the
+``ReadPreference`` constructor, then pass the ``ReadPreference`` instance to the
+``MongoClientSettings`` you use to instantiate a ``MongoClient``.
+
+In the following code example, the tag set passed to the ``ReadPreference``
+constructor instructs the {+driver-short+} to prefer reads from the
+New York data center (``'dc': 'ny'``) and to fall back to the San Francisco data
+center (``'dc': 'sf'``):
+
+.. literalinclude:: /includes/databases-collections/databases-collections.scala
+   :start-after: start-tags
+   :end-before: end-tags
+   :language: scala
+   :copyable:
+   :dedent:
+
+Local Threshold
+~~~~~~~~~~~~~~~
+
+If multiple replica-set members match the read preference and tag sets you specify,
+the {+driver-short+} reads from the nearest replica-set members, chosen according to
+their ping time.
+
+By default, the driver uses only those members whose ping times are within 15 milliseconds
+of the nearest member for queries. To distribute reads between members with
+higher latencies, use the ``localThreshold()`` method within the ``ClusterSettings.Builder``
+block provided by the ``applyToClusterSettings()`` method of the ``MongoClientSettings.Builder``
+class. Alternatively, include the ``localThresholdMS`` parameter in your connection string
+URI.
+
+The following example connects to a MongoDB deployment running on ``localhost:27017``
+and specifies a local threshold of 35 milliseconds:
+
+.. literalinclude:: /includes/databases-collections/databases-collections.scala
+   :start-after: start-local-threshold
+   :end-before: end-local-threshold
+   :language: scala
+   :copyable:
+   :dedent:
+
+In the preceding example, the {+driver-short+} distributes reads between matching members
+within 35 milliseconds of the closest member's ping time.
+
+API Documentation
+-----------------
+
+To learn more about any of the types or methods discussed in this
+guide, see the following API documentation:
+
+- `MongoClient <{+api+}/org/mongodb/scala/MongoClient.html>`__
+- `MongoDatabase <{+api+}/org/mongodb/scala/MongoDatabase.html>`__
+- `MongoCollection <{+api+}/org/mongodb/scala/MongoCollection.html>`__
+- `CreateCollectionOptions <{+api+}/org/mongodb/scala/model/package$$CreateCollectionOptions$.html>`__
+- `ClusterSettings <{+api+}/org/mongodb/scala/connection/ClusterSettings$.html>`__
+- `MongoClientSettings <{+api+}/org/mongodb/scala/MongoClientSettings$.html>`__

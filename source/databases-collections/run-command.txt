@@ -1,0 +1,197 @@
+.. _scala-run-command:
+
+======================
+Run a Database Command
+======================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: administration, code example
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to
+run a database command. You can use database commands to perform a
+variety of administrative and diagnostic tasks, such as fetching server
+statistics, initializing a replica set, or running an aggregation pipeline.
+
+.. important:: Prefer Driver Methods to Database Commands
+
+   The driver provides wrapper methods for many database commands.
+   If possible, we recommend using these methods instead of executing
+   database commands.
+   
+   To perform administrative tasks, use the :mongosh:`MongoDB Shell </>`
+   instead of the {+driver-short+}. The shell provides helper methods
+   that might not be available in the driver.
+   
+   If there are no available helpers in the driver or the shell, you
+   can use the ``db.runCommand()`` shell method or the driver's
+   ``runCommand()`` method, which is described in this
+   guide.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``sample_restaurants`` database
+from the :atlas:`Atlas sample datasets </sample-data>`. To access this database
+from your Scala application, create a ``MongoClient`` that connects to an Atlas cluster
+and assign the following value to your ``database`` variable:
+
+.. literalinclude:: /includes/run-command.scala
+    :language: scala
+    :dedent:
+    :start-after: start-db
+    :end-before: end-db
+
+To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see the
+:atlas:`Get Started with Atlas </getting-started>` guide.
+
+.. _scala-execute-command:
+
+Execute a Command
+-----------------
+
+To run a database command, create a ``Document`` object that specifies
+the command and pass it as a parameter to the ``runCommand()`` method.
+This method returns a ``SingleObservable`` instance, and you can subscribe
+to this observable to execute the command and access the command result.
+
+The following example calls the ``runCommand()`` method on a database
+to run the ``hello`` command, which returns information about the server:
+
+.. literalinclude:: /includes/run-command.scala
+   :language: scala
+   :dedent:
+   :start-after: start-hello
+   :end-before: end-hello
+
+.. tip::
+
+   To view a full list of database commands and their corresponding
+   parameters, see :manual:`Database Commands </reference/command/>` in 
+   the {+mdb-server+} manual.
+
+.. _scala-command-read-pref:
+
+Set a Read Preference
+----------------------
+
+The ``runCommand()`` method does not inherit the read preference you might
+have set on your ``MongoDatabase`` instance. By default, ``runCommand()``
+uses the ``primary`` read preference.
+
+You can set a read preference for the command execution by passing a
+``ReadPreference`` instance as a parameter to ``runCommand()``, as
+shown in the following code:
+   
+.. literalinclude:: /includes/run-command.scala
+   :language: scala
+   :dedent:
+   :start-after: start-readpref
+   :end-before: end-readpref
+
+.. tip::
+
+   To learn more about read preference options, see :manual:`Read
+   Preference </core/read-preference/>` in the {+mdb-server+} manual.
+
+.. _scala-command-response:
+
+Response
+--------
+
+The ``runCommand()`` method returns a ``SingleObservable`` that contains
+the response from the database for the given command. You can call the
+``subscribe()`` method on the observable to run the command and access
+the response as a document.
+
+The raw command response document contains the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Field
+     - Description
+
+   * - ``<command result>``
+     - Fields specific to the database command. For example,
+       the ``hello`` command returns the ``topologyVersion`` field.
+
+   * - ``ok``
+     - Indicates whether the command has succeeded (``1.0``) or failed (``0.0``). The
+       driver raises a ``MongoCommandException`` if the ``ok``
+       value is ``0.0``.
+
+   * - ``$clusterTime``
+     - A document that contains the signed cluster time. Cluster time is a
+       logical time used for the ordering of operations. This field only
+       applies to commands run on replica sets or sharded cluster.
+
+   * - ``operationTime``
+     - The logical time of the operation execution. This field only
+       applies to commands run on replica sets or sharded cluster.
+
+.. tip::
+
+   To learn more about logical time, see the Wikipedia entry on
+   the :wikipedia:`logical clock <w/index.php?title=Logical_clock&oldid=1072010149>`.
+
+Example
+~~~~~~~
+
+The following example runs the ``dbStats`` command to retrieve
+storage statistics for the ``sample_restaurants`` database, then prints the
+command results:
+
+.. literalinclude:: /includes/run-command.scala
+   :language: scala
+   :dedent:
+   :start-after: start-print-command
+   :end-before: end-print-command
+
+The output of this command includes information about the data stored in
+the database, as shown in the following code:
+
+.. code-block:: none
+   :copyable: false
+
+   {"db": "sample_restaurants", "collections": 4, "views": 0, "objects":
+   18767, "avgObjSize": 596.1911866574306, "dataSize": 11188720,
+   "storageSize": 7528448, "totalFreeStorageSize": 0, "numExtents": 0,
+   "indexes": 6, "indexSize": 1519616, "indexFreeStorageSize": 0,
+   "fileSize": 0, "nsSizeMB": 0, "ok": 1}
+
+.. _scala-addtl-info-runcommand:
+
+Additional Information
+----------------------
+
+For more information about the concepts in this guide, see the following
+documentation in the {+mdb-server+} manual:
+
+- :manual:`db.runCommand() </reference/method/db.runCommand/>`
+- :manual:`Database Commands </reference/command/>`
+- :manual:`hello Command </reference/command/hello/>`
+- :manual:`dbStats Command </reference/command/dbStats/>`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `runCommand() <{+api+}/org/mongodb/scala/MongoDatabase.html#runCommand[TResult](command:org.mongodb.scala.bson.conversions.Bson)(implicite:org.mongodb.scala.bson.DefaultHelper.DefaultsTo[TResult,org.mongodb.scala.Document],implicitct:scala.reflect.ClassTag[TResult]):org.mongodb.scala.SingleObservable[TResult]>`__
+- `SingleObservable <{+api+}/org/mongodb/scala/SingleObservable.html>`__
+- `ReadPreference <{+api+}/org/mongodb/scala/ReadPreference$.html>`__

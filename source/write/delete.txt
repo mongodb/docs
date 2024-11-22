@@ -1,0 +1,212 @@
+.. _scala-write-delete:
+
+================
+Delete Documents
+================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: remove, drop, code example
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to remove
+documents from a MongoDB collection by performing **delete operations**.
+
+A delete operation removes one or more documents from a MongoDB collection.
+You can perform a delete operation by using the ``deleteOne()`` or
+``deleteMany()`` methods.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``restaurants`` collection in the ``sample_restaurants``
+database from the :atlas:`Atlas sample datasets </sample-data>`. To access this collection
+from your Scala application, create a ``MongoClient`` that connects to an Atlas cluster
+and assign the following values to your ``database`` and ``collection`` variables:
+
+.. literalinclude:: /includes/write/delete.scala
+    :language: scala
+    :dedent:
+    :start-after: start-db-coll
+    :end-before: end-db-coll
+
+To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see the
+:atlas:`Get Started with Atlas </getting-started>` guide.
+
+Delete Operations
+-----------------
+
+You can perform delete operations in MongoDB by using the following methods:
+
+- ``deleteOne()``, which deletes *the first document* that matches the search criteria
+- ``deleteMany()``, which deletes *all documents* that match the search criteria
+
+Each delete method requires a **query filter** document, which specifies the
+search criteria that determine which documents to select for removal.
+To learn more about query filters, see the :ref:`scala-specify-query` guide.
+
+Delete One Document
+~~~~~~~~~~~~~~~~~~~
+
+The following example uses the ``deleteOne()`` method to remove a
+document in which the value of the ``name`` field is ``"Happy Garden"``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/write/delete.scala
+      :start-after: start-delete-many
+      :end-before: end-delete-many
+      :language: scala
+      :dedent:
+   
+   .. output::
+      :language: console
+      :visible: false
+
+      Deleted document count: 1
+      Completed
+
+Delete Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses the ``deleteMany()`` method to remove all documents
+in which the value of the ``borough`` field is ``"Brooklyn"`` and the
+value of the ``name`` field is ``"Starbucks"``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/write/delete.scala
+      :start-after: start-delete-many
+      :end-before: end-delete-many
+      :language: scala
+      :dedent:
+   
+   .. output::
+      :language: console
+      :visible: false
+
+      Deleted document count: 3
+      Completed
+
+Customize the Delete Operation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``deleteOne()`` and ``deleteMany()`` methods optionally accept a
+``DeleteOptions`` parameter, which represents options you can use to
+configure the delete operation. If you don't specify any
+options, the driver performs the delete operation with default settings.
+
+The following table describes the setter methods that you can use to
+configure a ``DeleteOptions`` instance:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``collation()``
+     - | Specifies the kind of language collation to use when sorting
+         results. For more information, see :manual:`Collation </reference/collation/#std-label-collation>`
+         in the {+mdb-server+} manual.
+
+   * - ``hint()``
+     - | Specifies the index to use when matching documents.
+         For more information, see the :manual:`hint </reference/command/delete/#std-label-deletes-array-hint>`
+         option in the ``delete`` reference page of the {+mdb-server+} manual.
+
+   * - ``hintString()``
+     - | Specifies the index as a string to use when matching documents.
+         For more information, see the :manual:`hint </reference/command/delete/#std-label-deletes-array-hint>`
+         option in the `` delete`` reference page of the {+mdb-server+} manual.
+
+   * - ``let()``
+     - | Provides a map of parameter names and values to set top-level
+         variables for the operation. Values must be constant or closed
+         expressions that don't reference document fields. For more information,
+         see the :manual:`let
+         </reference/command/delete/#std-label-delete-let-syntax>` option in the ``delete``
+         reference page of the {+mdb-server+} manual.
+
+   * - ``comment()``
+     - | Sets a comment to attach to the operation. For more
+         information, see the :manual:`Command
+         Fields </reference/command/delete/#command-fields>` section in the ``delete``
+         reference page of the {+mdb-server+} manual.
+
+Modify Delete Example
+`````````````````````
+
+The following code creates options and uses the ``comment()`` method to
+add a comment to the delete operation. Then, the example uses the
+``deleteMany()`` method to delete all documents in the ``restaurants``
+collection in which the value of the ``name`` field includes the string
+``"Red"``.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/write/delete.scala
+      :start-after: start-delete-options
+      :end-before: end-delete-options
+      :language: scala
+      :dedent:
+   
+   .. output::
+      :language: console
+      :visible: false
+
+      Deleted document count: 124
+      Completed
+
+.. tip::
+
+   If you use the the ``deleteOne()`` method in the preceding example
+   instead of the ``deleteMany()`` method, the driver deletes only the
+   first document that matches the query filter.
+
+Return Value
+~~~~~~~~~~~~
+
+The ``deleteOne()`` and ``deleteMany()`` methods each return a
+``DeleteResult`` instance. You can access the following information from
+a ``DeleteResult`` instance:
+
+- ``deletedCount``, which indicates the number of documents deleted
+- ``wasAcknowledged()``, which returns ``true`` if the server
+  acknowledges the result
+
+If the query filter does not match any documents, the driver doesn't delete any
+documents, and the value of ``deletedCount`` is ``0``.
+
+.. note::
+
+   If the ``wasAcknowledged()`` method returns ``false``, trying to
+   access the ``deletedCount`` property results in an
+   ``InvalidOperation`` exception. The driver cannot 
+   determine these values if the server does not acknowledge the write
+   operation.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `deleteOne() <{+api+}/org/mongodb/scala/MongoCollection.html#deleteOne(clientSession:org.mongodb.scala.ClientSession,filter:org.mongodb.scala.bson.conversions.Bson,options:org.mongodb.scala.model.DeleteOptions):org.mongodb.scala.SingleObservable[org.mongodb.scala.result.DeleteResult]>`__
+- `deleteMany() <{+api+}/org/mongodb/scala/MongoCollection.html#deleteMany(clientSession:org.mongodb.scala.ClientSession,filter:org.mongodb.scala.bson.conversions.Bson,options:org.mongodb.scala.model.DeleteOptions):org.mongodb.scala.SingleObservable[org.mongodb.scala.result.DeleteResult]>`__
+- `DeleteResult <{+core-api+}/com/mongodb/client/result/DeleteResult.html>`__

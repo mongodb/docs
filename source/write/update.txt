@@ -1,0 +1,258 @@
+.. _scala-write-update:
+
+================
+Update Documents
+================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: modify, change, operator, code example
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to update
+documents in a MongoDB collection by using the ``updateOne()`` and
+``updateMany()`` methods.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``restaurants`` collection in the ``sample_restaurants``
+database from the :atlas:`Atlas sample datasets </sample-data>`. To access this collection
+from your {+language+} application, create a ``MongoClient`` that connects to an Atlas cluster
+and assign the following values to your ``database`` and ``collection`` variables:
+
+.. literalinclude:: /includes/write/update.scala
+   :language: scala
+   :dedent:
+   :start-after: start-db-coll
+   :end-before: end-db-coll
+
+To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see the
+:atlas:`Get Started with Atlas </getting-started>` guide.
+
+Update Operations
+-----------------
+
+You can update documents in MongoDB by using the following methods:
+
+- ``updateOne()``, which updates *the first document* that matches the search criteria
+- ``updateMany()``, which updates *all documents* that match the search criteria
+
+Each update method requires the following parameters:
+
+- **Query filter**, which matches the documents you want to update. To learn
+  more about query filters, see the :ref:`scala-specify-query`
+  guide.
+
+- **Update document**, which specifies the update operator and the fields and values to be
+  updated. The update operator specifies the type of update to perform. To view a list of
+  update operators and learn about their usages, see the
+  :manual:`Field Update Operators guide page</reference/operator/update-field/>` in the
+  {+mdb-server+} manual.
+
+Update One Document Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses the ``updateOne()`` method to update the
+``name`` field value of a document from ``"Happy Garden"`` to ``"Mountain
+House"``. The update document uses the ``set()`` method to update the ``name`` field
+value:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/write/update.scala
+      :start-after: start-update-one
+      :end-before: end-update-one
+      :emphasize-lines: 3
+      :language: scala
+      :dedent:
+
+   .. output::
+      :language: console
+      :visible: false
+
+      Updated document count: 1
+      Completed
+
+Update Many Documents Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses the ``updateMany()`` method to update all documents
+in which the ``name`` field value is ``"Starbucks"``. The update document uses the
+``rename()`` method to change the name of the ``address`` field to ``location``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/write/update.scala
+      :start-after: start-update-many
+      :end-before: end-update-many
+      :emphasize-lines: 3
+      :language: scala
+      :dedent:
+
+   .. output::
+      :language: console
+      :visible: false
+
+      Updated document count: 11
+      Completed
+
+Customize the Update Operation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``updateOne()`` and ``updateMany()`` methods optionally accept
+a parameter that sets options to configure the update operation.
+If you don't specify any options, the driver performs update
+operations with default settings.
+
+The following table describes the setter methods that you can use to
+configure an ``UpdateOptions`` instance:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``upsert()``
+     - | Specifies whether the update operation performs an upsert operation if no 
+         documents match the query filter. For more information, see the :manual:`upsert
+         statement </reference/command/update/#std-label-update-command-upsert>`
+         in the {+mdb-server+} manual.
+       | Defaults to ``false``
+
+   * - ``bypassDocumentValidation()``
+     - | Specifies whether the update operation bypasses document validation. This lets you 
+         update documents that don't meet the schema validation requirements, if any 
+         exist. For more information about schema validation, see :manual:`Schema
+         Validation </core/schema-validation/#schema-validation>` in the MongoDB
+         Server manual.
+       | Defaults to ``false``.
+
+   * - ``collation()``
+     - | Specifies the kind of language collation to use when sorting
+         results. For more information, see :manual:`Collation </reference/collation/#std-label-collation>`
+         in the {+mdb-server+} manual.
+
+   * - ``arrayFilters()``
+     - | Provides a list of filters that you specify to select which
+         array elements the update applies to.
+
+   * - ``hint()``
+     - | Sets the index to use when matching documents. 
+         For more information, see the :manual:`hint statement </reference/command/update/#std-label-update-command-hint>`
+         in the {+mdb-server+} manual.
+
+   * - ``let()``
+     - | Provides a map of parameter names and values to set top-level
+         variables for the operation. Values must be constant or closed
+         expressions that don't reference document fields. For more information,
+         see the :manual:`let statement
+         </reference/command/update/#std-label-update-let-syntax>` in the
+         {+mdb-server+} manual.
+
+   * - ``comment()``
+     - | Sets a comment to attach to the operation. For more
+         information, see the :manual:`update command
+         fields </reference/command/update/#update>` guide in the
+         {+mdb-server+} manual for more information.
+
+Modify Update Example
+`````````````````````
+
+This example creates and passes options to the ``updateOne()`` method.
+The example uses the ``equal()`` helper method to match documents
+in which the ``name`` field value is ``"Sunrise Pizzeria"``. It then uses the ``set()`` 
+method to set the ``borough`` field value in the first matching document to
+``"Queens"`` and the ``cuisine`` field value to ``"Italian"``. The code uses the
+``combine()`` method to specify multiple updates in one update document.
+
+Because the ``upsert`` option is set to ``true`` in the ``UpdateOptions`` instance,
+the driver inserts a new document that has the fields and values specified in the filter
+and update document if the query filter doesn't match any existing documents.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/write/update.scala
+      :start-after: start-update-options
+      :end-before: end-update-options
+      :language: scala
+      :emphasize-lines: 2
+      :dedent:
+
+   .. output::
+      :language: console
+      :visible: false
+
+      Updated document count: 1
+      Completed
+
+Return Value
+~~~~~~~~~~~~
+
+The ``updateOne()`` and ``updateMany()`` methods each return an ``UpdateResult`` 
+object. You can use the following methods to access information from
+an ``UpdateResult`` instance:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``getMatchedCount()``
+     - | Returns the number of documents that matched the query filter, regardless of
+         how many updates were performed.
+
+   * - ``getModifiedCount()``
+     - | Returns the number of documents modified by the update operation. If an updated
+         document is identical to the original, it is not included in this
+         count.
+         
+   * - ``wasAcknowledged()``
+     - | Returns ``true`` if the server acknowledged the result.
+
+   * - ``getUpsertedId()``
+     - | Returns the ``_id`` value of the document that was upserted
+         in the database, if the driver performed an upsert.
+
+.. note::
+
+   If the ``wasAcknowledged()`` method returns ``false``, trying to
+   access other information from the ``UpdateResult`` instance results in an
+   ``InvalidOperation`` exception. The driver cannot 
+   determine these values if the server does not acknowledge the write
+   operation.
+
+Additional Information 
+----------------------
+
+To view runnable code examples that demonstrate how to update documents by
+using the {+driver-short+}, see :ref:`scala-write`.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `updateOne() <{+api+}/org/mongodb/scala/MongoCollection.html#updateOne(clientSession:org.mongodb.scala.ClientSession,filter:org.mongodb.scala.bson.conversions.Bson,update:Seq[org.mongodb.scala.bson.conversions.Bson],options:org.mongodb.scala.model.UpdateOptions):org.mongodb.scala.SingleObservable[org.mongodb.scala.result.UpdateResult]>`__
+- `updateMany() <{+api+}/org/mongodb/scala/MongoCollection.html#updateMany(clientSession:org.mongodb.scala.ClientSession,filter:org.mongodb.scala.bson.conversions.Bson,update:Seq[org.mongodb.scala.bson.conversions.Bson],options:org.mongodb.scala.model.UpdateOptions):org.mongodb.scala.SingleObservable[org.mongodb.scala.result.UpdateResult]>`__
+- `UpdateOptions <{+core-api+}/com/mongodb/client/model/UpdateOptions.html>`__
+- `UpdateResult <{+core-api+}/com/mongodb/client/result/UpdateResult.html>`__

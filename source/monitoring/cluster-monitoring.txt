@@ -1,0 +1,158 @@
+.. _scala-cluster-monitoring:
+
+==================
+Cluster Monitoring
+==================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, server, topology
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecols
+
+Overview
+--------
+
+This guide shows you how to use the {+driver-short+} to monitor server
+discovery and monitoring (SDAM) events in a MongoDB instance, replica
+set, or sharded cluster. These events occur when there are any changes
+in the state of the MongoDB instance or cluster that you are connected
+to.
+
+The {+driver-short+} defines nine SDAM events and provides the following
+listener interfaces, which listen for three SDAM events each:
+
+- ``ClusterListener``: Listens for events related to topology changes,
+  or changes in the state and structure of the cluster
+- ``ServerListener``: Listens for events related to individual server
+  changes
+- ``ServerMonitorListener``: Listens for heartbeat-related events, or
+  reports on the status of communication between replica set members
+
+You can use information about SDAM events in your application to
+understand cluster changes, assess cluster health, or perform capacity
+planning.
+
+.. _scala-subscribe-sdam:
+
+Subscribe to Events
+-------------------
+
+You can access details about SDAM events by subscribing to them
+in your application. To subscribe to an event, create a class that
+implements the ``ClusterListener``, ``ServerListener``, or
+``ServerMonitorListener`` interface. Then, add the listener to your
+client by configuring an instance of ``MongoClientSettings`` and passing
+it to the ``MongoClient`` constructor.
+
+The following code creates the ``TestClusterListener`` class, which implements
+the ``ClusterListener`` interface. The class contains the following methods
+to handle topology-related events:
+
+- ``clusterOpening()``: Prints a message when the driver first connects to a cluster
+- ``clusterClosed()``: Prints a message when the driver disconnects from a cluster
+- ``clusterDescriptionChanged()``: Prints a message about changes to the read
+  and write availability of the cluster
+
+.. literalinclude:: /includes/monitoring/sdam.scala
+   :start-after: start-listener-class
+   :end-before: end-listener-class
+   :language: scala
+   :copyable:
+   :dedent:
+
+Then, subscribe to the ``TestClusterListener`` class by configuring settings
+for your ``MongoClient`` instance, as shown in the following code:
+
+.. literalinclude:: /includes/monitoring/sdam.scala
+   :start-after: start-configure-client
+   :end-before: end-configure-client
+   :language: scala
+   :copyable:
+   :dedent:
+
+When you run the application, your subscriber records the SDAM event and
+outputs messages such as the following:
+
+.. code-block:: none
+   :copyable: false
+
+   Cluster with ID ClusterId{value='...', description='...'} opening
+   Writable server available
+   Readable server available
+   Cluster with ID ClusterId{value='...', description='...'} closed
+
+Event Descriptions
+------------------
+
+You can subscribe to SDAM events by defining a class that implements
+the event's corresponding listener interface and includes a method 
+to process the event. The following table provides the name of each SDAM event,
+the listener interface that handles the event, and a description of when
+the event is published:
+
+.. list-table::
+   :widths: 20 20 60
+   :header-rows: 1
+
+   * - Event Type
+     - Listener Interface
+     - Description
+
+   * - `ClusterDescriptionChangedEvent <{+core-api+}/com/mongodb/event/ClusterDescriptionChangedEvent.html>`__
+     - `ClusterListener <{+core-api+}/com/mongodb/event/ClusterListener.html>`__
+     - Created when the topology description changes, such as when there
+       is an election of a new primary.
+
+   * - `ClusterOpeningEvent <{+core-api+}/com/mongodb/event/ClusterOpeningEvent.html>`__
+     - `ClusterListener <{+core-api+}/com/mongodb/event/ClusterListener.html>`__
+     - Created when the driver first connects to the cluster.
+
+   * - `ClusterClosedEvent <{+core-api+}/com/mongodb/event/ClusterClosedEvent.html>`__
+     - `ClusterListener <{+core-api+}/com/mongodb/event/ClusterListener.html>`__
+     - Created when the driver disconnects from the cluster.
+
+   * - `ServerDescriptionChangedEvent <{+core-api+}/com/mongodb/event/ServerDescriptionChangedEvent.html>`__
+     - `ServerListener <{+core-api+}/com/mongodb/event/ServerListener.html>`__
+     - Created when the server description changes.
+
+   * - `ServerOpeningEvent <{+core-api+}/com/mongodb/event/ServerOpeningEvent.html>`__
+     - `ServerListener <{+core-api+}/com/mongodb/event/ServerListener.html>`__
+     - Created when a new server is added to the topology.
+
+   * - `ServerClosedEvent <{+core-api+}/com/mongodb/event/ServerClosedEvent.html>`__
+     - `ServerListener <{+core-api+}/com/mongodb/event/ServerListener.html>`__
+     - Created when an existing server is removed from the topology.
+
+   * - `ServerHeartbeatStartedEvent <{+core-api+}/com/mongodb/event/ServerHeartbeatStartedEvent.html>`__
+     - `ServerMonitorListener <{+core-api+}/com/mongodb/event/ServerMonitorListener.html>`__
+     - Created when the server monitor sends a ``hello`` command to the server.
+       This action is called a heartbeat.
+
+   * - `ServerHeartbeatSucceededEvent <{+core-api+}/com/mongodb/event/ServerHeartbeatSucceededEvent.html>`__
+     - `ServerMonitorListener <{+core-api+}/com/mongodb/event/ServerMonitorListener.html>`__
+     - Created when the heartbeat succeeds.
+
+   * - `ServerHeartbeatFailedEvent <{+core-api+}/com/mongodb/event/ServerHeartbeatFailedEvent.html>`__
+     - `ServerMonitorListener <{+core-api+}/com/mongodb/event/ServerMonitorListener.html>`__
+     - Created when the heartbeat fails.
+
+To see a full list of event monitoring classes, see the `event <{+core-api+}/com/mongodb/event/package-summary.html>`__
+package in the Java API documentation.
+
+API Documentation
+-----------------
+
+To learn more about any of the methods discussed in this guide, see the
+following API documentation:
+
+- `clusterOpening() <{+core-api+}/com/mongodb/event/ClusterListener.html#clusterOpening(com.mongodb.event.ClusterOpeningEvent)>`__
+- `clusterClosed() <{+core-api+}/com/mongodb/event/ClusterListener.html#clusterClosed(com.mongodb.event.ClusterClosedEvent)>`__
+- `clusterDescriptionChanged() <{+core-api+}/com/mongodb/event/ClusterListener.html#clusterDescriptionChanged(com.mongodb.event.ClusterDescriptionChangedEvent)>`__

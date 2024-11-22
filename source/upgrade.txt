@@ -1,0 +1,507 @@
+.. _scala-upgrade:
+
+=======================
+Upgrade Driver Versions
+=======================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: backwards compatibility, update
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this section, you can identify the changes you must
+make to your application to upgrade your driver to a new version.
+
+Before you upgrade, perform the following actions:
+
+- Ensure the new driver version is compatible with the {+mdb-server+} versions
+  your application connects to and the Java Runtime Environment (JRE) your
+  application runs on. To view compatibility information, see the
+  :ref:`Compatibility <scala-compatibility>` page.
+- Address any breaking changes between the current version of the driver
+  your application is using and your planned upgrade version in the
+  :ref:`Breaking Changes <scala-breaking-changes>` section. To learn
+  more about {+mdb-server+} release compatibility changes, see the
+  :ref:`<scala-server-release-changes>` section.
+
+.. tip::
+
+   To minimize the number of changes your application might require when
+   you upgrade driver versions in the future, use the
+   :ref:`{+stable-api+}. <scala-stable-api>`
+
+.. _scala-breaking-changes:
+
+Breaking Changes
+----------------
+
+A breaking change is a modification in a convention or behavior in
+a specific version of the driver that might prevent your application from
+working properly if not addressed before upgrading.
+
+The breaking changes in this section are categorized by the driver version that
+introduced them. When upgrading driver versions, address all the breaking
+changes between the current and upgrade versions. For example, if you
+are upgrading the driver from v4.0 to v4.7, address all breaking changes from
+the version after v4.0 including any listed for v4.7.
+
+.. _scala-breaking-changes-v5.2:
+
+Version 5.2 Breaking Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This driver version introduces the following breaking changes:
+
+- Drops support for {+mdb-server+} v3.6. To learn more about this change,
+  see the :ref:`<scala-server-release-change-v5.2>` section.
+
+- Revises the `mongodb-crypt <https://mvnrepository.com/artifact/org.mongodb/mongodb-crypt>`__
+  dependency versioning to match the versioning for the JVM drivers. Future versions of
+  ``mongodb-crypt`` will be released alongside the driver and will share the same version number.
+  You must upgrade your ``mongodb-crypt`` dependency to v5.2.0 when upgrading your driver for
+  this release.
+
+.. _scala-breaking-changes-v5.1:
+
+Version 5.1 Breaking Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This driver version introduces the following breaking changes:
+
+- When using the ``MONGODB-OIDC`` authentication mechanism, you must
+  not include comma characters in the ``authMechanismProperties`` connection
+  string value.
+
+.. _scala-breaking-changes-v5.0:
+
+Version 5.0 Breaking Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This driver version introduces the following breaking changes:
+
+- Introduces the following changes to the ``ConnectionId`` class:
+
+  - The ``ConnectionId`` constructor now accepts a value of type ``long`` as its second
+    parameter instead of type ``int``. Similarly, the constructor now accepts a value of
+    type ``Long`` as its third parameter instead of type ``Integer``. Because this change breaks
+    binary compatibility, recompile any existing code that calls the
+    ``ConnectionId`` constructor.
+
+  - The ``withServerValue()`` method now accepts a parameter of type ``long`` rather than
+    type ``int``. Because this change breaks binary compatibility, you must recompile any code
+    that calls the ``withServerValue()`` method.
+
+  - The ``getServerValue()`` method now returns a value of type ``Long`` instead of type
+    ``Integer``. Similarly, the ``getLocalValue()`` method returns a value of type
+    ``long`` instead of type ``int``. Because this change breaks both binary and source
+    compatibility, update any source code that uses these methods and rebuild your binary.
+
+- Replaces the following record annotations from the
+  ``org.bson.codecs.record.annotations`` package with
+  annotations of the same name from the ``org.bson.codecs.pojo.annotations`` package:
+
+  - ``BsonId``
+  - ``BsonProperty``
+  - ``BsonRepresentation``
+
+- Changes the data type of the ``connectTimeout`` timeout duration parameter for the
+  ``SocketSettings.Builder.connectTimeout()`` and
+  ``SocketSettings.Builder.readTimeout()`` methods. The data type of this
+  parameter is now ``long`` instead of ``int``.
+
+  In earlier versions, this parameter is of type ``int`` for both methods. This
+  change breaks binary compatibility and requires recompiling, but does not
+  require code changes.
+
+- Removes the ``Filters.eqFull()`` method, released
+  exclusively in ``Beta``, which allowed you
+  to construct an equality filter when performing a vector search.
+  Instead, you can use the ``Filters.eq()`` method when instantiating a
+  ``VectorSearchOptions`` type, as shown in the following code:
+
+  .. code-block:: java
+
+     VectorSearchOptions opts = vectorSearchOptions().filter(eq("x", 8));
+
+.. _scala-breaking-changes-v5.0-observables:
+
+- Removes the ``org.mongodb.scala.ObservableImplicits.ToSingleObservableVoid``
+  implicit class. The ``org.reactivestreams.Publisher[Void]`` type no longer
+  converts automatically to ``org.mongodb.scala.SingleObservable[Void]``. The
+  API also exposes ``org.mongodb.scala.Observable[Unit]`` instead of
+  ``org.mongodb.scala.Observable[Void]``.
+
+  For more information, see the `Observable
+  <https://mongodb.github.io/mongo-java-driver/5.0/apidocs/mongo-scala-driver/org/mongodb/scala/Observable.html>`__
+  trait in the Scala API documentation.
+
+- Changes how ``ClusterSettings`` computes the ``ClusterConnectionMode``
+  setting, making it more consistent by using the specified
+  replica set name, regardless of how it is configured. Previously, the driver
+  considered the replica set name only if it was set in the connection string.
+
+  For example, the following two code samples both return the value
+  ``ClusterConnectionMode.MULTIPLE``. Previously, the second example returned
+  ``ClusterConnectionMode.SINGLE``.
+
+  .. code-block:: java
+
+     ClusterSettings.builder()
+         .applyConnectionString(new ConnectionString("mongodb://127.0.0.1:27017/?replicaSet=replset"))
+         .build()
+         .getMode()
+
+  .. code-block:: java
+
+     ClusterSettings.builder()
+         .hosts(Collections.singletonList(
+                 new ServerAddress("127.0.0.1", 27017)
+         ))
+         .requiredReplicaSetName("replset")
+         .build()
+         .getMode()
+
+- ``BsonDecimal128`` values respond to method calls in the same way as
+  ``Decimal128`` values. ``BsonDecimal128.isNumber()`` now returns ``true`` and
+  ``BsonDecimal128.asNumber()`` returns the equivalent ``BsonNumber``.
+
+- Removes the `ServerAddress <{+core-api+}/com/mongodb/ServerAddress.html>`__
+  methods ``getSocketAddress()`` and ``getSocketAddresses()``.
+
+  Instead of ``getSocketAddress()``, use the ``getByName()`` instance
+  method of ``java.net.InetAddress``.
+
+  Instead of ``getSocketAddresses()``, use the ``getAllByName()`` instance
+  method of ``java.net.InetAddress``.
+
+- Removes the `UnixServerAddress <{+core-api+}/com/mongodb/UnixServerAddress.html>`__
+  methods ``getSocketAddress()`` and ``getUnixSocketAddress()``.
+
+  Instead of ``getSocketAddress()``, use the ``getByName()`` instance
+  method of ``java.net.InetAddress``.
+
+  Instead of ``getUnixSocketAddress()``, construct an instance of
+  ``jnr.unixsocket.UnixSocketAddress``. Pass the full path of the UNIX
+  socket file to the constructor. By default, MongoDB creates a UNIX
+  socket file located at ``"/tmp/mongodb-27017.sock"``. To learn more
+  about the ``UnixSocketAddress`` class, see the `UnixSocketAddress <https://www.javadoc.io/doc/com.github.jnr/jnr-unixsocket/latest/jnr/unixsocket/UnixSocketAddress.html>`__ API documentation.
+
+- Removes the ``Parameterizable`` interface. Instead of
+  implementing this interface on a custom ``Codec`` type,
+  override the ``CodecProvider.get()`` method on the
+  codec's ``CodecProvider`` if the codec is intended for a parameterized
+  type.
+
+- Removes the ``isSlaveOk()`` method from the
+  ``ReadPreference`` and ``TaggableReadPreference`` classes. To check whether a read preference allows
+  reading from a secondary member of a replica set, use the ``isSecondaryOk()`` methods from
+  these classes instead.
+
+- Removes the ``DBCollection.getStats()`` and ``DBCollection.isCapped()``
+  helper methods for the ``collStats`` command. Instead of these methods, you can use the
+  ``$collStats`` aggregation pipeline stage.
+
+- Removes the ``MapCodec`` and ``IterableCodec`` classes.
+  Instead of ``MapCodec``, use ``MapCodecProvider``. Instead of ``IterableCodec``,
+  use ``CollectionCodecProvider``, or ``IterableCodecProvider`` for ``Iterable``
+  types that aren't ``Collection`` types.
+
+- Removes the ``sharded()`` and ``nonAtomic()`` methods from the
+  ``MapReducePublisher`` and ``MapReduceIterable`` classes.
+
+- Removes the following methods for use with ``geoHaystack`` indexes:
+
+  - ``Indexes.geoHaystack()``
+  - ``IndexOptions.getBucketSize()``
+  - ``IndexOptions.bucketSize()``
+
+  Instead, you can use the ``$geoNear`` aggregation pipeline stage or a geospatial
+  query operator on a 2d index. For more information, see the
+  :manual:`Geospatial Queries </geospatial-queries>` page in the {+mdb-server+} manual.
+
+- Removes the ``oplogReplay`` option from find operations. The
+  following ``oplogReplay`` methods are no longer available:
+
+  - ``DBCursor.oplogReplay()``
+  - ``DBCollectionFindOptions.isOplogReplay()``
+  - ``DBCollectionFindOptions.oplogReplay()``
+  - ``FindPublisher.oplogReplay()``
+  - ``FindIterable.oplogReplay()``
+
+- Removes the following ``Exception`` constructors:
+
+  - ``MongoBulkWriteException(BulkWriteResult, List<BulkWriteError>, WriteConcernError, ServerAddress)``
+  - ``MongoCursorNotFoundException(long, ServerAddress)``
+  - ``MongoQueryException(ServerAddress, int, String)``
+  - ``MongoQueryException(ServerAddress, int, String, String)``
+  - ``MongoQueryException(MongoCommandException)``
+
+- Removes the following overloads for the ``BulkWriteResult.acknowledged()`` method:
+
+  - ``acknowledged(Type, int, List<BulkWriteUpsert>)``
+  - ``acknowledged(Type, int, Integer, List<BulkWriteUpsert>)``
+  - ``acknowledged(int, int, int, Integer, List<BulkWriteUpsert>)``
+
+- Removes the following ``ChangeStreamDocument`` constructors:
+
+  - ``ChangeStreamDocument(String, BsonDocument, BsonDocument, BsonDocument,
+    TDocument, TDocument, BsonDocument, ...)``
+  - ``ChangeStreamDocument(String, BsonDocument, BsonDocument, BsonDocument,
+    TDocument, BsonDocument, BsonTimestamp, ...)``
+  - ``ChangeStreamDocument(OperationType, BsonDocument, BsonDocument, BsonDocument,
+    TDocument, BsonDocument, BsonTimestamp, ...)``
+
+- Removes the following constructors for events:
+
+  - ``CommandEvent(RequestContext, int, ConnectionDescription, String)``
+  - ``CommandEvent(int, ConnectionDescription, String)``
+  - ``CommandEvent(RequestContext, long, int, ConnectionDescription, String)``
+  - ``CommandFailedEvent(RequestContext, int, ConnectionDescription, String,
+    long, Throwable)``
+  - ``CommandFailedEvent(int, ConnectionDescription, String, long, Throwable)``
+  - ``CommandStartedEvent(RequestContext, int, ConnectionDescription, String,
+    String, BsonDocument)``
+  - ``CommandStartedEvent(int, ConnectionDescription, String, String, BsonDocument)``
+  - ``CommandSucceededEvent(RequestContext, int, ConnectionDescription, String,
+    BsonDocument, long)``
+  - ``CommandSucceededEvent(int, ConnectionDescription, String, BsonDocument, long)``
+  - ``ConnectionCheckedInEvent(ConnectionId)``
+  - ``ConnectionCheckedOutEvent(ConnectionId, long)``
+  - ``ConnectionCheckedOutEvent(ConnectionId)``
+  - ``ConnectionCheckOutFailedEvent(ServerId, long, Reason)``
+  - ``ConnectionCheckOutFailedEvent(ServerId, Reason)``
+  - ``ConnectionCheckOutStartedEvent(ServerId)``
+  - ``ConnectionReadyEvent(ConnectionId)``
+  - ``ServerHeartbeatFailedEvent(ConnectionId, long, Throwable)``
+  - ``ServerHeartbeatSucceededEvent(ConnectionId, BsonDocument, long)``
+
+- Removes the ``errorLabels`` option from the ``WriteConcernError``
+  class. This includes the ``addLabel()`` and ``getErrorLabels()`` methods and the
+  constructor that includes an ``errorLabels`` parameter. Instead, you can use
+  the error labels included in the ``MongoException`` object that contains the
+  ``WriteConcernError``.
+
+- Removes the following classes from the
+  ``com.mongodb.event`` package:
+
+  - ``ConnectionAddedEvent``
+  - ``ConnectionPoolOpenedEvent``
+  - ``ConnectionRemovedEvent``
+  - ``ClusterListenerAdapter``
+  - ``ConnectionPoolListenerAdapter``
+  - ``ServerListenerAdapter``
+  - ``ServerMonitorListenerAdapter``
+
+  The driver also removes the following related methods from the
+  ``ConnectionPoolListener`` interface:
+
+  - ``connectionAdded()``
+  - ``connectionPoolOpened()``
+  - ``connectionRemoved()``
+
+  For more information about the ``com.mongodb.event`` package, see the
+  `API documentation. <{+core-api+}/com/mongodb/event/package-summary.html>`__
+
+.. _scala-breaking-changes-v5.0-list-collections:
+
+- Adds the ``authorizedCollection`` option for the ``listCollections`` command.
+  This introduces a breaking binary change in the ``MongoDatabase.listCollectionNames()``
+  method. This change does not require any changes to source code, but you must
+  recompile any code that uses this method.
+
+- Removes the following methods and types related to the
+  `Stream
+  <https://mongodb.github.io/mongo-java-driver/4.11/apidocs/mongodb-driver-core/com/mongodb/connection/Stream.html>`__
+  interface:
+
+  - ``MongoClientSettings.Builder.streamFactoryFactory()`` method.
+    Use the ``MongoClientSettings.Builder.transportSettings()`` method instead.
+  - ``MongoClientSettings.getStreamFactoryFactory()`` method.
+    Use the ``MongoClientSettings.getTransportSettings()`` method instead.
+  - ``NettyStreamFactoryFactory`` class.
+    Instead, call the ``TransportSettings.nettyBuilder()`` method to create
+    a ``NettyTransportSettings`` object. Then, call the ``MongoClientSettings.Builder.transportSettings()``
+    method to apply the settings.
+  - ``NettyStreamFactory`` class.
+  - ``AsynchronousSocketChannelStreamFactory`` class.
+  - ``AsynchronousSocketChannelStreamFactoryFactory`` class.
+  - ``BufferProvider`` interface.
+  - ``SocketStreamFactory`` class.
+  - ``Stream`` interface.
+  - ``StreamFactory`` interface.
+  - ``StreamFactoryFactory`` interface.
+  - ``TlsChannelStreamFactoryFactory`` class.
+
+.. _scala-breaking-changes-v4.8:
+
+Version 4.8 Breaking Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This driver version introduces the following breaking changes:
+
+- Ends support for connecting to {+mdb-server+} versions v3.4 and
+  earlier. To learn more about this change, see the :ref:`<scala-server-release-change-v4.8>`
+  section.
+- Requires adding an explicit dependency on the ``org.bson.codecs.record``
+  module if your application deploys the driver in an OSGi container and
+  relies on the driver for encoding and decoding Java records.
+
+- ``RecordCodec`` deserializes POJOs and record classes that are specified
+  as type parameters of ``List`` or ``Map`` fields to the proper record and POJO types.
+  Previously, this codec deserialized them as ``Document`` values.
+
+  For example, the following record class definitions show a ``Book`` record
+  that contains a ``List`` that receives a ``Chapter`` type parameter:
+
+  .. code-block:: java
+
+     public record Book(String title, List<Chapter> chapters) {}
+     public record Chapter(Integer number, String text) {}
+
+  Starting in this version, the codec deserializes data in the ``List`` into
+  ``Chapter`` record classes instead of ``Document`` values.
+
+.. _scala-breaking-changes-v4.7:
+
+Version 4.7 Breaking Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This driver version introduces the following breaking changes:
+
+- The ``setWindowFields`` builder API is no longer in beta. The new pipeline
+  stage builder method breaks binary and source compatibility. See the
+  `Aggregates <https://mongodb.github.io/mongo-java-driver/4.7/apidocs/mongodb-driver-core/com/mongodb/client/model/Aggregates.html>`__
+  API documentation for information about the new ``setWindowFields()`` method signatures.
+
+  If your application uses this builder in a version earlier than v4.7, update
+  your source code to use the new method signature and rebuild your binary.
+
+.. _scala-breaking-changes-v4.2:
+
+Version 4.2 Breaking Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This driver version introduces the following breaking changes:
+
+- Updates the ``ObjectId`` class and its ``serialVersionUID`` field
+  to use a new format that minimizes serialization compatibility issues
+  across different versions of the driver.
+
+  If an application using driver version 4.2 or later attempts to
+  perform Java Object Serialization on any objects that contain an
+  ``ObjectId`` and were serialized by a prior version of the driver, Java
+  throws an ``InvalidClassException``.
+
+  To learn more about Java Object Serialization, see `Serializable Objects 
+  <https://docs.oracle.com/javase/tutorial/jndi/objects/serial.html>`__ in
+  the Java documentation.
+
+.. _scala-breaking-changes-v4.0:
+
+Version 4.0 Breaking Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This driver version introduces the following breaking changes:
+
+- Removes several classes and methods marked as deprecated in the 3.12 release.
+- Modifies insert helper methods to return an ``InsertOneResult`` or
+  ``InsertManyResult`` object instead of ``void``.
+- Modifies ``toJson()`` methods in the ``BsonDocument``, ``Document``, and
+  ``DbObject`` classes to return a relaxed JSON format instead of a strict JSON
+  format. This makes the JSON documents more readable, but can make it more
+  difficult to identify the BSON type information, such as the difference
+  between a 32-bit and 64-bit integer. If your application relies on the
+  strict JSON format, use the strict mode when reading or writing data.
+- Changes the default BSON representation of ``java.util.UUID`` values
+  from ``JAVA_LEGACY`` to ``UNSPECIFIED``. Applications that store or retrieve
+  UUID values must explicitly specify which representation to use. You can
+  specify the representation in the ``uuidRepresentation`` property of
+  a ``MongoClientSettings`` object.
+
+  The UUID representation that you specify strictly controls how the driver
+  decodes UUIDs. In version 4.0, the ``JAVA_LEGACY`` representation works
+  only with subtype 3. In previous versions of the driver, if you specified the
+  ``JAVA_LEGACY`` representation, the driver would decode binary objects
+  of subtypes 3 and 4 as UUIDs. 
+
+  For a list of members in the ``UuidRepresentation`` enum, see the
+  `v4.0 API documentation. <https://mongodb.github.io/mongo-java-driver/4.0/apidocs/bson/org/bson/UuidRepresentation.html>`__
+
+- The connection pool no longer restricts the number of wait queue threads
+  or asynchronous tasks that require a connection to MongoDB. The
+  application throttles requests as necessary rather than depending on
+  the driver to throw a ``MongoWaitQueueFullException``.
+- The driver no longer logs using the ``java.util.logging`` package
+  and only supports the SLF4J logging framework.
+- The embedded and Android drivers were removed. If your application
+  relies on these drivers, you must continue to use a 3.x Java driver
+  version.
+- The uber JARs for the Java driver, ``mongo-java-driver`` and ``mongodb-driver``, are no
+  longer published. If your application relies on these uber JARs, remove
+  them as a dependency and use one of the following packages instead:
+  
+  - If your application uses the current API, add the ``mongodb-driver-sync`` package
+    as a dependency.
+  - If your application uses the legacy API, add the ``mongodb-driver-legacy`` package
+    as a dependency.
+
+- Several classes introduce binary compatibility breaks, such
+  as the method signature change to the insert helper methods. Recompile
+  any classes that link to the driver against this version or later to ensure
+  that they continue to work.
+
+.. _scala-server-release-changes:
+
+Server Release Compatibility Changes
+------------------------------------
+
+A server release compatibility change is a modification
+to the {+driver-short+} that discontinues support for a set of
+{+mdb-server+} versions.
+
+The driver discontinues support for a {+mdb-server+} version after it reaches
+end-of-life (EOL).
+
+To learn more about the MongoDB support for EOL products,
+see the `Legacy Support Policy <https://www.mongodb.com/support-policy/legacy>`__.
+
+.. _scala-server-8.1-incompatibility:
+
+Server Version 8.1 Support Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You cannot use a 3.x version of the {+driver-short+} to connect to a
+MongoDB deployment running {+mdb-server+} v8.1. Starting in {+mdb-server+} v8.1,
+the ``buildinfo`` command requires authentication, causing an
+incompatibility with the v3.x driver.
+
+.. _scala-server-release-change-v5.2:
+
+Driver Version 5.2 Server Support Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The v5.2 driver drops support for {+mdb-server+} v3.6. To use the
+v5.2 driver, your {+mdb-server+} must be v4.0 or later. To learn
+how to upgrade your {+mdb-server+} deployment, see :manual:`Release
+Notes </release-notes>` in the {+mdb-server+} manual.
+
+.. _scala-server-release-change-v4.8:
+
+Driver Version 4.8 Server Support Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The v4.8 driver drops support for {+mdb-server+} v3.4 and earlier.
+To use the v4.8 driver, your {+mdb-server+} must be v3.6 or later. To learn
+how to upgrade your {+mdb-server+} deployment, see :manual:`Release
+Notes </release-notes>` in the {+mdb-server+} manual.

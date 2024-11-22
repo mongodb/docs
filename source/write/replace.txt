@@ -1,0 +1,213 @@
+.. _scala-write-replace:
+
+=================
+Replace Documents
+=================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: modify, change, code example
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to perform a **replace
+operation** on a document in a MongoDB collection. A replace operation
+removes all fields and values from a specified document except the
+``_id`` field, and adds new fields and values that you specify. This
+operation differs from an update operation, which changes only
+specified fields in one or more documents.
+
+To learn more about update operations, see the
+:ref:`scala-write-update` guide.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``restaurants`` collection in the ``sample_restaurants``
+database from the :atlas:`Atlas sample datasets </sample-data>`. To access this collection
+from your Scala application, create a ``MongoClient`` object that connects to an Atlas cluster
+and assign the following values to your ``database`` and ``collection`` variables:
+
+.. literalinclude:: /includes/write/replace.scala
+    :language: scala
+    :dedent:
+    :start-after: start-db-coll
+    :end-before: end-db-coll
+
+To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see the
+:atlas:`Get Started with Atlas </getting-started>` guide.
+
+Replace Operation
+-----------------
+
+You can perform a replace operation in MongoDB by using the
+``replaceOne()`` method. This method removes all fields except the
+``_id`` field from the first document that matches the specified query filter. It
+then adds the fields and values you specify to the empty document.
+
+Required Parameters
+~~~~~~~~~~~~~~~~~~~
+
+You must pass the following parameters to the ``replaceOne()`` method:
+
+- **Query filter**, which matches which documents to update. To learn
+  more about query filters, see the :ref:`scala-specify-query`
+  guide.
+
+- **Replacement document**, which specifies the fields and values that
+  you want to replace the existing fields and values with.
+
+Replace One Document
+--------------------
+
+The following example uses the ``replaceOne()`` method to replace the
+fields and values of a document in which the value of the ``name`` field
+is ``"Primola Restaurant"``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/write/replace.scala
+      :start-after: start-replace-one
+      :end-before: end-replace-one
+      :language: scala
+      :dedent:
+
+   .. output::
+      :language: console
+      :visible: false
+
+      Replaced document count: 1
+      Completed
+
+.. important::
+
+   The value of the ``_id`` field is immutable. If your replacement
+   document specifies a value for the ``_id`` field, it must be the same
+   as the ``_id`` value of the existing document or the driver raises a
+   ``WriteError``.
+
+Customize the Replace Operation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``replaceOne()`` method optionally accepts a parameter with the ``ReplaceOptions`` data
+type. The ``ReplaceOptions`` class contains setter methods that you can use to configure
+the replace option. If you don't specify any options, the driver performs the replace
+operation with default settings.
+
+The following table describes the setter methods in the ``ReplaceOptions`` class:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``upsert()``
+     - | Specifies whether the replace operation performs an upsert operation if no 
+         documents match the query filter. For more information, see :manual:`upsert
+         behavior </reference/method/db.collection.replaceOne/#upsert>`
+         in the {+mdb-server+} manual.
+       | Defaults to ``false``.
+
+   * - ``bypassDocumentValidation()``
+     - | Specifies whether the update operation bypasses document validation. This lets you 
+         update documents that don't meet the schema validation requirements, if any 
+         exist. For more information about schema validation, see :manual:`Schema
+         Validation </core/schema-validation/#schema-validation>` in the {+mdb-server+} manual.
+       | Defaults to ``false``.
+
+   * - ``collation()``
+     - | Specifies the kind of language collation to use when sorting
+         results. For more information, see :manual:`Collation </reference/collation/#std-label-collation>`
+         in the {+mdb-server+} manual.
+
+   * - ``hint()``
+     - | Sets the index to use when matching documents. 
+         For more information, see the :manual:`hint statement
+         </reference/method/db.collection.replaceOne/#std-label-replace-one-hint>`
+         in the {+mdb-server+} manual.
+
+   * - ``let()``
+     - | Provides a map of parameter names and values to set top-level
+         variables for the operation. Values must be constant or closed
+         expressions that don't reference document fields.
+
+   * - ``comment()``
+     - | Sets a comment to attach to the operation.
+
+The following code sets the ``upsert`` option to ``true``, which instructs the
+driver to insert a new document that has the fields and values specified
+in the replacement document if the query filter doesn't match any
+existing documents:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/write/replace.scala
+      :start-after: start-replace-options
+      :end-before: end-replace-options
+      :language: scala
+      :dedent:
+
+   .. output::
+      :language: console
+      :visible: false
+
+      Replaced document count: 1
+      Completed
+
+Return Value
+~~~~~~~~~~~~
+
+The ``replaceOne()`` method returns an ``UpdateResult`` 
+object. You can use the following methods to access information from
+an ``UpdateResult`` instance:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``getMatchedCount()``
+     - | Returns the number of documents that matched the query filter.
+
+   * - ``getModifiedCount()``
+     - | Returns the number of documents modified by the update operation. If an updated
+         document is identical to the original, it is not included in this
+         count.
+         
+   * - ``wasAcknowledged()``
+     - | Returns ``true`` if the server acknowledged the result.
+
+   * - ``getUpsertedId()``
+     - | Returns the ``_id`` value of the document that the driver upserted
+         into the database, if any.
+
+Additional Information 
+----------------------
+
+To view a runnable code example that demonstrates how to replace a
+document, see :ref:`scala-write`.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `replaceOne() <{+api+}/org/mongodb/scala/MongoCollection.html#replaceOne(clientSession:org.mongodb.scala.ClientSession,filter:org.mongodb.scala.bson.conversions.Bson,replacement:TResult,options:org.mongodb.scala.model.ReplaceOptions):org.mongodb.scala.SingleObservable[org.mongodb.scala.result.UpdateResult]>`__
+- `UpdateResult <{+core-api+}/com/mongodb/client/result/UpdateResult.html>`__

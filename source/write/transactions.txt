@@ -1,0 +1,164 @@
+.. _scala-transactions:
+
+=====================
+Perform a Transaction
+=====================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, ACID compliance, multi-document
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to perform
+**transactions**. Transactions allow you to perform a series of operations
+that change data only if the entire transaction is committed.
+If any operation in the transaction does not succeed, the driver stops the
+transaction and discards all data changes before they ever become
+visible. This feature is called **atomicity**.
+
+In MongoDB, transactions run within logical **sessions**. A
+session is a grouping of related read or write operations that you
+want to run sequentially. Sessions enable causal consistency for a group
+of operations and allow you to run operations in an **ACID-compliant**
+transaction, which is a transaction that meets an expectation of
+atomicity, consistency, isolation, and durability. MongoDB guarantees
+that the data involved in your transaction operations remains
+consistent, even if the operations encounter unexpected errors.
+
+When using the {+driver-short+}, you can start a ``ClientSession`` by
+calling the ``startSession()`` method on your client. Then, you can
+perform transactions within the session.
+
+.. warning::
+
+   Use a ``ClientSession`` only in operations running on the
+   ``MongoClient`` that created it. Using a ``ClientSession`` with a
+   different ``MongoClient`` results in operation errors.
+
+Methods
+-------
+
+After calling the ``startSession()`` method to start a session, you can
+use methods from the ``ClientSession`` class to modify the session state.
+The following table describes the methods you can use to manage a
+transaction:
+
+.. list-table::
+   :widths: 25 75
+   :stub-columns: 1
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``startTransaction()``
+     - | Starts a new transaction on this session. You cannot start a
+         transaction if there's already an active transaction running in
+         the session.
+       |
+       | You can set transaction options by passing a ``TransactionOptions``
+         instance as a parameter.
+
+   * - ``commitTransaction()``
+     - | Commits the active transaction for this session. This method returns an
+         error if there is no active transaction for the session, the
+         transaction was previously ended, or if there is a write conflict.
+
+   * - ``abortTransaction()``
+     - | Ends the active transaction for this session. This method returns an
+         error if there is no active transaction for the session or if the
+         transaction was committed or ended.
+
+.. _scala-txn-example:
+
+Transaction Example
+-------------------
+
+This example defines a ``runTransaction()`` method that
+modifies data in the collections of the ``sample_mflix`` database.
+The code performs the following actions:
+
+- Creates ``MongoCollection`` instances to access the ``movies``
+  and ``users`` collections
+- Specifies the read and write concern for the transaction
+- Starts the transaction
+- Inserts a document into the ``movies`` collection and prints the results
+- Updates a document in the ``users`` collection and prints the results
+
+.. literalinclude:: /includes/write/transaction.scala
+   :copyable:
+   :language: scala
+   :dedent:
+   :start-after: begin-transaction-method
+   :end-before: end-transaction-method
+
+.. note::
+
+   Within a transaction, operations must run in sequence. The preceding
+   code awaits the result of each write operation to ensure that the operations
+   do not run concurrently.
+
+Then, run the following code to perform the transaction. This code
+completes the following actions:
+
+- Creates a session from the client by using the ``startSession()`` method
+- Calls the ``runTransaction()`` method defined in the preceding example, passing
+  the database and the session as parameters
+- Commits the transaction by calling the ``commitTransaction()`` method and waits
+  for the operations to complete
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/write/transaction.scala
+      :language: scala
+      :dedent:
+      :start-after: start-perform-transaction
+      :end-before: end-perform-transaction
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      Insert completed: AcknowledgedInsertOneResult{insertedId=BsonObjectId{value=...}}
+      Update completed: AcknowledgedUpdateResult{matchedCount=1, modifiedCount=1, upsertedId=null}
+
+Additional Information
+----------------------
+
+To learn more about the concepts mentioned in this guide, see the
+following pages in the {+mdb-server+} manual:
+
+- :manual:`Transactions </core/transactions/>`
+- :manual:`Server Sessions </reference/server-sessions/>`
+- :manual:`Read Isolation, Consistency, and Recency
+  </core/read-isolation-consistency-recency/>`
+
+To learn more about ACID compliance, see the :website:`A Guide to ACID Properties in Database Management Systems
+</basics/acid-transactions>` article on the MongoDB website.
+
+To learn more about insert operations, see the
+:ref:`scala-write-insert` guide.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the methods and types mentioned in this
+guide, see the following API documentation:
+
+- `MongoClient <{+api+}/org/mongodb/scala/MongoClient.html>`__
+- `startSession() <{+api+}/org/mongodb/scala/MongoCluster.html#startSession():org.mongodb.scala.SingleObservable[org.mongodb.scala.ClientSession]>`__
+- `startTransaction() <{+core-api+}/com/mongodb/client/ClientSession.html#startTransaction()>`__
+- `commitTransaction() <{+api+}/org/mongodb/scala/ClientSessionImplicits$ScalaClientSession.html#commitTransaction():org.mongodb.scala.SingleObservable[Unit]>`__
+- `abortTransaction() <{+api+}/org/mongodb/scala/ClientSessionImplicits$ScalaClientSession.html#abortTransaction():org.mongodb.scala.SingleObservable[Unit]>`__

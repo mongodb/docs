@@ -1,0 +1,247 @@
+.. _scala-retrieve:
+
+=============
+Retrieve Data
+=============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: code examples, read, query, cursor
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to retrieve
+data from a MongoDB collection by using **read operations**. You can call the
+``find()`` method on a collection to retrieve documents that match a set of
+criteria.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``companies`` collection in the ``sample_training``
+database from the :atlas:`Atlas sample datasets </sample-data>`. To access this collection
+from your Scala application, create a ``MongoClient`` that connects to an Atlas cluster
+and assign the following value to your ``database`` and ``collection`` variables:
+
+.. literalinclude:: /includes/read/retrieve.scala
+    :language: scala
+    :dedent:
+    :start-after: start-db-coll
+    :end-before: end-db-coll
+
+To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see the
+:atlas:`Get Started with Atlas </getting-started>` guide.
+
+.. _scala-retrieve-find:
+
+Find Documents
+--------------
+
+To retrieve documents from a collection, use the ``find()`` method. This method
+takes a **query filter** parameter and returns an instance of the ``FindObservable`` class 
+from which you can access the query results. The ``FindObservable`` class also
+provides additional methods that you can chain to a ``FindObservable`` instance to modify
+its behavior, such as ``first()``.
+
+.. tip::
+    
+   To learn more about query filters, see the :ref:`scala-specify-query` guide.
+
+.. _scala-retrieve-find-multiple:
+
+Find Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To find multiple documents in a collection, pass a query filter to the
+``find()`` method that specifies the criteria of the documents you want to
+retrieve. 
+
+The ``find()`` method returns an instance of ``FindObservable``, which you can
+iterate to see the matching documents. Use the ``subscribe()`` method to iterate
+through the ``FindObservable``.
+
+The following example uses the ``find()`` method to find all documents in which
+the ``founded_year`` field has the value ``1970`` and prints the results:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/retrieve.scala
+      :start-after: start-find-many
+      :end-before: end-find-many
+      :language: scala
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      {"_id":{"$oid":"..."},"name":"Mitsubishi Motors","permalink":"mitsubishi-motors",
+      "crunchbase_url":"http://www.crunchbase.com/company/mitsubishi-motors",
+      ... }
+
+      {"_id":{"$oid":"..."},"name":"Western Digital","permalink":"western-digital",
+      "crunchbase_url":"http://www.crunchbase.com/company/western-digital",
+      ... }
+
+      {"_id":{"$oid":"..."},"name":"Celarayn","permalink":"celarayn","crunchbase_url":
+      "http://www.crunchbase.com/company/celarayn",
+      ... }
+
+.. note:: Find All Documents
+
+   To find all documents in a collection, call the ``find()`` method
+   without passing any parameters:
+
+   .. code-block:: scala
+
+      collection.find()
+      
+.. _scala-retrieve-find-one:
+
+Find One Document
+~~~~~~~~~~~~~~~~~
+
+To find a single document in a collection, call the ``find()`` method
+and pass a query filter that specifies the criteria of the document you want
+to find. Then, chain the ``first()`` method to ``find()``.
+
+The ``find()`` method returns a ``FindObservable`` instance, and the ``first()``
+method returns a ``SingleObserver`` instance that contains the first query result
+stored by the ``FindObservable``. You can access the ``SingleObserver`` result
+by calling the ``subscribe()`` method.
+
+The following example uses the ``find()`` and ``first()`` methods to find the
+first document in which the ``name`` field has the value ``"LinkedIn"``:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/retrieve.scala
+      :start-after: start-find-one
+      :end-before: end-find-one
+      :language: scala
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      {"_id": {"$oid": "..."}, "name": "LinkedIn", "permalink": "linkedin", "crunchbase_url":
+      "http://www.crunchbase.com/company/linkedin", "homepage_url": "http://linkedin.com",
+      ...}
+   
+.. tip:: Sort Order
+
+   The ``first()`` method returns the first document in 
+   :manual:`natural order </reference/glossary/#std-term-natural-order>`
+   on disk if no sort criteria is specified.
+
+.. _scala-retrieve-modify:
+
+Modify Find Behavior
+~~~~~~~~~~~~~~~~~~~~
+
+You can modify the behavior of the ``find()`` method by chaining
+methods provided by the ``FindObservable`` class. The following
+table describes some of these methods:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``explain()`` 
+     - | Explains the execution plan for this operation with the specified verbosity level.
+       | **Parameter Type**: ``ExplainVerbosity``
+
+   * - ``collation()`` 
+     - | Sets the collation to use for the operation. The default value is the collation
+         specified for the collection.
+       | **Parameter Type**: ``Collation``
+
+   * - ``comment()`` 
+     - | Attaches a comment to the operation.
+       | **Parameter Type**: ``String``
+
+   * - ``first()`` 
+     - | Returns an ``Observable`` that stores only the first query result. To view an example that
+         uses this method, see :ref:`scala-retrieve-find-one` on this page.
+
+   * - ``limit()`` 
+     - | Sets the maximum number of documents the operation can return.
+       | **Parameter Type**: ``Int``
+
+   * - ``skip()`` 
+     - | Sets the number of documents to skip before returning results.
+       | **Parameter Type**: ``Int``
+
+   * - ``sort()`` 
+     - | Sets the order in which the operation returns matching documents.
+       | **Parameter Type**: ``Bson``
+
+The following example uses the ``find()`` method to find all documents in which
+the ``number_of_employees`` field has the value ``1000``. The example uses the
+``limit()`` method to return a maximum of ``5`` results:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/retrieve.scala
+      :start-after: start-modify
+      :end-before: end-modify
+      :language: scala
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      {"_id": {"$oid": "..."}, "name": "Akamai Technologies", "permalink": "akamai-technologies",
+      "crunchbase_url": "http://www.crunchbase.com/company/akamai-technologies", "homepage_url":
+      "http://www.akamai.com", ... }
+
+      {"_id": {"$oid": "..."}, "name": "Yodle", "permalink": "yodle", "crunchbase_url":
+      "http://www.crunchbase.com/company/yodle", "homepage_url": "http://www.yodle.com", ... }
+
+      {"_id": {"$oid": "..."}, "name": "Antal International", "permalink": "antal-international",
+      "crunchbase_url": "http://www.crunchbase.com/company/antal-international", "homepage_url":
+      "http://antal.com", ... }
+
+      {"_id": {"$oid": "..."}, "name": "Yatra online", "permalink": "yatra-online", "crunchbase_url":
+      "http://www.crunchbase.com/company/yatra-online", "homepage_url": "http://www.Yatra.com", ... }
+
+      {"_id": {"$oid": "..."}, "name": "Gumtree", "permalink": "gumtree", "crunchbase_url":
+      "http://www.crunchbase.com/company/gumtree", "homepage_url": "http://www.gumtree.co.za", ... }
+
+For a full list of ``FindObservable`` member methods, see the API documentation for the
+`FindObservable <{+api+}/org/mongodb/scala/FindObservable.html>`__ class.
+
+.. _scala-retrieve-additional-information:
+
+Additional Information
+----------------------
+
+To learn more about query filters, see the :ref:`scala-specify-query` guide.
+
+To view code examples that retrieve documents by using the {+driver-short+},
+see :ref:`scala-read`.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods discussed in this
+guide, see the following API documentation:
+
+- `find() <{+api+}/org/mongodb/scala/MongoCollection.html#find[C](filter:org.mongodb.scala.bson.conversions.Bson)(implicite:org.mongodb.scala.bson.DefaultHelper.DefaultsTo[C,TResult],implicitct:scala.reflect.ClassTag[C]):org.mongodb.scala.FindObservable[C]>`__
+- `first() <{+api+}/org/mongodb/scala/FindObservable.html#first():org.mongodb.scala.SingleObservable[TResult]>`__
+- `limit() <{+api+}/org/mongodb/scala/FindObservable.html#limit(limit:Int):org.mongodb.scala.FindObservable[TResult]>`__

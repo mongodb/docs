@@ -1,0 +1,225 @@
+.. _scala-gridfs:
+
+=================================
+Store Large Files by Using GridFS
+=================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: binary large object, blob, storage
+
+Overview
+--------
+
+In this guide, you can learn how to store and retrieve large files in
+MongoDB by using **GridFS**. GridFS is a specification that describes how to split files
+into chunks when storing them and reassemble them when retrieving them. The {+driver-short+}'s
+implementation of GridFS is an abstraction that manages the operations and organization of
+the file storage. 
+
+Use GridFS if the size of your files exceeds the BSON document
+size limit of 16MB. For more detailed information on whether GridFS is
+suitable for your use case, see :manual:`GridFS </core/gridfs>` in the
+{+mdb-server+} manual.
+
+The following sections describe GridFS operations and how to
+perform them.
+
+How GridFS Works
+----------------
+
+GridFS organizes files in a **bucket**, a group of MongoDB collections
+that contain the chunks of files and information describing them. The
+bucket contains the following collections, named using the convention
+defined in the GridFS specification:
+
+- The ``chunks`` collection stores the binary file chunks.
+- The ``files`` collection stores the file metadata.
+
+When you create a new GridFS bucket, the driver creates the ``fs.chunks`` and ``fs.files``
+collections, unless you specify a different name in the ``GridFSBucket()`` constructor. The
+driver also creates an index on each collection to ensure efficient retrieval of the files and related
+metadata. The driver creates the GridFS bucket, if it doesn't exist, only when the first write
+operation is performed. The driver creates indexes only if they don't exist and when the
+bucket is empty. For more information about
+GridFS indexes, see :manual:`GridFS Indexes </core/gridfs/#gridfs-indexes>`
+in the {+mdb-server+} manual.
+
+When storing files with GridFS, the driver splits the files into smaller
+chunks, each represented by a separate document in the ``chunks`` collection.
+It also creates a document in the ``files`` collection that contains
+a file ID, file name, and other file metadata. You can upload the file from
+memory or from a stream. See the following diagram to see how GridFS splits
+the files when uploaded to a bucket.
+
+.. figure:: /includes/figures/GridFS-upload.png
+   :alt: A diagram that shows how GridFS uploads a file to a bucket
+
+When retrieving files, GridFS fetches the metadata from the ``files``
+collection in the specified bucket and uses the information to reconstruct
+the file from documents in the ``chunks`` collection. You can read the file
+into memory or output it to a stream.
+
+Create a GridFS Bucket
+----------------------
+
+To store or retrieve files from GridFS, create a GridFS bucket by calling the
+``GridFSBucket()`` constructor and passing in a ``MongoDatabase`` instance.
+You can use the ``GridFSBucket`` instance to
+call read and write operations on the files in your bucket.
+
+.. literalinclude:: /includes/write/gridfs.scala
+   :language: scala
+   :dedent:
+   :start-after: start-create-bucket
+   :end-before: end-create-bucket
+
+To create or reference a bucket with a custom name other than the default name
+``fs``, pass your bucket name as the second parameter to the ``GridFSBucket()``
+constructor, as shown in the following example:
+
+.. literalinclude:: /includes/write/gridfs.scala
+   :language: scala
+   :dedent:
+   :start-after: start-create-custom-bucket
+   :end-before: end-create-custom-bucket
+
+Upload Files
+------------
+
+The ``GridFSBucket.uploadFromObservable()`` method reads the contents of an
+``Observable[ByteBuffer]`` and saves it to the ``GridFSBucket`` instance.
+
+You can use the ``GridFSUploadOptions`` type to configure the chunk size or include
+additional metadata.
+
+The following example uploads the contents of an ``Observable[ByteBuffer]`` into
+``GridFSBucket``:
+
+.. literalinclude:: /includes/write/gridfs.scala
+   :language: scala
+   :dedent:
+   :start-after: start-upload-files
+   :end-before: end-upload-files
+
+Retrieve File Information
+-------------------------
+
+In this section, you can learn how to retrieve file metadata stored in the
+``files`` collection of the GridFS bucket. The metadata contains information
+about the file it refers to, including:
+
+- The ``_id`` of the file
+- The name of the file
+- The length/size of the file
+- The upload date and time
+- A ``metadata`` document in which you can store any other information
+
+To learn more about fields you can retrieve from the ``files`` collection, see the
+:manual:`GridFS Files Collection </core/gridfs/#the-files-collection>` documentation in the
+{+mdb-server+} manual.
+
+To retrieve files from a GridFS bucket, call the ``find()`` method on the ``GridFSBucket``
+instance. The following code example retrieves and prints file metadata from all files in
+a GridFS bucket:
+
+.. literalinclude:: /includes/write/gridfs.scala
+   :language: scala
+   :dedent:
+   :start-after: start-retrieve-file-info
+   :end-before: end-retrieve-file-info
+
+To learn more about querying MongoDB, see :ref:`<scala-retrieve>`.
+
+Download Files
+--------------
+
+The ``downloadToObservable()`` method returns an ``Observable[ByteBuffer]``
+that reads the contents from MongoDB.
+
+To download a file by its file ``_id``, pass the ``_id`` to the method.
+The following example downloads a file by its file ``_id``:
+
+.. literalinclude:: /includes/write/gridfs.scala
+   :language: scala
+   :dedent:
+   :start-after: start-download-files-id
+   :end-before: end-download-files-id
+
+If you don't know the ``_id`` of the file but know the filename, then you
+can pass the filename to the ``downloadToObservable()`` method. The following example
+downloads a file named ``mongodb-tutorial``:
+
+.. literalinclude:: /includes/write/gridfs.scala
+   :language: scala
+   :dedent:
+   :start-after: start-download-files-name
+   :end-before: end-download-files-name
+
+.. note::
+
+   If there are multiple documents with the same ``filename`` value,
+   GridFS will fetch the most recent file with the given name (as
+   determined by the ``uploadDate`` field).
+
+Rename Files
+------------
+
+Use the ``rename()`` method to update the name of a GridFS file in your
+bucket. You must specify the file to rename by its ``_id`` field
+rather than its file name.
+
+The following example renames a file to ``mongodbTutorial``:
+
+.. literalinclude:: /includes/write/gridfs.scala
+   :language: scala
+   :dedent:
+   :start-after: start-rename-files
+   :end-before: end-rename-files
+
+.. note::
+
+   The ``rename()`` method supports updating the name of only one file at
+   a time. To rename multiple files, retrieve a list of files matching the
+   file name from the bucket, extract the ``_id`` field from the files you
+   want to rename, and pass each value in separate calls to the ``rename()``
+   method.
+
+Delete Files
+------------
+
+Use the ``delete()`` method to remove a file's collection document and associated
+chunks from your bucket. You must specify the file by its ``_id`` field rather than its
+file name.
+
+The following example deletes a file by its ``_id``:
+
+.. literalinclude:: /includes/write/gridfs.scala
+   :language: scala
+   :dedent:
+   :start-after: start-delete-files
+   :end-before: end-delete-files
+
+.. note::
+
+   The ``delete()`` method supports deleting only one file at a time. To
+   delete multiple files, retrieve the files from the bucket, extract
+   the ``_id`` field from the files you want to delete, and pass each value
+   in separate calls to the ``delete()`` method.
+
+API Documentation
+-----------------
+
+To learn more about using GridFS to store and retrieve large files,
+see the following API documentation:
+
+- `GridFSBucket <{+api+}/org/mongodb/scala/gridfs/GridFSBucket$.html>`__

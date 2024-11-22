@@ -1,0 +1,285 @@
+.. _scala-change-streams:
+
+====================
+Monitor Data Changes
+====================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: watch, code example
+
+Overview
+--------
+
+In this guide, you can learn how to use a **change stream** to monitor real-time
+changes to your data. A change stream is a {+mdb-server+} feature that
+allows your application to subscribe to data changes on a collection, database,
+or deployment.
+
+When using the {+driver-short+}, you can call the ``watch()`` method to return an
+instance of ``ChangeStreamObservable``. Then, you can subscribe to the
+``ChangeStreamObservable`` instance to see new data changes, such as updates,
+insertions, and deletions.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``restaurants`` collection in the ``sample_restaurants``
+database from the :atlas:`Atlas sample datasets </sample-data>`. To access this collection
+from your Scala application, create a ``MongoClient`` that connects to an Atlas cluster
+and assign the following values to your ``database`` and ``collection`` variables:
+
+.. literalinclude:: /includes/read/change-streams.scala
+    :language: scala
+    :dedent:
+    :start-after: start-db-coll
+    :end-before: end-db-coll
+
+.. tip::
+
+   To learn how to create a free MongoDB Atlas cluster and load the sample datasets,
+   see the :atlas:`Get Started with Atlas </getting-started>` guide.
+
+Some examples use instances of the ``LatchedObserver`` class to handle change
+stream events. This class is a custom observer that prints change stream events
+and continues monitoring data changes until the stream completes or generates
+an error. To use the ``LatchedObserver`` class, paste the following code into
+your application file:
+
+.. literalinclude:: /includes/read/change-streams.scala
+    :language: scala
+    :dedent:
+    :start-after: start-latched-observer
+    :end-before: end-latched-observer
+
+Open a Change Stream
+--------------------
+
+To open a change stream, call the ``watch()`` method. The instance on which you
+call the ``watch()`` method determines the scope of events that the change
+stream monitors. You can call the ``watch()`` method on instances of the following
+classes:
+
+- ``MongoClient``: Monitors changes to all collections across all databases
+  in a deployment, excluding :manual:`system collections </reference/system-collections/>`
+  or collections in the ``admin``, ``local``, and ``config`` databases
+- ``MongoDatabase``: Monitors changes to all collections in one database
+- ``MongoCollection``: Monitors changes to one collection
+
+The following example calls the ``watch()`` method to open a change stream on the
+``restaurants`` collection. The code creates a ``LatchedObserver`` instance to
+receive and output changes as they occur:
+
+.. literalinclude:: /includes/read/change-streams.scala
+   :start-after: start-open-change-stream
+   :end-before: end-open-change-stream
+   :language: scala
+   :dedent:
+
+To begin watching for changes, run the preceding code. Then, in a separate
+shell, run the following code to update a document that has a ``name`` field
+value of ``"Blarney Castle"``:
+
+.. _scala-change-stream-update:
+
+.. literalinclude:: /includes/read/change-streams.scala
+   :start-after: start-update-for-change-stream
+   :end-before: end-update-for-change-stream
+   :language: scala
+   :dedent:
+
+When you run the preceding code to update the collection, the change stream
+application prints the change as it occurs. The printed change event resembles
+the following output:
+
+.. code-block:: none
+   :copyable: false
+
+   ChangeStreamDocument{ operationType=update, resumeToken={"_data": "..."},
+   namespace=sample_restaurants.restaurants, destinationNamespace=null, 
+   fullDocument=null, fullDocumentBeforeChange=null, documentKey={"_id": {...}},
+   clusterTime=Timestamp{...}, updateDescription=UpdateDescription{removedFields=[],
+   updatedFields={"cuisine": "Irish"}, truncatedArrays=[], disambiguatedPaths=null},
+   txnNumber=null, lsid=null, splitEvent=null, wallTime=BsonDateTime{...}}
+
+Modify the Change Stream Output
+-------------------------------
+
+To modify the change stream output, you can pass a list of pipeline stages as a
+parameter to the ``watch()`` method. You can include the following stages in the
+list:
+
+- ``$addFields`` or ``$set``: Adds new fields to documents
+- ``$match``: Filters the documents
+- ``$project``: Projects a subset of the document fields
+- ``$replaceWith`` or ``$replaceRoot``: Replaces the input document with the
+  specified document
+- ``$redact``: Restricts the contents of the documents
+- ``$unset``: Removes fields from documents
+
+The {+driver-short+} provides the ``Aggregates`` class, which includes helper methods
+for building the preceding pipeline stages. 
+
+.. tip::
+   
+   To learn more about pipeline stages and their corresponding ``Aggregates``
+   helper methods, see the following resources:
+   
+   - :manual:`Aggregation Stages </reference/operator/aggregation-pipeline/>` in the
+     {+mdb-server+} manual
+   - `Aggregates <{+api+}/org/mongodb/scala/model/Aggregates$.html>`__ in the API
+     documentation
+
+The following example creates a pipeline that uses the ``Aggregates.filter()`` method
+to build the ``$match`` stage. Then, the code passes this pipeline to the ``watch()``
+method and instructs ``watch()`` to output events only when update operations occur:
+
+.. literalinclude:: /includes/read/change-streams.scala
+   :start-after: start-change-stream-pipeline
+   :end-before: end-change-stream-pipeline
+   :language: scala
+   :dedent:
+
+Modify watch() Behavior
+-----------------------
+
+You can modify the behavior of the ``watch()`` method by chaining
+methods provided by the ``ChangeStreamObservable`` class. The following
+table describes some of these methods:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``fullDocument()``
+     - | Specifies whether to show the full document after the change, rather
+         than showing only the changes made to the document. To learn more about
+         this option, see the :ref:`scala-change-stream-pre-post-image` section of this
+         guide.
+
+   * - ``fullDocumentBeforeChange()``
+     - | Specifies whether to show the full document as it was before the change, rather
+         than showing only the changes made to the document. To learn more about
+         this option, see :ref:`scala-change-stream-pre-post-image`.
+
+   * - ``comment()``
+     - | Attaches a comment to the operation.
+
+   * - ``startAtOperationTime()``
+     - | Instructs the change stream to provide only changes that occurred at or after
+         the specified timestamp.
+
+   * - ``collation()``
+     - | Sets the collation to use for the change stream cursor.
+
+For a full list of ``watch()`` options, see `ChangeStreamObservable
+<{+api+}/org/mongodb/scala/ChangeStreamObservable.html>`__ in the API
+documentation.
+
+.. _scala-change-stream-pre-post-image:
+
+Include Pre-Images and Post-Images
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. important::
+
+   You can enable pre-images and post-images on collections only if your
+   deployment uses {+mdb-server+} v6.0 or later.
+
+By default, when you perform an operation on a collection, the
+corresponding change event includes only the modified fields and
+their values before and after the operation. 
+
+You can instruct the ``watch()`` method to return the document's **pre-image**, the
+full version of the document *before* changes, in addition to the modified fields. To
+include the pre-image in the change stream event, chain the ``fullDocumentBeforeChange()``
+method to ``watch()``. Pass one of the following values to the ``fullDocumentBeforeChange()``
+method:
+
+- ``FullDocumentBeforeChange.WHEN_AVAILABLE``: The change event includes a pre-image
+  of the modified document for change events. If the pre-image is not available, this
+  change event field has a ``null`` value.
+- ``FullDocumentBeforeChange.REQUIRED``: The change event includes a pre-image
+  of the modified document for change events. If the pre-image is not available, the
+  server raises an error.  
+
+You can also instruct the ``watch()`` method to return the document's **post-image**,
+the full version of the document *after* changes, in addition to the modified fields.
+To include the post-image in the change stream event, chain the ``fullDocument()``
+method to ``watch()``. Pass one of the following values to the ``fullDocument()`` method:
+
+- ``FullDocument.UPDATE_LOOKUP``: The change event includes a
+  copy of the entire changed document from some time after the change.
+- ``FullDocument.WHEN_AVAILABLE``: The change event includes
+  a post-image of the modified document for change events. If the post-image is not
+  available, this change event field has a ``null`` value.
+- ``FullDocument.REQUIRED``: The change event includes a post-image
+  of the modified document for change events. If the post-image is not available, the
+  server raises an error.
+
+The following example calls the ``watch()`` method on a collection and includes the post-image
+of updated documents by chaining the ``fullDocument()`` method:
+
+.. literalinclude:: /includes/read/change-streams.scala
+   :start-after: start-change-stream-post-image
+   :end-before: end-change-stream-post-image
+   :language: scala
+   :dedent:
+
+With the change stream application running in a separate shell, updating a
+document in the ``restaurants`` collection by using the :ref:`preceding update
+example <scala-change-stream-update>` prints a change event that resembles the following
+output:
+
+.. code-block:: none
+   :copyable: false
+   :emphasize-lines: 3-8
+
+   ChangeStreamDocument{ operationType=update, resumeToken={"_data": "..."},
+   namespace=sample_restaurants.restaurants, destinationNamespace=null,
+   fullDocument=Iterable((_id,BsonObjectId{...}), (address,{"building": "202-24",
+   "coord": [-73.9250442, 40.5595462], "street": "Rockaway Point Boulevard",
+   "zipcode": "11697"}), (borough,BsonString{value='Queens'}),
+   (cuisine,BsonString{value='Irish'}), (grades,BsonArray{values=[...]}),
+   (name,BsonString{value='Blarney Castle'}), (restaurant_id,BsonString{...}),
+   (blank,BsonString{value='Irish'})), fullDocumentBeforeChange=null,
+   documentKey={"_id": {"$oid": "..."}}, clusterTime=Timestamp{...}, updateDescription=
+   UpdateDescription{removedFields=[], updatedFields={"cuisine": "Irish"},
+   truncatedArrays=[], disambiguatedPaths=null}, txnNumber=null, lsid=null,
+   splitEvent=null, wallTime=BsonDateTime{...}}
+
+.. tip::
+
+   To learn more about pre-images and post-images, see 
+   :manual:`Change Streams with Document Pre- and Post-Images
+   </changeStreams#change-streams-with-document-pre--and-post-images>` 
+   in the {+mdb-server+} manual.
+
+Additional Information
+----------------------
+
+To learn more about change streams, see :manual:`Change Streams
+</changeStreams>` in the {+mdb-server+} manual.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `watch() <{+api+}/org/mongodb/scala/MongoCollection.html#watch[C]()(implicite:org.mongodb.scala.bson.DefaultHelper.DefaultsTo[C,TResult],implicitct:scala.reflect.ClassTag[C]):org.mongodb.scala.ChangeStreamObservable[C]>`__
+- `ChangeStreamObservable <{+api+}/org/mongodb/scala/ChangeStreamObservable.html>`__
+- `fullDocument() <{+api+}/org/mongodb/scala/ChangeStreamObservable.html#fullDocument(fullDocument:org.mongodb.scala.model.changestream.FullDocument):org.mongodb.scala.ChangeStreamObservable[TResult]>`__
+- `fullDocumentBeforeChange() <{+api+}/org/mongodb/scala/ChangeStreamObservable.html#fullDocumentBeforeChange(fullDocumentBeforeChange:org.mongodb.scala.model.changestream.FullDocumentBeforeChange):org.mongodb.scala.ChangeStreamObservable[TResult]>`__
