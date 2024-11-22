@@ -91,6 +91,7 @@
                   'backup'
                 ]
               }
+          )
 
 - When you add a cluster under |mms|, |mms| automatically enables log
   :manual:`rotation </tutorial/rotate-log-files/>`, which could collide
