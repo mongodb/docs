@@ -1,0 +1,100 @@
+.. _rm-mongodb-service-user:
+
+============================================
+Create a Relational Migrator User in MongoDB
+============================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+To run a data migration job, Relational Migrator requires MongoDB account 
+credentials with the :authrole:`readWrite` role on the target database. This 
+page describes the procedure to make a user in your MongoDB database.
+
+Steps
+-----
+
+Relational Migrator can connect to an Atlas cluster or an on-premises
+deployment. Select the tab corresponding to your deployment type.
+
+.. tabs::
+
+   .. tab:: Atlas
+      :tabid: service-user-atlas
+
+      .. procedure::
+
+         .. step:: Connect to your deployment
+
+            Log in to `the Atlas GUI <https://cloud.mongodb.com/v2/>`__.
+            
+         .. step:: In the :guilabel:`Security` section of the left navigation, click :guilabel:`Database Access`.
+         
+         .. step:: Click :guilabel:`Add New Database User`.
+
+         .. step:: In the :guilabel:`Authentication Method` section of the :guilabel:`Add New Database User` modal window, select the box labeled :guilabel:`Password`.
+            
+         .. step:: Under :guilabel:`Password Authentication`, enter the username ``migrator-service`` for the new user in the top text field.
+         
+         .. step:: Enter the password ``password`` for the new user in the lower text field.
+         
+         .. step:: Under :guilabel:`Database User Privileges`, click :guilabel:`Built-in Role`.
+         
+         .. step:: Select :guilabel:`Read and write to any database`.
+         
+         .. step:: Click :guilabel:`Add User`.
+
+   .. tab:: On-Premises
+      :tabid: service-user-onprem
+
+      Use ``mongosh`` to provision a user account that has
+      :authrole:`readWrite` access to your data migration target database.
+
+      The example commands assume your deployment is running on ``localhost``
+      on the default port of ``27017``, and that you're creating a user to
+      access the ``MongoEnterprises`` database.
+
+      For more information on connecting to MongoDB using ``mongosh``, see
+      `Connecting to your MongoDB Deployment <https://www.mongodb.com/docs/mongodb-shell/connect/>`__.
+
+      .. procedure::
+
+         .. step:: Connect to your deployment using ``mongosh``
+            
+            You must use an account that can run `createUser <https://www.mongodb.com/docs/manual/reference/method/db.createUser/>`__ 
+            on the admin and ``MongoEnterprises`` databases.
+
+            .. code-block::
+
+               mongosh "mongodb://myadminuser:myadminpassword@localhost:27017/admin"
+
+         .. step:: Create the service user in the ``admin`` database for authentication
+
+            Run the following command to create a 
+            ``migrator-service`` user with a password of your choice and 
+            ``readWrite`` access to the ``MongoEnterprises`` database:
+
+            .. code-block::
+
+               use admin
+               db.createUser(
+                  { user: "migrator-service",
+                     pwd: "password",
+                     roles:[{role: "readWrite" , db:"MongoEnterprises"}]
+                  }
+               )       
+         
+         .. step:: Create the same user in the ``MongoEnterprises`` database
+
+            .. code-block::
+               
+               use MongoEnterprises
+               db.createUser(
+                  { user: "migrator-service",
+                     pwd: "password",
+                     roles:[{role: "readWrite" , db:"MongoEnterprises"}]
+                  }
+               )
