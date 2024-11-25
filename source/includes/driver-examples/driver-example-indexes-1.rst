@@ -62,7 +62,7 @@
              collection.createIndex( { name : -1 }, function(err, result) {
                console.log(result);
                callback(result);
-            }
+            } )
 
      - id: php
        content: |

@@ -72,7 +72,7 @@
             collection.createIndex( { <key and index type specification> }, function(err, result) {
                console.log(result);
                callback(result);
-            }
+            } )
 
      - id: php
        content: |
