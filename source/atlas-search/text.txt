@@ -139,21 +139,52 @@ Fields
        the :ref:`index definition <ref-index-definitions>`. Value can't 
        be an empty string. You can't use ``fuzzy`` with ``synonyms``. 
        
-       Always use ``matchCriteria`` when using ``synonyms``. For ``text``
-       queries that use ``synonyms`` without ``matchCriteria``,
-       |fts| only matches documents where all the terms are exactly in the
-       same position as the query. This behavior might change in the
-       future and your query results might also change.
-
-       The amount of time that |fts| takes to execute queries that 
-       use :ref:`synonym mappings <synonyms-ref>` depends on the 
-       number and size of documents in the synonym source 
-       collection. A query that uses a synonym mapping that is based 
-       on very few synonym documents might be faster than a query 
-       that uses a synonym mapping that is based on many synonym 
-       documents.
-
+       Always use ``matchCriteria`` when using ``synonyms``. To learn
+       more, see :ref:`text-ref-behavior`.
+       
      - Optional 
+
+.. _text-ref-behavior:
+
+Behavior 
+--------
+
+For ``text`` queries that use ``synonyms`` without ``matchCriteria``,
+|fts| only matches documents which contain an exact match of the query terms
+(with or without the expanded synonyms). 
+
+This behavior might change in the future and your query results might
+also change. To avoid service disruptions, always use ``matchCriteria``
+when using ``synonyms``. Or, use synonyms with the :ref:`phrase-ref`
+operator.
+       
+For example, suppose equivalent synonym mappings for ``nyc`` and ``new
+york city``. A search for ``i like nyc`` returns the following:   
+
+.. list-table:: 
+   :header-rows: 1
+
+   * - Operator Specification
+     - Default Behavior 
+     - ``"matchCriteria": "any"``
+     - ``"matchCriteria": "all"`` 
+       
+   * - ``text`` without ``synonyms`` 
+     - Matches ``i`` OR ``like`` OR ``nyc``
+     - Matches ``i`` OR ``like`` OR ``nyc`` 
+     - Matches ``i`` AND ``like`` AND ``nyc``
+
+   * - ``text`` with ``synonyms`` 
+     - Matches ``i like nyc`` OR ``i like new york city``
+     - Matches ``i`` OR ``like`` OR (``nyc`` OR ``new york city``)
+     - Matches ``i`` AND ``like`` AND (``nyc`` OR ``new york city``)
+
+The amount of time that |fts| takes to execute queries that use
+:ref:`synonym mappings <synonyms-ref>` depends on the number and size of
+documents in the synonym source collection. A query that uses a synonym
+mapping that is based on very few synonym documents might be faster than
+a query that uses a synonym mapping that is based on many synonym
+documents. 
 
 .. _text-ref-examples:
 
