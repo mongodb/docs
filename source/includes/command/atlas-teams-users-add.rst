@@ -14,7 +14,7 @@ atlas teams users add
 
 Add the specified MongoDB user to a team for your organization.
 
-Users must be current members of your organization before you can add them to a team.
+You can add users that are part of the organization or users that have been sent an invitation to join the organization.
 
 To use this command, you must authenticate with a user account or an API key with the Organization User Admin role.
 
