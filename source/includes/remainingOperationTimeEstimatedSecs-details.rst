@@ -5,11 +5,11 @@ operation starts.
 
 Starting in:
 
-- MongoDB 5.0, but before MongoDB 6.1,
+- MongoDB 5.0, but before MongoDB 7.0,
   ``remainingOperationTimeEstimatedSecs`` is only available on a
   :ref:`recipient shard <resharding-process-details>` during a
   resharding operation.
-- MongoDB 6.1, ``remainingOperationTimeEstimatedSecs`` is also available
+- MongoDB 7.0, ``remainingOperationTimeEstimatedSecs`` is also available
   on the coordinator during a resharding operation.
 
 The resharding operation performs these phases in order:
