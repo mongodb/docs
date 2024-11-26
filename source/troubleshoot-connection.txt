@@ -309,8 +309,120 @@ receive in the following error:
 
    Error: querySrv ECONNREFUSED _mongodb._tcp.<SRV Record>
 
-To remedy this issue, select an older version of the driver or Compass
-to use the :ref:`Standard Connection String format
-<connections-standard-connection-string-format>`. With Compass, don't
-set the **SRV Record** value, set the **Hostname** and **Port** values
-instead.
+To begin troubleshooting you will need both the DNS SRV name and the nodes' 
+individual hostnames and port numbers from the seed list connection string for 
+the cluster.
+
+To find the DNS SRV name:
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#. Follow the **Steps 1-6** in `Connect Your Application <https://www.mongodb.com/docs/atlas/driver-connection/#connect-your-application>`_.
+#. In **Step 7** select the latest version of the driver you chose.
+#. The DNS SRV name begins after the ``@`` symbol following the password and ends
+   with ``.mongodb.net``.
+   - For example, ``cluster0.dfget.mongodb.net``.
+
+To find the nodes' hostnames and port numbers:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#. Follow the **Steps 1-6** in `Connect Your Application <https://www.mongodb.com/docs/atlas/driver-connection/#connect-your-application>`_.
+#. In **Step 7** select the latest version of the driver you chose.
+
+#. In **Step 7** select the oldest driver version under **Non-Stable API**
+
+   - Each of the hostnames is in a comma-separated list beginning after the ``@`` 
+     symbol following the password and ending with ``.mongodb.net``.
+
+#. Note the port numbers after each of the hostnames.
+
+   - The cluster's connection string may have a variety of hostnames and ports, 
+     depending on its topology and the connection method. 
+   - For more information on how Private Endpoints work, see `Configure Private Endpoints <https://www.mongodb.com/docs/atlas/security-configure-private-endpoints/>`_.
+
+Test Basic Network Connectivity:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Run the following commands in a terminal or command prompt on the application 
+server experiencing the issue:
+
+* DNS SRV resolution test:
+   **Linux/MacOS:** 
+
+   .. code-block:: sh
+
+      dig SRV _mongodb._tcp.<DNS SRV name>
+
+   **Windows:** 
+
+   .. code-block:: sh
+
+      nslookup -debug -q=SRV  _mongodb._tcp.<DNS SRV name>
+
+   Under the **ANSWER SECTION** in the response, you should see one result for each
+   of the nodes in the cluster.
+   - For example: 
+
+   .. code-block:: sh
+
+      ;; ANSWER SECTION:
+      _mongodb._tcp.gcluster0.dfget.mongodb.net. 60 IN SRV 0 0 27017 cluster0-shard-00-00.dfget.mongodb.net.
+      _mongodb._tcp.gcluster0.dfget.mongodb.net. 60 IN SRV 0 0 27017 cluster0-shard-00-01.dfget.mongodb.net.
+      _mongodb._tcp.gcluster0.dfget.mongodb.net. 60 IN SRV 0 0 27017 cluster0-shard-00-02.dfget.mongodb.net.
+
+* DNS node hostname resolution tests:
+
+  For each hostname in the cluster run this command:
+
+  **Linux/MacOS:**
+
+  .. code-block:: sh
+
+     dig <Node Hostname>
+
+  **Windows:** 
+
+  .. code-block:: sh
+
+     nslookup -debug -q=A <Node Hostname>
+
+  Under the **ANSWER SECTION** in the response, you should see the IP address that
+  the DNS hostname resolved to.
+
+  - For example: 
+
+  .. code-block:: sh
+
+     ;; ANSWER SECTION: cluster0-shard-00-00.ag9in.mongodb.net. 60 IN A 10.10.10.10
+
+* Ping test:
+   .. note::
+      ICMP requests may be blocked by the cloud provider across Private Endpoint 
+      connections.
+
+   For each hostname in the cluster run this command:
+
+   **Linux/Mac OS:** 
+
+   .. code-block:: sh
+
+      ping -c 10 <Node Hostname>
+
+   **Windows:** 
+
+   .. code-block:: sh
+
+      ping /n 10 <Node Hostname>
+
+* End-to-End network connection test:
+   **Linux/Mac/OS:**
+
+   .. code-block:: sh
+
+      nc -zv <Node Hostname> <Node Port Number>
+
+   **Windows:** 
+
+   .. code-block:: sh
+
+      Test-NetConnection -Port <Node Port Number> -InformationLevel "Detailed" -ComputerName "<Node Hostname>"
+
