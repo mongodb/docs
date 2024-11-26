@@ -1,0 +1,205 @@
+.. _csharp-read-write-config:
+
+====================================
+Configure Operations on Replica Sets
+====================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: configuration, availability, causal consistency, code example
+
+Overview
+--------
+
+In this guide, you can learn how to use the **write concern**, **read concern**,
+and **read preference** configurations to modify the way that MongoDB runs
+create, read, update, and delete (CRUD) operations on replica sets.
+
+You can set these configurations at the following levels:
+
+1. Client, which sets the default for all operation executions unless overridden
+#. Transaction
+#. Database
+#. Collection
+
+This list is in increasing order of precedence. For example, if you set
+read concerns at both the client and the database levels, the read
+concern specified at the database level overrides the read concern at the
+client level.
+
+Write Concern
+-------------
+
+Write concern specifies the level of acknowledgement requested from MongoDB for
+write operations before the operation successfully returns. Operations that
+don't specify an explicit write concern inherit the global default write concern
+setting.
+
+You can set the write concern by setting the ``WriteConcern`` option on a
+``MongoClientSettings``, ``MongoDatabaseSettings``, or ``MongoCollectionSettings`` object,
+or by using the ``WithWriteConcern()`` method of a client, database, or collection instance.
+
+The ``WriteConcern`` option and ``WithWriteConcern()`` method accept a
+``WriteConcern`` instance as a parameter. You can specify the write concern by 
+using one of the following values:
+
+- ``WriteConcern.Acknowledged``: The write operation returns after the operation
+  is written to memory.
+- ``WriteConcern.W1``: The write operation returns after only the primary node acknowledges
+  the write operation, without waiting for acknowledgement from secondary nodes.
+- ``WriteConcern.W2``: The write operation returns after the primary node and
+  at least one secondary node acknowledge the write operation.
+- ``WriteConcern.W3``: The write operation returns after the primary node and
+  at least two secondary nodes acknowledge the write operation.
+- ``WriteConcern.WMajority``: The write operation returns after a majority of the
+  replica set members acknowledge the write operation.
+- ``WriteConcern.Unacknowledged``: The write operation returns after the primary
+  node processes the write operation.
+
+The following example sets the write concern to ``WriteConcern.WMajority`` for an instance of
+``MongoClient``:
+
+.. literalinclude:: /includes/fundamentals/code-examples/ReplicaSetConfigs.cs
+   :start-after: start-write-concern-client
+   :end-before: end-write-concern-client
+   :language: csharp
+   :dedent:
+
+The following example sets the write concern to ``WriteConcern.WMajority`` for a collection:
+
+.. literalinclude:: /includes/fundamentals/code-examples/ReplicaSetConfigs.cs
+   :start-after: start-write-concern-collection
+   :end-before: end-write-concern-collection
+   :language: csharp
+   :dedent:
+
+.. note:: Clients, Collections, and Databases are Immutable
+
+   ``IMongoClient``, ``IMongoDatabase``, and ``IMongoCollection`` instances are immutable.
+   When you set the write concern on a client, database, or collection, the method returns a new
+   instance with the specified settings and does not affect the original instance.
+
+For more information about write concern, see :manual:`Write Concern
+</reference/write-concern/>` in the {+mdb-server+} manual.
+
+Read Concern
+------------
+
+Read concern specifies the following behaviors:
+
+- Level of :manual:`causal consistency
+  </core/causal-consistency-read-write-concerns>` across replica sets
+- :manual:`Isolation guarantees </core/read-isolation-consistency-recency/>` maintained
+  during a query
+
+You can specify the read concern by setting the ``ReadConcern`` option on a
+``MongoClientSettings``, ``MongoDatabaseSettings``, or ``MongoCollectionSettings`` object,
+or by using the ``WithReadConcern()`` method on a client, database, or collection.
+
+The ``ReadConcern`` option and ``WithReadConcern()`` method both accept a single parameter
+that specifies the read concern level.
+
+You can set the following read concern levels:
+
+- ``ReadConcern.Local``: The query returns the instance's most recent data. Provides no guarantee
+  that the data has been written to a majority of the replica set members.
+- ``ReadConern.Available``: The query returns the instance's most recent data.
+  Provides no guarantee that the data has been written to a majority of the
+  replica set members. ``ReadConcern.Available`` is not available for use with
+  causally consistent sessions and transactions.
+- ``ReadConcern.Majority``: The query returns data that has been acknowledged by
+  a majority of the replica set members.
+- ``ReadConcern.Linearizable``: The query returns data that reflects all
+  successful writes that completed before the start of the read operation.
+  ``ReadConcern.Linearizable`` is not available for use with causally consistent
+  sessions and transactions.
+- ``ReadConcern.Snapshot``: The query returns majority-committed data as it appears across shards, from a
+  specific single point in the recent past.
+
+For more information about the read concern levels, see :manual:`Read Concern
+Levels </reference/read-concern/#read-concern-levels>` in the {+mdb-server+}
+manual.
+
+The following example sets the read concern to ``ReadConcern.Majority`` for an instance of
+``MongoClient``:
+
+.. literalinclude:: /includes/fundamentals/code-examples/ReplicaSetConfigs.cs
+   :start-after: start-read-concern-client
+   :end-before: end-read-concern-client
+   :language: csharp
+   :dedent:
+
+The following example sets the read concern to ``ReadConcern.Majority`` for a
+collection:
+
+.. literalinclude:: /includes/fundamentals/code-examples/ReplicaSetConfigs.cs
+   :start-after: start-read-concern-collection
+   :end-before: end-read-concern-collection
+   :language: csharp
+   :dedent:
+
+To learn more about read concern, see :manual:`Read Concern
+</reference/read-concern>` in the {+mdb-server+} manual.
+
+Read Preference
+---------------
+
+Read preference determines which member of a replica set MongoDB reads when
+running a query. You can set the read preference by setting the ``ReadPreference`` option on a
+``MongoClientSettings``, ``MongoDatabaseSettings``, or ``MongoCollectionSettings`` object,
+or by using the ``WithReadPreference()`` method on a client, database, or collection.
+
+The ``ReadPreference`` option and ``WithReadPreference()`` method accept a read
+preference mode as a parameter. You can set the read preference mode to one of
+the following values:
+
+- ``ReadPreference.Primary``: The query returns data from the primary node.
+- ``ReadPreference.PrimaryPreferred``: The query returns data from the primary node if
+  available. Otherwise, the query returns data from a secondary node.
+- ``ReadPreference.Secondary``: The query returns data from a secondary node.
+- ``ReadPreference.SecondaryPreferred``: The query returns data from a secondary node if
+  available, Otherwise, the query returns data from the primary node.
+- ``ReadPreference.Nearest``: The query returns data from the node with the lowest
+  network latency.
+
+The following example sets the read preference to ``ReadPreference.Secondary``
+for an instance of ``MongoClient``:
+
+.. literalinclude:: /includes/fundamentals/code-examples/ReplicaSetConfigs.cs
+   :start-after: start-read-preference-client
+   :end-before: end-read-preference-client
+   :language: csharp
+   :dedent:
+
+The following example sets the read preference to ``ReadPreference.Secondary`` for a collection:
+
+.. literalinclude:: /includes/fundamentals/code-examples/ReplicaSetConfigs.cs
+   :start-after: start-read-preference-collection
+   :end-before: end-read-preference-collection
+   :language: csharp
+   :dedent:
+
+For more information about read preference, see :manual:`Read Preference
+</core/read-preference/>` in the {+mdb-server+} manual.
+
+API Documentation
+-----------------
+
+To learn more about any of the types discussed in this
+guide, see the following API documentation:
+
+- `MongoClientSettings <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.MongoClientSettings.html>`__
+- `MongoDatabaseSettings <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.MongoDatabaseSettings.html>`__
+- `MongoCollectionSettings <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.MongoCollectionSettings.html>`__
+- `WriteConcern <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.WriteConcern.html>`__
+- `ReadConcern <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.ReadConcern.html>`__
+- `ReadPreference <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.ReadPreference.html>`__
