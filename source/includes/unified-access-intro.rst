@@ -4,7 +4,7 @@ Some |service| features, including :ref:`Data Federation
 <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use.html>`__. 
 When |service| accesses |aws| services, 
 `assumes an IAM role
-<https://docs.aws.amazon.com/IAM/latest/UserGuide/using-service-linked-roles.html>`__.
+<https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_manage-assume.html>`__.
 
 You can set up an assumed IAM role for your |service| account to use 
 with the {+atlas-admin-api+} or {+atlas-ui+} if you have the
