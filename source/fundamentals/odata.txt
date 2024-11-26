@@ -1,0 +1,212 @@
+.. _csharp-odata:
+
+======================
+Use OData with MongoDB
+======================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: asp.net, integration, code example, enable query
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+OData (Open Data Protocol) is a standardized protocol for building and consuming
+RESTful APIs that allows for the querying and manipulation of data by using
+HTTP requests. It provides a uniform way to expose and interact
+with data from multiple sources. 
+
+In this tutorial, you will learn how to integrate OData with your MongoDB application.
+
+Sample Data
+~~~~~~~~~~~
+
+This tutorial uses the ``sample_restaurants.restaurants`` collection
+from the :atlas:`Atlas sample datasets </sample-data>`. To learn how to create a
+free MongoDB Atlas cluster and load the sample datasets, see the :ref:`<csharp-quickstart>`.
+
+Tutorial
+--------
+
+.. procedure::
+
+   .. step:: Install Dependencies
+
+      Create a new ASP.Net application named
+      ``ODataExample`` and install the {+driver-short+}. You can install the
+      driver by using the NuGet package manager in your IDE, or by running the
+      following command in the .NET CLI:
+
+      .. code-block:: shell
+    
+         dotnet add package MongoDB.Driver
+      
+      Then, install the ``MongoDB.AspNetCore.OData`` NuGet
+      package through the NuGet Package Manager or through the .NET CLI by running the
+      following command:
+
+      .. code-block:: shell
+
+         dotnet add package MongoDB.AspNetCore.OData
+
+   .. step:: Define your Models
+
+      Create a new folder in your solution called ``Models`` and copy the
+      following ``Restaurant.cs``, ``Address.cs``, and ``GradeEntry.cs`` files into the
+      folder:
+
+      .. literalinclude:: /includes/code-examples/RestaurantOdata.cs
+         :language: csharp
+         :copyable:
+         :dedent:
+
+      .. literalinclude:: /includes/code-examples/Address.cs
+         :language: csharp
+         :copyable:
+         :dedent:
+
+      .. literalinclude:: /includes/code-examples/GradeEntry.cs
+         :language: csharp
+         :copyable:
+         :dedent:
+
+      .. include:: /includes/convention-pack-note.rst
+
+   .. step:: Create an OData Controller
+
+      Create a new folder in your solution called ``Controllers`` and add a new
+      controller file called ``RestaurantsController.cs``. Copy the following code
+      into the file:
+
+      .. literalinclude:: /includes/fundamentals/code-examples/connection/OData.cs
+         :language: csharp
+         :start-after: // start-controller
+         :end-before: // end-controller
+
+      This code performs the following actions:
+
+      - Creates a constructor that connects to MongoDB, and gets the
+        ``restaurants`` collection.
+      - Creates a ``Get`` endpoint that returns all restaurants in the collection.
+      - Specifies the ``MongoEnableQuery`` attribute to enable querying on the
+        ``Get`` endpoint.
+      - Specifies the ``PageSize`` attribute on ``MongoEnableQuery`` to limit the
+        number of documents returned to ``5``.
+
+   .. step:: Configure the OData Service
+
+      Paste the following code into your ``Program.cs`` file to configure the OData
+      service and map your controller endpoints.
+
+      .. literalinclude:: /includes/fundamentals/code-examples/connection/OData.cs
+         :language: csharp
+         :start-after: // start-configure
+         :end-before: // end-configure
+
+      .. note::
+
+         Replace the ``<"Your connection URI">`` placeholder with your MongoDB connection string.
+      
+      This code performs the following actions:
+
+      - Instantiates a new ``MongoClient`` and registers it as a singleton in
+        the dependency injection container.
+      - Defines the Entity Data Model (EDM) and registers ``Restaurants`` as an
+        entity set with the key ``Id``.
+      - Adds the OData service and enables the ``Select()`` query operation.
+      - Registers the route by using the ``AddRouteComponents()`` method.
+      - Calls the ``UseRouting()`` and ``MapControllers()`` methods to match
+        incoming HTTP requests and route them to the appropriate endpoint.
+      
+      .. note::
+
+         The {+driver-short+} does not support OData-Aggregation with the
+         ``$apply`` query operation.
+
+   .. step:: Run the Application
+
+      Run the application by using your IDE, or by running the following command
+      in your shell at the root directory of your project:
+
+      .. code-block:: shell
+
+         dotnet run ODataExample.csproj
+
+      After running the application, your terminal displays output similar
+      to the following:
+
+      .. code-block:: none
+
+         info: Microsoft.Hosting.Lifetime[14]
+               Now listening on: http://localhost:5183
+         info: Microsoft.Hosting.Lifetime[0]
+               Application started. Press Ctrl+C to shut down.
+         info: Microsoft.Hosting.Lifetime[0]
+               Hosting environment: Development
+         info: Microsoft.Hosting.Lifetime[0]
+               Content root path: <Path to your project>
+
+      .. tip::
+
+         After running your application, your IDE might automatically open a
+         browser window to the URL where the application is running, which
+         displays a ``"page can't be found"`` error. This is expected because the
+         application only has a single ``Get`` endpoint configured.
+      
+   .. step:: Query the Data
+
+      To query the data, navigate to the ``Get`` endpoint specified in the
+      application. To do so, open a browser and navigate to the ``localhost``
+      URL specified in the terminal output from the preceding step. Then, append
+      the route for the ``Get`` endpoint: ``/odata/Restaurants``. For example, if an
+      application is running at ``localhost:5183``, navigate to
+      ``http://localhost:5183/odata/Restaurants``.
+
+      If successful, the browser displays 5 restaurants in the
+      collection, in JSON format. The output is similar to the
+      following:
+
+      .. code-block:: json
+
+         {
+           "@odata.context": "http://localhost:5183/odata/$metadata#Restaurants",
+           "value": [
+             {
+               "Name": "Glorious Food",
+               "RestaurantId": "40361521",
+               "Cuisine": "American",
+               "Borough": "Manhattan",
+               "Id": "...",
+               "Address": {
+                 "Building": "522",
+                 "Coordinates": [-73.95171, 40.767461],
+                 "Street": "East   74 Street",
+                 "ZipCode": "10021"
+               },
+               "Grades": [
+                 ...
+               ]
+             },
+
+             ...
+
+             ]
+         }
+
+Additional Information
+----------------------
+
+To learn more about ASP.NET Core OData, see the `Microsoft OData documentation
+<https://learn.microsoft.com/en-us/odata/webapi-8/overview>`__.
+
+To learn more about OData, see the `OData documentation
+<https://www.odata.org/documentation>`__.
