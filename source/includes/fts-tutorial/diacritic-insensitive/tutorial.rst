@@ -14,7 +14,7 @@
               "must": [{
                 "wildcard": {
                   "path": "title",
-                  "query": "alle*",
+                  "query": "allè*",
                   "allowAnalyzedField": true
                 }
               }],

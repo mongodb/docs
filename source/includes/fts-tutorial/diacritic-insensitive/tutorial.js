@@ -21,7 +21,7 @@ async function run() {
           'compound': {
                 'must': [{
                     'wildcard': {
-                        'query': "alle*",
+                        'query': "allè*",
                         'path': "title",
                         'allowAnalyzedField': true
                     }

@@ -8,7 +8,7 @@ pipeline = [
   {'$search': {
       'index': 'diacritic-insensitive-tutorial',
       'compound': {
-        'must': [{'wildcard': {'path': 'title', 'query': 'alle*', 'allowAnalyzedField': True}}],
+        'must': [{'wildcard': {'path': 'title', 'query': 'allè*', 'allowAnalyzedField': True}}],
         'should': [{'text': {'query': 'Drama', 'path': 'genres'}}]}}},
   {'$project': {'_id': 0, 'title': 1, 'genres': 1, 'score': {'$meta': 'searchScore'}}}
 ]

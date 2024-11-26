@@ -19,7 +19,7 @@ fun main() {
             Document(
                 "wildcard",
                 Document("path", "title")
-                    .append("query", "alle*")
+                    .append("query", "allè*")
                     .append("allowAnalyzedField", true)
             )
         )

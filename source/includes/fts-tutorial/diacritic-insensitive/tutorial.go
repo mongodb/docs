@@ -27,7 +27,7 @@ func main() {
 			"must": bson.M{
 				"wildcard": bson.M{
 					"path":               "title",
-					"query":              "alle*",
+					"query":              "allè*",
 					"allowAnalyzedField": true,
 				},
 			},

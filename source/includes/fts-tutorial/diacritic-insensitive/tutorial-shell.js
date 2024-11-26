@@ -5,7 +5,7 @@ db.movies.aggregate([
       "compound" : {
         "must": [{
             "wildcard" : {
-              "query" : "alle*",
+              "query" : "allè*",
               "path": "title",
               "allowAnalyzedField": true
          }

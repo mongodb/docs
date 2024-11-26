@@ -8,13 +8,13 @@ import org.bson.Document;
 import java.util.Arrays;
 import java.util.List;
 
-public class DiacriticInsensitive {
+public class tutorial {
     public static void main(String[] args) {
         // define clauses
         List<Document> mustClauses =
             List.of( new Document("wildcard", 
                 new Document("path", "title")
-                .append("query", "alle*")
+                .append("query", "allè*")
                 .append("allowAnalyzedField", true)));
         List<Document> shouldClauses =
             List.of( new Document("text",
