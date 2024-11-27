@@ -17,392 +17,65 @@ Authentication Mechanisms
 .. meta::
    :keywords: .NET, community, security
 
+.. toctree::
+   :caption: Authentication
+
+   SCRAM </fundamentals/authentication/scram>
+   X.509 </fundamentals/authentication/x509>
+   AWS IAM </fundamentals/authentication/aws-iam>
+   OIDC </fundamentals/authentication/oidc>
+   LDAP (PLAIN) </fundamentals/authentication/ldap>
+   Kerberos (GSSAPI) </fundamentals/authentication/kerberos>
+
 Overview
 --------
 
-In this guide, you can learn how to authenticate with MongoDB using the
-**authentication mechanisms** available in the {+mongo-community+}.
+In this guide, you can learn how to authenticate to MongoDB by using the
+**authentication mechanisms** available in {+mdb-server+}.
 Authentication mechanisms are processes by which the driver and server confirm
 the identity of a client to ensure security before connecting.
 
-You can use the following authentication mechanisms with the latest version
-of {+mongo-community+}:
-
-- :ref:`csharp-scram-sha-256`
-- :ref:`csharp-scram-sha-1`
-- :ref:`csharp-mongodb-aws`
-- :ref:`csharp-x509`
-
-To authenticate using ``GSSAPI/Kerberos`` or ``LDAP``, see the
-:ref:`csharp-enterprise-authentication-mechanisms` fundamentals page. For more 
-information on establishing a connection to your MongoDB cluster, see the
-:ref:`csharp-connect-to-mongodb`.
-
-Specify an Authentication Mechanism
------------------------------------
-
-You can specify your authentication mechanism and credentials when connecting to
-MongoDB using either of the following methods:
-
-- A **connection string**, also known as a **connection URI**, which is a string
-  that tells the driver how to connect to a MongoDB deployment and how to behave while
-  connected.
-
-- A factory method for the supported authentication mechanism, contained in the 
-  ``MongoCredential`` class.
-
-Mechanisms
-----------
-
-The following examples contain code examples that use the following
-placeholders:
-
-- ``<db_username>`` - MongoDB username.
-- ``<db_password>`` - MongoDB user's password.
-- ``<hostname>`` - network address of the MongoDB server, accessible by your client.
-- ``<port>`` - port number of the MongoDB server.
-- ``<authenticationDb>`` - MongoDB database that contains the user's authentication
-  data. If you omit this parameter, the driver uses the default value ``admin``.
-
-.. _csharp-authentication-default:
-
-Default
-~~~~~~~
-
-The default authentication mechanism setting uses one of the following
-authentication mechanisms, depending on which MongoDB versions your server supports:
-
-- ``SCRAM-SHA-256``
-- ``SCRAM-SHA-1``
-- ``MONGODB-CR``
-
-.. note::
-
-   MongoDB version 4.0 uses SCRAM as the default mechanism, and no longer
-   supports ``MONGODB-CR``.
-
-
-Select the :guilabel:`Connection String` or :guilabel:`MongoCredential` tab to
-see the corresponding syntax for specifying the default authentication mechanism:
-
-.. tabs::
-
-   .. tab:: Connection String
-      :tabid: default-connection-string
-
-      .. code-block:: csharp
-
-         var mongoClient = new MongoClient("mongodb://<db_username>:<db_password>@<hostname>:<port>/?authSource=<authenticationDb>");
-
-   .. tab:: MongoCredential
-      :tabid: default-mongo-credential
-
-      .. code-block:: csharp
-
-         var credential = MongoCredential.CreateCredential("<authenticationDb>", "<db_username>", "<db_password>");
-         var settings = MongoClientSettings.FromConnectionString("<connection string>");
-         settings.Credential = credential;
-         var mongoClient = new MongoClient(settings);
-
-.. _csharp-scram-sha-256:
-
-SCRAM-SHA-256
-~~~~~~~~~~~~~
-
-``SCRAM-SHA-256`` is a salted challenge-response authentication mechanism (SCRAM)
-that uses your username and password, encrypted with the ``SHA-256`` algorithm,
-to authenticate your user.
-
-You can specify the ``SCRAM-SHA-256`` authentication mechanism with your connection
-string as follow:
-
-.. code-block:: csharp
-
-   var mongoClient = new MongoClient("mongodb://<db_username>:<db_password>@<hostname>:<port>/?authSource=<authenticationDb>&authMechanism=SCRAM-SHA-256"); 
-
-.. tip:: Default Mechanism
-
-   MongoDB version 4.0 and later uses ``SCRAM-SHA-256`` as the default 
-   authentication mechanism if the MongoDB server version supports it.
-
-   To learn more on specifying the default mechanism, see :ref:`csharp-authentication-default`.
-
-.. _csharp-scram-sha-1:
-
-SCRAM-SHA-1
-~~~~~~~~~~~
-
-``SCRAM-SHA-1`` is s a salted challenge-response mechanism (SCRAM) that uses 
-your username and password, encrypted with the ``SHA-1`` algorithm, to authenticate 
-your user.
-
-You can specify the ``SCRAM-SHA-1`` authentication mechanism with your connection
-string as follow:
-
-.. code-block:: csharp
-
-   var mongoClient = new MongoClient("mongodb://<db_username>:<db_password>@<hostname>:<port>/?authSource=<authenticationDb>&authMechanism=SCRAM-SHA-1");
-
-.. tip:: Default Mechanism
-
-   MongoDB version 4.0 uses ``SCRAM-SHA-1`` as the default authentication mechanism
-   if the server does not support ``SCRAM-SHA-256``.
-
-   To learn more on specifying the default mechanism, see :ref:`csharp-authentication-default`.
-
-.. _csharp-mongodb-aws:
-
-MONGODB-AWS
-~~~~~~~~~~~
-
-.. note::
-
-   The ``MONGODB-AWS`` authentication mechanism is available only for
-   MongoDB deployments on MongoDB Atlas.
-
-The ``MONGODB-AWS`` authentication mechanism uses your Amazon Web Services
-Identity and Access Management (AWS IAM) credentials to authenticate your
-user. You can either specify your credentials explicitly
-or instruct the driver to retrieve them automatically from an external source.
-
-The following sections contain code examples that use the following placeholders:
-
-- ``<awsKeyId>`` - value of the AWS access key ID
-- ``<awsSecretKey>`` - value of the AWS secret access key
-- ``<awsSessionToken>`` - value of the AWS session token
-
-.. tip::
-
-   To learn more about configuring MongoDB Atlas with AWS IAM, see the
-   :atlas:`Set Up Passwordless Authentication with AWS IAM Roles </security/passwordless-authentication/#set-up-passwordless-authentication-with-aws-iam-roles>` guide.
-
-Specify Your AWS IAM Credentials
-++++++++++++++++++++++++++++++++
-
-You can supply your AWS IAM credentials on a ``MongoClientSettings`` object either by 
-using a ``MongoCredential`` object or as part of the connection string. Select the 
-:guilabel:`Connection String` or :guilabel:`MongoCredential` tab to
-see the corresponding syntax for specifying your credentials: 
-
-.. tabs::
-
-   .. tab:: Connection String
-      :tabid: mongodb-aws-mongoclientsettings-connection-string
-      
-      .. code-block:: csharp
-
-         var connectionString = "mongodb+srv://<awsKeyId>:<awsSecretKey>@<hostname>[:<port>]?authSource=$external&authMechanism=MONGODB-AWS";
-         var mongoClientSettings = MongoClientSettings.FromConnectionString(connectionString);
-         var client = new MongoClient(mongoClientSettings);
-
-      If you're using an AWS session token, include the ``authMechanismProperties``
-      parameter in the connection string as shown below:
-
-      .. code-block:: csharp
-
-         var connectionString = "mongodb+srv://<awsKeyId>:<awsSecretKey>@<hostname>[:<port>]?authSource=$external&authMechanism=MONGODB-AWS&authMechanismProperties=AWS_SESSION_TOKEN:<awsSessionToken>";
-
-   .. tab:: MongoCredential
-      :tabid: mongodb-aws-mongoclientsettings-mongo-credential
-
-      .. code-block:: csharp
-
-         var mongoClientSettings = MongoClientSettings.FromConnectionString("mongodb+srv://<hostname>[:<port>]");
-         mongoClientSettings.Credential = new MongoCredential("MONGODB-AWS", new MongoExternalIdentity("<awsKeyId>"), new PasswordEvidence("<awsSecretKey>"));
-         var client = new MongoClient(mongoClientSettings);
-
-      If you're using an AWS session token, call the ``WithMechanismProperty()`` 
-      method on your ``MongoCredential`` object as shown below:
-
-      .. code-block:: csharp
-
-         mongoClientSettings.Credential = new MongoCredential("MONGODB-AWS", new MongoExternalIdentity("<awsKeyId>"), new PasswordEvidence("<awsSecretKey>"))
-             .WithMechanismProperty("AWS_SESSION_TOKEN", "<awsSessionToken>");
-
-Retrieve Credentials Automatically
-++++++++++++++++++++++++++++++++++
-
-Instead of specifying your AWS IAM credentials in ``MongoClientSettings``, you can 
-instruct the {+driver-short+} to use the AWS SDK to automatically retrieve your 
-credentials from an external source. To instruct the driver to
-retrieve your credentials, perform the following actions:
-
-- Specify ``MONGODB-AWS`` as the authentication mechanism
-- Specify that the authentication source is external to MongoDB
-- Set your credentials in the appropriate location 
-
-You can specify the authentication mechanism and source either
-by using a ``MongoCredential`` object or as part of the connection string. Select the 
-:guilabel:`Connection String` or :guilabel:`MongoCredential` tab to
-see the corresponding syntax for specifying the ``MONGODB-AWS`` authentication mechanism
-and external authentication source:
-
-.. tabs::
-
-   .. tab:: Connection String
-      :tabid: mongodb-aws-automatic-connection-string
-      
-      .. code-block:: csharp
-
-         var connectionString = "mongodb+srv://<hostname>[:<port>]?authMechanism=MONGODB-AWS&authSource=$external";
-         var mongoClientSettings = MongoClientSettings.FromConnectionString(connectionString);
-         var client = new MongoClient(mongoClientSettings);
-
-   .. tab:: MongoCredential
-      :tabid: mongodb-aws-automatic-mongo-credential
-
-      .. code-block:: csharp
-
-         var mongoClientSettings = MongoClientSettings.FromConnectionString("mongodb+srv://<hostname>[:<port>]");
-         mongoClientSettings.Credential = new MongoCredential("MONGODB-AWS", new MongoExternalAwsIdentity(), new ExternalEvidence());
-         var client = new MongoClient(mongoClientSettings);
+.. tip:: Connecting to MongoDB
    
-After you specify the authentication mechanism and source, you must set
-your credentials in the location appropriate to the credential type. The {+driver-short+} 
-checks for credentials in the following locations in the order listed here:
+   To learn how to establish a connection to your MongoDB deployment, see the
+   :ref:`csharp-connect-to-mongodb`.
 
-- Web identity provider
-- Shared AWS credentials file
-- Environment variables
-- ECS container credentials
-- EC2 container credentials
+MongoDB Edition Compatibility
+-----------------------------
 
-You can use an OpenID Connect (OIDC)-compatible **web identity provider** to authenticate
-to Amazon Elastic Kubernetes Service (EKS) or other services.
-To use a web identity provider, create a file that contains your
-OIDC token, then set the absolute path to this file in an environment variable by using 
-``bash`` or a similar shell as shown in the following example:
+The following table lists the authentication mechanisms supported by MongoDB and
+the {+mdb-server+} editions that each mechanism is compatible with. Click the name of
+a mechanism to learn more about how to use it with your application.
 
-.. code-block:: bash
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
 
-   export AWS_WEB_IDENTITY_TOKEN_FILE=<absolute path to file containing your OIDC token>
-
-To authenticate by using a profile in a **shared AWS credentials file**, you can use a text
-editor, the AWS SDK for .NET, or the AWS CLI to create the appropriate credential file.
-
-To retrieve credentials directly from **environment variables**, set the following 
-environment variables by using ``bash`` or a similar shell:
-
-.. code-block:: bash
-
-   export AWS_ACCESS_KEY_ID=<awsKeyId>
-   export AWS_SECRET_ACCESS_KEY=<awsSecretKey>
-   export AWS_SESSION_TOKEN=<awsSessionToken>
-
-.. note::
-   
-   Omit the line containing ``AWS_SESSION_TOKEN`` if you don't need an AWS
-   session token for that role.
-
-To authenticate by using **ECS container credentials**, set the URI of your ECS 
-endpoint in an environment variable by using ``bash`` or a similar shell.
-Select the :guilabel:`Full ECS URI` or :guilabel:`Relative ECS URI` tab to
-see the syntax for specifying the corresponding environment variable:
-
-.. tabs::
-
-   .. tab:: Full ECS URI
-      :tabid: mongodb-aws-full-ecs-uri
-      
-      .. code-block:: bash
-
-         export AWS_CONTAINER_CREDENTIALS_FULL_URI=<full ECS endpoint>
-
-   .. tab:: Relative ECS URI
-      :tabid: mongodb-aws-relative-ecs-uri
-
-      .. code-block:: bash
-
-         export AWS_CONTAINER_CREDENTIALS_RELATIVE_URI=<relative ECS endpoint>
-
-To authenticate by using **EC2 container credentials**, make sure none of the
-environment variables mentioned earlier are set. The driver obtains the
-credentials from the default IPv4 EC2 instance metadata endpoint.   
-
-.. _csharp-x509:
-
-X.509
-~~~~~
-
-The ``X.509`` authentication mechanism uses :wikipedia:`TLS <Transport_Layer_Security>`
-with ``X.509`` certificates to authenticate your user, identified by the
-distinguished names of your client certificate. When you specify the 
-``X.509`` authentication mechanism, the server authenticates the connection using 
-the subject name of the client certificate.
-
-To learn more about using TLS/SSL, see our :ref:`TLS/SSL guide <csharp-tls>`.
-
-To learn more about ``X.509`` certificates, see the :ref:`X.509 Server Manual Entry <x509-client-authentication>`.
-
-Select the :guilabel:`Connection String` or :guilabel:`MongoCredential` tab to
-see the corresponding syntax for specifying the ``X.509`` authentication mechanism:
-
-.. tabs::
-
-   .. tab:: Connection String
-      :tabid: default-connection-string
-
-      .. code-block:: csharp
-
-         var connectionString = "mongodb://<hostname>/?authMechanism=MONGODB-X509";
-         var settings = MongoClientSettings.FromConnectionString(connectionString);
-
-         settings.useTls = true;
-         settings.SslSettings = new SslSettings
-         {
-            ClientCertificates = new List<X509Certificate>()
-            {
-                new X509Certificate2("<path to X.509 certificate>", "<X.509 certificate password>")
-            }
-         };
-
-   .. tab:: MongoCredential
-      :tabid: default-mongo-credential
-
-      .. code-block:: csharp
-
-         var credential = MongoCredential.CreateMongoX509Credential("<X.509 certificate username>")
-         var settings = new MongoClientSettings 
-         {
-             Credential =  credential
-             SslSettings = new SslSettings
-             {
-                 ClientCertificates = new List<X509Certificate>()
-                 {
-                     new X509Certificate2("<path to X.509 certificate>", "<X.509 certificate password>")
-                 },
-             },
-             UseTls = true,
-             Server = new MongoServerAddress("<hostname", "<port>"),
-         };
-
-      .. note:: Certificate Type
-
-         Your certificate must be a :wikipedia:`PKCS #12<PKCS_12>` type certificate
-         with a ``.p12`` extension.
-
-      .. tip:: Username parameter
-
-         The username parameter provided to ``CreateMongoX509Credential`` must
-         match the distinguished subject name of your ``X.509`` certificate exactly.
-         You can alternatively pass ``null`` as the parameter to prompt the MongoDB
-         server to infer the username based on your ``X.509`` certificate.
-
-.. note::
-
-   If you are using Windows, the driver might be unable to locate an ``X.509``
-   authentication certificate created in memory. To learn more about a potential solution to
-   this issue, see the :ref:`csharp-troubleshooting-connection-X509`
-   section of the Connection Troubleshooting guide.
-
-API Documentation
------------------
-
-To learn more about any of the methods or types discussed in this
-guide, see the following API Documentation:
-
-- `MongoCredential() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.MongoCredential.html>`__
-- `MongoClient() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.MongoClient.html>`__
-- `MongoClientSettings <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.MongoClientSettings.html>`__
-- `CreateCredential() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.MongoCredential.CreateCredential.html>`__
-- `CreateMongoX509Credential() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.MongoCredential.CreateMongoX509Credential.html>`__
+   * - Authentication Mechanism
+     - Atlas
+     - Enterprise Advanced
+     - Community
+   * - :ref:`<csharp-authentication-scram>`
+     - Yes
+     - Yes
+     - Yes
+   * - :ref:`<csharp-authentication-x509>`
+     - Yes
+     - Yes
+     - Yes
+   * - :ref:`<csharp-authentication-aws>`
+     - Yes
+     - No
+     - No
+   * - :ref:`OIDC (Workload Identity Federation) <csharp-authentication-oidc>`
+     - Yes
+     - Yes
+     - No
+   * - :ref:`<csharp-authentication-ldap>`
+     - Yes
+     - Yes
+     - No
+   * - :ref:`Kerberos (GSSAPI) <csharp-authentication-kerberos>`
+     - No
+     - Yes
+     - No
