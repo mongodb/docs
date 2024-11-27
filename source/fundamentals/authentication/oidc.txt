@@ -1,0 +1,231 @@
+.. _csharp-mongodb-oidc:
+.. _csharp-authentication-oidc:
+
+===================================
+OIDC (Workload Identity Federation)
+===================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: .NET, code example
+
+Overview
+--------
+
+The OpenID Connect (OIDC) authentication mechanism allows you to authenticate to
+MongoDB by using a third-party identity provider, such as Azure or Google Cloud
+Platform (GCP). 
+
+You can use this mechanism only when authenticating to MongoDB Atlas or MongoDB
+Enterprise Advanced, and only when authenticating to MongoDB v7.0 or later.
+
+.. tip:: OIDC Authentication
+
+   To learn more about configuring MongoDB Atlas for OIDC authentication, see
+   :atlas:`Set up Workforce Identity Federation with OIDC </workforce-oidc/#std-label-oidc-authentication-workforce>`
+   in the Atlas documentation.
+   
+   For more information about using OIDC authentication with MongoDB, see
+   :manual:`OpenID Connect Authentication </core/security-oidc/>` and
+   :manual:`MongoDB Server Parameters </reference/parameters/#mongodb-parameter-param.oidcIdentityProviders>`
+   in the {+mdb-server+} manual.
+
+Code Placeholders 
+~~~~~~~~~~~~~~~~~
+
+The code examples on this page use the following placeholders:
+
+- ``+srv``: Include this option in your connection string prefix only if you are connecting
+  to a MongoDB Atlas cluster. To learn more about the ``+srv`` option, see
+  :manual:`Connection String Formats </reference/connection-string/#connection-string-formats>`
+  in the {+mdb-server+} manual.
+- ``<username>``: The client ID or application ID of the Azure managed identity or
+  enterprise application, if authenticating against Azure IMDS.
+- ``<hostname>``: The network address of your MongoDB deployment.
+- ``<port>``: The port number of your MongoDB deployment. If you omit this parameter,
+  the driver uses the default port number (``27017``). You don't need to specify a port
+  when connecting to a MongoDB Atlas cluster.
+- ``<audience>``: The audience parameter configured on your MongoDB deployment.
+
+To use the code examples on this page, replace these placeholders with your own values.
+
+Using OIDC Authentication in Your Application
+---------------------------------------------
+
+The following sections describe how to use OIDC authentication to
+authenticate from various platforms.
+
+.. _csharp-mongodb-oidc-azure-imds:
+
+Azure IMDS
+~~~~~~~~~~
+
+If your application runs on an Azure VM, or otherwise uses the
+`Azure Instance Metadata Service <https://learn.microsoft.com/en-us/azure/virtual-machines/instance-metadata-service>`__
+(IMDS), you can authenticate to MongoDB by using the {+driver-short+}'s built-in Azure
+support.
+
+You can specify Azure IMDS OIDC authentication on a ``MongoClientSettings`` object either by 
+using a ``MongoCredential`` object or as part of the connection string. Select the 
+:guilabel:`Connection String` or :guilabel:`MongoCredential` tab to
+see the corresponding syntax.
+
+.. include:: /includes/comma-auth-options.rst
+
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: mongodb-azure-imds-connection-string
+    
+      The following code example shows how to specify Azure IMDS OIDC authentication. 
+      Replace the ``<percent-encoded audience>`` placeholder with the percent-encoded
+      value of the ``audience`` parameter configured on your MongoDB deployment.
+
+      .. code-block:: csharp
+
+         var connectionString = "mongodb://<username>@<hostname>[:<port>]/?" +
+            "authMechanism=MONGODB-OIDC" +
+            "&authMechanismProperties=ENVIRONMENT:azure,TOKEN_RESOURCE:<percent-encoded audience>");
+         var mongoClientSettings = MongoClientSettings.FromConnectionString(connectionString);
+         var client = new MongoClient(mongoClientSettings);
+
+   .. tab:: MongoCredential
+      :tabid: mongodb-azure-mongo-credential
+
+      The following code example shows how to specify Azure IMDS OIDC authentication:
+
+      .. code-block:: csharp
+
+         var mongoClientSettings = MongoClientSettings.FromConnectionString(
+            "mongodb://<hostname>[:<port>]");
+         mongoClientSettings.Credential = MongoCredential
+            .CreateOidcCredential("azure", "<username>")
+            .WithMechanismProperty("TOKEN_RESOURCE", "<audience>"); 
+         var client = new MongoClient(mongoClientSettings);
+
+.. _csharp-mongodb-oidc-gcp-imds:
+
+GCP IMDS
+~~~~~~~~
+
+If your application runs on a Google Compute Engine VM, or otherwise uses the
+`GCP Instance Metadata Service <https://cloud.google.com/compute/docs/metadata/querying-metadata>`__,
+you can authenticate to MongoDB by using the {+driver-short+}'s built-in GCP
+support.
+
+You can specify GCP IMDS OIDC authentication on a ``MongoClientSettings`` object either by 
+using a ``MongoCredential`` object or as part of the connection string. Select the 
+:guilabel:`Connection String` or :guilabel:`MongoCredential` tab to
+see the corresponding syntax.
+
+.. include:: /includes/comma-auth-options.rst
+      
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: mongodb-gcp-imds-connection-string
+    
+      The following code example shows how to specify GCP IMDS OIDC authentication as
+      part of the authentication string:
+
+      .. code-block:: csharp
+
+         var connectionString = "mongodb://<hostname>[:<port>]/?authMechanism=MONGODB-OIDC" +
+            "&authMechanismProperties=ENVIRONMENT:gcp,TOKEN_RESOURCE:<audience>");
+         var mongoClientSettings = MongoClientSettings.FromConnectionString(connectionString);
+         var client = new MongoClient(mongoClientSettings);
+
+   .. tab:: MongoCredential
+      :tabid: mongodb-gcp-mongo-credential
+
+      The following code example shows how to specify GCP IMDS OIDC authentication by using
+      a ``MongoCredential`` object:
+
+      .. code-block:: csharp
+
+         var mongoClientSettings = MongoClientSettings.FromConnectionString(
+            "mongodb://<hostname>[:<port>]");
+         mongoClientSettings.Credential = MongoCredential
+            .CreateOidcCredential("gcp")
+            .WithMechanismProperty("TOKEN_RESOURCE", "<audience>"); 
+         var client = new MongoClient(mongoClientSettings);
+
+Custom Callback
+~~~~~~~~~~~~~~~
+
+The {+driver-short+} doesn't offer built-in support for all platforms, including
+Azure Functions and Azure Kubernetes Service (AKS). Instead, you
+must define a custom callback to use OIDC to authenticate from these platforms.
+
+First, define a class that implements the ``IOidcCallback`` interface. This interface
+contains two methods:
+
+- ``GetOidcAccessToken()``: This method accepts the parameters to the callback method
+  and returns the callback response. 
+- ``GetOidcAccessTokenAsync()``: This method is an asynchronous version of the previous
+  method. 
+
+The following code is an example implementation of the ``IOidcCallback`` interface.
+In this example, the methods retrieve an OIDC token from a file named ``"access-token.dat"``
+in the local file system.
+
+.. code-block:: csharp
+
+   public class MyCallback : IOidcCallback
+   {
+       public OidcAccessToken GetOidcAccessToken(
+           OidcCallbackParameters parameters,
+           CancellationToken cancellationToken)
+       {
+           var accessToken = File.ReadAllText("access-token.dat");
+           return new(accessToken, expiresIn: null);
+       }
+
+       public async Task<OidcAccessToken> GetOidcAccessTokenAsync(
+           OidcCallbackParameters parameters,
+           CancellationToken cancellationToken)
+       {
+           var accessToken = await File.ReadAllTextAsync(
+               "access-token.dat",
+               cancellationToken)
+               .ConfigureAwait(false);
+           return new(accessToken, expiresIn: null);
+       }
+   }
+
+After you define a class that contains your custom callback methods, call the
+``MongoCredential.CreateOidcCredential()`` method and pass in a new instance of your
+class. Store the result of this method call in the ``Credential`` property of your
+``MongoClientSettings`` object, as shown in the following code example:
+
+.. code-block:: csharp
+
+   var mongoClientSettings = MongoClientSettings
+      .FromConnectionString("mongodb://<hostname>[:<port>]");
+   mongoClientSettings.Credential = MongoCredential.CreateOidcCredential(new MyCallback());
+   var client = new MongoClient(mongoClientSettings);
+
+API Documentation
+-----------------
+
+To learn more about any of the methods or types discussed on this
+page, see the following API documentation:
+
+- `MongoClient() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.MongoClient.html>`__
+- `MongoClientSettings() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.MongoClientSettings.html>`__
+- `MongoCredential() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.MongoCredential.html>`__
+- `MongoClientSettings.Extensions.AddAWSAuthentication() <{+new-api-root+}/MongoDB.Driver/MongoClientSettings.Extensions.html#MongoDB_Driver_MongoClientSettings_Extensions_AddAWSAuthentication>`__
+- `CreateOidcCredential() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.MongoCredential.CreateOidcCredential.html>`__
+- `WithMechanismProperty() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.MongoCredential.CreateOidcCredential.html#MongoDB_Driver_MongoDB_Driver_MongoCredential_WithMechanismProperty>`__
+- `IOidcCallback <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.Core/Authentication/IOidcCallback.html>`__
+- `OidcAccessToken <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.Core/Authentication/OidcAccessToken.html>`__
+- `OidcCallbackParameters <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.Core/Authentication/OidcCallbackParameters.html>`__
