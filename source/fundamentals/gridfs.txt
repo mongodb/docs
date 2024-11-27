@@ -1,0 +1,724 @@
+.. _csharp-gridfs:
+
+=================
+Store Large Files
+=================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: binary large object, blob, storage, code example
+
+Overview
+--------
+
+In this guide, you can learn how to store and retrieve large files in
+MongoDB by using **GridFS**. The GridFS storage system 
+splits files into chunks when storing them and reassembles those files when retrieving them.
+The driver's implementation of GridFS is an abstraction that manages the operations and
+organization of the file storage. 
+
+Use GridFS if the size of any of your files exceeds the BSON document
+size limit of 16 MB. For more detailed information about whether GridFS is
+suitable for your use case, see :manual:`GridFS </core/gridfs>` in the
+{+mdb-server+} manual.
+
+How GridFS Works
+----------------
+
+GridFS organizes files in a **bucket**, a group of MongoDB collections
+that contain the chunks of files and information describing them. The
+bucket contains the following collections:
+
+- ``chunks``: Stores the binary file chunks
+- ``files``: Stores the file metadata
+
+The driver creates the GridFS bucket, if it doesn't already exist, when you first
+write data to it. The bucket contains the ``chunks`` and ``files`` collections
+prefixed with the default bucket name ``fs``, unless you specify a different
+name. To ensure efficient retrieval of the files and related metadata, the driver
+creates an index on each collection. The driver ensures that these indexes exist
+before performing read and write operations on the GridFS bucket.
+	
+For more information about GridFS indexes, see :manual:`GridFS Indexes
+</core/gridfs/#gridfs-indexes>` in the {+mdb-server+} manual.
+
+When using GridFS to store files, the driver splits the files into smaller
+chunks, each represented by a separate document in the ``chunks`` collection.
+It also creates a document in the ``files`` collection that contains
+a file ID, file name, and other file metadata.
+
+The following diagram shows how GridFS splits files when they are
+uploaded to a bucket:
+
+.. figure:: /includes/figures/GridFS-upload.png
+   :alt: A diagram that shows how GridFS uploads a file to a bucket
+
+When retrieving files, GridFS fetches the metadata from the ``files``
+collection in the specified bucket and uses the information to reconstruct
+the file from documents in the ``chunks`` collection.
+
+.. _csharp-gridfs-create-bucket:
+
+Create a GridFS Bucket
+----------------------
+
+To begin using GridFS to store or retrieve files, create a new instance of the
+``GridFSBucket`` class, passing in an ``IMongoDatabase`` object that represents your
+database. This method accesses an existing bucket or creates
+a new bucket if one does not exist.
+
+The following example creates a new instance of the ``GridFSBucket`` class for the
+``db`` database:
+
+.. literalinclude:: /includes/code-examples/GridFS.cs
+   :language: csharp
+   :dedent:
+   :start-after: // start-create-bucket
+   :end-before: // end-create-bucket
+  
+.. _csharp-gridfs-create-custom-bucket:
+
+Customize the Bucket
+~~~~~~~~~~~~~~~~~~~~
+
+You can customize the GridFS bucket configuration by passing an instance
+of the ``GridFSBucketOptions`` class to 
+the ``GridFSBucket()`` constructor. The following table describes the properties in the
+``GridFSBucketOptions`` class:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Field 
+     - Description
+
+   * - ``BucketName`` 
+     - The bucket name to use as a prefix for the files and chunks collections.
+       The default value is ``"fs"``.
+       
+       **Data type**: {+string-data-type+} 
+
+   * - ``ChunkSizeBytes`` 
+     - The chunk size that GridFS splits files into. The default value is 255 KB.
+       
+       **Data type**: {+int-data-type+}
+
+   * - ``ReadConcern`` 
+     - The read concern to use for bucket operations. The default value is the 
+       database's read concern.
+       
+       **Data type**: `ReadConcern <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.ReadConcern.html>`__
+
+   * - ``ReadPreference`` 
+     - The read preference to use for bucket operations. The default value is the 
+       database's read preference.
+       
+       **Data type**: `ReadPreference <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.ReadPreference.html>`__
+
+   * - ``WriteConcern`` 
+     - The write concern to use for bucket operations. The default value is the 
+       database's write concern.
+       
+       **Data type**: `WriteConcern <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.WriteConcern.html>`__
+
+The following example creates a bucket named ``"myCustomBucket"`` by passing an instance
+of the ``GridFSBucketOptions`` class to the ``GridFSBucket()`` constructor:
+
+.. literalinclude:: /includes/code-examples/GridFS.cs
+   :language: csharp
+   :dedent:
+   :start-after: // start-create-custom-bucket
+   :end-before: // end-create-custom-bucket
+
+.. _csharp-gridfs-upload-files:
+
+Upload Files
+------------
+
+You can upload files to a GridFS bucket by using the following methods:
+
+- ``OpenUploadStream()`` or ``OpenUploadStreamAsync()``: Opens a new upload stream to which
+  you can write file contents
+- ``UploadFromStream()`` or ``UploadFromStreamAsync()``: Uploads the contents of an existing
+  stream to a GridFS file
+
+The following sections describe how to use these methods.
+
+.. _csharp-gridfs-open-upload-stream:
+
+Write to an Upload Stream
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use the ``OpenUploadStream()`` or ``OpenUploadStreamAsync()`` method to create an upload
+stream for a given file name. These methods accept the following parameters:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Parameter
+     - Description
+   * - ``filename``
+     - The name of the file to upload.
+        
+       **Data type**: {+string-data-type+}
+   * - ``options``
+     - *Optional.* An instance of the ``GridFSUploadOptions`` class that specifies the
+       configuration for the upload stream. The default value is ``null``.
+        
+       **Data type**: `GridFSUploadOptions <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.GridFS.GridFSUploadOptions.html>`__
+   * - ``cancellationToken``
+     - *Optional.* A token that you can use to cancel the operation.
+        
+       **Data type**: `CancellationToken <https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken>`__
+
+This code example demonstrates how to open an upload stream by performing the
+following steps:
+
+- Calls the ``OpenUploadStream()`` method to open a writable GridFS stream for a file
+  named ``"my_file"``
+- Calls the ``Write()`` method to write data to ``my_file``
+- Calls the ``Close()`` method to close the stream that points to ``my_file`` 
+
+Select the :guilabel:`Synchronous` or :guilabel:`Asynchronous` tab to see the corresponding
+code:
+
+.. tabs::
+
+   .. tab:: Synchronous
+      :tabid: open-upload-stream-sync
+
+      .. literalinclude:: /includes/code-examples/GridFS.cs
+         :language: csharp
+         :dedent:
+         :start-after: // start-open-upload-stream
+         :end-before: // end-open-upload-stream
+
+   .. tab:: Asynchronous
+      :tabid: open-upload-stream-async
+
+      .. literalinclude:: /includes/code-examples/GridFS.cs
+         :language: csharp
+         :dedent:
+         :start-after: // start-open-upload-stream-async
+         :end-before: // end-open-upload-stream-async
+
+To customize the upload stream configuration, pass an instance of the
+``GridFSUploadOptions`` class to the ``OpenUploadStream()`` or ``OpenUploadStreamAsync()``
+method. The ``GridFSUploadOptions`` class contains the following properties:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Property
+     - Description
+   * - ``BatchSize``
+     - The number of chunks to upload in each batch. The default value is 16 MB
+       divided by the value of the ``ChunkSizeBytes`` property. 
+        
+       **Data type**: ``int?`` 
+       
+   * - ``ChunkSizeBytes``
+     - The size of each chunk except the last, which is smaller. The default value is 255 KB.
+        
+       **Data type**: ``int?``
+
+   * - ``Metadata``
+     - Metadata to store with the file, including the following elements:
+
+       - The ``_id`` of the file
+       - The name of the file
+       - The length and size of the file
+       - The upload date and time
+       - A ``metadata`` document in which you can store other information
+
+       The default value is ``null``.
+        
+       **Data type**: `BsonDocument <{+new-api-root+}/MongoDB.Bson/MongoDB.Bson.BsonDocument.html>`__
+
+The following example performs the same steps as the preceding example, but also uses
+the ``ChunkSizeBytes`` option to specify the size of each chunk. Select the
+:guilabel:`Synchronous` or :guilabel:`Asynchronous` tab to see the corresponding
+code.
+
+.. tabs::
+
+   .. tab:: Synchronous
+      :tabid: open-upload-stream-with-options-sync
+
+      .. literalinclude:: /includes/code-examples/GridFS.cs
+         :language: csharp
+         :dedent:
+         :start-after: // start-open-upload-stream-with-options
+         :end-before: // end-open-upload-stream-with-options
+
+   .. tab:: Asynchronous
+      :tabid: open-upload-stream-with-options-async
+
+      .. literalinclude:: /includes/code-examples/GridFS.cs
+         :language: csharp
+         :dedent:
+         :start-after: // start-open-upload-stream-with-options-async
+         :end-before: // end-open-upload-stream-with-options-async
+
+.. _csharp-gridfs-upload-from-stream:
+
+Upload an Existing Stream
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use the ``UploadFromStream()`` or ``UploadFromStreamAsync()`` method to upload the
+contents of a stream to a new GridFS file. These methods accept the following parameters:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Parameter
+     - Description
+   
+   * - ``filename``
+     - The name of the file to upload.
+        
+       **Data type**: {+string-data-type+}
+
+   * - ``source``
+     - The stream from which to read the file contents.
+        
+       **Data type**: `Stream <https://learn.microsoft.com/dotnet/api/system.io.stream>`__
+
+   * - ``options``
+     - *Optional.* An instance of the ``GridFSUploadOptions`` class that specifies the
+       configuration for the upload stream. The default value is ``null``.
+        
+       **Data type**: `GridFSUploadOptions <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.GridFS.GridFSUploadOptions.html>`__
+
+   * - ``cancellationToken``
+     - *Optional.* A token that you can use to cancel the operation.
+        
+       **Data type**: `CancellationToken <https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken>`__
+
+This code example demonstrates how to open an upload stream by performing the
+following steps:
+
+- Opens a file located at ``/path/to/input_file`` as a stream in binary read mode
+- Calls the ``UploadFromStream()`` method to write the contents of the stream to a GridFS
+  file named ``"new_file"``
+
+Select the :guilabel:`Synchronous` or :guilabel:`Asynchronous` tab to see the corresponding
+code.
+
+.. tabs::
+
+   .. tab:: Synchronous
+      :tabid: upload-from-stream-sync
+
+      .. literalinclude:: /includes/code-examples/GridFS.cs
+         :language: csharp
+         :dedent:
+         :start-after: // start-upload-from-stream
+         :end-before: // end-upload-from-stream
+
+   .. tab:: Asynchronous
+      :tabid: upload-from-stream-async
+
+      .. literalinclude:: /includes/code-examples/GridFS.cs
+         :language: csharp
+         :dedent:
+         :start-after: // start-upload-from-stream-async
+         :end-before: // end-upload-from-stream-async
+
+.. _csharp-gridfs-download-files:
+
+Download Files
+--------------
+
+You can download files from a GridFS bucket by using the following methods:
+
+- ``OpenDownloadStream()`` or ``OpenDownloadStreamAsync()``: Opens a new download stream
+  from which you can read file contents
+- ``DownloadToStream()`` or ``DownloadToStreamAsync()``: Writes the contents of a GridFS
+  file to an existing stream
+
+The following sections describe these methods in more detail.
+
+.. _csharp-gridfs-open-download-stream:
+
+Read From a Download Stream
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use the ``OpenDownloadStream()`` or ``OpenDownloadStreamAsync()`` method to create a
+download stream. These methods accept the following parameters:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Parameter
+     - Description
+   * - ``id``
+     - The ``_id`` value of the file to download. 
+        
+       **Data type**: `BsonValue <{+new-api-root+}/MongoDB.Bson/MongoDB.Bson.BsonValue.html>`__
+   * - ``options``
+     - *Optional.* An instance of the ``GridFSDownloadOptions`` class that specifies the
+       configuration for the download stream. The default value is ``null``.
+        
+       **Data type**: `GridFSDownloadOptions <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.GridFS.GridFSDownloadOptions.html>`__
+   * - ``cancellationToken``
+     - *Optional.* A token that you can use to cancel the operation.
+        
+       **Data type**: `CancellationToken <https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken>`__
+
+The following code example demonstrates how to open a download stream by performing the
+following steps:
+
+- Retrieves the ``_id`` value of the GridFS file named ``"new_file"``
+- Calls the ``OpenDownloadStream()`` method and passes the ``_id`` value to open the
+  file as a readable GridFS stream
+- Creates a ``buffer`` vector to store the file contents
+- Calls the ``Read()`` method to read the file contents from the ``downloader``
+  stream into the vector
+
+Select the :guilabel:`Synchronous` or :guilabel:`Asynchronous` tab to see the corresponding
+code.
+
+.. tabs::
+
+   .. tab:: Synchronous
+      :tabid: open-download-stream-sync
+
+      .. literalinclude:: /includes/code-examples/GridFS.cs
+         :language: csharp
+         :dedent:
+         :start-after: // start-open-download-stream
+         :end-before: // end-open-download-stream
+
+   .. tab:: Asynchronous
+      :tabid: open-download-stream-async
+
+      .. literalinclude:: /includes/code-examples/GridFS.cs
+         :language: csharp
+         :dedent:
+         :start-after: // start-open-download-stream-async
+         :end-before: // end-open-download-stream-async
+
+To customize the download stream configuration, pass an instance of the
+``GridFSDownloadOptions`` class to the ``OpenDownloadStream()`` method. The
+``GridFSDownloadOptions`` class contains the following property:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Property
+     - Description
+   * - ``Seekable``
+     - Indicates whether the stream supports *seeking*, the ability to query and
+       change the current position in a stream. The default value is ``false``. 
+        
+       **Data type**: ``bool?`` 
+ 
+The following example performs the same steps as the preceding example, but also sets
+the ``Seekable`` option to ``true`` to specify that the stream is seekable.
+
+Select the :guilabel:`Synchronous` or :guilabel:`Asynchronous` tab to see the corresponding
+code.
+
+.. tabs::
+
+   .. tab:: Synchronous
+      :tabid: open-download-stream-with-options-sync
+
+      .. literalinclude:: /includes/code-examples/GridFS.cs
+         :language: csharp
+         :dedent:
+         :start-after: // start-open-download-stream-with-options
+         :end-before: // end-open-download-stream-with-options
+ 
+   .. tab:: Asynchronous
+      :tabid: open-download-stream-with-options-async
+
+      .. literalinclude:: /includes/code-examples/GridFS.cs
+         :language: csharp
+         :dedent:
+         :start-after: // start-open-download-stream-with-options-async
+         :end-before: // end-open-download-stream-with-options-async
+  
+.. _csharp-gridfs-download_to_stream:
+
+Download to an Existing Stream
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use the ``DownloadToStream()`` or ``DownloadToStreamAsync()`` method to download the
+contents of a GridFS file to an existing stream. These methods accept the following parameters:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Parameter
+     - Description
+   * - ``id``
+     - The ``_id`` value of the file to download. 
+        
+       **Data type**: `BsonValue <{+new-api-root+}/MongoDB.Bson/MongoDB.Bson.BsonValue.html>`__
+   * - ``destination``
+     - The stream that the {+driver-short+} downloads the GridFS file to. This property's
+       value must be an object that implements the ``Stream`` class.
+        
+       **Data type**: `Stream <https://learn.microsoft.com/en-us/dotnet/api/system.io.stream?view=net-8.0>`__
+   * - ``options``
+     - *Optional.* An instance of the ``GridFSDownloadOptions`` class that specifies the
+       configuration for the download stream. The default value is ``null``.
+        
+       **Data type**: `GridFSDownloadOptions <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.GridFS.GridFSDownloadOptions.html>`__
+   * - ``cancellationToken``
+     - *Optional.* A token that you can use to cancel the operation.
+        
+       **Data type**: `CancellationToken <https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken>`__
+
+The following code example demonstrates how to download to an existing stream by
+performing the following actions:
+
+- Opens a file located at ``/path/to/output_file`` as a stream in binary write
+  mode
+- Retrieves the ``_id`` value of the GridFS file named ``"new_file"``
+- Calls the ``DownloadToStream()`` method and passes the ``_id`` value to download
+  the contents of ``"new_file"`` to a stream
+
+Select the :guilabel:`Synchronous` or :guilabel:`Asynchronous` tab to see the corresponding
+code.
+
+.. tabs::
+
+   .. tab:: Synchronous
+      :tabid: download-to-stream-sync
+
+      .. literalinclude:: /includes/code-examples/GridFS.cs
+         :language: csharp
+         :dedent:
+         :start-after: // start-download-to-stream
+         :end-before: // end-download-to-stream
+
+   .. tab:: Asynchronous
+      :tabid: download-to-stream-async
+
+      .. literalinclude:: /includes/code-examples/GridFS.cs
+         :language: csharp
+         :dedent:
+         :start-after: // start-download-to-stream-async
+         :end-before: // end-download-to-stream-async
+
+.. _csharp-gridfs-retrieve-file-info:
+
+Find Files 
+----------
+
+To find files in a GridFS bucket, call the ``Find()`` or ``FindAsync()`` method
+on your ``GridFSBucket`` instance. These methods accept the following parameters:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Parameter
+     - Description
+   
+   * - ``filter``
+     - A query filter that specifies the entries to match in the ``files`` collection.
+        
+       **Data type**: ``FilterDefinition<GridFSFileInfo>``. For more information, see
+       the API documentation for the
+       `Find() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.GridFS.GridFSBucket.Find.html>`__
+       method.
+
+   * - ``source``
+     - The stream from which to read the file contents.
+        
+       **Data type**: `Stream <https://learn.microsoft.com/dotnet/api/system.io.stream>`__
+
+   * - ``options``
+     - *Optional.* An instance of the ``GridFSFindOptions`` class that specifies the
+       configuration for the find operation. The default value is ``null``.
+        
+       **Data type**: `GridFSFindOptions <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.GridFS.GridFSFindOptions.html>`__
+
+   * - ``cancellationToken``
+     - *Optional.* A token that you can use to cancel the operation.
+        
+       **Data type**: `CancellationToken <https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken>`__
+
+The following code example shows how to retrieve and print file metadata
+from files in a GridFS bucket. The ``Find()`` method returns an
+``IAsyncCursor<GridFSFileInfo>`` instance from
+which you can access the results. It uses a ``foreach`` loop to iterate through
+the returned cursor and display the contents of the files uploaded in the
+:ref:`csharp-gridfs-upload-files` examples. 
+
+Select the :guilabel:`Synchronous` or :guilabel:`Asynchronous` tab to see the corresponding
+code.
+
+.. tabs::
+
+   .. tab:: Synchronous
+      :tabid: find-sync
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/code-examples/GridFS.cs
+            :start-after: // start-find
+            :end-before: // end-find
+            :language: csharp
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            { "_id" : { "$oid" : "..." }, "length" : 13, "chunkSize" : 261120, "uploadDate" :
+            { "$date" : ... }, "filename" : "new_file" }
+            { "_id" : { "$oid" : "..." }, "length" : 50, "chunkSize" : 1048576, "uploadDate" :
+            { "$date" : ... }, "filename" : "my_file" }
+
+   .. tab:: Asynchronous
+      :tabid: find-async
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/code-examples/GridFS.cs
+            :start-after: // start-find-async
+            :end-before: // end-find-async
+            :language: csharp
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            { "_id" : { "$oid" : "..." }, "length" : 13, "chunkSize" : 261120, "uploadDate" :
+            { "$date" : ... }, "filename" : "new_file" }
+            { "_id" : { "$oid" : "..." }, "length" : 50, "chunkSize" : 1048576, "uploadDate" :
+            { "$date" : ... }, "filename" : "my_file" }
+
+To customize the find operation, pass an instance of the
+``GridFSFindOptions`` class to the ``Find()`` or ``FindAsync()`` method. The
+``GridFSFindOptions`` class contains the following properties:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Property
+     - Description
+   
+   * - ``Sort``
+     - The sort order of the results. If you don't specify a sort order, the
+       method returns the results in the order in which they were inserted.
+        
+       **Data type**: ``SortDefinition<GridFSFileInfo>``. For more information, see
+       the API documentation for the
+       `Sort <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.GridFS.GridFSFindOptions.Sort.html>`__
+       property.
+
+.. _csharp-gridfs-delete-files:
+
+Delete Files
+------------
+
+To delete files from a GridFS bucket, call the ``Delete()`` or ``DeleteAsync()`` method
+on your ``GridFSBucket`` instance. This method removes a file's metadata collection and
+its associated chunks from your bucket.
+
+The ``Delete`` and ``DeleteAsync()`` methods accept the following parameters:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Parameter
+     - Description
+   * - ``id``
+     - The ``_id`` of the file to delete. 
+        
+       **Data type**: `BsonValue <{+new-api-root+}/MongoDB.Bson/MongoDB.Bson.BsonValue.html>`__
+   * - ``cancellationToken``
+     - *Optional.* A token that you can use to cancel the operation.
+        
+       **Data type**: `CancellationToken <https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken>`__
+
+The following code example shows how to delete a file named ``"my_file"``
+passing its ``_id`` value to ``delete_file()``:
+
+- Uses the ``Builders`` class to create a filter that matches the file named ``"my_file"``
+- Uses the ``Find()`` method to find the file named ``"my_file"``
+- Passes the ``_id`` value of the file to the ``Delete()`` method to delete the file
+
+Select the :guilabel:`Synchronous` or :guilabel:`Asynchronous` tab to see the corresponding
+code.
+
+.. tabs::
+
+   .. tab:: Synchronous
+      :tabid: download-to-stream-sync
+
+      .. literalinclude:: /includes/code-examples/GridFS.cs
+         :language: csharp
+         :dedent:
+         :start-after: // start-delete-file
+         :end-before: // end-delete-file
+
+   .. tab:: Asynchronous
+      :tabid: delete-file-async
+
+      .. literalinclude:: /includes/code-examples/GridFS.cs
+         :language: csharp
+         :dedent:
+         :start-after: // start-delete-file-async
+         :end-before: // end-delete-file-async
+
+.. note:: File Revisions
+
+   The ``Delete()`` and ``DeleteAsync()`` methods support deleting only one file at a time.
+   If you want to delete each file revision, or files with different upload
+   times that share the same file name, collect the ``_id`` values of each revision.
+   Then, pass each ``_id`` value in separate calls to the ``Delete()`` or ``DeleteAsync()``
+   method.
+
+API Documentation
+-----------------
+
+To learn more about the classes used on this page, see the following API documentation:
+
+- `GridFSBucket <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.GridFS.GridFSBucket.html>`__
+- `GridFSBucketOptions <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.GridFS.GridFSBucketOptions.html>`__
+- `GridFSDownloadOptions <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.GridFS.GridFSDownloadOptions.html>`__
+- `GridFSFindOptions <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.GridFS.GridFSFindOptions.html>`__
+- `GridFSUploadOptions <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.GridFS.GridFSUploadOptions.html>`__
+- `GridFSFileInfo <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.GridFS.GridFSFileInfo.html>`__
+
+To learn more about the methods in the ``GridFSBucket`` class used on this page, see the
+following API documentation:
+
+- `OpenUploadStream() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.GridFS.GridFSBucket.OpenUploadStream.html>`__
+- `OpenUploadStreamAsync() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.GridFS.GridFSBucket.OpenUploadStreamAsync.html>`__
+- `UploadFromStream() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.GridFS.GridFSBucket.UploadFromStream.html>`__
+- `UploadFromStreamAsync() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.GridFS.GridFSBucket.UploadFromStreamAsync.html>`__
+- `OpenDownloadStream() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.GridFS.GridFSBucket.OpenDownloadStream.html>`__
+- `OpenDownloadStreamAsync() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.GridFS.GridFSBucket.OpenDownloadStreamAsync.html>`__
+- `DownloadToStream() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.GridFS.GridFSBucket.DownloadToStream.html>`__
+- `DownloadToStreamAsync() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.GridFS.GridFSBucket.DownloadToStreamAsync.html>`__
+- `Find() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.GridFS.GridFSBucket.Find.html>`__
+- `FindAsync() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.GridFS.GridFSBucket.FindAsync.html>`__
+- `Delete() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.GridFS.GridFSBucket.Delete.html>`__
+- `DeleteAsync() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.GridFS.GridFSBucket.DeleteAsync.html>`__
