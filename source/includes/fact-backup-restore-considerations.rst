@@ -1,6 +1,8 @@
 You must restore the backup to a cluster running either the same major
-release version, or the next higher one. |service| doesn't support
-restoring to older versions.
+release version, or the following one. |service| doesn't support
+restoring to older versions. If the backup has a pinned |fcv|, the 
+major version of the target cluster must match the major version of 
+the backup.
 
 You can still use backups made before an upgrade.
 
