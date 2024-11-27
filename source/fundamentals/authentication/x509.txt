@@ -1,0 +1,147 @@
+.. _csharp-authentication-x509:
+
+=====
+X.509
+=====
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: .NET, certificate, code example
+
+Overview
+--------
+
+In the **X.509** authentication mechanism, the server and client use the
+:wikipedia:`TLS <Transport_Layer_Security>` protocol to exchange X.509 public-key
+certificates. You can use this mechanism to authenticate to MongoDB Atlas, MongoDB
+Enterprise Advanced, and MongoDB Community Edition.
+
+.. tip:: X.509 Mechanism
+
+   To learn how to use TLS/SSL with the {+driver-short+},
+   see :ref:`TLS/SSL <csharp-tls>`.
+
+   For more information about X.509 certificates, see
+   :ref:`X.509 <x509-client-authentication>` in the {+mdb-server+} manual.
+
+Code Placeholders 
+~~~~~~~~~~~~~~~~~
+
+The code examples on this page use the following placeholders:
+
+- ``+srv``: Include this option in your connection string prefix only if you are connecting
+  to a MongoDB Atlas cluster. To learn more about the ``+srv`` option, see
+  :manual:`Connection String Formats </reference/connection-string/#connection-string-formats>`
+  in the {+mdb-server+} manual.
+- ``<hostname>``: The network address of your MongoDB deployment.
+- ``<port>``: The port number of the MongoDB deployment. If you omit this parameter,
+  the driver uses the default port number (``27017``). You don't need a port number
+  when connecting to a MongoDB Atlas cluster.
+- ``<X.509 certificate username>``: The username of the user associated with the X.509
+  certificate. The username must match the distinguished subject name of the certificate.
+  If you omit this parameter, the MongoDB deployment infers the username
+  from the X.509 certificate.
+- ``<path to X.509 certificate>``: The path to the X.509 certificate file.
+- ``<X.509 certificate password>``: The password for the X.509 certificate.
+
+To use the code examples on this page, replace these placeholders with your own values.
+
+Using X.509 Authentication in Your Application
+----------------------------------------------
+
+To use an X.509 certificate for authentication, you must use a
+``MongoClientSettings`` object to specify
+the path to your X.509 certificate and the password for the certificate. The certificate
+must use the :wikipedia:`PKCS #12<PKCS_12>` (``.p12``) format.
+
+.. tip:: Convert .pem to .p12
+   
+   If your certificate uses the :wikipedia:`PEM<Privacy-Enhanced_Mail>` (``.pem``) format,
+   you must convert it to the ``.p12`` format. To convert the certificate, use the
+   ``openssl`` command-line tool, as shown in the following code example:
+
+   .. code-block:: bash
+
+      openssl pkcs12 -export -out <.p12 file> -inkey <private key file> -in <.pem file>
+   
+   For more information about ``openssl-pkcs12``, see the
+   `OpenSSL documentation. <https://docs.openssl.org/master/man1/openssl-pkcs12/#name>`__
+
+You must also specify ``MONGODB-X509`` as the authentication mechanism and ``$external``
+as the authentication source. You can specify
+these options either in your connection string or by using a ``MongoCredential`` object. 
+Select the :guilabel:`Connection String` or :guilabel:`MongoCredential` tab to
+see the corresponding syntax:
+
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: default-connection-string
+
+      .. code-block:: csharp
+
+         var connectionString = "mongodb[+srv]://<hostname>[:<port>]/?authSource=$external&authMechanism=MONGODB-X509";
+         var settings = MongoClientSettings.FromConnectionString(connectionString);
+
+         settings.UseTls = true;
+         settings.SslSettings = new SslSettings
+         {
+            ClientCertificates = new List<X509Certificate>()
+            {
+                new X509Certificate2("<path to X.509 certificate>", "<X.509 certificate password>")
+            }
+         };
+
+   .. tab:: MongoCredential
+      :tabid: default-mongo-credential
+
+      .. code-block:: csharp
+
+         var credential = MongoCredential.CreateMongoX509Credential("<X.509 certificate username>");
+         var settings = new MongoClientSettings 
+         {
+             Credential =  credential,
+             SslSettings = new SslSettings
+             {
+                 ClientCertificates = new List<X509Certificate>()
+                 {
+                     new X509Certificate2("<path to X.509 certificate>", "<X.509 certificate password>")
+                 },
+             },
+             UseTls = true,
+             Server = new MongoServerAddress("<hostname>"[, "<port>"]),
+         };
+
+Troubleshooting
+---------------
+
+.. include:: /includes/troubleshooting/x509.rst
+
+API Documentation
+-----------------
+
+To learn more about any of the MongoDB methods and types used on this
+page, see the following API documentation:
+
+- `MongoClient <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.MongoClient.html>`__
+- `MongoClientSettings <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.MongoClientSettings.html>`__
+- `MongoCredential <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.MongoCredential.html>`__
+- `SslSettings <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.SslSettings.html>`__
+- `MongoServerAddress <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.MongoServerAddress.html>`__
+- `CreateMongoX509Credential() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.MongoCredential.CreateMongoX509Credential.html>`__
+
+For more information about the .NET types used on this page, see the
+following MSDN documentation:
+
+- `X509Certificate <https://docs.microsoft.com/dotnet/api/system.security.cryptography.x509certificates.x509certificate>`__
+- `X509Certificate2 <https://docs.microsoft.com/dotnet/api/system.security.cryptography.x509certificates.x509certificate2>`__
+
