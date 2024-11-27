@@ -30,7 +30,7 @@
    * - excludedNamespaces
      - array of strings
      - Conditional
-
+     -
        .. note::
 
           |mms| accepts this parameter for backup jobs running MongoDB
@@ -61,7 +61,7 @@
    * - includedNamespaces
      - array of strings
      - Conditional
-
+     -
        .. note::
 
           |mms| accepts this parameter for backup jobs running MongoDB
