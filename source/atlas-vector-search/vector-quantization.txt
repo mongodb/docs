@@ -1,19 +1,211 @@
-.. _avs-bindata-vector-subtype:
+.. _avs-quantization:
 
-===============================
-How to Ingest Quantized Vectors
-===============================
+===================
+Vector Quantization 
+===================
 
-You can convert your embeddings to |bson| :manual:`BinData
-</reference/method/BinData/>` ``vector`` subtype ``float32`` or
-``vector`` subtype ``int8`` or ``int1`` vectors. 
+.. default-domain:: mongodb
+
+.. facet::
+   :name: programming_language
+   :values: python
+
+.. meta::
+   :description: Use the Atlas Vector Search to ingest quantized vectors or automatically quantize vectors.
+   :keywords: atlas ui, node.js, code example, atlas api, atlas cli, java sync, go, python, mongodb shell, sample dataset
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
 
 .. note:: 
 
    .. include:: /includes/fact-avs-int1-ingestion-preview.rst
 
-Use Cases
----------
+{+avs+} supports automatic quantization of double or 32-bit float values
+in your vector embeddings. It can also ingest and index your scalar and
+binary quantized vectors from embedding providers.  
+
+.. _avs-quantization-about:
+
+About Quantization 
+------------------
+
+Quantization is the process of shrinking full-fidelity vectors into
+fewer bits. It reduces the amount of main memory required to store each
+vector in a vector search index because you index reduced representation
+vectors, thus allowing the storage of more vectors or of vectors with
+higher dimensionality. In this way, quantization reduces resource 
+consumption and improves speed. Therefore, we recommend quantization for
+applications with large number of vectors, typically over 10M vectors.  
+
+Scalar Quantization 
+~~~~~~~~~~~~~~~~~~~
+
+:term:`Scalar quantization <scalar quantization>` involves first
+identifying the minimum and maximum values for each dimension of the
+indexed vectors to establish a range of values for a dimension. Then,
+the range is divided into equally sized intervals or bins. Finally, each
+float value is mapped to a bin to convert the continuous float values
+into discrete integers. In {+avs+}, this quantization reduces the vector
+embedding's RAM cost to one fourth (``1/4``) of the pre-quantization cost. 
+
+Binary Quantization 
+~~~~~~~~~~~~~~~~~~~
+
+:term:`Binary quantization <binary quantization>` involves assuming a
+midpoint of ``0`` for each dimension, which is typically appropriate for
+embeddings normalized to length ``1`` such as  OpenAI's 
+``text-embedding-3-large``. Then, each value in the vector is
+compared to the midpoint and assigned a binary value of ``1`` if it's
+greater than the midpoint and a binary value of ``0`` if it's less than
+or equal to the midpoint. In {+avs+}, this quantization reduces the
+vector embedding's RAM cost to one twenty-fourth (``1/24``) of the
+pre-quantization cost. The reason it's not ``1/32`` is because the data
+structure containing the |hnsw| graph itself, separate from the vector
+values, isn't compressed.
+
+When you run a query, {+avs+} converts the float value in the query
+vector into a binary vector using the same midpoint for efficient
+comparison between the query vector and indexed binary vectors. It then
+rescores by reevaluating the identified candidates in the binary
+comparison using the original float values associated with those results
+from the binary index to further refine the results. The full fidelity
+vectors are stored in their own data structure on disk, and are only 
+referenced during rescoring when you configure binary quantization or
+when you perform exact search against either binary or scalar quantizaed
+vectors.  
+
+.. seealso:: 
+
+   `What is vector quantization? <https://www.mongodb.com/developer/products/atlas/ingesting_quantized_vectors_with_cohere/#what-is-vector-quantization->`__.
+
+Requirements
+------------
+
+The following table shows the requirements for automatically quantizing
+and ingesting quantized vectors: 
+
+.. list-table:: 
+   :header-rows: 1 
+
+   * - Requirement
+     - For ``int1`` Ingestion 
+     - For ``int8`` Ingestion 
+     - For Automatic Scalar Quantization 
+     - For Automatic Binary Quantization  
+
+   * - Requires index definition settings 
+     - No 
+     - No 
+     - Yes 
+     - Yes 
+
+   * - Requires |bson| ``binData`` format
+     - Yes
+     - Yes
+     - No
+     - No
+
+   * - Storage on mongod
+     - ``binData(int1)``
+     - ``binData(int8)``
+     - | ``binData(float32)``
+       | ``array(float32)``
+
+     - | ``binData(float32)``
+       | ``array(float32)``
+
+   * - Supported Similarity method
+     - ``euclidean``
+     
+     - | ``cosine``
+       | ``euclidean``
+       | ``dotProduct``
+     
+     - | ``cosine``
+       | ``euclidean``
+       | ``dotProduct``
+     
+     - | ``cosine``
+       | ``euclidean``
+       | ``dotProduct``
+
+   * - Supported Number of Dimensions
+     - Multiple of 8
+     - 1 to 4096
+     - 1 to 4096
+     - Multiple of 8
+
+   * - Supports |enn| Search
+     - |enn| on ``int1``
+     - |enn| on ``int8``
+     - |enn| on ``float32``
+     - |enn| on ``float32``
+
+How to Enable Automatic Quantization of Vectors
+-----------------------------------------------
+
+You can configure {+avs+} to automatically quantize double or 32-bit
+float values in your vector embeddings to smaller number types such as 
+``int8`` (scalar) and ``binary``. 
+
+For most embedding models, we recommend binary quantization with
+rescoring. If you want to use lower dimension models that are not
+:abbr:`QAT (Quantization-Aware-Trained)`, use scalar quantization 
+because it has less representational loss and therefore, incurs less 
+representational capacity loss. 
+
+Benefits 
+~~~~~~~~
+
+{+avs+} provides native capabilities for scalar quantization as well as
+binary quantization with rescoring. Automatic quantization increases 
+scalability and cost savings for your applications by reducing the
+storage and computational resources for efficient processing of your
+vectors. Automatic quantization reduces the RAM for ``mongot`` by 3.75x
+for scalar and by 24x for binary; the vector values shrink by 4x and 32x
+respectively, but |hnsw| graph itself does not shrink. This improves
+performance, even at the highest volume and scale. 
+
+Use Cases 
+~~~~~~~~~
+
+We recommend automatic quantization if you have large number of full
+fidelity vectors, typically over 10M vectors. After quantization, you
+index reduced representation vectors without compromising the accuracy
+when retrieving vectors. 
+
+Procedure 
+~~~~~~~~~
+
+To automatically quantize your ``double`` or 32-bit ``float`` values,
+specify the type of quantization you want as the value for
+``fields.quantization`` in your index definition. You can specify one of
+the following types of quantization as the value: 
+
+- ``scalar`` quantization to produce byte vectors from 32-bit input vectors.
+- ``binary`` quantization to produce bit vectors from 32-bit input vectors.
+
+If you specify automatic quantization on data that is not an array of
+``doubles`` or 32-bit ``float`` values, {+avs+} silently ignores that
+vector instead of indexing it, and those vectors will be skipped. 
+
+.. _avs-bindata-vector-subtype:
+
+How to Ingest Pre-Quantized Vectors
+-----------------------------------
+
+{+avs+} also supports ingestion and indexing of scalar and
+binary quantized vectors from embedding providers. If you don't already
+have quantized vectors, you can convert your embeddings to |bson|
+:manual:`BinData </reference/method/BinData/>` ``vector`` subtype
+``float32``, ``int1``, or ``int8`` vectors. 
+
+Use Cases 
+~~~~~~~~~
 
 We recommend the |bson| ``binData`` ``vector`` subtype for the following
 use cases:  
@@ -29,8 +221,11 @@ Benefits
 The :manual:`BinData </reference/method/BinData/>` ``vector`` format
 requires about three times less disk space in your {+cluster+} compared
 to arrays of elements. It allows you to index your vectors with
-alternate types such as ``int8`` or ``int1`` vectors, reducing the
-memory needed to build the {+avs+} index for your collection. 
+alternate types such as ``int1`` or ``int8`` vectors, reducing the
+memory needed to build the {+avs+} index for your collection. It reduces
+the RAM for ``mongot`` by 3.75x for scalar and by 24x for binary; the
+vector values shrink by 4x and 32x respectively, but the |hnsw| graph
+itself doesn't shrink. 
 
 If you don't already have ``binData`` vectors, you can convert your
 embeddings to this format by using any supported driver before writing
@@ -42,7 +237,7 @@ Supported Drivers
 -----------------
 
 |bson| :manual:`BinData </reference/method/BinData/>` ``vector`` subtype
-``float32`` and ``int8`` vector conversion is supported by
+``float32``, ``int1``, and ``int8`` vector conversion is supported by
 :driver:`PyMongo Driver </pymongo/>` v4.10 or later. 
 
 Prerequisites
@@ -120,3 +315,16 @@ values.
 For an advanced demonstration of this procedure on sample data using
 Cohere's ``embed-english-v3.0`` embedding model, see
 this :github:`notebook </mongodb-developer/GenAI-Showcase/blob/main/notebooks/techniques/quantized_vector_ingestion_with_cohere_and_mongodb.ipynb>`. 
+
+Evaluate Your Query Results 
+---------------------------
+
+You can measure the accuracy of your {+avs+} query by evaluating how
+closely the results for an |ann| search match the results of an |enn|
+search against your quantized vectors. That is, you can compare the
+results of |ann| search with the results of |enn| search for the same
+query criteria and measure how frequently the |ann| search results
+include the nearest neighbors in the results from the |enn| search.
+
+For a demonstration of evaluating your query results, see
+:ref:`avs-improve-results`. 
