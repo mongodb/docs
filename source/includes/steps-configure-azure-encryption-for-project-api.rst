@@ -48,11 +48,11 @@
             :copyable: true
             
             .. input:: 
-               :language: shell
+               :language: json
       
                curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-               --header "Accept: application/json" \
-               --header "Content-Type: application/json" \
+               --header "Accept: application/vnd.atlas.2024-05-30+json" \
+               --header "Content-Type: application/vnd.atlas.2024-05-30+json" \
                --include \
                --request GET "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/encryptionAtRest"      
       

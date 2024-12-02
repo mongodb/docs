@@ -13,8 +13,8 @@
             :emphasize-lines: 14
 
             curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-            --header "Accept: application/json" \
-            --header "Content-Type: application/json" \
+            --header "Accept: application/vnd.atlas.2023-01-01+json" \
+            --header "Content-Type: application/vnd.atlas.2023-01-01+json" \
             --include \
             --request PATCH "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/encryptionAtRest/" \
             --data '
@@ -49,8 +49,8 @@
          .. code-block:: json
       
             curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-            --header "Accept: application/json" \
-            --header "Content-Type: application/json" \
+            --header "Accept: application/vnd.atlas.2023-01-01+json" \
+            --header "Content-Type: application/vnd.atlas.2023-01-01+json" \
             --include \
             --request POST "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/encryptionAtRest/AZURE/privateEndpoints" \
             --data '
@@ -93,11 +93,11 @@
             :copyable: true
             
             .. input:: 
-               :language: shell
+               :language: json
 
                curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-               --header "Accept: application/json" \
-               --header "Content-Type: application/json" \
+               --header "Accept: application/vnd.atlas.2023-01-01+json" \
+               --header "Content-Type: application/vnd.atlas.2023-01-01+json" \
                --include \
                --request GET "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/encryptionAtRest/AZURE/privateEndpoints"               
       
