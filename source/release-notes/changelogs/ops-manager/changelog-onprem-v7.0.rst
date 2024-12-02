@@ -327,6 +327,10 @@ Automation
 - Adds support for :ref:`enabling OIDC authentication 
   <enable-oidc-auth>` through an |idp| that supports |oidc|, such as 
   |azure-ad|, Okta, or Ping Identity.
+- Replaces the target of the ``/var/lib/mongodb-mms-automation/bin`` symlink. This symlink now points to the 
+  latest downloaded version of {+mongosh+}. In the previous releases, this symlink pointed to the latest 
+  MongoDB version in the ``/bin`` folder. This change ensures that you always use the newest downloaded 
+  {+mongosh+} version in all scripts for your deployments. 
 
 Migration
 `````````
