@@ -330,7 +330,7 @@ Automation
 - Replaces the target of the ``/var/lib/mongodb-mms-automation/bin`` symlink. This symlink now points to the 
   latest downloaded version of {+mongosh+}. In the previous releases, this symlink pointed to the latest 
   MongoDB version in the ``/bin`` folder. This change ensures that you always use the newest downloaded 
-  {+mongosh+} version in all scripts for your deployments. 
+  {+mongosh+} version in all scripts for your deployments.  
 
 Migration
 `````````
