@@ -9,10 +9,12 @@ polygonal edges.
 is the shortest line between two points in the coordinate reference 
 system.
 
-MongoDB draws polygons using third-party library for `geodesic types 
-<https://s2geometry.io/devguide/basic_types>`__ that use geodesic 
-lines. To learn more, see :manual:`GeoJSON Objects 
-</reference/geojson/#polygon>`.
+MongoDB draws polygons using the geodesic mode based on 
+:manual:`2dsphere indexes </core/indexes/index-types/geospatial/2dsphere>` 
+that is built on top of a third-party library for `geodesic types 
+<https://s2geometry.io/devguide/basic_types>`__, or the flat mode, from 
+:manual:`2d indexes </core/indexes/index-types/geospatial/2d>`. To 
+learn more, see :manual:`GeoJSON Objects </reference/geojson/#polygon>`.
 
 |fts| and MongoDB could return different results for geospatial queries 
 involving polygons.
