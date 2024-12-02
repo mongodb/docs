@@ -1,11 +1,12 @@
 .. _|idref|-clusterTime:
+ 
+``clusterTime`` is the timestamp from the oplog entry associated with 
+the event.
 
-The timestamp from the oplog entry associated with the event.
-
-Change stream event notifications associated with a
-:ref:`multi-document transaction <transactions>`
-all have the same ``clusterTime`` value: the time when the transaction
-was committed.
+Due to :ref:`oplog size limits<txn-oplog-size-limit>`, 
+:ref:`multi-document transactions <transactions>` may create multiple 
+oplog entries. In a transaction, change stream events staged in a given oplog 
+entry share the same ``clusterTime``. 
 
 On sharded clusters, events with the same ``clusterTime`` may not all
 relate to the same transaction.  Some events don't relate to a
