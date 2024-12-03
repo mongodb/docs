@@ -31,7 +31,12 @@
       metadata for those blocks is written to a MongoDB database on the
       |onprem| host.
 
-   #. Snapshot files to a :opsmgr:`file system store </reference/glossary/#std-term-File-System-Store>`.
+   #. Snapshot files to a :opsmgr:`file system store </reference/glossary/#std-term-File-System-Store>`. 
+      The :opsmgr:`Backup Daemon </reference/glossary/#std-term-Backup-Daemon>` that owns the backup 
+      job for the replica creates a full snapshot by combining the changed and the new blocks with the 
+      unchanged blocks from the last snapshot. If the Backup Daemon that owns the backup job is 
+      down, you need to recover the Backup Daemon or 
+      :ref:`move the head database to another Daemon <move-jobs-from-one-daemon-to-another>`.
 
 .. note::
 
