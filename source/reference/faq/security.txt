@@ -110,21 +110,38 @@ application stack to support |tls| 1.2.
 Which certificate authority signs MongoDB Atlas TLS certificates?
 -----------------------------------------------------------------
 
-On 25 February 2020, |service-fullname| moved to `Let's Encrypt
-<https://letsencrypt.org>`__ as the new |certauth| for |tls|
-certificates for all |service| clusters.
+|service-fullname| uses `Let's Encrypt <https://letsencrypt.org>`__ as
+the |certauth| for |tls| certificates for all {+clusters+}.
 
-Beginning on 1 May 2021, new |tls| certificates that |service-fullname|
-creates use ISRG instead of IdenTrust for their root |certauth| in line 
-with Let's Encrypt's `announcement
-<https://letsencrypt.org/2019/04/15/transitioning-to-isrg-root.html>`__
-of this transition.
+Starting in June of 2025, we are adding Google Trust Services as an
+additional |certauth| for |service| {+clusters+} to improve availability.
+With this addition, |service| signs |tls| certificates for your {+clusters+}
+with either the :guilabel:`GTS Root R1` or :guilabel:`GTS Root R2` root
+|certauth| from Google Trust Services, *in addition* to the :guilabel:`ISRG Root
+X1` root |certauth| from Let's Encrypt.
 
-On 17 March 2022, |service-fullname| moved to Let's Encrypt as the new
-Certificate Authority for |tls| certificates for ``cloud.mongodb.com``.
+.. note:: 
+   
+   Most application environments already have Let's Encrypt and Google Trust
+   Services in their trusted |certauth| list.
 
-Please review the following scenarios to ensure that you don't
-experience connectivity issues:
+To download the |certauth| certificates, see the
+`Google Trust Services repository <https://pki.goog/repository/>`__ and 
+`ISRG Root X1 <https://letsencrypt.org/certificates/>`__.
+
+How often does an Atlas Cluster rotate TLS certificates?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|tls| certificates are valid for 90 days from the day it is issued.
+Certificates are rotated 42 days before the certificate's expiration
+date.
+
+Use the following command to check expiration of your |tls| certificate
+of a node:
+
+.. code-block::
+
+   echo | openssl s_client -showcerts -connect $HOSTNAME:$PORT 2> /dev/null | openssl x509 -noout -enddate
 
 .. _tls-change-hard-code:
 
@@ -132,55 +149,59 @@ Hard-coded Certificate Authority
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We don't recommend hard-coding or pinning `intermediate certificates
-<https://letsencrypt.org/certificates/#intermediate-certificates>`__ 
+<https://letsencrypt.org/certificates/#intermediate-certificates>`__
 because it introduces an operational burden and availability risk. If
-Let's Encrypt rotates or replaces your pinned certificate, your
-application might fail to connect, which results in an outage.
+Let's Encrypt or Google Trust Services rotates or replaces your pinned
+intermediate certificate, your application might fail to connect, which
+results in an outage.
 
-If you must pin a certificate, pin it to Let's Encrypt's
-root |certauth| (`ISRG Root X1
-<https://letsencrypt.org/certs/isrgrootx1.pem.txt>`__)
-and not to any intermediate certificate.
+If you must pin a certificate, pin it to |certauth| certificates and not
+to any intermediate certificates.
 
 Java Users
 ~~~~~~~~~~
 
-Let's Encrypt's new ISRG root certificate isn't present in the default
-trust store for Java version 7 prior to the 7u151 update, or Java
-version 8 prior to the 8u141 update. Use a Java release after 18 July
-2017.
+Let's Encrypt's ISRG root certificate and Google Trust Services root
+certificates are both available in the default trust store of `Java
+version 7 after the 7u391 update
+<https://www.oracle.com/java/technologies/javase/7-support-relnotes.html#JDK-8307134>`__
+and `Java version 8 after the 8u381 update
+<https://www.oracle.com/java/technologies/javase/8u381-relnotes.html#JDK-8307134>`__.
+Use a Java release after 18 July 2023.
 
 Ensure your Java client software is up-to-date. Use the latest Java
 versions to utilize many improvements beyond these new |certauth|
 requirements for our |tls| certificates.
 
-If you have your own trust store, add the Let's Encrypt certificate to
-it. To learn more, see :ref:`tls-change-hard-code`.
+If you have your own trust store, add the Let's Encrypt and Google Trust
+Services certificates to it. To learn more, see
+:ref:`faq-tls-ca`
 
 Windows Server Users
 ~~~~~~~~~~~~~~~~~~~~
 
-The ISRG Root X1 root |certauth| isn't included by default in
-Windows Server, but it is available in the
+The ISRG Root X1, GTS Root R1 and GTS Root R2 root |certauth| aren't
+included by default in Windows Server, but it is available in the
 `Microsoft Trusted Root Program
 <https://docs.microsoft.com/en-us/security/trusted-root/participants-list>`__.
 
-To configure Windows Server to download trusted root certificates,
-including Let's Encrypt's new ISRG root certificate, see `Windows Documentation 
+
+To configure Windows Server to download trusted root certificates, see
+`Windows Documentation
 <https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-r2-and-2012/dn265983(v=ws.11)>`__.
 
 Amazon Linux AMI Users
 ~~~~~~~~~~~~~~~~~~~~~~
 
-`Amazon Linux AMI <https://aws.amazon.com/amazon-linux-ami/>`__ 
-doesn't support the new ISRG Root X1 root |certauth|.
+Some versions of `Amazon Linux AMI
+<https://aws.amazon.com/amazon-linux-ami/>`__  may not have both ISRG
+Root X1 and GTS Root R1 and R2 certificates. Please migrate to a newer
+version of Amazon Linux for required root certificates. After June 2025,
+we will require the support of ISRG Root X1, GTS Root R1 and R2
+certificates for |service| to avoid certificate compatibility issues.
 
-If you are using Amazon Linux AMI, migrate to Amazon Linux 2.
-After 30 September 2021, the support of ISRG Root X1 certificates is
-mandatory for |service| to avoid certificate compatibility issues.
-
-To continue using Amazon Linux AMI after 30 September 2021, manually
-install the new ISRG Root X1 root |certauth|.
+If you must use an older Amazon Linux AMI, manually install the ISRG
+Root X1, GTS Root R1 and R2 root |certauth|.
 
 Everyone Else
 ~~~~~~~~~~~~~
