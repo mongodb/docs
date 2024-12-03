@@ -11,4 +11,8 @@
   :azure:`Azure Documentation </index>`. 
 
   |service| uses these resources when enabling encryption at rest
-  for a {+cluster+} in the |service| project. 
+  for a {+cluster+} in the |service| project.
+
+- If your :guilabel:`App registrations` uses conditional access 
+  policies, you must :ref:`allow requests from Atlas Control Plane IP addresses <atlas-add-inbound-ips>`. 
+  You don't need to enable public access to the key vault. 

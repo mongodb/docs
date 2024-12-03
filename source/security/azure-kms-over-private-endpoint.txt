@@ -156,8 +156,8 @@ Disable Customer-Managed Keys for a Project
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To disable |cmk| for a project, you must first :ref:`remove
-<azure-remove-reject-pvt-endpoint>` all private endpoints, regardless of
-their state, associated with the project. |service| displays an error if
+<azure-remove-reject-pvt-endpoint>` all private endpoints associated 
+with the project, regardless of their state. |service| displays an error if
 you attempt to disable |cmk| for a project that is associated with
 active private endpoints. 
 
@@ -172,44 +172,6 @@ disable the feature for the project.
    management within the |service| project. If |service| can't access
    an |akv| key, any data that the key encrypted becomes inaccessible.
 
-.. _azure-disable-pvt-endpoint:
-
-Disable Private Endpoint Connections for a Project 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To disable private endpoint connections for a project, you must first
-:ref:`remove <azure-remove-reject-pvt-endpoint>` all private endpoints,
-regardless of their state, associated with the project. |service|
-doesn't disable private endpoint connections for a project if the
-project is associated with active private endpoints.
-
-After removing all private endpoints for a project, you can disable
-private endpoint connections for the project by using the
-{+atlas-admin-api+}. To disable a private endpoint connection, send a 
-``PATCH`` request to the :oas-atlas-op:`endpoint
-</updateEncryptionAtRest>` with the ``requirePrivateNetworking`` boolean
-flag value set to ``false``.
-
-.. example:: 
-
-   .. code-block:: shell 
-      :emphasize-lines: 8
-
-      {
-        "azureKeyVault": {
-          "azureEnvironment": "AZURE",
-          "clientID": "5e4ea010-a908-45a1-a70b-ebd2e4feb055",
-          "enabled": true,
-          "keyIdentifier": "https://EXAMPLEKeyVault.vault.azure.net/keys/EXAMPLEKey/d891821e3d364e9eb88fbd3d11807b86",
-          "keyVaultName": "string",
-          "requirePrivateNetworking": false,
-          "resourceGroupName": "string",
-          "secret": "string",
-          "subscriptionID": "d0dd68eb-7e97-448c-b361-f7a7213dc7e2",
-          "tenantID": "f95ac700-4c8f-4a38-a8d1-1582733edd5b"
-        }
-      }
-
 .. _azure-remove-reject-pvt-endpoint:
 
 Reject or Remove Private Endpoint Connection
@@ -218,15 +180,19 @@ Reject or Remove Private Endpoint Connection
 To successfully remove a private endpoint, send a ``DELETE`` request to
 the {+atlas-admin-api+} :oas-atlas-op:`endpoint
 </requestEncryptionAtRestPrivateEndpointDeletion>` and specify the ID of
-the project and of the private endpoint that you want to delete. 
+the project and of the private endpoint that you want to delete. You can 
+retrieve the ID of the private endpoint that you want to delete by sending 
+a ``GET`` request to the {+atlas-admin-api+} :oas-atlas-op:`Return One Private 
+Endpoint Service for One Provider 
+</Private-Endpoint-Services/operation/getPrivateEndpointService>` endpoint.
 
 .. example:: 
 
    .. code-block:: json
       
       curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-      --header "Accept: application/vnd.atlas.2024-05-30+json" \
-      --header "Content-Type: application/vnd.atlas.2024-05-30+json" \
+      --header "Accept: application/vnd.atlas.2024-10-23+json" \\ or a different version of the Atlas Admin API
+      --header "Content-Type: application/json" \
       --include \
       --request DELETE "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/encryptionAtRest/AZURE/privateEndpoints/{endpointId}" \ 
       --data '
@@ -257,8 +223,8 @@ in the path.
 
       
       curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-      --header "Accept: application/vnd.atlas.2024-05-30+json" \
-      --header "Content-Type: application/vnd.atlas.2024-05-30+json" \
+      --header "Accept: application/vnd.atlas.2024-10-23+json" \\ or a different version of the Atlas Admin API
+      --header "Content-Type: application/json" \
       --include \
       --request GET "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/encryptionAtRest/AZURE/privateEndpoints/"      
       
@@ -267,6 +233,44 @@ the private endpoint that you rejected or removed transitions to
 ``PENDING_RECREATION`` and the new endpoint that |service| attempts to
 create is in ``INITIATING`` state. You must approve the new private
 endpoint after it is created. 
+
+.. _azure-disable-pvt-endpoint:
+
+Disable Private Endpoint Connections for a Project 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To disable private endpoint connections for a project, you must first
+:ref:`remove <azure-remove-reject-pvt-endpoint>` all private endpoints, 
+associated with the project, regardless of their state. |service|
+doesn't disable private endpoint connections for a project if the
+project is associated with active private endpoints.
+
+After removing all private endpoints for a project, you can disable
+private endpoint connections for the project by using the
+{+atlas-admin-api+}. To disable a private endpoint connection, send a 
+``PATCH`` request to the :oas-atlas-op:`endpoint
+</updateEncryptionAtRest>` with the ``requirePrivateNetworking`` boolean
+flag value set to ``false``.
+
+.. example:: 
+
+   .. code-block:: shell 
+      :emphasize-lines: 8
+
+      {
+        "azureKeyVault": {
+          "azureEnvironment": "AZURE",
+          "clientID": "5e4ea010-a908-45a1-a70b-ebd2e4feb055",
+          "enabled": true,
+          "keyIdentifier": "https://EXAMPLEKeyVault.vault.azure.net/keys/EXAMPLEKey/d891821e3d364e9eb88fbd3d11807b86",
+          "keyVaultName": "string",
+          "requirePrivateNetworking": false,
+          "resourceGroupName": "string",
+          "secret": "string",
+          "subscriptionID": "d0dd68eb-7e97-448c-b361-f7a7213dc7e2",
+          "tenantID": "f95ac700-4c8f-4a38-a8d1-1582733edd5b"
+        }
+      }
 
 Revoke Access to an Encryption Key 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
