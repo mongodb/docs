@@ -81,9 +81,10 @@
       
          .. important::
       
-            You cannot downgrade the MongoDB version of a |service|
-            cluster. If you want to redeploy the staging environment with
-            the original MongoDB version, you must terminate and re-create
+            You can't downgrade the MongoDB version of a |service|
+            cluster unless the cluster's |fcv| was previously pinned 
+            before upgrading. If you want to redeploy the staging environment 
+            with the original MongoDB version, you must terminate and re-create
             the cluster.
       
       #. Click :guilabel:`Confirm & Deploy` to deploy your changes.

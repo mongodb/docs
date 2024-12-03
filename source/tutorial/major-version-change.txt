@@ -13,7 +13,7 @@ Upgrade Major MongoDB Version for a Cluster
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 You can upgrade the major version of your |service| {+cluster+} at any time
@@ -58,7 +58,11 @@ The following considerations apply:
   risking backward incompatible changes.
 
 - After upgrading the MongoDB major version, you will not be able to 
-  downgrade to previous versions.
+  downgrade to previous versions unless you pinned the cluster's
+  |fcv| before upgrading.
+
+- Live migration requires the |fcv|\s on the source and destination {+clusters+}
+  to match in most cases. To learn more, see :ref:`Migrate or Import Data <import-strategies>`.
 
 - Starting with MongoDB 6.0, the ``$$SEARCH_META`` 
   aggregation variable can't be used in any subsequent stage after a 
@@ -75,40 +79,159 @@ Required Access
 To upgrade a {+cluster+}, you must have the :authrole:`Project Owner` or
 higher role for the project.
 
-Procedure
----------
+Upgrade Your Major MongoDB Version
+----------------------------------
+
+To upgrade your major MongoDB version:
 
 .. include:: /includes/steps-change-major-version.rst
 
 .. _major-version-upgrade-support:
 
-Support for Major Version Upgrades
-----------------------------------
+Manage Feature Compatibility (FCV) During Upgrades
+--------------------------------------------------
+
+MongoDB major version upgrades are supported by both |service| and on-premises deployments. 
+The |fcv| enables or disables features that persist data incompatible with earlier versions of 
+MongoDB. You can pin a cluster's |fcv| before upgrading in |service|, which enables you to 
+revert MongoDB to the previous version after upgrading without experiencing version compatibility issues. 
+
+The following procedures allow you to pin and unpin |fcv| for your cluster, downgrade your cluster by one 
+major version, or file a support ticket. 
+
+.. warning::
+
+   The |fcv| is a short-term measure that only persists for up to 4 weeks after the pin date, and doesn't 
+   simulate the behavior of the previous binary versions. It only postpones upgrading certain internal data 
+   structures that allow new server features. After you are confident that a downgrade to the previous version 
+   is unnecessary, unpin the |fcv| to match the current binary version.
+
+Limitations
+~~~~~~~~~~~~
+
+- |fcv| pinning is only available on Dedicated {+clusters+}.
+- |fcv| pin can't be extended beyond 4 weeks from the pin date.
+- |fcv| pinning is not supported for {+clusters+} on :manual:`rapid release </reference/versioning/>`.
+- You should pin a cluster's |fcv| before the cluster's version reaches end-of-life.
+
+Pin the |fcv| for Your Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When your {+cluster+} has a pinned |fcv|, a pin icon appears next to your {+cluster+}'s :guilabel:`Version` 
+at the bottom of the {+cluster+} card. If you hover your cursor over the pin icon, a tooltip that 
+shows the |fcv| and the expiration date appears.
+
+|service| unpins your {+cluster+}'s |fcv| on the next :ref:`maintenance window <configure-maintenance-window>` 
+starting on or after the expiration date.
+
+If you already upgraded your {+cluster+}'s MongoDB version, |service| upgrades its |fcv| to match 
+its MongoDB version after the pin expires.
+
+To pin the |fcv| for your {+cluster+}:
+
+.. tabs:: 
+
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+
+      .. procedure::
+         :style: normal
+
+         .. include:: /includes/nav/steps-db-deployments-page.rst
+
+         .. step:: Click the :icon-fa5:`ellipsis-h` icon to the right of the {+database-deployment+}.
+
+         .. step:: Select :guilabel:`Pin Feature Compatibility Version`. 
+         
+            A modal appears with the :guilabel:`Feature Compatibility Version` and the :guilabel:`Set expiration date` field.
+
+         .. step:: Set the expiration date. 
+            
+            All dates are set to |iso8601-time|, in the ``MM/DD/YYYY`` format. Set the |fcv| expiration date 
+            to be within four weeks of the date to which you pinned the |fcv|. When the expiration date passes, the tooltip displays 
+            ``Expired XX/XX/XXXX``. Your |fcv| pin automatically expires after 4 weeks.
+
+            After the |fcv| pin expires, |service| unpins your {+cluster+}'s |fcv| on the next maintenance window starting on or after 
+            the expiration date. If you already upgraded your {+cluster+}'s MongoDB version, |service| upgrades its |fcv| to match its 
+            MongoDB version.
+   
+   .. tab:: {+atlas-admin-api+}
+      :tabid: api
+
+      To pin |fcv| for your {+cluster+} using the API, see 
+      :oas-atlas-tag:`Pin FCV for One Cluster from One Project </pinFeatureCompatibilityVersion>`.
+      
+Unpin the |fcv| for Your Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To unpin the |fcv| for your {+cluster+}:
+
+.. tabs::
+
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+   
+      .. procedure::
+         :style: normal
+
+         .. include:: /includes/nav/steps-db-deployments-page.rst
+
+         .. step:: Click the :icon-fa5:`ellipsis-h` icon to the right of the {+database-deployment+}.
+
+         .. step:: Select :guilabel:`Edit Pinned Feature Compatibility Version`. 
+         
+            A modal appears with the :guilabel:`Feature Compatibility Version` and the :guilabel:`Edit expiration date` field.
+
+         .. step:: Click :guilabel:`Unpin` next to the :guilabel:`Feature Compatibility Version`. 
+
+   .. tab:: {+atlas-admin-api+}
+      :tabid: api
+
+      To unpin |fcv| for your {+cluster+} using the API, see 
+      :oas-atlas-tag:`Unpin FCV for One Cluster from One Project </unpinFeatureCompatibilityVersion>`.
+
+Downgrade Your Cluster by One Major Version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following limitations apply to downgrading your cluster's version:
+
+- You can only downgrade if you pin the {+cluster+}'s |fcv| before upgrading.
+- You can only downgrade your {+cluster+} to the major version that matches the pinned |fcv|.
+- You can only perform this action if the pinned |fcv| is only one major version below 
+  the current |fcv| and you don't have rapid release enabled.
+- You can't downgrade to a version after it reaches end-of-life.
+
+To downgrade your {+cluster+} by one major version: 
+
+.. tabs::
+   
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+   
+      .. procedure::
+         :style: normal
+
+         .. include:: /includes/nav/steps-db-deployments-page.rst
+
+         .. step:: Click the :icon-fa5:`ellipsis-h` icon to the right of the {+database-deployment+}.
+
+         .. step:: Select :guilabel:`Edit Configuration`.
+
+         .. step:: In the :guilabel:`Additional Settings` section of the {+cluster+} form, select a major version from the dropdown next to :guilabel:`Select a Version` that matches your cluster's |fcv|.
+
+            A warning banner appears indicating that your cluster's MongoDB version will be downgraded.
+
+   .. tab:: {+atlas-admin-api+}
+      :tabid: api
+
+      To downgrade your {+cluster+} by one major version using the API, see 
+      :oas-atlas-tag:`Modify One Cluster from One Project </unpinFeatureCompatibilityVersion>`.
+      
+Contact Support
+~~~~~~~~~~~~~~~
 
 If you have any questions regarding migration support beyond what is covered
 in this documentation, or if you encounter an error during migration,
 file a support ticket through the |service| user interface.
 
-To file a support ticket:
-
-.. procedure::
-   :style: normal
-
-   .. include:: /includes/nav/steps-project-support.rst
-
-   .. step:: For :guilabel:`Atlas Issue Category`, select ``Other``.
-
-   .. step:: Set the priority.
-    
-      For :guilabel:`Priority`, select ``Medium Priority``. If the issue
-      affects your production cluster, select ``High Priority``.
-
-   .. step:: Update the summary.
-    
-      For :guilabel:`Request Summary`, include ``Major Version Upgrade``
-      in the summary.
-
-   .. step:: Specify details.
-    
-      For :guilabel:`More details`, include any other relevant details 
-      to your question or major version upgrade error.
+If you have any questions or need further assistance, reach out to our :ref:`support <atlas-support>` team. 
