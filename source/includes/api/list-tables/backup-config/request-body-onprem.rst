@@ -38,8 +38,11 @@
           backing up MongoDB databases running |fcv| 4.2 or later.
 
        List of database and collection names to *omit* from the backup.
-       Each string represents one namespace. Namespaces use the format
-       of **{database}** or **{database}.{collection}**.
+       Each string represents one namespace. Namespaces use one of the 
+       following formats: 
+
+       - **{database}** 
+       - **{database}.{collection}**.
 
        This parameter must meet the following conditions:
 
@@ -69,8 +72,11 @@
           backing up MongoDB databases running |fcv| 4.2 or later.
 
        List of database and collection names to *include* from the
-       backup. Each string represents one namespace. Namespaces use the
-       format of **{database}** or **{database}.{collection}**.
+       backup. Each string represents one namespace. Namespaces use one 
+       of the following formats: 
+       
+       - **{database}**
+       - **{database}.{collection}**.
 
        This parameter must meet the following conditions:
 
