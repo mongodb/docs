@@ -69,6 +69,11 @@ S
      Usually words with the prefix *self*, such as *self-service* and
      *self-explanatory*, are hyphenated.
 
+   self-managed
+     Use this term to describe deployments that are not hosted on
+     MongoDB Atlas. Self-managed deployments include deployments that
+     are hosted on-premises as well as non-Atlas environments like AWS.
+
    serious
      Use *serious* instead of the more negative terms *bad*,
      *catastrophic*, or *fatal*.

@@ -49,11 +49,17 @@ O
 
    on-premises
      **off-premises**
-     Use these terms to distinguish local computing (in which
-     resources are located on a customer’s own site) from remote
+
+     :icon-fa4:`times-circle` Avoid using these terms to distinguish
+     non-Atlas deployments. To distinguish non-Atlas deployments, use
+     :term:`self-managed`.
+
+     Use *on-premises* to distinguish local computing (in which
+     resources are located on a customer's own site) from remote
      computing (in which resources are provided partially or totally
-     through the cloud). Always hyphenate. *Premises* is plural;
-     don't use *on-premise* or *off-premise*.
+     through the cloud). Always hyphenate. *Premises* is plural; don't
+     use *on-premise* or *off-premise*. For consistency, always use the
+     complete *on-premises* term, and do not shorten to *on-prem*.
 
      .. list-table::
         :widths: 50 50
@@ -135,4 +141,3 @@ O
             MongoDB email hosting.
           - Over three million business email users rely on MongoDB
             email hosting.
-
