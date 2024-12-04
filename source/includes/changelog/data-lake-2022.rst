@@ -101,7 +101,7 @@
 
      The federated query engine service previously called {+adl+} is 
      now called {+adf+}. To learn more about {+adf+}, see 
-     :ref:`atlas-data-federation`.
+     :ref:`Atlas Data Federation <atlas-data-federation>`.
 
 .. _data-lake-v20220531:
 

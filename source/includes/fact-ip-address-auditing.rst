@@ -4,6 +4,9 @@ list entries, |service| notifies you of these events in the project's
 IP access list entry, the Activity Feed reports the deletion of the old
 entry and the creation of the new entry.
 
+View Activity Feed
+-------------------
+
 To view the project's Activity Feed:
 
 .. procedure::
@@ -13,9 +16,7 @@ To view the project's Activity Feed:
 
    .. include:: /includes/nav/steps-project-activity-feed.rst
 
-.. seealso::
-
-   :ref:`View All Activity <project-activity-feed>`.
+See also :ref:`View All Activity <project-activity-feed>`.
 
 .. note:: Activity Feed Considerations
 
