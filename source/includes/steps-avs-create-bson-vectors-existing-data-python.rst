@@ -42,98 +42,32 @@
             * - ``<COHERE-API-KEY>``
               - API key for Cohere.
 
-         .. tabs:: 
+         .. code-block:: python 
+            :linenos:
 
-            .. tab:: float32
-               :tabid: float32
+            import os
+            import pymongo
+            import cohere
+            from bson.binary import Binary, BinaryVectorDtype
 
-               .. code-block:: python 
-                  :linenos:
+            # Specify your OpenAI API key and embedding model
+            os.environ["COHERE_API_KEY"] = "<COHERE-API-KEY>"
+            cohere_client = cohere.Client(os.environ["COHERE_API_KEY"])
 
-                  import os
-                  import pymongo
-                  import cohere
-                  from bson.binary import Binary, BinaryVectorDtype
-
-                  # Specify your OpenAI API key and embedding model
-                  os.environ["COHERE_API_KEY"] = "<COHERE-API-KEY>"
-                  cohere_client = cohere.Client(os.environ["COHERE_API_KEY"])
-
-                  # Function to generate embeddings using Cohere
-                  def get_embedding(text):
-                      response = cohere_client.embed(
-                        texts=[text],
-                        model='embed-english-v3.0', 
-                        input_type='search_document',
-                        embedding_types=["float"]
-                      )
-                      embedding = response.embeddings.float[0] 
-                      return embedding
+            # Function to generate embeddings using Cohere
+            def get_embedding(text):
+                response = cohere_client.embed(
+                  texts=[text],
+                  model='embed-english-v3.0', 
+                  input_type='search_document'
+                )
+                embedding = response.embeddings[0] 
+                return embedding
                 
-                  # Function to convert embeddings to BSON-compatible format
-                  def generate_bson_vector(vector, vector_dtype):
-                      return Binary.from_vector(vector, vector_dtype)
-
-            .. tab:: int8
-               :tabid: int8
-
-               .. code-block:: python 
-                  :linenos:
-
-                  import os
-                  import pymongo
-                  import cohere
-                  from bson.binary import Binary, BinaryVectorDtype
-
-                  # Specify your OpenAI API key and embedding model
-                  os.environ["COHERE_API_KEY"] = "<COHERE-API-KEY>"
-                  cohere_client = cohere.Client(os.environ["COHERE_API_KEY"])
-
-                  # Function to generate embeddings using Cohere
-                  def get_embedding(text):
-                      response = cohere_client.embed(
-                        texts=[text],
-                        model='embed-english-v3.0', 
-                        input_type='search_document',
-                        embedding_types=["int8"]
-                      )
-                      embedding = response.embeddings.int8[0] 
-                      return embedding
-                
-                  # Function to convert embeddings to BSON-compatible format
-                  def generate_bson_vector(vector, vector_dtype):
-                      return Binary.from_vector(vector, vector_dtype)
-
-            .. tab:: int1
-               :tabid: int1
-
-               .. code-block:: python 
-                  :linenos:
-
-                  import os
-                  import pymongo
-                  import cohere
-                  from bson.binary import Binary, BinaryVectorDtype
-
-                  # Specify your OpenAI API key and embedding model
-                  os.environ["COHERE_API_KEY"] = "<COHERE-API-KEY>"
-                  cohere_client = cohere.Client(os.environ["COHERE_API_KEY"])
-
-                  # Function to generate embeddings using Cohere
-                  def get_embedding(text):
-                      response = cohere_client.embed(
-                        texts=[text],
-                        model='embed-english-v3.0', 
-                        input_type='search_document',
-                        embedding_types=["ubinary"]
-                      )
-                      embedding = response.embeddings.ubinary[0] 
-                      return embedding
-                
-                  # Function to convert embeddings to BSON-compatible format
-                  def generate_bson_vector(vector, vector_dtype):
-                      return Binary.from_vector(vector, vector_dtype)
-
+            # Function to convert embeddings to BSON-compatible format
+            def generate_bson_vector(vector, vector_dtype):
+                return Binary.from_vector(vector, vector_dtype)
+     
    .. step:: Connect to the |service| {+cluster+} and retrieve existing data. 
 
       You must provide the following: 
@@ -190,78 +124,26 @@
  
       .. example:: Generate, Convert, and Load Embeddings to Collection
 
-         .. tabs:: 
-            :hidden:
+         .. code-block:: python 
+            :linenos:
 
-            .. tab:: float32
-               :tabid: float32
+            for doc in documents:
+                # Generate embeddings based on the summary
+                summary = doc["summary"]
+                embedding = get_embedding(summary)  # Get float32 embedding
 
-               .. code-block:: python 
-                  :linenos:
+                # Convert the float32 embedding to BSON format
+                bson_float32 = generate_bson_vector(embedding, BinaryVectorDtype.FLOAT32)
 
-                  for doc in documents:
-                      # Generate embeddings based on the summary
-                      summary = doc["summary"]
-                      embedding = get_embedding(summary)  # Get float32 embedding
+                # Update the document with the BSON embedding
+                collection.update_one(
+                    {"_id": doc["_id"]},
+                    {"$set": {"embedding": bson_float32}}
+                )
+                updated_doc_count += 1
 
-                      # Convert the float32 embedding to BSON format
-                      bson_float32 = generate_bson_vector(embedding, BinaryVectorDtype.FLOAT32)
-
-                      # Update the document with the BSON embedding
-                      collection.update_one(
-                          {"_id": doc["_id"]},
-                          {"$set": {"embedding": bson_float32}}
-                      )
-                      updated_doc_count += 1
-
-                  print(f"Updated {updated_doc_count} documents with BSON embeddings.")
-
-            .. tab:: int8
-               :tabid: int8
-
-               .. code-block:: python 
-                  :linenos:
-
-                  for doc in documents:
-                      # Generate embeddings based on the summary
-                      summary = doc["summary"]
-                      embedding = get_embedding(summary)  # Get int8 embedding
-
-                      # Convert the float32 embedding to BSON format
-                      bson_int8 = generate_bson_vector(embedding, BinaryVectorDtype.INT8)
-
-                      # Update the document with the BSON embedding
-                      collection.update_one(
-                          {"_id": doc["_id"]},
-                          {"$set": {"embedding": bson_int8}}
-                      )
-                      updated_doc_count += 1
-
-                  print(f"Updated {updated_doc_count} documents with BSON embeddings.")
-
-            .. tab:: int1
-               :tabid: int1
-
-               .. code-block:: python 
-                  :linenos:
-
-                  for doc in documents:
-                      # Generate embeddings based on the summary
-                      summary = doc["summary"]
-                      embedding = get_embedding(summary)  # Get int1 embedding
-
-                      # Convert the float32 embedding to BSON format
-                      bson_int1 = generate_bson_vector(embedding, BinaryVectorDtype.PACKED_BIT)
-
-                      # Update the document with the BSON embedding
-                      collection.update_one(
-                          {"_id": doc["_id"]},
-                          {"$set": {"embedding": bson_int1}}
-                      )
-                      updated_doc_count += 1
-
-                  print(f"Updated {updated_doc_count} documents with BSON embeddings.")
-
+            print(f"Updated {updated_doc_count} documents with BSON embeddings.")
+         
    .. step:: Create the {+avs+} index on the collection.
 
       You can create {+avs+} indexes by using the {+atlas-ui+},
@@ -291,7 +173,7 @@
                 {
                   "type": "vector",
                   "path": "embedding",
-                  "similarity": "euclidean",
+                  "similarity": "dotProduct",  
                   "numDimensions": 1024,  
                 }
               ]
@@ -330,104 +212,34 @@
             * - ``<NUMBER-OF-DOCUMENTS-TO-RETURN>`` 
               - Number of documents to return in the results. 
 
-         .. tabs:: 
-            :hidden:
+         .. code-block:: python 
+            :linenos:
 
-            .. tab:: float32
-               :tabid: float32
+            def run_vector_search(query_text, collection, path):
+              query_embedding = get_embedding("query_text")
+              bson_query_vector = generate_bson_vector(query_embedding, BinaryVectorDtype.FLOAT32)
 
-               .. code-block:: python 
-                  :linenos:
+              pipeline = [
+                {
+                  '$vectorSearch': {
+                    'index': '<INDEX-NAME>', 
+                    'path': path,
+                    'queryVector': bson_query_vector,
+                    'numCandidates': <NUMBER-OF-CANDIDATES-TO-CONSIDER>, # for example, 20
+                    'limit': <NUMBER-OF-DOCUMENTS-TO-RETURN> # for example, 5
+                   }
+                 },
+                 {
+                   '$project': {
+                     '_id': 0,
+                     'name': 1,
+                     'summary': 1,
+                     'score': { '$meta': 'vectorSearchScore' }
+                    }
+                 }
+              ]
 
-                  def run_vector_search(query_text, collection, path):
-                    query_embedding = get_embedding("query_text")
-                    bson_query_vector = generate_bson_vector(query_embedding, BinaryVectorDtype.FLOAT32)
-
-                    pipeline = [
-                      {
-                        '$vectorSearch': {
-                          'index': '<INDEX-NAME>', 
-                          'path': path,
-                          'queryVector': bson_query_vector,
-                          'numCandidates': <NUMBER-OF-CANDIDATES-TO-CONSIDER>, # for example, 20
-                          'limit': <NUMBER-OF-DOCUMENTS-TO-RETURN> # for example, 5
-                         }
-                       },
-                       {
-                         '$project': {
-                           '_id': 0,
-                           'name': 1,
-                           'summary': 1,
-                           'score': { '$meta': 'vectorSearchScore' }
-                          }
-                       }
-                    ]
-
-                    return collection.aggregate(pipeline)
-
-            .. tab:: int8
-               :tabid: int8
-
-               .. code-block:: python 
-                  :linenos:
-
-                  def run_vector_search(query_text, collection, path):
-                    query_embedding = get_embedding("query_text")
-                    bson_query_vector = generate_bson_vector(query_embedding, BinaryVectorDtype.INT8)
-
-                    pipeline = [
-                      {
-                        '$vectorSearch': {
-                          'index': '<INDEX-NAME>', 
-                          'path': path,
-                          'queryVector': bson_query_vector,
-                          'numCandidates': <NUMBER-OF-CANDIDATES-TO-CONSIDER>, # for example, 20
-                          'limit': <NUMBER-OF-DOCUMENTS-TO-RETURN> # for example, 5
-                         }
-                       },
-                       {
-                         '$project': {
-                           '_id': 0,
-                           'name': 1,
-                           'summary': 1,
-                           'score': { '$meta': 'vectorSearchScore' }
-                          }
-                       }
-                    ]
-
-                    return collection.aggregate(pipeline)
-
-            .. tab:: int1
-               :tabid: int1
-
-               .. code-block:: python 
-                  :linenos:
-
-                  def run_vector_search(query_text, collection, path):
-                    query_embedding = get_embedding("query_text")
-                    bson_query_vector = generate_bson_vector(query_embedding, BinaryVectorDtype.PACKED_BIT)
-
-                    pipeline = [
-                      {
-                        '$vectorSearch': {
-                          'index': '<INDEX-NAME>', 
-                          'path': path,
-                          'queryVector': bson_query_vector,
-                          'numCandidates': <NUMBER-OF-CANDIDATES-TO-CONSIDER>, # for example, 20
-                          'limit': <NUMBER-OF-DOCUMENTS-TO-RETURN> # for example, 5
-                         }
-                       },
-                       {
-                         '$project': {
-                           '_id': 0,
-                           'name': 1,
-                           'summary': 1,
-                           'score': { '$meta': 'vectorSearchScore' }
-                          }
-                       }
-                    ]
-
-                    return collection.aggregate(pipeline)
+              return collection.aggregate(pipeline)
 
    .. step:: Run the {+avs+} query.
 
@@ -446,16 +258,16 @@
                from pprint import pprint
 
                query_text = "ocean view"
-               query_results = run_vector_search(query_text, collection, "embedding")
+               float32_results = run_vector_search(query_text, collection, "embedding")
 
-               print("results from your embeddings")
-               pprint(list(query_results))
+               print("results from float32 embeddings")
+               pprint(list(float32_results))
 
             .. output:: 
                :language: python 
                :visible: false
 
-               results from your embeddings
+               results from float32 embeddings
                [{'name': 'Your spot in Copacabana',
                  'score': 0.5468248128890991,
                  'summary': 'Having a large airy living room. The apartment is well divided. '
