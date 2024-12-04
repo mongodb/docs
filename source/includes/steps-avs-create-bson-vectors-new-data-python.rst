@@ -246,7 +246,7 @@
                 },
                 {
                   "type": "vector",
-                  "path": "<FIELD-NAME-FOR-INT1-TYPE>",
+                  "path": "<FIELD-NAME-FOR-1-TYPE>",
                   "similarity": "euclidean", 
                   "numDimensions": 1024, 
                 }
