@@ -27,13 +27,24 @@
       
    .. step:: Choose the :guilabel:`Target`.
       
-      Click :guilabel:`User` or :guilabel:`Billing` under
-      :guilabel:`Select a Target`.
+      Under :guilabel:`Select a Target`, click :guilabel:`Service Account`, :guilabel:`Billing`, 
+      or :guilabel:`User`.
       
    .. step:: Choose the :guilabel:`Condition`.
       
       Under :guilabel:`Select a Condition`:
       
+      - If you chose :guilabel:`Service Account`:
+
+        a. Select from the following options:
+
+           - :alert:`Service Account Secrets have expired`
+           - :alert:`Service Account Secrets are about to expire`
+        
+        b. If :guilabel:`in  DAY(S)` appears next to the option you selected,
+           specify the number of days before your service account secret expires 
+           that you want to be notified. 
+
       - If you chose :guilabel:`User`, select:
       
         - :alert:`Organization users do not have MFA enabled <Users do not have multi-factor authentication enabled>`
@@ -54,7 +65,9 @@
            specify the amount in :abbr:`USD (United States Dollars)`
            where |service| should trigger the alert if the selected
            condition exceeds that value.
-      
+
+   .. step:: Click :guilabel:`Next`.
+
    .. step:: Select the :guilabel:`Notification Method`.
       
       Under the :guilabel:`Add Notification Method` heading, click the

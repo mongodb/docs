@@ -44,6 +44,10 @@ Filter by event
           - Service Account Access List Entry Deleted
           - Service Account Secret Deleted
           - Service Account Secret Added
+          - Service Account Client Secrets are about to expire
+          - Service Account Client Secrets are no longer about to expire
+          - Service Account Client Secrets have expired
+          - Service Account secrets are no longer expired
           - Maximum allowed Service Account secret validity was changed
           - Service Account UI IP access list inheritance enabled
           - Service Account UI IP access list inheritance disabled

@@ -1,13 +1,16 @@
 .. list-table::
-   :widths: 15 10 10 65
+   :widths: 15 10 10 10 55
    :header-rows: 1
 
    * - Notification Option
+     - Service Account Alerts
      - User Alerts
      - Billing Alerts
      - Description
 
    * - |service| Organization
+
+     - :icon:`check`
 
      - :icon:`check`
 
@@ -36,6 +39,8 @@
 
      - :icon:`check`
 
+     - :icon:`check`
+
      - Sends the alert by email or text message to a specified
        |service| user.
 
@@ -54,9 +59,13 @@
 
      - :icon:`check`
 
+     - :icon:`check`
+
      - Sends the alert to any email address you provide.
 
    * - Mobile Number
+
+     - :icon:`check`
 
      - :icon:`check`
 
@@ -79,6 +88,8 @@
 
      - :icon:`check`
 
+     - :icon:`check`
+
      - Sends the alert to a Slack channel in the authorized Slack
        workplace for the Organization. To learn more about Slack
        authorization, see
@@ -89,9 +100,11 @@
 
    * - PagerDuty
 
+     - :icon:`check`
+
      - 
 
-     - :icon:`check`
+     -  :icon:`check`
 
      - Sends the alert to a 
        `PagerDuty <http://www.pagerduty.com/?utm_source=mongodb&utm_medium=docs&utm_campaign=partner>`_
@@ -105,6 +118,8 @@
        .. include:: /includes/fact-api-key-redacted.rst
 
    * - Datadog
+
+     - :icon:`check`
 
      - :icon:`check`
 
@@ -126,6 +141,8 @@
        .. include:: /includes/fact-api-key-redacted.rst
 
    * - VictorOps
+
+     - :icon:`check`
 
      - 
 
@@ -155,6 +172,8 @@
 
    * - Opsgenie
 
+     - :icon:`check`
+
      - 
 
      - :icon:`check`
@@ -175,6 +194,8 @@
        .. include:: /includes/fact-api-key-redacted.rst
 
    * - Microsoft Teams
+
+     - :icon:`check`
 
      - :icon:`check`
 
