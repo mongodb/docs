@@ -10,7 +10,7 @@
 - Supports configuring separate SAML signature validation for responses and assertions so that only one is 
   required through the :setting:`mms.saml.signedAssertions` and :setting:`mms.saml.signedMessages` settings.
 - Supports ability to set a custom idle session timeout using new application settings, :guilabel:`Idle Session Timeout Mode` and :guilabel:`Idle Session Timeout Max Minutes`.
-- Supports taking :ref:`on-demand snapshots <on-demand-snapshots>` in addition to scheduled snapshots.
+- Supports taking on-demand snapshots in addition to scheduled snapshots.
 - Removes the |onprem| version number from the login page if you set :setting:`mms.security.show.om.version` to false.
 - Updates the {+mdbagent+} to :ref:`107.0.12.8669-1 <mongodb-107.0.12.8669-1>`.
 - Adds support for |bic-full| 2.14.17.
