@@ -19,11 +19,11 @@ MongoDB Java Driver.
 To perform a single create, replace, update, or delete operation, you can use
 the corresponding method. For example, to insert one document and replace one 
 document, you can use the ``insertOne()`` and ``replaceOne()`` methods. In this
-case, the ``MongoClient`` makes a call to the database for each operation. 
-You can reduce the number of calls to one by using bulk write operations.
+case, the ``MongoClient`` makes a call to the database for each operation. However,
+by using bulk write operations, you can reduce the number of calls.
 
 You can perform bulk write operations by using the bulk write API in the
-{+driver-short+} to perform multiple data changes in one call. You can 
+{+driver-short+} to define multiple data changes in one method call. You can 
 perform bulk operations at the following levels:
 
 - :ref:`Collection Level <java-sync-coll-bulk-write>`: You can use the 
@@ -320,19 +320,25 @@ instance of ``InsertOneModel`` represents an operation to insert one document.
 
 Similarly, the ``MongoClient.bulkWrite()`` method takes a 
 list of ``ClientNamespacedWriteModel`` instances to represent different write operations.
-Instead of selecting a specific subclass for each write operation, the 
-``ClientNamespacedWriteModel`` object contains different methods to represent 
-write operations. ``ClientNamespacedWriteModel`` contains the methods 
-``insertOne()``, ``updateOne()``, ``updateMany()``, ``replaceOne()``, 
-``deleteOne()``, and ``deleteMany()``.
+For example, an instance of ``ClientNamespacedInsertOneModel`` represents an
+operation to insert one document.
+
+You can construct these ``ClientNamespacedWriteModel`` instances using different
+methods to represent write operations. ``ClientNamespacedWriteModel`` contains 
+the methods ``insertOne()``, ``updateOne()``, ``updateMany()``, ``replaceOne()``, 
+``deleteOne()``, and ``deleteMany()``. These methods are used to construct corresponding
+write models. For example, ``ClientNamespacedWriteModel.updateOne()`` is used to
+construct a ``ClientNamespacedUpdateOneModel`` instance, which represents an
+update operation.
 
 These methods take a ``MongoNamespace`` object that defines which
-database and collection to write to, and a ``Document`` object that defines
-information about the write operation. Some methods, such as ``updateOne()`` and 
-``replaceOne()``, also take a ``Filters`` object that defines the subset of
-documents to be updated or replaced.
+database and collection to write to. Some, such as ``insertOne()``, can take a 
+``Document`` instance that defines information about the write operation. 
+Some other methods, such as ``updateOne()`` and ``replaceOne()``, take a filter 
+object that defines the subset of documents to be updated or replaced.
 
-The following sections describe how to use the client ``bulkWrite()`` method.
+The following sections provide examples of how to use the client ``bulkWrite()`` 
+method.
 
 Insert Example
 ~~~~~~~~~~~~~~
@@ -350,19 +356,20 @@ each write operation applies to.
 
    List<ClientNamespacedWriteModel> bulkOperations = new ArrayList<>();
 
-   bulkOperations.add(
-      ClientNamespacedWriteModel.insertOne(
+   ClientNamespacedInsertOneModel insertDocument1 = new ClientNamespacedWriteModel
+      .insertOne(
          peopleNamespace, 
          new Document("name", "Julia Smith")
-      )
-   );
+      );
 
-   bulkOperations.add(
-      ClientNamespacedWriteModel.insertOne(
+   ClientNamespacedInsertOneModel insertDocument2 = new ClientNamespacedWriteModel
+      .insertOne(
          thingsNamespace, 
          new Document("object", "washing machine")
-      )
-   );
+      );
+
+   bulkOperations.add(insertDocument1);
+   bulkOperations.add(insertDocument2);
 
    ClientBulkWriteResult result = mongoClient.bulkWrite(bulkOperations);
 
@@ -413,12 +420,13 @@ method to specify options when running the bulk write operations.
 Order of Execution Example
 ``````````````````````````
 
-By default, the driver performs write operations in the order that you specify them until
-an error occurs, or until they execute successfully. However, you can pass 
-``false`` to the ``ordered()`` method on the ``ClientBulkWriteOptions``
-interface to perform write operations in an unordered way. When using the unordered
-option, an error-producing operation does not block execution of other write
-operations in the call to the ``bulkWrite()`` method.
+By default, the individual operations in a bulk operation are executed in the
+order that you specify them until an error occurs, or until they execute 
+successfully. However, you can pass ``false`` to the ``ordered()`` method on 
+the ``ClientBulkWriteOptions`` interface to perform write operations in an 
+unordered way. When using the unordered option, an error-producing operation 
+does not prevent execution of other write operations in the call to the 
+``bulkWrite()`` method.
 
 The following code sets the ``ordered()`` method on an
 instance of ``ClientBulkWriteOptions`` and performs a bulk write operation to 
@@ -469,9 +477,9 @@ Summary
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To perform a bulk operation, you create and pass a list of
-``WriteModel`` documents to the ``bulkWrite()`` method. 
+``WriteModel`` instances to the ``bulkWrite()`` method. 
 
-There are 6 different ``WriteModel`` documents: ``InsertOneModel``,
+There are 6 different ``WriteModel`` subtypes: ``InsertOneModel``,
 ``ReplaceOneModel``, ``UpdateOneModel``, ``UpdateManyModel``,
 ``DeleteOneModel`` and ``DeleteManyModel``. 
 
@@ -488,12 +496,20 @@ When connecting to a deployment running {+mdb-server+} version 8.0 or later, you
 can use the ``MongoClient.bulkWrite()`` method to perform bulk operations on multiple 
 databases and collections at once.
 
-This method uses the ``ClientNamespacedWriteModel`` and its methods
-``insertOne()``, ``updateOne()``, ``updateMany()``, ``replaceOne()``, 
-``deleteOne()``, and ``deleteMany()``.
+To perform a client bulk operation, you create an pass a list of 
+``ClientNamespacedWriteModel`` instances to this method.
 
-The method can also take a ``ClientBulkWriteOptions`` object to specify different
-options for how the command is executed.
+There are six subtypes of ``ClientNamespacedWriteModel``: ``ClientNamespacedInsertOneModel``,
+``ClientNamespacedUpdateOneModel``, ``ClientNamespacedUpdateManyModel``, 
+``ClientNamespacedReplaceOneModel``, ``ClientNamespacedDeleteOneModel``, and
+``ClientNamespacedDeleteManyModel``. To construct these write models, you can
+use the ``ClientNamespacedWriteModel`` methods ``insertOne()``, ``updateOne()``, 
+``updateMany()``, ``replaceOne()``, ``deleteOne()``, and ``deleteMany()``. These 
+methods take a ``MongoNamespace`` object that defines which
+database and collection to write to.
+
+The ``MongoClient.bulkWrite()`` method can also take a ``ClientBulkWriteOptions``
+object to specify different options for how the command is executed.
 
 To learn more about the client ``bulkWrite`` command, see the 
 :manual:`bulkWrite() <reference/command/bulkWrite/>` method reference in the {+mdb-server+}
