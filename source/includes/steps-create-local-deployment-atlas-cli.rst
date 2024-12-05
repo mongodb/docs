@@ -35,4 +35,10 @@
          .. code-block:: 
 
             mongorestore --archive=sampledata.archive --port=<port-number>
+
+         .. note::
+
+            You must install `MongoDB Command Line Database Tools
+            <https://fastdl.mongodb.org/tools/db/mongodb-database-tools-macos-arm64-100.10.0.zip>`__
+            to access the ``mongorestore`` command.
             
