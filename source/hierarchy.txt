@@ -21,10 +21,11 @@ of your {+service+} enterprise estate:
   authorization boundary.
 - {+Clusters+} are your cloud databases in {+service+}.
 
-Use the foundational guidance on this page to plan the hierarchy and
-size for your organizations, projects, and {+clusters+}. This guidance
-helps you optimize your security and performance from the start while
-aligning with your enterprise's billing and access needs.
+Use the foundational guidance on this page to design the layout of your
+organizations, projects, and {+clusters+} based on your company's
+hierarchy and expected number of {+clusters+} and projects. This
+guidance helps you optimize your security and performance from the
+start while aligning with your enterprise's billing and access needs.
 
 {+service+} Features and Recommendations for Hierarchy
 ------------------------------------------------------
@@ -47,10 +48,18 @@ security settings and governance for your {+service+} enterprise estate:
        organization(s). The MongoDB account team must enable the paying organization when you establish the |service| subscription. A paying organization lets you set up :atlas:`cross-organization billing <billing/#std-label-cross-org-billing>` to share a
        billing subscription across multiple organizations.
 
+       A paying organization is common for large enterprises with many
+       {+BU+}\s or departments that operate independently but where the
+       contract or bill is owned by a central authority.
+
    * - Organization
-     - Invoicing aggregates and generates at the organization level.
-       Line items go to cluster level and below. An organization often
-       maps to a {+BU+} or application.
+     - An organization can contain many projects under it and provides
+       a container to apply shared integration and security settings.
+       An organization often maps to a {+BU+} or department within a
+       company. The built-in {+service+} Cost Explorer aggregates cloud
+       spend at the organization level and breaks out line items at the
+       {+cluster+} level below it. You can customize further
+       by leveraging the billing API.
 
    * - Project
      - Security configuration for the data plane (including database
@@ -106,20 +115,33 @@ projects and {+clusters+}:
        end users.
 
 For your dev and test environments, you can develop {+service+}
-{+clusters+} locally with the {+atlas-cli+}. To learn more, see 
+{+clusters+} locally with the {+atlas-cli+}. This can enable developers
+to work locally from their machine and cut down on costs for
+development and test environments. To learn more, see 
 :atlascli:`Create a Local {+service+} Deployment
 <atlas-cli-deploy-local>`.
 
 Org and Project Hierarchies
 ````````````````````````````
 
+Generally, we recommend a paying organization that is managed
+centrally, and one organization for each {+BU+} or department that is
+linked to the paying org. Then, create a project with one {+cluster+}
+each for your lower (dev/test) and upper environments. To learn more,
+see the following information for :ref:`<project-hierarchy-1>`.
+
+If you will easily hit the 250 project limit per organization, we
+recommend creating one organization per environment, such as one each
+for lower and upper environments, or one each for dev, test, staging,
+and prod. This has an added benefit of additional isolation.
+
 .. _project-hierarchy-1:
 
-Recommended Hierarchy 1: Fewer Atlas Organizations
-##################################################
+Recommended Hierarchy
+#####################
 
-Consider the following hierarchy for an example enterprise.
-This hierarchy, which creates fewer |service| organizations, might be useful if you have common teams and permissions across the {+BU+}, and less than the raiseable limit of 250 projects per organization. 
+Consider the following hierarchy, which creates fewer |service| organizations, if you have common teams and permissions across the 
+{+BU+} and less than the raiseable limit of 250 projects per organization. 
 
 .. figure:: /includes/images/paying-org-hierarchy.png
    :alt: An image showing a paying organization with other organizations nested beneath it.
@@ -128,14 +150,18 @@ This hierarchy, which creates fewer |service| organizations, might be useful if 
 
 .. _project-hierarchy-2:
 
-Recommended Hierarchy 2: More Atlas Organizations
-#################################################
+Recommended Hierarchy 2: Decentralized Business Units/Departments
+#################################################################
 
-Consider the following hierarchy for a different enterprise.
-This hierarchy creates a relatively large number of |service|
-organizations: one per application or scrum team. This hierarchy might
-be useful if each of your teams is fairly independent, they don't share people or permissions within a {+BU+}, or they want to buy credits themselves through the cloud provider marketplace. There is
-no paying organization in this hierarchy.
+Consider the following hierarchy if your organization is highly
+decentralized without a centralized function to serve as the contract
+and billing owner. In this hierarchy, each {+BU+},
+department, or team has their own {+service+} organization. This
+hierarchy is useful if each of your teams is fairly independent, they
+don't share people or permissions within the company, or they want to
+buy credits themselves through the cloud provider marketplace or
+directly with their own contract. There is no paying organization in
+this hierarchy.
 
 .. figure:: /includes/images/no-paying-org-hierarchy.png
    :alt: An image showing multiple organizations without a paying organization above them.
@@ -147,31 +173,30 @@ no paying organization in this hierarchy.
 {+Cluster+} Hierarchy
 `````````````````````
 
-To allow fine-grained access control, we recommend one deployment
-per |service| project as shown in the following diagram:
+To maintain isolation between environments, we recommend one 
+{+cluster+} deployment per {+service+} project, corresponding to each
+application as shown in the following diagram:
 
 .. figure:: /includes/images/deployment-hierarchy.png
    :alt: An image showing one deployment per project in each organization.
    :align: center
    :lightbox:
 
-Grouping multiple deployments in one project by team as shown in the following diagram simplifies
-administration when the same team is responsible for all stages of
-development, acceptance testing, and production. However, this
-increases the risk of human error, since DevOps members also have
-access to production {+clusters+}.
+Grouping multiple {+clusters+} and therefore applications into one
+project by environment as shown in the following diagram simplifies
+administration when the same team is responsible for multiple
+applications across environments. This eases the setup cost for
+features such as private endpoints and customer-managed keys, since all {+clusters+} in the same project share this configuration. However,
+this {+cluster+} hierarchy may violate the least-privilege rule.
 
-.. figure:: /includes/images/alt-deployment-hierarchy-1.png
-   :alt: An image showing deployments grouped by environment.
-   :align: center
-   :lightbox:
+You should use this hierarchy only if both of the following are true:
 
-Grouping multiple deployments in one project by environment as shown in the following diagram simplifies
-administration when a separate team is responsible for each stage of
-development, acceptance testing, and production. It allows Dev and UAT
-hosts to support multiple nodes when testing shard-level operations like adding shards, and testing new zone rules. However, there is a
-risk of human error because the same DevOps teams can access multiple
-sub-organizations' databases.
+- Every team member with access to the project is working on all other
+  applications and {+clusters+} in the
+  project. 
+- You are creating {+clusters+} for lower environments. Production
+  {+clusters+} should still follow the rule of single 
+  {+cluster+}, single project to ensure isolation.
 
 .. figure:: /includes/images/alt-deployment-by-environment.png
    :alt: An image showing deployments grouped by environment.
@@ -182,14 +207,16 @@ sub-organizations' databases.
 ```````````````````
 
 We recommend that you tag {+clusters+} with the following details to
-enable easy data parsing for reports:
+enable easy parsing for reporting and integrations:
 
-- {+BU+}
+- {+BU+} or Department
 - Team name
 - Application name
 - Environment
 - Version
 - Email contact
+- Criticality (indicates the tier of data stored on the {+cluster+},
+  including any sensitive classifications such as {+PII+} or {+PHI+})
 
 To learn more about parsing billing data using tags, see
 :ref:`arch-center-billing-data`.
@@ -218,6 +245,17 @@ characteristics, and growth expectations.
    applications, high-memory workloads, and high-CPU workloads, contact
    |mdb-support| for customized guidance.
 
+You can estimate 
+the {+cluster+} resources required by using your organization's approximate data size and workload:
+
+- **Total Storage Required**: 50% of the
+  total raw data size
+- **Total RAM Required**: 10% of the total raw data size
+- **Total CPU Cores Required**: expected peak read/write database
+  operations per second ÷ 4000
+- **Total Storage IOPS Required**: expected peak database writes per
+  second (min IOPS = 5%, max IOPS = 95%)
+
 .. list-table::
    :header-rows: 1
    :widths: 10 10 20 20 10 10 10 20
@@ -232,7 +270,7 @@ characteristics, and growth expectations.
      - Recommended For
 
    * - Small
-     - ``M10``
+     - ``M10`` [1]_
      - 10 GB to 128 GB
      - 8 GB to 128 GB
      - 2
@@ -267,6 +305,8 @@ characteristics, and growth expectations.
      - 3000
      - Prod
 
+.. [1] ``M10`` is a shared CPU tier. For highly-regulated industries or sensitive data, your minimum and smallest starting tier should be ``M30``.
+
 To learn more about {+cluster+} tiers and the regions that support
 them, see the {+service+} documentation for each cloud provider:
 
@@ -278,8 +318,7 @@ Examples
 --------
 
 The following examples create organizations, projects, and {+clusters+}
-using |service| using 
-|service| :ref:`tools for automation <arch-center-automation>`.
+using |service| :ref:`tools for automation <arch-center-automation>`.
 
 These examples also apply other recommended configurations, including:
 
