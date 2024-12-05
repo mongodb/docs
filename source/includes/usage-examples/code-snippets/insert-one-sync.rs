@@ -1,5 +1,8 @@
 use std::env;
-use mongodb::{ bson::doc, sync::{ Client, Collection } };
+use mongodb::{
+    bson::{doc, Document},
+    sync::{ Client, Collection }
+};
 use serde::{ Deserialize, Serialize };
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -13,17 +16,25 @@ fn main() -> mongodb::error::Result<()> {
     let uri = "<connection string>";
 
     let client = Client::with_uri_str(uri)?;
-    let my_coll: Collection<Restaurant> = client
+
+    // Replace <T> with the <Document> or <Restaurant> type parameter
+    let my_coll: Collection<T> = client
         .database("sample_restaurants")
         .collection("restaurants");
 
-    let doc = Restaurant {
+    let insert_doc = doc! { 
+        "name": "Sea Stone Tavern",
+        "cuisine": "Greek",
+        "borough": "Queens",
+    };
+    let insert_struct = Restaurant {
         name: "Sea Stone Tavern".to_string(),
         cuisine: "Greek".to_string(),
         borough: "Queens".to_string(),
     };
 
-    let res = my_coll.insert_one(doc).run()?;
+    // Replace <struct or doc> with the insert_struct or insert_doc variable
+    let res = my_coll.insert_one(<struct or doc>).run()?;
     println!("Inserted a document with _id: {}", res.inserted_id);
 
     Ok(())

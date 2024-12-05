@@ -1,5 +1,5 @@
 use mongodb::{
-    bson::doc,
+    bson::{doc, Document},
     sync::{Client, Collection}
 };
 use serde::{ Deserialize, Serialize };
@@ -14,11 +14,22 @@ fn main() -> mongodb::error::Result<()> {
     let uri = "<connection string>";
     let client = Client::with_uri_str(uri)?;
 
-    let my_coll: Collection<Restaurant> = client
+    // Replace <T> with the <Document> or <Restaurant> type parameter
+    let my_coll: Collection<T> = client
         .database("sample_restaurants")
         .collection("restaurants");
 
-    let docs = vec! [
+    let insert_docs = vec! [
+        doc! { 
+            "name": "While in Kathmandu",
+            "cuisine": "Nepalese",
+        },
+        doc! { 
+            "name": "Cafe Himalaya",
+            "cuisine": "Nepalese",
+        }
+    ];
+    let insert_structs = vec! [
         Restaurant {
             name: "While in Kathmandu".to_string(),
             cuisine: "Nepalese".to_string(),
@@ -29,7 +40,8 @@ fn main() -> mongodb::error::Result<()> {
         }
     ];
     
-    let insert_many_result = my_coll.insert_many(docs).run()?;
+    // Replace <structs or docs> with the insert_structs or insert_docs variable
+    let insert_many_result = my_coll.insert_many(<structs or docs>).run()?;
     println!("Inserted documents with _ids:");
     for (_key, value) in &insert_many_result.inserted_ids {
         println!("{}", value);
