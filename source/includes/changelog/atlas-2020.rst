@@ -360,9 +360,9 @@ Introduces easier authorization management for S3 access:
 28 January 2020 Release
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-- Removes :ref:`{+Old-Backup+} <legacy-backup>` as a backup
-  option for new |aws|\-backed clusters. Newly deployed |aws|\-backed
-  clusters use :ref:`{+Cloud-Backup+}s <backup-cloud-provider>` for backup.
+- Removes {+Old-Backup+} as a backup option for new |aws|\-backed
+  clusters. Newly deployed |aws|\-backed clusters use
+  :ref:`{+Cloud-Backup+}s <backup-cloud-provider>` for backup.
 
 - Provides customers with :ref:`project-level maintenance windows
   <atlas-modify-project-settings>` enabled with ability to receive the
