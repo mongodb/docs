@@ -10,5 +10,3 @@
    1. .. include:: /includes/nav/list-project-support.rst
    
    #. Complete the requested fields to open a support ticket.
-
-   :ref:`backup-cloud-provider` do not have a collection limit.

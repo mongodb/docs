@@ -1,5 +1,5 @@
 .. note::
 
-   This feature is not available for ``M0`` {+Free-clusters+}, ``M2``, and
-   ``M5`` clusters. To learn more about which features are unavailable,
-   see :ref:`atlas-free-tier`.
+   This feature is not available for ``M0`` {+Free-clusters+} and
+   {+Flex-clusters+}. To learn more about which features are
+   unavailable, see :ref:`atlas-free-tier`.
