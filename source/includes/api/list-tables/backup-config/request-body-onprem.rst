@@ -46,7 +46,7 @@
 
        This parameter must meet the following conditions:
 
-       - |mms| accepts this parameter or **includedNamespaces**, not
+       - |mms| accepts either this parameter or **includedNamespaces**, not
          both.
 
        - |mms| requires the new full list of excluded namespaces,
@@ -80,7 +80,7 @@
 
        This parameter must meet the following conditions:
 
-       - |mms| accepts this parameter or **excludedNamespaces**, not
+       - |mms| accepts either this parameter or **excludedNamespaces**, not
          both.
 
        - |mms| requires the new full list of included namespaces,
