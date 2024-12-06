@@ -10,6 +10,10 @@
      - :ref:`objectId <document-bson-type-object-id>`
      - ID of the cluster the :manual:`snapshot </reference/glossary/#std-term-snapshot>` represents.
 
+   * - clusterName
+     - string
+     - Label that identifies the cluster.
+
    * - complete
      - boolean
      - Indicator that the :manual:`snapshot </reference/glossary/#std-term-snapshot>` has been created. This is
@@ -114,6 +118,10 @@
      - The individual parts that comprise the complete :manual:`snapshot </reference/glossary/#std-term-snapshot>`.
        This array contains a single document.
 
+   * - parts.completedTime
+     - string
+     - Date and time when the snapshot completed.
+
    * - parts.dataSizeBytes
      - number
      - The total size of the data in the :manual:`snapshot </reference/glossary/#std-term-snapshot>` in bytes.
@@ -123,6 +131,12 @@
      - Indicator of the state of encryption of the :manual:`snapshot </reference/glossary/#std-term-snapshot>`
        data.
 
+   * - parts.fcv
+     - string
+     - Number that indicates the feature compatibility version of
+       MongoDB that the replica set primary ran when MongoDB Cloud
+       created the snapshot.
+
    * - parts.fileSizeBytes
      - number
      - The total size of the data files in bytes.
@@ -130,6 +144,10 @@
    * - parts.hostId
      - string
      - ID of a config server.
+
+   * - parts.machineId
+     - string
+     - Hostname and port that indicate the node on which MongoDB Cloud created the snapshot.
 
    * - parts.masterKeyUUID
      - objectId
@@ -142,6 +160,10 @@
      - string
      - The version of ``mongod`` that was running when the
        :manual:`snapshot </reference/glossary/#std-term-snapshot>` was created.
+
+   * - parts.replicaState
+     - string
+     - The node's role at the time when snapshot process began.
 
    * - parts.storageSizeBytes
      - number
