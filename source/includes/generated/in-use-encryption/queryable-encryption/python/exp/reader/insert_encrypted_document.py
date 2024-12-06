@@ -61,7 +61,7 @@ client_encryption = ClientEncryption(
 patientId = 12345678
 medications = ["Atorvastatin", "Levothyroxine"]
 indexed_insert_payload = client_encryption.encrypt(
-    patientId, Algorithm.INDEXED, data_key_id_1, contention_factor=1
+    patientId, Algorithm.INDEXED, data_key_id_1, contention_factor=8
 )
 unindexed_insert_payload = client_encryption.encrypt(
     medications, Algorithm.UNINDEXED, data_key_id_2
@@ -81,7 +81,7 @@ find_payload = client_encryption.encrypt(
     Algorithm.INDEXED,
     data_key_id_1,
     query_type=QueryType.EQUALITY,
-    contention_factor=1,
+    contention_factor=8,
 )
 doc = coll.find_one({"encryptedIndexed": find_payload})
 print("\nReturned document:\n")
