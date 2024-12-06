@@ -13,7 +13,11 @@
       :guilabel:`Restore` for the snapshot that you want to restore.
 
    .. step:: In the modal window, select the target 
-      {+database-deployment+} from the dropdown menu.
+      project and the target {+cluster+} from the dropdown 
+      menu. If the target {+cluster+} is part of a different 
+      project or organization than your source {+cluster+}, 
+      you can enter the name of and select the target project 
+      from the dropdown menu.
 
    .. step:: Follow the prompt and click 
       :guilabel:`Restore`.
