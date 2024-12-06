@@ -1,0 +1,320 @@
+.. _cpp-databases-collections:
+
+=========================
+Databases and Collections
+=========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: table, row, organize, storage
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to interact
+with MongoDB databases and collections.
+
+MongoDB organizes data into a hierarchy of the following levels:
+
+- **Databases**: Top-level data structures in a MongoDB deployment that store collections.
+- **Collections**: Groups of MongoDB documents. They are analogous to tables in relational databases.
+- **Documents**: Units that store literal data such as string, numbers, dates, and other embedded documents.
+  For more information about document field types and structure, see the
+  :manual:`Documents </core/document/>` guide in the {+mdb-server+} manual.
+
+Access a Database
+-----------------
+
+You can access a database by calling the ``database()`` function on
+a ``mongocxx::client`` object and passing the name of the database as
+an argument.
+
+The following example accesses a database named ``"test_database"``:
+
+.. literalinclude:: /includes/databases-collections/databases-collections.cpp
+   :start-after: start-access-database-method
+   :end-before: end-access-database-method
+   :language: cpp
+   :copyable:
+   :dedent:
+
+Alternatively, you can use the ``[]`` operator on a ``mongocxx::client``
+as a shorthand for the ``database()`` function, as shown in the following code:
+
+.. literalinclude:: /includes/databases-collections/databases-collections.cpp
+   :start-after: start-access-database-operator
+   :end-before: end-access-database-operator
+   :language: cpp
+   :copyable:
+   :dedent:
+
+Access a Collection
+-------------------
+
+You can access a collection by calling the ``collection()`` function on
+a ``mongocxx::database`` object and passing the name of the collection as
+an argument.
+
+The following example accesses a collection named ``"test_collection"``:
+
+.. literalinclude:: /includes/databases-collections/databases-collections.cpp
+   :start-after: start-access-collection-method
+   :end-before: end-access-collection-method
+   :language: cpp
+   :copyable:
+   :dedent:
+
+Alternatively, you can use the ``[]`` operator on a ``mongocxx::database``
+as a shorthand for the ``collection()`` function, as shown in the following code:
+
+.. literalinclude:: /includes/databases-collections/databases-collections.cpp
+   :start-after: start-access-collection-operator
+   :end-before: end-access-collection-operator
+   :language: cpp
+   :copyable:
+   :dedent:
+
+.. tip::
+
+   If the provided collection name does not already exist in the database,
+   MongoDB implicitly creates the collection when you first insert data
+   into it.
+
+Create a Collection
+-------------------
+
+You can use the ``create_collection()`` function to explicitly create a collection in a
+MongoDB database.
+
+The following example creates a collection called ``"example_collection"``:
+
+.. literalinclude:: /includes/databases-collections/databases-collections.cpp
+   :start-after: start-create-collection
+   :end-before: end-create-collection
+   :language: cpp
+   :copyable:
+   :dedent:
+
+You can specify collection options, such as maximum size and document
+validation rules, by passing them inside a BSON document as the second parameter
+to the ``create_collection()`` function. For a full list of
+optional parameters, see the :manual:`create command </reference/command/create>`
+documentation in the {+mdb-server+} manual.
+
+Get a List of Collections
+-------------------------
+
+You can retrieve a list of collections in a database by calling the
+``list_collections()`` function. The function returns a cursor containing all
+collections in the database and their associated metadata.
+
+The following example calls the ``list_collections()`` function and iterates over
+the cursor to print the results:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/databases-collections/databases-collections.cpp
+      :language: cpp
+      :start-after: start-find-collections
+      :end-before: end-find-collections
+      :dedent:
+
+   .. output::
+      :language: cpponsole
+      :visible: false
+
+      Collection: { "name" : "test_collection", "type" : "collection", ...}
+      Collection: { "name" : "example_collection", "type" : "collection", ... }
+
+To query for only the names of the collections in the database, call the
+``list_collection_names()`` function as shown in the following example:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/databases-collections/databases-collections.cpp
+      :language: cpp
+      :start-after: start-find-collection-names
+      :end-before: end-find-collection-names
+      :dedent:
+
+   .. output::
+      :language: console
+      :visible: false
+
+      test_collection
+      example_collection
+
+For more information about iterating over a cursor, see the :ref:`cpp-cursors`
+guide. 
+
+Delete a Collection
+-------------------
+
+You can delete a collection from the database by using the ``drop()``
+function.
+
+The following example deletes the ``"test_collection"`` collection:
+
+.. literalinclude:: /includes/databases-collections/databases-collections.cpp
+   :start-after: start-delete-collection
+   :end-before: end-delete-collection
+   :language: cpp
+   :copyable:
+   :dedent:
+
+.. warning:: Dropping a Collection Deletes All Data in the Collection
+
+   Dropping a collection from your database permanently deletes all
+   documents and all indexes within that collection.
+
+   Drop a collection only if the data in it is no longer needed.
+
+.. _cpp-config-read-write:
+
+Configure Read and Write Operations
+-----------------------------------
+
+You can control how the driver routes read operations by setting a **read preference**.
+You can also control options for how the driver waits for acknowledgment of
+read and write operations on a replica set by setting a **read concern** and a
+**write concern**.
+
+By default, databases inherit these settings from the ``mongocxx::client`` object,
+and collections inherit them from the database. However, you can change these
+settings by using one of the following functions on your database or collection:
+
+- ``read_preference()``
+- ``read_concern()``
+- ``write_concern()``
+
+To learn more about read and write settings, see the following guides in the
+{+mdb-server+} manual:
+
+- :manual:`Read Preference </core/read-preference/>`
+- :manual:`Read Concern </reference/read-concern/>`
+- :manual:`Write Concern </reference/write-concern/>`
+
+Configure Database Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example shows how to configure read settings for your database
+by using the following functions:
+
+- ``read_preference()``: Sets the read preference to ``k_secondary``
+- ``read_concern()``: Sets the read concern to ``k_majority``
+
+.. literalinclude:: /includes/databases-collections/databases-collections.cpp
+   :start-after: start-database-read-settings
+   :end-before: end-database-read-settings
+   :language: cpp
+   :copyable:
+   :dedent:
+
+.. tip::
+
+   To see a description of each read preference and read concern option, see the
+   following API documentation:
+
+   - `Read preference modes <{+api+}/classmongocxx_1_1v__noabi_1_1read__preference.html#a7e9a58e6c82169d2eb569f7993325154>`__
+   - `Read concern levels <{+api+}/classmongocxx_1_1v__noabi_1_1read__concern.html#a795c8037f826a1e64e052997fde61407>`__
+
+Configure Collection Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example shows how to specify your collection's read and write concern
+by using the following functions:
+
+- ``read_concern()``: Sets the read concern to ``k_local``
+- ``write_concern()``: Sets the write concern to ``k_acknowledged``
+
+.. literalinclude:: /includes/databases-collections/databases-collections.cpp
+   :start-after: start-collection-read-write-settings
+   :end-before: end-collection-read-write-settings
+   :language: cpp
+   :copyable:
+   :dedent:
+
+.. tip::
+
+   To see a description of each read and write concern level, see the
+   following API documentation:
+
+   - `Read concern levels <{+api+}/classmongocxx_1_1v__noabi_1_1read__concern.html#a795c8037f826a1e64e052997fde61407>`__
+   - `Write concern levels <{+api+}/classmongocxx_1_1v__noabi_1_1write__concern.html#a756cc9e4f51467924887b2ceda9c8856>`__
+
+Tag Sets
+~~~~~~~~
+
+In the {+mdb-server+}, you can apply key-value :manual:`tags
+</core/read-preference-tags/>` to replica-set
+members according to any criteria you choose. You can then use
+those tags to target one or more members for a read operation.
+
+By default, the {+driver-short+} ignores tags
+when choosing a member to read from. To instruct the {+driver-short+}
+to prefer certain tags, create a ``mongocxx::read_preference`` object
+and call its ``tags()`` member function. Pass your preferred tags as
+an array argument to ``tags()``.
+
+In the following code example, the tag set passed to the ``tags()``
+function instructs the {+driver-short+} to prefer reads from the
+New York data center (``"dc": "ny"``) and to fall back to the San Francisco data
+center (``"dc": "sf"``):
+
+.. literalinclude:: /includes/databases-collections/databases-collections.cpp
+   :start-after: start-tags
+   :end-before: end-tags
+   :language: cpp
+   :copyable:
+   :dedent:
+
+Local Threshold
+~~~~~~~~~~~~~~~
+
+If multiple replica-set members match the read preference and tag sets you specify,
+the {+driver-short+} reads from the nearest replica-set members, chosen according to
+their ping time.
+
+By default, the driver uses only those members whose ping times are within 15 milliseconds
+of the nearest member for queries. To distribute reads between members with
+higher latencies, include the ``localThresholdMS`` parameter in your connection string URI.
+
+The following example connects to a MongoDB deployment running on ``localhost:27017``
+and specifies a local threshold of 35 milliseconds:
+
+.. literalinclude:: /includes/databases-collections/databases-collections.cpp
+   :start-after: start-local-threshold
+   :end-before: end-local-threshold
+   :language: cpp
+   :copyable:
+   :dedent:
+
+In the preceding example, the {+driver-short+} distributes reads between matching members
+within 35 milliseconds of the closest member's ping time.
+
+API Documentation
+-----------------
+
+To learn more about any of the functions discussed in this
+guide, see the following API documentation:
+
+- `database() <{+api+}/classmongocxx_1_1v__noabi_1_1client.html#ae28b50918e732e84ff78beb5748e3364>`__
+- `collection() <{+api+}/classmongocxx_1_1v__noabi_1_1database.html#aba36d8296f118306e92168b1b72d04c4>`__
+- `create_collection() <{+api+}/classmongocxx_1_1v__noabi_1_1database.html#a77bec925146cb2dfd395b0a46d5be3a6>`__
+- `list_collections() <{+api+}/classmongocxx_1_1v__noabi_1_1database.html#aacef87f0bc585c536ce0dfae67cfefe8>`__
+- `list_collection_names() <{+api+}/classmongocxx_1_1v__noabi_1_1database.html#a96f96c0fc00c1fc30c8151577cff935a>`__
+- `drop() <{+api+}/classmongocxx_1_1v__noabi_1_1collection.html#a693cb2671c724f8a01e47339928283cb>`__
+- `read_preference() <{+api+}/classmongocxx_1_1v__noabi_1_1database.html#ab9fe9fd6ffe5c3811e9fbb7a7d7fe5bc>`__
+- `read_concern() <{+api+}/classmongocxx_1_1v__noabi_1_1database.html#a0bac544e0439575b673a7f25c8abc356>`__
+- `write_concern() <{+api+}/classmongocxx_1_1v__noabi_1_1database.html#a4ae21da062a6bf0870cc98337f09ed7a>`__
