@@ -76,35 +76,37 @@ of the ``BsonSerializer`` class as follows:
 Custom Serializers
 ~~~~~~~~~~~~~~~~~~
 
-In some cases, you might need to create a custom serializer. When creating a
-custom serializer, implement the ``SerializerBase<T>`` abstract base class and
-override the ``Deserialize()`` and ``Serialize()`` methods.
+To create your own custom serializer, implement the ``IBsonSerializer`` base class, set
+the ``ValueType`` member, and override the ``Deserialize()`` and ``Serialize()`` methods.
 
 The following code example shows a custom ``BsonRegularExpression`` serializer:
 
 .. code-block:: csharp
 
-   class CustomRegularExpressionSerializer : SerializerBase<Regex>
+   class CustomRegularExpressionSerializer : IBsonSerializer
    {
-       public override Regex Deserialize(BsonDeserializationContext context, BsonDeserializationArgs args)
-     {
-         var type = context.Reader.GetCurrentBsonType();
+      public Type ValueType => typeof(Regex);
+      
+      public object Deserialize(BsonDeserializationContext context, BsonDeserializationArgs args)
+      {
+         var type = context.Reader.CurrentBsonType;
          switch (type)
          {
-             case BsonType.RegularExpression:
-                 return context.Reader.ReadRegularExpression().AsRegex;
-             case BsonType.String:
-                 var pattern = context.Reader.ReadString();
-                 return new Regex(pattern);
-             default:
-                 throw new NotSupportedException($"Cannot convert a {type} to a RegularExpression.");
+            case BsonType.RegularExpression:
+               return context.Reader.ReadRegularExpression().AsRegex;
+            case BsonType.String:
+               var pattern = context.Reader.ReadString()
+               return new Regex(pattern);
+            default:
+               throw new NotSupportedException($"Cannot convert a {type} to a RegularExpression.");
          }
-     }
-
-     public override void Serialize(BsonSerializationContext context, BsonSerializationArgs args, Regex value)
-     {
-         context.Writer.WriteRegularExpression(value);
-     }
+      }
+      
+      public void Serialize(BsonSerializationContext context, BsonSerializationArgs args, object value)
+      {
+         var regex = (Regex) value;
+         context.Writer.WriteRegularExpression(regex);
+      }
    }
 
 Opt-in Interfaces
@@ -155,4 +157,3 @@ guide, see the following API documentation:
 - `SerializerRegistry <{+new-api-root+}/MongoDB.Bson/MongoDB.Bson.Serialization.BsonSerializer.SerializerRegistry.html>`__
 - `BsonSerializer <{+new-api-root+}/MongoDB.Bson/MongoDB.Bson.Serialization.BsonSerializer.html>`__
 - `IBsonSerializer <{+new-api-root+}/MongoDB.Bson/MongoDB.Bson.Serialization.IBsonSerializer.html>`__
-- `SerializerBase<T> <{+new-api-root+}/MongoDB.Bson/MongoDB.Bson.Serialization.Serializers.SerializerBase-1.html>`__
