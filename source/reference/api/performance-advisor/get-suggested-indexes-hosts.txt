@@ -1,6 +1,6 @@
-=====================
-Get Suggested Indexes
-=====================
+==========================================
+Get Suggested Indexes at the Cluster Level
+==========================================
 
 .. default-domain:: mongodb
 
@@ -20,7 +20,7 @@ Resource
 
 .. code-block:: http
 
-   GET /groups/{PROJECT-ID}/hosts/{HOST-ID}/performanceAdvisor/suggestedIndexes
+   GET /groups/{PROJECT-ID}/performanceAdvisor/suggestedIndexes
 
 Request Path Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -38,13 +38,10 @@ Request Path Parameters
      - string
      - *(Required.)* Unique identifier of the project that owns this MongoDB process.
 
-   * - HOST-ID
-     - string
-     - *(Required.)* Unique identifier of the host for the MongoDB process.
-
 Request Query Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~
-All parameters are optional.
+
+The following parameters are optional unless otherwise noted.
 
 .. list-table::
    :widths: 10 10 70 10
@@ -62,18 +59,38 @@ All parameters are optional.
        envelope.
      - ``false``
 
+   * - clusterId
+     - string
+     - *(Conditional.)* Unique identifier of the replica set or sharded 
+       cluster for which to return the suggested indexes. If you don't  
+       specify ``hostIds``, you must specify this parameter.
+     - If you specify ``hostIds``, but don't specify ``clusterId``, 
+       the query returns all the suggested indexes for the specified 
+       hosts, and the hosts must be from the same cluster (replica set 
+       or sharded cluster).
+
+   * - hostIds
+     - array
+     - *(Conditional.)* Lists that contains the unique indentifiers of 
+       the hosts for which to return the suggested indexes. If you 
+       don't specify ``clusterId``, you must specify this parameter.
+     - If you specify ``clusterId``, but dont specify ``hostIds``, 
+       the query returns the suggested indexes for all hosts within 
+       the specified cluster (replica set or sharded cluster).
+
    * - since
      - long
-     - Point in time from which to retrieve suggested indexes,
-       stated in `milliseconds since epoch
+     - Start point in time from which to retrieve suggested 
+       indexes, stated in `milliseconds since epoch 
        <https://currentmillis.com/>`_.
      - previous 24 hours
 
-   * - duration
+   * - until
      - long
-     - Length of time in milliseconds during which to find
-       suggested indexes among the managed namespaces in the cluster.
-     - up to the present time
+     - End point in time from which to retrieve suggested indexes,
+       stated in `milliseconds since epoch
+       <https://currentmillis.com/>`_.
+     - current timestamp
 
    * - namespaces
      - string
@@ -92,17 +109,6 @@ All parameters are optional.
           ?namespaces=data.stocks&namespaces=data.zips&pretty=true
 
      - all
-
-   * - nIndexes
-     - long
-     - Maximum number of indexes to suggest.
-     - unlimited
-
-   * - nExamples
-     - long
-     - Maximum number of examples queries to provide that will be
-       improved by a suggested index.
-     - 5
 
 Request Body Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -137,8 +143,8 @@ Response
 
    * - ``shapes[n].id``
      - objectId
-     - Unique id for this shape. Exists only for the duration of the
-       API request.
+     - Unique identifier for this shape. Exists only for the duration 
+       of the API request.
 
    * - ``shapes[n].inefficiencyScore``
      - number
@@ -197,11 +203,11 @@ Response
 
    * - ``suggestedIndexes[n].id``
      - objectId
-     - Unique id for this suggested index.
+     - Unique identifier for this suggested index.
 
    * - ``suggestedIndexes[n].impact``
      - array of objectIds
-     - List of unique identifers which correspond the query
+     - List of unique identifiers which correspond to the query
        shapes in this response which pertain to this suggested index.
 
        This field does not correspond to :guilabel:`Impact` in the
@@ -242,7 +248,7 @@ Example Request
    curl --user '{PUBLIC-KEY}:{PRIVATE-KEY}' --digest \
     --header 'Accept: application/json' \
     --include \
-    --request GET 'https://cloud.mongodb.com/api/public/v1.0/groups/{PROJECT-ID}/hosts/{HOST-ID}/performanceAdvisor/suggestedIndexes?pretty=true'
+    --request GET 'https://cloud.mongodb.com/api/public/v1.0/groups/{PROJECT-ID}/performanceAdvisor/suggestedIndexes?clusterId={CLUSTER-ID}&pretty=true'
 
 Example Response
 ----------------
