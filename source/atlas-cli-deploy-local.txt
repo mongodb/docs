@@ -119,6 +119,22 @@ mode.
             
                atlas deployments setup
 
+            To initialize the local |service| deployment with data 
+            and indexes: 
+            
+            a. Copy the following command:
+
+               .. code-block:: sh
+
+                  atlas deployments setup --initdb {folder}
+
+            #. Replace the ``{folder}`` placeholder with the directory 
+               that contains the ``.js`` and ``.sh`` files to run 
+               inside the local container in alphanumeric order with 
+               ``mongosh`` and ``bash`` respectively.
+
+            #. Run the command.
+
          .. step:: Specify what to deploy.
 
             **Example:**
@@ -181,6 +197,22 @@ mode.
             .. code-block:: sh
          
                atlas deployments setup
+
+            To initialize the local |service| deployment with data 
+            and indexes: 
+            
+            a. Copy the following command:
+
+               .. code-block:: sh
+
+                  atlas deployments setup --initdb {folder}
+
+            #. Replace the ``{folder}`` placeholder with the directory 
+               that contains the ``.js`` and ``.sh`` files to run 
+               inside the local container in alphanumeric order with 
+               ``mongosh`` and ``bash`` respectively.
+
+            #. Run the command.
 
          .. step:: Specify what to deploy.
 
@@ -296,6 +328,22 @@ mode.
                   Connection string: mongodb://localhost:49684/?directConnection=true
 
                   connection skipped
+            
+            To initialize the local |service| deployment with data 
+            indexes: 
+            
+            a. Copy the following command:
+
+               .. code-block:: sh
+
+                  atlas deployments setup myLocalRs1 --type local --force --initdb {folder}
+
+            #. Replace the ``{folder}`` placeholder with the directory 
+               that contains the ``.js`` and ``.sh`` files to run 
+               inside the local container in alphanumeric order with 
+               ``mongosh`` and ``bash`` respectively.
+
+            #. Run the command.
 
 .. _atlas-cli-deploy-local-manage:
 
@@ -402,6 +450,182 @@ atlas deployments respectively.
       #. Specify the deployment to delete and press :kbd:`Enter`.. 
    
       #. Specify ``y`` and press :kbd:`Enter`. to confirm.
+
+.. _atlas-cli-move-local-to-cloud:
+
+Move a Local Atlas Deployment to a Cloud Atlas Deployment
+---------------------------------------------------------
+
+You can use `Docker <https://www.docker.com/>`__ and 
+:dbtools:`MongoDB Database Tools </installation/installation/>` to move 
+a local |service| deployment to a cloud |service| deployment.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create a cloud |service| deployment.
+
+      .. code-block:: sh
+            
+         atlas deployments setup --type atlas
+
+   .. step:: Create a local |service| deployment.
+
+      .. code-block:: sh
+            
+         atlas deployments setup --type local
+      
+      To initialize the local |service| deployment with data 
+      and indexes: 
+            
+      a. Copy the following command:
+
+         .. code-block:: sh
+
+            atlas deployments setup --type local --initdb {folder}
+
+      #. Replace the ``{folder}`` placeholder with the directory 
+         that contains the ``.js`` and ``.sh`` files to run 
+         inside the local container in alphanumeric order with 
+         ``mongosh`` and ``bash`` respectively.
+
+      #. Run the command.
+
+   .. step:: Create a binary file of the data.
+
+      a. Copy the following command:
+
+         .. code-block:: sh
+      
+            docker exec -u root -it {local_deployment_name} sh -c "mkdir -p /data/dump && chown -R mongod:mongod /data/dump && mongodump --archive=/data/dump/dump.archive"
+
+      #. Replace the ``{local-deployment-name}`` placeholder with the 
+         name of your local |service| deployment.
+
+      #. Run the command.
+
+   .. step:: Copy the archive.
+
+      a. Copy the following command:
+
+         .. code-block:: sh
+      
+            docker cp <local deployment name>:/data/dump/dump.archive .
+
+      #. Replace the ``{local-deployment-name}`` placeholder with the 
+         name of your local |service| deployment.
+
+      #. Run the command.
+
+   .. step:: Return the connection string.
+
+      .. code-block:: sh
+
+         atlas deployments connect --type atlas --connectWith connectionString
+
+   .. step:: Restore from the archived file.
+
+      a. Copy the following command:
+
+         .. code-block:: sh
+      
+            mongorestore --uri={connection-string} --archive=./dump.archive
+
+      #. Replace the ``{connection-string}`` placeholder with the 
+         connection string.
+
+      #. Run the command.
+
+   .. step:: (Optional) Delete the local |service| deployment.
+
+      .. code-block:: sh
+
+         atlas deployments delete --type local
+
+.. _atlas-cli-update-local-deployment:
+
+Update a Local Atlas Deployment
+-------------------------------
+
+You can use `Docker <https://www.docker.com/>`__ and 
+:dbtools:`MongoDB Database Tools </installation/installation/>` to 
+update a local |service| deployment to newer version of the image.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create a new local |service| deployment.
+
+      .. code-block:: sh
+            
+         atlas deployments setup --type local
+      
+      To initialize the local |service| deployment with data 
+      and indexes: 
+            
+      a. Copy the following command:
+
+         .. code-block:: sh
+
+            atlas deployments setup --type local --initdb {folder}
+
+      #. Replace the ``{folder}`` placeholder with the directory 
+         that contains the ``.js`` and ``.sh`` files to run 
+         inside the local container in alphanumeric order with 
+         ``mongosh`` and ``bash`` respectively.
+
+      #. Run the command.
+
+   .. step:: Create a binary file of the data.
+
+      a. Copy the following command:
+
+         .. code-block:: sh
+      
+            docker exec -u root -it {old-local-deployment-name} sh -c "mkdir -p /data/dump && chown -R mongod:mongod /data/dump && mongodump --archive=/data/dump/dump.archive"
+
+      #. Replace the ``{old-local-deployment-name}`` placeholder with 
+         the name of your old local |service| deployment.
+
+      #. Run the command.
+
+   .. step:: Copy the archive.
+
+      a. Copy the following command:
+
+         .. code-block:: sh
+      
+            docker cp {old-local-deployment-name}:/data/dump/dump.archive .
+
+      #. Replace the ``{old-local-deployment-name}`` placeholder with 
+         the name of your old local |service| deployment.
+
+      #. Run the command.
+
+   .. step:: Return the new connection string.
+
+      .. code-block:: sh
+
+         atlas deployments connect --type local --connectWith connectionString
+
+   .. step:: Restore from the archived file.
+
+      a. Copy the following command:
+
+         .. code-block:: sh
+      
+            mongorestore --uri={connection-string} --archive=./dump.archive
+
+      #. Replace the ``{connection-string}`` placeholder with the 
+         connection sring.
+
+      #. Run the command.
+
+   .. step:: (Optional) Delete the old local |service| deployment.
+
+      .. code-block:: sh
+
+         atlas deployments delete --type local
 
 .. _atlas-cli-deploy-local-fts:
 
