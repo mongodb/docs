@@ -1,4 +1,4 @@
-In MongoDB, each document stored in a collection requires a unique
+In MongoDB, each document stored in a standard collection requires a unique
 :term:`_id` field that acts as a :term:`primary key`. If an inserted
 document omits the ``_id`` field, the MongoDB driver automatically
 generates an :ref:`objectid` for the ``_id`` field.
