@@ -7,8 +7,8 @@ a. Paste the following code in your notebook.
    This code creates an index on 
    your collection that specifies the 
    ``embedding`` field as the :ref:`vector
-   <avs-types-vector-search>` type, the similarity measure 
-   as ``euclidean``, and the number of dimensions as ``1536``.
+   <avs-types-vector-search>` type, the similarity function 
+   as ``dotProduct``, and the number of dimensions as ``1536``.
 
    .. code-block:: python
       :copyable: true 
@@ -22,7 +22,7 @@ a. Paste the following code in your notebook.
             {
               "type": "vector",
               "path": "embedding",
-              "similarity": "euclidean",
+              "similarity": "dotProduct",
                "numDimensions": 1536
             }
           ]

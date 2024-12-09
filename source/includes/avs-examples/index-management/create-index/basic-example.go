@@ -49,7 +49,7 @@ func main() {
 				Type:          "vector",
 				Path:          "plot_embedding",
 				NumDimensions: 1536,
-				Similarity:    "euclidean"}},
+				Similarity:    "dotProduct"}},
 		},
 		Options: opts,
 	}

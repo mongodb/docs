@@ -39,7 +39,8 @@
       - Specifies the ``plot_embedding`` field as the vector embeddings field,
         which contains embeddings created using OpenAI's
         ``text-embedding-ada-002`` embeddings model.
-      - Specifies ``1536`` vector dimensions and measures similarity using ``euclidean`` distance.
+      - Specifies ``1536`` vector dimensions and measures similarity
+        using ``dotProduct`` function. 
 
       .. tabs::
 

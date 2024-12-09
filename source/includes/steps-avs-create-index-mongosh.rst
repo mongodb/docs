@@ -59,7 +59,7 @@
          ``plot_embedding`` field contains embeddings created using
          OpenAI's ``text-embedding-ada-002`` embeddings model. The
          index definition specifies ``1536`` vector dimensions and
-         measures similarity using ``euclidean`` distance.
+         measures similarity using ``dotProduct`` function.
 
          .. tabs:: 
 

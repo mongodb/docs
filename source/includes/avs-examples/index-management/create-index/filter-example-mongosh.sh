@@ -7,7 +7,7 @@ db.embedded_movies.createSearchIndex(
         "type": "vector",
         "path": "plot_embedding",
         "numDimensions": 1536,
-        "similarity": "euclidean"
+        "similarity": "dotProduct"
       },
       {
         "type": "filter",

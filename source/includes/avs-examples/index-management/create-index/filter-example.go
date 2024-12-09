@@ -50,7 +50,7 @@ func main() {
 		Type:          "vector",
 		Path:          "plot_embedding",
 		NumDimensions: 1536,
-		Similarity:    "euclidean"}
+		Similarity:    "dotProduct"}
 	genreFilterDefinition := filterField{"filter", "genres"}
 	yearFilterDefinition := filterField{"filter", "year"}
 

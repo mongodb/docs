@@ -15,7 +15,7 @@ curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
           "type": "vector",
           "path": "plot_embedding",
           "numDimensions": 1536,
-          "similarity": "euclidean"
+          "similarity": "dotProduct"
         }
       ]
     }

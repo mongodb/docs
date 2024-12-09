@@ -17,7 +17,7 @@ async function run() {
              {
                "type": "vector",
                "path": "embedding",
-               "similarity": "euclidean",
+               "similarity": "dotProduct",
                "numDimensions": <dimensions>
              }
            ]

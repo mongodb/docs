@@ -35,7 +35,7 @@ public class VectorIndex {
                     new Document("type", "vector")
                         .append("path", "plot_embedding")
                         .append("numDimensions", 1536)
-                        .append("similarity", "euclidean"),
+                        .append("similarity", "dotProduct"),
                     new Document("type", "filter")
                         .append("path", "genres"),
                     new Document("type", "filter")

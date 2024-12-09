@@ -31,7 +31,7 @@
            contains embeddings created using OpenAI's
            ``text-embedding-ada-002`` embedding model. The index
            definition specifies ``1536`` vector dimensions and
-           measures similarity using ``euclidean``. 
+           measures similarity using ``dotProduct``. 
          - ``genres`` field as the :ref:`filter <avs-types-vector-search>`
            type for pre-filtering data by string values in the field.
          - ``year`` field as the :ref:`filter <avs-types-vector-search>`
@@ -47,7 +47,7 @@
                   "type": "vector",
                   "path": "plot_embedding",
                   "numDimensions": 1536,
-                  "similarity": "euclidean"
+                  "similarity": "dotProduct"
                 },
                 {
                   "type": "filter",
