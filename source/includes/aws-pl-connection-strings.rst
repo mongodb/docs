@@ -21,7 +21,7 @@
 
            mongodb://pl-0-us-east-1-k45tj.mongodb.net:1024,pl-0-us-east-1-k45tj.mongodb.net:1025,pl-0-us-east-1-k45tj.mongodb.net:1026/?ssl=true&authSource=admin&replicaSet=Cluster0-shard-0-shard-0
 
-      .. include:: /includes/fact-pl-connection-strings.rst
+      .. include:: /includes/fact-pl-connection-strings.rst  
 
       **SRV Record for DNS Seedlist Private Endpoint-Aware Connection 
       Strings**
