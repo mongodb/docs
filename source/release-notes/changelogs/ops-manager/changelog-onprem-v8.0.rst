@@ -1,3 +1,19 @@
+.. _opsmgr-server-8.0.2:
+
+|onprem| Server 8.0.2
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2024-12-05*
+
+- Updates the password hashing algorithm to ``pbkdf2``. Old passwords are migrated
+  automatically without any user impact. New passwords cannot exceed 256
+  characters. Users with passwords longer than 256 characters must migrate their passwords.
+- Adds a new custom configuration :setting:`mms.user.passwordHashIterations`.
+  to dynamically modify the number of iterations for the hashing algorithm.
+- Adds the following fields to the :ref:`snapshot APIs <snapshots-api>`:
+  ``machineId``, ``name``, ``completedTime``, ``fcv``, and ``replicaState``.
+
+
 .. _opsmgr-server-8.0.1:
 
 |onprem| Server 8.0.1
