@@ -81,11 +81,21 @@ $bucket->downloadToStream(
 // end-download-to-stream
 
 // Renames a file from the GridFS bucket with the specified ObjectId
-// start-rename-files
+// start-rename-files-id
 $bucket->rename(new ObjectId('66e0a5487c880f844c0a32b1'), 'new_file_name');
-// end-rename-files
+// end-rename-files-id
+
+// Renames files from the GridFS bucket with the specified filename
+// start-rename-files-name
+$bucket->renameByName('my_file', 'new_file_name');
+// end-rename-files-name
 
 // Deletes a file from the GridFS bucket with the specified ObjectId
-// start-delete-files
+// start-delete-files-id
 $bucket->delete(new ObjectId('66e0a5487c880f844c0a32b1'));
-// end-delete-files
+// end-delete-files-id
+
+// Deletes a file and its revisions from the GridFS bucket by name
+// start-delete-files-name
+$bucket->deleteByName('my_file');
+// end-delete-files-name
