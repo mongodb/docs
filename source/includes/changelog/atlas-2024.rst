@@ -1,3 +1,11 @@
+.. _atlas_2024_12_09:
+
+9 December 2024 Release
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Allows you to :ref:`verify your data during live migrations to Atlas
+  <verify-migrations>`.
+
 .. _atlas_2024_07_10:
 
 10 July 2024 Release

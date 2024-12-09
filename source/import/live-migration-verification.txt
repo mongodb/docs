@@ -1,0 +1,102 @@
+.. _verify-migrations:
+
+==================
+Verify  Migrations
+==================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. meta::
+   :keywords: c2c, mongosync, live migration
+
+Starting with {+c2c-version+} and {+c2c-version-7+}, |service| supports
+verifying the data migrated from the source {+cluster+} to the destination
+{+cluster+}. The verification process in |service| runs a series of checks
+to confirm that the data sync during the live migration process is successful.
+These checks include |service| comparing supported documents
+and collections.
+
+Before transferring your application's data to the destination {+cluster+},
+always verify that a migration is successful. You can enable verification
+in the live migration {+atlas-ui+}, or verify the data manually.
+
+The verification process that runs at the end of the |service| live migration
+process is optional. We highly recommend that you enable it in the live migration's
+{+atlas-ui+} and request that |service| runs the data sync verification process
+before you cut over to the destination {+cluster+} in |service|.
+
+List of Verifications
+---------------------
+
+As part of the verification process that you can enable in the {+atlas-ui+}
+for live migration, |service| performs the following checks on the source and
+destination {+clusters+}:
+
+- The phase and progress of verification checks running on the {+cluster+}.
+- The estimated number of documents on the {+cluster+}.
+- The number of documents hashed by the verifier process on the {+cluster+}.
+- The number of collections scanned by the verifier process on the {+cluster+}.
+- The number of collections on the {+cluster+} to include in verification checks.
+
+If the verification process finds errors, this fails the live migration.
+
+Enable Verification in the {+atlas-ui+}
+-----------------------------------------
+
+You can enable verification as part of the live migration process
+configuration in the {+atlas-ui+}. For exact steps, see :ref:`c2c-pull-live-migration`.
+
+.. important::
+
+   If you enable verification in the {+atlas-ui+}, and |service| finds any
+   inconsistencies during verification checks, the live migration fails.
+   The verification process **DOES NOT** check for all possible data
+   inconsistencies. Review :ref:`limitations <verify-migrations-limitations>`
+   in this documentation to see what data the verification process does not
+   support and manually verify this data.
+
+Verify Data Manually
+--------------------
+
+If you disable automated verification in the live migration {+atlas-ui+},
+you can create scripts for manual verification of the migrated data and
+use an alternative manual verification method to verify that your data is
+migrated successfully. To learn more about the alternative methods,
+see |c2c-verification|.
+
+.. _verify-migrations-limitations:
+
+Limitations
+-----------
+
+The verification process in live migration has the following limitations:
+
+- Verification is not available in versions earlier than {+c2c-version+}.
+- Verification of sharded clusters is unsupported.
+- Verification runs on live migration (pull) and is not supported on live migration (push).
+- You can't resume a verification process. If you stop or pause the live
+  migration process and then restart it, the verification process starts
+  from the beginning.
+- The verification process doesn't check:
+
+  - Sharded collections
+  - Capped collections
+  - Collections with TTL indexes
+  - Collections that don't use the default collation
+  - Views
+  - Collection metadata
+  - Indexes
+
+To ensure a successful live migration and verify data for unsupported
+collections, indexes, and metadata, you can use one of the verification
+methods described in |c2c-verification|.
