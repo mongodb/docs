@@ -5,6 +5,13 @@
 
 *Released 2024-12-05*
 
+Improvements
+`````````````
+
+- Updates the {+mdbagent+} to :ref:`108.0.2.8729-1 <mongodb-108.0.2.8729-1>`.
+- Adds support for |bic-full| 2.14.19.
+- Adds {+mdbagent+} support for Ubuntu 24.04 on x86_64 and ARM architectures.
+- Adds support for deploying |onprem| on Ubuntu 24.04 on x86_64 and ARM architectures.
 - Updates the password hashing algorithm to ``pbkdf2``. Old passwords are migrated
   automatically without any user impact. New passwords cannot exceed 256
   characters. Users with passwords longer than 256 characters must migrate their passwords.
@@ -12,7 +19,22 @@
   to dynamically modify the number of iterations for the hashing algorithm.
 - Adds the following fields to the :ref:`snapshot APIs <snapshots-api>`:
   ``machineId``, ``name``, ``completedTime``, ``fcv``, and ``replicaState``.
+- Adds ability to cancel a failed queryable restore for sharded clusters.
 
+
+Bug Fixes
+```````````
+
+Fixes the following issues:
+
+- User invite API didn't respect the :setting:`mms.user.bypassInviteForExistingUsers` settings.
+- Deployments from deleted groups caused MongoDB version validation to fail and prevented the |onprem| upgrade.
+- Arbiter nodes caused the :guilabel:`Edit Namespace filter` option in the UI to not be visible.
+- Topology change requests couldn't be processed when backup wasn't enabled.
+- The {+mdbagent+} couldn't download the correct |bic-full| versions on certain platforms.
+- When deploying |onprem| in hybrid mode, ``.tmp`` files could be left behind unintentionally.
+- The {+mdbagent+} could incorrectly report that goal state was reached
+  while encountering a transient error.
 
 .. _opsmgr-server-8.0.1:
 
@@ -75,7 +97,7 @@ Backup
 - Supports parsing multiple certificates, or a chain, from PEM
   files for |s3| backup store configuration.
 - Adds additional snapshot history metadata for block tracking,
-  incrementality for data and indexes, transfer speed, and duration in the
+  incremental updates for data and indexes, transfer speed, and duration in the
   :guilabel:`Admin` interface and :guilabel:`Diagnostic Archive`.
 - Adds additional snapshot metrics to the snapshot summary table.
 - Adds ability to track restore block download performance.
