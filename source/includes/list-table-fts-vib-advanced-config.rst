@@ -26,3 +26,12 @@
        Corresponds to the ``synonyms`` |json| setting.
 
      - Optional.
+
+   * - :guilabel:`Index Partitions`
+     - The number of partitions to use if field objects exceed 2.1 billion.
+
+       Corresponds to the ``numPartitions`` |json| setting.
+
+       .. include:: /includes/fact-numpartitions-preview.rst
+
+     - Optional.
