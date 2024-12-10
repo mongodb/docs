@@ -83,12 +83,7 @@
          paste the first name from your list. To learn more, see
          :aws:`Manage DNS names for VPC endpoint services
          </vpc/latest/privatelink/manage-dns-names.html>`. 
-      
-      
-   .. step:: Run the command to create your |vpc| interface endpoint.
-
-      Copy the command the dialog box displays and run it using the |aws| CLI.
-      
+            
    .. step:: Modify the private |dns| name to ensure that the hostname resolves to an address on your network.
 
       To ensure that the hostname resolves to an address on your network:
