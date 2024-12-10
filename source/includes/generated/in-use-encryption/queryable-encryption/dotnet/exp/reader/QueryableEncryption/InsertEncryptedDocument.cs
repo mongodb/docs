@@ -86,7 +86,7 @@ namespace QueryableEncryption
                     };
             var indexedEncrypted = clientEncryption.Encrypt(
                 patientId,
-                new EncryptOptions(algorithm: "Indexed", keyId: dataKeyId1, contentionFactor: 1),
+                new EncryptOptions(algorithm: "Indexed", keyId: dataKeyId1, contentionFactor: 8),
                 CancellationToken.None);
             var unindexedEncrypted = clientEncryption.Encrypt(
                 medications,
@@ -98,7 +98,7 @@ namespace QueryableEncryption
             // start-find
             var findPayload = clientEncryption.Encrypt(
                 patientId,
-                new EncryptOptions(algorithm: "Indexed", keyId: dataKeyId1, queryType: "equality", contentionFactor: 1),
+                new EncryptOptions(algorithm: "Indexed", keyId: dataKeyId1, queryType: "equality", contentionFactor: 8),
                 CancellationToken.None);
             var doc = collection.Find(new BsonDocument { { "patientId", findPayload } }).Single();
             Console.WriteLine($"Encrypted document: {doc}");

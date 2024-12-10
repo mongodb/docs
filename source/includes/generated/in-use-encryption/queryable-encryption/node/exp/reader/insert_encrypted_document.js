@@ -65,7 +65,7 @@ async function run() {
     const indexedInsertPayload = await encryption.encrypt(patientId, {
       algorithm: "Indexed",
       keyId: dek1._id,
-      contentionFactor: 1,
+      contentionFactor: 8,
     });
     const unindexedInsertPayload = await encryption.encrypt(medications, {
       algorithm: "Unindexed",
@@ -85,7 +85,7 @@ async function run() {
       algorithm: "Indexed",
       keyId: dek1._id,
       queryType: "equality",
-      contentionFactor: 1,
+      contentionFactor: 8,
     });
 
     console.log("Finding a document with manually encrypted field:");

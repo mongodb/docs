@@ -93,7 +93,7 @@ func Insert() error {
 	patientIdEncryptionOpts := options.Encrypt().
 		SetAlgorithm("Indexed").
 		SetKeyID(dataKeyID1).
-		SetContentionFactor(1)
+		SetContentionFactor(8)
 	patientIdEncryptedField, err := clientEnc.Encrypt(
 		context.TODO(),
 		patientIdRawValue,
@@ -134,7 +134,7 @@ func Insert() error {
 		SetAlgorithm("Indexed").
 		SetKeyID(dataKeyID1).
 		SetQueryType("equality").
-		SetContentionFactor(1)
+		SetContentionFactor(8)
 	findPayloadEncryptedField, err := clientEnc.Encrypt(
 		context.TODO(),
 		findPayloadRawValue,
