@@ -194,6 +194,8 @@ parameters:
        For a complete example using ``let`` and variables,
        see :ref:`updateMany-let-example`.
 
+.. _updateMany-returns:
+
 Returns
 ~~~~~~~
 
@@ -229,9 +231,29 @@ privileges.
 Behavior
 --------
 
-:method:`~db.collection.updateMany()` updates all matching documents in 
-the collection that match the ``filter``, using the ``update`` criteria 
-to apply modifications.
+``updateMany()`` finds all documents in the collection that match the 
+``filter`` and applies modifications specified by the ``update`` 
+parameter.
+
+``updateMany()`` modifies each document individually. Each 
+document write is an :term:`atomic operation`, but ``updateMany()`` 
+as a whole is *not* atomic. If your use case requires atomicity of 
+writes to multiple documents, use :ref:`<transactions>`.
+
+If a single document update fails, all document updates written before 
+the failure are retained, but any remaining matching documents are *not* 
+updated. For details on this behavior, see :ref:`<multi-update-failures>`.
+
+.. seealso::
+
+   :ref:`<updateMany-sharded-collection>` for more information about 
+   ``updateMany()`` behavior in sharded collections.
+
+Limitations
+~~~~~~~~~~~
+
+- ``updateMany()`` should only be used for :term:`idempotent` 
+  operations.
 
 Upsert
 ~~~~~~
@@ -333,9 +355,19 @@ Update commands must meet the following requirements:
 Sharded Collections
 ~~~~~~~~~~~~~~~~~~~
 
-For a :method:`db.collection.updateMany()` operation that includes
-``upsert: true`` and is on a sharded collection, you must include the
-full shard key in the ``filter``.
+``updateMany()`` exhibits the following behaviors when used with 
+sharded collections:
+
+- ``updateMany()`` operations that include ``upsert: true`` must 
+  include the full shard key in the ``filter``.
+
+- If you attempt to run ``updateMany()`` during a 
+  :ref:`<sharding-chunk-migration>` or a 
+  :ref:`shard key value update <update-shard-key>`, the operation can 
+  miss documents in some scenarios. To ensure all documents are updated, 
+  use idempotent updates and rerun the command until no further updates 
+  are applied. For more information on idempotent updates with 
+  ``updateMany()``, see :ref:`<updateMany-example-idempotent>`.
 
 Explainability
 ~~~~~~~~~~~~~~
@@ -366,16 +398,67 @@ Write Concerns and Transactions
 Oplog Entries
 ~~~~~~~~~~~~~
 
-If a ``db.collection.updateMany()`` operation successfully updates one
-or more documents, the operation adds an entry on the :term:`oplog`
-(operations log) for each updated document. If the operation fails or
-does not find any documents to update, the operation does not add an
-entry on the oplog. 
+``updateMany()`` adds an entry to the :term:`oplog` (operations log) 
+for each successfully updated document. If no documents are updated,
+``updateMany()`` does not add entries to the oplog.
 
 .. _updateMany-method-examples:
 
 Examples
 --------
+
+.. _updateMany-example-idempotent:
+
+Idempotent Updates
+~~~~~~~~~~~~~~~~~~
+
+The following example demonstrates an :term:`idempotent` update with
+``updateMany()``:
+
+A company is giving a $1,000 raise to all employees earning less than 
+$100,000.
+
+Consider an ``employees`` collection with the following documents:
+
+.. code-block:: javascript
+
+   db.employees.insertMany( [
+      { "_id" : 1, "name" : "Rob", "salary" : 37000 },
+      { "_id" : 2, "name" : "Trish", "salary" : 65000 },
+      { "_id" : 3, "name" : "Zeke", "salary" : 99999 },
+      { "_id" : 4, "name" : "Mary", "salary" : 200000 }
+   ] )
+
+The following command matches all employees who earn less than 
+$100,000 and have not received a raise, increments those salaries 
+by $1,000, and sets ``raiseApplied`` to true:
+
+.. code-block:: javascript
+
+   db.employees.updateMany(
+      { salary: { $lt: 100000 }, raiseApplied: { $ne: true } },
+      { $inc: { salary: 1000 }, $set: { raiseApplied: true } }
+   )
+
+``updateMany()`` modifies the matching ``employee`` documents 
+individually. The individual document updates are atomic operations, 
+but the ``updateMany()`` operation as a whole is not atomic.
+
+If the operation fails to update all matched documents, you can 
+safely rerun an idempotent command until no additional documents 
+match the specified filter. In this case, each document's ``salary`` 
+field is only updated one time regardless of how many times it is 
+retried because the command is idempotent.
+
+After all eligible employees have received their raises, you can 
+remove the ``raiseApplied`` field with the following command:
+
+.. code-block:: javascript
+
+   db.employees.updateMany(
+      { },
+      { $unset: { raiseApplied: 1 } }
+   )
 
 .. _updateMany-example-update-multiple-documents:
 
