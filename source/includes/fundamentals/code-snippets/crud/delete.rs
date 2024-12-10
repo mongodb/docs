@@ -9,7 +9,14 @@ async fn main() -> mongodb::error::Result<()> {
 
     let my_coll: Collection<Document> = client.database("db").collection("inventory");
 
-    // begin-delete
+    // begin-delete-one
+    let filter = doc! { "item": "placemat" };
+
+    let res = my_coll.delete_one(filter).await?;
+    println!("Deleted documents: {}", res.deleted_count);
+    // end-delete-one
+
+    // begin-delete-many
     let filter = doc! { "category": "garden" };
     let hint = Hint::Name("_id_".to_string());
 
@@ -18,7 +25,7 @@ async fn main() -> mongodb::error::Result<()> {
         .hint(hint)
         .await?;
     println!("Deleted documents: {}", res.deleted_count);
-    // end-delete
+    // end-delete-many
 
     // begin-options
     let res = my_coll
