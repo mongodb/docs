@@ -10,6 +10,9 @@ Bulk Operations
    :depth: 2
    :class: singlecol
 
+.. meta::
+   :keywords: insert, update, replace, code example, efficiency
+
 Overview
 --------
 
@@ -19,28 +22,37 @@ MongoDB Java Driver.
 To perform a single create, replace, update, or delete operation, you can use
 the corresponding method. For example, to insert one document and replace one 
 document, you can use the ``insertOne()`` and ``replaceOne()`` methods. In this
-case, the ``MongoClient`` makes a call to the database for each operation. However,
-by using bulk write operations, you can reduce the number of calls.
+case, the ``MongoClient`` makes a call to the database for each operation. 
 
-You can perform bulk write operations by using the bulk write API in the
-{+driver-short+} to define multiple data changes in one method call. You can 
-perform bulk operations at the following levels:
+Generally, you can reduce the number of calls to the database by using bulk write 
+operations. You can perform bulk write operations at the following levels:
 
 - :ref:`Collection Level <java-sync-coll-bulk-write>`: You can use the 
   ``MongoCollection.bulkWrite()`` method to perform bulk write operations on a 
-  single collection.
+  single collection. This method groups write operations together by the kind
+  of operation. For example, ``MongoCollection.bulkWrite()`` puts multiple insert
+  operations, including ``insertOne()`` and ``insertMany()``, in the same call, 
+  but will make two calls to the database for an insert operation and a replace 
+  operation.
 
 - :ref:`Client Level <java-sync-client-bulk-write>`: When running {+mdb-server+} 
   version 8.0 or later, you can use the ``MongoClient.bulkWrite()`` method to perform 
   bulk write operations on multiple collections and databases in the same cluster.
+  This method groups multiple kinds of write operations into one call.
 
 .. _java-sync-coll-bulk-write:
 
 Collection Bulk Write
 ---------------------
 
-Bulk operations consist of a large number of write operations. To perform
-a bulk operation at the collection level, pass a ``List`` of ``WriteModel`` 
+Bulk operations consist of a large number of write operations. The 
+``MongoCollection.bulkWrite()`` method splits operations of different kinds into
+different batches. For example, when the method is passed an ``insertOne()``, 
+``insertMany()``, and ``replaceOne()`` operation, it will split the insert operations
+into one batch and the replace operation into another. During this process,
+the client may reorder operations for efficiency.
+
+To perform a bulk operation at the collection level, pass a ``List`` of ``WriteModel`` 
 documents to the ``MongoCollection.bulkWrite()`` method. A ``WriteModel`` is a model that 
 represents any of the write operations. 
 
@@ -221,14 +233,14 @@ see the following API documentation:
 .. _orderOfExecution:
 
 Order of Execution
-------------------
+~~~~~~~~~~~~~~~~~~
 
 The ``bulkWrite()`` method accepts an optional ``BulkWriteOptions`` as a
 second parameter to specify whether the execution of the bulk operations is
-ordered or unordered. 
+ordered or unordered.
 
 Ordered Execution
-~~~~~~~~~~~~~~~~~
++++++++++++++++++
 
 By default, the ``bulkWrite()`` method executes bulk operations in
 order. This means that the bulk operations execute in the order you
@@ -264,7 +276,7 @@ document:
    { "_id": 6, "name": "Zaynab Hassan", "age": 37 }
 
 Unordered Execution
-~~~~~~~~~~~~~~~~~~~
++++++++++++++++++++
 
 You can also execute bulk operations in any order by specifying "false"
 to the ``order()`` method on ``BulkWriteOptions``. This means that
@@ -311,7 +323,8 @@ Client Bulk Write
 
 When connecting to a deployment running {+mdb-server+} 8.0 or later,
 you can use the ``MongoClient.bulkWrite()`` method to write
-to multiple databases and collections in the same cluster.
+to multiple databases and collections in the same cluster. The ``MongoClient.bulkWrite()``
+method does not split different kinds of operations into different batches.
 
 In the examples in preceding sections of this page, the ``MongoCollection.bulkWrite()`` method 
 takes a list of ``WriteModel`` instances in which the specified subclass of 
