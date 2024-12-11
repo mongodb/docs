@@ -43,57 +43,6 @@ authentication is distinct from authorization:
   user's access to database resources and operations. Outside of role
   assignments, the user has no access to the system.
 
-{+service+} Features and Recommendations for Authorization 
-----------------------------------------------------------
-
-Features 
-~~~~~~~~
-
-You must implement |service|' robust Role-Based Access Control (RBAC)
-to effectively manage access across all resources. |service| includes
-built-in roles that provide different levels of access commonly needed
-in a database system. You must assign and customize roles for all
-users to ensure security and flexibility. By utilizing fine-grained
-custom or built-in roles with granular scoping to address specific
-needs, you can exert precise control over operations on |service|
-resources. Always create custom roles following the principle of least
-privilege and assign those roles to the users. 
-
-Additionally, by integrating |service| with identity providers to map
-identity provider groups to |service| roles, you can streamline access
-management and ensure secure, organized role assignments throughout the
-platform. 
-
-Recommendations for {+atlas-ui+} and {+atlas-admin-api+}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can assign users and API keys to predefined roles, specifying the
-actions they can perform within |service| organizations, projects, or
-both. Use Identity Federation to manage access by linking your identity
-provider groups to |service| roles through group-role mappings.  
-
-To learn more, see :ref:`user-roles`.
-
-Recommendations for Database 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Workforce and workload users can be assigned fine-grained database
-roles, predefined or custom, with permissions tailored to specific
-projects or individual {+clusters+}. In staging and production
-environments, use Identity Federation to streamline access management by
-linking your Identity Provider (IdP) to  |service|. By configuring
-'Group Membership' in your :abbr:`IdP (Identity Provider)`, you can map
-groups to database users, simplifying access control within the
-:abbr:`IdP (Identity Provider)`. However, for workload identities, we
-recommend assigning roles directly using the 'users' claim instead of
-'groups.' In development and test environments, assign users the
-``readWriteAny`` role. 
-
-To learn more, see the following: 
-
-- :ref:`mongodb-users-roles-and-privileges`
-- :ref:`mongodb-roles`
-
 {+service+} Features and Recommendations for Authentication
 -----------------------------------------------------------
 
@@ -103,16 +52,14 @@ Features
 |service-fullname| supports a variety of authentication methods to
 ensure robust security.   
 
-- For user authentication, |service| integrates seamlessly with identity
+- The best practice for user authentication, |service| integrates 
+  seamlessly with identity
   providers (IdP) using federated authentication through OpenID Connect
   (OIDC) or SAML 2.0, and enhances security with Multi-Factor
-  Authentication (MFA). You can also configure username-password
-  authentication by using SCRAM-SHA.
+  Authentication (MFA) ensuring a modern authentication and security posture. 
 - For workload authentication, |service| supports OAuth2.0, allowing
-  seamless compatibility with authorization services. Additionally, to
-  meet diverse technical needs, you can utilize x.509 certificates for
-  authentication, following best practices such as credential rotation
-  to maintain a secure environment.
+  seamless compatibility with authorization services and integration 
+  into your federated :abbr:`IdP (Identity Provider)`.
 
 |service| requires all clients to authenticate to access {+atlas-ui+}, 
 |service| database, and {+atlas-admin-api+}. The following
@@ -123,16 +70,24 @@ following authentication mechanisms:
 Recommendations for Deployment 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In a shared deployment, multiple users and applications share the same
-physical resources (CPU, memory, storage) on the {+cluster+}. If you use
-shared deployment, you must ensure strong isolation and security
-measures to prevent unauthorized access to data and resources. Use this
-model only for cost efficiency and collaboration in development and test
-environments. 
-
 In a dedicated deployment, resources are allocated exclusively. We
 recommend this as it provides high security and performance. However,
 you must configure strict access controls.
+
+We recommend using a dedicated {+cluster+} deployment for each 
+application as this ensures that resources are allocated exclusively 
+to a single access point and provides isolation for both security and 
+performance. 
+
+While a shared deployment model--where multiple applications and 
+development teams share a multi-tenant {+cluster+}--can increase the 
+cost efficiency of the deployment, it requires tight coordination 
+between the applications' data models and access patterns. These must 
+be integrated into the provisioning process of the {+cluster+} to 
+ensure that fine-grained custom roles are programmatically configured, 
+providing strong isolation between the access of different applications 
+and teams. As a result, this pattern is generally used 
+in development environments where the risk of exposure is lower.
 
 Recommendations for {+atlas-ui+}  
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -164,10 +119,10 @@ To learn more, see :ref:`atlas-federated-authentication`.
 Multi-Factor authentication 
 ```````````````````````````
 
-|service| supports authentication using credentials and :abbr:`MFA (Multi-Factor
-Authentication)` for enhanced security. When :abbr:`MFA (Multi-Factor
-Authentication)` is enabled, |service| requires two forms of
-identification: 
+For any human user that has access to the |service| control plane, we recommend
+that you require :abbr:`MFA (Multi-Factor Authentication)` for enhanced security.
+When :abbr:`MFA (Multi-Factor Authentication)` is enabled, |service| requires 
+two forms of identification: 
 
 - The user's credentials 
 - One of the following recommended factors: 
@@ -197,8 +152,6 @@ times. A user can be created for the following periods:
 - 1 day
 - 1 week
 
-You can create these types of users for temporary access.
-
 Workforce Identity Federation
 `````````````````````````````
 
@@ -223,6 +176,9 @@ OAuth 2.0-compliant service. You can also use |aws| workload federation
 through |aws| |iam| roles. These authentication mechanisms simplify
 management and enhance security by allowing for passwordless access to
 the |service| database. 
+We recommend workload identity federation for all applications running in 
+production. You shouldn't allow human users to connect except in the most 
+extreme break-glass emergency scenarios.
 
 To learn more, see the following: 
 
@@ -262,11 +218,139 @@ Recommendations for {+atlas-admin-api+}
 |service| provides |api| key-based authentication to securely manage
 programmatic access. It uses |http| Digest to protect requests, where
 the |api| public key functions as the username, and the corresponding
-private key serves as the password. To further enhance security and
+private key serves as the password. 
+You should store these keys in a third party secrets management system, 
+such as |aws| or {+vault+}. To learn how to securely store these 
+keys in Vault, see the blog 
+`Manage MongoDB Atlas Database Secrets in HashiCorp Vault <https://www.mongodb.com/blog/post/manage-atlas-database-secrets-hashicorp-vault>`__.
+
+To further enhance security and
 minimize the risk of unauthorized access, follow best practices for
-rotating |api| keys regularly. 
+rotating |api| keys regularly. To learn how to rotate these keys with 
+{+vault+}, see 
+`the Hashicorp documentation <https://developer.hashicorp.com/vault/docs/secrets/mongodbatlas>`__.
 
 To learn more, see :ref:`api-authentication`.
+
+{+service+} Features and Recommendations for Authorization 
+----------------------------------------------------------
+
+Features 
+~~~~~~~~
+
+You must implement |service|'s robust Role-Based Access Control (RBAC) 
+to effectively manage access across all resources. |service| includes 
+built-in roles that provide different levels of access commonly needed 
+for managing the |service| control plane. For connecting to |service| 
+{+clusters+} in the data plane, we recommend using database 
+fine-grained custom roles to provide granular scoping based on the access 
+to the data access required for the role to perform its function.
+This approach enables you to follow the principle of least privilege.
+
+Additionally, by integrating |service| with a federated identity provider, 
+you can map identity provider groups automatically to |service| roles. 
+This streamlines access management and ensures secure and organized role 
+assignments throughout the platform. You can grant access programmatically 
+based on the provisioning process of your orchestration layer.
+
+In general, it is a best practice to always restrict access to upper 
+environments  to only programmatic service accounts with scripts that 
+are tested for security and deterministic outcomes. Human access should 
+only be allowed in lower environments during development and testing.
+
+Recommendations for {+atlas-ui+} and {+atlas-admin-api+} (Control Plane)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can assign users and API keys to predefined roles, specifying the
+actions they can perform within |service| organizations, projects, or
+both. Use Identity Federation to manage access by linking your identity
+provider groups to |service| roles through group-role mappings.  
+
+We recommend that you use a modern federated Identity Provider (IdP) that 
+provides SSO, OIDC, and SAML login such as Azure Entra ID, Okta, or Ping 
+as this makes the authorization process more secure and supports the 
+flexibility needed to programmatically assign :abbr:`IdP (Identity Provider)` 
+groups to |service| roles. You should restrict your company's domain from 
+preventing users from logging into |service| when they are not authorized 
+for access, which you can do by following the procedure in 
+`Manage Domain Mapping for Federated Authentication <https://www.mongodb.com/docs/atlas/security/manage-domain-mapping/>`__. From here, we recommend that you map your 
+:abbr:`IdP (Identity Provider)` groups to |service| roles as shown in 
+`Role Mapping Process <https://www.mongodb.com/docs/atlas/security/manage-role-mapping/#role-mapping-process>`__. 
+
+If you have followed the standard |service| hierarchy of a single billing 
+organization with a linked organization for each {+BU+} or department, then 
+you should restrict organization users to the operations or platform team admins.
+In contrast, you should assign project roles to the development or product teams 
+responsible for building applications. Only programmatic access should be 
+allowed in upper environments. The following recommendations for the most 
+commonly used roles can serve as a general guideline:
+
+* The ``Organization Owner`` role should be heavily restricted and not assigned
+  to a human, as it has the ability to change organization-wide settings and delete 
+  configurations. This role should be assigned to a service account which you use 
+  only to initially set up and configure the organization. Minimize configuration 
+  changes after the initial creation. 
+
+* The ``Organization Member`` role should be for admins on the operations and 
+  platform team that can view settings and configuration for the organization.
+
+* The ``Organization Project Creator`` role should be a programmatic service 
+  account used to create projects on behalf of new applications for development 
+  and product teams.
+
+* The ``Organization Billing Admin`` role should be a programmatic service 
+  account used to pull invoices programmatically from the Billing API 
+  and feed them into your FinOps tool. This same service account should have 
+  access to all linked organizations for which it is responsible for reporting usage. 
+
+* The ``Project Owner`` role should be used for governance enforced by the 
+  operations and provisioning team. Assign this role to a programmatic service 
+  account, as it has the ability to create and delete {+clusters+}. For sandbox 
+  environments, you may consider granting a user ``Project Owner`` access to 
+  enable them to quickly provision {+clusters+} for testing code and use cases 
+  without going through the orchestration deployment pipeline.
+
+* In lower environments, use the ``Project Data Access Admin`` role to 
+  grant access to the development team building the application so they can 
+  access the query and performance metrics of the {+cluster+} during 
+  development and testing. This access allows them to debug data issues 
+  with the Data Explorer. 
+  Don't allow this role in production environments. It has the 
+  ability to view and edit data, including creating and dropping databases, 
+  collections, and indexes on the {+cluster+}, which is useful for rapid 
+  experimentation and development. If you are uncomfortable giving 
+  development teams this level of access in the development environment, you 
+  can grant them read-only access to the {+cluster+}\'s data and performance 
+  statistics with the ``Project Data Access Read Only`` role.
+
+To learn more, see :ref:`user-roles`.
+
+Recommendations for Database 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Workforce and workload users can be assigned fine-grained database
+roles, predefined or custom, with permissions tailored to specific
+projects or individual {+clusters+}. In staging and production
+environments, we recommend using Identity Federation to streamline 
+access management by linking your Identity Provider (IdP) to |service| 
+for a more modern and 
+streamlined authentication and authorization flow for data access. 
+
+Only allow workload authentication in production. You can leverage workforce 
+authentication during development and in lower environments. By configuring
+'Group Membership' in your :abbr:`IdP (Identity Provider)`, you can map
+groups to database users, simplifying access control within the
+:abbr:`IdP (Identity Provider)`. However, for workload identities, we
+recommend assigning roles directly using the 'users' claim instead of
+'groups.' In development and test environments, you can default to the 
+predefined ``readWriteAny`` role to simplify the development and testing process. When moving the application to higher environments, you should build a custom 
+role to restrict the access that the application server has based on the 
+principle of least privilege.
+
+To learn more, see the following: 
+
+- :ref:`mongodb-users-roles-and-privileges`
+- :ref:`mongodb-roles`
 
 Examples
 --------
