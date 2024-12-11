@@ -13,7 +13,7 @@ Scalability
    :class: onecol
 
 MongoDB {+service+} allows automated scaling, tiered storage, workload optimization, and other 
-features that can reduce your database costs as your data usage expands.
+features that ensure your application stays highly performant and reactive as your usage grows.
 
 {+service+} Features and Recommendations for Scalability
 ---------------------------------------------------------
@@ -22,9 +22,9 @@ Features
 ~~~~~~~~~
 
 :ref:`Auto-scaling <cluster-autoscaling>` allows you to dynamically allocate resources based on 
-real-time workload demands. This feature ensures that you only pay for the resources you use. By 
+growing workload demands. This feature ensures that you only pay for the resources you use. By 
 configuring auto-scaling within predefined limits, you can effectively manage fluctuations in data 
-processing needs, maintain optimal performanc, and achieve cost efficiency. {+service+} 
+processing needs, maintain optimal performance, and achieve cost efficiency. {+service+} 
 offers cluster auto-scaling for all tiers except for the highest tier. Auto-scaling enables 
 clusters to automatically adjust their tier, storage capacity, or both in response to real-time 
 use. {+service+} analyzes the CPU and memory utilization to determine when and whether to scale 
@@ -33,9 +33,16 @@ that their cluster can automatically scale to. {+service+} won't scale a cluster
 tier falls outside of your specified size range or if memory usage would exceed the capacity of 
 the new tier.
 
+Auto-scaling is throttled with a delay to scale a cluster tier up or down. As such, it is ideal 
+for a steadily growing or declining application load, not sudden spikes where the database is 
+inundated with use. If your workload is spikey or you are expecting a large increase in traffic
+because of an event or launch, we recommend you pre-scale using a script.
+
 {+service+} deployment templates provide you with horizontal and vertical scaling options. Upgrading 
 an {+service+} cluster to the next available {+service+} tier is available through the {+service+} 
-control plane GUI. Changing an {+service+} tier, either upscaling or downscaling, is performed in a 
+control plane GUI or the 
+`Atlas Administration API <https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/upgradeSharedCluster>`__. 
+Changing an {+service+} tier, either upscaling or downscaling, is performed in a 
 rolling fashion and allows zero downtime. Horizontal scaling occurs manually post-deployment. Some 
 cluster templates require sharded clusters. Starting with MongoDB version 8.0, you may make use of 
 :manual:`embedded config servers </reference/command/transitionFromDedicatedConfigServer>` to reduce 
@@ -49,18 +56,15 @@ Data tiering and archival allows you to archive data at low-cost storage while s
 queries alongside live cluster data, which is particularly useful for long-term record retention. 
 To optimize this process, MongoDB recommends that you automate data archiving with simple, configurable 
 rules. Also, for scenarios where data retention is not a priority, {+service+} offers the option to 
-automatically delete unused data based on date criteria. For infrequently accessed data, {+service+} 
-online archive automates archiving an organization's infrequently accessed data to a fully managed S3 
-bucket while allowing you to query the archives through the same interface used for active cluster data. 
-This is particularly useful for managing large datasets, such as historical or time series data, where only 
-the most recent information needs to be quickly accessible. Additionally, :manual:`TTL indexes <core/index-ttl/>` 
+automatically delete unused data based on date criteria. For infrequently accessed data, :manual:`TTL indexes <core/index-ttl/>` 
 are special single-field indexes that automatically delete documents from a collection after a specified 
 period or at a set clock time. This is particularly useful for data like logs, session information, 
 or event data that only needs to be retained for a limited time. To create a TTL index, you can define 
 an index on a field that holds date values and specify a time-to-live duration in seconds.
 
 {+service+} also provides you with automated tools, such as the :opsmgr:`Performance Advisor </current/tutorial/performance-advisor/>`, 
-to monitor and identify inefficient queries. You can reduce unnecessary compute time and resource 
+to monitor and identify inefficient queries such as adding or removing an index or 
+changing your client's query structure. You can reduce unnecessary compute time and resource 
 consumption by following actionable recommendations to enhance your query performance. Additionally, 
 you can leverage intelligent index recommendations provided by {+service+} to further improve data 
 retrieval efficiency and minimize the resources needed for database operations. 
@@ -78,9 +82,10 @@ non-production environments.
 
 For staging and production environments, we recommend that you:
 
-- Use a
-  router-based, single-shard cluster to eliminate downtime when you
-  migrate to a shard key with sharded collections in the future.
+- Always deploy with a
+  router-based, single-shard cluster. This future-proofs your cluster 
+  and minimizes disruptions in the event that you need to horizontally 
+  scale by sharding collections in the future with application load growth.
 - Enable auto-scaling for compute and storage for instances where your 
   application grows organically from small to medium.
   
