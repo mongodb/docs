@@ -25,8 +25,6 @@
 
        You can store fields of all supported :ref:`bson-data-chart` on |fts|. To learn more about the 
        syntax and fields, see :ref:`fts-stored-source-definition`.
-
-          
      - Optional
 
    * - ``synonyms`` 
@@ -36,5 +34,5 @@
 
    * - ``numPartitions``
      - The number of partitions to use if field objects exceed 2.1 billion.
-.. include:: /includes/fact-numpartitions-preview.rst
+       .. include:: /includes/fact-numpartitions-preview.rst
      - Optional.
