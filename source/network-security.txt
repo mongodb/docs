@@ -40,16 +40,17 @@ configuration of your {+clusters+}.
 {+service+} enforces |tls-ssl| encryption for all connections to your
 databases.
 
-All {+service+} projects with one or more M10+ dedicated {+clusters+} receive
+We recommend using M10+ dedicated {+clusters+} because all {+service+} projects with one or more M10+ dedicated {+clusters+} receive
 their own dedicated |vpc| on {+aws+} or {+gcp+} (or {+vnet+} if you use |azure|).
 {+service+} deploys all dedicated clusters inside this |vpc| or {+vnet+}.
 
-By default, this |vpc| or {+vnet+} allows no inbound access to {+service+}.
-You must explicitly enable access by one of the following methods:
+By default, all access to your {+clusters+} is blocked. You must explicitly allow 
+an inbound connection by one of the following methods:
 
-- Add public IP addresses to your {+ip-access-list+}
-- Use |vpc| / {+vnet+} peering to add private IP addresses
-- Add private endpoints
+- Add public IP addresses to your {+ip-access-list+}.
+- Use |vpc| / {+vnet+} peering to add private IP addresses.
+- Add private endpoints, which {+service+} adds automatically to your {+ip-access-list+}. 
+  No other access is automatically added.
 
 You can also use multiple methods together for added security.
 
@@ -61,7 +62,8 @@ Features
 
 {+service+} enforces mandatory |tls| encryption of connections to your
 databases. |tls| 1.2 is the default protocol; you can select |tls| 1.1
-or |tls| 1.0 if necessary. To learn more, see the
+or |tls| 1.0 if necessary, but we do not recommend protocols lower than 
+the default. To learn more, see the
 :guilabel:`Set Minimum TLS Protocol Version` section of
 :ref:`Configure Additional Settings
 <create-cluster-additional-settings>`.
@@ -88,10 +90,10 @@ You can create one access list per project.
 Firewall Configuration
 ``````````````````````
 
-If you use a firewall that blocks outbound network connections, you
-must also configure your firewall to allow your applications to make
-outbound connections to TCP traffic on {+service+} hosts. This grants
-your applications access to your {+clusters+}.
+When connecting from your client application servers to {+service+} and passing 
+through a firewall that blocks outbound network connections, you must also configure 
+your firewall to allow your applications to make outbound connections to TCP traffic 
+on {+service+} hosts. This grants your applications access to your {+clusters+}.
 
 {+service+} {+cluster+} public IPs remain the same in the majority of
 cases of {+cluster+} changes such as :ref:`vertical scaling
@@ -108,13 +110,13 @@ VPC/{+vnet+} Peering
 
 Network peering allows you to connect your own |vpc|\s with |a-service|
 |vpc| to route traffic privately and isolate your data flow from the
-public Internet.
+public Internet. {+service+} maps |vpc|\s one-to-one to {+service+} projects.
 
 Most operations performed over a |vpc| connection originate from your
 application environment, minimizing the need for {+service+} to make
-outbound access requests to peer |vpc|\s. However, if you configure a
-peer |vpc| to use |ldap| authentication, you must enable {+service+} to
-connect to the authentication endpoint of your peer |vpc| over the |ldap|
+outbound access requests to peer |vpc|\s. However, if you configure {+service+}
+to use |ldap| authentication, you must enable {+service+} to
+connect outbound to the authentication endpoint of your peer |vpc| over the |ldap|
 protocol.
 
 You can choose your {+service+} |cidr| block with the |vpc| peering wizard
@@ -140,16 +142,41 @@ private endpoints are available:
 - :gcp:`Private Service Connect </vpc/docs/private-service-connect>`, for
   connections from {+gcp+}
 
+Recommendations for Private Endpoints
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We recommend that you set up private endpoints for all new staging and production projects to limit the extension of your network trust
+boundary.
+
+In general, we recommend using private endpoints for every {+service+} project 
+because it provides the most granular security and eases the administrative burden 
+that can come from managing {+ip-access-list+}\s and large blocks of IP addresses 
+as your cloud network scales. There is a cost associated with each endpoint, so you 
+might consider not requiring private endpoints in lower environments but you should 
+leverage them in higher environments to limit the extension of your network trust 
+boundary.
+
+To learn more about private endpoints
+in {+service+}, including limitations and considerations, see :atlas:`Learn About Private Endpoints in {+service+} </security-private-endpoint/>`. To learn how to set up private
+endpoints for your {+clusters+}, see
+:atlas:`Set Up a Private Endpoint for a Dedicated Cluster </security-cluster-private-endpoint/>`.
+
 Recommendations for IP Access Lists
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-We recommend that you configure an {+ip-access-list+} for your API keys
-to allow access only from trusted IP addresses. 
+We recommend that you configure an {+ip-access-list+} for your API keys and programmatic 
+access to allow access only from trusted IP addresses such as your CI/CD pipeline 
+or orchestration system. These {+ip-access-list+}\s are set on the {+service+} 
+control plane upon provisioning a service account and are separate from {+ip-access-list+}\s
+which can be set on the {+service+} project data plane for connections to the {+clusters+}. 
 
 When you configure your {+ip-access-list+}, we recommend that you:
 
 - Use temporary access list entries in situations where team members
-  require access to your environment from temporary work locations.
+  require access to your environment from temporary work locations or during 
+  break-glass scenarios where production access to humans is required to resolve 
+  a production-down scenario. We recommend that you build an automation script to 
+  quickly add temporary access to prepare for these incidents.
 - Define {+ip-access-list+} entries covering the smallest network segments
   possible. To do this, favor individual IP addresses where possible,
   and avoid large |cidr| blocks.
@@ -168,21 +195,6 @@ If you configure |vpc| or {+vnet+} peering, we recommend that you:
   application infrastructure and your {+service+} |vpc|\s. |vpc|\s are
   intransitive, allowing you to only expose those components of your
   application that need access to {+service+}.
-
-Recommendations for Private Endpoints
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-We recommend that you set up private endpoints for all new staging and production projects to limit the extension of your network trust
-boundary.
-
-When you configure your private endpoints, we recommend that you don't
-share private endpoints across multiple projects to ensure isolation
-of configuration settings.
-
-To learn more about private endpoints
-in {+service+}, including limitations and considerations, see :atlas:`Learn About Private Endpoints in {+service+} </security-private-endpoint/>`. To learn how to set up private
-endpoints for your {+clusters+}, see
-:atlas:`Set Up a Private Endpoint for a Dedicated Cluster </security-cluster-private-endpoint/>`.
 
 Examples
 --------
