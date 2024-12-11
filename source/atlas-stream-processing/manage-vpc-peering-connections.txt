@@ -1,0 +1,166 @@
+.. _atlas-sp-manage-vpc-peering:
+
+==============================
+Manage VPC Peering Connections
+==============================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: atlas stream processing, atlas stream processing overview, streaming data, data stream, real time, data processing, apache kafka, kafka, vpc peering
+   :description: Learn how to create, update, and delete incoming VPC Peering connections to your Stream Processing Instance.
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/unavailable-serverless-m0-m2-m5-clusters.rst
+
+.. include:: /includes/fact-network-peering.rst
+
+.. warning::
+
+   |service| does not support Network Peering between clusters 
+   deployed in a single region on different cloud providers.
+   For example, you cannot set up Network Peering between 
+   an |service| cluster hosted in a single region on AWS and an 
+   application hosted in a single region on GCP.
+
+The procedures on this page walk you through creating an outbound |vpc| 
+connection, as well as creating, accepting, rejecting, and deleting an 
+inbound |vpc| peering connection to your {+spi+} instances. 
+
+Prerequisites
+-------------
+
+To create and configure connections, you must have the following:
+
+- An |service| :ref:`project <manage-projects>`
+- An |service| user with the :authrole:`Project Owner` or
+  the :authrole:`Project Stream Processing Owner` role to manage a
+  connection registry
+
+  .. note::
+     
+     The :authrole:`Project Owner` role allows you to create database 
+     deployments, manage project access and project settings, manage 
+     IP Access List entries, and more.
+
+     The :authrole:`Project Stream Processing Owner` role enables {+atlas-sp+} 
+     actions such as viewing, creating, deleting, and editing stream 
+     processing instances, and creating, updating, and deleting 
+     VPC Peering connections in the connection registry. 
+
+     See :ref:`Project Roles <project-roles>` to learn more about the 
+     differences between the two roles.
+
+- An |service| {+cluster+}
+
+.. _manage-outbound-vpc-peering-connection-create:
+.. _atlas-sp-manage-outbound-vpc-peering-connection-create:
+
+Create Outbound VPC Peering Connections
+---------------------------------------
+
+To create outbound |vpc| peering connections to your {+spi+}:
+
+.. tabs:: 
+
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+
+      To create outbound |vpc| peering connections to your {+spi+} using the {+atlas-ui+}, 
+      see :ref:`Add an Apache Kafka Connection <atlas-sp-manage-kafka-add>`.
+
+   .. tab:: {+atlas-admin-api+}
+      :tabid: api
+
+      To create outbound |vpc| peering connections to your {+spi+} using the API, see 
+      :oas-atlas-tag:`Return All Network Peering Connections in One Project </Network-Peering/operation/listPeeringConnections>`.
+
+.. _get-aws-account-id-and-vpc-id:
+.. _atlas-sp-get-aws-account-id-and-vpc-id:
+
+Get AWS Account ID and VPC ID for a Project
+-------------------------------------------
+
+If you want to create inbound |vpc| peering connections to your {+spi+}, 
+you first need to retrieve the |aws| account ID, the |aws| |vpc| ID, and 
+the |cidr| block associated with your {+service+} project to initiate a |vpc| 
+peering request from an external cloud environment.  
+
+To retrieve the |aws| account ID, the |aws| |vpc| ID, and the |cidr| block for an 
+{+service+} project using the {+atlas-admin-api+}, see 
+:oas-atlas-tag:`Returns the Account ID, and the VPC ID for the group and region specified </Streams/operation/getAccountDetails>`.
+
+.. _manage-inbound-vpc-peering-connection-list:
+.. _atlas-sp-manage-inbound-vpc-peering-connection-list:
+
+List Inbound VPC Peering Connections
+--------------------------------------
+
+To list all inbound |vpc| peering connections to your {+spi+} using the {+atlas-admin-api+}, 
+see :oas-atlas-tag:`Return All VPC Peering Connections </Streams/operation/getVpcPeeringConnections>`.
+
+.. _manage-inbound-vpc-peering-connection-accept:
+.. _atlas-sp-manage-inbound-vpc-peering-connection-accept:
+
+Accept an Inbound VPC Peering Connection
+----------------------------------------
+
+To accept an inbound |vpc| peering connection to your {+spi+} using the {+atlas-admin-api+}, 
+see :oas-atlas-tag:`Requests the acceptance of an incoming VPC Peering connection </Streams/operation/acceptVpcPeeringConnection>`.
+
+A sample API request resembles the following: 
+
+.. code-block:: sh
+
+   curl \
+   -s --user "ojarafoc:1ecf4c70-98ea-4168-8e44-fd67dba0f3ba" \
+   --digest \
+   --header 'Accept: application/vnd.atlas.2023-02-01+json' \
+   --header 'Content-Type: application/json' \
+   -d '{"requesterVpcId": "vpc-0d13eb6a2f0377854", "requesterAccountId":"417601102659"}' \
+   --request POST \
+   "https://cloud-dev.mongodb.com/api/atlas/v2/groups/671a86f4cfc9da7d7c31b14f/streams/vpcPeeringConnections/pcx-09277e1e81d0751c1:accept"
+
+Note the following example parameter values:
+
+.. list-table::
+   :widths: 45 55
+   :header-rows: 1
+
+   * - Parameter values
+     - Description
+   * - ajarafoc:a98a3a67-7400-4d6f-94b2-20a64118524d
+     - The API public key and private key
+   * - {"requesterVpcId": "vpc-0d13eb6a2f0377854", "requesterAccountId":"417601102659"}
+     - The POST payload containing the request's |vpc| ID and |aws| Account ID
+   * - 671a86f4cfc9da7d7c31b14f
+     - The {+service+} project Id
+   * - pcx-09277e1e81d0751c1
+     - The incoming |vpc| connection name obtained from :ref:`listing inbound VPC peering connections <manage-inbound-vpc-peering-connection-list>`
+
+.. _manage-inbound-vpc-peering-connection-reject:
+.. _atlas-sp-manage-inbound-vpc-peering-connection-reject:
+
+Reject an Inbound VPC Peering Connection
+----------------------------------------
+
+To reject an inbound |vpc| peering connection to your {+spi+} using the {+atlas-admin-api+}, 
+see :oas-atlas-tag:`Requests the rejection of an incoming VPC Peering connection </Streams/operation/rejectVpcPeeringConnection>`.
+
+.. _manage-inbound-vpc-peering-connection-delete:
+.. _atlas-sp-manage-inbound-vpc-peering-connection-delete:
+
+Delete an Inbound VPC Peering Connection
+----------------------------------------
+
+To delete an inbound |vpc| peering connection to your {+spi+} using the {+atlas-admin-api+}, 
+see :oas-atlas-tag:`Deletes an incoming VPC Peering connection </Streams/operation/deleteVpcPeeringConnection>`.
