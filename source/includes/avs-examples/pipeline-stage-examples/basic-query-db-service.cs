@@ -1,14 +1,16 @@
+namespace query_quick_start;
+
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
 
-public class vectorSearchBasicQuery 
+public class DatabaseService
 {
-  // define connection to your Atlas cluster
+  // Replace the placeholder with your Atlas connection string
   private const string MongoConnectionString = "<connection-string>";
 
-  public static void Main(string[] args){
+  public void RunVectorQuery(){
     var camelCaseConvention = new ConventionPack { new CamelCaseElementNameConvention() };
     ConventionRegistry.Register("CamelCase", camelCaseConvention, type => true);
 

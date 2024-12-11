@@ -1,38 +1,20 @@
 .. procedure:: 
    :style: normal
 
-   .. step:: Set up and initialize the .NET/C# project for the query.
-
-      a. Create a new directory called ``query-quick-start`` and
-         initialize your project with the dotnet new command. 
-  
-         .. code-block:: bash
-
-            mkdir query-quick-start
-            cd query-quick-start
-            dotnet new console
-
-      #. Add the .NET/C# Driver to your project as a dependency.
-
-         .. code-block:: bash
-
-            dotnet add package MongoDB.Driver
-
-      For more detailed installation instructions, see the 
-      :ref:`MongoDB C# Driver documentation <csharp-quickstart>`.
-
    .. step:: Construct your vector search query.
 
       .. include:: /includes/fact-avs-quick-start-intro.rst
 
-      a. Edit the ``Program.cs`` file.
+      a. Create a new file called ``DatabaseService.cs``.
 
       #. Copy and paste the following sample query into the 
-         ``Program.cs`` file:
+         ``DatabaseService.cs`` file:
 
-         .. literalinclude:: /includes/avs-examples/pipeline-stage-examples/basic-query.cs
+         .. literalinclude:: /includes/avs-examples/pipeline-stage-examples/basic-query-db-service.cs
             :language: csharp
-            :linenos: 
+            :caption: DatabaseService.cs
+            :emphasize-lines: 11
+            :linenos:
 
       .. include:: /includes/fact-avs-quick-start-intro-II.rst
       
@@ -43,9 +25,24 @@
 
       .. include:: /includes/steps-connection-string-drivers-hidden.rst
 
+   .. step:: Update your ``Program.cs`` file.
+
+      Remove the index creation code from your ``Program.cs`` file. Instead,
+      initialize the ``DatabaseService`` object and call the method to run the
+      query:
+
+      .. code-block:: csharp
+         :copyable: true
+         :caption: Program.cs
+
+         using query_quick_start;
+
+         var databaseService = new DatabaseService();
+         databaseService.RunVectorQuery();
+
    .. step:: Run your query.
     
-      Compile and run the ``Program.cs`` file.
+      Compile and run your project.
       
       .. io-code-block::
          :copyable: true

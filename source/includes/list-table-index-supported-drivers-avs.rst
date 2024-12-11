@@ -11,6 +11,9 @@
    * - :driver:`C++ </cxx/>` 
      - 3.11.0 or higher
 
+   * - :driver:`C# </csharp/>` 
+     - 3.1.0 or higher
+
    * - :driver:`Go </go/current/>` 
      - 1.16.0 or higher
 

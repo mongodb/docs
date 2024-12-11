@@ -84,7 +84,7 @@
          .. tab::
             :tabid: csharp
 
-            .. include:: /includes/avs-quick-start-local-create-index-with-json.rst
+            .. include:: /includes/avs-quick-start-csharp-create-index.rst
 
          .. tab::
             :tabid: go

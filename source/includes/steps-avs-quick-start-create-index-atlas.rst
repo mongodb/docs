@@ -63,7 +63,7 @@
          .. tab::
             :tabid: csharp
 
-            .. include:: /includes/avs-quick-start-ui-create-index.rst
+            .. include:: /includes/avs-quick-start-csharp-create-index.rst
 
          .. tab::
             :tabid: go
