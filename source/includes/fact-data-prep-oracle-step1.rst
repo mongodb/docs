@@ -4,6 +4,11 @@ instance. Alternatively, you can use an existing Oracle
 service account to connect to Relational Migrator with 
 the appropriate permissions.
 
+.. tip::
+
+   To migrate data from a multi-tenant container database, use a `Common
+   User <https://oracle-base.com/articles/12c/multitenant-manage-users-and-privileges-for-cdb-and-pdb-12cr1>`__.
+
 a. Create a service account:
 
    .. code-block:: sql
