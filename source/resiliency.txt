@@ -29,7 +29,10 @@ Database Replication
 |service| {+clusters+} consist of a minimum of three nodes, and you can increase
 the node count to any odd number of nodes you require. |service| first writes data 
 from your application to a primary node, and then |service| incrementally replicates
-and stores that data across all secondary nodes within your {+cluster+}.
+and stores that data across all secondary nodes within your {+cluster+}. Additionally, 
+you can control the durability of your data storage by adjusting the write concern 
+of your application code to complete the write only once a certain number of secondaries 
+have committed the write. To learn more, see :ref:`resiliency-read-write-concerns`.
 
 By default, |service| distributes {+cluster+} nodes across availability zones within 
 one of your chosen cloud provider's availability regions. For example, if your 
@@ -49,7 +52,7 @@ and reads directly.
 In the event that a primary node is unavailable, because of infrastructure 
 outages, maintenance windows or any other reason, |service| {+clusters+} self-heal 
 by converting an existing secondary node into your primary node to maintain 
-database availability. 
+database availability. To learn more about this process, see `How does MongoDB Atlas deliver high availability? <https://www.mongodb.com/docs/atlas/reference/faq/deployment/#how-does-service-fullname-deliver-high-availability->`__
 
 Maintenance Window Uptime
 `````````````````````````
@@ -58,6 +61,8 @@ Maintenance Window Uptime
 a rolling fashion to one node at a time. During this process, |service| elects a new 
 primary when necessary just as it does during any other unplanned primary node 
 outage.  
+
+When you `configure a maintenance window <https://www.mongodb.com/docs/atlas/tutorial/cluster-maintenance-window/>`__, select a time that corresponds to when your application has the lowest amount of traffic.
 
 Monitoring
 ``````````
@@ -73,17 +78,20 @@ and :ref:`Monitoring and Alerts <arch-center-monitoring-alerts>`.
 
 Deployment Resilience Testing
 `````````````````````````````
-
 You can simulate various scenarios that require disaster recovery workflows in 
 order to measure your preparedness for such events. Specifically, with |service| 
 you can `test primary node failover <https://www.mongodb.com/docs/atlas/tutorial/test-resilience/test-primary-failover/#std-label-test-failover>`__
-and `simulate regional outages <https://www.mongodb.com/docs/atlas/tutorial/test-resilience/simulate-regional-outage/#std-label-test-outage>`__. 
+and `simulate regional outages <https://www.mongodb.com/docs/atlas/tutorial/test-resilience/simulate-regional-outage/#std-label-test-outage>`__. We strongly recommend that you run these tests before 
+deploying an application to production.
 
 Cluster Termination Safeguards
 ``````````````````````````````
 
 You can prevent accidental deletion of |service| {+clusters+} by enabling 
 `termination protection <https://www.mongodb.com/docs/atlas/cluster-additional-settings/#termination-protection>`__.
+Enabling termination protection is especially important when leveraging 
+:abbr:`IaC (Infrastructure as Code)` tools like Terraform to ensure that a redeployment 
+does not provision new infrastructure.
 To delete a cluster that has termination protection enabled, you must first 
 disable termination protection. By default, Atlas disables termination protection 
 for all clusters.
@@ -102,8 +110,8 @@ To learn more about database backup and snapshot retrieval, see `Back Up Your Cl
 Recommendations
 ~~~~~~~~~~~~~~~
 
-Use MongoDB 8.0
-````````````````
+Use MongoDB 8.0 or Later
+````````````````````````
 
 .. include:: /includes/cloud-docs/cluster-resilience.rst
 
@@ -114,7 +122,14 @@ We recommend that you use the most `current driver version <https://www.mongodb.
 for your application's programming language whenever possible. And while the 
 default connection string |service| provides is a good place to start, you might 
 want to tune it for performance in the context of your specific application 
-and deployment architecture. `Tuning your connection pool settings <https://www.mongodb.com/docs/manual/tutorial/connection-pool-performance-tuning/>`__ 
+and deployment architecture. 
+
+For example, you might want to set a short :urioption:`connectTimeoutMS` for a 
+microservice that provides a login capability, whereas you may want to set the 
+``connectTimeoutMS`` to a much larger value if the application code is a long-running 
+analytics job request against the cluster.
+
+`Tuning your connection pool settings <https://www.mongodb.com/docs/manual/tutorial/connection-pool-performance-tuning/>`__ 
 is particularly important in the context of enterprise level application deployments. 
 
 Connection Pool Considerations for Performant Applications
@@ -180,6 +195,8 @@ Retryable Database Reads and Writes
 and `retryable write <https://www.mongodb.com/docs/manual/core/retryable-writes/>`__ 
 operations. When enabled, |service| retries read and write operations once as a 
 safeguard against intermittent network outages. 
+
+.. _resiliency-read-write-concerns:
 
 Configure Read and Write Concerns 
 `````````````````````````````````
