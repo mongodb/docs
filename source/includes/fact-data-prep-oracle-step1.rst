@@ -35,7 +35,7 @@ a. Create a service account:
    .. important::
       
       If you're migrating a multi-tenant container database as a
-      common user, append ``CONTAINER=ALL`` to each permission, for
+      common user, append ``CONTAINER=ALL`` when granting permissions, for
       example:
 
       .. code-block:: sql
