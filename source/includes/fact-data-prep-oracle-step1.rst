@@ -17,7 +17,7 @@ a. Create a service account:
 
       CREATE USER '<user>'@'localhost' IDENTIFIED BY '<password>';
 
-#. Grant session creation and select permissions to the service account.
+#. Grant permissions to the service account.
 
    .. important::
       
@@ -30,16 +30,8 @@ a. Create a service account:
       
          GRANT CREATE SESSION TO <user> CONTAINER=ALL;
 
-   .. code-block:: sql
-      :copyable: true
-
-      GRANT CREATE SESSION TO <user>;
-      GRANT SELECT ON V$DATABASE TO <user>;
-
-#. Grant additional permissions if the service account doesn't own the tables
-   used in the migration job.
-
-   To check table ownership, run the following query:
+   Required permissions depend on whether the service account owns the tables
+   used in the migration job. To check table ownership run the following query:
 
    .. code-block:: sql
       :copyable: true
@@ -49,14 +41,22 @@ a. Create a service account:
       WHERE TABLE_NAME ='<table_name>'
       ORDER BY OWNER, TABLE_NAME;
    
-   If the service account *is* the table owner, no additional permissions are
-   needed. If it *isn't* the table owner, add the following. Append
-   ``CONTAINER=ALL`` if migrating a multi-tenant container database as a 
-   common user:
+   
+   If the service account *is* the table owner:
 
    .. code-block:: sql
       :copyable: true
 
+      GRANT CREATE SESSION TO <user>;
+      GRANT SELECT ON V$DATABASE TO <user>;
+
+   If the service account *is not* the table owner:
+
+   .. code-block:: sql
+      :copyable: true
+
+      GRANT CREATE SESSION TO <user>;
       GRANT SELECT_CATALOG_ROLE TO <user>;
       GRANT SELECT ANY TABLE TO <user>;
+      GRANT SELECT ON V$DATABASE TO <user>;
       GRANT FLASHBACK ANY TABLE TO <user>;
