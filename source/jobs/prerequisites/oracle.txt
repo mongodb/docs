@@ -100,38 +100,43 @@ Steps
                   GRANT SELECT ON V$ARCHIVED_LOG TO <user>;
                   GRANT SELECT ON V$ARCHIVE_DEST_STATUS TO <user>;
                   GRANT SELECT ON V$TRANSACTION TO <user>;
+                  GRANT SELECT ON V_$MYSTAT TO <user>;
+                  GRANT SELECT ON V_$STATNAME TO <user>; 
 
-         .. step:: Turn on ``LogMiner`` at the database level
+         .. step:: Turn on archive logging
             
-            To run continous jobs against Oracle, you must enable 
-            ``LogMiner`` at the database level. The following code-block
-            is an example of automatically-generated code, which you 
-            can run manually by substituting your database name:
+            a. To check if archive logging is already enabled, run the following query:
 
-            .. code-block:: sql
-                :copyable: true
+               .. code-block:: sql
+                  :copyable: true
 
-                ALTER SYSTEM SET db_recovery_file_dest_size = 10G;
-                ALTER SYSTEM SET db_recovery_file_dest = '/opt/oracle/oradata/recovery_area' SCOPE=spfile;
-                SHUTDOWN IMMEDIATE;
-                STARTUP MOUNT
-                ALTER DATABASE ARCHIVELOG;
-                ALTER DATABASE OPEN;
+                  SELECT LOG_MODE FROM V$DATABASE;
+
+               This outputs ``ARCHIVELOG`` if logging is enabled, or
+               ``NOARCHIVELOG`` if it isn't.
             
-            .. tip::
+            #. Enable archive logging if it isn't already enabled.
+            
+               The following is an example of the code Relational Migrator
+               generates for enabling logging, which you can run manually by
+               substituting your database name. If you're migrating a
+               multi-tenant database, run these commands on the
+               container/master database.
 
-                To check if ``LogMiner`` is already enabled, run the 
-                following query:
+               .. code-block:: sql
+                  :copyable: true
 
-                .. code-block:: sql
-                   :copyable: true
-
-                    SELECT LOG_MODE FROM V$DATABASE; 
+                  ALTER SYSTEM SET db_recovery_file_dest_size = 10G;
+                  ALTER SYSTEM SET db_recovery_file_dest = '/opt/oracle/oradata/recovery_area' scope=spfile;
+                  SHUTDOWN IMMEDIATE;
+                  STARTUP MOUNT
+                  ALTER DATABASE ARCHIVELOG;
+                  ALTER DATABASE OPEN;
     
          .. step:: Enable supplemental logging
 
-            a. To run continuous migration jobs against Oracle, you must 
-               enable supplemental logging at the database level:
+            a. To run continuous migration jobs against Oracle, enable 
+               supplemental logging:
 
                .. code-block:: sql
                   :copyable: true
