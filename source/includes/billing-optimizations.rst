@@ -21,7 +21,7 @@ Underutilized {+Clusters+}
   if you won't use it for an extended period. 
   
   We recommend that you
-  use ``M10`` {+clusters+} only for development and test environments. To learn more, see :ref:`arch-center-cluster-size-guide`.
+  use ``M10`` or ``M30`` {+clusters+} for development and test environments. To learn more, see :ref:`arch-center-cluster-size-guide`.
   
 - For development and test environments, we recommend that you:
 
@@ -30,13 +30,10 @@ Underutilized {+Clusters+}
     {+atlas-admin-api+} by using the :oas-atlas-op:`Modify One Cluster
     </updateCluster>` endpoint to set the ``paused`` field to ``true``.
 
-  - Set an alert that triggers if a dev or test 
-    {+cluster+} has not had any activity in over one week. You can
-    create alert configurations with the
-    {+atlas-admin-api+} by using the :oas-atlas-tag:`Alert Configurations 
-    <Alert-Configurations>` endpoints. To learn more about
-    monitoring and alert recommendations, see
-    :ref:`arch-center-monitoring-alerts`.
+  - Set an alert in your 
+    third party metrics or alerting system that triggers if a dev or
+    test {+cluster+} has not had any activity in over one week. The alert should trigger if
+    there are a no read or writes on a cluster for seven days.
 
   - Consider terminating unused dev and test {+clusters+} after a 
     set amount of time and sufficient email alerts to the {+cluster+}
