@@ -1,7 +1,6 @@
 
 Accepts disclaimers for the :ref:`embedded verifier
-<c2c-verifier-disclaimer>` and, when using
-{+c2c-beta-program-short+}, :ref:`beta features <c2c-beta-program>`.
+<c2c-verifier-disclaimer>`.
 
 When the ``mongosync`` process starts without this |opt-term|, the
 user is prompted to accept each disclaimer.
