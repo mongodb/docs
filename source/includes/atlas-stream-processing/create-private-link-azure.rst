@@ -8,27 +8,34 @@
 
       :oas-atlas-tag:`Create One Private Link
       </Streams/operation/createPrivateLinkConnection>`
-
+		    
       For an |azure| Private Link connection, you must set the
       following key-value pairs:
-      
-      * - ``serviceEndpointId`` 
-        - Your EventHub namespace `endpoint <https://learn.microsoft.com/en-us/rest/api/eventhub/namespaces/get?view=rest-eventhub-2024-01-01&tabs=HTTP>`__
 
-      * - ``dnsDomain``
-        - Fully qualified domain name, with port number, of the
-	  bootstrap server in your |azure| Event Hub namespace. This
-	  domain name conforms to the format described :azure:`here
-	  </event-hubs/event-hubs-quickstart-kafka-enabled-event-hubs?tabs=passwordless>`
+      .. list-table::
+	 :widths: 30 70
+         :header-rows: 1
 
-      The following example command requests a connection to your
-      |azure| Event Hub and illustrates a typical response:
+	 * - Key
+	   - Value
+
+	 * - ``serviceEndpointId`` 
+	   - Your EventHub namespace `endpoint <https://learn.microsoft.com/en-us/rest/api/eventhub/namespaces/get?view=rest-eventhub-2024-01-01&tabs=HTTP>`__
+
+	 * - ``dnsDomain``
+	   - Fully qualified domain name, with port number, of the
+	     bootstrap server in your |azure| Event Hub namespace. This
+	     domain name conforms to the format described :azure:`here
+	     </event-hubs/event-hubs-quickstart-kafka-enabled-event-hubs?tabs=passwordless>`
+
+	 The following example command requests a connection to your
+	 |azure| Event Hub and illustrates a typical response:
 
       .. io-code-block::
-         :copyable: true
+	 :copyable: true
 
 	 .. input::
-            :language: sh
+	    :language: sh
 
 	    curl --location
 	    'https://cloud.mongodb.com/api/atlas/v2/groups/8358217d3abb5c76c3434648/streams/privateLinkConnections'
@@ -39,11 +46,11 @@
 	    --header 'Accept: application/vnd.atlas.2023-02-01+json' \
 	    --data '{ "provider": "AZURE", "region": "US_EAST_2", "serviceEndpointId": "/subscriptions/b82d6aa0-0b0a-ffa3-7c22-e167dc44f5b0/resourceGroups/asp/providers/Microsoft.EventHub/namespaces/sample", "dnsDomain": "sample.servicebus.windows.net" }'
 
-         .. output::
+	 .. output::
 	    :language: sh
-	    
+
 	    {"_id":"6aa12e7ccd660d4b2380b1c1","dnsDomain":"sample.servicebus.windows.net","provider":"AZURE","region":"US_EAST_2","serviceEndpointId":"/subscriptions/b82d6aa0-0b0a-ffa3-7c22-e167dc44f5b0/resourceGroups/asp/providers/Microsoft.EventHub/namespaces/sample"} 		       
-	       
+
       After you send the request, note the value of the ``_id`` field
       in the response body. You will need this in a later step.
 
@@ -62,30 +69,34 @@
 
       .. list-table::
 	 :widths: 35 65
+         :header-rows: 1
 
-         * - ``bootstrapServers``
+	 * - Key
+	   - Value		  
+
+	 * - ``bootstrapServers``
 	   - IP address of your cloud provider's Kafka bootstrap server.
 
-         * - ``security.protocol``
+	 * - ``security.protocol``
 	   - ``SASL_SSL``
 
-         * - ``authentication.mechanism``
+	 * - ``authentication.mechanism``
 	   - ``"PLAIN"``
 
-         * - ``authentication.password``
+	 * - ``authentication.password``
 	   - Your Event Hub :azure:`connection string
-             </event-hubs/event-hubs-get-connection-string>`
+	     </event-hubs/event-hubs-get-connection-string>`
 
-         * - ``authentication.username``
+	 * - ``authentication.username``
 	   -  ``"$ConnectionString"``
 
-         * - ``type``
+	 * - ``type``
 	   - ``"Kafka"``
 
-         * - ``networking.access.type``
+	 * - ``networking.access.type``
 	   - ``"PRIVATE_LINK"``
 
-         * - ``networking.access.connectionId``
+	 * - ``networking.access.connectionId``
 	   - ``_id`` value from your Private Link request response
 
       Set all other values as necessary.
@@ -95,8 +106,6 @@
 
       .. code-block:: sh
 
-         curl --location
+	 curl --location
 	 'https://cloud.mongodb.com/api/atlas/v2/groups/8358217d3abb5c76c3434648/streams/spinstance/connections'
-	 \ --digest \ --user "slrntglrbn:933fb118-ac62-4991-db05-ee67a3481fde" \ --header 'Content-Type: application/json' \ --header 'Accept: application/vnd.atlas.2023-02-01+json' \ --data '{ "name": "eventhubpl33333", "bootstrapServers": "sample.servicebus.windows.net:9093", "security": { "protocol": "SASL_SSL" }, "authentication": { "mechanism": "PLAIN", "password": "Endpoint=sb://sample.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=Irlo3OoRkc27T3ZoGOlbhEOqXQRXzb12+Q2hNXm0lc=", "username": "$ConnectionString" }, "type": "Kafka", "networking": { "access": { "type": "PRIVATE_LINK", "connectionId": "38972b0cbe9c2aa40a30a246" } } }'      
-
-	 
+	 \ --digest \ --user "slrntglrbn:933fb118-ac62-4991-db05-ee67a3481fde" \ --header 'Content-Type: application/json' \ --header 'Accept: application/vnd.atlas.2023-02-01+json' \ --data '{ "name": "eventhubpl33333", "bootstrapServers": "sample.servicebus.windows.net:9093", "security": { "protocol": "SASL_SSL" }, "authentication": { "mechanism": "PLAIN", "password": "Endpoint=sb://sample.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=Irlo3OoRkc27T3ZoGOlbhEOqXQRXzb12+Q2hNXm0lc=", "username": "$ConnectionString" }, "type": "Kafka", "networking": { "access": { "type": "PRIVATE_LINK", "connectionId": "38972b0cbe9c2aa40a30a246" } } }'
