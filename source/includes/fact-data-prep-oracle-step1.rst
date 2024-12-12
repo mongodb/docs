@@ -17,6 +17,19 @@ a. Create a service account:
 
       CREATE USER '<user>'@'localhost' IDENTIFIED BY '<password>';
 
+#. Check if the service account owns the tables in the migration job.
+
+   Required permissions depend on whether the service account owns the tables
+   used in the migration job. To check table ownership run the following query:
+
+   .. code-block:: sql
+      :copyable: true
+
+      SELECT TABLE_NAME, OWNER 
+      FROM ALL_TABLES 
+      WHERE TABLE_NAME ='<table_name>'
+      ORDER BY OWNER, TABLE_NAME;
+
 #. Grant permissions to the service account.
 
    .. important::
@@ -29,18 +42,6 @@ a. Create a service account:
          :copyable: false
       
          GRANT CREATE SESSION TO <user> CONTAINER=ALL;
-
-   Required permissions depend on whether the service account owns the tables
-   used in the migration job. To check table ownership run the following query:
-
-   .. code-block:: sql
-      :copyable: true
-
-      SELECT TABLE_NAME, OWNER 
-      FROM ALL_TABLES 
-      WHERE TABLE_NAME ='<table_name>'
-      ORDER BY OWNER, TABLE_NAME;
-   
    
    If the service account *is* the table owner:
 
