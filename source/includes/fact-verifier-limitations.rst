@@ -36,8 +36,3 @@ Unsupported Verification Checks
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/fact-verifier-unsupported
-
-Unsupported Beta Features
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. include:: /includes/fact-verifier-beta-limitations
