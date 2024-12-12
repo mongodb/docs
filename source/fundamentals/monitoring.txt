@@ -1,0 +1,114 @@
+.. _csharp-monitoring:
+
+==========
+Monitoring
+==========
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: event, subscribe, listener
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+On this page, you can learn how to configure **monitoring** in the
+{+driver-long+}. Monitoring is the process of gathering information about your
+application's performance and resource usage as it runs.
+This can help you make informed decisions when designing and debugging your application.
+
+The driver provides information about your application by emitting events. You can
+subscribe to these driver events to monitor your application.
+
+.. note:: Event Logging
+
+   This page explains how to monitor your application in code. To learn how to record
+   this information to an external log, see :ref:`Logging. <csharp-logging>`
+
+.. _csharp-event-types:
+
+Event Types
+-----------
+
+The type of event that the driver emits depends on the operation being performed.
+The following table describes the types of events that the driver emits:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Event Type
+     - Description
+   * - Command Events
+     - Events related to MongoDB database commands, such as ``find``, ``insert``,
+       ``delete``, and ``count``. To learn how to use the {+driver-short+} to run a
+       database command, see :ref:`<csharp-run-command>`. For more information about
+       MongoDB database commands, see :manual:`Database Commands </reference/command/>`
+       in the {+mdb-server+} manual.
+
+       As a security measure, the driver redacts the contents of some
+       command events. This protects the sensitive information contained in these command
+       events.
+
+   * - Server Discovery and Monitoring (SDAM) Events
+     - Events related to changes in the state of the MongoDB deployment.
+
+   * - Connection Pool Events
+     - Events related to the connection pool held by the driver.
+
+For a complete list of events the driver emits, see the API documentation for the
+`MongoDB.Driver.Core.Events <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.Core.Events.html>`__
+namespace.
+
+.. _csharp-monitor-events:
+
+Subscribing to Events
+---------------------
+
+To monitor an event, you must subscribe a listener method on your ``MongoClient`` instance.
+The following steps describe how to subscribe to events:
+
+1. Create a ``MongoClientSettings`` object.
+#. Set the ``ClusterConfigurator`` property on the ``MongoClientSettings`` object to a
+   lambda function that accepts a ``ClusterBuilder`` object.
+#. In the lambda function, call the ``Subscribe<TEvent>()``
+   method on the ``ClusterBuilder`` object for each event you want to subscribe to.
+   Replace ``TEvent`` with the event type. Pass the event handler
+   method as an argument to the ``Subscribe<TEvent>()`` method.
+
+The following code example shows how to subscribe to the ``ClusterOpenedEvent``,
+``ServerHeartbeatSucceededEvent``, and ``ConnectionPoolReadyEvent``. This example
+assumes that the ``ClusterEventHandler``, ``HeartbeatEventHandler``,
+and ``ConnectionPoolEventHandler`` methods are defined elsewhere in your code.
+
+.. code-block:: csharp
+
+   var clientSettings = MongoClientSettings.FromConnectionString(MongoConnectionString);
+   clientSettings.ClusterConfigurator = clusterBuilder =>
+   {
+       clusterBuilder
+         .Subscribe<ClusterOpenedEvent>(ClusterEventHandler)
+         .Subscribe<ServerHeartbeatSucceededEvent>(HeartbeatEventHandler)
+         .Subscribe<ConnectionPoolReadyEvent>(ConnectionPoolEventHandler);
+   };
+
+.. tip::
+
+   You can subscribe to any number of events, and these events can be of different types.
+
+API Documentation
+-----------------
+
+To learn more about the methods and classes used to monitor events in the driver, see the
+following API documentation:
+
+- `MongoDB.Driver.Core.Events <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.Core.Events.html>`__
+- `Subscribe<TEvent>() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.Core.Configuration.ClusterBuilder.Subscribe.html>`__
