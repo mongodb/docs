@@ -65,11 +65,12 @@
                texts=data,
                model="embed-english-v3.0", 
                input_type="search_document",
-               embedding_types=["float", "int8"]
+               embedding_types=["float", "int8", "ubinary"]
             ).embeddings
             
             float32_embeddings = generated_embeddings.float
             int8_embeddings = generated_embeddings.int8
+            int1_embeddings = generated_embeddings.ubinary
 
    .. step:: Generate the |bson| vectors from your embeddings.
 
@@ -85,12 +86,14 @@
             def generate_bson_vector(vector, vector_dtype):
                return Binary.from_vector(vector, vector_dtype)
 
-            # For all vectors in your collection, generate BSON vectors of float32 and int8 embeddings
+            # For all vectors in your collection, generate BSON vectors of float32, int8, and int1 embeddings
             bson_float32_embeddings = []
             bson_int8_embeddings = []
-            for i, (f32_emb, int8_emb) in enumerate(zip(float32_embeddings, int8_embeddings)):
+            bson_int1_embeddings = []
+            for i, (f32_emb, int8_emb, int1_emb) in enumerate(zip(float32_embeddings, int8_embeddings, int1_embeddings)):
                bson_float32_embeddings.append(generate_bson_vector(f32_emb, BinaryVectorDtype.FLOAT32))
                bson_int8_embeddings.append(generate_bson_vector(int8_emb, BinaryVectorDtype.INT8))
+               bson_int1_embeddings.append(generate_bson_vector(int1_emb, BinaryVectorDtype.PACKED_BIT))
      
    .. step:: Create documents with the |bson| vector embeddings.
 
@@ -105,29 +108,33 @@
 
             * - Placeholder 
               - Valid Value 
-   
-            * - ``<FIELD-NAME-FOR-INT8-TYPE>``
-              - Name of field with ``int8`` values.
 
             * - ``<FIELD-NAME-FOR-FLOAT32-TYPE>``
               - Name of field with ``float32`` values.
-         
+
+            * - ``<FIELD-NAME-FOR-INT8-TYPE>``
+              - Name of field with ``int8`` values.
+
+            * - ``<FIELD-NAME-FOR-INT1-TYPE>``
+              - Name of field with ``int1`` values.
+
          .. code-block:: python 
 
-            def create_docs_with_bson_vector_embeddings(bson_float32_embeddings, bson_int8_embeddings, data):
+            def create_docs_with_bson_vector_embeddings(bson_float32_embeddings, bson_int8_embeddings, bson_int1_embeddings, data):
               docs = []
-              for i, (bson_f32_emb, bson_int8_emb, text) in enumerate(zip(bson_float32_embeddings, bson_int8_embeddings, data)):
+              for i, (bson_f32_emb, bson_int8_emb, bson_int1_emb, text) in enumerate(zip(bson_float32_embeddings, bson_int8_embeddings, bson_int1_embeddings, data)):
 
                  doc = {
                       "_id":i,
                       "data": text,
-                      "<FIELD-NAME-FOR-INT8-TYPE>":bson_int8_emb,
                       "<FIELD-NAME-FOR-FLOAT32-TYPE>":bson_f32_emb,
+                      "<FIELD-NAME-FOR-INT8-TYPE>":bson_int8_emb,
+                      "<FIELD-NAME-FOR-INT1-TYPE>":bson_int1_emb,
                  }
                  docs.append(doc)
               return docs
 
-            documents = create_docs_with_bson_vector_embeddings(bson_float32_embeddings, bson_int8_embeddings, data)
+            documents = create_docs_with_bson_vector_embeddings(bson_float32_embeddings, bson_int8_embeddings, bson_int1_embeddings, data)
 
    .. step:: Load your data into your |service| {+cluster+}.
 
@@ -209,11 +216,14 @@
             * - Placeholder 
               - Valid Value 
 
+            * - ``<FIELD-NAME-FOR-FLOAT32-TYPE>``
+              - Name of field with ``float32`` values.
+
             * - ``<FIELD-NAME-FOR-INT8-TYPE>``
               - Name of field with ``int8`` values.
 
-            * - ``<FIELD-NAME-FOR-FLOAT32-TYPE>``
-              - Name of field with ``float32`` values.
+            * - ``<FIELD-NAME-FOR-INT1-TYPE>``
+              - Name of field with ``int1`` values.
 
          .. code-block:: python 
 
@@ -232,6 +242,12 @@
                   "type": "vector",
                   "path": "<FIELD-NAME-FOR-INT8-TYPE>",
                   "similarity": "dotProduct", 
+                  "numDimensions": 1024, 
+                },
+                {
+                  "type": "vector",
+                  "path": "<FIELD-NAME-FOR-INT1-TYPE>",
+                  "similarity": "euclidean", 
                   "numDimensions": 1024, 
                 }
               ]
@@ -261,6 +277,12 @@
             * - ``<FIELD-NAME-FOR-FLOAT32-TYPE>``
               - Name of field with ``float32`` values.
 
+            * - ``<FIELD-NAME-FOR-INT8-TYPE>``
+              - Name of field with ``int8`` values.
+
+            * - ``<FIELD-NAME-FOR-INT1-TYPE>``
+              - Name of field with ``int1`` values.
+
             * - ``<INDEX-NAME>``
               - Name of ``vector`` type index. 
 
@@ -277,15 +299,18 @@
                 texts=[query_text],
                 model="embed-english-v3.0", 
                 input_type="search_query",
-                embedding_types=["float", "int8"]
+                embedding_types=["float", "int8", "ubinary"]
               ).embeddings
 
               if path == "<FIELD-NAME-FOR-FLOAT32-TYPE>":
                 query_vector = query_text_embeddings.float[0]
                 vector_dtype = BinaryVectorDtype.FLOAT32
-              else:
+              elif path == "<FIELD-NAME-FOR-INT8-TYPE>":
                 query_vector = query_text_embeddings.int8[0]
                 vector_dtype = BinaryVectorDtype.INT8
+              elif path == "<FIELD-NAME-FOR-INT1-TYPE>":
+                query_vector = query_text_embeddings.ubinary[0]
+                vector_dtype = BinaryVectorDtype.PACKED_BIT
               bson_query_vector = generate_bson_vector(query_vector, vector_dtype)
 
               pipeline = [
@@ -327,36 +352,34 @@
                query_text = "tell me a science fact"
                float32_results = run_vector_search(query_text, col, "<FIELD-NAME-FOR-FLOAT32-TYPE>")
                int8_results = run_vector_search(query_text, col, "<FIELD-NAME-FOR-INT8-TYPE>")
+               int1_results = run_vector_search(query_text, col, "<FIELD-NAME-FOR-INT1-TYPE>")
 
                print("results from float32 embeddings")
                pprint(list(float32_results))
                print("--------------------------------------------------------------------------")
                print("results from int8 embeddings")
                pprint(list(int8_results))
+               print("--------------------------------------------------------------------------")
+               print("results from int1 embeddings")
+               pprint(list(int1_results))
 
             .. output:: 
                :language: shell 
 
                results from float32 embeddings
                [{'data': 'Mount Everest is the highest peak on Earth at 8,848m.',
-                 'score': 0.4222325384616852},
+                 'score': 0.6578356027603149},
                 {'data': 'The Great Wall of China is visible from space.',
-                 'score': 0.4112812876701355},
-                {'data': 'The Mona Lisa was painted by Leonardo da Vinci.',
-                 'score': 0.3871753513813019},
-                {'data': 'The Eiffel Tower was completed in Paris in 1889.',
-                 'score': 0.38428616523742676},
-                {'data': 'Shakespeare wrote 37 plays and 154 sonnets during his lifetime.',
-                 'score': 0.37546128034591675}]
+                 'score': 0.6420407891273499}]
                --------------------------------------------------------------------------
                results from int8 embeddings
                [{'data': 'Mount Everest is the highest peak on Earth at 8,848m.',
-                 'score': 4.619598996669083e-07},
+                 'score': 0.5149182081222534},
                 {'data': 'The Great Wall of China is visible from space.',
-                 'score': 4.5106872903488693e-07},
-                {'data': 'The Mona Lisa was painted by Leonardo da Vinci.',
-                 'score': 4.0036800896814384e-07},
-                {'data': 'The Eiffel Tower was completed in Paris in 1889.',
-                 'score': 3.9345573554783186e-07},
-                {'data': 'Shakespeare wrote 37 plays and 154 sonnets during his lifetime.',
-                 'score': 3.797164538354991e-07}]
+                 'score': 0.5136760473251343}]
+               --------------------------------------------------------------------------
+               results from int1 embeddings
+               [{'data': 'Mount Everest is the highest peak on Earth at 8,848m.',
+                 'score': 0.62109375},
+                {'data': 'The Great Wall of China is visible from space.',
+                 'score': 0.61328125}]

@@ -49,10 +49,13 @@ documents using the dot notation.
 
 Before indexing your embeddings, we recommend converting your embeddings
 to |bson| :manual:`BinData </reference/method/BinData/>` ``vector``
-subtype ``float32`` or ``int8`` vectors for efficient storage and
-ingestion of your vectors in your |service| {+cluster+}. To learn more,
-see :ref:`how to convert your embeddings to BSON vectors
-<avs-bindata-vector-subtype>`. 
+subtype ``float32``, ``int1``, or ``int8`` vectors for efficient storage
+in your |service| {+cluster+}.  To learn more, see :ref:`how to convert
+your embeddings to BSON vectors <avs-bindata-vector-subtype>`. 
+
+.. note:: 
+   
+   .. include:: /includes/fact-avs-int1-ingestion-preview.rst
 
 .. _avs-index-supported-drivers:
 
@@ -80,7 +83,8 @@ The following syntax defines the ``vectorSearch`` index type:
          "type": "vector",
          "path": "<field-to-index>",
          "numDimensions": <number-of-dimensions>,
-         "similarity": "euclidean | cosine | dotProduct"
+         "similarity": "euclidean | cosine | dotProduct",
+         "quantization": "none | scalar | binary"
        },
        {
          "type": "filter",
@@ -139,7 +143,18 @@ The {+avs+} index definition takes the following fields:
      - Required
      - Number of vector dimensions that {+avs+} enforces at index-time and
        query-time. You must specify a value less than or equal to
-       ``4096``. You can set this field only for ``vector`` type fields.
+       ``4096``. For indexing :manual:`BinData
+       </reference/method/BinData/>` or quantized vectors, value must be
+       one of the following:
+
+       - ``1`` to ``4096`` for ``int8`` vectors for ingestion.
+       - Multiple of ``8`` for ``int1`` vectors for ingestion.
+       - ``1`` to ``4096`` for ``binData(float32)`` and
+         ``array(float32)`` vectors for automatic scalar quantization.
+       - Multiple of ``8`` for ``binData(float32)`` and
+         ``array(float32)`` vectors for automatic binary quantization.
+       
+       You can set this field only for ``vector`` type fields.
 
    * - ``fields.similarity``
      - string
@@ -158,6 +173,30 @@ The {+avs+} index definition takes the following fields:
          
        To learn more, see :ref:`avs-similarity-functions`.
 
+   * - ``fields.quantization``
+     - string
+     - Optional
+     - .. _fields-quantization:
+
+       Type of automatic vector quantization for your vectors. You can
+       specify the type of quantization to apply on your vectors. Use
+       this setting only if your embeddings are ``float`` or ``double``
+       vectors. Value can be one of the following:  
+
+       - ``none`` - Indicates no automatic quantization for the vector
+         embeddings. Use this setting if you have pre-quantized vectors
+         for ingestion. If omitted, this is the default value. 
+       - ``scalar`` - Indicates scalar quantization, which transforms
+         values to 1 byte integers.    
+       - ``binary`` - Indicates binary quantization, which transforms
+         values to a single bit. To use this quantization,
+         ``numDimensions`` must be a multiple of 8. 
+
+       If precision is critical, select ``none`` or ``scalar`` instead
+       of ``binary``. 
+
+       To learn more, see :ref:`avs-quantization`.
+
 .. _avs-types-vector:
 
 About the ``vector`` Type 
@@ -170,14 +209,18 @@ Your index definition's ``vector`` field must contain an array of numbers of
 - |bson| :manual:`BinData </reference/method/BinData/>` ``vector``
   subtype ``float32``  
 - |bson| :manual:`BinData </reference/method/BinData/>` ``vector``
+  subtype ``int1`` 
+- |bson| :manual:`BinData </reference/method/BinData/>` ``vector``
   subtype ``int8`` 
 
 .. note:: 
 
    To learn more about generating |bson| :manual:`BinData
    </reference/method/BinData/>` ``vector`` subtype ``float32``
-   or ``vector`` subtype ``int8`` vectors for your data, see
+   or ``vector`` subtype ``int1`` or ``int8`` vectors for your data, see 
    :ref:`avs-bindata-vector-subtype`.
+
+   .. include:: /includes/fact-avs-int1-ingestion-preview.rst
 
 You must index the vector field as the ``vector`` type inside the
 ``fields`` array.
@@ -187,7 +230,7 @@ The following syntax defines the ``vector`` field type:
 .. code-block:: json
    :copyable: true 
    :linenos:
-   :emphasize-lines: 4-7
+   :emphasize-lines: 4-8
 
    {
      "fields":[ 
@@ -195,7 +238,8 @@ The following syntax defines the ``vector`` field type:
          "type": "vector",
          "path": <field-to-index>,
          "numDimensions": <number-of-dimensions>,
-         "similarity": "euclidean | cosine | dotProduct"
+         "similarity": "euclidean | cosine | dotProduct",
+         "quantization": "none | scalar | binary"
        },
        ...
      ]
@@ -223,6 +267,41 @@ About the Similarity Functions
          
   To use ``dotProduct``, you must normalize the vector to unit length at
   index-time and query-time.  
+
+The following table shows the similarity functions for the various types:
+
+.. list-table:: 
+   :widths: 25 25 25 25 
+   :header-rows: 1 
+
+   * - Vector Embeddings Type
+     - ``euclidean``
+     - ``consine``  
+     - ``dotProduct``
+
+   * - ``binData(int1)`` :icon-fa5:`star`
+     - √
+     - 
+     - 
+
+   * - ``binData(int8)`` :icon-fa5:`star`
+     - √
+     - √
+     - √
+
+   * - ``binData(float32)`` :icon-fa5:`asterisk`
+     - √
+     - √
+     - √
+
+   * - ``array(float32)`` :icon-fa5:`asterisk`
+     - √
+     - √
+     - √
+
+:icon-fa5:`star` For vector ingestion.
+
+:icon-fa5:`asterisk` For automatic scalar or binary quantization.
 
 For best performance, check your embedding model to determine which
 similarity function aligns with your embedding model's training
