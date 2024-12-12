@@ -52,7 +52,7 @@ async function run() {
                 }
             }, {
                 "$unionWith": {
-                  "coll": "movies",
+                  "coll": "embedded_movies",
                   "pipeline": [
                     {
                       "$search": {

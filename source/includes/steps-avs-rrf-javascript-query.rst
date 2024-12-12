@@ -63,12 +63,6 @@
              score: 0.0013513513513513514
            },
            {
-             _id: 'Star Wars: Episode III - Revenge of the Sith',
-             vs_score: 0.0013698630136986301,
-             fts_score: 0,
-             score: 0.0013698630136986301
-           },
-           {
              _id: 'The Ewok Adventure',
              vs_score: 0.001388888888888889,
              fts_score: 0,
@@ -91,5 +85,11 @@
              vs_score: 0.0014705882352941176,
              fts_score: 0,
              score: 0.0014705882352941176
+           },
+           {
+             _id: 'Message from Space',
+             vs_score: 0.0015384615384615387,
+             fts_score: 0,
+             score: 0.0015384615384615387
            }
          ]

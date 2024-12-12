@@ -42,7 +42,7 @@ db.embedded_movies.aggregate([
   },
   {
     "$unionWith": {
-      "coll": "movies",
+      "coll": "embedded_movies",
       "pipeline": [
         {
           "$search": {
