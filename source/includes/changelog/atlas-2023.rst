@@ -3,16 +3,19 @@
 13 December 2023 Release
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Support for auto-index creation for |service| 
-  {+Serverless-instances+}.
-- Support for migrations between sharded {+clusters+} with a different
+- Supports auto-index creation for |service| {+Serverless-instances+}.
+- Supports migrations between sharded {+clusters+} with a different
   number of shards for MongoDB 6.0+ with Atlas Live Migration. To learn
   more, see :ref:`c2c-pull-live-migration`.
-- Support for push-based logging integration with |aws| |s3|. To
-  learn more, see :ref:`mongodb-logs-push`.
-- Support for programmatic IP access list to secure |service|
-  customer-managed encryption keys. To learn more, see
-  :ref:`atlas-add-nodes-to-encrypted-cluster`.
+- Integrates push-based logging with |aws| |s3|. To learn more, see :ref:`mongodb-logs-push`.
+- Supports programmatic IP access list for secure |service| communication
+  by using customer-managed encryption keys. To learn more, see :ref:`atlas-add-nodes-to-encrypted-cluster`.
+- Rejects :ref:`test failover <test-failover>` if {+cluster+} is not fully healthy.
+- Adds the :oas-atlas-op:`returnAllControlPlaneIPAddresses API endpoint </returnAllControlPlaneIPAddresses>`
+  that returns a list of inbound and outbound |service| control plane IP
+  addresses in |cidr| categorized by cloud provider and region. To learn more,
+  see :ref:`Allow Access From the Atlas Control Plane <atlas-ear-allow-access-via-control-plane>`.
+
 
 .. _atlas_2023_05_12:
 
