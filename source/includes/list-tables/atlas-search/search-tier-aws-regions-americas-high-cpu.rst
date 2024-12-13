@@ -1,142 +1,44 @@
 .. list-table::
    :align: left
    :header-rows: 1
-   :widths: 15 35 25 25
+   :widths: 25 25 25 25
 
    * - Instance Size 
-     - Instance Details
-     - AWS Region
-     - Location 
+     - Default RAM
+     - Default Storage
+     - vCPU 
 
    * - S20
-     - - **Default RAM**: 4 GB
-       - **Default Storage**: 100 GB
-       - **vCPU**: 2
-
-     - - ``us-east-1``
-       - ``us-east-2``
-       - ``us-west-1``
-       - ``us-west-2`` 
-       - ``ca-central-1``
-       - ``sa-east-1``
-        
-     - - Northern Virginia, USA
-       - Ohio, USA
-       - Northern California, USA
-       - Oregon, USA
-       - Montreal, QC, Canada
-       - Sao Paulo, Brazil
+     - 4 GB
+     - 100 GB
+     - 2
 
    * - S30
-     - - **Default RAM**: 8 GB
-       - **Default Storage**: 200 GB
-       - **vCPU**: 4 
-
-     - - ``us-east-1``
-       - ``us-east-2``
-       - ``us-west-1``
-       - ``us-west-2`` 
-       - ``ca-central-1``
-       - ``sa-east-1``
-        
-     - - Northern Virginia, USA
-       - Ohio, USA
-       - Northern California, USA
-       - Oregon, USA
-       - Montreal, QC, Canada
-       - Sao Paulo, Brazil
+     - 8 GB
+     - 200 GB
+     - 4 
 
    * - S40
-     - - **Default RAM**: 16 GB
-       - **Default Storage**: 380 GB
-       - **vCPU**: 8 
- 
-     - - ``us-east-1``
-       - ``us-east-2``
-       - ``us-west-1``
-       - ``us-west-2`` 
-       - ``ca-central-1``
-       - ``sa-east-1``
-        
-     - - Northern Virginia, USA
-       - Ohio, USA
-       - Northern California, USA
-       - Oregon, USA
-       - Montreal, QC, Canada
-       - Sao Paulo, Brazil
+     - 16 GB
+     - 380 GB
+     - 8 
 
    * - S50
-     - - **Default RAM**: 32 GB
-       - **Default Storage**: 760 GB
-       - **vCPU**: 16 
- 
-     - - ``us-east-1``
-       - ``us-east-2``
-       - ``us-west-1``
-       - ``us-west-2`` 
-       - ``ca-central-1``
-       - ``sa-east-1``
-        
-     - - Northern Virginia, USA
-       - Ohio, USA
-       - Northern California, USA
-       - Oregon, USA
-       - Montreal, QC, Canada
-       - Sao Paulo, Brazil
+     - 32 GB
+     - 760 GB
+     - 16 
 
    * - S60
-     - - **Default RAM**: 64 GB
-       - **Default Storage**: 1600 GB
-       - **vCPU**: 32
- 
-     - - ``us-east-1``
-       - ``us-east-2``
-       - ``us-west-1``
-       - ``us-west-2`` 
-       - ``ca-central-1``
-       - ``sa-east-1``
-        
-     - - Northern Virginia, USA
-       - Ohio, USA
-       - Northern California, USA
-       - Oregon, USA
-       - Montreal, QC, Canada
-       - Sao Paulo, Brazil
+     - 64 GB
+     - 1600 GB
+     - 32
 
    * - S70
-     - - **Default RAM**: 96 GB
-       - **Default Storage**: 2400 GB
-       - **vCPU**: 48
- 
-     - - ``us-east-1``
-       - ``us-east-2``
-       - ``us-west-1``
-       - ``us-west-2`` 
-       - ``ca-central-1``
-       - ``sa-east-1``
-        
-     - - Northern Virginia, USA
-       - Ohio, USA
-       - Northern California, USA
-       - Oregon, USA
-       - Montreal, QC, Canada
-       - Sao Paulo, Brazil
+     - 96 GB
+     - 2400 GB
+     - 48
 
    * - S80
-     - - **Default RAM**: 128 GB
-       - **Default Storage**: 3200 GB
-       - **vCPU**: 64
- 
-     - - ``us-east-1``
-       - ``us-east-2``
-       - ``us-west-1``
-       - ``us-west-2`` 
-       - ``ca-central-1``
-       - ``sa-east-1``
-        
-     - - Northern Virginia, USA
-       - Ohio, USA
-       - Northern California, USA
-       - Oregon, USA
-       - Montreal, QC, Canada
-       - Sao Paulo, Brazil
+     - 128 GB
+     - 3200 GB
+     - 64
