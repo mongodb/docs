@@ -30,7 +30,7 @@ following field types using the ``sort`` option:
 - ``string`` (indexed as the :ref:`token <bson-data-types-token>` type) 
 
 You can also sort by the score of the documents in the results and by
-null values. 
+:ref:`null values <fts-sort-null>`. 
 
 .. _fts-sort-usage:
 
@@ -193,18 +193,89 @@ When comparing with elements inside an array:
         5
         -20
 
+.. _fts-sort-arrays-multiple-types:
+
+Sort Arrays with Multiple Types
+```````````````````````````````
+
+When sorting over array fields that contain values of multiple 
+|bson| types, |fts| selects a representative element from the array 
+to use for comparison according to the :manual:`MongoDB comparison and sort order
+</reference/bson-type-comparison-order/>` by default.
+
+- For an ascending sort, |fts| uses the element with the 
+  lowest |bson| type.
+
+- For a descending sort, |fts| uses the element with the
+  highest |bson| type.
+
+If there are multiple values of the same |bson| type
+in the array, standard sort behavior for the selected 
+type applies.
+
+.. example:: 
+
+   Consider the following array: 
+
+   .. code-block:: shell 
+      :copyable: false 
+
+      [ 'foo', null, 15, true, false ]
+
+   - For an ascending sort, |fts| uses ``null``, as it 
+     is the lowest :ref:`supported <bson-data-types>` |bson| type. 
+
+   - For a descending sort, |fts| uses ``true``, as it 
+     is the highest |bson| type in the array and |fts| ranks ``true`` 
+     values above ``false`` values. 
+
+   However, if you set ``noData: highest`` in your 
+   ``sort`` :ref:`syntax <sort-syntax-ref>`, |fts| considers 
+   null and missing values as the highest |bson| type.
+   For the example array, the following behavior applies:
+
+   - For an ascending sort, |fts| uses ``15``, as
+     it is now the lowest |bson| type in the array.
+   - For a descending sort, |fts| uses ``null``, as it 
+     is now the highest |bson| type in the array.
+ 
+   To learn more, see :ref:`fts-sort-null`.
+
+For an example, see :ref:`fts-sort-eg-null-multiple-types`.
+
 .. _fts-sort-null:
 
-Sort by Null Values 
-```````````````````
+Sort by Null and Missing Values 
+```````````````````````````````
 
-|fts| treats null as equivalent to missing fields and therefore, if you
-sort by fields that contain null values or is missing in some documents,
-the ordering of the documents in the results is non-deterministic. When
-comparing values of different |bson| types in sort operations, |fts|
-follows the :manual:`MongoDB comparison and sort order
+|fts| treats null values as equal to missing and empty values, and the
+order of documents with these values is non-deterministic when sorting.
+
+By default, |fts| follows the :manual:`MongoDB comparison and sort order
 </reference/bson-type-comparison-order/>` and considers null values 
-lower than all other :ref:`supported <bson-data-types>` |bson| types.
+as lower than all other :ref:`supported <bson-data-types>` |bson| types. 
+Therefore, null values appear at the top of the results during 
+an ascending sort and at the bottom during a descending sort.
+
+To configure where null values appear in the results, specify the ``noData``
+field in your ``sort`` :ref:`syntax <sort-syntax-ref>`. The ``noData`` 
+field takes the following values:
+
+- ``lowest`` (default): Sets null values as the lowest |bson| type during sorting.
+  Sorts null values at the top of the results during an
+  ascending sort and at the bottom during a descending sort.
+- ``highest``: Sets null values as the highest |bson| type during sorting.
+  Sorts null values at the bottom of the results during an
+  ascending sort and at the top during a descending sort.
+
+.. note::
+    
+   The same behavior applies when sorting on
+   :ref:`arrays with multiple types <fts-sort-arrays-multiple-types>`
+   that contain null or missing values.
+
+For examples, see :ref:`fts-sort-eg-null` and 
+:ref:`fts-sort-eg-null-multiple-types`.
 
 .. _fts-sort-embedded-documents:
 
@@ -278,12 +349,43 @@ Syntax
          <operator-specification>
        },
        "sort": { 
-         score: {$meta: "searchScore"},
-         "<field-to-sort>": <sort-order>, 
+         score: {$meta: "searchScore"}, // optional field
+         "<field-to-sort>": <sort-order>, // 1 or -1, or a document
          ...
-       } 
+       }
      }
    }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Parameter
+     - Description
+
+   * - ``score``
+     - Optional. Determines whether to sort by the search score.
+       To learn more, see :ref:`fts-sort-score-unique-field`.
+
+   * - ``<field-to-sort>``
+     - Required. The name of the field to sort by.
+
+   * - ``<sort-order>``
+     - Required. Determines the sort order. 
+       Use ``1`` for ascending order and ``-1`` for
+       descending order. 
+       
+       If you want to specify the 
+       :ref:`noData <fts-sort-null>` field, use a document 
+       with the following syntax:
+
+       .. code-block:: json
+
+          "<field-to-sort>": {
+            order: 1 | -1, // required field
+            noData: "lowest" | "highest" // optional field
+          },
+          ...
 
 .. _fts-sort-egs:
 
@@ -293,6 +395,8 @@ Examples
 The following examples use the ``sample_mflix.movies``, 
 ``sample_airbnb.listingsAndReview``, or a custom collection named
 ``users``. 
+
+.. _fts-sort-index:
 
 Index Definition
 ~~~~~~~~~~~~~~~~
@@ -422,6 +526,17 @@ sample queries against the indexed fields.
              "a": UUID("d3c12e1c-c36e-25ed-7c3e-1e7f1e53c752"),
              "b": "hello",
              "c": null
+           },
+           {
+             "_id": 5,
+             "a": UUID("d73f181e-cdda-42b4-b844-4d6e172e9bc8"),
+             "b": "hello",
+             "c": []
+           }
+           {
+             "_id": 6,
+             "a": UUID("7eeddf21-b313-4a5c-81c2-c68915daa618"),
+             "b": "hello",
            }
          ])
 
@@ -449,7 +564,8 @@ sample queries against the indexed fields.
                 { "type": "token" },
                 { "type": "uuid" },
                 { "type": "objectId" },
-                { "type": "boolean" }
+                { "type": "boolean" },
+                { "type": "number" }
                ]
              }
            }
@@ -775,90 +891,670 @@ ascending order.
       :visible: false
 
       [
-        { _id: 3, score: 0.039550621062517166 },
+        { _id: 3, score: 0.029335692524909973 },
         {
           _id: 0,
           a: UUID('1a324de2-e34b-c87e-f2a1-42ce37ad74ed'),
-          score: 0.039550621062517166
+          score: 0.029335692524909973
         },
         {
           _id: 1,
           a: UUID('3b241101-e2bb-4255-8caf-4136c566a962'),
-          score: 0.039550621062517166
+          score: 0.029335692524909973
+        },
+        {
+          _id: 6,
+          a: UUID('7eeddf21-b313-4a5c-81c2-c68915daa618'),
+          score: 0.029335692524909973
         },
         {
           _id: 4,
           a: UUID('d3c12e1c-c36e-25ed-7c3e-1e7f1e53c752'),
-          score: 0.039550621062517166
+          score: 0.029335692524909973
+        },
+        {
+          _id: 5,
+          a: UUID('d73f181e-cdda-42b4-b844-4d6e172e9bc8'),
+          score: 0.029335692524909973
         },
         {
           _id: 2,
           a: UUID('dee11d4e-63c6-4d90-983c-5c9f1e79e96c'),
-          score: 0.039550621062517166
+          score: 0.029335692524909973
         }
       ]
 
 .. _fts-sort-eg-null:
 
-Sort by Null Value
-~~~~~~~~~~~~~~~~~~
+Sort by Null Values
+~~~~~~~~~~~~~~~~~~~
 
-The following query searches field ``b``  for the string ``hello`` in
-the ``users`` collection using the :ref:`text-ref` operator. The query
-sorts the results by field ``a`` in ascending order.
+Consider the following queries that search field ``b`` for the string ``hello`` in
+the ``users`` collection using the :ref:`text-ref` operator. The query then
+sorts the results by field ``c``, which contains null or missing values for 
+some documents in the collection.
 
-.. io-code-block::
+To learn more, see :ref:`fts-sort-null`.
+
+.. tabs:: 
+  
+   .. tab:: Default
+      :tabid: default
+
+      .. tabs:: 
+
+         .. tab:: Ascending Sort
+            :tabid: ascending-sort
+
+            During an ascending sort, |fts| returns documents with 
+            null or missing values at the top of the results by default,
+            as shown in the following example:
+            
+            .. io-code-block::
+               :copyable: true
+
+               .. input::
+                  :language: json
+
+                  db.users.aggregate([
+                    {
+                      "$search": {
+                        "text": {
+                          "path": "b",
+                          "query": "hello"
+                        },
+                        "sort": { "c": 1 }
+                      }
+                    },
+                    {
+                      "$project": {
+                        "_id": 1,
+                        "c": 1,
+                        "score": { "$meta": "searchScore" }
+                      }
+                    }
+                  ])
+
+               .. output:: /includes/fts-tutorial/sort/null-values-top.js
+                  :language: js
+                  :visible: false
+
+         .. tab:: Descending Sort
+            :tabid: descending-sort
+
+            During a descending sort, |fts| returns documents with 
+            null or missing values at the bottom of the results by default,
+            as shown in the following example:
+
+            .. io-code-block::
+               :copyable: true
+
+               .. input::
+                  :language: json
+
+                  db.users.aggregate([
+                    {
+                      "$search": {
+                        "text": {
+                          "path": "b",
+                          "query": "hello"
+                        },
+                        "sort": { "c": -1 }
+                      }
+                    },
+                    {
+                      "$project": {
+                        "_id": 1,
+                        "c": 1,
+                        "score": { "$meta": "searchScore" }
+                      }
+                    }
+                  ])
+
+               .. output:: /includes/fts-tutorial/sort/null-values-bottom.js
+                  :language: js
+                  :visible: false
+
+   .. tab:: ``noData: lowest``
+      :tabid: nodata-lowest 
+
+      .. note::
+
+         Setting ``noData: lowest`` is the same as the default.
+
+      .. tabs:: 
+
+         .. tab:: Ascending Sort
+            :tabid: ascending-sort
+
+            If you specify the ``noData`` field as ``lowest``
+            during an ascending sort, |fts| returns documents 
+            with null or missing values at the top of the results,
+            as shown in the following example.
+
+            .. io-code-block::
+               :copyable: true
+
+               .. input::
+                  :language: json
+
+                  db.users.aggregate([
+                    {
+                      "$search": {
+                        "text": {
+                          "path": "b",
+                          "query": "hello"
+                        },
+                        "sort": {
+                          "c": {
+                            "order": 1,
+                            "noData": "lowest"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "$project": {
+                        "_id": 1,
+                        "c": 1,
+                        "score": { "$meta": "searchScore" }
+                      }
+                    }
+                  ])
+
+               .. output:: /includes/fts-tutorial/sort/null-values-top.js
+                  :language: js
+                  :visible: false
+
+         .. tab:: Descending Sort
+            :tabid: descending-sort
+
+            If you specify the ``noData`` field as ``lowest``
+            during a descending sort, |fts| returns documents 
+            with null or missing values at the bottom of the results,
+            as shown in the following example.
+
+            .. io-code-block::
+               :copyable: true
+
+               .. input::
+                  :language: json
+
+                  db.users.aggregate([
+                    {
+                      "$search": {
+                        "text": {
+                          "path": "b",
+                          "query": "hello"
+                        },
+                        "sort": {
+                          "c": {
+                            "order": -1,
+                            "noData": "lowest"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "$project": {
+                        "_id": 1,
+                        "c": 1,
+                        "score": { "$meta": "searchScore" }
+                      }
+                    }
+                  ])
+
+               .. output:: /includes/fts-tutorial/sort/null-values-bottom.js
+                  :language: js
+                  :visible: false
+                  
+   .. tab:: ``noData: highest``
+      :tabid: nodata-highest 
+
+      .. tabs::
+
+         .. tab:: Ascending Sort
+            :tabid: ascending-sort
+
+            If you specify the ``noData`` field as ``highest``
+            during an ascending sort, |fts| returns documents 
+            with null or missing values at the bottom of the results,
+            as shown in the following example.
+
+            .. io-code-block::
+               :copyable: true
+
+               .. input::
+                  :language: json
+
+                  db.users.aggregate([
+                    {
+                      "$search": {
+                        "text": {
+                          "path": "b",
+                          "query": "hello"
+                        },
+                        "sort": {
+                          "c": {
+                            "order": 1,
+                            "noData": "highest"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "$project": {
+                        "_id": 1,
+                        "c": 1,
+                        "score": { "$meta": "searchScore" }
+                      }
+                    }
+                  ])
+
+               .. output::
+                  :language: js
+                  :visible: false
+
+                  [
+                    { _id: 2, c: 'foo', score: 0.025981096550822258 },
+                    {
+                      _id: 3,
+                      c: UUID('3be11d4e-62cb-4e95-9a3c-5c9f1e56c732'),
+                      score: 0.025981096550822258
+                    },
+                    {
+                      _id: 0,
+                      c: ObjectId('507f1f77bcf86cd799439011'),
+                      score: 0.025981096550822258
+                    },
+                    { _id: 1, c: true, score: 0.025981096550822258 },
+                    { _id: 4, c: null, score: 0.025981096550822258 },
+                    { _id: 5, c: [], score: 0.025981096550822258 },
+                    { _id: 6, score: 0.025981096550822258 }
+                  ]
+
+         .. tab:: Descending Sort
+            :tabid: descending-sort
+
+            If you specify the ``noData`` field as ``highest``
+            during a descending sort, |fts| returns documents 
+            with null or missing values at the top of the results,
+            as shown in the following example.
+
+            .. io-code-block::
+               :copyable: true
+
+               .. input::
+                  :language: json
+
+                  db.users.aggregate([
+                    {
+                      "$search": {
+                        "text": {
+                          "path": "b",
+                          "query": "hello"
+                        },
+                        "sort": {
+                          "c": {
+                            "order": -1,
+                            "noData": "highest"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "$project": {
+                        "_id": 1,
+                        "c": 1,
+                        "score": { "$meta": "searchScore" }
+                      }
+                    }
+                  ])
+
+               .. output:: 
+                  :language: js
+                  :visible: false
+
+                  [
+                    { _id: 4, c: null, score: 0.025981096550822258 },
+                    { _id: 5, c: [], score: 0.025981096550822258 },
+                    { _id: 6, score: 0.025981096550822258 },
+                    { _id: 1, c: true, score: 0.025981096550822258 },
+                    {
+                      _id: 0,
+                      c: ObjectId('507f1f77bcf86cd799439011'),
+                      score: 0.025981096550822258
+                    },
+                    {
+                      _id: 3,
+                      c: UUID('3be11d4e-62cb-4e95-9a3c-5c9f1e56c732'),
+                      score: 0.025981096550822258
+                    },
+                    { _id: 2, c: 'foo', score: 0.025981096550822258 }
+                  ]
+
+The order of documents with ``"_id": 4``, ``"_id": 5``, and ``"_id": 6`` 
+is random because |fts| treats null and missing values as equal 
+when sorting.
+
+.. _fts-sort-eg-null-multiple-types:
+
+Sort on Multi-Typed Arrays
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider the following queries on the :ref:`users collection <fts-sort-index>`
+given an additional document with a multi-typed array in field ``c``:
+
+.. code-block:: json
    :copyable: true
+   
+   db.users.insertOne({
+     "_id": 7,
+     "a": UUID("03e32aa9-1cbd-43b8-b9d6-18b171a03cc7"),
+     "b": "hello",
+     "c": [ false, null, 15 ]
+   })
 
-   .. input::
-      :language: json
+The following queries search field ``b`` for the string ``hello`` 
+using the :ref:`text-ref` operator and sorts the results by field ``c``.
 
-      db.users.aggregate([
-        {
-          "$search": {
-            "text": {
-              "path": "b",
-              "query": "hello"
-            },
-            "sort": {
-              "c": 1
-            }
-          }
-        },
-        {
-          "$project": {
-            "_id": 1,
-            "c": 1,
-            "score": { "$meta": "searchScore" }
-          }
-        }
-      ])
+.. tabs:: 
 
-   .. output::
-      :language: json
-      :visible: false
+   .. tab:: Default
+      :tabid: default
 
-      [
-        { _id: 4, c: null, score: 0.039550621062517166 },
-        { _id: 2, c: 'foo', score: 0.039550621062517166 },
-        {
-          _id: 3,
-          c: UUID('3be11d4e-62cb-4e95-9a3c-5c9f1e56c732'),
-          score: 0.039550621062517166
-        },
-        {
-          _id: 0,
-          c: ObjectId('507f1f77bcf86cd799439011'),
-          score: 0.039550621062517166
-        },
-        { _id: 1, c: true, score: 0.039550621062517166 }
-      ]
+      .. note::
 
-|fts| returns all the documents, but the ordering of documents with
-``"_id": 2`` and ``"_id": 4`` is random because |fts| treats
-missing and nulls equally when sorting. For more details, see the 
-:manual:`MongoDB sort order </reference/bson-type-comparison-order/>`
-for sorting data of different BSON types.  
+         Setting ``noData: lowest`` in your :ref:`sort syntax <sort-syntax-ref>` 
+         is the same as the default.
+
+      .. tabs:: 
+
+         .. tab:: Ascending Sort
+            :tabid: ascending-sort
+
+            For an ascending sort, |fts| uses the element with the 
+            lowest |bson| type to represent the multi-typed array.
+            By default, |fts| considers null or missing values 
+            as the lowest |bson| value. Therefore, 
+            |fts| uses ``null`` to represent the multi-typed array for 
+            the document with ``_id: 7`` and returns this document at 
+            the top of the results along with other null and missing values.
+
+            To learn more, see :ref:`fts-sort-null` and 
+            :ref:`fts-sort-arrays-multiple-types`.
+
+            .. io-code-block::
+               :copyable: true
+
+               .. input::
+                  :language: json
+
+                  db.users.aggregate([
+                    {
+                      "$search": {
+                        "text": {
+                          "path": "b",
+                          "query": "hello"
+                        },
+                        "sort": {
+                          "c": 1
+                        }
+                      }
+                    },
+                    {
+                      "$project": {
+                        "_id": 1,
+                        "c": 1,
+                        "score": { "$meta": "searchScore" }
+                      }
+                    }
+                  ])
+
+               .. output:: 
+                  :language: js
+                  :visible: false
+
+                  [
+                    { _id: 4, c: null, score: 0.025981096550822258 },
+                    { _id: 5, c: [], score: 0.025981096550822258 },
+                    { _id: 6, score: 0.025981096550822258 }
+                    { _id: 7, c: [ false, null, 15 ], score: 0.025981096550822258 },
+                    { _id: 2, c: 'foo', score: 0.025981096550822258 },
+                    {
+                      _id: 3,
+                      c: UUID('3be11d4e-62cb-4e95-9a3c-5c9f1e56c732'),
+                      score: 0.025981096550822258
+                    },
+                    {
+                      _id: 0,
+                      c: ObjectId('507f1f77bcf86cd799439011'),
+                      score: 0.025981096550822258
+                    },
+                    { _id: 1, c: true, score: 0.025981096550822258 }
+                  ]
+
+            The order of documents with ``"_id": 4``, ``"_id": 5``, ``"_id": 6``, and ``"_id": 7`` 
+            is random because |fts| treats null and missing values as equal 
+            when sorting.
+
+         .. tab:: Descending Sort
+            :tabid: descending-sort
+
+            For a descending sort, |fts| uses the element with the 
+            highest |bson| type to represent the multi-typed array.
+            |fts| uses ``false`` to represent the multi-typed array for 
+            the document with ``_id: 7``, as this is the highest |bson| type
+            in the array. Since |fts| also ranks ``true`` values above ``false`` values,
+            |fts| returns this document after the document with ``_id: 1``. 
+
+            To learn more, see :ref:`fts-sort-null` and 
+            :ref:`fts-sort-arrays-multiple-types`.
+
+            .. io-code-block::
+               :copyable: true
+
+               .. input::
+                  :language: json
+
+                  db.users.aggregate([
+                    {
+                      "$search": {
+                        "text": {
+                          "path": "b",
+                          "query": "hello"
+                        },
+                        "sort": {
+                          "c": -1
+                        }
+                      }
+                    },
+                    {
+                      "$project": {
+                        "_id": 1,
+                        "c": 1,
+                        "score": { "$meta": "searchScore" }
+                      }
+                    }
+                  ])
+
+               .. output:: 
+                  :language: js
+                  :visible: false
+
+                  [
+                    { _id: 1, c: true, score: 0.025981096550822258 },
+                    { _id: 7, c: [ false, null, 15 ], score: 0.025981096550822258 },
+                    {
+                      _id: 0,
+                      c: ObjectId('507f1f77bcf86cd799439011'),
+                      score: 0.025981096550822258
+                    },
+                    {
+                      _id: 3,
+                      c: UUID('3be11d4e-62cb-4e95-9a3c-5c9f1e56c732'),
+                      score: 0.025981096550822258
+                    },
+                    { _id: 2, c: 'foo', score: 0.025981096550822258 }
+                    { _id: 4, c: null, score: 0.025981096550822258 },
+                    { _id: 5, c: [], score: 0.025981096550822258 },
+                    { _id: 6, score: 0.025981096550822258 },
+                  ]
+
+            The order of documents with ``"_id": 4``, ``"_id": 5``, and ``"_id": 6``
+            is random because |fts| treats null and missing values as equal 
+            when sorting.
+
+   .. tab:: ``noData: highest``
+      :tabid: nodata-highest 
+
+      The following queries specify ``noData: highest`` 
+      to set null values as the highest |bson| type during sorting.
+        
+      .. tabs:: 
+
+         .. tab:: Ascending Sort
+            :tabid: ascending-sort
+            
+            For an ascending sort, |fts| uses the element with the 
+            lowest |bson| type to represent the multi-typed array.
+            The query specifies ``noData: highest`` to consider 
+            null or missing values as the highest |bson| value, so 
+            |fts| uses ``15`` to represent the multi-typed array for 
+            the document with ``_id: 7`` since numbers are the next 
+            lowest |bson| type in the array.
+
+            To learn more, see :ref:`fts-sort-null` and 
+            :ref:`fts-sort-arrays-multiple-types`.
+
+            .. io-code-block::
+               :copyable: true
+
+               .. input::
+                  :language: json
+
+                  db.users.aggregate([
+                    {
+                      "$search": {
+                        "text": {
+                          "path": "b",
+                          "query": "hello"
+                        },
+                        "sort": {
+                          "c": {
+                            "order": 1,
+                            "noData": "highest"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "$project": {
+                        "_id": 1,
+                        "c": 1,
+                        "score": { "$meta": "searchScore" }
+                      }
+                    }
+                  ])
+
+               .. output:: 
+                  :language: js
+                  :visible: false
+
+                  [
+                    { _id: 7, c: [ false, null, 15 ], score: 0.025981096550822258 },
+                    { _id: 2, c: 'foo', score: 0.025981096550822258 },
+                    {
+                      _id: 3,
+                      c: UUID('3be11d4e-62cb-4e95-9a3c-5c9f1e56c732'),
+                      score: 0.025981096550822258
+                    },
+                    {
+                      _id: 0,
+                      c: ObjectId('507f1f77bcf86cd799439011'),
+                      score: 0.025981096550822258
+                    },
+                    { _id: 1, c: true, score: 0.025981096550822258 },
+                    { _id: 4, c: null, score: 0.025981096550822258 },
+                    { _id: 5, c: [], score: 0.025981096550822258 },
+                    { _id: 6, score: 0.025981096550822258 }
+                  ]
+
+            The order of documents with ``"_id": 4``, ``"_id": 5``, and ``"_id": 6``
+            is random because |fts| treats null and missing values as equal 
+            when sorting.
+
+         .. tab:: Descending Sort
+            :tabid: descending-sort
+
+            For a descending sort, |fts| uses the element with the 
+            highest |bson| type to represent the multi-typed array.
+            Since the query specifies the ``noData`` field as ``highest``
+            to set null or missing values as the highest |bson| value, 
+            |fts| uses ``null`` to represent the multi-typed array for 
+            the document with ``_id: 7`` and returns this document at 
+            the top of the results along
+            with other null and missing values.
+
+            To learn more, see :ref:`fts-sort-null` and 
+            :ref:`fts-sort-arrays-multiple-types`.
+
+            .. io-code-block::
+               :copyable: true
+
+               .. input::
+                  :language: json
+
+                  db.users.aggregate([
+                    {
+                      "$search": {
+                        "text": {
+                          "path": "b",
+                          "query": "hello"
+                        },
+                        "sort": {
+                          "c": {
+                            "order": -1,
+                            "noData": "highest"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "$project": {
+                        "_id": 1,
+                        "c": 1,
+                        "score": { "$meta": "searchScore" }
+                      }
+                    }
+                  ])
+
+               .. output:: 
+                  :language: js
+                  :visible: false
+
+                  [
+                    { _id: 4, c: null, score: 0.025981096550822258 },
+                    { _id: 5, c: [], score: 0.025981096550822258 },
+                    { _id: 6, score: 0.025981096550822258 },
+                    { _id: 7, c: [ false, null, 15 ], score: 0.025981096550822258 },
+                    { _id: 1, c: true, score: 0.025981096550822258 },
+                    {
+                      _id: 0,
+                      c: ObjectId('507f1f77bcf86cd799439011'),
+                      score: 0.025981096550822258
+                    },
+                    {
+                      _id: 3,
+                      c: UUID('3be11d4e-62cb-4e95-9a3c-5c9f1e56c732'),
+                      score: 0.025981096550822258
+                    },
+                    { _id: 2, c: 'foo', score: 0.025981096550822258 }
+                  ]
+
+            The order of documents with ``"_id": 4``, ``"_id": 5``, ``"_id": 6``, and ``"_id": 7`` 
+            is random because |fts| treats null and missing values as equal 
+            when sorting.
 
 .. _fts-sort-eg-boolean:
 
