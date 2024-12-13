@@ -21,15 +21,15 @@
               {
                 "azureKeyVault": {
                   "azureEnvironment": "AZURE",
-                  "clientID": "5e4ea010-a908-45a1-a70b-ebd2e4feb055",
+                  "clientID": "632ff709-32a8-48a3-8224-30d2386fadaf",
                   "enabled": true,
                   "keyIdentifier": "https://EXAMPLEKeyVault.vault.azure.net/keys/EXAMPLEKey/d891821e3d364e9eb88fbd3d11807b86",
                   "keyVaultName": "string",
                   "requirePrivateNetworking": true,
                   "resourceGroupName": "string",
                   "secret": "string",
-                  "subscriptionID": "d0dd68eb-7e97-448c-b361-f7a7213dc7e2",
-                  "tenantID": "f95ac700-4c8f-4a38-a8d1-1582733edd5b"
+                  "subscriptionID": "a39012fb-d604-4cd1-8841-77f705f3e6d5",
+                  "tenantID": "ee46317d-36a3-4472-a3dd-6549e901da0b"
                 }
               }'
 

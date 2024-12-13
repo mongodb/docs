@@ -15,14 +15,14 @@
             {
                "azureKeyVault": {
                   "azureEnvironment": "AZURE",
-                  "clientID": "f8b64e7a-4a65-413d-a9fa-7230f003a749",
+                  "clientID": "b054a9ff-b60a-4cb6-8df6-20726eaefce6",
                   "enabled": true,
                   "keyIdentifier": "https://test-tf-export.vault.azure.net/keys/test/78b9134f9bc94fda8027a32b4715bf3f",
                   "keyVaultName": "test-tf-export",
                   "resourceGroupName": "test-tf-export",
                   "secret": "",
-                  "subscriptionID": "fd01adff-b37e-4693-8497-83ecf183a145",
-                  "tenantID": "91405384-d71e-47f5-92dd-759e272cdc1c"
+                  "subscriptionID": "009774e0-124f-4a69-83e0-ca8cd8acb4e2",
+                  "tenantID": "1f6ef922-9303-402a-bae2-cc68810b023c"
                }
             }' 
 
@@ -62,14 +62,14 @@
                {
                  "azureKeyVault": {
                    "azureEnvironment": "AZURE",
-                   "clientID": "5e4ea010-a908-45a1-a70b-ebd2e4feb055",
+                   "clientID": "632ff709-32a8-48a3-8224-30d2386fadaf",
                    "enabled": true,
                    "keyIdentifier": "https://EXAMPLEKeyVault.vault.azure.net/keys/EXAMPLEKey/d891821e3d364e9eb88fbd3d11807b86",
                    "keyVaultName": "string",
                    "requirePrivateNetworking": false,
                    "resourceGroupName": "string",
-                   "subscriptionID": "d0dd68eb-7e97-448c-b361-f7a7213dc7e2",
-                   "tenantID": "f95ac700-4c8f-4a38-a8d1-1582733edd5b",
+                   "subscriptionID": "a39012fb-d604-4cd1-8841-77f705f3e6d5",
+                   "tenantID": "ee46317d-36a3-4472-a3dd-6549e901da0b",
                    "valid": true
                  }
                }
