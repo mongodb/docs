@@ -130,6 +130,16 @@ public class AtlasSearchExamples
         return result;
     }
 
+    public static List<Guitar> InSearch()
+    {
+        // start-in-search
+        var result = guitarsCollection.Aggregate()
+            .Search(Builders<Guitar>.Search.In(g => g.Make, ["Fender", "Gibson"]))
+            .ToList();
+        // end-in-search
+        return result;
+    }
+
     public static List<Guitar> MoreLikeThisSearch()
     {
         // start-morelikethis-search
