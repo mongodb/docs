@@ -4,7 +4,7 @@
 
    * - Site
      - Purpose
-   * - downloads.mongodb.com
+   * - downloads.mongodb.com, downloads.mongodb.org
      - To download :dl:`MongoDB Enterprise Builds <enterprise>`.
    * - opsmanager.mongodb.com
      - To download the MongoDB :opsmgr:`version manifest </reference/glossary/#std-term-version-manifest>`.
