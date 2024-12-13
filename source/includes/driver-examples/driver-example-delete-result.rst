@@ -54,8 +54,8 @@
 
      - id: nodejs
        content: |
-         :node-api:`deleteMany() <Collection.html#deleteMany>` returns a
-         promise that provides a ``result``. The ``result.deletedCount``
+         :driver:`Collection.deleteMany() </node/current/usage-examples/deleteMany/>` 
+         returns a promise that provides a ``result``. The ``result.deletedCount``
          property contains the number of documents that matched the
          filter.
 
