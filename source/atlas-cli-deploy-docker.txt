@@ -169,6 +169,13 @@ Create a Local Atlas Deployment with Docker Compose
 
 Create a local |service| deployment with `Docker Compose 
 <https://docs.docker.com/compose/>`__.
+
+.. note:: 
+
+   If you have an existing Docker-Compose based Atlas implementation that you've 
+   built with the official `MongoDB Docker Image <https://hub.docker.com/_/mongo>`__ 
+   and that you'd like to convert to use the Atlas Local Dev image,
+   see :ref:`Convert to a Local Dev Implementation <convert-to-local-dev>` below.
       
 .. procedure::
    :style: normal
@@ -432,3 +439,55 @@ directory:
             sudo dpkg -i mongosh.deb
             mongosh --version
         - run: mongosh 'mongodb://localhost/?directConnection=true' --eval 'show dbs'
+
+
+.. _convert-to-local-dev:
+
+Convert Official Image to a Local Atlas Deployment
+--------------------------------------------------
+
+If you have an existing |service| implementation running in Docker Compose that 
+you have built with the official `mongo <https://hub.docker.com/_/mongo>`__ Docker 
+image, you can refer to the following checklist to simplify converting it to 
+the `mongodb-atlas-local <https://hub.docker.com/r/mongodb/mongodb-atlas-local>`__ image.
+
+1. Remove any existing ``command`` from your ``docker-compose.yaml`` file. Because 
+   the ``command`` in a Docker Compose definition overrides the ``ENTRYPOINT`` 
+   defined in the ``mongodb-atlas-local`` image, you must remove any existing 
+   ``command`` for the ``mongodb-atlas-local`` image to run as designed. 
+
+2. There is no need to define a health check for the |service| deployment, as this 
+   feature is built in to the ``mongodb-atlas-local`` image. 
+
+Example Docker Compose Updates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following examples illustrate the likely required changes to your Docker 
+Compose YAML file:
+
+.. code-block:: yaml
+
+   services:
+     self_built_atlas_implementation:
+       image: mongo:8.0
+       ports:
+         - 27017:27017
+       command: ["./entrypoint.sh"]  # You may have defined a health check for the database in the entrypoint script.
+
+.. code-block:: yaml
+
+   services:
+     local_dev_atlas:
+       image: mongodb/mongodb-atlas-local:8.0
+       hostname: local_dev_atlas
+       ports:
+         - 27017:27017
+       environment:
+         - MONGODB_INITDB_ROOT_USERNAME=user
+         - MONGODB_INITDB_ROOT_PASSWORD=pass
+       volumes:
+         - data:/data/db
+         - config:/data/configdb
+   volumes:
+     - data:
+     - config:
