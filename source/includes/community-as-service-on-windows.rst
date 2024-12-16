@@ -1,6 +1,4 @@
 
-.. _manually-create-windows-service:
-
 Start MongoDB Community Edition as a Windows Service
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
