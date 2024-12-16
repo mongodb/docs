@@ -22,7 +22,7 @@ object Delete {
       override def onNext(result: DeleteResult): Unit = println(s"Deleted document count: ${result.getDeletedCount}")
       override def onError(e: Throwable): Unit = println(s"Error: $e")
       override def onComplete(): Unit = println("Completed")
-//    })
+    })
     // end-delete-one
 
     // start-delete-many
