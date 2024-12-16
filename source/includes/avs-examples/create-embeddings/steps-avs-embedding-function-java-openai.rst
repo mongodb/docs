@@ -5,41 +5,49 @@
 
       a. From your IDE, create a Java project using Maven or Gradle.
 
-      #. Add the following dependencies:
+      #. Add the following dependencies, depending on your package manager:
 
-         - If you are using Maven, add the following dependencies to the
-           ``dependencies`` array in your project's ``pom.xml`` file:
+         .. tabs::
 
-           .. code-block:: javascript
-              :caption: pom.xml
+            .. tab:: Maven
+               :tabid: maven
 
-              <dependencies>
-                <!-- MongoDB Java Sync Driver v5.2.0 or later -->
-                <dependency>
-                  <groupId>org.mongodb</groupId>
-                  <artifactId>mongodb-driver-sync</artifactId>
-                  <version>[5.2.0,)</version>
-                </dependency>
-                <!-- Java library for working with OpenAI models -->
-                <dependency>
-                  <groupId>dev.langchain4j</groupId>
-                  <artifactId>langchain4j-open-ai</artifactId>
-                  <version>0.35.0</version>
-                </dependency>
-              </dependencies>
+               If you are using Maven, add the following dependencies to the
+               ``dependencies`` array in your project's ``pom.xml`` file:
 
-         - If you are using Gradle, add the following to the ``dependencies``
-           array in your project's ``build.gradle`` file:
+               .. code-block:: xml
+                  :caption: pom.xml
 
-           .. code-block:: json
-              :caption: build.gradle
+                  <dependencies>
+                     <!-- MongoDB Java Sync Driver v5.2.0 or later -->
+                     <dependency>
+                        <groupId>org.mongodb</groupId>
+                        <artifactId>mongodb-driver-sync</artifactId>
+                        <version>[5.2.0,)</version>
+                     </dependency>
+                     <!-- Java library for working with OpenAI models -->
+                     <dependency>
+                        <groupId>dev.langchain4j</groupId>
+                        <artifactId>langchain4j-open-ai</artifactId>
+                        <version>0.35.0</version>
+                     </dependency>
+                  </dependencies>
 
-              dependencies {
-                 // MongoDB Java Sync Driver v5.2.0 or later
-                 implementation 'org.mongodb:mongodb-driver-sync:[5.2.0,)'
-                 // Java library for working with OpenAI models
-                 implementation 'dev.langchain4j:langchain4j-open-ai:0.35.0'
-              }
+            .. tab:: Gradle
+               :tabid: gradle
+
+               If you are using Gradle, add the following to the ``dependencies``
+               array in your project's ``build.gradle`` file:
+
+               .. code-block:: json
+                  :caption: build.gradle
+
+                  dependencies {
+                     // MongoDB Java Sync Driver v5.2.0 or later
+                     implementation 'org.mongodb:mongodb-driver-sync:[5.2.0,)'
+                     // Java library for working with OpenAI models
+                     implementation 'dev.langchain4j:langchain4j-open-ai:0.35.0'
+                  }
 
       #. Run your package manager to install the dependencies to your project.
 
@@ -60,9 +68,10 @@
          OPEN_AI_API_KEY=<api-key>
          ATLAS_CONNECTION_STRING=<connection-string>
 
-      Replace the ``<api-key>`` placeholder value with your OpenAI API key.
+      Update the placeholders with the following values:
 
-      .. include:: /includes/avs-examples/shared/avs-replace-connection-string.rst
+      - Replace the``<api-key>`` placeholder value with your OpenAI API key.
+      - .. include:: /includes/avs-examples/shared/avs-replace-connection-string.rst
 
    .. step:: Define a method to generate vector embeddings.
 
@@ -85,6 +94,6 @@
          your vector data. The method converts the API-provided array of floats
          to a BSON array of doubles to use when querying your collection.
 
-      .. literalinclude:: /includes/avs-examples/rag/EmbeddingProviderOpenAI.java
+      .. literalinclude:: /includes/avs-examples/create-embeddings/EmbeddingProviderOpenAI.java
          :language: java
          :caption: EmbeddingProvider.java

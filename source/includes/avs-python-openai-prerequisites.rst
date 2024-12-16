@@ -1,7 +1,6 @@
-- An |service| {+cluster+} running MongoDB version 6.0.11, 7.0.2, or later.
+- .. include:: /includes/avs-examples/shared/avs-requirements-cluster.rst
 
-- An OpenAI API Key. You must have a paid OpenAI account with credits
-  available for API requests.
+- .. include:: /includes/avs-examples/shared/avs-requirements-openai-api-key.rst
 
 - An environment to run interactive Python notebooks 
   such as `Colab <https://colab.research.google.com>`__.

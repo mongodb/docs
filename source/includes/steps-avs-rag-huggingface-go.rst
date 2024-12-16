@@ -40,16 +40,9 @@
             HUGGINGFACEHUB_API_TOKEN = "<access-token>"
             ATLAS_CONNECTION_STRING = "<connection-string>"
 
-         Replace the ``<access-token>`` 
-         and ``<connection-string>`` placeholder values with your Hugging Face
-         access token and the |srv| :manual:`connection string 
-         </reference/connection-string/#find-your-mongodb-atlas-connection-string>`
-         for your |service| {+cluster+}. Your connection string should use
-         the following format:
+      Replace the ``<access-token>`` placeholder value with your Hugging Face access token.
 
-         .. code-block::
-
-            mongodb+srv://<db_username>:<db_password>@<clusterName>.<hostname>.mongodb.net
+      .. include:: /includes/avs-examples/shared/avs-replace-connection-string.rst
 
    .. step:: Create a function to generate vector embeddings.
 

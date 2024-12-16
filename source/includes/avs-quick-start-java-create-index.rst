@@ -1,28 +1,41 @@
-a. Add the Java driver version 5.2 or higher as a dependency in your project:
+a. Add the Java driver version 5.2 or higher as a dependency in your project.
+   Select one of the following tabs, depending on your package manager:
 
-   - If you are using Maven, add the following dependency to your
-     ``pom.xml`` dependencies list:
+   .. tabs::
 
-     .. code-block:: xml
-        :copyable: true
+      .. tab:: Maven
+         :tabid: maven
 
-        <dependency>
-            <groupId>org.mongodb</groupId>
-            <artifactId>mongodb-driver-sync</artifactId>
-            <version>[5.2.0,)</version>
-        </dependency>
+         If you are using Maven, add the following dependencies to the
+         ``dependencies`` array in your project's ``pom.xml`` file:
 
-   - If you are using Gradle, add the following dependency to your
-     ``build.gradle`` dependencies list:
+         .. code-block:: xml
+            :caption: pom.xml
 
-     .. code-block:: json
-        :copyable: true
+            <dependencies>
+               <!-- MongoDB Java Sync Driver v5.2.0 or later -->
+               dependency>
+                  <groupId>org.mongodb</groupId>
+                  <artifactId>mongodb-driver-sync</artifactId>
+                  <version>[5.2.0,)</version>
+               </dependency>
+            </dependencies>
 
-        dependencies {
+   .. tab:: Gradle
+      :tabid: gradle
+
+      If you are using Gradle, add the following to the ``dependencies``
+      array in your project's ``build.gradle`` file:
+
+      .. code-block:: json
+         :caption: build.gradle
+
+         dependencies {
+            // MongoDB Java Sync Driver v5.2.0 or later
             implementation 'org.mongodb:mongodb-driver-sync:[5.2.0,)'
-        }
+         }
 
-#. Add the Java driver JAR files to your ``CLASSPATH``.
+#. Run your package manager to install the dependencies to your project.
 
    For more detailed installation instructions and version compatibility, see
    the :driver:`MongoDB Java Driver documentation

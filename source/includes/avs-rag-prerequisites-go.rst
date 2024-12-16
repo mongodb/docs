@@ -1,6 +1,4 @@
-- An `Atlas account <https://account.mongodb.com/account/register?tck=docs_atlas>`__ 
-  with a {+cluster+} running MongoDB version 6.0.11 or 7.0.2 and later. To learn more, 
-  see :ref:`create-new-cluster`.
+- .. include:: /includes/avs-examples/shared/avs-requirements-cluster.rst
 
 - A `Hugging Face Access Token <https://huggingface.co/docs/hub/en/security-tokens>`__
   with read access.

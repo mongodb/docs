@@ -3,7 +3,7 @@ to your project:
 
 - If you are using IntelliJ IDEA, create a new :guilabel:`Application` run 
   configuration template, then add your variables as semicolon-separated values 
-  in the :guilabel:`Environment variables` field. Apply the changes and click :guilabel:`OK`. 
+  in the :guilabel:`Environment variables` field (for example, ``FOO=123;BAR=456``). Apply the changes and click :guilabel:`OK`.
 
   To learn more, see the `Create a run/debug configuration from a template 
   <https://www.jetbrains.com/help/idea/run-debug-configuration.html#createExplicitly>`__ 
