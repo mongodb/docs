@@ -6,9 +6,8 @@ the appropriate permissions.
 
 .. tip::
 
-   To migrate data from a multi-tenant container database, use a `Common
-   User
-   <https://oracle-base.com/articles/12c/multitenant-manage-users-and-privileges-for-cdb-and-pdb-12cr1>`__.
+   To migrate data from a multi-tenant container database, `create tablespaces
+   and a Common User <https://oracle-base.com/articles/12c/multitenant-manage-users-and-privileges-for-cdb-and-pdb-12cr1>`__.
 
 a. Create a service account:
 
