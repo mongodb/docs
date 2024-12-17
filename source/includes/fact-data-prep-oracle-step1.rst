@@ -17,10 +17,10 @@ a. Create a service account:
 
       CREATE USER '<user>'@'localhost' IDENTIFIED BY '<password>';
 
-#. Check if the service account owns the tables in the migration job.
+#. Confirm that the service account owns the tables in the migration job.
 
    Required permissions depend on whether the service account owns the tables
-   used in the migration job. To check table ownership run the following query:
+   used in the migration job. To check table ownership, run the following query:
 
    .. code-block:: sql
       :copyable: true
@@ -35,7 +35,7 @@ a. Create a service account:
    .. important::
       
       If you're migrating a multi-tenant container database as a
-      common user, append ``CONTAINER=ALL`` when granting permissions, for
+      common user, append ``CONTAINER=ALL`` when granting permissions. For
       example:
 
       .. code-block:: sql
