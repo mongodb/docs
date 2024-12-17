@@ -1211,6 +1211,53 @@ that a bundle may contain other bundles or products:
     has_many :items, polymorphic: true
   end
 
+Starting in version 9.0.2, Mongoid adds support for custom polymorphic types through
+a global registry. You can specify alternative keys to represent different
+classes, thus decoupling the code from the data. The following example specifies
+the string ``"dept"`` as an alternate key for the ``Department`` class:
+
+.. code-block:: ruby
+
+  class Department
+    include Mongoid::Document
+    identify_as 'dept'
+    has_many :managers, as: :unit
+  end
+
+In the preceding example, the ``identify_as 'dept'`` directive instructs Mongoid
+to store this class in the database as the string ``"dept"``. You can also specify
+multiple aliases. For example, you can specify the option as: 
+``identify_as 'dept', 'div', 'agency'``, in which case the first key is the "default",
+and the others are used only for looking up records. This lets you refactor your 
+code without breaking the associations in your data. 
+
+Polymorphic type aliases are global. The keys you specify must be unique across your
+entire code base. However, it is possible to register alternative resolvers, which
+may be used for different subsets of your models. In this case, the keys must
+only be unique for each resolver. The following example shows how to register
+alternate resolvers: 
+
+.. code-block:: ruby
+
+  Mongoid::ModelResolver.register_resolver Mongoid::ModelResolver.new, :eng
+  Mongoid::ModelResolver.register_resolver Mongoid::ModelResolver.new, :purch
+
+  module Engineering
+    class Department
+      include Mongoid::Document
+      identify_as 'dept', resolver: :eng
+    end
+
+  module Purchasing
+    class Department
+      include Mongoid::Document
+      identify_as 'dept', resolver: :purch
+    end
+
+
+Both ``Engineering::Department`` and ``Purchasing::Department`` are aliased as 
+``"dept"``, but use their own resolver to avoid conflicts. 
+
 ``has_and_belongs_to_many`` associations do not support polymorphism.
 
 
