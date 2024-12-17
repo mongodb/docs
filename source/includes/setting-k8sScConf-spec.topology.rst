@@ -10,12 +10,14 @@
    existing deployment. If set to ``MultiCluster``:
 
    - All sharded cluster components must have ``clusterSpecList`` defined:
+  
      - ``spec.mongos.clusterSpecList``
      - ``spec.configSrv.clusterSpecList``
      - ``spec.shard.clusterSpecList``
 
    - The following fields are ignored, as their equivalent values are passed for 
      each cluster in the ``spec.<section>.clusterSpecList`` objects:
+
      - ``spec.mongodsPerShardCount`` is defined in ``spec.shard.clusterSpecList.members``
      - ``spec.mongosCount`` is defined in ``spec.mongos.clusterSpecList.members``
      - ``spec.configServerCount`` is defined in ``spec.configSrv.clusterSpecList.members``
