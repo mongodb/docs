@@ -1,0 +1,204 @@
+.. _ak8so-migrate-ptr:
+
+=================================================
+Migrate Parameters to Custom Resource Definitions
+=================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Beginning with |ak8so| version 2.6, various resource configurations
+that previously took the form of parameters have transitioned to CRDs
+of their own. Support for the parameter-based parent resource
+configuration is deprecated. Existing parameter-based parent resource 
+configurations will continue to work, but support for these 
+configurations will be removed in a future release. 
+
+To continue managing these resources
+through |ak8so| in the future, migrate to the appropriate CRD.
+
+.. _ak8so-migrate-ptr-affected-list:
+
+Affected Configurations
+-----------------------
+
+The following configurations are affected:
+
+.. list-table::
+   :widths: 50 50
+   :header-rows: 1
+
+   * - Parameter
+     - CRD
+
+   * - :setting:`spec.customRoles`
+     - :ref:`atlascustomrole-custom-resource`
+
+   * - :setting:`spec.privateEndpoints`
+     - :ref:`atlasprivateendpoint-custom-resource`
+
+.. _ak8so-migrate-ptr-procedure:
+
+Migration Procedure
+-------------------
+
+To migrate from parameter-level resource management to CRD management:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Disable project reconciliation and edit subresource
+      references.
+
+      a. Add the ``mongodb.com/atlas-reconciliation-policy: "skip"``
+         annotation to the parent resource's ``metadata``. This
+         prevents |ak8so| from attempting to reconcile the parent
+         resource and its subresources. 
+         
+      #. To prevent conflicts with the new CRD you create, you must
+         delete the parameters corresponding to the resource you want to
+         migrate from the parent resource.
+         
+      Consider the following example
+      of an ``atlasProject`` with a ``customRoles`` configuration:
+
+      .. code-block::
+         :copyable: false
+
+         apiVersion: atlas.mongodb.com/v1
+         kind: AtlasProject
+         metadata:
+           name: my-project
+         spec:
+           name: Test project
+           connectionSecretRef:
+             name: my-atlas-key
+           customRoles:
+             role:
+               name: my-role
+               actions:
+                 - name: getShardMap
+                   resources:
+                     cluster: true
+                 - name: shardingState
+                   resources:
+                     cluster: true
+                 - name: connPoolStats
+                   resources:
+                     cluster: true
+                 - name: getLog
+                   resources:
+                     cluster: true
+                 inheritedRoles:
+                   - name: operator-role-1
+                     role: backup
+            projectIpAccessList:
+              - cidrBlock: "203.0.113.0/24"
+                comment: "CIDR block for Application Server B - D"
+
+      Ensure that you have added the ``annotations`` block in lines 5 and 6 and remove the 
+      ``customRoles`` block shown in the previous example.
+
+      .. code-block::
+         :emphasize-lines: 5-6
+
+         apiVersion: atlas.mongodb.com/v1
+         kind: AtlasProject
+         metadata:
+           name: my-project
+         annotations: 
+           mongodb.com/atlas-reconciliation-policy: "skip"
+         spec:
+           name: Test project
+           connectionSecretRef:
+             name: my-atlas-key
+           projectIpAccessList:
+             - cidrBlock: "203.0.113.0/24"
+               comment: "CIDR block for Application Server B - D"
+
+      .. warning::
+
+         If you do not apply this annotation, |ak8so| will continue
+         to attempt reconciliation as you modify your other
+         resources. For users with :ref:`<deletion-protection>`
+         disabled, this can result in |ak8so| removing the
+         |service| project when you remove the ``atlasProject``
+         resource, or entering a blocked state attempting to remove
+         a project with active subresources such as database users
+         or deployments.
+
+   .. step:: Delete the parameters from the parent CRD.
+
+      To prevent conflicts with the new CRD you create, you must first
+      delete the parameters corresponding to the resource you want to
+      migrate from the parent resource. For example, remove the
+      ``customRoles`` parameter from the ``atlasProject`` CRD shown
+      previously:
+
+      .. code-block::
+
+        apiVersion: atlas.mongodb.com/v1
+        kind: AtlasProject
+        metadata:
+         name: my-project
+         annotations: 
+           mongodb.com/atlas-reconciliation-policy: "skip"
+        spec:
+          name: Test project
+          connectionSecretRef:
+            name: my-atlas-key
+          projectIpAccessList:
+            - cidrBlock: "203.0.113.0/24"
+          comment: "CIDR block for Application Server B - D"          
+
+   .. step:: Create the new CRD.
+
+      Create a CRD of the appropriate ``kind`` for the parameter you
+      want to migrate, according to its syntax. For example, to
+      migrate the ``customRoles`` parameter of the ``atlasProject``
+      CRD shown previously, create a
+      :ref:`atlascustomrole-custom-resource`.
+
+      .. code-block::
+
+         apiVersion: atlas.mongodb.com/v1
+         kind: AtlasCustomRole
+         metadata:
+           name: shard-operator-role
+           namespace: mongodb-atlas-system
+         labels:
+           mongodb.com/atlas-reconciliation-policy: keep
+         spec:
+           projectRef:
+             name: my-project
+             namespace: my-operator-namespace
+         role:
+           name: my-role
+           actions:
+             - name: getShardMap
+               resources:
+                 cluster: true
+             - name: shardingState
+               resources:
+                 cluster: true
+             - name: connPoolStats
+               resources:
+                 cluster: true
+             - name: getLog
+               resources:
+                 cluster: true
+           inheritedRoles:
+             - name: operator-role-1
+               role: backup
+
+   .. step:: Wait for |ak8so| to sync the new resource status.
+
+   .. step:: Remove the ``atlas-reconciliation-policy: "skip"`` annotation.
+
+Additionally, you can now configure this resource as an
+:ref:`Independent CRD <ak8so-independent-crd>`.
