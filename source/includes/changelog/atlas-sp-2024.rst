@@ -1,3 +1,26 @@
+.. _atlas-sp-20241210:
+
+10 December 2024 Release
+------------------------
+
+- Supports |vpc| Peering with Confluent on |aws|.
+
+.. _atlas-sp-20241202:
+
+02 December 2024 Release
+------------------------
+
+- Supports using the {+atlas-admin-api+} to edit stream processors.
+- Supports {+aws-pl+} with Confluent.
+- Supports {+az-pl+} with EventHubs.
+
+.. _atlas-sp-20241111:
+
+11 November 2024 Release
+------------------------
+
+- Increases {+kafka+} Timeout from 10 seconds to 30 seconds.
+
 .. _atlas-sp-20241023:
 
 23 October 2024 Release
