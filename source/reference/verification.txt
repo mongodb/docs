@@ -16,101 +16,128 @@ Verify Data Transfer
    :depth: 2
    :class: singlecol
 
-When :ref:`mongosync <c2c-mongosync>` has fully committed, verify the 
-successful transfer of your data before you switch your application to using 
-the destination cluster. You can verify your data transfer using document 
-counts, hash comparison, document comparison, or the Migration Verifier.
-
-Use Cases
----------
-
-You should verify your data after every sync. This is important in
-cases where you plan to move your application load from the source to the
-destination cluster.
-
-Verification methods:
-
-- :ref:`c2c-verify-with-doc-counts`
-
-- :ref:`c2c-verify-with-hash-comp`
-
-- :ref:`c2c-verify-with-doc-comp`
-
-- :ref:`c2c-verify-with-verifier`
-
-The specific method you use to verify your data depends on your application
-workload and the complexity of the data.
+Before you switch your application load from the source cluster
+to the destination cluster, you should verify that the migration
+was successful.
 
 .. _c2c-verify-method:
 
 Tasks
--------
+-----
 
-.. _c2c-verify-with-doc-counts:
+You should verify your data after every sync. This is important
+in cases where you plan to move your application load from the
+source to the destination cluster.
 
-Document Counts
-~~~~~~~~~~~~~~~
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+   :stub-columns: 1
 
-The most basic method of verification is to compare the number of documents
-in each synced collection on the source cluster to the number on the
-destination cluster.
+   * - Verification Method
+     - Description
 
-This method only verifies a successful sync when run against clusters with
-insert-only workloads.
+   * - :ref:`Document Counts <c2c-verify-doc-counts>`
+     - The most basic method of verification is to compare the
+       number of documents in each synced collection on the
+       source cluster to the number on the destination cluster.
+       
+       Before you can verify data transfer with this method,
+       ``mongosync`` must be in the ``COMMITTED`` state.
 
-For more information, see :ref:`c2c-verify-doc-counts`.
+       This method only verifies a successful sync when run
+       against clusters with insert-only workloads.
 
-.. _c2c-verify-with-hash-comp:
+   * - :ref:`Hash Comparison <c2c-verify-hash-comp>`
+     - You can verify sync by comparing MD5 hashes of
+       collections synced from the source cluster to the
+       destination cluster.
 
-Hash Comparison
-~~~~~~~~~~~~~~~
+       Before you can verify data transfer with this method,
+       ``mongosync`` must be in the ``COMMITTED`` state.
 
-You can verify sync by comparing MD5 hashes of collections synced from the
-source cluster to the destination cluster.
+       While hash comparison ensures that the destination
+       cluster has received all changes from the source, the
+       :dbcommand:`dbHash` command locks the cluster, preventing
+       additional writes until it completes.
 
-While hash comparison ensures that the destination cluster has received all
-changes from the source, the :dbcommand:`dbHash` command locks the cluster,
-preventing additional writes until it completes.
+       Hash comparison is **not** possible with sharded
+       clusters. It also does not work with standalone servers
+       and replica sets that use MongoDB 4.4 or earlier
+       releases, since the document field order can vary.
 
-.. note::
+   * - Document Comparison
+     - You can verify sync by comparing documents on the source
+       and destination clusters. 
 
-   Hash comparison is not possible with sharded clusters. It also does not
-   work for standalone servers and replica sets that use MongoDB 4.4 or earlier
-   releases, since the document field order can vary.
+       Write a script that queries collections on the source
+       cluster and then checks that the correct documents,
+       indexes, collections, metadata, and views exist with the
+       same values on the destination cluster.
 
-For more information, see :ref:`c2c-verify-hash-comp`.
+       Before you can verify data transfer with this method,
+       ``mongosync`` must be in the ``COMMITTED`` state.
 
-.. _c2c-verify-with-doc-comp:
+   * - .. _c2c-index-comparison: 
 
-Document Comparison
-~~~~~~~~~~~~~~~~~~~
+       Index Comparison
+     - To verify the transfer of indexes, run the
+       :method:`db.collection.getIndexes` method on the source
+       and destination clusters and compare the results. 
 
-You can verify sync by comparing documents on the source and destination
-clusters. Write a script that queries collections on the source cluster and
-then checks that the document exists with the same values on the destination
-cluster.
+   * - .. _c2c-metadata-comparison:
 
-.. _c2c-verify-with-verifier:
+       Metadata Comparison
+     - To verify the transfer of metadata, run the
+       :method:`db.getCollectionInfos` method on the source and
+       destination clusters and compare the results.
 
-Migration Verifier
-~~~~~~~~~~~~~~~~~~
+   * - .. _c2c-shardkey-comparison: 
 
-Migration Verifier connects to the source and destination clusters and performs
-a series of verification checks, comparing documents, views, and indexes to
-confirm the sync was successful.
+       Shard Key Comparison
+     - To verify the transfer of shard keys to a synced collection, run a query on the ``config.collections``
+       collection to find a document whose ``_id`` value is the namespace of the target collection. 
+       Compare the ``key`` value of this document in the source and destination clusters.
 
-.. important::
+       For example, for a collection named ``pets`` in the ``records`` database, you can verify the shard key
+       using the following query in :binary:`mongosh`: 
 
-   Migration Verifier is an experimental and unsupported tool.
+       .. io-code-block:: 
+          :copyable: true
 
-   For installation instructions, see
-   `GitHub <https://github.com/mongodb-labs/migration-verifier>`__.
+          .. input::
+             :language: javascript 
 
-Unlike other verification methods, Migration Verifier can run concurrent
-with ``mongosync``, checking documents on the destination cluster as they
-sync.
+             db.getSiblingDB("config").collections.find({ _id : "records.pets" }) 
 
-For more information, see :ref:`c2c-migration-verifier`.
+          .. output:: 
+             :language: javascript
+             :emphasize-lines: 5-7
+             :visible: false
+
+             {
+                 "_id" : "records.pets",
+                 "lastmod" : ISODate("2021-07-21T15:48:15.193Z"),
+                 "timestamp": Timestamp(1626882495, 1),
+                 "key" : {
+                       "_id" : 1
+                 },
+                 "unique" : false,
+                 "lastmodEpoch" : ObjectId("5078407bd58b175c5c225fdc"),
+                 "uuid" :  UUID("f8669e52-5c1b-4ea2-bbdc-a00189b341da")
+             }
+
+   * - :ref:`Migration Verifier <c2c-migration-verifier>`
+     - Migration Verifier connects to the source and destination
+       clusters and performs a series of verification checks,
+       comparing documents, views, and indexes to confirm the
+       sync was successful.
+
+       Migration Verifier is an experimental and unsupported
+       tool.
+
+The specific method you use to verify your data depends on your
+application workload and the complexity of the data.
 
 .. toctree::
    :hidden:
@@ -122,11 +149,6 @@ For more information, see :ref:`c2c-migration-verifier`.
 Learn More
 ----------
 
-For more information, see:
-
 - :method:`db.collection.countDocuments`
 
 - :dbcommand:`dbHash`
-
-
-
