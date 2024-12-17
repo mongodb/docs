@@ -62,3 +62,8 @@
          instance, ``mongot`` performs an initial sync and 
          search queries fail until the initial sync 
          is complete.
+
+   * - ``mongot`` Restart
+     - Any time the ``mongot`` process restarts from 
+       configuration changes, search queries fail until 
+       ``mongot`` becomes available.
