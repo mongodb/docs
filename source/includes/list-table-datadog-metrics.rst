@@ -111,6 +111,11 @@
      - Ratio measuring number of objects scanned over objects
        returned. Lower values indicate more efficient queries.
 
+   * - | ``QUERY_SPILL_TO_DISK_DURING_SORT``
+       | (mongodb.atlas.metrics.query.sort.spillToDisk)
+     - Process
+     - The total number of writes to disk caused by :pipeline:`$sort` stages.
+
    * - | ``REPLICATION_LAG``
        | (mongodb.atlas.replset.replicationlag)
      - Process
@@ -161,7 +166,7 @@
      - Process
      - Integer between ``0`` and ``10`` that represents a replica set
        member's :manual:`replica state </reference/replica-states/>`.
-
+       
    * - | ``SYSTEM_MEMORY_USED``
        | (mongodb.atlas.system.memory.used)
        | ``SYSTEM_MEMORY_AVAILABLE``
