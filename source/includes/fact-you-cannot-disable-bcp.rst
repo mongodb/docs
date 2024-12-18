@@ -1,9 +1,8 @@
-.. important:: You Can't Disable a {+bcp+}
+.. important:: MongoDB Support must approve requests to disable a {+bcp+}
 
-   After you enable a {+bcp+}, only MongoDB support can disable it with 
-   a request from the security or legal representative specified for 
-   the {+bcp+}. Only the security or legal representative specified for 
-   the {+bcp+} can make this request.
+   After you enable a {+bcp+}, only MongoDB support can approve requests to 
+   disable the {+bcp+} from the security or legal representative specified for the {+bcp+}. 
+   After MongoDB Support approves the request, Project Owners can disable the {+bcp+}.
    
    To disable a {+bcp+}, the security or legal representative 
    specified for the {+bcp+} must :ref:`request support 
