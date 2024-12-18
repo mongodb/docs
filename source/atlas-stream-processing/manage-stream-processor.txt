@@ -399,6 +399,184 @@ To stop a stream processor:
       - ``false`` if the stream processor doesn't exist, or if the stream 
         processor isn't currently running.
 
+Modify a Stream Processor
+-------------------------
+
+You can modify the following elements of an existing stream processor:
+
+- Name
+- :ref:`Pipeline <stream-aggregation>`
+- :ref:`Dead Letter Queue <atlas-sp-dlq>`
+
+To modify a stream processor, do the following:
+
+1. :ref:`Stop the stream processor <streams-manage-stop>`. 
+2. Apply your update to the stream processor. 
+3. :ref:`Restart the stream processor <streams-manage-start>`.
+
+By default, modified processors restore from the last checkpoint. Alternatively, 
+you can set ``resumeFromCheckpoint=false``, in which case the processor only 
+retains summary stats. When you modify a processor with open windows, the windows 
+are entirely recomputed on the updated pipeline. 
+
+Limitations
+~~~~~~~~~~~
+
+When the default setting ``resumeFromCheckpoint=true`` is enabled, the following 
+limitations apply:
+
+- You can't modify the ``$source`` stage.
+- You can't modify the interval of your window.
+- You can't remove a window.
+- You can only modify a pipeline with a window if that window has either a 
+  ``$group`` or ``$sort`` stage in its inner pipeline.
+
+- You can't change an existing window type. For example, you can't change from a 
+  ``$tumblingWindow`` to a ``$hoppingWindow`` or vice versa.
+- Processors with windows may reprocess some data as a product of recalculating 
+  the windows. 
+
+To modify a stream processor:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tabs::
+
+   .. tab:: ``mongosh``
+      :tabid: modify-processor-sh
+
+      Requires {+mongosh+} v2.3.4+. 
+      
+      Use the ``sp.<streamprocessor>.modify()`` command to modify an existing 
+      stream processor. ``<streamprocessor>`` must be the name of a stopped stream 
+      processor defined for the current {+spi+}.
+
+      For example, to modify a stream processor named ``proc01``, run the
+      following command:
+
+      .. code-block:: javascript
+
+         sp.proc1.modify(<pipeline>, {
+            resumeFromCheckpoint: bool, // optional 
+            name: string, // optional
+            dlq: string, // optional
+        }})
+
+
+      Add a Stage to an Existing Pipeline
+      ````````````````````````````````````
+
+      .. code-block:: javascript
+
+         sp.createStreamProcessor("foo", [
+           {$source: {
+              connectionName: "StreamsAtlasConnection",
+              db: "test",
+              coll: "test"
+          }},
+          {$merge: {
+              into: {
+                  connectionName: "StreamsAtlasConnection",
+                  db: "testout",
+                  coll: "testout"
+              }
+          }}
+        ])
+        sp.foo.start();
+
+      .. code-block:: javascript
+
+         sp.foo.stop();
+         sp.foo.modify([
+           {$source: {
+             connectionName: "StreamsAtlasConnection",
+             db: "test",
+             coll: "test"
+           }},
+           {$match: {
+             operationType: "insert"
+           }},
+           {$merge: {
+              into: {
+              connectionName: "StreamsAtlasConnection",
+              db: "testout",
+              coll: "testout2"
+              }
+           }}
+         ]);
+         sp.foo.start();
+
+      Modify the Input Source of a Stream Processor
+      ``````````````````````````````````````````````
+
+      .. code-block:: javascript
+
+         sp.foo.modify([
+           {$source: {
+             connectionName: "StreamsAtlasConnection",
+             db: "test",
+             coll: "test",
+             config: {
+               startAtOperationTime: new Date(now.getTime() - 5 * 60 * 1000)
+             }
+           }},
+           {$match: {
+             operationType: "insert"
+           }},
+           {$merge: {
+             into: {
+               connectionName: "StreamsAtlasConnection",
+               db: "testout",
+               coll: "testout2"
+             }
+           }}
+         ], {resumeFromCheckpoint: false});
+
+      Remove a Dead Letter Queue from a Stream Processor
+      ```````````````````````````````````````````````````
+      .. code-block:: javascript
+
+         sp.foo.stop();
+         sp.foo.modify({dlq: {}})
+         sp.foo.start();    
+
+      Modify a Stream Processor with a Window
+      ````````````````````````````````````````
+
+      .. code-block:: javascript
+
+         sp.foo.stop();
+         sp.foo.modify([
+           {$source: {
+             connectionName: "StreamsAtlasConnection",
+             db: "test",
+             coll: "test"
+           }},
+           {$replaceRoot: {newRoot: "$fullDocument"}},
+           {$match: {cost: {$gt: 500}}},
+           {$tumblingWindow: {
+             interval: {unit: "day", size: 1},
+             pipeline: [
+              {$group: {_id: "$customerId", sum: {$sum: "$cost"}, avg: {$avg: "$cost"}}}
+             ]
+           }},
+           {$merge: {
+             into: {
+             connectionName: "StreamsAtlasConnection",
+             db: "testout",
+             coll: "testout"
+            }
+           }}
+         ], {resumeFromCheckpoint: false});
+         sp.foo.start();
+
+   .. tab:: {+atlas-admin-api+}
+      :tabid: modify-processor-api
+
+      The {+atlas-admin-api+} provides an endpoint for 
+      modifying a stream processor.
+
+      :oas-atlas-tag:`Modify One Stream Processor </Streams/operation/modifyStreamProcessor>`
+
 .. _streams-manage-drop:
 .. _atlas-sp-manage-processor-drop:
 
