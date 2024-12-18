@@ -21,40 +21,45 @@ MongoDB Java Driver.
 
 To perform a single create, replace, update, or delete operation, you can use
 the corresponding method. For example, to insert one document and replace one 
-document, you can use the ``insertOne()`` and ``replaceOne()`` methods. In this
-case, the ``MongoClient`` makes a call to the database for each operation. 
+document, you can use the ``insertOne()`` and ``replaceOne()`` methods. When you
+use these methods, the ``MongoClient`` makes one call to the database for each operation. 
 
-Generally, you can reduce the number of calls to the database by using bulk write 
-operations. You can perform bulk write operations at the following levels:
+By using a bulk write operation, you can perform multiple write operations in
+fewer database calls. You can perform bulk write operations at the following levels:
 
-- :ref:`Collection Level <java-sync-coll-bulk-write>`: You can use the 
+- :ref:`Collection <java-sync-coll-bulk-write>`: You can use the 
   ``MongoCollection.bulkWrite()`` method to perform bulk write operations on a 
   single collection. This method groups write operations together by the kind
   of operation. For example, ``MongoCollection.bulkWrite()`` puts multiple update
-  operations in the same call, but makes two calls to the database for an insert
+  operations in one call, but makes two separate calls to the database for an insert
   operation and a replace operation.
 
-- :ref:`Client Level <java-sync-client-bulk-write>`: When running {+mdb-server+} 
-  version 8.0 or later, you can use the ``MongoClient.bulkWrite()`` method to perform 
-  bulk write operations on multiple collections and databases in the same cluster.
-  This method groups multiple kinds of write operations into one call.
+- :ref:`Client <java-sync-client-bulk-write>`: If your application connects to
+  {+mdb-server+} version 8.0 or later, you can use the ``MongoClient.bulkWrite()``
+  method to perform bulk write operations on multiple collections and databases 
+  in the same cluster. This method performs all write operations 
+  in one database call.
 
 .. _java-sync-coll-bulk-write:
 
 Collection Bulk Write
 ---------------------
 
-Bulk operations consist of many write operations. To perform a bulk operation 
-at the collection level, pass a ``List`` of ``WriteModel`` documents to the 
-``MongoCollection.bulkWrite()`` method. A ``WriteModel`` is a model that 
-represents any of the write operations. 
+Bulk write operations contain one or more write operations. To perform a bulk 
+write operation at the collection level, pass a ``List`` of ``WriteModel`` 
+documents to the ``MongoCollection.bulkWrite()`` method. A ``WriteModel`` is a 
+model that represents a write operation. 
 
-The ``MongoCollection.bulkWrite()`` method splits operations of different kinds into
-different batches. For example, when you pass ``DeleteOneModel``, 
-``DeleteManyModel``, and ``ReplaceOneModel`` operations to the method, the method
-splits the delete operations into one batch and the replace operation 
-into another. During this process, the client might reorder operations for 
-efficiency if the bulk operation is not ordered.
+The ``MongoCollection.bulkWrite()`` method performs each kind of write
+operations in a separate call. For example, when you pass ``DeleteOneModel``, 
+``DeleteManyModel``, and ``ReplaceOneModel`` objects to the method, it creates
+two calls: one for the delete operations and one for the replace operation.
+
+.. note::
+
+   When the client splits operations into calls, it might reorder operations for 
+   efficiency if the bulk write operation is not ordered. To learn more about
+   operation execution order, see the :ref:`orderOfExecution` section.
 
 The following sections show how to create and use each ``WriteModel``
 document. The examples in each section use the following documents in the
@@ -324,43 +329,91 @@ Client Bulk Write
 When connecting to a deployment running {+mdb-server+} 8.0 or later,
 you can use the ``MongoClient.bulkWrite()`` method to write
 to multiple databases and collections in the same cluster. The ``MongoClient.bulkWrite()``
-method does not split different kinds of operations into different batches.
+method performs all write operations in a single call.
 
-In the examples in preceding sections of this page, the ``MongoCollection.bulkWrite()`` method 
-takes a list of ``WriteModel`` instances in which the specified subclass of 
-``WriteModel`` represents the corresponding write operation. For example, an
-instance of ``InsertOneModel`` represents an operation to insert one document. 
-
-Similarly, the ``MongoClient.bulkWrite()`` method takes a 
+The ``MongoClient.bulkWrite()`` method takes a 
 list of ``ClientNamespacedWriteModel`` instances to represent different write operations.
 For example, an instance of ``ClientNamespacedInsertOneModel`` represents an
 operation to insert one document.
 
-You can construct instances of ``ClientNamespacedWriteModel`` using the following
-methods:
+You can construct instances of the ``ClientNamespacedWriteModel`` interface by using 
+instance methods described in the table below. These methods take a 
+``MongoNamespace`` object that defines which database and collection to write to.
 
-- ``insertOne()``
+.. list-table::
+   :header-rows: 1
+   
+   * - Instance Method
+     - Class Constructed
+     - Parameters
+     - Operation Description
 
-- ``updateOne()``
+   * - ``insertOne()``
+     - ``ClientNamespacedInsertOneModel``
+     - ``namespace``: defines which database and collection to write to
+       
+       ``document``: defines the document to insert
+     - Creates a model to insert a document into the ``namespace``.
 
-- ``updateMany()``
+   * - ``updateOne()``
+     - ``ClientNamespacedInsertOneModel``
+     - ``namespace``: defines which database and collection to write to
 
-- ``replaceOne()``
+       ``filter``: defines filter that selects which document to update
 
-- ``deleteOne()``
+       ``update``: defines update to apply to matching document
 
-- ``deleteMany()``
+       ``updatePipeline``: defines update pipeline to apply to matching document
 
-These methods are used to construct corresponding write models. 
-For example, ``ClientNamespacedWriteModel.updateOne()`` is used to
-construct a ``ClientNamespacedUpdateOneModel`` instance, which represents an
-update operation.
+       ``options``: (optional) defines options to apply when updating document
 
-These methods take a ``MongoNamespace`` object that defines which
-database and collection to write to. Some, such as ``insertOne()``, can take a 
-``Document`` instance that defines information about the write operation. 
-Some other methods, such as ``updateOne()`` and ``replaceOne()``, take a filter 
-object that defines the subset of documents to be updated or replaced.
+       One of ``update`` or ``updatePipeline`` must be specified.
+     - Creates a model to update at most one document in the ``namespace``
+       that matches ``filter``.
+
+   * - ``updateMany()``
+     - ``ClientNamespacedUpdateManyModel``
+     - ``namespace``: defines which database and collection to write to
+
+       ``filter``: defines filter that selects which documents to update
+
+       ``update``: defines update to apply to matching documents
+
+       ``updatePipeline``: defines update pipeline to apply to matching documents
+
+       ``options``: (optional) defines options to apply when updating documents
+
+       One of ``update`` or ``updatePipeline`` must be specified.
+     - Updates all documents in the ``namespace`` that match ``filter``.
+
+   * - ``replaceOne()``
+     - ``ClientNamespacedReplaceOneModel``
+     - ``namespace``: defines which database and collection to write to
+
+       ``filter``: defines filter that selects which document to replace
+
+       ``replacement``: defines replacement document
+
+       ``options``: (optional) defines options to apply when replacing documents
+     - Replaces at most one document in the ``namespace`` that matches ``filter``.
+
+   * - ``deleteOne()``
+     - ``ClientNamespacedDeleteOneModel``
+     - ``namespace``: defines which database and collection to write to
+
+       ``filter``: defines filter that selects which document to delete
+
+       ``option``: (optional) defines options to apply when deleting document
+     - Deletes at most one document in the ``namespace`` that matches ``filter``.
+
+   * - ``deleteMany()``
+     - ``ClientNamespacedDeleteManyModel``
+     - ``namespace``: defines which database and collection to write to
+
+       ``filter``: defines filter that selects which documents to delete
+
+       ``option``: (optional) defines options to apply when deleting documents
+     - Deletes all documents in the ``namespace`` that match ``filter``.
 
 The following sections provide examples of how to use the client ``bulkWrite()`` 
 method.
