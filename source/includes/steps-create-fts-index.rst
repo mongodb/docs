@@ -28,14 +28,7 @@
          .. include:: /includes/default-fts-index-name.rst 
 
       #. In the :guilabel:`Database and Collection` section, expand the
-         database, and select the collection name. 
-
-         .. tip:: 
-
-            If you navigated to this page from the :guilabel:`Data
-            Explorer`, you can skip this step because |service|
-            preselects the database and collection that you selected in
-            the :guilabel:`Data Explorer`.
+         database, and select the collection name for which to create the index.
 
       #. If you use the :guilabel:`Visual Editor`, click
          :guilabel:`Next`. 

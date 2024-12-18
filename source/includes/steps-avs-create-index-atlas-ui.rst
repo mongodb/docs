@@ -29,14 +29,7 @@
             this collection, enter a different name for the index.
 
       #. In the :guilabel:`Database and Collection` section, find the 
-         database, and select the collection.
-
-         .. tip:: 
-
-            If you navigated to this page from the :guilabel:`Data
-            Explorer`, you can skip this step because |service|
-            preselects the database and collection that you selected in
-            the :guilabel:`Data Explorer`.
+         database, and select the collection for which to create the index.
 
          .. example:: 
 

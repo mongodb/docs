@@ -63,7 +63,7 @@
 
    .. step:: Expand your query results.
 
-      The :guilabel:`Data Explorer` might not display all the values in the 
+      The {+atlas-ui+} might not display all the values in the 
       documents it returns. To view all the values for the fields that
       you searched in the :ref:`query path <ref-path>`, expand the
       fields in the documents.

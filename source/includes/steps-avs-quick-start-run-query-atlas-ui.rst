@@ -1,7 +1,7 @@
 .. procedure:: 
    :style: normal 
 
-   .. step:: Click the `Collections <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fmetrics%2FreplicaSet%2F%3Creplset%3E%2Fexplorer%2Fsample_mflix%2Fcomments%2Ffind>`__ tab to view the Data Explorer.
+   .. step:: Click the `Collections <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fmetrics%2FreplicaSet%2F%3Creplset%3E%2Fexplorer%2Fsample_mflix%2Fcomments%2Ffind>`__ tab in the {+atlas-ui+}.
   
    .. step:: Go to the :guilabel:`Aggregation` tab for the collection.
 
