@@ -1,3 +1,6 @@
+.. |product| replace:: sync store
+.. |field| replace:: ``maxCapacityGB``
+
 .. list-table::
    :widths: 15 15 70
    :header-rows: 1
@@ -35,8 +38,7 @@
 
    * - maxCapacityGB
      - number
-     - *Optional.* The maximum amount of data in GB this sync store can 
-       store.
+     - .. include:: /includes/api/maxCapacityGB-description.rst
    
    * - uri
      - string
