@@ -98,7 +98,7 @@
          
       For more information on authorization, see :manual:`Role-Based
       Access Control </core/authorization>` and :manual:`Built-in
-      Roles </core/security-built-in-roles>` in the MongoDB manual.
+      Roles </reference/built-in-roles>` in the MongoDB manual.
       
    .. step:: Specify the resources in the project that the user can access.
       By default, users can access all the clusters and {+fdi+}\s in the 
