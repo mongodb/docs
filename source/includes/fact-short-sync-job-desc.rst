@@ -1,3 +1,3 @@
-- Snapshot migration jobs migrate all the data and then stops.
-- Continuous migration job run a snapshot and then enter a CDC stage to 
-  continuously replicate data changes.
+- Snapshot migration jobs migrate all data once, and then stop.
+- Continuous migration jobs run a snapshot migration and then enter a CDC stage, which 
+  continuously replicates data changes.

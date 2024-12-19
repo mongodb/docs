@@ -4,6 +4,11 @@ instance. Alternatively, you can use an existing Oracle
 service account to connect to Relational Migrator with 
 the appropriate permissions.
 
+.. tip::
+
+   To migrate data from a multi-tenant container database, `create tablespaces
+   and a Common User <https://oracle-base.com/articles/12c/multitenant-manage-users-and-privileges-for-cdb-and-pdb-12cr1>`__.
+
 a. Create a service account:
 
    .. code-block:: sql
@@ -11,11 +16,10 @@ a. Create a service account:
 
       CREATE USER '<user>'@'localhost' IDENTIFIED BY '<password>';
 
-#. Grant select permissions to the service account:
+#. Confirm that the service account owns the tables in the migration job.
 
-   The required permission for the service account depend on whether 
-   the tables are owned by the service account used to run the migration job.
-   To check table ownership run the following query:
+   Required permissions depend on whether the service account owns the tables
+   used in the migration job. To check table ownership, run the following query:
 
    .. code-block:: sql
       :copyable: true
@@ -25,6 +29,19 @@ a. Create a service account:
       WHERE TABLE_NAME ='<table_name>'
       ORDER BY OWNER, TABLE_NAME;
 
+#. Grant permissions to the service account.
+
+   .. important::
+      
+      If you're migrating a multi-tenant container database as a
+      common user, append ``CONTAINER=ALL`` when granting permissions. For
+      example:
+
+      .. code-block:: sql
+         :copyable: false
+      
+         GRANT CREATE SESSION TO <user> CONTAINER=ALL;
+   
    If the service account *is* the table owner:
 
    .. code-block:: sql
