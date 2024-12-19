@@ -12,7 +12,7 @@ The ``_id`` object has the following form:
    }
 
 The ``_data`` type depends on the MongoDB versions
-and, in some cases, the :ref:`feature compatibility version (fCV)
+and, in some cases, the :ref:`feature compatibility version (FCV)
 <view-fcv>` at the time of the change stream's
 opening or resumption. See :ref:`change-stream-resume-token` for the
 full list of ``_data`` types.
