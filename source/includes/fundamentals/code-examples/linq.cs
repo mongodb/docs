@@ -81,6 +81,11 @@ public class Ingredient
 
 // end-ingredient-model
 
+// start-nested-SelectMany
+var query = queryableCollection
+    .Select(r => r.Restaurants.SelectMany(r => r.Grades));
+// end-nested-SelectMany
+
 // start-bitAnd-example
 
 var query = queryableCollection
