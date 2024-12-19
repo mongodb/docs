@@ -175,8 +175,9 @@ Select Type Representation
 To serialize a {+language+} property to a specific BSON type, use the
 ``[BsonRepresentation()]`` attribute. This works only if the
 {+language+} primitive type is convertible to the BSON type you specify.
-In the following code sample, the ``YearBuilt`` property, defined as a
-``char`` in {+language+}, is serialized as a BSON ``Int32`` type:
+
+In the following code sample, the driver serializes the ``YearBuilt`` property,
+defined as a ``char`` in {+language+}, as a BSON ``Int32`` type:
 
 .. code-block:: csharp
    :copyable: true
@@ -247,7 +248,7 @@ The following code sample maps the ``Identifier`` property to the
        public string Identifier { get; set; }
    }
 
-.. warning:: Multiple Id Fields
+.. warning:: Multiple ID Fields
 
    If you identify more than one property as the ``_id`` field using the
    ``[BsonId()]`` attribute, the driver throws a
@@ -260,6 +261,167 @@ The following code sample maps the ``Identifier`` property to the
 
    The ``_id`` field mapping logic described in this section only applies to the
    root document and does not apply to nested documents.
+
+Specify an ID Generator
+```````````````````````
+
+Every document in a MongoDB collection must have a unique ID. When you serialize an object
+to a collection, if its ID property contains the default
+value for its data type (usually ``null``), the {+driver-short+} doesn't serialize the
+default value. Instead, the driver tries to generate a unique ID value and assign it to the
+property.
+
+To enable ID generation for a property, you must specify the ID generator the driver
+uses for the property. You can do so by applying the ``[BsonId]`` attribute to the property
+and passing the ``IdGenerator`` argument to specify the generator type.
+The following table describes the ID generators available in the
+{+driver-short+}:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Id Field Data Type
+     - How to Use
+
+   * - ``Guid``
+     - To use the COMB algorithm to generate a unique ``Guid`` value, apply the
+       ``[BsonId(IdGenerator = typeof(CombGuidGenerator))]`` attribute to the ID
+       property, as shown in the following example:
+
+       .. code-block:: csharp
+          :copyable: true
+
+          public class House
+          {
+             [BsonId(IdGenerator = typeof(CombGuidGenerator))]
+             public Guid Id { get; set; }
+          }
+
+       To generate a unique ``Guid`` value without the COMB algorithm, don't apply
+       the preceding attribute to the ID property. The driver automatically uses
+       the ``GuidGenerator`` type to generate a unique value for the ID property.
+
+       .. code-block:: csharp
+          :copyable: true
+
+          public class House
+          {
+             public Guid Id { get; set; }
+          } 
+
+   * - ``ObjectId``
+     - The driver automatically uses the ``ObjectIdGenerator`` type for ID properties with
+       the ``ObjectId`` data type, such as the one in the following code example:
+
+       .. code-block:: csharp
+          :copyable: true
+
+          public class House
+          {
+             public ObjectId Id { get; set; }
+          } 
+
+   * - ``string``
+     - If you specify that an ID property with the ``string`` data type is serialized
+       as an ``ObjectId``, the driver automatically uses the
+       ``StringObjectIdGenerator`` to generate a unique ``string`` value for the property.
+       In the following code example, the driver uses the ``StringObjectIdGenerator``
+       for the ``Id`` property:
+       
+       .. code-block:: csharp
+          :copyable: true
+   
+          public class House
+          {
+             [BsonRepresentation(BsonType.ObjectId)]
+             public string Id { get; set; }
+          } 
+       
+       To generate a unique ``string`` value for an ID property that is not serialized
+       as an ``ObjectId``, apply the
+       ``[BsonID(IdGenerator = typeof(StringObjectIdGenerator))]`` attribute to the
+       property, as shown in the following code example. The driver
+       uses the ``StringObjectIdGenerator`` type to generate a unique ``ObjectId`` value,
+       convert it to a ``string``, and assign it to the property.
+
+       .. code-block:: csharp
+          :copyable: true
+   
+          public class House
+          {
+             [BsonId(IdGenerator = typeof(StringObjectIdGenerator))]
+             public string Id { get; set; }
+          }
+         
+   * - ``BsonObjectId``
+     - Apply the ``[BsonId(IdGenerator = typeof(BsonObjectIdGenerator))]`` attribute to the
+       ID property, as shown in the following code example. The driver uses the
+       ``BsonObjectIdGenerator`` type to generate a unique ``BsonObjectId`` value for
+       the property.
+
+       .. code-block:: csharp
+          :copyable: true
+
+          public class House
+          {
+             [BsonId(IdGenerator = typeof(BsonObjectIdGenerator))]
+             public BsonObjectId Id { get; set; }
+          } 
+
+Alternatively, you can specify an ``IIdGenerator`` type when you register the class map,
+as shown in the following example:
+
+.. code-block:: csharp
+   :copyable: true
+
+   BsonClassMap.RegisterClassMap<House>(classMap => 
+   {
+      classMap.AutoMap();
+      classMap.MapIdMember(h => h.Id).SetIdGenerator(CombGuidGenerator.Instance);
+   });
+
+.. tip:: Specify an ``IIdGenerator`` for Multiple Classes
+
+   You can use the ``RegisterIdGenerator()`` method to specify a single ``IIdGenerator``
+   for all ``Id`` properties of a certain data type. The following code example instructs
+   the driver to use the ``CombGuidGenerator`` type for all ``Guid`` IDs:
+
+   .. code-block:: csharp
+      :copyable: true
+   
+      BsonSerializer.RegisterIdGenerator(
+        typeof(Guid),
+        CombGuidGenerator.Instance
+      );
+
+The {+driver-short+} also includes ``IIdGenerator`` types that validate the ``Id``
+property and throw an exception if the ID is invalid. The following table lists these
+types:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 10 
+
+   * - ID Validation 
+     - IIdGenerator Type 
+   * - Not null 
+     - ``NullIdChecker``
+   * - Not all zeroes 
+     - ``ZeroIdChecker<T>``
+
+In the following code example, if the ``Id`` property of the ``House`` class contains
+the default value (``null``), the driver throws an exception:
+
+.. code-block:: csharp
+   :copyable: false
+   :emphasize-lines: 3
+   
+   public class House
+   {
+       [BsonId(IdGenerator = typeof(NullIdChecker))]
+       public Guid Id { get; set; }
+   }
 
 Omit Empty Fields
 ~~~~~~~~~~~~~~~~~
@@ -377,106 +539,7 @@ The previous code example sets the following serialization behavior:
 - Because ``1900`` is the default value for this property, the driver will ignore the
   property if it has this value.
 
-Specify an ID Generator
-~~~~~~~~~~~~~~~~~~~~~~~
 
-Every document in a MongoDB collection must have a unique ID. When you serialize an object
-to a collection, if the ``Id`` property contains the default
-value for its data type, the {+driver-short+} doesn't serialize it. Instead, the driver
-generates a unique ID value for the property.
-
-If the ``Id`` property is of type ``Guid``, ``ObjectId``, or ``string``, the driver can
-generate the ID value on its own. If the ``Id`` property is any other data type, you must
-specify the ``IIdGenerator`` type that the driver uses to generate the value.
-To specify the ``IIdGenerator`` type, apply the ``[BsonId(IdGenerator)]`` attribute
-to the property and pass the ``IIdGenerator`` type as an argument.
-
-The {+driver-short+} includes the following ``IIdGenerator`` types:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 10 10
-
-   * - ``Id`` Field Data Type
-     - ``IIdGenerator`` Type
-   * - ``Guid`` value generated by the COMB algorithm
-     - ``CombGuidGenerator``
-   * - ``BsonObjectId``
-     - ``BsonObjectIdGenerator``
-
-In the following code example, if the ``Id`` property of the ``House`` class contains
-the default value (``null``), the driver uses the COMB algorithm to generate a
-unique value during serialization:
-
-.. code-block:: csharp
-   :copyable: false
-   :emphasize-lines: 3
-   
-   public class House
-   {
-       [BsonId(IdGenerator = typeof(CombGuidGenerator))]
-       public Guid Id { get; set; }
-   }
-
-.. note::
-   
-   In the previous code example, if the ``Id`` property didn't have the
-   ``[BsonId(IdGenerator)]`` attribute, the driver would generate a non-COMB GUID
-   to assign to the ``Id`` field.
-
-You can also specify an ``IIdGenerator`` type while registering the class map, as shown in
-the following example:
-
-.. code-block:: csharp
-   :copyable: true
-
-   BsonClassMap.RegisterClassMap<House>(classMap => 
-   {
-      classMap.AutoMap();
-      classMap.MapIdMember(h => h.Id).SetIdGenerator(CombGuidGenerator.Instance);
-   });
-
-.. tip:: Specify an ``IIdGenerator`` for Multiple Classes
-
-   You can use the ``RegisterIdGenerator()`` method to specify a single ``IIdGenerator``
-   for all ``Id`` properties of a certain data type. The following code example instructs
-   the driver to use the ``CombGuidGenerator`` type for all ``Guid`` IDs:
-
-   .. code-block:: csharp
-      :copyable: true
-   
-      BsonSerializer.RegisterIdGenerator(
-        typeof(Guid),
-        CombGuidGenerator.Instance
-      );
-
-The {+driver-short+} also includes ``IIdGenerator`` types that validate the ``Id``
-property and throw an exception if the ID is invalid. The following table lists these
-types:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 10 10 
-
-   * - ID Validation 
-     - ``IIdGenerator`` Type 
-   * - Not null 
-     - ``NullIdChecker``
-   * - Not all zeroes 
-     - ``ZeroIdChecker<T>``
-
-In the following code example, if the ``Id`` property of the ``House`` class contains
-the default value (``null``), the driver throws an exception:
-
-.. code-block:: csharp
-   :copyable: false
-   :emphasize-lines: 3
-   
-   public class House
-   {
-       [BsonId(IdGenerator = typeof(NullIdChecker))]
-       public Guid Id { get; set; }
-   }
 
 Customize DateTime Serialization
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
