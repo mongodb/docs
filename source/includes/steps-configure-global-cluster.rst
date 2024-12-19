@@ -213,7 +213,7 @@
             deploys one shard per zone. |service| recommends creating
             additional zones to support heavy write load in a geographic
             region instead of adding multiple shards to a single zone.
-            |service| supports no more than 100 shards per
+            |service| supports no more than 70 shards per
             |global-write-cluster|.
       
             .. important::
@@ -305,7 +305,7 @@
             deploys one shard per zone. |service| recommends creating
             additional zones to support heavy write load in a geographic
             region instead of adding multiple shards to a single zone.
-            |service| supports no more than 100 shards per
+            |service| supports no more than 70 shards per
             |global-write-cluster|.
       
             .. important::
