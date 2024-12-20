@@ -5,6 +5,6 @@
     * - Dependency Name
       - Description
 
-    * - :driver:`mongodb-crypt </java/sync/current/fundamentals/csfle/#mongodb-crypt>`
+    * - `mongodb-crypt </https://mvnrepository.com/artifact/org.mongodb/mongodb-crypt>`__
       - The ``mongodb-crypt`` library contains bindings to communicate
         with the native library that manages the encryption.
