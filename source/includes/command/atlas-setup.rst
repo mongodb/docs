@@ -47,6 +47,12 @@ Options
      - string
      - false
      - Name of the cluster. To learn more, see https://dochub.mongodb.org/core/create-cluster-api.
+   * - --connectWith
+     - string
+     - false
+     - Method for connecting to the cluster. Valid values are compass, mongosh and skip.
+
+       Mutually exclusive with --skipMongosh.
    * - --currentIp
      - 
      - false
@@ -69,6 +75,10 @@ Options
      - 
      - false
      - help for setup
+   * - --mdbVersion
+     - string
+     - false
+     - Major MongoDB version of the deployment.
    * - --noBrowser
      - 
      - false
@@ -89,10 +99,6 @@ Options
      - string
      - false
      - Physical location of your MongoDB cluster. For a complete list of supported AWS regions, see: https://dochub.mongodb.org/core/aws-atlas. For a complete list of supported Azure regions, see: https://dochub.mongodb.org/core/azure-atlas. For a complete list of supported GCP regions, see: https://dochub.mongodb.org/core/gcp-atlas.
-   * - --skipMongosh
-     - 
-     - false
-     - Flag that indicates whether to skip accessing your deployment with MongoDB Shell.
    * - --skipSampleData
      - 
      - false
