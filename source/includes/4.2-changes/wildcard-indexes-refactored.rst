@@ -45,5 +45,5 @@ values of ``userMetadata``.
 
 The :binary:`~bin.mongod` 
 :ref:`featureCompatibilityVersion <view-fcv>` must be ``4.2`` to
-create wildcard indexes. For instructions on setting the fCV, see 
-:ref:`Setting the fCV <set-fcv>`.
+create wildcard indexes. For instructions on setting the FCV, see 
+:ref:`Setting the FCV <set-fcv>`.
