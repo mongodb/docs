@@ -14,7 +14,8 @@ public class ReplaceOne
 
     public static void Main(string[] args)
     {
-        try {
+        try
+        {
             Setup();
 
             // Creates a filter for all restaurant documents that have a "cuisine" value of "Pizza"
@@ -36,8 +37,10 @@ public class ReplaceOne
             _restaurantsCollection.ReplaceOneAsync(filter, oldPizzaRestaurant);
             Console.WriteLine("done.");
 
-        // Prints a message if any exceptions occur during the operation    
-        } catch (MongoException me) {
+            // Prints a message if any exceptions occur during the operation    
+        }
+        catch (MongoException me)
+        {
             Console.WriteLine("Unable to replace due to an error: " + me);
         }
     }
@@ -49,17 +52,12 @@ public class ReplaceOne
         var filter = Builders<Restaurant>.Filter
             .Eq(r => r.Cuisine, "Pizza");
 
-        // Finds the ID of the first restaurant document that matches the filter
-        var oldPizzaRestaurant = _restaurantsCollection.Find(filter).First();
-        var oldId = oldPizzaRestaurant.Id;
-
         // Generates a new restaurant document
         Restaurant newPizzaRestaurant = new()
         {
-            Id = oldId,
             Name = "Mongo's Pizza",
             Cuisine = "Pizza",
-            Address = new()
+            Address = new Address()
             {
                 Street = "Pizza St",
                 ZipCode = "10003"
@@ -70,6 +68,36 @@ public class ReplaceOne
         // Replaces the existing restaurant document with the new document
         return _restaurantsCollection.ReplaceOne(filter, newPizzaRestaurant);
         // end-replace-one
+    }
+
+    private static ReplaceOneResult ReplaceOneRestaurantWithOptions()
+    {
+        // start-replace-one-sync-with-options
+        // Creates a filter for all restaurant documents that have a "cuisine" value of "Pizza"
+        var filter = Builders<Restaurant>.Filter
+            .Eq(r => r.Cuisine, "Pizza");
+
+        // Generates a new restaurant document
+        Restaurant newPizzaRestaurant = new()
+        {
+            Name = "Mongo's Pizza",
+            Cuisine = "Pizza",
+            Address = new Address()
+            {
+                Street = "Pizza St",
+                ZipCode = "10003"
+            },
+            Borough = "Manhattan",
+        };
+
+        var options = new ReplaceOptions
+        {
+            BypassDocumentValidation = true
+        };
+
+        // Replaces the existing restaurant document with the new document
+        return _restaurantsCollection.ReplaceOne(filter, newPizzaRestaurant, options);
+        // end-replace-one-sync-with-options
     }
 
     private static void Setup()

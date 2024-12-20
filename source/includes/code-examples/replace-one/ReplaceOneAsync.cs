@@ -14,7 +14,8 @@ public class ReplaceOneAsync
 
     public static async Task Main(string[] args)
     {
-        try {
+        try
+        {
             Setup();
 
             // Creates a filter for all restaurant documents that have a "cuisine" value of "Pizza" 
@@ -36,30 +37,27 @@ public class ReplaceOneAsync
             await _restaurantsCollection.ReplaceOneAsync(filter, oldPizzaRestaurant);
             Console.WriteLine("done.");
 
-        // Prints a message if any exceptions occur during the operation    
-        } catch (MongoException me) {
+            // Prints a message if any exceptions occur during the operation    
+        }
+        catch (MongoException me)
+        {
             Console.WriteLine("Unable to replace due to an error: " + me);
         }
     }
 
-    private static async Task<ReplaceOneResult> ReplaceOneRestaurant()
+    private static async Task<ReplaceOneResult> ReplaceOneRestaurantAsync()
     {
         // start-replace-one-async
         // Creates a filter for all restaurant documents that have a "cuisine" value of "Pizza"
         var filter = Builders<Restaurant>.Filter
             .Eq(r => r.Cuisine, "Pizza");
 
-        // Finds the ID of the first restaurant document that matches the filter
-        var oldPizzaRestaurant = _restaurantsCollection.Find(filter).First();
-        var oldId = oldPizzaRestaurant.Id;
-
         // Generates a new restaurant document
         Restaurant newPizzaRestaurant = new()
         {
-            Id = oldId,
             Name = "Mongo's Pizza",
             Cuisine = "Pizza",
-            Address = new()
+            Address = new Address()
             {
                 Street = "Pizza St",
                 ZipCode = "10003"
@@ -70,6 +68,35 @@ public class ReplaceOneAsync
         // Asynchronously replaces the existing restaurant document with the new document
         return await _restaurantsCollection.ReplaceOneAsync(filter, newPizzaRestaurant);
         // end-replace-one-async
+    }
+    private static async Task<ReplaceOneResult> ReplaceOneRestaurantAsyncWithOptions()
+    {
+        // start-replace-one-async-with-options
+        // Creates a filter for all restaurant documents that have a "cuisine" value of "Pizza"
+        var filter = Builders<Restaurant>.Filter
+            .Eq(r => r.Cuisine, "Pizza");
+
+        // Generates a new restaurant document
+        Restaurant newPizzaRestaurant = new()
+        {
+            Name = "Mongo's Pizza",
+            Cuisine = "Pizza",
+            Address = new Address()
+            {
+                Street = "Pizza St",
+                ZipCode = "10003"
+            },
+            Borough = "Manhattan",
+        };
+
+        var options = new ReplaceOptions
+        {
+            BypassDocumentValidation = true
+        };
+
+        // Asynchronously replaces the existing restaurant document with the new document
+        return await _restaurantsCollection.ReplaceOneAsync(filter, newPizzaRestaurant, options);
+        // end-replace-one-async-with-options
     }
 
     private static void Setup()
