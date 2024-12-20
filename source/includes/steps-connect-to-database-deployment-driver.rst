@@ -217,5 +217,5 @@
       .. include:: /includes/admonitions/notes/note-escape-special-chars-pwd.rst
       
       To learn more, see
-      :driver:`Driver Compatibility </driver-compatibility-reference/>`.
+      :driver:`Driver Compatibility </about-compatibility>`.
       
