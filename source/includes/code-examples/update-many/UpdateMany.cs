@@ -18,7 +18,8 @@ public class UpdateMany
 
     public static void Main(string[] args)
     {
-        try {
+        try
+        {
             Setup();
 
             // Prints extra space for console readability  
@@ -39,10 +40,12 @@ public class UpdateMany
             ResetSampleData();
             Console.WriteLine("done.");
 
-        // Prints a message if any exceptions occur during the operation    
-        } catch (MongoException me) {
+            // Prints a message if any exceptions occur during the operation    
+        }
+        catch (MongoException me)
+        {
             Console.WriteLine("Unable to update due to an error: " + me);
-        }            
+        }
     }
 
     private static UpdateResult UpdateManyRestaurants()
@@ -95,44 +98,68 @@ public class UpdateMany
 
         _restaurantsCollection.UpdateMany(filter, update);
     }
+    public static void CombineUpdates()
+    {
+        // start-combine-sync
+        var filter = Builders<Restaurant>.Filter
+            .Eq("cuisine", "Pizza");
+
+        var combinedUpdate = Builders<Restaurant>.Update.Combine(
+            Builders<Restaurant>.Update.Set("cuisine", "French"),
+            Builders<Restaurant>.Update.Unset("borough")
+        );
+
+        _restaurantsCollection.UpdateMany(filter, combinedUpdate);
+        // end-combine-sync
+    }
+
+    public static async Task CombineUpdatesAsync()
+    {
+        // start-combine-async
+        var filter = Builders<Restaurant>.Filter
+            .Eq("cuisine", "Pizza");
+
+        var combinedUpdate = Builders<Restaurant>.Update.Combine(
+            Builders<Restaurant>.Update.Set("cuisine", "French"),
+            Builders<Restaurant>.Update.Unset("borough")
+        );
+
+        await _restaurantsCollection.UpdateManyAsync(filter, combinedUpdate);
+        // end-combine-async
+    }
+    public static void PipelineUpdate()
+    {
+        // start-pipeline-sync
+        var filter = Builders<Restaurant>.Filter
+            .Eq("cuisine", "Pizza");
+
+        var updatePipeline = Builders<Restaurant>.Update.Pipeline(
+            PipelineDefinition<Restaurant, Restaurant>.Create(
+                new BsonDocument("$set", new BsonDocument("cuisine", "French")),
+                new BsonDocument("$unset", "borough")
+            )
+        );
+
+        _restaurantsCollection.UpdateMany(filter, updatePipeline);
+        // end-pipeline-sync
+    }
+
+    public static async Task PipelineUpdateAsync()
+    {
+        // start-pipeline-async
+        var filter = Builders<Restaurant>.Filter
+            .Eq("cuisine", "Pizza");
+
+        var updatePipeline = Builders<Restaurant>.Update.Pipeline(
+            PipelineDefinition<Restaurant, Restaurant>.Create(
+                new BsonDocument("$set", new BsonDocument("cuisine", "French")),
+                new BsonDocument("$unset", "borough")
+            )
+        );
+
+        await _restaurantsCollection.UpdateManyAsync(filter, updatePipeline);
+        // end-pipeline-async
+    }
+
 }
 
-public class Restaurant
-{
-    public ObjectId Id { get; set; }
-
-    public string Name { get; set; }
-
-    [BsonElement("restaurant_id")]
-    public string RestaurantId { get; set; }
-
-    public string Cuisine { get; set; }
-
-    public Address Address { get; set; }
-
-    public string Borough { get; set; }
-
-    public List<GradeEntry> Grades { get; set; }
-}
-
-public class Address
-{
-    public string Building { get; set; }
-
-    [BsonElement("coord")]
-    public double[] Coordinates { get; set; }
-
-    public string Street { get; set; }
-
-    [BsonElement("zipcode")]
-    public string ZipCode { get; set; }
-}
-
-public class GradeEntry
-{
-    public DateTime Date { get; set; }
-
-    public string Grade { get; set; }
-
-    public float? Score { get; set; }
-}
