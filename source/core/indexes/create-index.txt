@@ -67,24 +67,103 @@ Example
 Results
 -------
 
-To confirm that the index was created, use :binary:`mongosh` to run the
-:method:`db.collection.getIndexes` method:
+You can use :binary:`mongosh` to monitor the creation of your index. 
 
-.. code-block:: javascript
+To see what indexes exist on your collection, including indexes that are currently being built, 
+run the :method:`db.collection.getIndexes()` method:
 
-   db.collection.getIndexes()
+.. io-code-block::
+   :copyable: true
 
-Output:
+   .. input::
+      :language: javascript
 
-.. code-block:: javascript
-   :copyable: false
+      db.collection.getIndexes()
 
-   [
-     { v: 2, key: { _id: 1 }, name: '_id_' },
-     { v: 2, key: { name: 1 }, name: 'name_1' }
-   ]
+   .. output::
+      :language: javascript
+      :visible: false
 
-To view information on created indexes using a driver, refer to your
+      [
+         { v: 2, key: { _id: 1 }, name: '_id_' },
+         { v: 2, key: { name: -1 }, name: 'name_-1' }
+      ]    
+
+To check if your index is being built, use the :pipeline:`$currentOp` aggregation stage to return information about active operations on your database. 
+To run :pipeline:`$currentOp` in :binary:`mongosh`, use the :method:`db.aggregate()` method on the ``admin`` database. 
+
+The following aggregation pipeline uses the :pipeline:`$match` stage to return information
+about an active operation that builds a descending index on the ``name`` field: 
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: 
+      :language: javascript
+   
+      db.getSiblingDB("admin").aggregate( [
+         { $currentOp : {} },
+         { $match : {"command.createIndexes": { $exists: true } } }
+      ] )
+      
+   .. output:: 
+      :language: javascript 
+      :visible: false
+      :emphasize-lines: 12, 26-39
+
+      [
+         {
+            type: 'op',
+            host: 'mongodb.example.net:27017',
+            desc: 'conn584',
+            connectionId: 584,
+            client: '104.30.134.189:12077',
+            appName: 'mongosh 2.3.4',
+            clientMetadata: { 
+               ... 
+            },
+            active: true,
+            currentOpTime: '2024-12-05T16:13:35.571+00:00',
+            effectiveUsers: [ { user: jane-doe, db: 'admin' } ],
+            isFromUserConnection: true,
+            threaded: true,
+            opid: ...,
+            lsid: { 
+               ... 
+            },
+            secs_running: Long('3'),
+            microsecs_running: Long('3920881'),
+            op: 'command',
+            ns: 'example_db.collection',
+            redacted: false,
+            command: {
+               createIndexes: 'collection',
+               indexes: [ { name: 'name_-1', key: { name: -1 } } ],
+               apiVersion: '1',
+               lsid: { id: UUID('570931be-c692-4963-b9e2-1e279efd9702') },
+               '$clusterTime': {
+               clusterTime: Timestamp({ t: 1733415063, i: 32 }),
+               signature: {
+                  hash: Binary.createFromBase64('z0zaUHJ5SfhNQyvQLhocsKRFNbo=', 0),
+                  keyId: Long('7444956895695077380')
+               }
+               },
+               '$db': 'example_db'
+            },
+            numYields: 0,
+            queues: {
+               ...
+            },
+            currentQueue: null,
+            locks: {},
+            waitingForLock: false,
+            lockStats: { ... },
+            waitingForFlowControl: false,
+            flowControlStats: { acquireCount: Long('3') }
+         }, ...
+      ]
+
+To view information on existing indexes using a driver, refer to your
 :driver:`driver's documentation </>`.
 
 Learn More
