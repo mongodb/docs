@@ -57,6 +57,10 @@ Options
      - string
      - false
      - Authentication database name. If the user authenticates with AWS IAM, x.509, or LDAP, this value should be $external. If the user authenticates with SCRAM-SHA, this value should be admin.
+   * - --desc
+     - string
+     - false
+     - Description of this database user.
    * - -h, --help
      - 
      - false

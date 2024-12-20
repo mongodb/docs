@@ -91,7 +91,7 @@ Options
      - false
      - Major MongoDB version of the cluster.
 
-       Mutually exclusive with --file. This value defaults to "7.0".
+       Mutually exclusive with --file. This value defaults to "8.0".
    * - -m, --members
      - int
      - false

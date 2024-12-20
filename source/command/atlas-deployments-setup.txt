@@ -67,6 +67,8 @@ Options
      - string
      - false
      - Method for connecting to the deployment. Valid values are compass, mongosh and skip.
+
+       Mutually exclusive with --skipMongosh.
    * - --currentIp
      - 
      - false
@@ -85,6 +87,10 @@ Options
      - 
      - false
      - help for setup
+   * - --initdb
+     - string
+     - false
+     - Flag that uses a folder to be mapped into LOCAL deployment for initialization
    * - --mdbVersion
      - string
      - false
@@ -109,10 +115,6 @@ Options
      - string
      - false
      - Physical location of your MongoDB deployment. For a complete list of supported AWS regions, see: https://dochub.mongodb.org/core/aws-atlas. For a complete list of supported Azure regions, see: https://dochub.mongodb.org/core/azure-atlas. For a complete list of supported GCP regions, see: https://dochub.mongodb.org/core/gcp-atlas.
-   * - --skipMongosh
-     - 
-     - false
-     - Flag that indicates whether to skip accessing your deployment with MongoDB Shell.
    * - --skipSampleData
      - 
      - false

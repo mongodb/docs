@@ -65,6 +65,10 @@ Options
      - string
      - false
      - Timestamp in ISO 8601 in UTC after which Atlas deletes the user.
+   * - --desc
+     - string
+     - false
+     - Description of this database user.
    * - -h, --help
      - 
      - false
