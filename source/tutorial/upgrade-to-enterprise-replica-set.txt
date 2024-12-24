@@ -17,27 +17,113 @@ the MongoDB Community Edition to the MongoDB Enterprise Edition. For
 example, the steps can be used to upgrade MongoDB 7.0 Community to
 MongoDB 7.0 Enterprise.
 
-Consideration
--------------
+About This Task
+---------------
+
+Upgrade Major Releases
+~~~~~~~~~~~~~~~~~~~~~~
 
 .. warning::
 
    .. include:: /includes/extracts/enterprise-upgrade-edition-only.rst
 
+Ops Manager
+~~~~~~~~~~~
 
-Download Enterprise Binaries
-----------------------------
+.. include:: /includes/fact-ops-mgr-upgrade
 
-.. include:: /includes/extracts/enterprise-install-binaries.rst
+Rolling Upgrades
+~~~~~~~~~~~~~~~~
 
-Procedure
----------
+When updating the replica set manually, you can perform a
+rolling upgrade to update each MongoDB Community Server to
+Enterprise edition with minimal downtime.
 
-To minimize downtime, you can upgrade from MongoDB Community to
-Enterprise Edition using a "rolling" upgrade by upgrading the members
-individually while the other members are available.
+In a rolling upgrade, each secondary is taken down and upgraded.
+The Enterprise server then rejoins the replica set as a
+secondary. When all secondaries are upgraded, you can
+:term:`step down` the primary, forcing the replica set to elect
+one of the Enterprise servers as the new primary. 
 
-.. include:: /includes/steps/upgrade-enterprise-replica-set.rst
+.. _upgrade-to-enterprise-rs:
+
+Steps
+-----
+
+To minimize downtime, manually upgrade each from MongoDB
+Community Server to Enterprise Edition: 
+
+.. procedure::
+
+   .. step:: Upgrade the secondaries
+
+      Upgrade each secondary member of the replica set
+      individually. Finish the upgrade process on one server and
+      wait until it rejoins the replica set as an Enterprise
+      server before starting the next.
+
+      For the procedure, see :ref:`Upgrade to MongoDB Enterprise 
+      Server <upgrade-to-enterprise-procedure>`.
+
+   .. step:: Step down the primary
+
+      When all secondaries in the replica set are up and running
+      MongoDB Enterprise Server, :term:`step down` the primary
+      member. This forces an election, causing an Enterprise
+      Server to become the new primary member.
+
+      To step down the primary member, use the 
+      :method:`rs.status` method to get the ``id``
+      of the current primary member:
+
+      .. io-code-block::
+
+         .. input::
+            :language: javascript
+
+            rs.status().members.find(m => m.state === 1)._id
+
+         .. output:: 
+            :language: javascript
+
+            0
+
+      Then, force the primary to step down with the
+      :method:`rs.stepDown` method:
+
+      .. code-block:: javascript
+
+         rs.stepDown( 120 )
+
+      This command steps down the primary and makes the server
+      ineligible as primary for 120 seconds. If no primary is
+      found after 120 seconds, the server can then be reelected.
+      For more information, see the :method:`rs.stepDown`
+      method.
+
+      To confirm that the primary member has stepped down and
+      the replica set has chose a new primary, rerun the
+      :method:`rs.status` method:
+
+      .. io-code-block::
+
+         .. input::
+            :language: javascript
+
+            rs.status().members.find(m => m.state === 1)._id
+
+         .. output:: 
+            :language: javascript
+
+            1
+
+   .. step:: Upgrade the primary 
+
+      Upgrade the former primary member. When the former
+      primary starts, it rejoins the replica set as a secondary.
+
+      For the procedure, see :ref:`Upgrade to MongoDB Enterprise 
+      Server <upgrade-to-enterprise-procedure>`.
 
 .. important::
 
