@@ -100,7 +100,8 @@ async function run() {
                 }
             }, {
                 "$group": {
-                  "_id": "$title",
+                  "_id": "$_id",
+                  "title": {"$first": "$title"},
                   "vs_score": {"$max": "$vs_score"},
                   "fts_score": {"$max": "$fts_score"}
                 }

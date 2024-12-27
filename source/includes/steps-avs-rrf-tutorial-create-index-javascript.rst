@@ -46,8 +46,7 @@
          
                ATLAS_CONNECTION_STRING = "<connection-string>";
 
-         #. Replace the ``<api-key>`` 
-            and ``<connection-string>`` placeholder values with your |srv|
+         #. Replace the ``<connection-string>`` placeholder values with your |srv|
             :manual:`connection string 
             </reference/connection-string/#find-your-mongodb-atlas-connection-string>`
             for your |service| {+cluster+}. Your connection string should use
