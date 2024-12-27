@@ -128,11 +128,12 @@ recommend that you identify replica set size or shard size limits to
 ensure that your size is compatible with RTO requirements. Ensure that 
 snapshot schedule and retention policies meet any RPO requirements. 
 
-In production and in addition to |service| cloud backups, we recommend that you start
-with a default of continuous cloud backups with a restore window of seven days. 
-Adjust this time range with a longer setting based on the criticality of the workload.
-This allows you to replay the oplog to restore a {+cluster+} from a particular
-point in time. 
+In production, in addition to |service| cloud backups, we recommend that
+you start with a default of continuous cloud backups with a restore
+window of seven days. Adjust this time range with a longer setting based
+on the criticality of the workload. This allows you to replay the oplog
+to restore a {+cluster+} from a particular point in time and satisfy
+your RTO.  
 
 Recommendations for Backup Snapshots 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -180,33 +181,31 @@ the following:
        | **Monthly**: Last day of month, retain for 3 months = 3 snapshots
      - 14
 
-We recommend Queryable Backup Snapshot options when defining automation
-templates. Queryable Backups allow you to access your backup data
-instantly and run queries directly against the backup data, including on
-data as it existed at the time of the backup. Queryable backups also
-maintain the same security and access controls as your live {+clusters+},
-ensuring that sensitive data is protected. In some cases, we recommend
-adjusting backup snapshot frequencies and retentions to save money if
-queryable backup strategies suffice.  
+.. _atlas-backup-distribution:
 
 Recommendations for Backup Distribution 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 |service| provides options for backup locations. To further enhance
-resilience, for staging and production environments only, we recommend
-distributing backups in local region and to external disaster recovery
-region, ensuring data recovery even during regional outages. For an
-|service| {+cluster+} in three regions, multi-region Snapshot
-Distribution copies backups to two secondary regions, enabling restores
-in 15 minutes or less by using backup copies. By selecting only 
-hourly and daily snapshots along with the oplog for regional copies, you
-can optimize costs while ensuring rapid recovery during regional
-outages. Once restored, you can point your application to the new 
+resilience, we recommend distributing backups to a local region and to an
+external disaster recovery region, ensuring data recovery even during
+regional outages. For an |service| {+cluster+} in three regions,
+multi-region Snapshot Distribution copies backups to two secondary
+regions, enabling restores by using backup copies. By selecting only 
+hourly (that provide more frequent restore points) and daily snapshots
+(that provide regular backups without excessive storage cost) along
+with the oplog (for maintaining real-time replication of data) for
+regional copies, you can optimize costs while ensuring rapid recovery
+during regional outages. This allows you to restore quickly with
+minimal downtime from another region using recent snapshots and an
+oplog. Once restored, you can point your application to the new  
 {+cluster+} to regain full functionality with complete read and write
-capabilities. We recommend developing automated deployment templates
-that strike a balance between availability and cost. However, your
-critical workloads might require multiple copies of snapshots in various
-locations.
+capabilities. 
+
+When configuring your snapshot frequency, retention,
+and distribution, we recommend striking a balance between availability and
+cost. However, your critical workloads might require multiple copies of
+snapshots in various locations.
 
 Recommendations for Backup Compliance Policy 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -224,26 +223,30 @@ data loss during failures. |service| can quickly recover to the exact
 timestamp before a failure event, giving you at least a one minute
 :abbr:`RPO (Recovery Point Objective)` and an :abbr:`RTO (Recovery Time
 Objective)` of less than 15 minutes when utilizing optimized restores,
-even in the event of the outage of the primary region. Recovery times
-can vary due to cloud provider disk warming and which point in time you
-are restoring to. If you can be flexible in your requirements for
-recovery, we recommend designing templates that identify the sweet spot
-between reasonable recovery options and cost. 
+even in the event of the outage of the primary region. This is because
+the snapshot can be restored first and then the oplog played back to get
+to your exact RPO objective. Recovery times can vary due to cloud
+provider disk warming and which point in time you are restoring to. If
+you can be flexible in your requirements for recovery, we recommend
+designing templates that identify the best compromise between reasonable
+recovery options and cost.  
 
 Recommendations for Backup Costs 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To optimize |service| backup costs, you must adjust the backup frequency
+To optimize |service| backup costs, you must adjust the backup frequency 
 and retention policies to align with data criticality, reducing
-unnecessary storage expenses. For example, you should disable backups in lower 
-environments, and ensure that in upper environments with high availability requirements 
-you are distributing backups to each region where you are deployed.
-You can also use incremental backups and
-built-in compression to minimize the amount of stored data. By selecting
-regions strategically for backup, you can avoid cross-region data
-transfer fees and choose the right cluster size based on workload to
-prevent overspending. By implementing these strategies, you can
-effectively manage costs while maintaining secure and reliable backups. 
+unnecessary storage expenses. For example, you should disable backups in
+lower environments, and ensure that in upper environments with high
+availability requirements you are distributing backups to each region
+where your |service| {+clusters+} are deployed. |service| provides incremental backups through
+snapshots that capture only incremental changes and built-in compression
+to minimize the amount of stored data. By :ref:`selecting regions
+<atlas-backup-distribution>` strategically for backup, you can avoid
+cross-region data transfer fees and choose the right {+cluster+} size
+based on workload to prevent overspending. By implementing these
+strategies, you can effectively manage costs while maintaining secure
+and reliable backups.   
 
 Examples
 --------
@@ -273,8 +276,9 @@ backup is enabled for the {+cluster+}.
 
       Run the following command to create a compliance policy for
       scheduled backup snapshots that enforces the number of times
-      (``2``) snapshots must be taken every month and the duration
-      (``2`` months) for retaining the snapshots. 
+      snapshots must be taken, which is set to every ``6`` hours, and
+      the duration for retaining the snapshots, which is set to ``1``
+      month.   
 
       .. include:: /includes/examples/cli-example-backup-compliance-policy-schedule.rst
 
