@@ -111,6 +111,7 @@ for only specified change events. Create the pipeline by using the
 You can specify the following aggregation stages in the ``pipeline`` parameter:
 
 - ``$addFields``
+- ``$changeStreamSplitLargeEvent``
 - ``$match``
 - ``$project``
 - ``$replaceRoot``
@@ -119,9 +120,19 @@ You can specify the following aggregation stages in the ``pipeline`` parameter:
 - ``$set``
 - ``$unset``
 
-To learn how to build an aggregation pipeline by using the
-``PipelineDefinitionBuilder`` class, see :ref:`csharp-builders-aggregation` in
-the Operations with Builders guide.
+.. tip::
+
+   To learn how to build an aggregation pipeline by using the
+   ``PipelineDefinitionBuilder`` class, see :ref:`csharp-builders-aggregation` in
+   the Operations with Builders guide.
+
+   To learn more about modifying your change stream output, see the
+   :manual:`Modify Change Stream Output
+   </changeStreams/#modify-change-stream-output>` section in the {+mdb-server+}
+   manual.
+
+Monitor Update Events Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following example uses the ``pipeline`` parameter to open a change stream
 that records only update operations. Select the :guilabel:`Asynchronous` or :guilabel:`Synchronous` tab to see the
@@ -145,10 +156,73 @@ corresponding code.
          :end-before: end-change-stream-pipeline
          :language: csharp
 
-To learn more about modifying your change stream output, see the
-:manual:`Modify Change Stream Output
-</changeStreams/#modify-change-stream-output>` section in the {+mdb-server+}
-manual.
+Split Large Change Events Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your application generates change events that exceed 16 MB in size, the
+server returns a ``BSONObjectTooLarge`` error. To avoid this error, you can use
+the ``$changeStreamSplitLargeEvent`` pipeline stage to split the events
+into smaller fragments. The {+driver-short+} aggregation API includes the
+``ChangeStreamSplitLargeEvent()`` method, which you can use to add the 
+``$changeStreamSplitLargeEvent`` stage to the change stream pipeline.
+
+This example instructs the driver to watch for changes and split
+change events that exceed the 16 MB limit. The code prints the
+change document for each event and calls helper methods to
+reassemble any event fragments:
+
+.. tabs::
+
+   .. tab:: Asynchronous
+      :tabid: change-stream-split-async
+
+      .. literalinclude:: /includes/code-examples/change-streams/change-streams.cs
+         :start-after: start-split-change-event-async
+         :end-before: end-split-change-event-async
+         :language: csharp
+
+   .. tab:: Synchronous
+      :tabid: change-stream-split-sync
+
+      .. literalinclude:: /includes/code-examples/change-streams/change-streams.cs
+         :start-after: start-split-change-event-sync
+         :end-before: end-split-change-event-sync
+         :language: csharp
+
+.. note::
+
+   We recommend reassembling change event fragments, as shown in the 
+   preceding example, but this step is optional. You can use the same 
+   logic to watch both split and complete change events.
+
+The preceding example uses the ``GetNextChangeStreamEvent()``,
+``GetNextChangeStreamEventAsync()``, and ``MergeFragment()``
+methods to reassemble change event fragments into a single change stream document.
+The following code defines these methods:
+
+.. tabs::
+
+   .. tab:: Asynchronous
+      :tabid: split-event-helpers-async
+
+      .. literalinclude:: /includes/code-examples/change-streams/change-streams.cs
+         :start-after: start-split-event-helpers-async
+         :end-before: end-split-event-helpers-async
+         :language: csharp
+
+   .. tab:: Synchronous
+      :tabid: split-event-helpers-sync
+
+      .. literalinclude:: /includes/code-examples/change-streams/change-streams.cs
+         :start-after: start-split-event-helpers-sync
+         :end-before: end-split-event-helpers-sync
+         :language: csharp
+         
+.. tip::
+
+   To learn more about splitting large change events, see
+   :manual:`$changeStreamSplitLargeEvent </reference/operator/aggregation/changeStreamSplitLargeEvent/>`
+   in the {+mdb-server+} manual.
 
 Modify ``Watch()`` Behavior
 ---------------------------
