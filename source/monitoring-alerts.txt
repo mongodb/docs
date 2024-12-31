@@ -20,17 +20,20 @@ Monitoring and Alerts
    :depth: 2
    :class: onecol
 
-|service-fullname| has a robust set of built-in tools, alerts, charts,
-integrations, and logs that help you to monitor and enhance your
-|service| deployment and detect and respond to threats in real time.
+|service-fullname| has a robust set of built-in metrics, telemetry,
+and logs that you can leverage from |service| or integrate into your
+third-party observability and alerting stack. This enables you to
+monitor and manage your |service| deployments and respond to incidents
+proactively and in real time.
 
 Monitoring your deployment allows you to:
 
-- Understand the current capacity of your |service| {+cluster+}.
-- Observe the utilization of resources.
-- Observe the presence of abnormal behavior and performance issues.
-- Detect and react to real-time issues to improve your application stack.
-- Comply with your data protection and governance requirements.
+- Understand the health and status of your {+cluster+}
+- Learn how operations running on the {+cluster+} are impacting the
+  database
+- Learn if your hardware is resource constrained
+- Perform workload and query optimization
+- Detect and react to real-time issues to improve your application stack
 
 |service| provides several metrics for monitoring and alerting. You can
 track the health, availability, consumption, and performance of your 
@@ -61,8 +64,9 @@ Features
        reporting equivalent. 
        
        You can view metrics by using the {+atlas-ui+} Real-Time
-       Performance Panel, Query Profiler, Performance Advisor, and
-       Namespace Insights page, {+atlas-cli+}, {+atlas-admin-api+}. 
+       Performance Panel, Query Profiler, Performance Advisor and
+       Namespace Insights page, {+atlas-cli+}, or {+atlas-admin-api+} to funnel metrics into a tool of your
+       choice. 
 
    * - Alerts 
      - |service| provides alerts for over 200 event types, allowing you
@@ -76,8 +80,9 @@ Features
        and integrated Terraform resource to configure alerts and alert
        notification.  
 
-   * - Charts 
-     - |service| monitoring charts provide insights into various key
+   * - Monitoring
+     - |service| monitoring visualizations provide insights into
+       various key
        metrics, including hardware performance and database operation
        efficiency. Tools such as real-time performance panels for
        network and operation visibility, query profilers for tracking
@@ -97,8 +102,7 @@ Features
 Recommendations for Monitoring by Using Metrics
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To monitor your {+cluster+} performance, you can view the {+cluster+}
-metrics. For your databases, you can view historical throughput,
+To monitor your {+cluster+} or database performance, you can view the {+cluster+} metrics such as historical throughput,
 performance, and utilization metrics. The following table lists some
 important categories of metrics to monitor: 
 
@@ -115,8 +119,8 @@ important categories of metrics to monitor:
        - Scan and Order
 
    * - Hardware Metrics
-     - - Normalised System CPU 
-       - Normalised Process CPU 
+     - - Normalized System CPU 
+       - Normalized Process CPU 
        - Disk Latency 
        - Disk IOPS 
        - Disk Space Free 
@@ -131,140 +135,164 @@ important categories of metrics to monitor:
        - Opcounters -repl 
 
 You can use the {+atlas-ui+}, {+atlas-admin-api+}, and {+atlas-cli+} to
-view |service| {+cluster+} metrics. You can also integrate with
-third-party tools for visualizing these metrics.
+view |service| {+cluster+} metrics. Additionally, |service| provides
+built-in integrations with third-party tools such as Datadog, and you
+can also leverage the {+atlas-admin-api+} to integrate with other
+custom metrics tools.
 
 To learn more, see :ref:`monitor-cluster-metrics`. 
 
 Recommendations for Monitoring by Configuring Alerts 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-|service| integrates alert notification with third-party tools like
+|service| extends into your existing observability stack so that you can get alerts and make data-driven decisions without replacing your
+current tools or changing your workflows. {+service+} can send alert notifications with third-party tools like
 :atlas:`Microsoft Teams </tutorial/integrate-msft-teams>`,
 :ref:`PagerDuty <pagerduty-integration>`, :ref:`DataDog 
 <datadog-integration>`, :ref:`Prometheus <prometheus-integration>`,
 :atlascli:`Opsgenie </command/atlas-integrations-create-OPS_GENIE/>`,
 :atlascli:`Splunk On-Call </command/atlas-integrations-create-VICTOR_OPS/>`, 
-and so on, enhancing collaboration and unifying application performance
-management within your existing workflows for optimal efficiency. For
-example, you can configure to send alerts from your project to your: 
-
-- PagerDuty dashboard. |service| PagerDuty integration can record
-  incidents and notify on-call responders. Additionally, the integration
-  allows for automatic incident resolution in PagerDuty when an |service|
-  alert is closed. 
-- Slack channel.
-- Atlassian Opsgenie. You will need an active Opsgenie API Key to
-  configure alert notification.
-- VictorOps. You will need an VictorOps API Key and a VictorOps Routing
-  Key to configure alert notification. 
+and :atlas:`other tools </tutorial/third-party-service-integrations/>` to give you visibility into both database and full-stack performance in the same place. 
 
 Configure alerts and notifications for security events, such as failed
 login attempts, unusual access patterns, and data breaches. In dev and
 test environments, we recommend configuring alerts on {+clusters+} after
 seven days of inactivity to save costs. 
 
-At the minimum, we recommend configuring the following alerts: 
+Recommended {+service+} Alert Configurations
+````````````````````````````````````````````
+
+At the minimum, we recommend configuring the following alerts. These
+alerts recommendations provide a baseline, but you should adjust them
+based on your workload characteristics. Where "high priority" conditions
+are specified, we recommend that you configure multiple alerts for the
+same condition, one for a low priority / "warning" level of severity, and one for a high priority level of severity.
 
 .. list-table:: 
-   :widths: 20 80 
+   :header-rows: 1
+   :widths: 30 35 35
    :stub-columns: 1 
 
-   * - Opcounters 
-     - Gives a basic overview of what the system is doing including
-       number of queries, updates, inserts, deletes, and so on commands
-       per second. Excessive Opcounter levels typically indicate that
-       load has increased unexpectedly in some dimension. So set an
-       alert for around X% of the expected peaks. 
+   * - Condition
+     - Recommended Alert Threshold: Low Priority
+     - Recommended Alert Threshold: High Priority
 
-   * - Tickets 
-     - Tickets represent the number of concurrent operations allowed
-       into the storage engine. There are separate tickets for read and
-       write operations. When this value reaches zero, new requests may
-       queue until a ticket becomes available. Unless the load is known
-       to be highly concurrent, this value should remain close to the
-       default (``128``) and mustn't dip much, or frequently. We
-       recommend setting the following alert thresholds:
+   * - Oplog Window
+     - < 24h for 5 minutes 
+     - < 1h for 10 minutes
+    
+   * - :manual:`Election </core/replica-set-elections/>` events
+     - > 3 for 5 minutes 
+     - > 30 for 5 minutes
 
-       < 100 tickets available for more than 2 minutes
-       < 50 tickets available for more than 1 minute
-       < 10 tickets available at any time
+   * - Read :atlas:`IOPS </reference/alert-resolutions/disk-io-utilization/>`
+     - > 4000 for 2 minutes
+     - > 9000 for 5 minutes
 
-   * - Replication Lag 
-     - Replication lag is calculated between the last operation time on
-       the primary and the time of the last operation received by the
-       secondary. Excessive replication lag diminishes the worth of
-       failover nodes and adversely affects the latency for write
-       operations using a majority write concern or any value greater
-       than one. We recommend setting an alert to trigger if lag exceeds
-       more than a few tens of seconds persistently for more than a few
-       minutes. 
+   * - Write :atlas:`IOPS </reference/alert-resolutions/disk-io-utilization/>`
+     - > 4000 for 2 minutes
+     - > 9000 for 5 minutes
 
-   * - Replication Oplog Window 
-     - Represents how long a Secondary can be down before losing its
-       ability to catch up to the Primary. We recommend a minimum value
-       of 72 to 96 hours for this metric. Note that a value less than 24
-       hours might be risky. 
+   * - Read Latency
+     - > 20ms for 5 minutes
+     - > 50 s for 5 minutes
 
-   * - Connections 
-     - Represents the number of connected sockets the server is actively
-       servicing, including sockets used for heartbeats and replication
-       between members. Configure an alert to X% above the peak
-       observed. Value must never be zero.
+   * - Write Latency
+     - > 20ms for 5 minutes 
+     - > 50ms for more than 5 minutes
 
-       If the connections have increased:
+   * - Swap use
+     - > 2GB for 15 minutes
+     - > 2GB for 15 minutes
 
-       - Due to slowly increasing workload, re-evaluate the alert threshold.
-       - Suddenly, pinpoint the cause in time on the graph to the
-         nearest 10 seconds and investigate the cause for the change.
-       - Because of other factors such as slow query response, the, the
-         increase might be because an application response to slow
-         queries which could trigger a connection storm. Review your
-         application connection limits.
+   * - Host down
+     - 15 minutes
+     - 24 hours
 
-   * - Query Targeting 
-     - Ratio of number of keys and documents scanned to the number of
-       documents returned, averaged by second. A high level of this
-       metric means that the query subsystem has to perform many
-       inefficient scans to fulfill queries, probably because there are
-       no appropriate indexes to support queries, or new queries have
-       been introduced, or new data has been added to the system that
-       the performance threshold is noticeable. Use the Performance
-       Advisor to observe the specific operations that are noticeably
-       contributing to the alert.  
+   * - No primary
+     - 5 minutes
+     - 5 minutes
 
-   * - System CPU (%)
-     - Measure of CPU utilization on the host operating system.
-       Configure an alert if there is a spike in X% of steady state
-       value after several minutes. If CPU changes dramatically, it
-       could be due to a change in load patterns, which indicates that a
-       larger CPU might be needed to handle the extra load. 
+   * - Missing active ``mongos``
+     - 15 minutes
+     - 15 minutes
 
-   * - Disk Space Used (%)
-     - Measure of used disk space for MongoDB related files. We
-       recommend an alert at a threshold that would indicate the system
-       is running out of free space. Check the usage by using MongoDB
-       Compass or the Data Explorer in your |service| {+cluster+}. Use
+   * - Page faults
+     - > 50/second for 5 minutes
+     - > 100/second for 5 minutes
 
-   * - Disk I/O Utilization (%)
-     - Measure of disk IO utilization on the host operating system. High
-       disk utilization could be the results of memory exhaustion, high
-       write load, or unusual load churn. Writes can't complete until
-       the disk confirms receipt of the data, which means that large
-       data import or other batch job might become limited by the speed
-       of the disk. Configure an alert for sustained utilization over
-       80% for several minutes. Check the Opcounters and Query Targeting
-       graphs to get some insight into what sort of unexpected load is
-       occurring. 
+   * - Replication lag
+     - > 240 second for 5 minutes
+     - > 1 hour for 5 minutes
 
-   * - No Primary, Mongos
-     - |service| has an alerting mechanism if a deployment doesn't have
-       a primary or Mongos.
+   * - Failed backup
+     - Any occurrence
+     - None
+
+   * - Restored backup
+     - Any occurrence
+     - None
+
+   * - Fallback snapshot failed
+     - Any occurrence
+     - None
+
+   * - Backup schedule behind
+     - > 12 hours
+     - > 12 hours
+
+   * - Available write tickets
+     - < 75 for 5 minutes
+     - < 25 for 5 minutes
+
+   * - Available read tickets
+     - < 75 for 5 minutes
+     - < 25 for 5 minutes
+
+   * - Restarts last hour
+     - > 2
+     - > 2
+
+   * - :manual:`Primary election </core/replica-set-elections/>`
+     - Any occurrence
+     - None
+
+   * - Maintenance no longer needed
+     - Any occurrence
+     - None
+
+   * - Maintenance started
+     - Any occurrence
+     - None
+
+   * - Maintenance scheduled
+     - Any occurrence
+     - None
+
+   * - :atlas:`Steal </alert-basics/#cpu-steal>`
+     - > 5% for 5 minutes
+     - > 20% for 5 minutes
+
+   * - CPU
+     - > 75% for 5 minutes
+     - > 75% for 5 minutes
+
+   * - Disk partition usage
+     - > 90%
+     - > 95% for 5 minutes
+
+   * - Index partition usage
+     - > 90%
+     - > 95% for 5 minutes
+
+   * - Journal partition usage
+     - > 90%
+     - > 95% for 5 minutes
 
 To learn more, see :atlas:`Configure and Resolve Alerts </alerts>`. 
 
-Recommendations for Monitoring by Using the {+atlas-ui+} 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Recommendations for Monitoring by Using {+service+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 |service| provides several tools that allow you to proactively monitor and
 improve the performance of your database. 
@@ -285,6 +313,11 @@ Performance Panel)` to:
 - Discover potential replication lag on secondary members of replica sets
 - Kill operations before they have completed to free up valuable resources
 
+The RTPP is not available to monitor from the {+atlas-admin-api+},
+but you can enable and disable the RTPP from the {+atlas-admin-api+}
+with :oas-atlas-op:`Update One Project Settings
+</updateProjectSettings>`.
+
 To learn more, see :ref:`real-time-metrics-status-tab`.
 
 Query Profiler 
@@ -297,6 +330,10 @@ a 24-hour window in the {+atlas-ui+}, making it easier to identify
 trends and outliers in query efficiency. We recommend that you use this
 data to pinpoint and troubleshoot poorly performing queries, reducing 
 performance overhead. 
+
+You can return log lines for slow queries that the Query Profiler identifies from the {+atlas-admin-api+}
+with :oas-atlas-op:`Return Slow Queries
+</listSlowQueries>`.
 
 To learn more, see :ref:`query-profiler`.
 
@@ -315,6 +352,11 @@ You can use the {+atlas-ui+}, {+atlas-cli+}, and the {+atlas-admin-api+}
 to view slow queries and suggestions for improving the performance of
 your queries from the Performance Advisor.
 
+You can return log lines for slow queries that the Performance Advisor identifies from the {+atlas-admin-api+}
+with :oas-atlas-op:`Return Slow Queries
+</listSlowQueries>`. To return suggested indexes and more with the {+atlas-admin-api+}, see :oas-atlas-tag:`Performance Advisor
+<Performance-Advisor>`.
+
 To learn more, see :ref:`performance-advisor`.
 
 Namespace Insights 
@@ -324,7 +366,7 @@ The Namespace Insights page in the {+atlas-ui+} allows you to monitor
 collection-level performance and usage metrics. It displays metrics
 (such as the number of CRUD operations on the collection) and statistics
 (like average query execution time) for certain hosts and operation
-types for the collections that you pin for monitoring. This gives you
+types for the collections that you :atlas:`pin for monitoring </namespace-insights/#manage-pinned-namespaces-from-the-dialog>`. This gives you
 more granular visibility into collection-level performance, which you
 can use to optimize database performance, resolve issues, and make
 decisions about scaling, indexing, and query tuning. 
@@ -335,6 +377,10 @@ Recommendations for Monitoring by Using Logs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/cloud-docs/logs.rst
+
+You can also :atlas:`push logs to an AWS S3 bucket </push-logs/>`. 
+When you configure this feature, {+service+} continually pushes logs from ``mongod``, ``mongos``, and audit logs to an |aws| S3 bucket. {+service+} exports logs every five minutes.
+
 
 Examples
 --------
