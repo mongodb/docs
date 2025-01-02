@@ -105,7 +105,7 @@ To archive data:
    the job interval by five minutes, up to a maximum of four hours. If
    the job interval reaches the maximum or if the size of documents to
    archive reaches the threshold, |service| runs the job again and
-   resets the job interval to five minutes. The threshold is 2GB per
+   resets the job interval to five minutes. The threshold is 1.8GiB per
    job. 
    
    |service| might initiate the job from any node in the
@@ -124,18 +124,16 @@ To archive data:
 
    .. include:: /includes/fact-online-archive-index-sufficiency-warning.rst
 
-2. For documents that match the archival criteria, |service|:
+2. For documents that match the archival criteria, |service| writes up
+   to 1.8GiB of document data to partitions on the cloud object storage,
+   grouped and sorted using the partitioning scheme that you provided
+   during archive creation. |service| periodically rebalances the
+   partitions and stores in a format optimized for both query performance
+   and ability to expire data in a reasonable amount of time.
 
-   a. Writes to up to a maximum of 10,000 partitions per data archiving 
-      job.
-
-   b. Writes up to 2GB of document data to partitions on the cloud 
-      object storage for each unique combination of query field values 
-      except dates, which are grouped during each run to reduce the 
-      number of partitions.
-
-   c. Writes each subsequent quantity of document data (up to 2 GB)
-      with each query run. 
+   For newly created online archives on timeseries collection, the
+   threshold is 1.8 GiB or 100k documents, based on which limit is
+   reached first.
 
 .. note:: 
 
@@ -144,7 +142,7 @@ To archive data:
    runs only after the current job finishes.
 
 {+Online-Archive+} runs on your |service| {+cluster+} and uses the
-same underlying resources, such as |iops|. The default limit of 2GB per
+same underlying resources, such as |iops|. The default limit of 1.8GiB per
 job prevents the operation from using too many resources. If your 
 {+cluster+} is currently satisfying workloads at the edge of its
 resource limits, you could push it past its capacity by activating 
@@ -257,6 +255,7 @@ Limitations
 - Archiving data below the size of 5 MiB after 7 days. To learn more, see 
   :ref:`Limitations <config-online-archive-limitations>`.
 - :manual:`GridFS </core/gridfs>`.
+- Deleting individual documents.
   
 .. _online-archive-view:
 
