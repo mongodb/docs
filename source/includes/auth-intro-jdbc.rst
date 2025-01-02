@@ -2,7 +2,7 @@
 
 The |bi| provides a client-side MySQL authentication plugin for Java that
 integrates with `MySQL's Connector/J JDBC driver
-<https://dev.mysql.com/doc/connector-j/5.1/en/connector-j-installing.html>`_.
+<https://mvnrepository.com/artifact/mysql/mysql-connector-java>`_.
 The ``mongosql_auth`` plugin allows a client to authenticate with a
 |bi-short| and MongoDB deployment running with authentication enabled
 using one of the following authentication mechanisms:
