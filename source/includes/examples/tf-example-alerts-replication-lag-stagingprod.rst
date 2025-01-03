@@ -8,7 +8,7 @@
 
      notification {
        type_name     = "GROUP"
-       interval_min  = 5
+       interval_min  = 10
        delay_min     = 0
        sms_enabled   = false
        email_enabled = true

@@ -24,7 +24,7 @@
 
      threshold_config {
        operator    = "GREATER_THAN"
-       threshold   = 24
-       units       = "HOURS"
+       threshold   = 5
+       units       = "MINUTES"
      }
    }
