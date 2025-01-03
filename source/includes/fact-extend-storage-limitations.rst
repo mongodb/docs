@@ -1,0 +1,3 @@
+- M40: up to 4TB
+- M50/M60: up to 8TB
+- M80+: up to 14TB
