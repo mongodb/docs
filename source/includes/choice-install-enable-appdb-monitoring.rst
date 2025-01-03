@@ -14,7 +14,7 @@
             .. include:: /includes/agents/binaries-removed-from-path.rst
 
             On x86_64 architecture running Debian 10 or 11, and
-            Ubuntu 18.04, 20.04, or 22.04:
+            Ubuntu 18.04, 20.04, 22.04, or 24.04:
 
             .. include:: /includes/steps/monitor-appdb-on-amd64.ubuntu1604-deb.rst
 
