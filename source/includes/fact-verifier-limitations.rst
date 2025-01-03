@@ -12,10 +12,6 @@ Limitations
 
 The embedded verifier has the following limitations:
 
-- The verifier doesn't support sharded clusters. If the
-  migration includes a sharded cluster, ``mongosync`` disables
-  the verifier.
-
 - ``mongosync`` stores the verifier state in memory, which can
   result in a significant memory overhead. To run the verifier,
   ``mongosync`` requires approximately 10 GB of memory, plus an
