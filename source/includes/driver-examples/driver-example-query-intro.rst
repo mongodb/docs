@@ -95,15 +95,6 @@
 
          .. include:: /includes/driver-examples/examples-intro.rst
 
-     - id: perl
-       content: |
-         This page provides examples of |query_operations| using the
-         :perl-api:`MongoDB::Collection::find()<Collection#find>` method
-         in the
-         `MongoDB Perl Driver <https://metacpan.org/release/MongoDB>`_.
-
-         .. include:: /includes/driver-examples/examples-intro.rst
-
      - id: ruby
        content: |
          This page provides examples of |query_operations| using the
