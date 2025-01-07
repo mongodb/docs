@@ -175,5 +175,5 @@ collection.update_search_index("my_vector_index", new_index_definition)
 # end-update-vector-search-indexes
 
 # start-delete-search-indexes
-collection.drop_index("my_index")
+collection.drop_search_index("my_index")
 # end-delete-search-indexes
