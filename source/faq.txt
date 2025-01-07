@@ -17,26 +17,29 @@ This page provides answers to some frequently asked questions we have
 encountered. If you have additional questions please contact MongoDB
 Support.
 
+.. _c2c-faq-read-write-during-sync:
+
 Can I perform reads or writes to my destination cluster while ``mongosync`` is syncing?
 ---------------------------------------------------------------------------------------
 
-You can perform reads during synchronization at any time. However, the data 
-that you read is :term:`eventually consistent <eventual consistency>`. For 
-consistent reads, wait for the migration to commit. To learn more, see 
-:ref:`mongosync-considerations`.
+You can perform reads at any time during synchronization. 
+However, ``mongosync`` combines and reorders writes from the source to destination during synchronization, 
+and also temporarily modifies various collection characteristics. 
+As a result, the destination is not guaranteed to match the source at any point in time when the sync is running. 
+For consistent reads, wait for the migration to :ref:`c2c-api-commit`. To learn more, see :ref:`mongosync-considerations`. 
 
-If you write to a synced namespace before issuing a :ref:`commit 
-<c2c-api-commit>` and while ``canWrite`` is ``false``, the behavior is 
-undefined. To ensure that you don't write to any synced namespaces, enable 
-:ref:`write blocking <c2c-write-blocking>`.
+Performing writes to your destination cluster during synchronization results in undefined behavior. 
+To block writes on the destination cluster during sync, enable :ref:`write blocking <c2c-write-blocking>` when you :ref:`c2c-api-start` ``mongosync``.
+
+Upon commit, it is only safe to write to the destination cluster when ``canWrite`` is ``true``. 
+To check the value of ``canWrite``, run the :ref:`c2c-api-progress` endpoint.
+
+To learn more about permissable reads and writes during synchronization, see :ref:`c2c-reads-and-writes`. 
 
 .. note::
    
    Index builds on the destination cluster are treated as writes 
    while ``mongosync`` is syncing.
-
-To check the value of ``canWrite``, call the :ref:`progress <c2c-api-progress>` 
-API endpoint.
 
 Can ``mongosync`` run on its own hardware? 
 ------------------------------------------
