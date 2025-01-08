@@ -60,7 +60,7 @@ You can rename any collection in the ``staff`` database.
 
 You can only rename a collection within the ``students`` database if the
 new and old names are both in the filter. If either of the names is not
-in the filter, ``monogsync`` reports an error and exists.
+in the filter, ``monogsync`` reports an error and exits.
 
 .. code-block:: javascript
 
