@@ -72,7 +72,7 @@
 
 .. step:: Add sample documents.
 
-   Run the :method:`db.insertMany()` method to add the
+   Run the :method:`db.collection.insertMany()` method to add the
    following sample documents to the collection:
 
    .. code-block:: bash
