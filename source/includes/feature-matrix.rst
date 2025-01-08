@@ -86,6 +86,10 @@
      - :icon-fa5:`check`
      - :icon-fa5:`check`
 
+   * - |service| Vector Search
+     - :icon-fa5:`check`
+     - :icon-fa5:`check`
+
    * - |service| Stream Processing
      - :icon-fa5:`check`
      -
@@ -98,7 +102,7 @@
      - :icon-fa5:`check`
      - 
 
-   * - Atlas Device SDKs
+   * - |service| Device SDKs
      - :icon-fa5:`check`
      - 
 
