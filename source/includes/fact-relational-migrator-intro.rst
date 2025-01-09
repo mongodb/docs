@@ -9,7 +9,8 @@ relational database to MongoDB. With Relational Migrator, you can:
 - **Seamlessly migrate to MongoDB** 
   
   Migrate data from popular relational databases like Oracle, SQL Server,
-  MySQL, and PostgreSQL to MongoDB Atlas or a self-managed MongoDB deployment. 
+  MySQL, PostgreSQL, :ref:`and others <supported-databases>` to MongoDB Atlas 
+  or a self-managed deployment.
 
 - **Generate application code** 
 
