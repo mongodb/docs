@@ -46,3 +46,15 @@ auto uri = mongocxx::uri("mongodb://<db_username>:<db_password>@<hostname>:<port
                          "authMechanism=PLAIN&tls=true");
 auto client = mongocxx::client(uri);
 // end-plain
+
+// start-auth-err
+try {
+    auto uri = mongocxx::uri("<connection string>");
+    auto client = mongocxx::client(uri);
+
+    client["db"].run_command(<any command requiring authorization>);
+
+} catch (const mongocxx::exception& ex) {
+    std::cerr << "Error: " << ex.what() << std::endl;
+}
+// end-auth-err
