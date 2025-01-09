@@ -53,15 +53,6 @@
          whose :phpmethod:`getDeletedCount()<phpmethod.MongoDB\\DeleteResult::getDeletedCount()>`
          method returns the number of documents that matched the filter.
 
-     - id: perl
-       content: |
-         Upon successful execution, the
-         :perl-api:`delete_many()<Collection#delete_many>` method
-         returns an instance of
-         :perl-api:`MongoDB::DeleteResult<DeleteResult>` whose
-         ``deleted_count`` attribute contains the number of documents
-         that matched the filter.
-
      - id: ruby
        content: |
          Upon successful execution, the
