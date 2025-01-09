@@ -100,17 +100,6 @@
 
          .. include:: /includes/fact-update-many-operation-uses.rst
 
-     - id: perl
-       content: |
-
-         .. literalinclude:: /driver-examples/driver-examples.t
-            :language: perl
-            :dedent: 4
-            :start-after: Start Example 53
-            :end-before: End Example 53
-
-         .. include:: /includes/fact-update-many-operation-uses.rst
-
      - id: ruby
        content: |
 
