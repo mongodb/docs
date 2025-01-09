@@ -99,14 +99,14 @@
       For each resource that needs to connect to your {+fdi+} using 
       {+aws-pl+}, the resource's security group must allow outbound 
       traffic to the :term:`interface endpoint's <interface endpoint>` 
-      private IP addresses on all ports.
+      private IP addresses on port 27017.
       
       See :aws:`Adding Rules to a Security Group </AWSEC2/latest/UserGuide/ec2-security-groups.html#adding-security-group-rule>`
       for more information.
       
    .. step:: Create a security group for your interface endpoint to allow resources to access it.
       
-      This security group must allow inbound traffic on all ports from each 
+      This security group must allow inbound traffic on port 27017 from each 
       resource that needs to connect to your {+fdi+} using {+aws-pl+}:
       
       a. In the |aws| console, navigate to the :guilabel:`VPC Dashboard`. 
