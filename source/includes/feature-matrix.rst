@@ -25,7 +25,11 @@
    * - |gaw|
      -
      - :icon-fa5:`check`
-       
+
+   * - GCP Private Service Connect
+     - :icon-fa5:`check`
+     - :icon-fa5:`check`
+
    * - Cross-region clusters
      - :icon-fa5:`check`
      - :icon-fa5:`check` [#cross-region]_
