@@ -14,5 +14,4 @@ relational database to MongoDB. With Relational Migrator, you can:
   classes, persistence layers, and APIs in C#, Java, and JavaScript, using JSON data formats.
 
 - **Convert SQL database objects with GenAI:** Use GenAI to convert
-  SQL queries, procedures, and views, then validate them -- without
-  leaving the tool.
+  SQL queries, procedures, and views, then validate them -- all within the tool.
