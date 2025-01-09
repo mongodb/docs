@@ -1,6 +1,5 @@
-Starting in MongoDB 6.2, slow operation log messages include a
-``queryFramework`` field that indicates which query engine executed the
-query:
+Slow operation log messages include a ``queryFramework`` field that indicates 
+which query engine executed the query:
 
 - ``queryFramework: "classic"`` indicates that the classic engine
   executed the query.
