@@ -191,17 +191,6 @@
 
          .. include:: /includes/fact-update-operation-uses.rst
 
-     - id: perl
-       content: |
-
-         .. literalinclude:: /driver-examples/driver-examples.t
-            :language: perl
-            :dedent: 4
-            :start-after: Start Example 52
-            :end-before: End Example 52
-
-         .. include:: /includes/fact-update-operation-uses.rst
-
      - id: ruby
        content: |
 

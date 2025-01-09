@@ -109,15 +109,6 @@
             :start-after: Start Example 47
             :end-before: End Example 47
 
-     - id: perl
-       content: |
-
-         .. literalinclude:: /driver-examples/driver-examples.t
-            :language: perl
-            :dedent: 4
-            :start-after: Start Example 47
-            :end-before: End Example 47
-
      - id: ruby
        content: |
 
