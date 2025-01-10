@@ -47,6 +47,6 @@
             node vector-index.js
 
          .. output::
-            :language: console
+            :language: shell
 
             vector_index

@@ -82,7 +82,7 @@
             java VectorIndex
 
          .. output::
-            :language: console
+            :language: shell
 
             Successfully created a vector index named: [vector_index]
             It may take up to a minute for the index to build before you can query using it.

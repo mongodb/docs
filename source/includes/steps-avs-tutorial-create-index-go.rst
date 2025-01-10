@@ -41,7 +41,7 @@
             go run vector-index.go
 
          .. output::
-            :language: console
+            :language: shell
 
             2024/10/17 09:38:21 Creating the index.
             2024/10/17 09:38:22 Polling to confirm successful index creation.

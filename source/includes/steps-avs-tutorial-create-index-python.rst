@@ -41,6 +41,6 @@
             python vector-index.py
 
          .. output::
-            :language: console
+            :language: shell
 
             vector_index
