@@ -58,7 +58,7 @@
      - :icon-fa5:`check` [#fr-moderate-backup]_
      - :icon-fa5:`check` [#fr-moderate-backup]_
 
-   * - |bi-short-no-link|
+   * - |bic-short-no-link|
      - :icon-fa5:`check`
      - :icon-fa5:`check`
 
