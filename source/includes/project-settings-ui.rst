@@ -137,7 +137,7 @@ You can set the following in the {+atlas-ui+}:
 
       - The {+cluster+} is on |azure|, |aws|, or |gcp|
       - If the {+cluster+} is on |azure|, it is configured in one of the
-        following :ref:`regions that support extended storage <microsoft-azure-supported-regions>`
+        following :ref:`regions that support extended storage <microsoft-azure-storage-supported-regions>`
       - The {+cluster+} is either :guilabel:`General` or :guilabel:`Low-CPU` class
       - The {+cluster+} is single-region.
 

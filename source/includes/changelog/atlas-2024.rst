@@ -94,7 +94,7 @@
 
 - Supports |azure| Extended Standard |iops| and Extended Storage to limited regions.
   For :guilabel:`Low CPU` or :guilabel:`General` {+clusters+} deployed on
-  |azure| in one of the :ref:`regions that support extended storage <microsoft-azure-supported-regions>`,
+  |azure| in one of the :ref:`regions that support extended storage <microsoft-azure-storage-supported-regions>`,
   you can extend |iops| and the data volumes' storage capacity in the {+atlas-ui+}.
   To learn more, see :ref:`Extend Storage Capacity and IOPS on Azure <change-storage-capacity-azure>`.
 
