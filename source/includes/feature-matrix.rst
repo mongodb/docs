@@ -78,7 +78,6 @@
      -
      - :icon-fa5:`check`
 
-
    * - GCP Private Service Connect
      - :icon-fa5:`check`
      - :icon-fa5:`check`
@@ -105,11 +104,11 @@
 
    * - ``SCRAM-SHA1`` database authentication
      - :icon-fa5:`check`
+     -
 
    * - ``SCRAM-SHA256`` database authentication
      - 
      - :icon-fa5:`check`
-     -
 
    * - Serverless instances
      - :icon-fa5:`check`
