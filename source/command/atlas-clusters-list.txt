@@ -61,6 +61,10 @@ Options
      - string
      - false
      - Hexadecimal string that identifies the project to use. This option overrides the settings in the configuration file or environment variable.
+   * - --tier
+     - string
+     - false
+     - Tier for each data-bearing server in the cluster. To learn more about cluster tiers, see https://dochub.mongodb.org/core/cluster-tier-atlas.
 
 Inherited Options
 -----------------

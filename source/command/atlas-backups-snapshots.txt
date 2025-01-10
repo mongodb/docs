@@ -52,6 +52,7 @@ Related Commands
 * :ref:`atlas-backups-snapshots-create` - Create a backup snapshot for your project and cluster.
 * :ref:`atlas-backups-snapshots-delete` - Remove the specified backup snapshot.
 * :ref:`atlas-backups-snapshots-describe` - Return the details for the specified snapshot for your project.
+* :ref:`atlas-backups-snapshots-download` - Download one snapshot for the specified flex cluster.
 * :ref:`atlas-backups-snapshots-list` - Return all cloud backup snapshots for your project and cluster.
 * :ref:`atlas-backups-snapshots-watch` - Watch the specified snapshot in your project until it becomes available.
 
@@ -62,6 +63,7 @@ Related Commands
    create </command/atlas-backups-snapshots-create>
    delete </command/atlas-backups-snapshots-delete>
    describe </command/atlas-backups-snapshots-describe>
+   download </command/atlas-backups-snapshots-download>
    list </command/atlas-backups-snapshots-list>
    watch </command/atlas-backups-snapshots-watch>
 
