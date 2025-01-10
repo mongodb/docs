@@ -5,7 +5,7 @@
       :tabid: latest
 
       To install the latest stable version of MongoDB Enterprise
-      {+latest-lts-version+}, issue the following command:
+      {+latest-lts-version+}, run the following command:
       
       .. code-block:: sh
       
