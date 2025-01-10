@@ -1,6 +1,7 @@
-Specifies the compression algorithm used between the MongoDB server and
-|tool-binary|. You can use one or more of these values for the
-``--compressors`` option:
+Specifies the compression algorithm that ``mongodump`` uses for network
+communication between the |tool-binary| client and the MongoDB server.
+You can use one or more of these values for the ``--compressors``
+option:
 
 - ``snappy``
 - ``zlib``
