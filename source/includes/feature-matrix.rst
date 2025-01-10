@@ -118,6 +118,16 @@
      -
      - :icon-fa5:`check`
 
+.. [#govcloud-backup]
+
+   |cloudgov-short| backups for |aws-fr-high| deployments are stored 
+   in |aws-fr-high| regions.
+
+.. [#fr-moderate-backup]
+
+   |cloudgov-short| backups for |aws-fr-moderate| deployments are 
+   stored in |aws-fr-moderate| regions.
+
 .. [#cross-region]
    
    You cannot deploy clusters across government 
@@ -127,13 +137,3 @@
    
    You can enable Global Writes on an |service| cluster by 
    :atlas:`creating a Global Cluster </tutorial/create-global-cluster/>`.
-
-.. [#fr-moderate-backup]
-
-   |cloudgov-short| backups for |aws-fr-moderate| deployments are 
-   stored in |aws-fr-moderate| regions.
-
-.. [#govcloud-backup]
-
-   |cloudgov-short| backups for |aws-fr-high| deployments are stored 
-   in |aws-fr-high| regions.
