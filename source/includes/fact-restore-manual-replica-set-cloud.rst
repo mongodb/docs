@@ -75,13 +75,13 @@
      - Provide the :manual:`replica set </reference/glossary/#std-term-replica-set>` ID.
      - :icon:`check-circle`
  
-   * - ``--whitelist``
+   * - ``--accessList``
      - Optional
      - Provide a list of databases and/or collections to which you
        want to limit the restore.
      -
  
-   * - ``--blacklist``
+   * - ``--denyList``
      - Optional
      - Provide a list of databases and/or collections to which you
        want to exclude from the restore.

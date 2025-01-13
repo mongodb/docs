@@ -349,7 +349,7 @@ Backup
 - Automated restores: added a new option to automatically restore a
   backup to a running :manual:`replica set </reference/glossary/#std-term-replica-set>` or :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>`.
 
-- Added support for namespace whitelisting, which allows you to back up
+- Added support for namespace access listing, which allows you to back up
   only a subset of your data.
 
 - Added the ability to manage HTTP restore link expiration from the

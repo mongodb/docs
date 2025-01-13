@@ -410,7 +410,7 @@
   - Trying to update
     :ref:`Global API Keys <admin-console-general-api-keys>` via the
     |api| with an invalid request.
-  - Trying to update a global whitelist IP.
+  - Trying to update a global access list IP.
 
 - Includes :bic:`MongoDB Business Intelligence Connector v2.14.0 </>`.
 

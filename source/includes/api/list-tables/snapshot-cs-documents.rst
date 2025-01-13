@@ -104,14 +104,14 @@
      - A value that determines how :manual:`namespaces  </reference/glossary/#std-term-namespace>` are
        filtered for this snapshot.
 
-       - If this value is set to ``blacklist``, namespaces in
+       - If this value is set to ``denyList``, namespaces in
          ``namespaceFilterList.filterList`` are excluded from the
          snapshot.
-       - If this value is set to ``whitelist``, only namespaces in
+       - If this value is set to ``accessList``, only namespaces in
          ``namespaceFilterList.filterList`` are included in the
          snapshot.
 
-       The default value is ``blacklist``.
+       The default value is ``denyList``.
 
    * - parts
      - object array

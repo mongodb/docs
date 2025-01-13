@@ -37,7 +37,7 @@ Backup Agent 3.9.0.336
 
 - Added support for MongoDB 3.2.0 config servers as replica sets.
 
-- Added the ability to only backup selected namespaces (whitelist).
+- Added the ability to only backup selected namespaces (access list).
 
 - Fixed issue with initial sync failing due to collections being
   deleted during the sync.
