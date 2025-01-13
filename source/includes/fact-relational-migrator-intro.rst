@@ -3,8 +3,8 @@ relational database to MongoDB. With Relational Migrator, you can:
 
 - **Transform your data** 
   
-  Use the :guilabel:`Mapping` screen to define a new MongoDB schema for your
-  data, or start with a recommended one and customize it to suit your needs.
+  Define a new MongoDB schema for your data, or start with a recommended one 
+  and customize it to suit your needs.
   
 - **Easily migrate to MongoDB** 
   
