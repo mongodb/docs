@@ -88,7 +88,7 @@ Backup
      - Backup has possibly inconsistent cluster snapshots
      - Project, Global
 
-   * - .. alert:: CLUSTER_BLACKLIST_UPDATED_AUDIT
+   * - .. alert:: CLUSTER_DENYLIST_UPDATED_AUDIT
      - Excluded namespaces were modified for cluster
      - Project, Global
 
@@ -160,7 +160,7 @@ Backup
      - Backup requires a resync
      - Project, Global
 
-   * - .. alert:: RS_BLACKLIST_UPDATED_AUDIT
+   * - .. alert:: RS_DENYLIST_UPDATED_AUDIT
      - Excluded namespaces were modified for replica set
      - Project, Global
 
