@@ -14,7 +14,7 @@
      - MongoDB 4.0
      - MongoDB 3.6
 
-   * - 1.12 to 1.17
+   * - 1.12 to 2.0
      - ⊛ [#8.0-support]_
      - ✓
      - ✓
