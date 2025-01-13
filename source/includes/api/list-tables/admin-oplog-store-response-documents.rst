@@ -1,3 +1,6 @@
+.. |product| replace:: oplog store
+.. |field| replace:: ``maxCapacityGB``
+
 .. list-table::
    :widths: 15 15 70
    :header-rows: 1
@@ -34,8 +37,7 @@
  
    * - maxCapacityGB
      - number
-     - The maximum amount of data in GB this :opsmgr:`oplog store  </reference/glossary/#std-term-Oplog-Store-Database>` can 
-       store.
+     - .. include:: /includes/api/maxCapacityGB-description.rst
    
    * - uri
      - string
