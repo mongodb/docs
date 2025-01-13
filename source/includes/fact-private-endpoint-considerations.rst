@@ -75,9 +75,10 @@ To enable or disable the regionalized private endpoint setting:
 
 .. include:: /includes/fact-optimized-connection-strings-intro.rst
 
-To learn more about optimized connection strings for sharded 
-{+clusters+} behind a private endpoint, see
-:ref:`optimized-connection-strings`. 
+|service| doesn't support optimized connection strings for 
+{+clusters+} that run on |gcp| or |azure|. To learn more about optimized 
+connection strings for sharded {+clusters+} behind a private 
+endpoint, see :ref:`optimized-connection-strings`. 
 
 
 Connecting to Multi-Region {+Clusters+} Without Regionalized Private Endpoints 

@@ -4,8 +4,4 @@ service. When you use an optimized connection string, |service| limits
 the number of connections per ``mongos`` between your application and
 your sharded {+cluster+}. The limited connections per ``mongos``
 improve performance during spikes in connection counts.
-
-.. note::
-
-   |service| doesn't support optimized connection strings for 
-   {+clusters+} that run on |gcp| or |azure|.
+   
