@@ -54,6 +54,16 @@ Fixes the following issues:
 - Upgrades Jetty library to 11.0.23.
 - Fixes an issue where the {+mdbagent+} gets stuck because indexes are set to the ``CANCEL`` action.
 - Fixes `CVE-2024-8184 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-8184>`__.
+- Fixes broken ``rpm`` package for |onprem| version 8.0.0 
+  containing incorrect version information that could cause standard 
+  upgrades to fail. If upgrading from this version to 
+  version 8.0.1 or greater, upgrade the package using the 
+  ``--oldpackage`` flag:
+
+  .. code-block:: sh
+
+      sudo rpm -Uvh --oldpackage mongodb-mms-<version>.x86_64.rpm
+
 
 .. _opsmgr-server-8.0.0:
 
