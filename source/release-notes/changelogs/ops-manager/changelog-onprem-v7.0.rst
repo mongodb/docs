@@ -358,6 +358,16 @@ User Interface
 - Adds support for deploying |onprem| on RedHat Enterprise Linux 9 on x86_64 architectures.
 - Adds support for deploying |onprem| on Ubuntu 22.04 on x86_64 architectures.
 - Adds support for deploying |onprem| on Amazon Linux 2023.
+- Adds support to fix broken ``rpm`` packages for |onprem| versions 6.0.0, 6.0.1, and 6.0.2 
+  containing incorrect version information that could cause standard 
+  upgrades to fail. If upgrading from any of these versions to 
+  version 6.0.3 or greater, upgrade the package using the 
+  ``--oldpackage`` flag:
+
+  .. code-block:: sh
+
+      sudo rpm -Uvh --oldpackage mongodb-mms-<version>.x86_64.rpm
+
 - Removes |onprem| support for Debian 10.
 - Removes |onprem| support for Ubuntu 18.04 LTS.
 - Deprecates |onprem| support for RedHat Enterprise Linux 7.
