@@ -29,8 +29,8 @@ Filter by event
           - API Key Description Changed
           - API Key removed from Group
           - API Key Roles Changed
-          - API Key Whitelist Entry Added
-          - API Key Whitelist Entry Deleted
+          - API Key Access List Entry Added
+          - API Key Access List Entry Deleted
           - Service Account Details have been changed
           - Service Account had its roles changed
           - Service Account added to Project

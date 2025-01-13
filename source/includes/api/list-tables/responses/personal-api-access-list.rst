@@ -13,11 +13,11 @@
 
    * - created
      - string
-     - |iso8601-time| when this IP address was added to the whitelist.
+     - |iso8601-time| when this IP address was added to the access list.
 
    * - ipAddress
      - string
-     - Whitelisted IP address.
+     - Access Listed IP address.
 
    * - lastUsed
      - string
@@ -27,7 +27,7 @@
        .. note::
 
           |service| updates this parameter when it accesses an |api|
-          resource that the whitelist protects.
+          resource that the access list protects.
 
    * - lastUsedAddress
      - string
@@ -41,4 +41,4 @@
        .. note::
 
           |service| updates this parameter when it accesses an |api|
-          resource that the whitelist protects.
+          resource that the access list protects.

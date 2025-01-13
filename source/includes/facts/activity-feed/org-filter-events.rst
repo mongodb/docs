@@ -32,8 +32,8 @@ Filter by event
           - API Key Description Changed
           - API Key removed from Group
           - API Key Roles Changed
-          - API Key Whitelist Entry Added
-          - API Key Whitelist Entry Deleted
+          - API Key Access List Entry Added
+          - API Key Access List Entry Deleted
           - Service Account has been created
           - Service Account has been deleted
           - Service Account Details have been changed
@@ -76,7 +76,7 @@ Filter by event
           - Organization's identity provider certificate is about to expire
           - Organization's identity provider certificate is current
           - Require IP Access List for Public API Enabled
-          - Require IP Whitelist for Public API Enabled
+          - Require IP Access List for Public API Enabled
           - Team added to project
           - Team created
           - Team deleted
@@ -164,7 +164,7 @@ Filter by event
           - Current bill for any single project is above the limit you set
           - Daily amount billed is below the limit you set
           - IP Access List for Public API Not Required
-          - IP Whitelist for Public API Not Required
+          - IP Access List for Public API Not Required
           - Organization has been created
           - Organization has been granted temporary access
           - Organization has been reactivated
@@ -180,7 +180,7 @@ Filter by event
 
           - Atlas support plan updated
           - Database users imported to project from mLab deployment
-          - IP whitelist imported to project from mLab deployment
+          - IP access list imported to project from mLab deployment
           - Migration configuration from mLab initiated
           - Migration database renamed
           - Migration dump/restore started

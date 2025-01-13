@@ -858,8 +858,8 @@
        Cluster binary version upgrade submitted
      - no
 
-   * - ``CLUSTER_BLACKLIST_UPDATED_AUDIT``
-     - .. _atlas_event_cluster_blacklist_updated_audit:
+   * - ``CLUSTER_DENYLIST_UPDATED_AUDIT``
+     - .. _atlas_event_cluster_denylist_updated_audit:
 
        Excluded namespaces were modified for cluster
      - no
@@ -4530,8 +4530,8 @@
        Rolling index build succeeded
      - no
 
-   * - ``RS_BLACKLIST_UPDATED_AUDIT``
-     - .. _atlas_event_rs_blacklist_updated_audit:
+   * - ``RS_DENYLIST_UPDATED_AUDIT``
+     - .. _atlas_event_rs_denylist_updated_audit:
 
        Excluded namespaces were modified for replica set
      - no

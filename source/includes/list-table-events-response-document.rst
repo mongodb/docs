@@ -168,7 +168,7 @@
        If this field is present in the response,
        |service| does not return the ``publicKey`` field.
 
-   * - ``whitelistEntry``
+   * - ``accesslistEntry``
      - string
      - The white list entry of the API Key targeted by the event.
 

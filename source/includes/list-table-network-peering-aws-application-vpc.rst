@@ -34,7 +34,7 @@
        .. include:: /includes/list-tables/aws-vpc-ranges.rst
 
        To include this |vpc| |cidr| block in your IP access list,
-       click :guilabel:`Add this CIDR block to my IP whitelist`.
+       click :guilabel:`Add this CIDR block to my IP access list`.
        You can choose to add the :ref:`Security Group associated
        <add-to-access-list>` with the |aws| |vpc|.
 
