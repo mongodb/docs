@@ -8,7 +8,7 @@
 
       :oas-atlas-tag:`Create One Private Link
       </Streams/operation/createPrivateLinkConnection>`
-            
+
       For an |azure| Private Link connection, you must set the
       following key-value pairs:
 
@@ -26,7 +26,7 @@
            - Fully qualified domain name, with port number, of the
              bootstrap server in your |azure| Event Hub namespace. This
              domain name conforms to the format described :azure:`here
-             </event-hubs/event-hubs-quickstart-kafka-enabled-event-hubs?tabs=passwordless>`.
+	     </event-hubs/event-hubs-quickstart-kafka-enabled-event-hubs?tabs=passwordless>`.
 
       The following example command requests a connection to your |azure| Event Hub and illustrates a typical response:
 

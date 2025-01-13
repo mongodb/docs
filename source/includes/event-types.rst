@@ -858,12 +858,6 @@
        Cluster binary version upgrade submitted
      - no
 
-   * - ``CLUSTER_DENYLIST_UPDATED_AUDIT``
-     - .. _atlas_event_cluster_denylist_updated_audit:
-
-       Excluded namespaces were modified for cluster
-     - no
-
    * - ``CLUSTER_CHECKPOINT_UPDATED_AUDIT``
      - .. _atlas_event_cluster_checkpoint_updated_audit:
 
@@ -4528,12 +4522,6 @@
      - .. _atlas_event_rolling_index_success_index_build:
 
        Rolling index build succeeded
-     - no
-
-   * - ``RS_DENYLIST_UPDATED_AUDIT``
-     - .. _atlas_event_rs_denylist_updated_audit:
-
-       Excluded namespaces were modified for replica set
      - no
 
    * - ``RS_CREDENTIAL_UPDATED_AUDIT``

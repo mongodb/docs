@@ -134,7 +134,7 @@
 
          * - Key
            - Value
-      
+
          * - ``bootstrapServers``
            - IP address of your cloud provider's Kafka bootstrap server.
 
