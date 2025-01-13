@@ -211,10 +211,10 @@ Specify the settings {+magent+} use when communicating with |mms| using
    verify that the agent can communicate with the designated |mms|
    instance.
 
-   *By default, {+magent+} uses the trusted root* |certauth|\s
+   *By default, {+magent+} uses the trusted root* |certauth-plural|
    *installed on the host.*
 
-   If the agent cannot find the trusted root |certauth|\s, configure
+   If the agent cannot find the trusted root |certauth-plural|, configure
    these settings manually.
 
    If the |mms| instance uses a self-signed |tls| certificate, you

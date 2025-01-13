@@ -213,10 +213,10 @@ Specify the settings {+bagent+} use when communicating with |mms| using
    verify that the {+mdbagent+} can communicate with the designated
    |mms| instance.
 
-   *By default, {+bagent+} uses the trusted root* |certauth|\s
+   *By default, {+bagent+} uses the trusted root* |certauth-plural|
    *installed on the system.*
 
-   If {+bagent+} cannot find the trusted root |certauth|\s, configure
+   If {+bagent+} cannot find the trusted root |certauth-plural|, configure
    these settings manually.
 
    If |mms| use a self-signed |tls| certificate, provide a value for
