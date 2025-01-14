@@ -5,6 +5,11 @@
 
       Add the PyMongo Driver as a dependency in your project:
 
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebooks
+         at https://github.com/mongodb/docs-notebooks/blob/main/run-queries/semantic-search-and-or-filter.ipynb
+         and https://github.com/mongodb/docs-notebooks/blob/main/run-queries/semantic-search-and-filter.ipynb
+
       .. code-block:: sh
 
          pip install pymongo
@@ -14,6 +19,12 @@
       Create a file named ``vector-index.py``. Copy and paste the following
       code into the file, and replace the ``<connectionString>``
       placeholder value.
+
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebooks
+         at https://github.com/mongodb/docs-notebooks/blob/main/use-cases/rag.ipynb
+         and https://github.com/mongodb/docs-notebooks/blob/main/run-queries/semantic-search-and-or-filter.ipynb
+         and https://github.com/mongodb/docs-notebooks/blob/main/run-queries/semantic-search-and-filter.ipynb
 
       .. literalinclude:: /includes/avs-examples/index-management/create-index/filter-example.py
          :language: python

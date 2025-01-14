@@ -3,6 +3,10 @@
 
    .. step:: Create the ``.py`` file and use the ``drop_search_index()`` method to delete the index.
 
+      ..
+         NOTE: If you edit this Python file, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/delete-indexes.ipynb
+
       .. literalinclude:: /includes/avs-examples/index-management/delete-index/delete-index.py  
          :language: python
          :copyable: true 

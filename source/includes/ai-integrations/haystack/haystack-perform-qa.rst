@@ -20,6 +20,10 @@ In this example, you prompt the |llm| with the sample query
 context-aware response from the custom data you stored 
 in |service|.
 
+..
+   NOTE: If you edit this Python code, also update the Jupyter Notebook
+   at https://github.com/mongodb/docs-notebooks/blob/main/integrations/haystack.ipynb
+
 .. io-code-block:: 
     :copyable: true 
 

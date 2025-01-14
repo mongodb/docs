@@ -73,7 +73,11 @@
 
                The following index definition indexes only the vector
                embeddings field (``plot_embedding``) for performing
-               vector search.   
+               vector search.
+
+               ..
+                  NOTE: If you edit this Python file, also update the Jupyter Notebook
+                  at https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-basic.ipynb
 
                .. literalinclude:: /includes/avs-examples/index-management/create-index/basic-example.py
                   :language: python
@@ -89,6 +93,10 @@
                  for pre-filtering the data. 
                - The vector embeddings field (``plot_embedding``) for
                  performing vector search against pre-filtered data.
+
+               ..
+                  NOTE: If you edit this Python file, also update the Jupyter Notebook
+                  at https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-filter.ipynb
 
                .. literalinclude:: /includes/avs-examples/index-management/create-index/filter-example.py
                   :language: python

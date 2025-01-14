@@ -8,6 +8,10 @@
       run Python code snippets individually. In your notebook, run the 
       following code to install the dependencies for this tutorial:
 
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/use-cases/rag.ipynb
+
       .. code-block:: shell
 
          pip install --quiet pymongo sentence_transformers einops langchain langchain_community pypdf huggingface_hub
@@ -31,6 +35,10 @@
          - Creates a function named ``get_embedding`` that uses the model
            to generate an embedding for a given text input.
 
+         ..
+            NOTE: If you edit this Python file, also update the Jupyter Notebook
+            at https://github.com/mongodb/docs-notebooks/blob/main/use-cases/rag.ipynb
+
          .. literalinclude:: /includes/avs-examples/rag/get-embeddings.py
             :language: python
             :copyable:
@@ -46,7 +54,11 @@
          
          - Splits the data into chunks, specifying the *chunk size*
            (number of characters) and *chunk overlap* (number of overlapping characters 
-           between consecutive chunks). 
+           between consecutive chunks).
+
+         ..
+            NOTE: If you edit this Python code, also update the Jupyter Notebook
+            at https://github.com/mongodb/docs-notebooks/blob/main/use-cases/rag.ipynb
 
          .. code-block:: python
 
@@ -68,6 +80,10 @@
          You generate these embeddings by using the ``get_embedding`` function that 
          you just defined.
 
+         ..
+            NOTE: If you edit this Python code, also update the Jupyter Notebook
+            at https://github.com/mongodb/docs-notebooks/blob/main/use-cases/rag.ipynb
+
          .. code-block:: python
 
             # Prepare documents for insertion
@@ -83,6 +99,10 @@
          {+cluster+}. Before running the code, replace 
          ``<connection-string>`` with your |service| :ref:`connection string
          <connect-via-driver>`.
+
+         ..
+            NOTE: If you edit this Python code, also update the Jupyter Notebook
+            at https://github.com/mongodb/docs-notebooks/blob/main/use-cases/rag.ipynb
          
          .. code-block:: python
           
@@ -114,7 +134,11 @@
          This code also includes a polling mechanism to check if the 
          index is ready to use.
 
-         To learn more, see :ref:`avs-types-vector-search`. 
+         To learn more, see :ref:`avs-types-vector-search`.
+
+         ..
+            NOTE: If you edit this Python code, also update the Jupyter Notebook
+            at https://github.com/mongodb/docs-notebooks/blob/main/use-cases/rag.ipynb
 
          .. code-block:: python
 
@@ -161,6 +185,10 @@
          documents.
 
          To learn more, see :ref:`return-vector-search-results`.
+
+         ..
+            NOTE: If you edit this Python code, also update the Jupyter Notebook
+            at https://github.com/mongodb/docs-notebooks/blob/main/use-cases/rag.ipynb
 
          .. io-code-block:: 
             :copyable: true 
@@ -248,6 +276,10 @@
         model from Hugging Face's model hub.
       - Prompts the |llm| about MongoDB's latest AI announcements. 
         The generated response might vary.
+
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/use-cases/rag.ipynb
 
       .. io-code-block:: 
          :copyable: true 

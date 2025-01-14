@@ -3,6 +3,10 @@
 
    .. step:: Create the ``.py`` file and define the index changes in the file.
 
+      ..
+         NOTE: If you edit this Python file, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/edit-indexes.ipynb
+
       .. literalinclude:: /includes/avs-examples/index-management/update-index/edit-index.py  
          :language: python
          :copyable: true 

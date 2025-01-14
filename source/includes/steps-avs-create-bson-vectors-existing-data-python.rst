@@ -8,6 +8,10 @@
       your embedding model provider. This operation might take a few
       minutes to complete.
 
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
+
       .. code-block:: python 
 
          pip install pymongo
@@ -16,6 +20,10 @@
       driver. 
 
       .. example:: Install PyMongo and Cohere
+
+         ..
+            NOTE: If you edit this Python code, also update the Jupyter Notebook
+            at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
 
          .. code-block:: python 
 
@@ -47,6 +55,10 @@
             .. tab:: float32
                :tabid: float32
 
+               ..
+                  NOTE: If you edit this Python code, also update the Jupyter Notebook
+                  at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
+
                .. code-block:: python 
                   :linenos:
 
@@ -77,6 +89,10 @@
             .. tab:: int8
                :tabid: int8
 
+               ..
+                  NOTE: If you edit this Python code, also update the Jupyter Notebook
+                  at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
+
                .. code-block:: python 
                   :linenos:
 
@@ -106,6 +122,10 @@
 
             .. tab:: int1
                :tabid: int1
+
+               ..
+                  NOTE: If you edit this Python code, also update the Jupyter Notebook
+                  at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
 
                .. code-block:: python 
                   :linenos:
@@ -158,6 +178,10 @@
               - |service| connection string. To learn more, see
                 :ref:`connect-via-driver`. 
 
+         ..
+            NOTE: If you edit this Python code, also update the Jupyter Notebook
+            at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
+
          .. code-block:: python 
             :linenos:
 
@@ -196,6 +220,10 @@
             .. tab:: float32
                :tabid: float32
 
+               ..
+                  NOTE: If you edit this Python code, also update the Jupyter Notebook
+                  at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
+
                .. code-block:: python 
                   :linenos:
 
@@ -219,6 +247,10 @@
             .. tab:: int8
                :tabid: int8
 
+               ..
+                  NOTE: If you edit this Python code, also update the Jupyter Notebook
+                  at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
+
                .. code-block:: python 
                   :linenos:
 
@@ -241,6 +273,10 @@
 
             .. tab:: int1
                :tabid: int1
+
+               ..
+                  NOTE: If you edit this Python code, also update the Jupyter Notebook
+                  at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
 
                .. code-block:: python 
                   :linenos:
@@ -280,6 +316,10 @@
 
             * - ``<INDEX-NAME>``
               - Name of ``vector`` type index. 
+
+         ..
+            NOTE: If you edit this Python code, also update the Jupyter Notebook
+            at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
 
          .. code-block:: python 
             :linenos:
@@ -336,6 +376,10 @@
             .. tab:: float32
                :tabid: float32
 
+               ..
+                  NOTE: If you edit this Python code, also update the Jupyter Notebook
+                  at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
+
                .. code-block:: python 
                   :linenos:
 
@@ -368,6 +412,10 @@
             .. tab:: int8
                :tabid: int8
 
+               ..
+                  NOTE: If you edit this Python code, also update the Jupyter Notebook
+                  at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
+
                .. code-block:: python 
                   :linenos:
 
@@ -399,6 +447,10 @@
 
             .. tab:: int1
                :tabid: int1
+
+               ..
+                  NOTE: If you edit this Python code, also update the Jupyter Notebook
+                  at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
 
                .. code-block:: python 
                   :linenos:
@@ -435,6 +487,10 @@
       :ref:`return-vector-search-results`. 
 
       .. example:: Run a Sample {+avs+} Query
+
+         ..
+            NOTE: If you edit this Python code, also update the Jupyter Notebook
+            at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
          
          .. io-code-block:: 
             :copyable: true 
@@ -492,7 +548,6 @@
                             'AsiaWorld-Expo, HongKong-Zhuhai-Macau Bridge, Disneyland, '
                             'Citygate outlets, 360 Cable car, shopping centre, main tourist '
                             'attractions......'}]
-
 
          Your results might vary because you randomly selected ``50``
          documents from the ``sample_airbnb.listingsAndReviews``

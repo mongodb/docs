@@ -8,6 +8,10 @@
       the string ``MongoDB Atlas security``. It returns a 
       list of documents ranked by relevance.
 
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/langchain.ipynb
+
       .. io-code-block:: 
          :copyable: true 
 
@@ -45,6 +49,10 @@
       It returns the three most relevant documents 
       and a :ref:`relevance score <scoring-ref>` between 
       ``0`` and ``1``.
+
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/langchain.ipynb
 
       .. io-code-block:: 
          :copyable: true 
@@ -97,6 +105,10 @@
       It returns the three most relevant documents from page 17
       and a :ref:`relevance score <scoring-ref>` between 
       ``0`` and ``1``.
+
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/langchain.ipynb
 
       .. io-code-block:: 
          :copyable: true 

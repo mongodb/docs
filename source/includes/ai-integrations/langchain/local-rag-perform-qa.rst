@@ -12,6 +12,10 @@
 
       To learn more, see :ref:`return-vector-search-results`.
 
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/use-cases/local-rag.ipynb
+
       .. code-block:: python
          
          # Function to get the results of a vector search query
@@ -53,6 +57,10 @@
          
          Your output might vary since environmental differences
          can introduce slight variations to your embeddings.
+
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/use-cases/local-rag.ipynb
          
       .. io-code-block::
          :copyable: true
@@ -110,6 +118,10 @@
 
       #. In your notebook, run the following code to load the local |llm|.
 
+         ..
+            NOTE: If you edit this Python code, also update the Jupyter Notebook
+            at https://github.com/mongodb/docs-notebooks/blob/main/use-cases/local-rag.ipynb
+
          .. code-block:: python
           
             from gpt4all import GPT4All
@@ -127,6 +139,10 @@
 
       - Prompts the |llm| using the retrieved documents as context. 
         The generated response might vary.
+
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/use-cases/local-rag.ipynb
    
       .. io-code-block:: 
          :copyable: true 

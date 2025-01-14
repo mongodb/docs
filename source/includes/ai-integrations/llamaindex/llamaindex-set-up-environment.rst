@@ -5,11 +5,19 @@
 
       Run the following command:
 
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/llamaindex.ipynb
+
       .. code-block:: python
 
          pip install --quiet --upgrade llama-index llama-index-vector-stores-mongodb llama-index-embeddings-openai pymongo
 
       Then, run the following code to import the required packages:
+
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/llamaindex.ipynb
 
       .. code-block:: python
 
@@ -32,6 +40,10 @@
       - Your |service| {+cluster+}'s |srv| :manual:`connection string
         </reference/connection-string/#find-your-mongodb-atlas-connection-string>`.
 
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/llamaindex.ipynb
+
       .. code-block:: python
 
          os.environ["OPENAI_API_KEY"] = getpass.getpass("OpenAI API Key:")
@@ -52,6 +64,10 @@
       - `Chunk size and overlap
         <https://docs.llamaindex.ai/en/stable/optimizing/basic_strategies/basic_strategies/#chunk-sizes>`__
         to customize how LlamaIndex partitions your data for storage.
+
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/llamaindex.ipynb
 
       .. code-block:: python
 

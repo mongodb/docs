@@ -5,6 +5,10 @@
     
       Run the following code to initialize the kernel.
 
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/semantic-kernel.ipynb
+
       .. code-block:: python
 
          kernel = sk.Kernel()
@@ -18,7 +22,11 @@
       - OpenAI's ``text-embedding-ada-002`` as the embedding model used to convert text into 
         vector embeddings.      
       - OpenAI's ``gpt-3.5-turbo`` as the chat model used to generate responses.
-       
+
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/semantic-kernel.ipynb
+
       .. code-block:: python
 
          chat_service = OpenAIChatCompletion(
@@ -45,7 +53,11 @@
       It also imports a `plugin <https://learn.microsoft.com/en-us/semantic-kernel/agents/plugins/>`__
       called ``TextMemoryPlugin``, which provides a group of native functions 
       to help you store and retrieve text in memory.
-     
+
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/semantic-kernel.ipynb
+
       .. code-block:: python
 
          mongodb_atlas_memory_store = MongoDBAtlasMemoryStore(
@@ -65,6 +77,10 @@
       This code defines and runs a function to populate the ``semantic_kernel_db.test``
       collection with some sample documents. These documents
       contain personalized data that the |llm| did not originally have access to.
+
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/semantic-kernel.ipynb
 
       .. io-code-block:: 
          :copyable: true 

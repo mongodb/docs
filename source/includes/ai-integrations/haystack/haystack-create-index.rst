@@ -2,7 +2,11 @@
    :style: normal 
 
    .. step:: Run the following code to connect to your Atlas cluster. 
-         
+      
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/haystack.ipynb
+
       .. code-block:: python
          :copyable: true
 
@@ -11,6 +15,10 @@
    .. step:: Create the ``haystack_db.test`` collection. 
 
       Run the following code to create your ``haystack_db`` database and ``test`` collection.
+
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/haystack.ipynb
 
       .. code-block:: python
          :copyable: true
@@ -32,6 +40,10 @@
       ``text-embedding-ada-002`` embedding model. The index
       definition specifies ``1536`` vector dimensions and
       measures similarity using ``cosine``.
+
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/haystack.ipynb
 
       .. code-block:: python
          :copyable: true 

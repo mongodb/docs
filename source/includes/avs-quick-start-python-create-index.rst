@@ -12,6 +12,10 @@ a. Add the PyMongo Driver as a dependency in your project:
    Create a file named ``vector-index.py``. Copy and paste the following
    code into the file.
 
+   ..
+      NOTE: If you edit this Python file, also update the Jupyter Notebook
+      at https://github.com/mongodb/docs-notebooks/blob/main/get-started/quick-start.ipynb
+
    .. literalinclude:: /includes/avs-examples/index-management/create-index/basic-example.py
       :language: python
       :copyable: true

@@ -25,6 +25,11 @@
       - Tests the function by generating a single embedding 
         for the string ``foo``.
 
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebooks
+         at https://github.com/mongodb/docs-notebooks/blob/main/create-embeddings/open-source-new-data.ipynb
+         and https://github.com/mongodb/docs-notebooks/blob/main/create-embeddings/open-source-existing-data.ipynb
+
       .. io-code-block:: 
          :copyable: true 
          

@@ -7,6 +7,10 @@ the knowledge base of the |llm| with custom data,
 the chat model is able to generate a more accurate, 
 context-aware response.
 
+..
+   NOTE: If you edit this Python code, also update the Jupyter Notebook
+   at https://github.com/mongodb/docs-notebooks/blob/main/integrations/semantic-kernel.ipynb
+
 .. io-code-block:: 
     :copyable: true 
 

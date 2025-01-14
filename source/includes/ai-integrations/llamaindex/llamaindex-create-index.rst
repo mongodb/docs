@@ -15,7 +15,11 @@ that specifies indexing the following fields:
   <avs-types-vector-search>` type for pre-filtering data 
   by the page number in the PDF.
 
-.. code-block:: json 
+..
+   NOTE: If you edit this Python code, also update the Jupyter Notebook
+   at https://github.com/mongodb/docs-notebooks/blob/main/integrations/llamaindex.ipynb
+
+.. code-block:: python
    :copyable: true 
 
    # Specify the collection for which to create the index

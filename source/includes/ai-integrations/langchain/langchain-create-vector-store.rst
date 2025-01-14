@@ -9,6 +9,10 @@
       - ``langchain_db.test`` as the name of the collection for which to load the data.
       - ``vector_index`` as the name of the {+avs+} index to use for querying the data.
 
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/langchain.ipynb
+
       .. code-block:: python
 
          # Connect to your Atlas cluster
@@ -37,6 +41,10 @@
         to split the data into smaller documents.
       - Specifies chunk parameters, which determines the number of characters in each document and 
         the number of characters that should overlap between two consecutive documents.
+
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/langchain.ipynb
 
       .. io-code-block:: 
          :copyable: true 
@@ -74,6 +82,10 @@
         model is ``text-embedding-ada-002``.
       - ``langchain_db.test`` as the |service| collection to store the documents.
       - ``vector_index`` as the index to use for querying the vector store.
+
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/langchain.ipynb
 
       .. code-block:: python
        

@@ -3,6 +3,10 @@
 
    .. step:: Create a ``.py`` file and use the ``list_search_indexes()`` method to retrieve the indexes for the collection.
 
+      ..
+         NOTE: If you edit this Python file, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/view-indexes.ipynb
+
       .. literalinclude:: /includes/avs-examples/index-management/return-index/get-index.py  
          :language: python
          :copyable: true 

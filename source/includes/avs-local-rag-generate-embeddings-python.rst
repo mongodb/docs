@@ -20,6 +20,10 @@
         - Updates the document by creating a new field called 
           ``embeddings`` that contains the embedding.
 
+        ..
+           NOTE: If you edit this Python file, also update the Jupyter Notebook
+           at https://github.com/mongodb/docs-notebooks/blob/main/use-cases/local-rag.ipynb
+
         .. io-code-block::
            :copyable: true
         

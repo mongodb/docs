@@ -5,11 +5,19 @@
 
       a. Run the following command in your notebook to install the semantic kernel in your environment.
 
+         ..
+            NOTE: If you edit this Python code, also update the Jupyter Notebook
+            at https://github.com/mongodb/docs-notebooks/blob/main/integrations/semantic-kernel.ipynb
+
          .. code-block:: python
 
             pip install --quiet --upgrade semantic-kernel openai motor
 
       #. Run the following code to import the required packages:
+
+         ..
+            NOTE: If you edit this Python code, also update the Jupyter Notebook
+            at https://github.com/mongodb/docs-notebooks/blob/main/integrations/semantic-kernel.ipynb
 
          .. code-block:: python
 
@@ -31,7 +39,11 @@
       - Your OpenAI API Key.
       - Your |service| {+cluster+}'s |srv| :manual:`connection string
         </reference/connection-string/#find-your-mongodb-atlas-connection-string>`.
-        
+
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/semantic-kernel.ipynb
+
       .. code-block:: python
 
          OPENAI_API_KEY = getpass.getpass("OpenAI API Key:")

@@ -1,6 +1,10 @@
 You can create the index directly from your application with the PyMongo
 driver. Paste and run the following code in your notebook:
 
+..
+   NOTE: If you edit this Python file, also update the Jupyter Notebook
+   at https://github.com/mongodb/docs-notebooks/blob/main/use-cases/local-rag.ipynb
+
 .. literalinclude:: /includes/avs-examples/local-rag/vector-index.py
    :language: python
 

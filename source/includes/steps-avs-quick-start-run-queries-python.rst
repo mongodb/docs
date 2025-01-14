@@ -10,6 +10,10 @@
       #. Copy and paste the following sample query into the 
          ``atlas-vector-search-quick-start.py`` file:
 
+         ..
+            NOTE: If you edit this Python file, also update the Jupyter Notebook
+            at https://github.com/mongodb/docs-notebooks/blob/main/get-started/quick-start.ipynb
+
          .. literalinclude:: /includes/avs-examples/pipeline-stage-examples/basic-query.py 
             :language: python
             :linenos:

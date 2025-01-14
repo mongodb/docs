@@ -12,6 +12,10 @@
 
       .. include:: /includes/ai-integrations/langchain/langchain-perform-qa-description.rst
       
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/langchain.ipynb
+
       .. io-code-block:: 
          :copyable: true 
 
@@ -102,6 +106,10 @@
 
       .. include:: /includes/ai-integrations/langchain/langchain-perform-qa-description.rst
       
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/langchain.ipynb
+
       .. io-code-block:: 
          :copyable: true 
 

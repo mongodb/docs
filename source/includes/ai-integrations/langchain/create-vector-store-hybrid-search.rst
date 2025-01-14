@@ -24,6 +24,10 @@
       - ``plot_embedding`` as the field that contains the embeddings.
       - ``dotProduct`` as the relevance score function.
 
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/langchain-hybrid-search.ipynb
+
       .. code-block:: python
 
          from langchain_mongodb import MongoDBAtlasVectorSearch

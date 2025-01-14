@@ -14,6 +14,10 @@
 
             .. include:: /includes/extracts/fts-vector-search-tutorial-simple-query-desc.rst
 
+            ..
+               NOTE: If you edit this Python file, also update the Jupyter Notebook
+               at https://github.com/mongodb/docs-notebooks/blob/main/run-queries/semantic-search-and-filter.ipynb
+
             .. literalinclude:: /includes/avs-examples/tutorial/filter-by-and-query.py
                :language: js
                :linenos:
@@ -24,6 +28,10 @@
             :tabid: or-and-operator
 
             .. include:: /includes/extracts/fts-vector-search-tutorial-advanced-query-desc.rst
+
+            ..
+               NOTE: If you edit this Python file, also update the Jupyter Notebook
+               at https://github.com/mongodb/docs-notebooks/blob/main/run-queries/semantic-search-and-or-filter.ipynb
 
             .. literalinclude:: /includes/avs-examples/tutorial/filter-by-or-and-query.py
                :language: js

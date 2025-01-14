@@ -26,6 +26,10 @@
          .. tab:: Open-Source
             :tabid: open-source
 
+            ..
+               NOTE: If you edit this Python file, also update the Jupyter Notebook
+               at https://github.com/mongodb/docs-notebooks/blob/main/create-embeddings/open-source-new-data.ipynb
+
             .. io-code-block:: 
                :copyable: true 
                
@@ -37,6 +41,10 @@
 
          .. tab:: OpenAI
             :tabid: openai
+
+            ..
+               NOTE: If you edit this Python code, also update the Jupyter Notebook
+               at https://github.com/mongodb/docs-notebooks/blob/main/create-embeddings/openai-new-data.ipynb
 
             .. io-code-block:: 
                :copyable: true 

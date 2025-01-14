@@ -7,6 +7,10 @@
       a :ref:`vector search index <avs-types-vector-search>` that indexes the 
       ``plot_embedding`` field in the collection.
       
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/langchain-hybrid-search.ipynb
+
       .. code-block:: python
 
         # Use helper method to create the vector search index
@@ -23,6 +27,10 @@
       Run the following code in your notebook to create a 
       :ref:`search index <fts-about-indexing>`
       that indexes the ``plot`` field in the collection.
+
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/langchain-hybrid-search.ipynb
 
       .. code-block:: python
 

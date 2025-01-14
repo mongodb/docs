@@ -21,6 +21,10 @@
         to extract raw text and metadata from the file. It also formats the data into
         documents.
 
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/llamaindex.ipynb
+
       .. io-code-block:: 
          :copyable: true 
 
@@ -61,6 +65,10 @@
       <https://docs.llamaindex.ai/en/stable/api_reference/storage/storage_context/>`__,
       which is a LlamaIndex container object used to prepare your data for storage.
       
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/llamaindex.ipynb
+
       .. code-block:: python
 
          # Connect to your Atlas cluster
@@ -95,6 +103,10 @@
          This method uses the embedding model and chunk settings 
          that you configured when you
          :ref:`set up your environment <llamaindex-environment>`.
+
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/llamaindex.ipynb
 
       .. code:: python
 

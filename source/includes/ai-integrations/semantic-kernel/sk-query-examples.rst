@@ -3,6 +3,10 @@ search for the string ``What is my job title?``. It prints the most
 relevant document and a :ref:`relevance score <scoring-ref>` between 
 ``0`` and ``1``.
 
+..
+   NOTE: If you edit this Python code, also update the Jupyter Notebook
+   at https://github.com/mongodb/docs-notebooks/blob/main/integrations/semantic-kernel.ipynb
+
 .. io-code-block:: 
    :copyable: true 
 

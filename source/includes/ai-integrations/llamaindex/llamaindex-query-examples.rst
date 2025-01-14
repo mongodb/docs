@@ -14,6 +14,10 @@
       - The  ``similarity_top_k`` parameter to return 
         only the three most relevant documents.
 
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/llamaindex.ipynb
+
       .. io-code-block:: 
          :copyable: true 
 
@@ -81,6 +85,10 @@
         only the three most relevant documents.
       - A filter on the ``metadata.page_label`` field 
         so that {+avs+} searches for documents appearing on page 17 only.
+
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/llamaindex.ipynb
 
       .. io-code-block:: 
          :copyable: true 

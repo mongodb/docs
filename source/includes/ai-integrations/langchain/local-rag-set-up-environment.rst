@@ -22,6 +22,10 @@
 
       Run the following command in your notebook:
 
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/use-cases/local-rag.ipynb
+
       .. code-block:: python
 
          pip install --quiet pymongo gpt4all sentence_transformers
@@ -36,6 +40,10 @@
             If you're using a local |service| {+deployment+}, 
             run the following code in your notebook, replacing ``<port-number>`` 
             with the port for your local {+deployment+}.
+
+            ..
+               NOTE: If you edit this Python code, also update the Jupyter Notebook
+               at https://github.com/mongodb/docs-notebooks/blob/main/use-cases/local-rag.ipynb
             
             .. code-block:: python
 
@@ -48,6 +56,10 @@
             run the following code in your notebook, replacing ``<connection-string>``
             with your |service| {+cluster+}'s |srv| :manual:`connection string 
             </reference/connection-string/#find-your-mongodb-atlas-connection-string>`:
+
+            ..
+               NOTE: If you edit this Python code, also update the Jupyter Notebook
+               at https://github.com/mongodb/docs-notebooks/blob/main/use-cases/local-rag.ipynb
             
             .. code-block:: python
 

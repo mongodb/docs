@@ -17,6 +17,10 @@
 
       .. example:: Install PyMongo and Cohere
 
+         ..
+            NOTE: If you edit this Python code, also update the Jupyter Notebook
+            at https://github.com/mongodb/docs-notebooks/blob/main/quantization/new-data.ipynb
+
          .. code-block:: shell 
 
             pip --quiet install pymongo cohere
@@ -54,6 +58,10 @@
             * - ``<COHERE-API-KEY>``
               - API key for Cohere.
 
+         ..
+            NOTE: If you edit this Python code, also update the Jupyter Notebook
+            at https://github.com/mongodb/docs-notebooks/blob/main/quantization/new-data.ipynb
+
          .. code-block:: python 
 
             import cohere
@@ -78,6 +86,10 @@
       native vector embedding to |bson| vectors.
          
       .. example:: Define and Run a Function to Generate BSON Vectors
+
+         ..
+            NOTE: If you edit this Python code, also update the Jupyter Notebook
+            at https://github.com/mongodb/docs-notebooks/blob/main/quantization/new-data.ipynb
 
          .. code-block:: python 
 
@@ -117,6 +129,10 @@
 
             * - ``<FIELD-NAME-FOR-INT1-TYPE>``
               - Name of field with ``int1`` values.
+
+         ..
+            NOTE: If you edit this Python code, also update the Jupyter Notebook
+            at https://github.com/mongodb/docs-notebooks/blob/main/quantization/new-data.ipynb
 
          .. code-block:: python 
 
@@ -158,7 +174,11 @@
               - |service| connection string. To learn more, see
                 :ref:`connect-via-driver`.  
 
-         .. example:: 
+         .. example::
+
+            ..
+               NOTE: If you edit this Python code, also update the Jupyter Notebook
+               at https://github.com/mongodb/docs-notebooks/blob/main/quantization/new-data.ipynb
          
             .. code-block:: python 
 
@@ -189,8 +209,12 @@
             * - ``<COLLECTION-NAME>``
               - Name of the collection in the specified database.  
 
-         .. example:: 
-         
+         .. example::
+
+            ..
+               NOTE: If you edit this Python code, also update the Jupyter Notebook
+               at https://github.com/mongodb/docs-notebooks/blob/main/quantization/new-data.ipynb
+
             .. code-block:: python 
 
                client = pymongo.MongoClient(MONGO_URI)
@@ -224,6 +248,10 @@
 
             * - ``<FIELD-NAME-FOR-INT1-TYPE>``
               - Name of field with ``int1`` values.
+
+         ..
+            NOTE: If you edit this Python code, also update the Jupyter Notebook
+            at https://github.com/mongodb/docs-notebooks/blob/main/quantization/new-data.ipynb
 
          .. code-block:: python 
 
@@ -292,6 +320,10 @@
             * - ``<NUMBER-OF-DOCUMENTS-TO-RETURN>`` 
               - Number of documents to return in the results. 
 
+         ..
+            NOTE: If you edit this Python code, also update the Jupyter Notebook
+            at https://github.com/mongodb/docs-notebooks/blob/main/quantization/new-data.ipynb
+
          .. code-block:: python 
 
             def run_vector_search(query_text, collection, path):
@@ -339,7 +371,11 @@
       You can run {+avs+} queries programmatically. To learn more, see
       :ref:`return-vector-search-results`. 
 
-      .. example:: 
+      .. example::
+
+         ..
+            NOTE: If you edit this Python code, also update the Jupyter Notebook
+            at https://github.com/mongodb/docs-notebooks/blob/main/quantization/new-data.ipynb
          
          .. io-code-block:: 
             :copyable: true 

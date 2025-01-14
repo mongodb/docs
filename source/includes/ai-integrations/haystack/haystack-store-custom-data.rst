@@ -11,6 +11,10 @@
         used to store the documents.
       - ``vector_index`` as the index used to run semantic search queries.
 
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/haystack.ipynb
+
       .. code-block:: python
 
          document_store = MongoDBAtlasDocumentStore(
@@ -30,6 +34,10 @@
       - A `document writer <https://docs.haystack.deepset.ai/docs/documentwriter>`__ to 
         populate your document store with the sample documents
         and their embeddings.
+
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/haystack.ipynb
 
       .. io-code-block:: 
          :copyable: true 

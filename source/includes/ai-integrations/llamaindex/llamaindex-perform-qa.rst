@@ -13,6 +13,10 @@
 
       .. include:: /includes/ai-integrations/llamaindex/llamaindex-rag-example-description.rst
 
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/llamaindex.ipynb
+
       .. io-code-block:: 
          :copyable: true 
 
@@ -65,6 +69,10 @@
         only the 5 most relevant documents from page 17.
 
       .. include:: /includes/ai-integrations/llamaindex/llamaindex-rag-example-description.rst
+
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/llamaindex.ipynb
 
       .. io-code-block:: 
          :copyable: true 

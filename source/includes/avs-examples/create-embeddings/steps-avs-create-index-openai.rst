@@ -10,6 +10,11 @@ a. Paste the following code in your notebook.
    <avs-types-vector-search>` type, the similarity function 
    as ``dotProduct``, and the number of dimensions as ``1536``.
 
+   ..
+      NOTE: If you edit this Python code, also update the Jupyter Notebooks
+      at https://github.com/mongodb/docs-notebooks/blob/main/create-embeddings/openai-new-data.ipynb
+      and https://github.com/mongodb/docs-notebooks/blob/main/create-embeddings/openai-existing-data.ipynb
+
    .. code-block:: python
       :copyable: true 
 
