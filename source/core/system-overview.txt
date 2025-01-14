@@ -44,65 +44,41 @@ For a list of |onprem|'s default ports and health-check endpoints, see
 Backup Daemon Service
 ---------------------
 
-You can configure any |onprem| instance to run the :term:`Backup
-Daemon` service to back up MongoDB databases.
-
-To learn how to start, check the status of, stop, and restart the Backup
-daemon on a server, see :ref:`Start and Stop the Backup Daemon
-<start-stop-backup-daemon>`.
+You can configure any |onprem| instance to perform backup :term:`snapshot`
+maintenance work, such as a :term:`grooms <groom>` and managing
+file system snapshot files on the :term:`file system store <File System
+Store>` by running the :term:`Backup Daemon`. To learn how to start,
+check the status of, stop, and restart the Backup Daemon on a server,
+see :ref:`Start and Stop the Backup Daemon <start-stop-backup-daemon>`.
 
 How the Backup Daemon performs depends upon the
 :manual:`MongoDB version compatibility</reference/command/setFeatureCompatibilityVersion>`
 of your database. This Feature Compatibility Version ranges from the
-current version to one version earlier. For example, with MongoDB 4.2,
-the FCV can be ``4.0`` or ``4.2``. Backup functionality changed with
+current version to one version earlier. For example, with MongoDB 4.4,
+the FCV can be ``4.2`` or ``4.4``. Backup functionality changed with
 |fcv-link| ``4.2``.
 
-.. tabs::
+The Backup Daemon service provides the following services for databases:
 
-   .. tab:: FCV 4.2 or later
-      :tabid: fcv42
+- Runs groom jobs, incremental filesystem snapshots, other backup
+  related jobs 
+- Performs some state updates to the backup job
+- Perform a queryable restore
 
-      The Backup Daemon service provides the following services for |fcv| 4.2 or later databases:
-
-      - Performs some state updates to the backup job
-      - Perform a queryable restore
-
-      The daemon does scheduled work based on data coming
-      into the |onprem| from the {+mdbagent+}s. Client applications
-      can't communicate with the daemon. Its state and job queues come
-      from the :ref:`mms-application-database`. |mms| creates snapshots
-      from the database being backed up.
-
-   .. tab:: FCV 4.0 or earlier
-      :tabid: fcv40
-
-      The Backup Daemon service manages the local copies of the
-      backed-up databases and snapshots for each database. The daemon
-      does scheduled work based on data coming into the |onprem| from
-      the {+mdbagent+}s. Client applications can't communicate with the
-      daemon. Its state and job queues come from the
-      :ref:`mms-application-database`.
-
-      The local backup copy of a deployment is called the :term:`head
-      database`. The :opsmgr:`Backup Daemon </reference/glossary/#std-term-backup-daemon>` stores all its head
-      databases in its :term:`head directory` path. To create each head
-      database, the daemon's host acts as an "invisible"
-      :manual:`secondary </reference/glossary/#std-term-secondary>` for each :manual:`replica set </reference/glossary/#std-term-replica-set>` designated for
-      backup.
-
-      The daemon takes scheduled snapshots and stores these snapshots
-      in a :opsmgr:`snapshot store </reference/glossary/#std-term-snapshot-store>`. When the client requests a restore,
-      the daemon retrieves data from the snapshot store. It then
-      delivers the snapshot to the requested target.
+Client applications can't communicate with the daemon. Its state and job
+queues come from the :ref:`mms-application-database`. |mms| creates
+snapshots from the database being backed up. For incremental backups
+using file system stores, the daemon is responsible for creating
+snapshots.
 
 :ref:`Multiple Backup Daemons <multiple-backup-daemons>` can scale
-horizontally to increase your storage and can provide *manual*
-failover.
+horizontally to run more concurrent jobs when needed and can provide
+*manual* failover.
 
 If you run multiple Backup Daemons, |onprem| selects the Backup Daemon
 to use when a user enables backup for a deployment. The
-:opsmgr:`head database </reference/glossary/#std-term-head-database>` resides with the daemon's host.
+:opsmgr:`head database </reference/glossary/#std-term-head-database>`
+resides with the daemon's host.
 
 .. _backing-database:
 
