@@ -10,10 +10,10 @@
 
       .. code-block:: sh
 
-         kubectl config set-cluster old --server=https://<OLD_CLUSTER_ULR>
+         kubectl config set-cluster old --server=https://<OLD_CLUSTER_URL>
          kubectl config set-context old --cluster=old
 
-         kubectl config set-cluster new --server=https://<NEW_CLUSTER_ULR>
+         kubectl config set-cluster new --server=https://<NEW_CLUSTER_URL>
          kubectl config set-context new --cluster=new
 
    .. step:: Deploy |ak8so| ``v2.x`` to your new K8s cluster.
