@@ -1,0 +1,245 @@
+.. _node-csot:
+
+Limit Server Execution Time
+===========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: error, blocking, thread, task
+
+Overview
+--------
+
+When you use the {+driver-short+} to perform a server operation, you can also
+limit the duration allowed for the server to finish the operation. To do so,
+specify a **client-side operation timeout (CSOT)**. The timeout applies to all
+steps needed to complete the operation, including server selection, connection
+checkout, and server-side execution. When the timeout expires, the
+{+driver-short+} raises a timeout exception.
+
+.. note:: Experimental Feature
+
+   The CSOT feature is experimental and might change in future driver releases.
+
+timeoutMS Option
+----------------
+
+To specify a timeout when connecting to a MongoDB deployment, set the
+``timeoutMS`` connection option to the timeout length in milliseconds. You can
+do this in two ways: by passing an argument to the ``MongoClient`` constructor
+or through a parameter in your connection string.
+
+The following code examples use the ``timeoutMS`` option to specify a timeout of
+30 seconds:
+
+.. tabs::
+
+   .. tab:: MongoClient
+      :tabid: mongoclient
+
+      .. code-block:: javascript
+         :emphasize-lines: 2
+
+         const uri = "mongodb://<hostname:<port>";
+         const client = new MongoClient(uri, { timeoutMS: 30000 });
+   
+   .. tab:: Connection String
+      :tabid: connection-string
+
+      .. code-block:: javascript
+         :emphasize-lines: 1
+
+         const uri = "mongodb://<hostname:<port>?timeoutMS=30000";
+         const client = new MongoClient(uri);
+
+.. note:: 
+
+   The ``timeoutMS`` connection option takes precedence over the
+   following options:
+
+   - ``socketTimeoutMS``
+   - ``waitQueueTimeoutMS``
+   - ``wTimeoutMS``
+   - ``maxTimeMS``
+   - ``maxCommitTimeMS``
+
+   When the CSOT feature is no longer experimental, the preceding options will
+   be deprecated. 
+
+If you specify the ``timeoutMS`` option, the driver automatically applies the
+specified timeout per each server operation. The following code example specifies
+a timeout of 10 seconds at the client level, and then calls the ``insertOne()``
+method:
+
+.. literalinclude:: /code-snippets/connection/csot-operation.js
+   :language: javascript
+   :start-after: start-operation
+   :end-before: end-operation
+
+Timeout Inheritance
+~~~~~~~~~~~~~~~~~~~
+
+When you specify a ``timeoutMS`` option, the driver applies the timeout
+according to the same inheritance behaviors as the other {+driver-short+} options.
+The following table describes how the timeout value is inherited at each level:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Level
+     - Inheritance Description
+
+   * - Operation
+     - Takes the highest precedence and will override ``timeoutMS``
+       options set at any other level.
+
+   * - Transaction
+     - Takes precedence over ``timeoutMS`` set at the session,
+       collection, database, or client level.
+
+   * - Session
+     - Applies to all transactions and operations within
+       that session, unless the option is overridden by options set at those levels.
+
+   * - Database
+     - Applies to all sessions and operations within that
+       database, unless the option is overridden by options set at those levels.
+
+   * - Collection
+     - Applies to all sessions and operations on that
+       collection, unless the option is overridden by options set at those levels.
+
+   * - Client
+     - Applies to all databases, collections, sessions, transactions, and
+       operations within that client that do not otherwise specify
+       ``timeoutMS``.
+
+For more information on overrides and specific options, see the :ref:`Overrides
+<node-csot-overrides>` section.
+
+.. _node-csot-overrides:
+
+Overrides
+---------
+
+The {+driver-short+} supports various levels of configuration to control the
+behavior and performance of database operations. 
+
+You can specify a ``timeoutMS`` option at the operation level to override the
+client-level configuration for a specific operation. This allows you to
+customize timeouts based on the needs of individual queries.
+
+The following example demonstrates how an operation-level ``timeoutMS``
+configuration can override a client-level ``timeoutMS`` configuration:
+
+.. literalinclude:: /code-snippets/connection/csot.js
+   :language: javascript
+   :start-after: start-csot
+   :end-before: end-csot
+
+Transactions
+~~~~~~~~~~~~
+
+When you create a new ``ClientSession`` instance to implement a transaction, use
+the ``defaultTimeoutMS`` option. You can set ``defaultTimeoutMS`` to specify the
+``timeoutMS`` values to use for:
+
+- `commitTransaction()
+  <{+api+}/classes/ClientSession.html#commitTransaction>`__
+- `abortTransaction()
+  <{+api+}/classes/ClientSession.html#abortTransaction>`__
+- `withTransaction() <{+api+}/classes/ClientSession.html#withTransaction>`__
+- `endSession()
+  <{+api+}/classes/ClientSession.html#endSession>`__
+
+If you do not specify ``defaultTimeoutMS``, the driver uses the ``timeoutMS``
+value set on the parent ``MongoClient``.
+
+You cannot override ``defaultTimeoutMS`` by setting the ``timeoutMS`` option on an
+operation in a transaction session provided by the ``withTransaction()`` callback.
+Doing so throws an error.
+
+Client Encryption
+~~~~~~~~~~~~~~~~~
+
+When you use Client-Side Field Level Encryption (CSFLE), the driver uses the
+``timeoutMS`` option to limit the time allowed for encryption and decryption
+operations.
+
+If you specify the ``timeoutMS`` option when you construct a
+``ClientEncryption`` instance, it controls the lifetime of all operations
+performed on that instance. If you do not provide ``timeoutMS``, the instance
+inherits the ``timeoutMS`` setting from the ``MongoClient`` used in the
+``ClientEncryption`` constructor.
+
+If you set ``timeoutMS`` on both the client and directly in
+``ClientEncryption``, the value provided to ``ClientEncryption`` takes
+precedence.
+
+Cursors
+-------
+
+Cursors offer configurable timeout settings when using the CSOT feature. You can
+adjust cursor handling by configuring either the cursor lifetime or cursor
+iteration mode if needed. To configure the mode, set the ``timeoutMode`` option
+to ``cursorLifetime``, which is the default, or ``iteration``.
+
+Cursor Lifetime Mode
+~~~~~~~~~~~~~~~~~~~~
+
+The cursor lifetime mode uses ``timeoutMS`` to limit the entire lifetime of a
+cursor. In this mode, the initialization of the cursor and all subsequent calls
+to the cursor methods must complete within the limit specified by the
+``timeoutMS`` option. All documents must be returned within this limit.
+Otherwise, the cursor's lifetime expires and a timeout error occurs.
+
+When you close a cursor by calling the  ``toArray()`` or ``close()`` method, the
+timeout resets for the ``killCursors`` command to ensure server-side resources are
+cleaned up.
+
+The following example shows how to set the ``timeoutMS`` option to ensure that
+the cursor is initialized and all documents are retrieved within 10 seconds:
+
+.. code-block:: javascript
+
+   const docs = await collection.find({}, {timeoutMS: 10000}).toArray();
+
+Cursor Iteration Mode
+~~~~~~~~~~~~~~~~~~~~~
+
+The cursor iteration mode uses the ``timeoutMS`` option to limit each call to
+the ``next()``, ``hasNext()``, or ``tryNext()`` method. The timeout refreshes
+after each call completes. This is the default mode for all tailable cursors,
+such as the tailable cursors returned by the ``find()`` method on capped
+collections or change streams.
+
+The following code example iterates over documents in the ``mflix`` collection
+using a cursor with the ``timeoutMode`` set to ``iteration``, and then fetches
+and logs the ``imdb_url`` for each movie document:
+
+.. code-block:: javascript
+   
+   for await (const movie of mflix.find({}, { timeoutMode: 'iteration' })) {
+      const imdbResponse = await fetch(movie.imdb_url);
+      console.log(await imdbResponse.text());
+   }
+
+API Documentation
+-----------------
+
+To learn more about using timeouts with the {+driver-short+}, see the following
+API documentation:
+
+- `MongoClient <{+api+}/classes/MongoClient.html>`__
+- `timeoutMS <{+api+}/classes/MongoClient.html#timeoutMS>`__
+- `ClientSession <{+api+}/classes/ClientSession.html>`__
