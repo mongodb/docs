@@ -14,6 +14,8 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.UpdateResult;
 
+import static com.mongodb.client.model.Sorts.ascending;
+
 public class Update {
     private final MongoCollection<Document> collection;
     private final MongoClient mongoClient;
@@ -39,6 +41,25 @@ public class Update {
         System.out.println("Replace One:");
         update.replaceOneExample();
         update.preview(false);
+    }
+
+    private void updateOneExample(){
+        // Creates a filter and update document to change the value of ``color``
+        // begin updateOneExample
+        Bson filter = Filters.eq("qty", 0);
+        Bson update = Updates.set("color", "dandelion");
+
+        // Updates first matching document
+        UpdateResult result = collection.updateOne(filter, update);
+        // end updateOneExample
+        
+        System.out.println("Matched document count: " + result.getMatchedCount());
+        System.out.println("Modified document count: " + result.getModifiedCount());
+
+        // begin updateoptions
+        UpdateOptions options = UpdateOptions.sort(ascending("color"));
+        UpdateResult result = collection.updateOne(filter, document, options);
+        // end updateoptions
     }
 
     private void updateManyExample(){
@@ -67,6 +88,11 @@ public class Update {
         System.out.println("Matched document count: " + result.getMatchedCount());
         System.out.println("Modified document count: " + result.getModifiedCount());
         // end replaceOneExample
+
+        // begin replaceoptions
+        ReplaceOptions options = ReplaceOptions.sort(ascending("qty"));
+        UpdateResult result = collection.replaceOne(filter, document, options);
+        // end replaceoptions
     }
 
     private void preview(boolean drop){
