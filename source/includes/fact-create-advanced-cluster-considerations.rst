@@ -19,6 +19,8 @@
 - |service| clusters created after July 2020 use |tls| version 1.2 by
   default.
 
+  .. include:: /includes/tls-deprecation.rst
+
 -  When you create a cluster, |service| creates a 
    :oas-atlas-op:`network container 
    </createOneNewNetworkPeeringContainer>` in the project for the cloud 

@@ -47,6 +47,8 @@
        1.1 should consider setting |tls| 1.2 as the minimum |tls|
        protocol version.
 
+       .. include:: /includes/tls-deprecation.rst
+       
        To learn more, see :ref:`faq-tls-1.0-deprecation`.
 
        This option corresponds to the
