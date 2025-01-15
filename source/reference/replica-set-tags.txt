@@ -213,6 +213,30 @@ Consider the following scenarios where utilizing pre-defined replica set
 tags would be beneficial, and see the corresponding sample connection
 strings.
 
+.. important:: High Availability for Analytics Node Queries
+   
+   For reads targeting analytic nodes with tags like ``readPreferenceTags=nodeType:ANALYTICS``,
+   resilience is crucial when node availability fluctuates. Without fallback tags, 
+   queries may fail during:
+
+   * Initial sync during data compaction
+   * Disk scale-down events
+   * Any |nvme| cluster tier changes
+
+   To mitigate these risks, ensure your connection string includes *multiple read 
+   preference tags* to provide fallback options so |service| can route analytic 
+   reads to available nodes during such events. For example:
+
+   .. code-block:: none
+
+      db+srv://<db_username>:<db_password>@foo-q8x1v.mycluster.com/test?readPreference=secondary&readPreferenceTags=nodeType:ANALYTICS,priority:1&readPreferenceTags=&readConcernLevel=local
+
+   In this example:
+   
+   1. The application first tries to connect to a node tagged ``nodeType:ANALYTICS``.
+   2. If no such nodes are available, the final empty ``readPreferenceTags=`` 
+      allows the application to connect to any available secondary node.
+
 .. note::
 
    Each of the following example connection strings employ the
