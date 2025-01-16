@@ -71,6 +71,11 @@
             .. tab:: Basic Example
                :tabid: basic
 
+               .. tip::
+
+                  Work with a runnable version of this example as a
+                  :github:`Python notebook <mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-basic.ipynb?tck=docs>`.
+
                The following index definition indexes only the vector
                embeddings field (``plot_embedding``) for performing
                vector search.
@@ -86,6 +91,11 @@
 
             .. tab:: Filter Example 
                :tabid: advanced
+
+               .. tip::
+
+                  Work with a runnable version of this example as a
+                  :github:`Python notebook <mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-filter.ipynb?tck=docs>`.
 
                This index definition indexes the following fields: 
       
