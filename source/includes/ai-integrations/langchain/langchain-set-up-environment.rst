@@ -11,7 +11,7 @@
 
       .. code-block:: python
 
-         pip install --upgrade --quiet langchain langchain-community langchain-core langchain-mongodb langchain-openai pymongo pypdf
+         pip install --quiet --upgrade langchain langchain-community langchain-core langchain-mongodb langchain-openai pymongo pypdf
 
       Then, run the following code to import the required packages:
 
@@ -21,7 +21,7 @@
 
       .. code-block:: python
 
-         import getpass, os, pymongo, pprint
+         import os, pymongo, pprint
          from langchain_community.document_loaders import PyPDFLoader
          from langchain_core.output_parsers import StrOutputParser
          from langchain_core.runnables import RunnablePassthrough
@@ -34,7 +34,8 @@
 
    .. step:: Define environmental variables.
 
-      Run the following code and provide the following when prompted:
+      Run the following code, replacing the placeholders with 
+      the following values:
       
       - Your OpenAI API Key.
       - Your |service| {+cluster+}'s |srv| :manual:`connection string
@@ -46,8 +47,8 @@
 
       .. code-block:: python
 
-         os.environ["OPENAI_API_KEY"] = getpass.getpass("OpenAI API Key:")
-         ATLAS_CONNECTION_STRING = getpass.getpass("MongoDB Atlas SRV Connection String:")
+         os.environ["OPENAI_API_KEY"] = "<api-key>"
+         ATLAS_CONNECTION_STRING = "<connection-string>"
 
       .. note:: 
 

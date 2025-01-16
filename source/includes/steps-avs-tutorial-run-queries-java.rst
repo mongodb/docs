@@ -21,7 +21,7 @@
                :emphasize-lines: 21
 
 
-         .. tab:: Pre-Filter by OR and AND Operator 
+         .. tab:: Pre-Filter by OR and AND Operators 
             :tabid: or-and-operator
 
             .. include:: /includes/extracts/fts-vector-search-tutorial-advanced-query-desc.rst
@@ -59,7 +59,7 @@
                   :linenos:
                   :visible: true
 
-         .. tab:: Pre-Filter by OR and AND Operator 
+         .. tab:: Pre-Filter by OR and AND Operators 
             :tabid: or-and-operator
 
             .. io-code-block::

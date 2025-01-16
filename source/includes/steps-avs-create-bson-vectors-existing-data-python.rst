@@ -27,7 +27,7 @@
 
          .. code-block:: python 
 
-            pip --quiet install pymongo cohere
+            pip install --quiet --upgrade pymongo cohere
 
    .. step:: Define the functions to generate vector embeddings and convert embeddings to BSON-compatible format. 
 
@@ -60,18 +60,17 @@
                   at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
 
                .. code-block:: python 
-                  :linenos:
-
+   
                   import os
                   import pymongo
                   import cohere
                   from bson.binary import Binary, BinaryVectorDtype
 
-                  # Specify your OpenAI API key and embedding model
+                  # Specify your Cohere API key 
                   os.environ["COHERE_API_KEY"] = "<COHERE-API-KEY>"
                   cohere_client = cohere.Client(os.environ["COHERE_API_KEY"])
 
-                  # Function to generate embeddings using Cohere
+                  # Define function to generate embeddings using the embed-english-v3.0 model
                   def get_embedding(text):
                       response = cohere_client.embed(
                         texts=[text],
@@ -82,7 +81,7 @@
                       embedding = response.embeddings.float[0] 
                       return embedding
                 
-                  # Function to convert embeddings to BSON-compatible format
+                  # Define function to convert embeddings to BSON-compatible format
                   def generate_bson_vector(vector, vector_dtype):
                       return Binary.from_vector(vector, vector_dtype)
 
@@ -94,18 +93,17 @@
                   at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
 
                .. code-block:: python 
-                  :linenos:
-
+   
                   import os
                   import pymongo
                   import cohere
                   from bson.binary import Binary, BinaryVectorDtype
 
-                  # Specify your OpenAI API key and embedding model
+                  # Specify your Cohere API key
                   os.environ["COHERE_API_KEY"] = "<COHERE-API-KEY>"
                   cohere_client = cohere.Client(os.environ["COHERE_API_KEY"])
 
-                  # Function to generate embeddings using Cohere
+                  # Define function to generate embeddings using the embed-english-v3.0 model
                   def get_embedding(text):
                       response = cohere_client.embed(
                         texts=[text],
@@ -116,7 +114,7 @@
                       embedding = response.embeddings.int8[0] 
                       return embedding
                 
-                  # Function to convert embeddings to BSON-compatible format
+                  # Define function to convert embeddings to BSON-compatible format
                   def generate_bson_vector(vector, vector_dtype):
                       return Binary.from_vector(vector, vector_dtype)
 
@@ -128,18 +126,17 @@
                   at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
 
                .. code-block:: python 
-                  :linenos:
-
+   
                   import os
                   import pymongo
                   import cohere
                   from bson.binary import Binary, BinaryVectorDtype
 
-                  # Specify your OpenAI API key and embedding model
+                  # Specify your Cohere API key
                   os.environ["COHERE_API_KEY"] = "<COHERE-API-KEY>"
                   cohere_client = cohere.Client(os.environ["COHERE_API_KEY"])
 
-                  # Function to generate embeddings using Cohere
+                  # Define function to generate embeddings using the embed-english-v3.0 model
                   def get_embedding(text):
                       response = cohere_client.embed(
                         texts=[text],
@@ -150,7 +147,7 @@
                       embedding = response.embeddings.ubinary[0] 
                       return embedding
                 
-                  # Function to convert embeddings to BSON-compatible format
+                  # Define function to convert embeddings to BSON-compatible format
                   def generate_bson_vector(vector, vector_dtype):
                       return Binary.from_vector(vector, vector_dtype)
 
@@ -225,8 +222,7 @@
                   at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
 
                .. code-block:: python 
-                  :linenos:
-
+   
                   for doc in documents:
                       # Generate embeddings based on the summary
                       summary = doc["summary"]
@@ -252,14 +248,13 @@
                   at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
 
                .. code-block:: python 
-                  :linenos:
-
+   
                   for doc in documents:
                       # Generate embeddings based on the summary
                       summary = doc["summary"]
                       embedding = get_embedding(summary)  # Get int8 embedding
 
-                      # Convert the float32 embedding to BSON format
+                      # Convert the int8 embedding to BSON format
                       bson_int8 = generate_bson_vector(embedding, BinaryVectorDtype.INT8)
 
                       # Update the document with the BSON embedding
@@ -279,14 +274,13 @@
                   at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
 
                .. code-block:: python 
-                  :linenos:
-
+   
                   for doc in documents:
                       # Generate embeddings based on the summary
                       summary = doc["summary"]
                       embedding = get_embedding(summary)  # Get int1 embedding
 
-                      # Convert the float32 embedding to BSON format
+                      # Convert the int1 embedding to BSON format
                       bson_int1 = generate_bson_vector(embedding, BinaryVectorDtype.PACKED_BIT)
 
                       # Update the document with the BSON embedding
@@ -325,21 +319,38 @@
             :linenos:
 
             from pymongo.operations import SearchIndexModel
-  
-            vector_search_index_definition = {
-              "fields":[
-                {
-                  "type": "vector",
-                  "path": "embedding",
-                  "similarity": "euclidean",
-                  "numDimensions": 1024,  
-                }
-              ]
-            }
+            import time
 
-            search_index_model = SearchIndexModel(definition=vector_search_index_definition, name="<INDEX-NAME>", type="vectorSearch")
+            # Define and create the vector search index
+            index_name = "<INDEX-NAME>"
+            search_index_model = SearchIndexModel(
+              definition={
+                "fields": [
+                  {
+                    "type": "vector",
+                    "path": "embedding",
+                    "similarity": "euclidean",
+                    "numDimensions": 1024
+                  }
+                ]
+              },
+              name=index_name,
+              type="vectorSearch"
+            )
+            result = collection.create_search_index(model=search_index_model)
+            print("New search index named " + result + " is building.")
 
-            collection.create_search_index(model=search_index_model)
+            # Wait for initial sync to complete
+            print("Polling to check if the index is ready. This may take up to a minute.")
+            predicate=None
+            if predicate is None:
+              predicate = lambda index: index.get("queryable") is True
+            while True:
+              indices = list(collection.list_search_indexes(index_name))
+              if len(indices) and predicate(indices[0]):
+                break
+              time.sleep(5)
+            print(result + " is ready for querying.")
 
       .. include:: /includes/fact-index-build-initial-sync.rst 
 
@@ -361,14 +372,11 @@
             * - Placeholder 
               - Valid Value 
 
-            * - ``<INDEX-NAME>``
-              - Name of ``vector`` type index. 
-
             * - ``<NUMBER-OF-CANDIDATES-TO-CONSIDER>`` 
               - Number of nearest neighbors to use during the search.
 
             * - ``<NUMBER-OF-DOCUMENTS-TO-RETURN>`` 
-              - Number of documents to return in the results. 
+              - Number of documents to return in the results.
 
          .. tabs:: 
             :hidden:
@@ -381,8 +389,7 @@
                   at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
 
                .. code-block:: python 
-                  :linenos:
-
+   
                   def run_vector_search(query_text, collection, path):
                     query_embedding = get_embedding("query_text")
                     bson_query_vector = generate_bson_vector(query_embedding, BinaryVectorDtype.FLOAT32)
@@ -390,7 +397,7 @@
                     pipeline = [
                       {
                         '$vectorSearch': {
-                          'index': '<INDEX-NAME>', 
+                          'index': index_name, 
                           'path': path,
                           'queryVector': bson_query_vector,
                           'numCandidates': <NUMBER-OF-CANDIDATES-TO-CONSIDER>, # for example, 20
@@ -417,8 +424,7 @@
                   at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
 
                .. code-block:: python 
-                  :linenos:
-
+   
                   def run_vector_search(query_text, collection, path):
                     query_embedding = get_embedding("query_text")
                     bson_query_vector = generate_bson_vector(query_embedding, BinaryVectorDtype.INT8)
@@ -426,7 +432,7 @@
                     pipeline = [
                       {
                         '$vectorSearch': {
-                          'index': '<INDEX-NAME>', 
+                          'index': index_name, 
                           'path': path,
                           'queryVector': bson_query_vector,
                           'numCandidates': <NUMBER-OF-CANDIDATES-TO-CONSIDER>, # for example, 20
@@ -453,8 +459,7 @@
                   at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb
 
                .. code-block:: python 
-                  :linenos:
-
+   
                   def run_vector_search(query_text, collection, path):
                     query_embedding = get_embedding("query_text")
                     bson_query_vector = generate_bson_vector(query_embedding, BinaryVectorDtype.PACKED_BIT)
@@ -462,7 +467,7 @@
                     pipeline = [
                       {
                         '$vectorSearch': {
-                          'index': '<INDEX-NAME>', 
+                          'index': index_name, 
                           'path': path,
                           'queryVector': bson_query_vector,
                           'numCandidates': <NUMBER-OF-CANDIDATES-TO-CONSIDER>, # for example, 20
@@ -497,21 +502,20 @@
             
             .. input:: 
                :language: python 
-               :linenos:
 
                from pprint import pprint
 
                query_text = "ocean view"
                query_results = run_vector_search(query_text, collection, "embedding")
 
-               print("results from your embeddings")
+               print("query results:")
                pprint(list(query_results))
 
             .. output:: 
                :language: python 
                :visible: false
 
-               results from your embeddings
+               query results:
                [{'name': 'Your spot in Copacabana',
                  'score': 0.5468248128890991,
                  'summary': 'Having a large airy living room. The apartment is well divided. '
@@ -549,7 +553,5 @@
                             'Citygate outlets, 360 Cable car, shopping centre, main tourist '
                             'attractions......'}]
 
-         Your results might vary because you randomly selected ``50``
-         documents from the ``sample_airbnb.listingsAndReviews``
-         namespace in step 3. The selected documents and generated
-         embeddings might be different in your environment. 
+         Your results might vary depending on the vector data type 
+         that you specified in the previous steps.

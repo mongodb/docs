@@ -9,7 +9,7 @@
 
       .. code-block:: python
 
-         pip install --quiet sentence-transformers pymongo einops
+         pip install --quiet --upgrade sentence-transformers pymongo einops
 
    .. step:: Define a function to generate vector embeddings.
 

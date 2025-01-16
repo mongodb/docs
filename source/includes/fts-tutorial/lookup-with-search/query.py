@@ -1,4 +1,3 @@
-import datetime
 import pymongo
 
 # connect to your Atlas cluster

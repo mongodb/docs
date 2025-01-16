@@ -24,7 +24,7 @@
                :dedent:
                :emphasize-lines: 4
 
-         .. tab:: Pre-Filter by OR and AND Operator 
+         .. tab:: Pre-Filter by OR and AND Operators 
             :tabid: or-and-operator
 
             .. include:: /includes/extracts/fts-vector-search-tutorial-advanced-query-desc.rst
@@ -64,7 +64,7 @@
                   :language: json
                   :visible: true
 
-         .. tab:: Pre-Filter by OR and AND Operator 
+         .. tab:: Pre-Filter by OR and AND Operators 
             :tabid: or-and-operator
   
             .. io-code-block::

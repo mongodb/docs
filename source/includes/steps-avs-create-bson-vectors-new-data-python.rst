@@ -23,7 +23,7 @@
 
          .. code-block:: shell 
 
-            pip --quiet install pymongo cohere
+            pip install --quiet --upgrade pymongo cohere
 
    .. step:: Load the data for which you want to generate |bson| vectors in your notebook. 
 
@@ -64,18 +64,21 @@
 
          .. code-block:: python 
 
+            import os
             import cohere
-            
-            api_key = "<COHERE-API-KEY>"
-            co = cohere.Client(api_key)
 
-            generated_embeddings = co.embed(
+            # Specify your Cohere API key
+            os.environ["COHERE_API_KEY"] = "<COHERE-API-KEY>"
+            cohere_client = cohere.Client(os.environ["COHERE_API_KEY"])
+
+            # Generate embeddings using the embed-english-v3.0 model
+            generated_embeddings = cohere_client.embed(
                texts=data,
-               model="embed-english-v3.0", 
+               model="embed-english-v3.0",
                input_type="search_document",
-               embedding_types=["float", "int8", "ubinary"]
+               embedding_types=["float", "int8", "ubinary"] 
             ).embeddings
-            
+
             float32_embeddings = generated_embeddings.float
             int8_embeddings = generated_embeddings.int8
             int1_embeddings = generated_embeddings.ubinary
@@ -136,20 +139,27 @@
 
          .. code-block:: python 
 
+            # Specify the field names for the float32, int8, and int1 embeddings
+            float32_field = "<FIELD-NAME-FOR-FLOAT32-TYPE>"
+            int8_field = "<FIELD-NAME-FOR-INT8-TYPE>"
+            int1_field = "<FIELD-NAME-FOR-INT1-TYPE>"
+
+            # Define function to create documents with BSON vector embeddings
             def create_docs_with_bson_vector_embeddings(bson_float32_embeddings, bson_int8_embeddings, bson_int1_embeddings, data):
               docs = []
               for i, (bson_f32_emb, bson_int8_emb, bson_int1_emb, text) in enumerate(zip(bson_float32_embeddings, bson_int8_embeddings, bson_int1_embeddings, data)):
 
                  doc = {
-                      "_id":i,
+                      "_id": i,
                       "data": text,
-                      "<FIELD-NAME-FOR-FLOAT32-TYPE>":bson_f32_emb,
-                      "<FIELD-NAME-FOR-INT8-TYPE>":bson_int8_emb,
-                      "<FIELD-NAME-FOR-INT1-TYPE>":bson_int1_emb,
+                      float32_field: bson_f32_emb,
+                      int8_field: bson_int8_emb,
+                      int1_field: bson_int1_emb
                  }
                  docs.append(doc)
               return docs
 
+            # Create the documents
             documents = create_docs_with_bson_vector_embeddings(bson_float32_embeddings, bson_int8_embeddings, bson_int1_embeddings, data)
 
    .. step:: Load your data into your |service| {+cluster+}.
@@ -184,16 +194,8 @@
 
                import pymongo
 
-               MONGO_URI = "<ATLAS-CONNECTION-STRING>"
+               mongo_client = pymongo.MongoClient("<ATLAS-CONNECTION-STRING>")
 
-               def get_mongo_client(mongo_uri):
-                 # establish the connection
-
-                 client = pymongo.MongoClient(mongo_uri)
-
-               if not MONGO_URI:
-                 print("MONGO_URI not set in environment variables")
-     
       #. Load the data into your |service| {+cluster+}.
 
          .. list-table:: 
@@ -217,14 +219,14 @@
 
             .. code-block:: python 
 
-               client = pymongo.MongoClient(MONGO_URI)
+               # Insert documents into a new database and collection
+               db = mongo_client["<DB-NAME>"]
+               collection_name = "<COLLECTION-NAME>"
+               db.create_collection(collection_name)
+               collection = db[collection_name]
 
-               db = client["<DB-NAME>"]
-               db.create_collection("<COLLECTION-NAME>")
-               col = db["<COLLECTION-NAME>"]
+               collection.insert_many(documents)
 
-               col.insert_many(documents)
-         
    .. step:: Create the {+avs+} index on the collection.
 
       You can create {+avs+} indexes by using the {+atlas-ui+},
@@ -233,6 +235,10 @@
 
       .. example:: Create Index for the Sample Collection
 
+         ..
+            NOTE: If you edit this Python code, also update the Jupyter Notebook
+            at https://github.com/mongodb/docs-notebooks/blob/main/quantization/new-data.ipynb
+
          .. list-table:: 
             :widths: 30 70 
             :header-rows: 1
@@ -240,50 +246,56 @@
             * - Placeholder 
               - Valid Value 
 
-            * - ``<FIELD-NAME-FOR-FLOAT32-TYPE>``
-              - Name of field with ``float32`` values.
-
-            * - ``<FIELD-NAME-FOR-INT8-TYPE>``
-              - Name of field with ``int8`` values.
-
-            * - ``<FIELD-NAME-FOR-INT1-TYPE>``
-              - Name of field with ``int1`` values.
-
-         ..
-            NOTE: If you edit this Python code, also update the Jupyter Notebook
-            at https://github.com/mongodb/docs-notebooks/blob/main/quantization/new-data.ipynb
-
+            * - ``<INDEX-NAME>``
+              - Name of ``vector`` type index. 
+              
          .. code-block:: python 
 
-            import time
             from pymongo.operations import SearchIndexModel
-  
-            vector_search_index_definition = {
-              "fields":[
-                {
-                  "type": "vector",
-                  "path": "<FIELD-NAME-FOR-FLOAT32-TYPE>",
-                  "similarity": "dotProduct",  
-                  "numDimensions": 1024,  
-                },
-                {
-                  "type": "vector",
-                  "path": "<FIELD-NAME-FOR-INT8-TYPE>",
-                  "similarity": "dotProduct", 
-                  "numDimensions": 1024, 
-                },
-                {
-                  "type": "vector",
-                  "path": "<FIELD-NAME-FOR-INT1-TYPE>",
-                  "similarity": "euclidean", 
-                  "numDimensions": 1024, 
-                }
-              ]
-            }
+            import time
 
-            search_index_model = SearchIndexModel(definition=vector_search_index_definition, name="<INDEX-NAME>", type="vectorSearch")
+            # Define and create the vector search index
+            index_name = "<INDEX-NAME>"
+            search_index_model = SearchIndexModel(
+              definition={
+                "fields": [
+                  {
+                    "type": "vector",
+                    "path": float32_field,
+                    "similarity": "dotProduct",
+                    "numDimensions": 1024
+                  },
+                  {
+                    "type": "vector",
+                    "path": int8_field,
+                    "similarity": "dotProduct",
+                    "numDimensions": 1024
+                  },
+                  {
+                    "type": "vector",
+                    "path": int1_field,
+                    "similarity": "euclidean",
+                    "numDimensions": 1024
+                  }
+                ]
+              },
+              name=index_name,
+              type="vectorSearch"
+            )
+            result = collection.create_search_index(model=search_index_model)
+            print("New search index named " + result + " is building.")
 
-            col.create_search_index(model=search_index_model)
+            # Wait for initial sync to complete
+            print("Polling to check if the index is ready. This may take up to a minute.")
+            predicate=None
+            if predicate is None:
+              predicate = lambda index: index.get("queryable") is True
+            while True:
+              indices = list(collection.list_search_indexes(index_name))
+              if len(indices) and predicate(indices[0]):
+                break
+              time.sleep(5)
+            print(result + " is ready for querying.")
 
    .. step:: Define a function to run the {+avs+} queries. 
 
@@ -302,18 +314,6 @@
             * - Placeholder 
               - Valid Value 
 
-            * - ``<FIELD-NAME-FOR-FLOAT32-TYPE>``
-              - Name of field with ``float32`` values.
-
-            * - ``<FIELD-NAME-FOR-INT8-TYPE>``
-              - Name of field with ``int8`` values.
-
-            * - ``<FIELD-NAME-FOR-INT1-TYPE>``
-              - Name of field with ``int1`` values.
-
-            * - ``<INDEX-NAME>``
-              - Name of ``vector`` type index. 
-
             * - ``<NUMBER-OF-CANDIDATES-TO-CONSIDER>`` 
               - Number of nearest neighbors to use during the search.
 
@@ -326,21 +326,22 @@
 
          .. code-block:: python 
 
+            # Define a function to run a vector search query
             def run_vector_search(query_text, collection, path):
-              query_text_embeddings = co.embed(
+              query_text_embeddings = cohere_client.embed(
                 texts=[query_text],
-                model="embed-english-v3.0", 
+                model="embed-english-v3.0",
                 input_type="search_query",
                 embedding_types=["float", "int8", "ubinary"]
               ).embeddings
 
-              if path == "<FIELD-NAME-FOR-FLOAT32-TYPE>":
+              if path == float32_field:
                 query_vector = query_text_embeddings.float[0]
                 vector_dtype = BinaryVectorDtype.FLOAT32
-              elif path == "<FIELD-NAME-FOR-INT8-TYPE>":
+              elif path == int8_field:
                 query_vector = query_text_embeddings.int8[0]
                 vector_dtype = BinaryVectorDtype.INT8
-              elif path == "<FIELD-NAME-FOR-INT1-TYPE>":
+              elif path == int1_field:
                 query_vector = query_text_embeddings.ubinary[0]
                 vector_dtype = BinaryVectorDtype.PACKED_BIT
               bson_query_vector = generate_bson_vector(query_vector, vector_dtype)
@@ -348,11 +349,11 @@
               pipeline = [
                 {
                   '$vectorSearch': {
-                    'index': '<INDEX-NAME>', 
+                    'index': index_name,
                     'path': path,
                     'queryVector': bson_query_vector,
-                    'numCandidates': <NUMBER-OF-CANDIDATES-TO-CONSIDER>, 
-                    'limit': <NUMBER-OF-DOCUMENTS-TO-RETURN>
+                    'numCandidates': <NUMBER-OF-CANDIDATES-TO-CONSIDER>, # for example, 5
+                    'limit': <NUMBER-OF-DOCUMENTS-TO-RETURN> # for example, 2
                    }
                  },
                  {
@@ -385,10 +386,11 @@
 
                from pprint import pprint
 
+               # Run the vector search query on the float32, int8, and int1 embeddings
                query_text = "tell me a science fact"
-               float32_results = run_vector_search(query_text, col, "<FIELD-NAME-FOR-FLOAT32-TYPE>")
-               int8_results = run_vector_search(query_text, col, "<FIELD-NAME-FOR-INT8-TYPE>")
-               int1_results = run_vector_search(query_text, col, "<FIELD-NAME-FOR-INT1-TYPE>")
+               float32_results = run_vector_search(query_text, collection, float32_field)
+               int8_results = run_vector_search(query_text, collection, int8_field)
+               int1_results = run_vector_search(query_text, collection, int1_field)
 
                print("results from float32 embeddings")
                pprint(list(float32_results))

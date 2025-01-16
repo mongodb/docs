@@ -14,7 +14,8 @@ definition = {
       "type": "vector",
       "numDimensions": <numberofDimensions>,
       "path": "<fieldToIndex>",
-      "similarity": "euclidean | cosine | dotProduct"
+      "similarity": "euclidean | cosine | dotProduct",
+      "quantization": " none | scalar | binary "
     },
     {
       "type": "filter",

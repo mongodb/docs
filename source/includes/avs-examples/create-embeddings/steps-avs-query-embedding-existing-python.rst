@@ -26,7 +26,7 @@
          .. tab:: Open-Source
             :tabid: open-source
 
-            ..
+            .. 
                NOTE: If you edit this Python file, also update the Jupyter Notebook
                at https://github.com/mongodb/docs-notebooks/blob/main/create-embeddings/open-source-existing-data.ipynb
 

@@ -14,7 +14,7 @@
 
       .. code-block:: shell
 
-         pip install --quiet pymongo sentence_transformers einops langchain langchain_community pypdf huggingface_hub
+         pip install --quiet --upgrade pymongo sentence_transformers einops langchain langchain_community pypdf huggingface_hub
 
    .. step:: Ingest data into |service|.
 

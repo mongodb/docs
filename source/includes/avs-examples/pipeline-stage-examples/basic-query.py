@@ -1,5 +1,4 @@
 import pymongo
-import datetime
 
 # connect to your Atlas cluster
 client = pymongo.MongoClient("<connection-string>")

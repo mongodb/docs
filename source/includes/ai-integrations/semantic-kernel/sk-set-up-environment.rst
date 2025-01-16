@@ -21,7 +21,6 @@
 
          .. code-block:: python
 
-            import getpass, openai
             import semantic_kernel as sk
             from semantic_kernel.connectors.ai.open_ai import (OpenAIChatCompletion, OpenAITextEmbedding)
             from semantic_kernel.connectors.memory.mongodb_atlas import MongoDBAtlasMemoryStore
@@ -34,8 +33,9 @@
 
    .. step:: Define environmental variables.
 
-      Run the following code and provide the following when prompted:
-      
+      Run the following code, replacing the placeholders with 
+      the following values:
+
       - Your OpenAI API Key.
       - Your |service| {+cluster+}'s |srv| :manual:`connection string
         </reference/connection-string/#find-your-mongodb-atlas-connection-string>`.
@@ -45,9 +45,8 @@
          at https://github.com/mongodb/docs-notebooks/blob/main/integrations/semantic-kernel.ipynb
 
       .. code-block:: python
-
-         OPENAI_API_KEY = getpass.getpass("OpenAI API Key:")
-         ATLAS_CONNECTION_STRING = getpass.getpass("MongoDB Atlas SRV Connection String:")
+         OPENAI_API_KEY = "<api-key>"
+         ATLAS_CONNECTION_STRING = "<connection-string>"
 
       .. note:: 
 

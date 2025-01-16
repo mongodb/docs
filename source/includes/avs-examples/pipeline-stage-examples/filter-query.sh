@@ -1,7 +1,7 @@
 db.embedded_movies.aggregate([
   {
     "$vectorSearch": {
-      "index": "vector-search-tutorial",
+      "index": "vector_index",
       "path": "plot_embedding",
       "filter": {
         "$and": [

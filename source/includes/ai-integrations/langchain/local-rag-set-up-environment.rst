@@ -28,7 +28,7 @@
 
       .. code-block:: python
 
-         pip install --quiet pymongo gpt4all sentence_transformers
+         pip install --quiet --upgrade pymongo gpt4all sentence_transformers
 
    .. step:: Define your |service| connection string.
 

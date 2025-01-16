@@ -11,7 +11,7 @@
 
       .. code-block:: python
 
-         pip install --upgrade --quiet langchain langchain-community langchain-core langchain-mongodb langchain-openai pymongo pypdf
+         pip install --quiet --upgrade langchain langchain-community langchain-core langchain-mongodb langchain-openai pymongo pypdf
 
    .. step:: Set environmental variables.
 
@@ -26,10 +26,10 @@
 
       .. code-block:: python
 
-         import getpass, os
+         import os
 
-         os.environ["OPENAI_API_KEY"] = getpass.getpass("OpenAI API Key:")
-         ATLAS_CONNECTION_STRING = getpass.getpass("MongoDB Atlas SRV Connection String:")
+         os.environ["OPENAI_API_KEY"] = "<api-key>"
+         ATLAS_CONNECTION_STRING = "<connection-string>"
 
       .. note:: 
 

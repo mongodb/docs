@@ -21,7 +21,7 @@
 
       .. code-block:: python
 
-         import getpass, os, pymongo, pprint
+         import os, pymongo, pprint
          from pymongo.operations import SearchIndexModel
          from llama_index.core import SimpleDirectoryReader, VectorStoreIndex, StorageContext
          from llama_index.core.settings import Settings
@@ -34,8 +34,9 @@
                            
    .. step:: Define environmental variables.
 
-      Run the following code and provide the following when prompted:
-      
+      Run the following code, replacing the placeholders with 
+      the following values:
+
       - Your OpenAI API Key.
       - Your |service| {+cluster+}'s |srv| :manual:`connection string
         </reference/connection-string/#find-your-mongodb-atlas-connection-string>`.
@@ -46,8 +47,8 @@
 
       .. code-block:: python
 
-         os.environ["OPENAI_API_KEY"] = getpass.getpass("OpenAI API Key:")
-         ATLAS_CONNECTION_STRING = getpass.getpass("MongoDB Atlas SRV Connection String:")
+         os.environ["OPENAI_API_KEY"] = "<api-key>"
+         ATLAS_CONNECTION_STRING = "<connection-string>"
 
       .. note:: 
 

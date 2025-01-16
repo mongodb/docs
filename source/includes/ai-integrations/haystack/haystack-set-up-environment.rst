@@ -11,7 +11,7 @@
 
          .. code-block:: python
 
-            pip --quiet install mongodb-atlas-haystack pymongo
+            pip install --quiet --upgrade mongodb-atlas-haystack pymongo
 
       #. Run the following code to import the required packages:
 
@@ -21,7 +21,7 @@
 
          .. code-block:: python
 
-            import getpass, os
+            import os
             from haystack import Pipeline, Document
             from haystack.document_stores.types import DuplicatePolicy
             from haystack.components.writers import DocumentWriter
@@ -35,7 +35,8 @@
                                     
    .. step:: Define environmental variables.
 
-      Run the following code and provide the following when prompted:
+      Run the following code, replacing the placeholders with 
+      the following values:
       
       - Your OpenAI API Key.
       - Your |service| {+cluster+}'s |srv| :manual:`connection string
@@ -47,8 +48,8 @@
 
       .. code-block:: python
 
-         os.environ["OPENAI_API_KEY"] = getpass.getpass("OpenAI API Key:")
-         os.environ["MONGO_CONNECTION_STRING"]=getpass.getpass("MongoDB Atlas Connection String:")
+         os.environ["OPENAI_API_KEY"] = "<api-key>"
+         os.environ["MONGO_CONNECTION_STRING"]= "<connection-string>"
 
       .. note:: 
 

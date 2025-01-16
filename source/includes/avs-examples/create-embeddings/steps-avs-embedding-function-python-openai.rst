@@ -10,7 +10,7 @@
 
       .. code-block:: python
 
-         pip install --quiet openai pymongo
+         pip install --quiet --upgrade openai pymongo
 
    .. step:: Define a function to generate vector embeddings.
 
