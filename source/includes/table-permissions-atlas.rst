@@ -14,7 +14,6 @@
      -
 
          - atlasAdmin
-         - backup
 
    * - default
      - destination cluster
@@ -27,7 +26,6 @@
      -
 
          - atlasAdmin
-         - backup
          - bypassWriteBlockMode privilege
 
    * - write-blocking or reversing
@@ -35,7 +33,6 @@
      -
 
          - atlasAdmin
-         - backup
          - bypassWriteBlockMode privilege
 
 For details on Atlas roles, see: :atlas:`Atlas User Roles
