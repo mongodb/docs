@@ -4,7 +4,7 @@
 
    * - Feature
      - Commercial |service|
-     - |cloudgov-short|
+     - **|cloudgov-short|**
 
    * - |service| Data Federation
      - :icon-fa5:`check`
