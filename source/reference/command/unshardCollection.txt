@@ -22,7 +22,13 @@ Definition
    .. include:: /includes/fact-dbcommand-tip
 
 
-   This command must run on the ``admin`` database.
+   This command must run on the ``admin`` database. 
+   
+   If the collection has a :ref:`zone configuration
+   <zone-sharding>` applied, you must first remove the range
+   associations and shards from the zone before you unshard the
+   collection. For more information, see
+   :ref:`unshard-remove-zone-ranges`.
 
    .. include:: /includes/fact-unshardCollection-oplog
 
@@ -91,6 +97,18 @@ Requirements
 
 .. include:: /includes/uc-reqs
 
+Behavior
+--------
+
+.. _unshard-remove-zone-ranges:
+
+Unshard Zones
+~~~~~~~~~~~~~
+
+.. include:: /includes/fact-unshard-zones
+
+For an example, see :ref:`unshard-command-zones`.
+
 Examples
 --------
 
@@ -117,6 +135,86 @@ the collection data on ``shard1``:
        unshardCollection: "sales.eu_accounts",
        toShard: "shard1"
    } )
+
+.. _unshard-command-zones:
+
+Unshard a Zone Sharded Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example unshards a collection that uses
+:ref:`zones <zone-sharding>`:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Stop the balancer
+
+      To stop the balancer, run the :dbcommand:`balancerStop`
+      command:
+   
+      .. code-block:: javascript
+         
+         db.adminCommand( { balancerStop: 1 } )
+
+   .. step:: Identify range associations.
+
+      To identify ranges associated with the zones, run the
+      :method:`sh.status` method and note the ranges in the
+      ``chunks`` field for each sharded collection:
+
+      .. code-block:: javascript
+
+         sh.status()
+
+   .. step:: Remove range from the zone
+
+      To remove a range from a zone, run the
+      :dbcommand:`updateZoneKeyRange` command:
+
+      .. code-block:: javascript
+
+         db.adminCommand( {
+            updateZoneKeyRange: "app.inventory",
+            min: 100,
+            max: 500,
+            zone: null
+         } )
+
+      Repeat this step until you have removed all ranges from
+      zones used by the collection.
+
+   .. step:: Remove the shards from zone
+
+      To remove shards from the zone, run the
+      :dbcommand:`removeShardFromZone` command
+   
+      .. code-block:: javascript
+   
+         db.adminCommand( {
+            removeShardFromZone: "shard01",
+            zone: "us"
+         } )
+   
+      Repeat until you have removed all collection shards from the
+      zones.
+
+   .. step:: Restart the balancer
+
+      To restart the balancer, run the :dbcommand:`balancerStart`
+      command:
+   
+      .. code-block:: javascript
+   
+         db.adminCommand( { balancerStart: 1 } )
+   
+   .. step:: Unshard the collection
+
+      To unshard the collection, run the ``unshardCollection``
+      command:
+   
+      .. code-block:: javascript
+   
+         db.adminCommand( { unshardCollection: "app.inventory" } )
 
 Learn More
 ----------
