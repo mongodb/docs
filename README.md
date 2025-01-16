@@ -1,6 +1,7 @@
 # Django MongoDB Backend Documentation
 
-[Your words here].
+This repository contains documentation for Django MongoDB Backend, the
+Django database backend that uses PyMongo to connect to MongoDB. 
 
 ## Report Issues
 

@@ -1,0 +1,58 @@
+name: Add Netlify Links To Changed Pages
+on:
+  workflow_call:
+  pull_request_target:
+jobs:
+  get-pr-changes:
+    name: Get Changed Files & Update PR Description
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: write
+      pull-requests: write
+      repository-projects: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get Changed Files
+        id: changed-files
+        # pin to a specific commit to ensure stability
+        uses: tj-actions/changed-files@c65cd883420fd2eb864698a825fc4162dd94482c
+        with:
+          separator: ","
+          files: source/**
+      - name: Build Netlify Links for Changed Pages
+        id: build_page_links
+        env:
+          CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+        run: |
+          new_links=""
+          base_link='https://deploy-preview-${{ github.event.number }}--docs-django.netlify.app'
+          files=$(echo "$CHANGED_FILES" | tr "," "\n")
+          for file in $files; do
+            echo "processing ${file}"
+            if (! grep -s "includes/"  <<< "$file") && 
+                (! grep -s "images/"  <<< "$file") && 
+                (! grep -s "examples/"  <<< "$file"); then
+              file="${file#source}"
+              file="${file%.txt}"
+              filenoslash="${file:1}"
+              echo "${base_link}${file}"
+              new_links+="<li><a href=${base_link}${file}>${filenoslash}</a></li>"
+            else
+              echo "(file skipped)"
+            fi
+          done
+          if [ "$new_links" == "" ]; then
+            new_links="No pages to preview"
+          fi
+          echo "Final new_links string: "
+          echo "${new_links}"
+          echo "staging_links=${new_links}" >> "$GITHUB_OUTPUT"
+      - name: Update the PR Description
+        uses: MongoCaleb/pr-description-action@master
+        with:
+          regex: "<!-- start insert-links -->.*<!-- end insert-links -->"
+          appendContentOnMatchOnly: true
+          regexFlags: is
+          content: "<!-- start insert-links -->\n${{ steps.build_page_links.outputs.staging_links }}\n<!-- end insert-links -->"
+          token: ${{ secrets.GITHUB_TOKEN }}
