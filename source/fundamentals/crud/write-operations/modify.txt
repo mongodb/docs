@@ -4,6 +4,13 @@
 Modify Documents
 ================
 
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: change data, code example, filter
+
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -35,13 +42,12 @@ current inventory:
     { "_id": 4, "color": "green", "qty": 6 }
     { "_id": 5, "color": "pink", "qty": 0 }
 
-This data is modeled with the following Kotlin data class:
+This data is modeled with the following {+language+} data class:
 
 .. literalinclude:: /examples/generated/ChangeTest.snippet.data-model.kt
    :language: kotlin
 
 .. _update-operation:
-
 .. _kotlin-fundamentals-update:
 
 Update
@@ -61,9 +67,8 @@ You can call the ``updateOne()`` and ``updateMany()`` methods on a
 
 .. code-block:: kotlin
 
-    collection.updateOne(query, updateDocument)
-    
-    collection.updateMany(query, updateDocument)
+    collection.updateOne(<query>, <updateDocument>)
+    collection.updateMany(<query>, <updateDocument>)
      
 Update Operation Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -72,20 +77,28 @@ The ``updateOne()`` and ``updateMany()`` methods both have the following
 parameters:
 
 - ``query`` specifies a query filter with the criteria to match documents to update in your collection
-- ``updateDocument`` specifies the fields and values to modify in the matching document or documents. For this example, we use the :doc:`Updates builder </fundamentals/builders/updates>` to create the update document.
+- ``updateDocument`` specifies the fields and values to modify in the
+  matching document or documents. This example uses the :ref:`Updates
+  <kotlin-updates-builders>` builder methods to create the update
+  document.
+- *(Optional)* ``updateOptions`` specifies options that you can set to
+  customize how the driver performs the update operation. To learn more
+  about this type, see the API documentation for `UpdateOptions
+  <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/UpdateOptions.html>`__.
 
 You can create the ``updateDocument`` using an ``Updates`` builder as
 follows:
 
 .. code-block:: kotlin
 
-    val updateDocument = Updates.operator(field, value)
+   val updateDocument = Updates.operator(<field>, <value>)
 
-See the MongoDB API documentation for a `complete list of
-Updates builders and their usage <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Updates.html>`__.
+To view a complete list of ``Updates`` builders and their usage, see `Updates
+<{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Updates.html>`__
+in the API documentation.
 
-Example
-```````
+Update One Example
+~~~~~~~~~~~~~~~~~~
 
 The paint store needs to update their inventory after a customer returns a  
 can of yellow paint.
@@ -93,8 +106,9 @@ can of yellow paint.
 To update the single can of paint, call the ``updateOne()`` method specifying 
 the following: 
 
-- A query filter that matches the yellow color
-- An update document that contains instructions to increment the ``qty`` field by "1"
+- Query filter that matches the yellow color
+- Update document that contains instructions to increment the ``qty``
+  field by ``1``
 
 .. io-code-block::
 
@@ -107,14 +121,27 @@ the following:
         Matched document count: 1
         Modified document count: 1
 
+If multiple documents match the query filter specified in
+the ``updateOne()`` method, it updates the first result. You can
+specify a sort in an ``UpdateOptions`` instance to apply an order to
+matched documents before the driver performs the update operation, as
+shown in the following code:
+
+.. literalinclude:: /examples/generated/ChangeTest.snippet.update-one-options.kt
+   :language: kotlin
+
+Update Many Example
+~~~~~~~~~~~~~~~~~~~
+
 The paint store then receives a fresh shipment and needs to update their 
 inventory again. The shipment contains 20 cans of each paint color.
 
 To update the inventory, call the ``updateMany()`` method specifying the
 following:
 
-- A query filter that matches all the colors 
-- An update document that contains instructions to increment the ``qty`` field by "20"
+- Query filter that matches all the colors 
+- Update document that contains instructions to increment the ``qty``
+  field by ``20``
 
 .. io-code-block::
 
@@ -140,9 +167,9 @@ The following shows the updated documents in the ``paint_inventory`` collection:
 
 If zero documents match the query filter in the update operation,
 ``updateMany()`` makes no changes to documents in the collection. See
-our :doc:`upsert guide </fundamentals/crud/write-operations/upsert>` to
+the :ref:`Upsert <kotlin-fundamentals-upsert>` guide to
 learn how to insert a new document instead of updating one if no
-documents match. 
+documents match.
 
 .. important::
 
@@ -170,7 +197,7 @@ instance as follows:
 
 .. code-block:: kotlin
 
-    collection.replaceOne(query, replacementDocument)
+    collection.replaceOne(<query>, <replacementDocument>)
     
 Replace Operation Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -179,9 +206,13 @@ The ``replaceOne()`` method has the following parameters:
 
 - ``query`` specifies a query filter with the criteria to match a document to replace in your collection
 - ``replacementDocument`` specifies fields and values of a new ``Document`` object to replace in the matched document 
+- *(Optional)* ``replaceOptions`` specifies options that you can set to
+  customize how the driver performs the replace operation. To learn more
+  about this type, see the API documentation for `ReplaceOptions
+  <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/ReplaceOptions.html>`__.
 
-Example
-```````
+Replace One Example
+~~~~~~~~~~~~~~~~~~~
 
 The paint store realizes they need to update their inventory again.  What they
 thought was 20 cans of pink paint is actually 25 cans of orange paint. 
@@ -189,8 +220,8 @@ thought was 20 cans of pink paint is actually 25 cans of orange paint.
 To update the inventory, call the ``replaceOne()`` method specifying the
 following:
 
-- A query filter that matches documents where the ``color`` is "pink" 
-- A replacement document where the ``color`` is "orange" and the ``qty`` is "25"
+- Query filter that matches documents where the ``color`` is "pink" 
+- Replacement document where the ``color`` is "orange" and the ``qty`` is "25"
 
 .. io-code-block::
 
@@ -210,14 +241,20 @@ The following shows the updated document:
 
     { "_id": 5, "color": "orange", "qty": 25 }
 
+If multiple documents match the query filter specified in
+the ``replaceOne()`` method, it replaces the first result. You can
+specify a sort in a ``ReplaceOptions`` instance to apply an order to
+matched documents before the driver performs the replace operation, as
+shown in the following code:
+
+.. literalinclude:: /examples/generated/ChangeTest.snippet.replace-one-options.kt
+   :language: kotlin
+
 If zero documents match the query filter in the replace operation,
 ``replaceOne()`` makes no changes to documents in the collection. See
-our :doc:`upsert guide </fundamentals/crud/write-operations/upsert>` to
+the :ref:`Upsert <kotlin-fundamentals-upsert>` guide to
 learn how to insert a new document instead of replacing one if no
-documents match. 
-
-If multiple documents match the query filter specified in
-the ``replaceOne()`` method, it replaces the first result. 
+documents match.
 
 .. important::
 

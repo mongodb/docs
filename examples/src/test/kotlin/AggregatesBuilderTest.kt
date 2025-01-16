@@ -34,6 +34,7 @@ import config.getConfig
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
+import org.bson.BinaryVector
 import org.bson.Document
 import org.bson.codecs.pojo.annotations.BsonId
 import org.bson.types.ObjectId
@@ -970,7 +971,8 @@ class AggregatesBuilderTest {
         assertEquals(1, results.first().get("count", Document::class.java).get("lowerBound", java.lang.Long::class.java)?.toInt())
     }
 
-    /* NOTE: Test is not run by default. Vector search requires the creation of a vector search index on the collection before running.
+    /* NOTE: Test is not run by default. Vector search requires the creation of
+    a vector search index on the collection before running.
     */
     @Ignore
     fun vectorSearchTest() = runBlocking {
@@ -979,7 +981,7 @@ class AggregatesBuilderTest {
                 // :snippet-start: vector-search
                 Aggregates.vectorSearch(
                     SearchPath.fieldPath(MovieAlt::plotEmbedding.name),
-                    listOf(-0.0072121937, -0.030757688, -0.012945653),
+                    BinaryVector.floatVector(floatArrayOf(0.0001f, 1.12345f, 2.23456f, 3.34567f, 4.45678f)),
                     "mflix_movies_embedding_index",
                     1.toLong(),
                     exactVectorSearchOptions().filter(Filters.gte(MovieAlt::year.name, 2016))

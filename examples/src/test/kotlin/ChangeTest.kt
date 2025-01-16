@@ -1,5 +1,8 @@
 
 import com.mongodb.client.model.Filters
+import com.mongodb.client.model.ReplaceOptions
+import com.mongodb.client.model.Sorts
+import com.mongodb.client.model.UpdateOptions
 import com.mongodb.client.model.Updates
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import config.getConfig
@@ -63,6 +66,11 @@ internal class ChangeTest {
         println("Matched document count: $result.matchedCount")
         println("Modified document count: $result.modifiedCount")
         // :snippet-end:
+
+        // :snippet-start: update-one-options
+        val opts = UpdateOptions().sort(Sorts.ascending(PaintOrder::color.name))
+        // :snippet-end:
+
         // Junit test for the above code
         assertEquals(1, result.modifiedCount)
     }
@@ -90,6 +98,11 @@ internal class ChangeTest {
         println("Matched document count: $result.matchedCount")
         println("Modified document count: $result.modifiedCount")
         // :snippet-end:
+
+        // :snippet-start: replace-one-options
+        val opts = ReplaceOptions().sort(Sorts.ascending(PaintOrder::color.name))
+        // :snippet-end:
+
         // Junit test for the above code
         assertEquals(1, result.modifiedCount)
     }
