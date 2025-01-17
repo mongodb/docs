@@ -5,14 +5,14 @@ For example, consider these documents and query:
 
 .. code-block:: javascript
 
-   // people collection
+   // create the people collection
    
-   [
+   db.people.insertMany( [
       { _id: 1, name: null },
       { _id: 2, name: undefined },
-      { _id: 3, name: [ "Gabriel", undefined ],
+      { _id: 3, name: [ "Gabriel", undefined ] },
       { _id: 4, names: [ "Alice", "Charu" ] }
-   ]
+   ] )
 
 .. code-block:: javascript
 
