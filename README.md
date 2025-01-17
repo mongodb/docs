@@ -15,7 +15,7 @@ The following table summarizes the contents of the notebooks in each directory:
 | [/create-embeddings](https://github.com/mongodb/docs-notebooks/tree/main/create-embeddings) | Learn how to generate embeddings for vector search |
 | [/get-started](https://github.com/mongodb/docs-notebooks/tree/main/get-started) | Complete our quick start tutorial |
 | [/integrations](https://github.com/mongodb/docs-notebooks/tree/main/integrations) | Implement RAG with popular frameworks that integrate with MongoDB |
-| [/manage-indexes](https://github.com/mongodb/docs-notebooks/tree/main/manage-indexes) | Create, view, edit, and delete  vector search indexes |
+| [/manage-indexes](https://github.com/mongodb/docs-notebooks/tree/main/manage-indexes) | Create, view, edit, and delete vector search indexes |
 | [/quantization](https://github.com/mongodb/docs-notebooks/tree/main/quantization) | Quantize your vector embeddings for efficient processing |
 | [/run-queries](https://github.com/mongodb/docs-notebooks/tree/main/run-queries) | Learn how to run vector search queries (ANN and ENN) |
 | [/use-cases](https://github.com/mongodb/docs-notebooks/tree/main/use-cases) | Implement RAG using a MongoDB-native retrieval system |
