@@ -23,11 +23,11 @@ customer downloads page. MongoDB provides the |url| of that page to its
 customers.
 
 - If you can't access this link, visit the
-  :dl:`download page <ops-manager>` for a current evaluation copy of
-  the |onprem| software. 
+  :download:`download page </download/ops-manager>`
+  for a current evaluation copy of the |onprem| software. 
 
 - If you need an earlier version of the |onprem| software, visit the
-  :website:`Release Archive </subscription/downloads/archived>`.
+  :download:`Release Archive </download/ops-manager/releases/archive>`.
 
 Download Software to Run in Local Mode
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

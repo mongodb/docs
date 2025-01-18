@@ -24,14 +24,15 @@ If |onprem| manages your MongoDB Tools, the tool versions are upgraded
 when you upgrade |onprem|.
 
 If you run |onprem| 6.0.x in :doc:`local mode
-</tutorial/configure-local-mode>`, you must :dl:`download and
+</tutorial/configure-local-mode>`, you must :download:`download and
 install a compatible version of the MongoDB Tools TGZ package
-<database-tools>` to the ``versions`` directory.
+</download/database-tools>` to the
+``versions`` directory.
 
 .. include:: /includes/list-tables/compatibility-matrix/db-tools-OMv6.0.rst
 
 To access older versions of the MongoDB Tools, click
-`Archived releases <https://www.mongodb.com/download-center/database-tools/releases/archive>`__ on the Download page.
+:download:`Archived releases </download/database-tools/releases/archive>` on the Download page.
 
 |onprem| Platform Support
 ~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -77,7 +77,7 @@ The following table lists upgrade paths for all versions:
 
    * - 4.0.x
      - Use the
-       `v4.2 upgrade tutorial <https://www.mongodb.com/docs/ops-manager/v4.2/tutorial/nav/upgrade-application>`__
+       `v4.2 upgrade tutorial <https://www.mongodb.com/docs/ops-manager/current/tutorial/upgrade-ops-manager>`__
        to upgrade from |onprem| 4.0.x to version 4.2.24 or later. Then 
        use :ref:`this procedure <upgrade-om-procedure>` to upgrade to 
        the latest available version of 4.2.
@@ -86,15 +86,15 @@ The following table lists upgrade paths for all versions:
 
    * - 3.6.x
      - Use the
-       `v4.0 upgrade tutorial <https://www.mongodb.com/docs/ops-manager/v4.0/tutorial/nav/upgrade-application>`__
+       `v4.0 upgrade tutorial <https://www.mongodb.com/docs/ops-manager/current/tutorial/upgrade-ops-manager>`__
        to upgrade from |onprem| 3.6.x to version 4.0.x.
 
    * - 3.4.x
      - Use the
-       `v3.6 upgrade tutorial <https://www.mongodb.com/docs/ops-manager/v3.6/tutorial/nav/upgrade-application>`__
+       `v3.6 upgrade tutorial <https://www.mongodb.com/docs/ops-manager/current/tutorial/upgrade-ops-manager>`__
        to upgrade from |onprem| 3.4.x to version 3.6.x.
 
    * - 2.x or earlier
      - Use the
-       `v3.4 upgrade tutorial <https://www.mongodb.com/docs/ops-manager/v3.4/tutorial/nav/upgrade-application/>`__
+       `v3.4 upgrade tutorial <https://www.mongodb.com/docs/ops-manager/current/tutorial/upgrade-ops-manager>`__
        to upgrade from |onprem| 2.x or earlier.
