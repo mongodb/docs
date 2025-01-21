@@ -12,6 +12,10 @@
      - Unique identifier of the cluster the :manual:`snapshot </reference/glossary/#std-term-snapshot>`
        represents.
 
+   * - ``clusterName``
+     - string
+     - Label that identifies the cluster.
+
    * - ``complete``
      - boolean
      - Flag that indicates the :manual:`snapshot </reference/glossary/#std-term-snapshot>` has been created. This
@@ -193,6 +197,11 @@
      - Unique identifier of the :manual:`replica set </reference/glossary/#std-term-replica-set>`.
 
    * - | ``parts``
+       | ``.completedTime``
+     - string
+     - Date and time when the snapshot completed.
+
+   * - | ``parts``
        | ``.compressionSetting``
      - string
      - Method of compression for the :manual:`snapshot </reference/glossary/#std-term-snapshot>`.
@@ -209,9 +218,21 @@
        data.
 
    * - | ``parts``
+       | ``.fcv``
+     - string
+     - Number that indicates the feature compatibility version of
+       MongoDB that the replica set primary ran when MongoDB Cloud
+       created the snapshot.
+
+   * - | ``parts``
        | ``.fileSizeBytes``
      - number
      - Total size of the data files in bytes.
+
+   * - | ``parts``
+       | ``.machineId``
+     - string
+     - Hostname and port that indicate the node on which MongoDB Cloud created the snapshot.
 
    * - | ``parts``
        | ``.masterKeyUUID``
@@ -231,6 +252,11 @@
        | ``.replicaSetName``
      - string
      - Name of the :manual:`replica set </reference/glossary/#std-term-replica-set>`.
+
+   * - | ``parts``
+       | ``.replicaState``
+     - string
+     - The node's role at the time when snapshot process began.
 
    * - | ``parts``
        | ``.storageSizeBytes``
