@@ -22,9 +22,5 @@ The operation prints the following output:
 
 .. code-block:: none
 
-   +---+----+------+
-   |_id| qty|  type|
-   +---+----+------+
-   |2.0|10.0|orange|
-   |3.0|15.0|banana|
-   +---+----+------+
+   { "_id" : 2, "qty" : 10.0, "type" : "orange" }
+   { "_id" : 3, "qty" : 15.0, "type" : "banana" }

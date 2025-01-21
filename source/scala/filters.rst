@@ -11,10 +11,6 @@ The operation outputs the following:
 
 .. code-block:: none
 
-   +--------------------+---+-------------+
-   |                 _id|age|         name|
-   +--------------------+---+-------------+
-   |[5755d7b4566878c9...| 50|Bilbo Baggins|
-   |[5755d7b4566878c9...| 82|         Fíli|
-   |[5755d7b4566878c9...| 77|         Kíli|
-   +--------------------+---+-------------+
+   { "_id" : ObjectId("585024d558bef808ed84fc3e"), "name" : "Bilbo Baggins", "age" : 50 }
+   { "_id" : ObjectId("585024d558bef808ed84fc42"), "name" : "Kíli", "age" : 77 }
+   { "_id" : ObjectId("585024d558bef808ed84fc46"), "name" : "Fíli", "age" : 82 }

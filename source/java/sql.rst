@@ -12,13 +12,9 @@
 
 .. code-block:: sh
 
-   +-------+----+
-   |   name| age|
-   +-------+----+
-   |Gandalf|1000|
-   | Thorin| 195|
-   |  Balin| 178|
-   | Dwalin| 169|
-   |    Óin| 167|
-   |  Glóin| 158|
-   +-------+----+
+   { "name" : "Gandalf", "age" : 1000 }
+   { "name" : "Thorin", "age" : 195 }
+   { "name" : "Balin", "age" : 178 }
+   { "name" : "Dwalin", "age" : 169 }
+   { "name" : "Óin", "age" : 167 }
+   { "name" : "Glóin", "age" : 158 }

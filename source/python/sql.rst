@@ -13,11 +13,7 @@ contains the letter ``e``:
 
 In the ``pyspark`` shell, the operation prints the following output:
 
-.. code-block:: none
-
-   +------+----+
-   |  type| qty|
-   +------+----+
-   | apple| 5.0|
-   |orange|10.0|
-   +------+----+
+..  code-block:: none
+   
+   { "type" : "apple", "qty" : 5.0 }
+   { "type" : "orange", "qty" : 10.0 }
