@@ -3,7 +3,7 @@
    Use the following command to generate a {+cmk-abbr+}
    from a Unix shell or PowerShell:
 
-   - Unix shell:
+   - Unix/macOS shell:
 
      .. code-block:: sh
 
