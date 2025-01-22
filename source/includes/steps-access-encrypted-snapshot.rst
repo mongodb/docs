@@ -16,8 +16,8 @@
          want to download.
       
          |service| prepares the snapshot. When it is ready to download,
-         |service| generates a one-time use download link that expires after
-         four hours. |service| emails you the download link and displays it
+         |service| generates a one-time use download link that expires
+         1 hour after its creation. |service| emails you the download link and displays it
          in the :guilabel:`Restores & Downloads` tab.
       
    .. step:: Download the KMIP Proxy Standalone.
