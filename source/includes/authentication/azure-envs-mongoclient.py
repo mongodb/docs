@@ -4,7 +4,7 @@ from pymongo.auth_oidc import OIDCCallback, OIDCCallbackContext, OIDCCallbackRes
          
 # define callback, properties, and MongoClient
 audience = "<audience>"
-client_id = "<Azure client ID>"
+client_id = "<Azure ID>"
 class MyCallback(OIDCCallback):
     def fetch(self, context: OIDCCallbackContext) -> OIDCCallbackResult:
         credential = DefaultAzureCredential(managed_identity_client_id=client_id)
@@ -12,7 +12,7 @@ class MyCallback(OIDCCallback):
         return OIDCCallbackResult(access_token=token) 
 properties = {"OIDC_CALLBACK": MyCallback()}
 client = MongoClient(
-   "mongodb://<hostname>:<port>",
+   "mongodb[+srv]://<hostname>:<port>",
    authMechanism="MONGODB-OIDC",
    authMechanismProperties=properties
 )

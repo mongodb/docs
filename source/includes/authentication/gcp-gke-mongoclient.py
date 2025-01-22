@@ -9,7 +9,7 @@ class MyCallback(OIDCCallback):
         return OIDCCallbackResult(access_token=token)
 properties = {"OIDC_CALLBACK": MyCallback()}
 client = MongoClient(
-   "mongodb://<hostname>:<port>",
+   "mongodb[+srv]://<hostname>:<port>",
    authMechanism="MONGODB-OIDC",
    authMechanismProperties=properties
 )
