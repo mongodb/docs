@@ -20,8 +20,23 @@ The following table summarizes the contents of the notebooks in each directory:
 | [/run-queries](https://github.com/mongodb/docs-notebooks/tree/main/run-queries) | Learn how to run vector search queries (ANN and ENN) |
 | [/use-cases](https://github.com/mongodb/docs-notebooks/tree/main/use-cases) | Implement RAG using a MongoDB-native retrieval system |
 
-
 ## Other Resources
 
 - [MongoDB Official Documentation](https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/)
 - [Generative AI Use Cases Repository](https://github.com/mongodb-developer/GenAI-Showcase/tree/main)
+
+## License
+
+This project is licensed under the [Apache 2.0 License](https://www.apache.org/licenses/LICENSE-2.0).
+
+## Issues
+
+To report an issue with any of these notebooks, please leave feedback through
+the corresponding documentation page linked at the top of the file. Using the
+`Rate This Page` button, you can add a comment about the issue after leaving
+a star rating.
+
+## Contributing
+
+We are not currently accepting public contributions to this repository at this
+time.
