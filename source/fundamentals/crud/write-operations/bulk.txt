@@ -10,19 +10,24 @@ Bulk Operations
    :depth: 2
    :class: singlecol
 
+.. facet::
+   :name: genre
+   :values: reference
+
 .. meta::
+   :description: Learn how to perform bulk operations by using the MongoDB Java Sync Driver
    :keywords: insert, update, replace, code example, efficiency
 
 Overview
 --------
 
 In this guide, you can learn how to use bulk operations in the
-MongoDB Java Driver. 
+{+driver-short+}.
 
 To perform a single create, replace, update, or delete operation, you can use
 the corresponding method. For example, to insert one document and replace one 
 document, you can use the ``insertOne()`` and ``replaceOne()`` methods. When you
-use these methods, the ``MongoClient`` makes one call to the database for each operation. 
+use these methods, your client makes one call to the database for each operation. 
 
 By using a bulk write operation, you can perform multiple write operations in
 fewer database calls. You can perform bulk write operations at the following levels:
@@ -277,14 +282,14 @@ second parameter to specify whether the execution of the bulk operations is
 ordered or unordered.
 
 Ordered Execution
-+++++++++++++++++
+`````````````````
 
 By default, the ``bulkWrite()`` method executes bulk operations in
 order. This means that the bulk operations execute in the order you
 added them to the list until an error occurs, if any. 
 
 Example 
-```````
+^^^^^^^
 
 The following example performs these bulk operations:
 
@@ -313,7 +318,7 @@ document:
    { "_id": 6, "name": "Zaynab Hassan", "age": 37 }
 
 Unordered Execution
-+++++++++++++++++++
+```````````````````
 
 You can also execute bulk operations in any order by specifying "false"
 to the ``order()`` method on ``BulkWriteOptions``. This means that
@@ -370,6 +375,14 @@ instance methods. For example, an instance of ``ClientNamespacedInsertOneModel``
 operation to insert one document, and you can create this model by using
 the ``ClientNamespacedWriteModel.insertOne()`` method.
 
+.. note:: Bulk Write Errors
+
+   If any of the write operations fail, the driver raises a
+   ``ClientBulkWriteException`` and does not perform any further individual
+   operations. ``ClientBulkWriteException`` includes a ``BulkWriteError`` that can
+   be accessed by using the ``ClientBulkWriteException.getWriteErrors()``
+   method, which provides details of the individual failure.
+
 The models and their corresponding instance methods are described
 in the table below.
 
@@ -400,7 +413,7 @@ in the table below.
 
        ``updatePipeline``: Update pipeline to apply to matching document
 
-       ``options``: (optional) Options to apply when updating document
+       ``options``: *(optional)* Options to apply when updating document
 
        You must pass a value for either the ``update`` or ``updatePipeline`` 
        parameter.
@@ -417,7 +430,7 @@ in the table below.
 
        ``updatePipeline``: Update pipeline to apply to matching documents
 
-       ``options``: (optional) Options to apply when updating documents
+       ``options``: *(optional)* Options to apply when updating documents
 
        You must pass a value for either the ``update`` or ``updatePipeline`` 
        parameter.
@@ -432,7 +445,7 @@ in the table below.
 
        ``replacement``: Replacement document
 
-       ``options``: (optional) Options to apply when replacing documents
+       ``options``: *(optional)* Options to apply when replacing documents
 
    * - ``ClientNamespacedDeleteOneModel``
      - ``deleteOne()``
@@ -442,7 +455,7 @@ in the table below.
 
        ``filter``: Filter that selects which document to delete
 
-       ``option``: (optional) Options to apply when deleting document
+       ``option``: *(optional)* Options to apply when deleting document
 
    * - ``ClientNamespacedDeleteManyModel``
      - ``deleteMany()``
@@ -452,10 +465,19 @@ in the table below.
 
        ``filter``: Filter that selects which documents to delete
 
-       ``option``: (optional) Options to apply when deleting documents
+       ``option``: *(optional)* Options to apply when deleting documents
 
 The following sections provide examples of how to use the client ``bulkWrite()`` 
 method.
+
+To learn more about the methods and classes mentioned in this section,
+see the following API documentation:
+
+- `bulkWrite()
+  <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoCluster.html#bulkWrite(java.util.List,com.mongodb.client.model.bulk.ClientBulkWriteOptions)>`__
+- `ClientNamespacedWriteModel
+  <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/bulk/ClientNamespacedWriteModel.html>`__
+- `MongoNamespace <{+api+}/apidocs/mongodb-driver-core/com/mongodb/MongoNamespace.html>`__
 
 Insert Example
 ~~~~~~~~~~~~~~
@@ -473,24 +495,21 @@ each write operation applies to.
 
    List<ClientNamespacedWriteModel> bulkOperations = new ArrayList<>();
 
-   ClientNamespacedInsertOneModel insertDocument1 = new ClientNamespacedWriteModel
+   bulkOperations.add(ClientNamespacedWriteModel
       .insertOne(
          peopleNamespace, 
          new Document("name", "Julia Smith")
-      );
+      )
+   );
 
-   ClientNamespacedInsertOneModel insertDocument2 = new ClientNamespacedWriteModel
+   bulkOperations.add(ClientNamespacedWriteModel
       .insertOne(
          thingsNamespace, 
          new Document("object", "washing machine")
-      );
-
-   bulkOperations.add(insertDocument1);
-   bulkOperations.add(insertDocument2);
+      )
+   );
 
    ClientBulkWriteResult result = mongoClient.bulkWrite(bulkOperations);
-
-.. TODO: link documentation
 
 Replace Example
 ~~~~~~~~~~~~~~~
@@ -553,7 +572,9 @@ insert multiple documents.
 
    MongoNamespace namespace = new MongoNamespace("db", "people");
 
-   ClientBulkWriteOptions options = new ClientBulkWriteOptions().ordered(false);
+   ClientBulkWriteOptions options = ClientBulkWriteOptions
+           .clientBulkWriteOptions()
+           .ordered(false);
 
    List<ClientNamespacedWriteModel> bulkOperations = new ArrayList<>();
 
@@ -585,7 +606,11 @@ Even though the write operation inserting a document with a duplicate key result
 in an error, the other operations are executed because the write operation is
 unordered.
 
-.. TODO: link documentation
+To learn more about the methods and classes mentioned in this section,
+see the following API documentation:
+
+- `ClientBulkWriteOptions <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/bulk/ClientBulkWriteOptions.html>`__
+- `ClientBulkWriteResult <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/bulk/ClientBulkWriteResult.html>`__
 
 Summary
 -------
@@ -605,6 +630,10 @@ There are two ways to execute the ``bulkWrite()`` method:
 - Ordered, which performs the bulk operations in order until an error occurs, if any
 - Unordered, which performs all the bulk operations in any order and reports errors
   at the end, if any
+
+To learn more about the collection ``bulkWrite`` command, see the 
+:manual:`db.collection.bulkWrite() </reference/method/db.collection.bulkWrite/>`
+method reference in the {+mdb-server+} Manual.
 
 ``MongoClient.bulkWrite()``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -627,7 +656,5 @@ The ``MongoClient.bulkWrite()`` method can also take a ``ClientBulkWriteOptions`
 object to specify different options for how the command is executed.
 
 To learn more about the client ``bulkWrite`` command, see the 
-:manual:`bulkWrite() <reference/command/bulkWrite/>` method reference in the {+mdb-server+}
+:manual:`bulkWrite() </reference/command/bulkWrite/>` method reference in the {+mdb-server+}
 Manual.
-
-.. TODO: Add API Documentation
