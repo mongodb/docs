@@ -1,0 +1,174 @@
+.. _pymongo-kerberos:
+
+=================
+Kerberos (GSSAPI)
+=================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: authorization, code example
+
+Overview
+--------
+
+The Generic Security Services API (GSSAPI) authentication mechanism allows you to
+use your principal name to authenticate to a Kerberos service.
+You can use this mechanism only when authenticating to MongoDB Enterprise Advanced.
+
+Code Placeholders 
+~~~~~~~~~~~~~~~~~
+
+The code examples on this page use the following placeholders:
+
+- ``<username>``: Your :wikipedia:`URL-encoded <Percent-encoding>` principal name. For
+  example: ``"username%40REALM.ME"``
+- ``<password>``: Your Kerberos user's password.
+- ``<hostname>``: The network address of your MongoDB deployment.
+- ``<port>``: The port number of your MongoDB deployment. If you omit this parameter,
+  the driver uses the default port number (``27017``).
+
+To use the code examples on this page, replace these placeholders with your own values.
+
+.. include:: /includes/authentication/percent-encoding.rst
+
+Using GSSAPI Authentication in Your Application
+-----------------------------------------------
+
+Select the tab that corresponds to your operating system to learn how
+to use Kerberos to authenticate.
+
+.. tabs::
+
+   .. tab:: Unix
+      :tabid: unix
+
+      First, use pip or easy_install to install the Python
+      `kerberos <http://pypi.python.org/pypi/kerberos>`__ or
+      `pykerberos <https://pypi.python.org/pypi/pykerberos>`__ module.
+
+      After installing one of these modules, run the ``kinit`` command to obtain and cache
+      an initial ticket-granting ticket. The following example uses the
+      ``knit`` command to obtain a ticket-granting ticket for the principal
+      ``mongodbuser@EXAMPLE.COM``. It then uses the ``klist``
+      command to display the principal and ticket in the credentials cache.
+
+      .. code-block:: sh
+         :copyable: false
+      
+         $ kinit mongodbuser@EXAMPLE.COM
+         mongodbuser@EXAMPLE.COM's Password:
+         $ klist
+         Credentials cache: FILE:/tmp/krb5cc_1000
+                 Principal: mongodbuser@EXAMPLE.COM
+
+           Issued                Expires               Principal
+         Feb  9 13:48:51 2013  Feb  9 23:48:51 2013  krbtgt/mongodbuser@EXAMPLE.COM
+
+      After you obtain a ticket-granting ticket, set the following connection options:
+
+      - ``username``: The Kerbos principal to authenticate. Percent-encode this value
+        before including it in a connection URI.
+      - ``authMechanism``: Set to ``"GSSAPI"``.
+      - ``authMechanismProperties``: Optional. By default, MongoDB uses ``mongodb`` as
+        the authentication service name. To specify a different service name, set
+        this option to ``"SERVICE_NAME:<authentication service name>"``.
+
+      You can set these options in two ways: by passing arguments to the
+      ``MongoClient`` constructor or through parameters in your connection
+      string.
+      
+      .. include:: /includes/authentication/auth-properties-commas.rst
+
+      .. tabs::
+
+         .. tab:: MongoClient
+            :tabid: mongoclient
+
+            .. code-block:: python
+
+               client = pymongo.MongoClient("mongodb://<hostname>:<port>",
+                                            username="mongodbuser@EXAMPLE.COM",
+                                            authMechanism="GSSAPI",
+                                            authMechanismProperties="SERVICE_NAME:<authentication service name>")
+
+         .. tab:: Connection String
+            :tabid: connectionstring
+
+            .. code-block:: python
+
+               uri = ("mongodb://mongodbuser%40EXAMPLE.COM@<hostname>:<port>/?"
+                      "&authMechanism=GSSAPI"
+                      "&authMechanismProperties=SERVICE_NAME:<authentication service name>")
+               client = pymongo.MongoClient(uri)
+
+   .. tab:: Windows (SSPI)
+      :tabid: windows
+       
+      First, install the `winkerberos <https://pypi.python.org/pypi/winkerberos/>`__ module.
+      Then, set the following connection options:
+
+      - ``username``: The Kerbos principal to authenticate. Percent-encode this value before including
+        it in a connection URI.
+      - ``authMechanism``: Set to ``"GSSAPI"``.
+      - ``password``: Optional. If the user to authenticate is different from the user
+        that owns the application process, set this option to the authenticating user's
+        password.
+      - ``authMechanismProperties``: Optional. This option includes multiple
+        authentication properties. To specify more than one of the following properties,
+        use a comma-delimited list.
+        
+        - ``SERVICE_NAME:`` By default, MongoDB uses ``mongodb`` as
+          the authentication service name. Use this option to specify a different service name.
+        - ``CANONICALIZE_HOST_NAME``: Whether to use the fully qualified domain name (FQDN)
+          of the MongoDB host for the server principal.
+        - ``SERVICE_REALM``: The service realm. Use this option when the user's
+          realm is different from the service's realm.
+      
+      You can set these options in two ways: by passing arguments to the
+      ``MongoClient`` constructor or through parameters in your connection string.
+
+      .. tabs::
+
+         .. tab:: MongoClient
+            :tabid: mongoclient
+
+            .. code-block:: python
+
+               client = pymongo.MongoClient("mongodb://<hostname>:<port>",
+                                            username="mongodbuser@EXAMPLE.COM",
+                                            authMechanism="GSSAPI",
+                                            password="<user password>",
+                                            authMechanismProperties="SERVICE_NAME:<authentication service name>,
+                                                CANONICALIZE_HOST_NAME:true,
+                                                SERVICE_REALM:<service realm>")
+
+         .. tab:: Connection String
+            :tabid: connectionstring
+
+            .. code-block:: python
+
+               uri = ("mongodb://mongodbuser%40EXAMPLE.COM:<percent-encoded user password>"
+                      "@<hostname>:<port>/?"
+                      "&authMechanism=GSSAPI"
+                      "&authMechanismProperties="
+                        "SERVICE_NAME:<authentication service name>,"
+                        "CANONICALIZE_HOST_NAME:true,"
+                        "SERVICE_REALM:<service realm>")
+               client = pymongo.MongoClient(uri)
+
+API Documentation
+-----------------
+
+To learn more about using enterprise authentication mechanisms with {+driver-short+},
+see the following API documentation:
+
+- `MongoClient <{+api-root+}pymongo/mongo_client.html#pymongo.mongo_client.MongoClient>`__
