@@ -5,7 +5,7 @@
    After MongoDB Support approves the request, Project Owners can disable the {+bcp+}.
    
    To disable a {+bcp+}, the security or legal representative 
-   specified for the {+bcp+} must :ref:`request support 
+   specified for the {+bcp+} must open a case to :ref:`request support 
    <request-support>` and complete an extensive verification process.
 
    Before you enable a {+bcp+}, carefully review the 
