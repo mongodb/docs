@@ -24,17 +24,18 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 
-// :snippet-start: bulk-data-model
-data class Person(
-    @BsonId val id: Int,
-    val name: String,
-    val age: Int? = null,
-    val location: String? = null
-)
-// :snippet-end:
-
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class BulkTest {
+
+    // :snippet-start: bulk-data-model
+    data class Person(
+        @BsonId val id: Int,
+        val name: String,
+        val age: Int? = null,
+        val location: String? = null
+    )
+    // :snippet-end:
+
     companion object {
         val config = getConfig()
         val client = MongoClient.create(config.connectionUri)

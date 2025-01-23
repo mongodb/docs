@@ -10,30 +10,64 @@ Bulk Operations
    :depth: 2
    :class: singlecol
 
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: insert, update, replace, code example
+
 Overview
 --------
 
 In this guide, you can learn how to use bulk operations in the
-{+driver-long+}.
+{+driver-short+}.
 
-For individual CRUD operations, you can use the relevant method. For
-example, to insert one document and then update multiple documents, you
-can use the ``insertOne()`` method and the ``updateMany()`` method.
+To perform a single create, replace, update, or delete operation, you can use
+the corresponding method. For example, to insert one document and replace one 
+document, you can use the ``insertOne()`` and ``replaceOne()`` methods. When you
+use these methods, your client makes one call to the database for each operation. 
 
-The ``MongoClient`` performs these operations by making a request to the
-database corresponding to each operation. You can reduce the number of
-calls to the database by using bulk operations.
+By using a bulk write operation, you can perform multiple write operations in
+fewer database calls. You can perform bulk write operations at the following levels:
 
-Performing Bulk Operations
---------------------------
+- :ref:`Collection <kotlin-coll-bulk-write>`: You can use the 
+  ``MongoCollection.bulkWrite()`` method to perform bulk write operations on a 
+  single collection. In this method, each kind of write operation requires at
+  least one database call. For example, ``MongoCollection.bulkWrite()`` puts multiple update
+  operations in one call, but makes two separate calls to the database for an insert
+  operation and a replace operation.
 
-Bulk operations consist of a large number of write operations. To perform
-a bulk operation, pass a ``List`` containing ``WriteModel`` documents to the
-``bulkWrite()`` method. A ``WriteModel`` is a model that represents a single
-write operation.
+- :ref:`Client <kotlin-client-bulk-write>`: If your application connects to
+  {+mdb-server+} version 8.0 or later, you can use the ``MongoClient.bulkWrite()``
+  method to perform bulk write operations on multiple collections and databases 
+  in the same cluster. This method performs all write operations 
+  in one database call.
 
-The following sections show how to create and use each variation of the ``WriteModel``
-type. The examples in each section use the following documents in the ``people`` collection:
+.. _kotlin-coll-bulk-write:
+
+Collection Bulk Write
+---------------------
+
+Bulk write operations contain one or more write operations. To perform a bulk 
+write operation at the collection level, pass a ``List`` of ``WriteModel`` 
+documents to the ``MongoCollection.bulkWrite()`` method. A ``WriteModel`` is a 
+model that represents a write operation. 
+
+The ``MongoCollection.bulkWrite()`` method performs each kind of write
+operation in a separate database call. For example, when you pass ``DeleteOneModel``, 
+``DeleteManyModel``, and ``ReplaceOneModel`` objects to the method, it performs
+two calls: one for the delete operations and one for the replace operation.
+
+.. note::
+
+   When the client splits operations into separate database calls, it might 
+   reorder operations for efficiency if the bulk write operation is not ordered. 
+   To learn more about operation execution order, see the :ref:`orderOfExecution` section.
+
+The following sections show how to create and use each ``WriteModel``
+document. The examples in each section use the following documents in the
+``people`` collection:
 
 .. code-block:: json
 
@@ -41,7 +75,7 @@ type. The examples in each section use the following documents in the ``people``
    { "_id": 2, "name": "William Chin", "age": 54 }
    { "_id": 8, "name": "Shayla Ray", "age": 20 }
 
-This data is modeled with the following Kotlin data class:
+This data is modeled by the following {+language+} data class:
 
 .. literalinclude:: /examples/generated/BulkTest.snippet.bulk-data-model.kt
    :language: kotlin
@@ -136,7 +170,7 @@ see the following resources:
 
 - `ReplaceOneModel <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/ReplaceOneModel.html>`__ API documentation
 - `ReplaceOptions <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/ReplaceOptions.html>`__ API documentation
-- :manual:`Unique indexes </core/index-unique/>` Server Manual Explanation
+- :manual:`Unique indexes </core/index-unique/>` reference in the Server Manual
 
 Update Operation
 ~~~~~~~~~~~~~~~~
@@ -163,7 +197,7 @@ The following example creates an ``UpdateOneModel`` to increment the ``age``
 field by ``1`` in a document where the ``_id`` is ``2``:
 
 .. literalinclude:: /examples/generated/BulkTest.snippet.update-one.kt
-   :language: java
+   :language: kotlin
 
 If multiple documents match the query filter specified in
 the ``UpdateOneModel`` instance, the operation updates the first
@@ -218,21 +252,21 @@ see the following API documentation:
 .. _orderOfExecution:
 
 Order of Execution
-------------------
+~~~~~~~~~~~~~~~~~~
 
 The ``bulkWrite()`` method accepts an optional ``BulkWriteOptions`` as
 a second parameter to specify if you want to execute the bulk operations
 as ordered or unordered.
 
 Ordered Execution
-~~~~~~~~~~~~~~~~~
+`````````````````
 
 By default, the ``bulkWrite()`` method executes bulk operations in
 order. This means that the operations execute in the order you
 added them to the list until any error occurs.
 
 Example 
-```````
+^^^^^^^
 
 The following example performs these bulk operations:
 
@@ -259,7 +293,7 @@ document:
    { "_id": 6, "name": "Zaynab Hassan", "age": 37 }
 
 Unordered Execution
-~~~~~~~~~~~~~~~~~~~
+```````````````````
 
 You can also execute bulk operations in any order by passing ``false``
 to the ``ordered()`` method on a ``BulkWriteOptions`` object. This means that
@@ -296,23 +330,236 @@ see the following API documentation:
 - `BulkWriteOptions <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/BulkWriteOptions.html>`__
 - `ordered() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/BulkWriteOptions.html#ordered(boolean)>`__
 
+.. _kotlin-client-bulk-write:
+
+Client Bulk Write
+-----------------
+
+When connecting to a deployment running {+mdb-server+} 8.0 or later,
+you can use the ``MongoClient.bulkWrite()`` method to write
+to multiple databases and collections in the same cluster. The ``MongoClient.bulkWrite()``
+method performs all write operations in a single call.
+
+The ``MongoClient.bulkWrite()`` method takes a 
+list of ``ClientNamespacedWriteModel`` instances to represent different write operations.
+You can construct instances of the ``ClientNamespacedWriteModel`` interface by using 
+instance methods. For example, an instance of ``ClientNamespacedInsertOneModel`` represents an
+operation to insert one document, and you can create this model by using
+the ``ClientNamespacedWriteModel.insertOne()`` method.
+
+.. note:: Bulk Write Errors
+
+   If any of the write operations fail, the driver raises a
+   ``ClientBulkWriteException`` and does not perform any further individual
+   operations. ``ClientBulkWriteException`` includes a ``BulkWriteError`` that can
+   be accessed by using the ``ClientBulkWriteException.getWriteErrors()``
+   method, which provides details of the individual failure.
+
+The models and their corresponding instance methods are described
+in the table below.
+
+.. list-table::
+   :header-rows: 1
+   
+   * - Model
+     - Instance Method
+     - Description
+     - Parameters
+
+   *  - ``ClientNamespacedInsertOneModel``
+      - ``insertOne()``
+      - Creates a model to insert a document into the ``namespace``.
+      - ``namespace``: Database and collection to write to
+       
+        ``document``: Document to insert
+
+   * - ``ClientNamespacedUpdateOneModel``
+     - ``updateOne()``
+     - Creates a model to update the first document in the ``namespace``
+       that matches ``filter``.
+     - ``namespace``: Database and collection to write to
+
+       ``filter``: Filter that selects which document to update
+
+       ``update``: Update to apply to matching document
+
+       ``updatePipeline``: Update pipeline to apply to matching document
+
+       ``options``: *(optional)* Options to apply when updating document
+
+       You must pass a value for either the ``update`` or ``updatePipeline`` 
+       parameter.
+
+   * - ``ClientNamespacedUpdateManyModel``
+     - ``updateMany()``
+     - Creates a model to update all documents in the ``namespace`` that match 
+       ``filter``.
+     - ``namespace``: Database and collection to write to
+
+       ``filter``: Filter that selects which documents to update
+
+       ``update``: Update to apply to matching documents
+
+       ``updatePipeline``: Update pipeline to apply to matching documents
+
+       ``options``: *(optional)* Options to apply when updating documents
+
+       You must pass a value for either the ``update`` or ``updatePipeline`` 
+       parameter.
+
+   * - ``ClientNamespacedReplaceOneModel``
+     - ``replaceOne()``
+     - Creates a model to replace the first document in the ``namespace`` that 
+       matches ``filter``.
+     - ``namespace``: Database and collection to write to
+
+       ``filter``: Filter that selects which document to replace
+
+       ``replacement``: Replacement document
+
+       ``options``: *(optional)* Options to apply when replacing documents
+
+   * - ``ClientNamespacedDeleteOneModel``
+     - ``deleteOne()``
+     - Creates a model to delete the first document in the ``namespace`` that 
+       matches ``filter``.
+     - ``namespace``: Database and collection to write to
+
+       ``filter``: Filter that selects which document to delete
+
+       ``option``: *(optional)* Options to apply when deleting document
+
+   * - ``ClientNamespacedDeleteManyModel``
+     - ``deleteMany()``
+     - Creates a model to delete all documents in the ``namespace`` that match 
+       ``filter``.
+     - ``namespace``: Database and collection to write to
+
+       ``filter``: Filter that selects which documents to delete
+
+       ``option``: *(optional)* Options to apply when deleting documents
+
+The following sections provide examples of how to use the client ``bulkWrite()`` 
+method. The sample data is modeled by the following {+language+} data classes:
+
+.. literalinclude:: /examples/generated/ClientBulkTest.snippet.data-classes.kt
+   :language: kotlin
+
+To learn more about the methods and classes mentioned in this section,
+see the following API documentation:
+
+- `bulkWrite()
+  <{+api+}/apidocs/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-mongo-cluster/bulk-write.html>`__
+- `ClientNamespacedWriteModel
+  <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/bulk/ClientNamespacedWriteModel.html>`__
+- `MongoNamespace <{+api+}/apidocs/mongodb-driver-core/com/mongodb/MongoNamespace.html>`__
+
+Insert Operation
+~~~~~~~~~~~~~~~~
+
+This example shows how to use the ``bulkWrite()`` method to insert 
+two documents. One document is inserted into the ``sample_db.people`` collection, while
+the other document is inserted into the ``sample_db.objects`` collection. 
+The ``MongoNamespace`` instance defines the databases and collections that 
+each write operation applies to.
+
+.. literalinclude:: /examples/generated/ClientBulkTest.snippet.insert-models.kt
+   :language: kotlin
+
+Replace Operation
+~~~~~~~~~~~~~~~~~
+
+The following example shows how to use the ``bulkWrite()`` method to replace
+existing documents in the ``sample_db.people`` and ``sample_db.things`` collections.
+
+.. literalinclude:: /examples/generated/ClientBulkTest.snippet.replace-models.kt
+   :language: kotlin
+
+After this example runs successfully, the document that has an ``_id`` value of ``1`` 
+in the ``people`` collection is replaced with a new document. The document in 
+the ``things`` collection that has an ``_id`` value of ``1`` 
+is replaced with a new document.
+
+.. _kotlin-client-bulk-write-options:
+
+Bulk Write Options
+~~~~~~~~~~~~~~~~~~
+
+You can pass an instance of ``ClientBulkWriteOptions`` to the ``bulkWrite()``
+method to specify options when running the bulk write operations.
+
+Order of Execution
+``````````````````
+
+By default, the individual operations in a bulk operation are executed in the
+order that you specify them until an error occurs, or until they execute 
+successfully. However, you can pass ``false`` to the ``ordered()`` method on 
+the ``ClientBulkWriteOptions`` interface to perform write operations in an 
+unordered way. When using the unordered option, an error-producing operation 
+does not prevent execution of other write operations in the call to the 
+``bulkWrite()`` method.
+
+The following code sets the ``ordered()`` method on an
+instance of ``ClientBulkWriteOptions`` and performs a bulk write operation to 
+insert multiple documents.
+
+.. literalinclude:: /examples/generated/ClientBulkTest.snippet.options.kt
+   :language: kotlin
+   :emphasize-lines: 3-5
+
+Even though the write operation inserting a document with a duplicate key results
+in an error, the other operations are executed because the write operation is
+unordered.
+
+To learn more about the methods and classes mentioned in this section,
+see the following API documentation:
+
+- `ClientBulkWriteOptions <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/bulk/ClientBulkWriteOptions.html>`__
+- `ClientBulkWriteResult <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/bulk/ClientBulkWriteResult.html>`__
+
 Summary
 -------
 
-To perform a bulk operation, create and pass a list of
-``WriteModel`` documents to the ``bulkWrite()`` method.
+MongoCollection.bulkWrite()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-There are six variations of ``WriteModel``:
+To perform a bulk operation, you create and pass a list of
+``WriteModel`` instances to the ``bulkWrite()`` method. 
 
-- ``InsertOneModel``
-- ``ReplaceOneModel``
-- ``UpdateOneModel``
-- ``UpdateManyModel``
-- ``DeleteOneModel``
-- ``DeleteManyModel``
+There are 6 different ``WriteModel`` subtypes: ``InsertOneModel``,
+``ReplaceOneModel``, ``UpdateOneModel``, ``UpdateManyModel``,
+``DeleteOneModel`` and ``DeleteManyModel``. 
 
-There are two ways to execute the ``bulkWrite()`` method:
+There are two ways to execute the ``bulkWrite()`` method: 
 
-- Ordered, where the driver performs the write operations in order until any error occurs
-- Unordered, where the driver performs all the write operations in any order and
-  reports any errors after the operations complete
+- Ordered, which performs the bulk operations in order until an error occurs, if any
+- Unordered, which performs all the bulk operations in any order and reports errors
+  at the end, if any
+
+To learn more about the collection ``bulkWrite`` command, see the 
+:manual:`db.collection.bulkWrite() </reference/method/db.collection.bulkWrite/>`
+method reference in the {+mdb-server+} Manual.
+
+MongoClient.bulkWrite()
+~~~~~~~~~~~~~~~~~~~~~~~
+
+When connecting to a deployment running {+mdb-server+} version 8.0 or later, you 
+can use the ``MongoClient.bulkWrite()`` method to perform bulk operations on multiple 
+databases and collections at once.
+
+To perform a client bulk operation, you create an pass a list of 
+``ClientNamespacedWriteModel`` instances to this method.
+
+There are six subtypes of ``ClientNamespacedWriteModel`` that are used to
+represent write operations. To construct these write models, you can use the
+corresponding ``ClientNamespacedWriteModel`` methods ``insertOne()``, ``updateOne()``, 
+``updateMany()``, ``replaceOne()``, ``deleteOne()``, and ``deleteMany()``. These 
+methods take a ``MongoNamespace`` object that defines which
+database and collection to write to.
+
+The ``MongoClient.bulkWrite()`` method can also take a ``ClientBulkWriteOptions``
+object to specify different options for how the command is executed.
+
+To learn more about the client ``bulkWrite`` command, see the 
+:manual:`bulkWrite() </reference/command/bulkWrite/>` method reference
+in the {+mdb-server+} Manual.
