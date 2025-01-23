@@ -7,9 +7,9 @@ import (
 	"log"
 	"os"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 // start-drink-struct
@@ -42,11 +42,11 @@ func main() {
 
 	// begin insertDocs
 	coll := client.Database("db").Collection("drinks")
-	docs := []interface{}{
+	docsToInsert := []interface{}{
 		Drink{Description: "Matcha Latte", Sizes: []int32{12, 16, 20}, Styles: []string{"iced", "hot", "extra hot"}},
 	}
 
-	result, err := coll.InsertMany(context.TODO(), docs)
+	result, err := coll.InsertMany(context.TODO(), docsToInsert)
 	//end insertDocs
 	if err != nil {
 		panic(err)
@@ -63,14 +63,15 @@ func main() {
 		opts := options.FindOneAndUpdate().
 			SetReturnDocument(options.After)
 
-		// Updates the first document that matches the filter and prints
-		// the updated document as a struct
+		// Updates the first document that matches the filter
 		var updatedDoc Drink
-		err := coll.FindOneAndUpdate(context.TODO(), filter, update, opts).Decode(&updatedDoc)
+		err := coll.FindOneAndUpdate(context.TODO(), filter, update, opts).
+			Decode(&updatedDoc)
 		if err != nil {
 			panic(err)
 		}
 
+		// Prints the updated document
 		res, _ := bson.MarshalExtJSON(updatedDoc, false, false)
 		fmt.Println(string(res))
 		// end positional
@@ -83,7 +84,7 @@ func main() {
 
 		_, err := coll.UpdateOne(context.TODO(), filter, update)
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
 
 		fmt.Println("\nData Restored\n")
@@ -97,17 +98,18 @@ func main() {
 		identifier := []interface{}{bson.D{{"hotOptions", bson.D{{"$regex", "hot"}}}}}
 		update := bson.D{{"$unset", bson.D{{"styles.$[hotOptions]", ""}}}}
 		opts := options.FindOneAndUpdate().
-			SetArrayFilters(options.ArrayFilters{Filters: identifier}).
+			SetArrayFilters(identifier).
 			SetReturnDocument(options.After)
 
-		// Updates the first document that matches the filter and prints
-		// the updated document as a struct
+		// Updates the first document that matches the filter
 		var updatedDoc Drink
-		err := coll.FindOneAndUpdate(context.TODO(), bson.D{}, update, opts).Decode(&updatedDoc)
+		err := coll.FindOneAndUpdate(context.TODO(), bson.D{}, update, opts).
+			Decode(&updatedDoc)
 		if err != nil {
 			panic(err)
 		}
 
+		// Prints the updated document
 		res, _ := bson.MarshalExtJSON(updatedDoc, false, false)
 		fmt.Println(string(res))
 		// end filtered positional
@@ -119,7 +121,7 @@ func main() {
 
 		_, err := coll.UpdateOne(context.TODO(), bson.D{}, update)
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
 
 		fmt.Println("\nData Restored\n")
@@ -134,14 +136,14 @@ func main() {
 		opts := options.FindOneAndUpdate().
 			SetReturnDocument(options.After)
 
-		// Updates the first document that matches the filter and prints
-		// the updated document as a struct
+		// Updates the first document that matches the filter
 		var updatedDoc Drink
 		err := coll.FindOneAndUpdate(context.TODO(), bson.D{}, update, opts).Decode(&updatedDoc)
 		if err != nil {
 			panic(err)
 		}
 
+		// Prints the updated document
 		res, _ := bson.MarshalExtJSON(updatedDoc, false, false)
 		fmt.Println(string(res))
 		// end positional all
