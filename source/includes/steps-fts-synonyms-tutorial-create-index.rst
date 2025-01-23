@@ -147,23 +147,24 @@
       
             The following index definition specifies: 
       
-            - The :ref:`language analyzer <ref-language-analyzers>` 
-              ``lucene.standard`` as the default analyzer for both indexing 
-              and querying the ``title`` field.
+            - The ``lucene.english`` :ref:`language analyzer
+              <ref-language-analyzers>` as the default analyzer for both
+              indexing and querying the ``title`` field.
             - The name ``transportSynonyms`` and ``attireSynonyms`` as the 
               names for the synonym mappings.
-            - The ``transport_synonyms`` collection as the source synonyms 
-              collection to look for synonyms for queries using 
-              ``transportSynonyms`` mapping. ``transportSynonyms`` can be 
-              used in text queries over any field indexed with the 
-              ``lucene.standard`` analyzer (including the ``title`` field, 
-              in this sample query in this tutorial).
-            - The ``attire_synonyms`` collection as the source synonyms 
-              collection to look for synonyms for queries using 
-              ``attireSynonyms`` mapping. ``attireSynonyms`` can be 
-              used in text queries over any field indexed with the 
-              ``lucene.standard`` analyzer (including the ``title`` field, 
-              in this example).
+            
+              - The ``transport_synonyms`` collection as the source synonyms 
+                collection to look for synonyms for queries using 
+                ``transportSynonyms`` mapping. ``transportSynonyms`` can be 
+                used in text queries over any field indexed with the 
+                ``lucene.english`` analyzer (including the ``title`` field, 
+                in the sample query in this tutorial).
+              - The ``attire_synonyms`` collection as the source synonyms 
+                collection to look for synonyms for queries using 
+                ``attireSynonyms`` mapping. ``attireSynonyms`` can be 
+                used in text queries over any field indexed with the 
+                ``lucene.english`` analyzer (including the ``title`` field, 
+                in the sample query in this tutorial).
       
             .. tabs:: 
       
