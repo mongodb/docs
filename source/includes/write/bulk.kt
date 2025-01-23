@@ -2,13 +2,18 @@ import com.mongodb.client.model.*
 import com.mongodb.client.model.Filters.*
 import com.mongodb.kotlin.client.MongoClient
 
-// start-data-class
+// start-data-classes
 data class Restaurant(
     val name: String,
     val borough: String,
     val cuisine: String
 )
-// end-data-class
+
+data class Movie(
+    val title: String,
+    val year: Int
+)
+// end-data-classes
 
 fun main() {
     val uri = "<connection string>"
