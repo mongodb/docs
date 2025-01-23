@@ -30,6 +30,14 @@
 - Starting from October 31, 2024, stops support for MongoDB 5.0,
   which is EOL. To learn more, see :ref:`What happens to Atlas clusters using a MongoDB version nearing end of life? <atlas-eol-upgrade>`
 
+.. _atlas-2024_10_31:
+
+31 October 2024 Release
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Supports filtering the results in the :ref:`Query Profiler 
+  <query-profiler>` by hosts.
+
 .. _atlas_2024_10_23:
 
 23 October 2024 Release
