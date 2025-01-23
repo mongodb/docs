@@ -4,7 +4,7 @@
    cloud-hosted database-as-a-service. |mms-home|, a hosted service,
    and `Ops Manager
    <https://www.mongodb.com/products/mongodb-enterprise-advanced?tck=docs_server>`_, 
-   an on-premise solution, provide monitoring, backup, and
+   an on-premises solution, provide monitoring, backup, and
    automation of MongoDB instances. For documentation, see `Atlas
    documentation <https://docs.atlas.mongodb.com?tck=docs_server>`_, the
    |mms-docs| and `Ops Manager documentation
