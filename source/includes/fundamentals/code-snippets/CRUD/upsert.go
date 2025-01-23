@@ -7,9 +7,9 @@ import (
 	"log"
 	"os"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 // start-plant-struct
@@ -64,7 +64,7 @@ func main() {
 		update := bson.D{{"$set", bson.D{{"species", "Ledebouria socialis"}, {"plant_id", 3}, {"height", 8.3}}}}
 
 		// Sets the upsert option to true
-		opts := options.Update().SetUpsert(true)
+		opts := options.UpdateOne().SetUpsert(true)
 
 		// Updates a documents or inserts a document if no documents are
 		// matched and prints the results
