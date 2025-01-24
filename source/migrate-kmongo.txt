@@ -4,6 +4,14 @@
 Migrate from KMongo
 ===================
 
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :description: Learn how to migrate your application from KMongo to the official MongoDB Kotlin driver.
+   :keywords: code example, adapt, syntax
+
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -15,36 +23,37 @@ Overview
 --------
 
 This page contains a high-level comparison of most of the ways the official
-MongoDB Kotlin and the community-developed KMongo driver differ.
+{+driver-long+} and the community-developed KMongo driver differ.
 You can use this page to identify the changes you need to make to migrate from 
-the deprecated KMongo driver to the official MongoDB Kotlin driver.
+the deprecated KMongo driver to the official {+driver-long+}.
 
 .. include:: /includes/kmongo-description.rst
 
-The MongoDB Kotlin driver is the officially supported and maintained MongoDB driver for 
-Kotlin. It is developed by the MongoDB team.
+The {+driver-long+} is the officially supported and maintained MongoDB driver for 
+{+language+}. It is developed by the MongoDB team.
 
-Although both drivers :ref:`support synchronous and asynchronous operations <kotlin-sync-async-support>`, 
-the examples on this page will use asynchronous coroutine-based operations. 
+Although both drivers :ref:`support synchronous and asynchronous
+operations <kotlin-sync-async-support>`, the examples on this page will
+use asynchronous coroutine-based operations.
 
 Connect to MongoDB Cluster
 --------------------------
 
 Both drivers let you connect to and communicate with MongoDB clusters from a 
-Kotlin application.
+{+language+} application.
 
 .. tabs::
 
    .. tab::
       :tabid: {+driver-long+}
 
-      To connect to a MongoDB cluster using the MongoDB Kotlin driver: 
+      To connect to a MongoDB cluster using the {+driver-long+}: 
 
       .. code-block:: kotlin
 
         import com.mongodb.kotlin.client.coroutine.MongoClient
 
-        data class Jedi(val name: String, val age: Int)   
+        data class Jedi(val name: String, val age: Int)
 
         // Replace the placeholder with your MongoDB deployment's connection string
         val uri = CONNECTION_STRING_URI_PLACEHOLDER
@@ -77,7 +86,7 @@ Kotlin application.
         // Get a collection of documents of type Jedi 
         val col = database.getCollection<Jedi>()
 
-      Unlike the MongoDB Kotlin driver, KMongo allows the collection name to be
+      Unlike the {+driver-long+}, KMongo allows the collection name to be
       inferred from the data class name.
 
 CRUD and Aggregation
@@ -86,51 +95,93 @@ CRUD and Aggregation
 Both drivers provide support for all MongoDB CRUD APIs and aggregation 
 operations.
 
+.. tip::
+
+   If you are accustomed to constructing query filters by using the
+   infix notation available in KMongo, you can also use this notation to
+   create filters in the official {+driver-short+} by using extension
+   methods from the ``mongodb-driver-kotlin-extensions`` package. Select
+   the :guilabel:`Kotlin Driver Extensions` tab to view an example that
+   uses this query syntax in the {+driver-short+}.
+
 .. tabs::
 
    .. tab::
       :tabid: {+driver-long+}
 
-      The MongoDB Kotlin driver also provides functions for all basic CRUD operations:
+      The {+driver-long+} also provides functions for all basic CRUD operations:
 
       .. code-block:: kotlin
 
-        // Insert a document
-          val jedi =a Jedi("Luke Skywalker", 19)
-          collection.insertOne(jedi)
+         // Insert a document
+         val jedi = Jedi("Luke Skywalker", 19)
+         collection.insertOne(jedi)
 
-          // Find a document
-          val luke = collection.find(Jedi::name.name, "Luke Skywalker")
-          val jedis = collection.find(lt(Jedi::age.name, 30)).toList()
+         // Find a document
+         val luke = collection.find(Jedi::name.name, "Luke Skywalker")
+         val jedis = collection.find(lt(Jedi::age.name, 30)).toList()
 
-          // Update a document
-          val filter = Filters.eq(Jedi::name.name, "Luke Skywalker")
-          val update = Updates.set(Jedi::age.name, 20)
-          collection.updateOne(filter, update)
+         // Update a document
+         val filter = Filters.eq(Jedi::name.name, "Luke Skywalker")
+         val update = Updates.set(Jedi::age.name, 20)
+         collection.updateOne(filter, update)
 
-          // Delete a document
-          val filter = Filters.eq(Jedi::name.name, "Luke Skywalker")
-          collection.deleteOne(filter)
+         // Delete a document
+         val filter = Filters.eq(Jedi::name.name, "Luke Skywalker")
+         collection.deleteOne(filter)
 
-      Aggregation pipelines can be built using the ``aggregate`` method and the 
-      ``pipeline`` function: 
+      You can build aggregation pipelines by using the ``aggregate()``
+      method and the ``pipeline`` function:
 
       .. code-block:: kotlin
 
-        data class Results(val avgAge: Double)
+         data class Results(val avgAge: Double)
 
-        val resultsFlow = collection.aggregate<Results>(
-            listOf(
-              Aggregates.match(Filters.ne(Jedi::name.name, "Luke Skywalker")),
-              Aggregates.group("\$${Jedi::name.name}", 
-                  Accumulators.avg("avgAge", "\$${Jedi::age.name}"))
-            )
-        )
-        resultsFlow.collect { println(it) }
+         val resultsFlow = collection.aggregate<Results>(
+             listOf(
+               Aggregates.match(Filters.ne(Jedi::name.name, "Luke Skywalker")),
+               Aggregates.group("\$${Jedi::name.name}", 
+                   Accumulators.avg("avgAge", "\$${Jedi::age.name}"))
+             )
+         )
+         resultsFlow.collect { println(it) }
 
       See the :ref:`CRUD Operations <kotlin-crud-operations>` and 
       :ref:`Aggregation <kotlin-aggregation>` documentation for more information.
-      
+
+   .. tab::
+      :tabid: Kotlin Driver Extensions
+
+      You can use the Builders API from the
+      ``mongodb-driver-kotlin-extensions`` library to create query
+      filters and aggregation pipeline stages directly using data class
+      properties. This library also allows you to create queries by
+      using infix notation:
+
+      .. code-block:: kotlin
+         
+         import com.mongodb.kotlin.client.model.Filters.eq
+         import com.mongodb.kotlin.client.model.Filters.lt
+         import com.mongodb.kotlin.client.model.Updates.set
+
+         data class Jedi(val name: String, val age: Int)
+
+         // Find documents
+         val luke = collection.find(Jedi::name eq "Luke Skywalker")
+         val jedis = collection.find(Jedi::age lt 30)).toList()
+
+         // Update a document
+         val filter = Jedi::name eq "Luke Skywalker"
+         val update = Jedi::age.name set 20
+         collection.updateOne(filter, update)
+
+         // Delete a document
+         val filter = Jedi::name eq "Luke Skywalker"
+         collection.deleteOne(filter)
+
+      To learn more and view examples that use all the builder
+      classes, see the :ref:`kotlin-builders-data-classes` guide.
+
    .. tab::
       :tabid: KMongo
 
@@ -173,44 +224,84 @@ Construct Queries
 
 Both drivers provide support for type-safe queries using property references.
 
+.. tip::
+
+   If you are accustomed to constructing query filters by using the
+   infix notation available in KMongo, you can also use this notation to
+   create filters in the official {+driver-short+} by using extension
+   methods from the ``mongodb-driver-kotlin-extensions`` package. Select
+   the :guilabel:`Kotlin Driver Extensions` tab to view an example that
+   uses this query syntax in the {+driver-short+}.
+
 .. tabs::
 
    .. tab::
       :tabid: {+driver-long+}
 
-      The MongoDB Kotlin driver uses the Builders API to construct queries. 
+      The {+driver-long+} uses the Builders API to construct queries. 
       Alternatively, you can use the ``Document`` class.
 
       .. code-block:: kotlin
 
-        data class Person(val name: String, val email: String, val gender: String, val age: Int)
-        data class Results(val email: String)
+         data class Person(val name: String, val email: String, val gender: String, val age: Int)
+         data class Results(val email: String)
+ 
+         val collection = database.getCollection<Person>("people")
+ 
+         // Using Builders 
+         val filter = and(eq("gender", "female"), gt("age", 29))
+         val projection = fields(excludeId(), include("email"))
+         val results = collection.find<Results>(filter).projection(projection)
+ 
+         // Using Document class 
+         val filter = Document().append("gender", "female").append("age", Document().append("\$gt", 29))
+         val projection = Document().append("_id", 0).append("email", 1)
+         val results = collection.find<Results>(filter).projection(projection)
 
-        val collection = database.getCollection<Person>("people")
-
-        // Using Builders 
-        val filter = and(eq("gender", "female"), gt("age", 29))
-        val projection = fields(excludeId(), include("email"))
-        val results = collection.find<Results>(filter).projection(projection)
-
-        // Using Document class 
-        val filter = Document().append("gender", "female").append("age", Document().append("\$gt", 29))
-        val projection = Document().append("_id", 0).append("email", 1)
-        val results = collection.find<Results>(filter).projection(projection)
-
-      To map a KMongo string query to the Kotlin driver, you can use the ``JsonObject`` class.
+      To map a KMongo string query to the {+driver-short+}, you can use the ``JsonObject`` class.
 
       .. code-block:: kotlin
 
         val query = JsonObject("{\"name\": \"Gabriel Garc\\u00eda M\\u00e1rquez\"}")
         val jsonResult = collection.find(query).firstOrNull()
 
-      For more information, see the following Kotlin driver documentation:
+      For more information, see the following {+driver-short+} documentation:
 
       - :ref:`Builders <kotlin-builders-landing>`
       - :ref:`Documents <kotlin-document-format>` guide
       - `JsonObject <{+api+}/apidocs/bson/org/bson/json/JsonObject.html>`__ API Documentation
-      
+
+   .. tab::
+      :tabid: Kotlin Driver Extensions
+
+      You can use the Builders API from the
+      ``mongodb-driver-kotlin-extensions`` library to construct queries
+      directly on data class properties. This library also allows you to
+      create queries by using infix notation:
+
+      .. code-block:: kotlin
+
+         import com.mongodb.kotlin.client.model.Filters.eq
+         import com.mongodb.kotlin.client.model.Filters.and
+         import com.mongodb.kotlin.client.model.Filters.gt
+         import com.mongodb.kotlin.client.model.Projections.excludeId
+         import com.mongodb.kotlin.client.model.Projections.fields
+         import com.mongodb.kotlin.client.model.Projections.include
+
+         data class Person(val name: String, val gender: String, val age: Int)
+         data class Result(val name: String)
+ 
+         val collection = database.getCollection<Person>("people")
+  
+         // Infix Notation Query
+         val filter = (Person::gender eq "female") and (Person::age gt 29))
+         val projection = fields(excludeId(), include(Person::name))
+ 
+         val results = collection.find<Result>(filter).projection(projection)
+
+      To learn more and view examples that use all the builder
+      classes, see the :ref:`kotlin-builders-data-classes` guide.
+
    .. tab::
       :tabid: KMongo
 
@@ -253,9 +344,10 @@ Both drivers provide support for type-safe queries using property references.
 Data Typing
 -----------
 
-Both drivers support the use of Kotlin data classes as well as the ``Document`` class to 
-model the data stored in a MongoDB collection. The ``Document`` 
-class lets you model data represented in a MongoDB collection in a flexible format. 
+Both drivers support the use of {+language+} data classes and the
+``Document`` class to model the data stored in a MongoDB collection. The
+``Document`` class lets you model data represented in a MongoDB
+collection in a flexible format.
 
 .. tabs::
 
@@ -263,7 +355,7 @@ class lets you model data represented in a MongoDB collection in a flexible form
       :tabid: {+driver-long+}
 
       You can use data classes and ``Document`` classes to model data with the 
-      MongoDB Kotlin driver:
+      {+driver-long+}:
 
       .. code-block:: kotlin
 
@@ -302,17 +394,17 @@ Data Serialization
 ------------------
 
 Both drivers provide support for serializing and deserializing data objects
-in Kotlin to and from BSON.
+in {+language+} to and from BSON.
 
 .. tabs::
 
   .. tab::
       :tabid: {+driver-long+}
 
-      You can serialize data classes in the Kotlin driver using both automatic 
-      data class codecs as well as the ``kotlinx.serialization`` library. The 
+      You can serialize data classes in the {+driver-short+} using both automatic 
+      data class codecs and the ``kotlinx.serialization`` library. The 
       driver provides an efficient ``Bson`` serializer that handles the 
-      serialization of Kotlin objects to BSON data. 
+      serialization of {+language+} objects to BSON data. 
 
       .. code-block:: kotlin
 
@@ -326,7 +418,7 @@ in Kotlin to and from BSON.
             val manufacturer: String = "Acme" // Use instead of @BsonProperty
         )
 
-      To learn more, see the :ref:`Kotlin Serialization <fundamentals-kotlin-serialization>` 
+      To learn more, see the :ref:`{+language+} Serialization <fundamentals-kotlin-serialization>` 
       documentation.
 
       If you use the ``Document`` class to represent your collection, you can 
@@ -381,9 +473,9 @@ Both drivers support synchronous and asynchronous operations.
   .. tab::
       :tabid: {+driver-long+}
 
-      The MongoDB Kotlin driver also has separate libraries for synchronous and 
-      asynchronous operations. However, the Kotlin driver only has built-in support 
-      for coroutines as an asynchronous paradigm. The MongoDB Kotlin driver does not 
+      The {+driver-long+} also has separate libraries for synchronous and 
+      asynchronous operations. However, the {+driver-short+} only has built-in support 
+      for coroutines as an asynchronous paradigm. The {+driver-long+} does not 
       currently provide support for other asynchronous paradigms such as Reactive 
       Streams, Reactor, or RxJava2.
 
@@ -418,7 +510,7 @@ Both drivers support synchronous and asynchronous operations.
           val collection = database.getCollection<Jedi>("jedi")
 
           // Synchronous operations
-          val jedi =a Jedi("Luke Skywalker", 19)
+          val jedi = Jedi("Luke Skywalker", 19)
           collection.insertOne(jedi)
 
       To write asynchronous coroutine code:
@@ -437,7 +529,7 @@ Both drivers support synchronous and asynchronous operations.
         runBlocking {
 
           // Async operations
-          val jedi =a Jedi("Luke Skywalker", 19)
+          val jedi = Jedi("Luke Skywalker", 19)
           collection.insertOne(jedi)
         }
 
@@ -514,5 +606,5 @@ What Next?
 ----------
 
 Now that you have learned about the differences between KMongo and the MongoDB 
-Kotlin driver, see the :ref:`Quick Start <kotlin-quickstart>` to get 
-started using the KMongo Kotlin driver.
+{+driver-short+}, see the :ref:`Quick Start <kotlin-quickstart>` to get 
+started using the KMongo {+driver-short+}.

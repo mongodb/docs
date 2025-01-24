@@ -14,4 +14,4 @@ val result = collection
     .withDocumentClass<NewDataStorage>()
     .findOneAndUpdate(filter, update, options)
 
-println("Updated document: ${result}")
+println("Updated document: $result")
