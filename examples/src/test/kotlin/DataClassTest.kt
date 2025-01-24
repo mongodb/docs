@@ -92,7 +92,7 @@ internal class DataClassTest {
             .withDocumentClass<NewDataStorage>()
             .findOneAndUpdate(filter, update, options)
 
-        println("Updated document: ${result}")
+        println("Updated document: $result")
         // :snippet-end:
     }
 
