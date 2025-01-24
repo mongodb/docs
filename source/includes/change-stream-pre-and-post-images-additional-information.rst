@@ -40,7 +40,7 @@ Additional considerations:
 - Enabling pre- and post-images consumes storage space and adds
   processing time. Only enable pre- and post-images if you need them.
 
-- Limit the change stream event size to less than 16 megabytes. To limit
+- Limit the change stream event size to less than 16 mebibytes. To limit
   the event size, you can:
 
   - Limit the document size to 8 megabytes. You can request pre- and
@@ -49,11 +49,11 @@ Additional considerations:
     ``updateDescription`` are not large.
 
   - Request only post-images in the change stream output for documents
-    up to 16 megabytes if other change stream event fields like
+    up to 16 mebibytes if other change stream event fields like
     ``updateDescription`` are not large.
 
   - Request only pre-images in the change stream output for documents up
-    to 16 megabytes if:
+    to 16 mebibytes if:
     
     - document updates affect only a small fraction of the document
       structure or content, *and*
