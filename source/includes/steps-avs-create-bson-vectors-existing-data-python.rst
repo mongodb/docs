@@ -391,7 +391,7 @@
                .. code-block:: python 
    
                   def run_vector_search(query_text, collection, path):
-                    query_embedding = get_embedding("query_text")
+                    query_embedding = get_embedding(query_text)
                     bson_query_vector = generate_bson_vector(query_embedding, BinaryVectorDtype.FLOAT32)
 
                     pipeline = [
@@ -426,7 +426,7 @@
                .. code-block:: python 
    
                   def run_vector_search(query_text, collection, path):
-                    query_embedding = get_embedding("query_text")
+                    query_embedding = get_embedding(query_text)
                     bson_query_vector = generate_bson_vector(query_embedding, BinaryVectorDtype.INT8)
 
                     pipeline = [
@@ -461,7 +461,7 @@
                .. code-block:: python 
    
                   def run_vector_search(query_text, collection, path):
-                    query_embedding = get_embedding("query_text")
+                    query_embedding = get_embedding(query_text)
                     bson_query_vector = generate_bson_vector(query_embedding, BinaryVectorDtype.PACKED_BIT)
 
                     pipeline = [
