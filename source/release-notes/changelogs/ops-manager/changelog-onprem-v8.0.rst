@@ -1,3 +1,13 @@
+.. _opsmgr-server-8.0.3:
+
+|onprem| Server 8.0.3
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2024-01-10*
+
+- Fixes an issue where labels did not appear on the 
+  :guilabel:`Backup Job Config` page in the Admin UI.
+
 .. _opsmgr-server-8.0.2:
 
 |onprem| Server 8.0.2
