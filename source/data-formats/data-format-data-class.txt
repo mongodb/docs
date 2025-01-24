@@ -1,0 +1,226 @@
+.. _kotlin-sync-data-format-data-classes:
+
+==================================
+Document Data Format: Data Classes
+==================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to store and retrieve data in the
+{+driver-long+} by using **{+language+} data classes**.
+
+Serialize and Deserialize a Data Class
+--------------------------------------
+
+The driver natively supports encoding and decoding {+language+} data classes for
+MongoDB read and write operations by using the **default codec registry**. The
+default codec registry is a collection of classes called **codecs** that
+define how to encode and decode {+language+} and Java types.
+
+.. _kotlin-sync-example-data-class:
+
+Example Data Class
+~~~~~~~~~~~~~~~~~~
+
+The code examples in this section reference the following sample data class, which
+describes a data storage device:
+
+.. literalinclude:: /includes/data-formats/data-class.kt
+   :language: kotlin
+   :start-after: start-data-class
+   :end-before: end-data-class
+   :dedent:
+
+Insert a Data Class
+~~~~~~~~~~~~~~~~~~~
+
+You can insert a ``DataStorage`` instance as shown in the following code:
+
+.. literalinclude:: /includes/data-formats/data-class.kt
+   :language: kotlin
+   :start-after: start-insert
+   :end-before: end-insert
+   :dedent:
+
+Retrieve a Data Class
+~~~~~~~~~~~~~~~~~~~~~
+
+You can retrieve documents as ``DataStorage`` instances and print them
+as shown in the following code:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/data-formats/data-class.kt
+      :language: kotlin
+      :start-after: start-retrieve
+      :end-before: end-retrieve
+      :dedent:
+
+   .. output::
+      :language: console
+
+      DataStorage(productName=tape, capacity=5.0)
+
+.. include:: /includes/data-formats/builders-dataclass.rst
+
+You must specify a class for documents returned from a collection, even
+if it is different than the class you specified when retrieving the
+collection.
+
+The following example performs an update to the document
+represented by the ``DataStorage`` data class in the previous example
+and returns the updated document as a ``DataStorageAlt`` type. The
+operation adds the ``releaseDate`` field to the document in which the
+value of the ``name`` field is ``tape``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/data-formats/data-class.kt
+      :language: kotlin
+      :start-after: start-alt-retrieve
+      :end-before: end-alt-retrieve
+      :dedent:
+
+   .. output::
+      :language: console
+
+      Document after update:
+      DataStorageAlt(productName=tape, capacity=5.0, releaseDate=2025-01-24)
+
+.. _kotlin-sync-data-class-annotations:
+
+Specify Component Conversion Using Annotations
+----------------------------------------------
+
+This section describes the annotations you can use to configure the
+serialization behavior of data classes and provides an example to
+demonstrate the annotation behavior.
+
+You can use the following annotations on data classes:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 30 70
+
+   * - Annotation Name
+     - Description
+
+   * - ``BsonId``
+     - Marks a property to serialize as the ``_id`` property.
+
+   * - ``BsonProperty``
+     - Specifies a custom document field name when converting the data class
+       field to BSON.
+
+   * - ``BsonRepresentation``
+     - Specifies the BSON type MongoDB uses to store the value. Use this
+       annotation only when you must store a value as a different
+       BSON type than the data class property.
+          
+       :red:`WARNING:` Your code might throw an exception if you include the
+       ``BsonRepresentation`` annotation on a property that you store
+       as the same type as the data class property.
+
+To learn more these property annotations,
+see to the `org.bson.codecs.pojo.annotations
+<{+java-api+}/apidocs/bson/org/bson/codecs/pojo/annotations/package-summary.html>`__
+Package API documentation.
+
+Annotated Data Class Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The code examples in this section reference the following sample data
+class, which describes a network device:
+
+.. literalinclude:: /includes/data-formats/data-class.kt
+   :language: kotlin
+   :start-after: start-ann-class
+   :end-before: end-ann-class
+   :dedent:
+
+Insert an Annotated Data Class
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can insert a ``NetworkDevice`` instance as shown in the following code:
+
+.. literalinclude:: /includes/data-formats/data-class.kt
+   :language: kotlin
+   :start-after: start-insert-ann
+   :end-before: end-insert-ann
+   :dedent:
+
+The inserted document in MongoDB resembles the following:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "_id": {...},
+     "name": "Enterprise Wi-fi",
+     "type": "router"
+   }
+
+Retrieve an Annotated Data Class
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can retrieve documents as ``NetworkDevice`` instances and print them
+as shown in the following code:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/data-formats/data-class.kt
+      :language: kotlin
+      :start-after: start-retr-ann
+      :end-before: end-retr-ann
+      :dedent:
+
+   .. output::
+      :language: console
+
+      [NetworkDevice(deviceId=..., name=Enterprise Wi-fi, deviceType=router)]
+
+Operations with Recursive Types
+-------------------------------
+
+The driver natively supports encoding and decoding of recursively
+defined data classes without causing runtime recursion. This support extends
+to cycles of multiple data class types in type definitions. The following
+code provides an example of a recursive data class design:
+
+.. literalinclude:: /includes/data-formats/data-class.kt
+   :language: kotlin
+   :start-after: start-recur-class
+   :end-before: end-recur-class
+   :dedent:
+
+You can perform read and write operations on recursively defined data
+classes the same way that you do for other data classes. The following
+code shows how you can execute a find operation on a collection of
+``DataClassTree`` types:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/data-formats/data-class.kt
+      :language: kotlin
+      :start-after: start-tree-retrieve
+      :end-before: end-tree-retrieve
+      :dedent:
+
+   .. output::
+      :language: console
+
+      DataClassTree(content=indo-european,
+      left=DataClassTree(content=germanic, left=DataClassTree(...)),
+      right=DataClassTree(content=romance, ...))
