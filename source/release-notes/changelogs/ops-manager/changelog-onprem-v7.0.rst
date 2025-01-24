@@ -1,3 +1,33 @@
+.. _opsmgr-server-7.0.13:
+
+|onprem| Server 7.0.13
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-01-10*
+
+- Updates the release infrastructure:
+
+  - Updates the password hashing algorithm to ``PBKDF2-SHA512``. 
+    Migrates old passwords automatically without any user impact.
+  - New passwords can't exceed 256 characters to avoid a potential 
+    resource exhaustion attack if users enter very long passwords.
+  - Users with passwords longer than 256 characters must migrate their 
+    password.
+
+- New :setting:`mms.user.passwordHashIterations` custom configuration 
+  variable for |onprem| to dynamically modify the number of iterations 
+  for the algorithm.
+
+- Adds the following fields to the  :ref:`snapshot APIs 
+  <snapshots-api>`: ``machineId``, ``name``, ``completedTime``, 
+  ``fcv``, and ``replicaState``.
+
+- Fixes an issue where arbiter nodes caused the 
+  :guilabel:`Edit Namespace Filter` UI option to not appear.
+
+- Fixes an issue where labels did not appear on the 
+  :guilabel:`Backup Job Config` page in the Admin UI.
+
 .. _opsmgr-server-7.0.12:
 
 |onprem| Server 7.0.12
