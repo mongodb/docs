@@ -11,7 +11,7 @@
       ``sample_db.embeddings`` collection that specifies the 
       ``embedding`` field as the :ref:`vector
       <avs-types-vector-search>` type 
-      and the similarity measure as ``euclidean``.
+      and the similarity measure as ``dotProduct``.
 
       a. Create a file named ``CreateIndex.java`` and paste the following code:
 
