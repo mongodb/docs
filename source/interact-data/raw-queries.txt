@@ -1,0 +1,353 @@
+.. _django-raw-queries:
+
+============================
+Perform Raw Database Queries
+============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: number, amount, estimation, code example
+
+Overview
+---------
+
+In this guide, you can learn how to use {+django-odm+} to run
+raw queries on your MongoDB database. Raw queries allow you to
+query the database by using MongoDB's aggregation pipeline syntax
+rather than Django methods. You can also run queries directly
+on your ``MongoClient`` object for expanded access to your MongoDB data.
+
+Query API
+~~~~~~~~~
+
+The Django ``QuerySet`` API provides a ``raw()`` method, which allows
+you to perform raw SQL queries on relational databases. However, {+django-odm+}
+does not support the ``raw()`` method. Instead, the ODM provides the
+``raw_aggregate()`` method, which you can use to send instructions
+to the database in pipeline stages.
+
+.. note::
+
+   Django provides a ``QuerySet.aggregate()`` method, which differs from the
+   ``QuerySet.raw_aggregate()`` method. You can use ``aggregate()`` to retrieve
+   values by aggregating a collection of model objects. To learn more about
+   the ``aggregate()`` method, see `Aggregation <{+django-docs+}/topics/db/aggregation/>`__
+   in the Django documentation.
+
+You can run database queries by calling ``QuerySet`` methods on your model's
+``Manager``. The ``Manager`` class handles database operations and allows you
+to interact with your MongoDB data by referencing Django models. By default,
+Django adds a ``Manager`` named ``objects`` to every model class. This default
+``Manager`` does not support the ``raw_aggregate()`` method. To use this
+MongoDB-specific method, set your model's ``objects`` field to a custom
+manager called ``MongoManager``.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``Movie`` and ``Theater`` models, which
+represent collections in the ``sample_mflix`` database from the :atlas:`Atlas sample datasets </sample-data>`.
+These models explicitly set the ``objects`` field to use a custom ``MongoManager``,
+rather than Django's default ``Manager`` class. The model classes have the following
+definitions:
+
+.. literalinclude:: /includes/interact-data/raw-queries.py
+   :start-after: start-models
+   :end-before: end-models
+   :language: python
+   :copyable:
+
+.. include:: /includes/use-sample-data.rst
+
+   .. replacement:: model-classes
+
+      ``Movie`` and ``Theater`` models include
+
+   .. replacement:: model-imports
+
+      .. code-block:: python
+
+         from <your application name>.models import Movie, Theater
+         from django.utils import timezone
+         from datetime import datetime
+
+.. _django-raw-queries-run:
+
+Run Raw Queries
+---------------
+
+To run a raw database query, pass an aggregation pipeline
+to the ``raw_aggregate()`` method. Aggregation pipelines
+contain one or more stages that provide instructions on how to
+process documents. After calling the ``raw_aggregate()`` method,
+{+django-odm+} passes your pipeline to the ``pymongo.collection.Collection.aggregate()``
+method and returns the query results as model objects.
+
+.. tip::
+
+   To learn more about constructing aggregation pipelines, see
+   :manual:`Aggregation Pipeline </core/aggregation-pipeline/>`
+   in the {+mdb-server+} manual.
+
+This section shows how to use the ``raw_aggregate()`` method
+to perform the following tasks:
+
+- :ref:`django-raw-queries-filter-group`
+- :ref:`django-raw-queries-search`
+- :ref:`django-raw-queries-geospatial`
+
+.. _django-raw-queries-filter-group:
+
+Filter and Project Document Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example runs a raw database query by calling the
+``raw_aggregate()`` method on your ``Movie`` model's ``MongoManager``,
+which queries the ``sample_mflix.movies`` collection. The code
+passes the following aggregation pipeline stages to ``raw_aggregate()``:
+
+- ``$match``: Filters for documents that have a ``title``
+  field value of ``"The Parent Trap"``
+
+- ``$project``: Includes the ``title`` and ``released`` fields
+  of the returned model objects
+
+.. io-code-block::
+    :copyable:
+
+    .. input:: /includes/interact-data/raw-queries.py
+        :start-after: start-filter-project
+        :end-before: end-filter-project
+        :language: python
+
+    .. output::
+        :language: none
+        :visible: false
+
+        Plot of The Parent Trap, released on 1961-06-21 00:00:00+00:00:
+        Teenage twin girls swap places and scheme to reunite their divorced parents.
+
+        Plot of The Parent Trap, released on 1998-07-29 00:00:00+00:00:
+        Identical twins, separated at birth and each raised by one of their
+        biological parents, discover each other for the first time at summer
+        camp and make a plan to bring their wayward parents back together.
+
+.. note::
+
+   The ``raw_aggregate()`` method returns deferred model instances,
+   which means that you can load fields omitted by the ``$project`` stage 
+   on demand. In the preceding example, the query retrieves the ``title``
+   and ``released`` fields. The print statement runs a separate query
+   to retrieve the ``plot`` field.
+
+.. _django-raw-queries-search:
+
+Run an Atlas Search Query
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can run Atlas Search queries on your database to perform
+fine-grained text searches. These queries provide advanced search
+functionality, such as matching text phrases, scoring results for
+relevance, and highlighting matches. 
+
+To specify an Atlas Search query, create an Atlas Search index
+that covers the fields you want to query. Then, pass a ``$search``
+or ``$searchMeta`` stage in an aggregation pipeline parameter to
+the ``raw_aggregate()`` method.
+
+.. important:: 
+
+   You cannot use the ``QuerySet`` API to create Atlas Search indexes.
+   However, you can create an index by exposing your ``MongoClient``
+   object directly, on which you can call the PyMongo driver's 
+   ``create_search_index()`` method. To learn how to expose the
+   ``MongoClient``, see the :ref:`django-client-operations` section
+   of this guide.
+   
+   For instructions on using the PyMongo driver to create an Atlas
+   Search index, see `Atlas Search and Vector Search Indexes
+   <{+pymongo-docs+}/indexes/atlas-search-index/>`__
+   in the PyMongo documentation.
+
+This example runs an Atlas Search query by passing the ``$search`` pipeline
+stage to the ``raw_aggregate()`` method. The code performs the following
+actions:
+
+- Specifies the Atlas Search index that covers the ``plot`` field
+- Queries for documents whose ``plot`` values contain the string
+  ``"whirlwind romance"`` with no more than ``3`` words between them
+- Returns portions of the ``plot`` string values that match
+  the query and metadata that indicates where the matches
+  occurred
+- Includes the ``title`` field and the ``highlight``, or matching text,
+  of each result
+  
+.. io-code-block::
+    :copyable: true
+
+    .. input:: /includes/interact-data/raw-queries.py
+        :start-after: start-atlas-search
+        :end-before: end-atlas-search
+        :language: python
+
+    .. output::
+        :language: none
+        :visible: false
+
+        Title: Tokyo Fiancèe, text match details: [{'score': 2.3079638481140137, 'path': 'plot',
+        'texts': [{'value': 'A young Japanophile Belgian woman in Tokyo falls into a ', 'type': 'text'},
+        {'value': 'whirlwind', 'type': 'hit'}, {'value': ' ', 'type': 'text'}, {'value': 'romance',
+        'type': 'hit'}, {'value': ' with a Francophile Japanese student.', 'type': 'text'}]}]
+
+        Title: Designing Woman, text match details: [{'score': 2.3041324615478516, 'path': 'plot',
+        'texts': [{'value': 'A sportswriter and a fashion-designer marry after a ', 'type': 'text'},
+        {'value': 'whirlwind', 'type': 'hit'}, {'value': ' ', 'type': 'text'}, {'value': 'romance',
+        'type': 'hit'}, {'value': ', and discover they have little in common.', 'type': 'text'}]}]
+
+        Title: Vivacious Lady, text match details: [{'score': 2.220963478088379, 'path': 'plot',
+        'texts': [{'value': 'On a quick trip to the city, young university professor Peter Morgan
+        falls in love with nightclub performer Francey Brent and marries her after a ', 'type': 'text'},
+        {'value': 'whirlwind', 'type': 'hit'}, {'value': ' ', 'type': 'text'}, {'value': 'romance',
+        'type': 'hit'}, {'value': '. ', 'type': 'text'}]}]
+
+        Title: Ek Hasina Thi, text match details: [{'score': 3.11773419380188, 'path': 'plot', 'texts':
+        [{'value': 'The ', 'type': 'text'}, {'value': 'whirlwind', 'type': 'hit'}, {'value': ' ', 'type':
+        'text'}, {'value': 'romance', 'type': 'hit'}, {'value': ' turns sour when she is framed for his
+        underworld crimes. ', 'type': 'text'}]}]
+
+        Title: Kick, text match details: [{'score': 2.00649356842041, 'path': 'plot', 'texts': [{'value':
+        'An adrenaline junkie walks away from a ', 'type': 'text'}, {'value': 'whirlwind', 'type': 'hit'},
+        {'value': ' ', 'type': 'text'}, {'value': 'romance', 'type': 'hit'}, {'value': ' and embraces a new
+        life as a thief, though he soon finds himself pursued by veteran police officer and engaged in a turf
+        war with a local gangster.', 'type': 'text'}]}]
+
+        Title: A Tale of Winter, text match details: [{'score': 3.3978850841522217, 'path': 'plot', 'texts':
+        [{'value': 'Felicie and Charles have a serious if ', 'type': 'text'}, {'value': 'whirlwind', 'type':
+        'hit'}, {'value': ' holiday ', 'type': 'text'}, {'value': 'romance', 'type': 'hit'}, {'value': '. ',
+        'type': 'text'}]}]
+
+.. important::
+
+   When running the preceding example, ensure that you replace
+   the ``<search-index-name>`` placeholder with the name of your
+   Atlas Search index that covers the ``plot`` field.
+
+.. _django-raw-queries-geospatial:
+
+Query Geospatial Data
+~~~~~~~~~~~~~~~~~~~~~
+
+You can use the ``raw_aggregate()`` method to run queries
+on fields containing geospatial data. Geospatial data represents
+a geographic location on the surface of the Earth or on a
+Euclidean plane.
+
+To run a geospatial query, create a ``2d`` or ``2dsphere`` index on fields
+containing geospatial data. Then, pass one of the following
+query operators in an aggregation pipeline parameter to
+the ``raw_aggregate()`` method:
+
+- ``$near``
+- ``$geoWithin``
+- ``$nearSphere``
+- ``$geoIntersects``
+
+.. important:: 
+
+   You cannot use the ``QuerySet`` API to create ``2d`` or ``2dsphere`` indexes.
+   However, you can create indexes by exposing your ``MongoClient``
+   object directly, on which you can call the PyMongo driver's 
+   ``create_index()`` method. To learn how to expose the
+   ``MongoClient``, see the :ref:`django-client-operations` section
+   of this guide.
+   
+   For instructions on using the PyMongo driver to create geospatial
+   indexes, see `Geospatial Indexes <{+pymongo-docs+}/indexes/geospatial-index/>`__
+   in the PyMongo documentation.
+
+This example runs a geospatial query by passing the ``$match`` and
+``$geoWithin`` pipeline stages to the ``raw_aggregate()`` method. The
+code performs the following actions:
+
+- Specifies a list of coordinates that represent Chicago's boundaries
+- Queries for documents in which the ``location.geo`` field stores a
+  location within the Chicago area
+- Retrieves and prints the ``theaterId`` values of each movie theater in Chicago
+
+.. io-code-block::
+    :copyable: true
+
+    .. input:: /includes/interact-data/raw-queries.py
+        :start-after: start-geo
+        :end-before: end-geo
+        :language: python
+
+    .. output::
+        :language: none
+        :visible: false
+
+        Theater ID: 2447
+        Theater ID: 311
+        Theater ID: 320
+        Theater ID: 2960
+        Theater ID: 2741
+        Theater ID: 306
+        Theater ID: 322
+        Theater ID: 319
+        Theater ID: 2862
+        Theater ID: 1777
+        Theater ID: 814
+        Theater ID: 323
+
+.. _django-client-operations:
+
+MongoClient Operations
+----------------------
+
+If you want to run database operations that neither the ``QuerySet`` API
+nor the ``raw_aggregate()`` method provide, you can operate on your
+``MongoClient`` directly. When working with the ``MongoClient``, you can
+can access the PyMongo driver's database operations. Use the following
+syntax to expose the ``MongoClient``:
+
+.. code-block:: python
+
+   from django.db import connections
+
+   client = connections["<DATABASES key>"].database.client
+
+Replace the ``"<DATABASES key>"`` placeholder with the key in your
+``DATABASES`` dictionary that corresponds to your target database. To
+use your default database, replace the placeholder with ``"default"``.
+
+.. tip::
+
+   To learn how to use PyMongo to interact with MongoDB data,
+   see the `PyMongo documentation. <{+pymongo-docs+}>`__
+
+Additional Information
+----------------------
+
+To view more examples that use the ``raw_aggregate()`` method,
+see `QuerySet API Reference <{+api+}querysets.html>`__
+in the {+django-odm+} API documentation.
+
+To learn more about running aggregation operations, see
+:manual:`Aggregation Operations </aggregation/>`
+in the {+mdb-server+} manual.
+
+To learn more about Atlas Search, see :atlas:`Atlas Search </atlas-search>`
+in the Atlas documentation.
+
+To learn more about running geospatial queries, see
+:manual:`Geospatial Queries </geospatial-queries/>`
+in the {+mdb-server+} manual.
