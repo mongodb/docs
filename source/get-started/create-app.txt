@@ -1,0 +1,147 @@
+.. _django-get-started-create-app:
+
+=====================
+Create an Application
+=====================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: app, odm, code example
+
+In your ``quickstart`` project, you can create an application
+that interacts with the Atlas sample database called ``sample_mflix``.
+This database contains a ``movies`` collection, which stores
+information about movies. The database also contains a ``users``
+collection, which stores information about movie viewers who use 
+a streaming service.
+
+To learn more about the ``sample_mflix`` database, see :atlas:`Sample Mflix Dataset
+</sample-data/sample-mflix/>` in the Atlas documentation.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create a "sample_mflix" app
+
+      From your project's root directory, run the following command to create a 
+      new Django app called ``sample_mflix`` based on a custom template:
+      
+      .. code-block:: bash
+
+         python manage.py startapp sample_mflix --template https://github.com/mongodb-labs/django-mongodb-app/archive/refs/heads/{+django-version+}.x.zip
+
+      .. note:: App Template
+
+         The ``django-mongodb-app`` template ensures that your ``app.py`` file
+         includes the line ``"default_auto_field = 'django_mongodb_backend.fields.ObjectIdAutoField'"``.
+
+   .. step:: Create models for movie, awards, and viewer data
+
+      Open the ``models.py`` file in the ``sample_mflix`` directory and replace 
+      its contents with the following code:
+
+      .. literalinclude:: /includes/get-started/models.py
+         :language: python
+         :copyable:
+
+      The ``Movie`` model represents the ``sample_mflix.movies`` collection
+      and stores information about movies. This model contains an embedded 
+      model field named ``awards``, which stores an ``Award`` object. The
+      model also contains an array field named ``genres``, which stores
+      a list of genres that describe the movie.
+
+      The ``Award`` model does not represent a separate collection. Instead, it 
+      represents the embedded document values stored in the ``Movie`` model.
+      
+      The ``Viewer`` model represents the ``sample_mflix.users`` collection
+      and stores account information for movie viewers.
+
+   .. step:: Create views to display data
+
+      Open the ``views.py`` file in your ``sample_mflix`` directory and replace
+      its contents with the following code:
+      
+      .. literalinclude:: /includes/get-started/views.py
+         :language: python
+         :copyable:
+
+      These views display a landing page message and information about your ``Movie``
+      and ``Viewer`` models.
+   
+   .. step:: Configure URLs for your views
+
+      Create a new file called ``urls.py`` file in your ``sample_mflix`` directory.
+      To map the views defined in the preceding step to URLs, paste the following
+      code into ``urls.py``:
+      
+      .. literalinclude:: /includes/get-started/urls.py
+         :language: python
+         :copyable:
+
+      Then, navigate to the ``quickstart/urls.py`` file and replace its contents with
+      the following code:
+
+      .. code-block:: python
+
+         from django.contrib import admin
+         from django.urls import include, path
+
+         urlpatterns = [
+             path("admin/", admin.site.urls),
+             path("", include("sample_mflix.urls")),
+         ]
+
+   .. step:: Create templates to format your data
+
+      In your ``sample_mflix`` directory, create a subdirectory called
+      ``templates``. Then, create a file called ``recent_movies.html``
+      and paste the following code:
+      
+      .. literalinclude:: /includes/get-started/recent_movies.html
+         :language: html
+         :copyable:
+      
+      This template formats the movie data requested by the ``recent_movies`` view.
+
+      Create another file in the ``sample_mflix/templates`` directory called
+      ``viewers_list.html`` and paste the following code:
+
+      .. literalinclude:: /includes/get-started/viewers_list.html
+         :language: html
+         :copyable:
+
+      This template formats the user data requested by the ``viewers_list`` view.
+
+   .. step:: Include your app in your project
+
+      Open the ``settings.py`` file in ``quickstart`` and edit your 
+      ``INSTALLED_APPS`` setting to resemble the following code:
+      
+      .. code-block:: python
+
+         INSTALLED_APPS = [
+             'sample_mflix.apps.SampleMflixConfig',
+             'quickstart.apps.MongoAdminConfig',
+             'quickstart.apps.MongoAuthConfig',
+             'quickstart.apps.MongoContentTypesConfig',
+             'django.contrib.sessions',
+             'django.contrib.messages',
+             'django.contrib.staticfiles',
+         ]
+
+   .. step:: Create migrations for your new models
+
+      From your project root, run the following command to create
+      migrations for the ``Movie``, ``Award``, and ``Viewer`` models and apply
+      the changes to the database:
+      
+      .. code-block:: bash
+
+         python manage.py makemigrations sample_mflix
+         python manage.py migrate
+
+After completing these steps, you have a basic {+django-odm+} app that
+you can use to access the ``sample_mflix`` Atlas database.
