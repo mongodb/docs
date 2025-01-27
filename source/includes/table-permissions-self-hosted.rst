@@ -47,6 +47,21 @@
        - :authrole:`readWriteAnyDatabase`
        - :authrole:`restore`
 
+   * - Multiple Reversals
+     - - :authrole:`backup`
+       - :authrole:`clusterManager`
+       - :authrole:`clusterMonitor`
+       - :authrole:`dbAdminAnyDatabase`
+       - :authrole:`readWriteAnyDatabase`
+       - :authrole:`restore`
+
+     - - :authrole:`backup`
+       - :authrole:`clusterManager`
+       - :authrole:`clusterMonitor`
+       - :authrole:`dbAdminAnyDatabase`
+       - :authrole:`readWriteAnyDatabase`
+       - :authrole:`restore`
+
 For details on server roles, see: :ref:`authorization`.
 
 To update user permissions, see: :dbcommand:`grantRolesToUser`.

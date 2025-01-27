@@ -22,10 +22,6 @@ The embedded verifier has the following limitations:
   verification process restarts from the beginning. This can
   cause verification to fall substantially behind the migration.
 
-- The :ref:`/reverse <c2c-api-reverse>` endpoint disables the
-  verifier. It remains disabled after additional calls to the
-  ``/reverse`` endpoint.
-
 - .. include:: /includes/fact-verifier-buildIndexes
 
 Unsupported Verification Checks
