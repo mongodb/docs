@@ -44,7 +44,7 @@ a. Specify the :setting:`spec.networkPeers` parameter in
 #. Run the following command:
 
    .. code-block:: sh
-      :emphasize-lines: 8-14
+      :emphasize-lines: 8-15
 
       cat <<EOF | kubectl apply -f -
       apiVersion: atlas.mongodb.com/v1
