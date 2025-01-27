@@ -1,0 +1,819 @@
+.. _django-specify-query:
+
+===============
+Specify a Query
+===============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: expressions, operations, read, filter, code example
+
+Overview
+--------
+
+In this guide, you can learn how to use {+django-odm+} to specify
+a database query.
+
+You can refine the set of documents that a query returns by creating a
+**query filter**. A query filter is an expression that specifies the search
+criteria MongoDB uses to match documents in a read or write operation.
+In a query filter, you can prompt {+django-odm+} to search for documents with an
+exact match to your query, or you can compose query filters to express more
+complex matching criteria.
+
+Query API
+~~~~~~~~~
+
+The {+framework+} ``QuerySet`` API provides methods that allow you to retrieve
+model objects. To run a MongoDB database query, call ``QuerySet`` methods
+on your model's manager. The ``Manager`` class handles database
+operations and allows you to interact with your MongoDB data by referencing
+{+framework+} models. By default, {+framework+} adds a ``Manager`` named ``objects``
+to every model class. 
+
+When you assign a ``QuerySet`` to a variable, {+django-odm+} does not
+perform the operation until you evaluate the variable. After
+evaluating the ``QuerySet``, {+framework+} saves the query results in the ``QuerySet``
+cache. Future evaluations of the ``QuerySet`` use the cached results.
+
+.. tip::
+
+   To learn more about the {+framework+} ``QuerySet`` API, see `QuerySet API reference
+   <{+django-docs+}/ref/models/querysets/>`__ in the {+framework+} documentation.
+   :py:class:`~django.db.models.query.QuerySet`
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``Movie`` model, which represents
+the ``sample_mflix.movies`` collection from the :atlas:`Atlas sample datasets </sample-data>`.
+The ``Movie`` model contains an embedded ``Award`` model as the value
+of its ``awards`` field. These model classes have the following definitions:
+
+.. literalinclude:: /includes/interact-data/specify-a-query.py
+   :start-after: start-models
+   :end-before: end-models
+   :language: python
+   :copyable:
+
+.. include:: /includes/use-sample-data.rst
+
+   .. replacement:: model-classes
+
+      ``Movie`` model includes
+
+   .. replacement:: model-imports
+
+      .. code-block:: python
+
+         from <your application name>.models import Movie, Award
+         from django.utils import timezone
+         from datetime import datetime
+
+Run a Query
+-----------
+
+To query your MongoDB data, call a ``QuerySet`` method on your 
+model's manager and specify your matching criteria in a
+query filter.
+
+This section describes how to use the following methods from
+the ``QuerySet`` API:
+
+- :ref:`all() <django-query-retrieve-all>`
+- :ref:`filter() <django-query-retrieve-matching>`
+- :ref:`get() <django-query-retrieve-one>`
+- :ref:`exclude() <django-query-exclude>`
+- :ref:`raw_aggregate() <django-query-raw>`
+
+.. _django-query-retrieve-all:
+
+Retrieve All Documents
+~~~~~~~~~~~~~~~~~~~~~~
+
+To retrieve all documents from a collection, call the ``all()``
+method on your model's manager.
+
+The following example calls the ``all()`` method to retrieve
+all documents in the ``sample_mflix.movies`` collection:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/interact-data/specify-a-query.py
+      :start-after: start-all
+      :end-before: end-all
+      :language: python
+
+   .. output::
+      :visible: false
+
+      <QuerySet [<Movie: The Great Train Robbery>, <Movie: A Corner in Wheat>,
+      <Movie: Winsor McCay, the Famous Cartoonist of the N.Y. Herald and His Moving Comics>,
+      <Movie: Traffic in Souls>, <Movie: Gertie the Dinosaur>,
+      <Movie: In the Land of the Head Hunters>, <Movie: The Perils of Pauline>,
+      <Movie: The Italian>, <Movie: Regeneration>, <Movie: Civilization>,
+      '...(remaining elements truncated)...']>
+
+.. _django-query-retrieve-matching:
+
+Retrieve Matching Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To query a collection for documents that match a set of criteria,
+call the ``filter()`` method on your model's manager.
+Pass a query filter to the ``filter()`` method that specifies your
+query criteria.
+
+The following example calls the ``filter()`` method
+to query the ``sample_mflix.movies`` collection
+for documents that have a ``runtime`` value of ``300``:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/interact-data/specify-a-query.py
+      :start-after: start-filter
+      :end-before: end-filter
+      :language: python
+
+   .. output::
+      :visible: false
+
+      <QuerySet [<Movie: Wild Palms>, <Movie: Streets of Laredo>,
+      <Movie: The Way We Live Now>]>
+
+.. _django-query-retrieve-one:
+
+Retrieve One Document
+~~~~~~~~~~~~~~~~~~~~~
+
+To retrieve one document from a collection, call the ``get()``
+method on your model's manager. Pass a query filter to
+the ``get()`` method that specifies your query criteria.
+
+.. important::
+
+   If your query matches no documents or multiple documents, the ``get()``
+   method generates an error. To retrieve one document from a query
+   that might match multiple, use the :ref:`first() <django-query-first>`
+   method.
+
+The following example calls the ``get()`` method
+to retrieve one document that has a ``title``
+value of ``"Finding Nemo"``:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/interact-data/specify-a-query.py
+      :start-after: start-get
+      :end-before: end-get
+      :language: python
+
+   .. output::
+      :visible: false
+
+      <Movie: Finding Nemo>
+
+.. _django-query-exclude:
+
+Exclude Matching Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To query a collection for documents that do not meet your
+search criteria, call the ``exclude()`` method on your model's
+manager. Pass the exclusion criteria as an argument to the
+``exclude()`` method.
+
+The following example calls the ``exclude()`` method to
+exclude documents released before ``datetime(1980, 1, 1)`` (January 1, 1980)
+from the results:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/interact-data/specify-a-query.py
+      :start-after: start-exclude
+      :end-before: end-exclude
+      :language: python
+
+   .. output::
+      :visible: false
+
+      <QuerySet [<Movie: The Iron Horse>, <Movie: Le grand jeu>,
+      <Movie: The Devil Is a Woman>, <Movie: Children in the Wind>,
+      <Movie: Too Much Johnson>, <Movie: Dots>, <Movie: The Blood of Jesus>,
+      <Movie: The Land>, <Movie: The Brothers and Sisters of the Toda Family>,
+      <Movie: Begone Dull Care>, '...(remaining elements truncated)...']>
+
+.. tip::
+
+   The preceding example uses the ``lt`` field lookup
+   to query the collection. To learn more about comparison
+   lookups, see the :ref:`django-query-comparison` section
+   in this guide.
+
+.. _django-query-raw:
+
+Run Raw Database Queries
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you want to run complex queries that {+framework+}'s query API
+does not support, you can use the ``raw_aggregate()`` method. This
+method allows you to specify your query criteria in a MongoDB
+aggregation pipeline, which you pass as an argument to 
+``raw_aggregate()``. 
+
+.. TODO: To learn how to run raw database queries, see the :ref:`django-raw-queries`
+ guide.
+
+.. _django-query-filter:
+
+Customize Your Query Filter
+---------------------------
+
+You can further refine your query criteria by using a **field lookup**
+in your query filter. Field lookups allow you to clarify the relationship
+between the field you're querying and the value you want to
+query for. Use the following syntax to specify a field lookup:
+
+.. code-block:: python
+   :copyable: false
+
+   Model.objects.filter(<field name>__<lookup type>=<value>)
+   
+You can use different lookup types to perform advanced queries,
+such as partial text matching, array element queries, regular
+expression matching, and year value matching for datetime fields. 
+
+.. tip::
+
+   To view a full list of lookup types, see `Field lookups
+   <{+django-docs+}/ref/models/querysets/#field-lookups>`__ in the
+   ``QuerySet`` {+framework+} API reference.
+
+This section describes how to refine your query filters
+in the following ways:
+
+- :ref:`django-query-text-match`
+- :ref:`django-query-comparison`
+- :ref:`django-query-combine`
+
+.. _django-query-text-match:
+
+Use Text Match Lookups
+~~~~~~~~~~~~~~~~~~~~~~
+
+The following table describes some of the lookup types
+that you can use to run queries that include specific
+matching criteria for text values:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Lookup Type
+     - Description
+
+   * - ``exact``
+     - | Specifies an exact text match. If you do not provide a 
+         lookup type in your query filter, {+django-odm+} uses this
+         type by default.
+       
+       | You can specify a case-insensitive exact text match
+         by using ``iexact``.
+   * - ``contains``
+     - | Specifies a partial text match.
+       
+       | You can specify a case-insensitive partial text match
+         by using ``icontains``.
+   * - ``startswith``
+     - | Matches field values that begin with the specified text.
+       
+       | You can specify a case-insensitive partial text match
+         by using ``istartswith``.
+   * - ``endswith``
+     - | Matches field values that end with the specified text.
+       
+       | You can specify a case-insensitive partial text match
+         by using ``iendswith``.
+
+Example
+```````
+
+The following example uses the ``contains`` lookup to 
+query for documents in which the ``plot`` value
+includes the text ``"coming-of-age"``:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/interact-data/specify-a-query.py
+      :start-after: start-filter-contains
+      :end-before: end-filter-contains
+      :language: python
+
+   .. output::
+      :visible: false
+
+      <QuerySet [<Movie: Murmur of the Heart>, <Movie: Desert Bloom>,
+      <Movie: Girls Town>, <Movie: Get Real>, <Movie: Man of Steel>,
+      <Movie: The Holy Land>, <Movie: Secondhand Lions>, <Movie: How to Be Louise>,
+      <Movie: Mouth to Mouth>, <Movie: Che ne sarè di noi>, <Movie: Roll Bounce>,
+      '...(remaining elements truncated)...']>
+
+.. _django-query-comparison:
+
+Use Comparison Lookups
+~~~~~~~~~~~~~~~~~~~~~~
+
+The following table describes some of the lookup types
+that you can use to run queries that evaluate a field value
+against a specified value:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Lookup Type
+     - Description
+
+   * - ``gt``
+     - | Matches field values that are greater than the
+         specified value.
+
+   * - ``gte``
+     - | Matches field values that are greater than or equal
+         to the specified value.
+       
+   * - ``lt``
+     - | Matches field values that are less than the specified
+         value.
+
+   * - ``lte``
+     - | Matches field values that are less or equal to than the specified
+         value.
+
+
+Example
+```````
+
+The following example uses the ``lte`` lookup to 
+query for documents in which the ``runtime`` value
+is less than or equal to ``50``:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/interact-data/specify-a-query.py
+      :start-after: start-filter-lte
+      :end-before: end-filter-lte
+      :language: python
+
+   .. output::
+      :visible: false
+
+      <QuerySet [<Movie: The Great Train Robbery>, <Movie: A Corner in Wheat>,
+      <Movie: Winsor McCay, the Famous Cartoonist of the N.Y. Herald and His Moving Comics>,
+      <Movie: Gertie the Dinosaur>, <Movie: From Hand to Mouth>,
+      <Movie: High and Dizzy>, <Movie: One Week>, <Movie: Now or Never>,
+      '...(remaining elements truncated)...']>
+
+.. _django-query-combine:
+
+Combine Lookups
+~~~~~~~~~~~~~~~
+
+You can run queries that use multiple sets of matching criteria
+in the following ways:
+
+- Pass multiple query filters to your query method, separated
+  by commas. To view an example, see `Retrieving objects
+  <{+django-docs+}/topics/db/queries/#retrieving-objects>`__ in the
+  {+framework+} documentation.
+
+- Chain query methods together. To learn more, see `Chaining filters
+  <{+django-docs+}/topics/db/queries/#chaining-filters>`__ in the {+framework+}
+  documentation.
+
+- Use ``Q`` objects and separate each object with a logical operator.
+  To learn more, see `Complex lookups with Q objects
+  <{+django-docs+}/topics/db/queries/#complex-lookups-with-q-objects>`__ in the {+framework+}
+  documentation.
+
+Q Object Example
+````````````````
+
+You can use ``Q`` objects to run queries with multiple
+sets of matching criteria. To create a ``Q`` object, pass your query
+filter to the ``Q()`` method. You can pass multiple ``Q`` objects as 
+arguments to your query method and separate each ``Q`` object by an OR
+(``|``), AND (``&``), or XOR (``^``) operator. You can also negate
+``Q`` objects by prefixing them with the ``~`` symbol.
+
+This example uses ``Q`` objects to query for documents
+that meet the following query conditions:
+
+- ``title`` field value begins either with the text ``"Funny"``
+  or ``"Laugh"``
+-  ``genres`` array field does not contain the value ``"Comedy"``
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/interact-data/specify-a-query.py
+      :start-after: start-filter-combine
+      :end-before: end-filter-combine
+      :language: python
+
+   .. output::
+      :visible: false
+
+      <QuerySet [<Movie: Laugh, Clown, Laugh>, <Movie: Funny Games>]>
+
+.. tip:: 
+
+   The preceding example uses a field lookup on an
+   ``ArrayField`` value. For more information about querying
+   an ``ArrayField``, see the :ref:`django-query-arrayfield`
+   section in this guide.
+
+Modify Query Results
+--------------------
+
+This section describes how to modify your query
+results in the following ways:
+
+- :ref:`django-query-sort`
+- :ref:`django-query-limit`
+- :ref:`django-query-first`
+
+.. _django-query-sort:
+
+Sort Results
+~~~~~~~~~~~~
+
+You can provide a sort order for your query results by using the
+``order_by()`` method. To specify an ascending sort based on values
+of a given field, pass the field name as an argument. To specify a descending
+sort, pass the field name prefixed with a minus symbol (``-``) as an argument.
+
+You can pass multiple field names, separated by commas, to the ``order_by()`` method.
+{+django-odm+} sorts results by each field in the order provided.
+
+Example
+```````
+
+This example performs the following actions:
+
+- Calls the ``filter()`` method on the ``Movie`` model's manager to query
+  the ``sample_mflix.movies`` collection
+- Queries documents that have a ``title`` value starting
+  with the text ``"Rocky"``
+- Sorts the results in ascending order of their ``released`` field
+  values
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/interact-data/specify-a-query.py
+      :start-after: start-sort
+      :end-before: end-sort
+      :language: python
+
+   .. output::
+      :visible: false
+
+      <QuerySet [<Movie: Rocky>, <Movie: Rocky II>, <Movie: Rocky III>,
+      <Movie: Rocky IV>, <Movie: Rocky V>, <Movie: Rocky Marciano>,
+      <Movie: Rocky Balboa>]>
+
+.. _django-query-limit:
+
+Skip and Limit Results
+~~~~~~~~~~~~~~~~~~~~~~
+
+You can specify the number of results that a query returns
+by using Python's array-slicing syntax, as shown
+in the following code:
+
+.. code-block:: python
+   :copyable: false
+
+   Model.objects.filter(<query filter>)[<start>:<end>]
+
+Replace the ``<start>`` and ``<end>`` placeholders with integer
+values representing the subset of results you want to return.
+The start value is exclusive and the end value is inclusive.
+
+If you omit the ``<start>`` value, the query returns each result,
+beginning with the first match, until it returns the number specified
+by the ``<end>`` value.
+
+If you omit the ``<end>`` value, the query returns each result
+but skips the number of initial results specified by ``<start>``.
+
+Example
+```````
+
+This example performs the following actions:
+
+- Calls the ``filter()`` method on the ``Movie`` model's manager to query
+  the ``sample_mflix.movies`` collection
+- Queries documents that have a ``released`` value of 
+  ``datetime(2010, 7, 16)`` (July 16, 2010)
+- Returns the third and fourth results
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/interact-data/specify-a-query.py
+      :start-after: start-limit
+      :end-before: end-limit
+      :language: python
+
+   .. output::
+      :visible: false
+
+      <QuerySet [<Movie: Inception>, <Movie: Winter's Bone>]>
+
+.. _django-query-first:
+
+Retrieve the First Result
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To retrieve the first result from a query that might match
+multiple results, chain the ``first()`` method to the ``filter()``
+method. Pass a query filter to the ``filter()`` method that specifies your
+query criteria.
+
+The following example calls the ``filter()`` and ``first()`` methods
+to query the ``sample_mflix.movies`` collection for the first
+document in which the ``genres`` value is  ``["Crime", "Comedy"]``:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/interact-data/specify-a-query.py
+      :start-after: start-first
+      :end-before: end-first
+      :language: python
+
+   .. output::
+      :visible: false
+
+      <Movie: The Crew>
+
+
+Advanced Field Queries
+----------------------
+
+This section describes how to run queries on the
+following field types:
+
+- :ref:`EmbeddedModelField <django-query-embedded>`
+- :ref:`ArrayField <django-query-arrayfield>`
+- :ref:`JSONField <django-query-jsonfield>`
+- :ref:`Primary Key <django-query-primary-key>`
+
+.. _django-query-embedded:
+
+Query an EmbeddedModelField
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can run operations on your model that query fields of embedded
+models. To query these fields, specify your model field and each embedded field
+name separated by double underscores (``__``) until you reach the 
+field you want to query, as shown in the following code:
+
+.. code-block:: python
+   :copyable: false
+
+   Model.objects.filter(<model field>__<embedded model field>=<value>)
+
+You can also use :ref:`field lookups <django-query-filter>` to refine
+your embedded model query. Add your lookup type after the embedded
+model field you're querying, prefixed by double underscores.
+
+Example
+```````
+
+This example uses a lookup to query the ``Award`` model, which is embedded
+in the ``Movie`` model. This embedded model represents the
+``awards`` field in the ``sample_mflix.movies`` collection
+and its nested ``wins``,  ``nominations``, and ``text`` fields. The
+following code queries for documents in which the ``awards.wins``
+nested field value is greater than ``150``:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/interact-data/specify-a-query.py
+      :start-after: start-filter-relationships
+      :end-before: end-filter-relationships
+      :language: python
+
+   .. output::
+      :visible: false
+
+      <QuerySet [<Movie: The Lord of the Rings: The Return of the King>,
+      <Movie: No Country for Old Men>, <Movie: Slumdog Millionaire>,
+      <Movie: Boyhood>, <Movie: The Social Network>, <Movie: Inception>,
+      <Movie: Gravity>, <Movie: Gravity>, <Movie: The Artist>,
+      <Movie: 12 Years a Slave>, <Movie: Birdman: Or (The Unexpected Virtue of Ignorance)>]>
+
+.. _django-query-arrayfield:
+
+Query an ArrayField
+~~~~~~~~~~~~~~~~~~~
+
+You can query data stored in an ``ArrayField`` value
+by using the standard query syntax. {+django-odm+} provides
+additional field lookup types for querying ``ArrayField`` values,
+which are described in the following table:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Lookup Type
+     - Description
+
+   * - ``contains``
+     - | Matches fields that store the provided value as
+         a subset of their data. This ``ArrayField`` lookup overrides the
+         ``contains`` lookup described in the :ref:`django-query-text-match`
+         section of this guide.
+
+   * - ``contained_by``
+     - | Matches fields that store a subset of the provided values.
+         This lookup type is the inverse of ``contains``.
+       
+   * - ``overlap``
+     - | Matches field that store any of the provided values.
+
+   * - ``len``
+     - | Matches fields that store the number of values provided.
+
+Example
+```````
+
+The following example uses the ``overlap`` lookup to query
+for documents whose  ``genres`` field contains any values in the
+``["Adventure", "Family"]`` array:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/interact-data/specify-a-query.py
+      :start-after: start-array
+      :end-before: end-array
+      :language: python
+
+   .. output::
+      :visible: false
+
+      <QuerySet [<Movie: The Poor Little Rich Girl>, <Movie: Robin Hood>,
+      <Movie: Peter Pan>, <Movie: The Thief of Bagdad>, <Movie: Clash of the Wolves>,
+      <Movie: Beau Geste>, <Movie: The Black Pirate>, <Movie: The Son of the Sheik>,
+      <Movie: Steamboat Willie>, <Movie: The Big Trail>, <Movie: The Champ>,
+      '...(remaining elements truncated)...']>
+
+.. _django-query-jsonfield:
+
+Query a JSONField
+~~~~~~~~~~~~~~~~~
+
+You can query data stored in a ``JSONField`` value by using the 
+same syntax as show in the :ref:`django-query-embedded`
+section. Chain each field and nested field name together, separated
+by double underscores (``__``), until you reach the field you want
+to query.
+
+The following example queries the ``JSONField``-valued ``imdb`` field
+for values of its nested ``votes`` field that exceed ``900000``:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/interact-data/specify-a-query.py
+      :start-after: start-json
+      :end-before: end-json
+      :language: python
+
+   .. output::
+      :visible: false
+
+      <QuerySet [<Movie: La nao capitana>, <Movie: The Godfather>,
+      <Movie: This Is Spinal Tap>, <Movie: Forrest Gump>, <Movie: Pulp Fiction>,
+      <Movie: The Shawshank Redemption>, <Movie: Se7en>,
+      <Movie: The Lord of the Rings: The Fellowship of the Ring>,
+      <Movie: The Matrix>, <Movie: Fight Club>,
+      <Movie: The Lord of the Rings: The Return of the King>,
+      <Movie: The Lord of the Rings: The Two Towers>, <Movie: The Shawshank Redemption>,
+      <Movie: Landet som icke èr>, <Movie: The Dark Knight>,
+      <Movie: The Danish Girl>, <Movie: The Dark Knight Rises>, <Movie: Inception>,
+      <Movie: Catching the Sun>, <Movie: Scouts Guide to the Zombie Apocalypse>,
+      '...(remaining elements truncated)...']>
+
+Annotate and Filter JSON Data
+`````````````````````````````
+
+You can use ``KT()`` expressions to annotate and filter
+data stored in a ``JSONField`` value. ``KT()`` expressions allow you to
+work with the text value of keys, indexes, or path transforms
+within a ``JSONField``. Pass your ``KT()`` expression to the ``annotate()``
+method, which annotates each object in the ``QuerySet`` with the
+provided ``KT()`` expressions.
+
+.. tip::
+
+   To learn more about ``KT()`` expressions and the ``annotate()`` method,
+   see the following resources in the {+framework+} documentation:
+
+   - `KT() expressions <{+django-docs+}/topics/db/queries/#module-django.db.models.fields.json>`__
+   - `annotate() <{+django-docs+}/ref/models/querysets/#django.db.models.query.QuerySet.annotate>`__
+
+The following example uses  ``annotate()`` and ``KT()`` to create a
+new ``score`` key, which stores ``imdb.rating`` nested field values.
+Then, the code sorts each document in the ``sample_mflix.movies`` collection
+by their descending ``score`` values:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/interact-data/specify-a-query.py
+      :start-after: start-kt
+      :end-before: end-kt
+      :language: python
+
+   .. output::
+      :visible: false
+
+      <QuerySet [<Movie: No Tomorrow>, <Movie: The Deposit>, <Movie: Man Down>,
+      <Movie: Convenience>, <Movie: Scouts Guide to the Zombie Apocalypse>,
+      <Movie: Another World>, <Movie: The Danish Girl>, <Movie: Ad Inexplorata>,
+      <Movie: Landet som icke èr>, <Movie: The Ghost and the Whale>,
+      <Movie: Coming to Terms>, <Movie: La nao capitana>, <Movie: All Eyes and Ears>,
+      <Movie: Catching the Sun>, <Movie: Manhattan Romance>, <Movie: Anomalisa>,
+      <Movie: Outliving Emily>, <Movie: Mary Loss of Soul>,
+      <Movie: The Childhood of a Leader>, <Movie: Krot na more>,
+      '...(remaining elements truncated)...']>
+
+.. _django-query-primary-key:
+
+Query a Primary Key Field
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use the ``pk`` lookup shortcut to query primary key
+values, which MongoDB stores as ``ObjectId`` values.
+
+The following example queries the ``sample_mflix.movies`` collection
+for a document whose primary key is ``ObjectId("573a1394f29313caabce0d37")``:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/interact-data/specify-a-query.py
+      :start-after: start-primary-key-pk
+      :end-before: end-primary-key-pk
+      :language: python
+
+   .. output::
+      :visible: false
+     
+      // Your ObjectId values might differ
+
+      <Movie: Vertigo>
+
+The ``Movie`` model, which represents the ``sample_mflix.movies`` collection,
+uses the ``id`` field as its primary key. The following example constructs
+the same query as the preceding code by using the  ``id`` field:
+
+.. literalinclude:: /includes/interact-data/specify-a-query.py
+    :language: python
+    :dedent:
+    :start-after: start-primary-key-id
+    :end-before: end-primary-key-id
+
+Additional Information
+----------------------
+
+To learn how to run raw database queries by using MongoDB's aggregation 
+pipeline syntax, see the :ref:`django-raw-queries` guide.
+
+To learn how to perform other ``QuerySet`` operations, see the
+:ref:`django-crud` guide.
+
+To learn more about {+framework+} queries, see `Making queries <{+django-docs+}/topics/db/queries>`__
+in the {+framework+} documentation.
