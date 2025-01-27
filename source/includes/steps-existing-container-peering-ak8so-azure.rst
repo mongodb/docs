@@ -45,7 +45,7 @@ a. Specify the :setting:`spec.networkPeers` parameter in
 #. Run the following command:
 
    .. code-block:: sh
-      :emphasize-lines: 8-14
+      :emphasize-lines: 8-15
 
       cat <<EOF | kubectl apply -f -
       apiVersion: atlas.mongodb.com/v1
@@ -57,8 +57,6 @@ a. Specify the :setting:`spec.networkPeers` parameter in
         networkPeers:
         - providerName: "AZURE"
           containerID: "6dc5f17280eef56a459fa3fb"
-          atlasCidrBlock: "10.8.0.0/21"
-          containerRegion: "US_WEST"
           accepterRegionName: "US_EAST_2"
           azureSubscriptionId: "12345678"
           resourceGroupName: "my-group"

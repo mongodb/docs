@@ -46,7 +46,7 @@ a. Specify the :setting:`spec.networkPeers` parameter in
 #. Run the following command:
 
    .. code-block:: sh
-      :emphasize-lines: 8-14
+      :emphasize-lines: 8-12
 
       cat <<EOF | kubectl apply -f -
       apiVersion: atlas.mongodb.com/v1
@@ -58,8 +58,6 @@ a. Specify the :setting:`spec.networkPeers` parameter in
         networkPeers:
         - providerName: "GCP"
           atlasCidrBlock: "10.8.0.0/21"
-          containerRegion: "us-east1"
           gcpProjectId: "12345678"
-          routeTableCidrBlock: "10.0.0.0/24"
           networkName: "my-vpc"
       EOF
