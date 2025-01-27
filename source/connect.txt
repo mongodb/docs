@@ -1,0 +1,179 @@
+.. _django-connection-configuration:
+
+==================================
+Configure Your Database Connection
+==================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: connection string, URI, server, settings
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to configure your Django project's
+connection to MongoDB.
+
+Connection Configuration 
+------------------------
+
+After installing {+django-odm+} and creating a project, you can configure
+your connection to MongoDB in the following ways:
+
+- :ref:`django-connection-configure-manual` by specifying the
+  ``DATABASES`` variable in your project's settings.
+- :ref:`django-connection-configure-automatic` by using
+  the ``parse_uri()`` function.
+
+.. tip::
+
+   To learn how to install {+django-odm+} and create a
+   Django project, visit the :ref:`django-get-started` tutorial.
+
+.. _django-connection-configure-manual:
+
+Manually Configure Database Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To manually configure your connection to MongoDB, update
+the ``DATABASES`` variable in your project's ``settings.py``
+file. Set the ``DATABASES`` variable to a dictionary value containing
+the ``default`` key, as shown in the following example: 
+
+.. code-block:: python
+
+    DATABASES = {
+        "default": {
+            # Specify nested dictionary keys here
+        },
+    }
+
+To configure the ``default`` key, assign a nested dictionary as its value.
+This nested dictionary has the following keys:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Key
+     - Description
+
+   * - **ENGINE**
+     - The backend driver to use for the connection. Set this key to ``"django_mongodb_backend"``.
+
+   * - **HOST**
+     - | Your connection URI. For localhost connections, this key is optional. 
+       | For SRV connections, you must include a scheme prefix (``mongodb+srv://``).
+       |
+       | To specify more than one host, include all hostnames in one string. Use
+         a comma to separate each hostname.
+       | **Example:** ``"HOST": "mongodb://mongos0.example.com:27017,mongos1.example.com:27017"``
+
+   * - **NAME**
+     - The database you want to use.
+
+   * - **USER**
+     - The username for authenticating to the database, if your connection
+       requires authentication.
+
+   * - **PASSWORD**
+     - The password for your database user, if your connection requires authentication.
+
+   * - **PORT**
+     - | The port number on which the database server is listening. The default
+         port is ``27017``.
+       | For MongoDB Atlas connections, this key is optional.
+
+   * - **OPTIONS**
+     - | A dictionary of additional connection options for the database. This key is optional.
+       | To see a full list of connection options that you can set in the ``OPTIONS`` key,
+         see the optional parameters for `MongoClient <https://pymongo.readthedocs.io/en/4.10.1/api/pymongo/mongo_client.html#pymongo.mongo_client.MongoClient>`__
+         in the PyMongo API documentation.
+
+.. _django-manual-config-example:
+
+Example 
+```````
+
+In this example, the ``DATABASES`` variable performs the
+following actions:
+
+- Sets the database to ``my_database``
+- Provides authentication information for a database user
+  whose username is ``my_user`` and password is ``my_password``
+- Specifies the default MongoDB port (``27017``)
+- Sets the ``retryWrites`` connection option to ``true``,
+  which configures the driver to automatically retry certain
+  write operations if they fail
+- Sets the ``w`` connection option to ``majority``,
+  which configures the driver to wait for acknowledgement from a majority
+  of replica set members before performing write operations
+
+.. code-block:: python
+
+    DATABASES = {
+        "default": {
+            "ENGINE": "django_mongodb_backend",
+            "HOST": "mongodb+srv://cluster0.example.mongodb.net",
+            "NAME": "my_database",
+            "USER": "my_user",
+            "PASSWORD": "my_password",
+            "PORT": 27017,
+            "OPTIONS": {
+                "retryWrites": "true",
+                "w": "majority",
+            },
+        },
+    }
+
+.. _django-connection-configure-automatic:
+
+Automatically Configure Database Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To automatically construct the ``DATABASES`` setting that configures
+your MongoDB connection, you can use the ``parse_uri()`` function. This
+function accepts the following arguments:
+
+- ``uri``: Your MongoDB connection URI.
+- ``conn_max_age``: Configures persistent database connections.
+  This argument is optional. To learn more, see 
+  `Persistent connections <{+django-docs+}/ref/databases/#persistent-database-connections>`__
+  in the Django documentation.
+- ``test``: Provides a dictionary of settings for test
+  databases. This argument is optional. To learn more, see 
+  `the TEST setting <{+django-docs+}/ref/settings/#test>`__
+  in the Django documentation.
+
+Example 
+```````
+
+The following example uses the ``parse_uri()`` function to specify
+the same connection configuration as the previous :ref:`manual configuration <django-manual-config-example>`
+example:
+
+.. code-block:: python
+
+    import django_mongodb_backend
+
+    MONGODB_URI = "mongodb+srv://my_user:my_password@cluster0.example.mongodb.net/my_database?retryWrites=true&w=majority"
+    DATABASES["default"] = django_mongodb_backend.parse_uri(MONGODB_URI)
+
+Additional Information
+----------------------
+
+To view a sample project that configures a MongoDB database connection,
+see the :ref:`django-get-started-connect` step in the Getting Started
+tutorial.
+
+To learn more about Django settings, see `Settings <{+django-docs+}/ref/settings/>`__
+in the Django documentation.
