@@ -6,7 +6,7 @@ Underutilized {+Clusters+}
 - Enable :ref:`auto-scaling <cluster-autoscaling>` on your {+cluster+}
   tier to match your usage and prevent over-provisioning.
   
-  Scaling down only occurs once every 24 hours and must match
+  Scaling down occurs once every six hours and must match
   specific conditions. To learn more, see :atlas:`Scaling Down a Cluster Tier 
   </cluster-autoscaling/#scaling-down-a-cluster-tier>`.
 
@@ -27,29 +27,35 @@ Underutilized {+Clusters+}
 
   - Enable a cron job to
     pause dev and test {+clusters+} during the night when no one actively develops against the {+cluster+}. You can pause {+clusters+} with the
-    {+atlas-admin-api+} by using the :oas-atlas-op:`Modify One Cluster
-    </updateCluster>` endpoint to set the ``paused`` field to ``true``.
+    {+atlas-admin-api+} by setting the ``paused`` field to ``true`` when
+    using either of the following methods:
+    
+    - :oas-atlas-op:`Modify One Cluster </updateCluster>` endpoint.
+    - `Terraform cluster resource <https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cluster#paused-2>`__.
 
   - Set an alert in your 
     third party metrics or alerting system that triggers if a dev or
-    test {+cluster+} has not had any activity in over one week. The alert should trigger if
-    there are a no read or writes on a cluster for seven days.
+    test {+cluster+} has not had any activity in over one week.
 
   - Consider terminating unused dev and test {+clusters+} after a 
     set amount of time and sufficient email alerts to the {+cluster+}
-    owner. You can
-    terminate a {+cluster+} with the
-    {+atlas-admin-api+} by using the :oas-atlas-op:`Remove One Cluster
-    </deleteCluster>` endpoint.
+    owner. You can terminate a {+cluster+} with the following methods:
+
+    - {+atlas-admin-api+} by using the :oas-atlas-op:`Remove One Cluster
+      </deleteCluster>` endpoint.
+    - `Terraform cluster resource
+      <https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cluster#termination_protection_enabled-2>`__
+      by setting the ``termination_protection_enabled`` field to ``false``.
 
 
 High Backup Frequency
 ~~~~~~~~~~~~~~~~~~~~~
 
 - :ref:`Continuous backups <pit-restore>` are expensive, but they give
-  you the most safety to recover data in case of disaster or code logic
-  error. We recommend that you enable continuous backups only for
-  production applications at the most critical data tier.
+  you the most safety to recover data from any point in time within the
+  backup window in case of disaster or code logic error. We recommend
+  that you enable continuous backups only for production applications at
+  the most critical data tier.
 
 - :ref:`Lower the frequency of backups <creating-backup-policy>` for
   {+clusters+} that store less critical data. Consider terminating
@@ -58,11 +64,14 @@ High Backup Frequency
 Optimize Data Transfer Patterns
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Whenever possible, opt for same-provider, same-region data transfer to minimize 
-costs. Only use inter-region or internet transfers when necessary, 
-such as for disaster recovery scenarios where you need to restore the application in a different region. Locating your 
-{+cluster+} in the same region as most of your traffic — likely where you host your 
+Whenever possible, opt for same-provider, same-region data transfer to
+minimize costs. Only use inter-region or internet transfers when
+necessary, such as for disaster recovery scenarios where you need to
+restore the application in a different region. Locating your {+cluster+}
+in the same region as most of your traffic — usually where you host your
 application — can greatly reduce data transfer costs.
+
+To learn more, see :ref:`reducing-data-transfer-costs`.
 
 Optimize Queries
 ~~~~~~~~~~~~~~~~
@@ -75,10 +84,10 @@ Optimize Storage
 ~~~~~~~~~~~~~~~~
 
 Use features like :ref:`online archive <online-archive-overview>` 
-or :manual:`TTL indexes </core/index-ttl/>` to 
-move older data from more expensive hot storage to less expensive cold 
-storage. After you archive data, you can access the data through 
-:ref:`Atlas Data Federation <data-federation-overview>`. 
+or :manual:`TTL indexes </core/index-ttl/>` to move older data from more
+expensive hot storage to less expensive cold storage, or delete data
+that is no longer needed. After you archive data, you can access the
+data through :ref:`Atlas Data Federation <data-federation-overview>`. 
 
 Use Cost Explorer
 ~~~~~~~~~~~~~~~~~
