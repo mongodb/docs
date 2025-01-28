@@ -1,0 +1,303 @@
+.. _django-indexes:
+
+==============
+Create Indexes
+==============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: query, optimization, efficiency
+
+Overview
+--------
+
+In this guide, you can learn how to create MongoDB **indexes** by using your
+Django models. Indexes can improve the efficiency of queries and provide
+additional query and document storage functionality.
+
+Without indexes, MongoDB must scan every document in a collection to find the
+documents that match a query. These collection scans are slow and can
+negatively affect the performance of your application. However, if an
+appropriate index exists for a query, MongoDB can use the index to limit the
+documents it inspects.
+
+Django provides the ``Index`` class, which you can use to create an
+index on your model. {+django-odm+} creates the same index on your
+MongoDB collection that the model represents.
+
+.. tip::
+
+    To learn more about the ``Index`` class, see `Model index reference
+    <{+django-docs+}/ref/models/indexes/>`__ in the Django
+    documentation.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``Recipe`` model, which contains an
+embedded ``Nutrition`` model as the value of its ``nutrition`` field.
+These model classes have the following definitions:
+
+.. literalinclude:: /includes/model-data/indexes.py
+   :start-after: start-models
+   :end-before: end-models
+   :language: python
+   :copyable:
+
+In the ``Recipe`` model's ``Meta`` class, the ``db_table = "recipes"`` option
+instructs {+django-odm+} to map the ``Recipe`` model to a MongoDB collection
+called ``recipes``. To learn how to create a Django application that
+uses models to interact with MongoDB collections, visit the
+:ref:`django-get-started` tutorial.
+
+Create an Index
+---------------
+
+To create an index on your model, specify the ``indexes`` option
+in your model's ``Meta`` class. Set the value of this ``indexes`` option
+to a list of the indexes you want to create, as shown in the following
+code:
+
+.. code-block:: python
+   :copyable: false
+
+   class Meta:
+       indexes = [
+           models.Index(<first index definition>),
+           models.Index(<second index definition>),
+           # add more indexes here
+       ]
+
+To define your index, pass the following arguments to the ``models.Index()`` method:
+
+- ``fields``: Specifies a list of fields to index. This argument is required.
+
+- ``name``: Specifies the index name. This argument is optional, and Django
+  automatically creates an index name if you don't provide one.
+
+- ``condition``: Specifies a subset of documents to index. This argument is
+  optional. To learn more about the ``condition`` argument, see the :ref:`django-indexes-partial`
+  section of this guide.
+
+After you apply your database migrations, {+django-odm+} creates the
+same indexes on the MongoDB collection.
+
+.. tip::
+
+   To learn how to create and apply database migrations, see `Migrations
+   <{+django-docs+}/topics/migrations/>`__ in the Django documentation.
+
+This section shows how to create the following index types:
+
+- :ref:`Single field <django-indexes-single-field>`
+- :ref:`Compound <django-indexes-compound>`
+- :ref:`Multikey <django-indexes-multikey>`
+- :ref:`Embedded document <django-indexes-embedded>`
+
+.. _django-indexes-single-field:
+
+Single Field Index
+~~~~~~~~~~~~~~~~~~
+
+Single field indexes store information from a single field in a collection.
+By default, all MongoDB collections have an index on the ``_id`` field.
+
+The following example updates the ``Recipe`` model's ``Meta`` class to create
+a single field index on the ``title`` field, which {+django-odm+} creates
+on the ``recipes`` collection:
+
+.. literalinclude:: /includes/model-data/indexes.py
+   :start-after: start-single-field-meta
+   :end-before: end-single-field-meta
+   :language: python
+   :copyable:
+   :emphasize-lines: 3-5
+
+Alternatively, you can set the ``db_index`` option on your model's ``title`` field
+to create the index, as shown in the following code:
+
+.. literalinclude:: /includes/model-data/indexes.py
+   :start-after: start-single-field-option
+   :end-before: end-single-field-option
+   :language: python
+   :copyable:
+
+.. _django-indexes-compound:
+
+Compound Index
+~~~~~~~~~~~~~~
+
+Compound indexes collect and sort data from multiple fields in a collection.
+MongoDB groups data by the first field specified in the index, and then by
+each subsequent field.
+
+The following example updates the ``Recipe`` model's ``Meta`` class to create
+a compound index on the ``title`` and ``cook_time`` fields, which {+django-odm+} creates
+on the ``recipes`` collection:
+
+.. literalinclude:: /includes/model-data/indexes.py
+   :start-after: start-compound
+   :end-before: end-compound
+   :language: python
+   :copyable:
+   :emphasize-lines: 3-5
+
+.. _django-indexes-multikey:
+
+Multikey Index
+~~~~~~~~~~~~~~
+
+Multikey indexes collect and sort data from array fields. When you create an index on an
+array field, MongoDB automatically sets that index as a multikey index.
+
+The following example updates the ``Recipe`` model's ``Meta`` class to create
+a compound index on the ``allergens`` array field, which {+django-odm+} creates
+on the ``recipes`` collection:
+
+.. literalinclude:: /includes/model-data/indexes.py
+   :start-after: start-multikey
+   :end-before: end-multikey
+   :language: python
+   :copyable:
+   :emphasize-lines: 3-5
+
+.. _django-indexes-embedded:
+
+Embedded Document Index
+~~~~~~~~~~~~~~~~~~~~~~~
+
+You can create indexes on fields that store embedded model values,
+which MongoDB represents as embedded documents.
+
+The following example updates the ``Recipe`` model's ``Meta`` class to create
+an index on the ``nutrition`` embedded model field, which {+django-odm+} creates
+on the ``recipes`` collection:
+
+.. literalinclude:: /includes/model-data/indexes.py
+   :start-after: start-embedded
+   :end-before: end-embedded
+   :language: python
+   :copyable:
+   :emphasize-lines: 3-5
+
+.. important::
+
+   The index created in the preceding example is only used in queries that
+   specify the entire embedded document. Queries on a specific field within
+   the embedded document do not use the index. However, you can index
+   fields within the embedded document by adding an inner ``Meta`` class
+   to the ``Nutrition`` model and specifying the ``indexes`` option.
+
+Advanced Index Configuration
+----------------------------
+
+This section shows how to create the following advanced
+index types:
+
+- :ref:`django-indexes-partial`
+- :ref:`django-indexes-unique`
+
+.. _django-indexes-partial:
+
+Partial Indexes
+~~~~~~~~~~~~~~~
+
+Partial indexes index only the documents in a collection that meet specified
+filter criteria, which reduces storage use and performance costs.
+
+To create a partial index, pass the ``condition`` argument to the ``models.Index()``
+method. Set the condition value to a ``Q`` object that includes the filter
+criteria. When using the ``condition`` argument, you must also pass the ``name``
+argument to ``models.Index()``.
+
+.. tip::
+
+   To learn more about ``Q`` objects, see `Complex lookups with Q objects
+   <{+django-docs+}/topics/db/queries/#complex-lookups-with-q-objects>`__
+   in the Django documentation.
+
+The following example updates the ``Recipe`` model's ``Meta`` class to create
+a partial index on the ``cuisine`` field, instructing {+django-odm+} to
+only index documents that have a ``cook_time`` value less than ``30``:
+
+.. literalinclude:: /includes/model-data/indexes.py
+   :start-after: start-partial
+   :end-before: end-partial
+   :language: python
+   :copyable:
+   :emphasize-lines: 3-7
+
+.. _django-indexes-unique:
+
+Unique Indexes
+~~~~~~~~~~~~~~
+
+Unique indexes allow you to prevent indexed fields from storing duplicate values.
+On a single field, unique indexes ensure that a value appears at most once for
+the specified field. On multiple fields, unique indexes ensure that any given
+combination of the index key values appears at most once. 
+
+Single Field Example
+````````````````````
+
+The following example updates the ``Recipe`` model's ``cuisine`` field,
+setting the ``unique`` option to ``True`` to create a unique single field index:
+
+.. literalinclude:: /includes/model-data/indexes.py
+   :start-after: start-unique-single
+   :end-before: end-unique-single
+   :language: python
+   :copyable:
+
+.. note::
+
+   Setting the ``unique`` option to ``True`` automatically creates
+   an index on the given field.
+
+Compound Example
+````````````````
+
+The following example updates the ``Recipe`` model's ``Meta`` class to create
+a compound index on the ``title`` and ``cuisine`` fields. The code
+sets the ``constraints`` option to a ``UniqueConstraint`` instance, which
+creates a unique compound index on these fields:
+
+.. literalinclude:: /includes/model-data/indexes.py
+   :start-after: start-unique-compound
+   :end-before: end-unique-compound
+   :language: python
+   :copyable:
+   :emphasize-lines: 3-6
+
+.. tip::
+
+   Setting the ``constraints`` option to a ``UniqueConstraint`` automatically
+   creates an index on the specified fields. To learn more about the ``Meta``
+   class's ``constraint`` option, see `Constraints <{+django-docs+}/ref/models/constraints/>`__
+   in the Django documentation.
+
+Additional Information
+----------------------
+
+To learn more about the index types mentioned in this guide,
+see the following {+mdb-server+} manual resources:
+
+- :manual:`Single Field Indexes </core/index-single/>`
+- :manual:`Compound Indexes </core/index-compound/>`
+- :manual:`Multikey Indexes </core/index-multikey/>`
+- :manual:`Embedded Document Indexes </core/indexes/index-types/index-single/create-embedded-object-index/>`
+- :manual:`Partial Indexes </core/index-partial/>`
+- :manual:`Unique Indexes </core/index-unique/>`
+
+To learn more about creating indexes on Django models, see
+`Model index reference <{+django-docs+}/ref/models/indexes/>`__ in the Django
+documentation.
