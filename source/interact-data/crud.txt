@@ -1,0 +1,284 @@
+.. _django-crud:
+
+=======================
+Perform CRUD Operations
+=======================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: insert, modify, read, write, code example
+
+Overview
+---------
+
+In this guide, you can learn how to use {+django-odm+} to run
+create, read, update, and delete (CRUD) operations on your MongoDB
+collection.
+
+You can also use the {+framework+} admin site to edit your models
+and their corresponding collections on a web interface. For
+more information, see the `Django Admin Site <https://docs.djangoproject.com/en/5.1/ref/contrib/admin/>`__
+entry in the {+framework+} documentation.
+
+Query API
+~~~~~~~~~
+
+You can use methods provided by the {+framework+} ``QuerySet`` API to run
+CRUD operations. To run these operations, you can call ``QuerySet`` methods
+on your model's manager. The ``Manager`` class handles database
+operations and allows you to interact with your MongoDB data by referencing
+Django models. By default, {+framework+} adds a ``Manager`` named ``objects``
+to every model class. 
+
+.. tip::
+
+    To learn more about {+framework+}'s ``QuerySet`` API, see the
+    `QuerySet API reference <https://docs.djangoproject.com/en/5.1/ref/models/querysets/>`__
+    in the {+framework+} documentation.
+
+This guide shows how to use the following ``QuerySet`` methods:
+
+- :ref:`create() <django-crud-insert>`: Inserts documents into the collection
+- :ref:`filter() and get() <django-crud-read>`: Retrieves one or multiple collection documents
+- :ref:`update() <django-crud-modify>`: Modifies collection documents
+- :ref:`delete() <django-crud-delete>`: Deletes collection documents
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``Movie`` model, which represents
+the ``sample_mflix.movies`` collection from the :atlas:`Atlas sample datasets </sample-data>`.
+The ``Movie`` model class has the following definition:
+
+.. literalinclude:: /includes/interact-data/crud.py
+   :start-after: start-models
+   :end-before: end-models
+   :language: python
+   :copyable:
+
+.. include:: /includes/use-sample-data.rst
+
+   .. replacement:: model-classes
+
+      ``Movie`` model includes
+
+   .. replacement:: model-imports
+
+      .. code-block:: python
+
+         from <your application name>.models import Movie
+         from django.utils import timezone
+         from datetime import datetime
+
+.. _django-crud-insert:
+
+Insert Documents
+----------------
+
+To insert a document into a collection, call the ``create()`` method on your
+model's manager. Pass the new document's field names and field values
+as arguments to the ``create()`` method.
+
+Example
+~~~~~~~
+
+The following example calls the ``create()`` method to insert a document
+into the ``sample_mflix.movies`` collection. The new document has
+a ``title`` value of ``"Poor Things"`` and a ``runtime`` value
+of ``141``:
+
+.. literalinclude:: /includes/interact-data/crud.py
+   :start-after: start-insert
+   :end-before: end-insert
+   :language: python
+   :copyable:
+
+The ``create()`` method allows you to create a new ``Movie`` object
+and save the object to MongoDB in one method call. Alternatively, you
+can create a ``Movie`` object and call ``save()``, as shown in the following
+code:
+
+.. literalinclude:: /includes/interact-data/crud.py
+   :start-after: start-save
+   :end-before: end-save
+   :language: python
+   :copyable:
+
+.. tip::
+
+   To learn more about the ``create()`` method, see `create()
+   <{+django-docs+}/ref/models/querysets/#create>`__ in the {+framework+}
+   documentation.
+
+.. _django-crud-read:
+
+Read Documents
+--------------
+
+To retrieve documents from your collection, call the ``filter()`` method
+on your model's manager. Pass a query filter, or criteria that specifies
+which documents to retrieve, as an argument to the ``filter()`` method.
+
+Alternatively, you can call the ``get()`` method to retrieve a single document
+that matches your query. 
+
+Return Multiple Documents Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example calls the ``filter()`` method to retrieve
+documents from the ``sample_mflix.movies`` collection. The query
+returns ``Movie`` objects that represent movies released on January 1, 2000:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/interact-data/crud.py
+      :start-after: start-find-many
+      :end-before: end-find-many
+      :language: python
+
+   .. output::
+      :visible: false
+
+       <QuerySet [<Movie: The Bumblebee Flies Anyway>, <Movie: Angels of the Universe>,
+       <Movie: First Person Plural>, <Movie: Just, Melvin: Just Evil>, <Movie: Sound and Fury>,
+       <Movie: Peppermint Candy>]>
+
+.. tip::
+
+   To learn more about the ``filter()`` method, see `filter()
+   <{+django-docs+}/ref/models/querysets/#filter>`__ in the {+framework+}
+   documentation.
+
+Return One Document Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To retrieve only one document that matches your query criteria, call the
+``get()`` method and pass a query filter as an argument. The following example
+retrieves a document in which the ``title`` value is ``"Boyhood"``:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/interact-data/crud.py
+      :start-after: start-find-one
+      :end-before: end-find-one
+      :language: python
+
+   .. output::
+      :visible: false
+
+       <Movie: Boyhood>
+
+.. important::
+
+   If your query matches no documents or multiple documents, the ``get()``
+   method generates an error. To retrieve one document from a query
+   that might match multiple, chain the ``first()`` method to ``filter()``,
+   as shown in the following code:
+
+   .. code-block:: python
+
+      Movie.objects.filter(title="Boyhood").first()
+
+.. tip::
+
+   To learn more about the ``get()`` method, see `get()
+   <{+django-docs+}/ref/models/querysets/#get>`__ in the {+framework+}
+   documentation.
+
+.. _django-crud-modify:
+
+Modify Documents
+----------------
+
+To modify documents in a collection, call the ``filter()`` and ``update()``
+methods on your model's manager. Pass a query filter, or criteria that
+specifies which documents to update, as an argument to the ``filter()``
+method. Then, pass the fields and values you want to update as
+arguments to the ``update()`` method.
+
+Example
+~~~~~~~
+
+The following example calls the ``update()`` method to modify
+documents in the ``sample_mflix.movies`` collection. The code matches
+a document that has a ``title`` value of ``"High Fidelity"`` and adds a
+``plot`` field:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/interact-data/crud.py
+      :start-after: start-update
+      :end-before: end-update
+      :language: python
+
+   .. output::
+      :visible: false
+
+       // Outputs the number of modified documents
+       1
+
+.. tip::
+
+   To learn more about the ``update()`` method, see `update()
+   <{+django-docs+}/ref/models/querysets/#update>`__ in the {+framework+}
+   documentation.
+
+.. _django-crud-delete:
+
+Delete Documents
+----------------
+
+To delete documents in a collection, call the ``filter()`` and ``delete()``
+methods on your model's ``Manager`` class. Pass a query filter,
+or criteria that specifies which documents to delete, as an argument to the
+``filter()`` method.
+
+Example
+~~~~~~~
+
+The following example calls the ``delete()`` method to delete documents
+in the ``sample_mflix.movies`` collection. The code matches
+and deletes documents that have a ``runtime`` value of ``5``:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/interact-data/crud.py
+      :start-after: start-delete
+      :end-before: end-delete
+      :language: python
+
+   .. output::
+      :visible: false
+
+       // Outputs the number of deleted documents and objects
+       (16, {'sample_mflix.Movie': 16})
+
+.. tip::
+
+   To learn more about the ``delete()`` method, see `delete()
+   <{+django-docs+}/ref/models/querysets/#delete>`__ in the {+framework+}
+   documentation.
+
+Additional Information
+----------------------
+
+.. TODO: To learn more about performing read operations, see the Specify a Query guide.
+
+To view more create, read, update, and delete examples, see the following
+steps of the :ref:`django-get-started` tutorial:
+
+- :ref:`django-get-started-write`
+- :ref:`django-get-started-query`
