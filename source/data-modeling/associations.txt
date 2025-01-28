@@ -1,0 +1,930 @@
+.. _mongoid-associations:
+
+============
+Associations
+============
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: ruby framework, odm, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+Associations in {+odm+} allow you to create relationships between models. In
+this guide, you can learn about the different types of associations that
+{+odm+} supports and how to use them in your application.
+
+Referenced Associations
+-----------------------
+
+Referenced associations allow you to create a relationship between two models
+where one model references the other. {+odm+} supports the following referenced
+association types:
+
+- ``has_one``
+- ``has_many``
+- ``belongs_to``
+- ``has_and_belongs_to_many``
+
+The following sections describe how to use each of these association types.
+
+Has One
+~~~~~~~
+
+You can use the ``has_one`` macro to declare that documents represented by one class also contain a
+document represented by a separate child class. The
+following example creates a ``Band`` class with a ``has_one`` relationship to a
+``Studio`` class:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-has-one
+   :end-before: # end-has-one
+
+When you declare a ``has_one`` association, the child class must also use the
+``belongs_to`` association that references the parent class. The following
+example shows the ``Studio`` class referenced in the preceding ``Band`` class:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-has-one-child
+   :end-before: # end-has-one-child
+
+To learn more about the ``belongs_to`` macro, see the :ref:`Belongs To
+<mongoid-belongs-to>` section.
+
+You can use validations to ensure that the child
+class is present in your parent class, as shown in the following example:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-has-one-validation
+   :end-before: # end-has-one-validation
+   :emphasize-lines: 6
+
+To learn more about validations in {+odm+}, see the :ref:`Validations
+<mongoid-modeling-validation>` guide.
+
+Has Many
+~~~~~~~~
+
+You can use the ``has_many`` macro to declare that documents represented by a class contain
+multiple child documents represented by another class. The following
+example creates a ``Band`` class with a ``has_many`` relationship to a
+``Members`` class:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-has-many
+   :end-before: # end-has-many
+
+When you declare a ``has_many`` association, the child class must also use the
+``belongs_to`` association that references the parent class. The following
+example shows the ``Member`` class referenced in the preceding ``Band`` class:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-has-many-child
+   :end-before: # end-has-many-child
+
+To learn more about the ``belongs_to`` macro, see the :ref:`Belongs To
+<mongoid-belongs-to>` section.
+
+You can use validations to ensure that the child
+class is present in your parent class, as shown in the following example:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-has-many-validation
+   :end-before: # end-has-many-validation
+   :emphasize-lines: 6
+
+To learn more about validations in {+odm+}, see the :ref:`Validations
+<mongoid-modeling-validation>` guide.
+
+Retrieve Association Information
+````````````````````````````````
+
+You can use the ``any?`` method on a ``has_many`` association to determine if the
+association contains any documents without retrieving the entire set of
+documents from the database.
+
+The following example uses the ``any?`` method to determine if documents in the
+``Band`` class contain any ``Members`` documents:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-has-many-any
+   :end-before: # end-has-many-any
+
+You can also use the ``any?`` method with a filter to find documents that match
+a specified criteria, as shown in the following example:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-has-many-any-filter
+   :end-before: # end-has-many-any-filter
+
+You can supply a class name to the ``any?`` method to filter the results by the
+name of the class. This is useful for polymorphic associations:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-has-many-any-class
+   :end-before: # end-has-many-any-class
+
+.. note::
+
+   After the data of the associated class is loaded to {+odm+}, subsequent calls
+   to the ``any?`` method do not query the database. Instead, {+odm+} uses the
+   data that is already loaded in memory.
+
+You can also call the ``exists?`` method to determine if there are any persisted
+documents in the association. The ``exists?`` method always queries the
+database and checks only for documents that have been saved to the database.
+The ``exists?`` method does not allow for filtering and does not accept any
+arguments.
+
+The following example uses the ``exists?`` method to determine if there are any persisted
+``Members`` documents in the ``Band`` class:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-has-many-exists
+   :end-before: # end-has-many-exists
+
+.. _mongoid-belongs-to:
+
+Belongs To
+~~~~~~~~~~
+
+Use the ``belongs_to`` macro to declare that a document represented by one class
+is a child of a document represented by another
+class. By default, the ``_id`` field of the parent class is stored in the child
+class. The following example creates a ``Members`` class with a ``belongs_to``
+association to a ``Band`` class:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-belongs-to
+   :end-before: # end-belongs-to
+
+You can allow {+odm+} to persist documents to the database without storing the
+``_id`` of the associated parent class by setting the ``optional`` option to
+``true``, as shown in the following example:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-belongs-to-optional
+   :end-before: # end-belongs-to-optional
+
+.. tip::
+
+   You can globally change the default behavior of the ``belongs_to``
+   association to not require their parent class by setting the
+   ``belongs_to_required_by_default`` configuration option to ``false`` in your
+   application's configuration settings.
+
+You can specify a ``belongs_to`` association in a child class without specifying a matching
+``has_one`` or ``has_many`` association in the parent class. When doing so, you
+can't access the fields of the child document from the parent class, but you can
+access the parent fields that are stored in the child class, such as the
+parent's ``_id`` field. In the following example, the ``Band``
+class cannot access the ``Members`` class, but the ``Members`` class can access the
+``Band`` class:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-belongs-to-one-way
+   :end-before: # end-belongs-to-one-way
+
+For clarity, you can optionally set the ``inverse_of`` option to ``nil`` to
+indicate that the parent class does not contain a ``has_one`` or ``has_many``
+association to the child class, as shown in the following example:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-belongs-to-inverse
+   :end-before: # end-belongs-to-inverse
+
+Has and Belongs To Many
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Use the ``has_and_belongs_to_many`` macro to declare that a class model contains
+a many-to-many relationship with another class. In a many-to-many relationship,
+each document in one class can be associated with multiple documents in another
+class. The following example creates a ``Band`` class with a
+``has_and_belongs_to_many`` relationship to a ``Members`` class. A ``Band`` document can
+reference multiple ``Members`` documents, and a ``Members`` document can
+reference multiple ``Band`` documents.
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-has-and-belongs-to-many
+   :end-before: # end-has-and-belongs-to-many
+
+When you declare a ``has_and_belongs_to_many`` association, both model instances
+store a list of the associated document's ``_id`` values. You can set the
+``inverse_of`` option to ``nil`` to store the associated document's ``_id`` values in
+only one of the model instances. The following example prompts {+odm+} to store
+the associated document's ``_id`` values in only the ``Band`` class:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-has-and-belongs-to-many-inverse
+   :end-before: # end-has-and-belongs-to-many-inverse
+
+.. tip::
+
+   When you update a document that has a ``has_and_belongs_to_many`` association,
+   {+odm+} sets the ``updated_at`` field of updated document but does not set the
+   ``updated_at`` field of the associated documents.
+
+Query Referenced Associations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use an aggregation pipeline to query for documents across referenced
+associations. The aggregation pipeline allows you to create queries across
+multiple collections and manipulate data into a specified format. To learn more
+about using the aggregation pipeline, see the :ref:`Aggregation
+<mongoid-aggregation>` guide.
+
+For simple queries, you can query the association directly. When you directly
+query on a collection, you can query only on fields and values that are in the
+collection itself. You cannot directly query on collections
+associated to the one you are querying.
+
+For example, consider the following ``Band`` and ``Tour`` classes:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-query-models
+   :end-before: # end-query-models
+
+The following example queries the ``Tour`` class for documents that have a
+``year`` value of ``2000`` or greater and saves the ``band_id`` of those
+documents. It then queries the ``Band`` class for documents that have those
+``band_id`` values.
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-association-query
+   :end-before: # end-association-query
+
+Embedded Associations
+---------------------
+
+You can use embedded associations to store different types of documents in the
+same collection. {+odm+} supports embedded associations with the following 
+macros:
+
+- ``embeds_one``
+- ``embeds_many``
+- ``embedded_in``
+- ``recursively_embeds_one``
+- ``recursively_embeds_many``
+
+The following sections describe how to use these association types.
+
+Embeds One
+~~~~~~~~~~
+
+To specify that a class model contains an embedded document of a different
+class type, use the ``embeds_one`` macro in the parent class and the ``embedded_in``
+macro in the embedded class. The following example creates a ``Band`` class with
+an embedded ``Label`` class:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-embed-one
+   :end-before: # end-embed-one
+
+{+odm+} stores documents embedded with the ``embeds_one`` macro in the
+parent document as a field with the same name as the embedded class. The
+preceding ``Label`` documents are stored in the ``Band`` document, as shown in
+the following example:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-embed-one-stored
+   :end-before: # end-embed-one-stored
+
+You can store the embedded document with a different name by using the
+``store_as`` option, as shown in the following example:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-embed-store-as
+   :end-before: # end-embed-store-as
+
+Embeds Many
+~~~~~~~~~~~
+
+To specify that a class model contains multiple embedded documents of a
+different class type, use the ``embeds_many`` macro in the parent class and the
+``embedded_in`` macro in the embedded class. The following example creates a
+``Band`` class with multiple embedded ``Album`` type documents:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-embed-many
+   :end-before: # end-embed-many
+
+{+odm+} stores documents embedded with the ``embeds_many`` macro in the
+parent document as an array field with the same name as the embedded class. The
+preceding ``Album`` documents are stored in the ``Band`` document, as shown in
+the following example:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-embed-many-stored
+   :end-before: # end-embed-many-stored
+
+You can store the embedded document with a different name by using the
+``store_as`` option, as shown in the following example:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-embed-many-store-as
+   :end-before: # end-embed-many-store-as
+
+Recursive Embedding
+~~~~~~~~~~~~~~~~~~~
+
+You can embed one or more documents of the same type into a parent
+class by using the ``recursively_embeds_one`` and ``recursively_embeds_many``
+macros. Both macros provide accessors for the parent and child documents through
+a ``parent_*`` method and a ``child_*`` method, where ``*`` represents the name
+of the class. The following example creates a ``Band`` class that recursively
+embeds multiple other ``Band`` documents to represent multiple band names:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-recursive-embed
+   :end-before: # end-recursive-embed
+
+You can access the parent and child documents through the ``parent_band`` and
+``child_band`` methods, as shown in the following example:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-recursive-embed-access
+   :end-before: # end-recursive-embed-access
+
+Query Embedded Associations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can access embedded documents when querying the collection of the parent
+class by using dot notation.
+
+The following example uses dot notation to query ``Tour`` type documents that
+are embedded in a ``Band`` class. The query returns documents that have a
+``tours.year`` value of ``2000`` or greater:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-embedded-query
+   :end-before: # end-embedded-query
+
+You can use the ``pluck`` projection method to retrieve embedded documents
+without retrieving their associated parent documents, as shown in the following
+example:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-embedded-query-pluck
+   :end-before: # end-embedded-query-pluck
+
+You can use {+odm+} query methods to perform **embedded matching**, which allows
+you to query on embedded associations of documents that are already loaded in
+the application. {+odm+} implements embedded matching without sending queries to
+the server.
+
+The following query operators are supported with embedded matching:
+
+- :manual:`Comparison operators </reference/operator/query-comparison/>`
+- :manual:`Logical operators </reference/operator/query-logical/>`
+- :manual:`Array query operators </reference/operator/query-array/>`
+- :manual:`$exists </reference/operator/query/exists/>`
+- :manual:`$mod </reference/operator/query/mod/>`
+- :manual:`$type </reference/operator/query/type/>`
+- :manual:`$regex </reference/operator/query/regex/>`
+- :manual:`Bitwise operators </reference/operator/query-bitwise/>`
+- :manual:`$comment </reference/operator/query/comment/>`
+
+The following example queries the embedded ``tours`` field of a loaded ``Band``
+document by using the ``$gte`` comparison operator:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-embedded-matching
+   :end-before: # end-embedded-matching
+
+Embedded matching on loaded documents has the following known limitations:
+
+- Embedded matching is not implemented for the following features:
+  
+  - :ref:`Text search <mongoid-data-text-search>`
+  - :manual:`Geospatial queries </reference/operator/query-geospatial/>`
+  - Operators that execute JavaScript code, such as :manual:`$where
+    </reference/operator/query/where/>`
+  - Operators that are implemented through other server functionality, such as
+    :manual:`$expr </reference/operator/query/expr/>`
+    and :manual:`$jsonSchema
+    </reference/operator/query/jsonSchema/>`
+
+- {+odm+} expands ``Range`` arguments to hashes with ``$gte`` and ``$lte``
+  conditions. This can lead to invalid queries in some cases and raises a an
+  ``InvalidQuery`` exception.
+
+- With the ``$regex`` operator, you cannot specify a regular expression object
+  as a pattern while also providing options to the ``$options`` field. You can
+  only provide options if the regular expression pattern is a string.
+
+- {+mdb-server+} versions 4.0 and earlier do not strictly validate ``$type``
+  arguments.
+
+Omit _id Fields
+~~~~~~~~~~~~~~~
+
+By default, {+odm+} adds an ``_id`` field to embedded documents. You can omit
+this field from embedded documents by explicitly specifying the ``_id`` field in
+your model and omitting the default value. The following example instructs {+odm+}
+not to add an ``_id`` field to the ``Albums`` class:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-embedded-omit-id
+   :end-before: # end-embedded-omit-id
+   :emphasize-lines: 4
+
+In the preceding ``Albums`` class, the ``_id`` field is not automatically added.
+Without a default value, {+odm+} does not store the value in the database
+unless you provide one in your model.
+
+Delete Embedded Associations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can delete child documents from ``embeds_many`` associations by using one of
+the following methods:
+
+- ``clear``
+- ``delete_all``
+- ``destroy_all``
+
+The ``clear`` method uses the :manual:`$unset operator
+</reference/operator/update/unset>` operator to remove an entire embedded
+association from the parent document. The ``clear`` method does not run any
+``destroy`` callbacks. The following example uses the ``clear``
+method to remove all embedded associations from the ``Band`` class:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-embedded-clear
+   :end-before: # end-embedded-clear
+
+The ``delete_all`` method uses the :manual:`$pullAll operator
+</reference/operator/update/pullAll>` operator to remove documents in an
+embedded association. ``delete_all`` loads the association if it has not
+yet been loaded, then only removes the documents that exist in the application.
+The ``delete_all`` method does not run any ``destroy`` callbacks. 
+The following example uses the ``delete_all`` method to remove all embedded
+``Album`` documents from the ``Band`` class:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-embedded-delete-all
+   :end-before: # end-embedded-delete-all
+
+The ``destroy_all`` method also uses the :manual:`$pullAll operator
+</reference/operator/update/pullAll>` operator to remove documents in an
+embedded association. It also runs any ``destroy`` callbacks that are defined on
+the associated documents. The following example uses the ``destroy_all``
+method to remove all embedded ``Album`` documents from the ``Band`` class:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-embedded-destroy-all
+   :end-before: # end-embedded-destroy-all
+
+Customize Association Behavior
+------------------------------
+
+You can use {+odm+} to customize how associations behave in your application.
+The following sections describe ways to customize association behaviors.
+
+Extensions
+~~~~~~~~~~
+
+Extensions allow you to add custom functionality to an association. You can
+define an extension on an association by specifying a block in the association
+definition, as shown in the following example:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-extensions
+   :end-before: # end-extensions
+   :emphasize-lines: 4-6
+
+Custom Association Names
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use the ``class_name`` macro to specify a custom class name for an
+association. This is useful when you want to name the association something other
+than the name of the class. The following example uses the
+``class_name`` macro to specify that an embedded association called ``records``
+represents the ``Album`` class:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-custom-name
+   :end-before: # end-custom-name
+
+Custom Keys
+~~~~~~~~~~~
+
+By default, {+odm+} uses the ``_id`` field of the parent class when looking up
+associations. You can specify different fields to use by using the
+``primary_key`` and ``foreign_key`` macros. The following example specifies a new
+primary and foreign key for the ``albums`` association on a ``Band`` class:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-custom-keys
+   :end-before: # end-custom-keys
+
+If you are specifying a ``has_and_belongs_to_many`` association, you can also
+use the ``inverse_primary_key`` and ``inverse_foreign_key`` macros. The
+``inverse_primary_key`` macro specifies the field on the local model that the
+remote model uses to look up the documents.
+The ``inverse_foreign_key`` macro specifies the field on the remote model
+that stores the values found in ``inverse_primary_key``.
+
+The following example specifies a new primary and foreign key for the
+``Band`` and ``Members`` classes in a ``has_and_belongs_to_many`` association:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-custom-inverse-keys
+   :end-before: # end-custom-inverse-keys
+   :emphasize-lines: 9, 20
+
+Custom Scopes
+~~~~~~~~~~~~~
+
+You can specify the scope of an association by using the ``scope`` parameter.
+The ``scope`` parameter determines the documents that {+odm+} considers part
+of an association. A scoped association returns only documents that match the
+scope conditions when queried. You can set the ``scope`` to either a ``Proc`` with an arity
+of zero or a ``Symbol`` that references a named scope on the associated model.
+The following example sets custom scopes on associations in a ``Band`` class:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-custom-scope
+   :end-before: # end-custom-scope
+
+.. note::
+
+   You can add documents that do not match the scope conditions to an
+   association. {+odm+} saves the documents to the database and they will appear
+   in associated memory. However, you won't see the documents when querying the
+   association.
+
+Validations
+~~~~~~~~~~~
+
+When {+odm+} loads an association into memory, by default, it uses the
+``validates_associated`` macro to validate that any children are also present.
+{+odm+} validates children for the following association types:
+
+- ``embeds_many``
+- ``embeds_one``
+- ``has_many``
+- ``has_one``
+- ``has_and_belongs_to_many``
+
+You can turn off this validation behavior by setting the ``validate`` macro to
+``false`` when defining the association, as shown in the following example:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-validation-false
+   :end-before: # end-validation-false
+
+Polymorphism
+~~~~~~~~~~~~
+
+{+odm+} supports polymorphism on the child classes of one-to-one and one-to-many associations.
+Polymorphic associations allows a single association to contain objects of different class
+types. You can define a polymorphic association by setting the ``polymorphic``
+option to ``true`` in a child association and adding the ``as`` option to the
+parent association. The following example creates a polymorphic association in a
+``Band`` class:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-polymorphic
+   :end-before: # end-polymorphic
+
+In the preceding example, the ``:featured`` association in the ``Band`` class can contain either a
+``Label`` or ``Album`` document.
+
+.. important::
+
+   {+odm+} supports polymorphism only from child to parent. You cannot specify
+   a parent ``has_one`` or ``has_many`` association as polymorphic.
+
+``has_and_belongs_to_many`` associations do not support polymorphism.
+
+Custom Polymorphic Types
+````````````````````````
+
+Starting in version 9.0.2, {+odm+} supports custom polymorphic types through
+a global registry. You can specify alternative keys to represent different
+classes, decoupling your code from the data. The following example specifies
+the string ``"artist"`` as an alternate key for the ``Band`` class:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-custom-polymorphic
+   :end-before: # end-custom-polymorphic
+
+In the preceding example, the ``identify_as`` directive instructs {+odm+}
+to store the ``Band`` class in the database as the string ``"artist"``. 
+
+You can also specify multiple aliases, as shown in the following example:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-multiple-alias
+   :end-before: # end-multiple-alias
+
+In the preceding example, ``artist`` is the default name and the others are used
+only for looking up records. This allows you to refactor your
+code without breaking the associations in your data. 
+
+Polymorphic type aliases are global. The keys you specify must be unique across your
+entire code base. However, you can register alternative resolvers that
+can be used for different subsets of your models. In this case, the keys must
+be unique only for each resolver. The following example shows how to register
+alternate resolvers:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-polymorphic-resolvers
+   :end-before: # end-polymorphic-resolvers
+
+Both ``Music::Band`` and ``Tools::Band`` are aliased as 
+``"bnd"``, but each model uses its own resolver to avoid conflicts.
+
+Dependent Behavior
+~~~~~~~~~~~~~~~~~~
+
+You can provide ``dependent`` options to referenced associations to specify how
+{+odm+} handles associated documents when a document is deleted. You can specify
+the following options:
+
+- ``delete_all``: Deletes all child documents without running any model
+  callbacks.
+- ``destroy``: Deletes the child documents and runs all model callbacks.
+- ``nullify``: Sets the foreign key of the child documents to ``nil``. The child
+  document might become orphaned if it is referenced by only the parent.
+- ``restrict_with_exception``: Raises an exception if the child document is not
+  empty.
+- ``restrict_with_error``: Cancels the operation and returns ``false`` if the
+  child document is not empty.
+
+If you don't specify any ``dependent`` options, {+odm+} leaves the child
+document unchanged when the parent document is deleted. The child document
+continues to reference the deleted parent document, and if it is
+referenced through only the parent, the child document becomes orphaned.
+
+The following example specifies ``dependent`` options on the ``Band`` class:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-dependent
+   :end-before: # end-dependent
+
+Autosave Referenced Associations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, {+odm+} does not automatically save associated documents from
+non-embedded associations when saving the parent document. This can
+result in dangling references to documents that don't exist.
+
+You can use the ``autosave`` option on a referenced association to
+automatically save associated documents when saving the parent document. The
+following example creates a ``Band`` class with an associated ``Album`` class
+and specifies the ``autosave`` option:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-autosave
+   :end-before: # end-autosave
+   :emphasize-lines: 10
+
+.. note::
+
+   {+odm+} automatically adds autosave functionality to an association that uses
+   the ``accepts_nested_attributes_for`` option.
+
+You do not need to specify the ``autosave`` option for embedded associations
+because {+odm+} saves embedded documents in the parent document.
+
+Autobuild
+~~~~~~~~~
+
+You can add the ``autobuild`` option to one-to-one associations, such as
+``has_one`` and ``embeds_one``, to automatically instantiate a new document when
+accessing a ``nil`` association. The following example adds the ``autobuild``
+option to an association on the ``Band`` class:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-autobuild
+   :end-before: # end-autobuild
+
+Touch
+~~~~~
+
+When {+odm+} *touches* a document, it updates the document's
+``updated_at`` field to the current date and time. You can add the ``touch``
+option to any ``belongs_to`` association to ensure that {+odm+} touches the
+parent document whenever the child document is updated. The following example
+adds the ``touch`` option to an association on the ``Band`` class:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-touch
+   :end-before: # end-touch
+
+You can also use the ``touch`` option to specify another field on the parent
+association, as a string or a symbol. When {+odm+} touches the parent
+association, it sets both the ``updated_at`` field and the specified field
+to the current date and time.
+
+The following example instructs {+odm+} to touch the ``bands_updated_at`` field:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-touch-specific
+   :end-before: # end-touch-specific
+
+.. note::
+
+   In embedded associations, when an embedded document is touched, {+odm+}
+   touches its parents recursively. Because of this, adding a ``touch``
+   attribute to an ``embedded_in`` association is unnecessary. 
+   
+   {+odm+} does not support specifying additional fields to touch in
+   ``embedded_in`` associations.
+
+Counter Cache
+~~~~~~~~~~~~~
+
+You can use the ``counter_cache`` option to store the number of objects
+that belong to an associated field. When you specify this option, {+odm+} stores
+an extra attribute on the associated models to store the count. Because of this,
+you must specify the ``Mongoid::Attributes::Dynamic`` module in the associated
+classes. 
+
+The following example adds the ``counter_cache`` option to a ``Band``
+class and specifies the ``Mongoid::Attributes::Dynamic`` in a ``Label`` class:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-counter-cache
+   :end-before: # end-counter-cache
+   :emphasize-lines: 4, 9
+
+Association Metadata
+--------------------
+
+When you define an association, {+odm+} stores metadata about that association.
+You can access the metadata by calling the ``reflect_on_association`` method on
+a model class or document, or by directly accessing the metadata on a specific
+document. The following example shows how to access metadata by using the
+``reflect_on_association`` method and by direct access:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-access-metadata
+   :end-before: # end-access-metadata
+
+.. note::
+
+   Replace ``<association_name>`` in the preceding example with the name of your
+   association.
+
+Attributes
+~~~~~~~~~~
+
+All associations contain attributes that store information about the associated
+document. Associations contain the following attributes:
+
+- ``_target``: The proxied document or documents
+- ``_base``: The document on which the association is defined
+- ``_association``: Information about the association
+
+The following example accesses each of the preceding attributes:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-attributes
+   :end-before: # end-attributes
+
+The following table shows the information stored in the ``_association``
+attribute:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 60
+
+   * - Method
+     - Description
+   * - ``Association#as``
+     - The name of the parent to a polymorphic child.
+   * - ``Association#as?``
+     - Returns whether an ``as`` option exists.
+   * - ``Association#autobuilding?``
+     - Returns whether the association is autobuilding.
+   * - ``Association#autosaving?``
+     - Returns whether the association is autosaving.
+   * - ``Association#cascading_callbacks?``
+     - Returns whether the association has callbacks cascaded down from the parent.
+   * - ``Association#class_name``
+     - The class name of the proxied document.
+   * - ``Association#cyclic?``
+     - Returns whether the association is a cyclic association.
+   * - ``Association#dependent``
+     - The association's dependent option.
+   * - ``Association#destructive?``
+     - Returns ``true`` if the association has a dependent delete or destroy method.
+   * - ``Association#embedded?``
+     - Returns whether the association is embedded in another document.
+   * - ``Association#forced_nil_inverse?``
+     - Returns whether the association has a ``nil`` inverse defined.
+   * - ``Association#foreign_key``
+     - The name of the foreign-key field.
+   * - ``Association#foreign_key_check``
+     - The name of the foreign-key field's dirty-check method.
+   * - ``Association#foreign_key_setter``
+     - The name of the foreign-key field's setter.
+   * - ``Association#indexed?``
+     - Returns whether the foreign key is auto indexed.
+   * - ``Association#inverses``
+     - The names of all inverse associations.
+   * - ``Association#inverse``
+     - The name of a single inverse association.
+   * - ``Association#inverse_class_name``
+     - The class name of the association on the inverse side.
+   * - ``Association#inverse_foreign_key``
+     - The name of the foreign-key field on the inverse side.
+   * - ``Association#inverse_klass``
+     - The class of the association on the inverse side.
+   * - ``Association#inverse_association``
+     - The metadata of the association on the inverse side.
+   * - ``Association#inverse_of``
+     - The explicitly defined name of the inverse association.
+   * - ``Association#inverse_setter``
+     - The name of the method used to set the inverse.
+   * - ``Association#inverse_type``
+     - The name of the polymorphic-type field of the inverse.
+   * - ``Association#inverse_type_setter``
+     - The name of the polymorphic-type field's setter of the inverse.
+   * - ``Association#key``
+     - The name of the field in the attribute's hash that is used to get the association.
+   * - ``Association#klass``
+     - The class of the proxied documents in the association.
+   * - ``Association#name``
+     - The association name.
+   * - ``Association#options``
+     - Returns ``self``, for API compatibility with ActiveRecord.
+   * - ``Association#order``
+     - The custom sorting options on the association.
+   * - ``Association#polymorphic?``
+     - Returns whether the association is polymorphic.
+   * - ``Association#setter``
+     - The name of the field to set the association.
+   * - ``Association#store_as``
+     - The name of the attribute in which to store an embedded association.
+   * - ``Association#touchable?``
+     - Returns whether the association has a touch option.
+   * - ``Association#type``
+     - The name of the field to get the polymorphic type.
+   * - ``Association#type_setter``
+     - The name of the field to set the polymorphic type.
+   * - ``Association#validate?``
+     - Returns whether the association has an associated validation.

@@ -1,0 +1,316 @@
+.. _mongoid-data-modify-results:
+
+====================
+Modify Query Results
+====================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: ruby framework, odm, crud, print results, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to customize the way that {+odm+}
+returns results from queries. MongoDB allows you to perform the
+following actions to modify the way that results appear:
+
+- :ref:`mongoid-data-projection`
+
+- :ref:`mongoid-data-sort`
+
+- :ref:`mongoid-data-skip-limit`
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``Band`` model, which represents a
+band or musical group. The definition of the ``Band`` model might be
+different for each section to demonstrate different query
+functionalities. Some sections also use the ``Manager`` model,
+which represents a person who manages a given band, or the ``Tour``
+model, which represents live performances by a given band.
+
+.. _mongoid-data-projection:
+
+Return Specified Fields
+-----------------------
+
+In MongoDB, *projection* is the process of specifying fields to include
+or exclude from results. {+odm+} provides the following operators
+to project fields:
+
+- ``only``: Specifies fields to include
+- ``without``: Specifies fields to exclude
+
+Include Fields
+~~~~~~~~~~~~~~
+
+The ``only`` method retrieves only the specified fields from the
+database.
+
+The following code returns only the ``name`` field from documents in
+which the value of the ``members`` field is ``4``:
+
+.. literalinclude:: /includes/interact-data/modify-results.rb
+   :start-after: start-only
+   :end-before: end-only
+   :language: ruby
+   :dedent:
+
+.. note:: _id Field
+
+   In MongoDB, the ``_id`` field is included in results even if you do
+   not explicitly include it.
+
+If you attempt to reference attributes that have not been loaded,
+{+odm+} raises a ``Mongoid::Errors::AttributeNotLoaded`` error.
+
+You can also use the ``only`` method to include fields from embedded
+documents. 
+
+Consider that the ``Band`` model embeds multiple ``Tour`` objects. You can
+project fields from the ``Tour`` model such as ``year``, as shown in the
+following code:
+
+.. literalinclude:: /includes/interact-data/modify-results.rb
+   :start-after: start-only-embed
+   :end-before: end-only-embed
+   :language: ruby
+   :dedent:
+
+Then, you can access the embedded fields from the returned documents:
+
+.. code-block:: ruby
+   
+   # Returns the first Tour object from
+   # the first Band in the results
+   bands.first.tours.first
+
+You can pass fields of referenced associations to the ``only`` method,
+but the projection is ignored when loading the embedded objects. {+odm+}
+loads all fields of the referenced associations. For example, when you
+access the embedded ``Tour`` object as shown in the preceding code,
+{+odm+} returns the complete object, not just the ``year`` field.
+
+.. note::
+
+   If you are connected to a deployment running MongoDB 4.4 or later,
+   you cannot specify an association and its fields in a projection in
+   the same query.
+
+If a document contains ``has_one`` or ``has_and_belongs_to_many``
+associations, and you want {+odm+} to load those associations when
+you call the ``only`` method, you must include the fields with foreign
+keys in the list of attributes.
+
+In the following example, the ``Band`` and ``Manager`` models have a
+``has_and_belongs_to_many`` association:
+
+.. code-block:: ruby
+
+   class Band
+     include Mongoid::Document
+     field :name, type: String
+     has_and_belongs_to_many :managers
+   end
+
+   class Manager
+     include Mongoid::Document
+     has_and_belongs_to_many :bands
+   end
+
+The following code demonstrates how {+odm+} can load the associated
+``Manager`` objects if you include the ``manager_ids`` field:
+
+.. literalinclude:: /includes/interact-data/modify-results.rb
+   :start-after: start-only-embed-association
+   :end-before: end-only-embed-association
+   :language: ruby
+   :dedent:
+
+Exclude Fields
+~~~~~~~~~~~~~~
+
+You can explicitly exclude fields from results by using the
+``without`` method.
+
+The following code excludes the ``year`` field from returned ``Band``
+objects:
+
+.. literalinclude:: /includes/interact-data/modify-results.rb
+   :start-after: start-without
+   :end-before: end-without
+   :language: ruby
+   :dedent:
+
+.. important:: _id Field
+
+   {+odm+} requires the ``_id`` field for various operations, so you
+   *cannot* exclude the ``_id`` field or the ``id`` alias from results.
+   If you pass ``_id`` or ``id`` to the ``without`` method, {+odm+}
+   ignores it.
+
+.. _mongoid-data-sort:
+
+Sort Results
+------------
+
+You can specify the order in which {+odm+} returns documents by using the
+``order`` and ``order_by`` methods.
+
+These methods accept a hash that indicates which fields to order the
+documents by, and whether to use an ascending or descending order for
+each field.
+
+You can specify the sort direction by using integers, symbols, or
+strings. We recommend using the same sorting syntax throughout your
+application for consistency. The following list provides each syntax and
+shows how to sort on the ``name`` and ``year`` fields:
+
+- Integers ``1`` (ascending) and ``-1`` (descending)
+
+  - Example: ``Band.order(name: 1, year: -1)``
+
+- Symbols ``:asc`` and ``:desc``
+
+  - Example: ``Band.order(name: :asc, year: :desc)``
+
+- Strings ``"asc"`` and ``"desc"``
+
+  - Example: ``Band.order_by(name: "asc", year: "desc")``
+
+The ``order`` method also accepts the following sort specifications:
+
+- Array of two-element arrays:
+
+  - Strings
+
+    - Example: ``Band.order([['name', 'asc'], ['year', 'desc']])``
+
+  - Symbols
+
+    - Example: ``Band.order([[:name, :asc], [:year, :desc]])``
+
+- ``asc`` and ``desc`` methods on symbols
+
+  - Example: ``Band.order(:name.asc, :year.desc)``
+
+- SQL syntax
+
+  - Example: ``Band.order('name asc', 'year desc')``
+
+.. tip::
+
+   Instead of using ``order`` or ``order_by``, you can also use the
+   ``asc`` and ``desc`` methods to specify sort orders: 
+
+   .. code-block:: ruby
+   
+      Band.asc('name').desc('year')
+
+When you chain sort specifications, the first call defines the first
+sorting order and the newest call defines the last sorting order after
+the previous sorts have been applied.
+
+.. note:: Sorting in Scopes
+
+   If you define a :ref:`default scope <mongoid-data-scoping>` on your
+   model that includes a sort specification, the scope sort takes precedence
+   over the sort specified in a query, because the default scope is
+   evaluated first.
+
+.. _mongoid-data-skip-limit:
+
+Paginate Results
+----------------
+
+{+odm+} provides the ``limit``, ``skip``, and ``batch_size``
+pagination methods that you can use on ``Criteria`` objects. The
+following sections describe how to use these operators.
+
+Limit Number of Results
+~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use the ``limit`` method to limit the number of results that
+{+odm+} returns.
+
+The following code retrieves a maximum of ``5`` documents:
+
+.. literalinclude:: /includes/interact-data/modify-results.rb
+   :start-after: start-limit
+   :end-before: end-limit
+   :language: ruby
+   :dedent:
+
+.. note::
+
+   Alternatively, you can use the ``take`` method to retrieve a
+   specified number of documents from the database:
+
+   .. code-block:: ruby
+
+      Band.take(5)
+
+Skip Results
+~~~~~~~~~~~~
+
+You can skip a specified number of results by using the ``skip``
+method, or its alias ``offset``.
+
+If you chain a ``limit`` call to ``skip``, the limit is applied
+after documents are skipped, as demonstrated in the following example:
+
+.. literalinclude:: /includes/interact-data/modify-results.rb
+   :start-after: start-skip-limit
+   :end-before: end-skip-limit
+   :language: ruby
+   :dedent:
+
+.. tip::
+    
+   When performing pagination, use ``skip`` on :ref:`sorted results <mongoid-data-sort>`
+   to ensure consistent results.
+
+The following code skips the first ``3`` documents when returning results:
+
+.. literalinclude:: /includes/interact-data/modify-results.rb
+   :start-after: start-skip
+   :end-before: end-skip
+   :language: ruby
+   :dedent:
+
+Generate Batches of Results
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When executing large queries and when iterating over query results by using
+an enumerator method such as ``Criteria#each``, {+odm+} automatically
+uses the MongoDB :manual:`getMore </reference/command/getMore/>` command
+to load results in batches. The default batch size is ``1000``, but
+you can set a different value by using the ``batch_size`` method.
+
+The following code sets the batch size to ``500``:
+
+.. literalinclude:: /includes/interact-data/modify-results.rb
+   :start-after: start-batch
+   :end-before: end-batch
+   :language: ruby
+   :dedent:
+
+Additional Information
+----------------------
+
+To learn more about constructing queries, see the
+:ref:`mongoid-data-specify-query` guide.
+
+To learn about {+odm+} data modeling, see the
+:ref:`mongoid-data-modeling` guides.

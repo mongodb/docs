@@ -1,0 +1,178 @@
+.. _mongoid-modeling-callbacks:
+
+=========
+Callbacks
+=========
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: ruby framework, odm, code example, life cycle
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to implement **callbacks** in your
+{+odm+} models to customize the life cycle of your model instances.
+
+Callbacks are methods that {+odm+} triggers at specified moments of
+an object's life cycle. They allow you to initiate specified actions
+before or after changes to an object's state.
+
+{+odm+} implements many of the callbacks from Active Record. To learn
+more, see `Callbacks
+<{+active-record-docs+}/active_record_callbacks.html>`__ in the
+Active Record documentation.
+
+Supported Callbacks
+-------------------
+
+Mongoid supports the following callbacks on model classes that implement
+the :ref:`Document <mongoid-modeling-documents>` module:
+
+-  ``after_initialize``
+-  ``after_build``
+-  ``before_validation``
+-  ``after_validation``
+-  ``before_create``
+-  ``around_create``
+-  ``after_create``
+-  ``after_find``
+-  ``before_update``
+-  ``around_update``
+-  ``after_update``
+-  ``before_upsert``
+-  ``around_upsert``
+-  ``after_upsert``
+-  ``before_save``
+-  ``around_save``
+-  ``after_save``
+-  ``before_destroy``
+-  ``around_destroy``
+-  ``after_destroy``
+
+To learn more about any of the preceding callback types, see the
+`ActiveRecord::Callbacks
+<https://api.rubyonrails.org/{+rails-8-version-docs+}/classes/ActiveRecord/Callbacks.html>`__
+reference in the Rails API documentation.
+
+You can implement callbacks in both top-level and embedded document
+models.
+
+.. note:: Callback Invocation Behavior
+
+   For efficiency, {+odm+} invokes the callback only on the document
+   that you performed the persistence action on. This behavior enables
+   {+odm+} to support large hierarchies and handle optimized atomic
+   updates efficiently by not invoking callbacks throughout the document
+   hierarchy.
+
+Take precautions and ensure testability when implementing callbacks for
+domain logic, because these designs can lead to unexpected errors when
+callbacks in the chain halt execution. We recommend using callbacks for
+cross-cutting concerns outside of your program's core functionality,
+such as queueing up background jobs.
+
+Document Callbacks
+------------------
+
+You must implement and register callbacks on your model classes.
+You can register a callback by using ordinary methods, blocks and
+``Proc`` objects, or by defining custom callback objects that use
+classes or modules.
+
+This example demonstrates how to register callbacks on the ``Contact``
+model class in the following ways:
+
+- Includes the ``before_save`` class method, which triggers the
+  ``process_phone`` method before a ``Contact`` instance is saved to
+  MongoDB. The ``process_phone`` method is defined separately in the class.
+
+- Includes the ``after_destroy`` class method and uses a block to print a
+  message when a ``Contact`` instance is deleted.
+
+.. literalinclude:: /includes/data-modeling/callbacks.rb
+   :start-after: start-doc-callback
+   :end-before: end-doc-callback
+   :language: ruby
+   :emphasize-lines: 8, 11-13, 16-18
+   :dedent:
+
+The following code performs data operations that demonstrate the
+callback actions:
+
+.. literalinclude:: /includes/data-modeling/callbacks.rb
+   :start-after: start-doc-ops
+   :end-before: end-doc-ops
+   :language: ruby
+   :dedent:
+
+Because callback functionality comes from Active Support, you can
+alternatively use the ``set_callback`` class method syntax to register
+callbacks. The following code demonstrates how to use this syntax to
+create a callback that stores original values of the ``name`` field in
+the ``aliases`` array:
+
+.. literalinclude:: /includes/data-modeling/callbacks.rb
+   :start-after: start-doc-set-syntax
+   :end-before: end-doc-set-syntax
+   :language: ruby
+   :emphasize-lines: 8-12
+   :dedent:
+
+Association Callbacks
+---------------------
+
+{+odm+} provides the following association callbacks:
+
+- ``after_add``
+- ``after_remove``
+- ``before_add``
+- ``before_remove``
+
+If you register an association callback on your model class, it is
+invoked whenever you add or remove a document from any of the following
+associations:
+
+- ``embeds_many``
+- ``has_many``
+- ``has_and_belongs_to_many``
+
+Specify association callbacks as options on the respective association.
+You must pass the added or removed document as the parameter to the
+specified callback.
+
+The following code demonstrates how to register an association callback
+on a ``User`` model class that embeds multiple ``SavedArticle``
+instances to limit the number of embedded documents for a single
+instance:
+
+.. literalinclude:: /includes/data-modeling/callbacks.rb
+   :start-after: start-association-callback
+   :end-before: end-association-callback
+   :language: ruby
+   :emphasize-lines: 6, 10-15
+   :dedent:
+
+Additional Information
+----------------------
+
+To learn how to prevent {+odm+} from running callbacks, see the
+following references in the Active Record documentation:
+
+- `Skipping Callbacks <{+active-record-docs+}/active_record_callbacks.html#skipping-callbacks>`__
+- `Suppressing Saving <{+active-record-docs+}/active_record_callbacks.html#suppressing-saving>`__
+
+To learn about how {+odm+} manages callbacks in transactions, see the
+:ref:`mongoid-data-txn` guide.
+
+To learn how to access and change your MongoDB data, see the
+:ref:`mongoid-interact-data` guides.

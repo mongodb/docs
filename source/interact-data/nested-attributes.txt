@@ -1,0 +1,194 @@
+.. _mongoid-data-nested-attr:
+
+=================
+Nested Attributes
+=================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: ruby framework, odm, embeddings, code example, queries
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to define **nested attributes** on
+models to enable data operations on documents and their associations.
+After you define a nested attribute, you can specify updates to
+top-level and associated documents in a single parameter hash. This might be
+useful if your application requires editing multiple documents within a single
+form.
+
+Behavior
+--------
+
+You can enable nested attributes for any association, embedded or
+referenced. To add a nested attribute for an association, provide the
+association name to the ``accepts_nested_attributes_for`` macro when
+defining a model class.
+
+The following code defines embedded associations on the ``Band`` model
+class and includes the ``accepts_nested_attributes_for`` macro:
+
+.. literalinclude:: /includes/data-modeling/nested_attr.rb
+   :start-after: start-simple-nested
+   :end-before: end-simple-nested
+   :language: ruby
+   :emphasize-lines: 5
+   :dedent:
+
+.. note:: Autosave Enabled
+
+   When you add nested attribute functionality to a referenced
+   association, {+odm+} automatically enables autosave for that
+   association.
+
+When you enable nested attributes behavior on an association, {+odm+}
+adds a special method to the base model. You can use this method to
+update the attributes.
+
+The method name is the association name suffixed with ``_attributes``. For
+example, the setter method to update the ``producers`` association is
+``producer_attributes``.
+
+You can use this method directly, or you can use the name of the method
+as an attribute in the updates for the top-level class. In this case,
+{+odm+} calls the appropriate setter method internally.
+
+The following code retrieves an instance of ``Band``, then uses the
+nested attribute update method ``producer_attributes`` to set a value
+for the association document:
+
+.. literalinclude:: /includes/data-modeling/nested_attr.rb
+   :start-after: start-use-method
+   :end-before: end-use-method
+   :language: ruby
+   :emphasize-lines: 4
+   :dedent:
+
+There are multiple ways to update a nested attribute:
+
+- Use the ``<association name>_attributes`` setter method.
+- Use the ``attributes`` setter method and specify ``<association
+  name>_attributes`` in the value to update the associations.
+- Use the ``update_attributes`` setter method and specify the attribute
+  names in the value to update the associations.
+- Use the ``update`` method and specify ``<association
+  name>_attributes`` in the value to update the associations.
+- Use the ``create`` method and specify ``<association
+  name>_attributes`` in the value to create the associations.
+
+The following example demonstrates how to create a ``Band`` instance
+with associated ``album`` records in a single statement:
+
+.. literalinclude:: /includes/data-modeling/nested_attr.rb
+   :start-after: start-create-attr
+   :end-before: end-create-attr
+   :language: ruby
+   :emphasize-lines: 3-5
+   :dedent:
+
+Creating Nested Documents
+-------------------------
+
+You can create new nested documents by using the nested attributes
+feature. When creating a document, omit the ``_id`` field. The following
+code uses the ``update`` method to create a nested ``album`` document
+on an existing ``Band`` instance:
+
+.. literalinclude:: /includes/data-modeling/nested_attr.rb
+   :start-after: start-update-create
+   :end-before: end-update-create
+   :language: ruby
+   :dedent:
+
+This action appends the new document to the existing set without changing
+any existing nested documents.
+
+Updating Nested Documents
+-------------------------
+
+You can update existing nested documents by using the nested attributes
+feature. To instruct {+odm+} to update a nested document by using
+attributes, pass the document's ``_id`` value to the ``update``
+method. The following example uses the ``_id`` value of an ``albums``
+entry to update the ``year`` field:
+
+.. literalinclude:: /includes/data-modeling/nested_attr.rb
+   :start-after: start-update-id
+   :end-before: end-update-id
+   :language: ruby
+   :dedent:
+
+.. important:: No Matching Document
+
+   If {+odm+} does not match a document that has the specified ``_id``
+   value, it raises a ``Mongoid::Errors::DocumentNotFound`` exception.
+
+Delete Nested Documents
+-----------------------
+
+You can delete nested documents by specifying the ``_destroy``
+attribute to the ``update`` method. To enable deletion of nested
+document, you must set ``allow_destroy: true`` in the
+``accepts_nested_attributes_for`` declaration, as shown in the following
+code:
+
+.. code-block:: ruby
+   :emphasize-lines: 3
+
+   class Band
+      # ...
+      accepts_nested_attributes_for :albums, allow_destroy: true
+   end
+
+The following code uses the ``_destroy`` attribute to delete the first
+``albums`` entry of a ``Band`` instance:
+
+.. literalinclude:: /includes/data-modeling/nested_attr.rb
+   :start-after: start-delete-id
+   :end-before: end-delete-id
+   :language: ruby
+   :emphasize-lines: 6
+   :dedent:
+
+.. important:: No Matching Document
+
+   If {+odm+} does not match a document that has the specified ``_id``
+   value, it raises a ``Mongoid::Errors::DocumentNotFound`` exception.
+
+Combine Operations on Nested Documents
+--------------------------------------
+
+You can perform multiple data operations on nested documents by using
+the nested attributes feature.
+
+The following code creates a nested document, updates an existing
+document, and deletes a document in the ``albums`` array of a ``Band``
+instance:
+
+.. literalinclude:: /includes/data-modeling/nested_attr.rb
+   :start-after: start-multiple-ops
+   :end-before: end-multiple-ops
+   :language: ruby
+   :dedent:
+
+Additional Information
+----------------------
+
+To learn more about querying, see the :ref:`mongoid-data-specify-query`
+guide.
+
+To learn more about performing CRUD operations, see the
+:ref:`mongoid-data-crud` guide.
+
+To learn more about associations, see the :ref:`mongoid-associations`
+guide.

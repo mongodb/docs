@@ -1,0 +1,308 @@
+.. _mongoid-modeling-inheritance:
+
+===========
+Inheritance
+===========
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: ruby framework, odm, relationship, code example, polymorphic
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to implement **inheritance** into your
+{+odm+} models. Inheritance allows you to apply the characteristics of
+one "parent" class to one or more "child" classes.
+
+{+odm+} supports inheritance in top-level and embedded documents.
+When a child model class inherits from a parent class, {+odm+} copies
+the parent class's fields, associations, validations, and scopes to
+the child class.
+
+Assign Inheritance
+------------------
+
+When creating a child model class, use the ``<`` character to implement
+inheritance from a specified parent class. The following model classes
+demonstrate how to create parent and child classes between the
+``Person``, ``Employee``, and ``Manager`` models:
+
+.. literalinclude:: /includes/data-modeling/inheritance.rb
+   :start-after: start-simple-inheritance
+   :end-before: end-simple-inheritance
+   :language: ruby
+   :emphasize-lines: 7, 14
+   :dedent:
+
+{+odm+} saves instances of ``Person``, ``Employee``, and ``Manager`` in
+the ``people`` collection. {+odm+} sets the ``_type`` discriminator
+field to the model class name in documents to ensure that documents are
+returned as the expected types when you perform read operations.
+
+Embedded Documents
+~~~~~~~~~~~~~~~~~~
+
+You can also implement an inheritance pattern in embedded associations.
+Similar to the behavior of top-level model classes, {+odm+} sets the
+``_type`` discriminator field in embedded documents depending on the
+model class used to create them.
+
+The following example adds an embedded association to the ``Person``
+model and creates parent and child models for the embedded ``Info``
+class:
+
+.. literalinclude:: /includes/data-modeling/inheritance.rb
+   :start-after: start-embedded-inheritance
+   :end-before: end-embedded-inheritance
+   :language: ruby
+   :emphasize-lines: 5, 14, 17, 22
+   :dedent:
+
+Query Behavior
+~~~~~~~~~~~~~~
+
+When you query on a child model class, the query returns only documents
+in which the value of the ``_type`` field matches the queried class or
+further child classes. For example, if you query on the ``Employee``
+class, the query returns documents from the ``people`` collection in
+which the ``_type`` value is either ``"Employee"`` or ``"Manager"``. All
+other discriminator values are considered as instances of the parent
+``Person`` class.
+
+When querying on a parent class such as ``Person``, {+odm+} returns
+documents that meet any of the following criteria:
+
+- Discriminator value is the name of the parent class or any of the
+  child classes. For example, ``"Person"``, ``"Employee"``, or ``"Manager"``.
+
+- Lacks a discriminator value.
+
+- Discriminator value does not map to either the parent or any of its
+  child classes. For example, ``"Director"`` or ``"Specialist"``.
+
+Change the Discriminator Key
+----------------------------
+
+You might change the discriminator key from the default field name
+``_type`` for any of the following reasons:
+
+- Optimization: You can select a shorter key such as ``_t``.
+
+- Consistency with an existing system: You might be using an existing
+  system or dataset that has predefined keys.
+
+You can change the discriminator key on the class level
+or on the global level. To change the discriminator key on the class
+level, you can set the custom key name on the parent class by using the
+``discriminator_key`` method.
+
+The following example demonstrates how to set a custom discriminator key
+when defining a model class:
+
+.. code-block:: ruby
+   :emphasize-lines: 6
+
+   class Person
+     include Mongoid::Document
+   
+     field :name, type: String
+
+     self.discriminator_key = "sub_type"
+   end
+
+When you create an instance of ``Person`` or any of its child classes,
+{+odm+} adds the ``sub_type`` field to documents in MongoDB.
+
+.. note::
+
+   You can change the discriminator key only on the parent class.
+   {+odm+} raises an error if you set a custom key on any child
+   class.
+
+If you change the discriminator key after defining a child class, {+odm+}
+adds the new key field, but the old field is unchanged. For example, suppose
+you add the following code to your application *after* defining your
+model classes:
+
+.. code-block:: ruby
+
+   Person.discriminator_key = "sub_type"
+
+In this case, when you create an instance of a child class such as
+``Employee``, {+odm+} adds both the ``sub_type`` and ``_type`` fields to
+the document.
+
+You can also change the discriminator key at the global level, so that
+all classes use the specified key instead of the ``_type`` field.
+
+You can set a global key by adding the following code to your
+application *before* defining any model classes:
+
+.. code-block:: ruby
+
+   Mongoid.discriminator_key = "sub_type"
+
+All classes use ``sub_type`` as the discriminator key and do not include
+the ``_type`` field.
+
+.. note::
+
+   You must set the discriminator key on the global level before defining
+   any child classes for the classes to use that global value. If you set
+   the global key after defining child classes, your saved documents
+   contain the default ``_type`` field.
+
+Change the Discriminator Value
+------------------------------
+
+You can customize the value that {+odm+} sets as the discriminator value
+in MongoDB. Use the ``discriminator_value`` method when defining a
+class to customize the discriminator value, as shown in the following
+example:
+
+.. code-block:: ruby
+   :emphasize-lines: 6
+
+   class Employee
+     include Mongoid::Document
+   
+     field :company, type: String
+
+     self.discriminator_value = "Worker"
+   end
+
+When you create an instance of ``Employee``, the document's ``_type``
+discriminator field has a value of ``"Worker"`` instead of the class
+name.
+
+.. note::
+
+   Because the discriminator value customization is declared in child classes,
+   you must load the child classes retrieved by a query *before* sending
+   that query.
+   
+   In the preceding example, the ``Employee`` class definition must be
+   loaded before you query on ``Person`` if the returned documents include
+   instances of ``Employee``. Autoloading cannot resolve the
+   discriminator value ``"Worker"`` to return documents as instances of
+   ``Employee``.
+
+Embedded Associations
+---------------------
+
+You can create any type of parent class or child class in an embedded
+association by assignment or by using the ``build`` and ``create``
+methods. You can pass desired model class as the second parameter to the
+``build`` and ``create`` methods to instruct {+odm+} to create that
+specific instance as an emdedded document.
+
+The following code creates an instance of ``Employee``, then
+demonstrates how to add embedded documents by using the different
+creation methods:
+
+.. literalinclude:: /includes/data-modeling/inheritance.rb
+   :start-after: start-association-operations
+   :end-before: end-association-operations
+   :language: ruby
+   :dedent:
+
+The following document is stored in the ``people`` database:
+
+.. code-block:: json
+   :emphasize-lines: 13, 20, 25, 32
+
+   {
+     "_id": {...},
+     "name": "Lance Huang",
+     "company": "XYZ Communications",
+     "tenure": 2,
+     "_type": "Employee",
+     "infos": [
+       {
+         "_id": {...},
+         "active": true,
+         "value": "l.huang@company.com",
+         "category": "work",
+         "_type": "Email"
+       },
+       {
+         "_id": {...},
+         "active": false,
+         "value": "lanceh11@mymail.com",
+         "category": "personal",
+         "_type": "Email"
+       },
+       {
+         "_id": {...},
+         "active": true,
+         "_type": "Info"
+       },
+       {
+         "_id": {...},
+         "active": true,
+         "value": 1239007777,
+         "country": "USA",
+         "_type": "Phone"
+       }
+     ]
+   }
+
+Persistence Contexts
+--------------------
+
+You can change the persistence context of a child class from
+the persistence context of its parent to store the document in a
+different location than the default. By using the ``store_in`` method,
+you can store an instance of a child class in a different collection,
+database, or cluster than an instance of the parent model.
+
+The following model definitions demonstrate how to use the
+``store_in`` method to store instances of ``Employee`` and ``Manager``
+in a different collection than the ``people`` collection:
+
+.. code-block:: ruby
+   :emphasize-lines: 7, 12
+
+   class Person
+     include Mongoid::Document
+   end
+
+   class Employee < Person
+     # Specifies "employees" as target collection
+     store_in collection: :employees
+   end
+
+   class Manager < Employee
+     # Specifies "managers" as target collection
+     store_in collection: :managers
+   end
+
+.. note::
+   
+   {+odm+} still adds the discriminator field to stored documents.
+
+If you set an alternate target collection on some child classes
+and not others, instances of the classes without specified collections
+are stored in the collection associated with the parent class.
+
+.. note::
+
+   When you change the target collection for a child class, instances of
+   that class do not appear in the results from queries on the parent
+   class.
+
+Additional Information
+----------------------
+
+To learn more about configuring the target collection for your
+operations, see the :ref:`mongoid-persistence` guide.

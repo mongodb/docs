@@ -1,0 +1,220 @@
+.. _mongoid-optimize-queries-with-indexes:
+.. _mongoid-indexes:
+
+=============================
+Optimize Queries With Indexes
+=============================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, odm, optimization, efficiency, Atlas search
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use **indexes** with {+odm+}. Indexes can
+improve the efficiency of queries by limiting the number of documents MongoDB
+needs to scan. If your application is repeatedly running queries
+on certain fields, you can create an index on those fields to improve query
+performance.
+
+The following sections in this guide describe how to declare and create different
+types of indexes using {+odm+}. The examples use the ``Restaurant`` model, which 
+maps to the ``restaurants`` collection in the ``sample_restaurants`` database. 
+To learn how to connect to this database
+and collection using {+odm+}, see the :ref:`mongoid-quick-start-rails` or 
+:ref:`mongoid-quick-start-sinatra` guides.
+
+Declare and Create an Index
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When using {+odm+}, you can declare your index using the ``index`` macro and 
+then create it using the ``create_indexes`` command.
+
+The following code example shows how to declare and create an ascending index 
+named ``cuisine_index`` on the ``cuisine`` field in the ``Restaurant`` class:
+
+.. literalinclude:: /includes/data-modeling/indexes.rb
+  :language: ruby
+  :emphasize-lines: 8, 11
+  :start-after: start create index
+  :end-before: end create index
+
+The ``index`` macro defines the index you want to create and the ``create_indexes``
+command creates it in the ``restaurants`` collection.
+
+When defining an index, the first hash object contains the field you want to
+index and its direction. ``1`` represents an ascending index, and ``-1`` represents a
+descending index. The second hash object contains index options. To learn more
+about index options, see the :ref:`mongoid-indexes-api-documentation` section.
+
+Aliases and Declaring Indexes
++++++++++++++++++++++++++++++
+
+You can use aliased field names in index definitions. For example, the following
+code creates an index on the ``b`` field, which is an alias of the ``borough``
+field:
+
+.. literalinclude:: /includes/data-modeling/indexes.rb
+  :language: ruby
+  :start-after: start create alias index
+  :end-before: end create alias index
+
+Create an Index on Embedded Document Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can define an index on embedded document fields. The following code example
+shows how to declare an ascending index on the ``street`` field, which is embedded
+within the ``address`` field in the ``Restaurant`` model.
+
+.. literalinclude:: /includes/data-modeling/indexes.rb
+  :language: ruby
+  :start-after: start create embedded index
+  :end-before: end create embedded index
+
+Create a Compound Index
+~~~~~~~~~~~~~~~~~~~~~~~
+
+You can define a compound index on multiple fields. The following code example
+shows how to declare a compound index that is ascending on the ``borough``
+field and descending on the ``name`` field.
+
+.. literalinclude:: /includes/data-modeling/indexes.rb
+  :language: ruby
+  :start-after: start create compound index
+  :end-before: end create compound index
+
+Create a Geospatial Index
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can define a 2dsphere index on fields that contain GeoJSON objects or
+coordinate pairs.
+The following example defines a 2dsphere index on a field that contains GeoJSON
+objects:
+
+.. literalinclude:: /includes/data-modeling/indexes.rb
+  :language: ruby
+  :start-after: start create 2dsphere index
+  :end-before: end create 2dsphere index
+
+For more information on 2dsphere indexes, see the :manual:`2dsphere </core/indexes/index-types/geospatial/2dsphere/>`
+guide in the MongoDB {+server-manual+}.
+
+For more information on the GeoJSON type, see the :manual:`GeoJSON Objects </reference/geojson/>`
+guide in the MongoDB {+server-manual+}.
+
+Create a Sparse Index
+~~~~~~~~~~~~~~~~~~~~~
+
+You can define a sparse index on fields that are not present in all documents. 
+The following code example defines a sparse index on the ``borough`` field:
+
+.. literalinclude:: /includes/data-modeling/indexes.rb
+  :language: ruby
+  :start-after: start create sparse index
+  :end-before: end create sparse index
+
+For more information on sparse indexes, see the :manual:`Sparse Indexes </core/index-sparse/>`
+guide in the MongoDB {+server-manual+}.
+
+Create Multiple Indexes
+~~~~~~~~~~~~~~~~~~~~~~~
+
+You can define multiple indexes within your model and create them using a single
+``create_indexes`` call. The following example shows how to create multiple
+indexes at the same time:
+
+.. literalinclude:: /includes/data-modeling/indexes.rb
+  :language: ruby
+  :start-after: start create multiple indexes
+  :end-before: end create multiple indexes
+
+Drop Indexes
+~~~~~~~~~~~~
+
+You can drop all indexes in your collection. The following example drops all
+indexes in the ``Restaurant`` model:
+
+.. literalinclude:: /includes/data-modeling/indexes.rb
+  :language: ruby
+  :start-after: start drop indexes
+  :end-before: end drop indexes
+
+.. note:: Default Index
+   
+   MongoDB creates a default index on the ``_id`` field during the
+   creation of a collection. This index prevents clients from inserting
+   two documents with the same values for the ``_id`` field. You cannot
+   drop this index. 
+
+Atlas Search Indexes
+~~~~~~~~~~~~~~~~~~~~
+
+You can declare and manage Atlas Search indexes using {+odm+}.
+
+To declare a search index, use the ``search_index`` macro within your model. To
+create the search indexes declared within a model, use the ``create_search_indexes`` 
+command. The following code example shows how to declare and create an Atlas 
+Search index named ``my_search_index``.
+The index is on the ``name`` and ``cuisine`` fields and is dynamic.
+
+.. literalinclude:: /includes/data-modeling/indexes.rb
+  :language: ruby
+  :start-after: start create atlas search index
+  :end-before: end create atlas search index
+
+To learn more about the syntax for creating an Atlas Search index, see
+the :atlas:`Create an Atlas Search Index </atlas-search/create-index/#std-label-ref-create-index>`
+guide in the MongoDB Atlas documentation.
+
+Remove an Atlas Search Index
+++++++++++++++++++++++++++++
+
+To remove an Atlas Search index, use the ``remove_search_indexes`` command. The
+following code example shows how to remove an Atlas Search index from the 
+``restaurants`` collection:
+
+.. literalinclude:: /includes/data-modeling/indexes.rb
+  :language: ruby
+  :start-after: start remove atlas search index
+  :end-before: end remove atlas search index
+
+List Atlas Search Indexes
++++++++++++++++++++++++++
+
+You can enumerate through all Atlas Search indexes in your collection 
+by using the ``search_indexes`` command. The following example enumerates through
+all Atlas Search indexes in the ``restaurants`` collection and prints out their
+information:
+
+.. literalinclude:: /includes/data-modeling/indexes.rb
+  :language: ruby
+  :start-after: start list atlas search index
+  :end-before: end list atlas search index
+
+.. _mongoid-indexes-api-documentation:
+
+API Documentation
+-----------------
+
+To learn more about using indexes in {+odm+}, see the 
+`Mongoid::Indexable::ClassMethods <{+api+}/Mongoid/Indexable/ClassMethods.html>`__
+documentation.
+
+To learn more about index options, see the `Mongoid::Indexable::Validators::Options
+<{+api+}/Mongoid/Indexable/Validators/Options.html>`__ documentation.
+
+To learn more about using Atlas Search indexes in {+odm+}, see the 
+`Mongoid::SearchIndexable::ClassMethods <{+api+}/Mongoid/SearchIndexable/ClassMethods.html>`__
+documentation.

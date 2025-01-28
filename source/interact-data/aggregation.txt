@@ -1,0 +1,232 @@
+.. _mongoid-aggregation:
+
+====================================
+Transform Your Data with Aggregation
+====================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, transform, pipeline
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use {+odm+} to perform **aggregation
+operations**.
+
+Aggregation operations process data in your MongoDB collections and return
+computed results. The MongoDB Aggregation framework, which is part of the Query
+API, is modeled on the concept of data processing pipelines. Documents enter a
+pipeline that contains one or more stages, and this pipeline transforms the
+documents into an aggregated result. 
+
+Aggregation operations function similarly to car factories with assembly
+lines. The assembly lines have stations with specialized tools to
+perform specific tasks. For example, when building a car, the assembly
+line begins with the frame. Then, as the car frame moves through the
+assembly line, each station assembles a separate part. The result is a
+transformed final product, the finished car.
+
+The assembly line represents the *aggregation pipeline*, the individual
+stations represent the *aggregation stages*, the specialized tools
+represent the *expression operators*, and the finished product
+represents the *aggregated result*.
+
+Compare Aggregation and Find Operations
+---------------------------------------
+
+The following table lists the different tasks you can perform with find
+operations, compared to what you can achieve with aggregation
+operations. The aggregation framework provides expanded functionality
+that allows you to transform and manipulate your data.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - Find Operations
+     - Aggregation Operations
+
+   * - | Select *certain* documents to return
+       | Select *which* fields to return
+       | Sort the results
+       | Limit the results
+       | Count the results
+     - | Select *certain* documents to return
+       | Select *which* fields to return
+       | Sort the results
+       | Limit the results
+       | Count the results
+       | Rename fields
+       | Compute new fields
+       | Summarize data
+       | Connect and merge data sets
+
+{+odm+} Builders
+----------------
+
+You can construct an aggregation pipeline by using {+odm+}'s high-level
+domain-specific language (DSL). The DSL supports the following aggregation
+pipeline operators:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+    
+   * - Operator
+     - Method Name
+   
+   * - :manual:`$group <reference/operator/aggregation/group/>`
+     - ``group``
+
+   * - :manual:`$project <reference/operator/aggregation/project/>`
+     - ``project``
+
+   * - :manual:`$unwind <reference/operator/aggregation/unwind/>`
+     - ``unwind``
+
+To create an aggregation pipeline by using one of the preceding operators, call
+the corresponding method on an instance of ``Criteria``. Calling the method adds
+the aggregation operation to the ``pipeline`` atrritbure of the ``Criteria``
+instance. To run the aggregation pipeline, pass the ``pipeline`` attribute value
+to the ``Collection#aggregate`` method. 
+
+Example
+~~~~~~~
+
+Consider a database that contains a collection with documents that are modeled by
+the following classes:
+
+.. code-block:: ruby
+
+   class Tour
+     include Mongoid::Document
+
+     embeds_many :participants
+
+     field :name, type: String
+     field :states, type: Array
+   end
+
+   class Participant
+     include Mongoid::Document
+
+     embedded_in :tour
+
+     field :name, type: String
+   end
+
+In this example, the ``Tour`` model represents the name of a tour and the states
+it travels through, and the ``Participant`` model represents the name of a
+person participating in the tour.
+
+The following example creates an aggregation pipeline that outputs the states a
+participant has visited by using the following
+aggregation operations:
+
+- ``match``, which find documents in which the ``participants.name`` field
+  value is ``"Serenity"``
+- ``unwind``, which deconstructs the ``states`` array field and outputs a
+  document for each element in the array
+- ``group``, which groups the documents by the value of their ``states`` field
+- ``project``, which prompts the pipeline to return only the ``_id`` and
+  ``states`` fields
+
+.. io-code-block::
+   
+   .. input:: /includes/aggregation/builder-dsl.rb
+      :language: ruby
+
+   .. output::
+
+      [{"states":["OR","WA","CA"]}]
+
+Aggregation without Builders
+----------------------------
+
+You can use the ``Collection#aggregate`` method to run aggregation operations that do not have
+corresponding builder methods by passing in an array of aggregation
+operations. Using this method to perform the aggregation returns
+raw ``BSON::Document`` objects rather than ``Mongoid::Document`` model
+instances.
+
+Example
+~~~~~~~
+
+Consider a database that contains a collection with documents that are modeled
+by the following classes:
+
+.. code-block:: ruby
+    
+   class Band
+     include Mongoid::Document
+     has_many :tours
+     has_many :awards
+     field :name, type: String
+   end
+
+   class Tour
+     include Mongoid::Document
+     belongs_to :band
+     field :year, type: Integer
+   end
+
+   class Award
+     include Mongoid::Document
+     belongs_to :band
+     field :name, type: String
+   end
+
+The following example creates an aggregation pipeline to retrieve all bands that
+have toured since ``2000`` and have at least ``1`` award:
+
+.. io-code-block::
+   
+   .. input:: /includes/aggregation/ruby-aggregation.rb
+      :language: ruby
+
+   .. output::
+
+      [
+       {"_id": "...", "name": "Deftones" },
+       {"_id": "...", "name": "Tool"},
+       ...
+      ]
+
+.. tip::
+
+   The preceding example projects only the ``_id`` field of the output
+   documents. It then uses the projected results to find the documents and return
+   them as ``Mongoid::Document`` model instances. This optional step is not
+   required to run an aggregation pipeline.
+
+Additional Information
+----------------------
+
+To view a full list of aggregation operators, see :manual:`Aggregation
+Operators. </reference/operator/aggregation/>`
+
+To learn about assembling an aggregation pipeline and view examples, see
+:manual:`Aggregation Pipeline. </core/aggregation-pipeline/>`
+
+To learn more about creating pipeline stages, see :manual:`Aggregation
+Stages. </reference/operator/aggregation-pipeline/>`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods discussed in this
+guide, see the following API documentation:
+
+- `group <{+api+}/Mongoid/Criteria/Queryable/Aggregable.html#group-instance_method>`__
+- `project <{+api+}/Mongoid/Criteria/Queryable/Aggregable.html#project-instance_method>`__
+- `unwind <{+api+}/Mongoid/Criteria/Queryable/Aggregable.html#unwind-instance_method>`__

@@ -1,0 +1,267 @@
+.. _mongoid-data-scoping:
+
+=======
+Scoping
+=======
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: ruby framework, odm, crud, filter, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to implement **scopes** into your
+{+odm+} models. Scopes provide a convenient way to reuse common filter
+criteria. To learn more about creating filter criteria, see the
+:ref:`mongoid-data-specify-query` guide.
+
+You might implement scopes into your application to reduce repeated code
+if you are applying the same criteria to most queries.
+
+Named Scopes
+------------
+
+Named scopes are criteria defined at class load that are referenced by a
+provided name. Similar to filter criteria, they are lazily loaded and
+chainable.
+
+This example defines a ``Band`` model that includes the following named
+scopes:
+
+- ``japanese``: Matches documents in which the value of the ``country``
+  field is ``"Japan"``
+
+- ``rock``: Matches documents in which the value of the ``genre``
+  field includes ``"rock"``
+
+.. literalinclude:: /includes/interact-data/scoping.rb
+   :start-after: start-named-scope-1
+   :end-before: end-named-scope-1
+   :language: ruby
+   :dedent:
+   :emphasize-lines: 7-8
+
+Then, you can query by using the named scopes. The following query uses
+the named scopes to match documents in which value of the ``country``
+field is ``"Japan"`` and value of the ``genre`` field includes
+``"rock"``:
+
+.. literalinclude:: /includes/interact-data/scoping.rb
+   :start-after: start-query-named-scope
+   :end-before: end-query-named-scope
+   :language: ruby
+   :dedent:
+
+Advanced Scoping
+~~~~~~~~~~~~~~~~
+
+You can define ``Proc`` objects and blocks in named scopes so that they
+accept parameters and extend functionality.
+
+This example defines a ``Band`` model that includes the ``based_in`` scope,
+which matches documents in which the ``country`` field value
+is the specified value passed as a parameter:
+
+.. literalinclude:: /includes/interact-data/scoping.rb
+   :start-after: start-named-scope-2
+   :end-before: end-named-scope-2
+   :language: ruby
+   :emphasize-lines: 7
+   :dedent:
+
+Then, you can query by using the ``based_in`` scope, as shown in the following
+code:
+
+.. literalinclude:: /includes/interact-data/scoping.rb
+   :start-after: start-query-named-scope-2
+   :end-before: end-query-named-scope-2
+   :language: ruby
+   :dedent:
+
+{+odm+} allows you to define a scope that shadows an existing class
+method, as shown in the following example:
+
+.. literalinclude:: /includes/interact-data/scoping.rb
+   :start-after: start-named-scope-3
+   :end-before: end-named-scope-3
+   :language: ruby
+   :dedent:
+
+You can direct {+odm+} to raise an error when a scope overwrites an
+existing class method by setting the ``scope_overwrite_exception``
+configuration option to ``true``.
+
+To learn more about this setting, see the :ref:`mongoid-app-config`
+guide.
+
+Default Scopes
+--------------
+
+Default scopes are useful for cases where you apply the same
+criteria to most queries. By defining a default scope, you specify these
+criteria as the default for any queries that use the model. Default
+scopes return ``Criteria`` objects.
+
+To create a default scope, you must define the ``default_scope`` method
+on your model class.
+
+The following code defines the ``default_scope`` method on the ``Band``
+model to only retrieve documents in which the ``active`` field value is ``true``:
+
+.. literalinclude:: /includes/interact-data/scoping.rb
+   :start-after: start-default-scope-1
+   :end-before: end-default-scope-1
+   :language: ruby
+   :dedent:
+   :emphasize-lines: 7
+
+Then, any queries on the ``Band`` model pre-filter for documents in which the
+``active`` value is ``true``.
+
+Field Initialization
+~~~~~~~~~~~~~~~~~~~~
+
+Specifying a default scope initializes the fields of new models to
+the values given in the default scope if those values are literals, such
+as boolean values or integers.
+
+.. note:: Field and Scope Conflicts
+
+   If you provide a default value in a field definition and in the
+   default scope, the value in the default scope takes precedence, as
+   shown in the following example:
+
+   .. literalinclude:: /includes/interact-data/scoping.rb
+      :start-after: start-default-scope-2
+      :end-before: end-default-scope-2
+      :language: ruby
+      :dedent:
+      :emphasize-lines: 5, 7
+
+We do not recommend using dot notation to reference nested fields in default
+scopes. This can direct {+odm+} to initialize unexpected fields in new
+models.
+
+For example, if you define a default scope that references the
+``tour.year`` field, a new model is initialized with the field
+``tour.year`` instead of a ``tour`` field with a nested object that
+contains a ``year`` field.
+
+When *querying*, {+odm+} interprets the dot notation correctly and matches
+documents in which a nested field has the specified value.
+
+Associations
+~~~~~~~~~~~~
+
+If you define a default scope on a model that is part of an
+association, you must reload the association to have scoping reapplied.
+This is necessary for when you change a value of a document in the
+association that affects its visibility when the scope is applied.
+
+This example uses the following models:
+
+.. literalinclude:: /includes/interact-data/scoping.rb
+   :start-after: start-scope-association
+   :end-before: end-scope-association
+   :language: ruby
+   :dedent:
+
+Suppose you create a ``Label`` model that contains an association to a
+``Band`` in which the value of ``active`` is ``true``. When you update
+the ``active`` field to ``false``, {+odm+} still loads it despite the
+default scope. To view the documents in the association with the scope
+applied, you must call the ``reload`` operator.
+
+The following code demonstrates this sequence:
+
+.. literalinclude:: /includes/interact-data/scoping.rb
+   :start-after: start-scope-association-steps
+   :end-before: end-scope-association-steps
+   :language: ruby
+   :dedent:
+   :emphasize-lines: 5, 7
+
+or and nor Query Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+odm+} treats the criteria in a default scope the same way as any other
+query conditions. This can lead to surprising behavior when using the
+``or`` and ``nor`` methods.
+
+The following examples demonstrate how {+odm+} interprets queries on
+models with a default scope:
+
+.. literalinclude:: /includes/interact-data/scoping.rb
+   :start-after: start-scope-query-behavior
+   :end-before: end-scope-query-behavior
+   :language: ruby
+   :dedent:
+
+To learn more about logical operations, see
+:ref:`mongoid-query-logical-operations` in the Specify a Query guide.
+
+Disable Scope When Querying
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can direct {+odm+} to not apply the default scope by using the
+``unscoped`` operator, as shown in the following examples:
+
+.. literalinclude:: /includes/interact-data/scoping.rb
+   :start-after: start-unscoped
+   :end-before: end-unscoped
+   :language: ruby
+   :dedent:
+
+Override Default Scope at Runtime
+---------------------------------
+
+You can use the ``with_scope`` method to change the default scope in a
+block at runtime.
+
+The following model defines the *named* scope ``mexican``:
+
+.. literalinclude:: /includes/interact-data/scoping.rb
+   :start-after: start-override-scope
+   :end-before: end-override-scope
+   :language: ruby
+   :dedent:
+   :emphasize-lines: 7
+
+You can use the ``with_scope`` method to set the ``mexican`` named
+scope as the default scope at runtime, as shown in the following code:
+
+.. literalinclude:: /includes/interact-data/scoping.rb
+   :start-after: start-override-scope-block
+   :end-before: end-override-scope-block
+   :language: ruby
+   :dedent:
+
+Class Methods
+-------------
+
+{+odm+} treats class methods that return ``Criteria`` objects
+as scopes. You can query by using these class methods, as shown in
+the following example:
+
+.. literalinclude:: /includes/interact-data/scoping.rb
+   :start-after: start-class-methods
+   :end-before: end-class-methods
+   :language: ruby
+   :dedent:
+   :emphasize-lines: 7-9, 12
+
+Additional Information
+----------------------
+
+To learn more about customizing your {+odm+} models, see the
+:ref:`mongoid-data-modeling` guides.

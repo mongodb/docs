@@ -1,0 +1,132 @@
+.. _mongoid-forking-server-config:
+
+============================
+Forking Server Configuration
+============================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, parent process, child process, behavior
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn about configuring your application to use a
+forking web server.
+
+When using {+odm+} with a forking web server, adhere to the following
+guidelines:
+
+- If possible, do not perform any MongoDB operations in the parent
+  process before forking. To learn more about how the {+ruby-driver+}
+  handles forking, see :ruby:`Usage with Forking Servers
+  </reference/create-client/#usage-with-forking-servers>` in the driver
+  documentation.
+
+- You can avoid connection errors such as ``Mongo::Error::SocketError``
+  and ``Mongo::Error::NoServerAvailable`` by performing the following actions:
+
+  1. Disconnect MongoDB clients in the parent {+language+} process
+     immediately *before* forking by using the
+     ``Mongoid.disconnect_clients`` method. This ensures that the parent and
+     child processes do not accidentally reuse the same sockets and have
+     I/O conflicts. ``Mongoid.disconnect_clients`` does not disrupt any
+     in-flight MongoDB operations, and automatically reconnects when you
+     perform new operations.
+
+  #. Reconnect your MongoDB clients in the child {+language+} process
+     immediately *after* forking by using the
+     ``Mongoid.reconnect_clients`` method. This is required to respawn
+     the driver's monitoring threads in the child process.
+
+Most web servers provide hooks that your application can use to
+perform actions when the worker processes are forked. The following
+sections provide configuration examples for some common {+language+} web
+servers.
+
+Puma
+----
+
+Use the ``on_worker_boot`` hook to reconnect clients in the workers. Use
+the ``before_fork`` and ``on_refork`` hooks to close clients in the
+parent process. To learn more about these hooks, see `Clustered mode
+hooks <https://puma.io/puma/#clustered-mode-hooks>`__ in the Puma
+API documentation.
+
+The following code uses the ``on_worker_boot``, ``before_fork``, and
+``on_refork`` hooks in a sample Puma configuration file:
+
+.. code-block:: ruby
+   :caption: config/puma.rb
+
+   # Runs in the Puma master process before it forks a child worker.
+   before_fork do
+     Mongoid.disconnect_clients
+   end
+ 
+   # Required when using Puma's fork_worker option. Runs in the
+   # child worker 0 process before it forks grandchild workers.
+   on_refork do
+     Mongoid.disconnect_clients
+   end
+ 
+   # Runs in each Puma child process after it forks from its parent.
+   on_worker_boot do
+     Mongoid.reconnect_clients
+   end
+
+Unicorn
+-------
+
+Use the ``before_fork`` hook to close clients in the parent process. Use
+the ``after_fork`` hook to reconnect clients in the workers. To
+learn more about these hooks, see `Configurator
+<https://yhbt.net/unicorn/Unicorn/Configurator.html>`__ in the Unicorn
+API documentation.
+
+The following code uses the ``before_fork`` and ``after_fork``
+hooks in a sample Unicorn configuration file:
+
+.. code-block:: ruby
+   :caption: config/unicorn.rb
+
+   before_fork do |_server, _worker|
+     Mongoid.disconnect_clients
+   end
+ 
+   after_fork do |_server, _worker|
+     Mongoid.reconnect_clients
+   end
+
+Passenger
+---------
+
+Use the ``starting_worker_process`` hook to reconnect clients in the
+workers. To learn more about this hook, see `Smart spawning hooks
+<https://www.phusionpassenger.com/library/indepth/ruby/spawn_methods/#smart-spawning-hooks>`__
+in the Passenger documentation.
+
+.. note::
+
+   Passenger does have a hook that is invoked in the
+   parent process before the workers are forked.
+
+The following code uses the ``starting_worker_process`` hook to
+reconnect clients:
+
+.. code-block:: ruby
+
+   if defined?(PhusionPassenger)
+     PhusionPassenger.on_event(:starting_worker_process) do |forked|
+       Mongoid.reconnect_clients if forked
+     end
+   end

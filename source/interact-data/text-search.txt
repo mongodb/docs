@@ -1,0 +1,215 @@
+.. _mongoid-data-text-search:
+
+===========
+Search Text
+===========
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: ruby framework, odm, crud, filter, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use {+odm+} to run a **text
+search**. A text search allows you to efficiently query fields that have
+string values.
+
+MongoDB provides text indexes to support text search queries on
+fields that have string values or values that are arrays of string
+elements. To learn more about text indexes, see :manual:`Text Indexes on
+Self-Managed Deployments </core/indexes/index-types/index-text/>` in the
+{+server-manual+}.
+
+.. note:: Atlas Search
+
+   This guide focuses on text search. If your database is hosted on
+   MongoDB Atlas, you can use the Atlas Search feature
+   to perform more powerful and flexible text searches. To learn more
+   about Atlas Search, see the :atlas:`Atlas Search Overview
+   </atlas-search/atlas-search-overview/>` in the Atlas documentation.
+
+You can run a text search by performing the following steps:
+
+1. Define a text index on a model.
+#. Create the text index on the target collection.
+#. Perform a text search query.
+
+The following sections describe how to perform each of these actions.
+
+Define a Text Index on Your Model
+---------------------------------
+
+Use the ``index`` macro to specify the text index in your model
+definition. The following code creates a ``Dish`` model class that
+includes a text index on the ``description`` field:
+
+.. literalinclude:: /includes/interact-data/text-search.rb
+   :start-after: start-text-index-model
+   :end-before: end-text-index-model
+   :language: ruby
+   :emphasize-lines: 7
+   :dedent:
+
+.. note::
+
+   You must specify the index type as a string, as shown by ``'text'``
+   in the preceding code.
+
+Create the Text Index
+---------------------
+
+Next, you must create the text index in your collection. You can
+create the index by using an interface such as the :atlas:`Atlas UI
+</atlas-ui/indexes>` or :compass:`Compass </indexes>`. If you are using
+the Rails framework to develop your application, you can run the following
+Rake task to create the index based on your model specification:
+
+.. code-block:: bash
+
+   bundle exec rake db:mongoid:create_indexes
+
+To learn more about using indexes with {+odm+}, see the
+:ref:`mongoid-indexes` guide.
+
+Perform Text Searches
+---------------------
+
+To perform a text search, use the ``$text`` evaluation query operator,
+followed by the ``$search`` field in your query filter. The ``$text`` operator
+performs a text search on the text indexed fields. The ``$search`` field
+specifies the text to search in the text indexed fields. To learn more
+about this operator, see the :manual:`$text reference
+</reference/operator/query/text>` in the {+server-manual+}.
+
+.. _mongoid-term-search:
+
+Search by a Term
+~~~~~~~~~~~~~~~~
+
+To search for a term, specify the term as a string in your query filter.
+To search for multiple terms, separate each term with spaces in the string.
+
+.. note:: Searching for Multiple Terms
+
+   When searching for multiple terms, {+odm+} returns
+   documents with at least one of the terms in text indexed fields.
+
+   Suppose you search by using the string ``'cake coffee cream'``. The
+   following list describes values that match this text query:
+
+   - ``'Has strong coffee notes.'``
+   - ``'Good for creamy coffee fans.'``
+   - ``'A rich but light cake.'``
+   - ``'A creamy coffee cake with cranberries.'``
+
+The following example runs a text search for ``description`` values that contain
+the term ``'herb'``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/interact-data/text-search.rb
+      :start-after: start-term
+      :end-before: end-term
+      :language: rust
+      :dedent:
+
+   .. output::
+      :language: none
+      :visible: false
+
+      # Sample output
+      {"_id":"...","description":"A bright, herb-based salad. A perfect starter for vegetarians and vegans.","name":"Kale Tabbouleh"}
+      {"_id":"...","description":"Grilled whole fish stuffed with herbs and pomegranate seeds. Serves 3-4.","name":"Herbed Whole Branzino"}
+      
+.. tip::
+
+   Although the search term was ``'herb'``, the method also matches
+   descriptions containing ``'herbs'`` because a MongoDB text index uses *suffix
+   stemming* to match similar words. To learn more about how
+   MongoDB matches terms, see :manual:`Text Index Properties
+   </core/indexes/index-types/index-text/text-index-properties/>` in the
+   {+server-manual}.
+
+Search by a Phrase
+~~~~~~~~~~~~~~~~~~
+
+To search for a phrase, specify the phrase with escaped quotes as a
+string in your query filter. If you don't add escaped quotes around the
+phrase, {+odm+} runs a :ref:`term search <mongoid-term-search>`.
+
+.. tip::
+
+   Escaped quotes are a backslash character (``\``) followed by a double
+   quote character (``"``).
+
+The following example runs a text search for ``description`` values that
+contain the phrase ``"serves 2"``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/interact-data/text-search.rb
+      :start-after: start-phrase
+      :end-before: end-phrase
+      :language: rust
+      :dedent:
+
+   .. output::
+      :language: none
+      :visible: false
+
+      # Sample output
+      {"_id":"...","description":"A vegetarian take on the classic dish that uses lentils as a base. Serves 2.","name":"Shepherd’s Pie"}
+      {"_id":"...","description":"Baked trout seasoned with garlic, lemon, dill, and, of course, butter. Serves 2.","name":"Garlic Butter Trout"}
+
+Search with Excluded Terms
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For each term or phrase to exclude from your text search,
+specify the term or phrase prefixed with a minus sign (``-``) as a string in
+your query filter.
+
+.. important::
+
+   You must search for at least one term to exclude
+   terms from your search. If you don't search for any terms, {+odm+}
+   doesn't return any documents.
+
+The following example runs a text search for ``description`` values that
+contain the term ``'vegan'``, but do not contain the term ``'tofu'``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/interact-data/text-search.rb
+      :start-after: start-exclude
+      :end-before: end-exclude
+      :language: rust
+      :dedent:
+
+   .. output::
+      :language: none
+      :visible: false
+
+      # Sample output
+      {"_id":"...","description":"A bright, herb-based salad. A perfect starter for vegetarians and vegans.","name":"Kale Tabbouleh"}
+      
+Additional Information
+----------------------
+
+To learn more about constructing query filters, see
+:ref:`mongoid-data-specify-query`.
+
+To learn more about performing CRUD operations, see the
+:ref:`mongoid-data-crud` guide.

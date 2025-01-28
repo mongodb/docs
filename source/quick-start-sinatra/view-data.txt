@@ -1,0 +1,150 @@
+.. _mongoid-quick-start-sinatra-view-data:
+
+=================
+View MongoDB Data
+=================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: test connection, runnable, code example
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create an application file
+      
+      At the root level of your project, create a file called ``app.rb``.
+      Paste the following contents into the ``app.rb`` file to
+      load the necessary gems and your configuration file:
+
+      .. code-block:: ruby
+
+         require 'sinatra'
+         require 'mongoid'
+         
+         Mongoid.load!(File.join(File.dirname(__FILE__), 'config', 'mongoid.yml'))
+
+   .. step:: Create a data model
+
+      In the ``app.rb`` file, create a model called ``Restaurant``
+      to represent data from the sample ``restaurants`` collection in
+      the ``sample_restaurants`` database:
+
+      .. code-block:: ruby
+
+         class Restaurant
+           include Mongoid::Document
+         
+           field :name, type: String
+           field :cuisine, type: String
+           field :borough, type: String
+         
+         end
+
+   .. step:: Generate a view
+
+      Create a **view** to display your data in a specified way by using
+      HTML and {+language+}.
+
+      At the root level of your project, create a directory
+      called ``views``. Then, create a file called
+      ``list_restaurants.erb``. Paste the following code into the
+      ``list_restaurants.erb`` file:
+
+      .. code-block:: html
+
+         <!DOCTYPE html>
+         <html>
+         <head>
+             <title>Restaurants List</title>
+         </head>
+         <body>
+             <h1>Restaurants List</h1>
+             <table border="1">
+                 <tr>
+                     <th>Name</th>
+                     <th>Cuisine</th>
+                     <th>Borough</th>
+                 </tr>
+                 <% @restaurants.each do |restaurant| %>
+                 <tr>
+                     <td><%= restaurant.name %></td>
+                     <td><%= restaurant.cuisine %></td>
+                     <td><%= restaurant.borough %></td>
+                 </tr>
+                 <% end %>
+             </table>
+         </body>
+         </html>
+ 
+   .. step:: Add a web route
+
+      In the ``app.rb`` file, add a ``get`` route called
+      ``list_restaurants``, as shown in the following code:
+
+      .. code-block:: ruby
+
+         get '/list_restaurants' do
+             @restaurants = Restaurant
+                 .where(name: /earth/i)
+         
+             erb :list_restaurants
+         end
+
+      This route retrieves ``Restaurant`` documents in which the value of
+      the ``name`` field contains the string ``"earth"``. The route
+      uses the ``list_restaurants`` view to render the results.
+
+   .. _mongoid-quick-start-sinatra-json:
+
+   .. step:: (Optional) View your results as JSON documents
+
+      Instead of generating a view to render your results, you can
+      use the ``to_json`` method to display your results in JSON
+      format.
+      
+      Replace the ``list_restaurants`` route in the ``app.rb`` file with
+      the following code to return the results as JSON documents:
+
+      .. code-block:: ruby
+
+         get '/list_restaurants' do
+             restaurants = Restaurant
+                 .where(name: /earth/i)
+         
+             restaurants.to_json
+         end
+
+   .. step:: Start your Sinatra application
+
+      Run the following command from the application root directory
+      to start your {+language+} web server:
+
+      .. code-block:: bash
+
+         bundle exec ruby app.rb
+
+      After the server starts, it outputs the following message
+      indicating that the application is running on port ``4567``:
+
+      .. code-block:: none
+         :copyable: false
+
+         [2024-10-01 12:36:49] INFO  WEBrick 1.8.2
+         [2024-10-01 12:36:49] INFO  ruby 3.2.5 (2024-07-26) [arm64-darwin23]
+         == Sinatra (v4.0.0) has taken the stage on 4567 for development with backup from WEBrick
+         [2024-10-01 12:36:49] INFO  WEBrick::HTTPServer#start: pid=79176 port=4567
+
+   .. step:: View the restaurant data
+
+      Open the URL http://localhost:4567/list_restaurants in your web browser.
+      The page shows a list of restaurants and details about each of
+      them:
+      
+      .. figure:: /includes/figures/quickstart-sinatra-list.png
+         :alt: The rendered list of restaurants
+
+.. include:: /includes/quick-start/troubleshoot.rst

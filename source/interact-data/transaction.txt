@@ -1,0 +1,336 @@
+.. _mongoid-data-txn:
+
+=========================
+Transactions and Sessions
+=========================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, ACID compliance, multi-document, ruby odm
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use {+odm+} to perform
+**transactions**. Transactions allow you to perform a series of operations
+that change data only if the entire transaction is committed.
+If any operation in the transaction does not succeed, the driver stops the
+transaction and discards all data changes before they ever become
+visible. This feature is called :wikipedia:`atomicity <Atomicity_(database_systems)>`.
+
+In MongoDB, transactions run within logical **sessions**. A
+session is a grouping of related read or write operations that you
+want to run sequentially. Sessions enable causal consistency for a group
+of operations, which means that all processes in your application agree on
+the order of causally-related operations.
+
+Sessions allow you to run operations in an **ACID-compliant**
+transaction that meets an expectation of atomicity, consistency,
+isolation, and durability. MongoDB guarantees that the data involved in
+your transaction operations remains consistent, even if the operations
+encounter unexpected errors.
+
+In {+odm+}, you can perform transactions by using either of the
+following APIs:
+
+- :ref:`mongoid-txn-high-level`: {+odm+} manages the life cycle of the
+  transaction. You can use this API in {+odm+} v9.0 and later.
+
+- :ref:`mongoid-txn-low-level`: You must manage the life cycle of the
+  transaction. You can use this API in {+odm+} v6.4 and later.
+
+The :ref:`mongoid-txn-session` section describes how to make changes to
+your data from within a session without performing a transaction.
+
+.. _mongoid-txn-high-level:
+
+High-Level Transaction API
+--------------------------
+
+You can use the High-Level Transaction API to internally manage the
+lifecycle of your transaction. This API either commits your transaction
+or ends it and incorporates error handling logic.
+
+You can start a transaction by calling the ``transaction`` method on
+an instance of a model, on the model class, or on a ``{+odm+}`` module.
+
+When you call the ``transaction`` method, {+odm+} performs the
+following tasks:
+
+1. Creates a session on the client.
+
+#. Starts a transaction on the session.
+
+#. Performs the specified data changes.
+
+#. Commits the transaction to the database if no errors occur, or ends
+   the transaction if there is an error.
+
+#. Closes the session.
+
+If your transaction is committed, {+odm+} calls any ``after_commit``
+callbacks for all objects modified inside the transaction. If there is
+an error and the transaction is rolled back, {+odm+} calls any
+``after_rollback`` callbacks for all objects modified inside the
+transaction. To learn more about these callbacks and their behavior, see
+the :ref:`mongoid-txn-callbacks` section of this guide.
+
+Example
+~~~~~~~
+
+This example uses the following models to represent documents that
+describe books and films:
+
+.. literalinclude:: /includes/interact-data/transaction.rb
+   :start-after: start-example-models
+   :end-before: end-example-models
+   :language: ruby
+   :dedent:
+
+The following code demonstrates how to perform a transaction on
+different objects to change data in multiple collections:
+
+.. literalinclude:: /includes/interact-data/transaction.rb
+   :start-after: start-txn-operations
+   :end-before: end-txn-operations
+   :language: ruby
+   :dedent:
+
+Client Behavior
+~~~~~~~~~~~~~~~
+
+Only operations on the same client are in the scope of a transaction,
+because each transaction is attached to a specific client. Ensure
+that you use objects from the same client inside the transaction method
+block.
+
+The following example defines model classes that use different clients
+and demonstrates how operations are run based on the origin client:
+
+.. literalinclude:: /includes/interact-data/transaction.rb
+   :start-after: start-different-clients
+   :end-before: end-different-clients
+   :language: ruby
+   :dedent:
+
+.. note::
+   
+   When you call the ``transaction`` method on the ``{+odm+}`` module,
+   {+odm+} creates the transaction by using the ``:default`` client.
+
+Ending Transactions
+~~~~~~~~~~~~~~~~~~~
+
+Any exception raised inside the transaction method block ends the
+transaction and rolls back data changes. {+odm+} displays all
+exceptions except for the ``Mongoid::Errors::Rollback`` exception. You
+can raise this exception in your application to explicitly end the
+transaction without returning the exception to you. For example, you
+might implement this transaction exception to end a transaction when a
+certain condition is not met, but without raising an exception message.
+
+.. _mongoid-txn-callbacks:
+
+Callbacks
+~~~~~~~~~
+
+This transaction API introduces the ``after_commit`` and
+``after_rollback`` callbacks.
+
+{+odm+} triggers the ``after_commit`` callback for an object that was
+created, saved, or deleted in the following cases:
+
+- After the transaction is committed if the object was modified inside
+  the transaction.
+
+- After the object is persisted if the object was modified outside
+  the transaction block.
+
+The ``after_commit`` callback is triggered only after all
+other callbacks are performed successfully. Therefore, if an object is
+modified outside of a transaction, it is possible that the object is then
+persisted, but the ``after_commit`` callback is not triggered. This
+might occur, for example, if {+odm+} raised an exception in the
+``after_save`` callback because this callback must complete successfully
+to trigger ``after_commit``.
+
+The ``after_rollback`` callback is triggered for an object that was
+created, saved, or deleted inside a transaction, if the transaction was
+unsuccessful and changes were rolled back. {+odm+} never triggers
+``after_rollback`` outside of a transaction.
+
+To learn more about callbacks, see the :ref:`mongoid-modeling-callbacks`
+guide.
+
+.. _mongoid-txn-low-level:
+
+Low-Level Transaction API
+-------------------------
+
+When using the low-level API, you must create a session before
+starting a transaction. You can create a session by calling the
+``with_session`` method on a model class or an instance of a model.
+
+Then, you can start a transaction by calling the ``start_transaction``
+method on a session. When using this API, you must manually commit or
+end the transaction. You can use the ``commit_transaction`` and
+``abort_transaction`` methods on the session instance to manage the
+transaction lifecycle.
+
+Example
+~~~~~~~
+
+This example uses the low-level transaction API to perform the following
+actions:
+
+1. Creates a session
+#. Starts a transaction
+#. Performs data operations
+#. Commits the transaction, or ends it if there are errors
+
+.. literalinclude:: /includes/interact-data/transaction.rb
+   :start-after: start-lower-lvl-api
+   :end-before: end-lower-lvl-api
+   :language: ruby
+   :dedent:
+
+.. note::
+
+   If a session ends and includes an open transaction, the transaction is
+   automatically ended.
+
+Transaction Retry
+~~~~~~~~~~~~~~~~~
+
+You can retry the transaction commit if it fails initially. The
+following example demonstrates how to retry the transaction when {+odm+}
+raises the ``UNKNOWN_TRANSACTION_COMMIT_RESULT_LABEL`` exception:
+
+.. literalinclude:: /includes/interact-data/transaction.rb
+   :start-after: start-commit-retry
+   :end-before: end-commit-retry
+   :language: ruby
+   :dedent:
+
+Options
+~~~~~~~
+
+You can specify a read concern, write concern or read
+preference when starting a transaction by passing options to the
+``start_transaction`` method:
+
+.. code-block:: ruby
+
+   session.start_transaction(
+       read_concern: {level: :majority},
+       write_concern: {w: 3},
+       read: {mode: :primary}
+   )
+
+To learn more about the available transaction options, see
+:ruby-api:`start_transaction
+</Session.html#start_transaction-instance_method>` in the
+{+ruby-driver+} API documentation.
+
+Client Behavior
+~~~~~~~~~~~~~~~
+
+To perform operations within a transaction, operations must use the same
+client that the session was initiated on. By default, all operations
+are performed by using the default client.
+
+To explicitly use a different client, use the ``with`` method: 
+
+.. literalinclude:: /includes/interact-data/transaction.rb
+   :start-after: start-other-client
+   :end-before: end-other-client
+   :language: ruby
+   :dedent:
+
+.. _mongoid-txn-session:
+
+Session API
+-----------
+
+You can use sessions in {+odm+} in a similar way that you can
+perform a transaction. You can call the ``with_session`` method on a
+model class or on an instance of a model and perform some operations in
+a block. All operations in the block will be performed in the context of
+single session.
+
+The following limitations apply when using sessions:
+
+- You cannot share a session across threads. Sessions are not thread-safe.
+
+- You cannot nest sessions. For example, you cannot call the ``with_session``
+  method on a model class within the block passed to
+  the ``with_session`` method on another model class. The following
+  code demonstrates a nested session that results in an error:
+
+  .. code-block:: ruby
+
+     Book.with_session(causal_consistency: true) do
+       # Nesting sessions results in errors
+       Film.with_session(causal_consistency: true) do
+         ...
+       end
+     end
+
+- All model classes and instances used within the session block must use
+  the same driver client. For example, if you specify different
+  a different client for a model used in the block than those of the
+  model or instance that you called ``with_session`` on, {+odm+} returns
+  an error.
+
+Examples
+~~~~~~~~
+
+You can use the ``with_session`` method on a model class and pass it session
+options to perform a block of operations in the context of a session.
+
+The following code enables the ``causal_consistency`` option to
+guarantee the order of operations when creating a session on the
+``Book`` model, then performs data operations:
+
+.. literalinclude:: /includes/interact-data/transaction.rb
+   :start-after: start-model-session
+   :end-before: end-model-session
+   :language: ruby
+   :dedent:
+
+To learn more about the available session options, see the
+:ruby-api:`Session class constructor details
+</Session.html#initialize-instance_method>` in the
+{+ruby-driver+} API documentation.
+
+Alternatively, you can use the ``with_session`` method on an instance of a
+model and pass it session options to perform a block of operations in
+the context of a session.
+
+The following code enables the ``causal_consistency`` option to
+guarantee the order of operations when creating a session on an instance
+of ``Book``, then performs data operations:
+
+.. literalinclude:: /includes/interact-data/transaction.rb
+   :start-after: start-instance-session
+   :end-before: end-instance-session
+   :language: ruby
+   :dedent:
+
+Additional Information
+----------------------
+
+To learn more about transactions, see :manual:`Transactions </core/transactions/>` in
+the {+server-manual+}.
+
+To learn more about performing CRUD operations, see the
+:ref:`mongoid-data-crud` guide.

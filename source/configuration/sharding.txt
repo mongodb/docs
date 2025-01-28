@@ -1,0 +1,168 @@
+.. _mongoid-sharding-configuration:
+
+======================
+Sharding Configuration
+======================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: ruby framework, odm, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+Sharding is a way to distribute your data across multiple machines. MongoDB
+uses sharding to support deployments with large data sets and high
+throughput operations. In this guide, you can learn how to configure sharding in
+your {+odm+} application.
+
+Declare Shard keys
+------------------
+
+MongoDB uses shard keys to distribute a collection's documents across
+shards. A shard key is an indexed field, or multiple fields covered by a
+compound index, that determines the distribution of the collection's
+documents among the cluster's shards. In your
+{+odm+} application, you can declare a shard key by
+using the ``shard_key`` macro when you create a model.
+
+The following example creates a ``Person`` class with a shard key on the
+``ssn`` field:
+
+.. literalinclude:: /includes/configuration/sharding.rb
+   :language: ruby
+   :start-after: # start-shard-key
+   :end-before: # end-shard-key
+   :emphasize-lines: 6
+
+.. note::
+
+   To shard a collection, the collection must have an index that starts with the
+   shard key. The index can be on only the shard key, or it can be a compound index
+   where the shard key is the prefix. You can use {+odm+}'s index-management
+   functionality to create the index. To learn more about index management with
+   {+odm+}, see the :ref:`Index Management <mongoid-indexes>` guide.
+
+If a model declares a shard key, {+odm+} expects the sharded collection to
+use the declared key for sharding. When {+odm+} reloads models, it provides
+the shard key along with the ``_id`` field to the ``find`` command to improve query
+performance. If the collection is not sharded with the specified shard key,
+queries might not return the expected results.
+
+Syntax
+~~~~~~
+
+You can declare shard keys by using either the full MongoDB
+syntax or by using a shorthand syntax.
+
+The full syntax follows the format
+of the ``mongosh`` :manual:`shardCollection()
+</reference/method/sh.shardCollection>` method, and allows you to specify the
+following types of shard keys:
+
+- Ranged keys
+- Hashed keys
+- Compound keys
+
+The full syntax also allows you to specify collection and sharding options.
+
+The following example creates each of the preceding type of shard key on the
+``sson`` field:
+
+.. literalinclude:: /includes/configuration/sharding.rb
+   :language: ruby
+   :start-after: # start-shard-key-formats
+   :end-before: # end-shard-key-formats
+
+The shorthand syntax allows you to declare a shard key by specifying only the
+field name. This syntax supports only ranged and compound shard keys, and does not allow you
+to specify collection or sharding options.
+
+The following example creates a ranged and a compound shard key:
+
+.. literalinclude:: /includes/configuration/sharding.rb
+   :language: ruby
+   :start-after: # start-shard-key-shorthand
+   :end-before: # end-shard-key-shorthand
+
+Specify Associated and Embedded Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can specify a shard key on a ``belongs_to`` association in place of a field
+name. When doing so, {+odm+} creates the shard key on the primary key of the
+associated collection.
+
+The following example creates a shard key on the ``belongs_to`` association in a
+``Person`` model. Because the associated ``country`` collection has a primary
+key called ``country_id``, {+odm+} shards by that field:
+
+.. literalinclude:: /includes/configuration/sharding.rb
+   :language: ruby
+   :start-after: # start-shard-key-association
+   :end-before: # end-shard-key-association
+
+You can specify a shard key on an embedded document by using dot notation to
+delimit the field names. The following example creates a shard key on the
+``address.city`` field:
+
+.. literalinclude:: /includes/configuration/sharding.rb
+   :language: ruby
+   :start-after: # start-shard-key-embedded
+   :end-before: # end-shard-key-embedded
+
+.. note::
+
+   Because the period (``.``) character is used to delimit embedded fields, {+odm+} does
+   not support creating shard keys on fields with names that contain a period
+   character.
+
+Sharding Management Rake Tasks
+------------------------------
+
+You can shard collections in your database according to the shard keys defined
+in your {+odm+} models by running the ``db:mongoid:shard_collections`` rake
+task. To ensure that the collections contain indexes that start with the shard
+key, you can first run the ``db:mongoid:create_indexes`` rake task.
+
+Run the following rake commands to create the indexes and shard the collections
+based on your model's shard keys:
+
+.. code-block:: bash
+
+   rake db:mongoid:create_indexes
+   rake db:mongoid:shard_collections
+
+Index management and sharding rake tasks do not stop when they encounter an
+error with a particular model class. Instead, they log the error and continue
+processing the next model. To ensure the rake tasks did not encounter any
+errors, check the output of the {+odm+} logger configured for your application.
+
+.. note::
+
+   When performing schema-related operations in a sharded cluster, nodes might
+   contain out-of-date local configuration-related cache data. To clear the caches,
+   run the :manual:`flushRouterConfig </reference/command/flushRouterConfig/>`
+   command on each ``mongos`` node.
+
+Additional Information
+----------------------
+
+To learn more about sharding with MongoDB, see the :manual:`Sharding
+</sharding>` guide in the MongoDB {+server-manual+}.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the ``shard_key`` macro discussed in this
+guide, see the `shard_key
+<{+api+}/Mongoid/Shardable/ClassMethods.html#shard_key-instance_method>`__ API
+documentation.

@@ -1,0 +1,334 @@
+.. _automatic-encryption:
+.. _mongoid-encryption:
+
+==================================
+Client-Side Field Level Encryption
+==================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: ruby framework, odm, security, encrypt data, csfle, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to encrypt your data by using **client-side
+field level encryption** (CSFLE). CSFLE allows you to encrypt data in your
+application before sending it over the network to MongoDB. This means that no
+MongoDB product has access to your data in unencrypted form.
+
+You can set up CSFLE by using one of the following mechanisms:
+
+- Automatic encryption: Allows you to perform encrypted read and write
+  operations without specifying how to encrypt fields
+- Explicit encryption: Allows you to perform encrypted read and write operations
+  with specified encryption logic throughout your application.
+
+This guide describes how to set up CSFLE with automatic encryption. To learn more
+about using explicit encryption, see the :ruby:`Explicit Encryption
+</reference/in-use-encryption/client-side-encryption/#explicit-encryption>` guide
+in the {+ruby-driver+} documentation.
+
+Install Dependencies
+--------------------
+
+To use CSFLE with {+odm+}, you must first install the following dependencies:
+
+- ``libmongocrypt``
+- {+shared-library+} if you are using {+ruby-driver+} v2.19 or later. Or
+  ``mongocryptd`` if you are using {+ruby-driver+} v2.18 or earlier.
+- ``ffi``
+
+The following sections provide details on how to install these
+dependencies.
+
+libmongocrypt
+~~~~~~~~~~~~~
+
+You can install ``libmongocrypt`` by adding the :github:`libmongocrypt-helper gem
+<mongodb/libmongocrypt-helper-ruby>` to your ``Gemfile``
+or by downloading the library manually.
+
+To install ``libmongocrypt`` by adding the gem file, navigate to the folder in
+which your application is located and run the following command in your shell:
+
+.. code-block:: bash
+
+   gem install libmongocrypt-helper --pre
+
+.. note::
+
+   Because the version number of ``libmongocrypt-helper`` might contain letters,
+   which indicates a pre-release version in {+language+}, the ``--pre`` flag is
+   required.
+
+To learn how to download and install the library manually, see the
+:ruby:`libmongocrypt installation guide
+</reference/in-use-encryption/client-side-encryption/#libmongocrypt>`
+in the {+ruby-driver+} documentation.
+
+Shared Library (Driver v2.19 or later)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following steps detail how to install the {+shared-library+}:
+
+1. In a browser, navigate to the :website:`MongoDB Download Center
+   </try/download/enterprise>`.
+#. Select the latest current version in the ``Version`` dropdown, denoted by the 
+   ``(current)`` tag.
+#. Select your platform in the ``Platform`` dropdown.
+#. Select ``crypt_shared`` in the ``Package`` dropdown.
+#. Click the ``Download`` button to download the shared library.
+
+After you download the file, extract the contents and save the
+file in a location that your application can access. Then, configure your
+``mongoid.yml`` file in your application to point to the library, as shown in
+the following example:
+
+.. code-block:: ruby
+   :emphasize-lines: 5-7
+
+   development:
+     clients:
+       default:
+         options:
+           auto_encryption_options:
+             extra_options:
+               crypt_shared_lib_path: '<Path to Shared Library>'
+
+mongocryptd (Driver v2.18 or earlier)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you are using {+ruby-driver+} version 2.18 or earlier, you must use ``mongocryptd``
+instead of the {+shared-library+}. ``mongocryptd`` comes
+pre-packaged with enterprise builds of {+mdb-server+}. For instructions on how to
+install and configure ``mongocryptd``, see the :manual:`Install mongocryptd guide
+</core/csfle/reference/install-library/#steps>` in the MongoDB
+{+server-manual+}.
+
+ffi
+~~~
+
+{+odm+} uses the :github:`ffi gem <ffi/ffi>` to call functions from
+``libmongocrypt``. Add the gem to your ``Gemfile`` by running the following
+command in your shell:
+
+.. code-block:: bash
+
+   gem 'ffi'
+
+Create a Customer Master Key
+----------------------------
+
+To encrypt and decrypt data, you must first create a Customer Master Key (CMK).
+A CMK is a key that you use to encrypt your :ref:`Data Encryption Key
+<mongoid-dek>` (DEK). Without access to a CMK, your client application cannot decrypt
+DEKs associated with your encrypted data.
+
+You can create a locally-stored key to use as a local CMK for testing purposes
+by running the following {+language+} code:
+
+.. code-block:: ruby
+
+   require 'securerandom'
+
+   SecureRandom.hex(48)
+
+.. warning::
+
+   Using a local CMK in a production environment is insecure. For production
+   environments, use a remote key management service to create and
+   store your CMK.
+
+   To learn more about key management service providers, see the :manual:`KMS Providers
+   guide </core/queryable-encryption/fundamentals/kms-providers>` in the MongoDB 
+   {+server-manual+}.
+
+Configure your Client
+---------------------
+
+You must configure your MongoDB client to implement CSFLE. To configure a
+client for CSFLE, add the following code to your ``mongoid.yml`` file:
+
+.. code-block:: bash
+
+   development:
+     clients:
+       default:
+         uri: "<connection string>"
+         options:
+           auto_encryption_options: # This key enables automatic encryption
+             key_vault_namespace: 'encryption.__keyVault' # Database and collection in which to store data keys
+             kms_providers: # Tells the driver where to obtain master keys
+               local: # Specifies that the key is local
+                 key: "<Path to your CMK>"
+             extra_options:
+               crypt_shared_lib_path: '<Path to Shared Library>' # Only required for Ruby versions 2.19 or later
+
+.. note::
+
+   Ensure that you replace the placeholders surrounded by brackets (``<>``) in the preceding code
+   example.
+
+.. _mongoid-dek:
+
+Create a Data Encryption Key
+----------------------------
+
+A Data Encryption Key (DEK) is a key that you use to encrypt the fields in your
+documents. MongoDB stores DEKs, encrypted with your CMK, in the Key Vault
+collection as BSON documents. MongoDB can never decrypt the DEKs, as key
+management is client-side and customer controlled.
+
+To create a DEK in {+odm+}, you can use the
+``db:mongoid:encryption:create_data_key`` rake task, as shown in the following
+example:
+
+.. code-block:: bash
+
+   rake db:mongoid:encryption:create_data_key
+
+You can create multiple DEKs by repeating the preceding command for the number
+of keys you want to generate.
+
+You can also provide an alternate name for your DEK. This allows you to reference
+the DEK by name when configuring encryption for your fields and
+to dynamically assign a DEK to a field at runtime.
+
+The following example creates an alternate name when generating a new DEK:
+
+.. code-block:: bash
+
+   rake db:mongoid:encryption:create_data_key -- --key-alt-name=<custom DEK name>
+
+Configure Encryption Schema
+---------------------------
+
+You can specify which fields to encrypt by adding the ``encrypt`` option to the
+field definition in your models and specifying the ``deterministic`` and
+``key_id`` options, as shown in the following example:
+
+.. literalinclude:: /includes/security/encryption.rb
+   :language: ruby
+   :start-after: start-encryption-schema
+   :end-before: end-encryption-schema
+
+.. note::
+
+   If you are developing a Rails application, we recommend setting the
+   ``preload_models`` option to ``true`` in your ``mongoid.yml`` file. This
+   ensures that {+odm+} loads all models and configures the encryption schema
+   before any data is read or written.
+
+Limitations
+-----------
+
+The following limitations apply when using CSFLE with {+odm+}:
+
+- {+odm+} does not support encryption of ``embeds_many`` associations.
+- If you use the ``:key_name_field`` option, you must encrypt the field by using
+  a non-deterministic algorithm. To encrypt your field deterministically, you must
+  specify the ``:key_id`` option instead.
+- The limitations listed on the :manual:`CSFLE Limitations
+  </core/csfle/reference/limitations/>` page in the MongoDB {+server-manual+}
+  also apply to {+odm+}.
+
+Working with Data
+-----------------
+
+Usually, automatic CSLFE works transparently in your application. After
+your application is configured for CSFLE, you can create documents as usual and {+odm+}
+automatically encrypts and decrypts them according to your configuration.
+
+The following example creates a new ``Patient`` document in an application
+configured for CSFLE. It then uses a client called ``unencrypted_client`` that
+is connected to the database but not configured for CSFLE to read the document.
+
+.. io-code-block::
+
+   .. input:: /includes/security/encryption.rb
+      :language: ruby
+      :start-after: start-query-encrypted
+      :end-before: end-query-encrypted
+
+   .. output::
+
+      {"_id"=>BSON::ObjectId('6446a1d046ebfd701f9f4292'),
+      "category"=>"ER",
+      "passport_id"=><BSON::Binary:0x404080 type=ciphertext data=0x012889b2cb0b1341...>,
+      "blood_type"=><BSON::Binary:0x404560 type=ciphertext data=0x022889b2cb0b1341...>,
+      "ssn"=><BSON::Binary:0x405040 type=ciphertext data=0x012889b2cb0b1341...>,
+      "insurance"=>{"_id"=>BSON::ObjectId('6446a1d046ebfd701f9f4293'),
+      "insurer"=>"TK", "policy_number"=><BSON::Binary:0x405920 type=ciphertext
+      data=0x012889b2cb0b1341...>}, "policy_number_key"=>"my_data_key"}
+
+In the preceding example, the ``unencrypted_client`` client is unable to read
+the encrypted fields. However, if you query the document with a client that *is* 
+configured for CSFLE, {+odm+} automatically decrypts the fields.
+
+Rotate Encryption Keys
+----------------------
+
+You can rotate your encryption keys by using the ``rewrap_many_data_key`` {+ruby-driver+}
+method. This method automatically decrypts multiple data encryption keys
+and re-encrypts them using a specified CMK. It then updates the rotated keys in
+the key vault collection. 
+
+The ``rewrap_many_data_key`` method takes the following parameters:
+
+- Filter, used to specify which fields to rotate. If no data key matches the
+  given filter, no keys will be rotated. Omit the filter to rotate all keys in
+  your key vault collection.
+- Object that represents a new CMK with which to re-encrypt the DEKs. Omit
+  this object to rotate the data keys by using their current CMKs.
+
+The following example rotates encryption keys by using the AWS KMS:
+
+.. literalinclude:: /includes/security/encryption.rb
+   :language: ruby
+   :start-after: start-rewrap-keys
+   :end-before: end-rewrap-keys
+
+Add Automatic Encryption to Existing Project
+--------------------------------------------
+
+Automatic CSFLE with {+odm+} supports encryption in place. You can enable
+encryption on an existing database and still read unencrypted data. However,
+once you enable encryption, all new data is encrypted, and any query operation
+uses only the encrypted documents. This means that queries might not return all documents
+if some were saved before enabling encryption.
+
+The following example queries a collection that has one encrypted document and
+one unencrypted document:
+
+.. literalinclude:: /includes/security/encryption.rb
+   :language: ruby
+   :start-after: start-in-place
+   :end-before: end-in-place
+
+You can encrypt existing data in a collection by reading and then writing back
+all data with a CSFLE-enabled client. When doing so, ensure that all existing
+data is the expected type and that empty values are not set as ``nil``. 
+
+Additional Information
+----------------------
+
+To learn more about CSFLE, see the :manual:`Client-Side Field Level Encryption
+</core/csfle>` guide in the MongoDB {+server-manual+}.
+
+To learn more about using CSFLE with the {+ruby-driver+}, see the
+:ruby:`Client-Side Encryption
+</reference/in-use-encryption/client-side-encryption/>` guide in the
+{+ruby-driver+} documentation.
+
+To learn more about configuring {+odm+} in your application, see the
+:ref:`mongoid-app-config` guide.

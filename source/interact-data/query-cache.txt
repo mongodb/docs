@@ -1,0 +1,111 @@
+.. _mongoid-query-cache:
+
+===========
+Query Cache
+===========
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: ruby framework, odm, memory, storage, execution
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn about **query caching**. The
+query cache saves the results of previous find and aggregation queries
+and reuses them in the future. This prevents {+odm+} from performing 
+the queries again, increasing application performance and reducing
+the database load.
+
+To learn more about this feature, see :ruby:`Query Cache
+</reference/query-cache/>` in the {+ruby-driver+} documentation.
+
+Enable Query Caching
+--------------------
+
+In this section, you can learn how to enable the query caching feature
+in your application. You can enable the query cache by using the
+driver's namespace or {+odm+}'s namespace.
+
+Automatic
+~~~~~~~~~
+
+The {+ruby-driver+} provides middleware to automatically enable the
+query cache for Rack web requests and Active Job job runs. To view
+instructions on automatically enabling the query cache, see the
+:ref:`mongoid-query-cache-rack` section of the Query Cache Middleware
+Configuration guide.
+
+.. note::
+    
+   Query cache middleware does not apply to code run outside web
+   requests or jobs.
+
+Manual
+~~~~~~
+
+To enable the query cache manually for a specific code segment, you can
+run your code within the following block:
+
+.. code-block:: ruby
+
+   Mongo::QueryCache.cache do
+     # Include code here ...
+   end
+
+You can explicitly enable and disable the query cache, but we recommend
+using the block form in the preceding code example. The following code
+demonstrates how to enable and disable the query cache:
+
+.. code-block:: ruby
+
+   begin
+     Mongo::QueryCache.enabled = true
+     # Include code here
+   ensure
+     Mongo::QueryCache.enabled = false
+   end
+
+Cache the Result of the first Method
+------------------------------------
+
+Calling the ``first`` method on a model class uses an ascending sort on
+the ``_id`` field when returning the result. This might produce unexpected
+behavior if you enable query caching.
+
+For example, if you call the ``all`` method on a model class before
+calling ``first``, you might expect the ``first`` method to use the
+cached results from ``all``. However, because {+odm+} applies a sort
+to the second call, both methods query the database and separately cache
+results.
+
+To use the cached results when calling the ``first`` method, call
+``all.to_a.first`` on the model class, as shown in the following example
+code:
+
+.. code-block::
+
+   Band.all.to_a.first
+
+In the preceding example, chaining the ``to_a`` method runs the query
+and converts the results into an array in memory. Then, the ``first``
+method simply returns the first array entry instead of triggering
+another query and caching the results.
+
+Additional Information
+----------------------
+
+To learn more about creating filter criteria, see the
+:ref:`mongoid-data-specify-query` guide.
+
+To learn how to customize your persistence target, see the
+:ref:`mongoid-persistence` guide.

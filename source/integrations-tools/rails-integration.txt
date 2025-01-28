@@ -1,0 +1,137 @@
+.. _mongoid-rails-integration:
+
+=================
+Rails Integration
+=================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: web framework, api, code example, ruby
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn about features that are automatically
+enabled when you use {+odm+} in a {+ror+} application. This guide also
+describes Rails-related functionality that you can enable in your application.
+
+Configuration
+-------------
+
+You can configure {+odm+}-specific options and other Rails-environment
+specific options in your main application file by accessing
+``config.mongoid``. The ``mongoid:config`` generator creates an
+initializer in the ``config/initializers/mongoid.rb`` file.
+
+.. note::
+  
+   Any options set in your ``config/mongoid.yml`` file 
+   take precedence over options set elsewhere. For this reason, use
+   ``mongoid.yml`` as the default location for {+odm+} configuration
+   when possible.
+   
+To learn more about all available configuration options,
+see the :ref:`mongoid-configuration` guides.
+
+The following code demonstrates how to create a Rails logger by
+accessing ``config.mongoid``:
+
+.. code-block:: ruby
+
+   module MyApplication
+     class Application < Rails::Application
+       config.mongoid.logger = Logger.new(STDERR, :warn)
+     end
+   end
+
+To learn more about logging settings, see the
+:ref:`mongoid-logging-config` guide.
+
+Model Preloading
+----------------
+
+To set up single collection inheritance, {+odm+} must preload all
+models before every request in development mode. This can slow down your
+application, so if you are not using any inheritance you can turn this
+feature off.
+
+The following code demonstrates how you can turn off preloading by
+setting the ``preload_models`` feature to ``false``:
+
+.. code-block:: ruby
+
+   config.mongoid.preload_models = false
+
+Exceptions
+----------
+
+Similar to Active Record, {+odm+} configures Rails to automatically
+convert certain exceptions to HTTP status codes. The following list
+provides the conversions between {+odm+} exceptions and HTTP codes:
+
+- ``Mongoid::Errors::DocumentNotFound``: Converted to ``404 Not Found``
+- ``Mongoid::Errors::Validations``: Converted to ``422 Unprocessable Content``
+
+Execution Time Logging
+----------------------
+
+{+odm+} can output the time spent executing database commands to the Rails
+instrumentation event ``process_action.action_controller``. {+odm+}
+obtains these values through driver command monitoring. You application
+logs this time amount with view time as shown in the following output:
+
+.. code-block:: none
+
+   Completed 200 OK in 2739ms (Views: 12.6ms | MongoDB: 0.2ms)
+
+This logging is set up automatically in your Rails application.
+
+.. note:: Time Calculation
+
+   The time indicated in log entries is the time that the MongoDB
+   deployment takes to run MongoDB operations in addition to the time taken to
+   send commands and receive results from {+mdb-server+}. It does
+   not include time taken by the driver and {+odm+} to generate the
+   queries, cast types, or otherwise process the results.
+
+Rake Tasks
+----------
+
+You can use following rake tasks for {+odm+} when using the Rails
+framework:
+
+- ``db:create_indexes``: Reads all index definitions from the models and
+  attempts to create them in the database
+- ``db:remove_indexes``: Removes indexes for each model
+- ``db:drop``: Drops all collections in the database except for system
+  collections
+- ``db:purge``: Deletes all data, including indexes, from the database
+- ``db:seed``: Seeds the database from the ``db/seeds.rb`` file
+- ``db:setup``: Creates indexes and seeds the database
+
+The following rake tasks exist only for framework dependency purposes
+and do not perform any actions:
+
+- ``db:test:prepare``
+- ``db:schema:load``
+- ``db:create``
+- ``db:migrate``
+
+Additional Information
+----------------------
+
+To learn about how to set up a new Rails application that uses {+odm+},
+see the :ref:`mongoid-quick-start-rails` guide.
+
+To learn how to add {+odm+} to an existing Rails application, see the
+:ref:`mongoid-add-existing-rails` section of the Add {+odm+} to an
+Existing Application guide.
