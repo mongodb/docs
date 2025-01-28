@@ -1,0 +1,162 @@
+.. _kotlin-run-command:
+
+=============
+Run a Command
+=============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to run a database command by using the
+{+driver-short+}. You can use database commands to perform a variety of
+administrative and diagnostic tasks, such as fetching server statistics,
+initializing a replica set, or running an aggregation pipeline.
+
+.. important:: Prefer Driver Methods to Database Commands
+
+   The driver provides wrapper methods for many database commands.
+   We recommend using driver methods instead of executing database
+   commands when possible.
+   
+   To perform administrative tasks, use the :mongosh:`MongoDB Shell </>`
+   instead of the {+driver-short+}. Calling the ``db.runCommand()``
+   method inside the shell is the preferred method to issue database
+   commands, as it provides a consistent interface between the shell and
+   drivers.
+
+Execute a Command
+-----------------
+
+To run a database command, specify the command and any relevant
+parameters in a document, then pass the document to the ``runCommand()`` method.
+
+The following code shows how you can use the ``runCommand()``
+method to run the ``explain`` command, which returns a description of how the
+``find`` command will be executed if you call it:
+
+.. literalinclude:: /includes/run-command.kt
+   :start-after: start-execute
+   :end-before: end-execute
+   :language: kotlin
+   :copyable:
+   :dedent:
+
+For a full list of database commands and corresponding parameters, see
+the :manual:`Database Commands </reference/command/>` guide.
+
+.. _kotlin-command-options:
+
+Command Options
+---------------
+
+You can specify optional command behavior for the ``runCommand()`` method by
+including a ``readPreference`` parameter. The following example shows how to
+specify a read preference and pass it as an option to the ``runCommand()``
+method:
+
+.. literalinclude:: /includes/run-command.kt
+   :start-after: start-read-preference
+   :end-before: end-read-preference
+   :language: kotlin
+   :copyable:
+   :dedent:
+
+For more information on read preference options, see :manual:`Read Preference
+</core/read-preference/>` in the Server manual. 
+
+.. note::
+   
+   The ``runCommand()`` method ignores the read preference setting you may have set 
+   on your ``database`` object. If no read preference is specified, this method 
+   uses the ``primary`` read preference.
+
+Response
+--------
+
+The ``runCommand()`` method returns a ``Document`` object that contains
+the response from the database after the command has been executed. Each
+database command performs a different function, so the response content
+can vary across commands. However, every response contains documents
+with the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Field
+     - Description
+
+   * - <command result>
+     - Provides fields specific to the database command. For example,
+       ``count`` returns the ``n`` field and ``explain`` returns the
+       ``queryPlanner`` field.
+
+   * - ``ok``
+     - Indicates whether the command has succeeded (``1``)
+       or failed (``0``).
+
+   * - ``operationTime``
+     - Indicates the logical time of the operation. MongoDB uses the
+       logical time to order operations. 
+       To learn more about logical time, see our 
+       :website:`blog post about the Global Logical Clock </blog/post/transactions-background-part-4-the-global-logical-clock>`.
+
+   * - ``$clusterTime``
+     - Provides a document that returns the signed cluster time. Cluster time is a
+       logical time used for ordering of operations.
+
+       The document contains the following fields:
+
+       - ``clusterTime``, which is the timestamp of the highest known cluster time for the member.
+       - ``signature``, which is a document that contains the hash of the cluster time and the ID
+         of the key used to sign the cluster time.
+
+Example
+-------
+
+The following example shows how to run the ``buildInfo`` command, and the output it produces:
+
+.. io-code-block::
+
+   .. input:: /includes/run-command.kt
+      :start-after: start-full-example
+      :end-before: end-full-example
+      :language: kotlin
+      :dedent:
+
+   .. output::
+      :visible: false
+        
+      {
+        version: '8.0.4',
+         ...<other command results>...
+        ok: 1,
+        '$clusterTime': {
+            clusterTime: Timestamp({ ... }),
+            signature: {
+               ...
+            }
+        },
+        operationTime: Timestamp({ ... })
+      }
+
+
+
+.. _addl-info-runcommand:
+
+Additional Information
+----------------------
+
+For more information about the concepts in this guide, see the following documentation:
+
+- `Kotlin Sync API runCommand() <{+api+}/com.mongodb.kotlin.client/-mongo-database/run-command.html>`__
+- :manual:`Database Commands </reference/command/>`
+- :manual:`explain Command </reference/command/explain/>`
+- :manual:`hello Command </reference/command/hello/>`
+- :manual:`buildInfo Command </reference/command/buildInfo/#mongodb-dbcommand-dbcmd.buildInfo>`
