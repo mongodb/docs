@@ -18,22 +18,20 @@
 
    .. step:: Create embeddings for vector search queries and run a query. 
 
-      .. include:: /includes/avs-run-query-description.rst
-
       .. tabs::
          :hidden:
          
          .. tab:: Open-Source
             :tabid: open-source
 
-            .. 
-               NOTE: If you edit this Python file, also update the Jupyter Notebook
-               at https://github.com/mongodb/docs-notebooks/blob/main/create-embeddings/open-source-existing-data.ipynb
+            .. NOTE: If you edit this Python file, also update the Jupyter Notebook at https://github.com/mongodb/docs-notebooks/blob/main/create-embeddings/open-source-existing-data.ipynb
+            
+            .. include:: /includes/admonitions/avs-run-query-description-python.rst
 
             .. io-code-block:: 
                :copyable: true 
                
-               .. input:: /includes/avs-examples/tutorial/vector-search-query-embeddings-existing.py
+               .. input:: /includes/avs-examples/create-embeddings/avs-query-embeddings-existing-open-source.py 
                   :language: python
                
                .. output:: /includes/avs-examples/tutorial/output-existing-open-source-python.json
@@ -42,14 +40,14 @@
          .. tab:: OpenAI
             :tabid: openai
 
-            ..
-               NOTE: If you edit this Python file, also update the Jupyter Notebook
-               at https://github.com/mongodb/docs-notebooks/blob/main/create-embeddings/openai-existing-data.ipynb
+            .. NOTE: If you edit this Python file, also update the Jupyter Notebook at https://github.com/mongodb/docs-notebooks/blob/main/create-embeddings/openai-existing-data.ipynb
+            
+            .. include:: /includes/avs-run-query-description.rst
 
             .. io-code-block:: 
                :copyable: true 
                
-               .. input:: /includes/avs-examples/tutorial/vector-search-query-embeddings-existing.py
+               .. input:: /includes/avs-examples/create-embeddings/avs-query-embeddings-existing-openai.py
                   :language: python
 
                .. output:: /includes/avs-examples/tutorial/output-existing-openai.json

@@ -29,7 +29,8 @@ int main() {
         kvp("fields",
             make_array(make_document(
                 kvp("type", "vector"), kvp("path", "plot_embedding"),
-                kvp("numDimensions", 1536), kvp("similarity", "dotProduct")))));
+                kvp("numDimensions", 1536), kvp("similarity", "dotProduct"), 
+                kvp("quantization", "scalar")))));
     auto model =
         mongocxx::search_index_model(name, definition.view()).type(type);
     siv.create_one(model);

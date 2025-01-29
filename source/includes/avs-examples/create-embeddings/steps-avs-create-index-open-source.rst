@@ -4,10 +4,16 @@ collection.
 
 a. Paste the following code in your notebook.
    
-   This code creates an index on your collection that specifies the 
-   ``embedding`` field as the :ref:`vector
-   <avs-types-vector-search>` type, the similarity function 
-   as ``dotProduct``, and the number of dimensions as ``768``.
+   This code creates an index on your collection that specifies the
+   following: 
+
+   - ``BSON-Float32-Embedding``, ``BSON-Int8-Embedding``, and
+     ``BSON-Int1-Embedding`` fields as the :ref:`vector
+     <avs-types-vector-search>` type fields.
+   - ``euclidean`` as the similarity function for ``int1`` embeddings
+     and ``dotProduct`` as the similarity type for ``float32`` and
+     ``int8`` embeddings.
+   - ``768`` as the number of dimensions in the embeddings.
 
    ..
       NOTE: If you edit this Python code, also update the Jupyter Notebooks
@@ -25,8 +31,20 @@ a. Paste the following code in your notebook.
           "fields": [
             {
               "type": "vector",
-              "path": "embedding",
+              "path": "BSON-Float32-Embedding",
               "similarity": "dotProduct",
+              "numDimensions": 768
+            },
+            {
+              "type": "vector",
+              "path": "BSON-Int8-Embedding",
+              "similarity": "dotProduct",
+              "numDimensions": 768
+            },
+            {
+              "type": "vector",
+              "path": "BSON-Int1-Embedding",
+              "similarity": "euclidean",
               "numDimensions": 768
             }
           ]

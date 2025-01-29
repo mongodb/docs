@@ -54,7 +54,8 @@ func main() {
 				Type:          "vector",
 				Path:          "embeddings",
 				NumDimensions: <dimensions>,
-				Similarity:    "dotProduct"}},
+				Similarity:    "dotProduct",
+			    Quantization:  "scalar"}},
 		},
 		Options: opts,
 	}

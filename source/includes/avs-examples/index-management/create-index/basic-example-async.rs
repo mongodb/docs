@@ -24,7 +24,8 @@ pub(crate) async fn vector_index() {
                 "type": "vector",
                 "path": "plot_embedding",
                 "numDimensions": 1536,
-                "similarity": "dotProduct"
+                "similarity": "dotProduct",
+                "quantization": "scalar"
             }}
         })
         .name(index_name.to_string())

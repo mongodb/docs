@@ -38,8 +38,9 @@
       as the ``filter`` type in an {+avs+} index. The ``plot_embedding``
       field contains embeddings created using OpenAI's
       ``text-embedding-ada-002`` embeddings model. The index definition
-      specifies ``1536`` vector dimensions and measures similarity using
-      ``dotProduct`` function.
+      specifies ``1536`` vector dimensions, measures similarity using
+      ``dotProduct`` function, and enables automatic ``scalar``
+      quantization for efficient processing of your vectors.
 
    .. step:: Run the following command to create the index.
 

@@ -72,8 +72,9 @@
                   :copyable: true 
                   
                   .. input:: 
+                     :language: shell
 
                      node --env-file=.env vector-query.js
 
-                  .. output:: /includes/avs-examples/tutorial/output-new-openai.json
+                  .. output:: /includes/avs-examples/create-embeddings/output-new-openai.json 
                      :language: json

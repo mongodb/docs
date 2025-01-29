@@ -20,7 +20,8 @@ async function run() {
                "type": "vector",
                "numDimensions": 1536,
                "path": "plot_embedding",
-               "similarity": "dotProduct"
+               "similarity": "dotProduct",
+               "quantization": "scalar"
              },
              {
                "type": "filter",

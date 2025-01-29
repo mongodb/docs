@@ -34,7 +34,8 @@ public class VectorIndex {
                     new Document("type", "vector")
                         .append("path", "plot_embedding")
                         .append("numDimensions", 1536)
-                        .append("similarity", "dotProduct")));
+                        .append("similarity", "dotProduct")
+                        .append("quantization", "scalar")));
 
             // Define the index model
             SearchIndexModel indexModel = new SearchIndexModel(

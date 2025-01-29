@@ -18,7 +18,8 @@ async function run() {
               "type": "vector",
               "path": "embedding",
               "similarity": "dotProduct",
-              "numDimensions": <dimensions>
+              "numDimensions": <dimensions>,
+              "quantization": "scalar"
             }
           ]
         }

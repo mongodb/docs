@@ -35,6 +35,7 @@ func main() {
 		Path          string `bson:"path"`
 		NumDimensions int    `bson:"numDimensions"`
 		Similarity    string `bson:"similarity"`
+		Quantization  string `bson:"quantization"`
 	}
 
 	type filterField struct {
@@ -50,7 +51,8 @@ func main() {
 		Type:          "vector",
 		Path:          "plot_embedding",
 		NumDimensions: 1536,
-		Similarity:    "dotProduct"}
+		Similarity:    "dotProduct",
+	        Quantization:  "scalar"}
 	genreFilterDefinition := filterField{"filter", "genres"}
 	yearFilterDefinition := filterField{"filter", "year"}
 

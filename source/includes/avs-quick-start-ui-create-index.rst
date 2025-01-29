@@ -20,12 +20,13 @@ a. When the sample data finishes loading, click :guilabel:`Create Search Index`.
       :linenos: 
 
       {
-          "fields": [{
+        "fields": [{
           "type": "vector",
           "path": "plot_embedding",
           "numDimensions": 1536,
-          "similarity": "dotProduct"
-          }]
+          "similarity": "dotProduct",
+          "quantization": "scalar"
+        }]
       }
 
    .. include:: /includes/avs-quick-start-basic-index-description.rst

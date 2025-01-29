@@ -7,6 +7,9 @@ For example, this code does the following:
 - Creates a sample query embedding by calling the embedding function
   that you defined. 
 
+- Converts the query embedding to |bson| ``float32``, ``int8``, and
+  ``int1`` vector subtypes.
+
 - Passes the embedding into the ``queryVector``  field and specifies the
   path to search in the aggregation pipeline.  
 

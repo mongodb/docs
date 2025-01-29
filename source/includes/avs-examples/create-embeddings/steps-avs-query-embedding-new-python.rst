@@ -16,9 +16,13 @@
 
             .. include:: /includes/avs-examples/create-embeddings/steps-avs-create-index-openai.rst
 
-   .. step:: Create embeddings for vector search queries and run a query. 
+   .. step:: Create embeddings for a vector search query, then run the query. 
 
-      .. include:: /includes/avs-run-query-description.rst
+      .. include:: /includes/admonitions/avs-run-query-description-python.rst 
+
+      .. note:: 
+
+         It might take some time for the query to complete.
 
       .. tabs::
          :hidden:
@@ -33,11 +37,11 @@
             .. io-code-block:: 
                :copyable: true 
                
-               .. input:: /includes/avs-examples/tutorial/vector-search-query-embeddings-new.py
+               .. input:: /includes/avs-examples/create-embeddings/vector-search-query-embeddings-new-open-source.py
                   :language: python
 
-               .. output:: /includes/avs-examples/tutorial/output-new-open-source-python.json
-                  :language: json
+               .. output:: /includes/avs-examples/create-embeddings/output-new-open-source-python.json
+                  :language: shell
 
          .. tab:: OpenAI
             :tabid: openai
@@ -49,8 +53,9 @@
             .. io-code-block:: 
                :copyable: true 
                
-               .. input:: /includes/avs-examples/tutorial/vector-search-query-embeddings-new.py
+               .. input:: /includes/avs-examples/create-embeddings/vector-search-query-embeddings-new-openai.py
                   :language: python
 
-               .. output:: /includes/avs-examples/tutorial/output-new-openai.json
-                  :language: json
+               .. output:: /includes/avs-examples/create-embeddings/output-new-openai.json
+                  :language: shell
+

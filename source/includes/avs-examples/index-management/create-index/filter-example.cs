@@ -31,7 +31,8 @@ public class IndexService
                             { "type", "vector" },
                             { "path", "plot_embedding" },
                             { "numDimensions", 1536 },
-                            { "similarity", "dotProduct" }
+                            { "similarity", "dotProduct" },
+                            { "quantization", "scalar"}
                         },
                         new BsonDocument
                         {

@@ -23,6 +23,7 @@ fun main() {
                     .append("path", "plot_embedding")
                     .append("numDimensions", 1536)
                     .append("similarity", "dotProduct")
+                    .append("quantization", "scalar")
             )
         ),
         SearchIndexType.vectorSearch()

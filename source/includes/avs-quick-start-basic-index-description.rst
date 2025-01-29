@@ -6,3 +6,5 @@ This index definition:
      
   - Specifies ``1536`` :term:`vector dimensions <vector>`.
   - Measures :ref:`similarity <fields-similarity>` using ``dotProduct`` similarity.
+  - Enables :ref:`automatic <avs-automatic-quantization>`
+    ``quantization`` of the vectors. 
