@@ -14,7 +14,7 @@ High Availability
 
 Consult this page to plan the appropriate cluster configuration that optimizes 
 your availability and performance while aligning with your enterprise's 
-billing and access needs.
+cost controls and access needs.
 
 {+service+} Features and Recommendations for High Availability
 ---------------------------------------------------------------
@@ -23,8 +23,8 @@ Features
 ~~~~~~~~
 
 When you launch a new cluster in |service|, {+service+} automatically configures a 
-minimum three-node replica set and distributes it across availability zones. If a 
-primary member experiences an outage, |service| automatically detects this failure 
+minimum three-node replica set and distributes it in the region you deploy to. If a 
+primary member experiences an outage, the MongoDB database automatically detects this failure 
 and elects a secondary member as a replacement, and promotes this secondary member 
 to become the new primary. |service| then restores or replaces the failing member 
 to ensure that the cluster is returned to its target configuration as soon as possible. 
@@ -56,67 +56,37 @@ ensure that {+service+} stores data in a particular geographical area.
 Recommended Deployment Topologies
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Single Region, 3 Node Replica Set / Shard (PSS)
-````````````````````````````````````````````````
+Single Region, 3 Node Replica Set / Shard (Primary Secondary Secondary)
+```````````````````````````````````````````````````````````````````````
 This topology is appropriate if low latency is required but high availability requirements 
-are average. This topology can tolerate any 1 node failure, easily satify majority write 
-concern with in-region secondaries, maintain a primary in the preferred region upon any node 
-failure, is inexpensive, and the least complicated. The reads from secondaries in this topology 
-encounter low latency in your preferred region.
+are limited to a single region. This topology can tolerate any 1 node failure and easily satisfy majority write 
+concern within region secondaries. This will maintain a primary in the preferred region upon any node 
+failure, limits cost, and is the least complicated from an application architecture perspective. 
+The reads and writes from secondaries in this topology encounter low latency in your preferred region.
 
 This topology, however, can't tolerate a regional outage.
 
-2-Region, 3 Node Replica Set / Shard (PS - S)
-``````````````````````````````````````````````
-This topology is a highly available cluster configuration, with strong performance and availability. 
-This topology can easily satisfy majority write concern with in-region secondary, tolerate any 
-1 node failure, maintain a primary in the preferred region upon any node failure, is inexpensive, 
-and can tolerate regional outage from the least preferred region. The reads from one secondary in 
-this topology also encounter low latency in the preferred region.
+3-Region, 3 Node Replica Set / Shard (Primary - Secondary - Secondary)
+``````````````````````````````````````````````````````````````````````
+This topology is the standard multi-regional topology where high availability can be provided to tolerate a regional outage. 
+This topology can tolerate any 1 node failure, any 1 region outage, and is the least expensive multi-region topology. 
 
-This topology, however, can't tolerate a regional outage from a preferred region without manual 
-intervention, such as adding additional nodes to the least-preferred region. Furthermore, the reads 
-from secondaries in a specific region is limited to a single node, and there is potential data loss 
-during regional outage.
+If the application requires high durability and the app server code has the write majority option set 
+in the driver, this topology will experience higher latency for writes as they need to replicate to a second region. 
+Additionally, any reads off the secondary always exist in a different region than the preferred primary region
+and will require a different app server architecture. Furthermore, any failover event will occur to a different region, and your 
+application architecture must adjust as a result.
 
-3-Region, 3 Node Replica Set / Shard (P - S - S)
-``````````````````````````````````````````````````
-This topology is a typical multi-regional topology where high availability and data durability are 
-more important than write latency performance. This topology can tolerate any 1 node failure, any 
-1 region outage, and is inexpensive. 
-
-This topology, however, experiences higher latency because its majority write concern must replicate 
-to a second region. Furthermore, a primary node failure shifts the primary out of the preferred region, 
-and reads from secondaries always exist in a different region compared to the primary, and may exist 
-outside of the preferred region.
-
-3-Region, 5 Node Replica Set / Shard (PS - SS - S)
-````````````````````````````````````````````````````
-This topology is a typical multi-regional topology for mission-critical applications that require 
-in-region availability. This topology can tolerate any 2 nodes' failure, tolerate primary node failure 
+3-Region, 5 Node Replica Set / Shard (Primary Secondary - Secondary Secondary - Secondary)
+``````````````````````````````````````````````````````````````````````````````````````````
+This topology is the preferred topology that balances high availability, performance, and cost across multiple regions. 
+This topology can tolerate any 2 nodes' failure, tolerate primary node failure 
 while keeping the new primary in the preferred region, and tolerate any 1 region outage. 
 
-This topology, however, experiences higher latency because its majority write concern must replicate 
-to a second region. Furthermore, reads from secondaries always exist in a different region compared 
-to the primary, and may exist outside of the preferred region.
-
-3-Region, 7 Node Replica Set / Shard (PSS - SSS - S)
-`````````````````````````````````````````````````````
-This topology is a non-typical multi-regional topology for mission-critical applications that require 
-in-region availability. This topology can tolerate any 3 nodes' failure, tolerate primary node failure 
-and a secondary node failure in the preferred region, and tolerate any 1 region outage.
-
-This topology, however, experiences higher latency because its majority write concern must replicate 
-to a second region.
-
-5-Region, 9 Node Replica Set / Shard (PS - SS - SS - SS - S)
-`````````````````````````````````````````````````````````````
-This topology is a non-typical multi-regional topology for the most availability-demanding applications 
-that require in-region availability. This topology can tolerate any 4 nodes' failure, tolerate primary 
-node failure while keeping the new primary in the preferred region, and tolerate any 2 region outages.
-
-This topology, however, experiences higher latency because its majority write concern must replicate 
-to two additional regions (3 regions in total).
+If the application requires high durability and the app server code has the write majority option set 
+in the driver, this topology will experience higher latency for writes as they need to replicate to a second region. 
+In order to accommodate a regional outage, the application tier must be configured to also fail over and shift work to 
+the elected primary.
 
 Examples
 --------
