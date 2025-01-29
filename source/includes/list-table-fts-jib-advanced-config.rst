@@ -34,5 +34,7 @@
 
    * - ``numPartitions``
      - The number of partitions to use if field objects exceed 2.1 billion.
+       
        .. include:: /includes/fact-numpartitions-preview.rst
+     
      - Optional.

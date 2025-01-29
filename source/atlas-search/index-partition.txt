@@ -1,0 +1,219 @@
+.. _fts-index-partition:
+
+=========================
+Configure Index Partition 
+=========================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: atlas search, index partition
+   :description: Partition the Atlas Search index to support more index objects.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/fact-numpartitions-preview.rst
+
+For indexing, |fts| counts each document as a single index object when
+it isn't nested inside another document. For embedded documents, |fts|
+counts each embedded document as additional index objects depending on
+the number of levels of nesting. |fts| stops replicating changes for
+indexes larger than 2,100,000,000 index objects. 
+
+If you deployed |fts| on separate search nodes, you can increase the
+number of |fts| index objects by partitioning your index objects in to
+sub-indexes. By default, |fts| supports one partition per shard. Each
+partition supports up to 2 billion index objects. You can create up to
+sixty-four (``64``) sub-indexes by using the ``numPartitions`` option. 
+
+When you configure partitions for your index, |fts| automatically
+distributes the index objects between the sub-indexes in an optimal way.
+When you run queries against a collection with sub-indexes, |fts|
+scatters the queries to all the sub-indexes and gathers the search
+results and metadata to sort, merge, and return the results. 
+
+We recommend partitioning your index when:
+
+- Your index objects reach 50% of the total limit.
+- The number of documents in your collection reaches two billion.
+- Your index is in the ``STALE`` state because |fts| stopped
+  replication. 
+
+When you configure sub-indexes or modify the number of sub-indexes,
+|fts| triggers a rebuild of your index.
+
+If you have more than one sub-index in your {+cluster+}, you can't
+remove all the search nodes and migrate to a deployment model where both
+the ``mongod`` and ``mongot`` processes run on the same node.
+
+Syntax 
+~~~~~~
+
+.. code-block:: json 
+   :copyable: false 
+   :emphasize-lines: 9
+   
+   { 
+     "name": "<index-name>", 
+     "analyzer": "<analyzer-for-index>", 
+     "searchAnalyzer": "<analyzer-for-query>", 
+     "mappings": { 
+       "dynamic": <boolean>, 
+       "fields": { <field-definition> } 
+     }, 
+     "numPartitions": <integer>,
+     ...
+   }
+
+Supported Values 
+~~~~~~~~~~~~~~~~
+
+The |fts| ``numPartitions`` option takes the following values: 
+
+- ``1`` - to create a single index, with no additional sub-indexes. This
+  is the default value.
+- ``2`` - to create up to two sub-indexes. 
+- ``4`` - to create up to four sub-indexes. 
+- ``8`` - to create up to eight sub-indexes.
+- ``16`` - to create up to sixteen sub-indexes.
+- ``32`` - to create up to thirty-two sub-indexes. 
+- ``64`` - to create up to sixty-four sub-indexes.
+
+Example 
+~~~~~~~
+
+The following index example uses the ``sample_mflix.movies`` collection
+to demonstrate how to configure up to ``4`` sub-indexes for the data in
+the collection. You can use the Visual Editor or the |json| Editor in
+the {+atlas-ui+} and :ref:`other supported clients
+<ref-index-management>` to create the index.  
+
+.. tabs-selector:: drivers
+
+----------
+
+.. |arrow| unicode:: U+27A4
+
+|arrow| Use the **Select your language** drop-down menu to set the 
+client of the example in this section.
+
+----------
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-cli
+
+      a. Create a file named ``indexDef.json`` similar to the following: 
+
+         .. literalinclude:: /includes/fts-tutorial/index-partitions/acli-index-def.json
+            :language: shell
+            :copyable:
+
+      #. Run the following command to create the index.
+
+         .. literalinclude:: /includes/fts-tutorial/index-partitions/acli-example.sh
+            :language: shell
+            :copyable:
+
+   .. tab::
+      :tabid: atlas-api
+
+      .. literalinclude:: /includes/fts-tutorial/index-partitions/api-example.sh
+         :language: shell
+         :copyable:
+
+   .. tab::
+      :tabid: atlas-ui
+
+      Visual Editor 
+      `````````````
+
+      a. In the {+atlas-ui+}, select the following: 
+
+         .. list-table:: 
+
+            * - :guilabel:`Search Type`
+              - |fts| 
+            
+            * - :guilabel:`Index Name and Data Source`
+              - - Index Name: ``partitioned_index``
+                - Data Source: ``sample_mflix.movies``
+
+            * - :guilabel:`Configuration Method`
+              - Visual Editor
+
+      #. Click :guilabel:`Next`, then :guilabel:`Refine Your Index`. 
+
+      #. Toggle :guilabel:`Index Partitions` to enable it.
+      #. Select ``4`` from the :guilabel:`Number of partitions` dropdown
+         and click :guilabel:`Save Changes`.
+      #. Click :guilabel:`Create Index` to create the index.
+
+      JSON Editor 
+      ```````````
+
+      a. In the {+atlas-ui+}, select the following: 
+
+         .. list-table:: 
+
+            * - :guilabel:`Search Type`
+              - |fts| 
+            
+            * - :guilabel:`Index Name and Data Source`
+              - - Index Name: ``partitioned_index``
+                - Data Source: ``sample_mflix.movies``
+
+            * - :guilabel:`Configuration Method`
+              - JSON Editor
+
+      #. Replace the default index definition with the following: 
+
+         .. literalinclude:: /includes/fts-tutorial/index-partitions/atlas-ui-example.json
+            :language: json
+            :copyable:
+
+      #. Click :guilabel:`Next`, then :guilabel:`Create Index` to create the index.
+
+   .. tab::
+      :tabid: shell
+
+      .. literalinclude:: /includes/fts-tutorial/index-partitions/mongosh-example.sh
+         :language: json
+         :copyable:
+
+   .. tab::
+      :tabid: nodejs
+
+      .. literalinclude:: /includes/fts-tutorial/index-partitions/nodejs-example.js 
+         :language: javascript
+         :copyable:
+
+   .. tab::
+      :tabid: csharp
+
+      .. literalinclude:: /includes/fts-tutorial/index-partitions/csharp-example.cs
+         :language: csharp
+         :copyable:
+
+   .. tab::
+      :tabid: java-sync
+
+      .. literalinclude:: /includes/fts-tutorial/index-partitions/example.java
+         :language: java
+         :copyable:
+
+   .. tab::
+      :tabid: python
+
+      .. literalinclude:: /includes/fts-tutorial/index-partitions/example.py 
+         :language: python
+         :copyable:
