@@ -50,18 +50,20 @@ at rest using AES-256. This process utilizes your cloud provider's
 disk encryption, with the provider managing the encryption keys. 
 This process cannot be disabled.
 
-Additionally, you have the option to enable database-level encryption
-by **"bringing your own key" (BYOK)** with a key management service (KMS)
-such as AWS KMS, Google Cloud KMS, or Azure Key Vault.
-|byok| encryption adds another layer of security for additional
-confidentiality and data segmentation:
+By default, Encryption at Rest is volume-level encryption.
 
-.. figure:: /includes/images/byok-encryption.svg
+Additionally, you can enable database-level encryption by bringing your own
+customer-managed key (CMK) with a key management service (KMS) 
+such as AWS KMS, Google Cloud KMS, or Azure Key Vault. This feature 
+provides file-level encryption and is equivalent to Transparent Data Encryption (TDE), 
+meeting enterprise TDE requirements. Encryption with customer key management 
+adds another layer of security for additional confidentiality and data segmentation.
+
+To learn more, see :ref:`security-kms-encryption`.
+
+.. figure:: /includes/images/encryption-with-cmk.svg
    :figwidth: 750px
    :alt: An image showing encryption at rest with an additional customer-managed key.
-
-To learn more about using your own encryption keys
-with a key management service (KMS), see :ref:`security-kms-encryption`.
 
 Encryption in Use
 ~~~~~~~~~~~~~~~~~
@@ -77,7 +79,7 @@ Client-Side Field-Level Encryption
 is an in-use encryption capability that enables a client application to encrypt 
 sensitive data before storing it in the MongoDB database. Sensitive data is 
 transparently encrypted, remains encrypted throughout its lifecycle, and is 
-only decrypted on the client side. 
+only decrypted on the client side.
 
 You can selectively encrypt individual fields within a document, 
 multiple fields within the document, or the entire document. You can optionally
@@ -85,12 +87,20 @@ secure each field with its own key and decrypt them seamlessly
 on the client by using a MongoDB driver. CSFLE uses AES-256 in 
 authenticated CBC mode to encrypt data.
 
+Additionally, you can select :manual:`randomized encryption 
+</core/csfle/fundamentals/encryption-algorithms/#randomized-encryption>`, 
+which is not queryable, but might be required for certain security requirements.
+
 The following diagram demonstrates a CSFLE workflow where user records 
 are stored in a MongoDB database and queried by the client. The user's 
 social security number (SSN) is encrypted before being stored in the 
 database. When the application submits a basic equality query on the field, 
-the MongoDB driver uses the key to encrypt the query and decrypt the query results, 
-before returning them to the authenticated client as readable plaintext.
+the MongoDB driver uses the key to encrypt the query on the client side and
+sends the encrypted query to the server. The server returns the encrypted 
+results to the client, which then decrypts the results before returning them 
+to the authenticated client as readable plaintext.
+
+CSFLE supports all major cloud and on-premises key management services. 
 
 .. figure:: /includes/images/csfle-encryption.svg
    :figwidth: 750px
@@ -102,15 +112,15 @@ Queryable Encryption
 :ref:`Queryable Encryption <qe-manual-feature-qe>` helps organizations 
 protect sensitive data when it is queried. Like CSFLE, it allows applications 
 to encrypt your data on the client side before storing it in the MongoDB database. 
-It also enables applications to perform expressive queries directly on the 
-encrypted data by using an encrypted search algorithm. This ensures protection 
-for sensitive information without sacrificing the ability to perform queries on it.
+It also enables applications to perform expressive queries such as equality queries 
+directly on the encrypted data by using an encrypted search algorithm. Queryable Encryption ensures 
+protection for sensitive information without sacrificing the ability to perform queries 
+on it. Queryable Encryption always uses non-deterministic encryption.
 
-Queryable encryption uses AES-256 in authenticated CBC mode
-to encrypt data, and uses a combination of AES-256, SHA2, and HMACs
-for its encrypted search algorithm.
+To learn about the algorithms used in Queryable Encryption, see 
+:website:`Queryable Encryption White Paper </resources/products/capabilities/queryable-encryption-technical-paper>`.
 
-The following diagram demonstrates a queryable encryption workflow where 
+The following diagram demonstrates a Queryable Encryption workflow where 
 user records are stored in a MongoDB database and queried by the client. 
 The user's date of birth (DOB) is encrypted before being stored in the 
 database. When the application submits an expressive range query on the field, 
@@ -122,7 +132,7 @@ client as readable plaintext.
 
 .. figure:: /includes/images/queryable-encryption.svg
    :figwidth: 750px
-   :alt: An image showing an example queryable encryption workflow.
+   :alt: An image showing an example Queryable Encryption workflow.
 
 Recommendations for Data Encryption
 -----------------------------------
@@ -130,20 +140,20 @@ Recommendations for Data Encryption
 Consider the following security recommendations when 
 provisioning your {+clusters+}.
 
-.. _arch-center-byok:
+.. _arch-center-cmk:
 
-BYOK Encryption
-~~~~~~~~~~~~~~~
+Encryption with Customer Key Management
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/byok-encryption-recommendations.rst
+.. include:: /includes/encryption-with-cmk-recommendations.rst
 
-Use the following methods to enable |byok| encryption:
+Use the following methods to enable encryption with customer key management:
 
 - :atlas:`{+atlas-ui+} </security-kms-encryption>`
 - :oas-atlas-tag:`{+atlas-admin-api+} </Encryption-at-Rest-using-Customer-Key-Management>`
 - `Terraform <https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/encryption_at_rest>`__
 
-To learn how to configure |byok| encryption
+To learn how to configure encryption with customer key management
 when provisioning a new |service| organization, project, and {+cluster+},
 see :ref:`arch-center-create-hierarchy-example`.
 
@@ -153,9 +163,11 @@ Data Classification
 During the provisioning process, we also recommend assessing the 
 sensitivity of certain fields in your data and classifying
 them to determine which data requires encryption and what global 
-restrictions to apply to these groups.
+restrictions to apply to these groups. As a general guideline, we recommend
+that you apply Queryable Encryption on all sensitive fields, in addition 
+to following :manual:`data modeling </data-modeling/>` best practices.
 
-Consider the following data classification levels as a guideline:
+Consider the following data classification levels as a starting point:
 
 - **Public Data**: Data that represents little to no
   risk to the company if unauthorized disclosure, alteration, 
@@ -170,7 +182,7 @@ Consider the following data classification levels as a guideline:
   or destruction of data occurs. By default, all 
   institutional data that is not explicitly classified as restricted or 
   public data should be treated as private data. 
-  Apply CSFLE or queryable encryption on any fields that 
+  Apply CSFLE or Queryable Encryption on any fields that 
   carry private data such as {+PII+}.
   
   Examples: Customer Information, Contracts, Product Costs
@@ -179,7 +191,7 @@ Consider the following data classification levels as a guideline:
   risk to the company if unauthorized disclosure, alteration, 
   or destruction of data occurs. Apply the highest 
   level of security controls to restricted data, including
-  CSFLE or queryable encryption on all fields and
-  |byok| encryption for additional security.
+  CSFLE or Queryable Encryption on all fields and
+  encryption with customer key management for additional security.
   
   Examples: Revenue information, Payroll, Security Risks
