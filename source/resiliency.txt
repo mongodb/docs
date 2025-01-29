@@ -1,8 +1,8 @@
 .. _arch-center-resiliency:
 
-===================================
-Application and Database Resiliency
-===================================
+=================================================
+Atlas Features and Recommendations for Resiliency
+=================================================
 
 .. default-domain:: mongodb
 
@@ -28,16 +28,17 @@ Features
 Database Replication 
 ````````````````````
 
-|service| {+clusters+} consist of a minimum of three nodes, and you can increase
-the node count to any odd number of nodes you require. |service| first writes data 
-from your application to a primary node, and then |service| incrementally replicates
-and stores that data across all secondary nodes within your {+cluster+}. Additionally, 
-you can control the durability of your data storage by adjusting the write concern 
-of your application code to complete the write only once a certain number of secondaries 
+|service| {+clusters+} consist of a `replica set <https://www.mongodb.com/docs/manual/replication/>`__ 
+with a minimum of three nodes, and you can increase the node count to any odd 
+number of nodes you require. |service| first writes data from your application 
+to a `primary node <https://www.mongodb.com/docs/manual/core/replica-set-primary/>`__, and then |service| incrementally replicates and stores that 
+data across all `secondary nodes <https://www.mongodb.com/docs/manual/core/replica-set-secondary/>`__ within your {+cluster+}. To 
+control the durability of your data storage, you can adjust the `write concern <https://www.mongodb.com/docs/manual/reference/write-concern/>`__ of 
+your application code to complete the write only once a certain number of secondaries 
 have committed the write. To learn more, see :ref:`resiliency-read-write-concerns`.
 
 By default, |service| distributes {+cluster+} nodes across availability zones within 
-one of your chosen cloud provider's availability regions. For example, if your 
+one of your chosen cloud provider's `availability regions <https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.RegionsAndAvailabilityZones.html>`__. For example, if your 
 {+cluster+} is deployed to the cloud provider region ``us-east``, |service| deploys 
 nodes to ``us-east-a``, ``us-east-b`` and ``us-east-c`` by default. 
 
@@ -47,13 +48,14 @@ see :ref:`arch-center-high-availability`.
 Self-Healing Deployments
 ````````````````````````
 
-|service| {+clusters+} must consist of an odd number of nodes, because only one 
-node can be elected as the primary node to and from which your application writes 
-and reads directly. 
+|service| {+clusters+} must consist of an odd number of nodes, because the node 
+pool must elect a primary node to and from which your application writes 
+and reads directly. A cluster consisting of an even number of nodes might
+result in a deadlock that prevents a primary node from being elected.
 
 In the event that a primary node is unavailable, because of infrastructure 
 outages, maintenance windows or any other reason, |service| {+clusters+} self-heal 
-by converting an existing secondary node into your primary node to maintain 
+by promoting an existing secondary node to the role of primary node to maintain 
 database availability. To learn more about this process, see `How does MongoDB Atlas deliver high availability? <https://www.mongodb.com/docs/atlas/reference/faq/deployment/#how-does-service-fullname-deliver-high-availability->`__
 
 Maintenance Window Uptime
@@ -134,15 +136,15 @@ related to resilience:
 Connecting Your Application to |service|
 `````````````````````````````````````````
 
-We recommend that you use the most `current driver version <https://www.mongodb.com/docs/drivers/>`__ 
+We recommend that you use a connection method built on the most `current driver version <https://www.mongodb.com/docs/drivers/>`__ 
 for your application's programming language whenever possible. And while the 
 default connection string |service| provides is a good place to start, you might 
 want to tune it for performance in the context of your specific application 
 and deployment architecture. 
 
-For example, you might want to set a short :urioption:`connectTimeoutMS` for a 
+For example, you might want to set a short ``maxTimeMS`` for a 
 microservice that provides a login capability, whereas you may want to set the 
-``connectTimeoutMS`` to a much larger value if the application code is a long-running 
+``maxTimeMS`` to a much larger value if the application code is a long-running 
 analytics job request against the cluster.
 
 `Tuning your connection pool settings <https://www.mongodb.com/docs/manual/tutorial/connection-pool-performance-tuning/>`__ 
@@ -162,7 +164,7 @@ application.
 
 For example, if you are scaling your |service| {+cluster+} to meet user demand, 
 consider what the minimum pool size of connections your application will 
-consistently need, so that when the connection pool scales the additional 
+consistently need, so that when the application pool scales the additional 
 networking and compute load that comes with opening new client connections 
 doesn't undermine your application's time-sensitive need for increased 
 database operations. 
@@ -171,37 +173,34 @@ Min and Max Connection Pool Size
 `````````````````````````````````
 
 If your ``minPoolSize`` and ``maxPoolSize`` values are similar, the majority of your 
-database client connections will open at application startup. In turn, the 
-additional networking load that comes with opening such connections will happen 
-at the same time. However, if there is a large range in size between your 
-minimum and maximum pool size, additional connections are opened more frequently 
-during application runtime. 
+database client connections open at application startup. For example, if your
+``minPoolSize`` is set to ``10`` and your ``maxPoolSize`` is set to ``12``, 10 
+client connections open at application startup, and only 2 more connections 
+can then be opened during application runtime. However, if your ``minPoolSize`` 
+is set to ``10`` and your ``maxPoolSize`` is set to ``100``, up to 90 additional 
+connections can be opened as needed during application runtime.
 
-This process of incrementally increasing your connection pool size during 
-application runtime distributes the total workload of connecting clients from 
-your application to |service| over a longer period of time, which often makes it 
-manageable for a given use case, but it is important to note that the associated 
-increase in network load occurs during application runtime, which has 
-the potential to impact perceived database - and by extension - application 
-performance for end-users.
+Additional network overhead associated with opening new client connections.
+So, consider whether you would prefer to incur that network cost at 
+application startup, or to incur it dynamcially in as as-needed basis during 
+application runtime, which has the potential to impact operational latency and 
+perceived performance for end-users if there is a sudden spike in requests that 
+requires a large number of additional connections to be opened at once.
 
 Your application's architecture is central to this consideration. If, for example, 
-you deploy your application as microservices in an elastic environment, consider 
-which services should call |service| directly as a means of controlling the 
-dynamic expansion and contraction of your connection pool. 
+you deploy your application as microservices, consider which services should 
+call |service| directly as a means of controlling the dynamic expansion and 
+contraction of your connection pool. Alternatively, if your application deployment 
+is leveraging single-threaded resources, like AWS Lambda, your application will 
+only ever be able to open and use one client connection, so your ``minPoolSize`` 
+and your ``maxPoolSize`` should both be set to ``1``.
 
 Query Timeout
 `````````````
 
 Almost invariably, workload-specific queries from your application will vary in 
 terms of the amount of time they take to execute in |service| and in terms of 
-the amount of time your application can wait for a response. 
-
-Consider defining query classes that handle categories or buckets of similar 
-request requirements. For example, you can define a query category with a fast 
-timeout for end-user driven requests, a middle tier timeout bucket for general 
-purpose requests, and a long-running query class for things like analytics 
-queries that require the most time to execute in |service|. 
+the amount of time your application can wait for a response.  
 
 You can set `query timeout <https://www.mongodb.com/docs/manual/tutorial/query-documents/specify-query-timeout/>`__ 
 behavior globally in |service|, and you can also define it at the query level. 
@@ -220,12 +219,16 @@ Configure Read and Write Concerns
 `````````````````````````````````
 
 |service| {+clusters+} eventually replicate all data across all nodes. However, 
-you can configure the number of nodes across which data must be repicated before 
+you can configure the number of nodes across which data must be replicated before 
 a read or write operation is reported to have been successful. You can define
 `read concerns <https://www.mongodb.com/docs/manual/reference/read-concern/>`__ and 
 `write concerns <https://www.mongodb.com/docs/manual/reference/write-concern/>`__ 
 globally in |service|, and you can also define them at the client level in your 
-connection string. 
+connection string. |service| has a default write concern of ``majority``, meaning that 
+data must be replicated across more than half of the nodes in your cluster 
+before |service| reports success. Conversely, |service| has a default read concern
+of ``local``, which means that when queried, |service| retrieves data from only 
+one node in your cluster
 
 .. _arch-center-move-collection:
 
@@ -247,4 +250,3 @@ Resilient Example Application
 `````````````````````````````
 
 .. include:: /includes/cloud-docs/example-resilient-app.rst
-
