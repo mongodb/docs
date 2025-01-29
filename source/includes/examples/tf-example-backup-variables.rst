@@ -1,4 +1,4 @@
-.. code-block:::
+.. code-block:: yaml
 
    variable "org_id" {
      description = "Atlas organization ID"
