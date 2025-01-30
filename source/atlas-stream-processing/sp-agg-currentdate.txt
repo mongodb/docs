@@ -1,0 +1,121 @@
+.. _atlas-sp-agg-currentdate:
+
+================
+``$currentDate``
+================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: atlas stream processing, $currentDate expression 
+   :description: Learn how to use the $currentDate expression to
+                 ensure continuously refreshed date-time. 
+                 
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. _atlas-sp-agg-currentdate-def:
+
+Definition
+~~~~~~~~~~
+
+The ``$currentDate`` expression returns the system time of your
+{+spi+} each time {+atlas-sp+} evaluates it. This ensures that time
+fields you add from within a streaming data pipeline remain up-to-date
+for each processed message.
+
+.. pipeline:: $currentDate
+
+   A ``$currentDate`` expression takes the form of an empty object
+   ``{}``.
+
+.. _atlas-sp-agg-currentdate-syntax:
+
+Syntax
+~~~~~~
+
+The ``$currentDate`` expression is an empty object ``{}`` and has no
+internal syntax.
+
+.. _atlas-sp-agg-currentdate-behavior:
+
+Behavior
+~~~~~~~~
+
+Pass ``$currentDate: {}`` as the value of any expression which accepts
+an :manual:`ISODate </reference/glossary/#term-isodate>` value.
+
+.. _atlas-sp-agg-currentdate-example:
+
+Examples
+--------
+
+The following example demonstrates a basic use of the ``$currentDate``
+expression to ensure accurate timestamps for each output document from
+a given stream processor.
+
+.. io-code-block::
+
+   .. input::
+      :language: json
+   
+      {
+	"$addFields": {
+	  "time1": {
+	    "$currentDate": {}
+	  }
+	}
+      }
+
+   .. output::
+      :language: json
+
+      {
+        "a": 1,
+	"time1": ISODate("2025-01-24T11:57:22.033Z")
+      }
+
+You can use the ``$currentDate`` expression multiple times in your
+stream processing pipeline to generate multiple timestamps for various
+stags within a stream processor.
+
+.. io-code-block::
+
+   .. input::
+      :language: json
+   
+      {
+	"$addFields": {
+	  "time1": {
+	    "$currentDate": {}
+	  }
+	},
+	"$group": {
+	  "_id": "$time1",
+	  "count": {
+	    "$count": {}
+	  }
+	},
+	"$addFields": {
+	  "time1": "$_id",
+	  "time2": {
+	    "$currentDate": {}
+	  }
+	}
+      }
+
+   .. output::
+      :language: json
+
+      {
+	"time1": ISODate("2025-01-24T11:57:22.033Z"),
+	"time2": ISODate("2025-01-24T11:57:26.036Z"),
+	"count": 1
+      }
