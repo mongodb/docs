@@ -20,9 +20,9 @@ Authorization and Authentication
    :depth: 2
    :class: onecol
 
-Authentication is the process of verifying the identity of a client.
-When access control (authorization) is enabled, |service| requires all
-clients to authenticate themselves in order to determine their access. 
+Authentication is the process of verifying the identity of a user.
+|service| requires all users to authenticate themselves in order 
+to determine their access. 
 
 Although authentication and authorization are closely connected,
 authentication is distinct from authorization: 
@@ -52,16 +52,15 @@ Features
 |service-fullname| supports a variety of authentication methods to
 ensure robust security.   
 
-- The best practice for user authentication, |service| integrates 
-  seamlessly with identity
-  providers (IdP) using federated authentication through OpenID Connect
-  (OIDC) or SAML 2.0, and enhances security with Multi-Factor
-  Authentication (MFA) ensuring a modern authentication and security posture. 
+- The best practice for user authentication is utilizing |service|'s 
+  seamless integration with identity providers using federated authentication 
+  through OpenID Connect (OIDC) or SAML 2.0, and enhancing security with Multi-Factor
+  Authentication (MFA) to ensure a modern authentication and security posture. 
 - For workload authentication, |service| supports OAuth2.0, allowing
   seamless compatibility with authorization services and integration 
   into your federated :abbr:`IdP (Identity Provider)`.
 
-|service| requires all clients to authenticate to access {+atlas-ui+}, 
+|service| requires all users to authenticate to access {+atlas-ui+}, 
 |service| database, and {+atlas-admin-api+}. The following
 authentication methods for each |service| resource ensure that
 authentication is both secure and adaptable. |service| provides the
@@ -104,15 +103,13 @@ central identity provider. For UI access, |service| supports workforce
 identity federation using :abbr:`SAML (Security Assertion Markup
 Language)` 2.0. You can use any :abbr:`SAML (Security Assertion
 Markup Language)` compatible identity provider such as Okta, Microsoft
-Entra ID, or PingOne to enforce security policies such as password 
+Entra ID, or Ping Identity to enforce security policies such as password 
 complexity, credential rotation, and :abbr:`MFA (Multi-Factor
 Authentication)` within your identity provider. |service| also supports
 Google or Github account authentication. 
 
-{+atlas-ui+} manages user identities in a MongoDB-controlled Okta
-instance, encrypted and stored securely. You must also configure the IP
-access list to allow only connections from IP ranges that include your
-users and application servers.
+You must configure the IP access list in the {+atlas-ui+} to allow only connections 
+from IP ranges that include your users and application servers.
 
 To learn more, see :ref:`atlas-federated-authentication`.
 
@@ -139,35 +136,29 @@ To learn more, see :ref:`atlas-enable-mfa`.
 Recommendations for |service| Database  
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-|service| supports the following options for |service| database
-authentication. In development and test environments, create a separate
-project with {+cluster+} and grant users ``Project Data Access
-Admin`` roles. In staging and production environments, we recommend
-granting only programmatic access by using :atlas:`Workforce Identity
-Federation </workforce-oidc/>`. 
+|service| supports various database authentication mechanisms.
 
-|service| also supports creating temporary database users
-that automatically expire after the predefined times. A user can be
-created for the following periods: 
+To configure workforce (human user) access to your |service| 
+database via tools such as {+mongodbsh+} and Compass, 
+use :ref:`Workforce Identity Federation <oidc-authentication-workforce>` with {+oidc+}. 
 
-- 6 hours
-- 1 day
-- 1 week
+To configure workload (application) access to your |service|
+database using MongoDB drivers, use :ref:`Workload Identity Federation <oidc-authentication-workload>`, 
+AWS-IAM authentication, or X.509 certificate authentication. 
 
-We recommend using a secrets manager like `HashiCorp Vault
-<https://developer.hashicorp.com/vault/docs/secrets/databases/mongodbatlas>`__
-to generate database credentials dynamically based on configured
-roles for |service| databases. To learn more, see :website:`Manage
-MongoDB Atlas Database Secrets in HashiCorp Vault 
-</blog/post/manage-atlas-database-secrets-hashicorp-vault>`.
+We recommend :manual:`SCRAM </core/security-scram>` 
+password authentication only for use in development or testing environments. 
+
+|Service| also supports creating temporary database users to configure just-in-time 
+database access. 
 
 Workforce Identity Federation
 `````````````````````````````
 
 Workforce Identity Federation allows you to manage all authentication to 
 the |service| database through your identity provider. For database
-access, we recommend :abbr:`OIDC (OpenID Connect)`-compatible identity
-provider such as Okta, Microsoft Entra ID, or PingOne to enforce
+access, we recommend {+oidc+}-compatible identity
+providers such as Okta, Microsoft Entra ID, or Ping Identity to enforce
 security policies such as password complexity, credential rotation, and
 :abbr:`MFA (Multi-Factor Authentication)` within your identity provider. 
 
@@ -176,16 +167,17 @@ To learn more, see :ref:`oidc-authentication-workforce`.
 Workload Identity Federation 
 ````````````````````````````
 
-Workload identity federation enables applications running in cloud
+Workload Identity Federation enables applications running in cloud
 environments like |aws|, |azure|, and Google Cloud to authenticate with
 |service| without the need to manage separate database user credentials.
-With workload identity federation, you can manage |service| database
+With Workload Identity Federation, you can manage |service| database
 users using |azure| Managed Identities, Google Service Accounts, or any
 OAuth 2.0-compliant service. You can also use |aws| workload federation
 through |aws| |iam| roles. These authentication mechanisms simplify
 management and enhance security by allowing for passwordless access to
 the |service| database. 
-We recommend workload identity federation for all applications running in 
+
+We recommend Workload Identity Federation for all applications running in 
 production. You shouldn't allow human users to connect except in the most 
 extreme break-glass emergency scenarios.
 
@@ -197,29 +189,64 @@ To learn more, see the following:
 X.509 Client Certificates and SCRAM 
 ```````````````````````````````````
 
-We recommend that you leverage a third-party federated identity provider
-for accessing all aspects of the |service| control and data plane.
-|service| {+clusters+} do support :manual:`x.509
-</core/security-x.509/>` client certificates and :manual:`SCRAM
-</core/security-scram/>` for user authentication, but you should use these
-only if you don't have an identity provider for federation. 
+We recommend that you use Workforce or Workload Identity Federation 
+through an identity provider for security and ease of access to all aspects of the 
+|service| control and data plane. 
 
-If you 
-leverage x.509 or SCRAM authentication, we recommend that you use complex
-passwords and store credentials in a third-party secrets manager like
+If you don't have an identity provider for federation, then
+|service| {+clusters+} also support X.509 client certificates for 
+user authentication. X.509 certificates provide the security of mutual TLS, 
+making them suitable for staging and production environments. 
+
+|service| {+clusters+} also support SCRAM password authentication for user authentication, 
+but we only recommend SCRAM for use in development and test environments. 
+
+If you leverage X.509 or SCRAM authentication, we recommend that you use 
+third-party secrets manager like
 `HashiCorp Vault <https://developer.hashicorp.com/vault/docs/secrets/databases/mongodbatlas>`__
-or |aws|. Alternatively, implement automatic credential rotation or
-create a one-time password through your PAM system for each access.
+or |aws| Secrets Manager to generate and store complex database credentials. 
+
+To learn more, see the following manual pages: 
+
+- :manual:`X.509 </core/security-x.509/>`
+- :manual:`SCRAM </core/security-scram/>`
+
+Just-in-Time Access 
+```````````````````
+
+|service| also supports creating temporary database users
+that automatically expire after the predefined times. A user can be
+created for the following periods: 
+
+- 6 hours
+- 1 day
+- 1 week
+
+To learn more, see :ref:`mongodb-users`. 
+
+Secrets Management
+``````````````````
+
+We recommend using a third-party secrets manager like `HashiCorp Vault
+<https://developer.hashicorp.com/vault/docs/secrets/databases/mongodbatlas>`__
+or |aws| Secrets Manager to generate and store complex database credentials.
+A secrets manager can generate database credentials dynamically based on configured
+roles for |service| databases. 
+
+To learn more, see the blog :website:`Manage
+MongoDB Atlas Database Secrets in HashiCorp Vault 
+</blog/post/manage-atlas-database-secrets-hashicorp-vault>`.
+
 
 Recommendations for {+atlas-admin-api+} 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 |service| provides |api| key-based authentication to securely manage
-programmatic access. It uses |http| Digest to protect requests, where
-the |api| public key functions as the username, and the corresponding
+programmatic access. It uses |http| Digest authentication to protect requests.
+The |api| public key functions as the username, and the corresponding
 private key serves as the password. 
 You should store these keys in a third party secrets management system, 
-such as |aws| or {+vault+}. To learn how to securely store these 
+such as |aws| Secrets Manager or {+vault+}. To learn how to securely store these 
 keys in Vault, see the blog 
 `Manage MongoDB Atlas Database Secrets in HashiCorp Vault <https://www.mongodb.com/blog/post/manage-atlas-database-secrets-hashicorp-vault>`__.
 
@@ -247,7 +274,7 @@ to the data access required for the role to perform its function.
 This approach enables you to follow the principle of least privilege.
 
 Additionally, by integrating |service| with a federated identity provider, 
-you can map identity provider groups automatically to |service| roles. 
+you can use just-in-time provisioning by mapping identity provider groups to |service| roles. 
 This streamlines access management and ensures secure and organized role 
 assignments throughout the platform. You can grant access programmatically 
 based on the provisioning process of your orchestration layer.
@@ -266,7 +293,7 @@ both. Use Identity Federation to manage access by linking your identity
 provider groups to |service| roles through group-role mappings.  
 
 We recommend that you use a modern federated Identity Provider (IdP) that 
-provides SSO, OIDC, and SAML login such as Azure Entra ID, Okta, or Ping 
+provides SSO with SAML such as Azure Entra ID, Okta, or Ping Identity
 as this makes the authorization process more secure and supports the 
 flexibility needed to programmatically assign :abbr:`IdP (Identity Provider)` 
 groups to |service| roles. You should restrict your company's domain from 
@@ -319,8 +346,9 @@ commonly used roles can serve as a general guideline:
   Don't allow this role in production environments. It has the 
   ability to view and edit data, including creating and dropping databases, 
   collections, and indexes on the {+cluster+}, which is useful for rapid 
-  experimentation and development. If you are uncomfortable giving 
-  development teams this level of access in the development environment, you 
+  experimentation and development. To grant read-only access to the {+cluster+}'s 
+  data in production environments, use the ``Project Observability Viewer`` role. 
+  If you are uncomfortable giving development teams this level of access in the development environment, you 
   can grant them read-only access to the {+cluster+}\'s data and performance 
   statistics with the ``Project Data Access Read Only`` role.
 
@@ -337,9 +365,7 @@ access management by linking your Identity Provider (IdP) to |service|
 for a more modern and streamlined authentication and authorization flow
 for data access.  
 
-Only allow workload authentication in production. You can leverage workforce 
-authentication during development and in lower environments. By configuring
-:atlas:`Group Membership </workforce-oidc/>` in your :abbr:`IdP (Identity
+By configuring :atlas:`Group Membership </workforce-oidc/>` in your :abbr:`IdP (Identity
 Provider)`, you can map groups to database users, simplifying access
 control within the :abbr:`IdP (Identity Provider)`. However, for
 workload identities, we recommend assigning roles directly using the
