@@ -42,3 +42,9 @@
      type        = string
      description = "MongoDB Version"
    }
+
+   # Atlas Group Name
+   variable "atlas_group_name" {
+     type        = string
+     description = "Atlas Group Name"
+   }

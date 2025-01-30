@@ -8,3 +8,4 @@
    cloud_provider = "AWS"
    atlas_region = "US_WEST_2"
    mongodb_version = "8.0"
+   atlas_group_name = "Atlas Group"
