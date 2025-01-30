@@ -72,6 +72,8 @@
          the following settings.
       
       a. Enter the following details about your |aws| |vpc|:
+
+         .. include:: /includes/fact-avoid-connection-interruptions.rst
       
          .. list-table::
             :widths: 20 80

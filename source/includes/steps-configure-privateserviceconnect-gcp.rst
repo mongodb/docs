@@ -20,6 +20,8 @@
          prompts you to add it before continuing.
       
    .. step:: Configure your private endpoint.
+
+      .. include:: /includes/fact-avoid-connection-interruptions.rst
       
       a. Enter the following details about your |gcp| |vpc|:
 

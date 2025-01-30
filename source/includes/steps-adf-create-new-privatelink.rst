@@ -32,6 +32,8 @@
       
    .. step:: Configure your private endpoint.
 
+      .. include:: /includes/fact-avoid-connection-interruptions.rst
+
       a. Enter the following details about your |aws| |vpc|:
       
          .. tip:: 
@@ -64,8 +66,11 @@
       
          .. note::
             
-            You can't copy the command until |service| finishes creating 
-            |vpc| resources in the background.
+            If you skip this step, the interface endpoint for the 
+            Private Endpoint service isn't created.
+            
+            You can't copy the command until |service| finishes 
+            creating |vpc| resources in the background.
       
          See :aws:`Creating an Interface Endpoint </vpc/latest/userguide/vpce-interface.html#create-interface-endpoint>` 
          to perform this task using the |aws| CLI.
