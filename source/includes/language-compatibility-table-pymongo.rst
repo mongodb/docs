@@ -19,20 +19,20 @@ Python 3
      - CPython 3.4
      - PyPy3
 
-   * - 4.10
+   * - 4.11
      - ✓ 
      - ✓ 
      - ✓ 
      - ✓ 
      - ✓ 
-     - ✓ 
+     - 
      -
      -
      -
      -
      -
 
-   * - 4.9
+   * - 4.9 to 4.10
      - ✓ 
      - ✓ 
      - ✓ 
@@ -192,10 +192,6 @@ Python 3
    TLS/SSL for versions of MongoDB 4.0 and earlier. For more information, see the
    :ref:`TLS <pymongo-troubleshoot-tls>` section of the Troubleshooting guide.
 .. [#three-six-compat] Pymongo 4.1 requires Python 3.6.2 or later.
-
-.. note::
-
-   PyPy3 is a Python 3.2-compatible alternative interpreter.
 
 Python 2
 ~~~~~~~~
