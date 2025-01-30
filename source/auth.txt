@@ -66,33 +66,25 @@ authentication methods for each |service| resource ensure that
 authentication is both secure and adaptable. |service| provides the
 following authentication mechanisms:
 
-Recommendations for Deployment 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-In a dedicated deployment, resources are allocated exclusively. We
-recommend this as it provides high security and performance. However,
-you must configure strict access controls.
-
-We recommend using a dedicated {+cluster+} deployment for each 
-application as this ensures that resources are allocated exclusively 
-to a single access point and provides isolation for both security and 
-performance. 
-
-While a shared deployment model--where multiple applications and 
-development teams share a multi-tenant {+cluster+}--can increase the 
-cost efficiency of the deployment, it requires tight coordination 
-between the applications' data models and access patterns. These must 
-be integrated into the provisioning process of the {+cluster+} to 
-ensure that fine-grained custom roles are programmatically configured, 
-providing strong isolation between the access of different applications 
-and teams. As a result, this pattern is generally used 
-in development environments where the risk of exposure is lower.
-
 Recommendations for {+atlas-ui+}  
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-|service| supports the following options for {+atlas-ui+}
-authentication. 
+We recommend federated authentication for {+atlas-ui+} access. To
+configure federated authentication, you must create {+service+}
+credentials or log in with Google or Github. 
+
+For {+service+} credentials,
+we recommend that you use a strong password accompanied by a
+phishing-resistant :abbr:`MFA (Multi-Factor Authentication)`, such as
+biometrics. We highly recommend that you set up a secondary 
+:abbr:`MFA (Multi-Factor Authentication)` factor
+to avoid account lock-outs. To ensure 
+:abbr:`MFA (Multi-Factor Authentication)` access for {+service+} 
+credentials, turn on :abbr:`MFA (Multi-Factor Authentication)`
+enforcement in the Organization Settings. After you set up federation
+for your domain, you should use {+service+} credentials to
+authenticate only in the emergency break-glass scenarios when federated
+authentication is broken.
 
 Federated Authentication
 ````````````````````````
@@ -105,8 +97,7 @@ Language)` 2.0. You can use any :abbr:`SAML (Security Assertion
 Markup Language)` compatible identity provider such as Okta, Microsoft
 Entra ID, or Ping Identity to enforce security policies such as password 
 complexity, credential rotation, and :abbr:`MFA (Multi-Factor
-Authentication)` within your identity provider. |service| also supports
-Google or Github account authentication. 
+Authentication)` within your identity provider. 
 
 You must configure the IP access list in the {+atlas-ui+} to allow only connections 
 from IP ranges that include your users and application servers.
@@ -144,13 +135,14 @@ use :ref:`Workforce Identity Federation <oidc-authentication-workforce>` with {+
 
 To configure workload (application) access to your |service|
 database using MongoDB drivers, use :ref:`Workload Identity Federation <oidc-authentication-workload>`, 
-AWS-IAM authentication, or X.509 certificate authentication. 
+AWS-IAM authentication, or X.509 certificate authentication. We recommend :manual:`SCRAM </core/security-scram>` 
+password authentication for use only in development or testing environments. 
 
-We recommend :manual:`SCRAM </core/security-scram>` 
-password authentication only for use in development or testing environments. 
+|service| also supports: 
 
-|Service| also supports creating temporary database users to configure just-in-time 
-database access. 
+- :ref:`Creating temporary database users <arch-center-just-in-time>`
+  with just-in-time database access 
+- :ref:`Third-party secrets manangement <arch-center-secrets>`
 
 Workforce Identity Federation
 `````````````````````````````
@@ -164,22 +156,24 @@ security policies such as password complexity, credential rotation, and
 
 To learn more, see :ref:`oidc-authentication-workforce`.
 
-Workload Identity Federation 
-````````````````````````````
+Workload Identity Federation and AWS IAM Role Authentication
+````````````````````````````````````````````````````````````
 
 Workload Identity Federation enables applications running in cloud
-environments like |aws|, |azure|, and Google Cloud to authenticate with
+environments like |azure| and Google Cloud to authenticate with
 |service| without the need to manage separate database user credentials.
 With Workload Identity Federation, you can manage |service| database
 users using |azure| Managed Identities, Google Service Accounts, or any
-OAuth 2.0-compliant service. You can also use |aws| workload federation
-through |aws| |iam| roles. These authentication mechanisms simplify
+OAuth 2.0-compliant service. These authentication mechanisms simplify
 management and enhance security by allowing for passwordless access to
 the |service| database. 
 
 We recommend Workload Identity Federation for all applications running in 
 production. You shouldn't allow human users to connect except in the most 
 extreme break-glass emergency scenarios.
+
+You can also authenticate
+through |aws| |iam| roles.
 
 To learn more, see the following: 
 
@@ -193,13 +187,18 @@ We recommend that you use Workforce or Workload Identity Federation
 through an identity provider for security and ease of access to all aspects of the 
 |service| control and data plane. 
 
-If you don't have an identity provider for federation, then
+If you don't have an identity provider for federation,
 |service| {+clusters+} also support X.509 client certificates for 
 user authentication. X.509 certificates provide the security of mutual TLS, 
-making them suitable for staging and production environments. 
+making them suitable for staging and production environments, and you
+can bring your own certificate authority for use with X.509.
+The disadvantage of X.509 is that you must manage certificates and
+the security of these certificates on the application side, while
+Workload Identity Federation allows for passwordless access and easier
+application security.
 
 |service| {+clusters+} also support SCRAM password authentication for user authentication, 
-but we only recommend SCRAM for use in development and test environments. 
+but we recommend SCRAM only for use in development and test environments. 
 
 If you leverage X.509 or SCRAM authentication, we recommend that you use 
 third-party secrets manager like
@@ -210,6 +209,8 @@ To learn more, see the following manual pages:
 
 - :manual:`X.509 </core/security-x.509/>`
 - :manual:`SCRAM </core/security-scram/>`
+
+.. _arch-center-just-in-time:
 
 Just-in-Time Access 
 ```````````````````
@@ -223,6 +224,8 @@ created for the following periods:
 - 1 week
 
 To learn more, see :ref:`mongodb-users`. 
+
+.. _arch-center-secrets:
 
 Secrets Management
 ``````````````````
@@ -251,12 +254,21 @@ keys in Vault, see the blog
 `Manage MongoDB Atlas Database Secrets in HashiCorp Vault <https://www.mongodb.com/blog/post/manage-atlas-database-secrets-hashicorp-vault>`__.
 
 To further enhance security and
-minimize the risk of unauthorized access, follow best practices for
-rotating |api| keys regularly. To learn how to rotate these keys with 
-{+vault+}, see 
-`the Hashicorp documentation <https://developer.hashicorp.com/vault/docs/secrets/mongodbatlas>`__.
+minimize the risk of unauthorized access:
+
+- Follow best practices for
+  rotating |api| keys regularly. To learn how to rotate these keys with 
+  {+vault+}, see `the Hashicorp documentation <https://developer.hashicorp.com/vault/docs/secrets/mongodbatlas>`__.
+
+- Use the IP access list for your API keys. To learn more, see
+  :atlas:`Require an IP Access List for the {+atlas-admin-api+} </configure-api-access/#optional--require-an-ip-access-list-for-the-atlas-administration-api>`.
 
 To learn more, see :ref:`api-authentication`.
+
+Recommendations for Deployments 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To learn our recommendations for deployments, which relate to authentication, see :ref:`arch-center-hierarchy`.
 
 {+service+} Features and Recommendations for Authorization 
 ----------------------------------------------------------
@@ -317,7 +329,14 @@ commonly used roles can serve as a general guideline:
   to a human, as it has the ability to change organization-wide settings and delete 
   configurations. This role should be assigned to a service account which you use 
   only to initially set up and configure the organization. Minimize configuration 
-  changes after the initial creation. 
+  changes after the initial creation. To avoid account lockouts, you
+  can create the following items: 
+  
+  - SAML Organization Owner group with
+    :ref:`arch-center-just-in-time`. 
+  - API key with the Organization Owner role. Keep it in a
+    secure place with strong access management for break-glass
+    emergency scenarios.
 
 * The ``Organization Member`` role should be for admins on the operations and 
   platform team that can view settings and configuration for the organization.
@@ -346,11 +365,13 @@ commonly used roles can serve as a general guideline:
   Don't allow this role in production environments. It has the 
   ability to view and edit data, including creating and dropping databases, 
   collections, and indexes on the {+cluster+}, which is useful for rapid 
-  experimentation and development. To grant read-only access to the {+cluster+}'s 
-  data in production environments, use the ``Project Observability Viewer`` role. 
-  If you are uncomfortable giving development teams this level of access in the development environment, you 
+  experimentation and development. 
+  If you are not comfortable giving development teams this level of access in the development environment, you 
   can grant them read-only access to the {+cluster+}\'s data and performance 
   statistics with the ``Project Data Access Read Only`` role.
+
+  To grant read-only access to the {+cluster+}'s 
+  data in production environments, use the ``Project Observability Viewer`` role. 
 
 To learn more, see :ref:`user-roles`.
 
@@ -514,7 +535,7 @@ The following examples configure authentication and custom roles using
             .. include:: /includes/examples/cli-example-auth-okta-stagingprod.rst 
 
             Run the following command to create an :abbr:`OIDC (OpenID
-            Connect)`-compatible identity provider from your federation
+            Connect)`-compatible identity providers from your federation
             settings.  
 
             .. include:: /includes/examples/cli-example-auth-oidc-stagingprod.rst 
