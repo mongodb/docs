@@ -66,9 +66,6 @@ class Award(EmbeddedModel):
     nominations = models.IntegerField(default=0)
     text = models.CharField(max_length=100)
 
-    class Meta:
-        managed = False
-
 class Movie(models.Model):
     title = models.CharField(max_length=200)
     plot = models.TextField(blank=True)
