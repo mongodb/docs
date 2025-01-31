@@ -68,49 +68,49 @@ Definition
         - Optional. A document containing optional fields, including
           ``numInitialChunks``, ``collation`` and ``zones``.
 
-The ``options`` field supports the following fields:
+   The ``options`` field supports the following fields:
 
-.. list-table::
-   :header-rows: 1
-   :widths: 20 20 80
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
 
-   * - Field
-     - Type
-     - Description
+      * - Field
+        - Type
+        - Description
 
-   * - ``numInitialChunks``
-     - integer
-     - Optional. Specifies the initial number of chunks to create
-       across all shards in the cluster when resharding a collection.
-       The default is the number of chunks that exist for the
-       collection under the current shard key pattern. MongoDB will
-       then create and balance chunks across the cluster. The
-       ``numInitialChunks`` must result in less than ``8192`` per shard.
+      * - ``numInitialChunks``
+        - integer
+        - Optional. Specifies the initial number of chunks to create
+          across all shards in the cluster when resharding a collection.
+          The default value is ``90``. MongoDB will then create and balance 
+          chunks across the cluster. The ``numInitialChunks`` must result 
+          in less than ``8192`` per shard.
+ 
+      * - ``collation``
+        - document
+        - Optional. If the collection specified to ``reshardCollection``
+          has a default :ref:`collation <collation>`, you *must* include a 
+          collation document with ``{ locale : "simple" }``, or the 
+          ``reshardCollection`` command fails.
 
-   * - ``collation``
-     - document
-     - Optional. If the collection specified to ``reshardCollection``
-       has a default :ref:`collation <collation>`, you *must* include a 
-       collation document with ``{ locale : "simple" }``, or the 
-       ``reshardCollection`` command fails.
+      * - ``zones``
+        - array
+        - Optional. Specifies the zones for the collection.
+          
+          To maintain or add :ref:`zones <zone-sharding>`,
+          specify the zones for your collection in an array:
 
-   * - ``zones``
-     - array
-     - Optional. To maintain or add :ref:`zones <zone-sharding>`,
-       specify the zones for your collection in an array:
+          .. code-block:: javascript
+              :copyable: false
 
-       .. code-block:: javascript
-          :copyable: false
-
-          [
-             {
-                 min: <document with same shape as shardkey>,
-                 max: <document with same shape as shardkey>,
-                 zone: <string> | null
-             },
-             ...
-          ]
-
+              [
+                {s
+                    min: <document with same shape as shardkey>,
+                    max: <document with same shape as shardkey>,
+                    zone: <string> | null
+                },
+                ...
+              ]
 
 Compatibility
 -------------
@@ -138,68 +138,48 @@ Resharding Process
 Initialization Phase
 ~~~~~~~~~~~~~~~~~~~~
 
-During the initialization phase, the resharding coordinator determines
-the new data distribution for the sharded collection.
+.. include:: /includes/reshard-collection-initialization.rst
+
+Clone Phase
+~~~~~~~~~~~
+
+.. include:: /includes/reshard-collection-clone.rst
 
 Index Phase
 ~~~~~~~~~~~
 
-During the index phase:
+.. include:: /includes/reshard-collection-index.rst
 
-- Each shard recipient creates a new, empty sharded collection with the
-  same collection options as the existing sharded collection. This new
-  sharded collection is the target for where recipient shards write the
-  new data.
-- Each shard recipient builds the necessary new indexes. These include
-  all existing indexes on the sharded collection and an index compatible
-  with the new shard key pattern if such an index doesn't already exist on
-  the sharded collection.
+Apply and Catch-up Phase
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-Clone, Apply, and Catch-up Phase
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. include:: /includes/reshard-collection-apply-and-catchup.rst
 
-During the clone, apply, and catch-up phase:
+.. note::
 
-- Each shard recipient clones an initial copy of the documents it would
-  own under the new shard key.
-- Each shard recipient begins applying oplog entries from operations
-  that happened after the recipient cloned the data.
-- When the estimate for the time remaining to complete the resharding
-  operation is under **two seconds**, the resharding coordinator blocks
-  writes for the collection.
-
-  .. note::
-
-     If required, you can manually force the resharding operation to
-     complete by issuing the :method:`sh.commitReshardCollection()`
-     method. This is useful if the current time estimate to complete the
-     resharding operation is an acceptable duration for your collection
-     to block writes. The :method:`sh.commitReshardCollection()` method
-     blocks writes early and forces the resharding operation to
-     complete. During the time period where writes are blocked your
-     application experiences an increase in latency.
+   If required, you can manually force the resharding operation to
+   complete by issuing the :method:`sh.commitReshardCollection()`
+   method. This is useful if the current time estimate to complete the
+   resharding operation is an acceptable duration for your collection
+   to block writes. The :method:`sh.commitReshardCollection()` method
+   blocks writes early and forces the resharding operation to
+   complete. During the time period where writes are blocked your
+   application experiences an increase in latency.
 
 .. _resharding-commit-phase-method:
 
 Commit Phase
 ~~~~~~~~~~~~
 
-- After the resharding process reaches the commit phase, the process
-  cannot be ended with :method:`sh.abortReshardCollection()`.
-- When all shards have reached strict consistency, the resharding
-  coordinator commits the resharding operation and installs the new
-  routing table.
-- The resharding coordinator instructs each donor and recipient shard
-  primary, independently, to rename the temporary sharded collection.
-  The temporary collection becomes the new resharded collection.
-- Each donor shard drops the old sharded collection.
+.. include:: /includes/reshard-collection-commit.rst
 
-  .. seealso::
+.. note:: 
 
-     :ref:`sharding-resharding`
-
-Example
--------
+   Once the resharding process reaches the commit phase, the process
+   cannot be ended with :method:`sh.abortReshardCollection()`.
+   
+Examples
+--------
 
 Reshard a Collection
 ~~~~~~~~~~~~~~~~~~~~

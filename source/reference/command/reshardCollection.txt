@@ -34,7 +34,6 @@ This command is available in deployments hosted in the following environments:
 .. include:: /includes/fact-environments-atlas-support-all.rst
 
 .. include:: /includes/fact-environments-onprem-only.rst
-
                 
 Syntax
 ------
@@ -106,10 +105,9 @@ The command takes the following fields:
      - integer
      - Optional. Specifies the initial number of chunks to create
        across all shards in the cluster when resharding a collection.
-       The default is the number of chunks that exist for the
-       collection under the current shard key pattern. MongoDB will
-       then create and balance chunks across the cluster. The
-       ``numInitialChunks`` must result in less than ``8192`` per shard.
+       The default value is ``90``. MongoDB will then create and balance 
+       chunks across the cluster. The ``numInitialChunks`` must result 
+       in less than ``8192`` per shard.
  
    * - ``collation``
      - document
@@ -120,8 +118,22 @@ The command takes the following fields:
  
    * - ``zones``
      - array
-     - Optional. To maintain or add :ref:`zones <zone-sharding>`,
-       specify the zones for your collection in an array.
+     - Optional. Specifies the zones for the collection.
+          
+       To maintain or add :ref:`zones <zone-sharding>`,
+       specify the zones for your collection in an array:
+
+       .. code-block:: javascript
+          :copyable: false
+
+          [
+            {
+                min: <document with same shape as shardkey>,
+                max: <document with same shape as shardkey>,
+                zone: <string> | null
+            },
+            ...
+          ]
 
    * - ``forceRedistribution``
      - boolean
@@ -147,64 +159,45 @@ Initialization Phase
 During the initialization phase, the resharding coordinator determines
 the new data distribution for the sharded collection.
 
+Clone Phase 
+~~~~~~~~~~~
+
+.. include:: /includes/reshard-collection-clone.rst
+
 Index Phase
 ~~~~~~~~~~~
 
-During the index phase:
+.. include:: /includes/reshard-collection-index.rst
 
-- Each shard recipient creates a new, empty sharded collection with the
-  same collection options as the existing sharded collection. This new
-  sharded collection is the target for where recipient shards write the
-  new data.
-- Each shard recipient builds the necessary new indexes. These include
-  all existing indexes on the sharded collection and an index compatible
-  with the new shard key pattern if such an index doesn't already exist on
-  the sharded collection.
+Apply and Catch-up Phase
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-Clone, Apply, and Catch-up Phase
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. include:: /includes/reshard-collection-apply-and-catchup.rst
 
-During the clone, apply, and catch-up phase:
+.. note::
 
-- Each shard recipient clones an initial copy of the documents it would
-  own under the new shard key.
-- Each shard recipient begins applying oplog entries from operations
-  that happened after the recipient cloned the data.
-- When the estimate for the time remaining to complete the resharding
-  operation is under **two seconds**, the resharding coordinator blocks
-  writes for the collection.
-
-  .. note::
-
-     If desired, you can manually force the resharding operation to
-     complete by issuing the :dbcommand:`commitReshardCollection`
-     command. This is useful if the current time estimate to complete
-     the resharding operation is an acceptable duration for your
-     collection to block writes. The
-     :dbcommand:`commitReshardCollection` command blocks writes early
-     and forces the resharding operation to complete. During the time
-     period where writes are blocked your application experiences an
-     increase in latency.
+   If desired, you can manually force the resharding operation to
+   complete by issuing the :dbcommand:`commitReshardCollection`
+   command. This is useful if the current time estimate to complete
+   the resharding operation is an acceptable duration for your
+   collection to block writes. The
+   :dbcommand:`commitReshardCollection` command blocks writes early
+   and forces the resharding operation to complete. During the time
+   period where writes are blocked your application experiences an
+   increase in latency.
 
 .. _resharding-commit-phase-command:
 
 Commit Phase
 ~~~~~~~~~~~~
 
-- Once the resharding process reaches the commit phase, it may no longer
-  be aborted with :dbcommand:`abortReshardCollection`.
-- When all shards have reached strict consistency, the resharding
-  coordinator commits the resharding operation and installs the new
-  routing table.
-- The resharding coordinator instructs each donor and recipient shard
-  primary, independently, to rename the temporary sharded collection.
-  The temporary collection becomes the new resharded collection.
-- Each donor shard drops the old sharded collection.
+.. include:: /includes/reshard-collection-commit.rst
 
-  .. seealso::
+.. note:: 
 
-     :ref:`sharding-resharding`
-
+   Once the resharding process reaches the commit phase, the process
+   cannot be ended with :dbcommand:`abortReshardCollection`.
+   
 Examples
 --------
 
@@ -262,7 +255,6 @@ cluster:
        forceRedistribution: true
    })
 
-
 Redistribute Data to Different Zones
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -270,8 +262,8 @@ Starting in MongoDB 8.0, you can use the ``reshardCollection`` command to
 move data into new zones without changing the shard key.
 
 The following command redistributes data for the ``accounts.sales`` collection
-using the same shard key, moving data from zones ``zone01`` and ``zone02`` to
-``zone03`` and ``zone04``:
+using the same shard key, moving data to the shards associated with 
+zones ``zone04`` and ``zone05``:
 
 .. code-block:: javascript
    
