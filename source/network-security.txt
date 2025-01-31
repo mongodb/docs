@@ -40,8 +40,11 @@ configuration of your {+clusters+}.
 {+service+} enforces |tls-ssl| encryption for all connections to your
 databases.
 
-We recommend using M10+ dedicated {+clusters+} because all {+service+} projects with one or more M10+ dedicated {+clusters+} receive
-their own dedicated |vpc| on {+aws+} or {+gcp+} (or {+vnet+} if you use |azure|).
+We recommend using M10+ dedicated {+clusters+} because all {+service+} projects with 
+one or more M10+ dedicated {+clusters+} receive their own dedicated: 
+- |vpc| on {+aws+} or {+gcp+}. 
+- {+vnet+} on |azure|.
+
 {+service+} deploys all dedicated clusters inside this |vpc| or {+vnet+}.
 
 By default, all access to your {+clusters+} is blocked. You must explicitly allow 
@@ -61,9 +64,7 @@ Features
 ```````````
 
 {+service+} enforces mandatory |tls| encryption of connections to your
-databases. |tls| 1.2 is the default protocol; you can select |tls| 1.1
-or |tls| 1.0 if necessary, but we do not recommend protocols lower than 
-the default. To learn more, see the
+databases. |tls| 1.2 is the default protocol. To learn more, see the
 :guilabel:`Set Minimum TLS Protocol Version` section of
 :ref:`Configure Additional Settings
 <create-cluster-additional-settings>`.
@@ -71,7 +72,7 @@ the default. To learn more, see the
 {+ip-access-list+}s
 ```````````````````````````````
 
-As a |service| administrator, you can:
+As an |service| administrator, you can:
 
 You can configure {+ip-access-list+}s to limit which IP addresses can
 attempt authentication to your database.
@@ -84,8 +85,6 @@ Application servers and other clients can't access your {+service+}
 You can configure :atlas:`temporary access list entries
 </security/ip-access-list/#add-ip-access-list-entries>`
 that expire automatically after a user-defined period.
-
-You can create one access list per project.
 
 Firewall Configuration
 ``````````````````````
@@ -103,7 +102,17 @@ cases of {+cluster+} changes such as :ref:`vertical scaling
 certain topology changes, such as a :ref:`conversion from replica set
 to sharded cluster <scale-cluster-sharding>`, the
 :ref:`addition of shards <scale-cluster-shardNum>`, or a :ref:`region
-change <scale-cluster-region>` require that you use new IP addresses.
+change <scale-cluster-region>` require that you use new IP addresses. 
+
+In the case of converting from a replica set to a sharded cluster, the 
+failure to reconnect the application clients might cause your application 
+to suffer from data outages. If you use a |dns| seed list 
+connection string, your application automatically connects to the |mongos| 
+for your sharded cluster. If you use a standard connection string, 
+you must update your connection string to reflect your new cluster topology.
+
+In the case of adding new shards, the failure to reconnect the application 
+clients may cause your application to suffer from a data outage.
 
 VPC/{+vnet+} Peering
 `````````````````````````````
@@ -117,7 +126,8 @@ application environment, minimizing the need for {+service+} to make
 outbound access requests to peer |vpc|\s. However, if you configure {+service+}
 to use |ldap| authentication, you must enable {+service+} to
 connect outbound to the authentication endpoint of your peer |vpc| over the |ldap|
-protocol.
+protocol. Note that |ldap| authentication is deprecated on {+service+} with 8.0. 
+We recommend that you use {+wif+} and |workload| instead.
 
 You can choose your {+service+} |cidr| block with the |vpc| peering wizard
 before you deploy your first {+cluster+}. The {+service+} |vpc| |cidr|
@@ -144,7 +154,7 @@ private endpoints are available:
 - {+azure+} :azure:`Private Link </private-link/private-link-overview>`,
   for connections from {+azure+} {+vnet+}s
 - :gcp:`Private Service Connect </vpc/docs/private-service-connect>`, for
-  connections from {+gcp+}
+  connections from {+gcp+} |vpc|s
 
 .. figure:: /includes/images/private-link.svg
    :alt: "An image representing how MongoDB Atlas private endpoints work."
