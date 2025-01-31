@@ -1,0 +1,211 @@
+.. _django-limitations:
+
+============
+Limitations
+============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: support, features, django
+
+Overview
+--------
+
+On this page, you can find a list of features that
+{+django-odm+} does not support. Because {+django-odm+} is in active
+development, some features listed on this page might be considered for future
+releases based on user demand. You can request support for a feature by leaving
+a suggestion on the `Drivers Feedback Forum
+<https://feedback.mongodb.com/forums/924286-drivers?category_id=370732>`__.
+
+Unsupported Database Variables
+------------------------------
+
+The following database variables are not supported by {+django-odm+}:
+
+- ``ATOMIC_REQUESTS``
+- ``AUTOCOMMIT``
+- ``CONN_HEALTH_CHECKS``
+- ``TIME_ZONE``
+
+Model Limitations
+-----------------
+
+The following limitations apply to models in {+django-odm+}:
+
+- {+django-odm+} enforces a one-to-one mapping between a Django model and a
+  MongoDB collection. Because of this, multiple models cannot share the same collection.
+
+Indexes
+~~~~~~~
+
+{+django-odm+} does not support the following index functionalities:
+
+- Creating ``$vectorSearch`` and ``$search`` indexes through the Django
+  Indexes API
+- Creating geospatial indexes through the Django Indexes API
+- Updating indexes in ``EmbeddedModelFields`` after model creation
+
+To learn how to run unsupported database operations by operating directly on
+your ``MongoClient`` instance, see :ref:`django-client-operations`  in the
+Perform Raw Database Queries guide.
+
+Fields
+~~~~~~
+
+{+django-odm+} has the following limitations on the specified field types:
+
+- ``ArrayField``
+
+  - {+django-odm+} does not support ``ArrayField`` polymorphism.
+  - {+django-odm+} does not support nesting an ``EmbeddedModelField`` within an ``ArrayField``.
+
+- ``EmbeddedModelField``
+
+  - ``EmbeddedModel`` schema changes do not register after creation.
+  - Embedded documents cannot take Django foreign keys.
+  - {+django-odm+} does not support arbitrary or untyped embedded model
+    fields. You must derive all fields from a ``EmbeddedModel`` class.
+
+- ``JSONField``
+
+  - {+django-odm+} cannot distinguish between a JSON and a SQL ``null`` value.
+    Queries that use ``Value(None, JSONField())`` or the ``isnull`` lookup
+    return both JSON and SQL ``null`` values.
+  - Some queries with ``Q`` objects, such as ``Q(value__foo="bar")``, might
+    not work as expected.
+  - Filtering for ``None`` values incorrectly returns objects in which a field
+    does not exist.
+
+- ``DateTimeField``
+
+  - {+django-odm+} does not support microsecond granularity for
+    ``DateTimeField``.
+
+- ``DurationField``
+
+  - ``DurationField`` stores milliseconds rather than microseconds.
+
+- ``ForeignKey``
+
+  - When possible, you should use an ``EmbeddedModelField`` instead of a
+    ``ForeignKey`` field to avoid using ``$lookup`` operations. An
+    ``EmbeddedModelField`` emulates a MongoDB embedded document and performs
+    better than a ``ForeignKey`` field. To learn more about how to reduce
+    ``$lookup`` operations, see the :atlas:`Reduce $lookup Operations
+    </schema-suggestions/reduce-lookup-operations/>` guide in the Atlas
+    documentation.
+  - Performance of `CASCADE deletes <{+django-docs+}/ref/models/fields/#django.db.models.CASCADE>`__ 
+    on a ``ForeignKey`` field is not as performant as using an
+    ``EmbeddedModelField``.
+
+The following field types are unavailable in {+django-odm+}:
+
+- ``GeneratedField``
+- ``AutoField``
+- ``BigAutoField``
+- ``SmallAutoField``
+
+Querying Limitations
+--------------------
+
+{+django-odm+} does not support the following ``QuerySet`` API methods:
+
+- ``distinct()``
+- ``dates()``
+- ``datetimes()``
+- ``prefetch_related()``
+- ``extra()``
+
+{+django-odm+} does not support ``QuerySet.delete()`` and ``update()`` queries
+that span multiple collections.
+
+Geospatial Queries
+~~~~~~~~~~~~~~~~~~
+
+- {+django-odm+} does not support ``GeoDjango``.
+- {+django-odm+} does not have any Django lookup operators for MongoDB-specific
+  geospatial queries.
+
+Aggregation Operators
+~~~~~~~~~~~~~~~~~~~~~
+
+{+django-odm+} does not contain any custom Django field lookups for the MongoDB
+aggregation framework. Instead, use the ``raw_aggregate()`` method. For more
+information on the ``raw_aggregate()`` method, see
+the :ref:`django-raw-queries` guide.
+
+.. TODO: Link to aggregation
+
+Database Functions
+~~~~~~~~~~~~~~~~~~
+
+{+django-odm+} does not support the following database functions:
+
+- ``Chr``
+- ``ExtractQuarter``
+- ``MD5``
+- ``Now``
+- ``Ord``
+- ``Pad``
+- ``Repeat``
+- ``Reverse``
+- ``Right``
+- ``SHA1``, ``SHA224``, ``SHA256``, ``SHA384``, ``SHA512``
+- ``Sign``
+
+The ``tzinfo`` parameter of the ``Trunc`` database functions doesn't work
+properly because MongoDB converts the result back to UTC.
+
+Django Management Command Limitations
+-------------------------------------
+
+{+django-odm+} does not support the following Django management commands:
+
+- ``createcachetable``
+- ``inspectdb``
+- ``optimizemigration``
+- ``sqlflush``
+- ``sqlsequencereset``
+
+Migration Limitations
+---------------------
+
+- {+django-odm+} does not support enforced schema validation. To learn how to
+  enforce schema validation in your application, see the :manual:`Specify JSON
+  Schema Validation </core/schema-validation/specify-json-schema/>` guide in the
+  {+mdb-server+} manual.
+- {+django-odm+} does not support `DDL Transactions
+  <{+django-docs+}/topics/migrations/#transactions>`__.
+- {+django-odm+} does not support the ``migrate --fake-initial`` command.
+
+Asynchronous Support
+--------------------
+
+{+django-odm+} has not been tested for support of the asynchronous functionality of
+the Django API.
+
+Data Types
+----------
+
+{+django-odm+} does not have a custom ``Field`` class for the ``BSONRegExp``
+data type. Instead, use the ``CharField`` class.
+
+Performance
+-----------
+
+The engineering team is prioritizing feature development for the Public Preview
+release of {+django-odm+}. Because of this, you might notice performance
+limitations with certain workloads. If you encounter any performance issues,
+please report them as shown in the :ref:`Issues & Help <django-issues-and-help>`
+guide. You can also share your feedback on the `Drivers Feedback Forum
+<https://feedback.mongodb.com/forums/924286-drivers?category_id=370732>`__.
