@@ -191,6 +191,53 @@ Steps
 
          MongoServerError: Query rejected by admin query settings
 
+   .. step:: (Optional) List all operation rejection filters
+
+      To list all of the operation rejection filters, use the
+      :pipeline:`$querySettings` and :pipeline:`$match` stages in an
+      aggregation. In the following aggregation example:
+      
+      - The ``showDebugQueryShape`` field is ``true`` in the
+        ``$querySettings`` stage, which returns a debug version of the
+        :term:`query shape`. For details, see :ref:`query shape
+        statistics <queryStats-queryShape>`.
+      - The ``$match`` stage filters the query settings to keep those
+        where ``settings.reject`` is set to ``true``, which corresponds
+        to the operation rejection filters.
+
+      Aggregation example:
+
+      .. code-block:: javascript
+
+         db.aggregate( [
+           { $querySettings: { showDebugQueryShape: true } },
+           { $match: { "settings.reject": true } }
+         ] )
+
+      Output:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         [
+            {
+              queryShapeHash: 'AB8ECADEE8F0EB0F447A30744EB4813AE7E0BFEF523B0870CA10FCBC87F5D8F1',
+              settings: { reject: true },
+              representativeQuery: {
+                find: 'pizzaOrders',
+                filter: { orderDate: { '$gt': ISODate('2023-01-20T00:00:00.000Z') } },
+                sort: { totalNumber: 1 },
+                '$db': 'test'
+              },
+              debugQueryShape: {
+                cmdNs: { db: 'test', coll: 'pizzaOrders' },
+                command: 'find',
+                filter: { orderDate: { '$gt': '?date' } },
+                sort: { totalNumber: 1 }
+              }
+            }
+         ]
+
    .. step:: (Optional) Remove the operation rejection filter
 
       The following example uses ``removeQuerySettings`` to remove the
