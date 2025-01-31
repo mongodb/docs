@@ -10,7 +10,7 @@
      - Node.js v16.x.x
      - Node.js v14.x.x
 
-   * - 6.11 to 6.12 [#latest-note]_
+   * - 6.11 to 6.13 [#latest-note]_
      - ✓
      - ✓
      - ✓
