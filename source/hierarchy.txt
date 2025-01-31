@@ -45,8 +45,15 @@ security settings and governance for your {+service+} enterprise estate:
 
    * - (Optional) Paying Organization
      - One organization can be a paying organization for other
-       organization(s). The MongoDB account team must enable the paying organization when you establish the |service| subscription. A paying organization lets you set up :atlas:`cross-organization billing <billing/#std-label-cross-org-billing>` to share a
-       billing subscription across multiple organizations.
+       organization(s). A paying organization lets you set up 
+       :atlas:`cross-organization billing <billing/#std-label-cross-org-billing>` 
+       to share a billing subscription across multiple organizations. 
+       To learn more about setting up your paying organization when 
+       you establish the |service| subscription, see :atlas:`Manage Billing <billing>`.  
+       In order to enable cross-organization billing, the user performing 
+       the action must have an Org Owner or Billing Admin role of both 
+       organizations that they wish to link. To learn more, see 
+       :atlas:`User Roles <user-roles>`.
 
        A paying organization is common for large enterprises with many
        {+BU+}\s or departments that operate independently but where the
@@ -54,23 +61,30 @@ security settings and governance for your {+service+} enterprise estate:
 
    * - Organization
      - An organization can contain many projects under it and provides
-       a container to apply shared integration and security settings.
+       a container to apply shared integration and security settings. If 
+       you manage multiple {+service+} organizations, the 
+       :atlas:`Atlas Federation Management Console <atlas-federated-authentication>` 
+       allows users with an Org Owner role to manage |idps| for |sso|, 
+       then link them to multiple organizations. 
        An organization often maps to a {+BU+} or department within a
        company. The built-in {+service+} Cost Explorer aggregates cloud
-       spend at the organization level and breaks out line items at the
-       {+cluster+} level below it. You can customize further
+       spend at the organization level and breaks out line items at the 
+       project-level and {+cluster+} level below it. You can customize further
        by leveraging the billing API.
 
    * - Project
      - Security configuration for the data plane (including database
-       clusters, network security, and other data services) occurs at the project level. A project often maps to an application and environment (for example: Customer Portal app -
-       Production environment). For each project, there is one dedicated VPC created in GCP, and one VPC/VNet per region in AWS
-       and Azure. 
+       clusters, network security, and other data services) occurs at the 
+       project-level. A project often maps to an application and environment 
+       (for example: Customer Portal app - Production environment). For each 
+       project, based on the selected cloud provider, there is one dedicated 
+       VPC or VNet per region in AWS and Azure. 
 
    * - {+Cluster+}
      - |service| provisions each {+cluster+} within the dedicated 
        VPC/VNet(s) for a project. The security configuration is shared
-       among {+clusters+} in the project, except for user roles and authorization, which you can apply to actions on a {+cluster+},
+       among {+clusters+} in the project, except for database user roles and 
+       authorization, which you can apply to actions on a {+cluster+},
        database, and collection level.
 
 .. figure:: /includes/images/project-hierarchy.png
@@ -137,13 +151,15 @@ Org and Project Hierarchies
 Generally, we recommend a paying organization that is managed
 centrally, and one organization for each {+BU+} or department that is
 linked to the paying org. Then, create a project with one {+cluster+}
-each for your lower (dev/test) and upper environments. To learn more,
-see the following information for :ref:`<project-hierarchy-1>`.
+each for your lower (dev or test) and upper environments; you can create 
+clusters in these projects. To learn more, see the following information 
+for :ref:`<project-hierarchy-1>`.
 
 If you will easily hit the 250 project limit per organization, we
 recommend creating one organization per environment, such as one each
 for lower and upper environments, or one each for dev, test, staging,
-and prod. This has an added benefit of additional isolation.
+and production. This setup has the benefit of additional isolation. You can also 
+increase the limits. To learn more, see :atlas:`<atlas-limits>`.
 
 .. _project-hierarchy-1:
 
@@ -183,9 +199,9 @@ this hierarchy.
 {+Cluster+} Hierarchy
 `````````````````````
 
-To maintain isolation between environments, we recommend one 
-{+cluster+} deployment per {+service+} project, corresponding to each
-application as shown in the following diagram:
+To maintain isolation between environments, we recommend that you deploy 
+{+cluster+}s that belong to the same application and are administered 
+by the same team in the same project, as shown in the following diagram:
 
 .. figure:: /includes/images/deployment-hierarchy.png
    :alt: An image showing one deployment per project in each organization.
@@ -196,28 +212,28 @@ Grouping multiple {+clusters+} and therefore applications into one
 project by environment as shown in the following diagram simplifies
 administration when the same team is responsible for multiple
 applications across environments. This eases the setup cost for
-features such as private endpoints and customer-managed keys, since all {+clusters+} in the same project share this configuration. However,
+features such as private endpoints and customer-managed keys, since 
+all {+clusters+} in the same project share this configuration. However,
 this {+cluster+} hierarchy may violate the least-privilege rule.
 
 You should use this hierarchy only if both of the following are true:
 
 - Every team member with access to the project is working on all other
-  applications and {+clusters+} in the
-  project. 
+  applications and {+clusters+} in the project. 
 - You are creating {+clusters+} for lower environments. Production
-  {+clusters+} should still follow the rule of single 
-  {+cluster+}, single project to ensure isolation.
+  {+clusters+} should belong to the same application and be administered 
+  by the same team in the same project.
 
 .. figure:: /includes/images/alt-deployment-by-environment.png
    :alt: An image showing deployments grouped by environment.
    :align: center
    :lightbox:
 
-{+Cluster+} Tagging
+Resource Tagging
 ```````````````````
 
-We recommend that you tag {+clusters+} with the following details to
-enable easy parsing for reporting and integrations:
+We recommend that you :atlas:`tag {+clusters+} or projects <database-deployment-tags>` 
+with the following details to enable easy parsing for reporting and integrations:
 
 - {+BU+} or Department
 - Team name
