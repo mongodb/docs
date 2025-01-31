@@ -1,0 +1,257 @@
+.. _ruby-aggregation:
+
+====================================
+Transform Your Data with Aggregation
+====================================
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: code example, transform, computed, pipeline
+   :description: Learn how to use the Ruby driver to perform aggregation operations.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. TODO:
+ .. toctree::
+    :titlesonly:
+    :maxdepth: 1
+
+    /aggregation/aggregation-tutorials
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to perform
+**aggregation operations**.
+
+Aggregation operations process data in your MongoDB collections and
+return computed results. The MongoDB Aggregation framework, which is
+part of the Query API, is modeled on the concept of data processing
+pipelines. Documents enter a pipeline that contains one or more stages,
+and this pipeline transforms the documents into an aggregated result.
+
+An aggregation operation is similar to a car factory. A car factory has
+an assembly line, which contains assembly stations with specialized
+tools to do specific jobs, like drills and welders. Raw parts enter the
+factory, and then the assembly line transforms and assembles them into a
+finished product.
+
+The **aggregation pipeline** is the assembly line, **aggregation stages** are the
+assembly stations, and **operator expressions** are the
+specialized tools.
+
+Compare Aggregation and Find Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following table lists the different tasks that find
+operations can perform and compares them to what aggregation
+operations can perform. The aggregation framework provides
+expanded functionality that allows you to transform and manipulate
+your data.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - Find Operations
+     - Aggregation Operations
+
+   * - | Select certain documents to return
+       | Select which fields to return
+       | Sort the results
+       | Limit the results
+       | Count the results
+     - | Select certain documents to return
+       | Select which fields to return
+       | Sort the results
+       | Limit the results
+       | Count the results
+       | Rename fields
+       | Compute new fields
+       | Summarize data
+       | Connect and merge data sets
+
+Limitations
+~~~~~~~~~~~
+
+Consider the following limitations when performing aggregation operations:
+
+- Returned documents cannot violate the
+  :manual:`BSON document size limit </reference/limits/#mongodb-limit-BSON-Document-Size>`
+  of 16 megabytes.
+- Pipeline stages have a memory limit of 100 megabytes by default. You can exceed this
+  limit by passing a value of ``true`` to the ``allow_disk_use`` method and chaining the
+  method to ``aggregate``.
+- The :manual:`$graphLookup </reference/operator/aggregation/graphLookup/>`
+  operator has a strict memory limit of 100 megabytes and ignores the
+  value passed to the ``allow_disk_use`` method.
+
+.. _ruby-run-aggregation:
+
+Run Aggregation Operations
+--------------------------
+
+.. note:: Sample Data
+  
+   The examples in this guide use the ``restaurants`` collection in the ``sample_restaurants``
+   database from the :atlas:`Atlas sample datasets </sample-data>`. To learn how to create a
+   free MongoDB Atlas cluster and load the sample datasets, see the :atlas:`Get Started with Atlas
+   </getting-started>` guide.
+
+To perform an aggregation, define each pipeline stage as a Ruby ``hash``, and
+then pass the pipeline of operations to the ``aggregate`` method.
+
+.. _ruby-aggregation-example:
+
+Aggregation Example
+~~~~~~~~~~~~~~~~~~~
+
+The following code example produces a count of the number of bakeries in each
+borough of New York. To do so, it uses an aggregation pipeline with the
+following stages:
+
+- A :manual:`$match </reference/operator/aggregation/match/>` stage to filter for documents whose ``cuisine`` field contains
+  the value ``"Bakery"``.
+- A :manual:`$group </reference/operator/aggregation/group/>` stage to group the matching documents by the ``borough`` field,
+  accumulating a count of documents for each distinct value.
+
+.. io-code-block::
+    :copyable:
+
+    .. input:: /includes/aggregation.rb
+       :start-after: start-aggregation
+       :end-before: end-aggregation
+       :language: ruby
+       :dedent:
+
+    .. output::
+       :visible: false
+
+       {"_id"=>"Bronx", "count"=>71}
+       {"_id"=>"Manhattan", "count"=>221}
+       {"_id"=>"Queens", "count"=>204}
+       {"_id"=>"Missing", "count"=>2}
+       {"_id"=>"Staten Island", "count"=>20}
+       {"_id"=>"Brooklyn", "count"=>173}
+
+Explain an Aggregation
+~~~~~~~~~~~~~~~~~~~~~~
+
+To view information about how MongoDB executes your operation, you can instruct
+the MongoDB :manual:`query planner </core/query-plans>` to **explain** it. When
+MongoDB explains an operation, it returns **execution plans** and performance
+statistics. An execution plan is a potential way in which MongoDB can complete
+an operation. When you instruct MongoDB to explain an operation, it returns both
+the plan MongoDB executed and any rejected execution plans by default.
+
+To explain an aggregation operation, chain the ``explain`` method to the
+``aggregate`` method.
+
+The following example instructs MongoDB to explain the aggregation operation
+from the preceding :ref:`ruby-aggregation-example`:
+
+.. io-code-block::
+    :copyable:
+
+    .. input:: /includes/aggregation.rb
+       :start-after: start-explain-aggregation
+       :end-before: end-explain-aggregation
+       :language: ruby
+       :dedent:
+
+    .. output::
+       :visible: false
+
+       {"explainVersion"=>"2", "queryPlanner"=>{"namespace"=>"sample_restaurants.restaurants",
+       "parsedQuery"=>{"cuisine"=> {"$eq"=> "Bakery"}}, "indexFilterSet"=>false,
+       "planCacheKey"=>"6104204B", "optimizedPipeline"=>true, "maxIndexedOrSolutionsReached"=>false,
+       "maxIndexedAndSolutionsReached"=>false, "maxScansToExplodeReached"=>false,
+       "prunedSimilarIndexes"=>false, "winningPlan"=>{"isCached"=>false,
+       "queryPlan"=>{"stage"=>"GROUP", "planNodeId"=>3,
+       "inputStage"=>{"stage"=>"COLLSCAN", "planNodeId"=>1, "filter"=>{},
+       "direction"=>"forward"}},...}
+
+Run an Atlas Full-Text Search
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note:: Only Available on Atlas for MongoDB v4.2 and later
+
+   This aggregation pipeline operator is only available for collections hosted
+   on :atlas:`MongoDB Atlas </>` clusters running v4.2 or later that are
+   covered by an :atlas:`Atlas Search index </reference/atlas-search/index-definitions/>`.
+
+To specify a full-text search of one or more fields, you can create a
+``$search`` pipeline stage.
+
+This example creates pipeline stages to perform the following actions:
+
+- Search the ``name`` field for the term ``"Salt"``
+- Project only the ``_id`` and the ``name`` values of matching documents
+
+.. important::
+
+    To run the following example, you must create an Atlas Search index on the ``restaurants``
+    collection that covers the ``name`` field. Then, replace the ``"<your_search_index_name>"``
+    placeholder with the name of the index. To learn how to create an Atlas Search index,
+    see the :ref:`ruby-atlas-search-index` guide.
+
+.. io-code-block::
+    :copyable:
+
+    .. input:: /includes/aggregation.rb
+       :start-after: start-search-aggregation
+       :end-before: end-search-aggregation
+       :language: ruby
+       :dedent:
+
+    .. output::
+       :visible: false
+
+       {"_id"=>  {"$oid"=>  "..."}, "name"=>  "Fresh Salt"}
+       {"_id"=>  {"$oid"=>  "..."}, "name"=>  "Salt & Pepper"}
+       {"_id"=>  {"$oid"=>  "..."}, "name"=>  "Salt + Charcoal"}
+       {"_id"=>  {"$oid"=>  "..."}, "name"=>  "A Salt & Battery"}
+       {"_id"=>  {"$oid"=> "..."},  "name"=>  "Salt And Fat"}
+       {"_id"=>  {"$oid"=>  "..."}, "name"=>  "Salt And Pepper Diner"}
+
+Additional Information
+----------------------
+
+MongoDB Server Manual
+~~~~~~~~~~~~~~~~~~~~~
+
+To learn more about the topics discussed in this guide, see the following
+pages in the {+mdb-server+} manual:
+
+- To view a full list of expression operators, see :manual:`Aggregation
+  Operators </reference/operator/aggregation/>`.
+
+- To learn about assembling an aggregation pipeline and to view examples, see
+  :manual:`Aggregation Pipeline </core/aggregation-pipeline/>`.
+
+- To learn more about creating pipeline stages, see :manual:`Aggregation
+  Stages </reference/operator/aggregation-pipeline/>`.
+
+- To learn more about explaining MongoDB operations, see
+  :manual:`Explain Output </reference/explain-results/>` and
+  :manual:`Query Plans </core/query-plans/>`.
+
+.. TODO:
+ Aggregation Tutorials
+ ~~~~~~~~~~~~~~~~~~~~~
+
+.. To view step-by-step explanations of common aggregation tasks, see
+.. :ref:`ruby-aggregation-tutorials-landing`.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the Ruby driver's aggregation methods, see the
+API documentation for :ruby-api:`Aggregation <Collection/View/Aggregation.html>`.

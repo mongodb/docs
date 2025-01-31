@@ -1,0 +1,264 @@
+.. _ruby-databases-collections:
+
+=========================
+Databases and Collections
+=========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: table, row, organize, storage
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   Run a Command </databases-collections/run-command>
+
+Overview
+--------
+
+In this guide, you can learn how to use MongoDB databases and
+collections with {+driver-short+}.
+
+MongoDB organizes data into a hierarchy of the following levels:
+
+- **Databases**: The top level of data organization in a MongoDB instance.
+- **Collections**: MongoDB stores documents in collections. They are analogous to tables in relational databases.
+- **Documents**: Contain literal data such as string, numbers, dates, and other embedded documents.
+
+For more information about document field types and structure, see the
+:manual:`Documents </core/document/>` guide in the {+mdb-server+} manual.
+
+.. TODO: Add a diagram here
+
+Access a Database
+-----------------
+
+Access a database by creating a ``Mongo::Client`` instance with the desired 
+database name.
+
+The following example accesses a database named ``test_database``:
+
+.. literalinclude:: /includes/usage-examples/databases-collection.rb
+   :language: ruby
+   :dedent:
+   :start-after: start-access-db
+   :end-before: end-access-db
+
+
+Access a Collection
+-------------------
+
+Access a collection by using the ``[]`` method on an instance 
+of your database.
+
+The following example accesses a collection named ``test_collection``:
+
+.. literalinclude:: /includes/usage-examples/databases-collection.rb
+   :language: ruby
+   :dedent:
+   :emphasize-lines: 2
+   :start-after: start-access-cl
+   :end-before: end-access-cl
+
+.. tip::
+
+   If the provided collection name does not already exist in the database,
+   MongoDB implicitly creates the collection when you first insert data
+   into it.
+
+Create a Collection
+-------------------
+
+While the Ruby driver for MongoDB does not have a direct ``create_collection`` 
+method, you can use the ``create`` method to create a collection with
+specific options.
+
+The following example creates a collection called example_collection with 
+specific options:
+
+.. literalinclude:: /includes/usage-examples/databases-collection.rb
+   :language: ruby
+   :dedent:
+   :emphasize-lines: 2
+   :start-after: start-create-collection
+   :end-before: end-create-collection
+
+You can specify collection options such as maximum size, document validation 
+rules, and others by passing them as arguments to the command method with the 
+create command. For a full list of optional parameters, refer to the MongoDB 
+documentation on the :manual:`create command </reference/command/create/>`.
+
+Get a List of Collections
+-------------------------
+
+You can query for a list of collections in a database by calling the ``collections``
+method. This method returns an array of collection objects in the database.
+
+The following example calls the ``collections`` method and iterates over the array
+to print the results:
+
+.. literalinclude:: /includes/usage-examples/databases-collection.rb
+   :language: ruby
+   :dedent:
+   :start-after: start-get-list
+   :end-before: end-get-list
+
+To query for only the names of the collections in the database, call the 
+``collection_names`` method as follows:
+
+.. literalinclude:: /includes/usage-examples/databases-collection.rb
+   :language: ruby
+   :dedent:
+   :start-after: start-get-list-names
+   :end-before: end-get-list-names
+
+.. note::
+
+   The ``database.collections`` objects list provides more detailed information 
+   (i.e. each collection object can be further queried for metadata), while 
+   ``database.collection_names`` simply lists the collection names.
+
+Delete a Collection
+-------------------
+
+You can delete a collection from the database by using the ``drop`` method.
+
+The following example deletes the ``test_collection`` collection:
+
+.. literalinclude:: /includes/usage-examples/databases-collection.rb
+   :language: ruby
+   :dedent:
+   :start-after: start-delete
+   :end-before: end-delete
+
+.. warning:: Dropping a Collection Deletes All Data in the Collection
+
+   Dropping a collection from your database permanently deletes all
+   documents and all indexes within that collection.
+
+   Drop a collection only if the data in it is no longer needed. 
+
+.. _ruby-config-read-write:
+
+Configure Read and Write Operations
+-----------------------------------
+
+You can control how the driver routes read operations by setting a **read preference**.
+You can also control options for how the driver waits for acknowledgment of
+read and write operations on a replica set by setting a **read concern** and a
+**write concern**.
+
+By default, databases inherit these settings from the ``Mongo::Client`` instance, 
+and collections inherit them from the database. However, you can change these 
+settings on your database or collection by using one of the following methods:
+
+- ``database.with``: Gets the database and applies the new read preference, read
+  concern, and write concern.
+- ``collection.with``: Gets the collection and applies the new read preference,
+  read concern, and write concern.
+
+To change read or write settings with the preceding methods, call the method and 
+pass in the new read preference, read concern, or write concern. 
+
+The following example shows how to change the read preference, read concern, and
+write preference of a database called ``test-database`` with the ``database.with``
+method:
+
+.. literalinclude:: /includes/usage-examples/databases-collection.rb
+   :language: ruby
+   :dedent:
+   :start-after: start-with-database
+   :end-before: end-with-database
+
+The following example shows how to change the read preference, read concern, and 
+write concern of a collection: 
+
+.. literalinclude:: /includes/usage-examples/databases-collection.rb
+   :language: ruby
+   :dedent:
+   :start-after: start-with-collection
+   :end-before: end-with-collection
+
+To learn more about the read and write settings, see the following guides in the
+MongoDB Server manual:
+
+- :manual:`Read Preference </core/read-preference/>`
+- :manual:`Read Concern </reference/read-concern/>`
+- :manual:`Write Concern </reference/write-concern/>`
+
+Tag Sets
+~~~~~~~~
+
+In {+mdb-server+}, you can apply key-value :manual:`tags
+</core/read-preference-tags/>` to replica set
+members according to any criteria you choose. You can then use
+those tags to target one or more members for a read operation.
+
+By default, the MongoDB {+driver-short+} selects primary members for read operations.
+You can modify this behavior by setting read preferences and, optionally, tag sets.
+
+In the following code example, the tag set passed to the ``:read`` parameter
+instructs the {+driver-short+} to prefer reads from the New York data center 
+(``'dc':'ny'``) and to fall back to the San Francisco data center (``'dc':'sf'``):
+
+.. literalinclude:: /includes/usage-examples/databases-collection.rb
+   :language: ruby
+   :dedent:
+   :start-after: start-tag-sets
+   :end-before: end-tag-sets
+
+To learn more about replica sets, see the the MongoDB Server manual 
+:manual:`Replica Set Members </core/replica-set-members/>` page.
+
+Local Threshold
+~~~~~~~~~~~~~~~
+
+If multiple replica set members match the read preference and tag sets you specify,
+{+driver-short+} reads from the nearest replica set members of sharded clusters, 
+chosen according to their ping time.
+
+By default, the driver uses only those members whose ping times are within 15 milliseconds
+of the nearest member for queries. To distribute reads between members with
+higher latencies, pass the ``local_threshold`` option to the ``Mongo::Client`` constructor.
+
+The following example specifies a local threshold of 35 milliseconds:
+
+.. literalinclude:: /includes/usage-examples/databases-collection.rb
+   :language: ruby
+   :dedent:
+   :start-after: start-local-threshold-example
+   :end-before: end-local-threshold-example
+   :emphasize-lines: 5
+
+In the preceding example, {+driver-short+} distributes reads between matching members
+within 35 milliseconds of the closest member's ping time.
+
+.. note::
+  
+   {+driver-short+} ignores the value of ``local_threshold`` when communicating with a
+   replica set through a ``mongos`` instance. In this case, use the
+   :manual:`localThreshold </reference/program/mongos/#std-option-mongos.--localThreshold>`
+   command-line option.
+
+API Documentation
+-----------------
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- :ruby-api:`collections <Database.html#collections-instance_method>`
+- :ruby-api:`collection_names <Database.html#collection_names-instance_method>`
+- :ruby-api:`command <Monitoring/Event/CommandStarted.html#command-instance_method>`
+- :ruby-api:`drop database <Database.html#drop-instance_method>`
+- :ruby-api:`drop collection <Collection.html#drop-instance_method>`
+- :ruby-api:`with <Collection.html#with-instance_method>`

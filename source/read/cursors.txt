@@ -1,0 +1,187 @@
+.. _ruby-cursors:
+
+=========================
+Access Data From a Cursor
+=========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: read, results, oplog
+
+Overview
+--------
+
+In this guide, you can learn how to access data from a **cursor** by using the
+{+driver-short+}.
+
+A cursor is a mechanism that returns the results of a read operation in iterable
+batches. Because a cursor holds only a subset of documents at any given time,
+cursors reduce both memory consumption and the number of requests the driver sends to
+the server.
+
+You cannot access the ``Mongo::Cursor`` class directly from your application code. When
+you use the {+driver-short+} to perform a read operation, the driver returns a 
+``Mongo::Collection::View`` object that represents the query. Once you request
+query results from the ``Collection::View`` object, the driver internally stores 
+these results in a ``Cursor`` object. Then, the ``Collection::View`` exposes
+the ``Enumerable`` interface, backed by the ``Cursor`` class, from 
+which you can access the results.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``restaurants`` collection in the ``sample_restaurants``
+database from the :atlas:`Atlas sample datasets </sample-data>`. To access this collection
+from your {+language+} application, create a ``Mongo::Client`` object that connects to
+an Atlas cluster and assign the following values to your ``database`` and ``collection``
+variables:
+
+.. literalinclude:: /includes/read/cursors.rb
+   :language: ruby
+   :dedent:
+   :start-after: start-db-coll
+   :end-before: end-db-coll
+
+To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see the
+:atlas:`Get Started with Atlas </getting-started>` guide.
+
+.. _ruby-cursors-iterate:
+
+Access Cursor Contents Iteratively
+----------------------------------
+
+To iterate over the contents of a cursor, call the ``each`` method on the
+``Mongo::Collection::View`` object returned by the read operation. This instructs
+the driver to perform the operation and return each result stored in the
+``Mongo::Cursor``.
+
+The following example uses the ``find`` method to retrieve all documents
+in which the ``name`` field value is ``"Dunkin' Donuts"``. It then prints
+each document stored in the cursor:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/cursors.rb
+      :start-after: start-cursor-iterate
+      :end-before: end-cursor-iterate
+      :language: ruby
+      :dedent:
+
+   .. output::
+      :visible: false
+      
+      {"_id"=>BSON::ObjectId('...'), ..., "name"=>"Dunkin' Donuts", "restaurant_id"=>"40363098"}
+      {"_id"=>BSON::ObjectId('...'), ..., "name"=>"Dunkin' Donuts", "restaurant_id"=>"40379573"}
+      {"_id"=>BSON::ObjectId('...'), ..., "name"=>"Dunkin' Donuts", "restaurant_id"=>"40392410"}
+      ...
+
+Retrieve Documents Individually
+-------------------------------
+
+To retrieve documents from a cursor individually, call the ``first`` method
+on the ``Mongo::Collection::View`` object returned by the read operation.
+
+The following example finds all documents in a collection that have a ``name`` value
+of ``"Dunkin' Donuts"``. It then prints the first document in the cursor by calling the
+``first`` method.
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/cursors.rb
+      :start-after: start-cursor-first
+      :end-before: end-cursor-first
+      :language: ruby
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      {"_id"=>BSON::ObjectId('...'), ..., "name"=>"Dunkin' Donuts", "restaurant_id"=>"40363098"}
+
+Retrieve All Documents
+----------------------
+
+.. warning::
+
+   If the number and size of documents returned by your query exceeds available
+   application memory, your program will crash. If you expect a large result
+   set, :ref:`access your cursor iteratively <ruby-cursors-iterate>`.
+
+To retrieve all documents from a cursor, convert the cursor into an array by using
+the ``to_a`` method on its corresponding ``Mongo::Collection::View`` object.
+
+The following example calls the ``to_a`` method to store the cursor results
+in an array:
+
+.. literalinclude:: /includes/read/cursors.rb
+   :language: ruby
+   :dedent:
+   :start-after: start-cursor-array
+   :end-before: end-cursor-array
+
+.. _ruby-tailable-cursor:
+
+Tailable Cursors
+----------------
+
+When querying on a :manual:`capped collection </core/capped-collections/>`, you
+can use a **tailable cursor** that remains open after the client exhausts the
+results in a cursor. To create a tailable cursor, pass the ``cursor_type`` option to
+the ``find`` method. Set this option to ``:tailable``.
+
+For example, you can create a capped collection called ``vegetables``, as
+shown in the following code:
+
+.. literalinclude:: /includes/read/cursors.rb
+    :language: ruby
+    :dedent:
+    :start-after: start-capped-coll
+    :end-before: end-capped-coll
+
+Then, you can use the following code to retrieve all documents
+in the ``vegetables`` collection and store the results in a tailable
+cursor. After the cursor is exhausted, it remains open until
+retrieving three documents:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/cursors.rb
+      :start-after: start-tailable
+      :end-before: end-tailable
+      :language: ruby
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      {"_id"=>BSON::ObjectId('...'), "name"=>"cauliflower"}
+      {"_id"=>BSON::ObjectId('...'), "name"=>"zucchini"}
+
+If you insert another document into the ``vegetables`` collection, the preceding code prints
+the new document and does not retrieve more results from the cursor.
+
+To learn more about tailable cursors, see :manual:`Tailable Cursors
+</core/tailable-cursors/>` in the {+mdb-server+} manual.
+
+API Documentation
+-----------------
+
+To learn more about any of the functions discussed in this guide, see the following API
+documentation:
+
+- :ruby-api:`Mongo::Cursor <Cursor.html>` 
+- :ruby-api:`Mongo::Collection::View <Collection/View.html>` 
+- :ruby-api:`find <Collection.html#find-instance_method>` 
+- :ruby-api:`each <Cursor.html#each-instance_method>` 

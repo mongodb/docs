@@ -1,0 +1,213 @@
+.. _ruby-write-replace:
+
+=================
+Replace Documents
+=================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: modify, change, code example
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to perform a **replace
+operation** on a document in a MongoDB collection. A replace operation
+removes all fields and values from a specified document except the
+``_id`` field, and adds new fields and values that you specify. This
+operation differs from an update operation, which changes only
+specified fields in one or more documents.
+
+To learn more about update operations, see the
+:ref:`ruby-write-update` guide.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``restaurants`` collection in the ``sample_restaurants``
+database from the :atlas:`Atlas sample datasets </sample-data>`. To access this collection
+from your {+language+} application, create a ``Mongo::Client`` object that connects to an Atlas cluster
+and assign the following values to your ``database`` and ``collection`` variables:
+
+.. literalinclude:: /includes/write/replace.rb
+    :language: ruby
+    :dedent:
+    :start-after: start-db-coll
+    :end-before: end-db-coll
+
+To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see the
+:atlas:`Get Started with Atlas </getting-started>` guide.
+
+Replace Operation
+-----------------
+
+You can perform a replace operation in MongoDB by using the
+``replace_one`` method. This method removes all fields except the
+``_id`` field from the first document that matches the specified query filter. It
+then adds the fields and values you specify to the empty document.
+
+Required Parameters
+~~~~~~~~~~~~~~~~~~~
+
+You must pass the following parameters to the ``replace_one`` method:
+
+- **Query filter**: Specifies which documents to update. To learn
+  more about query filters, see the :ref:`ruby-specify-query`
+  guide.
+
+- **Replacement document**: Specifies the fields and values that
+  you want to replace the existing fields and values with.
+
+Replace Example
+~~~~~~~~~~~~~~~
+
+The following example uses the ``replace_one`` method to replace the
+fields and values of a document in which the value of the ``name`` field
+is ``"Primola Restaurant"``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/write/replace.rb
+      :start-after: start-replace-one
+      :end-before: end-replace-one
+      :language: ruby
+      :dedent:
+
+   .. output::
+      :language: console
+      :visible: false
+
+      Replaced 1 document(s)
+
+.. important::
+
+   The value of the ``_id`` field is immutable. If your replacement
+   document specifies a value for the ``_id`` field, it must be the same
+   as the ``_id`` value of the existing document or the driver raises a
+   ``WriteError``.
+
+Customize the Replace Operation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can pass a ``Hash`` object as a parameter to the ``replace_one`` method to set options to
+configure the replace operation. If you don't specify any options, the driver performs the replace
+operation with default settings.
+
+The following table describes the options that you can use to
+configure the replace operation:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Option
+     - Description
+
+   * - ``upsert``
+     - | Specifies whether the replace operation performs an upsert operation if no 
+         documents match the query filter. For more information, see :manual:`upsert
+         behavior </reference/method/db.collection.replaceOne/#upsert>`
+         in the {+mdb-server+} manual.
+       | Defaults to ``false``.
+
+   * - ``bypass_document_validation``
+     - | Specifies whether the update operation bypasses document validation. This lets you 
+         update documents that don't meet the schema validation requirements, if any 
+         exist. For more information about schema validation, see :manual:`Schema
+         Validation </core/schema-validation/#schema-validation>` in the {+mdb-server+} manual.
+       | Defaults to ``false``.
+
+   * - ``collation``
+     - | Specifies the kind of language collation to use when sorting
+         results. For more information, see :manual:`Collation </reference/collation/#std-label-collation>`
+         in the {+mdb-server+} manual.
+
+   * - ``session``
+     - | Specifies the session to use for the operation. To learn more about sessions, see
+         :manual:`Client Sessions and Causal Consistency Guarantees </core/read-isolation-consistency-recency/#std-label-sessions>`
+         in the {+mdb-server+} manual.
+
+   * - ``hint``
+     - | Sets the index to use when matching documents. 
+         For more information, see the :manual:`hint statement
+         </reference/method/db.collection.replaceOne/#std-label-replace-one-hint>`
+         in the {+mdb-server+} manual.
+
+   * - ``let``
+     - | Provides a map of parameter names and values to set top-level
+         variables for the operation. Values must be constant or closed
+         expressions that don't reference document fields.
+
+The following code performs the same replace operation as the preceding example, but sets the ``upsert``
+option to ``true``. This instructs the driver to insert a new document that has the fields
+and values specified in the replacement document if the query filter doesn't match any
+existing documents:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/write/replace.rb
+      :start-after: start-replace-options
+      :end-before: end-replace-options
+      :language: ruby
+      :dedent:
+
+   .. output::
+      :language: console
+      :visible: false
+
+      Replaced 1 document(s)
+
+Return Value
+~~~~~~~~~~~~
+
+The ``replace_one`` method returns a ``Mongo::Operation::Update::Result`` 
+object. You can use the following methods to access information from
+a ``Result`` instance:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``matched_count``
+     - | Returns the number of documents that matched the query filter.
+
+   * - ``modified_count``
+     - | Returns the number of documents modified by the update operation. If an updated
+         document is identical to the original, it is not included in this
+         count.
+         
+   * - ``upserted_count``
+     - | Returns the number of documents upserted.
+
+   * - ``upserted_id``
+     - | Returns the ``_id`` value of the document that the driver upserted
+         into the database, if any.
+
+Additional Information 
+----------------------
+
+To view a runnable code example that demonstrates how to replace a
+document, see :ref:`ruby-write`.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- :ruby-api:`replace_one <Collection.html#replace_one-instance_method>`
+- :ruby-api:`Mongo::Operation::Update::Result <Operation/Update/Result.html>`

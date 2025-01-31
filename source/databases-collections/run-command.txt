@@ -1,0 +1,184 @@
+.. _ruby-run-command:
+
+======================
+Run a Database Command
+======================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: administration, code example
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to
+run a database command. You can use database commands to perform a
+variety of administrative and diagnostic tasks, such as fetching server
+statistics, initializing a replica set, or running an aggregation pipeline.
+
+.. important:: Prefer Driver Methods to Database Commands
+
+   The driver provides wrapper methods for many database commands.
+   If possible, we recommend using these methods instead of executing
+   database commands.
+   
+   To perform administrative tasks, use the :mongosh:`MongoDB Shell </>`
+   instead of the {+driver-short+}. The shell provides helper methods
+   that might not be available in the driver.
+   
+   If there are no available helpers in the driver or the shell, you
+   can use the ``db.runCommand()`` shell method or the driver's
+   ``command`` method, which is described in this guide.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``sample_restaurants``
+database from the :atlas:`Atlas sample datasets </sample-data>`. To access this database
+from your {+language+} application, create a ``Mongo::Client`` object that connects to an Atlas cluster
+and assign the following value to your ``database`` variable:
+
+.. literalinclude:: /includes/databases-collections/run-command.rb
+    :language: scala
+    :dedent:
+    :start-after: start-db
+    :end-before: end-db
+
+To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see the
+:atlas:`Get Started with Atlas </getting-started>` guide.
+
+Execute a Command
+-----------------
+
+To run a database command, run the ``command`` instance method of a ``Mongo::Database``
+instance and pass the name of the operation to run as a parameter.
+
+The following example calls the ``command`` method to run the ``hello`` command, which
+returns information about the server:
+
+.. literalinclude:: /includes/databases-collections/run-command.rb
+   :language: scala
+   :dedent:
+   :start-after: start-hello
+   :end-before: end-hello
+
+.. tip::
+
+   To view a full list of database commands and their corresponding
+   parameters, see :manual:`Database Commands </reference/command/>` in 
+   the {+mdb-server+} manual.
+
+Set a Read Preference
+----------------------
+
+The ``command`` method does not inherit the read preference you might
+have set on your ``Database`` instance. By default, ``command``
+uses the ``primary`` read preference.
+
+You can set a read preference for the command execution by passing the
+``:read`` opotion to the ``command`` method, as
+shown in the following code:
+   
+.. literalinclude:: /includes/databases-collections/run-command.rb
+   :language: scala
+   :dedent:
+   :start-after: start-readpref
+   :end-before: end-readpref
+
+.. tip::
+
+   To learn more about read preference options, see :manual:`Read
+   Preference </core/read-preference/>` in the {+mdb-server+} manual.
+
+Response
+--------
+
+The ``command`` method returns a ``Mongo::Operation::Result`` that contains
+the response from the database for the given command.
+
+You can access the fields of the raw command response document by using the following
+methods:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Method
+     - Description
+
+   * - ``acknowledged?``
+     - Returns ``true`` if the server acknowledged the command, and ``false`` otherwise.
+
+   * - ``inspect``
+     - Returns a formatted string representation of the command response.
+
+   * - ``ok?``
+     - Returns ``true`` if the command succeeded, and ``false`` otherwise. If the ``ok?``
+       method returns ``false``, the driver raises a ``Mongo::Error::OperationFailure`` .
+
+   * - ``cluster_time``
+     - Returns the cluster time reported in the server response. Cluster time is a
+       logical time used for the ordering of operations. This field only
+       applies to commands run on replica sets or sharded cluster.
+
+   * - ``operation_time``
+     - Returns the logical time of the operation execution.
+
+For a full list of methods available on the ``Result`` object, see
+the :ruby-api:`API documentation <Operation/Result.html>`.
+
+.. tip::
+
+   To learn more about logical time, see the Wikipedia entry on
+   the :wikipedia:`logical clock <w/index.php?title=Logical_clock&oldid=1072010149>`.
+
+Example
+~~~~~~~
+
+The following example runs the ``dbStats`` command to retrieve
+storage statistics for the ``sample_restaurants`` database, then prints the
+command results by using the ``inspect`` method:
+
+.. literalinclude:: /includes/databases-collections/run-command.rb
+   :language: ruby
+   :dedent:
+   :start-after: start-print-command
+   :end-before: end-print-command
+
+The output of this command includes information about the data stored in
+the database, as shown in the following code:
+
+.. code-block:: none
+   :copyable: false
+   
+   {"db"=>"sample_restaurants", "collections"=>4, "views"=>0, "objects"=>18767, "avgObjSize"=>596.1911866574306,
+   "dataSize"=>11188720, "storageSize"=>7528448, "totalFreeStorageSize"=>0, "numExtents"=>0, "indexes"=>6,
+   "indexSize"=>1519616, "indexFreeStorageSize"=>0, "fileSize"=>0, "nsSizeMB"=>0, "ok"=>1}
+
+Additional Information
+----------------------
+
+For more information about the concepts in this guide, see the following
+documentation in the {+mdb-server+} manual:
+
+- :manual:`db.runCommand() </reference/method/db.runCommand/>`
+- :manual:`Database Commands </reference/command/>`
+- :manual:`hello Command </reference/command/hello/>`
+- :manual:`dbStats Command </reference/command/dbStats/>`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- :ruby-api:`command <Database.html#command-instance_method>`

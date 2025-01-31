@@ -1,0 +1,240 @@
+.. _ruby-crud-write-read-pref:
+
+===============================
+CRUD Operations on Replica Sets
+===============================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta:: 
+   :keywords: ruby, customize, preferences, replica set, consistency
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use the **write concern**, **read concern**, and
+**read preference** configurations to modify the way that MongoDB runs
+create, read, update, and delete (CRUD) operations on replica sets.
+
+You can set write concern, read concern, and read preference options at the following
+levels:
+
+- Client, which sets the *default for all operation executions* unless overridden
+- Session
+- Transaction
+- Database
+- Collection
+
+The preceding list also indicates the increasing order of precedence of the option
+settings. For example, if you set a read concern level for a transaction, it will
+override a read concern level set for the client.
+
+These options allow you to customize the causal consistency and availability of the data
+in your replica sets.
+
+Write Concern
+-------------
+
+The write concern specifies the level of acknowledgement requested from MongoDB for 
+write operations, such as an insert or update, before the operation successfully returns.
+Operations that do not specify an explicit write concern inherit the global default write
+concern settings.
+
+For more information, see :manual:`Write Concern </reference/write-concern/>` in the
+{+mdb-server+} manual. For detailed API documentation, see the
+:ruby-api:`Write Concern API documentation <Client.html#write_concern-instance_method>`.
+
+The following table describes the ``write_concern`` parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 25 50
+
+   * - Parameter
+     - Type
+     - Description
+  
+   * - ``w`` *(optional)*
+     - integer or string
+     - Requests acknowledgment that the write operation has propagated to a specified
+       number of ``mongod`` instances or to ``mongod`` instances that are labelled
+       with specified tags.
+
+   * - ``wtimeoutMS`` *(optional)*
+     - integer
+     - Specifies a time limit to prevent write operations from blocking indefinitely.
+
+   * - ``journal`` *(optional)*
+     - boolean
+     - Requests acknowledgment that the write operation has been written to the 
+       on-disk journal.
+
+Example: Set the Write Concern for a Single Write Operation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following code creates a new document and specifies the ``w`` and ``wtimeout``
+write concern settings:
+
+.. literalinclude:: /includes/usage-examples/read-write-pref.rb
+   :language: ruby
+   :dedent:
+   :start-after: start-write-concern
+   :end-before: end-write-concern
+
+Example: Retrieve and Apply an Existing Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following code uses the ``new_write_concern`` method to construct a ``write_concern`` 
+from the options of an existing database reference, ``myDB``. Then the new
+write concern is applied to an inserted document.
+
+.. literalinclude:: /includes/usage-examples/read-write-pref.rb
+   :language: ruby
+   :dedent:
+   :start-after: start-write-concern-2
+   :end-before: end-write-concern-2
+
+.. note::
+
+    ``myDB`` can be replaced with a reference to any entity that accepts a write concern option.
+
+Read Concern
+------------
+
+The read concern specifies the following behaviors:
+
+- Level of :manual:`causal consistency </core/causal-consistency-read-write-concerns/>`
+  across replica sets
+
+- :manual:`Isolation guarantees </core/read-isolation-consistency-recency/>`
+  maintained during a query
+
+You can specify the read concern setting by using the ``level`` parameter. The default
+read concern level is ``local``. This means that the client returns the data from the
+replica set member that the client is connected to, with no guarantee that the data has
+been written to all replica set members.
+
+.. note::
+
+  Lower read concern level requirements may reduce latency. 
+
+For more information about read concerns or read concern levels, see 
+:manual:`Read Concern </reference/read-concern/>` in the {+mdb-server+}  manual. For more
+detail on the ``read_concern`` type and definitions of the read concern levels, see
+:ruby-api:`Read Concern <Client.html#read_concern-instance_method>` 
+in the API documentation.
+
+Example: Set the Read Concern Level of an Aggregation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following code sets the read concern level of an aggregation to ``"available"``:
+
+.. literalinclude:: /includes/usage-examples/read-write-pref.rb
+   :language: ruby
+   :dedent:
+   :start-after: start-read-concern
+   :end-before: end-read-concern
+
+.. tip::
+
+   To learn more about aggregation operations, see the
+   :ref:`ruby-aggregation` guide.
+
+Example: Change the Read Concern of a Database
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following code changes the read concern level of a database to ``"local"``:
+
+.. literalinclude:: /includes/usage-examples/read-write-pref.rb
+   :language: ruby
+   :dedent:
+   :start-after: start-change-read-concern
+   :end-before: end-change-read-concern
+
+Read Preference
+---------------
+
+The read preference determines which member of a replica set MongoDB reads when running a
+query.
+
+For more detailed API documentation, see the :ruby-api:`Read Preference API
+documentation <Collection/View/Readable.html#read_preference-instance_method>`.
+
+The following table shows options you can use to customize how the server evaluates 
+members:
+
+.. list-table::
+   :widths: 25 25 50
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+     - Description
+
+   * - ``mode``
+     - ``Symbol``
+     - Specifies a requirement or preference for which replica set
+       member the server reads from. The default mode, ``:primary``, specifies that
+       operations read from the primary member of the replica set.
+
+   * - ``tags`` *(optional)*
+     - ``Array<Hash>``
+     - Assigns tags to secondary replica set members to customize how the server evaluates
+       them. Tags cannot be used with the ``:primary`` read preference mode setting.
+
+   * - ``options`` *(optional)*
+     - ``Hash``
+     - Sets various options, including :manual:`hedge </core/read-preference-hedge-option/>`
+       and :manual:`maxStalenessSeconds </core/read-preference-staleness/>` that can be
+       applied to your read preference.
+
+Example: Set Read Preference and Concerns for a Transaction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following code sets the read preference, read concern, and write concern for
+the operations in a transaction:
+
+.. literalinclude:: /includes/usage-examples/read-write-pref.rb
+   :language: ruby
+   :dedent:
+   :start-after: start-read-preference
+   :end-before: end-read-preference
+
+.. tip::
+
+   To learn more about transactions, see the
+   :ref:`ruby-transactions` guide.
+
+Example: Set the Read Preference of a Cluster in the Connection String
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This code example creates a ``MongoClient`` that uses the ``secondary`` read 
+preference mode when performing queries on a cluster:
+
+.. literalinclude:: /includes/usage-examples/read-write-pref.rb
+   :language: ruby
+   :dedent:
+   :start-after: start-read-preference-cluster
+   :end-before: end-read-preference-cluster
+
+The preceding example also sets the ``maxStalenessSeconds`` option to ``120``. 
+For more information about connection string options, see the :manual:`Connection String Options </reference/connection-string/#connection-string-options>`
+section in the {+mdb-server+} manual.
+
+API Documentation
+-----------------
+
+To learn more about the methods and types mentioned in this guide, see the following API
+documentation:
+
+- :ruby-api:`Write Concern <Client.html#write_concern-instance_method>`
+- :ruby-api:`Read Concern <Client.html#read_concern-instance_method>`
+- :ruby-api:`Read Preference <Collection/View/Readable.html#read_preference-instance_method>`

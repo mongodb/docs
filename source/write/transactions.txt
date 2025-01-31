@@ -1,0 +1,146 @@
+.. _ruby-transactions:
+
+============
+Transactions
+============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, ACID compliance, multi-document
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to perform
+**transactions**. Transactions allow you to perform a series of operations that
+change data only if the entire transaction is committed. If any operation in the
+transaction does not succeed, the driver stops the transaction and discards all
+data changes before they ever become visible. This feature is called
+**atomicity**.
+
+In MongoDB, transactions run within logical **sessions**. A session is a
+grouping of related read or write operations that you want to run sequentially.
+Sessions enable causal consistency for a group of operations and allow you to
+run operations in an **ACID-compliant** transaction, which is a transaction that
+meets an expectation of atomicity, consistency, isolation, and durability.
+MongoDB guarantees that the data involved in your transaction operations remains
+consistent, even if the operations encounter unexpected errors.
+
+When using the {+driver-short+}, you can start a session by calling the
+``start_session`` method on your client. Then, you can perform transactions
+within the session.
+
+.. warning::
+
+   Use a session only in operations running on the ``Mongo::Client`` that
+   created it. Using a session with a different ``Mongo::Client`` results in
+   operation errors.
+
+Methods 
+-------
+
+After calling the ``start_session`` method to start a session, you can use
+methods from the ``Mongo::Session`` class to manage the session state. The
+following table describes the methods you can use to manage a transaction:
+
+.. list-table::
+   :widths: 25 75
+   :stub-columns: 1
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``start_transaction``
+     - | Starts a new transaction on this session. You cannot start a
+         transaction if there's already an active transaction running in
+         the session.
+       |
+       | You can set transaction options including read concern, write concern,
+         and read preference by passing a ``Hash`` as a parameter.
+
+   * - ``commit_transaction``
+     - | Commits the active transaction for this session. This method returns an
+         error if there is no active transaction for the session, the
+         transaction was previously ended, or if there is a write conflict.
+
+   * - ``abort_transaction``
+     - | Ends the active transaction for this session. This method returns an
+         error if there is no active transaction for the session or if the
+         transaction was committed or ended.
+
+   * - ``with_transaction``
+     - | Starts a transaction prior to calling the supplied block, and commits
+         the transaction when the block finishes. If any of the operations in
+         the block, or the commit operation, result in a transient transaction
+         error, the block and/or the commit will be executed again.
+
+.. _ruby-txn-example:
+
+Transaction Example
+-------------------
+
+This example defines a ``run_transaction`` method that modifies data in the
+collections of the ``sample_mflix`` database. The code performs the following
+actions:
+
+- Creates ``Mongo::Collection`` instances to access the ``movies`` and ``users``
+  collections.
+- Specifies the read and write concerns for the transaction. 
+- Starts the transaction. 
+- Inserts a document into the ``movies`` collection and prints the results. 
+- Updates a document in the ``users`` collection and prints the results.
+
+.. literalinclude:: /includes/write/transaction.rb
+   :language: ruby
+   :start-after: start-txn
+   :end-before: end-txn
+   :dedent:
+   :copyable:
+
+.. sharedinclude:: dbx/transactions-parallelism.rst
+
+   .. replacement:: driver-specific-content
+    
+      If you're using {+mdb-server+} v8.0 or later, you can perform
+      write operations on multiple namespaces within a single transaction by using
+      the ``bulk_write`` method. For more information, see the :ref:`<ruby-bulk-write>`
+      guide.
+
+Additional Information
+----------------------
+
+To learn more about the concepts mentioned in this guide, see the
+following pages in the {+mdb-server+} manual:
+
+- :manual:`Transactions </core/transactions/>`
+- :manual:`Server Sessions </reference/server-sessions/>`
+- :manual:`Read Isolation, Consistency, and Recency
+  </core/read-isolation-consistency-recency/>`
+
+To learn more about ACID compliance, see the :website:`A Guide to ACID Properties in Database Management Systems
+</basics/acid-transactions>` article on the MongoDB website.
+
+To learn more about insert operations, see the
+:ref:`ruby-write-insert` guide.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the methods and types mentioned in this
+guide, see the following API documentation:
+
+- :ruby-api:`Mongo::Session <Session.html>`
+- :ruby-api:`start_transaction <Session.html#start_transaction-instance_method>`
+- :ruby-api:`commit_transaction <Session.html#commit_transaction-instance_method>`
+- :ruby-api:`abort_transaction <Session.html#abort_transaction-instance_method>`
+- :ruby-api:`with_transaction <Session.html#with_transaction-instance_method>`

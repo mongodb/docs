@@ -1,0 +1,135 @@
+.. _ruby-client:
+
+=======================
+Create a MongoDB Client
+=======================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: connection string, URI, server, deployment
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+To connect to a MongoDB deployment, you need two things:
+
+- **Connection URI**, also known as a *connection string*, which tells the {+driver-short+}
+  which MongoDB deployment to connect to.
+- **Mongo::Client** object, which creates the connection to the MongoDB deployment
+  and lets you perform operations on it.
+
+You can also use either of these components to customize the way the {+driver-short+} behaves
+while connected to MongoDB.
+
+This guide shows you how to create a connection string and use a ``Mongo::Client`` object
+to connect to MongoDB.
+
+.. _ruby-connection-uri:
+
+Connection URI
+--------------
+
+A standard connection string includes the following components:
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Component
+     - Description
+
+   * - ``mongodb://``
+
+     - Required. A prefix that identifies this as a string in the
+       standard connection format.
+
+   * - ``db_username:db_password``
+
+     - Optional. Authentication credentials. If you include these, the client
+       authenticates the user against the database specified in ``authSource``.
+       For more information about the ``authSource`` connection option, see the
+       :ref:`ruby-authentication-mechanisms` guide. 
+
+   * - ``hostname[:port]``
+
+     - Required. The hostname and optional port number where MongoDB is running. If you don't
+       include the port number, the driver uses the default port, ``27017``.
+
+   * - ``/defaultauthdb``
+     
+     - Optional. The authentication database to use if the
+       connection string includes ``db_username:db_password@``
+       authentication credentials but not the ``authSource`` option. If you don't include 
+       this component, the client authenticates the user against the ``admin`` database.
+
+   * - ``?<options>``
+
+     - Optional. A query string that specifies connection-specific
+       options as ``<name>=<value>`` pairs.
+       See :ref:`ruby-connection-options` for a full description of these options.
+
+For more information about creating a connection string, see
+:manual:`Connection Strings </reference/connection-string>` in the
+MongoDB Server documentation.
+
+Create a Mongo::Client
+----------------------
+
+To create a connection to MongoDB, construct an instance of the ``Mongo::Client`` class,
+passing the connection URI to the constructor.
+The following example constructs a ``Mongo::Client`` object to connect to a MongoDB 
+deployment on port ``27017`` of ``localhost``:
+
+.. code-block:: ruby
+
+   client = Mongo::Client.new("mongodb://localhost:27017")
+
+Alternatively, you can pass an array of strings, each containing a hostname and port
+number, to the ``Mongo::Client`` constructor. The following example shows how to use this
+syntax to connect to port ``27017`` of ``localhost``:
+
+.. code-block:: ruby
+
+   client = Mongo::Client.new(['localhost:27017'])
+
+.. tip:: Reuse Your Client
+
+   Because each ``Mongo::Client`` object represents a pool of connections to the
+   database, most applications require only a single instance of
+   ``Mongo::Client``, even across multiple requests.
+
+Close a Mongo::Client
+---------------------
+
+When you're finished using a ``Mongo::Client`` object, call the object's ``close`` method,
+as shown in the following example. This frees up all resources associated with the object.
+
+.. code-block:: ruby
+
+   client.close
+
+Alternatively, you can use Ruby's block syntax to create a ``Mongo::Client`` object. When
+you use this syntax, the client is automatically closed after the block finishes executing.
+
+The following example shows how to use block syntax to create a ``Mongo::Client`` object:
+
+.. code-block:: ruby
+
+   Mongo::Client.new("mongodb://localhost:27017") do |client|
+     # work with the client
+   end
+
+API Documentation
+-----------------
+
+To learn more about creating a ``Mongo::Client`` object with the {+driver-short+},
+see the API documentation for :ruby-api:`Mongo::Client. <Client.html>`

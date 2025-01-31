@@ -1,0 +1,236 @@
+.. _ruby-authentication-aws:
+
+==================================
+AWS Identity and Access Management
+==================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: amazon web services, code example
+
+Overview
+--------
+
+.. note::
+   
+   AWS authentication is available only in the MongoDB Enterprise Edition for MongoDB 4.4
+   and later.
+
+The AWS authentication mechanism uses AWS `Identity and Access Management (IAM)
+<https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html>`_
+and AWS `Security Token Service (STS)
+<https://docs.aws.amazon.com/STS/latest/APIReference/Welcome.html>`_
+to prove the client's identity to a MongoDB deployment. The following steps describe the
+AWS authentication process:
+
+1. The client uses AWS IAM credentials to create a signature that is sent to
+   the MongoDB deployment.
+2. The deployment uses the client's signature to send a request to AWS STS.
+3. If the request succeeds, STS returns the Amazon Resource Name (ARN) of
+   the IAM user or role that corresponds to the client's credentials.
+4. The deployment uses the returned ARN to look up the user. The
+   client is authenticated as this user.
+
+.. note::
+
+   The client and server use different usernames. The client uses the AWS access key ID,
+   but the server uses the ARN of the IAM user or role corresponding to the access key ID.
+
+AWS credentials include the following components:
+
+- Access key ID
+- Secret access key
+- Optional session token
+
+Authentication with `AWS IAM credentials
+<https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html>`__
+uses the access key ID and the secret access key. Authentication with
+`temporary AWS IAM credentials
+<https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp.html>`__
+uses all three components.
+
+.. note::
+
+   The driver never sends the secret access key or the session token over
+   the network.
+
+Temporary credentials are used with:
+
+- STS `Assume Role <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-api.html>`__
+  requests.
+- `EC2 instance roles <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html>`__.
+- `ECS task roles <https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html>`__.
+- `AWS Lambda environment <https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html>`__.
+- `IAM roles for service accounts <https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html>`__.
+
+Code Placeholders
+~~~~~~~~~~~~~~~~~
+
+The code examples on this page use the following placeholders:
+
+- ``<hostname>``: The network address of your MongoDB deployment
+- ``<aws-access-key-id>``: The AWS access key ID
+- ``<aws_secret_access_key>``: The AWS secret access key
+- ``<aws_session_token>``: The AWS session token
+
+Using AWS IAM Authentication in Your Application
+------------------------------------------------
+
+The following sections describe how to use the AWS IAM authentication mechanism in your
+application.
+
+Providing Credentials Explicitly
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can provide regular (non-temporary) IAM credentials as client options or by using a URI.
+Select the :guilabel:`Connection String` or :guilabel:`Client Options` tab to
+see the corresponding syntax:
+
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: default-connection-string
+
+      .. literalinclude:: /includes/authentication/aws-iam.rb
+         :start-after: start-aws-connection-string
+         :end-before: end-aws-connection-string
+         :language: ruby
+         :copyable:
+         :dedent:
+
+   .. tab:: Client Options
+      :tabid: default-mongo-credential
+
+      .. literalinclude:: /includes/authentication/aws-iam.rb
+         :start-after: start-aws
+         :end-before: end-aws
+         :language: ruby
+         :copyable:
+         :dedent:
+
+.. note::
+
+  If you provide credentials in a URI, you must percent-encode them.
+
+Providing Temporary Credentials
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To provide temporary credentials, specify the session token in the
+client options or by using a URI. Select the :guilabel:`Connection String`
+or :guilabel:`Client Options` tab to see the corresponding syntax:
+
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: default-connection-string
+
+      .. literalinclude:: /includes/authentication/aws-iam.rb
+         :start-after: start-aws-temp-connection-string
+         :end-before: end-aws-temp-connection-string
+         :language: ruby
+         :copyable:
+         :dedent:
+
+   .. tab:: Client Options
+      :tabid: default-mongo-credential
+
+      .. literalinclude:: /includes/authentication/aws-iam.rb
+         :start-after: start-aws-temp
+         :end-before: end-aws-temp
+         :language: ruby
+         :copyable:
+         :dedent:
+
+Automatically Retrieving Credentials
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The client can retrieve credentials from the environment or from EC2 or ECS
+metadata endpoints. To retrieve credentials automatically, specify the
+AWS authentication mechanism but do not specify a username or a password. Select the
+:guilabel:`Connection String` or :guilabel:`Client Options` tab to see the corresponding syntax:
+
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: default-connection-string
+
+      .. literalinclude:: /includes/authentication/aws-iam.rb
+         :start-after: start-aws-automatic-retrieval-connection-string
+         :end-before: end-aws-automatic-retrieval-connection-string
+         :language: ruby
+         :copyable:
+         :dedent:
+
+   .. tab:: Client Options
+      :tabid: default-mongo-credential
+
+      .. literalinclude:: /includes/authentication/aws-iam.rb
+         :start-after: start-aws-automatic-retrieval
+         :end-before: end-aws-automatic-retrieval
+         :language: ruby
+         :copyable:
+         :dedent:
+
+The driver tries to obtain credentials from the following sources, in
+the specified order:
+
+- ``AWS_ACCESS_KEY_ID``, ``AWS_SECRET_ACCESS_KEY`` and ``AWS_SESSION_TOKEN``
+  environment variables. These environment variables are recognized by
+  a variety of AWS-related libraries and tools, such as the official
+  AWS Ruby SDK and the AWS CLI. They are also defined when running in an
+  AWS Lambda environment.
+- AWS STS `AssumeRoleWithWebIdentity action
+  <https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRoleWithWebIdentity.html>`__.
+  This mechanism returns credentials associated with the service account token, and
+  requires the following environment variables to be set:
+
+  - ``AWS_WEB_IDENTITY_TOKEN_FILE``: Path to a file containing the service
+    account token.
+  - ``AWS_ROLE_ARN``: The Amazon Resource Name (ARN) of the role that the
+    caller is assuming.
+  - ``AWS_ROLE_SESSION_NAME`` (optional): Identifier for the assumed role
+    session. If this variable is empty, the driver generates a random identifier.
+
+- The AWS `ECS task metadata
+  <https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html>`__ endpoint.
+  This endpoint returns credentials associated with the ECS task role assigned to
+  the container.
+- The AWS `EC2 instance metadata
+  <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html>`__ endpoint.
+  This endpoint returns credentials associated with the EC2 instance role assigned to
+  the instance.
+
+.. important::
+
+   A credentials source must provide a complete
+   set of credentials. For example, if your application uses the ``AWS_ACCESS_KEY_ID``
+   and ``AWS_SECRET_ACCESS_KEY`` environment variables, the driver raises an error if only
+   one of these variables has a value.
+
+.. note::
+
+   If an application runs in an ECS container on an EC2 instance and
+   the container is allowed access to the instance metadata,
+   the driver attempts to retrieve AWS credentials from the EC2 instance metadata endpoint.
+   If the driver retrieves credentials in this way, your application can authenticate as the IAM
+   role assigned to the EC2 instance.
+
+   To learn how to prevent containers from accessing EC2 instance metadata,
+   see the `AWS documentation <https://aws.amazon.com/premiumsupport/knowledge-center/ecs-container-ec2-metadata>`__.
+
+API Documentation
+-----------------
+
+To learn more about any of the methods or types discussed on this
+page, see the following API documentation:
+
+- :ruby-api:`Mongo::Client <Client.html>`

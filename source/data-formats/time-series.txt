@@ -1,0 +1,202 @@
+.. _ruby-time-series:
+
+================
+Time Series Data
+================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta:: 
+   :keywords: ruby, time series, collections, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use {+driver-short+} to store
+and interact with **time series data**.
+
+Time series data is composed of the following components:
+
+- Measured quantity
+- Timestamp for the measurement
+- Metadata that describes the measurement
+
+The following table describes sample situations for which you could store time
+series data:
+
+.. list-table::
+   :widths: 33, 33, 33
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Situation
+     - Measured Quantity
+     - Metadata
+
+   * - Recording monthly sales by industry
+     - Revenue in USD
+     - Company, country
+
+   * - Tracking weather changes
+     - Precipitation level
+     - Location, sensor type
+
+   * - Recording fluctuations in housing prices
+     - Monthly rent price
+     - Location, currency
+
+.. _ruby-time-series-create:
+
+Create a Time Series Collection
+-------------------------------
+
+.. important:: Server Version for Time Series Collections
+
+   To create and interact with time series collections, you must be
+   connected to a deployment running {+mdb-server+} 5.0 or later.
+
+To create a time series collection, you must pass an options hash that contains
+the specifications for the collection. You can specify the following specifications
+for your time series collection:
+
+- ``:timeField``: Specifies the field that stores a timestamp in each time series
+  document.
+- ``:metaField``: Specifies the field that stores metadata in each time series 
+  document.
+- ``:granularity``: Specifies the approximate time between consecutive timestamps.
+  The possible values are ``'seconds'``, ``'minutes'``, and ``'hours'``.
+- ``:bucketMaxSpanSeconds``: Sets the maximum time between timestamps in the 
+  same bucket.
+- ``:bucketRoundingSeconds``: Sets the number of seconds to round down by when 
+  MongoDB sets the minimum timestamp for a new bucket. Must be equal to 
+  ``:bucketMaxSpanSeconds``.
+
+See :manual:`Command Fields </reference/command/create/#command-fields>`
+in the {+mdb-server+} manual entry on the ``create`` command to learn more about
+these parameters. 
+
+Example
+~~~~~~~
+
+The following example uses the ``Collection#create`` method to create a time series
+collection named ``october2024`` with the ``:timeField``` option set to ``"timestamp"``:
+
+.. literalinclude:: /includes/usage-examples/time-series.rb
+   :language: ruby
+   :dedent:
+   :start-after: start-create
+   :end-before: end-create
+
+To verify that you have successfully created the collection, print a list of all
+collections in your database and filter by collection name, as shown in the following
+code:
+
+.. io-code-block::
+
+    .. input:: /includes/usage-examples/time-series.rb
+       :language: ruby
+       :start-after: start-correct
+       :end-before: end-correct
+       :dedent:
+
+    .. output::
+       :language: json
+       :visible: false
+
+       [
+         {
+           "name": "october2024", 
+           "type": "timeseries", 
+           "options": {
+             "timeseries": { 
+               "timeField": "timestamp",
+               "granularity": "seconds", 
+               "bucketMaxSpanSeconds": 3600 
+          }
+          }, 
+           "info": {
+             "readOnly": false
+           }
+          }
+        ]
+
+
+.. _ruby-time-series-write:
+
+Store Time Series Data
+----------------------
+
+You can insert data into a time series collection by using the ``insert_one``
+or ``insert_many`` method and specifying the measurement, timestamp, and 
+metadata in each inserted document.
+
+To learn more about inserting documents, see the :ref:`ruby-write-insert` guide.
+
+Example
+~~~~~~~
+
+This example inserts New York City temperature data into the ``october2024``
+time series collection created in the preceding :ref:`ruby-time-series-create`
+section. Each document contains the following fields:
+
+- ``temperature``, which stores temperature measurements in degrees Fahrenheit
+- ``location``, which stores location metadata
+- ``timestamp``, which stores the measurement timestamp
+
+.. literalinclude:: /includes/usage-examples/time-series.rb
+   :language: ruby
+   :dedent:
+   :start-after: start-insert
+   :end-before: end-insert
+
+.. TODO: add link 
+
+.. .. tip:: Formatting Dates and Times
+
+    .. To learn more about using ``datetime`` objects in {+driver-short+}, see 
+    .. :ref:`ruby-dates-times`.
+
+.. _ruby-time-series-read:
+
+Query Time Series Data
+----------------------
+
+You can use the same syntax and conventions to query data stored in a time 
+series collection as you use when performing read or aggregation operations on 
+other collections. To learn more about these operations, see the following
+guides:
+
+- :ref:`ruby-read`
+- :ref:`ruby-aggregation`
+
+.. _ruby-time-series-addtl-info:
+
+Additional Information
+----------------------
+
+To learn more about the concepts in this guide, see the following {+mdb-server+}
+manual entries:
+
+- :manual:`Time Series </core/timeseries-collections/>`
+- :manual:`Create and Query a Time Series Collection </core/timeseries/timeseries-procedures/>`
+- :manual:`Set Granularity for Time Series Data </core/timeseries/timeseries-granularity/>`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the methods mentioned in this guide, see the following
+API documentation:
+
+- :ruby-api:`create <Collection.html#create-instance_method>`
+- :ruby-api:`list_collections <Database.html#list_collections-instance_method>`
+- :ruby-api:`insert_one <Collection.html#insert_one-instance_method>`
+- :ruby-api:`insert_many <Collection.html#insert_many-instance_method>`
+

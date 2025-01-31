@@ -1,0 +1,159 @@
+.. _ruby-project:
+
+========================
+Specify Fields To Return
+========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: read, filter, project, select, code example
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to specify which fields
+to return from a read operation by using a **projection**. A projection is a document
+that specifies which fields MongoDB returns from a query.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``restaurants`` collection in the ``sample_restaurants``
+database from the :atlas:`Atlas sample datasets </sample-data>`. To access this collection
+from your {+language+} application, create a ``Mongo::Client`` object that connects to
+an Atlas cluster and assign the following values to your ``database`` and ``collection``
+variables:
+
+.. literalinclude:: /includes/read/project.rb
+    :language: ruby
+    :dedent:
+    :start-after: start-db-coll
+    :end-before: end-db-coll
+
+To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see the
+:atlas:`Get Started with Atlas </getting-started>` guide.
+
+Projection Types
+----------------
+
+You can use a projection to specify which fields to include or exclude in
+a return Document. You cannot combine inclusion and exclusion statements in
+a single projection, unless you are excluding the ``_id`` field.
+
+Specify Fields to Include
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To include specific fields in a read operation result, specify the ``projection``
+option in a parameter to the ``find`` method. To set this option, use the following syntax:
+
+.. code-block:: ruby
+
+   { projection: { <field_name>: 1 } }
+
+The following example uses the ``find`` method to find all restaurants in which the ``name``
+field value is ``'Emerald Pub'``. Then, the code specifies the ``projection`` option
+to instruct the find operation to return only the ``name``, ``cuisine``, and ``borough`` fields
+of matching documents:
+
+.. io-code-block::
+   :copyable:   
+
+   .. input:: /includes/read/project.rb
+      :start-after: start-project-include
+      :end-before: end-project-include
+      :language: ruby
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      {"_id"=>BSON::ObjectId('...'), "borough"=>"Manhattan", "cuisine"=>"American", "name"=>"Emerald Pub"}
+      {"_id"=>BSON::ObjectId('...'), "borough"=>"Queens", "cuisine"=>"American", "name"=>"Emerald Pub"}
+
+When you use a projection to specify fields to include in the return
+document, the ``_id`` field is also included by default. All other fields are
+implicitly excluded. To remove the ``_id`` field from the return
+document, you must :ref:`explicitly exclude it <ruby-project-remove-id>`.
+
+.. _ruby-project-remove-id:
+
+Exclude the ``_id`` Field
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When specifying fields to include, you can also exclude the ``_id`` field from
+the returned document. 
+
+The following example performs the same query as the preceding example but
+excludes the ``_id`` field from the projection:
+
+.. io-code-block::
+   :copyable:   
+
+   .. input:: /includes/read/project.rb
+      :start-after: start-project-include-without-id
+      :end-before: end-project-include-without-id
+      :language: ruby
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      {"borough"=>"Manhattan", "cuisine"=>"American", "name"=>"Emerald Pub"}
+      {"borough"=>"Queens", "cuisine"=>"American", "name"=>"Emerald Pub"}
+
+Specify Fields to Exclude
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To exclude specific fields from a read operation result, specify the ``projection``
+option in a parameter to the ``find`` method. To set this option, use the
+following syntax:
+
+.. code-block:: ruby
+
+   { projection: { <field_name>: 0 } }
+
+The following example uses the ``find`` method to find all restaurants in which the ``name``
+field value is ``'Emerald Pub'``. Then, the code uses the ``projection`` option
+to instruct the find operation to omit the ``grades`` and ``address`` fields
+in the result:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/project.rb
+      :start-after: start-project-exclude
+      :end-before: end-project-exclude
+      :language: ruby
+      :dedent:
+
+   .. output:: 
+      :visible: false
+
+      {"_id"=>BSON::ObjectId('...'), "borough"=>"Manhattan", "cuisine"=>"American",
+      "name"=>"Emerald Pub", "restaurant_id"=>"40367329"}
+      {"_id"=>BSON::ObjectId('...'), "borough"=>"Queens", "cuisine"=>"American",
+      "name"=>"Emerald Pub", "restaurant_id"=>"40668598"}
+
+When you use a projection to specify which fields to exclude,
+any unspecified fields are implicitly included in the return document.
+
+Additional Information
+----------------------
+
+To learn more about projections, see the :manual:`Project Fields
+</tutorial/project-fields-from-query-results/>` guide in the {+mdb-server+} manual.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the ``find`` method, see the
+:ruby-api:`API documentation <Collection.html#find-instance_method>`.
