@@ -13,6 +13,15 @@
      - Python 3.8
      - Python 3.7
 
+   * - 3.7
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     -
+     - 
+
    * - 3.6
      - ✓
      - ✓
@@ -58,6 +67,7 @@
      - ✓
      - ✓
 
+- Motor 3.7 wraps PyMongo 4.10
 - Motor 3.6 wraps PyMongo 4.9
 - Motor 3.5 wraps PyMongo 4.5 to 4.8
 - Motor 3.3 and 3.4 wrap PyMongo 4.5
