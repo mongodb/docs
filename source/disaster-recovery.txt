@@ -52,16 +52,21 @@ Use the following proactive configuration recommendations to configure your
 Members of the Same Replica Sets Should Not Share Resources
 ```````````````````````````````````````````````````````````
 
-MongoDB provides high availability by having multiple copies of data in replica sets. Members of the same replica set should not share the same resources. For example, members of the same replica set should not
-share the same physical hosts and disks. You can ensure that replica
-sets don't share resources by :ref:`distributing data across data centers <arch-center-distribute-data>`.
+MongoDB provides high availability by having multiple copies of data in replica sets.
+Members of the same replica set don't share the same resources. For example, members
+of the same replica set don't share the same physical hosts and disks.
+|service| satisfies this requirement by default: it deploys nodes in
+different availability zones, on different physical hosts and disks.
+
+Ensure that replica sets don't share resources by :ref:`distributing data across data centers <arch-center-distribute-data>`.
 
 Use an Odd Number of Replica Set Members
 ````````````````````````````````````````
 
 To elect a :manual:`primary </core/replica-set-members>`, you need a majority of :manual:`voting </core/replica-set-elections>` replica set members available. We recommend that you create replica sets with an
 odd number of voting replica set members. There is no benefit in having
-an even number of voting replica set members.
+an even number of voting replica set members. |service| satisfies this
+requirement by default, as |service| requires having 3,5, or 7 nodes.
 
 Fault tolerance is the number of replica set members that can become
 unavailable with enough members still available for a primary election. 
@@ -73,12 +78,20 @@ voting, see :manual:`Replica Set Elections </core/replica-set-elections>`.
 
 .. _arch-center-distribute-data:
 
-Distribute Data Across At Least Three Data Centers
-``````````````````````````````````````````````````
+Distribute Data Across At Least Three Data Centers in Different Availability Zones
+````````````````````````````````````````````````````````````````````````````````````
 
 To guarantee that a replica set can elect a primary if a data center
 becomes unavailable, you must distribute nodes across at least three
-data centers.
+data centers, but we recommend that you use five data centers.
+
+If you choose a region for your data centers that supports
+availability zones, you can distribute nodes in data centers in different
+availability zones. This way you can have multiple separate physical data
+centers, each in its own availability zone and in the same region.
+
+This section aims to illustrate the need for a deployment with five data centers.
+To begin, we will consider deployments with two and three data centers first.
 
 Consider the following diagram, which shows data distributed across
 two data centers:
@@ -101,10 +114,23 @@ When you distribute nodes across three data centers, if one data
 center becomes unavailable, you still have two out of three replica set
 members available, which maintains a majority to elect a primary.
 
-You can distribute data across at least three data centers within the same region by choosing a region with at least three availability zones. Availability zones consist of one or more discrete data centers, each with redundant power, networking and connectivity, housed in separate facilities.
+In addition to ensuring high availability, we recommend that you ensure the continuity of write
+operations. For this reason, we recommend that you deploy five data centers,
+to achieve a 2+2+1 topology required for the majority write concern.
+See the following section on :ref:`majority write concern <arch-center-majority-write-concern>` in this topic for detailed explanations of this
+requirement.
+
+You can distribute data across at least three data centers within the same region by choosing a region with at least three availability zones. Each
+availability zone contains one or more discrete data centers, each with redundant power, networking and connectivity, often housed in separate
+facilities.
 
 {+service+} uses availability zones for all cloud providers
-automatically when you deploy a dedicated cluster to a region that supports availability zones. Atlas splits the cluster's nodes across availability zones. For example, for a three-node replica set {+cluster+} deployed to a three-availability-zone region, {+service+} deploys one node in each zone. A local failure in the data center hosting one node doesn't impact the operation of data centers hosting the other nodes.
+automatically when you deploy a dedicated cluster to a region that supports availability zones. |service| splits the cluster's nodes across
+availability zones. For example, for a three-node replica set {+cluster+} deployed to a three-availability-zone region, {+service+} deploys one node
+in each zone. A local failure in the data center hosting one node doesn't
+impact the operation of data centers hosting the other nodes because MongoDB
+performs automatic failover and leader election. Applications will
+automatically recover in the event of local failures.
 
 We recommend that you deploy replica sets to the following regions because they support at least three availability zones:
 
@@ -127,8 +153,9 @@ Use ``mongos`` Redundancy for Sharded {+Clusters+}
 ```````````````````````````````````````````````````
 
 When a client connects to a sharded {+cluster+}, we recommend that you include multiple :manual:`mongos </reference/program/mongos/>`
-processes in the connection URI. This allows
-operations to route to different ``mongos`` instances for load
+processes, separated by commas, in the connection URI. To learn more,
+see :manual:`MongoDB Connection String Examples </reference/connection-string-examples/#self-hosted-replica-set-with-members-on-different-machines>`.
+This allows operations to route to different ``mongos`` instances for load
 balancing, but it is also important for disaster recovery. 
 
 Consider the following diagram, which shows a sharded {+cluster+}
@@ -141,8 +168,10 @@ processes in the other data centers.
 
 You can use 
 :manual:`retryable reads </core/retryable-reads/>` and
-:manual:`retryable writes</core/retryable-writes/>` to simplify the required error handling for the previous
+:manual:`retryable writes</core/retryable-writes/>` to simplify the required error handling for the ``mongos``
 configuration.
+
+.. _arch-center-majority-write-concern:
 
 Use ``majority`` Write Concern
 ``````````````````````````````
@@ -153,16 +182,20 @@ for write operations by using :manual:`write concern
 you had a three-node replica set and had a write concern of
 ``majority``, every write operation would need to be persisted on 
 two nodes before an acknowledgment of completion sends to the driver
-that issued said write operation. For protection during a regional
-outage, we recommend that you set the write concern to ``majority``.
+that issued said write operation. For the best protection from a regional
+node outage, we recommend that you set the write concern to ``majority``.
 
-To understand the importance of ``majorty`` write concern, imagine a
+Even though using ``majority`` write concern increases latency, compared
+with write concern ``1``, we recommend that you use ``majority`` write
+concern because it allows your data centers to continue having write
+operations even if a replica set loses the primary.
+
+To understand the importance of ``majority`` write concern, consider a
 five-node replica set spread across three separate regions with a 2-2-1
 topology (two regions with two nodes and one region with one node),
-with a write concern of ``4``. If one of the regions
-with two nodes becomes unavailable due to an outage and only three
-nodes are available, no write operations complete and the
-operation hangs because it is unable to persist data on four nodes.
+with a write concern of ``4``. If one of the regions with two nodes becomes
+unavailable due to an outage and only three nodes are available, no write
+operations complete and the operation hangs because it is unable to persist data on four nodes.
 In this scenario, despite the availability of the majority of nodes in the replica set, the database
 behaves the same as if a majority of the nodes in the replica set were
 unavailable. If you use ``majority`` write concern rather than a numeric value, it prevents this scenario.
@@ -180,7 +213,7 @@ We recommend that you:
   source data.
 - Test your backup recovery process to ensure that you can restore
   backups in a repeatable and timely manner.
-- Ensure that your {+clusters+} run the same MongoDB versions for
+- Confirm that your {+clusters+} run the same MongoDB versions for
   compatibility during restore.
 - Configure a :atlas:`backup compliance policy 
   </backup/cloud-backup/backup-compliance-policy/#std-label-backup-compliance-policy>` to prevent deleting backup
@@ -195,6 +228,10 @@ To avoid resource capacity issues, we recommend that you monitor
 resource utilization and hold regular capacity planning sessions.
 MongoDB Professional Services offers these sessions.
 
+Over-utilized clusters could fail causing a disaster. 
+Scale up clusters to higher tiers if your utilization is regularly alerting at a steady state,
+such as above 60%+ utilization for system CPU and system memory.
+
 To view your resource utilization, see :atlas:`Monitor Real-Time Performance </real-time-performance-panel>`. To view metrics with the {+atlas-admin-api+}, see :oas-atlas-tag:`Monitoring and Logs </Monitoring-and-Logs>`.
 
 To learn best practices for alerts and monitoring for resource
@@ -205,11 +242,17 @@ If you encounter resource capacity issues, see :ref:`arch-center-resource-capaci
 Plan Your MongoDB Version Changes
 `````````````````````````````````
 
-Ensure that you perform MongoDB major version upgrades far before 
-your current version reaches `end of life <https://www.mongodb.com/legal/support-policy/lifecycles>`__. 
+We recommend that you run the latest MongoDB version as it allows you to
+take advantage of new features and provides improved security guarantees
+compared with previous versions.
 
-You can't downgrade your MongoDB version using the {+atlas-ui+}, so we recommend that you work directly with MongoDB Professional or Technical
-Services when planning and executing a major version upgrade to avoid any issues that might occur during the upgrade process.
+Ensure that you perform MongoDB major version upgrades far before your
+current version reaches `end of life <https://www.mongodb.com/legal/support-policy/lifecycles>`__. 
+
+You can't downgrade your MongoDB version using the {+atlas-ui+}. Because of this,
+we recommend that you work directly with MongoDB Professional or Technical Services
+when planning and executing a major version upgrade. This will help you avoid
+any issues that might occur during the upgrade process.
 
 Disaster Recovery Recommendations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -259,7 +302,7 @@ If a single region outage or multi-region outage degrades the state of your {+cl
 
    .. step:: Identify how many nodes are still online
 
-      You can find info about {+cluster+} health in the {+cluster+}\'s :guilabel:`Overview` tab of the
+      You can find information about {+cluster+} health in the {+cluster+}\'s :guilabel:`Overview` tab of the
       {+atlas-ui+}.
 
    .. step:: Determine how many nodes you require
@@ -303,7 +346,9 @@ unavailable, follow these steps to bring your deployment back online:
 .. procedure::
    :style: normal
    
-   .. step:: Determine when the cloud provider outage began
+   .. step:: Determine when the cloud provider outage began. 
+      
+      You will need this information later in this procedure to restore your deployment.
 
    .. step:: Identify the alternative cloud provider you would like to deploy your new {+cluster+} on
 
@@ -319,6 +364,9 @@ unavailable, follow these steps to bring your deployment back online:
 
       Your new {+cluster+} must have an identical topology of the original cluster.
 
+      Alternatively, instead of creating a full new cluster, you can also add new
+      nodes hosted by an alternative cloud provider to the existing cluster.
+
    .. step:: Restore the most recent snapshot from the previous step into the new {+cluster+}
 
       To learn how to restore your snapshot, see :atlas:`Restore Your Cluster </backup/cloud-backup/restore-overview/>`.
@@ -326,18 +374,18 @@ unavailable, follow these steps to bring your deployment back online:
    .. step:: Switch any applications that connect to the old {+cluster+} to the newly-created {+cluster+}
 
       To find the new connection string, see :atlas:`Connect via Drivers </driver-connection>`.
+      Review your application stack as you will likely need to redeploy it onto the new cloud provider.
 
 .. _arch-center-atlas-outage:
 
 {+service+} Outage
 ``````````````````
 
-In the highly unlikely event that the {+service+} Control Plane is
-unavailable, open a high-priority :atlas:`support ticket </support/#request-support>`. 
-
-Your {+cluster+}
-might still be available and accessible even if the {+atlas-ui+} is
-unavailable.
+In the highly unlikely event that the {+service+} Control Plane and
+the {+atlas-ui+} are unavailable, your {+cluster+} is still available and accessible.
+To lear more, see `Platform Reliability <https://www.mongodb.com/products/platform/trust#reliability>`__.
+Open a high-priority :atlas:`support ticket </support/#request-support>`
+to investigate this further.
 
 .. _arch-center-resource-capacity:
 
@@ -402,6 +450,9 @@ Deletion of Production Data
 
 Production data might be accidentally deleted due to human error or a bug
 in the application built on top of the database.
+If the cluster itself was accidentally deleted, Atlas may have retained
+the volume temporarily.
+
 
 If the contents of a collection or database have been deleted, follow these steps to restore your data:
 
@@ -416,8 +467,9 @@ If the contents of a collection or database have been deleted, follow these step
 
    .. step:: Restore your data
    
-      If the deletion occurred within the last 72 hours, use Point in Time (PIT) restore to restore from the point in time right before the deletion occurred.
-
+      If the deletion occurred within the last 72 hours, and you configured continuous backup,
+      use Point in Time (PIT) restore to restore from the point in time right before the deletion occurred.
+      
       If the deletion did not occur in the past 72 hours, restore the most recent backup from before the deletion occurred into the cluster.
 
       To learn more, see :atlas:`Restore Your Cluster </backup/cloud-backup/restore-overview/>`.
@@ -447,7 +499,9 @@ If a driver fails, follow these steps:
 
    .. step:: Evaluate if any other changes are required to move to an earlier driver version
       
-      This might include application code or query changes.
+      This might include application code or query changes. For example,
+      there might be a breaking change if you are moving between
+      major and minor versions.
 
    .. step:: Test the changes in a non-production environment
 
