@@ -3,7 +3,7 @@
 a. Enter the MongoDB connection string.
 
    a. In :guilabel:`MongoDB connection string (URI)`, enter
-      your :manual:`MongoDB URI <mongodb-uri>`.
+      your :manual:`MongoDB URI </reference/connection-string>`.
 
    #. If it isn't included in the connection string, enter the
       :guilabel:`Database` to connect to.
