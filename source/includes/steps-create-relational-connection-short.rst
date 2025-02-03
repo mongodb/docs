@@ -27,7 +27,7 @@ a. In the :guilabel:`Database type` drop-down, select the database type.
          :tabid: db-postgresql
 
          .. include:: /includes/table-postgresql-connection-fields.rst
-      
+
       .. tab:: DB2
          :tabid: db-db2
 
