@@ -16,10 +16,6 @@ resource "mongodbatlas_advanced_cluster" "atlas-cluster" {
         instance_size = var.cluster_instance_size_name
         node_count    = 3
       }
-      analytics_specs {
-        instance_size = var.cluster_instance_size_name
-        node_count    = 1
-      }
       priority      = 7
       provider_name = var.cloud_provider
       region_name   = var.atlas_region
