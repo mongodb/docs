@@ -62,64 +62,68 @@ Accessing Audit Logs
 
 .. include:: /includes/cloud-docs/logs.rst
 
-To return and update your audit configuration per project, use the following {+atlas-cli+} commands:
+You can review and update your auditing configuration per project. Use
+the following {+atlas-cli+} commands:
 
 - :ref:`atlas auditing describe <atlas-auditing-describe>` returns the
   auditing configuration for the specified project.
 - :ref:`atlas auditing update <atlas-auditing-update>` updates
   the auditing configuration for the specified project.
 
-You can :ref:`view authentication attempts <access-tracking>` that users
-make against your {+cluster+} with the {+atlas-cli+}, 
-{+atlas-admin-api+}, or {+atlas-ui+}. |service| logs both successful and unsuccessful
-authentication attempts, including the timestamp of each attempt and which
-user tried to authenticate.
+You can :ref:`view authentication attempts <access-tracking>` that users make
+against your {+cluster+} with the {+atlas-cli+}, {+atlas-admin-api+}, or {+atlas-ui+}.
+|service| logs both successful and unsuccessful authentication attempts,
+including the timestamp of each attempt and which user tried to authenticate.
 
 You can also :ref:`view and filter the activity feed <view-activity-feed>`
-for an organization or project with the {+atlas-cli+}, 
-{+atlas-admin-api+}, or {+atlas-ui+}. The activity feed lists all
-events at the organization or project level.
+for an organization or project with the {+atlas-cli+}, {+atlas-admin-api+},
+or {+atlas-ui+}. The activity feed lists all events at the organization or project level.
 
 To perform a full audit, you can use a combination of audit logs,
-the ``mongodb.log``, and :ref:`the project and organization activity feed <view-activity-feed>`.
+:manual:`MongoDB log messages </reference/log-messages/>`, and
+:ref:`the project and organization activity feed <view-activity-feed>`.
 
 Recommendations for Auditing
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-We recommend that you enable auditing when you provision your {+clusters+}. 
-However, auditing puts additional load on your {+clusters+} and increases costs. 
+We recommend that you :atlas:`set up database auditing </database-auditing>`
+when you provision your {+clusters+}. 
+Auditing puts additional load on your {+clusters+} and increases costs. 
 To optimize costs, you can disable auditing in lower environments for development. 
-Certain industries, like healthcare and financial services, may opt to keep 
-auditing enabled in development for compliance reasons.
+Certain industries, such as healthcare and financial services, may opt to keep 
+auditing enabled in development environments for compliance reasons.
 
 Enabling auditing for all database users, including application
-service users, might affect cluster performance. We recommend that you audit only the actions of users that require auditing.
+service users, might affect cluster performance. We recommend that you
+audit only the actions of users that require auditing.
 
 For staging and production environments, enable auditing for
-additional security. We recommend that you audit the following events at a minimum:
+additional security.
+
+We recommend that you audit the following events at a minimum:
 
 - Failed logon
 - Session activity
 - Logon and logoff
 - Attempts to perform unauthorized functions
 - Password change
-- Database User Access Changes
+- Database User Access changes
 - DDL & System configuration stored procedures
 - Modification of Native audit
-- Run a backup or restore
-- Alter DBMS native audit settings
-- Alter security
-- Database Start and Stop Commands
+- Running a backup or restore operation
+- Altering DBMS native audit settings
+- Altering security
+- Running database start and stop commands
 
-For all of the previous events, you should include the following
+For all of the previous events, you should include in the audit log the following
 information at a minimum:
 
 - Session ID
 - Client hostname and IP address
 - Database server hostname and IP address
 - Database user
-- OS user
 - Database name
+- OS user
 - Service/instance name
 - Port
 - Application
@@ -133,24 +137,23 @@ Recommendations for Programmatic Access to Audit Logs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To integrate with tools beyond the built-in integrations, we recommend
-that you retrieve logs with the following programmatic tools and feed the JSON-formatted output to your external tools:
+that you retrieve logs with the following programmatic tools and feed
+the JSON-formatted output to your external tools:
 
-- If you use |aws|, you can continually push logs to an |aws| S3
-  bucket. To learn more, see the
-  :oas-atlas-tag:`Push-Based Log Export <Push-Based-Log-Export>` {+atlas-admin-api+} endpoints.
-- Use the {+atlas-admin-api+} endpoints for :oas-atlas-tag:`Logs <MongoDB-Cloud-Users>` and :oas-atlas-tag:`Project and Organization Events <Events>` to
-  retrieve deployment logs and lists of project events.
-- Use the ``atlas deployments logs`` command in the {+atlas-cli+}
-  to retrieve deployment logs. To learn more,
-  see :atlas:`Atlas Deployment Logs 
-  </cli/current/command/atlas-deployments-logs/>`.
+- To continually push logs to an |aws| |s3| bucket, use the {+atlas-admin-api+}
+  endpoints for :oas-atlas-tag:`Push-Based Log Export <Push-Based-Log-Export>`.
+- To retrieve deployment logs and lists of project events,
+  use the {+atlas-admin-api+} endpoints for :oas-atlas-tag:`Logs <MongoDB-Cloud-Users>`
+  and :oas-atlas-tag:`Project and Organization Events <Events>`.
+- To retrieve deployment logs, use :ref:`atlas deployment logs <atlas-deployments-logs>`
+  command in the {+atlas-cli+}. To learn more, see :atlas:`Atlas Deployment Logs </cli/current/command/atlas-deployments-logs/>`.
 
 Examples
 --------
 
 .. include:: /includes/complete-examples.rst
 
-The following examples show how to download logs and enable auditing
+The following examples show how to retrieve and download logs and configure auditing
 using |service| :ref:`tools for automation <arch-center-automation>`.
 
 In addition to the following examples, see the blogpost
@@ -161,11 +164,66 @@ In addition to the following examples, see the blogpost
    .. tab:: CLI
       :tabid: cli
 
+      Update Audit Configuration
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      Run the following {+atlas-cli+} command to audit all authentication events
+      for known users in your project:
+
+      .. include:: /includes/examples/cli-example-audit-logs-known-users.rst
+
+      Run the following {+atlas-cli+} command to audit a known user
+      via a configuration file:
+
+      .. include:: /includes/examples/cli-example-audit-logs-config-file.rst
+
+      Describe Audit Configuration
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      Run the :ref:`atlas auditing describe <atlas-auditing-describe>`
+      {+atlas-cli+} command to return the auditing configuration for the specified project:
+
+      .. include:: /includes/examples/cli-example-audit-logs-describe.rst
+
+      Create and Use Audit Filter
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      Create an audit filter to only audit the authenticate operations
+      that occur against the test database. To learn more,
+      see :manual:`Configure Audit Filters </tutorial/configure-audit-filters/>`.
+
+      .. include:: /includes/examples/cli-example-audit-filter.rst
+
+      To use an audit filter that you created, update the audit configuration
+      using the :ref:`atlas auditing update <atlas-auditing-describe>`
+      {+atlas-cli+} command:
+
+      .. include:: /includes/examples/cli-example-audit-filter-use.rst
+
+      Retrieve Logs
+      ~~~~~~~~~~~~~
+
+      To retrieve the access log, use a command similar to the following.
+      This command returns a JSON-formatted list of all authentication
+      requests made against the {+clusters+} named ``Cluster0`` for the project
+      with the ID ``618d48e05277a606ed2496fe``:
+
+      .. include:: /includes/examples/cli-example-retrieve-logs.rst
+
+      Retrieve All Log Events for Organization in a JSON File
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      To return all events for the specified organization, use a command
+      similar to the following. This command returns a JSON-formatted list
+      of events for the organization with the ID ``5dd5a6b6f10fab1d71a58495``:
+
+      .. include:: /includes/examples/cli-example-retrieve-logs-org.rst
+
       Download Logs
       ~~~~~~~~~~~~~
 
-      Run the following CLI command to download a compressed file that contains the
-      MongoDB logs for the specified host in your project.
+      Run the following {+atlas-cli+} command to download a compressed file that
+      contains the MongoDB logs for the specified host in your project.
 
       .. include:: /includes/examples/cli-example-download-logs.rst
 
@@ -191,4 +249,23 @@ In addition to the following examples, see the blogpost
       Enable Auditing and Create an Auditing Filter for the {+Cluster+}
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+      You can :manual:`configure manual auditing </core/auditing>` of most of the
+      documented :manual:`system event actions </reference/audit-message/mongo/>`
+      by creating audit filters. To learn more about configuring audit filters,
+      see :manual:`Configure Audit Filters </tutorial/configure-audit-filters/>`.
+
       .. include:: /includes/examples/tf-example-auditing-filter.rst
+
+      Retrieve Logs
+      ~~~~~~~~~~~~~
+
+      You can't retrieve logs with Terraform. Instead, use the following
+      {+atlas-admin-api+} endpoints:
+
+      - Use :oas-atlas-tag:`Access Tracking Admin API </Access-Tracking>`
+        to return access logs for all authentication attempts for the database,
+        identified by the cluster's name or hostname.
+
+      - Use :oas-atlas-tag:`Monitoring and Logs APIs </Monitoring-and-Logs>`
+        to retrieve a compressed log file with log messages for the specified
+        host.
