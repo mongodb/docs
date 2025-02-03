@@ -1,0 +1,1 @@
+If you live upgrade from any version before 1.9.0, ``mongosync`` disables embedded verification.
