@@ -1,48 +1,64 @@
 .. _x509-rolling-update:
 
-=================================================================================
-Rolling Update of x.509 Certificates that Contain New DN on Self-Managed Clusters
-=================================================================================
+=====================================================================================
+Rotate x.509 Certificates without clusterAuthX509 Attributes on Self-Managed Clusters
+=====================================================================================
 
 .. meta::
    :keywords: on-prem
 
 .. default-domain:: mongodb
 
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
 Members of a replica set or a sharded cluster can use :ref:`x.509
-certificates for membership authentication <internal-auth-x509>` to
-identify each other as memers of the same deployment.
-
-To identify each others as members of the same deployment, the
-Organization attributes (``O``\'s), the Organizational Unit attributes
-(``OU``\'s), and the Domain Components (``DC``\'s) from the
-certificates must match.
-
-In some situations, you may need to update the member certificates to
-new certificates with the new Distinguished Name (``DN``), such as if
-an organization changes its name. You can use the 
-:parameter:`tlsX509ClusterAuthDNOverride` parameter to set an alternative ``DN`` 
-to use in matching. With this parameter, you can perform a rolling update of the 
-certificates to new certificates with a different ``DN``.
+certificates <internal-auth-x509>` for membership authentication to
+identify other servers in the same deployment. This tutorial describes how to 
+perform a rolling update to rotate x.509 certificates on a cluster
+that doesn't use the :setting:`net.tls.clusterAuthX509` settings
+to configure Distinguished Name (DN) attributes. 
 
 .. note::
 
-   In a rolling update, member certificates are updated one at a time, and
-   your deployment does not incur any downtime. To perform a rolling update 
-   to rotate certificates on a cluster that uses 
-   :setting:`net.tls.clusterAuthX509` settings or on a cluster that will use
+   To perform a rolling update to rotate certificates on a cluster that uses 
+   the :setting:`net.tls.clusterAuthX509` settings or on a cluster that will use
    these settings after the update, see :ref:`x509-rotate-member-certs`.
+   
+When a server node receives a connection request, it compares the Distinguished Name (DN)
+attributes in the ``subject`` field of the presented certificates to the subject DN attributes of its own certificates. 
+The certificates match if their subjects contain the same values for the Organization (``O``), Organizational Unit (``OU``), 
+and Domain Component (``DC``) attributes. 
+A server's configuration file can also specify alternative DN attributes to use for matching in the 
+:parameter:`tlsX509ClusterAuthDNOverride` parameter.
+If the server's subject DN attributes or configured :parameter:`tlsX509ClusterAuthDNOverride` value 
+match the subject DN attributes of the presented certificate, the server node treats the 
+connection as a cluster member.  
 
-The following tutorial describes the process to update the
-certificates for a replica set without downtime. 
+In some situations, you may need to update the member certificates to
+new certificates with new subject Distinguished Name (DN) attributes, such as if
+an organization changes its name. 
+In a rolling update, member certificates are updated one at a time, and
+your deployment does not incur any downtime. 
 
-Consider a replica set where each member's certificates
-(:setting:`~net.tls.clusterFile` and
-:setting:`~net.tls.certificateKeyFile`) with ``DN`` value that contains
-``"OU=10gen Server,O=10gen"`` (additional attributes are not considered
-as part of the comparison):
+Clusters adopting new certificates can use the :parameter:`tlsX509ClusterAuthDNOverride` parameter to accept x.509 
+certificates with different subject DN attributes during the certificate rotation procedure.
+Once all members use certificates with the new value, remove the override to begin rejecting the now out of date certificates.
+
+About This Task
+---------------
+
+Consider a replica set where each member's x.509 certificates, 
+set using the :setting:`~net.tls.clusterFile` and :setting:`~net.tls.certificateKeyFile` settings,  
+have subject DN attributes of ``"OU=10gen Server,O=10gen"``. 
+
+A member of this replica set has the following configuration file: 
 
 .. code-block:: yaml
+   :emphasize-lines: 2,6
 
    net.tls.mode: requireTLS
    net.tls.certificateKeyFile: "./mycerts/10gen-server1.pem"
@@ -52,127 +68,151 @@ as part of the comparison):
    net.tls.clusterFile:  "./mycerts/10gen-cluster1.pem"
    net.tls.clusterCAFile: "./mycerts/ca.pem"
 
-The following procedure updates the members' certificates
-(:setting:`~net.tls.clusterFile` and
-:setting:`~net.tls.certificateKeyFile`) to new certificates that have a
-``DN`` value with ``"OU=MongoDB Server,O=MongoDB"``.
+The following procedure updates each member's certificates to new certificates that have
+subject DN attributes of ``"OU=MongoDB Server, O=MongoDB"``.
 
-.. note::
+.. include:: /includes/x509-meets-requirements.rst
 
-   The following procedure assumes that the new x.509 certificates meet
-   membership certificate all other requirements. For details, see
-   :ref:`x509-member-certificate-requirements`
+Steps 
+-----
 
-Procedure
----------
+.. procedure::
 
-0. Optional. Set Override Parameter on Running Members
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   .. step:: Set override parameter on all members. 
 
-The procedure requires that all members of the deployment be
-restarted. As the settings will not take into consideration until
-you restart all members, your instances may log messages until the
-procedure completes.
+      During a rolling update, members are restarted one at a time with a new configuration. 
+      To allow server nodes with the the old subject DN attributes to identify nodes with the new 
+      subject DN attributes as cluster members, set the override parameter to the new subject DN attributes on all running members. 
 
-To avoid these messages, you can set the override parameter on
-running members.
+      To do this, modify the configuration file of each server to set the :parameter:`tlsX509ClusterAuthDNOverride` parameter 
+      to use the subject DN attributes of the new certificate:
 
-Connect :binary:`~bin.mongosh` directly to each member of the
-deployment and set the :parameter:`tlsX509ClusterAuthDNOverride`
-parameter to the new certificate ``DN``:
+      .. code-block:: yaml
+         :emphasize-lines: 9-10
 
-.. code-block:: javascript
+         net.tls.mode: requireTLS
+         net.tls.certificateKeyFile: "./mycerts/10gen-server1.pem"
+         net.tls.CAFile: "./mycerts/ca.pem"
 
-   db.adminCommand( { setParameter: 1, tlsX509ClusterAuthDNOverride: "OU=MongoDB Server,O=MongoDB" } )
+         security.clusterAuthMode: x509
+         net.tls.clusterFile:  "./mycerts/10gen-cluster1.pem"
+         net.tls.clusterCAFile: "./mycerts/ca.pem"
 
-1. Modify the Configuration of ALL Members
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+         setParameter:
+            tlsX509ClusterAuthDNOverride: "OU=MongoDB Server,O=MongoDB"
+   
+      This configuration will not be taken into consideration until you restart each member.
 
-Modify each member's configuration:
+   .. step:: Restart all members. 
+   
+      To perform a rolling restart of all members, 
+      restart each secondary and then the primary. 
 
-- Update :setting:`net.tls.certificateKeyFile` to the new certificate.
+      **For each secondary member**, connect :binary:`~bin.mongosh` to the
+      member, then: 
 
-- Update :setting:`net.tls.clusterFile` to the new certificate.
+      a. Use the :method:`db.shutdownServer()` method to shut down the member:
 
-- Set :parameter:`tlsX509ClusterAuthDNOverride` parameter to the new
-  certificate ``DN``.
+         .. code-block:: javascript
 
-For example:
+            use admin
+            db.shutdownServer()
 
-.. code-block:: yaml
+      #. Restart the member. 
 
-   net.tls.mode: requireTLS
-   net.tls.certificateKeyFile: "./mycerts/mongodb-server1.pem"
-   net.tls.CAFile: "./mycerts/ca.pem"
+         Before restarting the next secondary, ensure this member has 
+         reached :replstate:`SECONDARY` state. To determine the member state, 
+         run :method:`rs.status()` and read the value of the ``stateStr`` field. 
 
-   security.clusterAuthMode: x509
+         .. code-block:: sh 
 
-   net.tls.clusterFile:  "./mycerts/mongodb-cluster1.pem"
-   net.tls.clusterCAFile: "./mycerts/ca.pem"
+            rs.status().members 
+            
+      **For the primary member**, connect :binary:`~bin.mongosh` to the member, then: 
 
-   setParameter:
-      tlsX509ClusterAuthDNOverride: "OU=MongoDB Server,O=MongoDB"
+      a. Use :method:`rs.stepDown()` to step down the member:
 
-The settings will not take into consideration until you restart each
-member (see next step).
+         .. code-block:: javascript
 
-2. Restart Each Member
-~~~~~~~~~~~~~~~~~~~~~~
+            rs.stepDown()
 
-Once you have modified the configuration for all the members,
-restart each secondary and then the primary.
+      #. Use the :method:`db.shutdownServer()` method to shut down the member:
 
-**For each secondary member**, connect :binary:`~bin.mongosh` to the
-member and:
+         .. code-block:: javascript
 
-a. Use the :method:`db.shutdownServer()` method to shut down the member:
+            use admin
+            db.shutdownServer()
 
-   .. code-block:: javascript
+      #. Restart the member.
 
-      use admin
-      db.shutdownServer()
+      All servers in the replica set can now use the override parameter to accept peer connections 
+      from members using certificates with the new subject DN attributes.
 
-b. Restart the member. 
+   .. step:: Modify configuration of all members. 
+ 
+      Update the configuration file of each server:
 
-   Ensure the member has reached :replstate:`SECONDARY` state before
-   restarting the next secondary.
+      - Change the :setting:`net.tls.certificateKeyFile` setting to the new certificate.
 
-**For the primary**, connect :binary:`~bin.mongosh` to the member and
+      - Change the :setting:`net.tls.clusterFile` setting to the new certificate. 
 
-a. Use :method:`rs.stepDown()` to step down the member:
+      - Set the :parameter:`tlsX509ClusterAuthDNOverride` parameter to use the
+        DN attributes of the old certificate.
 
-   .. code-block:: javascript
+      For example:
 
-      rs.stepDown()
+      .. code-block:: yaml
 
-#. Use the :method:`db.shutdownServer()` method to shut down the member:
+         net.tls.mode: requireTLS
+         net.tls.certificateKeyFile: "./mycerts/mongodb-server1.pem"
+         net.tls.CAFile: "./mycerts/ca.pem"
 
-   .. code-block:: javascript
+         security.clusterAuthMode: x509
+         net.tls.clusterFile:  "./mycerts/mongodb-cluster1.pem"
+         net.tls.clusterCAFile: "./mycerts/ca.pem"
 
-      use admin
-      db.shutdownServer()
+         setParameter:
+            tlsX509ClusterAuthDNOverride: "OU=10Gen Server,O=10Gen"
 
-#. Restart the member.
+      This configuration will not be taken into consideration until you restart each
+      member.
 
-3. Remove the ``tlsX509ClusterAuthDNOverride`` Setting
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   .. step:: Restart all members.
 
-Once all the members have been restarted with the new certificate,
-you can remove the ``tlsX509ClusterAuthDNOverride`` parameter from
-the configuration.
+      To apply the updated configuration to each member, perform a rolling 
+      restart of the server nodes by repeating the procedure from step 2. 
 
-For example:
+      During this process, nodes that have been restarted with new certificates will use the 
+      old DN attributes stored in :parameter:`tlsX509ClusterAuthDNOverride` to identify nodes 
+      presenting old certificates. Nodes that still have old certificates will use the new DN 
+      stored in :parameter:`tlsX509ClusterAuthDNOverride` to identify nodes presenting new certificates. 
 
-.. code-block:: yaml
+   .. step:: Remove override parameter from all members. 
 
-   net.tls.mode: requireTLS
-   net.tls.certificateKeyFile: "./mycerts/mongodb-server1.pem"
-   net.tls.CAFile: "./mycerts/ca.pem"
+      To prevent the updated server nodes from treating clients presenting the
+      old certificate as peers, remove the ``tlsX509ClusterAuthDNOverride``
+      parameter from all server node configuration files. 
 
-   security.clusterAuthMode: x509
+      For example: 
 
-   net.tls.clusterFile:  "./mycerts/mongodb-cluster1.pem"
-   net.tls.clusterCAFile: "./mycerts/ca.pem"
+      .. code-block:: yaml
 
-The settings will not take into consideration until you restart each
-member.
+         net.tls.mode: requireTLS
+         net.tls.certificateKeyFile: "./mycerts/mongodb-server1.pem"
+         net.tls.CAFile: "./mycerts/ca.pem"
+
+         security.clusterAuthMode: x509
+
+         net.tls.clusterFile:  "./mycerts/mongodb-cluster1.pem"
+         net.tls.clusterCAFile: "./mycerts/ca.pem"
+
+      This configuration will not be taken into consideration until you restart each
+      member.
+
+   .. step:: Restart all members.
+
+      To apply the updated configuration to each member, perform a rolling 
+      restart of the server nodes by repeating the procedure from step 2. 
+
+      All servers in the replica set now accept peer connections only from members
+      using certificates that have the new subject DN attributes. 
