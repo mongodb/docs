@@ -1,0 +1,80 @@
+# This file is an example of how to migrate from the old deprecated ShardSpecificPodSpec field to the new
+# shardOverrides fields, for single cluster deployments.
+# The settings specified in shardOverrides are the exact equivalent to the ones in shardSpecificPodSpec, showing how
+# to replicate them
+apiVersion: mongodb.com/v1
+kind: MongoDB
+metadata:
+  name: shardspecificpodspec-migration
+  namespace: mongodb-test
+spec:
+  # There are 4 shards in this cluster, but the shardSpecificPodSpec field doesn't need to have on entry per shard,
+  # it can have less
+  shardCount: 4
+  mongodsPerShardCount: 2
+  mongosCount: 1
+  configServerCount: 3
+  topology: SingleCluster
+  type: ShardedCluster
+  version: 8.0.3
+  opsManager:
+    configMapRef:
+      name: my-project
+  credentials: my-credentials
+  persistent: true
+
+  shardPodSpec:
+    # default persistence configuration for all shards in all clusters
+    persistence:
+      single:
+        storage: "5G"
+  shardSpecificPodSpec: # deprecated way of overriding shards (array)
+    - persistence: # shard of index 0
+        single:
+          storage: "6G"
+      podTemplate: # Specify resources settings to enterprise database container in shard 0
+        spec:
+          containers:
+            - name: mongodb-enterprise-database
+              resources:
+                requests:
+                  cpu: 0.5
+                  memory: 1G
+                limits:
+                  cpu: 1.0
+                  memory: 2.0G
+    - persistence: # shard of index 1
+        single:
+          storage: "7G"
+    - persistence: # shard of index 2
+        single:
+          storage: "7G"
+
+  # The below shardOverrides replicate the same shards configuration as the one specified above in shardSpecificPodSpec
+  shardOverrides:
+    - shardNames: [ "shardspecificpodspec-migration-0" ] # overriding shard #0
+      podSpec:
+        persistence:
+          single:
+            storage: "6G"
+      statefulSet:
+        spec:
+          template:
+            spec:
+              containers:
+                - name: mongodb-enterprise-database
+                  resources:
+                    requests:
+                      cpu: 0.5
+                      memory: 1G
+                    limits:
+                      cpu: 1.0
+                      memory: 2.0G
+
+    # The ShardSpecificPodSpec field above has the same configuration for shards 1 and 2. It is possible
+    # to specify both shard names in the override and not duplicate that configuration
+    - shardNames: [ "shardspecificpodspec-migration-1", "shardspecificpodspec-migration-2" ]
+      podSpec:
+        persistence:
+          single:
+            storage: "7G"
