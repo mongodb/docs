@@ -9,6 +9,22 @@ Glossary
 .. glossary::
    :sorted: 
 
+   absolute system CPU utilization
+      System CPU utilization relative to the full amount of CPU available
+      to cloud instances that share CPU.
+
+      - When a cloud provider throttles CPU utilization for a cloud instance,
+        the instance's absolute system CPU utilization is equal to the
+        :term:`baseline CPU utilization` assigned to this instance.
+      - When a cloud provider adds CPU above the baseline CPU, such as
+        through a bursting mechanism, the sum of normalized kernel CPU
+        utilization and user CPU utilization on an instance can exceed
+        the instance's baseline CPU. In this case, the sum of the normalized
+        kernel CPU utilization and user CPU utilization is still less than
+        the full amount of CPU shared by cloud instances. See also
+        :term:`relative system CPU utilization`, :term:`baseline CPU utilization`,
+        and :term:`burstable instances`.
+
    alert
       Notification sent by |service| when your database operations or
       server usage reach thresholds that affect cluster
@@ -97,7 +113,25 @@ Glossary
       
       |service| provides fully-managed :term:`Cloud Backups <cloud
       backups>`.
-      
+
+   baseline CPU utilization
+      Fraction of the full amount of CPU available to cloud instances that
+      share CPU. A cloud provider assigns a certain amount of baseline CPU
+      to each cloud instance, based on the instance's {+cluster+} tier.
+      Typically, baseline CPU utilization falls between 20% and 50% of
+      :term:`absolute system CPU utilization`. See also :term:`relative system CPU utilization`
+      and :term:`burstable instances`.
+
+   burstable instances
+      Cloud instance types that share a common physical CPU that, for some
+      cloud providers, use a "CPU credit" model. When you use burstable instances,
+      portions of shared CPU may either become available to each of the virtual
+      instances or may become unavailable, under different demands on the
+      instance resources. To learn more, see |aws-burstable-instances|,
+      |azure-disk-bursting|, and |gcp-cpu-bursting|. See also
+      :term:`baseline CPU utilization`, :term:`absolute system CPU utilization`,
+      and :term:`relative system CPU utilization`.
+
    cloud backups      
       Localized cluster :term:`backup` storage using the native
       :term:`snapshot` functionality of the cluster's cloud service
@@ -116,7 +150,7 @@ Glossary
    cluster
       Set of nodes comprising a MongoDB :term:`deployment`. In
       |service|, clusters can be :term:`replica sets <replica set>` or
-      :term:`sharded deployments<sharded cluster>`.
+      :term:`sharded deployments <sharded cluster>`.
       
    cluster class     
       *Configurable for M40+ clusters hosted on AWS.*
@@ -151,7 +185,19 @@ Glossary
       indexing your vector embeddings for {+avs+}. If the vectors are
       normalized to unit length, use :term:`dotProduct similarity`
       function instead.  
-      
+
+   CPU steal
+      Percentage by which the CPU usage exceeds the guaranteed baseline
+      CPU credit accumulation rate. CPU steal is relevant for cloud providers
+      that rely on the credit model in their bursting strategy. CPU credits
+      are units of CPU utilization that you accumulate. The credits accumulate
+      at a constant rate to provide a guaranteed level of performance. These
+      credits can be used for additional CPU performance. When the credit
+      balance is exhausted, only the guaranteed baseline of CPU performance
+      is provided, and the amount of excess is shown as steal percent.
+      See also :term:`relative system CPU utilization`, :term:`baseline CPU utilization`,
+      and :term:`burstable instances`.
+
    custom role
       Custom set of MongoDB :term:`privilege actions <action>` and MongoDB
       :term:`roles <role>` that you can save and assign to
@@ -322,9 +368,9 @@ Glossary
    group ID
       See :term:`project ID`.
       
-   |hnsw| graphs
+   Hierarchical Navigable Small Worlds (HNSW) graphs
       Algorithm for performing efficient nearest neighbor search in
-      multi-dimensional space. {+avs+} performs |ann| search with
+      multi-dimensional space. {+avs+} performs semantic search with
       |hnsw|.
 
    Highest Priority region
@@ -403,17 +449,9 @@ Glossary
    Live Migration
       Process to seamlessly move an existing source replica set or
       sharded cluster to |service|. During the live migration process,
-      |service| keeps the target cluster in sync with the remote source
+      |service| keeps the destination cluster in sync with the remote source
       until you cut your applications over to the |service| cluster.
-      |service| offers two modes of live migration:
 
-      - Push live migration, known in the |service| user interface as
-        :guilabel:`Live Migration from Ops Manager or Cloud Manager`,
-        where |service| **pushes** a deployment from |com| to |service|.
-      - Pull live migration, known in the |service| user interface as
-        :guilabel:`General Live Migration`, where |service| **pulls**
-        a deployment from a cloud or on-premise deployment to |service|.
-      
       .. seealso::
       
          :ref:`live-import-replica`
@@ -572,6 +610,25 @@ Glossary
       
          Project ID is synonymous with group ID.
 
+   relative system CPU utilization
+      CPU utilization relative to the amount of baseline CPU assigned to
+      a cloud instance. You can calculate relative system CPU utilization
+      by dividing the :term:`absolute system CPU utilization` by the amount
+      of baseline CPU assigned to a cloud instance.
+
+      Relative system CPU utilization is capped at 100%. When a cloud provider
+      throttles CPU utilization for a cloud instance, or bursts CPU utilization
+      for an instance above the baseline amount of CPU available to that
+      instance, the relative system CPU value is 100%.
+
+      See also :term:`absolute system CPU utilization`, and :term:`burstable instances`.
+
+   softIRQ
+      CPU utilization metric that reflects a portion of CPU that a cloud
+      instance currently uses to process software interrupt requests.
+      On some cloud providers, this metric is useful for tracking CPU
+      utilization on :term:`burstable instances`.
+
    quantization
       Quantization is the process of compressing the value of dimensions
       to a smaller range to allow the storage of more vectors or of
@@ -679,7 +736,7 @@ Glossary
       .. seealso::
       
          :doc:`/backup-restore-cluster`
-      
+
    team
       Group of :term:`Atlas users <Atlas user>` in the same organization. You can use teams to grant access to
       the same group of Atlas users across multiple

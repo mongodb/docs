@@ -37,6 +37,7 @@ nodes are upgraded one by one and will be unavailable while being
 upgraded. 
 
 .. _howitworks-scale-cluster-tier:
+.. _system-memory-calculation:
 
 How |service| Scales {+Cluster+} Tier
 -------------------------------------
@@ -91,48 +92,82 @@ To effectively manage dynamic workloads for your applications, |service|
 scales up nodes in your {+cluster+} under the conditions described in this
 section.
 
-If the next {+cluster+} tier is within your
-:guilabel:`Maximum Cluster Size` range, |service| scales the nodes in your
+If the next {+cluster+} tier is within your :guilabel:`Maximum Cluster Size`
+range, |service| scales :term:`operational nodes <operational node>` in your
 {+cluster+} up to the next tier if at least *one* of the following criteria
-is true for *any* node of the specified type in the {+cluster+}:
+is true for *any* {+cluster+} node of this type.
 
-- :term:`Operational nodes <operational node>`:
+.. note::
 
-  - For operational nodes in ``M10`` {+clusters+},
-    the average :guilabel:`Normalized System CPU Utilization` or the :guilabel:`System Memory Utilization`
-    has exceeded 75% of resources available to the {+cluster+} for the past
-    one hour.
-  - For operational nodes in ``M20`` {+clusters+},
-    the average :guilabel:`Normalized System CPU Utilization` or the :guilabel:`System Memory Utilization`
-    has exceeded 90% of resources available to the {+cluster+} for at
-    least 20 minutes, or has exceeded 75% of resources available to the
-    {+cluster+} for at least one hour.
-  - For operational nodes in ``M30+`` {+clusters+}, the average :guilabel:`Normalized System CPU Utilization`
-    or the :guilabel:`System Memory Utilization` has exceeded 90% of resources
-    available to the {+cluster+} for the past 10 minutes, or has exceeded
-    75% of resources available to the {+cluster+} for at least one hour.
-  
-    These thresholds ensure that your {+cluster+} scales up quickly in
-    response to high loads, and your application can handle spikes in
-    traffic or usage, maintaining its performance and reliability.
+  The following list groups together CPU-related criteria, followed by
+  the memory-related criteria. Within each group, criteria appear in
+  the order from most restrictive to least restrictive, and criteria for
+  specific cloud providers appear first, if they exist.
 
-- :term:`Analytics nodes <analytics node>`:
+- ``M10`` and ``M20`` {+clusters+}:
 
-  - The average :guilabel:`Normalized System CPU Utilization` or the :guilabel:`System Memory Utilization`
-    has exceeded 75% of resources available to the {+cluster+} for the past
-    hour.
+  - |aws|. The average normalized :term:`Relative System CPU Utilization <relative system CPU utilization>`
+    has exceeded 90% for the past 20 minutes and the average non-normalized
+    :term:`Absolute System CPU Utilization <absolute system CPU utilization>`
+    for :term:`CPU steal` has exceeded 30% for the past 3 minutes.
 
-|service| scales a {+cluster+} to the next tier when the {+cluster+}
-hasn't been scaled up under the following conditions:
+  - |azure|. The average normalized :term:`Relative System CPU Utilization <relative system CPU utilization>`
+    has exceeded 90% for the past 20 minutes and the average non-normalized
+    :term:`Absolute System CPU Utilization <absolute system CPU utilization>`
+    for :term:`softIRQ` has exceeded 10% for the past 3 minutes.
 
-- The ``M10+`` {+cluster+} hasn't been scaled up in the past hour.
-- The ``M20+`` {+cluster+} hasn't been scaled up in the past 20 minutes
+  - The average normalized :term:`Absolute System CPU Utilization <absolute system CPU utilization>`
+    has exceeded 90% of resources available to the {+cluster+} for the past 20 minutes.
+
+  - The average normalized :term:`Relative System CPU Utilization <relative system CPU utilization>`
+    has exceeded 75% of resources available to the {+cluster+} for the past one hour.
+
+  - The average :guilabel:`System Memory Utilization` has exceeded 90% of resources
+    available to the {+cluster+} for the past 10 minutes. To learn how
+    |service| calculates the amount of system memory utilization, see
+    :ref:`system-memory-calculation`.
+
+  - The average :guilabel:`System Memory Utilization` has exceeded 75% of
+    resources available to the {+cluster+} for the past one hour.
+
+- ``M30+`` {+clusters+}:
+
+  - The average :guilabel:`System CPU Utilization` has exceeded 90% of
+    resources available to the {+cluster+} for the past 10 minutes.
+
+  - The average :guilabel:`System CPU Utilization` has exceeded 75% of
+    resources available to the {+cluster+} for the past one hour.
+
+  - The average :guilabel:`System Memory Utilization` has exceeded 90% of
+    resources available to the {+cluster+} for the past 10 minutes.
+
+  - The average :guilabel:`System Memory Utilization` has exceeded 75% of
+    resources available to the {+cluster+} for the past one hour.
+
+These thresholds ensure that your {+cluster+} scales up quickly in
+response to high loads, and your application can handle spikes in
+traffic or usage, maintaining its performance and reliability.
+
+.. note::
+
+   The conditions in this section describe operational nodes.
+   For :term:`analytics nodes <analytics node>` on any cloud provider,
+   |service| scales them up to the next tier if the average normalized
+   :guilabel:`System CPU Utilization` or
+   the :guilabel:`System Memory Utilization` has exceeded 75% of resources
+   available to any {+cluster+} node for the past one hour.
+
+To achieve optimal resource utilization and cost profile, |service| avoids
+scaling up the {+cluster+} to the next tier if:
+
+- The ``M10`` or ``M20`` {+cluster+} has been scaled up in the past 20 minutes
   or one hour, depending on thresholds.
-- The ``M30+`` {+cluster+} hasn't been scaled up in the past 10 minutes
+- The ``M30+`` {+cluster+} has been scaled up in the past 10 minutes
   or one hour, depending on thresholds.
 
-For example, |service| will scale an ``M30+`` {+cluster+} at ``T+10``, if the
-{+cluster+}\'s current Normalized System CPU Utilization is greater than 90%.
+For example, if the cluster tier has not been changed since ``12:00``,
+|service| will scale an ``M30+`` {+cluster+} at ``12:10``, if the
+{+cluster+}\'s current normalized System CPU Utilization is greater than 90%.
 
 .. important:: Sudden Workload Spikes
 
@@ -155,16 +190,21 @@ are true for *all* nodes of the specified {+cluster+} type:
 
 - :term:`Operational nodes <operational node>`:
 
-  - The average :guilabel:`Normalized System CPU Utilization` is below 50% of resources
-    available to the {+cluster+} over at least the last 4  hours.
+  - The average normalized :guilabel:`System CPU Utilization` is below 45% of resources
+    available to the {+cluster+} over at least the last 10 minutes **AND**
+    the last 4 hours. |service| uses the "4 hours average" checkpoint as
+    an indication that the CPU load has settled down on the observed level.
+    |service| uses the "10 minutes average" checkpoint as an indication
+    that no recent CPU spikes have occurred that |service| didn't capture
+    with the "4 hour average" checkpoint.
 
-  - The average :manual:`WiredTiger's cache </reference/command/serverStatus/#serverstatus.wiredTiger.cache>`
-    usage is below 90% of the maximum WiredTiger cache size for at least 4 hours
-    at the **current** {+cluster+} tier size. This indicates to |service| that
-    the current {+cluster+} isn't overloaded.
+  - The average :manual:`WiredTiger cache </reference/command/serverStatus/#serverstatus.wiredTiger.cache>`
+    usage is below 90% of the maximum WiredTiger cache size for at least
+    the last 10 minutes **AND** the last 4 hours at the **current** {+cluster+}
+    tier size. This indicates to |service| that the current {+cluster+} isn't overloaded.
 
   - The **projected total System Memory Utilization** at the new lower {+cluster+}
-    tier is below 60% for at least 4 hours.
+    tier is below 60% for at least the last 10 minutes **AND** the last 4 hours.
     |service| calculates the **projected total memory usage** mentioned
     in the preceding statement as follows.
 
@@ -173,13 +213,14 @@ are true for *all* nodes of the specified {+cluster+} type:
     usage size with 80% of the WiredTiger cache size on the **new** lower tier {+cluster+}.
 
     Next, |service| checks whether the **projected total memory usage**
-    would be below 60% for at least 4 hours on the new tier size.
+    would be below 60% for at least the last 4 hours and at least the
+    last 10 minutes on the new tier size.
 
     .. note::
 
        |service| includes the WiredTiger cache in its memory calculation
        to make it more likely that {+clusters+} with a full cache, but
-       otherwise low traffic will scale down. In other words,
+       otherwise low traffic, will scale down. In other words,
        |service| examines the size of the WiredTiger cache to determine that it can
        safely down scale an otherwise idle {+cluster+} with low Normalized System CPU Utilization
        in cases where the {+cluster+}\'s WiredTiger caches might reach 90% of
@@ -264,7 +305,7 @@ following rules:
 New API for Independently Scaling Shards in {+Clusters+}
 ``````````````````````````````````````````````````````````
 
-As of API resource version 2024-08-05 of the :ref:`api-versioning-overview`,
+As of API resource version 2024-08-05 of the :ref:`Versioned Atlas Administration API <api-versioning-overview>`,
 you can independently scale the {+cluster+} tier of each shard individually.
 This API version is a significant change to the underlying scaling model of |service| {+clusters+}.
 
@@ -278,7 +319,7 @@ This API version is a significant change to the underlying scaling model of |ser
 
 The new API is capable of describing asymmetric {+clusters+}.
 The ``replicationSpec.numShards`` field is not present in the new API schema.
-Instead, each shard is specified by a seperate ``replicationSpec``,
+Instead, each shard is specified by a separate ``replicationSpec``,
 even for symmetric {+clusters+} in which all shards are configured the same.
 
 .. _howitworks-scale-cluster-storage:
