@@ -71,6 +71,141 @@ sections:
 - :ref:`avs-deployment-options-testing`
 - :ref:`avs-deployment-options-production`
 
+Resource Usage 
+--------------
+
+.. _avs-index-memory-requirements:
+
+Memory Requirements for Indexing Vectors 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+avs+} holds the entire index in memory, so you need to ensure there's
+enough memory for the {+avs+} index and :abbr:`JVM (Java virtual
+machine)`. Each index is a combination of the vectors being indexed and
+additional metadata. The index size is primarily determined by the size
+of the vectors that you are indexing, with metadata space typically
+being relatively nominal.  
+
+Consider the following requirements for a **single vector**:
+
+.. list-table:: 
+   :header-rows: 1
+
+   * - Embedding Model 
+     - Vector Dimension 
+     - Space Requirement
+
+   * - OpenAI ``text-embedding-ada-002``
+     - 1536
+     - 6kb
+
+   * - Google ``text-embedding-gecko``
+     - 768
+     - 3kb
+
+   * - Cohere ``embed-english-v3.0`` :icon-fa5:`star`
+     - 1024
+     - | 1.07kb (for ``int8``)
+       | 0.167kb (for ``int1``)
+
+:icon-fa5:`star` :manual:`BinData </reference/method/BinData/>`
+``vector`` subtype quantized vectors. To learn more, see
+:ref:`Ingest Quantized Vectors <avs-bindata-vector-subtype>`.
+
+The required space scales linearly with the number of vectors that you
+are indexing and with the vector dimensionality. You can also use the
+:guilabel:`Search Index Size` :ref:`metric
+<review-atlas-search-metrics>` to determine the amount of space and 
+memory you need on your Search Nodes.
+
+.. _avs-index-disk-requirements:
+
+Storage Requirements for Vectors 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you use :manual:`BinData </reference/method/BinData/>` or quantized
+vectors, you significantly reduce resource requirements compared to not
+using ``binData`` or quantized vectors. You will notice: 
+
+- Disk storage of vectors on ``mongod`` reduce by 66% when using ``binData``
+  vectors. 
+- RAM usage of vectors on ``mongot`` reduce by 3.75x (scalar) or 24x
+  (binary) due to vector compression when using either automatic vector
+  quantization or quantized vector ingestion. 
+
+When you use automatic quantization, |service| stores the full-precision
+vectors for rescoring or exact search on disk, with minimal RAM and cache
+usage for rescoring. 
+
+If you enable :ref:`automatic quantization <avs-automatic-quantization>`
+in your {+avs+} :ref:`index definition <avs-types-vector-search>`, you
+must consider disk space also when sizing your {+cluster+}. This is
+because {+avs+} stores full-precision vectors also on disk for |enn|
+search and for rescoring if you configured automatic quantization.
+Therefore, ensure that there is an appropriate disk to RAM ratio on the
+hardware that you use. Consider configuring search nodes that can
+accommodate roughly a 4:1 ratio of storage to RAM for scalar
+quantization or a 24:1 ratio of storage to RAM for binary quantization. 
+
+.. example:: 
+
+   This example demonstrates how to configure binary quantization for 10
+   million 1536 dimension embeddings from OpenAI stored in the field
+   named ``my-embeddings``:
+
+   .. code-block:: 
+      :copyable: false 
+
+      {
+        "fields":[
+          {
+            "type": "vector",
+            "path": "my-embeddings",
+            "numDimensions": 1536,
+            "similarity": "euclidean",
+            "quantization": "binary"
+          }
+        ]
+      }
+
+Use the following formula to roughly calculate the disk space for
+your binary quantization-enabled index with rescoring: 
+
+.. code-block:: shell 
+   :copyable: false 
+
+   Original index size * (25/24)
+
+Here, the ``24`` in the denominator represents the original index size
+split into ``24`` parts for easier fraction representation. The ``25``
+in the numerator accounts for an additional space allocation, which is
+approximately 1/24 of the original index size, for additional data
+needed to store binary vectors. Both the original index and the |hnsw|
+graph are still stored on disk. The oversize factor is 1/24 rather than
+1/32 because the HNSW graph is not compressed.
+
+.. example:: 
+
+   Suppose your original index size is 1 GB. You can calculate the
+   binary quantized index size with rescoring as shown below: 
+
+   .. code-block:: shell 
+      :copyable: 
+
+      1 GB * (25/24) = 1.042 GB
+
+.. important:: 
+
+   In the {+atlas-ui+}, |service| displays the entire index size, which
+   might be large as |service| doesn't show a break down of the data
+   structures within an index that are stored in RAM and on disk. The
+   |fts| metrics show a much smaller index that is held in memory when
+   you enable automatic quantization. 
+
+For vectors for which you configured automatic quantization, we
+recommend allocating free disk space equal to 125% of the estimated 
+index size.  
+
 .. _avs-deployment-options-testing:
 
 Testing and Prototyping Environments
@@ -137,6 +272,40 @@ Node Architecture
 
 .. include:: /includes/extracts/fts-architecture-coupled.rst
 
+Size Your {+Cluster+} for Prototyping Your Application 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When |service| runs your database and search workloads on the same node,
+the MongoDB storage takes a certain percentage of the node's available
+memory (RAM), leaving the remaining for the {+avs+} index and the
+``mongot`` process.
+
+.. list-table:: 
+   :header-rows: 1 
+   :widths: 34 33 33
+
+   * - Tier 
+     - Total Memory (GB)
+     - Memory Available for {+avs+} Index (GB)
+   
+   * - ``M10`` 
+     - 2 
+     - 1  
+
+   * - ``M20`` 
+     - 4
+     - 2  
+
+   * - ``M30`` 
+     - 8
+     - 4  
+
+For ``M10``, ``M20``, and ``M30`` {+cluster+} tiers, 25% is reserved for 
+MongoDB and the remaining 75% is for other operations, including your
+{+avs+} index. For M40+ {+cluster+} tiers, 50% is reserved for MongoDB
+and the remaining is for other operations, including your {+avs+} 
+index.
+
 Limitations 
 ~~~~~~~~~~~
 
@@ -159,7 +328,8 @@ For your production-ready application, we recommend the following
 Deployment Type
 ~~~~~~~~~~~~~~~
 
-For production-ready applications, you need a dedicated {+cluster+}. 
+For production-ready applications, you need a dedicated {+cluster+} with
+separate :ref:`configure-search-nodes`. 
  
 {+Cluster+} Tiers 
 ~~~~~~~~~~~~~~~~~
@@ -209,57 +379,20 @@ This deployment model provides the following benefits:
   response time especially on large datasets. To learn more, see 
   :ref:`vectorSearch-concurrent-queries`.
 
-Size and Scale Your {+Cluster+}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Size Your Search Nodes for Production 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 {+avs+} holds the entire index in memory, so you need to ensure there's
 enough memory for the {+avs+} index and :abbr:`JVM (Java virtual
-machine)`. Each index is a combination of the vectors being indexed and
-additional metadata. The index size is primarily determined by the size
-of the vectors that you are indexing, with metadata space typically
-being relatively nominal. 
+machine)`. Search nodes allow for workload isolation without data
+isolation, and almost 90% of their RAM allocation can be used to store
+the vector data and indexes in memory, with the leftover being used for
+the JVM. 
 
-Consider the following requirements for a **single vector**:
-
-.. list-table:: 
-   :header-rows: 1
-
-   * - Embedding Model 
-     - Vector Dimension 
-     - Space Requirement
-
-   * - OpenAI ``text-embedding-ada-002``
-     - 1536
-     - 6kb
-
-   * - Google ``text-embedding-gecko``
-     - 768
-     - 3kb
-
-   * - Cohere ``embed-english-v3.0`` :icon-fa5:`star`
-     - 1024
-     - 1.07kb
-
-:icon-fa5:`star` :manual:`BinData </reference/method/BinData/>`
-``vector`` subtype ``int8`` or ``int1`` quantized vectors. To learn
-more, see :ref:`Ingest Quantized Vectors <avs-bindata-vector-subtype>`.
-
-The required space scales linearly with the number of vectors that you
-are indexing and with the vector dimensionality. You can also use the
-:guilabel:`Search Index Size` :ref:`metric
-<review-atlas-search-metrics>` to determine the amount of space and 
-memory you need on your Search Nodes.
-
-If you use :manual:`BinData </reference/method/BinData/>` or quantized
-vectors for ingestion, storage on ``mongod`` for float vectors reduces
-by about 66%. The RAM for ``mongot`` reduces by 3.75x for scalar and by
-24x for binary because the vector values shrink by 4x and 24x
-respectively, but the |hnsw| graph itself doesn't shrink. Full fidelity
-vectors used for rescoring use only a nominal amount of memory and don't
-need to be held in cache like the index. However, these vectors are
-stored on disk. Therefore, you need search nodes that can accommodate a
-roughly 4x/24x ratio of storage to RAM for scalar and binary
-quantization respectively. 
+Each index is a combination of the vectors being indexed and additional
+metadata. The index size is primarily determined by the size of the
+vectors that you are indexing, with metadata space typically being
+relatively nominal. To learn more, see :ref:`avs-index-memory-requirements`.
 
 When you deploy dedicated Search Nodes, you can choose from different
 :ref:`search tiers <select-tiers-for-search-nodes>`. Each search tier
