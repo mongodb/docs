@@ -9,7 +9,7 @@ The ``mongocryptd`` process:
 - Parses the encryption schema specified for the database connection.
   Automatic encryption rules use a strict subset of JSON schema syntax.
   If the rules contain invalid automatic encryption syntax or any
-  :query:`document validation <$jsonSchema>` syntax, ``mongocryptd``
+  :query:`schema validation <$jsonSchema>` syntax, ``mongocryptd``
   returns an error. 
 
 ``mongocryptd`` only performs the previous functions, and doesn't
