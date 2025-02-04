@@ -42,8 +42,8 @@ a. Initialize your Node.js project.
       HUGGING_FACE_ACCESS_TOKEN = "<access-token>"
       ATLAS_CONNECTION_STRING = "<connection-string>"
 
-      Replace the ``<access-token>`` placeholder value with your Hugging Face access token.
+   Replace the ``<access-token>`` placeholder value with your Hugging Face access token.
 
-      .. include:: /includes/avs-examples/shared/avs-replace-connection-string.rst
+   .. include:: /includes/avs-examples/shared/avs-replace-connection-string.rst
 
    .. include:: /includes/note-node-js-env-minimum-requirement.rst

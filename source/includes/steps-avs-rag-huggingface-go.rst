@@ -40,9 +40,9 @@
             HUGGINGFACEHUB_API_TOKEN = "<access-token>"
             ATLAS_CONNECTION_STRING = "<connection-string>"
 
-      Replace the ``<access-token>`` placeholder value with your Hugging Face access token.
+         Replace the ``<access-token>`` placeholder value with your Hugging Face access token.
 
-      .. include:: /includes/avs-examples/shared/avs-replace-connection-string.rst
+         .. include:: /includes/avs-examples/shared/avs-replace-connection-string.rst
 
    .. step:: Create a function to generate vector embeddings.
 
