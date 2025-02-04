@@ -63,8 +63,8 @@ $encryptedClient = new Client($uri, [], [
  * Note: without a server-side schema, another client could potentially insert
  * unencrypted data into the collection. Therefore, a local schema should always
  * be used in conjunction with a server-side schema. */
-$encryptedClient->selectDatabase('test')->createCollection('coll', ['validator' => ['$jsonSchema' => $schema]]);
-$encryptedCollection = $encryptedClient->selectCollection('test', 'coll');
+$encryptedClient->getDatabase('test')->createCollection('coll', ['validator' => ['$jsonSchema' => $schema]]);
+$encryptedCollection = $encryptedClient->getCollection('test', 'coll');
 
 /* Using the encrypted client, insert and find a document to demonstrate that
  * the encrypted field is automatically encrypted and decrypted. */
@@ -74,7 +74,7 @@ print_r($encryptedCollection->findOne(['_id' => 1]));
 
 /* Using the client configured without encryption, find the same document and
  * observe that the field is not automatically decrypted. */
-$unencryptedCollection = $client->selectCollection('test', 'coll');
+$unencryptedCollection = $client->getCollection('test', 'coll');
 
 print_r($unencryptedCollection->findOne(['_id' => 1]));
 

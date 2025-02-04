@@ -59,8 +59,8 @@ $encryptedClient = new Client($uri, [], [
  * infer encryptedFields from the client configuration and manage internal
  * encryption collections automatically. Alternatively, the "encryptedFields"
  * option can also be passed explicitly. */
-$encryptedClient->selectDatabase('test')->createCollection('coll');
-$encryptedCollection = $encryptedClient->selectCollection('test', 'coll');
+$encryptedClient->getDatabase('test')->createCollection('coll');
+$encryptedCollection = $encryptedClient->getCollection('test', 'coll');
 
 /* Using the encrypted client, insert a document and find it by querying on the
  * encrypted field. Fields will be automatically encrypted and decrypted. */
@@ -74,6 +74,6 @@ print_r($encryptedCollection->findOne(['encryptedIndexed' => 'indexedValue']));
 
 /* Using the client configured without encryption, find the same document and
  * observe that fields are not automatically decrypted. */
-$unencryptedCollection = $client->selectCollection('test', 'coll');
+$unencryptedCollection = $client->getCollection('test', 'coll');
 
 print_r($unencryptedCollection->findOne(['_id' => 1]));

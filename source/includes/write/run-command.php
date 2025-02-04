@@ -8,7 +8,7 @@ $uri = getenv('MONGODB_URI') ?: throw new RuntimeException('Set the MONGODB_URI 
 $client = new MongoDB\Client($uri);
 
 // start-hello
-$database = $client->selectDatabase('myDB');
+$database = $client->getDatabase('myDB');
 $cursor = $database->command(['hello' => 1]);
 // end-hello
 

@@ -43,7 +43,7 @@ $session->startTransaction($transactionOptions);
 
 // Sets read and write settings for the "test_database" database
 // start-database-settings
-$db = $client->selectDatabase('test_database', [
+$db = $client->getDatabase('test_database', [
     'readPreference' => new ReadPreference(ReadPreference::PRIMARY_PREFERRED),
     'readConcern' => new ReadConcern(ReadConcern::AVAILABLE),
     'writeConcern' => new WriteConcern(WriteConcern::MAJORITY),
@@ -52,7 +52,7 @@ $db = $client->selectDatabase('test_database', [
 
 // Sets read and write settings for the "test_collection" collection
 // start-collection-settings
-$collection = $client->selectCollection('test_database', 'test_collection', [
+$collection = $client->getCollection('test_database', 'test_collection', [
     'readPreference' => new ReadPreference(ReadPreference::SECONDARY_PREFERRED),
     'readConcern' => new ReadConcern(ReadConcern::AVAILABLE),
     'writeConcern' => new WriteConcern(0),
@@ -73,7 +73,7 @@ $readPreference = new ReadPreference(
     ],
 );
 
-$db = $client->selectDatabase(
+$db = $client->getDatabase(
     'test_database',
     ['readPreference' => $readPreference],
 );
