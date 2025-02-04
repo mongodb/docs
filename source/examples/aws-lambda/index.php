@@ -9,7 +9,7 @@ $uri = getenv('MONGODB_URI');
 try {
     $client = new Client($uri);
     $planets = $client
-        ->selectCollection('sample_guides', 'planets')
+        ->getCollection('sample_guides', 'planets')
         ->find([], ['sort' => ['orderFromSun' => 1]]);
 } catch (Throwable $exception) {
     exit($exception->getMessage());

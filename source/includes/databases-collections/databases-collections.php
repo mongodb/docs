@@ -10,7 +10,7 @@ $client = new MongoDB\Client($uri);
 
 // Accesses the "test_database" database
 // start-access-database
-$db = $client->selectDatabase('test_database');
+$db = $client->getDatabase('test_database');
 // end-access-database
 
 // Invokes the __get() method to access the "test_database" database
@@ -20,7 +20,7 @@ $db = $client->test_database;
 
 // Accesses the "test_collection" collection
 // start-access-collection
-$collection = $client->test_database->selectCollection('test_collection');
+$collection = $client->test_database->getCollection('test_collection');
 // end-access-collection
 
 // Invokes the __get() method to access the "test_collection" collection
@@ -51,7 +51,7 @@ $readPreference = new ReadPreference(ReadPreference::RP_SECONDARY);
 $readConcern = new ReadConcern(ReadConcern::LOCAL);
 $writeConcern = new WriteConcern(WriteConcern::MAJORITY);
 
-$db = $client->selectDatabase('test_database', [
+$db = $client->getDatabase('test_database', [
     'readPreference' => $readPreference,
     'readConcern' => $readConcern,
     'writeConcern' => $writeConcern,
@@ -64,7 +64,7 @@ $readPreference = new ReadPreference(ReadPreference::RP_PRIMARY);
 $readConcern = new ReadConcern(ReadConcern::AVAILABLE);
 $writeConcern = new WriteConcern(WriteConcern::MAJORITY);
 
-$collection = $client->selectCollection('test_database', 'test_collection', [
+$collection = $client->getCollection('test_database', 'test_collection', [
     'readPreference' => $readPreference,
     'readConcern' => $readConcern,
     'writeConcern' => $writeConcern,
@@ -85,7 +85,7 @@ $readPreference = new ReadPreference(
     ],
 );
 
-$db = $client->selectDatabase(
+$db = $client->getDatabase(
     'test_database',
     ['readPreference' => $readPreference],
 );

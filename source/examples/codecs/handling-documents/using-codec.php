@@ -3,7 +3,7 @@
 use MongoDB\Client;
 
 $client = new Client();
-$collection = $client->selectCollection('test', 'person', [
+$collection = $client->getCollection('test', 'person', [
     'codec' => new PersonCodec(),
 ]);
 

@@ -59,8 +59,8 @@ $encryptedFields = [
  * option to ensure that internal encryption collections are also created. The
  * "encryptedFields" option should also be specified when dropping the
  * collection to ensure that internal encryption collections are dropped. */
-$encryptedClient->selectDatabase('test')->createCollection('coll', ['encryptedFields' => $encryptedFields]);
-$encryptedCollection = $encryptedClient->selectCollection('test', 'coll');
+$encryptedClient->getDatabase('test')->createCollection('coll', ['encryptedFields' => $encryptedFields]);
+$encryptedCollection = $encryptedClient->getCollection('test', 'coll');
 
 // Insert a document with manually encrypted fields
 $indexedInsertPayload = $clientEncryption->encrypt('indexedValue', [

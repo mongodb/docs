@@ -36,7 +36,7 @@ $encryptedValue = $clientEncryption->encrypt('mySecret', [
     'keyId' => $keyId,
 ]);
 
-$collection = $client->selectCollection('test', 'coll');
+$collection = $client->getCollection('test', 'coll');
 $collection->insertOne(['_id' => 1, 'encryptedField' => $encryptedValue]);
 
 /* Using the client configured without encryption, find the document and observe

@@ -18,8 +18,8 @@ $client = new Client($uri);
 /* Prepare the database for this script. Drop the key vault collection and
  * ensure it has a unique index for keyAltNames. This would typically be done
  * during application deployment. */
-$client->selectCollection('encryption', '__keyVault')->drop();
-$client->selectCollection('encryption', '__keyVault')->createIndex(['keyAltNames' => 1], [
+$client->getCollection('encryption', '__keyVault')->drop();
+$client->getCollection('encryption', '__keyVault')->createIndex(['keyAltNames' => 1], [
     'unique' => true,
     'partialFilterExpression' => ['keyAltNames' => ['$exists' => true]],
 ]);

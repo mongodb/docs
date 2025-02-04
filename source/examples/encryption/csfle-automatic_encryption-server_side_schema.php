@@ -55,8 +55,8 @@ $schema = [
 
 /* Create a new collection for this script. Configure a server-side schema by
  * explicitly creating the collection with a "validator" option. */
-$encryptedClient->selectDatabase('test')->createCollection('coll', ['validator' => ['$jsonSchema' => $schema]]);
-$encryptedCollection = $encryptedClient->selectCollection('test', 'coll');
+$encryptedClient->getDatabase('test')->createCollection('coll', ['validator' => ['$jsonSchema' => $schema]]);
+$encryptedCollection = $encryptedClient->getCollection('test', 'coll');
 
 /* Using the encrypted client, insert and find a document to demonstrate that
  * the encrypted field is automatically encrypted and decrypted. */
@@ -66,7 +66,7 @@ print_r($encryptedCollection->findOne(['_id' => 1]));
 
 /* Using the client configured without encryption, find the same document and
  * observe that the field is not automatically decrypted. */
-$unencryptedCollection = $client->selectCollection('test', 'coll');
+$unencryptedCollection = $client->getCollection('test', 'coll');
 
 print_r($unencryptedCollection->findOne(['_id' => 1]));
 
