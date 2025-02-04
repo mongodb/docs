@@ -39,9 +39,31 @@
       +++++++++++++
                   
       a. Click :guilabel:`Next`.
-      #. Review the ``"default"`` index definition for the ``movies`` 
-         collection.
-      
+      #. Click :guilabel:`Refine Your Index`.
+      #. In the :guilabel:`Field Mappings` section, click :guilabel:`Add Field Mapping`. 
+      #. Select :guilabel:`Customized Configuration` and then the following:
+
+         .. list-table:: 
+
+            * - :guilabel:`Field Name`
+              - ``genres`` 
+
+            * - :guilabel:`Data Type`
+              - ``StringFacet`` 
+
+      #. Click :guilabel:`Add` and repeat steps c and d to configure the
+         following:
+
+         .. list-table:: 
+
+            * - :guilabel:`Field Name`
+              - ``year`` 
+
+            * - :guilabel:`Data Type`
+              - ``NumberFacet`` 
+
+      #. Click :guilabel:`Add` and then :guilabel:`Save Changes`.
+
       JSON Editor
       +++++++++++
       
@@ -54,7 +76,15 @@
                         
             {
               "mappings": {
-                "dynamic": true
+                "dynamic": true,
+                "fields": {
+                  "genres": {
+                    "type": "stringFacet"
+                  },
+                  "year": {
+                    "type": "numberFacet"
+                  }
+                }
               }
             }
       
