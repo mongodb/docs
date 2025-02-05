@@ -371,6 +371,69 @@ progress.
 For more information on DDL operations, see
 :ref:`txn-prod-considerations-ddl`. 
 
+Network Latency
+~~~~~~~~~~~~~~~
+
+Network latency or long physical distances between migration components
+can negatively affect sync speed.
+
+Latency between ``mongosync`` and destination shards
+  For each operation on the source cluster, ``mongosync`` does two 
+  roundtrips to the destination server. The larger the latency, the 
+  slower the sync.
+
+Latency between destination shards
+  ``mongosync`` runs operations and updates its own metadata in batches 
+  in a transaction on the destination cluster. This can result in 
+  cross-shard transactions, which may be more costly if the shards are 
+  far apart.
+
+Latency between the nodes of any replica set on the source or destination cluster
+  ``mongosync`` uses :writeconcern:`"majority"` writes and 
+  :readconcern:`"majority"` reads, which require acknowledgement from 
+  multiple nodes in a replica set, including shard-backing replica 
+  sets. If the majority of these nodes aren't in the same region, there 
+  will be negative performance implications.
+
+Interruptions During Sync
+-------------------------
+
+The following considerations pertain to interruptions during the
+``mongosync`` process. 
+
+Errors and Crashes
+~~~~~~~~~~~~~~~~~~
+
+If ``mongosync`` encounters an error or becomes unavailable during
+synchronization, or you can resume your ``mongosync`` operation from where
+it stopped. The ``mongosync`` binary is stateless and stores the
+metadata for a restart on the destination cluster. 
+
+To continue sync, restart ``mongosync`` once it becomes available again
+and use the same parameters as your interupted sync. Once you restart
+``mongosync``, the process resumes from where it stopped.
+
+Cluster Availability
+~~~~~~~~~~~~~~~~~~~~
+
+If your source or destination cluster crashes unexpectedly, you can safely
+restart ``mongosync`` from where it left off. Once your cluster is available
+again, restart ``mongosync`` and use the same parameters as your interupted
+sync. 
+
+.. _c2c-pause-behavior:
+
+Paused Sync
+~~~~~~~~~~~
+
+If ``mongosync`` is in the :ref:`PAUSED <c2c-state-paused>` state,
+``mongosync`` does not support the following actions:
+
+- Upgrading the MongoDB version of the source or destination cluster
+- Enabling and then disabling the balancer
+
+You can upgrade ``mongosync`` while it is in the ``PAUSED`` state. 
+
 Learn More
 ----------
 
