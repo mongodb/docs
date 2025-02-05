@@ -24,5 +24,5 @@ January 2026.
 
 If your workloads require :atlas:`Private Endpoints
 </private-endpoint-overview>` or :atlas:`Continuous Backup and Point-in-Time Restore </pit-restore>`,
-switch to |service| {+Dedicated-Clusters+}. To learn more, see :ref:`ak8s0-migration-to-flex`
+switch to |service| {+Dedicated-Clusters+}. To learn more, see :ref:`ak8so-migration-to-flex`
 and the :atlas:`Atlas Flex Migration Guide </flex-migration>`.

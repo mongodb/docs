@@ -19,6 +19,6 @@ by March 2025. You must remove all remaining ``M2``, ``M5``, and
 {+Serverless-instance+} features from your {+ak8so+} configurations before 
 January 2026.
 
-To learn more, see :ref:`ak8s0-migration-to-flex`
+To learn more, see :ref:`ak8so-migration-to-flex`
 in this guide and the :atlas:`Flex Migration Guide </flex-migration>`
 in the |service| documentation.
