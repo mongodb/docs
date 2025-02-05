@@ -19,4 +19,7 @@
   You cannot limit the filter to collections within the database.
 
   For more information, see :ref:`c2c-filter-with-out`.
+- Filtering does not support dual :ref:`write 
+  blocking <c2c-write-blocking>`. You can use destination-only
+  write-blocking. 
 

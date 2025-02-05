@@ -113,13 +113,20 @@ Request Body Parameters
        .. versionadded:: 1.3.0
 
    * - ``enableUserWriteBlocking``
-     - boolean
+     - boolean or string
      - Optional
-     - If set to ``true``, blocks writes on the destination cluster
-       while the synchronization is in progress. After the
-       synchronization is committed to the destination cluster, the
-       original source cluster blocks writes and the destination cluster
-       accepts writes.
+     - If set to ``true``, blocks writes on the destination 
+       cluster while the migration is in progress, and unblocks writes right
+       before the :ref:`/progress <c2c-api-progress>` endpoint reports 
+       that ``canWrite`` is ``true``.  Blocks writes on the source
+       cluster after ``mongosync`` calls the :ref:`/commit <c2c-api-commit>`
+       endpoint.
+
+       If set to ``false``, no write blocking occurs.
+
+       If set to ``"destinationOnly"``, blocks writes on the destination
+       cluster while migration is in progress, and unblocks writes right
+       before ``canWrite`` is ``true``.
 
        :gold:`IMPORTANT:` If you are migrating from a pre-6.0 source cluster, 
        you cannot set ``enableUserWriteBlocking`` to ``true``.
@@ -133,7 +140,7 @@ Request Body Parameters
           
           db.adminCommand( { setUserWriteBlockMode: 1, global: false } )
 
-       Default value is ``false``.
+       Default value is ``"destinationOnly"``.
 
    * - ``includeNamespaces``
      - array
@@ -169,11 +176,6 @@ Request Body Parameters
        * Sync sharded clusters that have different numbers of shards
 
        * Reversible sync when ``buildIndexes`` is set to ``never``.
-
-       * Reversible sync with the embedded verifier. The
-         verifier supports the initial forward direction of
-         reversible sync. When you call the ``/reverse``
-         endpoint it disables the verifier.
 
        :gold:`IMPORTANT:` If you are migrating from a pre-6.0 source cluster, 
        you cannot set ``reversible`` to ``true``.

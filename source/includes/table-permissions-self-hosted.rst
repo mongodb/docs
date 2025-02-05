@@ -21,7 +21,7 @@
        - :authrole:`readWriteAnyDatabase`
        - :authrole:`restore`
 
-   * - Write-blocking
+   * - Dual Write-Blocking
      - - :authrole:`backup`
        - :authrole:`clusterManager`
        - :authrole:`clusterMonitor`

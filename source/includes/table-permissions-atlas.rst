@@ -13,8 +13,9 @@
    * - default
      - - atlasAdmin
      - - atlasAdmin
-
-   * - write-blocking, reversing, or multiple reversals
+       - bypassWriteBlockMode privilege
+       
+   * - dual write-blocking, reversing, or multiple reversals
      - - atlasAdmin
        - bypassWriteBlockMode privilege
      - - atlasAdmin
