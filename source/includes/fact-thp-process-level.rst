@@ -1,4 +1,2 @@
-You can enable THP at the system level and disable it on the process level. 
-If you have multiple MongoDB processes on a single machine, ensure that 
-processes on version 8.0 enable THP, while processes on 7.0 or earlier 
-disable THP.
+THP operates at a system level, so it applies to all processes under your system. 
+You cannot enable or disable THP per-process level. 
