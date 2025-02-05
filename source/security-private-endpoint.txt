@@ -10,7 +10,7 @@ Learn About Private Endpoints in |service|
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 .. facet::
@@ -25,21 +25,21 @@ your {+database-deployment+} type to learn which cloud providers |service| suppo
 - |aws| using the `{+aws-pl+} <https://aws.amazon.com/privatelink/>`__ feature.
 
 - |azure| using the `{+az-pl+} <https://azure.microsoft.com/en-us/services/private-link/>`__
-   feature.
+  feature.
 
 - |gcp| using the `{+gcp-psc+} <https://cloud.google.com/vpc/docs/private-service-connect>`__
-   feature.
+  feature.
 
 You can also set up private endpoints for your Online Archive. To 
 learn more, see :ref:`oa-config-private-endpoint`.
+
+Private Endpoint Concepts 
+-------------------------
 
 .. tabs::
 
    .. tab:: {+aws-pl+}
       :tabid: {+aws-pl+}
-
-      Private Endpoint Concepts 
-      -------------------------
 
       When you enable PrivateLink in |aws| and private
       endpoints in |service|, |aws| and |service| create the following 
@@ -47,7 +47,7 @@ learn more, see :ref:`oa-config-private-endpoint`.
 
       .. list-table::
          :header-rows: 1
-         :widths: 20 40 40 
+         :widths: 20 30 50
 
          * - Resource
            - Creator
@@ -83,7 +83,7 @@ learn more, see :ref:`oa-config-private-endpoint`.
                      connections from your application VPC to
                      resources in the |service| VPC.
 
-         .. tab:: {+aws-pl+} with Direct Connect
+         .. tab:: AWS Direct Connect
             :tabid: aws-pl-directconnect-diagram
 
             .. figure:: /images/atlas-aws-privatelink-directconnect.svg
@@ -99,9 +99,6 @@ learn more, see :ref:`oa-config-private-endpoint`.
    .. tab:: {+az-pl+}
       :tabid: {+az-pl+}
 
-      Private Endpoint Concepts 
-      -------------------------
-      
       When you enable this feature, |azure| and |service| create
       the following resources to support secure connections over 
       VNets:
@@ -143,9 +140,6 @@ learn more, see :ref:`oa-config-private-endpoint`.
 
    .. tab:: {+gcp-psc+}
       :tabid: {+gcp-psc+}
-
-      Private Endpoint Concepts 
-      -------------------------
 
       When you enable this feature, |gcp| and |service| create
       the following resources to support secure connections over 
@@ -389,12 +383,106 @@ Private Endpoint-Aware Connection Strings
 
             .. include:: /includes/gcp-psc-connection-strings.rst
 
+(Optional) Optimize Connection to Sharded {+Clusters+} Behind a Private Endpoint 
+````````````````````````````````````````````````````````````````````````````````
+
+.. include:: /includes/fact-optimized-connection-strings-intro.rst
+
+|service| doesn't support optimized connection strings for 
+{+clusters+} that run on |gcp| or |azure|. To learn more about optimized 
+connection strings for sharded {+clusters+} behind a private 
+endpoint, see :ref:`optimized-connection-strings`. 
 
 .. seealso::
 
    :ref:`Connect to Atlas using a Private Endpoint <connect-private-endpoint>`
 
-   .. include:: /includes/fact-private-endpoint-considerations.rst
+.. _private-endpoint-access-lists:
+
+IP Access Lists and Network Peering Connections with Private Endpoints
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you enable private endpoints, you can still enable access to 
+your |service| {+database-deployments+} using other methods, such 
+as adding public IPs to :doc:`IP access lists 
+</security/ip-access-list>` and :doc:`network peering 
+</security-vpc-peering>`.
+
+Clients connecting to |service| {+database-deployments+} using 
+other methods use standard connection strings. Your clients might 
+have to identify when to use private endpoint-aware connection 
+strings and standard connection strings.
+
+.. _atlas_regionalized-pl:
+
+(Optional) Regionalized Private Endpoints for Multi-Region Sharded Clusters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For multi-region and global sharded clusters,
+you can deploy multiple private endpoints to a region if you need 
+to connect to |service| using a private endpoint from networks 
+that can't be peered with one another.
+
+You can deploy any number of private endpoints to regions that you
+deployed your {+database-deployment+} to. Each regional private
+endpoint connects to the |mongos| instances in that region.
+
+.. include:: /includes/admonitions/warnings/regionalized-pls-change-connection-strings.rst
+
+.. include:: /includes/enable-regionalized-privatelink.rst
+
+To use this feature, you must enable the regionalized private 
+endpoint setting.
+
+To enable or disable the regionalized private endpoint setting:
+
+.. tabs::
+
+   .. tab:: {+atlas-cli+}
+      :tabid: atlascli 
+
+      Enable Regionalized Private Endpoints
+      `````````````````````````````````````
+
+      .. include:: /includes/extracts/atlas-privateEndpoints-regionalModes-enable.rst
+
+      Disable Regionalized Private Endpoints
+      ``````````````````````````````````````
+
+      .. include:: /includes/extracts/atlas-privateEndpoints-regionalModes-disable.rst
+
+      View Regionalized Private Endpoint Settings
+      ```````````````````````````````````````````
+
+      .. include:: /includes/extracts/atlas-privateEndpoints-regionalModes-describe.rst
+
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+
+      Enable Regionalized Private Endpoints
+      `````````````````````````````````````
+
+      .. include:: /includes/steps-enable-regionalized-private-endpoints.rst
+
+      Disable Regionalized Private Endpoints
+      ``````````````````````````````````````
+
+      .. include:: /includes/steps-disable-regionalized-private-endpoints.rst    
+
+Connecting to Multi-Region {+Clusters+} Without Regionalized Private Endpoints 
+``````````````````````````````````````````````````````````````````````````````
+
+If you use {+aws-pl+} and have applications that connect to multi-region {+clusters+}
+that have endpoints in different regions but are not using :ref:`regionalized private endpoints
+<atlas_regionalized-pl>`, ensure that those applications can reach endpoints 
+in the other regions. For example, to do this with |aws|, 
+you can :ref:`peer <vpc-peering>` the |vpc|\s that 
+contain the endpoints on their side.
+
+Avoiding Downtime When Removing Private Endpoints
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-multi-region-private-endpoint-considerations.rst
 
 
 Billing 
