@@ -15,17 +15,15 @@ MongoDB Database Connection Strings
 This page describes the Uniform Resource Identifier (URI) formats for defining
 connections to your MongoDB database. 
 
-Relational Migrator supports all connection string options except
-:urioption:`appName`. It overrides ``appName`` when connecting to your MongoDB
-deployment. For details on MongoDB connection string options, see 
-:manual:`Connection Strings <mongodb-uri>`.
+Relational Migrator supports all :manual:`MongoDB connection string options
+</reference/connection-string-options/>` except :urioption:`appName`. It
+overrides ``appName`` when connecting to your MongoDB deployment.
 
-MongoDB User
-------------
+.. important::
 
-For both Atlas and on-premises deployments, create a separate
-:ref:`MongoDB user <rm-mongodb-service-user>` for Relational Migrator with
-:authrole:`readWrite` access to your MongoDB database.
+   For both Atlas and on-premises deployments, create a separate
+   :ref:`MongoDB user <rm-mongodb-service-user>` for Relational Migrator with
+   :authrole:`readWrite` access to your MongoDB database.
 
 Atlas Connection URI
 --------------------
@@ -34,12 +32,12 @@ Atlas Connection URI
 
    mongodb+srv://username:password@clusterurl.mongodb.net/database
 
-For example, to use an account named ``migrator-service`` to connect to the
-``MongoEnterprises`` database:
+For example, to use an account named ``migrator-service`` with password
+``hunter2`` to connect to the ``MongoEnterprises`` database:
 
 .. code-block::
 
-   mongodb+srv://migrator-service:password@sandbox.xxxxx.mongodb.net/MongoEnterprises
+   mongodb+srv://migrator-service:hunter2@cluster1.abc123.mongodb.net/MongoEnterprises
 
 On-Premises Connection URI
 --------------------------
@@ -48,9 +46,66 @@ On-Premises Connection URI
 
    mongodb://username:password@host:port/database
 
-For example, to use an account named ``migrator-service`` to connect to the
-``MongoEnterprises`` database:
+For example, to use an account named ``migrator-service`` with password
+``hunter2`` to connect to the ``MongoEnterprises`` database:
 
 .. code-block::
 
-   mongodb://migrator-service:password@localhost:27017/MongoEnterprises
+   mongodb://migrator-service:hunter2@localhost:27017/MongoEnterprises
+
+.. _rm-x509-auth:
+
+Using X.509 Authentication
+---------------------------
+
+To connect to MongoDB using X.509 authentication, omit a username and password.
+Instead, specify the on-premises host and port or the Atlas cluster URL and set 
+the following options:
+
+.. code-block::
+
+   <on-premises host:port or clusterurl.mongodb.net>?authSource=$external&authMechanism=MONGODB-X509&tlsCertificateKeyFile=/path/to/cert/client.p12&tlsCertificateKeyFilePassword=certpassword
+
+
+.. list-table::
+   :header-rows: 1
+
+   * - Option
+     - Value
+
+   * - :urioption:`authSource`
+     - ``$external``
+
+   * - :urioption:`authMechanism`
+     - ``MONGODB-X509``
+
+   * - :urioption:`tlsCertificateKeyFile`
+     - The path to the ``.p12`` file that contains the certificate and key to 
+       present to the mongod or mongos instance.
+
+       :gold:`IMPORTANT:` Unlike other MongoDB products, Relational Migrator
+       requires a path to a ``.p12`` file, not a ``.pem`` file. If your 
+       certificate is saved as a ``.pem`` file, you can convert it using a tool 
+       like OpenSSL's `PKCS12 command <https://docs.openssl.org/master/man1/openssl-pkcs12/>`__:
+
+       .. code-block:: bash
+          :copyable: true
+
+          openssl pkcs12 -export -inkey cert_key_pem.txt -in cert_key.pem -out
+          cert_key.p12
+
+   * - :urioption:`tlsCertificateKeyFilePassword`
+     - The password to de-crypt the ``.p12`` file. 
+
+   * - :urioption:`tlsCAFile`
+     - Required only if the MongoDB instance has a TLS/SSL setup with its own public
+       key infrastructure. The path to the local ``.pem`` file that contains 
+       the root certificate chain from the Certificate Authority.
+
+For example, to connect to the ``MongoEnterprises`` database on 
+``cluster1.abc123.mongodb.net``, using the certificate file 
+``/etc/ssl/caToValidateServerCertificates.p12`` with the password ``verysecure``:
+
+.. code-block::
+
+   mongodb+srv://cluster1.abc123.mongodb.net/MongoEnterprises?authSource=$external&authMechanism=MONGODB-X509&tlsCertificateKeyFile=/etc/ssl/caToValidateServerCertificates.p12&tlsCertificateKeyFilePassword=verysecure

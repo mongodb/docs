@@ -4,7 +4,7 @@
 
 If you are using MongoDB Atlas, you can select your Atlas cluster 
 from the :guilabel:`Select a cluster` list, or you can enter the
-:manual:`connection string <mongodb-uri>`.
+:manual:`connection string </reference/connection-string>`.
 
 If you are using an on-premises deployment, you must use the MongoDB
 connection string.
@@ -39,7 +39,7 @@ connection string.
       :tabid: enter-mongodb-uri
 
       a. In the :guilabel:`MongoDB connection string (URI)` field, input
-         your :manual:`MongoDB URI <mongodb-uri>`.
+         your :manual:`MongoDB URI </reference/connection-string>`.
 
       #. If it isn't included in the connection string, enter the
          :guilabel:`Database` to connect to.
