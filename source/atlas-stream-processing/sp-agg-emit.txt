@@ -52,10 +52,13 @@ pipeline stage with the following prototype form:
        "connectionName": "<registered-connection>",
        "topic" : "<target-topic>" | <expression>,
        "config": {
+         "acks": <number-of-acknowledgements>,
+         "compression_type": "<compression-type>",
+         "dateFormat": "default" | "ISO8601",
          "headers": "<expression>",
          "key": "<key-string>" | { key-document },
-	 "keyFormat": "<deserialization-type>",
-	 "outputFormat": "<json-format>"
+	       "keyFormat": "<deserialization-type>",
+	       "outputFormat": "<json-format>"
        }
      }  
    }
@@ -116,6 +119,40 @@ The ``$emit`` stage takes a document with the following fields:
 
        Compression is used for full batches of data, so the efficacy of batching
        impacts the compression ratio; more batching results in better compression.
+
+   * - ``config.dateFormat``
+     - string
+     - Optional
+     - Date format for the date value. Valid values are:
+
+       - ``default`` - to use the default of the ``outputFormat``.
+       - ``ISO8601`` - to convert dates to strings in the ``ISO8601``
+         format, which includes millisecond precision
+         (``YYYY-MM-DDTHH:mm:ss.sssZ``).  
+
+       .. example:: 
+
+          Consider the following input.
+
+          .. code-block:: json 
+
+             { "flightTime" :  ISODate('2025-01-10T20:17:38.387Z') }
+
+          If ``$emit.config.defaultFormat`` is set to ``default``,
+          output looks similar to the following:
+
+          .. code-block:: shell 
+             :copyable: false 
+
+             { "flightTime" :  {$date :"2025-01-10T20:17:38.387Z"}}
+
+          If ``$emit.config.defaultFormat`` is set to ``ISO8601``,
+          output looks similar to the following:
+
+          .. code-block:: shell 
+             :copyable: false 
+
+             { "flightTime" :  "2025-01-10T20:17:38.387Z" } 
 
    * - ``config.headers``
      - expression
