@@ -2,6 +2,7 @@ a. Install the MongoDB Scala Driver.
 
    For installation instructions based on your environment and the version 
    of Scala you are using, refer to the 
+
    :ref:`MongoDB Scala Driver documentation <scala-quick-start-download-and-install>`.
 
 #. Create a new Scala project with the tools you normally use. For this 

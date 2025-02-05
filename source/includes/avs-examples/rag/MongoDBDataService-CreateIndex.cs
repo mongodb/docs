@@ -1,4 +1,4 @@
-namespace MyCompany.RAG.Local;
+namespace MyCompany.RAG;
 
 using MongoDB.Driver;
 using MongoDB.Bson;
@@ -7,41 +7,36 @@ public class DataService
 {
     private static readonly string? ConnectionString = Environment.GetEnvironmentVariable("ATLAS_CONNECTION_STRING");
     private static readonly MongoClient Client = new MongoClient(ConnectionString);
-    private static readonly IMongoDatabase Database = Client.GetDatabase("sample_airbnb");
-    private static readonly IMongoCollection<BsonDocument> Collection = Database.GetCollection<BsonDocument>("listingsAndReviews");
-    
-    public List<BsonDocument>? GetDocuments()
-    {
-        // Method details...
-    }
+    private static readonly IMongoDatabase Database = Client.GetDatabase("rag_db");
+    private static readonly IMongoCollection<BsonDocument> Collection = Database.GetCollection<BsonDocument>("test");
 
-    public async Task<string> UpdateDocuments(Dictionary<string, float[]> embeddings)
+    public async Task<string> AddDocumentsAsync(Dictionary<string, float[]> embeddings)
     {
         // Method details...
     }
 
     public string CreateVectorIndex()
     {
-        try
+        var searchIndexView = Collection.SearchIndexes;
+        var name = "vector_index";
+        var type = SearchIndexType.VectorSearch;
+        var definition = new BsonDocument
         {
-            var searchIndexView = Collection.SearchIndexes;
-            var name = "vector_index";
-            var type = SearchIndexType.VectorSearch;
-            var definition = new BsonDocument
-            {
-                { "fields", new BsonArray
+            { "fields", new BsonArray
+                {
+                    new BsonDocument
                     {
-                        new BsonDocument
-                        {
-                            { "type", "vector" },
-                            { "path", "embeddings" },
-                            { "numDimensions", 768 },
-                            { "similarity", "cosine" }
-                        }
+                        { "type", "vector" },
+                        { "path", "embedding" },
+                        { "numDimensions", 1536 },
+                        { "similarity", "cosine" }
                     }
                 }
-            };
-            var model = new CreateSearchIndexModel(name, type, definition);
+            }
+        };
+        var model = new CreateSearchIndexModel(name, type, definition);
+        try
+        {
             searchIndexView.CreateOne(model);
             Console.WriteLine($"New search index named {name} is building.");
             // Polling for index status
@@ -62,11 +57,11 @@ public class DataService
                     Thread.Sleep(5000);
                 }
             }
-            return $"{name} is ready for querying.";
         }
         catch (Exception e)
         {
-            return $"Exception: {e.Message}";
+            throw new ApplicationException("Error creating the vector index: "  + e.Message);
         }
+        return $"{name} is ready for querying.";
     }
 }
