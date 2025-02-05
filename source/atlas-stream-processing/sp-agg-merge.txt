@@ -71,12 +71,18 @@ fields.
 Behavior
 ~~~~~~~~
 
+Limitations
+```````````
+
 ``$merge`` must be the last stage of any pipeline it appears in. You can
 use only one ``$merge`` stage per pipeline.
 
 The ``on`` field has special requirements for ``$merge`` against
 sharded collections. To learn more, see 
 :manual:`$merge syntax </reference/operator/aggregation/merge/#merge-on>`.
+
+Dynamic Expressions
+```````````````````
 
 You can use a :manual:`dynamic expression 
 </reference/operator/aggregation/#expression-operators>` as
@@ -147,6 +153,37 @@ If you specify a database or collection with a dynamic expression, but
 and processes subsequent messages. If there is no :term:`dead letter queue` 
 configured, then {+atlas-sp+} skips the message completely and processes 
 subsequent messages.
+
+Saving Data from Kafka Topics
+`````````````````````````````
+
+To save streaming data from multiple {+kafka-topics+} into collections 
+in your |service| {+cluster+}, use the ``$merge`` stage with 
+the :pipeline:`$source` stage. The ``$source`` stage 
+specifies the topics from which to read data. The ``$merge``
+stage writes the data to the target collection. 
+
+Use the following syntax:
+
+.. code-block:: json
+   :emphasize-lines: 1-6
+
+   {
+     "$source": {
+       "connectionName": "<registered-kafka-connection>",
+       "topic": [ "<topic-name-1>", "<topic-name-2>", ... ]
+     }
+   },  
+   {
+     "$merge": {
+       "into": {
+         "connectionName": "<registered-atlas-connection>",
+         "db": "<registered-database-name>" | <expression>,
+         "coll": "<atlas-collection-name>" | <expression>
+         }
+       },
+       ...
+   }
 
 .. _atlas-sp-agg-merge-examples:
 
