@@ -47,17 +47,12 @@ Currently, {+Serverless-instances+} don't support the following actions:
 
 - Convert |service| {+Serverless-instances+} into {+clusters+}. [#f2]_
 
-- Convert |service| dedicated {+clusters+} into |service| 
-  {+Serverless-instances+}
+- Convert |service| dedicated {+clusters+} into |service| {+Serverless-instances+}
 
-  You can :ref:`convert a shared {+cluster+} to a 
-  {+Serverless-instance+} <convert-to-serverless>`.
-
-- :doc:`Live migrate </import/live-import>` into |service|  
-  {+Serverless-instances+}.
+- :doc:`Live migrate </import/live-import>` into |service| {+Serverless-instances+}.
 
 - Store more than 1 TB of data.
-    
+
   This value includes the number of bytes of all uncompressed BSON 
   documents stored in all collections, plus the bytes stored in 
   their associated indexes.

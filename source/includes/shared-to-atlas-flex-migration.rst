@@ -1,11 +1,16 @@
 .. important::
-	
-	We are introducing new {+Flex-clusters+} in a phased approach. Once your 
-	org has the ability to create {+Flex-clusters+}, you will no longer be 
-	able to create M2 and M5 clusters or {+Serverless-instances+} in the 
-	{+atlas-ui+}.
 
-	We will also be seamlessly migrating existing M2 and M5 clusters to 
-	{+Flex-clusters+} in a phased manner. There will be no downtime and 
-	you will not need to make any changes to your configuration during this 
-	migration. 
+    As of February 2025, you can create {+Flex-clusters+}, and can no longer
+    create ``M2`` and ``M5`` {+clusters+} or {+Serverless-instances+} in the 
+    {+atlas-ui+}, {+atlas-cli+}, {+atlas-admin-api+}, |ak8so|, HashiCorp Terraform,
+    or |service| CloudFormation Resources.
+    You can still use existing ``M2`` and ``M5`` {+clusters+} and {+Serverless-instances+}.
+
+    |service| deprecated ``M2`` and ``M5`` {+clusters+} and {+Serverless-instances+}.
+    |service| will automatically migrate all existing ``M2`` and ``M5`` {+clusters+}
+    to {+Flex-clusters+}. For {+Serverless-instances+}, |service| will
+    determine whether to migrate instances to {+Free-clusters+},
+    {+Flex-clusters+}, or {+Dedicated-clusters+} according to your usage. 
+    To see which tiers |service| will migrate your instances
+    to, consult the `All Clusters <https://cloud.mongodb.com/v2#/clusters>`__ 
+    page in the {+atlas-ui+}.
