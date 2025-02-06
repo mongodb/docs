@@ -4,7 +4,7 @@
 
    * - Event Type
      - Description
-     - Alertable?
+     - Alertable? 
 
    * - ``ACCOUNT_DOWNGRADED``
      - .. _atlas_event_account_downgraded:
@@ -202,6 +202,24 @@
      - .. _atlas_event_atlas_maintenance_deferred:
 
        Project maintenance deferred by one week
+     - no
+
+   * - ``ATLAS_MAINTENANCE_PROTECTED_HOURS_CREATED``
+     - .. _atlas_event_atlas_maintenance_protected_hours_created:
+
+       Project maintenance protected hours created
+     - no
+
+   * - ``ATLAS_MAINTENANCE_PROTECTED_HOURS_MODIFIED``
+     - .. _atlas_event_atlas_maintenance_protected_hours_modified:
+
+       Project maintenance protected hours modified
+     - no
+
+   * - ``ATLAS_MAINTENANCE_PROTECTED_HOURS_REMOVED``
+     - .. _atlas_event_atlas_maintenance_protected_hours_removed:
+
+       Project maintenance protected hours removed
      - no
 
    * - ``ATLAS_MAINTENANCE_SCHEDULED_FOR_NEXT_WINDOW``
@@ -858,6 +876,18 @@
        Cluster binary version upgrade submitted
      - no
 
+   * - ``CLUSTER_BLACKLIST_UPDATED_AUDIT``
+     - .. _atlas_event_cluster_blacklist_updated_audit:
+
+       Excluded namespaces were modified for cluster
+     - no
+
+   * - ``CLUSTER_CANCELING_SHARD_DRAIN_REQUESTED``
+     - .. _atlas_event_cluster_canceling_shard_drain_requested:
+
+       Cluster cancel shard drain requested
+     - no
+
    * - ``CLUSTER_CHECKPOINT_UPDATED_AUDIT``
      - .. _atlas_event_cluster_checkpoint_updated_audit:
 
@@ -904,6 +934,12 @@
      - .. _atlas_event_cluster_connection_sample_collection_field_names:
 
        Run $sample aggregation to get document field names
+     - no
+
+   * - ``CLUSTER_CONNECTION_SAMPLE_COLLECTION_FIELD_NAMES_AND_TYPES``
+     - .. _atlas_event_cluster_connection_sample_collection_field_names_and_types:
+
+       Run $sample aggregation to get document field names and types
      - no
 
    * - ``CLUSTER_CREATED``
@@ -1104,10 +1140,40 @@
        An instance update in the cluster was manually requested
      - yes
 
+   * - ``CLUSTER_IP_MIGRATED_FINAL_ROUND``
+     - .. _atlas_event_cluster_ip_migrated_final_round:
+
+       All nodes in the cluster have their IPs migrated
+     - no
+
+   * - ``CLUSTER_IP_MIGRATED_FIRST_ROUND``
+     - .. _atlas_event_cluster_ip_migrated_first_round:
+
+       33 percent of nodes in the cluster have their IPs migrated
+     - no
+
+   * - ``CLUSTER_IP_MIGRATED_SECOND_ROUND``
+     - .. _atlas_event_cluster_ip_migrated_second_round:
+
+       66 percent of nodes in the cluster have their IPs migrated
+     - no
+
+   * - ``CLUSTER_IP_ROLLED_BACK``
+     - .. _atlas_event_cluster_ip_rolled_back:
+
+       All nodes in the cluster have their IPs rolled back to their previous IPs
+     - no
+
    * - ``CLUSTER_LINKED_TO_VERCEL``
      - .. _atlas_event_cluster_linked_to_vercel:
 
        Cluster linked to Vercel
+     - no
+
+   * - ``CLUSTER_MIGRATE_BACK_TO_AWS_MANAGED_IP_REQUESTED``
+     - .. _atlas_event_cluster_migrate_back_to_aws_managed_ip_requested:
+
+       Cluster migrate back to AWS managed ip addresses requested
      - no
 
    * - ``CLUSTER_MONGOS_IS_MISSING``
@@ -1269,7 +1335,7 @@
    * - ``CLUSTER_STATE_CHANGED_AUDIT``
      - .. _atlas_event_cluster_state_changed_audit:
 
-       Cluster backup state is now
+       Cluster backup state is now 
      - no
 
    * - ``CLUSTER_STORAGE_ENGINE_UPDATED_AUDIT``
@@ -1590,41 +1656,47 @@
        A copy snapshot was taken successfully
      - yes
 
+   * - ``CPS_DATA_PROTECTION_APPROVED_FOR_DISABLEMENT``
+     - .. _atlas_event_cps_data_protection_approved_for_disablement:
+
+       Backup Compliance Policy can be disabled for the next 24 hours
+     - yes
+
    * - ``CPS_DATA_PROTECTION_DISABLED``
      - .. _atlas_event_cps_data_protection_disabled:
 
        Disabling Backup Compliance Policy has been completed
-     - no
+     - yes
 
    * - ``CPS_DATA_PROTECTION_DISABLE_REQUESTED``
      - .. _atlas_event_cps_data_protection_disable_requested:
 
        Disabling Backup Compliance Policy has been requested
-     - no
+     - yes
 
    * - ``CPS_DATA_PROTECTION_ENABLED``
      - .. _atlas_event_cps_data_protection_enabled:
 
        Enabling Backup Compliance Policy has been completed
-     - no
+     - yes
 
    * - ``CPS_DATA_PROTECTION_ENABLE_REQUESTED``
      - .. _atlas_event_cps_data_protection_enable_requested:
 
        Enabling Backup Compliance Policy has been requested
-     - no
+     - yes
 
    * - ``CPS_DATA_PROTECTION_UPDATED``
      - .. _atlas_event_cps_data_protection_updated:
 
        Updating Backup Compliance Policy has been completed
-     - no
+     - yes
 
    * - ``CPS_DATA_PROTECTION_UPDATE_REQUESTED``
      - .. _atlas_event_cps_data_protection_update_requested:
 
        Updating Backup Compliance Policy has been requested
-     - no
+     - yes
 
    * - ``CPS_EXPORT_FAILED``
      - .. _atlas_event_cps_export_failed:
@@ -2004,6 +2076,12 @@
        User enabled the Data Explorer feature for the associated project
      - no
 
+   * - ``DATA_EXPLORER_SESSION_CREATED``
+     - .. _atlas_event_data_explorer_session_created:
+
+       User created a new Data Explorer session
+     - no
+
    * - ``DATA_FEDERATION_QUERY_LIMIT_CONFIGURED``
      - .. _atlas_event_data_federation_query_limit_configured:
 
@@ -2194,6 +2272,12 @@
      - .. _atlas_event_employee_access_revoked:
 
        Revoked additional access from MongoDB support
+     - no
+
+   * - ``EMPLOYEE_DOWNLOADED_CLUSTER_LOGS``
+     - .. _atlas_event_employee_downloaded_cluster_logs:
+
+       A MongoDB employee downloaded cluster database logs for a host to help resolve an ongoing support issue.
      - no
 
    * - ``ENABLE_BACKUP_PRIVATELINK_EVENT``
@@ -2778,6 +2862,12 @@
        Host has security recommendations
      - yes
 
+   * - ``HOST_SSH_SESSION_ENDED``
+     - .. _atlas_event_host_ssh_session_ended:
+
+       A MongoDB employee ended an SSH session for a host in this Atlas project.
+     - no
+
    * - ``HOST_SSL_CERTIFICATE_CURRENT``
      - .. _atlas_event_host_ssl_certificate_current:
 
@@ -2818,6 +2908,12 @@
      - .. _atlas_event_host_version_current:
 
        Host has the latest version
+     - no
+
+   * - ``HOST_X509_CERTIFICATE_CERTIFICATE_GENERATED_FOR_SUPPORT_ACCESS``
+     - .. _atlas_event_host_x509_certificate_certificate_generated_for_support_access:
+
+       A MongoDB employee requested an X509 certificate to perform support operations on a host in this Atlas project.
      - no
 
    * - ``IDENTITY_PROVIDER_ACTIVATED``
@@ -2914,6 +3010,12 @@
      - .. _atlas_event_initiate_salesforce_service_cloud_sync:
 
        Organization sync with SFSC initiated
+     - no
+
+   * - ``INSIDE_FLEX_METRIC_THRESHOLD``
+     - .. _atlas_event_inside_flex_metric_threshold:
+
+       Flex metric inside threshold
      - no
 
    * - ``INSIDE_METRIC_THRESHOLD``
@@ -3852,6 +3954,24 @@
        Organization locked due to unpaid charges over 60 days
      - no
 
+   * - ``ORG_MONGODB_VERSION_EOL_EXTENSION_ACCEPTED``
+     - .. _atlas_event_org_mongodb_version_eol_extension_accepted:
+
+       This organization's MongoDB version end of life extension request was accepted
+     - no
+
+   * - ``ORG_MONGODB_VERSION_EOL_EXTENSION_CANCELLED``
+     - .. _atlas_event_org_mongodb_version_eol_extension_cancelled:
+
+       This organization's MongoDB version end of life extension request has been cancelled
+     - no
+
+   * - ``ORG_MONGODB_VERSION_EOL_EXTENSION_PENDING``
+     - .. _atlas_event_org_mongodb_version_eol_extension_pending:
+
+       This organization's MongoDB version end of life extension request is pending
+     - no
+
    * - ``ORG_NO_FINANCIAL_PROTECTION``
      - .. _atlas_event_org_no_financial_protection:
 
@@ -4049,6 +4169,12 @@
 
        Admin set OS tuned file overrides
      - no
+
+   * - ``OUTSIDE_FLEX_METRIC_THRESHOLD``
+     - .. _atlas_event_outside_flex_metric_threshold:
+
+       Flex metric outside threshold
+     - yes
 
    * - ``OUTSIDE_METRIC_THRESHOLD``
      - .. _atlas_event_outside_metric_threshold:
@@ -4290,6 +4416,12 @@
        Project scheduled maintenance will occur
      - no
 
+   * - ``PROJECT_SCHEDULED_MAINTENANCE_OUTSIDE_OF_PROTECTED_HOURS``
+     - .. _atlas_event_project_scheduled_maintenance_outside_of_protected_hours:
+
+       Project scheduled maintenance outside of protected hours will occur
+     - no
+
    * - ``PROMO_CODE_APPLIED``
      - .. _atlas_event_promo_code_applied:
 
@@ -4326,11 +4458,29 @@
        Push-Based Log Export disabled
      - no
 
+   * - ``PUSH_BASED_LOG_EXPORT_DROPPED_LOG``
+     - .. _atlas_event_push_based_log_export_dropped_log:
+
+       Push based log export has dropped a log line
+     - yes
+
    * - ``PUSH_BASED_LOG_EXPORT_ENABLED``
      - .. _atlas_event_push_based_log_export_enabled:
 
        Push-Based Log Export enabled
      - no
+
+   * - ``PUSH_BASED_LOG_EXPORT_RESUMED``
+     - .. _atlas_event_push_based_log_export_resumed:
+
+       Push based log exporting has resumed
+     - no
+
+   * - ``PUSH_BASED_LOG_EXPORT_STOPPED``
+     - .. _atlas_event_push_based_log_export_stopped:
+
+       Push based log export is unable to push logs on this host
+     - yes
 
    * - ``QUEUED_ADMIN_ACTION_CANCELLED``
      - .. _atlas_event_queued_admin_action_cancelled:
@@ -4524,6 +4674,12 @@
        Rolling index build succeeded
      - no
 
+   * - ``RS_BLACKLIST_UPDATED_AUDIT``
+     - .. _atlas_event_rs_blacklist_updated_audit:
+
+       Excluded namespaces were modified for replica set
+     - no
+
    * - ``RS_CREDENTIAL_UPDATED_AUDIT``
      - .. _atlas_event_rs_credential_updated_audit:
 
@@ -4551,7 +4707,7 @@
    * - ``RS_STATE_CHANGED_AUDIT``
      - .. _atlas_event_rs_state_changed_audit:
 
-       Replica set backup state is now
+       Replica set backup state is now 
      - no
 
    * - ``RS_STORAGE_ENGINE_UPDATED_AUDIT``
@@ -4746,6 +4902,24 @@
        Serverless MTM drain stopped
      - no
 
+   * - ``SERVERLESS_UPGRADE_STARTED``
+     - .. _atlas_event_serverless_upgrade_started:
+
+       Serverless instance upgrade started
+     - no
+
+   * - ``SERVERLESS_UPGRADE_TO_DEDICATED_FAILED``
+     - .. _atlas_event_serverless_upgrade_to_dedicated_failed:
+
+       Serverless instance upgrade to Dedicated cluster failed
+     - no
+
+   * - ``SERVERLESS_UPGRADE_TO_DEDICATED_SUCCESSFUL``
+     - .. _atlas_event_serverless_upgrade_to_dedicated_successful:
+
+       Serverless instance upgrade to Dedicated cluster succeeded
+     - no
+
    * - ``SERVERLESS_VERTICAL_SCALING_INITIATED``
      - .. _atlas_event_serverless_vertical_scaling_initiated:
 
@@ -4860,6 +5034,36 @@
        Snapshot store deleted
      - no
 
+   * - ``SSH_KEY_NDS_HOST_ACCESS_ATTEMPT``
+     - .. _atlas_event_ssh_key_nds_host_access_attempt:
+
+       A MongoDB employee attempted to access a cluster's infrastructure in this Atlas project.
+     - no
+
+   * - ``SSH_KEY_NDS_HOST_ACCESS_GRANTED``
+     - .. _atlas_event_ssh_key_nds_host_access_granted:
+
+       A MongoDB employee was granted access to a cluster's infrastructure in this Atlas project.
+     - no
+
+   * - ``SSH_KEY_NDS_HOST_ACCESS_REFRESHED``
+     - .. _atlas_event_ssh_key_nds_host_access_refreshed:
+
+       A MongoDB employee refreshed access to a cluster's infrastructure in this Atlas project.
+     - yes
+
+   * - ``SSH_KEY_NDS_HOST_ACCESS_REQUESTED``
+     - .. _atlas_event_ssh_key_nds_host_access_requested:
+
+       A MongoDB employee requested access to a cluster's infrastructure in this Atlas project.
+     - yes
+
+   * - ``SSL_CERTIFICATE_ISSUED``
+     - .. _atlas_event_ssl_certificate_issued:
+
+       New SSL certificate has been successfully issued for a cluster instance
+     - no
+
    * - ``STREAMS_AUDIT_LOG_CONFIGURATION_UPDATED``
      - .. _atlas_event_streams_audit_log_configuration_updated:
 
@@ -4930,6 +5134,18 @@
      - .. _atlas_event_stream_tenant_updated:
 
        Stream Processing Instance updated
+     - no
+
+   * - ``SUBSCRIPTION_USAGE_DOC_RATE_CHANGED_DRASTICALLY``
+     - .. _atlas_event_subscription_usage_doc_rate_changed_drastically:
+
+       The rate of change in document count in the subscription usage collection changed drastically between the last two hours
+     - yes
+
+   * - ``SUBSCRIPTION_USAGE_DOC_RATE_STEADY``
+     - .. _atlas_event_subscription_usage_doc_rate_steady:
+
+       The rate of change in document count in the subscription usage collection has been steady for the past two hours
      - no
 
    * - ``SUCCESSFUL_DEPLOY``
