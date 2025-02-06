@@ -45,6 +45,30 @@ To learn more about permissable reads and writes during synchronization, see :re
    Index builds on the destination cluster are treated as writes 
    while ``mongosync`` is syncing.
 
+Why are the destination cluster indexes larger than the source cluster indexes?
+-------------------------------------------------------------------------------
+
+The following factors may contribute to an increase in index size on destination
+clusters:
+
+- ``mongosync`` inserts and removes data during a migration, which can cause data 
+  to be stored inefficiently on disk.
+- By default, ``mongosync`` builds indexes before copying data. ``mongosync`` 
+  copies data in ``_id`` order. If an index is not correlated with  ``_id``, 
+  the index size can become large. For more information, see the MongoDB Manual
+  :ref:`FAQ: Indexes<faq-indexes-random-data-performance>` page.
+
+Use the following methods to mitigate an increase in index size:
+
+- Restart the migration with the ``buildIndexes`` 
+  :ref:`parameter <c2c-api-start-params>` set to ``never``. When the migration 
+  finishes, manually build indexes on the destination cluster.
+- After the migration, perform a rolling :ref:`initial sync <replica-set-sync>` 
+  on the destination cluster.
+- After the migration, run :ref:`<compact>` on the destination cluster. This 
+  rebuilds indexes and releases unneeded disk space to the OS, but may impact
+  cluster :ref:`performance <compact-perf>`.
+
 Can ``mongosync`` run on its own hardware? 
 ------------------------------------------
 
