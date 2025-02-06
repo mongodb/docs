@@ -10,6 +10,13 @@
 
          a. In the sidebar, click :guilabel:`Atlas Search` under
             the :guilabel:`Services` heading.
+
+            .. note::
+
+               If you have no {+clusters+}, click 
+               :guilabel:`Create cluster` to create one. To learn more, 
+               see :ref:`create-new-cluster`.
+
          #. From the :guilabel:`Select data source` dropdown, select
             your {+cluster+} and click :guilabel:`Go to Atlas Search`.
 
