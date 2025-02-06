@@ -1,3 +1,34 @@
+.. _opsmgr-server-6.0.27:
+
+|onprem| Server 6.0.27:
+~~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-01-30*
+
+.. important:: |onprem| 6.0 EOL
+   
+   This is the final release of |onprem| 6.0. |onprem| 6.0 has reached `end of life (EOL) <https://www.mongodb.com/legal/support-policy/lifecycles>`__.
+   Upgrade to at least |onprem| 7.0 immediately to keep your |onprem| support.
+
+- Updates the {+mdbagent+} to :ref:`12.0.35.7911-1
+  <mongodb-12.0.35.7911-1>`.
+- Adds support for |bic-full| 2.14.21.
+- Updates JDK to ``jdk-11.0.26+4``.
+- Fixes an issue so that the {+mdbagent+} downloads the correct |bic-full|
+  versions for all platforms.
+- Fixes the following |cve|\s:
+
+  - `CVE-2024-10229 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-10229>`__
+  - `CVE-2024-10487 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-10487>`__
+  - `CVE-2024-10827 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-10827>`__
+  - `CVE-2024-11110 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-11110>`__
+  - `CVE-2024-12053 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-12053>`__
+  - `CVE-2024-12798 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-12798>`__
+  - `CVE-2024-21534 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-21534>`__
+  - `CVE-2024-47535 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-47535>`__
+  - `CVE-2024-52046 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-52046>`__
+  - `CVE-2025-0436 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-0436>`__
+
 .. _opsmgr-server-6.0.26:
 
 |onprem| Server 6.0.26:
