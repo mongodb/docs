@@ -1,0 +1,256 @@
+Release "mongodb-enterprise-operator-multi-cluster" does not exist. Installing it now.
+NAME: mongodb-enterprise-operator-multi-cluster
+LAST DEPLOYED: Mon Jan 13 17:29:09 2025
+NAMESPACE: mongodb-operator
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+USER-SUPPLIED VALUES:
+dummy: value
+multiCluster:
+  clusters:
+  - gke_scratch-kubernetes-team_europe-central2-a_k8s-mdb-0
+  - gke_scratch-kubernetes-team_europe-central2-b_k8s-mdb-1
+  - gke_scratch-kubernetes-team_europe-central2-c_k8s-mdb-2
+namespace: mongodb-operator
+operator:
+  createOperatorServiceAccount: false
+  createResourcesServiceAccountsAndRoles: false
+  env: dev
+  mdbDefaultArchitecture: static
+  name: mongodb-enterprise-operator-multi-cluster
+  namespace: mongodb-operator
+  watchNamespace: mongodb-om,mongodb
+
+COMPUTED VALUES:
+agent:
+  name: mongodb-agent-ubi
+  version: 108.0.2.8729-1
+database:
+  name: mongodb-enterprise-database-ubi
+  version: 1.30.0
+dummy: value
+initAppDb:
+  name: mongodb-enterprise-init-appdb-ubi
+  version: 1.30.0
+initDatabase:
+  name: mongodb-enterprise-init-database-ubi
+  version: 1.30.0
+initOpsManager:
+  name: mongodb-enterprise-init-ops-manager-ubi
+  version: 1.30.0
+managedSecurityContext: false
+mongodb:
+  appdbAssumeOldFormat: false
+  imageType: ubi8
+  name: mongodb-enterprise-server
+  repo: quay.io/mongodb
+mongodbLegacyAppDb:
+  name: mongodb-enterprise-appdb-database-ubi
+  repo: quay.io/mongodb
+multiCluster:
+  clusterClientTimeout: 10
+  clusters:
+  - gke_scratch-kubernetes-team_europe-central2-a_k8s-mdb-0
+  - gke_scratch-kubernetes-team_europe-central2-b_k8s-mdb-1
+  - gke_scratch-kubernetes-team_europe-central2-c_k8s-mdb-2
+  kubeConfigSecretName: mongodb-enterprise-operator-multi-cluster-kubeconfig
+  performFailOver: true
+namespace: mongodb-operator
+operator:
+  additionalArguments: []
+  affinity: {}
+  createOperatorServiceAccount: false
+  createResourcesServiceAccountsAndRoles: false
+  deployment_name: mongodb-enterprise-operator
+  enablePVCResize: true
+  env: dev
+  maxConcurrentReconciles: 1
+  mdbDefaultArchitecture: static
+  name: mongodb-enterprise-operator-multi-cluster
+  namespace: mongodb-operator
+  nodeSelector: {}
+  operator_image_name: mongodb-enterprise-operator-ubi
+  replicas: 1
+  resources:
+    limits:
+      cpu: 1100m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 200Mi
+  tolerations: []
+  vaultSecretBackend:
+    enabled: false
+    tlsSecretRef: ""
+  version: 1.30.0
+  watchNamespace: mongodb-om,mongodb
+  watchedResources:
+  - mongodb
+  - opsmanagers
+  - mongodbusers
+  webhook:
+    installClusterRole: true
+    registerConfiguration: true
+opsManager:
+  name: mongodb-enterprise-ops-manager-ubi
+registry:
+  agent: quay.io/mongodb
+  appDb: quay.io/mongodb
+  database: quay.io/mongodb
+  imagePullSecrets: null
+  initAppDb: quay.io/mongodb
+  initDatabase: quay.io/mongodb
+  initOpsManager: quay.io/mongodb
+  operator: quay.io/mongodb
+  opsManager: quay.io/mongodb
+  pullPolicy: Always
+subresourceEnabled: true
+
+HOOKS:
+MANIFEST:
+---
+# Source: enterprise-operator/templates/operator-roles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: mongodb-enterprise-operator-mongodb-webhook
+rules:
+  - apiGroups:
+      - "admissionregistration.k8s.io"
+    resources:
+      - validatingwebhookconfigurations
+    verbs:
+      - get
+      - create
+      - update
+      - delete
+  - apiGroups:
+      - ""
+    resources:
+      - services
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - delete
+---
+# Source: enterprise-operator/templates/operator-roles.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: mongodb-enterprise-operator-multi-cluster-mongodb-operator-webhook-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: mongodb-enterprise-operator-mongodb-webhook
+subjects:
+  - kind: ServiceAccount
+    name: mongodb-enterprise-operator-multi-cluster
+    namespace: mongodb-operator
+---
+# Source: enterprise-operator/templates/operator.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb-enterprise-operator-multi-cluster
+  namespace: mongodb-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: controller
+      app.kubernetes.io/name: mongodb-enterprise-operator-multi-cluster
+      app.kubernetes.io/instance: mongodb-enterprise-operator-multi-cluster
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: controller
+        app.kubernetes.io/name: mongodb-enterprise-operator-multi-cluster
+        app.kubernetes.io/instance: mongodb-enterprise-operator-multi-cluster
+    spec:
+      serviceAccountName: mongodb-enterprise-operator-multi-cluster
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 2000
+      containers:
+        - name: mongodb-enterprise-operator-multi-cluster
+          image: "quay.io/mongodb/mongodb-enterprise-operator-ubi:1.30.0"
+          imagePullPolicy: Always
+          args:
+            - -watch-resource=mongodb
+            - -watch-resource=opsmanagers
+            - -watch-resource=mongodbusers
+            - -watch-resource=mongodbmulticluster
+          command:
+            - /usr/local/bin/mongodb-enterprise-operator
+          volumeMounts:
+            - mountPath: /etc/config/kubeconfig
+              name: kube-config-volume
+          resources:
+            limits:
+              cpu: 1100m
+              memory: 1Gi
+            requests:
+              cpu: 500m
+              memory: 200Mi
+          env:
+            - name: OPERATOR_ENV
+              value: dev
+            - name: MDB_DEFAULT_ARCHITECTURE
+              value: static
+            - name: WATCH_NAMESPACE
+              value: "mongodb-om,mongodb"
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: CLUSTER_CLIENT_TIMEOUT
+              value: "10"
+            - name: IMAGE_PULL_POLICY
+              value: Always
+            # Database
+            - name: MONGODB_ENTERPRISE_DATABASE_IMAGE
+              value: quay.io/mongodb/mongodb-enterprise-database-ubi
+            - name: INIT_DATABASE_IMAGE_REPOSITORY
+              value: quay.io/mongodb/mongodb-enterprise-init-database-ubi
+            - name: INIT_DATABASE_VERSION
+              value: 1.30.0
+            - name: DATABASE_VERSION
+              value: 1.30.0
+            # Ops Manager
+            - name: OPS_MANAGER_IMAGE_REPOSITORY
+              value: quay.io/mongodb/mongodb-enterprise-ops-manager-ubi
+            - name: INIT_OPS_MANAGER_IMAGE_REPOSITORY
+              value: quay.io/mongodb/mongodb-enterprise-init-ops-manager-ubi
+            - name: INIT_OPS_MANAGER_VERSION
+              value: 1.30.0
+            # AppDB
+            - name: INIT_APPDB_IMAGE_REPOSITORY
+              value: quay.io/mongodb/mongodb-enterprise-init-appdb-ubi
+            - name: INIT_APPDB_VERSION
+              value: 1.30.0
+            - name: OPS_MANAGER_IMAGE_PULL_POLICY
+              value: Always
+            - name: AGENT_IMAGE
+              value: "quay.io/mongodb/mongodb-agent-ubi:108.0.2.8729-1"
+            - name: MDB_AGENT_IMAGE_REPOSITORY
+              value: "quay.io/mongodb/mongodb-agent-ubi"
+            - name: MONGODB_IMAGE
+              value: mongodb-enterprise-server
+            - name: MONGODB_REPO_URL
+              value: quay.io/mongodb
+            - name: MDB_IMAGE_TYPE
+              value: "ubi9"
+            - name: PERFORM_FAILOVER
+              value: 'true'
+            - name: MDB_MAX_CONCURRENT_RECONCILES
+              value: "1"
+      volumes:
+        - name: kube-config-volume
+          secret:
+            defaultMode: 420
+            secretName: mongodb-enterprise-operator-multi-cluster-kubeconfig
+
