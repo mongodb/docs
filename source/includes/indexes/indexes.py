@@ -2,6 +2,12 @@
 movies.create_index("title")
 # end-index-single
 
+# start-index-single-collation
+from pymongo.collation import Collation
+
+movies.create_index("title", collation=Collation(locale='fr_CA'))
+# end-index-single-collation
+
 # start-index-single-query
 query = { "title": "Batman" }
 sort = [("title", 1)]
@@ -13,6 +19,13 @@ cursor = movies.find(query).sort(sort)
 movies.create_index([("type", pymongo.ASCENDING), ("genre", pymongo.ASCENDING)])
 # end-compound-index
 
+# start-compound-index-collation
+from pymongo.collation import Collation
+
+movies.create_index([("type", pymongo.ASCENDING), ("genre", pymongo.ASCENDING)],
+                    collation=Collation(locale='fr_CA'))
+# end-compound-index-collation
+
 # start-index-compound-query
 query = { "type": "movie", "genre": "Drama" }
 sort = [("type", pymongo.ASCENDING), ("genre", pymongo.ASCENDING)]
@@ -23,6 +36,12 @@ cursor = movies.find(query).sort(sort)
 # start-index-multikey
 result = movies.create_index("cast")
 # end-index-multikey
+
+# start-index-multikey-collation
+from pymongo.collation import Collation
+
+result = movies.create_index("cast", collation=Collation(locale='fr_CA'))
+# end-index-multikey-collation
 
 # start-index-multikey-query
 query = { "cast": "Viola Davis" }
@@ -36,6 +55,15 @@ movies.create_index(
 )
 # end-index-text-single
 
+# start-index-text-single-collation
+from pymongo.collation import Collation
+
+movies.create_index(
+    [( "plot", "text" )],
+    collation=Collation(locale='fr_CA')
+)
+# end-index-text-single-collation
+
 # start-index-text-single-query
 query = { "$text": { "$search": "a time-traveling DeLorean" } }
 
@@ -43,10 +71,13 @@ cursor = movies.find(query)
 # end-index-text-single-query
 
 # start-index-text-multi
+from pymongo.collation import Collation
+
 result = myColl.create_index(
     [("title", "text"), ("genre", "text")],
     default_language="english",
-    weights={ "title": 10, "genre": 3 }
+    weights={ "title": 10, "genre": 3 },
+    collation=Collation(locale='fr_CA')
 )
 # end-index-text-multi
 
@@ -56,13 +87,30 @@ theaters.create_index(
 )
 # end-index-geo
 
+# start-index-geo-collation
+from pymongo.collation import Collation
+
+theaters.create_index(
+    [( "location.geo", "2dsphere" )],
+    collation=Collation(locale='fr_CA'))
+# end-index-geo-collation
+
 # start-index-wildcard
 movies.create_index({ "location.$**": pymongo.ASCENDING })
 # end-index-wildcard
 
+# start-index-wildcard-collation
+movies.create_index({ "location.$**": pymongo.ASCENDING },
+                    collation=Collation(locale='fr_CA'))
+# end-index-wildcard-collation
+
 # start-index-unique
 theaters.create_index("theaterId", unique=True)
 # end-index-unique
+
+# start-index-unique-collation
+theaters.create_index("theaterId", unique=True, collation=Collation(locale='fr_CA'))
+# end-index-unique-collation
 
 # start-index-clustered
 sample_mflix.create_collection("movies", clusteredIndex={
