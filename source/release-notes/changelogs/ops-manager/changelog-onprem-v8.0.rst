@@ -1,12 +1,85 @@
+.. _opsmgr-server-8.0.4:
+
+|onprem| Server 8.0.4
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-02-06*
+
+Improvements
+`````````````
+
+- Updates the {+mdbagent+} to :ref:`108.0.4.8770-1 <mongodb-108.0.4.8770-1>`.
+  
+- Updates JDK to ``jdk-21.0.6+7``.
+  
+- Adds support for |bic-full| 2.14.21.
+  
+- Improves error handling for the ``FileSystemSnapshotStore`` in the event the 
+  job directory does not exist.
+
+Bug Fixes
+```````````
+
+Fixes the following issues:
+
+- Deployment IDs were not filtered out when multi-region backups were enabled.
+
+- ``bytesReclaimed`` reported compressed size for filesystems
+  instead of showing ``fileSize``.
+
+- Downloading logs failed for systems using :term:`syslog` in some cases.
+
+- Upgrades from MongoDB 6.0.x to 7.0.x with |oidc| configured 
+  and a pinned FCV became stuck.
+
 .. _opsmgr-server-8.0.3:
 
 |onprem| Server 8.0.3
 ~~~~~~~~~~~~~~~~~~~~~
 
-*Released 2024-01-10*
+*Released 2025-01-10*
 
-- Fixes an issue where labels did not appear on the 
+Improvements
+`````````````
+
+- Hardens the algorithm used for two-way encryption in AppDB. 
+
+- Adds a trigger so that changes to the feature compatibility version (FCV) triggers
+  a snapshot.
+
+- Adds an AppDB health check to the |onprem| upgrade process to ensure a successful upgrade.
+
+- Improves {+mdbagent+} connection handling during server overload.
+
+- Adds ``clusterID`` to the |onprem| logs for each snapshot.
+
+- Includes deleted groups in the diagnostic archive for better debugging.
+
+- Adds 320 character limit for :guilabel:`Email Address` and :guilabel:`Mobile Phone Number` 
+  fields in the user profile UI.
+
+- Fixes `CVE-2024-52046 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-52046>`__. 
+
+Bug Fixes
+```````````
+
+Fixes the following issues:
+
+- Labels did not appear on the 
   :guilabel:`Backup Job Config` page in the Admin UI.
+
+- Configuring or updating :guilabel:`Blockstore Max Capacity (GB)`
+  in the UI caused an error.
+
+- The {+mdbagent+} tried to set the |oidc| parameter ``supportHumanFlows`` on 
+  MongoDB clusters with FCV 6.0.
+
+- Unsupported mail transport protocol appeared as an option in the Admin UI.
+
+- The Admin UI redirected back to the logs page after viewing.
+
+- The link to the MongoDB Deployment Authentication Mechanism documentation in 
+  the UI was incorrect.
 
 .. _opsmgr-server-8.0.2:
 
