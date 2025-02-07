@@ -79,24 +79,24 @@ $vectorSearchIndexName = $collection->createSearchIndex(
 
 // start-create-multiple-indexes
 $indexNames = $collection->createSearchIndexes(
-	[
-		[
-			'name' => 'SearchIdx',
-			'definition' => ['mappings' => ['dynamic' => true]],
-		],
-		[
-			'name' => 'VSidx',
-			'type' => 'vectorSearch',
-			'definition' => [
-				'fields' => [[
-					'type' => 'vector',
-					'path' => 'plot_embedding',
-					'numDimensions' => 1536,
-					'similarity' => 'dotProduct'
-				]]
-			],
-		],
-	]
+    [
+        [
+            'name' => 'SearchIdx',
+            'definition' => ['mappings' => ['dynamic' => true]],
+        ],
+        [
+            'name' => 'VSidx',
+            'type' => 'vectorSearch',
+            'definition' => [
+                'fields' => [[
+                    'type' => 'vector',
+                    'path' => 'plot_embedding',
+                    'numDimensions' => 1536,
+                    'similarity' => 'dotProduct'
+                ]]
+            ],
+        ],
+    ]
 );
 // end-create-multiple-indexes
 
