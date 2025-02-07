@@ -76,6 +76,9 @@ Filter by event
           - Organization's identity provider certificate is about to expire
           - Organization's identity provider certificate is current
           - Require IP Access List for Public API Enabled
+          - Resource policy created
+          - Resource policy updated
+          - Resource policy deleted
           - Require IP Access List for Public API Enabled
           - Team added to project
           - Team created

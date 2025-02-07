@@ -1,0 +1,529 @@
+.. _atlas-resource-policies-overview:
+
+=======================
+{+arps+}
+=======================
+
+.. facet::
+   :name: genre 
+   :values: reference
+
+.. meta:: 
+   :description: Use the Atlas Administration API to create an Atlas Resource Policy that restricts how your users configure clusters, including limiting the cloud provider, region, and use of wildcard IPs.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+{+arps+} are controls that enable :authrole:`Organization Owners <Organization Owner>` 
+to constrain the specific 
+configuration options available to developers when they create or configure 
+|service| {+clusters+}. 
+
+With resource policies, you can:
+
+* Limit cluster deployment to specific cloud platforms (|aws|, |gcp|, |azure|).
+* Restrict cluster deployment to designated regions within a cloud provider. For example, ``aws:us-east-1``.
+* Prohibit the use of the wildcard IP (``0.0.0.0/0``) to enforce stricter network controls.
+
+You create {+arps+} at the organization level, but they apply to all projects and clusters
+within that organization.
+
+In addition to the  :ref:`{+atlas-admin-api+} <atlas-admin-api>`, you can use the :ref:`atlas-programmatic-access-terraform-overview` or :ref:`atlas-programmatic-access-cloudformation-overview` or `AWS CloudFormation <https://constructs.dev/packages/awscdk-resources-mongodbatlas/v/3.9.0/api/CfnResourcePolicy?lang=typescript>`__ to configure and manage {+arps+}.
+
+Prerequisites
+-------------
+
+* Ensure your |service| user has the appropriate organization role:
+  
+  - To view {+arps+}, you must have at least :authrole:`Organization Read Only` or 
+    :authrole:`Organization Member` access to |service|.
+
+  - To create, update, or delete an {+arp+}, you must have :authrole:`Organization Owner` 
+    access to |service|. 
+
+* Locate your public and private |api| keys so you can authenticate to the 
+  :ref:`{+atlas-admin-api+} <atlas-admin-api>`. To learn more, see :ref:`atlas-admin-api-access`.
+
+
+Limitations
+-----------
+
+* {+arps+} are allow-by-default. If no {+arps+} exist, users can perform all actions on |service| {+clusters+}
+  that their :ref:`Atlas user role <user-roles>` allows.
+
+* {+arps+} ensure compliance with defined goals but do not enforce intermediate 
+  or transitional states. For example, if a downstream component fails, the policy 
+  may temporarily enter a non-compliant intermediate state. You should proactively 
+  monitor your list of non-compliant resources using the 
+  :oas-atlas-op:`/orgs/{ORG-ID}/nonCompliantResources </getResourcesNonCompliant>` endpoint. 
+
+* You can't configure or manage {+arps+} through the {+atlas-ui+}, but any 
+  errors related to {+arps+} enforcement will appear in the {+atlas-ui+}.
+
+* Our implemented version of {+cedar+} supports only one Cedar policy per ``.cedar`` file, but you 
+  can list multiple Cedar policies (``.cedar`` files) in your {+arp+}. 
+  Each ``.cedar`` file is identified in the :ref:`{+atlas-admin-api+} <atlas-admin-api>` 
+  response as a unique 24-hexadecimal character string after ``policies.id``.
+
+* Each {+arp+} must have a unique name. If you attempt to create an {+arp+} with an existing name, the server responds 
+  with a ``400 (Bad Request)`` status code.
+
+Manage {+arps+} 
+------------------------------
+
+Configure and manage {+arps+} using the 
+:ref:`{+atlas-admin-api+} <atlas-admin-api>` ``/orgs/{ORG-ID}/resourcePolicies`` 
+resource within your specified organization. 
+
+The following endpoints are available:
+
+.. note::
+
+   - To find your ``{ORG-ID}``, retrieve it through the 
+     :oas-atlas-op:`return all organizations </listOrganizations>` endpoint.
+   - To find your ``{RESOURCE-POLICY-ID}``, retrieve it through the 
+     :oas-atlas-op:`return all Atlas Resource Policies </getAtlasResourcePolicies>` endpoint.
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 10 40 50
+
+   * - Method
+     - Endpoint
+     - Description
+
+   * - ``GET``
+
+     - :oas-atlas-op:`/orgs/{ORG-ID}/resourcePolicies </getAtlasResourcePolicies>`
+
+     - Get all {+arps+} for the organization identified with
+       ``{ORG-ID}``.
+
+   * - ``GET``
+
+     - :oas-atlas-op:`/orgs/{ORG-ID}/resourcePolicies/{RESOURCE-POLICY-ID} </getAtlasResourcePolicy>`
+
+     - Get one {+arp+} identified with its ``{RESOURCE-POLICY-ID}`` for the organization 
+       identified by ``{ORG-ID}``.
+
+   * - ``GET``
+
+     - :oas-atlas-op:`/orgs/{ORG-ID}/nonCompliantResources </getResourcesNonCompliant>`
+
+     - Get a list of existing projects and {+clusters+} in your organization 
+       that do not meet the requirements in your new {+arp+}.
+
+   * - ``POST``
+
+     - :oas-atlas-op:`/orgs/{ORG-ID}/resourcePolicies </createAtlasResourcePolicy>`
+
+     - Create an {+arp+} for the organization identified with
+       ``{ORG-ID}`` by passing in a list of policies in {+cedar+}. 
+       To learn more, see :ref:`procedure-create-atlas-resource-policy`.
+
+   * - ``POST``
+
+     - :oas-atlas-op:`/orgs/{ORG-ID}/resourcePolicies:validate </validateAtlasResourcePolicy>`
+
+     - Validate an {+arp+} for the organization identified with
+       ``{ORG-ID}`` to ensure there are no errors. 
+
+   * - ``PATCH``
+
+     - :oas-atlas-op:`/orgs/{ORG-ID}/resourcePolicies/{RESOURCE-POLICY-ID} </updateAtlasResourcePolicy>`
+
+     - Update one {+arp+} identified by its ``{RESOURCE-POLICY-ID}`` for the organization 
+       identified with ``{ORG-ID}``.
+
+   * - ``DELETE``
+
+     - :oas-atlas-op:`/orgs/{ORG-ID}/resourcePolicies/{RESOURCE-POLICY-ID} </deleteAtlasResourcePolicy>`
+
+     - Delete the {+arp+} with ID ``{RESOURCE-POLICY-ID}``.
+
+
+Using the Cedar Policy Language 
+-------------------------------
+
+MongoDB uses the open-source {+cedar+} to define {+arps+}. 
+Cedar's design balances expressiveness with simplicity, employing a concise syntax 
+that streamlines both writing and understanding resource policies.
+
+To quickly create an {+arp+}, adapt the examples in :ref:`the following procedure <procedure-create-atlas-resource-policy>`.
+
+To learn more about {+cedar+}, see:
+
+- :ref:`key-cedar-elements`
+- :ref:`example-cedar-policy`
+- `Cedar GitHub Repository <https://github.com/cedar-policy>`__.
+
+.. _key-cedar-elements:
+
+Key Cedar Syntax Elements for |service|
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 30 40 30
+
+   * - Cedar Element
+     - Descripton
+     - {+arp+} Options
+
+   * - ``forbid``
+     - Denies the specified action if conditions in the ``when`` clause are met. 
+       The converse element, ``permit``, is not allowed in {+arps+}.
+     - Example: ``forbid (principal, action, resource) when { ... };``
+
+   * - ``principal``
+     - Defines the user affected by the policy. 
+     - Applied universally by default. Do not change or omit.
+
+   * - ``action``
+     - Represents the action being controlled in the policy. 
+     - Available actions:
+  
+       - Restrict IP access list: ``ResourcePolicy::Action::"project.ipAccessList.modify"``
+       - Restrict cluster attributes: ``ResourcePolicy::Action::"cluster.modify"``
+
+   * - ``ResourcePolicy::Cluster::"<CLUSTER-ID>"``
+     - Refers to a specific {+cluster+}
+     - To find your {+cluster+} ID, use the {+atlas-admin-api+} to 
+       :oas-atlas-op:`return all {+clusters+} in a project </listClusters>`.
+  
+   * - ``ResourcePolicy::Project::"<PROJECT-ID>"``
+     - Refers to a specific project. For example, ``ResourcePolicy::Project::"6217f7fff7957854e2d09179"``
+     - To find your project ID, see :ref:`atlas-modify-project-settings`.
+
+   * - ``context.cluster.project``
+     -  Specifies the project to which the {+cluster+} belongs. 
+     -  To find your project ID, see :ref:`atlas-modify-project-settings`.
+
+   * - ``context.cluster.cloudProviders``
+     -  Specifies the allowed cloud providers. 
+     -  Available options: 
+  
+        - ``ResourcePolicy::CloudProvider::"aws"`` 
+        - ``ResourcePolicy::CloudProvider::"azure"``
+        - ``ResourcePolicy::CloudProvider::"gcp"``
+
+   * - ``context.cluster.regions``
+     - Limits access based on deployment regions. 
+     - For example, ``ResourcePolicy::Region::"aws:us-east-1"``. For a list of available 
+       regions by cloud provider see :ref:`amazon-aws`, :ref:`google-gcp`, 
+       or :ref:`microsoft-azure`.
+
+   * - ``context.project.ipAccessList``
+     - Specifies the IP addresses that can access the {+cluster+}. 
+     - You can block a wildcard IP ``ip("0.0.0.0/0")`` to enhance security.
+
+   * - ``containsAny`` and ``containsAll``
+     - Checks for inclusion of one or more elements (``containsAny``) or all 
+       elements (``containsAll``) from a list.
+     - Example: ``context.cluster.regions.containsAny([ResourcePolicy::Region::"aws:us-east-1"])``
+
+   * - ``unless``
+     - Specifies exceptions to a policy. Actions are forbidden unless certain conditions are met.
+     - Example: ``forbid (principal, action, resource) unless { condition };``
+
+   * - Logical Operators (``&&``, ``||``)
+     - Combine multiple conditions in a policy.
+     - Available options:
+
+       - ``&&`` (AND): Requires all conditions to be true.
+       - ``||`` (OR): Requires at least one condition to be true.
+
+   * - IP Addressing (``ip``)
+     - Refers to specific IP addresses or ranges in policies. 
+     - Available options: 
+
+       - ``ip("0.0.0.0/0")`` for wildcard IP.
+       - ``ip("1.2.3.4/32")`` for specific IP addresses.
+
+.. _example-cedar-policy:
+
+Example Cedar Policy
+~~~~~~~~~~~~~~~~~~~~
+
+The following example is 
+an {+arp+} using {+cedar+} that restricts |service| users from creating |service| {+clusters+} 
+on |gcp|, or in the |aws| regions ``aws:us-east-1`` or ``aws:us-west-1``. This syntax gets passed into the 
+``policies`` parameter of the ``POST`` 
+:oas-atlas-op:`/orgs/{ORG-ID}/resourcePolicies </createAtlasResourcePolicy>` resource:
+
+.. code::
+   :copyable: true 
+   :emphasize-lines: 3 
+
+   {
+     "name": "Policy Restricting All GCP Clusters and Some AWS Regions",
+     "policies": [{"body": "forbid (principal,action == ResourcePolicy::Action::\"cluster.modify\",resource) when {context.cluster.cloudProviders.containsAny([ResourcePolicy::CloudProvider::\"gcp\"])||context.cluster.regions.containsAny([ResourcePolicy::Region::\"aws:us-east-1\",ResourcePolicy::Region::\"aws:us-west-1\"])};"}]
+   }
+   
+For more examples that cover the most common scenarios, see :ref:`procedure-create-atlas-resource-policy`.
+
+.. _procedure-create-atlas-resource-policy:
+
+Create an Atlas Resource Policy Configuration
+---------------------------------------------
+
+To create an {+arp+}, use the following procedure to construct a policy using {+cedar+} 
+and pass it in to the :ref:`{+atlas-admin-api+} <atlas-admin-api>` via a ``POST`` request 
+using the ``policies`` parameter. 
+
+.. warning::
+
+   We recommend that you test this feature in a non-production environment by creating 
+   a new organization with a fresh {+cluster+}. 
+   This ensures you can assess the feature safely without impacting your existing systems as you skill up.
+
+.. procedure::
+
+   .. step:: Construct the policy in the Cedar policy language.
+
+      Specify the rules for restricting resources using {+cedar+}. You can:
+      
+      - Restrict the cloud provider. For example, ``aws``, ``azure``, or ``gcp``.
+      - Restrict the region where |service| {+clusters+} can be deployed. 
+        For example, ``aws:us-east-1``. 
+      - Forbid wildcard IP address (``0.0.0.0/0``) access to the {+cluster+}.
+  
+      .. note::
+         
+         We recommend creating multiple, simple {+arps+} to make tracking easier. 
+         For example, if you want to restrict cloud provider and multiple regions, 
+         consider creating one {+arp+} that restricts the cloud provider and another 
+         {+arp+} that restricts the regions. 
+      
+      The following example policies show different configuration options:  
+      
+      .. tabs::
+
+         .. tab:: Restrict Cloud Provider
+            :tabid: cloudprovider
+
+            The following example prevents users from creating a {+cluster+} 
+            on |gcp|:
+
+            .. code::
+               :copyable: true 
+               :emphasize-lines: 5 
+
+               {
+                   "name": "Policy Preventing GCP Clusters",
+                   "policies": [
+                       {
+                           "body": "forbid (principal, action == ResourcePolicy::Action::\"cluster.modify\", resource) when { context.cluster.cloudProviders.contains(ResourcePolicy::CloudProvider::\"gcp\") };"
+                       }
+                   ]
+               }
+
+            The following example uses the ``unless`` clause to allow users to 
+            create {+clusters+} *only* on |gcp|:
+
+            .. code::
+               :copyable: true 
+               :emphasize-lines: 5 
+               
+               {
+                   "name": "Policy Allowing Only GCP Clusters",
+                   "policies": [
+                       {
+                           "body": "forbid(principal, action == ResourcePolicy::Action::\"cluster.modify\", resource) unless { context.cluster.cloudProviders == [ResourcePolicy::CloudProvider::\"gcp\"] };"
+                       }
+                   ]
+               }
+
+            The following example uses the ``when`` clause to prevent users from  
+            creating or editing a {+cluster+} in the project with ID ``6217f7fff7957854e2d09179`` 
+            unless |gcp| is the only cloud provider:
+
+            .. code::
+               :copyable: true 
+               :emphasize-lines: 5
+               
+               {
+                   "name": "Policy Allowing Only GCP Clusters for One Project",
+                   "policies": [
+                       {
+                           "body": "forbid (principal, action == ResourcePolicy::Action::\"cluster.modify\", resource) when { resource in ResourcePolicy::Project::\"6217f7fff7957854e2d09179\" && context.cluster.cloudProviders == [ResourcePolicy::CloudProvider::\"gcp\"] };"
+                       }
+                   ]
+               } 
+
+            The following example prevents modifications to the {+cluster+} with ID 
+            ``3217e2gdf79a4c54e2d0827`` when |gcp| is the cloud provider:
+
+            .. code::
+               :copyable: true 
+               :emphasize-lines: 5
+               
+               {
+                   "name": "Forbid Modifications to Specific GCP Cluster",
+                   "policies": [
+                       {
+                           "body": "forbid (principal, action == ResourcePolicy::Action::"cluster.modify", resource) when {resource in ResourcePolicy::Project::"65dcbf5ccd12a54df59a54e6" && resource == ResourcePolicy::Cluster::"670968dfc0a2297ef46bc02a" && context.cluster.cloudProviders == [ResourcePolicy::CloudProvider::"gcp"]};"
+                       }
+                   ]
+               }
+
+         .. tab:: Restrict Region
+            :tabid: region
+
+            The following example prevents users from creating or editing a {+cluster+}
+            in the region ``aws:us-east-1``:
+
+            .. code::
+               :copyable: true 
+               :emphasize-lines: 5 
+
+               {
+                   "name": "Prohibit Cluster Deployment in the US-EAST-1 Region",
+                   "policies": [
+                       {
+                           "body": "forbid (principal,action == ResourcePolicy::Action::\"cluster.modify\",resource) when {context.cluster.regions.contains(ResourcePolicy::Region::\"aws:us-east-1\")};"
+                       {
+                   ]
+               }
+
+            The following example prevents users from creating a {+cluster+} 
+            in the region ``aws:us-west-1``:
+
+            .. code::
+               :copyable: true 
+               :emphasize-lines: 5 
+
+               {
+                   "name": "Policy Preventing Clusters in AWS:us-west-1",
+                   "policies": [
+                       {
+                           "body": "forbid(principal, action == ResourcePolicy::Action::\"cluster.modify\", resource) when { context.cluster.regions.contains(ResourcePolicy::Region::\"aws:us-west-1\") };"
+                       }
+                   ]
+               }
+
+            The following example prevents users from creating a {+cluster+} 
+            in the regions ``aws:us-east-1``, ``aws:us-west-1``, or ``azure:westeurope``:
+
+            .. code::
+               :copyable: true 
+               :emphasize-lines: 5 
+          
+               {
+                   "name": "Policy Preventing Clusters in 3 AWS Regions",
+                   "policies": [
+                       {
+                           "body": "forbid(principal, action == ResourcePolicy::Action::\"cluster.modify\", resource) when { context.cluster.regions.containsAny([ResourcePolicy::Region::\"aws:us-east-1\",ResourcePolicy::Region::\"aws:us-west-1\",ResourcePolicy::Region::\"azure:westeurope\"]) };"
+                       }
+                   ]
+               }
+
+            The following example uses the ``unless`` clause to allow users to 
+            create {+clusters+} *only* in the regions ``aws:us-east-1`` and ``azure:westeurope``:
+
+            .. code::
+               :copyable: true 
+               :emphasize-lines: 5 
+
+               {
+                   "name": "Policy Allowing Clusters Only in 2 AWS Regions",
+                   "policies": [
+                       {
+                           "body": "forbid(principal, action == ResourcePolicy::Action::\"cluster.modify\", resource) unless { [ResourcePolicy::Region::\"aws:us-east-1\", ResourcePolicy::Region::\"azure:westeurope\"].containsAll(context.cluster.regions) };"
+                       }
+                   ] 
+
+            The following example uses the ``when`` clause to restrict users from 
+            editing the {+cluster+} with ID ``3217e2gdf79a4c54e2d0827`` 
+            in the regions ``aws:us-east-1`` and ``aws:us-west-1``:
+
+            .. code::
+               :copyable: true 
+               :emphasize-lines: 5
+
+               {
+                   "name": "Policy Restricting Edits to One Cluster from 2 AWS Regions",
+                   "policies": [
+                       {
+                           "body": "forbid(principal, action == ResourcePolicy::Action::\"cluster.modify\", resource == ResourcePolicy::Cluster::\"3217e2gdf79a4c54e2d0827\") when { context.cluster.regions.containsAny([ResourcePolicy::Region::\"aws:us-east-1\",ResourcePolicy::Region::\"aws:us-west-1\"]) };"
+                       }
+                   ]
+               }
+
+         .. tab:: Restrict IPs
+            :tabid: restrictips
+
+            The following example prevents users from editing a project 
+            from a wildcard IP (``0.0.0.0/0``):
+
+            .. code::
+               :copyable: true 
+               :emphasize-lines: 5 
+
+               {
+                   "name": "Policy Restricting Wildcard IP",
+                   "policies": [
+                       {
+                           "body": "forbid(principal, action == ResourcePolicy::Action::\"project.ipAccessList.modify\", resource) when { context.project.ipAccessList.contains(ip(\"0.0.0.0/0\")) };"
+                       }
+                   ]
+               }
+
+            The following example uses the ``unless`` clause to allow users to 
+            edit projects *only* from the IP addresses ``1.2.3.4/32``, ``8.8.8.8/32``, 
+            and ``4.4.4.4/32``:
+
+            .. code::
+               :copyable: true 
+               :emphasize-lines: 5 
+
+               {
+                   "name": "Policy Restricting Project Edits to Specified IPs",
+                   "policies": [
+                       {
+                           "body": "forbid(principal, action == ResourcePolicy::Action::\"cluster.modify\", resource) unless { [ip("1.2.3.4/32"), ip("8.8.8.8/32"), ip("4.4.4.4/32")].containsAll(context.project.ipAccessList) };"
+                       }
+                   ]
+               }
+
+      For an example that restricts the cloud provider *and* multiple regions, see :ref:`example-cedar-policy`.
+        
+   .. step:: Send a ``POST`` request.
+
+      Use the ``POST`` verb to create an {+arp+} for your organization. 
+      The request must include:
+
+      * ``name``: The name of the {+arp+}.
+      * ``policies``: The {+cluster+} restrictions you defined in {+cedar+} in the previous step. If you use quotes (``"``) in ``policies.body``, escape with a backslash (``\``).
+      
+      Example ``POST`` request:
+
+      .. include:: /includes/arp-api-post-example.rst
+
+      Example response:
+
+      .. include:: /includes/arp-api-post-example-response.rst
+
+      This {+arp+} applies to all new {+clusters+}. For existing {+clusters+} that
+      do not comply with the {+arp+}, |service| only allows users to make
+      changes to the {+cluster+} which brings the {+cluster+} into compliance.
+      For example, if ``cluster0`` runs on |aws| and you apply an {+arp+} that blocks 
+      {+clusters+} on |aws|, the only change users could make to ``cluster0`` while 
+      it is non-compliant is switching the cloud provider to |azure| or |gcp|.
+      
+      To return a list of existing {+clusters+} that do not conform to your {+arp+}, 
+      use the ``GET`` 
+      :oas-atlas-op:`/orgs/{ORG-ID}/nonCompliantResources </getResourcesNonCompliant>` resource.
+
+      |service| generates an :ref:`activity feed event <view-activity-feed>` when 
+      you create, update, or delete an {+arp+}. To segregate your activity feed events, 
+      we recommend creating multiple, simple {+arps+} to make tracking easier. 
+      For example, if you want to restrict cloud provider and multiple regions, 
+      consider creating one {+arp+} that restricts the cloud provider and another 
+      {+arp+} that restricts the regions. 
+
