@@ -159,6 +159,136 @@ The SQL equivalent to this query is:
 
 .. include:: /includes/extracts/ne_operators_selectivity.rst
 
+Arrays
+~~~~~~
+
+When comparing arrays, ``$ne`` matches documents where the document
+array differs from the array specified in ``$ne``. Specifically, ``$ne``
+matches any of these documents where the arrays:
+
+- have different element values or strings
+- have elements in a different order
+- have a different number of elements
+- are missing from a document
+
+For example, the following query returns  ``inventory`` documents where
+the ``type`` array differs from ``[ "hardware", "fasteners" ]``:
+
+.. code-block:: javascript
+
+   db.inventory.find( { type: { $ne: [ "hardware", "fasteners" ] } } )
+
+The following complete example adds a ``type`` array to two
+``inventory`` documents and runs a query with ``$ne``:
+
+.. code-block:: javascript
+
+   // Update the nuts document to include a type array
+   db.inventory.updateOne(
+      { item: "nuts" },
+      { $set: { type: [ "hardware" ] } }
+   )
+
+   // Update the bolts document to include a type array
+   db.inventory.updateOne(
+      { item: "bolts" },
+      { $set: { type: [ "hardware", "fasteners" ] } }
+   )
+
+   // Find documents where the type array differs from [ "hardware", "fasteners" ]
+   db.inventory.find( { type: { $ne: [ "hardware", "fasteners" ] } } )
+
+Output shows the ``nuts`` document because the array differs from ``[
+"hardware", "fasteners" ]``, and the ``washers`` document because it
+doesn't have a ``type`` array:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+     {
+       _id: ObjectId('679d26907c5a58595234305c'),
+       item: 'nuts',
+       quantity: 30,
+       carrier: { name: 'Shipit', fee: 3 },
+       type: [ 'hardware' ]
+     },
+     {
+       _id: ObjectId('679d26907c5a58595234305e'),
+       item: 'washers',
+       quantity: 10,
+       carrier: { name: 'Shipit', fee: 1 }
+     }
+   ]
+
+The following query reverses the elements in the array:
+
+.. code-block:: javascript
+
+   db.inventory.find( { type: { $ne: [ "fasteners", "hardware" ] } } )
+
+Because the ``type`` array in the ``bolts`` document is ``[ "hardware",
+"fasteners" ]``, which differs from ``[ "fasteners", "hardware" ]``, the
+query returns the ``bolts`` document in addition to the ``nuts`` and
+``washers`` documents:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      {
+         _id: ObjectId('679d26907c5a58595234305c'),
+         item: 'nuts',
+         quantity: 30,
+         carrier: { name: 'Shipit', fee: 3 },
+         type: [ 'hardware' ]
+      },
+      {
+         _id: ObjectId('679d26907c5a58595234305d'),
+         item: 'bolts',
+         quantity: 50,
+         carrier: { name: 'Shipit', fee: 4 },
+         type: [ 'hardware', 'fasteners' ]
+      },
+      {
+         _id: ObjectId('679d26907c5a58595234305e'),
+         item: 'washers',
+         quantity: 10,
+         carrier: { name: 'Shipit', fee: 1 }
+      }
+   ]
+
+``$ne`` matches documents where the array doesn't contain the specified
+value and documents that don't have the array. For example:
+
+.. code-block:: javascript
+
+   db.inventory.find( { type: { $ne: "fasteners" } } )
+
+The query returns the ``nuts`` document because the array ``[ "hardware"
+]`` differs from ``"fasteners"``. Also, the query returns the
+``washers`` document because the document doesn't have a ``type`` array.
+Query output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      {
+         _id: ObjectId('679d26907c5a58595234305c'),
+         item: 'nuts',
+         quantity: 30,
+         carrier: { name: 'Shipit', fee: 3 },
+         type: [ 'hardware' ]
+      },
+      {
+         _id: ObjectId('679d26907c5a58595234305e'),
+         item: 'washers',
+         quantity: 10,
+         carrier: { name: 'Shipit', fee: 1 }
+      }
+   ]
+
 Learn More
 ----------
 
