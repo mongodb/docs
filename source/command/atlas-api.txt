@@ -1,0 +1,179 @@
+.. _atlas-api:
+
+=========
+atlas api
+=========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Access all features of the `{+atlas-admin-api+} <https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/>`__ 
+by using the {+atlas-cli+} with the syntax: ``atlas api <tag> <operationId>``.
+
+This experimental feature streamlines script development by letting you interact 
+directly with any {+atlas-admin-api+} endpoint by using the {+atlas-cli+}.
+
+To learn more about working with the {+atlas-admin-api+}, see :ref:`atlas-admin-api-access`.
+
+Syntax
+------
+
+.. code-block::
+   :caption: Command Syntax
+
+   atlas api <tag> <operationId> [options]
+
+.. important::
+   
+   Both ``<tag>`` and ``<operationId>`` must be in :wikipedia:`camelCase <Camel_case>`.
+
+Arguments  
+---------  
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 30 10 30
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - <tag>
+     - string
+     - true
+     - The category of {+atlas-admin-api+} operations in :wikipedia:`camelCase <Camel_case>`. 
+       To find and format the tag, check 
+       the `API documentation <https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/>`__ 
+       |url| for the endpoint. It appears after ``#tag/``, but you need to change to camelCase. 
+       
+       For example, in 
+       ``https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Monitoring-and-Logs``, 
+       the tag is ``Monitoring-and-Logs``. In camelCase, it's ``monitoringAndLogs``.
+   * - <operationId>
+     - string
+     - true
+     - The identifier of the {+atlas-admin-api+} endpoint in :wikipedia:`camelCase <Camel_case>`. 
+       To find the operationId, check the 
+       `API documentation <https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/>`__ 
+       |url| for the endpoint. It appears after ``operation/``. 
+       
+       For example, in 
+       ``https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/listClusters``, 
+       the operationId is ``listClusters``.
+
+
+Options  
+-------  
+
+Pass in the path and query parameters for the {+atlas-admin-api+} endpoint 
+as flags. For example, if the endpoint is ``/api/atlas/v2/orgs/{orgId}/invoices/{invoiceId}``, 
+the {+atlas-cli+} command is:
+
+.. code-block:: shell
+
+   atlas api <tag> <operationId> --orgId <ORG_ID> --invoiceId <INVOICE_ID> 
+
+.. note::
+   
+   You usually don't need to specify ``--orgId`` and ``--projectId`` as they are sourced 
+   from your profile. Specify them only if they are not set in your profile.
+
+If applicable to the endpoint, pass in the request body using the ``--file`` option 
+or standard input (``stdin``). 
+For example:
+
+.. code-block:: shell
+
+   atlas api clusters create --file cluster-config.json
+
+In addition, the following options are available for all {+atlas-admin-api+} endpoints.
+
+.. list-table::  
+   :header-rows: 1  
+   :widths: 20 10 10 60  
+  
+   * - Name  
+     - Type  
+     - Required  
+     - Description  
+   * - ``--api-version``  
+     - string  
+     - false  
+     - Specify the :ref:`version <api-versioning-overview>` of the {+atlas-admin-api+} 
+       for the command. Defaults to the latest API version or the value you've configured for ``api_version`` in your profile. 
+   * - ``--format``  
+     - string  
+     - false  
+     - Output format. The default is ``json``, but the supported formats can vary by endpoint:
+
+       - Most endpoints output ``json``. When ``json`` is supported, you can also use a Go template.
+       - Some endpoints support ``json`` and ``csv``, allowing you to use ``json``, ``csv``, or a Go template.
+       - Certain endpoints output binary data (for example, logs in gzip format), requiring the ``--out`` option.
+      
+       To determine the supported formats for an endpoint:
+       
+       - Check the content response type examples in the `API documentation <https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/>`__.
+       - Run ``atlas api <tag> <operationId> --help`` for details.  
+   * - ``--file``  
+     - string  
+     - false  
+     - File path to the request body content, if required by the operation. 
+       Alternatively, provide input through standard input (``stdin``).  
+   * - ``-o, --out``  
+     - string  
+     - false  
+     - File path to save the output. By default, the result is displayed in the terminal.  
+   * - ``-h, --help``  
+     - boolean  
+     - false  
+     - Help for the current command.  
+  
+Inherited Options  
+-----------------  
+  
+.. list-table::  
+   :header-rows: 1  
+   :widths: 20 10 10 60  
+  
+   * - Name  
+     - Type  
+     - Required  
+     - Description  
+   * - ``-P, --profile``  
+     - string  
+     - false  
+     - Name of the profile to use from your configuration file. For more information about profiles, see `Atlas CLI Configuration <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.  
+  
+Output  
+------  
+  
+If the command succeeds, the {+atlas-cli+} outputs the result of the {+atlas-admin-api+} 
+operation, formatted as specified by the ``--format`` option. If no format is provided, 
+the output defaults to JSON. For example responses, see the `{+atlas-admin-api+} Specification <https://mongodb.com/docs/atlas/reference/api-resources-spec>`__. 
+  
+Examples  
+--------  
+  
+.. code-block::  
+   :copyable: false  
+  
+   # Create a new cluster using the latest API version:  
+   atlas api clusters createCluster --file createCluster.json  
+  
+   # List all clusters for a specific organization:  
+   atlas api clusters listClusters --orgId <ORG_ID>  
+  
+   # Get details of a specific invoice by organization ID and invoice ID:  
+   atlas api orgs getInvoice --orgId <ORG_ID> --invoiceId <INVOICE_ID>  
+  
+   # Output in CSV format and save the result to a file:  
+   atlas api clusters listClusters --format csv --out clusters.csv  
+  
+   # Specify a particular API version for an operation:  
+   atlas api clusters getCluster --name <CLUSTER_NAME> --api-version 2023-10-01  
+  
