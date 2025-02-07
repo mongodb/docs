@@ -5,6 +5,10 @@
 
 *Released 2025-01-10*
 
+- Updates the {+mdbagent+} to :ref:`107.0.13.8702-1 <mongodb-107.0.13.8702-1>`.
+
+- Adds support for |bic-full| 2.14.19.
+
 - Updates the release infrastructure:
 
   - Updates the password hashing algorithm to ``PBKDF2-SHA512``. 
@@ -22,11 +26,63 @@
   <snapshots-api>`: ``machineId``, ``name``, ``completedTime``, 
   ``fcv``, and ``replicaState``.
 
-- Fixes an issue where arbiter nodes caused the 
+- Hardens the algorithm used for two-way encryption in AppDB. 
+
+- Adds a trigger so that changes to the feature compatibility version (FCV) triggers
+  a snapshot.
+
+- Adds an AppDB health check to the |onprem| upgrade process to ensure a successful upgrade.
+
+- Adds ``clusterID`` to the |onprem| logs for each snapshot.
+
+- Includes deleted groups in the diagnostic archive for better debugging.
+
+- Improves error handling for the ``FileSystemSnapshotStore`` in the event the 
+  job directory does not exist.
+
+- Adds 320 character limit for :guilabel:`Email Address` and :guilabel:`Mobile Phone Number` 
+  fields in the user profile UI.
+  
+- Adds the ability to cancel a failed queryable restore for sharded clusters.
+  
+- Fixes `CVE-2024-52046 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-52046>`__.
+
+Bug Fixes
+```````````
+
+Fixes the following issues:
+
+- Arbiter nodes caused the 
   :guilabel:`Edit Namespace Filter` UI option to not appear.
 
-- Fixes an issue where labels did not appear on the 
+- Labels did not appear on the 
   :guilabel:`Backup Job Config` page in the Admin UI.
+
+- Upgrades from MongoDB 6.0.x to 7.0.x with |oidc| configured 
+  and a pinned FCV became stuck.
+
+- Configuring or updating :guilabel:`Blockstore Max Capacity (GB)`
+  in the UI caused an error.
+
+- ``bytesReclaimed`` reported compressed size for filesystems
+  instead of showing ``fileSize``.
+
+- The {+mdbagent+} tried to set the |oidc| parameter on 
+  MongoDB 7.x clusters with FCV 6.0 set.
+
+- The {+mdbagent+} downloaded incorrect |bic-full| versions on certain platforms.
+
+- ``.tmp`` files were left behind in Hybrid mode.
+
+- Unsupported mail transport protocol appeared as an option in the Admin UI.
+
+- The {+mdbagent+} could incorrectly report that the goal state was reached while
+  encountering a transient error.
+
+- The Admin UI redirected back to the logs page after viewing.
+
+- The link to the MongoDB Deployment Authentication Mechanism documentation in 
+  the UI was incorrect.
 
 .. _opsmgr-server-7.0.12:
 
