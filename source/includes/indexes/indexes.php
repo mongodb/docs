@@ -57,36 +57,48 @@ echo json_encode($document), PHP_EOL;
 // end-index-array-query
 
 // start-create-search-index
-$indexName = $collection->createSearchIndex(
+$searchIndexName = $collection->createSearchIndex(
     ['mappings' => ['dynamic' => true]],
     ['name' => 'mySearchIdx']
 );
 // end-create-search-index
 
-// start-create-search-indexes
-$indexNames = $collection->createSearchIndexes(
+// start-create-vector-index
+$vectorSearchIndexName = $collection->createSearchIndex(
     [
-        [
-            'name' => 'SearchIdx_dynamic',
-            'definition' => ['mappings' => ['dynamic' => true]],
-        ],
-        [
-            'name' => 'SearchIdx_simple',
-            'definition' => [
-                'mappings' => [
-                    'dynamic' => false,
-                    'fields' => [
-                        'title' => [
-                            'type' => 'string',
-                            'analyzer' => 'lucene.simple'
-                        ]
-                    ]
-                ]
-            ],
-        ],
-    ]
+        'fields' => [[
+            'type' => 'vector',
+            'path' => 'plot_embedding',
+            'numDimensions' => 1536,
+            'similarity' => 'dotProduct'
+        ]]
+    ],
+    ['name' => 'myVSidx', 'type' => 'vectorSearch']
 );
-// end-create-search-indexes
+// end-create-vector-index
+
+// start-create-multiple-indexes
+$indexNames = $collection->createSearchIndexes(
+	[
+		[
+			'name' => 'SearchIdx',
+			'definition' => ['mappings' => ['dynamic' => true]],
+		],
+		[
+			'name' => 'VSidx',
+			'type' => 'vectorSearch',
+			'definition' => [
+				'fields' => [[
+					'type' => 'vector',
+					'path' => 'plot_embedding',
+					'numDimensions' => 1536,
+					'similarity' => 'dotProduct'
+				]]
+			],
+		],
+	]
+);
+// end-create-multiple-indexes
 
 // start-list-search-indexes
 foreach ($collection->listSearchIndexes() as $indexInfo) {
