@@ -1,5 +1,5 @@
 Add the following code to the asynchronous function that you defined in your ``get-started.js`` file.
-This code creates an index of the :ref:`vectorSearch <avs-types-vector-search>` type that specifies indexing the following fields:
+This code creates an index of the :ref:`vectorSearch <avs-types-vector-search>` type that indexes the following fields:
 
 - ``embedding`` field as the :ref:`vector <avs-types-vector-search>` type. The ``embedding`` field
   contains the embeddings created using OpenAI's ``text-embedding-ada-002`` embedding model. The index

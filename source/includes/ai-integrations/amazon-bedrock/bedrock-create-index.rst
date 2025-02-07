@@ -14,65 +14,64 @@
          first collection.
 
    .. include:: /includes/nav/steps-atlas-search.rst
-   
+
+   .. include:: /includes/nav/steps-configure-index.rst
+
    .. step:: Define the {+avs+} index.
 
-      a. Click the :guilabel:`Create Search Index` button.
-      #. Under :guilabel:`{+avs+}`, select :guilabel:`JSON Editor`  and
-         then click :guilabel:`Next`.
-      #. In the :guilabel:`Database and Collection` section, find the 
-         ``bedrock_db`` database and select the ``test`` collection.
-      #. In the :guilabel:`Index Name` field, enter
-         ``vector_index``. 
-      #. Replace the default definition with the following sample index
-         definition and then click :guilabel:`Next`.
+      This :ref:`vectorSearch <avs-types-vector-search>` type index definition 
+      indexes the following fields: 
+      
+      - ``embedding`` field as the :ref:`vector
+        <avs-types-vector-search>` type. The ``embedding`` field
+        contains the vector embeddings created 
+        using the embedding model that you specify when 
+        you configure the knowledge base. The index definition 
+        specifies ``1024`` vector dimensions and
+        measures similarity using ``cosine``.
 
-         This index definition specifies indexing the following fields
-         in an index of the :ref:`vectorSearch
-         <avs-types-vector-search>` type: 
-         
-         - ``embedding`` field as the :ref:`vector
-           <avs-types-vector-search>` type. The ``embedding`` field
-           contains the vector embeddings created 
-           using the embedding model that you specify when 
-           you configure the knowledge base. The index definition 
-           specifies ``1024`` vector dimensions and
-           measures similarity using ``cosine``.
-         - The ``metadata`` and ``text_chunk`` fields 
-           as :ref:`filter <avs-types-vector-search>` types for 
-           pre-filtering your data. You specify these fields
-           when you configure the knowledge base.
+      - ``metadata`` and ``text_chunk`` fields 
+        as the :ref:`filter <avs-types-vector-search>` type for 
+        pre-filtering your data. You will also specify these fields
+        in Amazon Bedrock when you configure the knowledge base.
 
-         .. code-block:: json 
-            :copyable: true 
-            :linenos: 
+      .. tabs::
 
-            {
-                "fields": [
-                    {
-                        "numDimensions": 1024,
-                        "path": "embedding",
-                        "similarity": "cosine",
-                        "type": "vector"
-                    },
-                    {
-                        "path": "metadata",
-                        "type": "filter"
-                    },
-                    {
-                        "path": "text_chunk",
-                        "type": "filter"
-                    }
-                ]
-            }
+         .. tab:: Visual Editor 
+            :tabid: vib 
 
-   .. step:: Review the index definition and then click :guilabel:`Create Search Index`.
+            .. include:: /includes/avs-vib-description-short.rst
 
-      A modal window displays to let you know that your index is building.
+            .. include:: /includes/extracts/steps-avs-index-filters.rst
 
-   .. step::  Click :guilabel:`Close` to close the :guilabel:`You're All Set!` modal window and wait for the index to finish building. 
+         .. tab:: JSON Editor 
+            :tabid: jsoneditor 
 
-      The index should take about one minute to build. While it
-      builds, the :guilabel:`Status` column reads :guilabel:`Initial
-      Sync`. When it finishes building, the :guilabel:`Status` column
-      reads :guilabel:`Active`. 
+            Paste the following index definition in the JSON editor:
+
+            .. code-block:: json 
+               :copyable: true 
+               :linenos: 
+
+               {
+                   "fields": [
+                       {
+                           "numDimensions": 1024,
+                           "path": "embedding",
+                           "similarity": "cosine",
+                           "type": "vector"
+                       },
+                       {
+                           "path": "metadata",
+                           "type": "filter"
+                       },
+                       {
+                           "path": "text_chunk",
+                           "type": "filter"
+                       }
+                   ]
+               }
+
+   .. step:: Click :guilabel:`Next` to review the index. 
+
+   .. include:: /includes/steps-avs-finish-index-creation.rst

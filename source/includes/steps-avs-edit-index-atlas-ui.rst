@@ -8,8 +8,10 @@
    .. step:: Edit the index.
 
       a. Locate the ``vectorSearch`` type index to edit.
-      #. Click :guilabel:`Edit Index` from the :guilabel:`Actions`
-         dropdown for that index.  
+      #. Click :icon-mms:`ellipsis` from the :guilabel:`Actions`
+         column for that index.
+      #. Select either :guilabel:`Edit With Visual Editor` for a guided experience
+         or :guilabel:`Edit With JSON Editor` to edit the raw index definition.
       #. Review the current configuration settings and edit them as needed. 
          
          To learn more about the fields in an {+avs+} index, see

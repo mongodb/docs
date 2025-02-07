@@ -5,21 +5,8 @@
       
    .. include:: /includes/nav/steps-atlas-search.rst
       
-   .. step:: Click :guilabel:`Create Search Index`
-      
-   .. step:: Select :guilabel:`Visual Editor`, then click :guilabel:`Next`.
-      
-   .. step:: Enter the :guilabel:`Index Name`, and set the :guilabel:`Database and Collection`.
-      
-      a. In the :guilabel:`Index Name` field, enter 
-         ``monthlyPhoneTransactions``.
-      
-      #. In the :guilabel:`Database and Collection` section, find the 
-         ``sample_supplies`` database, 
-         and select the ``monthlyPhoneTransactions`` collection.
-      
-      #. Click :guilabel:`Next`.
-      
+   .. include:: /includes/nav/steps-configure-index.rst
+
    .. step:: Review the default |fts| index configuration settings.
       
    .. step:: Click :guilabel:`Create Search Index`.

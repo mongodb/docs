@@ -5,34 +5,8 @@
 
    .. include:: /includes/nav/steps-atlas-search.rst
 
-   .. step:: Click :guilabel:`Create Search Index`.
-
-   .. step:: Select an |fts| :guilabel:`Configuration Method` and click :guilabel:`Next`.
-
-      .. figure:: /images/fts-create-index.png
-         :alt: Screenshot of Create an Atlas Search Index modal window
-         :figwidth: 650px
-         :border:
-
-      - For a guided experience, select the |fts| :guilabel:`Visual Editor`.
-      - To edit the raw index definition, select the |fts| :guilabel:`JSON Editor`.
-
-   .. step:: Enter the :guilabel:`Index Name`, and set the :guilabel:`Database and Collection`.
-
-      a. In the :guilabel:`Index Name` field, specify a name for the index.
-
-         Index names must be unique within their namespace. The index name
-         defaults to :guilabel:`default`. You can accept the default name
-         or specify a different name. 
-     
-         .. include:: /includes/default-fts-index-name.rst 
-
-      #. In the :guilabel:`Database and Collection` section, expand the
-         database, and select the collection name for which to create the index.
-
-      #. If you use the :guilabel:`Visual Editor`, click
-         :guilabel:`Next`. 
-
+   .. include:: /includes/nav/steps-configure-index.rst
+   
    .. step:: Review the default |fts| index configuration settings in the :guilabel:`Index Configurations` section.
 
       You can use either the default index definition or specify a custom
@@ -69,8 +43,6 @@
 
          .. tab:: Visual Editor
             :tabid: vib 
-
-            If you are using the :guilabel:`Visual Editor`: 
         
             a. Click :guilabel:`Refine Your Index` to make changes to any of
                the following settings. 
@@ -81,8 +53,6 @@
 
          .. tab:: JSON Editor
             :tabid: jsonib 
-
-            If you are using the |fts| :guilabel:`JSON Editor`, do the following: 
       
             a. Add any of the following settings to your index:
 
@@ -113,4 +83,4 @@
          To learn more about creating an index using an index draft, see 
          :ref:`ref-resume-index`.
        
-   .. include:: //includes/steps-fts-finish-index-creation.rst
+   .. include:: /includes/steps-fts-finish-index-creation.rst

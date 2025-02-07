@@ -7,8 +7,8 @@
 
    .. step:: Click :icon-mms:`ellipsis` and choose one of the following from the dropdown.
       
-      - :guilabel:`Edit with Visual Editor` for a guided experience.
-      - :guilabel:`Edit with JSON Editor` to edit the raw index definition.
+      - :guilabel:`Edit With Visual Editor` for a guided experience.
+      - :guilabel:`Edit With JSON Editor` to edit the raw index definition.
       
    .. step:: Review current configuration settings and edit them as needed.
       

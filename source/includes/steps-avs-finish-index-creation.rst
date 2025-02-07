@@ -1,4 +1,4 @@
-.. step:: Click :guilabel:`Create Search Index`.
+.. step:: Click :guilabel:`Create Vector Search Index`.
 
    |service| displays a modal window to let you know your index is building.
 
@@ -6,7 +6,7 @@
 
 .. step:: Check the status.
 
-   The newly created index appears on the :guilabel:`Atlas Search` tab. While 
+   The newly created index displays on the :guilabel:`Atlas Search` tab. While 
    the index is building, the :guilabel:`Status` field reads 
    :guilabel:`Build in Progress`. When the index is finished building,
    the :guilabel:`Status` field reads :guilabel:`Active`.

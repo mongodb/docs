@@ -5,125 +5,143 @@
 
    .. include:: /includes/nav/steps-atlas-search.rst
 
-   .. step:: Create an {+avs+} index.
+   .. include:: /includes/nav/steps-configure-index.rst
 
-      To create, click :guilabel:`Create Search Index`.
+   .. step:: Specify the index definition.
 
-   .. step:: Select :guilabel:`JSON Editor` under :guilabel:`Atlas Vector Search` and click :guilabel:`Next`.
+      .. tabs:: 
 
-       .. figure:: /images/avs-create-index.png 
-          :figwidth: 100%
-          :alt: Screenshot of create Atlas Vector Search index 
+         .. tab:: Visual Editor 
+            :tabid: vib 
 
-   .. step:: Enter the :guilabel:`Index Name`, and set the :guilabel:`Database and Collection`.
+            |service| automatically detects fields that contain vector 
+            embeddings, as well as their corresponding dimensions, 
+            and pre-populates up to three vector fields. 
+            To configure the index, do the following:
 
-      a. In the :guilabel:`Index Name` field, enter a name for the index.
+            .. include:: /includes/extracts/steps-avs-index-general.rst
 
-         Index name must be unique within the namespace, regardless of
-         the index type.
+            To learn more about the {+avs+} index settings, see
+            :ref:`avs-types-vector-search`. 
 
-         .. example:: 
+            .. example::
 
-            Enter **vector_index** as the name for the example
-            index. If you already have an index named *vector_index* on
-            this collection, enter a different name for the index.
+               .. tabs:: 
 
-      #. In the :guilabel:`Database and Collection` section, find the 
-         database, and select the collection for which to create the index.
+                  .. tab:: Basic Example
+                     :tabid: basic
 
-         .. example:: 
+                     For the ``embedded_movies`` collection, the ``plot_embedding`` field displays. 
 
-            In the :guilabel:`Database and Collection` section, find the
-            ``sample_mflix`` database, and select the
-            ``embedded_movies`` collection. 
+                     .. include:: /includes/extracts/steps-avs-index-basic.rst
 
-   .. step:: Specify an index definition.
+                     This index definition indexes only the vector
+                     embeddings field (``plot_embedding``) for performing vector search.  
 
-      An {+avs+} index resembles the following example: 
+                  .. tab:: Advanced Example 
+                     :tabid: advanced
 
-      .. code-block:: json
-         :copyable: true 
-         :linenos:
+                     For the ``embedded_movies`` collection, the ``plot_embedding`` field displays.
 
-         {
-           "fields":[ 
-             {
-               "type": "vector",
-               "path": <field-to-index>,
-               "numDimensions": <number-of-dimensions>,
-               "similarity": "euclidean | cosine | dotProduct"
-             },
-             {
-               "type": "filter",
-               "path": "<field-to-index>"
-             },
-             ...
-           ]
-         }
+                     .. include:: /includes/extracts/steps-avs-index-quantization-filters.rst
 
-      To learn more about the fields in the index, see
-      :ref:`avs-types-vector-search`. 
+                     This index definition indexes the following fields: 
+            
+                     - A string field (``genres``) and a numeric field (``year``)
+                       for pre-filtering the data. 
+                     - The vector embeddings field (``plot_embedding``) for
+                       performing vector search against pre-filtered data.       
+                     
+                     It also enables automatic quantization (``scalar``) for efficient 
+                     processing of the embeddings.
 
-      .. example:: 
+         .. tab:: JSON Editor 
+            :tabid: jsoneditor 
 
-         The following index definition indexes the ``plot_embedding``
-         field as the ``vector`` type and the ``genres`` and ``year``
-         fields as the ``filter`` type in an {+avs+} index. The
-         ``plot_embedding`` field contains embeddings created using
-         OpenAI's ``text-embedding-ada-002`` embeddings model. The
-         index definition specifies ``1536`` vector dimensions and
-         measures similarity using ``dotProduct`` function. 
+            An {+avs+} index resembles the following example: 
 
-         .. tabs:: 
+            .. code-block:: json
+               :copyable: true 
+               :linenos:
 
-            .. tab:: Basic Example
-               :tabid: basic
+               {
+                 "fields":[ 
+                   {
+                     "type": "vector",
+                     "path": <field-to-index>,
+                     "numDimensions": <number-of-dimensions>,
+                     "similarity": "euclidean | cosine | dotProduct",
+                     "quantization": "none | scalar | binary"
+                   },
+                   {
+                     "type": "filter",
+                     "path": "<field-to-index>"
+                   },
+                   ...
+                 ]
+               }
 
-               The following index definition indexes only the vector
-               embeddings field for performing vector search.  
+            To learn more about the fields in the index, see
+            :ref:`avs-types-vector-search`. 
 
-               .. code-block:: json 
-                  :linenos:
+            .. example:: 
 
-                  {
-                    "fields": [{
-                      "type": "vector",
-                      "path": "plot_embedding",
-                      "numDimensions": 1536,
-                      "similarity": "dotProduct"
-                    }]
-                  }
+               .. include:: /includes/avs-openai-index-description.rst
 
-            .. tab:: Filter Example 
-               :tabid: advanced
+               .. tabs:: 
 
-               This index definition indexes the following fields: 
-      
-               - A string field (``genres``) and a numeric field (``year``)
-                 for pre-filtering the data. 
-               - The vector embeddings field (``plot_embedding``) for
-                 performing vector search against pre-filtered data.
+                  .. tab:: Basic Example
+                     :tabid: basic
 
-               .. code-block:: json 
-                  :linenos:
+                     The following index definition indexes only the vector
+                     embeddings field for performing vector search.  
 
-                  {
-                    "fields": [{
-                      "type": "vector",
-                      "path": "plot_embedding",
-                      "numDimensions": 1536,
-                      "similarity": "dotProduct"
-                    },
-                    {
-                      "type": "filter",
-                      "path": "genres"
-                    },
-                    {
-                      "type": "filter",
-                      "path": "year"
-                    }]
-                  }
+                     .. code-block:: json 
+                        :linenos:
+
+                        {
+                          "fields": [{
+                            "type": "vector",
+                            "path": "plot_embedding",
+                            "numDimensions": 1536,
+                            "similarity": "dotProduct"
+                          }]
+                        }
+
+                  .. tab:: Advanced Example 
+                     :tabid: advanced
+
+                     This index definition indexes the following fields: 
+            
+                     - A string field (``genres``) and a numeric field (``year``)
+                       for pre-filtering the data. 
+                     - The vector embeddings field (``plot_embedding``) for
+                       performing vector search against pre-filtered data.
+                     
+                     It also enables automatic quantization (``scalar``) for efficient 
+                     processing of the embeddings.
+
+                     .. code-block:: json 
+                        :linenos:
+
+                        {
+                          "fields": [{
+                            "type": "vector",
+                            "path": "plot_embedding",
+                            "numDimensions": 1536,
+                            "similarity": "dotProduct",
+                            "quantization": "scalar"
+                          },
+                          {
+                            "type": "filter",
+                            "path": "genres"
+                          },
+                          {
+                            "type": "filter",
+                            "path": "year"
+                          }]
+                        }
 
    .. step:: Click :guilabel:`Next` to review the index. 
 
-   .. include:: /includes/steps-fts-finish-index-creation.rst
+   .. include:: /includes/steps-avs-finish-index-creation.rst

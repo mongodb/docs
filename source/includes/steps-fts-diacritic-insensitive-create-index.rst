@@ -4,20 +4,9 @@
    .. include:: /includes/nav/steps-db-deployments-page.rst
 
    .. include:: /includes/nav/steps-atlas-search.rst
-      
-   .. step:: Click :guilabel:`Create Search Index`.
-      
-   .. step:: Select the |fts| :guilabel:`JSON editor` for the :guilabel:`Configuration Method` and click :guilabel:`Next`.
-      
-   .. step:: Enter the :guilabel:`Index Name`, and set the :guilabel:`Database and Collection`.
-      
-      a. In the :guilabel:`Index Name` field, enter ``diacritic-insensitive-tutorial``.
-      
-         .. include:: /includes/default-fts-index-name.rst 
-      
-      #. In the :guilabel:`Database and Collection` section, find the 
-         ``sample_mflix`` database, and select the ``movies`` collection.
-      
+
+   .. include:: /includes/nav/steps-configure-index.rst
+
    .. step:: Specify an index definition.
       
       This index definition for the ``genres`` and ``title`` fields
@@ -32,16 +21,12 @@
       and ``title`` fields. It also applies the custom analyzer named
       ``diacriticFolder`` on the ``title`` field.
       
-      Use the |fts| :guilabel:`Visual Editor` or |fts| :guilabel:`JSON Editor` in the
-      |service| user interface to create the index.
-      
       .. tabs:: 
       
          .. tab:: Visual Editor 
             :tabid: vib
       
-            a. Click :guilabel:`Next`.
-            #. Click :guilabel:`Refine Your Index`.
+            a. Click :guilabel:`Refine Your Index`.
             #. In the :guilabel:`Custom Analyzers` section, click
                :guilabel:`Add Custom Analyzer`.
             #. Select the :guilabel:`Create Your Own` radio button and click

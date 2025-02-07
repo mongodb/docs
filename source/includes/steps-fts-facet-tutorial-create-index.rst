@@ -4,24 +4,9 @@
    .. include:: /includes/nav/steps-db-deployments-page.rst
 
    .. include:: /includes/nav/steps-atlas-search.rst
-      
-   .. step:: Click :guilabel:`Create Search Index`.
 
-   .. step:: Select an |fts| :guilabel:`Configuration Method` and click :guilabel:`Next`.
-      
-      - For a guided experience, select the |fts| :guilabel:`Visual Editor`.
-      - To edit the raw index definition, select the |fts|
-        :guilabel:`JSON Editor`.
-      
-   .. step:: Enter the :guilabel:`Index Name`, and set the :guilabel:`Database and Collection`.
-      
-      a. In the :guilabel:`Index Name` field, enter ``facet-tutorial``.
-      
-         .. include:: /includes/default-fts-index-name.rst 
-      
-      #. In the :guilabel:`Database and Collection` section, find the 
-         ``sample_mflix`` database, and select the ``movies`` collection.
-      
+   .. include:: /includes/nav/steps-configure-index.rst
+
    .. step:: Specify an index definition.
       
       You can create an |fts| index that uses :ref:`dynamic mappings 
@@ -38,8 +23,7 @@
       Visual Editor
       +++++++++++++
                   
-      a. Click :guilabel:`Next`.
-      #. Click :guilabel:`Refine Your Index`.
+      a. Click :guilabel:`Refine Your Index`.
       #. In the :guilabel:`Field Mappings` section, click :guilabel:`Add Field Mapping`. 
       #. Select :guilabel:`Customized Configuration` and then the following:
 
@@ -67,8 +51,7 @@
       JSON Editor
       +++++++++++
       
-      a. Click :guilabel:`Next`.
-      #. Review the index definition.
+      a. Review the index definition.
          
          Your index definition should look similar to the following: 
       

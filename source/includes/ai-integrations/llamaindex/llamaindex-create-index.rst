@@ -3,7 +3,7 @@ create an {+avs+} index on the ``llamaindex_db.test`` collection.
 
 In your notebook, run the following code to create
 an index of the :ref:`vectorSearch <avs-types-vector-search>` type
-that specifies indexing the following fields:
+that indexes the following fields:
 
 - ``embedding`` field as the :ref:`vector
   <avs-types-vector-search>` type. The ``embedding`` field

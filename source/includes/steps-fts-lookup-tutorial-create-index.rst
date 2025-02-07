@@ -4,25 +4,7 @@
 
    .. include:: /includes/nav/steps-atlas-search.rst
 
-   .. step:: Create an |fts| index.
-
-      Click :guilabel:`Create Search Index`.
-
-   .. step:: Select an |fts| :guilabel:`Configuration Method` and click :guilabel:`Next`.
-
-      - For a guided experience, select the |fts| :guilabel:`Visual Editor`.
-      - To edit the raw index definition, select the |fts|
-        :guilabel:`JSON Editor`.
-
-   .. step:: Enter the :guilabel:`Index Name`, and set the :guilabel:`Database and Collection`.
-
-      a. In the :guilabel:`Index Name` field, enter ``lookup-with-search-tutorial``.
-
-         .. include:: /includes/default-fts-index-name.rst 
-
-      #. In the :guilabel:`Database and Collection` section, find the 
-         ``sample_analytics`` database, and select the ``accounts`` 
-         collection.
+   .. include:: /includes/nav/steps-configure-index.rst
 
    .. step:: Specify an index definition.
 
@@ -36,15 +18,13 @@
          .. tab:: Visual Editor 
             :tabid: vib 
 
-            a. Click :guilabel:`Next`.
-            #. Review the default index definition for the 
-               collection.
+            Review the default index definition for the 
+            collection.
 
          .. tab:: JSON Editor
             :tabid: json-editor
 
-            a. Click :guilabel:`Next`.
-            #. Review the index definition.
+            a. Review the index definition.
      
                Your index definition should look similar to the 
                following: 

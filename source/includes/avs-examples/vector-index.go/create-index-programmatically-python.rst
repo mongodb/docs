@@ -4,7 +4,7 @@ driver. Paste and run the following code in your notebook:
 .. literalinclude:: /includes/avs-examples/local-rag/vector-index.py
    :language: python
 
-This index definition specifies indexing the ``embeddings`` field
+This index definition indexes the ``embeddings`` field
 in an index of the :ref:`vectorSearch <avs-types-vector-search>` type
 for the ``sample_airbnb.listingsAndReviews`` collection.
 This field contains the embeddings created using the
