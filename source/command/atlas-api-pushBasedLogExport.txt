@@ -1,0 +1,67 @@
+.. _atlas-api-pushBasedLogExport:
+
+============================
+atlas api pushBasedLogExport
+============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+`experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: You can continually push logs from mongod, mongos, and audit logs to an AWS S3 bucket.
+
+Atlas exports logs every 5 minutes.
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -h, --help
+     - 
+     - false
+     - help for pushBasedLogExport
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Related Commands
+----------------
+
+* :ref:`atlas-api-pushBasedLogExport-createPushBasedLogConfiguration` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Configures the project level settings for the push-based log export feature.
+* :ref:`atlas-api-pushBasedLogExport-deletePushBasedLogConfiguration` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Disables the push-based log export feature by resetting the project level settings to its default configuration.
+* :ref:`atlas-api-pushBasedLogExport-getPushBasedLogConfiguration` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Fetches the current project level settings for the push-based log export feature.
+* :ref:`atlas-api-pushBasedLogExport-updatePushBasedLogConfiguration` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Updates the project level settings for the push-based log export feature.
+
+
+.. toctree::
+   :titlesonly:
+
+   createPushBasedLogConfiguration </command/atlas-api-pushBasedLogExport-createPushBasedLogConfiguration>
+   deletePushBasedLogConfiguration </command/atlas-api-pushBasedLogExport-deletePushBasedLogConfiguration>
+   getPushBasedLogConfiguration </command/atlas-api-pushBasedLogExport-getPushBasedLogConfiguration>
+   updatePushBasedLogConfiguration </command/atlas-api-pushBasedLogExport-updatePushBasedLogConfiguration>
+

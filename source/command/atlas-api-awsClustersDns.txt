@@ -1,0 +1,63 @@
+.. _atlas-api-awsClustersDns:
+
+========================
+atlas api awsClustersDns
+========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+`experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns and edits custom DNS configurations for MongoDB Cloud database deployments on AWS.
+
+The resource requires your Project ID. If you use the VPC peering on AWS and you use your own DNS servers instead of Amazon Route 53, enable custom DNS. Before 31 March 2020, applications deployed within AWS using custom DNS services and VPC-peered with MongoDB Cloud couldn't connect over private IP addresses. Custom DNS resolved to public IP addresses. AWS internal DNS resolved to private IP addresses. Applications deployed with custom DNS services in AWS should use Private IP for Peering connection strings.
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -h, --help
+     - 
+     - false
+     - help for awsClustersDns
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Related Commands
+----------------
+
+* :ref:`atlas-api-awsClustersDns-getAwsCustomDns` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns the custom DNS configuration for AWS clusters in the specified project.
+* :ref:`atlas-api-awsClustersDns-toggleAwsCustomDns` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Enables or disables the custom DNS configuration for AWS clusters in the specified project.
+
+
+.. toctree::
+   :titlesonly:
+
+   getAwsCustomDns </command/atlas-api-awsClustersDns-getAwsCustomDns>
+   toggleAwsCustomDns </command/atlas-api-awsClustersDns-toggleAwsCustomDns>
+

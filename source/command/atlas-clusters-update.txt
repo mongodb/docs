@@ -20,6 +20,8 @@ You can't change the name of the cluster or downgrade the MongoDB version of you
 
 You can only update a replica set to a single-shard cluster; you cannot update a replica set to a multi-sharded cluster. To learn more, see https://www.mongodb.com/docs/atlas/scale-cluster/#convert-a-replica-set-to-a-sharded-cluster and https://www.mongodb.com/docs/upcoming/tutorial/convert-replica-set-to-replicated-shard-cluster.
 
+Deprecation note: the M2 and M5 tiers are now deprecated; when selecting M2 or M5, a FLEX tier will be created instead. For the migration guide, visit: https://dochub.mongodb.org/core/flex-migration.\n
+
 To use this command, you must authenticate with a user account or an API key with the Project Cluster Manager role.
 Atlas supports this command only for M10+ clusters
 
