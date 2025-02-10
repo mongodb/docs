@@ -25,7 +25,7 @@
 .. _atlas-sp-agg-source-def:
 
 Definition
-~~~~~~~~~~
+----------
 
 .. pipeline:: $source
 
@@ -46,12 +46,12 @@ from. The following connection types are supported:
 .. _atlas-sp-agg-source-syntax:
 
 Syntax
-~~~~~~
+------
 
 .. _atlas-sp-agg-source-syntax-kafka:
 
 Apache Kafka Broker
--------------------
+~~~~~~~~~~~~~~~~~~~
 
 To operate on streaming data from an {+kafka+} broker, the 
 ``$source`` stage has the following prototype form:
@@ -235,7 +235,11 @@ The ``$source`` stage takes a document with the following fields:
 .. _atlas-sp-agg-source-syntax-coll:
 
 MongoDB Collection Change Stream
---------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An {+service+} collection change stream allows applications to access real-time 
+data changes on a single collection. To learn how to open a change stream against 
+a collection, see :manual:`Change Streams </changeStreams>`. 
 
 To operate on streaming data from an {+service+} collection change
 stream, the ``$source`` stage has the following prototype form:
@@ -417,13 +421,17 @@ The ``$source`` stage takes a document with the following fields:
      - Optional
      - Specifies an aggregation pipeline to filter change stream output
        at the point of origin. This pipeline must conform to the parameters
-       described in :manual:`<change-stream-modify-output>`.
+       described in :manual:`Modify Change Stream Output </changeStreams/#modify-change-stream-output>`.
 
 .. _streams-agg-db-change-stream:
 .. _atlas-sp-agg-source-syntax-db:
 
 MongoDB Database Change Stream
-------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An {+service+} database change stream allows applications to access real-time 
+data changes on a single database. To learn how to open a change stream against 
+a database, see :manual:`Change Streams </changeStreams>`. 
 
 To operate on streaming data from an {+service+} database change
 stream, the ``$source`` stage has the following prototype form:
@@ -597,12 +605,12 @@ The ``$source`` stage takes a document with the following fields:
      - Optional
      - Specifies an aggregation pipeline to filter change stream output
        at the point of origin. This pipeline must conform to the parameters
-       described in :manual:`<change-stream-modify-output>`.
+       described in :manual:`Modify Change Stream Output </changeStreams/#modify-change-stream-output>`.
 
 .. _atlas-sp-cluster-wide-source:
 
 MongoDB Cluster-wide Change Stream Source
-------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To operate on streaming data from an entire {+service+} cluster change
 stream, the ``$source`` stage has the following prototype form:
@@ -773,7 +781,7 @@ The ``$source`` stage takes a document with the following fields:
 .. _atlas-sp-agg-source-syntax-array:
 
 Document Array
---------------
+~~~~~~~~~~~~~~
 
 To operate on an array of documents, the ``$source`` stage has the 
 following prototype form:
@@ -844,7 +852,7 @@ The ``$source`` stage takes a document with the following fields:
 .. _atlas-sp-agg-source-behavior:
 
 Behavior
-~~~~~~~~
+--------
 
 :pipeline:`$source` must be the first stage of any pipeline it appears 
 in. You can use only one :pipeline:`$source` stage per pipeline.
@@ -852,7 +860,10 @@ in. You can use only one :pipeline:`$source` stage per pipeline.
 .. _atlas-sp-agg-source-examples:
 
 Examples
-~~~~~~~~
+--------
+
+Kafka Example 
+~~~~~~~~~~~~~
 
 A streaming data source generates detailed weather reports from
 various locations, conformant to the schema of the :ref:`Sample
@@ -910,7 +921,8 @@ collection, connect to your {+service+} cluster and run the following command:
 
    .. output::
       :language: json
- 
+      :visible: false
+
       {
 	_id: ObjectId('66ad2edfd4fcac13b1a28ce3'),
 	_stream_meta: {
@@ -988,4 +1000,80 @@ collection, connect to your {+service+} cluster and run the following command:
 
    The preceding is a representative example. Streaming data are
    not static, and each user sees distinct documents.
+
+
+Change Stream Example 
+~~~~~~~~~~~~~~~~~~~~~
+
+The following aggregation ingests data from the ``cluster0-collection`` source, 
+which connects to an {+service+} cluster loaded with the :ref:`sample dataset <sample-data>`. 
+To learn how to create a stream processing instance and add a connection to an {+service+} cluster to the 
+connection registry, see :ref:`atlas-sp-tutorial`. This aggregation runs two stages to 
+open a change stream and record changes to the ``data`` collection in the ``sample_weatherdata`` database: 
+
+1. The :pipeline:`$source` stage connects to the ``cluster0-collection`` source and opens a 
+   change stream against the ``movies`` collection in the ``sample_mflix`` database. 
+   The change stream output is filtered to record only the :manual:`insert </reference/change-events/insert>` 
+   and :manual:`delete </reference/change-events/delete>` change events. 
+
+#. The :pipeline:`$merge` stage writes the filtered change stream documents to an {+service+}
+   collection named ``movies_changes`` in the ``sample_mflix`` database. 
+   If no such collection exists, {+service+} creates it.
+
+.. code-block:: json
+
+   {
+     $source: {
+       connectionName: "cluster0-connection",
+       db : "sample_weatherdata",
+       coll : "data"
+     },
+     $merge: { 
+       into: {
+         connectionName: "cluster0-connection", 
+         db: "sample_weatherdata",
+         coll: "data_changes"
+       }
+     }  
+   }  
+
+The following :binary:`~bin.mongosh` command deletes a ``data`` document: 
+
+.. code-block:: json
+
+   db.getSiblingDB("sample_weatherdata").data.deleteOne(
+      { _id: ObjectId("5553a99ae4b02cf715120e4b") }
+   )
+
+After the ``data`` document is deleted, the stream processor writes the change stream event 
+document to the ``sample_weatherdata.data_changes`` collection.  
+To view the documents in the resulting ``sample_weatherdata.data_changes``
+collection, use :binary:`~bin.mongosh` to connect to your {+service+} cluster and run the following command:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: json
+
+      db.getSiblingDB("sample_weatherdata").data_changes.find()
+
+   .. output::
+      :language: json
+      :visible: false
+
+      [
+        {
+          _id: {
+            _data: '8267A3D7A3000000012B042C0100296E5A1004800951B8EDE4430AB5C1B254BB3C96D6463C6F7065726174696F6E54797065003C64656C6574650046646F63756D656E744B65790046645F696400645553A99AE4B02CF715120E4B000004'
+          },
+          _stream_meta: { source: { type: 'atlas' } },
+          _ts: ISODate('2025-02-05T21:26:59.313Z'),
+          clusterTime: Timestamp({ t: 1738790819, i: 1 }),
+          documentKey: { _id: ObjectId('5553a99ae4b02cf715120e4b') },
+          ns: { db: 'sample_weatherdata', coll: 'data' },
+          operationType: 'delete',
+          wallTime: ISODate('2025-02-05T21:26:59.313Z')
+        }
+      ]
 
