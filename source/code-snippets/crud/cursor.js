@@ -68,6 +68,28 @@ async function close(myColl) {
   await cursor.close();
   // end close cursor example
 }
+// Abort in-progress operations
+async function abort(myColl) {
+  // start abort cursor example
+  const controller = new AbortController();
+  const { signal } = controller;
+
+  process.on('SIGINT', () => controller.abort(new Error('^C pressed')));
+
+  try {
+    const cursor = myColl.find({}, { signal });
+    for await (const doc of cursor) {
+      console.log(doc);
+    }
+  } catch (error) {
+    if (error === signal.reason) {
+      console.error('Operation aborted:', error);
+    } else {
+      console.error('Unexpected error:', error);
+    }
+  }
+  // end abort cursor example
+}
 
 async function run() {
   try {
@@ -81,6 +103,7 @@ async function run() {
     await fetchAll(orders);
     await rewind(orders);
     await count(orders);
+    await abort(orders);
   } finally {
     await client.close();
   }
