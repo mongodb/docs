@@ -3,6 +3,11 @@
 - [DOCSP-number](https://jira.mongodb.org/browse/DOCSP-number)
 - [STAGING](paste the link to staging here)
 
+### External Review Guidelines
+
+- [What is an external review?](https://wiki.corp.mongodb.com/display/DE/Review+Guidelines+for+CET+Docs)
+- [How do I submit a review?](https://docs.google.com/presentation/d/1ogtJBnAAnBky56StU7spzC_cmTyLQcASVJ_sxGXsMdc/)
+
 ### Self-Review Checklist
 
 - [ ] [Define](https://wiki.corp.mongodb.com/display/DE/Taxonomy+tagging+instructions) taxonomy [values](https://wiki.corp.mongodb.com/display/DE/Docs+Taxonomy) at top of page.
