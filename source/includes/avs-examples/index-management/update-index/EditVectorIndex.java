@@ -28,23 +28,13 @@ public class EditVectorIndex {
                 Collections.singletonList(
                     new Document("type", "vector")
                         .append("path", "<fieldToIndex>")
-                        .append("numDimensions", <numberOfDimensions>)
+                        .append("numDimensions", "<numberOfDimensions>")
                         .append("similarity", "euclidean | cosine | dotProduct")
-                        .append("quantization", "none | scalar | binary")
-                )
-            );
+                        .append("quantization", "none | scalar | binary")));
 
             // Update the index
-            try {
-                collection.updateSearchIndex(indexName, definition);
-                System.out.println("Successfully updated the index");
-            } catch (Exception e) {
-                throw new RuntimeException("Error creating index: " + e);
-                mongoClient.close();
-            }
-
-        } catch (Exception e) {
-            throw new RuntimeException("Error connecting to MongoDB: " + e);
+            collection.updateSearchIndex(indexName, definition);
+            System.out.println("Successfully updated the index");
         }
     }
 }

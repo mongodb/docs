@@ -1,8 +1,6 @@
-import com.mongodb.client.ListSearchIndexesIterable;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.SearchIndexModel;
 import com.mongodb.client.model.SearchIndexType;
@@ -43,41 +41,44 @@ public class VectorIndex {
                 definition,
                 SearchIndexType.vectorSearch());
 
-            // Create the index
-            try {
-                List<String> result = collection.createSearchIndexes(Collections.singletonList(indexModel));
-                System.out.println("New search index named " + result.get(0) + " is building.");
-            } catch (Exception e) {
-                throw new RuntimeException("Error creating index: " + e);
-            }
+            // Create the index using the defined model
+            List<String> result = collection.createSearchIndexes(Collections.singletonList(indexModel));
+            System.out.println("Successfully created vector index named: " + result.get(0));
+            System.out.println("It may take up to a minute for the index to leave the BUILDING status and become queryable.");
 
             // Wait for Atlas to build the index
-            System.out.println("Polling to check if the index is ready. This may take up to a minute.");
+            System.out.println("Polling to confirm the index has left the BUILDING status.");
+            // No special handling in case of a timeout. Custom handling can be implemented.    
+            waitForIndex(collection, indexName);
+        }
+    }
 
-            ListSearchIndexesIterable<Document> searchIndexes = collection.listSearchIndexes();
-            Document doc = null;
-            while (doc == null) {
-                try (MongoCursor<Document> cursor = searchIndexes.iterator()) {
-                    if (!cursor.hasNext()) {
-                        break;
-                    }
-                    Document current = cursor.next();
-                    String name = current.getString("name");
-                    // When the index completes building, it becomes `queryable`
-                    boolean queryable = current.getBoolean("queryable");
-                    if (name.equals(indexName) && queryable) {
-                        doc = current;
-                    } else {
-                        Thread.sleep(500);
-                    }
-                } catch (Exception e) {
-                    throw new RuntimeException("Failed to list search indexes: " + e);
+    /**
+     * Polls the collection to check whether the specified index is ready to query.
+     */
+    public static <T> boolean waitForIndex(final MongoCollection<T> collection, final String indexName) {
+        long startTime = System.nanoTime();
+        long timeoutNanos = TimeUnit.SECONDS.toNanos(60);
+        while (System.nanoTime() - startTime < timeoutNanos) {
+            Document indexRecord = StreamSupport.stream(collection.listSearchIndexes().spliterator(), false)
+                    .filter(index -> indexName.equals(index.getString("name")))
+                    .findAny().orElse(null);
+            if (indexRecord != null) {
+                if ("FAILED".equals(indexRecord.getString("status"))) {
+                    throw new RuntimeException("Search index has FAILED status.");
+                }
+                if (indexRecord.getBoolean("queryable")) {
+                    System.out.println(indexName + " index is ready to query");
+                    return true;
                 }
             }
-            System.out.println(indexName + " is ready for querying.");
-
-        } catch (Exception e) {
-            throw new RuntimeException("Error connecting to MongoDB: " + e);
+            try {
+                Thread.sleep(100); // busy-wait, avoid in production
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException(e);
+            }
         }
+        return false;
     }
 }

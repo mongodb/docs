@@ -16,45 +16,45 @@
 
    .. step:: Run the {+avs+} queries against the indexed field.
 
-      .. include:: /includes/extracts/fts-vector-search-tutorial-queries-desc.rst
-
       a. Click :guilabel:`</> Text`.
       #. Replace :guilabel:`[ ]` in the left pane with the query for the
          pre-filter operator that you want to try. 
 
-         .. tabs:: 
+      .. include:: /includes/extracts/fts-vector-search-tutorial-queries-desc.rst
 
-            .. tab:: Pre-Filter by AND Operator 
-               :tabid: basic
+      .. tabs:: 
 
-               .. include:: /includes/extracts/fts-vector-search-tutorial-simple-query-desc.rst
+         .. tab:: Pre-Filter by AND Operator 
+            :tabid: basic
 
-               .. io-code-block::
-                  :copyable: true
-      
-                  .. input:: /includes/avs-examples/tutorial/filter-by-and-query-ui.js 
-                     :language: json
-                     :linenos:
+            .. include:: /includes/extracts/fts-vector-search-tutorial-simple-query-desc.rst
 
-                  .. output:: /includes/avs-examples/tutorial/filter-by-and-query-ui-output.js
-                     :language: javascript
-                     :linenos:
+            .. io-code-block::
+               :copyable: true
+   
+               .. input:: /includes/avs-examples/tutorial/filter-by-and-query-ui.js 
+                  :language: json
+                  :linenos:
 
-            .. tab:: Pre-Filter by OR or AND Operator
-               :tabid: advanced
+               .. output:: /includes/avs-examples/tutorial/filter-by-and-query-ui-output.js
+                  :language: javascript
+                  :linenos:
 
-               .. include:: /includes/extracts/fts-vector-search-tutorial-advanced-query-desc.rst
+         .. tab:: Pre-Filter by OR or AND Operator
+            :tabid: advanced
 
-               .. io-code-block::
-                  :copyable: true
-      
-                  .. input:: /includes/avs-examples/tutorial/filter-by-or-and-query-ui.js
-                     :language: json
-                     :linenos:
+            .. include:: /includes/extracts/fts-vector-search-tutorial-advanced-query-desc.rst
 
-                  .. output:: /includes/avs-examples/tutorial/filter-by-or-and-query-ui-output.js
-                     :language: javascript
-                     :linenos:
+            .. io-code-block::
+               :copyable: true
+   
+               .. input:: /includes/avs-examples/tutorial/filter-by-or-and-query-ui.js
+                  :language: json
+                  :linenos:
+
+               .. output:: /includes/avs-examples/tutorial/filter-by-or-and-query-ui-output.js
+                  :language: javascript
+                  :linenos:
 
       .. note:: 
 

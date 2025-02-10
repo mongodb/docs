@@ -56,7 +56,7 @@
          :language: java
          :copyable: true
          :caption: VectorIndex.java
-         :emphasize-lines: 21
+         :emphasize-lines: 19
          :linenos:
 
       This index definition indexes the ``plot_embedding`` field

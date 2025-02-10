@@ -48,7 +48,7 @@ a. Add the Java driver version 5.2 or higher as a dependency in your project.
       :language: java
       :copyable: true
       :caption: VectorIndex.java
-      :emphasize-lines: 20
+      :emphasize-lines: 18
       :linenos:
 
    .. include:: /includes/avs-quick-start-basic-index-description.rst
