@@ -1,0 +1,830 @@
+ref: collect-stats
+content: | 
+
+  The ``collectors`` is a |bson| document with the following fields:
+
+  .. list-table:: 
+     :header-rows: 1
+     :widths: 10 15 10 65
+
+     * - Option 
+       - Type 
+       - Necessity 
+       - Purpose
+
+     * - ``allCollectorStats``
+       - document
+       - Required
+       - Statistics of all collectors of the query. Statistics represent
+         the maximum value across all collectors used in the query, and
+         are a sum of all sub-collectors. The timing statistics are
+         summed to reflect the total time spent across all collectors
+         for the entire query. To learn more, see
+         :ref:`explain-search-all-collector-stats`.  
+
+     * - ``facet``
+       - document
+       - Optional
+       - Breakdown of the query that specifies :ref:`facet
+         <fts-facet-ref>`. To learn more, see :ref:`explain-search-facet`.
+
+     * - ``sort``
+       - document
+       - Optional
+       - Breakdown of the query that specifies :ref:`sort <sort-ref>`.
+         To learn more, see :ref:`explain-search-sort`. 
+
+---
+ref: all-collector-stats
+content: | 
+
+  The ``allCollectorStats`` is a |bson| document that describes collector
+  statistics across all collectors specified in the query, including
+  ``facet`` and ``sort``. It contains the following keys: 
+
+  .. list-table:: 
+     :stub-columns: 1
+
+     * - ``collect`` 
+       - Tracks the duration and number of results collected by the
+         collector.
+
+     * - ``competitiveIterator``
+       - Statistics tracking the total duration and the number of times a
+         ``competitiveIterator`` was requested from the collector. 
+
+     * - ``setScorer``
+       - Statistics tracking the total duration and number of times a
+         scorer was set on the collector.
+
+---
+ref: index-partition-explain
+content: | 
+
+  The ``indexPartitionExplain`` contains :ref:`explain-response` for each
+  index partition. The top-level :ref:`explain-search-collect-stats` and
+  :ref:`explain-search-query` are inside the ``explain`` information of
+  each index partition.
+
+---
+ref: explain-metadata
+content: | 
+
+  The ``metadata`` contains helpful metadata, such as the following:
+
+  .. list-table:: 
+     :header-rows: 1
+     :widths: 10 15 10 65
+ 
+     * - Option 
+       - Type 
+       - Necessity 
+       - Purpose
+
+     * - ``mongotVersion``
+       - String
+       - Optional
+       - Current version of ``mongot``.
+
+     * - ``mongotHostName``
+       - String
+       - Optional
+       - Human readable label that identifies the ``mongot`` host.
+
+     * - ``indexName``
+       - String
+       - Optional
+       - |fts| index used in the query.
+
+     * - ``cursorOptions``
+       - BsonDocument
+       - Optional
+       - Cursor options given to mongot.
+
+     * - ``totalLuceneDocs``
+       - Integer
+       - Optional
+       - Total number of lucene documents in the index including deleted
+         documents. 
+
+---
+ref: explain-query
+content: | 
+
+  The ``explain`` response is a |bson| document with keys and values 
+  describing the execution statistics for the query. The ``explain`` 
+  document in the result set contains the following fields: 
+
+  .. list-table:: 
+     :header-rows: 1
+     :widths: 10 15 10 65
+
+     * - Option 
+       - Type 
+       - Necessity 
+       - Purpose
+
+     * - ``path``
+       - string 
+       - Optional 
+       - Path to the operator, only if it isn't the root.
+ 
+     * - ``type``
+       - string 
+       - Required 
+       - Name of the Lucene Query that the |fts| operator created. See 
+         :ref:`explain-lucene-query` for more information.
+
+     * - ``analyzer``
+       - string 
+       - Optional
+       - |fts| :ref:`analyzer <analyzers-ref>` used with the query.
+
+     * - ``args``
+       - document 
+       - Required
+       - Lucene query information. See 
+         :ref:`explain-lucene-query` for more information.
+
+     * - ``stats``
+       - document
+       - Optional 
+       - :ref:`explain-timing-breakdown` for the query if ``explain`` 
+         ran with ``executionStats`` or ``allPlansExecution`` 
+         verbosity.
+
+---
+ref: explain-args
+content: | 
+
+  The :ref:`explain response <explain-response>` of a search command 
+  contains information about the query executed with that command. The 
+  response in the ``args`` field includes structured details of what
+  Lucene queries |fts| executed to satisfy a ``$search`` query. 
+
+  This section contains: 
+
+  - Some of the Lucene queries that |fts| operators create
+  - Lucene query options that are included in the structured summary 
+  - Lucene query structured summary example for each Lucene query type
+
+  .. note:: About the Examples
+
+     The examples in this section are based on queries run against the 
+     :ref:`sample datasets <available-sample-datasets>` with the 
+     ``queryPlanner`` :ref:`verbosity mode <explain-verbosity>`. In the 
+     example response, the: 
+    
+     - ``mongotQuery`` field shows the |fts| operator and the query 
+       that was run. 
+     - ``explain.type`` field shows the Lucene Query that the operator 
+       created. 
+
+     For complete examples, see :ref:`explain-egs`.
+
+  .. expression:: BooleanQuery
+
+     .. tabs:: 
+
+        .. tab:: Options 
+           :tabid: bqopt 
+
+           For Lucene ``BooleanQuery``, the structured summary includes 
+           details on the following options: 
+
+           .. list-table::
+              :header-rows: 1
+              :widths: 10 20 10 50
+
+              * - Field
+                - Type
+                - Necessity
+                - Description
+
+              * - ``must``
+                - <:ref:`explain-response`>
+                - Optional
+                - Clauses which must match.              
+
+              * - ``mustNot``
+                - <:ref:`explain-response`>
+                - Optional
+                - Clauses which must not match.             
+
+              * - ``should``
+                - <:ref:`explain-response`>
+                - Optional
+                - Clauses which should match.
+                
+
+              * - ``filter``
+                - <:ref:`explain-response`>
+                - Optional
+                - Clauses which must all match. 
+
+              * - ``minimumShouldMatch``
+                - Integer
+                - Optional
+                - The minimum number of ``should`` clauses which must  
+                  match.
+
+     .. tab:: Example 
+        :tabid: bqeg 
+
+        The following example shows the ``explain`` response for a 
+        query run against the ``sample_airbnb.listingsAndReviews`` 
+        collection.
+
+        .. literalinclude:: /includes/fts-lucene-booleanquery-eg.json
+           :language: json
+           :linenos:
+           :emphasize-lines: 37-88 
+
+  .. expression:: ConstantScoreQuery
+
+     .. tabs:: 
+
+        .. tab:: Options 
+           :tabid: csqopt
+
+           For constant score queries, the structured summary includes 
+           details on the following options: 
+
+           .. list-table::
+              :header-rows: 1
+              :widths: 10 20 10 50
+
+              * - Field
+                - Type
+                - Necessity
+                - Description              
+
+              * - ``query``
+                - :ref:`explain-response`
+                - Required
+                - Child of the ``ConstantScoreQuery``. 
+
+        .. tab:: Example 
+           :tabid: csqeg
+
+           The following example shows the ``explain`` response for a 
+           query run against the ``sample_airbnb.listingsAndReviews`` 
+           collection.
+      
+           .. literalinclude:: /includes/fts-lucene-constantscorequery-eg.json
+              :language: json
+              :linenos:
+              :emphasize-lines: 11-22                     
+
+  .. expression:: FunctionScoreQuery
+
+     .. tabs:: 
+
+        .. tab:: Options 
+           :tabid: fsqopt 
+
+           For Lucene ``FunctionScoreQuery`` queries, the structured 
+           summary includes details on the following options: 
+
+           .. list-table::
+              :header-rows: 1
+              :widths: 10 20 10 50
+
+              * - Field
+                - Type
+                - Necessity
+                - Description
+
+              * - ``scoreFunction`` 
+                - string 
+                - Required 
+                - Scoring expression used in the query.
+
+              * - ``query``
+                - :ref:`explain-response`
+                - Required 
+                - The query.
+
+        .. tab:: Example 
+           :tabid: fsqeg 
+
+           The following example shows the ``explain`` response for a 
+           query run against the ``sample_airbnb.listingsAndReviews`` 
+           collection.
+      
+           .. literalinclude:: /includes/fts-lucene-functionscorequery-eg.json
+              :language: json
+              :linenos:
+              :emphasize-lines: 12-59          
+
+  .. expression:: LatLonPointDistanceQuery
+
+     .. tabs:: 
+
+        .. tab:: Options 
+           :tabid: llpdqopt 
+
+           For Lucene ``LatLonPointDistanceQuery`` queries, the response 
+           contains an :ref:`explain-timing-breakdown` only.
+
+        .. tab:: Example 
+           :tabid: llpdqeg
+
+           The following example shows the ``explain`` response for a 
+           query run against the ``sample_airbnb.listingsAndReviews`` 
+           collection.
+      
+           .. literalinclude:: /includes/fts-lucene-latlonpointdistancequery-eg.json
+              :language: json
+              :linenos:
+              :emphasize-lines: 20-23           
+
+  .. expression:: LatLonShapeQuery
+
+     .. tabs:: 
+
+        .. tab:: Options 
+           :tabid: llsqopt 
+
+           For Lucene ``LatLonShapeQuery`` queries, the response contains 
+           an :ref:`explain-timing-breakdown` only.
+
+        .. tab:: Example 
+           :tabid: llsqeg 
+
+           The following example shows the ``explain`` response for a 
+           query run against the ``sample_airbnb.listingsAndReviews`` 
+           collection.
+      
+           .. literalinclude:: /includes/fts-lucene-latlonshapequery-eg.json
+              :language: json
+              :linenos:
+              :emphasize-lines: 26-29       
+
+  .. expression:: LongDistanceFeatureQuery
+
+     .. tabs:: 
+
+        .. tab:: Options 
+           :tabid: ldfqopt
+
+           For Lucene ``LongDistanceFeatureQuery``, the response contains 
+           an :ref:`explain-timing-breakdown` only.
+
+        .. tab:: Example 
+           :tabid: ldfqeg
+
+           The following example shows the ``explain`` response for a 
+           query run against the ``sample_mflix.movies`` collection.
+      
+           .. literalinclude:: /includes/fts-lucene-longdistancefeaturequery-eg.json
+              :language: json
+              :linenos:
+              :emphasize-lines: 12-15           
+
+  .. expression:: MultiTermQueryConstantScoreWrapper
+
+     .. tabs:: 
+
+        .. tab:: Options 
+           :tabid: mtqopt 
+
+           For Lucene ``MultiTermQueryConstantScoreWrapper`` queries, the 
+           structured summary includes details on the following 
+           arguments: 
+
+           .. list-table::
+              :header-rows: 1
+              :widths: 10 20 10 50
+
+              * - Field
+                - Type
+                - Necessity
+                - Description
+
+              * - ``queries``
+                - List<:ref:`explain-response`>
+                - Required
+                - List of queries.
+
+        .. tab:: Example 
+           :tabid: mtqeg
+
+           The following example shows the ``explain`` response for a 
+           query run against the ``sample_airbnb.listingsAndReviews`` 
+           collection.
+      
+           .. literalinclude:: /includes/fts-lucene-multitermquery-eg.json
+              :language: json
+              :linenos:
+              :emphasize-lines: 12-24   
+
+  .. expression:: PhraseQuery
+
+     .. tabs:: 
+
+        .. tab:: Options 
+           :tabid: pqopt 
+
+           For Lucene ``PhraseQuery`` queries, the structured summary 
+           includes details on the following arguments: 
+
+           .. list-table::
+              :header-rows: 1
+              :widths: 10 20 10 50
+
+              * - Field
+                - Type
+                - Necessity
+                - Description
+
+              * - ``path``
+                - String
+                - Required
+                - Indexed field to search.
+
+              * - ``query``
+                - String 
+                - Required
+                - String or strings to search for.
+
+              * - ``slop``
+                - Number
+                - Required
+                - Allowable distance between words in the ``query`` 
+                  phrase.
+
+        .. tab:: Example 
+           :tabid: pqeg
+
+           The following example shows the ``explain`` response for a 
+           query run against the ``sample_airbnb.listingsAndReviews`` 
+           collection.
+      
+           .. literalinclude:: /includes/fts-lucene-phrasequery-eg.json
+              :language: json
+              :linenos:
+              :emphasize-lines: 12-19
+
+  .. expression:: PointRangeQuery
+
+     .. tabs:: 
+
+        .. tab:: Options 
+           :tabid: prqopt 
+
+           For Lucene ``PointRangeQuery`` queries, the structured summary 
+           includes details on the following arguments: 
+
+           .. list-table::
+              :header-rows: 1
+              :widths: 10 20 10 50
+
+              * - Field
+                - Type
+                - Necessity
+                - Description
+
+              * - ``path``
+                - String
+                - Required
+                - Indexed field to search.
+
+              * - ``representation``
+                - String
+                - Optional
+                - Numeric representation. Queries over date-typed data do 
+                  not include representation.
+
+              * - ``gte``
+                - Number
+                - Optional
+                - Lower bound of the query.
+
+              * - ``lte``
+                - Number
+                - Optional
+                - Upper bound of the query.
+
+        .. tab:: Example 
+           :tabid: prqeg 
+
+           The following example shows the ``explain`` response for a 
+           query run against the ``sample_airbnb.listingsAndReviews`` 
+           collection.
+      
+           .. literalinclude:: /includes/fts-lucene-pointrangequery-eg.json
+              :language: json
+              :linenos:
+              :emphasize-lines: 11-38    
+
+  .. expression:: TermQuery
+
+     .. tabs:: 
+
+        .. tab:: Options 
+           :tabid: tqopt 
+
+           For term queries, the structured summary includes details on 
+           the following arguments: 
+
+           .. list-table::
+              :header-rows: 1
+              :widths: 10 20 10 50
+
+              * - Field
+                - Type
+                - Necessity
+                - Description
+
+              * - ``path``
+                - String
+                - Required
+                - Indexed field to search.
+
+              * - ``value``
+                - String 
+                - Required
+                - String to search for. 
+
+        .. tab:: Example 
+           :tabid: tqeg
+          
+           The following example shows the ``explain`` response for a 
+           query run against the ``sample_airbnb.listingsAndReviews`` 
+           collection.
+      
+           .. literalinclude:: /includes/fts-lucene-termquery-eg.json
+              :language: json
+              :linenos:
+              :emphasize-lines: 11-17
+
+  .. expression:: Default
+
+     .. tabs:: 
+
+        .. tab:: Options 
+           :tabid: opt 
+
+           Lucene queries that are not explicitly defined by another 
+           Lucene query are serialized using the default query. The 
+           structured summary includes details on the following option: 
+
+           .. list-table::
+              :header-rows: 1
+              :widths: 10 20 10 50
+
+              * - Field
+                - Type
+                - Necessity
+                - Description
+                
+              * - ``queryType`` 
+                - String 
+                - Required.
+                - Type of Lucene query.
+                
+        .. tab:: Example 
+           :tabid: eg 
+
+           The following example shows the ``explain`` response for a 
+           query run against the ``sample_airbnb.listingsAndReviews`` 
+           collection.
+      
+           .. literalinclude:: /includes/fts-lucene-defaultquery-eg.json
+              :language: json
+              :linenos:
+              :emphasize-lines: 18-23
+
+---
+ref: explain-stats
+content: | 
+
+  The ``explain`` response for :manual:`executionStats 
+  </reference/explain-results/#explain.executionStats>` and 
+  :manual:`allPlansExecution
+  </reference/explain-results/#explain.executionStats>` verbosity modes 
+  includes a ``stats`` field that contains information on how much 
+  :ref:`time <timing-breakdown>` a query spends in various :ref:`stages 
+  of query <areas-of-query>` execution. 
+
+---
+ref: explain-time-breakdown
+content: | 
+
+  The timing breakdown describes execution statistics pertinent to an 
+  :ref:`area of query <areas-of-query>` execution. The following fields 
+  show the timing breakdown:
+
+  .. list-table::
+     :header-rows: 1 
+     :widths: 15 15 70 
+
+     * - Field
+       - Type
+       - Description
+
+     * - ``millisElapsed``
+       - Long
+       - Approximate wall-clock time elapsed performing tasks in this 
+         :ref:`area <areas-of-query>` including the amount of time the 
+         children of the query spent in this :ref:`area 
+         <areas-of-query>`. The value is approximate number of 
+         milliseconds elapsed while performing tasks in this area.
+
+     * - ``invocationCounts`` 
+       - Docuemnt
+       - Number of invocations of tasks included in this :ref:`area 
+         <areas-of-query>`. The value is a map of task names to their 
+         invocation count.
+
+---
+ref: explain-areas-of-query
+content: | 
+
+  Statistics are available for the following areas of query:
+
+  .. list-table::
+     :header-rows: 1 
+     :widths: 20 80 
+
+     * - Option
+       - Description
+
+     * - ``context`` 
+       - Statistics related to the execution of the Lucene query. There 
+         are two tasks whose invocation counts are enumerated in this 
+         area: 
+        
+         .. list-table:: 
+            :widths: 20 80 
+
+            * - ``createScorer``
+              - Scorer iterates over documents and generates a score for 
+                each document. Invocations of ``createScorer`` create the 
+                object responsible for scoring. Note that time associated 
+                with this task is not time spent actually scoring 
+                documents. Count includes the number of 
+                ``scorerSupplier`` invocations.
+
+            * - ``createWeight``
+              - Weight stores state associated with a query and 
+                ``IndexSearcher``. Count includes the number of 
+                ``createWeight`` invocations.
+        
+         The :ref:`time <timing-breakdown>` spent in this area is related 
+         to the structure of the query, and is not based on the number of 
+         results that are iterated through and scored. 
+
+         For example: 
+
+         .. code-block:: json 
+            :copyable: false 
+
+            "context" : {
+              "millisElapsed" : NumberDouble(4.934751),
+              "invocationCounts" : {
+                "createWeight" : NumberLong(1),
+                "createScorer" : NumberLong(10)
+              }
+            }
+
+     * - ``match``
+       - Statistics related to iterating over and matching result 
+         documents. This statistic shows the time it takes to determine 
+         which document is the next match. Time spent matching results 
+         can vary significantly depending on the nature of the query. 
+         There are two tasks whose invocation counts are enumerated in 
+         this area: 
+
+         .. list-table:: 
+            :widths: 20 80 
+
+            * - ``nextDoc`` 
+              - Requests to advance to the next document of the result 
+                set. This involves identifying and moving past skips, or 
+                other tasks necessary to find the next match. Count 
+                includes the number of ``nextDoc`` and ``advance`` 
+                invocations.
+
+            * - ``refineRoughMatch`` 
+              - Performs a more thorough match. Some queries execute in a 
+                two-phase process where a document is first "roughly" 
+                matched, and is checked with a second, more thorough 
+                phase only after satisfying the first rough match. The 
+                ``refineRoughMatch`` task is the second phase of the 
+                two-phase process. Count includes the number of ``refineRoughMatch`` invocations.
+
+         For example: 
+
+         .. code-block:: json 
+            :copyable: false 
+
+            "match" : {
+              "millisElapsed" : NumberDouble(4.901597),
+              "invocationCounts" : {
+                "nextDoc" : NumberLong(541),
+                "refineRoughMatch" : NumberLong(0)
+              }
+            }
+
+     * - ``score``
+       - Statistics related to scoring documents in the result set. There 
+         are two tasks whose invocation counts are enumerated in this 
+         area:
+
+         .. list-table:: 
+            :widths: 20 80 
+
+            * - ``score``
+              - Scores each document in the result set. Count includes 
+                the number of ``score`` invocations.
+
+            * - ``setMinCompetitiveScore``
+              - Ignores documents whose score is less than the given 
+                value. Indicates that a query may have been able to 
+                reduce the number of scoring operations performed by 
+                ignoring documents with scores below some uncompetitive 
+                threshold. Count includes the number of 
+                ``setMinCompetitiveScore`` invocations.
+
+         For example: 
+
+         .. code-block:: json 
+            :copyable: false 
+
+            "score" : {
+              "millisElapsed" : NumberDouble(3.931312),
+              "invocationCounts" : {
+                "score" : NumberLong(536),
+                "setMinCompetitiveScore" : NumberLong(0)
+              }
+            }
+
+---
+ref: result-materialization
+content: | 
+
+  The ``resultMaterialization`` tracks the amount of time ``mongot`` takes
+  to accomplish the following: 
+
+  a. Retrieve result data stored in Lucene in the form of either ``_id`` or
+     ``storedSource``. 
+  #. Serialize the data into |bson| format before sending it to ``mongod``.  
+
+---
+ref: explain-resource-usage
+content: | 
+
+  The ``resourceUsage`` tracks the resource used for running the query. It
+  contains the following fields:
+
+  .. list-table:: 
+     :header-rows: 1
+     :widths: 10 15 10 65
+
+     * - Option 
+       - Type 
+       - Necessity 
+       - Purpose
+
+     * - ``majorFaults``
+       - Long
+       - Required
+       - Number of major page faults, which occur when the system
+         can't find the required data in memory resulting in reading from
+         the backing store such as disk, during query execution.
+
+     * - ``minorFaults``
+       - Long
+       - Required
+       - Number of minor page faults, which occur when the data
+         is in the page cache, but hasn't yet been mapped to the process'
+         page table. 
+
+     * - ``userTimeMs``
+       - Long
+       - Required
+       - Amount of CPU time, in milliseconds, spent in user
+         space. 
+
+     * - ``systemTimeMs``
+       - Long
+       - Required
+       - Amount of CPU time, in milliseconds, spent in system
+         space. 
+
+     * - ``maxReportingThreads``
+       - Integer
+       - Required
+       - Maximum number of threads that ``mongot`` used during
+         query execution across all batches. For non-concurrent explain
+         queries, the value is ``1``.
+
+     * - ``numBatches``
+       - Integer
+       - Required
+       - Total number of batches that ``mongot`` was requested
+         when processing the query.
+
+...

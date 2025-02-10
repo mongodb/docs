@@ -19,13 +19,14 @@ Retrieve Query Plan and Execution Statistics
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 2
+   :depth: 3
    :class: singlecol
 
 The |fts| query returns information about the ``$search`` query plan 
 and execution statistics when the query is run with the ``explain`` 
-method. When you run a query with ``explain``, |fts| returns a |bson| 
-document containing information about how the query was run. 
+method enabled. When you run a query with ``explain``, |fts| returns a
+|bson| document containing statistics and metadata the describes how the
+query was run internally in Lucene.  
 
 .. seealso:: 
 
@@ -60,21 +61,21 @@ information returned. Value can be one of the following:
 .. list-table:: 
    :widths: 30 70 
 
-   * - :manual:`queryPlanner 
-       </reference/explain-results/#explain.queryPlanner>` (default)
-     - Information about the query plan. Does not include the 
-       ``stats`` field, which contains execution statistics for 
-       the query.
+   * - :manual:`allPlansExecution 
+       </reference/explain-results/#explain.executionStats>`
+     - Information about the query plan including the ``stats`` fields, 
+       which contain execution statistics for the query.
 
    * - :manual:`executionStats 
        </reference/explain-results/#explain.executionStats>`
-     - Information about the query plan including the ``stats`` field, 
-       which contains execution statistics for the query.
+     - Information about the query plan including the ``stats`` fields, 
+       which contain execution statistics for the query.
 
-   * - :manual:`allPlansExecution 
-       </reference/explain-results/#explain.executionStats>`
-     - Information about the query plan including the ``stats`` field, 
-       which contains execution statistics for the query.
+   * - :manual:`queryPlanner 
+       </reference/explain-results/#explain.queryPlanner>` (default)
+     - Information about the query plan. Does not include the 
+       ``stats`` fields, which contain execution statistics for 
+       the query.
 
 .. seealso:: 
        
@@ -83,12 +84,10 @@ information returned. Value can be one of the following:
 
 .. _explain-response:
 
-Explain Response 
-----------------
+Explain Results 
+---------------
 
-The ``explain`` response is a |bson| document with keys and values 
-describing the execution statistics for the query. The ``explain`` 
-document in the result set contains the following fields: 
+The ``explain`` results is a |bson| document with the following fields.
 
 .. list-table:: 
    :header-rows: 1
@@ -99,41 +98,283 @@ document in the result set contains the following fields:
      - Necessity 
      - Purpose
 
-   * - ``path``
-     - string 
-     - Optional 
-     - Path to the operator, only if it isn't the root.
-
-   * - ``type``
-     - string 
-     - Required 
-     - Name of the Lucene Query that the |fts| operator created. See 
-       :ref:`explain-lucene-query` for more information.
-
-   * - ``analyzer``
-     - string 
-     - Optional
-     - |fts| :ref:`analyzer <analyzers-ref>` used with the query.
-
-   * - ``args``
-     - document 
-     - Required
-     - Lucene query information. See 
-       :ref:`explain-lucene-query` for more information.
-
-   * - ``stats``
+   * - ``collectors``
      - document
+     - Optional
+     - Describes the execution statistics for the collector. ``explain``
+       doesn't return this field at the the top level for
+       ``indexPartitionExplain``.  Instead, ``explain`` returns this
+       within each ``indexPartitionExplain``. 
+
+   * - ``highlight``
+     - document
+     - Optional
+     - Details about the :ref:`highlight <highlight-ref>` execution for
+       the query. This is returned only if you specified :ref:`highlighting
+       <highlight-ref>` in the query.
+
+   * - ``indexPartitionExplain``
+     - array of documents
+     - Optional
+     - Contains per index partition details. This is only returned if
+       you configured two or more index partitions.
+
+   * - ``metadata``
+     - document
+     - Optional
+     - Contains useful metadata.
+
+   * - ``query``
+     - document
+     - Optional
+     - Describes the execution statistics for the query. This is not
+       present at the the top level for ``indexPartitionExplain``.
+
+   * - ``resultMaterialization``
+     - document
+     - Optional
+     - Details related to retrieving per-document data from Lucene after
+       query execution. This is not returned for ``queryPlanner``
+       verbosity mode. 
+
+   * - ``resourceUsage``
+     - document
+     - Optional
+     - Details the resource usage of the query when it was executed.
+       This is not returned for ``queryPlanner`` verbosity mode.
+
+.. _explain-search-collect-stats:
+
+``collectors`` 
+~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/collect-stats.rst
+
+.. _explain-search-all-collector-stats:
+
+.. collapsible::
+   :heading: allCollectorStats
+   :sub_heading: The allCollectorStats contains collector statistics across all collectors specified in the query.
+
+   .. include:: /includes/extracts/all-collector-stats.rst
+
+.. _explain-search-facet:
+
+.. collapsible::
+   :heading: facet 
+   :sub_heading: The facet contains query and execution statistics for facet queries.
+
+   The ``facet`` is a |bson| document that details query and execution
+   statistics when you specify a :ref:`facet <fts-facet-ref>` in the query.
+   It contains the following fields:
+
+   .. list-table:: 
+      :header-rows: 1
+      :widths: 10 15 10 65
+
+      * - Option 
+        - Type 
+        - Necessity 
+        - Purpose
+
+      * - ``collectorStats``
+        - document
+        - Optional
+        - Shows statistics only for the ``facet`` collector. The keys in
+          here are identical to the ``allCollectorStats``. You can evaluate
+          the difference between this and the ``allCollectorStats`` to
+          determine the ``sort`` collector execution statistics if you
+          used ``sort`` in the query.
+
+      * - ``createCountsStats``
+        - document
+        - Optional
+        - Shows statistics related to creating the internal Lucene
+          object that holds all of the facet groupings. It contains
+          ``generateFacetCounts`` field, which returns the statistics
+          tracking the total duration and number of times ``mongot``
+          generates the Lucene object that holds all of the facets and
+          their counts. 
+
+      * - ``stringFacetFieldCardinalities``
+        - document
+        - Required
+        - Maps the field being faceted on to their cardinalities for
+          both the documents that matched the query and across the
+          entire Lucene index. It provides the following cardinality
+          information for each field::
+
+          - ``queried`` - Represents the facet cardinality of the field
+            across all queried documents. 
+          - ``total`` - Represents the facet cardinality of the field
+            across all documents in the index.
+
+.. _explain-search-sort:
+
+.. collapsible::
+   :heading: sort
+   :sub_heading: The sort shows query and execution statistics for sort queries.
+
+   The ``sort`` is a |bson| document that details query and execution
+   statistics when you specify a :ref:`sort <sort-ref>` in the query. It
+   contains the following fields: 
+
+   .. list-table:: 
+      :header-rows: 1
+      :widths: 10 15 10 65
+
+      * - Option 
+        - Type 
+        - Necessity 
+        - Purpose
+
+      * - ``stats``
+        - document
+        - Optional
+        - Tracks statistics related to ``sort`` execution across all sort
+          fields. It contains the following fields:
+
+          - ``comparator`` - Shows statistics and metadata around how
+            the Lucene sorts the results. 
+
+            - ``setBottom`` - Returns how often the current least competitive
+              sort value is updated with a new and more competitive value.
+              When sorting, |fts| keeps track of the bottom value and if a
+              new value surpasses the current bottom value in relevance or
+              competitiveness, this metric is incremented.
+            - ``compareBottom`` - Returns the timing and invocation
+              statistics related to comparing the current ``bottom``
+              value with a candidate ``bottom`` value.
+            - ``compareTop`` - Returns the timing and invocation
+              statistics related to comparing the current ``top`` value
+              with a candidate ``top`` value. 
+            - ``setHitsThresholdReached`` - Returns the timing and invocation
+              statistics related to when the maximum number of results
+              (``limit``) was reached.  
+            - ``competitiveIterator`` - Returns the the timing and invocation
+              statistics related to iterating (only) over documents that
+              are likely to compete for top spots in the sorted results. 
+            - ``setScorer`` - Returns the the timing and invocation
+              statistics related to computing the score and relevance of
+              documents.  
+
+          - ``prunedResultIterator`` - Shows the invocations and timing
+            statistics of ``nextDoc`` and ``advance`` method calls on
+            Lucene's ``competitiveIterator``.
+
+            .. note:: 
+
+              This is not present in the output if it performs a mixed
+              data type sort.
+
+            It contains only the ``nextDoc`` field.
+
+      * - ``fieldInfos``
+        - document
+        - Required
+        - Maps the field being sorted on to the list of data types present in
+          the index for the field. 
+
+.. _explain-search-highlight:
+
+``highlight`` 
+~~~~~~~~~~~~~
+
+The ``highlight`` is a |bson| document that details query and execution
+statistics when you specify :ref:`highlighting <highlight-ref>` in the
+query. It contains the following fields: 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 10 15 10 65
+
+   * - Option 
+     - Type 
+     - Necessity 
+     - Purpose
+
+   * - ``resolvedHighlightPaths`` 
+     - List<String> 
+     - Required 
+     - List of all the highlighted fields. If you specified a wildcard
+       path in the ``highlight`` section of your query, contains a list
+       of fully resolved document paths.  
+
+   * - ``stats`` 
+     - QueryExecutionArea 
      - Optional 
-     - :ref:`explain-timing-breakdown` for the query if ``explain`` 
-       ran with ``executionStats`` or ``allPlansExecution`` 
-       verbosity.
+     - Invocation and timing statistics related to setting up and
+       executing highlights. It contains the following fields:
 
-.. _explain-limitations:
+       - ``setupHighlight`` - Time it took for setting up the internal
+         Lucene objects used during the ``executeHighlight`` phase. 
+       - ``executeHighlight`` - Time it took to run highlighting over
+         the matching documents. 
 
-Limitations 
------------
+.. _explain-search-index-partition:
 
-You can't run :ref:`fts-facet-ref` queries with ``explain``. 
+``indexPartitionExplain``
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+the ``indexPartitionExplain`` contains :ref:`explain-response` for each
+index partition. The top-level :ref:`explain-search-collect-stats` and
+:ref:`explain-search-query` are inside the ``explain`` information of
+each index partition and absent at the top-level.
+
+.. _explain-search-metadata:
+
+``metadata`` 
+~~~~~~~~~~~~
+
+.. include:: /includes/extracts/explain-metadata.rst
+
+.. _explain-search-query:
+
+``query`` 
+~~~~~~~~~
+
+.. include:: /includes/extracts/explain-query.rst
+
+.. _explain-lucene-query:
+
+.. collapsible::
+   :heading: args
+   :sub_heading: The args details how operator arguments expand into Lucene queries.
+
+   .. include:: /includes/extracts/explain-args.rst
+
+.. _explain-timing-breakdown:
+
+.. collapsible::
+   :heading: stats 
+   :sub_heading: The stats details how much time a query spends in various stages of execution. 
+
+   .. include:: /includes/extracts/explain-stats.rst
+
+   .. _timing-breakdown:
+
+   Timing Breakdown 
+   ````````````````
+
+   .. include:: /includes/extracts/explain-time-breakdown.rst
+
+   .. _areas-of-query:
+
+   .. include:: /includes/extracts/explain-areas-of-query.rst
+
+.. _explain-search-result-materialization:
+
+``resultMaterialization``
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/result-materialization.rst
+
+.. _explain-search-resource-usage:
+
+``resourceUsage``
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/explain-resource-usage.rst
 
 .. _explain-egs:
 
@@ -145,163 +386,1154 @@ The following examples use the ``movies`` collection in the
 
 .. include:: /includes/admonitions/get-started-atlas-search.rst
 
+.. _allplansexecution-ex:
+
+``allPlansExecution`` 
+~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses different operators to query the ``title``
+field with the ``allPlansExecution`` :ref:`verbosity
+<explain-verbosity>` mode.  
+
+.. tabs:: 
+
+   .. tab:: Fuzzy Example 
+      :tabid: fuzzy
+
+      .. io-code-block:: 
+         :copyable: true
+
+         .. input:: 
+            :language: json
+
+            db.movies.explain("allPlansExecution").aggregate([
+              {
+                $search: {
+                  "text": {
+                    "path": "title",
+                    "query": "yark",
+                    "fuzzy": {
+                      "maxEdits": 1,
+                      "maxExpansions": 100,
+                    }
+                  }
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: json
+            :visible: false
+            :linenos: 
+
+            {
+              explainVersion: '1',
+              stages: [
+                {
+                  '$_internalSearchMongotRemote': {
+                    mongotQuery: {
+                      text: {
+                        path: 'title',
+                        query: 'yark',
+                        fuzzy: { maxEdits: 1, maxExpansions: 100 }
+                      }
+                    },
+                    explain: {
+                      query: {
+                        type: 'BooleanQuery',
+                        args: {
+                          must: [],
+                          mustNot: [],
+                          should: [
+                            {
+                              type: 'BoostQuery',
+                              args: {
+                                query: {
+                                  type: 'TermQuery',
+                                  args: { path: 'title', value: 'dark' },
+                                  stats: {
+                                    context: { millisElapsed: 0 },
+                                    match: { millisElapsed: 0 },
+                                    score: { millisElapsed: 0 }
+                                  }
+                                },
+                                boost: 0.75
+                              },
+                              stats: {
+                                context: {
+                                  millisElapsed: 0.403983,
+                                  invocationCounts: {
+                                    createWeight: Long('1'),
+                                    createScorer: Long('18')
+                                  }
+                                },
+                                match: {
+                                  millisElapsed: 0.094254,
+                                  invocationCounts: { nextDoc: Long('89') }
+                                },
+                                score: {
+                                  millisElapsed: 0.077043,
+                                  invocationCounts: { score: Long('83') }
+                                }
+                              }
+                            },
+                            {
+                              type: 'BoostQuery',
+                              args: {
+                                query: {
+                                  type: 'TermQuery',
+                                  args: { path: 'title', value: 'ark' },
+                                  stats: {
+                                    context: { millisElapsed: 0 },
+                                    match: { millisElapsed: 0 },
+                                    score: { millisElapsed: 0 }
+                                  }
+                                },
+                                boost: 0.6666666269302368
+                              },
+                              stats: {
+                                context: {
+                                  millisElapsed: 0.248528,
+                                  invocationCounts: {
+                                    createWeight: Long('1'),
+                                    createScorer: Long('8')
+                                  }
+                                },
+                                match: {
+                                  millisElapsed: 0.067561,
+                                  invocationCounts: { nextDoc: Long('3') }
+                                },
+                                score: {
+                                  millisElapsed: 0.001649,
+                                  invocationCounts: { score: Long('2') }
+                                }
+                              }
+                            },
+                            {
+                              type: 'BoostQuery',
+                              args: {
+                                query: {
+                                  type: 'TermQuery',
+                                  args: { path: 'title', value: 'mark' },
+                                  stats: {
+                                    context: { millisElapsed: 0 },
+                                    match: { millisElapsed: 0 },
+                                    score: { millisElapsed: 0 }
+                                  }
+                                },
+                                boost: 0.75
+                              },
+                              stats: {
+                                context: {
+                                  millisElapsed: 0.337083,
+                                  invocationCounts: {
+                                    createWeight: Long('1'),
+                                    createScorer: Long('12')
+                                  }
+                                },
+                                match: {
+                                  millisElapsed: 0.006489,
+                                  invocationCounts: { nextDoc: Long('11') }
+                                },
+                                score: {
+                                  millisElapsed: 0.013741,
+                                  invocationCounts: { score: Long('8') }
+                                }
+                              }
+                            },
+                            {
+                              type: 'BoostQuery',
+                              args: {
+                                query: {
+                                  type: 'TermQuery',
+                                  args: { path: 'title', value: 'park' },
+                                  stats: {
+                                    context: { millisElapsed: 0 },
+                                    match: { millisElapsed: 0 },
+                                    score: { millisElapsed: 0 }
+                                  }
+                                },
+                                boost: 0.75
+                              },
+                              stats: {
+                                context: {
+                                  millisElapsed: 0.395528,
+                                  invocationCounts: {
+                                    createWeight: Long('1'),
+                                    createScorer: Long('16')
+                                  }
+                                },
+                                match: {
+                                  millisElapsed: 0.091681,
+                                  invocationCounts: { nextDoc: Long('32') }
+                                },
+                                score: {
+                                  millisElapsed: 0.137827,
+                                  invocationCounts: { score: Long('27') }
+                                }
+                              }
+                            },
+                            {
+                              type: 'BoostQuery',
+                              args: {
+                                query: {
+                                  type: 'TermQuery',
+                                  args: { path: 'title', value: 'york' },
+                                  stats: {
+                                    context: { millisElapsed: 0 },
+                                    match: { millisElapsed: 0 },
+                                    score: { millisElapsed: 0 }
+                                  }
+                                },
+                                boost: 0.75
+                              },
+                              stats: {
+                                context: {
+                                  millisElapsed: 0.150681,
+                                  invocationCounts: {
+                                    createWeight: Long('1'),
+                                    createScorer: Long('16')
+                                  }
+                                },
+                                match: {
+                                  millisElapsed: 0.067298,
+                                  invocationCounts: { nextDoc: Long('33') }
+                                },
+                                score: {
+                                  millisElapsed: 0.038636,
+                                  invocationCounts: { score: Long('28') }
+                                }
+                              }
+                            },
+                            {
+                              type: 'BoostQuery',
+                              args: {
+                                query: {
+                                  type: 'TermQuery',
+                                  args: { path: 'title', value: 'yard' },
+                                  stats: {
+                                    context: { millisElapsed: 0 },
+                                    match: { millisElapsed: 0 },
+                                    score: { millisElapsed: 0 }
+                                  }
+                                },
+                                boost: 0.75
+                              },
+                              stats: {
+                                context: {
+                                  millisElapsed: 0.104308,
+                                  invocationCounts: {
+                                    createWeight: Long('1'),
+                                    createScorer: Long('8')
+                                  }
+                                },
+                                match: {
+                                  millisElapsed: 0.002445,
+                                  invocationCounts: { nextDoc: Long('4') }
+                                },
+                                score: {
+                                  millisElapsed: 0.00233,
+                                  invocationCounts: { score: Long('3') }
+                                }
+                              }
+                            }
+                          ],
+                          filter: [],
+                          minimumShouldMatch: 0
+                        },
+                        stats: {
+                          context: {
+                            millisElapsed: 12.8127,
+                            invocationCounts: { createWeight: Long('1'), createScorer: Long('12') }
+                          },
+                          match: {
+                            millisElapsed: 0.761076,
+                            invocationCounts: { nextDoc: Long('157') }
+                          },
+                          score: {
+                            millisElapsed: 0.857125,
+                            invocationCounts: { score: Long('151') }
+                          }
+                        }
+                      },
+                      collectors: {
+                        allCollectorStats: {
+                          millisElapsed: 2.061296,
+                          invocationCounts: {
+                            collect: Long('151'),
+                            competitiveIterator: Long('6'),
+                            setScorer: Long('6')
+                          }
+                        },
+                        facet: { collectorStats: { millisElapsed: 0 } }
+                      },
+                      resultMaterialization: {
+                        stats: {
+                          millisElapsed: 17.759502,
+                          invocationCounts: { retrieveAndSerialize: Long('1') }
+                        }
+                      },
+                      metadata: {
+                        mongotVersion: '1.43.1',
+                        mongotHostName: 'atlas-11decp-shard-00-02.2rnul.mongodb-dev.net',
+                        indexName: 'default',
+                        totalLuceneDocs: 21349
+                      },
+                      resourceUsage: {
+                        majorFaults: Long('0'),
+                        minorFaults: Long('98'),
+                        userTimeMs: Long('30'),
+                        systemTimeMs: Long('0'),
+                        maxReportingThreads: 1,
+                        numBatches: 1
+                      }
+                    },
+                    requiresSearchMetaCursor: true
+                  },
+                  nReturned: Long('0'),
+                  executionTimeMillisEstimate: Long('108')
+                },
+                {
+                  '$_internalSearchIdLookup': {},
+                  nReturned: Long('0'),
+                  executionTimeMillisEstimate: Long('108')
+                }
+              ],
+              queryShapeHash: '6FD3791F785FA329D4ECD1171E0E5AF6772C18F5F0A7A50FC416D080A93C8CB7',
+              serverInfo: {
+                host: 'atlas-11decp-shard-00-02.2rnul.mongodb-dev.net',
+                port: 27017,
+                version: '8.0.4',
+                gitVersion: 'bc35ab4305d9920d9d0491c1c9ef9b72383d31f9'
+              },
+              serverParameters: {
+                ...
+              },
+              command: {
+                aggregate: 'movies',
+                pipeline: [
+                  {
+                    '$search': {
+                      text: {
+                        path: 'title',
+                        query: 'yark',
+                        fuzzy: { maxEdits: 1, maxExpansions: 100 }
+                      }
+                    }
+                  }
+                ],
+                cursor: {},
+                '$db': 'sample_mflix'
+              },
+              ok: 1,
+              '$clusterTime': {
+                clusterTime: Timestamp({ t: 1738081279, i: 12 }),
+                signature: {
+                  hash: Binary.createFromBase64('DM3imkEw1qT23M2n/b/JibqB1Fg=', 0),
+                  keyId: Long('7462787091647168517')
+                }
+              },
+              operationTime: Timestamp({ t: 1738081279, i: 12 })
+            }
+
+   .. tab:: Highlight Example 
+      :tabid: highlight
+
+      .. io-code-block:: 
+         :copyable: true
+
+         .. input:: 
+            :language: json
+
+            db.movies.explain("allPlansExecution").aggregate([
+              {
+                $search: {
+                  "text": {
+                    "path": "title",
+                    "query": "prince"
+                  },
+                  "highlight": {
+                    "path": "title",
+                    "maxNumPassages": 1,
+                    "maxCharsToExamine": 40
+                  }
+                }
+              },
+              {
+                $project: {
+                  "description": 1,
+                  "_id": 0,
+                  "highlights": { "$meta": "searchHighlights" }
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: json
+            :emphasize-lines: 10-62
+            :visible: false
+            :linenos: 
+
+            {
+              explainVersion: '1',
+              stages: [
+                {
+                  '$_internalSearchMongotRemote': {
+                    mongotQuery: {
+                      text: { path: 'title', query: 'prince' },
+                      highlight: { path: 'title', maxNumPassages: 1, maxCharsToExamine: 40 }
+                    },
+                    explain: {
+                      query: {
+                        type: 'TermQuery',
+                        args: { path: 'title', value: 'prince' },
+                        stats: {
+                          context: {
+                            millisElapsed: 1.034149,
+                            invocationCounts: { createWeight: Long('1'), createScorer: Long('10') }
+                          },
+                          match: {
+                            millisElapsed: 0.050591,
+                            invocationCounts: { nextDoc: Long('29') }
+                          },
+                          score: {
+                            millisElapsed: 0.027259,
+                            invocationCounts: { score: Long('25') }
+                          }
+                        }
+                      },
+                      collectors: {
+                        allCollectorStats: {
+                          millisElapsed: 0.112751,
+                          invocationCounts: {
+                            collect: Long('25'),
+                            competitiveIterator: Long('4'),
+                            setScorer: Long('4')
+                          }
+                        },
+                        facet: { collectorStats: { millisElapsed: 0 } }
+                      },
+                      highlight: {
+                        resolvedHighlightPaths: [ '$type:string/title' ],
+                        stats: {
+                          millisElapsed: 10.665238,
+                          invocationCounts: {
+                            executeHighlight: Long('1'),
+                            setupHighlight: Long('1')
+                          }
+                        }
+                      },
+                      resultMaterialization: {
+                        stats: {
+                          millisElapsed: 3.548075,
+                          invocationCounts: { retrieveAndSerialize: Long('1') }
+                        }
+                      },
+                      metadata: {
+                        mongotVersion: '1.43.1',
+                        mongotHostName: 'atlas-11decp-shard-00-02.2rnul.mongodb-dev.net',
+                        indexName: 'default',
+                        totalLuceneDocs: 21349
+                      },
+                      resourceUsage: {
+                        majorFaults: Long('0'),
+                        minorFaults: Long('0'),
+                        userTimeMs: Long('10'),
+                        systemTimeMs: Long('0'),
+                        maxReportingThreads: 1,
+                        numBatches: 1
+                      }
+                    },
+                    requiresSearchMetaCursor: true
+                  },
+                  nReturned: Long('0'),
+                  executionTimeMillisEstimate: Long('31')
+                },
+                {
+                  '$_internalSearchIdLookup': {},
+                  nReturned: Long('0'),
+                  executionTimeMillisEstimate: Long('31')
+                },
+                {
+                  '$project': {
+                    description: true,
+                    highlights: { '$meta': 'searchHighlights' },
+                    _id: false
+                  },
+                  nReturned: Long('0'),
+                  executionTimeMillisEstimate: Long('31')
+                }
+              ],
+              queryShapeHash: 'D08444272924C1E04A6E99D0CD4BF82FD929893862B3356F79EC18BBD1F0EF0C',
+              serverInfo: {
+                host: 'atlas-11decp-shard-00-02.2rnul.mongodb-dev.net',
+                port: 27017,
+                version: '8.0.4',
+                gitVersion: 'bc35ab4305d9920d9d0491c1c9ef9b72383d31f9'
+              },
+              serverParameters: {
+                internalQueryFacetBufferSizeBytes: 104857600,
+                internalQueryFacetMaxOutputDocSizeBytes: 104857600,
+                internalLookupStageIntermediateDocumentMaxSizeBytes: 104857600,
+                internalDocumentSourceGroupMaxMemoryBytes: 104857600,
+                internalQueryMaxBlockingSortMemoryUsageBytes: 104857600,
+                internalQueryProhibitBlockingMergeOnMongoS: 0,
+                internalQueryMaxAddToSetBytes: 104857600,
+                internalDocumentSourceSetWindowFieldsMaxMemoryBytes: 104857600,
+                internalQueryFrameworkControl: 'trySbeRestricted',
+                internalQueryPlannerIgnoreIndexWithCollationForRegex: 1
+              },
+              command: {
+                aggregate: 'movies',
+                pipeline: [
+                  {
+                    '$search': {
+                      text: { path: 'title', query: 'prince' },
+                      highlight: { path: 'title', maxNumPassages: 1, maxCharsToExamine: 40 }
+                    }
+                  },
+                  {
+                    '$project': {
+                      description: 1,
+                      _id: 0,
+                      highlights: { '$meta': 'searchHighlights' }
+                    }
+                  }
+                ],
+                cursor: {},
+                '$db': 'sample_mflix'
+              },
+              ok: 1,
+              '$clusterTime': {
+                clusterTime: Timestamp({ t: 1738081637, i: 1 }),
+                signature: {
+                  hash: Binary.createFromBase64('TnFwebZsmrjLunk7/TN+9rfJ/8Y=', 0),
+                  keyId: Long('7462787091647168517')
+                }
+              },
+              operationTime: Timestamp({ t: 1738081637, i: 1 })
+            }
+
+   .. tab:: Facet Example 
+      :tabid: facet
+
+      .. io-code-block:: 
+         :copyable: true
+
+         .. input:: 
+            :language: json
+
+            db.movies.explain("allPlansExecution").aggregate([
+              {
+                "$searchMeta": {
+                  "facet": {
+                    "operator": {
+                      "near": {
+                        "path": "released",
+                        "origin": ISODate("1921-11-01T00:00:00.000+00:00"),
+                        "pivot": 7776000000
+                      }
+                    },
+                    "facets": {
+                      "genresFacet": {
+                        "type": "string",
+                        "path": "genres"
+                      },
+                      "yearFacet" : {
+                        "type" : "number",
+                        "path" : "year",
+                        "boundaries" : [1910,1920,1930,1940]
+                      }
+                    }
+                  }
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: json
+            :emphasize-lines: 25-87
+            :visible: false
+            :linenos: 
+
+            {
+              explainVersion: '1',
+              stages: [
+                {
+                  '$searchMeta': {
+                    mongotQuery: {
+                      facet: {
+                        operator: {
+                          near: {
+                            path: 'released',
+                            origin: ISODate('1921-11-01T00:00:00.000Z'),
+                            pivot: 7776000000
+                          }
+                        },
+                        facets: {
+                          genresFacet: { type: 'string', path: 'genres' },
+                          yearFacet: {
+                            type: 'number',
+                            path: 'year',
+                            boundaries: [ 1910, 1920, 1930, 1940 ]
+                          }
+                        }
+                      }
+                    },
+                    explain: {
+                      query: {
+                        type: 'LongDistanceFeatureQuery',
+                        args: {},
+                        stats: {
+                          context: {
+                            millisElapsed: 0.684076,
+                            invocationCounts: { createWeight: Long('1'), createScorer: Long('12') }
+                          },
+                          match: {
+                            millisElapsed: 1.285512,
+                            invocationCounts: { nextDoc: Long('20884') }
+                          },
+                          score: {
+                            millisElapsed: 1.321738,
+                            invocationCounts: { score: Long('20878') }
+                          }
+                        }
+                      },
+                      collectors: {
+                        allCollectorStats: {
+                          millisElapsed: 10.536043,
+                          invocationCounts: {
+                            collect: Long('20878'),
+                            competitiveIterator: Long('6'),
+                            setScorer: Long('6')
+                          }
+                        },
+                        facet: {
+                          collectorStats: {
+                            millisElapsed: 3.730834,
+                            invocationCounts: { collect: Long('20878'), setScorer: Long('6') }
+                          },
+                          createCountsStats: {
+                            millisElapsed: 10.350302,
+                            invocationCounts: { generateFacetCounts: Long('2') }
+                          },
+                          stringFacetCardinalities: { genresFacet: { queried: 10, total: 25 } }
+                        }
+                      },
+                      resultMaterialization: {
+                        stats: {
+                          millisElapsed: 10.645713,
+                          invocationCounts: { retrieveAndSerialize: Long('1') }
+                        }
+                      },
+                      metadata: {
+                        mongotVersion: '1.43.1',
+                        mongotHostName: 'atlas-11decp-shard-00-02.2rnul.mongodb-dev.net',
+                        indexName: 'default',
+                        totalLuceneDocs: 21349
+                      },
+                      resourceUsage: {
+                        majorFaults: Long('0'),
+                        minorFaults: Long('0'),
+                        userTimeMs: Long('10'),
+                        systemTimeMs: Long('0'),
+                        maxReportingThreads: 1,
+                        numBatches: 1
+                      }
+                    },
+                    requiresSearchMetaCursor: true
+                  },
+                  nReturned: Long('0'),
+                  executionTimeMillisEstimate: Long('57')
+                }
+              ],
+              queryShapeHash: '582DB864C9BCFB96896CF1A3079CF70FAC10A9A1E19E8D66DF20A2BB40424FB5',
+              serverInfo: {
+                host: 'atlas-11decp-shard-00-02.2rnul.mongodb-dev.net',
+                port: 27017,
+                version: '8.0.4',
+                gitVersion: 'bc35ab4305d9920d9d0491c1c9ef9b72383d31f9'
+              },
+              serverParameters: {
+                internalQueryFacetBufferSizeBytes: 104857600,
+                internalQueryFacetMaxOutputDocSizeBytes: 104857600,
+                internalLookupStageIntermediateDocumentMaxSizeBytes: 104857600,
+                internalDocumentSourceGroupMaxMemoryBytes: 104857600,
+                internalQueryMaxBlockingSortMemoryUsageBytes: 104857600,
+                internalQueryProhibitBlockingMergeOnMongoS: 0,
+                internalQueryMaxAddToSetBytes: 104857600,
+                internalDocumentSourceSetWindowFieldsMaxMemoryBytes: 104857600,
+                internalQueryFrameworkControl: 'trySbeRestricted',
+                internalQueryPlannerIgnoreIndexWithCollationForRegex: 1
+              },
+              command: {
+                aggregate: 'movies',
+                pipeline: [
+                  {
+                    '$searchMeta': {
+                      facet: {
+                        operator: {
+                          near: {
+                            path: 'released',
+                            origin: ISODate('1921-11-01T00:00:00.000Z'),
+                            pivot: 7776000000
+                          }
+                        },
+                        facets: {
+                          genresFacet: { type: 'string', path: 'genres' },
+                          yearFacet: {
+                            type: 'number',
+                            path: 'year',
+                            boundaries: [ 1910, 1920, 1930, 1940 ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                ],
+                cursor: {},
+                '$db': 'sample_mflix'
+              },
+              ok: 1,
+              '$clusterTime': {
+                clusterTime: Timestamp({ t: 1738081767, i: 1 }),
+                signature: {
+                  hash: Binary.createFromBase64('ieRjqe84DdOnmlCcP3XBelo8vyM=', 0),
+                  keyId: Long('7462787091647168517')
+                }
+              },
+              operationTime: Timestamp({ t: 1738081767, i: 1 })
+            }
+
 .. _queryplanner-ex:
 
 ``queryPlanner`` 
 ~~~~~~~~~~~~~~~~
 
-The following example uses the :ref:`text-ref` operator to 
-query the ``title`` field with the ``queryPlanner`` 
-:ref:`verbosity <explain-verbosity>` mode. 
+The following example uses different operators to query the ``title``
+field with the ``queryPlanner`` :ref:`verbosity <explain-verbosity>`
+mode.
 
-.. code-block:: json
+.. tabs:: 
 
-    db.movies.explain("queryPlanner").aggregate([
-      {
-        $search: {
-          "text": {
-            "path": "title",
-            "query": "yark",
-            "fuzzy": {
-              "maxEdits": 1,
-              "maxExpansions": 100,
-            }
-          }
-        }
-      }
-    ])
+   .. tab:: Fuzzy Example 
+      :tabid: fuzzy
 
-The query returns the following results. To learn more about the 
-``explain`` response elements, see :ref:`explain-response`.
+      .. io-code-block:: 
+         :copyable: true
 
-.. code-block:: json 
-    :copyable: false
+         .. input:: 
+            :language: json
 
-    {
-      "stages" : [
-        {
-          "$_internalSearchMongotRemote" : {
-            "mongotQuery" : {
-              "text" : {
-                "path" : "title",
-                "query" : "yark",
-                "fuzzy" : {
-                  "maxEdits" : 1,
-                  "maxExpansions" : 100
+            db.movies.explain("queryPlanner").aggregate([
+              {
+                $search: {
+                  "text": {
+                    "path": "title",
+                    "query": "yark",
+                    "fuzzy": {
+                      "maxEdits": 1,
+                      "maxExpansions": 100,
+                    }
+                  }
                 }
               }
-            },
-            "explain" : {
-              "type" : "BooleanQuery",
-              "args" : {
-                "must" : [ ],
-                "mustNot" : [ ],
-                "should" : [
-                  {
-                    "type" : "BoostQuery",
-                    "args" : {
-                      "query" : {
-                        "type" : "TermQuery",
-                        "args" : {
-                          "path" : "title",
-                          "value" : "ark"
+            ])
+
+         .. output:: 
+            :language: json
+            :visible: false
+            :linenos: 
+
+            {
+              "stages" : [
+                {
+                  "$_internalSearchMongotRemote" : {
+                    "mongotQuery" : {
+                      "text" : {
+                        "path" : "title",
+                        "query" : "yark",
+                        "fuzzy" : {
+                          "maxEdits" : 1,
+                          "maxExpansions" : 100
                         }
+                      }
+                    },
+                    "explain" : {
+                      "type" : "BooleanQuery",
+                      "args" : {
+                        "must" : [ ],
+                        "mustNot" : [ ],
+                        "should" : [
+                          {
+                            "type" : "BoostQuery",
+                            "args" : {
+                              "query" : {
+                                "type" : "TermQuery",
+                                "args" : {
+                                  "path" : "title",
+                                  "value" : "ark"
+                                }
+                              },
+                              "boost" : 0.6666666269302368
+                            }
+                          },
+                          {
+                            "type" : "BoostQuery",
+                            "args" : {
+                              "query" : {
+                                "type" : "TermQuery",
+                                "args" : {
+                                  "path" : "title",
+                                  "value" : "yard"
+                                }
+                              },
+                              "boost" : 0.75
+                            }
+                          },
+                          {
+                            "type" : "BoostQuery",
+                            "args" : {
+                              "query" : {
+                                "type" : "TermQuery",
+                                "args" : {
+                                  "path" : "title",
+                                  "value" : "mark"
+                                }
+                              },
+                              "boost" : 0.75
+                            }
+                          },
+                          {
+                            "type" : "BoostQuery",
+                            "args" : {
+                              "query" : {
+                                "type" : "TermQuery",
+                                "args" : {
+                                  "path" : "title",
+                                  "value" : "park"
+                                }
+                              },
+                              "boost" : 0.75
+                            }
+                          },
+                          {
+                            "type" : "BoostQuery",
+                            "args" : {
+                              "query" : {
+                                "type" : "TermQuery",
+                                "args" : {
+                                  "path" : "title",
+                                  "value" : "dark"
+                                }
+                              },
+                              "boost" : 0.75
+                            }
+                          },
+                          {
+                            "type" : "BoostQuery",
+                            "args" : {
+                              "query" : {
+                                "type" : "TermQuery",
+                                "args" : {
+                                  "path" : "title",
+                                  "value" : "york"
+                                }
+                              },
+                              "boost" : 0.75
+                            }
+                          }
+                        ],
+                        "filter" : [ ],
+                        "minimumShouldMatch" : 0
+                      }
+                    }
+                  }
+                },
+                {
+                  "$_internalSearchIdLookup" : { }
+                }
+              ],
+              "serverInfo" : {
+                "host" : "atlas-example-shard-00-01.mongodb.net",
+                "port" : 27017,
+                "version" : "4.4.3",
+                "gitVersion" : "913d6b62acfbb344dde1b116f4161360acd8fd13"
+              },
+              "ok" : 1,
+              "$clusterTime" : {
+                "clusterTime" : Timestamp(1612457287, 1),
+                "signature" : {
+                  "hash" : BinData(0,"kzn7hY7NOduVIqcfx+40ENKbMKQ="),
+                  "keyId" : NumberLong("1234567890123456789")
+                }
+              },
+              "operationTime" : Timestamp(1612457287, 1)
+            }
+
+   .. tab:: Highlight Example 
+      :tabid: highlight
+
+      .. io-code-block:: 
+         :copyable: true
+
+         .. input:: 
+            :language: json
+
+            db.movies.explain("queryPlanner").aggregate([
+              {
+                $search: {
+                  "text": {
+                    "path": "title",
+                    "query": "prince"
+                  },
+                  "highlight": {
+                    "path": "title",
+                    "maxNumPassages": 1,
+                    "maxCharsToExamine": 40
+                  }
+                }
+              },
+              {
+                $project: {
+                  "description": 1,
+                  "_id": 0,
+                  "highlights": { "$meta": "searchHighlights" }
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: json
+            :emphasize-lines: 10-40
+            :visible: false
+            :linenos: 
+
+            {
+              explainVersion: '1',
+              stages: [
+                {
+                  '$_internalSearchMongotRemote': {
+                    mongotQuery: {
+                      text: { path: 'title', query: 'prince' },
+                      highlight: { path: 'title', maxNumPassages: 1, maxCharsToExamine: 40 }
+                    },
+                    explain: {
+                      query: {
+                        type: 'TermQuery',
+                        args: { path: 'title', value: 'prince' }
                       },
-                      "boost" : 0.6666666269302368
+                      highlight: { resolvedHighlightPaths: [ '$type:string/title' ] },
+                      metadata: {
+                        mongotVersion: '1.43.1',
+                        mongotHostName: 'atlas-11decp-shard-00-02.2rnul.mongodb-dev.net',
+                        indexName: 'default',
+                        totalLuceneDocs: 21349
+                      }
+                    },
+                    requiresSearchMetaCursor: true
+                  }
+                },
+                { '$_internalSearchIdLookup': {} },
+                {
+                  '$project': {
+                    description: true,
+                    highlights: { '$meta': 'searchHighlights' },
+                    _id: false
+                  }
+                }
+              ],
+              queryShapeHash: 'D08444272924C1E04A6E99D0CD4BF82FD929893862B3356F79EC18BBD1F0EF0C',
+              serverInfo: {
+                host: 'atlas-11decp-shard-00-02.2rnul.mongodb-dev.net',
+                port: 27017,
+                version: '8.0.4',
+                gitVersion: 'bc35ab4305d9920d9d0491c1c9ef9b72383d31f9'
+              },
+              serverParameters: {
+                internalQueryFacetBufferSizeBytes: 104857600,
+                internalQueryFacetMaxOutputDocSizeBytes: 104857600,
+                internalLookupStageIntermediateDocumentMaxSizeBytes: 104857600,
+                internalDocumentSourceGroupMaxMemoryBytes: 104857600,
+                internalQueryMaxBlockingSortMemoryUsageBytes: 104857600,
+                internalQueryProhibitBlockingMergeOnMongoS: 0,
+                internalQueryMaxAddToSetBytes: 104857600,
+                internalDocumentSourceSetWindowFieldsMaxMemoryBytes: 104857600,
+                internalQueryFrameworkControl: 'trySbeRestricted',
+                internalQueryPlannerIgnoreIndexWithCollationForRegex: 1
+              },
+              command: {
+                aggregate: 'movies',
+                pipeline: [
+                  {
+                    '$search': {
+                      text: { path: 'title', query: 'prince' },
+                      highlight: { path: 'title', maxNumPassages: 1, maxCharsToExamine: 40 }
                     }
                   },
                   {
-                    "type" : "BoostQuery",
-                    "args" : {
-                      "query" : {
-                        "type" : "TermQuery",
-                        "args" : {
-                          "path" : "title",
-                          "value" : "yard"
-                        }
-                      },
-                      "boost" : 0.75
-                    }
-                  },
-                  {
-                    "type" : "BoostQuery",
-                    "args" : {
-                      "query" : {
-                        "type" : "TermQuery",
-                        "args" : {
-                          "path" : "title",
-                          "value" : "mark"
-                        }
-                      },
-                      "boost" : 0.75
-                    }
-                  },
-                  {
-                    "type" : "BoostQuery",
-                    "args" : {
-                      "query" : {
-                        "type" : "TermQuery",
-                        "args" : {
-                          "path" : "title",
-                          "value" : "park"
-                        }
-                      },
-                      "boost" : 0.75
-                    }
-                  },
-                  {
-                    "type" : "BoostQuery",
-                    "args" : {
-                      "query" : {
-                        "type" : "TermQuery",
-                        "args" : {
-                          "path" : "title",
-                          "value" : "dark"
-                        }
-                      },
-                      "boost" : 0.75
-                    }
-                  },
-                  {
-                    "type" : "BoostQuery",
-                    "args" : {
-                      "query" : {
-                        "type" : "TermQuery",
-                        "args" : {
-                          "path" : "title",
-                          "value" : "york"
-                        }
-                      },
-                      "boost" : 0.75
+                    '$project': {
+                      description: 1,
+                      _id: 0,
+                      highlights: { '$meta': 'searchHighlights' }
                     }
                   }
                 ],
-                "filter" : [ ],
-                "minimumShouldMatch" : 0
-              }
+                cursor: {},
+                '$db': 'sample_mflix'
+              },
+              ok: 1,
+              '$clusterTime': {
+                clusterTime: Timestamp({ t: 1738080637, i: 1 }),
+                signature: {
+                  hash: Binary.createFromBase64('fIedxkRaoE5IWmIaN7/BsRC0AJc=', 0),
+                  keyId: Long('7462787091647168517')
+                }
+              },
+              operationTime: Timestamp({ t: 1738080637, i: 1 })
             }
-          }
-        },
-        {
-          "$_internalSearchIdLookup" : { }
-        }
-      ],
-      "serverInfo" : {
-        "host" : "atlas-example-shard-00-01.mongodb.net",
-        "port" : 27017,
-        "version" : "4.4.3",
-        "gitVersion" : "913d6b62acfbb344dde1b116f4161360acd8fd13"
-      },
-      "ok" : 1,
-      "$clusterTime" : {
-        "clusterTime" : Timestamp(1612457287, 1),
-        "signature" : {
-          "hash" : BinData(0,"kzn7hY7NOduVIqcfx+40ENKbMKQ="),
-          "keyId" : NumberLong("1234567890123456789")
-        }
-      },
-      "operationTime" : Timestamp(1612457287, 1)
-    }
+
+   .. tab:: Facet Example 
+      :tabid: facet
+
+      .. io-code-block:: 
+         :copyable: true
+
+         .. input:: 
+            :language: json
+
+            db.movies.explain("queryPlanner").aggregate([
+              {
+                "$searchMeta": {
+                  "facet": {
+                    "operator": {
+                      "near": {
+                        "path": "released",
+                        "origin": ISODate("1921-11-01T00:00:00.000+00:00"),
+                        "pivot": 7776000000
+                      }
+                    },
+                    "facets": {
+                      "genresFacet": {
+                        "type": "string",
+                        "path": "genres"
+                      },
+                      "yearFacet" : {
+                        "type" : "number",
+                        "path" : "year",
+                        "boundaries" : [1910,1920,1930,1940]
+                      }
+                    }
+                  }
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: json
+            :emphasize-lines: 25-38
+            :visible: false
+            :linenos: 
+
+            {
+              explainVersion: '1',
+              stages: [
+                {
+                  '$searchMeta': {
+                    mongotQuery: {
+                      facet: {
+                        operator: {
+                          near: {
+                            path: 'released',
+                            origin: ISODate('1921-11-01T00:00:00.000Z'),
+                            pivot: 7776000000
+                          }
+                        },
+                        facets: {
+                          genresFacet: { type: 'string', path: 'genres' },
+                          yearFacet: {
+                            type: 'number',
+                            path: 'year',
+                            boundaries: [ 1910, 1920, 1930, 1940 ]
+                          }
+                        }
+                      }
+                    },
+                    explain: {
+                      query: { type: 'LongDistanceFeatureQuery', args: {} },
+                      collectors: {
+                        facet: {
+                          stringFacetCardinalities: { genresFacet: { queried: 10, total: 25 } }
+                        }
+                      },
+                      metadata: {
+                        mongotVersion: '1.43.1',
+                        mongotHostName: 'atlas-11decp-shard-00-02.2rnul.mongodb-dev.net',
+                        indexName: 'default',
+                        totalLuceneDocs: 21349
+                      }
+                    },
+                    requiresSearchMetaCursor: true
+                  }
+                }
+              ],
+              queryShapeHash: '582DB864C9BCFB96896CF1A3079CF70FAC10A9A1E19E8D66DF20A2BB40424FB5',
+              serverInfo: {
+                host: 'atlas-11decp-shard-00-02.2rnul.mongodb-dev.net',
+                port: 27017,
+                version: '8.0.4',
+                gitVersion: 'bc35ab4305d9920d9d0491c1c9ef9b72383d31f9'
+              },
+              serverParameters: {
+                internalQueryFacetBufferSizeBytes: 104857600,
+                internalQueryFacetMaxOutputDocSizeBytes: 104857600,
+                internalLookupStageIntermediateDocumentMaxSizeBytes: 104857600,
+                internalDocumentSourceGroupMaxMemoryBytes: 104857600,
+                internalQueryMaxBlockingSortMemoryUsageBytes: 104857600,
+                internalQueryProhibitBlockingMergeOnMongoS: 0,
+                internalQueryMaxAddToSetBytes: 104857600,
+                internalDocumentSourceSetWindowFieldsMaxMemoryBytes: 104857600,
+                internalQueryFrameworkControl: 'trySbeRestricted',
+                internalQueryPlannerIgnoreIndexWithCollationForRegex: 1
+              },
+              command: {
+                aggregate: 'movies',
+                pipeline: [
+                  {
+                    '$searchMeta': {
+                      facet: {
+                        operator: {
+                          near: {
+                            path: 'released',
+                            origin: ISODate('1921-11-01T00:00:00.000Z'),
+                            pivot: 7776000000
+                          }
+                        },
+                        facets: {
+                          genresFacet: { type: 'string', path: 'genres' },
+                          yearFacet: {
+                            type: 'number',
+                            path: 'year',
+                            boundaries: [ 1910, 1920, 1930, 1940 ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                ],
+                cursor: {},
+                '$db': 'sample_mflix'
+              },
+              ok: 1,
+              '$clusterTime': {
+                clusterTime: Timestamp({ t: 1738080797, i: 1 }),
+                signature: {
+                  hash: Binary.createFromBase64('2E8qAEihttRWdJRyCTXRfA1es7I=', 0),
+                  keyId: Long('7462787091647168517')
+                }
+              },
+              operationTime: Timestamp({ t: 1738080797, i: 1 })
+            }
 
 For queries that specify a :pipeline:`$limit` stage in the pipeline, the
 ``explain`` results include the ``mongotDocsRequested`` metric, which
@@ -330,116 +1562,213 @@ The following example uses the :ref:`autocomplete-ref` operator
 to query the ``title`` field with the ``executionStats`` 
 :ref:`verbosity <explain-verbosity>` mode. 
 
-.. code-block:: json
+.. io-code-block:: 
+   :copyable: 
+  
+   .. input:: 
+      :language: json
+      :linenos:
 
-    db.movies.explain("executionStats").aggregate([
-      {
-        "$search": {
-          "autocomplete": {
-            "path": "title",
-            "query": "pre",
-            "fuzzy": {
-              "maxEdits": 1,
-              "prefixLength": 1,
-              "maxExpansions": 256
+      db.movies.explain("executionStats").aggregate([
+        {
+          "$search": {
+            "autocomplete": {
+              "path": "title",
+              "query": "pre",
+              "fuzzy": {
+                "maxEdits": 1,
+                "prefixLength": 1,
+                "maxExpansions": 256
+              }
             }
           }
         }
-      }
-    ])
+      ])
 
-The query returns the following results. To learn more about the 
-``explain`` response elements, see :ref:`explain-response`.
+   .. output::  
+      :language: json
+      :visible: false
+      :linenos:
+      :emphasize-lines: 13 - 56
 
-.. code-block:: json 
-    :copyable: false
-
-    {
-      "stages" : [
-        {
-          "$_internalSearchMongotRemote" : {
-            "mongotQuery" : {
-              "autocomplete" : {
-                "path" : "title",
-                "query" : "pre",
-                "fuzzy" : {
-                  "maxEdits" : 1,
-                  "prefixLength" : 1,
-                  "maxExpansions" : 256
+      {
+        explainVersion: '1',
+        stages: [
+          {
+            '$_internalSearchMongotRemote': {
+              mongotQuery: {
+                autocomplete: {
+                  path: 'title',
+                  query: 'pre',
+                  fuzzy: { maxEdits: 1, prefixLength: 1, maxExpansions: 256 }
                 }
-              }
-            },
-            "explain" : {
-              "type" : "MultiTermQueryConstantScoreWrapper",
-              "args" : {
-                "queries" : [
-                  {
-                    "type" : "DefaultQuery",
-                    "args" : {
-                      "queryType" : "AutomatonQuery"
-                    },
-                    "stats" : {
-                      "context" : {
-                        "millisElapsed" : NumberDouble(0)
-                      },
-                      "match" : {
-                        "millisElapsed" : NumberDouble(0)
-                      },
-                      "score" : {
-                        "millisElapsed" : NumberDouble(0)
+              },
+              explain: {
+                query: {
+                  type: 'BooleanQuery',
+                  args: {
+                    must: [
+                      {
+                        type: 'MultiTermQueryConstantScoreBlendedWrapper',
+                        args: {
+                          queries: [
+                            {
+                              type: 'DefaultQuery',
+                              args: { queryType: 'AutomatonQuery' },
+                              stats: {
+                                context: { millisElapsed: 0 },
+                                match: { millisElapsed: 0 },
+                                score: { millisElapsed: 0 }
+                              }
+                            }
+                          ]
+                        },
+                        stats: {
+                          context: {
+                            millisElapsed: 34.187255,
+                            invocationCounts: {
+                              createWeight: Long('1'),
+                              createScorer: Long('15')
+                            }
+                          },
+                          match: {
+                            millisElapsed: 1.077211,
+                            invocationCounts: { nextDoc: Long('812') }
+                          },
+                          score: {
+                            millisElapsed: 0.274761,
+                            invocationCounts: { score: Long('807') }
+                          }
+                        }
                       }
+                    ],
+                    mustNot: [],
+                    should: [
+                      {
+                        type: 'TermQuery',
+                        args: { path: 'title', value: 'pre' },
+                        stats: {
+                          context: {
+                            millisElapsed: 2.495506,
+                            invocationCounts: {
+                              createWeight: Long('1'),
+                              createScorer: Long('5')
+                            }
+                          },
+                          match: { millisElapsed: 0 },
+                          score: { millisElapsed: 0 }
+                        }
+                      }
+                    ],
+                    filter: [],
+                    minimumShouldMatch: 0
+                  },
+                  stats: {
+                    context: {
+                      millisElapsed: 43.795864,
+                      invocationCounts: { createWeight: Long('1'), createScorer: Long('10') }
+                    },
+                    match: {
+                      millisElapsed: 1.911068,
+                      invocationCounts: { nextDoc: Long('812') }
+                    },
+                    score: {
+                      millisElapsed: 0.982801,
+                      invocationCounts: { score: Long('807') }
                     }
                   }
-                ]
+                },
+                collectors: {
+                  allCollectorStats: {
+                    millisElapsed: 2.51114,
+                    invocationCounts: {
+                      collect: Long('807'),
+                      competitiveIterator: Long('5'),
+                      setScorer: Long('5')
+                    }
+                  },
+                  facet: { collectorStats: { millisElapsed: 0 } }
+                },
+                resultMaterialization: {
+                  stats: {
+                    millisElapsed: 10.23124,
+                    invocationCounts: { retrieveAndSerialize: Long('1') }
+                  }
+                },
+                metadata: {
+                  mongotVersion: '1.43.0',
+                  mongotHostName: 'atlas-11decp-shard-00-01.2rnul.mongodb-dev.net',
+                  indexName: 'default',
+                  totalLuceneDocs: 21349
+                },
+                resourceUsage: {
+                  majorFaults: Long('0'),
+                  minorFaults: Long('145'),
+                  userTimeMs: Long('30'),
+                  systemTimeMs: Long('10'),
+                  maxReportingThreads: 1,
+                  numBatches: 1
+                }
               },
-              "stats" : {
-                "context" : {
-                  "millisElapsed" : NumberDouble(0.816418),
-                  "invocationCounts" : {
-                    "createWeight" : NumberLong(1),
-                    "createScorer" : NumberLong(2)
-                  }
-                },
-                "match" : {
-                  "millisElapsed" : NumberDouble(3.849778),
-                  "invocationCounts" : {
-                    "nextDoc" : NumberLong(656)
-                  }
-                },
-                "score" : {
-                  "millisElapsed" : NumberDouble(0.035349),
-                  "invocationCounts" : {
-                    "score" : NumberLong(655)
-                  }
+              requiresSearchMetaCursor: true
+            },
+            nReturned: Long('0'),
+            executionTimeMillisEstimate: Long('311')
+          },
+          {
+            '$_internalSearchIdLookup': {},
+            nReturned: Long('0'),
+            executionTimeMillisEstimate: Long('311')
+          }
+        ],
+        queryShapeHash: '6FD3791F785FA329D4ECD1171E0E5AF6772C18F5F0A7A50FC416D080A93C8CB7',
+        serverInfo: {
+          host: 'atlas-11decp-shard-00-01.2rnul.mongodb-dev.net',
+          port: 27017,
+          version: '8.0.4',
+          gitVersion: 'bc35ab4305d9920d9d0491c1c9ef9b72383d31f9'
+        },
+        serverParameters: {
+          internalQueryFacetBufferSizeBytes: 104857600,
+          internalQueryFacetMaxOutputDocSizeBytes: 104857600,
+          internalLookupStageIntermediateDocumentMaxSizeBytes: 104857600,
+          internalDocumentSourceGroupMaxMemoryBytes: 104857600,
+          internalQueryMaxBlockingSortMemoryUsageBytes: 104857600,
+          internalQueryProhibitBlockingMergeOnMongoS: 0,
+          internalQueryMaxAddToSetBytes: 104857600,
+          internalDocumentSourceSetWindowFieldsMaxMemoryBytes: 104857600,
+          internalQueryFrameworkControl: 'trySbeRestricted',
+          internalQueryPlannerIgnoreIndexWithCollationForRegex: 1
+        },
+        command: {
+          aggregate: 'movies',
+          pipeline: [
+            {
+              '$search': {
+                autocomplete: {
+                  path: 'title',
+                  query: 'pre',
+                  fuzzy: { maxEdits: 1, prefixLength: 1, maxExpansions: 256 }
                 }
               }
             }
-          },
-          "nReturned" : NumberLong(0),
-          "executionTimeMillisEstimate" : NumberLong(20)
+          ],
+          cursor: {},
+          '$db': 'sample_mflix'
         },
-        {
-          "$_internalSearchIdLookup" : { },
-          "nReturned" : NumberLong(0),
-          "executionTimeMillisEstimate" : NumberLong(20)
-        }
-      ],
-      "serverInfo" : {
-        "host" : "atlas-example-shard-00-01.mongodb.net",
-        "port" : 27017,
-        "version" : "4.4.3",
-        "gitVersion" : "913d6b62acfbb344dde1b116f4161360acd8fd13"
-      },
-      "ok" : 1,
-      "$clusterTime" : {
-        "clusterTime" : Timestamp(1612454116, 1),
-        "signature" : {
-          "hash" : BinData(0,"OY+SMPmdK//g6rFZkvSCQr3c3hM="),
-          "keyId" : NumberLong("1234567890123456789")
-        }
-      },
-      "operationTime" : Timestamp(1612454116, 1)
-    }
+        ok: 1,
+        '$clusterTime': {
+          clusterTime: Timestamp({ t: 1737671412, i: 10 }),
+          signature: {
+            hash: Binary.createFromBase64('a3CSqvS0rziAYQCk33WzTo/0Sow=', 0),
+            keyId: Long('7462787091647168517')
+          }
+        },
+        operationTime: Timestamp({ t: 1737671412, i: 10 })
+      }
+
+To learn more about the ``explain`` response elements, see
+:ref:`explain-response`. 
 
 .. toctree::
    :titlesonly:
