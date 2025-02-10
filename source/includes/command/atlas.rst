@@ -53,6 +53,7 @@ Related Commands
 * :ref:`atlas-accessLists` - Manage the list of IP addresses that can access your Atlas project.
 * :ref:`atlas-accessLogs` - Return the access logs for a cluster.
 * :ref:`atlas-alerts` - Manage alerts for your project.
+* :ref:`atlas-api` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Interact directly with any Atlas Admin API endpoint through the Atlas CLI, streamlining script development.
 * :ref:`atlas-auditing` - Returns database auditing settings for MongoDB Cloud projects.
 * :ref:`atlas-auth` - Manage the CLI's authentication state.
 * :ref:`atlas-backups` - Manage cloud backups for your project.
@@ -81,7 +82,6 @@ Related Commands
 * :ref:`atlas-processes` - Manage MongoDB processes for your project.
 * :ref:`atlas-projects` - Manage your Atlas projects.
 * :ref:`atlas-security` - Manage security configuration for your project.
-* :ref:`atlas-serverless` - Manage serverless instances for your project.
 * :ref:`atlas-setup` - Register, authenticate, create, and access an Atlas cluster.
 * :ref:`atlas-streams` - Manage your Atlas Stream Processing deployments.
 * :ref:`atlas-teams` - Manage your Atlas teams.
@@ -94,6 +94,7 @@ Related Commands
    accessLists </command/atlas-accessLists>
    accessLogs </command/atlas-accessLogs>
    alerts </command/atlas-alerts>
+   api </command/atlas-api>
    auditing </command/atlas-auditing>
    auth </command/atlas-auth>
    backups </command/atlas-backups>
@@ -122,7 +123,6 @@ Related Commands
    processes </command/atlas-processes>
    projects </command/atlas-projects>
    security </command/atlas-security>
-   serverless </command/atlas-serverless>
    setup </command/atlas-setup>
    streams </command/atlas-streams>
    teams </command/atlas-teams>

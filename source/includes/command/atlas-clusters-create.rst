@@ -17,6 +17,8 @@ Create a cluster for your project.
 To get started quickly, specify a name for your cluster, a cloud provider, and a region to deploy a three-member replica set with the latest MongoDB server version.
 For full control of your deployment, or to create multi-cloud clusters, provide a JSON configuration file with the --file flag.
 
+Deprecation note: the M2 and M5 tiers are now deprecated; when selecting M2 or M5, a FLEX tier will be created instead. For the migration guide, visit: https://dochub.mongodb.org/core/flex-migration.\n
+
 To use this command, you must authenticate with a user account or an API key with the Project Owner role.
 
 Syntax
@@ -135,7 +137,7 @@ Options
      - false
      - Tier for each data-bearing server in the cluster. To learn more about cluster tiers, see https://dochub.mongodb.org/core/cluster-tier-atlas.
 
-       Mutually exclusive with --file. This value defaults to "M2".
+       Mutually exclusive with --file. This value defaults to "FLEX".
    * - --type
      - string
      - false
@@ -185,6 +187,13 @@ Examples
 
    # Deploy a free cluster named myCluster for the project with the ID 5e2211c17a3e5a48f5497de3:
    atlas cluster create myCluster --projectId 5e2211c17a3e5a48f5497de3 --provider AWS --region US_EAST_1 --tier M0
+
+   
+.. code-block::
+   :copyable: false
+
+   # Deploy a Flex cluster named myFlexCluster for the project with the ID 5e2211c17a3e5a48f5497de3 and tag "env=dev":
+   atlas cluster create myFlexCluster --projectId 5e2211c17a3e5a48f5497de3 --provider AWS --region US_EAST_1 --tier FLEX --tag env=dev
 
    
 .. code-block::
