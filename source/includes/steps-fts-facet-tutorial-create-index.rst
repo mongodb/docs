@@ -14,68 +14,57 @@
       <static-dynamic-mappings>`. To learn more about dynamic and static 
       mappings, see :ref:`static-dynamic-mappings`.
       
-      The following index definition dynamically indexes the fields of 
-      :ref:`supported types <bson-data-chart>` in the ``movies`` 
+      The following index definition statically indexes the ``genres`` field as 
+      ``stringFacet`` type and dynamically indexes the other fields of 
+      :ref:`supported types <bson-data-chart>` in each document in the ``movies``
       collection. You can use the |fts| :guilabel:`Visual Editor` or the 
       |fts| :guilabel:`JSON Editor` in the |service| user interface to create the 
       index.
       
-      Visual Editor
-      +++++++++++++
-                  
-      a. Click :guilabel:`Refine Your Index`.
-      #. In the :guilabel:`Field Mappings` section, click :guilabel:`Add Field Mapping`. 
-      #. Select :guilabel:`Customized Configuration` and then the following:
-
-         .. list-table:: 
-
-            * - :guilabel:`Field Name`
-              - ``genres`` 
-
-            * - :guilabel:`Data Type`
-              - ``StringFacet`` 
-
-      #. Click :guilabel:`Add` and repeat steps c and d to configure the
-         following:
-
-         .. list-table:: 
-
-            * - :guilabel:`Field Name`
-              - ``year`` 
-
-            * - :guilabel:`Data Type`
-              - ``NumberFacet`` 
-
-      #. Click :guilabel:`Add` and then :guilabel:`Save Changes`.
-
-      JSON Editor
-      +++++++++++
-      
-      a. Review the index definition.
+      .. tabs:: 
          
-         Your index definition should look similar to the following: 
+         .. tab:: Visual Editor
+            :tabid: vib
+                  
+            a. Click :guilabel:`Next`, then click :guilabel:`Review Your Index`.
+            #. Click :guilabel:`Add Field Mapping` under :guilabel:`Field 
+               Mappings` section. 
+            #. Click :guilabel:`Customzed COnfiguration` and select the following 
+               from the dropdowns: 
+
+               .. list-table:: 
+
+                  * - :guilabel:`Field Name`
+                    - ``genres`` 
       
-         .. code-block:: json 
+                  * - :guilabel:`Data Type`
+                    - ``StringFacet`` 
+
+            #. Click :guilabel:`Add`, then click :guilabel:`Save
+               Changes`.
+
+         .. tab:: JSON Editor
+            :tabid: jib
+      
+            a. Click :guilabel:`Next`.
+            #. Review the index definition.
+         
+               Your index definition should look similar to the following: 
+      
+               .. code-block:: json 
                         
-            {
-              "mappings": {
-                "dynamic": true,
-                "fields": {
-                  "genres": {
-                    "type": "stringFacet"
-                  },
-                  "year": {
-                    "type": "numberFacet"
+                  {
+                    "mappings": {
+                      "dynamic": true,
+                      "fields": {
+                        "genres": {
+                          "type": "stringFacet"
+                        }
+                      }
+                    }
                   }
-                }
-              }
-            }
       
-         The above index definition dynamically indexes the fields of 
-         :ref:`supported types <bson-data-chart>` in each document in 
-         the ``movies`` collection. 
-      
-      #. Click :guilabel:`Next`.
+            #. Click :guilabel:`Next`.
       
    .. step:: Click :guilabel:`Create Search Index`.
       

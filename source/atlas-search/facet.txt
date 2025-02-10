@@ -118,13 +118,9 @@ frequent string values in the specified string field. Note that the
 string field must be indexed as :ref:`stringFacet
 <bson-data-types-string-facet>`. To facet on string fields in embedded
 documents, you must also index the parent fields as the :ref:`document
-<bson-data-types-document>` type. 
-
-.. note:: 
-
-   When you facet on a string field inside embedded documents, |fts|
-   returns facet count for only the number of matching parent
-   documents. 
+<bson-data-types-document>` type. When you facet on strings in arrays or
+embedded documents, |fts| returns facet counts based on the number of
+matching root documents. 
 
 .. _fts-string-facet-syntax:
 
@@ -220,56 +216,61 @@ Example
    ``year`` field in the ``movies`` collection for movies from 2000 to 
    2015 and retrieve a count of the number of movies in each genre.
 
-   .. code-block:: json 
+   .. io-code-block::
+      :copyable: true 
 
-      db.movies.aggregate([ 
-        {
-          "$searchMeta": {
-            "facet": {
-              "operator": {
-                "range": {
-                  "path": "year",
-                  "gte": 2000,
-                  "lte": 2015
-                }
-              },
-              "facets": {
-                "genresFacet": {
-                  "type": "string",
-                  "path": "genres"
-                }
-              }
-            }
-          }
-        }
-      ])
+      .. input:: 
+         :language: shell 
+         :linenos: 
 
-   This query returns the following results: 
+         db.movies.aggregate([ 
+           {
+             "$searchMeta": {
+               "facet": {
+                 "operator": {
+                   "range": {
+                     "path": "year",
+                     "gte": 2000,
+                     "lte": 2015
+                   }
+                 },
+                 "facets": {
+                   "genresFacet": {
+                     "type": "string",
+                     "path": "genres"
+                   }
+                 }
+               }
+             }
+           }
+         ])
 
-   .. code-block:: json 
-      :copyable: false 
+      .. output:: 
+         :language: shell 
+         :linenos: 
+         :visible: false
 
-      [
-        {
-          count: { lowerBound: Long("13718") },
-          facet: {
-            genresFacet: {
-              buckets: [
-                { _id: 'Drama', count: Long("7759") },
-                { _id: 'Comedy', count: Long("3937") },
-                { _id: 'Romance', count: Long("1916") },
-                { _id: 'Thriller', count: Long("1705") },
-                { _id: 'Documentary', count: Long("1703") },
-                { _id: 'Action', count: Long("1558") },
-                { _id: 'Crime', count: Long("1475") },
-                { _id: 'Adventure', count: Long("1111") },
-                { _id: 'Horror', count: Long("1008") },
-                { _id: 'Biography', count: Long("877") }
-              ]
-            }
-          }
-        }
-      ]
+         [
+           {
+             count: { lowerBound: Long('12568') },
+             facet: {
+               genresFacet: {
+                 buckets: [
+                   { _id: 'Drama', count: Long('7079') },
+                   { _id: 'Comedy', count: Long('3689') },
+                   { _id: 'Romance', count: Long('1764') },
+                   { _id: 'Thriller', count: Long('1584') },
+                   { _id: 'Documentary', count: Long('1472') },
+                   { _id: 'Action', count: Long('1471') },
+                   { _id: 'Crime', count: Long('1367') },
+                   { _id: 'Adventure', count: Long('1056') },
+                   { _id: 'Horror', count: Long('866') },
+                   { _id: 'Biography', count: Long('796') }
+                 ]
+               }
+             }
+           }
+         ]
 
    To learn more about these results, see :ref:`fts-facet-results`.
 
@@ -278,13 +279,15 @@ Example
 Numeric Facets
 ~~~~~~~~~~~~~~
 
+.. |alternative-type| replace:: :ref:`number <bson-data-types-number>`
+.. |fts-field-type| replace:: :ref:`numberFacet <bson-data-types-number-facet>`
+
+.. include:: /includes/fact-fts-facet-type-deprecation.rst
+
 Numeric facets allow you to determine the frequency of numeric values 
 in your search results by breaking the results into separate ranges of 
-numbers. 
-
-.. note:: Limitation 
-   
-   You can't facet on numeric fields in embedded documents.
+numbers. When you facet on numbers in arrays or embedded documents, |fts| returns facet
+counts based on the number of matching root documents. 
 
 .. _fts-numeric-facet-syntax:
 
@@ -355,7 +358,7 @@ Options
    * - ``path``
      - string
      - Field path to facet on. You can specify a field that is  
-       indexed as the :ref:`numberFacet <bson-data-types-number-facet>`
+       indexed as the :ref:`number <bson-data-types-number>`
        type.
      - yes
 
@@ -373,9 +376,8 @@ Example
 
    The following example uses an index named ``default`` on the 
    ``sample_mflix.movies`` collection. The ``year`` field in the 
-   collection is indexed as the :ref:`numberFacet
-   <bson-data-types-number-facet>` and :ref:`number
-   <bson-data-types-number>` types.
+   collection is indexed as the :ref:`number
+   <bson-data-types-number>` type.
 
    .. code-block:: json
 
@@ -384,9 +386,6 @@ Example
           "dynamic": false,
           "fields": {
             "year": [
-              {
-                "type": "numberFacet"
-              },
               {
                 "type": "number"
               }
@@ -409,51 +408,56 @@ Example
    retrieve results of the query that don't fall under any of the 
    specified boundaries.
 
-   .. code-block:: json 
+   .. io-code-block:: 
+      :copyable: true 
 
-      db.movies.aggregate([
-        {
-          "$searchMeta": {
-            "facet": {
-              "operator": {
-                "range": {
-                  "path": "year",
-                  "gte": 1980,
-                  "lte": 2000
-                }
-              },
-              "facets": {
-                "yearFacet": {
-                  "type": "number",
-                  "path": "year",
-                  "boundaries": [1980,1990,2000],
-                  "default": "other"
-                }
-              }
-            }
-          }
-        }
-      ])
+      .. input:: 
+         :language: json 
+         :linenos:  
 
-   This query returns the following results: 
+         db.movies.aggregate([
+           {
+             "$searchMeta": {
+               "facet": {
+                 "operator": {
+                  "range": {
+                     "path": "year",
+                     "gte": 1980,
+                     "lte": 2000
+                   }
+                 },
+                 "facets": {
+                   "yearFacet": {
+                     "type": "number",
+                     "path": "year",
+                     "boundaries": [1980,1990,2000],
+                     "default": "other"
+                   }
+                 }
+               }
+             }
+           }
+         ])
 
-   .. code-block:: json 
-      :copyable: false 
+      .. output:: 
+         :language: shell 
+         :linenos: 
+         :visible: false
 
-      [
-        {
-          count: { lowerBound: Long('6095') },
-          facet: {
-            yearFacet: {
-              buckets: [
-                { _id: 1980, count: Long('1956') },
-                { _id: 1990, count: Long('3558') },
-                { _id: 'other', count: Long('581') }
-              ]
-            }
-          }
-        }
-      ]
+         [
+           {
+             count: { lowerBound: Long('6095') },
+             facet: {
+               yearFacet: {
+                 buckets: [
+                   { _id: 1980, count: Long('1956') },
+                   { _id: 1990, count: Long('3558') },
+                   { _id: 'other', count: Long('581') }
+                 ]
+               }
+             }
+           }
+         ]
 
    To learn more about these results, see :ref:`fts-facet-results`.
 
@@ -462,12 +466,14 @@ Example
 Date Facets
 ~~~~~~~~~~~
 
-Date facets allow you to narrow down search results based on a 
-date. 
+.. |alternative-type| replace:: :ref:`date <bson-data-types-date>`
+.. |fts-field-type| replace:: :ref:`dateFacet <bson-data-types-date-facet>`
 
-.. note:: Limitation 
-   
-   You can't facet on date fields in embedded documents.
+.. include:: /includes/fact-fts-facet-type-deprecation.rst
+
+Date facets allow you to narrow down search results based on a 
+date. When you facet on dates in arrays or embedded documents, |fts| returns facet counts
+based on the number of matching root documents.
 
 .. _fts-date-facet-syntax:
 
@@ -536,7 +542,7 @@ Options
    * - ``path``
      - string
      - Field path to facet on. You can specify a field that is  
-       indexed as a :ref:`dateFacet <bson-data-types-date-facet>` type. 
+       indexed as a :ref:`date <bson-data-types-date>` type. 
      - yes
 
    * - ``type``
@@ -553,9 +559,8 @@ Example
 
    The following example uses an index named ``default`` on the 
    ``sample_mflix.movies`` collection. The ``released`` field in the 
-   collection is indexed as the :ref:`dateFacet
-   <bson-data-types-date-facet>` and :ref:`date <bson-data-types-date>`
-   types. 
+   collection is indexed as the :ref:`date <bson-data-types-date>`
+   type. 
 
    .. code-block:: json
 
@@ -564,9 +569,6 @@ Example
           "dynamic": false,
           "fields": {
             "released": [
-              {
-                "type": "dateFacet"
-              },
               {
                 "type": "date"
               }
@@ -591,61 +593,66 @@ Example
    retrieve results of the query that don't fall under any of the 
    specified boundaries.
 
-   .. code-block:: json 
+   .. io-code-block:: 
+      :copyable: true 
 
-      db.movies.aggregate([
-        {
-          "$searchMeta": {
-            "facet": {
-              "operator": {
-                "range": {
-                  "path": "released",
-                  "gte": ISODate("2000-01-01T00:00:00.000Z"),
-                  "lte": ISODate("2015-01-31T00:00:00.000Z")
-                }
-              },
-              "facets": {
-                "yearFacet": {
-                  "type": "date",
-                  "path": "released",
-                  "boundaries": [ISODate("2000-01-01"), ISODate("2005-01-01"), ISODate("2010-01-01"), ISODate("2015-01-01")],
-                  "default": "other"
-                }
-              }
-            }
-          }
-        }
-      ])
+      .. input:: 
+         :language: json 
+         :linenos: 
 
-   This query returns the following results: 
+         db.movies.aggregate([
+           {
+             "$searchMeta": {
+               "facet": {
+                 "operator": {
+                   "range": {
+                     "path": "released",
+                     "gte": ISODate("2000-01-01T00:00:00.000Z"),
+                     "lte": ISODate("2015-01-31T00:00:00.000Z")
+                   }
+                 },
+                 "facets": {
+                   "yearFacet": {
+                     "type": "date",
+                     "path": "released",
+                     "boundaries": [ISODate("2000-01-01"), ISODate("2005-01-01"), ISODate("2010-01-01"), ISODate("2015-01-01")],
+                     "default": "other"
+                   }
+                 }
+               }
+             }
+           }
+         ])
 
-   .. code-block:: json 
-      :copyable: false 
+      .. output:: 
+         :language: shell 
+         :linenos: 
+         :visible: false
 
-      [
-        {
-          count: { lowerBound: Long('11922') },
-          facet: {
-            yearFacet: {
-              buckets: [
-                {
-                  _id: ISODate('2000-01-01T00:00:00.000Z'),
-                  count: Long('3028')
-                },
-                {
-                  _id: ISODate('2005-01-01T00:00:00.000Z'),
-                  count: Long('3953')
-                },
-                {
-                  _id: ISODate('2010-01-01T00:00:00.000Z'),
-                  count: Long('4832')
-                },
-                { _id: 'other', count: Long('109') }
-              ]
-            }
-          }
-        }
-      ]
+         [
+           {
+             count: { lowerBound: Long('11922') },
+             facet: {
+               yearFacet: {
+                 buckets: [
+                   {
+                     _id: ISODate('2000-01-01T00:00:00.000Z'),
+                     count: Long('3028')
+                   },
+                   {
+                     _id: ISODate('2005-01-01T00:00:00.000Z'),
+                     count: Long('3953')
+                   },
+                   {
+                     _id: ISODate('2010-01-01T00:00:00.000Z'),
+                     count: Long('4832')
+                   },
+                   { _id: 'other', count: Long('109') }
+                 ]
+               }
+             }
+           }
+         ]
 
    To learn more about these results, see :ref:`fts-facet-results`.
 
@@ -729,7 +736,7 @@ and metadata results.
            - :ref:`stringFacet <bson-data-types-string-facet>`
     
          * - ``year`` 
-           - :ref:`numberFacet <bson-data-types-number-facet>` 
+           - :ref:`number <bson-data-types-number>` 
     
          * - ``released`` 
            - :ref:`date <bson-data-types-date>`
@@ -744,7 +751,7 @@ and metadata results.
                  "type": "stringFacet"
                },
                "year": {
-                 "type": "numberFacet"
+                 "type": "number"
                },
                "released": {
                  "type": "date"
@@ -757,66 +764,71 @@ and metadata results.
       01, 2000 and January 31, 2015. It requests metadata on the 
       ``directors`` and ``year`` field.
 
-      .. code-block:: json
+      .. io-code-block:: 
+         :copyable: true
 
-         db.movies.aggregate([
-           {
-             "$searchMeta": {
-               "facet": {
-                 "operator": {
-                   "range": {
-                     "path": "released",
-                     "gte": ISODate("2000-01-01T00:00:00.000Z"),
-                     "lte": ISODate("2015-01-31T00:00:00.000Z")
-                   }
-                 },
-                 "facets": {
-                   "directorsFacet": {
-                     "type": "string",
-                     "path": "directors",
-                     "numBuckets" : 7
-                   },
-                   "yearFacet" : {
-                     "type" : "number",
-                     "path" : "year",
-                     "boundaries" : [2000,2005,2010, 2015]
-                   }
-                 }
-               }
-             }
-           }
-         ])
+         .. input:: 
+            :language: json 
+            :linenos:
 
-      |fts| returns the following results: 
+            db.movies.aggregate([
+              {
+                "$searchMeta": {
+                  "facet": {
+                    "operator": {
+                      "range": {
+                        "path": "released",
+                        "gte": ISODate("2000-01-01T00:00:00.000Z"),
+                        "lte": ISODate("2015-01-31T00:00:00.000Z")
+                      }
+                    },
+                    "facets": {
+                      "directorsFacet": {
+                        "type": "string",
+                        "path": "directors",
+                        "numBuckets" : 7
+                      },
+                      "yearFacet" : {
+                        "type" : "number",
+                        "path" : "year",
+                        "boundaries" : [2000,2005,2010, 2015]
+                      }
+                    }
+                  }
+                }
+              }
+            ])
 
-      .. code-block:: json 
-         :copyable: false 
+         .. output:: 
+            :language: shell 
+            :linenos:
+            :visible: false
 
-         [
-           { 
-             "count" : { "lowerBound" : NumberLong(13064) }, 
-             "facet" : { 
-               "yearFacet" : { 
-                 "buckets" : [ 
-                   { "_id" : 2000, "count" : NumberLong(3283) }, 
-                   { "_id" : 2005, "count" : NumberLong(4365) }, 
-                   { "_id" : 2010, "count" : NumberLong(5123) } 
-                 ] 
-               }, 
-               "directorsFacet" : { 
-                 "buckets" : [ 
-                  { "_id" : "Takashi Miike", "count" : NumberLong(29) }, 
-                   { "_id" : "Johnnie To", "count" : NumberLong(23) }, 
-                   { "_id" : "Steven Soderbergh", "count" : NumberLong(21) }, 
-                   { "_id" : "Michael Winterbottom", "count" : NumberLong(19) }, 
-                   { "_id" : "Ken Loach", "count" : NumberLong(16) }, 
-                   { "_id" : "Ki-duk Kim", "count" : NumberLong(16) }, 
-                   { "_id" : "Ridley Scott", "count" : NumberLong(15) } 
-                 ] 
-               } 
-             } 
-           }
-         ]
+            [
+              {
+                count: { lowerBound: Long('11922') },
+                facet: {
+                  yearFacet: {
+                    buckets: [
+                      { _id: 2000, count: Long('3064') },
+                      { _id: 2005, count: Long('4035') },
+                      { _id: 2010, count: Long('4553') }
+                    ]
+                  },
+                  directorsFacet: {
+                    buckets: [
+                      { _id: 'Takashi Miike', count: Long('26') },
+                      { _id: 'Johnnie To', count: Long('20') },
+                      { _id: 'Steven Soderbergh', count: Long('18') },
+                      { _id: 'Michael Winterbottom', count: Long('16') },
+                      { _id: 'Ridley Scott', count: Long('15') },
+                      { _id: 'Tyler Perry', count: Long('15') },
+                      { _id: 'Clint Eastwood', count: Long('14') }
+                    ]
+                  }
+                }
+              }
+            ]
 
       The results show a count of the following in the 
       ``sample_mflix.movies`` collection: 
@@ -891,93 +903,98 @@ and metadata results.
          To see the metadata results for the following query, |fts| 
          must return documents that match the query.
 
-      .. code-block:: json 
+      .. io-code-block:: 
+         :copyable: true 
 
-         db.movies.aggregate([
-           {
-             "$search": {
-               "facet": {
-                 "operator": {
-                   "near": {
-                     "path": "released",
-                     "origin": ISODate("1999-07-01T00:00:00.000+00:00"),
-                     "pivot": 7776000000
-                   }
-                 },
-                 "facets": {
-                   "genresFacet": {
-                     "type": "string",
-                     "path": "genres"
-                   }
-                 }
-               }
-             }
-           },
-           { "$limit": 2 },
-           {
-             "$facet": {
-               "docs": [ 
-                 { "$project":
-                   {
-                     "title": 1,
-                     "released": 1
-                   }
-                 }
-               ],
-               "meta": [
-                 {"$replaceWith": "$$SEARCH_META"},
-                 {"$limit": 1}
-               ]
-             }
-           },
-           {
-             "$set": {
-               "meta": {
-                 "$arrayElemAt": ["$meta", 0]
-               }
-             }
-           }
-         ])
+         .. input:: 
+            :language: json 
+            :linenos: 
 
-      The query returns the following results:
+            db.movies.aggregate([
+              {
+                "$search": {
+                  "facet": {
+                    "operator": {
+                      "near": {
+                        "path": "released",
+                        "origin": ISODate("1999-07-01T00:00:00.000+00:00"),
+                        "pivot": 7776000000
+                      }
+                    },
+                    "facets": {
+                      "genresFacet": {
+                        "type": "string",
+                        "path": "genres"
+                      }
+                    }
+                  }
+                }
+              },
+              { "$limit": 2 },
+              {
+                "$facet": {
+                  "docs": [ 
+                    { "$project":
+                      {
+                        "title": 1,
+                        "released": 1
+                      }
+                    }
+                  ],
+                  "meta": [
+                    {"$replaceWith": "$$SEARCH_META"},
+                    {"$limit": 1}
+                  ]
+                }
+              },
+              {
+                "$set": {
+                  "meta": {
+                    "$arrayElemAt": ["$meta", 0]
+                  }
+                }
+              }
+            ])
 
-      .. code-block:: json 
-         :copyable: false 
+         .. output:: 
+            :language: shell 
+            :linenos:
+            :visible: false
 
-         [
-           {
-             docs: [
-               {
-                 _id: ObjectId("573a1393f29313caabcde1ae"),
-                 title: 'Begone Dull Care',
-                 released: ISODate("1999-07-01T00:00:00.000Z")
-               },
-               {
-                 _id: ObjectId("573a13a9f29313caabd2048a"),
-                 title: 'Fara',
-                 released: ISODate("1999-07-01T00:00:00.000Z")
-               }
-             ],
-             meta: {
-               count: { lowerBound: Long("20878") },
-               facet: {
-                 genresFacet: {
-                   buckets: [
-                     { _id: 'Drama', count: Long('12149') },
-                     { _id: 'Comedy', count: Long('6436') },
-                     { _id: 'Romance', count: Long('3274') },
-                     { _id: 'Crime', count: Long('2429') },
-                     { _id: 'Thriller', count: Long('2400') },
-                     { _id: 'Action', count: Long('2349') },
-                     { _id: 'Adventure', count: Long('1876') },
-                     { _id: 'Documentary', count: Long('1755') },
-                     { _id: 'Horror', count: Long('1432') },
-                     { _id: 'Biography', count: Long('1244') }
-                   ]
-                 }
-               }
-             }
-           }
-         ]
+            [
+              {
+                docs: [
+                  {
+                    _id: ObjectId('573a1393f29313caabcde1ae'),
+                    title: 'Begone Dull Care',
+                    released: ISODate('1999-07-01T00:00:00.000Z')
+                  },
+                  {
+                    _id: ObjectId('573a13a9f29313caabd2048a'),
+                    title: 'Fara',
+                    released: ISODate('1999-07-01T00:00:00.000Z')
+                  }
+                ],
+                meta: {
+                  count: { lowerBound: Long('20878') },
+                  facet: {
+                    genresFacet: {
+                      buckets: [
+                        { _id: 'Drama', count: Long('12149') },
+                        { _id: 'Comedy', count: Long('6436') },
+                        { _id: 'Romance', count: Long('3274') },
+                        { _id: 'Crime', count: Long('2429') },
+                        { _id: 'Thriller', count: Long('2400') },
+                        { _id: 'Action', count: Long('2349') },
+                        { _id: 'Adventure', count: Long('1876') },
+                        { _id: 'Documentary', count: Long('1755') },
+                        { _id: 'Horror', count: Long('1432') },
+                        { _id: 'Biography', count: Long('1244') }
+                      ]
+                    }
+                  }
+                }
+              }
+            ]
 
 To learn more about these results, see :ref:`fts-facet-results`.
