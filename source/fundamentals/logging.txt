@@ -1,3 +1,5 @@
+.. _node-logging:
+
 =======
 Logging
 =======
@@ -7,37 +9,212 @@ Logging
    :values: reference
  
 .. meta::
-   :keywords: code example, deprecated, replace
+   :keywords: code example, log, information, monitor
 
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecols
 
-.. important::
+Overview
+--------
 
-  The driver doesn't use the logger in versions 4.0 and later.
-  Attempting to use prior logger settings in this version won't print
-  anything in the log.
+In this guide, you can learn how to configure a logger in the
+{+driver-short+}. The driver allows you to log information categorized
+at following severity levels:
 
-  Instead, see our monitoring guides:
+- ``emergency``
+- ``alert``
+- ``critical``
+- ``error``
+- ``warn``
+- ``notice``
+- ``info``
+- ``debug``
+- ``trace``
+- ``off``
 
-  - :ref:`Command Monitoring <node-command-monitoring>`
-  - :ref:`Cluster Monitoring <node-cluster-monitoring>`
-  - :ref:`Connection Pool Monitoring <node-connection-pool-monitoring>`
+The preceding list is ordered by decreasing severity level. Specifying a severity
+level also logs all messages with higher severity levels. For example, setting
+the log level to ``critical`` also results in log messages with severity levels of
+``emergency`` and ``alert``.
 
-Temporary Alternative
----------------------
+The lower the severity level you specify, the more information the driver logs,
+which might impact the performance of your application.
 
-We are developing a new logging framework. In the meantime, you can output monitor events
-by using the following snippet:
+Configuration
+-------------
 
-.. code-block:: javascript
+You can configure logging in the {+driver-short+} without code changes by
+specifying environment variables. You can also configure logging
+programmatically by specifying client options in the ``MongoClient``
+constructor.
 
-   const uri = "mongodb+srv://<user>:<password>@<cluster-url>?writeConcern=majority";
-   const client = new MongoClient(uri, { monitorCommands:true });
+.. note::
 
-   client.on('commandStarted', (event) => console.debug(event));
-   client.on('commandSucceeded', (event) => console.debug(event));
-   client.on('commandFailed', (event) => console.debug(event));
+   Because connection strings are often shared among a deployment of different
+   appications that might have different logging support, we do not recommend
+   using a connection string to configure logging.
+
+Environment Variables
+~~~~~~~~~~~~~~~~~~~~~
+
+You can configure logging for different components of the driver by specifying
+a severity level in one or more of the following environment variables:
+
+- ``MONGODB_LOG_ALL``: Specifies the default severity for any unset components 
+- ``MONGODB_LOG_COMMAND``: Logs all commands sent to the server
+- ``MONGODB_LOG_TOPOLOGY``: Logs any changes to the cluster topology
+- ``MONGODB_LOG_SERVER_SELECTION``: Logs the server selection process
+- ``MONGODB_LOG_CONNECTION``: Logs all connection pool events
+- ``MONGODB_LOG_CLIENT``: Logs all client events
+
+If you don't specify any of the preceding environment variables, the driver uses
+the value of ``MONGODB_LOG_ALL``, which if not specified, is implicitly set to
+``off``.
+
+.. tip::
+
+   Logging at the command level is the most performance-heavy logging option
+   due to the frequency in which commands are sent to the server. Only
+   specify this option if necessary for debugging your application.
+
+The following example sets the log level for all components to ``debug`` except
+for ``MONGODB_LOG_COMMAND``:
+
+.. code-block:: bash
+
+   export MONGODB_LOG_ALL="debug"
+   export MONGODB_LOG_COMMAND="off"
+
+Log Location
+````````````
+
+You can specify whether the driver logs to ``stderr`` or ``stdout`` by setting
+the ``MONGODB_LOG_PATH`` environment variable to ``"stderr"`` or ``"stdout"``,
+as shown in the following example:
+
+.. code-block:: bash
+
+   export MONGODB_LOG_PATH="stderr"
+
+By default, the driver logs to ``stderr``.
+
+Document Length
+```````````````
+
+The driver stringifies logged documents by using EJSON, which limits strings to
+1000 characters by default. You can specify a maximum document length for your
+logger by specifying the ``MONGODB_LOG_MAX_DOCUMENT`` environment variable. Set
+this variable to ``0`` to not perform truncation.
+
+The following example sets the maximum document length to 500 characters:
+
+.. code-block:: bash
+
+   export MONGODB_LOG_MAX_DOCUMENT_LENGTH=500
+
+Client Options
+~~~~~~~~~~~~~~
+
+You can configure logging programmatically by specifying client options in the
+``MongoClient`` constructor. Because client options take precedence over environment
+variables, only specify them in the client if you no longer want the driver to
+respond to environment variables.
+
+.. tip::
+
+   If your application relies on the format of ``stdout`` or ``stderr``, we
+   recommend configuring logging by using client options to avoid conflicts with
+   your application user's environment variables.
+
+You can specify which component to configure logging for by specifying one or more of the
+following client options:
+
+- ``default``: Specifies the default severity for any unset components
+- ``command``: Logs all commands sent to the server
+- ``topology``: Logs any changes to the cluster topology
+- ``serverSelection``: Logs the server selection process
+- ``connection``: Logs all connection pool events
+- ``client``: Logs all client events
+
+To specify a log level for a component, set the
+``mongodbLogComponentSeverities`` option to an object that contains the
+component and your desired severity level. The following example sets the log
+level for all components to ``debug`` except for ``command``:
+
+.. literalinclude:: /includes/fundamentals/logging.js
+   :language: javascript
+   :start-after: start-logger-client-options
+   :end-before: end-logger-client-options
+
+Log Location
+````````````
+You can specify whether the driver logs to ``stderr`` or ``stdout`` by setting
+the ``mongodbLogPath`` option to ``"stderr"`` or ``"stdout"``, as shown in the
+following example:
+
+.. literalinclude:: /includes/fundamentals/logging.js
+   :language: javascript
+   :start-after: start-log-location
+   :end-before: end-log-location
+   :emphasize-lines: 5-8
+
+By default, the driver logs to ``stderr``.
+
+You can also specify a custom log destination. The following example creates a
+custom log destination:
+
+.. literalinclude:: /includes/fundamentals/logging.js
+   :language: javascript
+   :start-after: start-custom-logger
+   :end-before: end-custom-logger
+
+If your function throws an error in the write operation, the thrown error
+ends the logger. Because of this, we recommend that you handle errors by
+making the write function a no-op rather than throwing an error, as shown in
+the preceding example.
+
+.. note::
+
+   Logging can exhaust disk space if the proper log rotation system is not in
+   place. We recommend that you connect your custom write function to a popular
+   logging library.
+
+Document Length
+```````````````
+
+The driver stringifies logged documents by using EJSON, which limits strings to
+1000 characters by default. You can specify a maximum document length for your
+logger by specifying the ``mongodbLogMaxDocumentLength`` option. Set
+this option to ``0`` to perform no truncation.
+
+The following example sets the maximum document length to 500 characters:
+
+.. literalinclude:: /includes/fundamentals/logging.js
+   :language: javascript
+   :start-after: start-log-length
+   :end-before: end-log-length
+   :emphasize-lines: 5, 8
+
+Additional Information
+----------------------
+
+For more information about monitoring with the {+driver-short+}, see the
+following monitoring guides:
+
+- :ref:`Command Monitoring <node-command-monitoring>`
+- :ref:`Cluster Monitoring <node-cluster-monitoring>`
+- :ref:`Connection Pool Monitoring <node-connection-pool-monitoring>`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the options or types discussed in this guide, see the
+following API documentaion:
+
+- `MongoClientOptions <{+api+}/interfaces/MongoClientOptions.html>`__
+- `mongodbLogComponentSeverities <{+api+}/interfaces/MongoClientOptions.html#mongodbLogComponentSeverities>`__
+- `mongodbLogMaxDocumentLength <{+api+}/interfaces/MongoClientOptions.html#mongodbLogMaxDocumentLength>`__
+- `mongodbLogPath <{+api+}/interfaces/MongoClientOptions.html#mongodbLogPath>`__
