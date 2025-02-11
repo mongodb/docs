@@ -1,6 +1,6 @@
 - You cannot run |analyzeShardKey| on Atlas
   :ref:`shared clusters <shared-tier-cluster>` and
-  :ref:`serverless instances <atlas-choose-serverless>`.
+  serverless instances.
 - You cannot run |analyzeShardKey| on standalone deployments.
 - You cannot run |analyzeShardKey| directly against a
   :option:`--shardsvr <mongod --shardsvr>` replica set.
