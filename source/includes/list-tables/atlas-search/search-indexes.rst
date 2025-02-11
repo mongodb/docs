@@ -14,6 +14,18 @@
    * - :guilabel:`Index Name`
      - Name of the index.
 
+   * - :guilabel:`Status`
+     - Status of the index. To learn more, see :ref:`search-index-status`.
+
+   * - :guilabel:`Queryable`
+     - Icon that identifies whether collection is queryable using the
+       index. Value can be one of the following icons: 
+
+       - :icon-fa5:`check` - for indexes that you can use to query the
+         collection. 
+       - :guilabel:`X` - for indexes that you can't use to query the
+         collection.
+
    * - :guilabel:`Type`
      - Type of index. Value can be one of the following types of index: 
 
@@ -28,25 +40,13 @@
        <static-dynamic-mappings>`, the column shows all of the indexed
        fields.  
 
-   * - :guilabel:`Status`
-     - Status of the index. To learn more, see :ref:`search-index-status`.
-
-   * - :guilabel:`Queryable`
-     - Icon that identifies whether collection is queryable using the
-       index. Value can be one of the following icons: 
-
-       - :icon-fa5:`check` - for indexes that you can use to query the
-         collection. 
-       - :guilabel:`X` - for indexes that you can't use to query the
-         collection.
-
-   * - :guilabel:`Size`
-     - Size of the index.
-
    * - :guilabel:`Documents`
      - Approximate number and percentage of indexed documents out of the
        total number of documents in the collection during and after the
        index build on the primary or search node on the {+cluster+}. 
+
+   * - :guilabel:`Size`
+     - Size of the index.
 
    * - :guilabel:`Actions`
      - Actions you can take on the index: 

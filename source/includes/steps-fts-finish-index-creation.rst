@@ -1,8 +1,7 @@
 .. step:: Click :guilabel:`Create Search Index`.
 
-   |service| displays a modal window to let you know your index is building.
-
-.. step:: Close the :guilabel:`You're All Set!` Modal Window by clicking the :guilabel:`Close` button.
+   |service| displays a Toast (brief, non-interactive notification) to
+   let you know your index is building. 
 
 .. step:: Check the status.
 
