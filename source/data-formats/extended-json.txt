@@ -1,0 +1,282 @@
+.. _pymongo-extended-json:
+
+=============
+Extended JSON
+=============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: code examples, bson, relaxed, canonical, legacy
+
+Overview
+--------
+
+JSON is a data format that represents the values of objects, arrays, numbers,
+strings, booleans, and nulls. The **Extended JSON** format defines a reserved
+set of keys prefixed with "``$``" to represent field type information that
+directly corresponds to each type in BSON, the format that MongoDB uses to
+store data.
+
+Extended JSON Formats
+---------------------
+
+MongoDB Extended JSON features different string formats to represent BSON data.
+Each of the different formats conform to the JSON RFC
+and meet specific use cases. The **extended** format, also known as the
+**canonical** format, features specific representations for every BSON type
+for bidirectional conversion without loss of information. The **Relaxed mode**
+format is more concise and closer to ordinary JSON, but does not represent
+all the type information such as the specific byte size of number fields.
+
+See the following table to see a description of each format:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 10 40
+
+   * - Name
+     - Description
+
+   * - **Extended**
+     - | Also known as the *canonical* format, this JSON representation avoids loss of
+         BSON type information.
+       | This format prioritizes type preservation at the loss of human-readability and
+         interoperability with older formats.
+
+   * - **Relaxed Mode**
+     - | JSON representation that describes BSON documents with some type information loss.
+       | This format prioritizes human-readability and interoperability at the loss of
+         certain type information.
+
+   * - **Shell**
+     - | JSON representation that matches the syntax used in the MongoDB shell.
+       | This format prioritizes compatibility with the MongoDB shell, which often uses
+         JavaScript functions to represent types.
+
+   * - **Strict**
+     - | *Deprecated.* This representation is the legacy format that fully conforms to
+         the `JSON RFC <http://www.json.org/>`__ which allows any JSON parser to read the type information.
+
+.. _extended_json_example_section:
+
+.. note::
+
+   The driver parses the ``$uuid`` Extended JSON type from a string to a
+   ``BsonBinary`` object of binary subtype 4. For more information about ``$uuid`` field
+   parsing, see the
+   :spec:`special rules for parsing $uuid fields </extended-json.rst#special-rules-for-parsing-uuid-fields>`
+   section in the extended JSON specification.
+
+To learn more about JSON, BSON, and Extended JSON, see
+`our article about JSON and BSON <https://www.mongodb.com/resources/basics/json-and-bson>`__
+and :manual:`Extended JSON </reference/mongodb-extended-json/>` in the {+mdb-server+} manual.
+
+Extended JSON Examples
+~~~~~~~~~~~~~~~~~~~~~~
+
+The following examples show a document containing an ObjectId, date, and long
+number field represented in each Extended JSON format. Click the tab that
+corresponds to the format of the example you want to see:
+
+.. tabs::
+
+   .. tab:: Extended
+      :tabid: extended-format
+
+      .. code-block:: json
+
+         {
+           "_id": { "$oid": "573a1391f29313caabcd9637" },
+           "createdAt": { "$date": { "$numberLong": "1601499609" }},
+           "numViews": { "$numberLong": "36520312" }
+         }
+
+   .. tab:: Relaxed Mode
+      :tabid: relaxed-mode-format
+
+      .. code-block:: json
+
+         {
+           "_id": { "$oid": "573a1391f29313caabcd9637" },
+           "createdAt": { "$date": "2020-09-30T18:22:51.648Z" },
+           "numViews": 36520312
+         }
+
+   .. tab:: Shell
+      :tabid: shell-format
+
+      .. code-block:: json
+
+         {
+           "_id": ObjectId("573a1391f29313caabcd9637"),
+           "createdAt": ISODate("2020-09-30T18:22:51.648Z"),
+           "numViews": NumberLong("36520312")
+         }
+
+   .. tab:: Strict
+      :tabid: strict-format
+
+      .. code-block:: json
+
+         {
+           "_id": { "$oid": "573a1391f29313caabcd9637" },
+           "createdAt": { "$date": 1601499609 },
+           "numViews": { "$numberLong": "36520312" }
+         }
+
+Read Extended JSON
+------------------
+
+You can read an Extended JSON string into a Python object by calling
+the ``bson.json_util.loads()`` method. This method parses an Extended
+JSON string and returns a Python list containing the data.
+
+The following example shows how you can read an Extended JSON string into a
+list of dictionaries by using the ``loads()`` method:
+
+.. io-code-block::
+
+   .. input::
+      :language: python
+
+      from bson.json_util import loads
+
+      ejson_str = '''[
+         {"foo": [1, 2]},
+         {"bar": {"hello": "world"}},
+         {"code": {
+            "$scope": {},
+            "$code": "function x() { return 1; }"
+         }},
+         {"bin": {
+            "$type": "80",
+            "$binary": "AQIDBA=="
+         }}
+      ]'''
+
+      doc = loads(ejson_str)
+      print(doc)
+
+   .. output::
+      :language: none
+      :visible: false
+
+      [
+         {'foo': [1, 2]},
+         {'bar': {'hello': 'world'}},
+         {'code': Code('function x() { return 1; }', {})},
+         {'bin': Binary(b'\x01\x02\x03\x04', 128)}
+      ]
+
+Write Extended JSON
+-------------------
+
+You can write an Extended JSON string from a list of dictionaries
+by calling the ``bson.json_util.dumps()`` method. 
+The following example outputs an Extended JSON string in the Relaxed format:
+
+.. io-code-block::
+
+   .. input::
+      :language: python
+
+      from bson import Code, Binary
+      from bson.json_util import dumps
+
+      doc = [
+         {'foo': [1, 2]},
+         {'bar': {'hello': 'world'}},
+         {'code': Code('function x() { return 1; }', {})},
+         {'bin': Binary(b'\x01\x02\x03\x04', 128)}
+      ]
+
+      ejson_str = dumps(doc)
+      print(ejson_str)
+
+   .. output::
+      :language: none
+      :visible: false
+
+      '''[
+         {"foo": [1, 2]},
+         {"bar": {"hello": "world"}},
+         {"code": {
+            "$code": "function x() { return 1; }",
+            "$scope": {}
+         }},
+         {"bin": {
+            "$binary": {
+               "base64": "AQIDBA==",
+               "subType": "80"
+         }}}
+      ]'''
+
+By default, the ``dumps()`` method returns the Extended JSON string in the Relaxed
+format. To specify a different format, pass one of the following values for the
+``json_options`` parameter:
+
+- ``CANONICAL_JSON_OPTIONS``: Returns the Extended JSON string in Canonical format.
+-  ``LEGACY_JSON_OPTIONS``: Returns the Extended JSON string in Legacy format.
+   We recommend using Relaxed or Canonical format instead.
+
+The following example shows how to output Extended JSON in the Canonical format:
+
+.. io-code-block::
+
+   .. input::
+      :language: python
+
+      from bson import Code, Binary
+      from bson.json_util import dumps, CANONICAL_JSON_OPTIONS
+
+      doc = [
+         {'foo': [1, 2]},
+         {'bar': {'hello': 'world'}},
+         {'code': Code('function x() { return 1; }', {})},
+         {'bin': Binary(b'\x01\x02\x03\x04', 128)}
+      ]
+
+      ejson_str = dumps(doc, json_options=CANONICAL_JSON_OPTIONS)
+      print(ejson_str)
+
+   .. output::
+      :language: none
+      :visible: false
+
+      '''[
+         {"foo": [
+            {"$numberInt": "1"},
+            {"$numberInt": "2"}
+         ]},
+         {"bar": {"hello": "world"}},
+         {"code": {
+            "$code": "function x() { return 1; }",
+            "$scope": {}
+         }},
+         {"bin": {
+            "$binary": {
+               "base64": "AQIDBA==",
+               "subType": "80"
+         }}}
+      ]'''
+
+Additional Information
+----------------------
+
+For more information about the methods and types in ``bson.json_util``, see the following
+API documentation:
+
+- `loads() <{+api-root+}bson/json_util.html#bson.json_util.loads>`__
+- `dumps() <{+api-root+}bson/json_util.html#bson.json_util.dumps>`__
+- `CANONICAL_JSON_OPTIONS <{+api-root+}bson/json_util.html#bson.json_util.CANONICAL_JSON_OPTIONS>`__
+- `LEGACY_JSON_OPTIONS <{+api-root+}bson/json_util.html#bson.json_util.LEGACY_JSON_OPTIONS>`__
