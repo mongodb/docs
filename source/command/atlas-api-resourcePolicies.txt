@@ -1,0 +1,71 @@
+.. _atlas-api-resourcePolicies:
+
+==========================
+atlas api resourcePolicies
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+`experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Configure and manage Atlas Resource Policies within your organization.
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -h, --help
+     - 
+     - false
+     - help for resourcePolicies
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Related Commands
+----------------
+
+* :ref:`atlas-api-resourcePolicies-createAtlasResourcePolicy` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Create one Atlas Resource Policy for an org.
+* :ref:`atlas-api-resourcePolicies-deleteAtlasResourcePolicy` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Delete one Atlas Resource Policy for an org.
+* :ref:`atlas-api-resourcePolicies-getAtlasResourcePolicies` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Return all Atlas Resource Policies for the org.
+* :ref:`atlas-api-resourcePolicies-getAtlasResourcePolicy` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Return one Atlas Resource Policy for an org.
+* :ref:`atlas-api-resourcePolicies-getResourcesNonCompliant` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Return all non-compliant resources for an org.
+* :ref:`atlas-api-resourcePolicies-updateAtlasResourcePolicy` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Update one Atlas Resource Policy for an org.
+* :ref:`atlas-api-resourcePolicies-validateAtlasResourcePolicy` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Validate one Atlas Resource Policy for an org.
+
+
+.. toctree::
+   :titlesonly:
+
+   createAtlasResourcePolicy </command/atlas-api-resourcePolicies-createAtlasResourcePolicy>
+   deleteAtlasResourcePolicy </command/atlas-api-resourcePolicies-deleteAtlasResourcePolicy>
+   getAtlasResourcePolicies </command/atlas-api-resourcePolicies-getAtlasResourcePolicies>
+   getAtlasResourcePolicy </command/atlas-api-resourcePolicies-getAtlasResourcePolicy>
+   getResourcesNonCompliant </command/atlas-api-resourcePolicies-getResourcesNonCompliant>
+   updateAtlasResourcePolicy </command/atlas-api-resourcePolicies-updateAtlasResourcePolicy>
+   validateAtlasResourcePolicy </command/atlas-api-resourcePolicies-validateAtlasResourcePolicy>
+

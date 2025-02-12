@@ -1,0 +1,63 @@
+.. _atlas-api-sharedTierRestoreJobs:
+
+===============================
+atlas api sharedTierRestoreJobs
+===============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+`experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns and adds restore jobs for shared-tier database deployments.
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -h, --help
+     - 
+     - false
+     - help for sharedTierRestoreJobs
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Related Commands
+----------------
+
+* :ref:`atlas-api-sharedTierRestoreJobs-createSharedClusterBackupRestoreJob` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Restores the specified cluster.
+* :ref:`atlas-api-sharedTierRestoreJobs-getSharedClusterBackupRestoreJob` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns the specified restore job.
+* :ref:`atlas-api-sharedTierRestoreJobs-listSharedClusterBackupRestoreJobs` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns all restore jobs for the specified M2 or M5 cluster.
+
+
+.. toctree::
+   :titlesonly:
+
+   createSharedClusterBackupRestoreJob </command/atlas-api-sharedTierRestoreJobs-createSharedClusterBackupRestoreJob>
+   getSharedClusterBackupRestoreJob </command/atlas-api-sharedTierRestoreJobs-getSharedClusterBackupRestoreJob>
+   listSharedClusterBackupRestoreJobs </command/atlas-api-sharedTierRestoreJobs-listSharedClusterBackupRestoreJobs>
+
