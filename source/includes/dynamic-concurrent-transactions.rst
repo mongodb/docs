@@ -1,4 +1,3 @@
-
    .. note::
 
       MongoDB dynamically adjusts the number of tickets to optimize 
