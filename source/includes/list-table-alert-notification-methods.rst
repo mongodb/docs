@@ -31,7 +31,7 @@
      - :icon:`check`
      -
      -
-     - .. include:: /includes/alert-notifications/user.rst
+     - .. include:: /includes/alert-notifications/team.rst
 
    * - |snmp| Host
      - :icon:`check`
