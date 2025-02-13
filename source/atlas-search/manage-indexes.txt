@@ -34,6 +34,43 @@ You can specify the fields to index using the following methods:
 Considerations
 --------------
 
+When creating and managing |fts| indexes, 
+consider the following:
+
+Analyzers and Field Mappings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|fts| provides built-in analyzers for creating indexable terms that 
+correct for differences in punctuation, capitalization, stop words, 
+and more. Analyzers apply parsing and language rules to the query. You 
+can also create a custom analyzer using available built-in character 
+filters, tokenizers, and token filters. To learn more about the 
+built-in and custom analyzers, see :ref:`analyzers-ref`.
+
+To learn which data types |fts| supports for field mappings, see 
+:ref:`bson-data-types`. The ``mongot`` process stores the indexed fields
+and the ``_id`` field on disk per index for the collections on the
+{+cluster+}.
+
+.. note::
+
+   |fts| doesn't support encrypting |fts| indexes with 
+   :ref:`encryption keys using Customer Key Management 
+   <security-kms-encryption>` in the {+atlas-ui+}.
+
+**Prefer to learn by watching?**
+
+Watch this video for an overview of |fts| indexes. In this video, you
+can learn more about :ref:`analyzers <analyzers-ref>` and |fts|
+:ref:`autocomplete <autocomplete-ref>` field type. 
+
+*Duration: 8 Minutes*
+
+.. video:: https://youtu.be/XrJG994YxD8
+ 
+Disk, Memory, and Resource Usage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Although the data stored on |fts| isn't an identical copy of data from
 the collection on your |service| {+cluster+}, |fts| indexes still take
 some disk space and memory. If you enable the ``store`` option for
@@ -47,22 +84,11 @@ disk, which can take disk space.
 .. include:: /includes/fact-fts-avs-index-resource-consumption.rst
 
 .. note::
+   
+   .. include:: /includes/fact-fts-document-size.rst
 
-   |fts| doesn't support encrypting |fts| indexes with 
-   :ref:`encryption keys using Customer Key Management 
-   <security-kms-encryption>` in the {+atlas-ui+}.
-
-|fts| provides built-in analyzers for creating indexable terms that 
-correct for differences in punctuation, capitalization, stop words, 
-and more. Analyzers apply parsing and language rules to the query. You 
-can also create a custom analyzer using available built-in character 
-filters, tokenizers, and token filters. To learn more about the 
-built-in and custom analyzers, see :ref:`analyzers-ref`.
-
-To learn more about |fts| support for other data types, see 
-:ref:`bson-data-types`. The ``mongot`` process stores the indexed fields
-and the ``_id`` field on disk per index for the collections on the
-{+cluster+}.
+Index Consistency and Rebuilding
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you make changes to the collection for which you defined |fts| 
 indexes, the latest data might not be available immediately for 
@@ -81,41 +107,36 @@ If you change the topology of your search deployment, |fts| provisions
 and builds indexes on any new nodes before removing old nodes, to ensure
 there is no query downtime. 
 
-If deployments where both the ``mongod`` and ``mongot`` processes run on
-the same node, when |fts| introduces changes that require rebuilding
+For deployments where both the ``mongod`` and ``mongot`` processes run on
+the same node, if |fts| introduces changes that require rebuilding
 your indexes (such as some |fts| features that require an :ref:`index
 update <fts-index-rebuild>`), |service| automatically deploys additional
 nodes for free to build the indexes, while the old nodes continue to
 serve your queries.
 
-.. note:: For Dedicated Search Nodes
-   
-   Adding and adjusting :manual:`shards </sharding/>` triggers a
-   rebuild of the |fts| index. During this index rebuild, the index
-   might not have the most current data. Therefore, queries against data
-   on those shards might fail or return incorrect results.
-   
-   If you :manual:`reshard </core/sharding-reshard-a-collection/>` a
-   collection with |fts| indexes,|fts| indexes on the collection
-   become unavailable when the resharding operation completes. You 
-   *must* delete and create new |fts| indexes once the operation 
-   is complete.  
+Dedicated Search Nodes
+~~~~~~~~~~~~~~~~~~~~~~
 
-   If you issue the command to :manual:`change the primary shard 
-   </reference/command/movePrimary/>` of a database, the |fts| indexes
-   for any unsharded collection under this database become unavailable
-   once the operation completes. You *must* delete and create new |fts|
-   indexes once the :dbcommand:`movePrimary` operation is complete.
+You can deploy :ref:`dedicated Search Nodes <what-is-search-node>` to
+improve performance, scalability, and resource isolation.
+If you've deployed Search Nodes, consider the following:
 
-**Prefer to learn by watching?**
+- Adding and adjusting :manual:`shards </sharding/>` triggers a
+  rebuild of the |fts| index. During this index rebuild, the index
+  might not have the most current data. Therefore, queries against data
+  on those shards might fail or return incorrect results.
 
-Watch this video for an overview of |fts| indexes. In this video, you
-can learn more about :ref:`analyzers <analyzers-ref>` and |fts|
-:ref:`autocomplete <autocomplete-ref>` field type. 
+- If you :manual:`reshard </core/sharding-reshard-a-collection/>` a
+  collection with |fts| indexes,|fts| indexes on the collection
+  become unavailable when the resharding operation completes. You 
+  *must* delete and create new |fts| indexes once the operation 
+  is complete.  
 
-*Duration: 8 Minutes*
-
-.. video:: https://youtu.be/XrJG994YxD8
+- If you issue the command to :manual:`change the primary shard 
+  </reference/command/movePrimary/>` of a database, the |fts| indexes
+  for any unsharded collection under this database become unavailable
+  once the operation completes. You *must* delete and create new |fts|
+  indexes once the :dbcommand:`movePrimary` operation is complete.
 
 .. _ref-index-management:
 
