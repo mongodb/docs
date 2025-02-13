@@ -49,8 +49,8 @@
       :oas-atlas-tag:`Create One Private Link
       </Streams/operation/createPrivateLinkConnection>`
 
-      For an {+aws+} Private Link connection, you must set the following
-      key-value pairs:
+      For an {+aws+} Confluent Private Link connection, you must set
+      the following key-value pairs:
 
       .. list-table::
          :widths: 35 65
