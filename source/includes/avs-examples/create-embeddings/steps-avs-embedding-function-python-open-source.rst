@@ -7,20 +7,9 @@
       with the ``.ipynb`` extension, and then run the 
       following command in the notebook to install the dependencies:
 
-      .. io-code-block:: 
-         :copyable: true 
+      .. code-block:: python
          
-         .. input:: 
-            :language: python
-
-            !pip install --quiet --upgrade sentence-transformers pymongo einops
-
-         .. output:: 
-            :language: shell 
-            :visible: false
-            
-            Installing collected packages: dnspython, pymongo
-            Successfully installed dnspython-2.7.0 pymongo-4.10.1
+         pip install --quiet --upgrade sentence-transformers pymongo einops
 
    .. step:: Define the function to generate vector embeddings.
 
@@ -32,13 +21,12 @@
       - Loads the `nomic-embed-text-v1 
         <https://huggingface.co/nomic-ai/nomic-embed-text-v1>`__ embedding model.
       - Creates a function named ``get_embedding`` that uses the model
-        to generate ``float32``, which is set as the default precision,
+        to generate ``float32`` (the default precision),
         ``int8``, or ``int1`` embeddings for a given text input. 
 
       .. code-block:: python
 
          from sentence_transformers import SentenceTransformer
-         from sentence_transformers.quantization import quantize_embeddings
 
          # Load the embedding model
          model = SentenceTransformer("nomic-ai/nomic-embed-text-v1", trust_remote_code=True)
@@ -50,9 +38,7 @@
    .. step:: Define the function to convert vector embeddings.
 
       Paste and run the following code in your notebook to create
-      a function that converts vector embeddings by using
-      :driver:`PyMongo Driver </pymongo/>`. The function named
-      ``generate_bson_vector`` to convert the full-fidelity embeddings
+      a function named ``generate_bson_vector`` that converts the full-fidelity embeddings
       to |bson| ``float32``, ``int8``, and ``int1`` ``vector`` subtypes
       for :ref:`efficient processing <avs-bindata-vector-subtype>` of
       your vector data.
@@ -69,11 +55,9 @@
 
       Paste and run the following code in your notebook to create
       a function named ``create_docs_with_bson_vector_embeddings`` that
-      creates documents with the embeddings.
+      creates the documents with embeddings that you will ingest into |service|.
 
       .. code-block:: python
-
-         from bson.binary import Binary
 
          # Function to create documents with BSON vector embeddings
          def create_docs_with_bson_vector_embeddings(bson_float32, bson_int8, bson_int1, data):
@@ -92,10 +76,9 @@
    .. step:: Test the function to generate embeddings. 
 
       Paste and run the following code in your notebook to test the
-      function to generate embeddings using `Nomic AI
-      <https://www.nomic.ai>`__.  
+      ``get_embedding`` function.
       
-      This code  generates ``float32``, ``int8``, ``int1`` embeddings
+      This code generates ``float32``, ``int8``, ``int1`` embeddings
       for the strings ``foo`` and ``bar``. 
 
       ..
@@ -140,9 +123,8 @@
    .. step:: Test the function to convert embeddings to |bson| vectors. 
 
       Paste and run the following code in your notebook to test the
-      function to convert embeddings to |bson| vectors by using the 
-      :driver:`PyMongo driver <pymongo/>`. 
-      
+      ``generate_bson_vector`` function.
+
       This code quantizes your ``float32``, ``int8``, and ``int1``
       embeddings for the strings ``foo`` and ``bar``. 
 
@@ -152,7 +134,7 @@
          .. input:: 
             :language: python
 
-            from bson.binary import Binary, BinaryVectorDtype
+            from bson.binary BinaryVectorDtype
 
             bson_float32_embeddings = []
             bson_int8_embeddings = []

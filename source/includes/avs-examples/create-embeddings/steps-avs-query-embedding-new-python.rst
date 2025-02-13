@@ -22,7 +22,7 @@
 
       .. note:: 
 
-         It might take some time for the query to complete.
+         The query might take some time to complete.
 
       .. tabs::
          :hidden:

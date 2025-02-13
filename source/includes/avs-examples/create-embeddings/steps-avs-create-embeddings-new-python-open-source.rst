@@ -3,7 +3,7 @@
       
    .. step:: (Conditional) Define the functions to generate |bson| embeddings.
 
-      If you haven't already loaded the ``get_embedding``,
+      If you haven't already defined the ``get_embedding``,
       ``generate_bson_vector``, and ``create_docs_with_bson_vector_embeddings``
       functions in your notebook, see :ref:`define-embedding-functions`
       to load these functions in your notebook.
@@ -43,17 +43,13 @@
       Use the following code to generate embeddings from new data.
 
       Specifically, this code uses the ``get_embedding`` function 
-      that you defined and the :driver:`PyMongo Driver </pymongo/>` to
-      generate embeddings from an array of sample texts. 
+      that you defined to generate embeddings from the array of sample texts. 
          
       .. io-code-block:: 
          :copyable: true
          
          .. input:: 
             :language: python
-
-            import pymongo
-            from sentence_transformers.quantization import quantize_embeddings
 
             float32_embeddings = get_embedding(sentences, precision="float32")
             int8_embeddings = get_embedding(sentences, precision="int8")
@@ -176,7 +172,7 @@
    .. step:: Generate the |bson| vectors from your embeddings. 
 
       Use the following code to convert the generated vector embeddings to
-      |bson| vectors. The code uses the :driver:`PyMongo driver <pymongo/>`. 
+      |bson| vectors.
 
       Specifically, this code converts the generated embeddings to
       ``float32``, ``int8``, and bit-packed ``int1`` types and then
@@ -188,7 +184,7 @@
          .. input:: 
             :language: python
     
-            from bson.binary import Binary, BinaryVectorDtype
+            from bson.binary import BinaryVectorDtype
 
             bson_float32_embeddings = []
             bson_int8_embeddings = []
@@ -323,7 +319,7 @@
          # Create BSON documents
          docs = create_docs_with_bson_vector_embeddings(bson_float32_embeddings, bson_int8_embeddings, bson_int1_embeddings, sentences)
 
-   .. step:: Connect to your |service| {+cluster+} to upload the data.
+   .. step:: Ingest the documents into |service|.
 
       Paste the following code in your notebook, replace the
       ``<connection-string>`` with your |service| {+cluster+}'s |srv|

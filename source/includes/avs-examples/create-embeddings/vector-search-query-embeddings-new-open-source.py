@@ -1,6 +1,3 @@
-import pymongo
-from bson.binary import Binary
-
 # Prepare your query
 query_text = "ocean tragedy"
 
@@ -44,7 +41,7 @@ for query_embedding, path in zip(
 
 # Execute the search for each precision
 for pipeline in pipelines:
-    print(f"Results for {pipeline[0]['$vectorSearch']['path']}:")
+    print(f"\nResults for {pipeline[0]['$vectorSearch']['path']}:")
     results = collection.aggregate(pipeline)
 
     # Print results
