@@ -13,7 +13,7 @@
 
       ..
          NOTE: If you edit this Python code, also update the Jupyter Notebook
-         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/haystack.ipynb
+         at https://github.com/mongodb/docs-notebooks/blob/main/ai-integrations/haystack.ipynb
 
       .. code-block:: python
 
@@ -37,7 +37,7 @@
 
       ..
          NOTE: If you edit this Python code, also update the Jupyter Notebook
-         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/haystack.ipynb
+         at https://github.com/mongodb/docs-notebooks/blob/main/ai-integrations/haystack.ipynb
 
       .. io-code-block:: 
          :copyable: true 

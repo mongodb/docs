@@ -5,4 +5,3 @@
 - An environment to run interactive Python notebooks 
   such as `Colab <https://colab.research.google.com>`__.
 
-  .. include:: /includes/fact-colab-ip-address.rst

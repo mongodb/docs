@@ -9,18 +9,18 @@
       
       ..
          NOTE: If you edit this Python code, also update the Jupyter Notebook
-         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/langchain-hybrid-search.ipynb
+         at https://github.com/mongodb/docs-notebooks/blob/main/ai-integrations/langchain-hybrid-search.ipynb
 
       .. code-block:: python
 
         # Use helper method to create the vector search index
         vector_store.create_vector_search_index( 
-           dimensions = 1536
+           dimensions = 1536 # The dimensions of the vector embeddings to be indexed
         )
 
       .. tip::
 
-         `create_vector_search_index API Reference <https://python.langchain.com/api_reference/mongodb/vectorstores/langchain_mongodb.vectorstores.MongoDBAtlasVectorSearch.html#langchain_mongodb.vectorstores.MongoDBAtlasVectorSearch.create_vector_search_index>`__
+         `create_vector_search_index API Reference <https://langchain-mongodb.readthedocs.io/en/latest/langchain_mongodb/index/langchain_mongodb.index.create_vector_search_index.html>`__
 
    .. step:: Create the {+fts+} index.
 
@@ -30,7 +30,7 @@
 
       ..
          NOTE: If you edit this Python code, also update the Jupyter Notebook
-         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/langchain-hybrid-search.ipynb
+         at https://github.com/mongodb/docs-notebooks/blob/main/ai-integrations/langchain-hybrid-search.ipynb
 
       .. code-block:: python
 
@@ -49,4 +49,4 @@
 
       .. tip::
 
-         `create_fulltext_search_index API Reference <https://api.python.langchain.com/en/latest/index/langchain_mongodb.index.create_fulltext_search_index.html#langchain_mongodb.index.create_fulltext_search_index>`__
+         `create_fulltext_search_index API Reference <https://langchain-mongodb.readthedocs.io/en/latest/langchain_mongodb/index/langchain_mongodb.index.create_fulltext_search_index.html>`__

@@ -11,7 +11,7 @@
 
       ..
          NOTE: If you edit this Python code, also update the Jupyter Notebook
-         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/langchain.ipynb
+         at https://github.com/mongodb/docs-notebooks/blob/main/ai-integrations/langchain.ipynb
 
       .. code-block:: python
 
@@ -44,7 +44,7 @@
 
       ..
          NOTE: If you edit this Python code, also update the Jupyter Notebook
-         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/langchain.ipynb
+         at https://github.com/mongodb/docs-notebooks/blob/main/ai-integrations/langchain.ipynb
 
       .. io-code-block:: 
          :copyable: true 
@@ -85,7 +85,7 @@
 
       ..
          NOTE: If you edit this Python code, also update the Jupyter Notebook
-         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/langchain.ipynb
+         at https://github.com/mongodb/docs-notebooks/blob/main/ai-integrations/langchain.ipynb
 
       .. code-block:: python
        
@@ -103,5 +103,5 @@
 
       .. tip::
 
-         `MongoDBAtlasVectorSearch API Reference <https://python.langchain.com/api_reference/mongodb/vectorstores/langchain_mongodb.vectorstores.MongoDBAtlasVectorSearch.html>`__
+         `MongoDBAtlasVectorSearch API Reference <https://langchain-mongodb.readthedocs.io/en/latest/langchain_mongodb/vectorstores/langchain_mongodb.vectorstores.MongoDBAtlasVectorSearch.html>`__
 

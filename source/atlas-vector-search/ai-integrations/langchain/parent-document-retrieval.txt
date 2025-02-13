@@ -1,0 +1,156 @@
+.. _langchain-parent-document:
+
+================================================================
+Perform Parent Document Retrieval with the LangChain Integration
+================================================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. facet::
+   :name: programming_language
+   :values: python
+
+.. meta::
+   :description: Perform parent document retrieval by using the LangChain integration for Atlas Vector Search.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+..
+    NOTE: If you edit any of the code on this page, also update the Jupyter Notebook
+    at https://github.com/mongodb/docs-notebooks/blob/main/ai-integrations/langchain-parent-document-retrieval.ipynb
+
+You can integrate {+avs+} with LangChain
+to perform :ref:`parent document retrieval <parent-document-retrieval>`.
+In this tutorial, you complete the following steps:
+
+#. Set up the environment.
+#. Prepare the data.
+#. Instantiate the parent document retriever.
+#. Create the {+avs+} index.
+#. Use the retriever in a RAG pipeline.
+
+.. tip::
+
+   Work with a runnable version of this tutorial as a
+   :github:`Python notebook <mongodb/docs-notebooks/blob/main/ai-integrations/langchain-parent-document-retrieval.ipynb?tck=docs>`.
+
+.. _parent-document-retrieval:
+
+Background
+----------
+
+**Parent document retrieval** is a retrieval technique that 
+involves chunking large documents into smaller sub-documents.
+In this technique, you query the smaller chunks before returning the full
+parent document to the |llm|. This can improve 
+the responses of your RAG agents and applications by allowing for more 
+granular searches on smaller chunks while giving |llm|\s the full 
+context of the parent document.
+
+Parent document retrieval with MongoDB allows you to store both 
+parent and child documents in a single collection, which 
+supports efficient retrieval by only having to compute and index
+the child documents' embeddings. 
+
+Prerequisites
+-------------
+
+To complete this tutorial, you must have the following:
+
+.. include:: /includes/avs-python-openai-prerequisites.rst
+
+Set Up the Environment
+----------------------
+
+.. include:: /includes/set-up-python-notebook-environment.rst
+
+.. include:: /includes/ai-integrations/langchain/parent-document-set-up-environment.rst
+
+Prepare the Data
+----------------
+
+Paste and run the following code in your notebook 
+to load and chunk a sample PDF that contains a recent `MongoDB earnings report
+<https://investors.mongodb.com/node/12881/pdf>`__.
+
+This code uses a `text splitter <https://python.langchain.com/docs/how_to/#text-splitters/>`__
+to chunk the PDF data into smaller parent documents. It specifies the *chunk size*
+(number of characters) and *chunk overlap* (number of overlapping characters 
+between consecutive chunks) for each document.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/ai-integrations/langchain/parent-document-prepare-data.py
+      :language: python
+   
+   .. output:: 
+      :visible: false
+
+      Document(metadata={'source': 'https://investors.mongodb.com/node/12881/pdf', 'page': 0, 'page_label': '1'}, page_content='MongoDB, Inc. Announces Third Quarter Fiscal 2025 Financial Results\nDecember 9, 2024\nThird Quarter Fiscal 2025 Total Revenue of $529.4 million, up 22% Year-over-Year\nContinued Strong Customer Growth with Over 52,600 Customers as of October 31, 2024\nMongoDB Atlas Revenue up 26% Year-over-Year; 68% of Total Q3 Revenue\nNEW YORK , Dec. 9, 2024 /PRNewswire/ -- MongoDB, Inc. (NASDAQ: MDB) today announced its financial results for the third quarter ended October\n31, 2024.\n\xa0\n  \xa0\n"MongoDB\'s third quarter results were significantly ahead of expectations on the top and bottom line, driven by better-than-expected EA performance\nand 26% Atlas revenue growth.\xa0 We continue to see success winning new business due to the superiority of MongoDB\'s developer data platform in\naddressing a wide variety of mission-critical use cases," said Dev Ittycheria, President and Chief Executive Officer of MongoDB .\n"We continue to invest in our legacy app modernization and AI offerings as our document model and distributed architecture are exceptionally well\nsuited for customers looking to build highly-performant, modern applications.\xa0 MongoDB  is in a great position to be a central pillar of the emerging AI\ntech stack and benefit from the next wave of application development in the years ahead."\nThird Quarter Fiscal 2025 Financial Highlights\nRevenue: Total revenue was $529.4 million for the third quarter of fiscal 2025, an increase of 22% year-over-year.\nSubscription revenue was $512.2 million, an increase of 22% year-over-year, and services revenue was $17.2 million, an\nincrease of 18% year-over-year.\nGross Profit: Gross profit was $394.0 million for the third quarter of fiscal 2025, representing a 74% gross margin\ncompared to 75% in the year-ago period. Non-GAAP gross profit was $405.7 million, representing a 77% non-GAAP gross\nmargin, consistent with a non-GAAP gross margin of 77% in the year-ago period.')
+
+Instantiate the Retriever
+-------------------------
+
+In this section, you instantiate the parent document retriever and use it to 
+ingest data into |service|. 
+
+``MongoDBAtlasParentDocumentRetriever`` chunks parent documents into smaller child documents, 
+embeds the child documents, and then ingests both parent and child documents into the same 
+collection in |service|. Under the hood, this retriever creates the following:
+
+- An instance of ``MongoDBAtlasVectorSearch``, a vector store that handles vector search queries to the child documents.
+- An instance of ``MongoDBDocStore``, a document store that handles storing and retrieving the parent documents.
+
+.. include:: /includes/ai-integrations/langchain/parent-document-retriever.rst
+
+Create the {+avs+} Index
+------------------------------------
+
+.. include:: /includes/note-avs-index-required-access.rst
+
+To enable vector search queries on the ``langchain_db.parent_document`` 
+collection, you must create an {+avs+} index. You can 
+use either the LangChain helper method or the
+PyMongo driver method. Run the following code in your notebook for
+your preferred method:
+
+.. tabs::
+   
+   .. tab:: LangChain
+      :tabid: langchain
+
+      .. literalinclude:: /includes/ai-integrations/langchain/create-index-langchain-parent-document.py
+         :language: python
+         :copyable:
+
+      .. tip::
+
+         `create_vector_search_index API reference <https://langchain-mongodb.readthedocs.io/en/latest/langchain_mongodb/index/langchain_mongodb.index.create_vector_search_index.html>`__
+
+   .. tab:: PyMongo
+      :tabid: pymongo
+
+      .. literalinclude:: /includes/ai-integrations/langchain/create-index-pymongo-parent-document.py
+         :language: python
+         :copyable:
+
+.. include:: /includes/fact-index-build-initial-sync.rst
+
+Use the Retriever in Your RAG Pipeline
+--------------------------------------
+
+Once |service| builds your index, you can run vector search 
+queries on your data and use the retriever in your RAG pipeline. 
+Paste and run the following code in your notebook to implement 
+a sample RAG pipeline that performs parent document retrieval:
+
+.. include:: /includes/ai-integrations/langchain/parent-document-rag.rst

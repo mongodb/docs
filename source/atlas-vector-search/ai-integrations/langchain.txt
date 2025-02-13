@@ -34,7 +34,7 @@ you can use in your applications.
 .. note::
 
    For a full list of components and methods, see 
-   `API reference <https://python.langchain.com/api_reference/mongodb/index.html>`__.
+   `API reference <https://langchain-mongodb.readthedocs.io/en/latest/langchain_mongodb/api_docs.html>`__.
    
    For the JavaScript integration, see :ref:`langchain-js`.
 
@@ -84,7 +84,7 @@ Usage
 
    # Instantiate the vector store
    vector_store = MongoDBAtlasVectorSearch(
-      collection = collection         # Collection to store embeddings
+      collection = collection,        # Collection to store embeddings
       embedding = FakeEmbeddings(),   # Embedding model to use
       index_name = "vector_index",    # Name of the vector search index
       relevance_score_fn = "cosine"   # Similarity score function, can also be "euclidean" or "dotProduct"
@@ -93,7 +93,7 @@ Usage
 .. note::
 
    - :ref:`Tutorial <langchain-get-started>`
-   - `API Reference <https://python.langchain.com/api_reference/mongodb/vectorstores/langchain_mongodb.vectorstores.MongoDBAtlasVectorSearch.html>`__
+   - `API Reference <https://langchain-mongodb.readthedocs.io/en/latest/langchain_mongodb/vectorstores/langchain_mongodb.vectorstores.MongoDBAtlasVectorSearch.html>`__
    - `LangChain Documentation <https://python.langchain.com/docs/integrations/vectorstores/mongodb_atlas>`__
 
 Retrievers
@@ -142,7 +142,7 @@ Usage
 
 .. note::
    
-   - `API Reference <https://python.langchain.com/api_reference/mongodb/retrievers/langchain_mongodb.retrievers.full_text_search.MongoDBAtlasFullTextSearchRetriever.html>`__
+   - `API Reference <https://langchain-mongodb.readthedocs.io/en/latest/langchain_mongodb/retrievers/langchain_mongodb.retrievers.full_text_search.MongoDBAtlasFullTextSearchRetriever.html>`__
 
 Hybrid Search Retriever
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -182,7 +182,63 @@ Usage
 .. note::
 
    - :ref:`Tutorial <langchain-hybrid-search>`
-   - `API Reference <https://python.langchain.com/api_reference/mongodb/retrievers/langchain_mongodb.retrievers.hybrid_search.MongoDBAtlasHybridSearchRetriever.html>`__
+   - `API Reference <https://langchain-mongodb.readthedocs.io/en/latest/langchain_mongodb/retrievers/langchain_mongodb.retrievers.hybrid_search.MongoDBAtlasHybridSearchRetriever.html>`__
+
+.. _langchain-parent-document-retriever-overview:
+   
+Parent Document Retriever
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``MongoDBAtlasParentDocumentRetriever`` is a retriever that
+queries smaller chunks first and then returns the 
+larger parent document to the |llm|. This type of retrieval
+is called **parent document retrieval**. Parent document 
+retrieval can improve the responses of your RAG agents 
+and applications by allowing for more granular searches on smaller chunks 
+while giving |llm|\s the full context of the parent document.
+
+This retriever stores both the parent and child documents 
+in a single MongoDB collection, which supports efficient retrieval 
+by only having to compute and index the child documents' embeddings. 
+
+Under the hood, this retriever creates the following:
+
+- An instance of :ref:`MongoDBAtlasVectorSearch <langchain-vector-store>` to
+  handle vector search queries to the child documents.
+- An instance of :ref:`MongoDBDocStore <langchain-document-store>` to handle
+  storing and retrieving the parent documents.
+
+Usage
+`````
+
+.. code-block:: python
+
+   from langchain_mongodb.retrievers.parent_document import ParentDocumentRetriever
+   from langchain_text_splitters import RecursiveCharacterTextSplitter
+   from langchain_openai import OpenAIEmbeddings
+
+   retriever = MongoDBAtlasParentDocumentRetriever.from_connection_string(
+      connection_string = <connection-string>,           # Atlas connection string
+      embedding_model = OpenAIEmbeddings(),              # Embedding model to use
+      child_splitter = RecursiveCharacterTextSplitter(), # Text splitter to use
+      database_name = <database-name>,                   # Database to store the collection
+      collection_name = <collection-name>,               # Collection to store the collection
+      
+      # Additional vector store or parent class arguments...
+   )
+
+   # Define your query
+   query = "some search query"
+
+   # Print results
+   documents = retriever.invoke(query)
+   for doc in documents:
+      print(doc)
+      
+.. note::
+
+   - :ref:`Tutorial <langchain-parent-document>`
+   - `API Reference <https://langchain-mongodb.readthedocs.io/en/latest/langchain_mongodb/retrievers/langchain_mongodb.retrievers.parent_document.MongoDBAtlasParentDocumentRetriever.html>`__
 
 LLM Caches
 ----------
@@ -213,7 +269,7 @@ Usage
 
 .. note::
    
-   - `API Reference <https://python.langchain.com/api_reference/mongodb/cache/langchain_mongodb.cache.MongoDBCache.html>`__
+   - `API Reference <https://langchain-mongodb.readthedocs.io/en/latest/langchain_mongodb/cache/langchain_mongodb.cache.MongoDBCache.html>`__
    - `LangChain Documentation <https://python.langchain.com/docs/integrations/providers/mongodb_atlas/#mongodbcache>`__
 
 Semantic Cache
@@ -247,7 +303,7 @@ Usage
 
 .. note::
    
-   - `API Reference <https://python.langchain.com/api_reference/mongodb/cache/langchain_mongodb.cache.MongoDBAtlasSemanticCache.html>`__
+   - `API Reference <https://langchain-mongodb.readthedocs.io/en/latest/langchain_mongodb/cache/langchain_mongodb.cache.MongoDBAtlasSemanticCache.html>`__
    - `LangChain Documentation <https://python.langchain.com/docs/integrations/providers/mongodb_atlas/#mongodbatlassemanticcache>`__
 
 Document Loader
@@ -321,11 +377,46 @@ Usage
 
 .. note::
       
-   - `API Reference <https://python.langchain.com/api_reference/mongodb/chat_message_histories/langchain_mongodb.chat_message_histories.MongoDBChatMessageHistory.html>`__
+   - `API Reference <https://langchain-mongodb.readthedocs.io/en/latest/langchain_mongodb/chat_message_histories/langchain_mongodb.chat_message_histories.MongoDBChatMessageHistory.html>`__
    - `LangChain Documentation <https://python.langchain.com/docs/integrations/memory/mongodb_chat_message_history/>`__
 
+.. _langchain-document-store:
+
+Storage
+-------
+
+You can use the following custom data stores to manage and store data
+in MongoDB.
+
+Document Store
+~~~~~~~~~~~~~~
+
+``MongoDBDocStore`` is a custom key-value store that uses MongoDB to store
+and manage documents. You can perform CRUD operations as you would on
+any other MongoDB collection.
+
+Usage
+`````
+
+.. code-block:: python
+
+   from pymongo import MongoClient
+   from langchain_core.documents import Document
+   from langchain_mongodb.docstores import MongoDBDocStore
+
+   # Replace with your MongoDB connection string and namespace
+   connection_string = "<connection-string>" 
+   namespace = "<database-name>.<collection-name>"
+
+   # Initialize the MongoDBDocStore
+   docstore = MongoDBDocStore.from_connection_string(connection_string, namespace)
+   
+.. note::
+      
+   - `API Reference <https://langchain-mongodb.readthedocs.io/en/latest/langchain_mongodb/docstores/langchain_mongodb.docstores.MongoDBDocStore.html#langchain_mongodb.docstores.MongoDBDocStore>`__
+
 Binary Storage
---------------
+~~~~~~~~~~~~~~
 
 ``MongoDBByteStore`` is a custom datastore that uses MongoDB to store 
 and manage binary data, specifically data represented in bytes. 
@@ -333,8 +424,7 @@ You can perform CRUD operations with key-value pairs where
 the keys are strings and the values are byte sequences.
 
 Usage
-~~~~~
-
+`````
 .. code-block:: python
 
    from langchain.storage import MongoDBByteStore
@@ -382,4 +472,4 @@ MongoDB also provides the following developer resources:
 
    Get Started </atlas-vector-search/ai-integrations/langchain/get-started>
    Hybrid Search </atlas-vector-search/ai-integrations/langchain/hybrid-search>
-   
+   Parent Document Retrieval </atlas-vector-search/ai-integrations/langchain/parent-document-retrieval>

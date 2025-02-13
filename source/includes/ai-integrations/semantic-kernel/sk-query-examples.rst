@@ -5,7 +5,7 @@ relevant document and a :ref:`relevance score <scoring-ref>` between
 
 ..
    NOTE: If you edit this Python code, also update the Jupyter Notebook
-   at https://github.com/mongodb/docs-notebooks/blob/main/integrations/semantic-kernel.ipynb
+   at https://github.com/mongodb/docs-notebooks/blob/main/ai-integrations/semantic-kernel.ipynb
 
 .. io-code-block:: 
    :copyable: true 

@@ -17,7 +17,7 @@ that indexes the following fields:
 
 ..
    NOTE: If you edit this Python code, also update the Jupyter Notebook
-   at https://github.com/mongodb/docs-notebooks/blob/main/integrations/llamaindex.ipynb
+   at https://github.com/mongodb/docs-notebooks/blob/main/ai-integrations/llamaindex.ipynb
 
 .. code-block:: python
    :copyable: true 

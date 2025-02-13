@@ -7,7 +7,7 @@
 
          ..
             NOTE: If you edit this Python code, also update the Jupyter Notebook
-            at https://github.com/mongodb/docs-notebooks/blob/main/integrations/semantic-kernel.ipynb
+            at https://github.com/mongodb/docs-notebooks/blob/main/ai-integrations/semantic-kernel.ipynb
 
          .. code-block:: python
 
@@ -17,7 +17,7 @@
 
          ..
             NOTE: If you edit this Python code, also update the Jupyter Notebook
-            at https://github.com/mongodb/docs-notebooks/blob/main/integrations/semantic-kernel.ipynb
+            at https://github.com/mongodb/docs-notebooks/blob/main/ai-integrations/semantic-kernel.ipynb
 
          .. code-block:: python
 
@@ -42,7 +42,7 @@
 
       ..
          NOTE: If you edit this Python code, also update the Jupyter Notebook
-         at https://github.com/mongodb/docs-notebooks/blob/main/integrations/semantic-kernel.ipynb
+         at https://github.com/mongodb/docs-notebooks/blob/main/ai-integrations/semantic-kernel.ipynb
 
       .. code-block:: python
          OPENAI_API_KEY = "<api-key>"
