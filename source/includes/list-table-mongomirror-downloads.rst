@@ -15,8 +15,6 @@
      - `mongomirror-linux-x86_64-debian10-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-x86_64-debian10-{+mongomirror-version+}.tgz>`_
    * - macOS 64-bit
      - `mongomirror-osx-x86_64-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/osx/mongomirror-osx-x86_64-{+mongomirror-version+}.zip>`_
-   * - RHEL 6.2
-     - `mongomirror-linux-x86_64-rhel62-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-x86_64-rhel62-{+mongomirror-version+}.tgz>`_
    * - RHEL 7.0
      - `mongomirror-linux-x86_64-rhel70-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-x86_64-rhel70-{+mongomirror-version+}.tgz>`_
    * - RHEL 7.1 PPC64LE
@@ -31,8 +29,6 @@
      - `mongomirror-linux-x86_64-suse12-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-x86_64-suse12-{+mongomirror-version+}.tgz>`_
    * - SLES 15
      - `mongomirror-linux-x86_64-suse15-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-x86_64-suse15-{+mongomirror-version+}.tgz>`_
-   * - Ubuntu 14.04
-     - `mongomirror-linux-x86_64-ubuntu1404-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-x86_64-ubuntu1404-{+mongomirror-version+}.tgz>`_
    * - Ubuntu 16.04
      - `mongomirror-linux-x86_64-ubuntu1604-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-x86_64-ubuntu1604-{+mongomirror-version+}.tgz>`_
    * - Ubuntu 16.04 ARM
