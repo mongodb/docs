@@ -1,14 +1,10 @@
-|service| will deprecate ``M2`` and ``M5`` {+clusters+} and {+Serverless-instances+}
-in the near future. |service| will automatically migrate all ``M2`` and ``M5``
+|service| deprecated ``M2`` and ``M5`` {+clusters+} and {+Serverless-instances+}.
+In the near future, |service| will automatically migrate all ``M2`` and ``M5``
 {+clusters+} to {+Flex-clusters+}. For {+Serverless-instances+}, |service| will
 determine whether to migrate instances to {+Free-clusters+},
 {+Flex-clusters+}, or {+Dedicated-clusters+} according to your usage,
 then migrate your {+Serverless-instances+} automatically.
 
-The automatic migration of ``M2`` and ``M5`` {+clusters+} and {+Serverless-instances+}
-to {+Flex-clusters+} is seamless in |ak8so| without you having to make any
-migration changes, even though your CRD configurations might still contain parameters
-that are EOL. 
 
 To preserve backwards compatibility of the APIs for a period of time, |service|
 will continue to allow for these migrated {+clusters+} to be managed

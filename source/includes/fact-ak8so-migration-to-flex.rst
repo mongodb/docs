@@ -1,5 +1,5 @@
-|service| will deprecate ``M2`` and ``M5`` {+clusters+} and
-{+Serverless-instances+} in the near future. |service| will
+|service| deprecated ``M2`` and ``M5`` {+clusters+} and
+{+Serverless-instances+}. |service| will
 automatically migrate all ``M2`` and ``M5`` {+clusters+}
 to {+Flex-clusters+}. 
 For {+Serverless-instances+}, |service| will
