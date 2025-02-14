@@ -28,20 +28,19 @@
 
      - Kill all sessions.
 
-     - No support for :atlas:`M0, M2, M5 </unsupported-commands/#unsupported-commands>` 
-       and :atlas:`M10 clusters </unsupported-commands/#unsupported-commands-1>`. 
+     - .. include:: /includes/fact-no-support-free-flex-or-m10.rst
 
    * - :dbcommand:`killAllSessionsByPattern`
 
      - Kill all sessions that match the specified pattern
      
-     - No support for :atlas:`M0, M2, and M5 clusters </unsupported-commands/#unsupported-commands>`.
+     - .. include:: /includes/fact-no-support-free-or-flex.rst
 
    * - :dbcommand:`killSessions`
 
      - Kill specified sessions.
 
-     - No support for :atlas:`M0, M2, and M5 clusters </unsupported-commands/#unsupported-commands>`.
+     - .. include:: /includes/fact-no-support-free-or-flex.rst
 
    * - :dbcommand:`refreshSessions`
 
