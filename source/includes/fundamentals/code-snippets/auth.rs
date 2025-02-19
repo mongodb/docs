@@ -74,12 +74,14 @@ async fn main() -> mongodb::error::Result<()> {
 
     // start-x509
     let uri = format!(
-        "mongodb://<hostname>:<port>/?tlsCAFile={tlsCAFile}&tlsCertificateKeyFile={tlsCertificateKeyFile}",
+        "mongodb://<hostname>:<port>/?tlsCAFile={tlsCAFile}\
+        &tlsCertificateKeyFile={tlsCertificateKeyFile}\
+        &tlsCertificateKeyFilePassword={tlsCertificateKeyFilePassword}",
         tlsCAFile = "<path to CA certificate>",
         tlsCertificateKeyFile = "<path to private client key>"
     );
     let mut client_options = ClientOptions::parse(uri).await?;
-    let x509_cred = Credential::builder().mechanism(AuthMechanism::MongoDbAws).build();
+    let x509_cred = Credential::builder().mechanism(AuthMechanism::MongoDbX509).build();
 
     client_options.credential = Some(x509_cred);
     let client = Client::with_options(client_options)?;
