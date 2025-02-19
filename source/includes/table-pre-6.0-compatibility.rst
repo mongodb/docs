@@ -1,7 +1,7 @@
 .. list-table:: 
    :header-rows: 1
    :stub-columns: 1
-   :widths: 30 14 14 14 
+   :widths: 20 14 14 14 
 
    * -
      - **6.0 Destination** 
@@ -30,5 +30,5 @@
    * - **8.0 Source**
      -
      -
-     -
+     - √
 
