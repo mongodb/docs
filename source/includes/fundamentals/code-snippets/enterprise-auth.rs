@@ -60,6 +60,23 @@ async fn main() -> mongodb::error::Result<()> {
         .await?;
     // end-gcp-imds
 
+    // start-kubernetes
+    let credential = Credential::builder()
+    .mechanism(AuthMechanism::MongoDbOidc)
+    .mechanism_properties(
+        doc! { "ENVIRONMENT": "k8s" }
+    )
+    .build();
+
+    client_options.credential = Some(credential);
+    let client = Client::with_options(client_options)?;
+    let res = client
+        .database("test")
+        .collection::<Document>("test")
+        .find_one(doc! {})
+        .await?;
+    // end-kubernetes
+
     // start-custom-callback-machine
     let credential = Credential::builder()
     .mechanism(AuthMechanism::MongoDbOidc)
