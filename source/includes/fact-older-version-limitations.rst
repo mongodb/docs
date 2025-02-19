@@ -28,8 +28,9 @@
 - :ref:`/reverse <c2c-api-reverse>` endpoint is not supported. You can't 
   enable the ``reversible`` option in the :ref:`/start <c2c-api-start>` request.
 
-- You can't set the ``enableUserWriteBlocking`` option to ``true``
-  in the ``/start`` request, so dual write-blocking is not supported. 
+- You can't set the ``enableUserWriteBlocking`` option to
+  ``"sourceAndDestination"`` in the ``/start`` request, so dual write-blocking 
+  is not supported. 
   Destination-only write-blocking is supported. Ensure that no writes are 
   made to the source cluster after you call the ``/commit`` endpoint.
 

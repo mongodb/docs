@@ -15,11 +15,11 @@ If you enable dual write-blocking, ``mongosync`` blocks writes:
 - On the source cluster after you call ``/commit``
 
 To enable dual write-blocking, use :ref:`/start <c2c-api-start>`
-to set ``enableUserWriteBlocking`` to ``true``.
+to set ``enableUserWriteBlocking`` to ``"sourceAndDestination"``.
 
 You can use
 :ref:`/start <c2c-api-start>`
-to set ``enableUserWriteBlocking`` to ``false``.
+to set ``enableUserWriteBlocking`` to ``"none"``.
 
 You cannot enable dual write-blocking or disable
 write-blocking after the sync starts.
