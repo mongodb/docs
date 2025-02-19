@@ -75,8 +75,7 @@ async fn main() -> mongodb::error::Result<()> {
     // start-x509
     let uri = format!(
         "mongodb://<hostname>:<port>/?tlsCAFile={tlsCAFile}\
-        &tlsCertificateKeyFile={tlsCertificateKeyFile}\
-        &tlsCertificateKeyFilePassword={tlsCertificateKeyFilePassword}",
+        &tlsCertificateKeyFile={tlsCertificateKeyFile}",
         tlsCAFile = "<path to CA certificate>",
         tlsCertificateKeyFile = "<path to private client key>"
     );
