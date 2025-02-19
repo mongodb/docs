@@ -1,6 +1,6 @@
-=======================
-$setUnion (aggregation)
-=======================
+=========
+$setUnion
+=========
 
 .. default-domain:: mongodb
 
@@ -13,30 +13,107 @@ $setUnion (aggregation)
 Definition
 ----------
 
-.. expression:: $setUnion
+Takes two or more arrays and returns a single array containing the 
+unique elements that appear in any input array. ``$setUnion`` can be 
+used as an aggregation accumulator or an array operator.
 
-   Takes two or more arrays and returns an array containing the
-   elements that appear in any input array.
+Aggregation Accumulator
+-----------------------
+.. group:: $setUnion
 
-   :expression:`$setUnion` has the following syntax:
+``$setUnion`` is available as an accumulator in these stages:
 
-   .. code-block:: javascript
+- :pipeline:`$bucket`
+- :pipeline:`$bucketAuto`
+- :pipeline:`$group`
+- :pipeline:`$setWindowFields`
 
-      { $setUnion: [ <expression1>, <expression2>, ... ] }
+.. _setUnion-syntax:
 
-   The arguments can be any valid :ref:`expression
-   <aggregation-expressions>` as long as they each resolve to an array.
-   For more information on expressions, see
-   :ref:`aggregation-expressions`.
+Syntax
+~~~~~~
+
+When used as an aggregation accumulator, ``$setUnion`` has the following
+syntax:
+
+.. code-block:: javascript
+
+   { $setUnion: "<array field>" }
+
+
+.. _setUnion-behavior:
 
 Behavior
---------
+~~~~~~~~
+
+.. |set-operator-name| replace:: :group:`$setUnion`
+
+.. include:: /includes/important-set-operator-semantics.rst
+
+.. include:: /includes/fact-setUnion-non-recursive.rst
+
+.. include:: /includes/fact-agg-accumulator-null-missing-behavior.rst
+
+Example
+~~~~~~~
+
+.. include:: /includes/concatArrays-setUnion-accum-example-setup.rst
+
+This example shows how you can use ``$setUnion`` as an accumulator. This 
+example accumulates all the unique elements in the ``items`` arrays when 
+grouping on the ``location`` field:
+
+.. code-block:: javascript
+
+   db.sales.aggregate( [ 
+      {
+         $group: {
+            _id: "$location",
+            array: { "$setUnion": "$items" }
+         }
+      }
+   ] )
+
+The operation returns the following result:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      {
+         "_id": "NYC",
+         "array": [
+             "laptop", "tablet", "phone", "desktop", { "accessories": [ "mouse", "keyboard"] }
+         ]
+      }
+   ]
+
+
+Array Operator
+--------------
+.. expression:: $setUnion
+
+Syntax
+~~~~~~
+
+When used as an array operator, ``$setUnion`` has the following syntax:
+
+.. code-block:: javascript
+
+   { 
+      $setUnion: [ <expression1>, <expression2>, ... ] 
+   }
+
+Behavior
+~~~~~~~~
 
 .. |set-operator-name| replace:: :expression:`$setUnion`
 
 .. include:: /includes/important-set-operator-semantics.rst
 
-.. include:: /includes/extracts/fact-agg-top-level-expressions-setUnion.rst
+.. include:: /includes/args-can-be-expressions.rst
+
+.. include:: /includes/fact-setUnion-non-recursive.rst
 
 .. list-table::
    :header-rows: 1
@@ -44,7 +121,6 @@ Behavior
    :class: border-table
 
    * - Example
-
      - Result
 
    * - .. code-block:: javascript
@@ -67,13 +143,8 @@ Behavior
 
           [ [ "a", "b" ], "b", "a" ]
 
-.. note::
-
-   Starting in MongoDB 5.2, the sort order for :expression:`$setUnion`
-   is undefined. To sort an array, refer to :expression:`$sortArray`.
-
 Example
--------
+~~~~~~~
 
 Consider an ``flowers`` collection with the following documents:
 
@@ -90,7 +161,6 @@ Consider an ``flowers`` collection with the following documents:
       { "_id" : 8, "flowerFieldA" : [ ], "flowerFieldB" : [ ] },
       { "_id" : 9, "flowerFieldA" : [ ], "flowerFieldB" : [ "rose" ] }
    ] ) 
-
 
 The following operation uses the :expression:`$setUnion` operator to
 return an array of elements found in the ``flowerFieldA`` array or the
@@ -119,3 +189,18 @@ The operation returns the following results:
    { "flowerFieldA": [ ], "flowerFieldB": [ ], "allValues": [ ] }
    { "flowerFieldA": [ ], "flowerFieldB": [ "rose" ], "allValues": [ "rose" ] }
 
+Limitations
+-----------
+
+- ``$setUnion`` only supports arrays and expressions that resolve to an 
+  array.
+- ``$setUnion`` does not guarantee the order of the elements in the 
+  output array.
+
+Learn More
+----------
+
+- :pipeline:`$bucket`
+- :pipeline:`$bucketAuto`
+- :pipeline:`$group`
+- :pipeline:`$setWindowFields`
