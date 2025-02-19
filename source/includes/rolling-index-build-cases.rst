@@ -9,3 +9,10 @@ deployment matches one of the following cases:
 
    If your deployment does not meet this criteria, use the
    :ref:`default index build <index-operations>`. 
+
+.. tip::
+
+   With Atlas, you can temporarily `scale <https://www.mongodb.com/docs/atlas/scale-cluster/>`_
+   your cluster to meet the requirements for a traditional index build. However, 
+   Atlas charges to scale your cluster. See `Cluster Configuration Costs <https://www.mongodb.com/docs/atlas/billing/cluster-configuration-costs/>`_ 
+   for more information. 
