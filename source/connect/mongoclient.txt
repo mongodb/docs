@@ -168,13 +168,60 @@ constructor accepts. All parameters are optional.
 
        **Data type:** `TypeRegistry <{+api-root+}bson/codec_options.html#bson.codec_options.TypeRegistry>`__
 
-.. tip:: Reusing Your Client
+Concurrent Execution
+--------------------
 
-   Because each ``MongoClient`` object represents a pool of connections to the
-   database, most applications require only a single instance of
-   ``MongoClient``, even across multiple requests. However, if you fork
-   a process, the child process *does* need its own ``MongoClient`` object.
-   To learn more, see the :ref:`FAQ <pymongo-faq>` page.
+The following sections describe {+driver-short+}'s support for concurrent execution
+mechanisms.
+
+Multithreading
+~~~~~~~~~~~~~~
+
+{+driver-short+} is thread-safe and provides built-in connection pooling
+for threaded applications. 
+Because each ``MongoClient`` object represents a pool of connections to the
+database, most applications require only a single instance of
+``MongoClient``, even across multiple requests.
+
+.. _pymongo-forks:
+
+Multiple Forks
+~~~~~~~~~~~~~~~
+
+{+driver-short+} supports calling the ``fork()`` method to create a new process. 
+However, if you fork a process, you must create a new ``MongoClient`` instance in the
+child process.
+
+.. important:: Don't Pass a MongoClient to a Child Process
+
+   If you use the ``fork()`` method to create a new process, don't pass an instance
+   of the ``MongoClient`` class from the parent process to the child process. This creates
+   a high probability of deadlock among ``MongoClient`` instances in the child process.
+   {+driver-short+} tries to issue a warning if this deadlock might occur.
+
+Multiprocessing
+~~~~~~~~~~~~~~~
+
+{+driver-short+} supports the Python ``multiprocessing`` module.
+However, on Unix systems, the multiprocessing module spawns processes by using
+the ``fork()`` method. This carries the same risks described in :ref:`<pymongo-forks>`
+
+To use multiprocessing with {+driver-short+}, write code similar to the following example:
+
+.. code-block:: python
+
+   # Each process creates its own instance of MongoClient.
+   def func():
+       db = pymongo.MongoClient().mydb
+       # Do something with db.
+
+   proc = multiprocessing.Process(target=func)
+   proc.start()
+
+.. important::
+   
+   Do not copy an instance of the ``MongoClient`` class from the parent process to a child
+   process.
 
 Type Hints
 ----------
