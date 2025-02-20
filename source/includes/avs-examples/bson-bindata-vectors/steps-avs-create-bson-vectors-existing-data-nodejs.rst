@@ -84,8 +84,6 @@
          Cohere API Key, replace the ``<COHERE-API-KEY>``
          placeholder and save the file. 
 
-         you didn't set the environment variable and save the file. 
-
       #. Run the code to generate the embeddings.
 
          .. io-code-block::
