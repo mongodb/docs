@@ -29,7 +29,7 @@
 
   - To find the password for the |mms| project's {+mdbagent+} user, use
     one of the following methods:
-
+  
     .. tabs::
 
        .. tab:: Using the UI
@@ -59,30 +59,30 @@
           :tabid: file
       
           Open the :setting:`mmsConfigBackup` file in your preferred text editor and find the ``autoPwd`` value.
+   
+  - In {+mongosh+}, use the :method:`db.createUser()` method to add the 
+    |mms| project's {+mdbagent+} user to the MongoDB process.
+    For example, if the |mms| project uses :doc:`Username/Password 
+    </tutorial/enable-mongodbcr-authentication-for-group>` authentication, 
+    run the following command to add the ``mms-automation`` user to
+    the ``admin`` database in the MongoDB deployment to import:
+    
+    .. code-block:: javascript
 
-    .. example::
-
-        If the |mms| project is using :doc:`Username/Password 
-        </tutorial/enable-mongodbcr-authentication-for-group>`
-        authentication, add the
-        project's |mms| {+mdbagent+}s User ``mms-automation`` to
-        the ``admin`` database in the MongoDB deployment to import.
-
-        .. code-block:: javascript
-
-          db.getSiblingDB("admin").createUser(
-              {
-                user: "mms-automation",
-                pwd: <password>,
-                roles: [
-                  'clusterAdmin',
-                  'dbAdminAnyDatabase',
-                  'readWriteAnyDatabase',
-                  'userAdminAnyDatabase',
-                  'restore',
-                  'backup'
-                ]
-              }
+       db.getSiblingDB("admin").createUser(
+         {
+           user: "mms-automation",
+           pwd: "<password>",
+           roles: [
+             'clusterAdmin',
+             'dbAdminAnyDatabase',
+             'readWriteAnyDatabase',
+             'userAdminAnyDatabase',
+             'restore',
+             'backup'
+           ]
+         }
+       )
 
 - When you add a cluster under |mms|, |mms| automatically enables log
   :manual:`rotation </tutorial/rotate-log-files/>`, which could collide
