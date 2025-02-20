@@ -79,6 +79,13 @@ must:
 
 .. include:: /includes/fact-azure-kms-prereqs.rst
 
+- If your :guilabel:`App registrations` use `conditional access 
+  policies <https://learn.microsoft.com/en-us/entra/identity/conditional-access/workload-identity>`__,
+  which is uncommon, you must :ref:`allow requests from Atlas 
+  Control Plane IP addresses <atlas-add-inbound-ips>` for app
+  registration. This is used only for app registration and not used 
+  for key vault access. 
+
 .. note:: 
 
    You must register **Microsoft.Network** under your |azure|
@@ -102,23 +109,33 @@ You must enable |cmk| for a project before you can enable it on a
    .. tab:: Atlas UI 
       :tabid: ui
 
-      .. include:: /includes/steps-configure-azure-encryption-for-project-ui.rst
+      .. include:: /includes/ear/steps-configure-azure-encryption-for-project-ui.rst
 
    .. tab:: Atlas Admin API 
       :tabid: api
 
-      .. include:: /includes/steps-configure-azure-encryption-for-project-api.rst  
+      .. include:: /includes/ear/steps-configure-azure-encryption-for-project-api.rst  
 
 .. _azure-kms-enable-pvt-endpoint:
 
 Enable and Set up Private Endpoint Connections for a Project 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can enable and set up private endpoint only by using the 
+You can enable and set up private endpoints by using the {+atlas-ui+} and 
 {+atlas-admin-api+}. To enable private networking and set up a private
 endpoint in your |akv|, you must do the following: 
 
-.. include:: /includes/steps-azure-enable-private-endpoint-connections.rst
+.. tabs::    
+
+   .. tab:: Atlas UI 
+      :tabid: ui
+
+      .. include:: /includes/ear/steps-azure-enable-private-endpoint-connections-ui.rst
+
+   .. tab:: Atlas Admin API 
+      :tabid: apizure-view-pvt-endpoints
+
+      .. include:: /includes/ear/steps-azure-enable-private-endpoint-connections-api.rst
 
 After you enable Encryption at Rest Using |cmk| (Over Private
 Networking) for your project, you can enable :ref:`Encryption at Rest 
@@ -172,67 +189,139 @@ disable the feature for the project.
    management within the |service| project. If |service| can't access
    an |akv| key, any data that the key encrypted becomes inaccessible.
 
+.. _azure-kms-create-pvt-endpoint:
+
+Create New Endpoints for a Project
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After enabling and setting up private endpoint connections for your
+project, you can add additional endpoints at anytime from the
+{+atlas-ui+} and the {+atlas-admin-api+}. 
+
+.. tabs:: 
+
+   .. tab:: Atlas UI 
+      :tabid: ui
+
+      .. include:: /includes/ear/steps-azure-create-private-endpoints-ui.rst
+
+   .. tab:: Atlas Admin API 
+      :tabid: api
+
+      .. include:: /includes/ear/steps-azure-create-private-endpoints-api.rst
+
 .. _azure-remove-reject-pvt-endpoint:
 
 Reject or Remove Private Endpoint Connection
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To successfully remove a private endpoint, send a ``DELETE`` request to
-the {+atlas-admin-api+} :oas-atlas-op:`endpoint
-</requestEncryptionAtRestPrivateEndpointDeletion>` and specify the ID of
-the project and of the private endpoint that you want to delete. You can 
-retrieve the ID of the private endpoint that you want to delete by sending 
-a ``GET`` request to the {+atlas-admin-api+} :oas-atlas-op:`Return One Private 
-Endpoint Service for One Provider 
-</Private-Endpoint-Services/operation/getPrivateEndpointService>` endpoint.
+You can remove private endpoint connections from the {+atlas-ui+} and
+the {+atlas-admin-api+}. 
 
-.. example:: 
+.. tabs:: 
 
-   .. code-block:: json
-      
-      curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-      --header "Accept: application/vnd.atlas.2024-10-23+json" \\ or a different version of the Atlas Admin API
-      --header "Content-Type: application/json" \
-      --include \
-      --request DELETE "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/encryptionAtRest/AZURE/privateEndpoints/{endpointId}" \ 
-      --data '
-        {
-          "cloudProvider": "AZURE",
-          "regions": [
-            "string"
-          ]
-        }'
+   .. tab:: Atlas UI 
+      :tabid: ui
 
-When you delete a private endpoint by using the {+atlas-admin-api+}, the
-private endpoint transitions to the ``DELETING`` status while |service|
-deletes the private endpoint.
+      .. |ear-key-provider| replace:: :guilabel:`Azure Key Vault`
+
+      .. include:: /includes/ear/steps-delete-ear-private-endpoint-connections-ui.rst
+
+   .. tab:: Atlas Admin API 
+      :tabid: api
+
+      To remove a private endpoint, send a ``DELETE`` request to
+      the {+atlas-admin-api+} :oas-atlas-op:`endpoint
+      </requestEncryptionAtRestPrivateEndpointDeletion>` and specify the ID of
+      the project and of the private endpoint that you want to delete. You can 
+      retrieve the ID of the private endpoint that you want to delete by sending 
+      a ``GET`` request to the {+atlas-admin-api+} :oas-atlas-op:`Return One Private 
+      Endpoint Service for One Provider 
+      </Private-Endpoint-Services/operation/getPrivateEndpointService>` endpoint.
+
+      .. example:: 
+
+         .. code-block:: json
+            
+            curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+            --header "Accept: application/vnd.atlas.2024-10-23+json" \\ or a different version of the Atlas Admin API
+            --header "Content-Type: application/json" \
+            --include \
+            --request DELETE "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/encryptionAtRest/AZURE/privateEndpoints/{endpointId}" \ 
+            --data '
+            {
+               "cloudProvider": "AZURE",
+               "regions": [
+                  "string"
+               ]
+            }'
+
+When you delete a private endpoint, the private endpoint transitions to
+the ``DELETING`` status while |service| deletes the private endpoint.
 
 If you remove or reject an active private endpoint from the |azure| UI,
 |service| automatically attempts to recreate a new private endpoint in
-the same region. You can check the status of the private endpoint by
-sending a ``GET`` request to the {+atlas-admin-api+}
-``encryptionAtRest`` :oas-atlas-op:`get all </getEncryptionAtRestPrivateEndpointsForCloudProvider>` 
-endpoint or :oas-atlas-op:`get one </getEncryptionAtRestPrivateEndpoint>` 
-endpoint, for which you must specify the ID of the private endpoint
-in the path. 
+the same region. You can check the status of the private endpoint from
+the {+atlas-ui+} and the {+atlas-admin-api+}. To learn more, see
+:ref:`azure-view-pvt-endpoints`. 
 
-.. example:: Return All Private Endpoints for One Project
-
-   .. code-block:: 
-      :copyable: true
-
-      
-      curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-      --header "Accept: application/vnd.atlas.2024-10-23+json" \\ or a different version of the Atlas Admin API
-      --header "Content-Type: application/json" \
-      --include \
-      --request GET "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/encryptionAtRest/AZURE/privateEndpoints/"      
-      
 While |service| attempts to create a new private endpoint, the status of
 the private endpoint that you rejected or removed transitions to
 ``PENDING_RECREATION`` and the new endpoint that |service| attempts to
 create is in ``INITIATING`` state. You must approve the new private
 endpoint after it is created. 
+
+.. _azure-view-pvt-endpoints:
+
+View Private Endpoints and their Statuses 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can view the private endpoints in the various regions and their
+statuses from the {+atlas-ui+} and the {+atlas-admin-api+}. 
+
+.. tabs:: 
+
+   .. tab:: Atlas UI 
+      :tabid: ui
+
+      .. |ear-key-provider| replace:: :guilabel:`Azure Key Vault`
+
+      .. procedure:: 
+         :style: normal
+
+         .. include:: /includes/nav/steps-advanced.rst
+
+         .. include:: /includes/ear/steps-ear-pvt-endpoints-mgmnt-page.rst
+
+      Each private endpoint can be in one of the following statuses:
+
+      .. include:: /includes/list-tables/azure-pvt-endpoint-statuses-ui.rst
+
+   .. tab:: Atlas Admin API 
+      :tabid: api
+
+      You can view the private endpoint and their statuses from the
+      {+atlas-admin-api+} by sending a ``GET`` request to the
+      {+atlas-admin-api+} ``encryptionAtRest`` 
+      :oas-atlas-op:`get all </getEncryptionAtRestPrivateEndpointsForCloudProvider>` 
+      endpoint or :oas-atlas-op:`get one </getEncryptionAtRestPrivateEndpoint>` 
+      endpoint, for which you must specify the ID of the private endpoint
+      in the path. 
+
+      .. example:: Return All Private Endpoints for One Project
+
+         .. code-block:: 
+            :copyable: true
+            
+            curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+            --header "Accept: application/vnd.atlas.2024-10-23+json" \\ or a different version of the Atlas Admin API
+            --header "Content-Type: application/json" \
+            --include \
+            --request GET "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/encryptionAtRest/AZURE/privateEndpoints/"      
+
+      Each private endpoint can be in one of the following statuses:
+
+      .. include:: /includes/list-tables/azure-pvt-endpoint-statuses-api.rst
 
 .. _azure-disable-pvt-endpoint:
 
@@ -246,31 +335,45 @@ doesn't disable private endpoint connections for a project if the
 project is associated with active private endpoints.
 
 After removing all private endpoints for a project, you can disable
-private endpoint connections for the project by using the
-{+atlas-admin-api+}. To disable a private endpoint connection, send a 
-``PATCH`` request to the :oas-atlas-op:`endpoint
-</updateEncryptionAtRest>` with the ``requirePrivateNetworking`` boolean
-flag value set to ``false``.
+private endpoint connections for the project by using the {+atlas-ui+}
+and the {+atlas-admin-api+}. 
 
-.. example:: 
+.. tabs:: 
 
-   .. code-block:: shell 
-      :emphasize-lines: 8
+   .. tab:: Atlas UI 
+      :tabid: ui
 
-      {
-        "azureKeyVault": {
-          "azureEnvironment": "AZURE",
-          "clientID": "632ff709-32a8-48a3-8224-30d2386fadaf",
-          "enabled": true,
-          "keyIdentifier": "https://EXAMPLEKeyVault.vault.azure.net/keys/EXAMPLEKey/d891821e3d364e9eb88fbd3d11807b86",
-          "keyVaultName": "string",
-          "requirePrivateNetworking": false,
-          "resourceGroupName": "string",
-          "secret": "string",
-          "subscriptionID": "a39012fb-d604-4cd1-8841-77f705f3e6d5",
-          "tenantID": "ee46317d-36a3-4472-a3dd-6549e901da0b"
-        }
-      }
+      .. |ear-key-provider| replace:: :guilabel:`Azure Key Vault`
+
+      .. include:: /includes/ear/steps-disable-ear-private-endpoint-connections-ui.rst
+
+   .. tab:: Atlas Admin API 
+      :tabid: api
+
+      To disable a private endpoint connection, send a 
+      ``PATCH`` request to the :oas-atlas-op:`endpoint
+      </updateEncryptionAtRest>` with the ``requirePrivateNetworking`` boolean
+      flag value set to ``false``.
+
+      .. example:: 
+
+         .. code-block:: shell 
+            :emphasize-lines: 8
+
+            {
+              "azureKeyVault": {
+                "azureEnvironment": "AZURE",
+                "clientID": "632ff709-32a8-48a3-8224-30d2386fadaf",
+                "enabled": true,
+                "keyIdentifier": "https://EXAMPLEKeyVault.vault.azure.net/keys/EXAMPLEKey/d891821e3d364e9eb88fbd3d11807b86",
+                "keyVaultName": "string",
+                "requirePrivateNetworking": false,
+                "resourceGroupName": "string",
+                "secret": "string",
+                "subscriptionID": "a39012fb-d604-4cd1-8841-77f705f3e6d5",
+                "tenantID": "ee46317d-36a3-4472-a3dd-6549e901da0b"
+              }
+            }
 
 Revoke Access to an Encryption Key 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
