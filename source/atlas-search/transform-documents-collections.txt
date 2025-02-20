@@ -1,0 +1,365 @@
+.. _fts-transform-documents-collections:
+
+====================================================================================
+Use MongoDB Views to Transform Documents and Filter Collections for |fts|
+====================================================================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Use Atlas Search to transform documents and collections.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. |product-name| replace:: |fts|
+
+You can create an |fts| index on a :manual:`View 
+</core/views/>` to transform documents and collections so that you can 
+partially index a collection, support incompatible data types or 
+data models, and more.
+
+.. include:: /includes/fact-partial-indexing-preview.rst
+
+The following examples use the :ref:`sample_mflix <sample-mflix>` 
+and :ref:`sample_airbnb <sample-airbnb>` sample databases.
+
+.. include:: /includes/fact-view-disambiguation.rst
+
+.. include:: /includes/fact-partial-indexing-reqs.rst
+
+  - To retrieve the transformed document, use the ``storedSource`` 
+    :ref:`option <index-definition-options>`.
+
+Example: Filter Documents
+-------------------------
+
+To create a View, you must have the :authaction:`createCollection` 
+privilege.
+
+You can partially index a collection to filter documents. The following 
+example creates a View on the ``sample_mflix.movies`` collection so 
+that you can search for only movies released after January 1, 
+2000.
+
+.. |search-type| replace:: :guilabel:`Atlas Search`
+.. |index-name| replace:: ``releasedAfter2000Index``
+.. |database-name| replace:: ``sample_mflix``
+.. |collection-name| replace:: ``movies_ReleasedAfter2000``
+.. |source-collection| replace:: ``movies``
+
+.. procedure::
+   :style: normal
+
+   .. step:: Connect to the |service| {+cluster+} using {+mongosh+}. 
+
+      To learn more, see :ref:`connect-mongo-shell`.
+
+   .. step:: Switch to the ``sample_mflix`` database.
+
+      .. code-block:: sh
+
+         use sample_mflix
+
+   .. step:: Create a ``movies_ReleasedAfter2000`` View.
+
+      .. code-block:: sh
+
+         db.createView(
+           "movies_ReleasedAfter2000",
+           "movies",
+           [
+             {
+               $match: {
+                 $expr: {
+                   $gt: [
+                     "$released",
+                     ISODate("2000-01-01")
+                   ]
+                 }
+               }
+             }
+           ]
+         )
+
+   .. include:: /includes/nav/steps-db-deployments-page.rst
+
+   .. include:: /includes/nav/steps-atlas-search.rst
+
+   .. include:: /includes/nav/steps-configure-index.rst
+      
+   .. include:: /includes/steps-fts-finish-index-creation.rst
+
+   .. step:: Run a query on the ``releasedAfter2000Index`` partial index.
+
+      .. include:: /includes/fact-partial-indexing-query.rst
+
+      .. code-block:: sh
+
+         use sample_mflix
+      
+      .. io-code-block::
+         :copyable: true 
+         
+         .. input:: 
+            :language: sh
+            :linenos:
+
+            db.movies.aggregate([
+              {
+                $search: {
+                  index: "releasedAfter2000Index",
+                  text: {
+                    path: "title",
+                    query: "foo"
+                  },
+                  sort: {
+                    released: 1	
+                  }
+                }
+              }
+            ])
+
+         .. output::
+            :language: sh
+            :visible: false
+
+            [
+              {
+                _id: ObjectId('573a13d2f29313caabd929f8'),
+                plot: "Rising from the ashes of Nirvana, the Foo Fighters became a Grammy-winning sensation on their own. Sixteen years of the band's history comes to life in this documentary, from their demo ...",
+                genres: [ 'Documentary', 'Music' ],
+                runtime: 150,
+                cast: [
+                  'Shawn Cloninger',
+                  'William Goldsmith',
+                  'Jessy Greene',
+                  'Dave Grohl'
+                ],
+                num_mflix_comments: 0,
+                poster: 'https://m.media-amazon.com/images/M/MV5BMzE4OTczMTgxM15BMl5BanBnXkFtZTcwNTU1NjQxOA@@._V1_SY1000_SX677_AL_.jpg',
+                title: 'Foo Fighters: Back and Forth',
+                fullplot: `Rising from the ashes of Nirvana, the Foo Fighters became a Grammy-winning sensation on their own. Sixteen years of the band's history comes to life in this documentary, from their demo tapes through the creation of their 2011 album, "Wasting Light."`,
+                languages: [ 'English' ],
+                released: ISODate('2011-04-05T00:00:00.000Z'),
+                directors: [ 'James Moll' ],
+                awards: { wins: 1, nominations: 1, text: '1 win & 1 nomination.' },
+                lastupdated: '2015-08-19 00:00:25.937000000',
+                year: 2011,
+                imdb: { rating: 8.4, votes: 3745, id: 1853563 },
+                countries: [ 'USA' ],
+                type: 'movie',
+                tomatoes: {
+                  viewer: { rating: 4.4, numReviews: 857, meter: 96 },
+                  dvd: ISODate('2011-08-08T00:00:00.000Z'),
+                  website: 'http://us.foofightersfilm.com/',
+                  production: 'Cinedigm Digital Cinema',
+                  lastUpdated: ISODate('2015-09-12T18:42:01.000Z')
+                }
+              }
+            ]   
+
+Example: Add or Modify Fields
+-----------------------------
+
+The following example lets you search the
+``sample_airbnb.listingsAndReviews`` collection for accomodatations 
+based on a new ``totalPrice`` field, which is the sum of the ``price`` 
+and ``cleaningFee`` fields.  Also, since |fts| doesn't support 
+``Decimal128`` types, we transform the values to ``Double``.
+
+.. |search-type| replace:: :guilabel:`Atlas Search`
+.. |index-name| replace:: ``totalPriceIndex``
+.. |database-name| replace:: ``sample_airbnb``
+.. |collection-name| replace:: ``listingsAndReviews_totalPrice``
+.. |source-collection| replace:: ``listingsAndReviews``
+
+.. procedure::
+   :style: normal
+
+   .. step:: Connect to the |service| {+cluster+} using {+mongosh+}. 
+
+      To learn more, see :ref:`connect-mongo-shell`.
+
+   .. step:: Switch to the ``sample_airbnb`` database.
+
+      .. code-block:: sh
+
+         use sample_airbnb
+
+   .. step:: Create a ``listingsAndReviews_totalPrice`` View.
+
+      .. code-block:: sh
+
+         db.createView(
+           "listingsAndReviews_totalPrice",
+           "listingsAndReviews",
+           [
+             {
+               $addFields: {
+                 totalPrice: {
+                   $add: [
+                     {
+                       $ifNull: [{ $toDouble: "$price" }, 0]
+                     },
+                     {
+                       $ifNull: [{ $toDouble: "$cleaning_fee" }, 0]
+                     }
+                   ]
+                 }
+               }
+             }
+           ]
+         )
+
+   .. include:: /includes/nav/steps-db-deployments-page.rst
+
+   .. include:: /includes/nav/steps-atlas-search.rst
+
+   .. include:: /includes/nav/steps-configure-index.rst
+      
+   .. step:: Specify an index definition.
+      
+      a. Specify the following index definition:
+      
+         .. code-block:: json 
+                        
+            {
+              "mappings": {
+                "dynamic": true
+              },
+              "storedSource": {
+                "include": [
+                  "totalPrice"
+                ]
+              }
+            }
+      
+      #. Click :guilabel:`Next`.
+
+   .. include:: /includes/steps-fts-finish-index-creation.rst
+   
+   .. step:: Run a query on the ``totalPriceIndex`` index.
+
+      .. include:: /includes/fact-partial-indexing-query.rst
+
+      .. code-block:: sh
+
+         use sample_airbnb
+
+      .. io-code-block::
+         :copyable: true 
+         
+         .. input:: 
+            :language: sh
+            :linenos:
+
+            db.listingsAndReviews.aggregate([
+              {
+                $search: {
+                  index: "totalPriceIndex",
+                  range: {
+                    path: "totalPrice",
+                    lte: 300
+                  },
+                  returnStoredSource: true
+                }
+              }
+            ])
+
+         .. output::
+            :language: sh
+            :visible: false
+
+            [
+              { _id: '10006546', totalPrice: 115 },
+              { _id: '1001265', totalPrice: 215 },
+              { _id: '10021707', totalPrice: 40 },
+              { _id: '1003530', totalPrice: 270 },
+              { _id: '10038496', totalPrice: 269 },
+              { _id: '10051164', totalPrice: 250 },
+              { _id: '10057447', totalPrice: 50 },
+              { _id: '10057826', totalPrice: 205 },
+              { _id: '10059244', totalPrice: 43 },
+              { _id: '10066928', totalPrice: 140 },
+              { _id: '10082422', totalPrice: 60 },
+              { _id: '10083468', totalPrice: 40 },
+              { _id: '10084023', totalPrice: 231 },
+              { _id: '10091713', totalPrice: 231 },
+              { _id: '10092679', totalPrice: 58 },
+              { _id: '10096773', totalPrice: 205 },
+              { _id: '10112159', totalPrice: 90 },
+              { _id: '10117617', totalPrice: 55 },
+              { _id: '10120414', totalPrice: 150 },
+              { _id: '10133554', totalPrice: 121 }
+            ]
+
+Edit a View
+-------------------
+
+The following example updates the ``movies_ReleasedAfter2000`` MongoDB 
+View for movies before 2000.
+
+.. code-block:: sh
+
+   db.runCommand(
+   {
+       collMod: "movies_ReleasedAfter2000",
+       viewOn: "movies",
+       "pipeline": [
+         {
+           $match: {
+             $expr: {
+               $lt: [
+                 "$released",
+                 ISODate("2000-01-01T00")
+               ]
+             }
+           }
+         }
+       ]
+     }
+   )
+
+After you run this command, |fts| automatically detects the change in 
+the View definition and performs a reindexing with no downtime.
+
+Return the Pipelines for a View
+---------------------------------------
+
+The following example returns the pipelines on the 
+``movies_ReleasedAfter2000`` View.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: 
+      :language: sh
+      :linenos:
+
+      db.getCollectionInfos({ name: "movies_ReleasedAfter2000" })[0].options.pipeline
+
+   .. output::
+      :language: sh
+      :visible: false
+
+      [
+        {
+          '$match': {
+            '$expr': { '$gt': [ '$released', ISODate('2000-01-01T00:00:00.000Z') ] }
+          }
+        }
+      ]
+
+.. include:: /includes/fact-partial-indexing-troubleshoot.rst
+
+Learn More
+----------
+
+To learn more about Views, see :manual:`Views <core/views/>`.
+
+To create an {+avs+} index on a View, see 
+:ref:`avs-transform-documents-collections`.
