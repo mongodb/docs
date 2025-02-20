@@ -27,6 +27,8 @@ With resource policies, you can:
 * Limit cluster deployment to specific cloud platforms (|aws|, |gcp|, |azure|).
 * Restrict cluster deployment to designated regions within a cloud provider. For example, ``aws:us-east-1``.
 * Prohibit the use of the wildcard IP (``0.0.0.0/0``) to enforce stricter network controls.
+* Prevent users from provisioning, updating, or :ref:`auto-scaling <cluster-autoscaling>` {+clusters+} to a tier above or below a specified threshold.
+* Require that a project has a :ref:`maintenance window <configure-maintenance-window>` configured.
 
 You create {+arps+} at the organization level, but they apply to all projects and clusters
 within that organization.
@@ -190,6 +192,7 @@ Key Cedar Syntax Elements for |service|
   
        - Restrict IP access list: ``ResourcePolicy::Action::"project.ipAccessList.modify"``
        - Restrict cluster attributes: ``ResourcePolicy::Action::"cluster.modify"``
+       - Modify maintenance window: ``ResourcePolicy::Action::"project.maintenanceWindow.modify"``
 
    * - ``ResourcePolicy::Cluster::"<CLUSTER-ID>"``
      - Refers to a specific {+cluster+}
@@ -218,6 +221,28 @@ Key Cedar Syntax Elements for |service|
        regions by cloud provider see :ref:`amazon-aws`, :ref:`google-gcp`, 
        or :ref:`microsoft-azure`.
 
+   * - ``context.cluster has <PROPERTY>``
+     - Checks if a specific property exists within the cluster context.
+     - Available properties:
+
+       - Minimum General class :ref:`cluster tier <create-cluster-instance>`: ``minGeneralClassInstanceSizeValue``
+       - Maximum General class :ref:`cluster tier <create-cluster-instance>`: ``maxGeneralClassInstanceSizeValue``
+   
+   * - ``context.cluster.minGeneralClassInstanceSizeValue``
+     - Sets the minimum :ref:`cluster tier <create-cluster-instance>` for scaling the {+cluster+} down to.
+     - For example, ``context.cluster.minGeneralClassInstanceSizeValue < 30`` matches {+clusters+} 
+       whose current tier or minimum :ref:`auto-scaling <cluster-autoscaling>` size is less than ``M30``. 
+
+   * - ``context.cluster.maxGeneralClassInstanceSizeValue``
+     - Sets the maximum :ref:`cluster tier <create-cluster-instance>` for scaling the {+cluster+} up to.
+     - For example, ``context.cluster.maxGeneralClassInstanceSizeValue < 60`` matches {+clusters+} 
+       whose current tier or maximum :ref:`auto-scaling <cluster-autoscaling>` size is less than ``M60``. 
+
+   * - ``context.project.hasDefinedMaintenanceWindow``
+     - Requires that a project has a :ref:`maintenance window <configure-maintenance-window>` configured.
+     - For example, ``context.project.hasDefinedMaintenanceWindow == false`` checks 
+       if the project has no maintenance window configured.
+   
    * - ``context.project.ipAccessList``
      - Specifies the IP addresses that can access the {+cluster+}. 
      - You can block a wildcard IP ``ip("0.0.0.0/0")`` to enhance security.
@@ -491,6 +516,47 @@ using the ``policies`` parameter.
                    ]
                }
 
+         .. tab:: Restrict Properties
+            :tabid: properties
+
+            The following example uses the ``when`` clause to restrict |service| from
+            provisioning or scaling  {+clusters+} to less than ``M30`` or greater than ``M60``:
+            
+           .. note::
+
+              This policy doesn't restrict {+clusters+} with a :ref:`cluster class <storage-class-ui>` of  **Low CPU** or **Local NVMe SSD**.
+
+            .. code::
+               :copyable: true
+               :emphasize-lines: 5
+
+               {
+                   "name": "Policy Restricting Min/Max Cluster Size",
+                   "policies": [
+                       {
+                           "body": "forbid(principal, action == ResourcePolicy::Action::"cluster.modify", resource) when { (context.cluster has minGeneralClassInstanceSizeValue && context.cluster.minGeneralClassInstanceSizeValue < 30) || (context.cluster has maxGeneralClassInstanceSizeValue && context.cluster.maxGeneralClassInstanceSizeValue > 60) };"
+                       }
+                   ]  
+               }
+
+         .. tab:: Restrict Projects
+            :tabid: restrictprojects
+
+            The following example requires that a project has a :ref:`maintenance window <configure-maintenance-window>` configured:
+
+            .. code::
+               :copyable: true
+               :emphasize-lines: 5
+
+               {
+                   "name": "Policy Enforcing Existence of a Project Maintenance Window",
+                   "policies": [
+                       {
+                           "body": "forbid (principal, action == ResourcePolicy::Action::"project.maintenanceWindow.modify", resource) when {context.project.hasDefinedMaintenanceWindow == false};"
+                       }
+                   ]  
+               }
+      
       For an example that restricts the cloud provider *and* multiple regions, see :ref:`example-cedar-policy`.
         
    .. step:: Send a ``POST`` request.
