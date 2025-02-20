@@ -196,6 +196,9 @@
 
                mongo_client = pymongo.MongoClient("<ATLAS-CONNECTION-STRING>")
 
+               if not MONGO_URI:
+                 print("MONGO_URI not set in environment variables")
+     
       #. Load the data into your |service| {+cluster+}.
 
          .. list-table:: 
