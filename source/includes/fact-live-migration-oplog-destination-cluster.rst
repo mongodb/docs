@@ -1,5 +1,9 @@
-- Live migration performs embedded verification by default, which requires a
-  large oplog size on the destination {+cluster+}. This prevents the
+- To accommodate potential storage size fluctuations related to oplog
+  size requirements, we recommend that you choose a destination {+cluster+}
+  tier that is at least two tiers above the source {+cluster+}.
+
+- Live migration performs embedded verification by default, which requires
+  that the destination {+cluster+} has a large oplog size. This prevents the
   verification process errors due to a constrained oplog size.
 
   - If storage auto-scaling is disabled on the destination {+cluster+},
