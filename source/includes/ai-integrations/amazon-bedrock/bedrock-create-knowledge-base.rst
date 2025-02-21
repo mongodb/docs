@@ -6,11 +6,10 @@
       a. Log in to the `AWS Console <https://aws.amazon.com/console/>`__.
       #. In the upper-left corner, click the :guilabel:`Services` dropdown menu.
       #. Click :guilabel:`Machine Learning`, and then select :guilabel:`Amazon Bedrock`.
-      #. On the :guilabel:`Amazon Bedrock` landing page, click :guilabel:`Get started`.
 
    .. step:: Manage model access.
 
-      Amazon Bedrock doesn't grant access to :abbr:`FMs (foundational models)` 
+      Amazon Bedrock doesn't grant access to :abbr:`FMs (foundation models)` 
       automatically. If you haven't already,
       follow the steps to :aws:`add model access 
       </bedrock/latest/userguide/model-access.html>`
@@ -19,10 +18,10 @@
    .. step:: Create the knowledge base.
       
       a. In the left navigation of the Amazon Bedrock console, 
-         click :guilabel:`Knowledge bases`.
-      #. Click :guilabel:`Create knowledge base`.
-      #. Specify ``mongodb-atlas-knowledge-base`` as the :guilabel:`Knowledge base name`.
-      #. Click :guilabel:`Next`. 
+         click :guilabel:`Knowledge Bases`.
+      #. Click :guilabel:`Create` and then select :guilabel:`Knowledge base with vector store`.
+      #. Specify ``mongodb-atlas-knowledge-base`` as the :guilabel:`Knowledge Base name`.
+      #. Click :guilabel:`Next`.
 
       By default, Amazon Bedrock creates a new |iam| role to access
       the knowledge base.
@@ -38,7 +37,7 @@
          Amazon Bedrock displays available embeddings models that you can use to 
          convert your data source's text data into vector embeddings. 
          
-      #. Select :guilabel:`Titan Embeddings G1 - Text`.
+      #. Select the :guilabel:`Titan Embeddings G1 - Text` model.
 
    .. step:: Connect |service| to the Knowledge Base.
 

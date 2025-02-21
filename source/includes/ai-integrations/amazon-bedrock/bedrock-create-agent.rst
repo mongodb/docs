@@ -21,7 +21,7 @@
 
          .. note::
 
-            Amazon Bedrock doesn't grant access to :abbr:`FMs (foundational models)` 
+            Amazon Bedrock doesn't grant access to :abbr:`FMs (foundation models)` 
             automatically. If you haven't already,
             follow the steps to :aws:`add model access 
             </bedrock/latest/userguide/model-access.html>`
