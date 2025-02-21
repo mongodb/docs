@@ -19,28 +19,29 @@ Manage Customer Keys with AWS KMS
    :depth: 2
    :class: singlecol
 
+.. include:: /includes/fact-aws-kms-role-auth.rst
+
+.. include:: /includes/serverless-dont-use.rst
+
 You can configure your |service| project to use an |aws| `IAM role 
 <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use.html>`__ 
-for accessing your |aws| |kms| keys for Encryption at Rest. You can 
+for accessing your |aws| KMS keys for encryption at rest. You can 
 either use an existing role or create a new role when you enable 
-Encryption at Rest for your project.
+encryption at rest for your project.
 
 This page covers configuring customer key management on your |service| 
-project for role-based access. You can also 
-set up {+aws-pl+} in your |aws| |kms| to ensure that all traffic between
-|service| and your |aws| |kms| takes place over |aws|\'s private network
-interfaces. 
+project for role-based access.
 
-If you have not yet enabled Encryption at Rest for your new or existing 
+If you have not yet enabled encryption at rest for your new or existing 
 |service| project, follow the :ref:`aws-kms-enable-project` procedure 
-to enable Encryption at Rest for your |service| project. If you have an 
-|service| project for which you have already enabled Encryption at Rest 
+to enable encryption at rest for your |service| project. If you have an 
+|service| project for which you have already enabled encryption at rest 
 and configured credentials-based access to your encryption keys, follow 
 the :ref:`aws-kms-switch-project` procedure to switch to role-based 
 access to your encryption keys.
 
 You must configure customer key management for the |service| project
-before enabling it on {+clusters+} in that project.
+before enabling it on clusters in that project.
 
 .. seealso:: 
 
@@ -69,6 +70,78 @@ Example
    :figwidth: 100%
    :alt: Diagram of CMK workflow with AWS KMS and Atlas
 
+.. _aws-ksm-prereqs:
+.. _security-aws-kms-restrictions:
+
+Prerequisites
+~~~~~~~~~~~~~
+
+To enable customer-managed keys with |aws| |kms| for a MongoDB
+project, you must:
+
+.. include:: /includes/fact-aws-kms-prereqs.rst
+
+.. _aws-kms-enable-project:
+
+Enable Role-Based Access to Your Encryption Key for a Project
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tabs::
+
+   .. tab:: UI
+      :tabid: ui
+
+      .. include:: /includes/steps-enable-rba-encryption-for-project.rst
+
+   .. tab:: API
+      :tabid: api
+   
+      .. include:: /includes/steps/enable-rba-encryption-api.rst
+
+.. _aws-kms-switch-project:
+
+Switch to Role-Based Access to Your Encryption Key for a Project
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-switching-access-to-encryption-keys.rst
+
+.. tabs::
+
+   .. tab:: UI
+      :tabid: ui
+
+      .. include:: /includes/steps-migrate-rba-encryption-for-project.rst
+
+   .. tab:: API
+      :tabid: api
+   
+      To update your encryption key management with the 
+      {+atlas-admin-api+}, use the same steps outlined in the 
+      :ref:`above procedure <aws-kms-enable-project>`.
+
+.. _aws-enable-cluster-encryption-at-rest:
+
+Enable Customer Key Management for an |service| Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After you :ref:`aws-kms-enable-project`, you must enable customer key
+management for each |service| cluster that contains data that you want
+to encrypt.
+
+.. note::
+
+   You must have the :authrole:`Project Owner <Project Owner>` role to
+   enable customer key management for clusters in that project.
+
+For new clusters, toggle the
+:ref:`Manage your own encryption keys 
+<create-cluster-enable-encryption>`
+setting to :guilabel:`Yes` when you create the cluster. 
+
+For existing clusters:
+
+.. include:: /includes/steps-cluster-customer-key-management.rst
+
 .. _security-aws-kms-rotate-key:
 
 Rotate your AWS Customer Master Key
@@ -93,7 +166,7 @@ Your |aws| |cmk| - Your Responsibility
 As a best practice, |service| creates an :alert:`alert <AWS encryption
 key elapsed time since last rotation is above (n) days>` to remind you
 to rotate your |aws| |cmk| every 90 days by default when you
-:ref:`enable Encryption at Rest <aws-enable-cluster-encryption-at-rest>` for |a-service|
+:ref:`enable Encryption at Rest <security-aws-kms>` for |a-service|
 project. You can configure the time period of this alert.
 
 You can rotate your |aws| |cmk| yourself or configure your |aws| |kms|
@@ -115,7 +188,7 @@ to |aws| |kms| automatic |cmk| rotation.
 
 .. important:: {+Cloud-Backup+}s with Encryption at Rest
 
-   For {+clusters+} using :doc:`Encryption at Rest </security-aws-kms>` and
+   For clusters using :doc:`Encryption at Rest </security-aws-kms>` and
    :ref:`backup-cloud-provider`, |service| uses the project's |cmk| and
    |aws| |iam| user credentials at the time of the snapshot to
    automatically encrypt the snapshot data files. This is an additional
@@ -124,7 +197,7 @@ to |aws| |kms| automatic |cmk| rotation.
 
    |service| does *not* re-encrypt snapshots with the new |cmk| after
    rotation. Do *not* delete the old |cmk| until you check *every*
-   backup-enabled {+cluster+} in the project for any snapshots still using
+   backup-enabled cluster in the project for any snapshots still using
    that |cmk|. |service| deletes backups in accordance to the
    :ref:`cloud-provider-retention-policy`. After |service| deletes all
    snapshots depending on a given |cmk|, you can delete that |cmk|
@@ -140,7 +213,7 @@ Procedure
 Reconfigure AWS KMS Region During an Outage
 -------------------------------------------
 
-During a regional outage, your |aws| |kms| region might
+During a regional outage, your |aws| KMS region might
 become unavailable. If you've enabled :ref:`security-kms-encryption`,
 you can perform encrypt and decrypt operations while at least one node
 is still available. However, if all nodes become unavailable,
@@ -148,8 +221,8 @@ you can't perform cryptographic operations. A node becomes unavailable
 if it restarts during the outage.
 
 To get the unavailable nodes to a healthy state, you
-can reconfigure your current |aws| |kms| region to an available region.
-To change your |kms| region, your |aws| |kms| key must be a :aws:`multi-Region key 
+can reconfigure your current |aws| KMS region to an available region.
+To change your KMS region, your AWS KMS key must be a :aws:`multi-Region key 
 </kms/latest/developerguide/multi-region-keys-overview>`. 
 To create a multi-Region Key, see the :aws:`AWS documentation 
 </kms/latest/developerguide/multi-region-keys-create>`.
@@ -161,20 +234,10 @@ To create a multi-Region Key, see the :aws:`AWS documentation
 Procedure
 ~~~~~~~~~
 
-To reconfigure your |aws| |kms| region, complete the following steps
+To reconfigure your |aws| KMS region, complete the following steps
 in |service|:
 
 .. include:: /includes/steps-update-aws-kms-region.rst
-
-Next Steps 
-----------
-
-You can use a customer-managed key (CMK) from your |aws| |kms| over
-a public network or over {+aws-pl+}. To learn more, see
-the following: 
-
-- :ref:`security-aws-kms-public-network`
-- :ref:`security-aws-kms-pvt-endpoint`
 
 Related Topics
 --------------
@@ -185,9 +248,3 @@ Related Topics
 
 - To learn more about Encryption at Rest with {+Cloud-Backup+}s, see 
   :ref:`encrypted-cloud-provider-snapshot`.
-
-.. toctree::
-   :titlesonly:
-
-   Configure Access Over Public Network </security/aws-kms-over-public-network>
-   Configure Access Over Private Endpoints </security/aws-kms-over-private-endpoint>

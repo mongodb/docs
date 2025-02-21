@@ -5,4 +5,4 @@
    |aws| |kms| encryption keys for customer key management.
 
    When you move from |aws| |iam| users to roles, ensure that your new role 
-   has access to your old |aws| customer master key. To learn more, see :ref:`aws-kms-switch-project`.
+   has access to your old |aws| customer master key.

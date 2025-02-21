@@ -1,5 +1,18 @@
 .. include:: /includes/fact-kms-prereqs.rst
 
+- Have a symmetric |aws| |kms| key .
+  To learn how to create a key, see
+  :aws:`Creating Keys </kms/latest/developerguide/create-keys.html#create-symmetric-cmk>`
+  in the |aws| documentation.
+
+  .. note:: 
+
+     To ensure resilience in the event of a regional outage,
+     configure your KMS key to be a :aws:`multi-Region key 
+     </kms/latest/developerguide/multi-region-keys-overview>`.
+    
+     To learn more, see :ref:`aws-kms-regional-outage`.
+
 - Have an |aws| |iam| role with sufficient privileges. |service| must
   have permission to perform the following actions with your key:
 
