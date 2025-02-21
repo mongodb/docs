@@ -9,6 +9,7 @@ const data = [
 ]
 
 async function run() {
+
     // Connect to your Atlas cluster
     const client = new MongoClient(process.env.ATLAS_CONNECTION_STRING);
     
@@ -17,22 +18,31 @@ async function run() {
         const db = client.db("sample_db");
         const collection = db.collection("embeddings");
 
+        console.log("Generating embeddings and inserting documents...");
+        const insertDocuments = [];
         await Promise.all(data.map(async text => {
             // Check if the document already exists
             const existingDoc = await collection.findOne({ text: text });
 
-            // Generate an embedding by using the function that you defined
+            // Generate an embedding using the function that you defined
             const embedding = await getEmbedding(text);
-
-            // Ingest data and embedding into Atlas
+            
+            // Add the document with the embedding to array of documents for bulk insert
             if (!existingDoc) {
-                await collection.insertOne({
+                insertDocuments.push({
                     text: text,
                     embedding: embedding
-                });
-                console.log(embedding);
+                })
+                console.log(embedding)
             }
         }));
+
+        // Continue processing documents if an error occurs during an operation
+        const options = { ordered: false };
+
+        // Insert documents with embeddings into Atlas
+        const result = await collection.insertMany(insertDocuments, options);  
+        console.log("Count of documents inserted: " + result.insertedCount); 
 
     } catch (err) {
         console.log(err.stack);

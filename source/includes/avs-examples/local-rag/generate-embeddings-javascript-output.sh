@@ -42,5 +42,5 @@
     size: 1024
   }
 ]
-Generating embeddings for documents. Standby.
+Generating embeddings and updating documents...
 Count of documents updated: 50

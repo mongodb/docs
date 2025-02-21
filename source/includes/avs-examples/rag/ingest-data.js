@@ -1,7 +1,7 @@
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { MongoClient } from 'mongodb';
-import { getEmbeddings } from './get-embeddings.js';
+import { getEmbedding } from './get-embeddings.js';
 import * as fs from 'fs';
 
 async function run() {
@@ -21,7 +21,7 @@ async function run() {
         const textSplitter = new RecursiveCharacterTextSplitter({
             chunkSize: 400,
             chunkOverlap: 20,
-          });
+        });
         const docs = await textSplitter.splitDocuments(data);
         console.log(`Successfully chunked the PDF into ${docs.length} documents.`);
 
@@ -30,19 +30,27 @@ async function run() {
         const db = client.db("rag_db");
         const collection = db.collection("test");
 
-        console.log("Generating embeddings and inserting documents.");
-        let docCount = 0;
+        console.log("Generating embeddings and inserting documents...");
+        const insertDocuments = [];
         await Promise.all(docs.map(async doc => {
-            const embeddings = await getEmbeddings(doc.pageContent);
-            
-            // Insert the embeddings and the chunked PDF data into Atlas
-            await collection.insertOne({
+
+            // Generate embeddings using the function that you defined
+            const embedding = await getEmbedding(doc.pageContent);
+
+            // Add the document with the embedding to array of documents for bulk insert
+            insertDocuments.push({
                 document: doc,
-                embedding: embeddings,
+                embedding: embedding
             });
-            docCount += 1;
         }))
-        console.log(`Successfully inserted ${docCount} documents.`);
+
+        // Continue processing documents if an error occurs during an operation
+        const options = { ordered: false };
+
+        // Insert documents with embeddings into Atlas
+        const result = await collection.insertMany(insertDocuments, options);  
+        console.log("Count of documents inserted: " + result.insertedCount); 
+
     } catch (err) {
         console.log(err.stack);
     }

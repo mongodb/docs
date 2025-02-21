@@ -1,7 +1,9 @@
 import { MongoClient } from 'mongodb';
-import { getEmbeddings } from './get-embeddings.js';
+import { getEmbedding } from './get-embeddings.js';
 
 async function run() {
+
+    // Connect to your Atlas cluster
     const client = new MongoClient(process.env.ATLAS_CONNECTION_STRING);
 
     try {
@@ -27,29 +29,39 @@ async function run() {
             return;
         }
 
-        const firstDocEmbeddings = await getEmbeddings(firstDoc.summary);
+        const firstDocEmbeddings = await getEmbedding(firstDoc.summary);
         console.log(firstDocEmbeddings);
 
-        // After confirming you are successfully generating embeddings,
-        // uncomment the following code to generate embeddings for all docs.
-        /* cursor.rewind(); // Reset the cursor to process documents again
-         * console.log("Generating embeddings for documents. Standby.");
-         * let updatedDocCount = 0;
-         *
-         * for await (const doc of cursor) {
-         *     const text = doc.summary;
-         *     const embeddings = await getEmbeddings(text);
-         *     await collection.updateOne({ "_id": doc._id },
-         *         {
-         *             "$set": {
-         *                 "embeddings": embeddings
-         *             }
-         *         }
-         *     );
-         *     updatedDocCount += 1;
-         * }
-         * console.log("Count of documents updated: " + updatedDocCount);
-         */
+        // After confirming that you are successfully generating embeddings,
+        // uncomment the following code to generate embeddings for all docs: 
+        /* 
+        cursor.rewind(); // Reset the cursor to process documents again
+        console.log("Generating embeddings and updating documents...");
+
+        // Create embeddings from a field in the collection
+        const updateDocuments = [];
+        for await (const doc of cursor) {
+
+            const embedding = await getEmbedding(doc.summary);
+
+            updateDocuments.push(
+                { 
+                    updateOne: {
+                        filter: { "_id": doc._id },
+                        update: { $set: { "embedding": embedding } }
+                    }
+                }
+            )
+        }
+
+        // Continue processing documents if an error occurs during an operation
+        const options = { ordered: false };
+
+        // Update documents with the new embedding field
+        const result = await collection.bulkWrite(updateDocuments, options)
+        console.log("Count of documents updated: " + result.modifiedCount);
+        */
+
     } catch (err) {
         console.log(err.stack);
     }

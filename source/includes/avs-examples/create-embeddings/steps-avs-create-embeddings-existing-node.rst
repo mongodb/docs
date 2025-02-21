@@ -36,7 +36,7 @@
          .. output:: 
             :language: sh
 
-            Generating embeddings for documents...
+            Generating embeddings and updating documents...
             Count of documents updated: 50
 
       You can view your vector embeddings as they generate by 

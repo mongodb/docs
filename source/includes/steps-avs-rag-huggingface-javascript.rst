@@ -33,7 +33,7 @@
         (number of characters) and *chunk overlap* (number of overlapping
         characters between consecutive chunks). 
       - Create vector embeddings from the chunked data by using 
-        the ``getEmbeddings`` function that you defined.
+        the ``getEmbedding`` function that you defined.
       - Store these embeddings alongside the chunked data in the
         ``rag_db.test`` collection in your |service| {+cluster+}.
 
@@ -45,9 +45,19 @@
 
       Then, run the following command to execute the code:
 
-      .. code-block:: shell
+      .. io-code-block::
+         :copyable: true
 
-         node --env-file=.env ingest-data.js
+         .. input:: 
+            :language: sh
+
+            node --env-file=.env ingest-data.js
+
+         .. output:: 
+            :language: sh
+
+            Generating embeddings and inserting documents...
+            Count of documents inserted: 86
 
       .. tip:: 
 
@@ -82,7 +92,7 @@
          
          In this step, you create a retrieval function called
          ``getQueryResults`` that runs a query to retrieve relevant documents.
-         It uses the ``getEmbeddings`` function to create embeddings from the
+         It uses the ``getEmbedding`` function to create an embedding from the
          search query. Then, it runs the query to return semantically-similar
          documents.
 
@@ -115,7 +125,6 @@
 
             .. output:: /includes/avs-examples/rag/retrieve-data-output.sh
                :language: console
-               :visible: false
 
    .. step:: Generate responses with the |llm|.
 

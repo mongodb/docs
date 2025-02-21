@@ -1,7 +1,7 @@
 import { env, pipeline } from '@xenova/transformers';
 
 // Function to generate embeddings for given data
-export async function getEmbeddings(data) {
+export async function getEmbedding(data) {
     // Replace this path with the parent directory that contains the model files
     env.localModelPath = '/Users/<username>/local-rag-mongodb/';
     env.allowRemoteModels = false;

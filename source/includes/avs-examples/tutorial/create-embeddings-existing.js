@@ -1,10 +1,11 @@
 import { MongoClient } from 'mongodb';
 import { getEmbedding } from './get-embeddings.js';
 
-// Connect to your Atlas cluster
-const client = new MongoClient(process.env.ATLAS_CONNECTION_STRING);
-
 async function run() {
+
+    // Connect to your Atlas cluster
+    const client = new MongoClient(process.env.ATLAS_CONNECTION_STRING);
+
     try {
         await client.connect();
         const db = client.db("sample_airbnb");
@@ -16,24 +17,30 @@ async function run() {
         // Get a subset of documents from the collection
         const documents = await collection.find(filter).limit(50).toArray();
 
-        // Create embeddings from a field in the collection
-        let updatedDocCount = 0;
-        console.log("Generating embeddings for documents...");
+        console.log("Generating embeddings and updating documents...");
+        const updateDocuments = [];
         await Promise.all(documents.map(async doc => {
-           // Generate an embedding by using the function that you defined
-           const embedding = await getEmbedding(doc.summary);
 
-           // Update the document with a new embedding field
-           await collection.updateOne({ "_id": doc._id },
-               {
-                   "$set": {
-                       "embedding": embedding
-                   }
-               }
-           );
-           updatedDocCount += 1;
+            // Generate an embedding using the function that you defined
+            const embedding = await getEmbedding(doc.summary);
+
+            // Add the embedding to an array of update operations
+            updateDocuments.push(
+                {
+                    updateOne: { 
+                        filter: { "_id": doc._id },
+                        update: { $set: { "embedding": embedding } }
+                    }
+                }
+           )
        }));
-       console.log("Count of documents updated: " + updatedDocCount);
+
+       // Continue processing documents if an error occurs during an operation
+       const options = { ordered: false };
+
+       // Update documents with the new embedding field
+       const result = await collection.bulkWrite(updateDocuments, options); 
+       console.log("Count of documents updated: " + result.modifiedCount); 
             
     } catch (err) {
         console.log(err.stack);

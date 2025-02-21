@@ -1,5 +1,5 @@
 import { MongoClient } from 'mongodb';
-import { getEmbeddings } from './get-embeddings.js';
+import { getEmbedding } from './get-embeddings.js';
 
 // Function to get the results of a vector query
 export async function getQueryResults(query) {
@@ -7,8 +7,8 @@ export async function getQueryResults(query) {
     const client = new MongoClient(process.env.ATLAS_CONNECTION_STRING);
     
     try {
-        // Get embeddings for a query
-        const queryEmbeddings = await getEmbeddings(query);
+        // Get embedding for a query
+        const queryEmbedding = await getEmbedding(query);
 
         await client.connect();
         const db = client.db("rag_db");
@@ -18,7 +18,7 @@ export async function getQueryResults(query) {
             {
                 $vectorSearch: {
                     index: "vector_index",
-                    queryVector: queryEmbeddings,
+                    queryVector: queryEmbedding,
                     path: "embedding",
                     exact: true,
                     limit: 5
