@@ -50,7 +50,8 @@ A ``$merge`` pipeline stage has the following prototype form:
         <var_n>: <expression> 
       },
       "whenMatched": "replace | keepExisting | merge",
-      "whenNotMatched": "insert | discard"
+      "whenNotMatched": "insert | discard",
+      "parallelism": <integer>
     }  
   }
 
@@ -59,12 +60,39 @@ A ``$merge`` pipeline stage has the following prototype form:
 Syntax
 ~~~~~~
 
-The {+atlas-sp+} version of :ref:`$merge <streams-agg-pipeline-merge>` 
-uses most of the same fields as the {+adf+} version. However, because 
-{+atlas-sp+} only supports merging into an {+service+} connection, the 
-syntax of ``into`` is simplified. For more information, see 
-:ref:`this description <adf-merge-fields>` of the {+adf+} ``$merge``
-fields.
+The {+atlas-sp+} version of :ref:`$merge <streams-agg-pipeline-merge>`
+uses most of the same fields as the {+adf+} version. {+atlas-sp+} also
+uses the following fields that are either unique to its implementation
+of ``$merge``, or modified to suit it. To learn more about the fields
+shared with {+adf+} ``$merge``, see :manual:`$merge syntax
+</reference/operator/aggregation/merge/#merge-on>`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 25 50 
+   
+   * - Field
+     - Necessity
+     - Description
+      
+   * - ``into``
+     - Required
+     - Simplified to reflect {+atlas-sp+} supporting ``$merge`` only
+       into {+service+} connections.
+      
+       To learn more, see :ref:`this description <adf-merge-fields>`
+       of the {+adf+} ``$merge`` fields.
+        
+   * - ``parallelism``
+     - Conditional
+     - Number of threads to which to distribute write operations.
+       Must be an integer value between ``1``  and ``16``.
+       Higher parallelism values increase throughput. However, higher
+       values also require the stream processor and the cluster to which
+       it writes to use more computational resources.
+
+       If you use a dynamic expression value for ``into.coll`` or
+       ``into.db``, you cannot set this value greater than ``1``.
 
 .. _atlas-sp-agg-merge-behavior:
 
@@ -80,6 +108,9 @@ use only one ``$merge`` stage per pipeline.
 The ``on`` field has special requirements for ``$merge`` against
 sharded collections. To learn more, see 
 :manual:`$merge syntax </reference/operator/aggregation/merge/#merge-on>`.
+
+If you use a dynamic expression value for ``into.coll`` or ``into.db``,
+you cannot set a ``parallelism`` value greater than ``1``.
 
 Dynamic Expressions
 ```````````````````
@@ -132,6 +163,7 @@ target {+service+} collections on a message-by-message basis.
           connectionName: "db1",
           db: "$customerStatus",
           coll: "$transactionType"
+	}
       }
 
    This ``$merge`` stage:
