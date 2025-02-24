@@ -27,39 +27,33 @@ similar to the following:
 .. code-block:: json
 
    {
-     "controlPlane": {
-       "inbound": {
-         "aws": { // cloud provider
-           "us-east-1": [ // region
-             "3.92.113.229/32",
-             "3.208.110.31/32",
-             "107.22.44.69/32"
-             ...,
-           ],
-           ...
-          }
-        },
-        "outbound": {
-          "aws": { // cloud provider
-            "us-east-1": [ // region
-              "3.92.113.229/32",
-              "3.208.110.31/32",
-              "107.22.44.69/32"
-              ...,
-            ],
-            ...
-           }
-         }
+     "inbound":{
+       "aws":{
+         "<region-name>":["<IP-address>", ...],
+         ...
+       },
+       "azure":{
+         "<region-name>":["<IP-address>", ...],
+         ...
+       },"gcp":{
+         "<region-name>":["<IP-address>", ...]
+         ...
+       }
      },
-     "data_federation": {
-       "inbound": {},
-       "outbound" {}
-     },
-     "app_services": {
-       "inbound": {},
-       "outbound" {}
-     },
-     ...
+     "outbound":{
+       "aws":{
+         "<region-name>":["<IP-address>", ...],
+         ...
+       },
+       "azure":{
+         "<region-name>":["<IP-address>", ...],
+         ...
+       },
+       "gcp":{
+         "<region-name>":["<IP-address>", ...],
+         ...
+       }
+     }
    }
 
 To add the returned IP addresses to your cloud provider's KMS IP access list, 
