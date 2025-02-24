@@ -316,7 +316,10 @@ using the ``policies`` parameter.
       - Restrict the cloud provider. For example, ``aws``, ``azure``, or ``gcp``.
       - Restrict the region where |service| {+clusters+} can be deployed. 
         For example, ``aws:us-east-1``. 
-      - Forbid wildcard IP address (``0.0.0.0/0``) access to the {+cluster+}.
+      - Forbid wildcard IP address (``0.0.0.0/0``) or restrict access to the {+cluster+} by IP address.
+      - Restrict {+cluster+} properties to prevent users from provisioning, updating, or 
+        :ref:`auto-scaling <cluster-autoscaling>` {+clusters+} to a tier above or below a specified threshold.
+      - Require that a project has a :ref:`maintenance window <configure-maintenance-window>` configured.
   
       .. note::
          
@@ -462,6 +465,7 @@ using the ``policies`` parameter.
                            "body": "forbid(principal, action == ResourcePolicy::Action::\"cluster.modify\", resource) unless { [ResourcePolicy::Region::\"aws:us-east-1\", ResourcePolicy::Region::\"azure:westeurope\"].containsAll(context.cluster.regions) };"
                        }
                    ] 
+               {
 
             The following example uses the ``when`` clause to restrict users from 
             editing the {+cluster+} with ID ``3217e2gdf79a4c54e2d0827`` 
@@ -516,30 +520,30 @@ using the ``policies`` parameter.
                    ]
                }
 
-         .. tab:: Restrict Properties
+         .. tab:: Cluster Size
             :tabid: properties
 
-	    The following example uses the ``when`` clause to restrict |service| from
-	    provisioning or scaling  {+clusters+} to less than ``M30`` or greater than ``M60``:
-
+            The following example uses the ``when`` clause to restrict |service| from
+            provisioning or scaling  {+clusters+} to less than ``M30`` or greater than ``M60``:
+        
             .. note::
 
-	    This policy doesn't restrict {+clusters+} with a :ref:`cluster class <storage-class-ui>` of  **Low CPU** or **Local NVMe SSD**.
+               This policy doesn't restrict {+clusters+} with a :ref:`cluster class <storage-class-ui>` of  **Low CPU** or **Local NVMe SSD**.
 
-	    .. code::
-	       :copyable: true
-	       :emphasize-lines: 5
+            .. code::
+               :copyable: true
+               :emphasize-lines: 5
 
-	       {
-		   "name": "Policy Restricting Min/Max Cluster Size",
-		   "policies": [
-		       {
-			   "body": "forbid(principal, action == ResourcePolicy::Action::"cluster.modify", resource) when { (context.cluster has minGeneralClassInstanceSizeValue && context.cluster.minGeneralClassInstanceSizeValue < 30) || (context.cluster has maxGeneralClassInstanceSizeValue && context.cluster.maxGeneralClassInstanceSizeValue > 60) };"
-		       }
-		   ]  
-	       }
+               {
+                   "name": "Policy Restricting Min/Max Cluster Size",
+                   "policies": [
+                       {
+                           "body": "forbid(principal, action == ResourcePolicy::Action::"cluster.modify",resource) when { (context.cluster has minGeneralClassInstanceSizeValue && context.cluster.minGeneralClassInstanceSizeValue < 30) || (context.cluster has maxGeneralClassInstanceSizeValue && context.cluster.maxGeneralClassInstanceSizeValue > 60) };"
+                       }
+                   ]  
+               }
 
-         .. tab:: Restrict Projects
+         .. tab:: Main Window
             :tabid: restrictprojects
 
             The following example requires that a project has a :ref:`maintenance window <configure-maintenance-window>` configured:
