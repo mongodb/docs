@@ -1,4 +1,4 @@
-For ``M10+`` {+dedicated-clusters+} running MongoDB 4.2 or higher,
+For ``M10+`` {+dedicated-clusters+},
 |service| restores |fts| :ref:`index definitions <ref-index-definitions>` 
 from a {+Cloud-Backup+} snapshot. |service| doesn't restore search
 index data, so the ``mongot`` processes perform :ref:`initial syncs 
