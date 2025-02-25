@@ -1,0 +1,854 @@
+.. _node-fundamentals-bulk:
+
+===============
+Bulk Operations
+===============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to
+perform **bulk operations**. Bulk operations help reduce the number
+of calls to the server. Instead of sending a request for each operation,
+you can perform multiple operations within one action.
+
+.. tip::
+
+   To learn more about bulk operations, see :manual:`Bulk Write Operations </core/bulk-write-operations/>`
+   in the {+mdb-server+} manual.
+
+You can use bulk operations to perform multiple write operations on
+a collection. You can also run bulk operations from the client,
+which allows you to perform bulk writes across multiple namespaces.
+In MongoDB, a namespace consists of the database name and the collection
+name in the format ``<database>.<collection>``. 
+
+This guide includes the following sections:
+
+- :ref:`node-bulk-insert-operation` describes how to perform bulk insert
+  operations on your collection or client.
+- :ref:`node-bulk-replace-operation` describes how to perform bulk replace
+  operations on your collection or client.
+- :ref:`node-bulk-update-operation` describes how to perform bulk update
+  operations on your collection or client.
+- :ref:`node-bulk-delete-operation` describes how to perform bulk delete
+  operations on your collection or client.
+- :ref:`node-bulk-return-type` describes the return object that results from your
+  bulk write operations.
+- :ref:`node-bulk-handle-exceptions` describes the exceptions that occur if 
+  any of the operations in a bulk write operation fail.
+- :ref:`node-bulk-addtl-info` provides links to resources and API documentation for
+  types and methods mentioned in this guide.
+
+.. important:: Server and Driver Version Requirements
+
+   Collection-level bulk write operations require the following versions:
+
+   - {+mdb-server+} version 3.2 or later
+   - {+driver-short+} version 3.6 or later
+
+   Client-level bulk write operations require the following versions:
+
+   - {+mdb-server+} version 8.0 or later
+   - {+driver-short+} version 6.10 or later
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``movies`` and ``users`` collections in
+the ``sample_mflix`` database, which is included in the :atlas:`Atlas sample datasets </sample-data>`.
+To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see the
+:atlas:`Get Started with Atlas </getting-started>` guide.
+
+.. _node-bulk-insert-operation:
+
+Bulk Insert Operations
+----------------------
+
+To perform a bulk insert operation, create a bulk operation model for each document
+you want to insert. Then, pass a list of these models to the ``bulkWrite()``
+method.
+
+This section describes how to perform the following types of bulk operations:
+
+- :ref:`node-bulk-insert-collection`
+- :ref:`node-bulk-insert-client`
+
+.. _node-bulk-insert-collection:
+
+Collection Bulk Inserts
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To perform a bulk insert operation on your collection, create an ``InsertOneModel``
+for each operation. Then, call the ``bulkWrite()`` method on your collection
+and pass an array of models as a parameter. To create an ``InsertOneModel``, 
+specify the model's ``document`` field and set it to the document you want to insert.
+
+Example
+```````
+
+This example performs the following actions:
+
+1. Specifies two ``InsertOneModel`` instances in an array. Each ``InsertOneModel`` 
+   represents a document to insert into the ``movies`` collection in the
+   ``sample_mflix`` database. 
+#. Calls the ``bulkWrite()`` method on the ``movies`` collection and passes an
+   array of models as a parameter.
+#. Prints the number of inserted documents.
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /code-snippets/crud/bulk.js
+      :start-after: begin-insert-coll
+      :end-before: end-insert-coll
+      :language: javascript
+      :dedent:
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      Inserted documents: 2
+
+.. _node-bulk-insert-client:
+
+Client Bulk Inserts
+~~~~~~~~~~~~~~~~~~~
+
+To perform a bulk insert operation across multiple collections or
+databases, create a ``ClientBulkWriteModel`` for each operation. Then,
+call the ``bulkWrite()`` method on your client and pass an array of
+models as a parameter.
+
+The following table describes the fields that you can set in a
+``ClientBulkWriteModel`` to specify an insert operation:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``namespace`` 
+     - | The namespace in which to insert a document.
+       | Type: ``String``
+
+   * - ``name`` 
+     - | The operation you want to perform. For insert operations,
+         set this field to ``"insertOne"``.
+       | Type: ``String``
+
+   * - ``document`` 
+     - | The document to insert.
+       | Type: ``Document``
+
+Example
+```````
+
+This example performs the following actions:
+
+1. Specifies three ``ClientBulkWriteModel`` instances in an array. The
+   first two models represent documents to insert into the ``movies`` collection,
+   and the last model represents a document to insert into the ``users`` collection.
+#. Calls the ``bulkWrite()`` method on a client and passes an array of models as
+   a parameter.
+#. Prints the number of inserted documents.
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /code-snippets/crud/bulk.js
+      :start-after: begin-insert-client
+      :end-before: end-insert-client
+      :language: javascript
+      :dedent:
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      Inserted documents: 3
+
+.. _node-bulk-replace-operation:
+
+Bulk Replace Operations
+-----------------------
+
+To perform a bulk replace operation, create a bulk operation model for each document
+you want to replace. Then, pass a list of these models to the ``bulkWrite()``
+method.
+
+This section describes how to perform the following types of bulk operations:
+
+- :ref:`node-bulk-replace-collection`
+- :ref:`node-bulk-replace-client`
+
+.. _node-bulk-replace-collection:
+
+Collection Bulk Replacements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To perform a bulk replace operation on your collection, create a ``ReplaceOneModel``
+for each operation. Then, call the ``bulkWrite()`` method on your collection
+and pass an array of models as a parameter. 
+
+The following table describes the fields that you can set in a
+``ReplaceOneModel``:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``filter`` 
+     - | The filter that matches the document you want to replace.
+       | Type: ``Document``
+
+   * - ``replacement`` 
+     - | The replacement document.
+       | Type: ``Document``
+
+   * - ``collation`` 
+     - | (Optional) The collation to use when sorting results. To learn more 
+         about collations, see the :ref:`node-fundamentals-collations` guide.
+       | Type: ``String`` or ``Object``
+
+   * - ``hint`` 
+     - | (Optional) The index to use for the operation. To learn more about
+         indexes, see the :ref:`node-fundamentals-indexes` guide.
+       | Type: ``Bson``
+
+   * - ``upsert`` 
+     - | (Optional) Whether a new document is created if no document matches the filter.
+       | By default, this field is set to ``false``.
+       | Type: ``Boolean``
+
+Example
+```````
+
+This example performs the following actions:
+
+1. Specifies two ``ReplaceOneModel`` instances in an array. The ``ReplaceOneModel`` 
+   instances contain instructions to replace documents representing movies in the
+   ``movies`` collection.
+#. Calls the ``bulkWrite()`` method on the ``movies`` collection and passes an
+   array of models as a parameter.
+#. Prints the number of modified documents.
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /code-snippets/crud/bulk.js
+      :start-after: begin-replace-coll
+      :end-before: end-replace-coll
+      :language: javascript
+      :dedent:
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      Modified documents: 2
+
+.. _node-bulk-replace-client:
+
+Client Bulk Replacements
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To perform a bulk replace operation across multiple collections or
+databases, create a ``ClientBulkWriteModel`` for each operation. Then,
+call the ``bulkWrite()`` method on your client and pass an array of
+models as a parameter.
+
+The following table describes the fields that you can set in a
+``ClientBulkWriteModel`` to specify a replace operation:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``namespace`` 
+     - | The namespace in which to replace a document.
+       | Type: ``String``
+
+   * - ``name`` 
+     - | The operation you want to perform. For replace operations,
+         set this field to ``"replaceOne"``.
+       | Type: ``String``
+
+   * - ``filter`` 
+     - | The filter that matches the document you want to replace.
+       | Type: ``Document``
+
+   * - ``replacement`` 
+     - | The replacement document.
+       | Type: ``Document``
+
+   * - ``collation`` 
+     - | (Optional) The collation to use when sorting results. To learn more 
+         about collations, see the :ref:`node-fundamentals-collations` guide.
+       | Type: ``String`` or ``Object``
+
+   * - ``hint`` 
+     - | (Optional) The index to use for the operation. To learn more about
+         indexes, see the :ref:`node-fundamentals-indexes` guide.
+       | Type: ``Bson``
+
+Example
+```````
+
+This example performs the following actions:
+
+1. Specifies three ``ClientBulkWriteModel`` instances in an array. The
+   first two models contain replacement instructions for documents in the ``movies`` collection,
+   and the last model contains replacement instructions for a document in the ``users`` collection.
+#. Calls the ``bulkWrite()`` method on a client and passes an array of models as
+   a parameter.
+#. Prints the number of modified documents.
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /code-snippets/crud/bulk.js
+      :start-after: begin-replace-client
+      :end-before: end-replace-client
+      :language: javascript
+      :dedent:
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      Modified documents: 3
+
+.. _node-bulk-update-operation:
+
+Bulk Update Operations
+----------------------
+
+To perform a bulk update operation, create a bulk operation model for each update
+you want to make. Then, pass a list of these models to the ``bulkWrite()``
+method.
+
+This section describes how to perform the following types of bulk operations:
+
+- :ref:`node-bulk-update-collection`
+- :ref:`node-bulk-update-client`
+
+.. _node-bulk-update-collection:
+
+Collection Bulk Updates
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To perform a bulk update operation on your collection, create an ``UpdateOneModel``
+or ``UpdateManyModel`` for each operation. Then, call the ``bulkWrite()`` method on
+your collection and pass an array of models as a parameter. An ``UpdateOneModel``
+updates only one document that matches a filter, while an ``UpdateManyModel`` updates
+all documents that match a filter.
+
+The following table describes the fields you can set in an ``UpdateOneModel`` or 
+``UpdateManyModel``:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``filter`` 
+     - | The filter that matches one or more documents you want to update. When 
+         specified in an ``UpdateOneModel``, only the first matching document will 
+         be updated. When specified in an ``UpdateManyModel``, all matching documents
+         will be updated.
+       | Type: ``Document``
+
+   * - ``update`` 
+     - | The update to perform.
+       | Type: ``Document``
+
+   * - ``arrayFilters`` 
+     - | (Optional) A set of filters specifying which array elements an update 
+         applies to if you are updating an array-valued field.
+       | Type: ``Array``
+
+   * - ``collation`` 
+     - | (Optional) The collation to use when sorting results. To learn more about 
+         collations, see the :ref:`node-fundamentals-collations` guide.
+       | Type: ``Object``
+
+   * - ``hint`` 
+     - | (Optional) The index to use for the operation. To learn more about
+         indexes, see the :ref:`node-fundamentals-indexes` guide.
+       | Type: ``String or Object``
+
+   * - ``upsert`` 
+     - | (Optional) Whether a new document is created if no document matches the filter.
+         By default, this field is set to ``false``.
+       | Type: ``Boolean``
+
+Example
+```````
+
+This example performs the following actions:
+
+1. Specifies an ``UpdateOneModel`` and an ``UpdateManyModel`` instance in an array. 
+   These models contain instructions to update documents representing movies in the
+   ``movies`` collection.
+#. Calls the ``bulkWrite()`` method on the ``movies`` collection and passes an
+   array of models as a parameter.
+#. Prints the number of modified documents.
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /code-snippets/crud/bulk.js
+      :start-after: begin-update-coll
+      :end-before: end-update-coll
+      :language: javascript
+      :dedent:
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      Modified documents: 2320
+
+.. _node-bulk-update-client:
+
+Client Bulk Updates
+~~~~~~~~~~~~~~~~~~~
+
+To perform a bulk update operation across multiple collections or
+databases, create a ``ClientBulkWriteModel`` for each operation. Then,
+call the ``bulkWrite()`` method on your client and pass an array of
+models as a parameter.
+
+The following table describes the fields you can set in a ``ClientBulkWriteModel``
+to specify an update operation:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``namespace`` 
+     - | The namespace in which to update a document.
+       | Type: ``String``
+
+   * - ``name`` 
+     - | The operation you want to perform. For update operations,
+         set this field to ``"updateOne"`` or ``"updateMany"``.
+       | Type: ``String``
+
+   * - ``filter`` 
+     - | The filter that matches one or more documents you want to update. If 
+         you set the model ``name`` to ``"updateOne"``, only the first matching
+         document is updated. If you set ``name`` to ``"updateMany"``, all
+         matching documents are updated.
+       | Type: ``Document``
+
+   * - ``update`` 
+     - | The updates to perform.
+       | Type: ``Document`` or ``Document[]``
+
+   * - ``arrayFilters`` 
+     - | (Optional) A set of filters specifying which array elements an update 
+         applies to if you are updating an array-valued field.
+       | Type: ``Document[]``
+
+   * - ``collation`` 
+     - | (Optional) The collation to use when sorting results. To learn more about 
+         collations, see the :ref:`node-fundamentals-collations` guide.
+       | Type: ``Document``
+
+   * - ``hint`` 
+     - | (Optional) The index to use for the operation. To learn more about
+         indexes, see the :ref:`node-fundamentals-indexes` guide.
+       | Type: ``Document`` or ``String``
+
+   * - ``upsert`` 
+     - | (Optional) Whether a new document is created if no document matches the filter.
+         By default, this field is set to ``false``.
+       | Type: ``Boolean``
+
+Example
+```````
+
+This example performs the following actions:
+
+1. Specifies two ``ClientBulkWriteModel`` instances in an array. The
+   first model specifies an update many operation on the
+   ``movies`` collection, and the second model specifies an update one operation
+   on the ``users`` collection.
+#. Calls the ``bulkWrite()`` method on a client and passes an array of models as
+   a parameter.
+#. Prints the number of modified documents.
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /code-snippets/crud/bulk.js
+      :start-after: begin-update-client
+      :end-before: end-update-client
+      :language: javascript
+      :dedent:
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      Modified documents: 2320
+
+.. _node-bulk-delete-operation:
+
+Bulk Delete Operations
+----------------------
+
+To perform a bulk delete operation, create a bulk operation model for each delete
+operation. Then, pass a list of these models to the ``bulkWrite()`` method.
+
+This section describes how to perform the following types of bulk operations:
+
+- :ref:`node-bulk-delete-collection`
+- :ref:`node-bulk-delete-client`
+
+.. _node-bulk-delete-collection:
+
+Collection Bulk Deletes
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To perform a bulk delete operation on your collection, create a ``DeleteOneModel``
+or ``DeleteManyModel`` for each operation. Then, call the ``bulkWrite()`` method on
+your collection and pass an array of models as a parameter.  A ``DeleteOneModel``
+deletes only one document that matches a filter, while a ``DeleteManyModel`` deletes
+all documents that match a filter.
+
+The following table describes the fields you can set in a ``DeleteOneModel`` or 
+``DeleteManyModel``:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``filter`` 
+     - | The filter that matches one or more documents you want to delete. When 
+         specified in a ``DeleteOneModel``, only the first matching document will
+         be deleted. When specified in a ``DeleteManyModel``, all matching documents
+         will be deleted.
+       | Type: ``Document``
+
+   * - ``collation`` 
+     - | (Optional) The collation to use when sorting results. To learn more about 
+         collations, see the :ref:`node-fundamentals-collations` guide.
+       | Type: ``Object``
+
+   * - ``hint`` 
+     - | (Optional) The index to use for the operation. To learn more about
+         indexes, see the :ref:`node-fundamentals-indexes` guide.
+       | Type: ``String or Object``
+
+Example
+```````
+
+This example performs the following actions:
+
+1. Specifies a ``DeleteOneModel`` and a ``DeleteManyModel`` instance in an array. 
+   These models contain instructions to delete documents in the
+   ``movies`` collection.
+#. Calls the ``bulkWrite()`` method on the ``movies`` collection and passes an
+   array of models as a parameter.
+#. Prints the number of deleted documents.
+
+.. io-code-block::
+
+   .. input:: /code-snippets/crud/bulk.js
+      :start-after: begin-delete-coll
+      :end-before: end-delete-coll
+      :language: javascript
+      :dedent:
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      Deleted documents: 5538
+
+.. _node-bulk-delete-client:
+
+Client Bulk Deletes
+~~~~~~~~~~~~~~~~~~~
+
+To perform a bulk delete operation across multiple collections or
+databases, create a ``ClientBulkWriteModel`` for each operation. Then,
+call the ``bulkWrite()`` method on your client and pass an array of
+models as a parameter.
+
+The following table describes the fields you can set in a ``ClientBulkWriteModel``
+to specify a delete operation:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``namespace`` 
+     - | The namespace in which to delete a document.
+       | Type: ``String``
+
+   * - ``name`` 
+     - | The operation you want to perform. For delete operations,
+         set this field to ``"deleteOne"`` or ``"deleteMany"``.
+       | Type: ``String``
+
+   * - ``filter`` 
+     - | The filter that matches one or more documents you want to delete. If 
+         you set the model ``name`` to ``"deleteOne"``, only the first matching
+         document is deleted. If you set ``name`` to ``"deleteMany"``, all
+         matching documents are deleted.
+       | Type: ``Document``
+
+   * - ``hint`` 
+     - | (Optional) The index to use for the operation. To learn more about
+         indexes, see the :ref:`node-fundamentals-indexes` guide.
+       | Type: ``Document`` or ``String``
+
+   * - ``collation`` 
+     - | (Optional) The collation to use when sorting results. To learn more about 
+         collations, see the :ref:`node-fundamentals-collations` guide.
+       | Type: ``Document``
+
+Example
+```````
+
+This example performs the following actions:
+
+1. Specifies two ``ClientBulkWriteModel`` instances in an array. The
+   first model specifies a delete many operation on the ``movies``
+   collection, and the second model specifies a delete one operation
+   on the ``users`` collection.
+#. Calls the ``bulkWrite()`` method on a client and passes an array of models as
+   a parameter.
+#. Prints the number of modified documents.
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /code-snippets/crud/bulk.js
+      :start-after: begin-delete-client
+      :end-before: end-delete-client
+      :language: javascript
+      :dedent:
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      Deleted documents: 5538
+
+.. _node-bulk-return-type:
+
+Return Type
+-----------
+
+BulkWriteResult
+~~~~~~~~~~~~~~~
+
+The ``Collection.bulkWrite()`` method returns a ``BulkWriteResult`` object, which provides
+information about your bulk operation.
+
+The following tables describes the fields of a ``BulkWriteResult`` object:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``insertedCount`` 
+     - The number of inserted documents
+
+   * - ``matchedCount`` 
+     - The number of matched documents
+
+   * - ``modifiedCount`` 
+     - The number of updated documents
+
+   * - ``upsertedCount`` 
+     - The number of upserted documents
+
+   * - ``deletedCount`` 
+     - The number of deleted documents
+
+ClientBulkWriteResult
+~~~~~~~~~~~~~~~~~~~~~
+
+The ``MongoClient.bulkWrite()`` method returns a ``ClientBulkWriteResult`` object,
+which includes information about the client bulk write operation.
+
+The following tables describes the fields of a ``ClientBulkWriteResult`` object:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``acknowledged`` 
+     - A boolean value indicating whether the bulk write was acknowledged
+
+   * - ``insertedCount`` 
+     - The number of inserted documents
+
+   * - ``matchedCount`` 
+     - The number of matched documents
+
+   * - ``modifiedCount`` 
+     - The number of updated documents
+
+   * - ``upsertedCount`` 
+     - The number of upserted documents
+
+   * - ``deletedCount`` 
+     - The number of deleted documents
+
+   * - ``insertResults`` 
+     - The results of each individual successful insert operation
+
+   * - ``updateResults`` 
+     - The results of each individual successful update operation
+
+   * - ``deleteResults`` 
+     - The results of each individual successful delete operation
+
+.. _node-bulk-handle-exceptions:
+
+Handling Exceptions
+-------------------
+
+Collection Bulk Write Exceptions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If any bulk write operations called on a collection are unsuccessful,
+the {+driver-short+} throws a ``MongoBulkWriteError`` and does not perform any further operations if the 
+``ordered`` option is set to ``true``. If ``ordered`` is set to ``false``, it will
+attempt to continue with subsequent operations.
+
+.. tip::
+
+   To learn more about ordered and unordered bulk operations, see
+   the :manual:`Ordered vs Unordered Operations </core/bulk-write-operations/#ordered-vs-unordered-operations>`
+   section in the Bulk Write guide from the {+mdb-server+} manual.
+
+A ``MongoBulkWriteError`` object contains the following properties:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Property
+     - Description
+
+   * - ``message`` 
+     - | The error message. 
+       | Type: ``String``
+
+   * - ``writeErrors`` 
+     - | An array of errors that occurred during the bulk write operation.
+       | Type: ``BulkWriteError[]``
+
+   * - ``writeConcernErrors`` 
+     - | Write concern errors that occurred during execution of the bulk write operation.
+       | Type: ``WriteConnectionError[]``   
+
+   * - ``result`` 
+     - | The results of any successful operations performed before the exception was 
+         thrown.
+       | Type: ``BulkWriteResult[]``   
+
+   * - ``err`` 
+     - | The underlying error object, which may contain more details.
+       | Type: ``Error``
+
+Client Bulk Write Exceptions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If any bulk write operations called on your client are unsuccessful, the {+driver-short+}
+generates a ``MongoClientBulkWriteError``. By default, the driver does
+not perform any subsequent operations after encountering an error. If you
+pass the ``ordered`` option to the ``bulkWrite()`` method and set it to ``false``,
+the driver continues to attempt the remaining operations.
+
+A ``MongoClientBulkWriteError`` object contains the following properties:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Property
+     - Description
+
+   * - ``writeConcernErrors`` 
+     - | An array of documents specifying each write concern error.
+       | Type: ``Document[]``
+
+   * - ``writeErrors`` 
+     - | An map of errors that occurred during individual write operations.
+       | Type: ``Map<number, ClientBulkWriteError>``
+
+   * - ``partialResult`` 
+     - | The partial result of the client bulk write that reflects the operation's
+         progress before the error.
+       | Type: ``ClientBulkWriteResult``
+
+.. _node-bulk-addtl-info:
+
+Additional Information
+----------------------
+
+To learn more about bulk operations, see :manual:`Bulk Write Operations </core/bulk-write-operations/>`
+in the {+mdb-server+} manual.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `Collection.bulkWrite() <{+api+}/classes/Collection.html#bulkWrite>`__
+- `MongoClient.bulkWrite() <{+api+}/classes/MongoClient.html#bulkWrite>`__
+- `BulkWriteResult <{+api+}/classes/BulkWriteResult.html>`__
+- `ClientBulkWriteResult <{+api+}/interfaces/ClientBulkWriteResult.html>`__
+- `ClientBulkWriteModel <{+api+}/types/ClientBulkWriteModel.html>`__
+- `InsertOneModel <{+api+}/classes/OrderedBulkOperation.html#insert>`__
+- `InsertOne <{+api+}/classes/Collection.html#insertOne>`__
+- `ReplaceOne <{+api+}/classes/Collection.html#replaceOne>`__
+- `ReplaceOneModel <{+api+}/interfaces/ReplaceOneModel.html>`__
+- `UpdateOne <{+api+}/classes/Collection.html#updateOne>`__
+- `UpdateMany <{+api+}/classes/Collection.html#updateMany>`__
+- `UpdateOneModel <{+api+}/interfaces/UpdateOneModel.html>`__
+- `DeleteOne <{+api+}/classes/Collection.html#deleteOne>`__
+- `DeleteMany <{+api+}/classes/Collection.html#deleteMany>`__
+- `DeleteOneModel <{+api+}/interfaces/DeleteOneModel.html>`__
