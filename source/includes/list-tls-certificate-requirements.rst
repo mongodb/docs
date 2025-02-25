@@ -1,4 +1,4 @@
-- A single Certificate Authority (CA) must issue all x.509 certificates 
+- A single Certificate Authority (CA) must issue all X.509 certificates 
   for the members of a sharded cluster or a replica set.
 
 - At least one of the Subject Alternative Name (``SAN``) entries must
