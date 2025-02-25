@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
-	"go.mongodb.org/mongo-driver/v2/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
@@ -118,7 +117,7 @@ func main() {
 	fmt.Println("\nFind One by ObjectId:\n")
 	{
 		// begin objectid
-		id, err := primitive.ObjectIDFromHex("65170b42b99efdd0b07d42de")
+		id, err := bson.ObjectIDFromHex("65170b42b99efdd0b07d42de")
 		if err != nil {
 			panic(err)
 		}

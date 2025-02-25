@@ -10,14 +10,13 @@ import (
 
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/v2/bson"
-	"go.mongodb.org/mongo-driver/v2/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 // start-restaurant-struct
 type Restaurant struct {
-	ID           primitive.ObjectID `bson:"_id"`
+	ID           bson.ObjectID `bson:"_id"`
 	Name         string
 	RestaurantId string `bson:"restaurant_id"`
 	Cuisine      string
