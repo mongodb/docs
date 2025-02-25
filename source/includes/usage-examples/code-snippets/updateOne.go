@@ -9,7 +9,6 @@ import (
 
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/v2/bson"
-	"go.mongodb.org/mongo-driver/v2/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
@@ -36,7 +35,7 @@ func main() {
 
 	// begin updateone
 	coll := client.Database("sample_restaurants").Collection("restaurants")
-	id, _ := primitive.ObjectIDFromHex("5eb3d668b31de5d588f42a7a")
+	id, _ := bson.ObjectIDFromHex("5eb3d668b31de5d588f42a7a")
 	filter := bson.D{{"_id", id}}
 
 	// Creates instructions to add the "avg_rating" field to documents
