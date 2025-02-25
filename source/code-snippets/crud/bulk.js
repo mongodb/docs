@@ -1,117 +1,249 @@
-const { MongoClient, ObjectId } = require('mongodb');
+const {
+    MongoClient,
+    ObjectId
+} = require('mongodb');
 
 const uri = '<connection string>'; // Add your MongoDB connection string here
 
 (async () => {
-    const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+    const client = new MongoClient(uri);
 
     try {
         await client.connect();
-        
+
         const database = client.db('sample_mflix');
         const movies = database.collection('movies');
 
-        // Clean up collection
-        await movies.deleteMany({});
+        // begin-insert-coll
+        const insertModels = [{
+            insertOne: {
+                document: {
+                    title: "The Favourite",
+                    year: 2018,
+                    rated: "R",
+                    released: "2018-12-21"
+                }
+            }
+        }, {
+            insertOne: {
+                document: {
+                    title: "I, Tonya",
+                    year: 2017,
+                    rated: "R",
+                    released: "2017-12-08"
+                }
+            }
+        }];
 
-        // begin-sample-data
-        // const movies = database.collection('movies');
-        
-        const docs = [
-        { title: "Inception", year: 2010, rated: "PG-13", released: "2010-07-16" },
-        { title: "Interstellar", year: 2014, rated: "PG-13", released: "2014-11-07" },
-        { title: "The Dark Knight", year: 2008, rated: "PG-13", released: "2008-07-18" },
-        { title: "Tenet", year: 2020, rated: "PG-13", released: "2020-09-03"}
-        ];
-        // end-sample-data
+        const insertResult = await movies.bulkWrite(insertModels);
+        console.log(`Inserted documents: ${insertResult.insertedCount}`);
+        // end-insert-coll
 
-        // begin-insert
-        const bulkOps = [
-        { insertOne: { document: { title: "Inception", year: 2010, rated: "PG-13", released: "2010-07-16" } } },
-        { insertOne: { document: { title: "Interstellar", year: 2014, rated: "PG-13", released: "2014-11-07" } } },
-        { insertOne: { document: { title: "The Dark Knight", year: 2008, rated: "PG-13", released: "2008-07-18" } } },
-        { insertOne: { document: { title: "Tenet", year: 2020, rated: "PG-13", released: "2020-09-03" } } }
-          ];
+        // begin-insert-client
+        const clientInserts = [{
+            namespace: "sample_mflix.movies",
+            name: "insertOne",
+            document: {
+                title: "The Favourite",
+                year: 2018,
+                rated: "R",
+                released: "2018-12-21"
+            }
+        }, {
+            namespace: "sample_mflix.movies",
+            name: "insertOne",
+            document: {
+                title: "I, Tonya",
+                year: 2017,
+                rated: "R",
+                released: "2017-12-08"
+            }
+        }, {
+            namespace: "sample_mflix.users",
+            name: "insertOne",
+            document: {
+                name: "Brian Schwartz",
+                email: "bschwartz@example.com"
+            }
+        }];
 
-        await movies.bulkWrite(bulkOps);
-        // end-insert
+        const clientInsertRes = await client.bulkWrite(clientInserts);
+        console.log(`Inserted documents: ${clientInsertRes.insertedCount}`);
+        // end-insert-client
 
         await movies.insertMany(docs);
 
-        // Inserting additional movies
-        const additionalMovies = [
-        { title: "Dunkirk", year: 2017, rated: "PG-13", released: "2017-07-21" },
-        { title: "Memento", year: 2000, rated: "R", released: "2000-09-05" }
-        ];
-        await movies.insertMany(additionalMovies);
+        // begin-replace-coll
+        const replaceOperations = [{
+            replaceOne: {
+                filter: {
+                    title: "The Dark Knight"
+                },
+                replacement: {
+                    title: "The Dark Knight Rises",
+                    year: 2012,
+                    rating: "PG-13"
+                },
+                upsert: false
+            }
+        }, {
+            replaceOne: {
+                filter: {
+                    title: "Inception"
+                },
+                replacement: {
+                    title: "Inception Reloaded",
+                    year: 2010,
+                    rating: "PG-13"
+                },
+                upsert: false
+            }
+        }];
 
+        const replaceResult = await movies.bulkWrite(replaceOperations);
+        console.log(`Modified documents: ${replaceResult.modifiedCount}`);
+        // end-replace-coll
 
-        // begin-replace
-        const replaceOperations = [
-            {
-                replaceOne: {
-                    filter: { title: "The Dark Knight" },
-                    replacement: { title: "The Dark Knight Rises", year: 2012, rating: "PG-13" },
-                    upsert: false
-                }
+        // begin-replace-client
+        const clientReplacements = [{
+            namespace: "sample_mflix.movies",
+            name: "replaceOne",
+            filter: {
+                title: "The Dark Knight"
             },
-            {
-                replaceOne: {
-                    filter: { title: "Inception" },
-                    replacement: { title: "Inception Reloaded", year: 2010, rating: "PG-13" },
-                    upsert: false
+            replacement: {
+                title: "The Dark Knight Rises",
+                year: 2012,
+                rating: "PG-13"
+            }
+        }, {
+            namespace: "sample_mflix.movies",
+            name: "replaceOne",
+            filter: {
+                title: "Inception"
+            },
+            replacement: {
+                title: "Inception Reloaded",
+                year: 2010,
+                rating: "PG-13"
+            }
+        }, {
+            namespace: "sample_mflix.users",
+            name: "replaceOne",
+            filter: {
+                name: "April Cole"
+            },
+            replacement: {
+                name: "April Franklin",
+                email: "aprilfrank@example.com"
+            }
+        }];
+
+        const clientReplaceRes = await client.bulkWrite(clientReplacements);
+        console.log(`Modified documents: ${clientReplaceRes.modifiedCount}`);
+        // end-replace-client        
+
+        // begin-update-coll
+        const updateOperations = [{
+            updateOne: {
+                filter: {
+                    title: "Interstellar"
+                },
+                update: {
+                    $set: {
+                        title: "Interstellar Updated",
+                        genre: "Sci-Fi Adventure"
+                    }
+                },
+                upsert: true
+            }
+        }, {
+            updateMany: {
+                filter: {
+                    rated: "PG-13"
+                },
+                update: {
+                    $set: {
+                        rated: "PG-13 Updated",
+                        genre: "Updated Genre"
+                    }
                 }
             }
-        ];
+        }];
 
-        const replace_result = await movies.bulkWrite(replaceOperations);
-        // end-replace
+        const updateResult = await movies.bulkWrite(updateOperations);
+        console.log(`Modified documents: ${updateResult.modifiedCount}`);
+        // end-update-coll
 
-
-        // begin-update
-        const updateOperations = [
-            {
-                updateOne: {
-                    filter: { title: "Interstellar" },
-                    update: { $set: { title: "Interstellar Updated", genre: "Sci-Fi Adventure" } },
-                    upsert: true
+        // begin-update-client
+        const clientUpdates = [{
+            namespace: "sample_mflix.movies",
+            name: "updateMany",
+            filter: {
+                rated: "PG-13"
+            },
+            update: {
+                $set: {
+                    rated: "PG-13 Updated",
+                    genre: "Updated Genre"
                 }
             },
-            {
-                updateMany: {
-                    filter: { rated: "PG-13" },
-                    update: { $set: { rated: "PG-13 Updated", genre: "Updated Genre" } }
-                }
-            }
-        ];
-        
-        const update_result = await movies.bulkWrite(updateOperations);
-        
-        console.log(`Matched documents: ${result3.matchedCount}`);
-        console.log(`Modified documents: ${result3.modifiedCount}`);
-        // end-update
-
-
-        // begin-delete
-        const deleteOperations = [
-            {
-                deleteOne: {
-                    filter: { title: "Dunkirk" }
+            upsert: false
+        }, {
+            namespace: "sample_mflix.users",
+            name: "updateOne",
+            filter: {
+                name: "Jon Snow"
+            },
+            update: {
+                $set: {
+                    name: "Aegon Targaryen",
+                    email: "targaryen@example.com"
                 }
             },
-            {
-                deleteMany: {
-                    filter: { rated: "R" }
+            upsert: false
+        }];
+        const clientUpdateRes = await client.bulkWrite(clientUpdates);
+        console.log(`Modified documents: ${clientUpdateRes.modifiedCount}`);
+        // end-update-client     
+
+        // begin-delete-coll
+        const deleteOperations = [{
+            deleteOne: {
+                filter: {
+                    title: "Dunkirk"
                 }
             }
-        ];
-        
-        
-        const delete_result = await movies.bulkWrite(deleteOperations);
-        
-        console.log(`Deleted documents: ${result4.deletedCount}`);
-        // end-delete
+        }, {
+            deleteMany: {
+                filter: {
+                    rated: "R"
+                }
+            }
+        }];
 
+        const deleteResult = await movies.bulkWrite(deleteOperations);
+        console.log(`Deleted documents: ${deleteResult.deletedCount}`);
+        // end-delete-coll
+
+        // begin-delete-client
+        const clientDeletes = [{
+            namespace: "sample_mflix.movies",
+            name: "deleteMany",
+            filter: {
+                rated: "R"
+            }
+        }, {
+            namespace: "sample_mflix.users",
+            name: "deleteOne",
+            filter: {
+                email: "emilia_clarke@gameofthron.es"
+            }
+        }];
+
+        const clientDeleteRes = await client.bulkWrite(clientDeletes);
+        console.log(`Deleted documents: ${clientDeleteRes.deletedCount}`);
+        // end-delete-client
 
         console.log("Operations completed successfully.");
     } finally {
