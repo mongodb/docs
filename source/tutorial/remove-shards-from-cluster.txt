@@ -101,12 +101,11 @@ Steps
             "msg" : "draining started successfully",
             "state" : "started",
             "shard" : "<shardName>",
-            "note" : "you need to call moveCollection for collectionsToMove and afterwards movePrimary for the dbsToMove", 
+            "note" : "you need to drop or movePrimary these databases", 
             "dbsToMove" : [
                "db1",
                "db2"
             ],
-            collectionsToMove: ["db1.collA"]
             "ok" : 1,
             "operationTime" : Timestamp(1575398919, 2),
             "$clusterTime" : {
@@ -116,6 +115,7 @@ Steps
                   "keyId" : NumberLong("6766255701040824328")
                }
             }
+         }
 
       The shard enters the ``draining`` state and the balancer begins
       migrating chunks from the removed shard to other shards in the
@@ -137,61 +137,127 @@ Steps
          ``moveCollection`` and ``reshardCollection`` operations
          simultaneously.
 
-   .. step:: Move unsharded collections to another shard
+   .. step:: List sharded collection namespaces
 
-      #. Determine what collections need to be moved
+      To return a list of sharded collection namespaces, use the
+      :pipeline:`$shardedDataDistribution` stage and project the ``ns``
+      field:
 
-         To list the unsharded collections on the shard, use the aggregation
-         stage ``$listClusterCatalog``:
+      .. code-block:: javascript
+
+         use admin
+
+         db.aggregate(
+            [
+               { $shardedDataDistribution: { } },
+               { $project: { ns: 1 } }
+            ]
+         )
+
+      Record the output to reference later in this tutorial.
+
+   .. step:: List all databases in the cluster
+
+      .. code-block:: javascript
+
+         db.adminCommand( { listDatabases: 1, nameOnly: true } )
+
+   .. step:: Move collections off of the shard
+
+      **For each database in the cluster, excluding admin and config**,
+      perform these steps:
+
+      a. List the database collections
+
+         List the collections in the database, omitting the following
+         types of collections:
+
+         - Internal collections that support {+csfle-abbrev+}
+         - System collections
+         - Time series collections
+         - Views
 
          .. code-block:: javascript
-
-            use admin
          
-            db.aggregate([
-                  { $listClusterCatalog: { shards: true } },
-                  { $match: { 
-                        $and: [
-                            { sharded: false },
-                            { shards: '<shard_to_remove>' },
-                            { type: { $nin: ["timeseries","view"] } },
-                            { ns: { $not: { $regex: "^enxcol_\..*(\.esc|\.ecc|\.ecoc|\.ecoc\.compact)$" }}},
-                            { $or: [{ns: {$not: { $regex: "\.system\." }}}, {ns: {$regex: "\.system\.buckets\."}}]},
-                            { db: { $ne: 'config' } },
-                            { db: { $ne: 'admin' } }
-                        ]}},
-                  { $project: {
-                     _id: 0,
-                     ns: {
-                         $cond: [
-                             "$options.timeseries",
-                             {
-                                 $replaceAll: {
-                                     input: "$ns",
-                                     find: ".system.buckets",
-                                     replacement: ""
-                                 }
-                             },
-                             "$ns"
-                         ]
-                     }
-               }}
-            ])
+            use <databaseName>
 
-      #. Move the collections one by one
+            db.getCollectionInfos(
+               {
+                  $and: [
+                     { type: { $nin: [ "view", "timeseries" ] } },
+                     { name: { $not: { $regex: "^system\." } } },
+                     { name: { $not: { $regex: "^enxcol_\..*(\.esc|\.ecc|\.ecoc|\.ecoc\.compact)$" } } }
+                  ]
+               },
+               { nameOnly: true }
+            )
 
-         To move the collection, run :method:`sh.moveCollection()`:
+      #. Move necessary collections
 
-         .. code-block:: javascript
-
-            sh.moveCollection( "<database>.<collection>", "<ID of recipient shard>" )
+         For each collection returned by ``getCollectionInfos()``
+         perform the following steps.
 
          .. note::
 
-            ``moveCollection`` fails if you run the command on a
-            namespace that is sharded. If you receive this error
-            message, ignore it and return to step ``1`` for the
+            Only one ``moveCollection`` operation can be in progress
+            at a time. Complete all sub-steps before moving on to the
             next collection.
+
+         i. Determine whether the collection needs to be moved.
+
+            Run the :pipeline:`$collStats` aggregation stage and
+            project the ``ns`` and ``shard`` fields:
+
+            .. code-block:: javascript
+
+               db.<collName>.aggregate(
+                  [
+                     {
+                        $collStats: { }
+                     },
+                     {
+                        $project: {
+                           ns: 1,
+                           shard: 1
+                        }
+                     }
+                  ]
+               )
+
+            If any of the following criteria are met, skip the
+            collection and return to step ``i`` for the next
+            collection in the database:
+
+            - The ``ns`` field is present in the
+              ``$shardedDataDistribution`` output from step 4.
+
+            - The ``shard`` field is not the shard being removed.
+
+            If neither of the preceding criteria are met, continue to
+            step ``ii`` for the current collection.
+
+         #. Move the collection.
+
+            To move the collection, run :method:`sh.moveCollection()`
+            on the collection:
+
+            .. code-block:: javascript
+
+               sh.moveCollection( "<namespace>.<collection>", "<ID of recipient shard>" )
+
+            .. note::
+
+               ``moveCollection`` fails if you run the command on a
+               namespace that is sharded. If you receive this error
+               message, ignore it and return to step ``i`` for the
+               next collection.
+
+         #. Return to step ``i`` for each collection in the database.
+
+      #. Repeat the procedure for other databases
+
+         Repeat step 6, :guilabel:`Move collections off of the shard`
+         (and sub-steps) for each database in the cluster.
 
       #. Return to step ``1`` to check that there are no remaining unsharded collections
          on the draining shard. 
