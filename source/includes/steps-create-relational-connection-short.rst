@@ -28,16 +28,6 @@ a. In the :guilabel:`Database type` drop-down, select the database type.
 
          .. include:: /includes/table-postgresql-connection-fields.rst
 
-      .. tab:: DB2
-         :tabid: db-db2
-
-         .. include:: /includes/table-db2-connection-fields.rst
-
-      .. tab:: Sybase ASE
-         :tabid: db-sybase
-
-         .. include:: /includes/table-sybase-connection-fields.rst
-
 #. Enter a :guilabel:`Connection name` and optional :guilabel:`Environment tag`.
 
 #. Click :guilabel:`Connect`.
