@@ -1,0 +1,389 @@
+.. _security-aws-kms-pvt-endpoint:
+
+====================================================
+Manage Customer Keys with AWS Over Private Endpoints 
+====================================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: encryption
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+In addition to encrypting your data at rest in |service| with the customer-managed 
+keys (CMK) that you create, own, and manage in your |aws| |kms|, you can add another layer 
+of security by configuring all traffic to your |aws| |kms| to use {+aws-pl+}.
+
+This page describes how to
+set up {+aws-pl+} in your |aws| |kms| to ensure that all traffic between
+|service| and your |aws| |kms| takes place over |aws|\'s private network
+interfaces. 
+
+Considerations 
+--------------
+
+Before you enable Encryption at Rest using |aws| |kms| over PrivateLink,
+review the following use cases, benefits, limitations, and prerequisites.
+
+Use Case 
+~~~~~~~~
+
+Suppose your |service| deployment is on a single cloud service provider.
+You now have a requirement that all access to your |aws| |kms| occurs over your
+cloud provider's private networking infrastructure. This page walks you
+through the steps to enable private endpoint connections for your
+|service| project. 
+
+Benefits
+~~~~~~~~
+
+You can configure
+Encryption at Rest with |aws| |kms| over private networking. This configuration allows all
+traffic to your |aws| |kms| to pass through a set of private endpoints and avoids
+exposing your |aws| |kms| to the public internet or public IP addresses. This configuration also
+eliminates the need to maintain allowed IP addresses while enhancing
+data security by keeping all |aws| |kms| traffic within |aws|'s private
+network.  
+
+Limitations
+~~~~~~~~~~~
+
+* |service| supports Encryption at Rest using |aws| |kms| over
+  private networking only for single-cloud deployments. 
+
+* |service| supports Encryption at Rest using |aws| |kms| over
+  private networking only for projects in the ``ACTIVE`` state.
+
+.. _aws-kms-pvt-prereqs:
+
+Prerequisites
+-------------
+
+To enable customer-managed keys with |aws| |kms| for a MongoDB
+project, you must:
+
+.. include:: /includes/fact-aws-kms-prereqs.rst
+
+Procedures 
+----------
+
+.. _aws-kms-pvt-enable-project:
+
+Enable Role-Based Access for Your Encryption Key for a Project
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tabs::
+
+   .. tab:: UI
+      :tabid: ui
+
+      .. include:: /includes/steps-enable-rba-encryption-for-project.rst
+
+   .. tab:: API
+      :tabid: api
+   
+      .. include:: /includes/steps/enable-rba-encryption-api.rst
+
+After you enable role-based access for your encryption key for your project, 
+enable private endpoint connections for your project by following 
+:ref:`aws-kms-enable-pvt-endpoint`. 
+
+.. _aws-kms-pvt-switch-project:
+
+Switch to Role-Based Access for Your Encryption Key for a Project
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|aws| requires the use of |iam| *roles* instead of |iam| 
+*users* for managing access to |aws| |kms| encryption keys within |service|. 
+If you initially configured your project to use |iam| *user* credentials to access 
+|aws| |kms| keys, switch to role-based access using the following procedure.
+
+.. include:: /includes/fact-switching-access-to-encryption-keys.rst
+
+.. tabs::
+
+   .. tab:: UI
+      :tabid: ui
+
+      .. include:: /includes/steps-migrate-rba-encryption-for-project.rst
+
+   .. tab:: API
+      :tabid: api
+   
+      To update your encryption key management with the 
+      {+atlas-admin-api+}, use the same steps outlined in the 
+      :ref:`above procedure <aws-kms-enable-project>`.
+
+.. _aws-kms-enable-pvt-endpoint:
+
+Enable and Set up Private Endpoint Connections for a Project 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To enable private networking and set up a private
+endpoint in your |aws| |kms|, you must do the following: 
+
+.. tabs::
+
+   .. tab:: UI
+      :tabid: ui
+
+      .. include:: /includes/ear/steps-aws-enable-private-endpoint-connections-ui.rst
+
+   .. tab:: API
+      :tabid: api
+
+      .. include:: /includes/ear/steps-aws-enable-private-endpoint-connections.rst
+
+After you enable customer key management for your project and set up private endpoints, 
+enable customer key management for each |service| {+cluster+} in your project by following 
+:ref:`aws-pvt-enable-cluster-encryption-at-rest`.    
+
+.. _aws-pvt-enable-cluster-encryption-at-rest:
+
+Enable Customer Key Management for an |service| {+Cluster+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After you :ref:`aws-kms-pvt-enable-project`, you must enable customer key
+management for each |service| {+cluster+} that contains data that you want
+to encrypt.
+
+.. note::
+
+   You must have the :authrole:`Project Owner <Project Owner>` role to
+   enable customer key management for {+clusters+} in that project.
+
+For new clusters, toggle the
+:ref:`Manage your own encryption keys 
+<create-cluster-enable-encryption>`
+setting to :guilabel:`Yes` when you create the {+cluster+}. 
+
+For existing {+clusters+}:
+
+.. include:: /includes/steps-cluster-customer-key-management.rst
+
+Disable Customer-Managed Keys for a Project
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To disable |cmk| for a project, you must first :ref:`remove
+<aws-remove-reject-pvt-endpoint>` all private endpoints associated 
+with the project, regardless of their state. |service| displays an error if
+you attempt to disable |cmk| for a project that is associated with
+active private endpoints. 
+
+After you remove all private endpoints for a project, you must disable
+customer key management on each {+cluster+} in the project before you 
+disable the feature for the project.
+
+.. warning::
+
+   Do *not* disable or delete any |aws| |kms| keys that any {+cluster+} in your
+   |service| project uses before you have disabled customer key
+   management within the |service| project. If |service| can't access
+   an |aws| |kms| key, any data that the key encrypted becomes inaccessible.
+
+.. _aws-kms-create-pvt-endpoint:
+
+Create New Endpoints for a Project
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After you enable and set up private endpoint connections for your
+project, you can add additional endpoints at anytime from the
+{+atlas-ui+} and the {+atlas-admin-api+}. 
+
+.. tabs:: 
+
+   .. tab:: UI 
+      :tabid: ui
+
+      .. include:: /includes/ear/steps-aws-create-private-endpoints-ui.rst
+
+   .. tab:: API 
+      :tabid: api
+
+      .. include:: /includes/ear/steps-aws-create-private-endpoints-api.rst
+
+.. _aws-remove-reject-pvt-endpoint:
+
+Reject or Remove Private Endpoint Connection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can remove private endpoint connections from the {+atlas-ui+} and
+the {+atlas-admin-api+}. 
+
+.. tabs:: 
+
+   .. tab:: UI 
+      :tabid: ui
+
+      .. |ear-key-provider| replace:: :guilabel:`AWS KMS`
+
+      .. include:: /includes/ear/steps-delete-ear-private-endpoint-connections-ui.rst
+
+   .. tab:: API 
+      :tabid: api
+
+      To successfully remove a private endpoint, send a ``DELETE`` request to
+      the {+atlas-admin-api+} :oas-atlas-op:`endpoint
+      </requestEncryptionAtRestPrivateEndpointDeletion>` and specify the ID of
+      the project and of the private endpoint that you want to delete. You can 
+      retrieve the ID of the private endpoint that you want to delete by sending 
+      a ``GET`` request to the {+atlas-admin-api+} :oas-atlas-op:`Return One Private 
+      Endpoint Service for One Provider 
+      </Private-Endpoint-Services/operation/getPrivateEndpointService>` endpoint.
+
+      .. example:: 
+
+         .. code-block:: json
+      
+            curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+            --header "Accept: application/vnd.atlas.2024-10-23+json" \\ or a different version of the Atlas Admin       API
+            --header "Content-Type: application/json" \
+            --include \
+            --request DELETE "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/encryptionAtRest/AWS/      privateEndpoints/{endpointId}" \ 
+            --data '
+              {
+                "cloudProvider": "AWS",
+                "regions": [
+                  "string"
+                ]
+              }'
+
+      When you use the {+atlas-admin-api+} to delete a private endpoint, the
+      private endpoint transitions to the ``DELETING`` status while |service|
+      deletes the private endpoint.
+
+      If you remove or reject an active private endpoint from the |aws| UI,
+      |service| automatically attempts to recreate a new private endpoint in
+      the same region. 
+
+      While |service| attempts to create a new private endpoint, the status of
+      the private endpoint that you rejected or removed transitions to
+      ``PENDING_RECREATION`` and the new endpoint that |service| attempts to
+      create is in ``INITIATING`` state. You must approve the new private
+      endpoint after it is created. 
+
+.. _aws-view-pvt-endpoints:
+
+View Private Endpoints and their Statuses 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can view the private endpoints in the various regions and their
+statuses from the {+atlas-ui+} and the {+atlas-admin-api+}. 
+
+.. tabs:: 
+
+   .. tab:: UI 
+      :tabid: ui
+
+      .. |ear-key-provider| replace:: :guilabel:`AWS KMS`
+
+      .. procedure:: 
+         :style: normal
+
+         .. include:: /includes/nav/steps-advanced.rst
+
+         .. include:: /includes/ear/steps-ear-pvt-endpoints-mgmnt-page.rst
+
+   .. tab:: API 
+      :tabid: api
+
+      You can view the private endpoint and their statuses from the
+      {+atlas-admin-api+} by sending a ``GET`` request to the
+      {+atlas-admin-api+} ``encryptionAtRest`` 
+      :oas-atlas-op:`get all </getEncryptionAtRestPrivateEndpointsForCloudProvider>` 
+      endpoint or :oas-atlas-op:`get one </getEncryptionAtRestPrivateEndpoint>` 
+      endpoint, for which you must specify the ID of the private endpoint
+      in the path. 
+
+      .. example:: Return All Private Endpoints for One Project
+
+         .. code-block:: 
+            :copyable: true
+
+            curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+            --header "Accept: application/vnd.atlas.2024-10-23+json" \\ or a different version of the Atlas Admin API
+            --header "Content-Type: application/json" \
+            --include \
+            --request GET "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/encryptionAtRest/AWS/privateEndpoints/"      
+
+Each private endpoint can be in one of the following statuses:
+
+.. include:: /includes/list-tables/aws-pvt-endpoint-statuses.rst
+
+.. _aws-disable-pvt-endpoint:
+
+Disable Private Endpoint Connections for a Project 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To disable private endpoint connections for a project, you must first
+:ref:`remove <aws-remove-reject-pvt-endpoint>` all private endpoints, 
+associated with the project, regardless of their state. |service|
+doesn't disable private endpoint connections for a project if the
+project is associated with active private endpoints.
+
+After you remove all private endpoints for a project, you can disable
+private endpoint connections for the project by using the {+atlas-ui+}
+and the {+atlas-admin-api+}. 
+
+.. tabs:: 
+
+   .. tab:: UI 
+      :tabid: ui
+
+      .. |ear-key-provider| replace:: :guilabel:`AWS KMS`
+
+      .. include:: /includes/ear/steps-disable-ear-private-endpoint-connections-ui.rst
+
+   .. tab:: API 
+      :tabid: api
+
+
+      To disable a private endpoint connection, send a 
+      ``PATCH`` request to the :oas-atlas-op:`endpoint
+      </updateEncryptionAtRest>` with the ``requirePrivateNetworking`` boolean
+      flag value set to ``false``.
+
+      .. example:: 
+
+         .. code-block:: shell 
+            :emphasize-lines: 9
+
+            {
+              "awsKms": {
+                "accessKeyID": "019dd98d94b4bb778e7552e4",
+                "customerMasterKeyID": "string",
+                "enabled": true,
+                "region": "US_EAST_1",
+                "roleId": "32b6e34b3d91647abb20e7b8",
+                "secretAccessKey": "string"
+                "requirePrivateNetworking": false
+              }
+            }
+
+Related Topics
+--------------
+
+- To enable Encryption at Rest using your Key Management when deploying
+  an |service| cluster, see :ref:`create-cluster-enable-encryption`.
+
+- To enable Encryption at Rest using your Key Management for an
+  existing |service| cluster, see
+  :ref:`scale-cluster-enable-encryption`.
+
+- To learn more about Encryption at Rest using your Key Management in
+  |service|, see :ref:`security-kms-encryption`.
+
+- To learn more about MongoDB Encryption at Rest, see
+  :manual:`Encryption at Rest </core/security-encryption-at-rest/>` in
+  the MongoDB server documentation.
+
+- To learn more about Encryption at Rest with {+Cloud-Backup+}s, see :ref:`encrypted-cloud-provider-snapshot`.
