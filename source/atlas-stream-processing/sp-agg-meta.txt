@@ -1,0 +1,216 @@
+.. _atlas-sp-agg-meta:
+
+=====
+$meta
+=====
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: atlas stream processing, $meta expression 
+   :description: Learn how to use the $meta expression to access metadata for your streaming data
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. _atlas-sp-agg-meta-def:
+
+Definition
+~~~~~~~~~~
+
+The ``$meta`` expression returns an object containing all streaming
+metadata for a document. You can expose this data for either the
+entire stream, or one of the following {+atlas-sp+} aggregation
+stages:
+
+- :pipeline:`$source`
+- :pipeline:`$hoppingWindow`
+- :pipeline:`$tumblingWindow`
+- :pipeline:`$https`
+
+A ``$meta`` expression has the following prototype form:
+
+.. code-block:: json
+
+   { "$meta": <string> }
+
+.. code-block:: json
+
+  { 
+    source: {
+      type: string,
+      ts: date,
+      source.topic: string
+      source.partition: int
+      source.offset: int
+      source.key: string|int|long|double|object|binData
+      source.headers: array[obj]
+    },
+    window: {
+      start: date,
+      end: date
+    },
+    https: {
+      url: string
+      method: string
+      httpStatusCode: int
+      responseTimeMs: int  
+    }
+  }
+
+
+.. _atlas-sp-agg-meta-syntax:
+
+Syntax
+~~~~~~
+
+The ``$meta`` expression takes a single string input corresponding to
+the fully qualified, dot-syntax path of a source of metadata. The root
+of this path must be ``"stream"``. You can query the following paths:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 25 50
+
+   * - Path
+     - Type
+     - Description
+
+   * - ``stream``
+     - object
+     - All metadata for the :pipeline:`$source` stage and any window
+       stage or :pipeline:`$https` stage configured in the pipeline.
+
+   * - ``stream.source``
+     - object
+     - All metadata for the :pipeline:`$source` stage.
+
+   * - ``stream.source.type``
+     - string
+     - Type of connection used as a source.
+
+   * - ``stream.source.ts``
+     - ISODate
+     - Date and time of the record at the point of ingestion.
+
+   * - ``stream.source.topic``
+     - string
+     - Kafka topic from which the stream ingests records. Available
+       only from a Kafka source.
+
+   * - ``stream.source.partition``
+     - integer
+     - Partition of the Kafka topic from which the stream ingests
+       records. Available only from a Kafka source.
+
+   * - ``stream.source.offset``
+     - integer
+     - Offset tracking message order and queue position within a
+       Kafka source partition. Available only from a Kafka source.
+
+   * - ``stream.source.key``
+     - string|int|long|double|object|binData
+     - Key assigned to Kafka messages for partitioning and load
+       distribution. Available only from a Kafka source.
+
+   * - ``stream.source.headers``
+     - array
+     - Set of key-value pairs describing Kafka message metadata.
+
+   * - ``stream.window``
+     - object
+     - All metadata for the :pipeline:`$hoppingWindow` or
+       :pipeline:`$tumblingWindow` stage.
+
+   * - ``stream.window.start``
+     - ISODate
+     - Start time of the current window.
+
+   * - ``stream.window.end``
+     - ISODate
+     - End time of the current window.
+
+   * - ``stream.https``
+     - object
+     - All metadata for the :pipeline:`$https` stage.
+
+   * - ``stream.https.url``
+     - string
+     - URL from which the :pipeline:`$https` stage sources data.
+
+   * - ``stream.https.method``
+     - string
+     - HTTPS request method sent to the URL.
+
+   * - ``stream.https.httpStatusCode``
+     - int
+     - HTTP response code for the request sent to the URL.
+
+   * - ``stream.https.responseTimeMs``
+     - int
+     - Time, in milliseconds, it took to receive the response
+       from the URL.
+
+Behavior
+~~~~~~~~
+
+The {+atlas-sp+} ``$meta`` expression provides all of the
+functionality of the existing MongoDB :expression:`$meta` aggregation
+expression. However, you can't use the functionality specific to the
+{+atlas-sp+} version of ``$meta`` in a standard MongoDB aggregation
+query.
+
+Examples
+---------
+
+The following example enriches the output of a stream with an array of
+the Kafka source topics from which the data was ingested:
+
+.. code-block:: json
+
+   {
+     $source: {
+       connectionName: “kafka”,
+       topic: [“t1”, “t2”, “t3”]
+     }
+   },
+   {
+     $emit: {
+       connectionName: “kafka”,
+       topic: {
+         $concat: [
+	   {
+             $meta: “stream.source.topic”
+	   },
+	   “out"
+	 ]
+       }
+     }
+   }
+
+The following example adds a field to the stream reporting the start
+time of each window.
+
+.. code-block:: json
+
+   {
+     $source: {
+       connectionName: "kafka",
+       topic: "t1"
+     }
+   },
+   {
+     $hoppingWindow: . . .
+   },
+   {
+     $addFields: {
+       start: { $meta: "stream.window.start" }
+     }
+   }
+
