@@ -1,4 +1,4 @@
-If your deployment uses x.509 authentication, specify these
+If your deployment uses X.509 authentication, specify these
 :binary:`mongosh` options:
 
 - :option:`--tls <mongosh --tls>`
