@@ -53,6 +53,12 @@
        to ``Infinity`` (the javascript object) prints all nested
        objects to their full depth. 
 
+   * - ``logLocation``
+     - string
+     - Depends on your operating system. See :ref:`mdb-shell-view-logs`.
+     - Directory where MongoDB Shell writes log files. Specify an
+       absolute filepath. See :ref:`mongosh-log-location`.
+
    * - ``redactHistory``
      - string
      - ``remove``
