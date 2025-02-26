@@ -45,6 +45,3 @@
 
    .. wayfinding-option:: https://mongocxx.org/api/current/classmongocxx_1_1v__noabi_1_1collection.html#a03c8eb29bfc93cecaefc0ef9773fced7
       :id: cpp
-
-   .. wayfinding-option:: https://www.mongodb.com/docs/atlas/device-sdks/sdk/swift/app-services/mongodb-remote-access/#count-documents-in-the-collection
-      :id: swift
