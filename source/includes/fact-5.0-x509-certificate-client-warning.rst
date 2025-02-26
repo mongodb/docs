@@ -10,6 +10,6 @@ The following platforms do not support common name validation:
 
 Clients using these platforms will not
 :ref:`authenticate <x509-client-authentication>` to 
-MongoDB servers that use x.509 certificates whose hostnames are 
+MongoDB servers that use X.509 certificates whose hostnames are 
 :ref:`specified by CommonName attributes 
 <KMIP-subject-alternative-name-CN>`.

@@ -9,4 +9,4 @@ If you use :ref:`SCRAM-SHA-1 <authentication-parameters>`:
   - :ref:`SCRAM-SHA-256 <authentication-scram>`,
   - :ref:`Kerberos <security-kerberos>`,
   - :ref:`LDAP <security-ldap>`, or
-  - :ref:`x.509 <security-auth-x509>`
+  - :ref:`X.509 <security-auth-x509>`
