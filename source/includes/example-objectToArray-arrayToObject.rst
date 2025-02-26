@@ -1,4 +1,4 @@
-Consider a ``inventory`` collection with the following documents:
+Consider an ``inventory`` collection with the following documents:
 
 .. code-block:: javascript
 

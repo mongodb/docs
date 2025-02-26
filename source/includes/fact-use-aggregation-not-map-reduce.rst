@@ -16,6 +16,6 @@ deprecated:
 
 For examples of aggregation pipeline alternatives to map-reduce, see:
 
-- :doc:`/reference/map-reduce-to-aggregation-pipeline`
+- :ref:`map-reduce-to-agg-pipeline`
 
-- :doc:`/tutorial/map-reduce-examples`
+- :ref:`map-reduce-examples`
