@@ -18,7 +18,7 @@
     * - ``transactions``
       - Latency statistics for database transactions.
 
-Each of these fields contains an embedded document bearing the
+Each of these fields contains an embedded document with the
 following fields:
 
 .. list-table::
@@ -29,12 +29,11 @@ following fields:
       - Description
 
     * - ``latency``
-      - A 64-bit integer giving the total combined
-        latency in microseconds.
+      - The total latency, in microseconds.
 
     * - ``ops``
-      - A 64-bit integer giving the total number of
-        operations performed on the collection since startup.
+      - The total number of operations performed on the collection since 
+        startup.
 
     * - ``histogram``
       - An array of embedded documents, each representing a latency range.
@@ -46,7 +45,7 @@ following fields:
         ``latencyStats: { histograms: true }`` option. Empty ranges with
         a zero ``count`` are omitted from the output.
 
-        Each document bears the following fields:
+        Each document has the following fields:
 
         .. list-table::
 
@@ -54,8 +53,7 @@ following fields:
              - Description
 
            * - ``micros``
-             - A 64-bit integer giving the inclusive
-               lower time bound of the current latency range in
+             - The inclusive lower bound of the current latency range, in
                microseconds.
 
                The document's range spans between the previous document's
@@ -63,8 +61,8 @@ following fields:
                ``micros`` value, inclusive.
 
            * - ``count``
-             - A 64-bit integer giving the number of
-               operations with latency less than or equal to ``micros``.
+             - The number of operations with latency less than or equal to 
+               ``micros``.
 
         For example, if ``collStats`` returns the following histogram:
 
@@ -90,5 +88,3 @@ following fields:
 
     - The ``(`` symbol notation on this page means the value is exclusive.
     - The ``]`` symbol notation on this page means the value is inclusive.
-
-
