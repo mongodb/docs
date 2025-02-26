@@ -31,6 +31,33 @@ the cloud. To learn more, see `Migrate or Import Data
 <https://www.mongodb.com/docs/atlas/import/>`__ in the {+atlas+}
 documentation.
 
+About This Task
+---------------
+
+Server Architecture
+~~~~~~~~~~~~~~~~~~~
+
+This tutorial uses the following servers:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Hostname
+     - Port
+     - Description
+
+   * - ``mongodb0.example.net``
+     - ``27017``
+     - A running standalone MongoDB Server with data.
+
+   * - ``mongodb1.example.net``
+     - ``27017``
+     - A new MongoDB Server to join the replica set.
+
+   * - ``mongodb2.example.net``
+     - ``27017``
+     - A new MongoDB Server to join the replica set.
+
 Before You Begin
 ----------------
 
@@ -67,11 +94,11 @@ Procedure
    .. step:: Shut down the standalone instance.
 
       Use :binary:`mongosh` to :ref:`connect <mdb-shell-connect>` to
-      your ``mongod`` instance.
+      your existing ``mongod`` instance:
 
       .. code-block:: shell
 
-         mongosh
+         mongosh "mongodb://mongodb0.example.net:27017"
 
       Switch to the ``admin`` database and run :dbcommand:`shutdown`.
 
@@ -106,8 +133,13 @@ Procedure
    .. step:: Initialize the replica set.
     
        To initialize the replica set, use ``mongosh`` to reconnect to
-       your server instance. Then, run :method:`rs.initiate()
-       <rs.initiate>`.
+       your server instance. 
+
+       .. code-block:: shell
+
+          mongosh "mongodb://mongodb0.example.net:27017"
+
+       Then, run the :method:`rs.initiate` method:
 
        .. code-block:: javascript
 
@@ -130,8 +162,40 @@ Procedure
       - :ref:`Adding members to a replica set
         <server-replica-set-deploy-expand>`
 
-      When you are ready to add nodes, use :method:`rs.add()`.
+      To add nodes, run the :method:`rs.add` method:
 
+      .. code-block:: javascript
+
+         rs.add("mongodb1.example.net:27017")
+         rs.add("mongodb2.example.net:27017")
+
+   .. step:: Check replication status.
+
+      To check that the replica set is correctly configured, run
+      the :method:`rs.status` method and check that the new
+      members are listed in the :data:`~replSetGetStatus.members`
+      field:
+
+      .. code-block:: javscript
+
+         rs.status()
+
+   .. step:: Update Your Application Connection String.
+
+      After you convert the standalone server to a replica set,
+      update the :ref:`connection string <mongodb-uri>` used by
+      your applications to the connection string for your
+      replica set:
+
+      - ``mongodb0.example.net:27017``
+      - ``mongodb1.example.net:27017`` 
+      - ``mongodb2.example.net:27017``
+
+      .. code-block:: none
+
+         mongodb://mongodb0.example.net:27017,mongodb1.example.net:27017,mongodb2.example.net:27017
+
+      Then, restart your applications.
 
 Learn More
 ----------
