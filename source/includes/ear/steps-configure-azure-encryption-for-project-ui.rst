@@ -92,12 +92,6 @@
       :ref:`azure-kms-enable-pvt-endpoint` if you want |service| to use
       private endpoint connections for your |akv|.  
 
-      .. note:: 
-
-         The Encryption at Rest using |akv| over Private Endpoints
-         feature is available by request. To request this functionality
-         for you |service| deployments, contact your Account Manager.
-
    .. step:: Click :guilabel:`Save`.
       
       |service| displays a banner in the |service| console during the
