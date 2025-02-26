@@ -15,250 +15,35 @@ Migrate Data into a Time Series Collection
 .. meta::
    :keywords: IOT
 
-This page describes how to migrate data into a time series collection
-using an :ref:`aggregation pipeline <aggregation-pipeline>`.
-Alternatively, to learn how to migrate data into a time series
-collection using MongoDB Relational Migrator, see `Configure a Time
-Series Collection with Relational Migrator
-<https://www.mongodb.com/docs/relational-migrator/mapping-rules/mapping-rule-options/time-series/>`_.
-
-About this Task
----------------
-
-Starting in MongoDB version 7.0, you can use the :pipeline:`$out`
-aggregation stage to migrate data from an existing collection into a
-:ref:`time series collection <manual-timeseries-collection>`. If your
-collection stores data that you want to compare across time intervals,
+If your collection stores data that you want to compare across time intervals,
 use a time series collection to improve performance and storage. For more
 information on the benefits of time series collections, see
 :ref:`manual-timeseries-collection`. 
 
-Before you Begin
-----------------
+You can use the following methods to
+migrate data from an existing collection into a :ref:`time series collection
+<manual-timeseries-collection>`:
 
-Consider a ``weatherdata`` collection that contains time and metadata information:
+- :ref:`Migrate with an Aggregation Pipeline <migrate-data-into-a-timeseries-collection-with-aggregation>`
+- :ref:`Migrate with Database Tools <migrate-data-into-a-timeseries-collection-with-tools>`
+- `Migrate with Relational Migrator <https://www.mongodb.com/docs/relational-migrator/mapping-rules/mapping-rule-options/time-series/>`__
 
-.. code-block:: javascript
+Considerations
+--------------
 
-   db.weatherdata.insertOne(
-      {
-         _id: ObjectId("5553a998e4b02cf7151190b8"),
-         st: "x+47600-047900",
-         ts: ISODate("1984-03-05T13:00:00Z"),
-         position: {
-            type: "Point",
-            coordinates: [ -47.9, 47.6 ]
-         },
-         elevation: 9999,
-         callLetters: "VCSZ",
-         qualityControlProcess: "V020",
-         dataSource: "4",
-         type: "FM-13",
-         airTemperature: { value: -3.1, quality: "1" },
-         dewPoint: { value: 999.9, quality : "9" },
-         pressure: { value: 1015.3, quality: "1" },
-         wind: {
-            direction: { angle: 999, quality: "9" },
-            type: "9",
-            speed: { rate: 999.9, quality: "9" }
-         },
-         visibility: {
-            distance: { value: 999999, quality : "9" },
-            variability: { value: "N", quality: "9" }
-         },
-         skyCondition: {
-            ceilingHeight: { value: 99999, quality: "9", determination: "9" },
-            cavok: "N"
-         },
-         sections: [ "AG1" ],
-         precipitationEstimatedObservation: { 
-            discrepancy: "2",
-            estimatedWaterDepth: 999 
-         }
-      }
-   )
+If you use MongoDB 7.0 or greater and already have your data in a MongoDB
+database, migrate with an :ref:`aggregation pipeline
+<migrate-data-into-a-timeseries-collection-with-aggregation>`. 
 
-Steps
------
+If your data is in a relational database, use `Relational Migrator
+<https://www.mongodb.com/docs/relational-migrator/mapping-rules/mapping-rule-options/time-series/>`__
+to migrate your data into a time series collection. 
 
-.. procedure::
+If your deployment is not in one of those cases, use :ref:`Database Tools
+<migrate-data-into-a-timeseries-collection-with-tools>` to migrate your data. 
 
-   .. step:: Optional. Create a metadata field.
-   
-      If your collection does not include a specific field that contains
-      all metadata, transform your data to define one.
-   
-      The following pipeline stages add a ``metaData`` field and use
-      :pipeline:`$project` to include or exclude the remaining fields in
-      the document. In this example, the ``metaData`` field becomes the
-      ``metaField`` of the time series collection that you create. 
+.. toctree::
+   :titlesonly:
 
-      .. note::
-
-         Choosing the right field as your time series ``metaField`` optimizes
-         both storage and query performance. For more information on
-         ``metaField`` selection and best practices, see
-         :ref:`timeseries-collections-metafield`. 
-
-      .. code-block:: javascript
-         :copyable: false
-
-         { $addFields: {
-               metaData: {
-               st: "$st",
-               position: "$position",
-               elevation: "$elevation",
-               callLetters: "$callLetters",
-               qualityControlProcess: "$qualityControlProcess",
-               type: "$type"
-               }
-            },
-         }, 
-         { $project: {
-               _id: 1,
-               ts: 1,
-               metaData: 1,
-               dataSource: 1,
-               airTemperature: 1,
-               dewPoint: 1,
-               pressure: 1,
-               wind: 1,
-               visibility: 1,
-               skyCondition: 1,
-               sections: 1,
-               precipitationEstimatedObservation: 1
-            }
-         }
-
-   .. step:: Create your time series collection and insert your data.
-    
-      The example below performs the following operations:
-      
-      - Uses the :pipeline:`$addFields` aggregation stage to add a ``metaData`` field to
-        your ``weather_data`` collection.
-      - Uses the :pipeline:`$out` aggregation stage with the
-        ``timeseries`` option to create a ``weathernew`` time series
-        collection in the ``mydatabase`` database. 
-      - Defines the ``metaField`` of your ``weathernew`` collection
-        as the ``metaData`` field. 
-      - Defines the ``timeField`` of your ``weathernew`` collection
-        as the ``ts`` field. 
-
-      .. note::
-
-         The ``timeField`` of a time series collection must be a :ref:`date
-         <document-bson-type-date>` type. 
-      
-      .. code-block:: javascript
-
-         db.weather_data.aggregate( [
-           {
-              $addFields: {
-                metaData: {
-                  st: "$st",
-                  position: "$position",
-                  elevation: "$elevation",
-                  callLetters: "$callLetters",
-                  qualityControlProcess: "$qualityControlProcess",
-                  type: "$type"
-                }
-              },
-           }, {
-              $project: {
-                 _id: 1,
-                 ts: 1,
-                 metaData: 1,
-                 dataSource: 1,
-                 airTemperature: 1,
-                 dewPoint: 1,
-                 pressure: 1,
-                 wind: 1,
-                 visibility: 1,
-                 skyCondition: 1,
-                 sections: 1,
-                 precipitationEstimatedObservation: 1
-              }
-           }, {
-              $out: {
-                db: "mydatabase",
-                coll: "weathernew",
-                timeseries: {
-                  timeField: "ts",
-                  metaField: "metaData"
-                }
-              }
-           }
-         ] )
-
-      For the aggregation stage syntax, see
-      :pipeline:`$out`. For a full explanation of the time series
-      options, see the :ref:`Time Series Field Reference
-      <time-series-fields>`.
-
-
-After you run this aggregation pipeline, you can use
-:method:`~db.collection.findOne()` to view a document in your
-``weathernew`` time series collection:
-
-.. code-block:: javascript
-
-   db.weathernew.findOne()
-
-
-The operation returns the following document: 
-
-.. code-block:: javascript
-   :copyable: false
-
-      {
-         _id: ObjectId("5553a998e4b02cf7151190b8"),
-         ts: ISODate("1984-03-05T13:00:00Z"),
-         metaData: {
-            st: "x+47600-047900",
-            position: {
-               type: "Point",
-               coordinates: [ -47.9, 47.6 ]
-            },
-            elevation: 9999,
-            callLetters: "VCSZ",
-            qualityControlProcess: "V020",
-            type: "FM-13"
-         },
-         dataSource: "4",
-         airTemperature: { value: -3.1, quality: "1" },
-         dewPoint: { value: 999.9, quality: "9" },
-         pressure: { value: 1015.3, quality: "1" },
-         wind: {
-            direction: { angle: 999, quality: "9" },
-            type: "9",
-            speed: { rate: 999.9, quality: "9" }
-         },
-         visibility: {
-            distance: { value: 999999, quality: "9" },
-            variability: { value: "N", quality: "9" }
-         },
-         skyCondition: {
-            ceilingHeight: { value: 99999, quality: "9", determination: "9" },
-            cavok: "N"
-         },
-         sections: [ "AG1" ],
-         precipitationEstimatedObservation: { discrepancy: "2", estimatedWaterDepth: 999 }
-      }
-
-Next Steps
-----------
-
-If your original collection had secondary indexes, manually recreate 
-them now. 
-
-If your time series collection includes ``timeField`` values before
-``1970-01-01T00:00:00.000Z`` or after ``2038-01-19T03:14:07.000Z``,
-MongoDB logs a warning and disables some query optimizations that make
-use of the :ref:`internal clustered index
-<manual-timeseries-internal-index>`. To regain query performance and
-resolve the log warning, :ref:`create a secondary index
-<timeseries-add-secondary-index>` on the ``timeField``.
-
-.. seealso::
-
-   :ref:`timeseries-add-secondary-index`
+   Use Aggregation </core/timeseries/timeseries-migrate-with-aggregation>
+   Use Tools </core/timeseries/timeseries-migrate-with-tools>
