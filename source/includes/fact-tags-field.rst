@@ -16,4 +16,4 @@ the replica set member.
   :rsconf:`settings.getLastErrorDefaults`.
 
 For more information, see
-:doc:`/tutorial/configure-replica-set-tag-sets`.
+:ref:`replica-set-configuration-tag-sets`.
