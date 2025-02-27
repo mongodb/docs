@@ -1,12 +1,12 @@
 Sends the alert to a
-`VictorOps <https://www.splunk.com/en_us/software/splunk-on-call.html>`_ account.
+`Splunk On-Call <https://www.splunk.com/en_us/software/splunk-on-call.html>`__
+(formerly VictorOps) account.
 
-- In |mms|, enter the following VictorOps setting information:
+- If you have a Splunk On-Call account, enter the following
+  information:
 
-  - `API key <https://help.victorops.com/knowledge-base/rest-endpoint-integration-guide/>`__.
-    This integrates the VictorOps endpoint for alerts.
-  - `Routing key <https://help.victorops.com/knowledge-base/routing-keys/>`__.
-    This optional setting routes alerts to a specific VictorOps group.
+  - `Splunk On-Call REST Endpoint Integration Routing API Key <https://help.victorops.com/knowledge-base/rest-endpoint-integration-guide/>`__
+  - `Splunk On-Call Routing Key <https://help.victorops.com/knowledge-base/routing-keys/>`__ (optional)
 
 - Click :guilabel:`Post Test Alert` to test VictorOps configuration.
 
