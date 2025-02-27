@@ -131,7 +131,10 @@
                      - Specify the number of days to keep the data in the 
                        |service| cluster.
                      - Choose the date format of the specified date 
-                       field. 
+                       field. Date can be expressed as an ISO-8601-formatted 
+                       date, a timestamp in UNIX epoch format, or an ObjectId. 
+                       The UNIX epoch timestamp can be expressed in 
+                       nanoseconds, milliseconds, or seconds. 
       
                        If you choose any of the following formats, the 
                        value of specified date field must be the 
