@@ -238,6 +238,48 @@ all documents with a ``name`` field value that has at least two consecutive
       {'_id': 1, 'name': 'apples', 'qty': 5, 'rating': 3, 'color': 'red', 'type': ['fuji', 'honeycrisp']}
       {'_id': 4, 'name': 'pineapple', 'qty': 3, 'rating': 5, 'color': 'yellow'}
 
+Troubleshooting
+---------------
+
+.. _web-application-querying-by-objectid:
+
+No Results When Querying for a Document by ObjectId in Web Applications
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+It's common in web applications to encode documents' ObjectIds in URLs, as shown
+in the following code example:
+
+.. code-block:: python
+
+   "/posts/50b3bda58a02fb9a84d8991e"
+
+Your web framework passes the ObjectId part of the URL to your request
+handler as a string. You must convert the string to an ``ObjectId`` instance
+before passing it to the ``find_one()`` method.
+
+The following code example shows how to perform this conversion in a
+`Flask <http://flask.pocoo.org/>`__ application. The process is similar for other web
+frameworks.
+
+.. code-block:: python
+
+   from pymongo import MongoClient
+   from bson.objectid import ObjectId
+
+   from flask import Flask, render_template
+
+   client = MongoClient()
+   app = Flask(__name__)
+
+   @app.route("/posts/<_id>")
+   def show_post(_id):
+      # NOTE!: converting _id from string to ObjectId before passing to find_one
+      post = client.db.posts.find_one({'_id': ObjectId(_id)})
+      return render_template('post.html', post=post)
+
+   if __name__ == "__main__":
+       app.run()
+
 Additional Information
 ----------------------
 
