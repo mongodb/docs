@@ -7,6 +7,11 @@
      - Default
      - Description
 
+   * - ``disableLogging``
+     - boolean
+     - ``false``
+     - Specifies whether |mdb-shell| writes log entries.
+
    * - ``displayBatchSize``
      - integer
      - 20
