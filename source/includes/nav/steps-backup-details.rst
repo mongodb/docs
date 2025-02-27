@@ -10,5 +10,4 @@
    #. In the sidebar, click :guilabel:`Backup` under 
       the :guilabel:`Security` heading.
 
-      The `Backup <https://cloud-dev.mongodb.com/v2/5f86fb2ff9c4e56d39502559#/security/backup/clusters>`__ details 
-      display.
+      The backup details display.
