@@ -1,5 +1,5 @@
 Instructs the :term:`primary` of the replica set to become a
-:term:`secondary`. After the primary steps down, eligible secondaries will
+:term:`secondary`. After the primary steps down, eligible secondaries
 hold an :ref:`election for primary <replica-set-election-internals>`.
 
 The |command-method| does not immediately step down the primary. If no
