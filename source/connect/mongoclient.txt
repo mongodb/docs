@@ -199,6 +199,9 @@ child process.
    a high probability of deadlock among ``MongoClient`` instances in the child process.
    {+driver-short+} tries to issue a warning if this deadlock might occur.
 
+   For more information about deadlock in forked processes, see
+   :ref:`pymongo-fork-deadlock`.
+
 Multiprocessing
 ~~~~~~~~~~~~~~~
 
@@ -244,6 +247,70 @@ create the ``MongoClient`` object, as shown in the following example:
 
    from typing import Any, Dict
    client: MongoClient[Dict[str, Any]] = MongoClient()
+
+Troubleshooting
+---------------
+
+MongoClient Fails ConfigurationError
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Providing invalid keyword argument names causes the driver to raise this error.
+
+Ensure that the keyword arguments that you specify exist and are
+spelled correctly.
+
+.. _pymongo-fork-deadlock:
+
+Forking a Process Causes a Deadlock
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A ``MongoClient`` instance spawns multiple threads to run background tasks, such as
+monitoring connected servers. These threads share state that is protected by instances
+of the ``threading.Lock`` class, which are themselves
+`not fork-safe <http://bugs.python.org/issue6721>`__.
+{+driver-short+} is subject to the same limitations as any other multithreaded
+code that uses the ``threading.Lock`` class, or any mutexes.
+
+One of these limitations is that the locks become useless after calling the
+``fork()`` method. When ``fork()`` executes, the driver copies all the parent process's locks to
+the child process in the same state as they were in the parent. If they are
+locked in the parent process, they are also locked in the child process. The child process
+created by ``fork()`` has only one thread, so any locks created by
+other threads in the parent process are never released in the child process.
+The next time the child process attempts to acquire one of these locks, deadlock occurs.
+
+Starting in {+driver-short+} version 4.3, after you call the ``os.fork()`` method, the
+driver uses the ``os.register_at_fork()`` method to reset its locks and other shared state
+in the child process. Although this reduces the likelihood of a deadlock,
+{+driver-short+} depends
+on libraries that aren't fork-safe in multithreaded applications, including
+`OpenSSL <https://github.com/openssl/openssl/issues/19066>`__ and
+`getaddrinfo(3). <https://man7.org/linux/man-pages/man3/gai_strerror.3.html>`__
+Therefore, a deadlock can still occur.
+
+The Linux manual page for `fork(2) <https://man7.org/linux/man-pages/man2/fork.2.html>`__
+also imposes the following restriction:
+
+.. blockquote::
+
+   After a ``fork()``  in a multithreaded program, the child can
+   safely call only async-signal-safe functions (see
+   `signal-safety(7) <https://man7.org/linux/man-pages/man7/signal-safety.7.html>`__)
+   until such time as it calls
+   `execve(2) <https://man7.org/linux/man-pages/man2/execve.2.html>`__.
+
+Because {+driver-short+} relies on functions that are *not*
+async-signal-safe, it can cause deadlocks or crashes when running in a child
+process.
+
+.. tip::
+   
+   For an example of a deadlock in a child process, see
+   `PYTHON-3406 <https://jira.mongodb.org/browse/PYTHON-3406>`__ in Jira.
+   
+   For more information about the problems caused by Python locks in
+   multithreaded contexts with ``fork()``, see `Issue 6721 <http://bugs.python.org/issue6721>`__
+   in the Python Issue Tracker.
 
 API Documentation
 -----------------

@@ -440,6 +440,76 @@ at the beginning and end of the allowed range.
       datetime before the range: {"date": datetime.datetime(1, 1, 1, 0, 0)}
       datetime after the range: {"date": datetime.datetime(9999, 12, 31, 23, 59, 59, 999000)}
 
+Troubleshooting
+---------------
+
+OverflowError When Decoding Dates Stored by Another Language's Driver
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+driver-short+} decodes BSON ``datetime`` values to instances of Python's
+``datetime.datetime`` class. Instances of ``datetime.datetime`` are
+limited to years between ``datetime.MINYEAR`` (1) and
+``datetime.MAXYEAR`` (9999). Some MongoDB drivers
+can store BSON datetimes with year values far outside those supported
+by ``datetime.datetime``.
+
+There are a few ways to work around this issue. Starting with {+driver-short+} 4.3,
+``bson.decode`` can decode BSON ``datetime`` values in one of four ways. You can specify
+the conversion method by using ``datetime_conversion`` parameter of
+``~bson.codec_options.CodecOptions``.
+
+The default conversion option is
+``~bson.codec_options.DatetimeConversion.DATETIME``, which will
+attempt to decode the value as a ``datetime.datetime``, allowing
+``~builtin.OverflowError`` to occur for out-of-range dates.
+``~bson.codec_options.DatetimeConversion.DATETIME_AUTO`` alters
+this behavior to instead return ``~bson.datetime_ms.DatetimeMS`` when
+representations are out-of-range, while returning ``~datetime.datetime``
+objects as before:
+
+.. io-code-block::
+
+   .. input::
+      :language: python
+
+      from datetime import datetime
+      from bson.datetime_ms import DatetimeMS
+      from bson.codec_options import DatetimeConversion
+      from pymongo import MongoClient
+
+      client = MongoClient(datetime_conversion=DatetimeConversion.DATETIME_AUTO)
+      client.db.collection.insert_one({"x": datetime(1970, 1, 1)})
+
+      client.db.collection.insert_one({"x": DatetimeMS(2**62)})
+
+      for x in client.db.collection.find():
+         print(x)
+   
+   .. output::
+
+      {'_id': ObjectId('...'), 'x': datetime.datetime(1970, 1, 1, 0, 0)}
+      {'_id': ObjectId('...'), 'x': DatetimeMS(4611686018427387904)}
+
+For other options, see the API documentation for the
+`DatetimeConversion <{+api-root+}bson/codec_options.html#bson.codec_options.DatetimeConversion>`__
+class.
+
+Another option that does not involve setting ``datetime_conversion`` is to
+filter out document values outside of the range supported by
+``~datetime.datetime``:
+
+.. code-block:: python
+
+   from datetime import datetime
+   coll = client.test.dates
+   cur = coll.find({'dt': {'$gte': datetime.min, '$lte': datetime.max}})
+
+If you don't need the value of ``datetime``, you can filter out just that field: 
+
+.. code-block:: python
+
+   cur = coll.find({}, projection={'dt': False})
+
 API Documentation
 -----------------
 
