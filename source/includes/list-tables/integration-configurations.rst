@@ -144,7 +144,7 @@
        - If you have a Splunk On-Call account, enter the following
          information:
 
-         - `Splunk On-Call API Key <https://help.victorops.com/knowledge-base/api/>`__
+         - `Splunk On-Call REST Endpoint Integration Routing API Key <https://help.victorops.com/knowledge-base/rest-endpoint-integration-guide/>`__
          - `Splunk On-Call Routing Key <https://help.victorops.com/knowledge-base/routing-keys/>`__ (optional)
 
        - If you don't have a Splunk On-Call account,
