@@ -1,0 +1,199 @@
+.. _avs-multi-tenancy:
+
+============================================================
+Build a Multi-Tenant Architecture for {+avs+}
+============================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can implement multi-tenancy with {+avs+} so that a 
+single instance of an application serves multiple tenants.
+This page describes design recommendations that apply 
+specifically to {+avs+}. These recommendations differ from our
+:ref:`multi-tenancy recommendations for {+service+} <build-multi-tenant-arch>`.
+
+.. _avs-multi-tenancy-recommendations:
+
+Recommendations
+---------------
+
+Refer to the following recommendations when designing a
+multi-tenant architecture for {+avs+}.
+
+.. important::
+
+   This guidance assumes that you can colocate 
+   tenants within a single |vpc|. Otherwise, you
+   must maintain separate projects for each tenant,
+   which we don't recommend {+avs+}.
+
+.. _avs-multi-tenancy-one-collection:
+
+One Collection for all Tenants
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We recommend storing **all tenant data in a single collection**,
+as well as in a single database and {+cluster+}. You can distinguish between 
+tenants by including a ``tenant_id`` field within each document. This field
+can be any unique identifier for the tenant, such as a UUID or
+a tenant name. You can use this field as a :ref:`pre-filter 
+<vectorSearch-agg-pipeline-filter>` in your {+avs+} indexes and queries.
+
+This centralized approach offers the following benefits:
+
+- Easy to model and scale.
+- Simplifies maintenance operations.
+- Efficient query routing through pre-filtering by ``tenant_id``. 
+
+  .. note::
+
+     You are guaranteed to not serve tenants that do not match this filter.
+
+One Collection per Tenant
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We do **not** recommend storing each tenant in a separate collection, as this approach might 
+lead to varying :manual:`change stream </changeStreams/>` loads depending on 
+the number of collections. This might negatively impact performance and 
+monitoring capabilities. Data isolation guarantees in |service| apply
+at the database level, so there is no additional data isolation 
+benefit to using multiple collections.
+
+Instead, use :ref:`one collection for all tenants <avs-multi-tenancy-one-collection>`. 
+For an example of how to migrate from a collection-per-tenant model to a single
+collection model, see :ref:`multi-tenancy-migrate`.
+
+Considerations
+--------------
+
+Consider the following strategies to mitigate
+potential performance issues with the 
+:ref:`recommended approach <avs-multi-tenancy-recommendations>`.
+
+Tenant Size Discrepancies
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you experience performance issues due to 
+unequal distribution of data (some large tenants and many 
+small tenants), use :ref:`MongoDB Views <avs-transform-documents-collections>` 
+to separate large tenants from smaller tenants:
+
+- **Large Tenants (Top 1%)**:
+
+  - Create a view for each large tenant.
+  - Create an index for each view.
+  - Maintain a record of large tenants that you 
+    check at query-time to route queries accordingly.
+
+- **Small Tenants (Remaining Tenants)**:
+ 
+  - Create a single view for all small tenants.
+  - Build a single index for this view.
+  - Use the ``tenant_id`` field as a pre-filter 
+    to route queries accordingly.
+
+Example
+```````
+
+The following example demonstrates how to create views 
+for large and small tenants by using {+mongosh+}:
+
+.. tabs:: 
+
+   .. tab:: Large Tenants
+      :tabid: large-tenants
+
+      Keep a record of your large tenants and their corresponding 
+      ``tenant_id`` values, and then create a view for each of these 
+      tenants:
+
+      .. code-block:: shell
+
+         db.createView(
+           "<viewName>",
+           "<collectionName>",
+           [
+             {
+               "$match": {
+                 "tenant_id": "<largeTenantId>"
+               }
+             }
+           ]
+         )
+
+   .. tab:: Small Tenants
+      :tabid: small-tenants
+
+      Create a view for the small tenants,
+      filtering out the large tenants:
+
+      .. code-block:: shell
+
+         db.createView(
+           "<viewName>",
+           "<collectionName>",
+           [
+             {
+               "$match": {
+                 "tenant_id": {
+                   "$nin": [ "<largeTenantId1>", "<largeTenantId2>", ... ]
+                 }
+               }
+             }
+           ]
+         )
+
+After creating the views, create the indexes for each view.
+Verify the following: 
+
+- When specifying the collection name for the index, use the
+  view name instead of the original collection name.
+  
+- Ensure that your index on the small tenant view 
+  includes the ``tenant_id`` field as a pre-filter.
+
+Refer to the :ref:`Create Indexes <avs-types-vector-search>` page 
+for instructions on creating indexes.
+
+Many Large Tenants
+~~~~~~~~~~~~~~~~~~
+
+If you have many tenants that each have a large number of vectors, 
+consider using a partition-based system by distributing data 
+across :manual:`shards </core/sharded-cluster-shards>`.
+
+You can use the ``tenant_id`` field as a 
+:manual:`shard key </core/sharding-shard-key/>`
+to distribute the data across specific ranges
+based on the tenant ID. For more information, 
+see :manual:`Ranged Sharding </core/ranged-sharding/>`.
+
+.. _multi-tenancy-migrate:
+
+Migrating from a Collection-Per-Tenant Model
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To migrate from a collection-per-tenant model to a single
+collection model, process each tenant collection and 
+insert the documents into a new collection.
+
+.. collapsible:: 
+   :heading: Migrate from Collection-Per-Tenant to Single Collection
+   :sub_heading: Sample Script for Migrating Data
+   :expanded: false
+   
+   For example, the following script uses the :driver:`Node.js driver </node/>`
+   to migrate your data from a collection-per-tenant model to a single collection model.
+   The script also includes a ``tenant_id`` field 
+   for each document based on the source collection's name.
+
+   .. literalinclude:: /includes/migrate-collections.mjs
+      :language: javascript
+      :caption: migrate-collections.mjs
+      :copyable:
