@@ -1,6 +1,9 @@
 a. View the replica set configuration to determine the
-   :rsconf:`members` array position for the member. Keep
-   in mind the array position is not the same as the ``_id``:
+   :rsconf:`members` array position for the member. 
+   
+   .. note:: 
+      
+      The array position is not the same as the ``_id``.
 
    .. code-block:: javascript
 
@@ -8,7 +11,7 @@ a. View the replica set configuration to determine the
 
 b. Copy the replica set configuration object to a variable (to ``cfg`` in
    the example below). Then, in the variable, set the correct priority for
-   the member. Then pass the variable to :method:`rs.reconfig()` to update
+   the member. Pass the variable to :method:`rs.reconfig()` to update
    the replica set configuration.
 
    For example, to set priority for the third member in the array (i.e.,
@@ -24,7 +27,7 @@ b. Copy the replica set configuration object to a variable (to ``cfg`` in
 
       The :method:`rs.reconfig()` shell method can force the current
       primary to step down, causing an election. When the primary steps
-      down, all clients will disconnect. This is the intended behavior.
+      down, all clients disconnect. This is the intended behavior.
       While median time to elect a new primary should not typically
-      exceed 12 seconds, always make sure any replica configuration
+      exceed 12 seconds, make sure any replica configuration
       changes occur during scheduled maintenance periods.
