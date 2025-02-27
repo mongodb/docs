@@ -66,16 +66,20 @@
 
    * - VictorOps Settings
 
-     - |api| key and Routing key for alert notifications sent
-       to a VictorOps account. |mms| uses these values as the default
-       VictorOps settings when configuring alerts.
+     - Sets an API key and Routing key for alert notifications sent to
+       a Splunk On-Call (formerly VictorOps) account. |mms| uses
+       this information as the default settings when configuring
+       alerts.
 
-       Enter the following information from your VictorOps account. If
-       you do not have an existing VictorOps account, you can
-       `sign up <https://portal.victorops.com/membership/#/onboarding/create-org>`__.
+       - If you have a Splunk On-Call account, enter the following
+         information:
 
-       - VictorOps API Key
-       - VictorOps Routing Key (optional)
+
+         - `Splunk On-Call REST Endpoint Integration Routing API Key <https://help.victorops.com/knowledge-base/rest-endpoint-integration-guide/>`__
+         - `Splunk On-Call Routing Key <https://help.victorops.com/knowledge-base/routing-keys/>`__ (optional)
+
+       - If you don't have a Splunk On-Call account,
+         `sign up for one <https://www.splunk.com/en_us/download/on-call.html>`__.
 
    * - Opsgenie API Key
 
