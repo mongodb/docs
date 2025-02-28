@@ -14,8 +14,7 @@ operations may use the killed session. To view existing sessions, see
 Sessions with Transactions in Prepared State
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The |command| operation ignores sessions that have :doc:`transactions
-</core/transactions>` in prepared state. Transactions in prepared state
-refer to transactions with write operations that span multiple shards
-whose commit coordinator has completed the :data:`"sendingPrepare"
-action <$currentOp.twoPhaseCommitCoordinator.action>`.
+The |command| operation ignores sessions that have :ref:`transactions` in
+prepared state. Transactions in prepared state refer to transactions
+with write operations that span multiple shards whose commit
+coordinator has completed the :data:`"sendingPrepare" action <$currentOp.twoPhaseCommitCoordinator.action>`.

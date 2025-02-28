@@ -5,7 +5,7 @@
 
    Forcibly terminating the :binary:`~bin.mongod` process may cause 
    inaccurate results for :method:`db.collection.count()` and 
-   :method:`db.stats()` as well as lengthen startup time the next time 
+   :method:`db.stats()`. It may also lengthen startup time the next time 
    that the :binary:`~bin.mongod` process is restarted.
 
    This applies whether you attempt to terminate the
