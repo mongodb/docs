@@ -2,4 +2,4 @@
 
 - :pipeline:`$project` and its alias :pipeline:`$unset`
 
-- :pipeline:`$replaceRoot` and its alias :pipeline:`$replaceWith`.
+- :pipeline:`$replaceRoot` and its alias :pipeline:`$replaceWith`
