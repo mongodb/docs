@@ -42,7 +42,7 @@ public class Monitoring {
         MongoClient mongoClient = MongoClients.create(settings);
         MongoDatabase database = mongoClient.getDatabase(DATABASE);
         MongoCollection<Document> collection = database.getCollection(COLLECTION);
-        // Run some commands to test the timer
+        // Runs sample find() commands to test the timer
         collection.find().first();
         collection.find().first();
         mongoClient.close();
@@ -61,7 +61,7 @@ public class Monitoring {
         MongoClient mongoClient = MongoClients.create(settings);
         MongoDatabase database = mongoClient.getDatabase(DATABASE);
         MongoCollection<Document> collection = database.getCollection(COLLECTION);
-        // Run a command to trigger a ClusterDescriptionChangedEvent event
+        // Runs a sample find() command to trigger a ClusterDescriptionChangedEvent event
         collection.find().first();
         // end monitor-cluster-example
         mongoClient.close();
@@ -79,7 +79,7 @@ public class Monitoring {
         MongoClient mongoClient = MongoClients.create(settings);
         MongoDatabase database = mongoClient.getDatabase(DATABASE);
         MongoCollection<Document> collection = database.getCollection(COLLECTION);
-        // Run a command to trigger connection pool events
+        // Runs a sample find() command to trigger connection pool events
         collection.find().first();
         // end monitor-cp-example
         /* We do not close this connection in order to prevent the driver from requesting two connections, giving
