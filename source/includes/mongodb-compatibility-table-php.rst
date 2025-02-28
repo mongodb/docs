@@ -13,7 +13,7 @@
      - MongoDB 4.0
      - MongoDB 3.6
 
-   * - ext + lib 1.20
+   * - ext + lib 1.20 to 1.21
      - ✓
      - ✓
      - ✓
