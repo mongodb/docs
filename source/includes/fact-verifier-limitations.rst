@@ -24,8 +24,6 @@ The embedded verifier has the following limitations:
 
 - .. include:: /includes/fact-verifier-buildIndexes
 
-- .. include:: /includes/fact-verification-support-1.9.0.rst
-
 Unsupported Verification Checks
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
