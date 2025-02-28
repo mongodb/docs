@@ -101,10 +101,9 @@ The ``explain`` results is a |bson| document with the following fields.
    * - ``collectors``
      - document
      - Optional
-     - Describes the execution statistics for the collector. ``explain``
-       doesn't return this field at the the top level for
-       ``indexPartitionExplain``.  Instead, ``explain`` returns this
-       within each ``indexPartitionExplain``. 
+     - Describes the execution statistics for the collector. If 
+       ``indexPartitionExplain`` is present,
+       this is nested within each ``indexPartitionExplain`` instead of at the top-level. 
 
    * - ``highlight``
      - document
@@ -128,7 +127,7 @@ The ``explain`` results is a |bson| document with the following fields.
      - document
      - Optional
      - Describes the execution statistics for the query. This is not
-       present at the the top level for ``indexPartitionExplain``.
+       If ``indexPartitionExplain`` is present, this is nested within each ``indexPartitionExplain``, instead of at the top-level. 
 
    * - ``resultMaterialization``
      - document
@@ -168,7 +167,7 @@ It contains the following fields:
 
 .. list-table:: 
    :header-rows: 1
-   :widths: 10 15 10 65
+   :widths: 15 10 10 65
 
    * - Option 
      - Type 
@@ -216,7 +215,7 @@ contains the following fields:
 
 .. list-table:: 
    :header-rows: 1
-   :widths: 10 15 10 65
+   :widths: 15 10 10 65
 
    * - Option 
      - Type 
@@ -281,7 +280,7 @@ query. It contains the following fields:
 
 .. list-table:: 
    :header-rows: 1
-   :widths: 10 15 10 65
+   :widths: 15 10 10 65
 
    * - Option 
      - Type 
@@ -673,7 +672,7 @@ field with the ``allPlansExecution`` :ref:`verbosity
                       },
                       metadata: {
                         mongotVersion: '1.43.1',
-                        mongotHostName: 'atlas-11decp-shard-00-02.2rnul.mongodb-dev.net',
+                        mongotHostName: '<hostname>.mogodb.net',
                         indexName: 'default',
                         totalLuceneDocs: 21349
                       },
@@ -699,7 +698,7 @@ field with the ``allPlansExecution`` :ref:`verbosity
               ],
               queryShapeHash: '6FD3791F785FA329D4ECD1171E0E5AF6772C18F5F0A7A50FC416D080A93C8CB7',
               serverInfo: {
-                host: 'atlas-11decp-shard-00-02.2rnul.mongodb-dev.net',
+                host: '<hostname>.mogodb.net',
                 port: 27017,
                 version: '8.0.4',
                 gitVersion: 'bc35ab4305d9920d9d0491c1c9ef9b72383d31f9'
@@ -829,7 +828,7 @@ field with the ``allPlansExecution`` :ref:`verbosity
                       },
                       metadata: {
                         mongotVersion: '1.43.1',
-                        mongotHostName: 'atlas-11decp-shard-00-02.2rnul.mongodb-dev.net',
+                        mongotHostName: '<hostname>.mongodb.net',
                         indexName: 'default',
                         totalLuceneDocs: 21349
                       },
@@ -864,7 +863,7 @@ field with the ``allPlansExecution`` :ref:`verbosity
               ],
               queryShapeHash: 'D08444272924C1E04A6E99D0CD4BF82FD929893862B3356F79EC18BBD1F0EF0C',
               serverInfo: {
-                host: 'atlas-11decp-shard-00-02.2rnul.mongodb-dev.net',
+                host: '<hostname>.mogodb.net',
                 port: 27017,
                 version: '8.0.4',
                 gitVersion: 'bc35ab4305d9920d9d0491c1c9ef9b72383d31f9'
@@ -1026,7 +1025,7 @@ field with the ``allPlansExecution`` :ref:`verbosity
                       },
                       metadata: {
                         mongotVersion: '1.43.1',
-                        mongotHostName: 'atlas-11decp-shard-00-02.2rnul.mongodb-dev.net',
+                        mongotHostName: '<hostname>.mogodb.net',
                         indexName: 'default',
                         totalLuceneDocs: 21349
                       },
@@ -1047,7 +1046,7 @@ field with the ``allPlansExecution`` :ref:`verbosity
               ],
               queryShapeHash: '582DB864C9BCFB96896CF1A3079CF70FAC10A9A1E19E8D66DF20A2BB40424FB5',
               serverInfo: {
-                host: 'atlas-11decp-shard-00-02.2rnul.mongodb-dev.net',
+                host: '<hostname>.mogodb.net',
                 port: 27017,
                 version: '8.0.4',
                 gitVersion: 'bc35ab4305d9920d9d0491c1c9ef9b72383d31f9'
@@ -1101,6 +1100,589 @@ field with the ``allPlansExecution`` :ref:`verbosity
                 }
               },
               operationTime: Timestamp({ t: 1738081767, i: 1 })
+            }
+
+   .. tab:: Index Partition Example 
+      :tabid: index-partition
+
+      .. io-code-block:: 
+         :copyable: true
+
+         .. input:: 
+            :language: json
+
+            db.movies.explain("allPlansExecution").aggregate([
+              {
+                $search: {
+                  "text": {
+                    "path": "title",
+                    "query": "yark",
+                    "fuzzy": {
+                      "maxEdits": 1,
+                      "maxExpansions": 100,
+                    }
+                  }
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: json
+            :visible: false
+            :linenos: 
+
+            {
+              explainVersion: '1',
+              stages: [
+                {
+                  '$_internalSearchMongotRemote': {
+                    mongotQuery: {
+                      text: {
+                        path: 'title',
+                        query: 'yark',
+                        fuzzy: { maxEdits: 1, maxExpansions: 100 }
+                      }
+                    },
+                    explain: {
+                      metadata: {
+                        mongotVersion: '1.43.2',
+                        mongotHostName: '<hostname>.mongodb.net',
+                        indexName: 'default'
+                      },
+                      resourceUsage: {
+                        majorFaults: Long('0'),
+                        minorFaults: Long('90'),
+                        userTimeMs: Long('20'),
+                        systemTimeMs: Long('0'),
+                        maxReportingThreads: 1,
+                        numBatches: 1
+                      },
+                      indexPartitionExplain: [
+                        {
+                          query: {
+                            type: 'BooleanQuery',
+                            args: {
+                              must: [],
+                              mustNot: [],
+                              should: [
+                                {
+                                  type: 'BoostQuery',
+                                  args: {
+                                    query: {
+                                      type: 'TermQuery',
+                                      args: { path: 'title', value: 'dark' },
+                                      stats: {
+                                        context: { millisElapsed: 0 },
+                                        match: { millisElapsed: 0 },
+                                        score: { millisElapsed: 0 }
+                                      }
+                                    },
+                                    boost: 0.75
+                                  },
+                                  stats: {
+                                    context: {
+                                      millisElapsed: 0.035132,
+                                      invocationCounts: {
+                                        createWeight: Long('1'),
+                                        createScorer: Long('3')
+                                      }
+                                    },
+                                    match: {
+                                      millisElapsed: 0.067392,
+                                      invocationCounts: { nextDoc: Long('50') }
+                                    },
+                                    score: {
+                                      millisElapsed: 0.032873,
+                                      invocationCounts: { score: Long('49') }
+                                    }
+                                  }
+                                },
+                                {
+                                  type: 'BoostQuery',
+                                  args: {
+                                    query: {
+                                      type: 'TermQuery',
+                                      args: { path: 'title', value: 'park' },
+                                      stats: {
+                                        context: { millisElapsed: 0 },
+                                        match: { millisElapsed: 0 },
+                                        score: { millisElapsed: 0 }
+                                      }
+                                    },
+                                    boost: 0.75
+                                  },
+                                  stats: {
+                                    context: {
+                                      millisElapsed: 0.025347,
+                                      invocationCounts: {
+                                        createWeight: Long('1'),
+                                        createScorer: Long('3')
+                                      }
+                                    },
+                                    match: {
+                                      millisElapsed: 0.012782,
+                                      invocationCounts: { nextDoc: Long('16') }
+                                    },
+                                    score: {
+                                      millisElapsed: 0.007131,
+                                      invocationCounts: { score: Long('15') }
+                                    }
+                                  }
+                                },
+                                {
+                                  type: 'BoostQuery',
+                                  args: {
+                                    query: {
+                                      type: 'TermQuery',
+                                      args: { path: 'title', value: 'mark' },
+                                      stats: {
+                                        context: { millisElapsed: 0 },
+                                        match: { millisElapsed: 0 },
+                                        score: { millisElapsed: 0 }
+                                      }
+                                    },
+                                    boost: 0.75
+                                  },
+                                  stats: {
+                                    context: {
+                                      millisElapsed: 0.028604,
+                                      invocationCounts: {
+                                        createWeight: Long('1'),
+                                        createScorer: Long('3')
+                                      }
+                                    },
+                                    match: {
+                                      millisElapsed: 0.001842,
+                                      invocationCounts: { nextDoc: Long('4') }
+                                    },
+                                    score: {
+                                      millisElapsed: 0.001571,
+                                      invocationCounts: { score: Long('3') }
+                                    }
+                                  }
+                                },
+                                {
+                                  type: 'BoostQuery',
+                                  args: {
+                                    query: {
+                                      type: 'TermQuery',
+                                      args: { path: 'title', value: 'yard' },
+                                      stats: {
+                                        context: { millisElapsed: 0 },
+                                        match: { millisElapsed: 0 },
+                                        score: { millisElapsed: 0 }
+                                      }
+                                    },
+                                    boost: 0.75
+                                  },
+                                  stats: {
+                                    context: {
+                                      millisElapsed: 0.02443,
+                                      invocationCounts: {
+                                        createWeight: Long('1'),
+                                        createScorer: Long('3')
+                                      }
+                                    },
+                                    match: {
+                                      millisElapsed: 0.001531,
+                                      invocationCounts: { nextDoc: Long('3') }
+                                    },
+                                    score: {
+                                      millisElapsed: 0.001065,
+                                      invocationCounts: { score: Long('2') }
+                                    }
+                                  }
+                                },
+                                {
+                                  type: 'BoostQuery',
+                                  args: {
+                                    query: {
+                                      type: 'TermQuery',
+                                      args: { path: 'title', value: 'ark' },
+                                      stats: {
+                                        context: { millisElapsed: 0 },
+                                        match: { millisElapsed: 0 },
+                                        score: { millisElapsed: 0 }
+                                      }
+                                    },
+                                    boost: 0.6666666269302368
+                                  },
+                                  stats: {
+                                    context: {
+                                      millisElapsed: 0.087657,
+                                      invocationCounts: {
+                                        createWeight: Long('1'),
+                                        createScorer: Long('3')
+                                      }
+                                    },
+                                    match: {
+                                      millisElapsed: 0.001745,
+                                      invocationCounts: { nextDoc: Long('2') }
+                                    },
+                                    score: {
+                                      millisElapsed: 0.000471,
+                                      invocationCounts: { score: Long('1') }
+                                    }
+                                  }
+                                },
+                                {
+                                  type: 'BoostQuery',
+                                  args: {
+                                    query: {
+                                      type: 'TermQuery',
+                                      args: { path: 'title', value: 'york' },
+                                      stats: {
+                                        context: { millisElapsed: 0 },
+                                        match: { millisElapsed: 0 },
+                                        score: { millisElapsed: 0 }
+                                      }
+                                    },
+                                    boost: 0.75
+                                  },
+                                  stats: {
+                                    context: {
+                                      millisElapsed: 0.024546,
+                                      invocationCounts: {
+                                        createWeight: Long('1'),
+                                        createScorer: Long('3')
+                                      }
+                                    },
+                                    match: {
+                                      millisElapsed: 0.01154,
+                                      invocationCounts: { nextDoc: Long('15') }
+                                    },
+                                    score: {
+                                      millisElapsed: 0.006867,
+                                      invocationCounts: { score: Long('14') }
+                                    }
+                                  }
+                                }
+                              ],
+                              filter: [],
+                              minimumShouldMatch: 0
+                            },
+                            stats: {
+                              context: {
+                                millisElapsed: 0.337917,
+                                invocationCounts: {
+                                  createWeight: Long('1'),
+                                  createScorer: Long('2')
+                                }
+                              },
+                              match: {
+                                millisElapsed: 0.165335,
+                                invocationCounts: { nextDoc: Long('85') }
+                              },
+                              score: {
+                                millisElapsed: 0.098247,
+                                invocationCounts: { score: Long('84') }
+                              }
+                            }
+                          },
+                          collectors: {
+                            allCollectorStats: {
+                              millisElapsed: 0.205935,
+                              invocationCounts: {
+                                collect: Long('84'),
+                                competitiveIterator: Long('1'),
+                                setScorer: Long('1')
+                              }
+                            },
+                            facet: { collectorStats: { millisElapsed: 0 } }
+                          },
+                          metadata: { totalLuceneDocs: 10635 }
+                        },
+                        {
+                          query: {
+                            type: 'BooleanQuery',
+                            args: {
+                              must: [],
+                              mustNot: [],
+                              should: [
+                                {
+                                  type: 'BoostQuery',
+                                  args: {
+                                    query: {
+                                      type: 'TermQuery',
+                                      args: { path: 'title', value: 'dark' },
+                                      stats: {
+                                        context: { millisElapsed: 0 },
+                                        match: { millisElapsed: 0 },
+                                        score: { millisElapsed: 0 }
+                                      }
+                                    },
+                                    boost: 0.75
+                                  },
+                                  stats: {
+                                    context: {
+                                      millisElapsed: 0.033805,
+                                      invocationCounts: {
+                                        createWeight: Long('1'),
+                                        createScorer: Long('3')
+                                      }
+                                    },
+                                    match: {
+                                      millisElapsed: 0.049273,
+                                      invocationCounts: { nextDoc: Long('35') }
+                                    },
+                                    score: {
+                                      millisElapsed: 0.023509,
+                                      invocationCounts: { score: Long('34') }
+                                    }
+                                  }
+                                },
+                                {
+                                  type: 'BoostQuery',
+                                  args: {
+                                    query: {
+                                      type: 'TermQuery',
+                                      args: { path: 'title', value: 'park' },
+                                      stats: {
+                                        context: { millisElapsed: 0 },
+                                        match: { millisElapsed: 0 },
+                                        score: { millisElapsed: 0 }
+                                      }
+                                    },
+                                    boost: 0.75
+                                  },
+                                  stats: {
+                                    context: {
+                                      millisElapsed: 0.025853,
+                                      invocationCounts: {
+                                        createWeight: Long('1'),
+                                        createScorer: Long('3')
+                                      }
+                                    },
+                                    match: {
+                                      millisElapsed: 0.016276,
+                                      invocationCounts: { nextDoc: Long('13') }
+                                    },
+                                    score: {
+                                      millisElapsed: 0.007533,
+                                      invocationCounts: { score: Long('12') }
+                                    }
+                                  }
+                                },
+                                {
+                                  type: 'BoostQuery',
+                                  args: {
+                                    query: {
+                                      type: 'TermQuery',
+                                      args: { path: 'title', value: 'mark' },
+                                      stats: {
+                                        context: { millisElapsed: 0 },
+                                        match: { millisElapsed: 0 },
+                                        score: { millisElapsed: 0 }
+                                      }
+                                    },
+                                    boost: 0.75
+                                  },
+                                  stats: {
+                                    context: {
+                                      millisElapsed: 0.027083,
+                                      invocationCounts: {
+                                        createWeight: Long('1'),
+                                        createScorer: Long('3')
+                                      }
+                                    },
+                                    match: {
+                                      millisElapsed: 0.006663,
+                                      invocationCounts: { nextDoc: Long('6') }
+                                    },
+                                    score: {
+                                      millisElapsed: 0.002944,
+                                      invocationCounts: { score: Long('5') }
+                                    }
+                                  }
+                                },
+                                {
+                                  type: 'BoostQuery',
+                                  args: {
+                                    query: {
+                                      type: 'TermQuery',
+                                      args: { path: 'title', value: 'yard' },
+                                      stats: {
+                                        context: { millisElapsed: 0 },
+                                        match: { millisElapsed: 0 },
+                                        score: { millisElapsed: 0 }
+                                      }
+                                    },
+                                    boost: 0.75
+                                  },
+                                  stats: {
+                                    context: {
+                                      millisElapsed: 0.025523,
+                                      invocationCounts: {
+                                        createWeight: Long('1'),
+                                        createScorer: Long('3')
+                                      }
+                                    },
+                                    match: {
+                                      millisElapsed: 0.000945,
+                                      invocationCounts: { nextDoc: Long('2') }
+                                    },
+                                    score: {
+                                      millisElapsed: 0.000558,
+                                      invocationCounts: { score: Long('1') }
+                                    }
+                                  }
+                                },
+                                {
+                                  type: 'BoostQuery',
+                                  args: {
+                                    query: {
+                                      type: 'TermQuery',
+                                      args: { path: 'title', value: 'ark' },
+                                      stats: {
+                                        context: { millisElapsed: 0 },
+                                        match: { millisElapsed: 0 },
+                                        score: { millisElapsed: 0 }
+                                      }
+                                    },
+                                    boost: 0.6666666269302368
+                                  },
+                                  stats: {
+                                    context: {
+                                      millisElapsed: 0.069448,
+                                      invocationCounts: {
+                                        createWeight: Long('1'),
+                                        createScorer: Long('3')
+                                      }
+                                    },
+                                    match: {
+                                      millisElapsed: 0.001375,
+                                      invocationCounts: { nextDoc: Long('2') }
+                                    },
+                                    score: {
+                                      millisElapsed: 0.000477,
+                                      invocationCounts: { score: Long('1') }
+                                    }
+                                  }
+                                },
+                                {
+                                  type: 'BoostQuery',
+                                  args: {
+                                    query: {
+                                      type: 'TermQuery',
+                                      args: { path: 'title', value: 'york' },
+                                      stats: {
+                                        context: { millisElapsed: 0 },
+                                        match: { millisElapsed: 0 },
+                                        score: { millisElapsed: 0 }
+                                      }
+                                    },
+                                    boost: 0.75
+                                  },
+                                  stats: {
+                                    context: {
+                                      millisElapsed: 0.025056,
+                                      invocationCounts: {
+                                        createWeight: Long('1'),
+                                        createScorer: Long('3')
+                                      }
+                                    },
+                                    match: {
+                                      millisElapsed: 0.013107,
+                                      invocationCounts: { nextDoc: Long('15') }
+                                    },
+                                    score: {
+                                      millisElapsed: 0.007251,
+                                      invocationCounts: { score: Long('14') }
+                                    }
+                                  }
+                                }
+                              ],
+                              filter: [],
+                              minimumShouldMatch: 0
+                            },
+                            stats: {
+                              context: {
+                                millisElapsed: 0.292379,
+                                invocationCounts: {
+                                  createWeight: Long('1'),
+                                  createScorer: Long('2')
+                                }
+                              },
+                              match: {
+                                millisElapsed: 0.14967,
+                                invocationCounts: { nextDoc: Long('68') }
+                              },
+                              score: {
+                                millisElapsed: 0.082494,
+                                invocationCounts: { score: Long('67') }
+                              }
+                            }
+                          },
+                          collectors: {
+                            allCollectorStats: {
+                              millisElapsed: 0.159291,
+                              invocationCounts: {
+                                collect: Long('67'),
+                                competitiveIterator: Long('1'),
+                                setScorer: Long('1')
+                              }
+                            },
+                            facet: { collectorStats: { millisElapsed: 0 } }
+                          },
+                          metadata: { totalLuceneDocs: 10714 }
+                        }
+                      ]
+                    },
+                    requiresSearchMetaCursor: true
+                  },
+                  nReturned: Long('0'),
+                  executionTimeMillisEstimate: Long('59')
+                },
+                {
+                  '$_internalSearchIdLookup': {},
+                  nReturned: Long('0'),
+                  executionTimeMillisEstimate: Long('59')
+                }
+              ],
+              queryShapeHash: '6FD3791F785FA329D4ECD1171E0E5AF6772C18F5F0A7A50FC416D080A93C8CB7',
+              serverInfo: {
+                host: '<hostname>.mogodb.net',
+                port: 27017,
+                version: '8.0.4',
+                gitVersion: 'bc35ab4305d9920d9d0491c1c9ef9b72383d31f9'
+              },
+              serverParameters: {
+                internalQueryFacetBufferSizeBytes: 104857600,
+                internalQueryFacetMaxOutputDocSizeBytes: 104857600,
+                internalLookupStageIntermediateDocumentMaxSizeBytes: 104857600,
+                internalDocumentSourceGroupMaxMemoryBytes: 104857600,
+                internalQueryMaxBlockingSortMemoryUsageBytes: 104857600,
+                internalQueryProhibitBlockingMergeOnMongoS: 0,
+                internalQueryMaxAddToSetBytes: 104857600,
+                internalDocumentSourceSetWindowFieldsMaxMemoryBytes: 104857600,
+                internalQueryFrameworkControl: 'trySbeRestricted',
+                internalQueryPlannerIgnoreIndexWithCollationForRegex: 1
+              },
+              command: {
+                aggregate: 'movies',
+                pipeline: [
+                  {
+                    '$search': {
+                      text: {
+                        path: 'title',
+                        query: 'yark',
+                        fuzzy: { maxEdits: 1, maxExpansions: 100 }
+                      }
+                    }
+                  }
+                ],
+                cursor: {},
+                '$db': 'sample_mflix'
+              },
+              ok: 1,
+              '$clusterTime': {
+                clusterTime: Timestamp({ t: 1739918308, i: 1 }),
+                signature: {
+                  hash: Binary.createFromBase64('D0UjelHYrLf3bfSMxrfVbgVtcIw=', 0),
+                  keyId: Long('7470183785540091909')
+                }
+              },
+              operationTime: Timestamp({ t: 1739918308, i: 1 })
             }
 
 .. _queryplanner-ex:
@@ -1253,7 +1835,7 @@ mode.
                 }
               ],
               "serverInfo" : {
-                "host" : "atlas-example-shard-00-01.mongodb.net",
+                "host" : "<hostname>.mongodb.net",
                 "port" : 27017,
                 "version" : "4.4.3",
                 "gitVersion" : "913d6b62acfbb344dde1b116f4161360acd8fd13"
@@ -1324,7 +1906,7 @@ mode.
                       highlight: { resolvedHighlightPaths: [ '$type:string/title' ] },
                       metadata: {
                         mongotVersion: '1.43.1',
-                        mongotHostName: 'atlas-11decp-shard-00-02.2rnul.mongodb-dev.net',
+                        mongotHostName: '<hostname>.mogodb.net',
                         indexName: 'default',
                         totalLuceneDocs: 21349
                       }
@@ -1343,7 +1925,7 @@ mode.
               ],
               queryShapeHash: 'D08444272924C1E04A6E99D0CD4BF82FD929893862B3356F79EC18BBD1F0EF0C',
               serverInfo: {
-                host: 'atlas-11decp-shard-00-02.2rnul.mongodb-dev.net',
+                host: '<hostname>.mogodb.net',
                 port: 27017,
                 version: '8.0.4',
                 gitVersion: 'bc35ab4305d9920d9d0491c1c9ef9b72383d31f9'
@@ -1466,7 +2048,7 @@ mode.
                       },
                       metadata: {
                         mongotVersion: '1.43.1',
-                        mongotHostName: 'atlas-11decp-shard-00-02.2rnul.mongodb-dev.net',
+                        mongotHostName: '<hostname>.mogodb.net',
                         indexName: 'default',
                         totalLuceneDocs: 21349
                       }
@@ -1477,7 +2059,7 @@ mode.
               ],
               queryShapeHash: '582DB864C9BCFB96896CF1A3079CF70FAC10A9A1E19E8D66DF20A2BB40424FB5',
               serverInfo: {
-                host: 'atlas-11decp-shard-00-02.2rnul.mongodb-dev.net',
+                host: '<hostname>.mogodb.net',
                 port: 27017,
                 version: '8.0.4',
                 gitVersion: 'bc35ab4305d9920d9d0491c1c9ef9b72383d31f9'
@@ -1695,7 +2277,7 @@ to query the ``title`` field with the ``executionStats``
                 },
                 metadata: {
                   mongotVersion: '1.43.0',
-                  mongotHostName: 'atlas-11decp-shard-00-01.2rnul.mongodb-dev.net',
+                  mongotHostName: 'atlas-11decp-shard-00-01.2rnul.mogodb.net',
                   indexName: 'default',
                   totalLuceneDocs: 21349
                 },
@@ -1721,7 +2303,7 @@ to query the ``title`` field with the ``executionStats``
         ],
         queryShapeHash: '6FD3791F785FA329D4ECD1171E0E5AF6772C18F5F0A7A50FC416D080A93C8CB7',
         serverInfo: {
-          host: 'atlas-11decp-shard-00-01.2rnul.mongodb-dev.net',
+          host: 'atlas-11decp-shard-00-01.2rnul.mogodb.net',
           port: 27017,
           version: '8.0.4',
           gitVersion: 'bc35ab4305d9920d9d0491c1c9ef9b72383d31f9'
