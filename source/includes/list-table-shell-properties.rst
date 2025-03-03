@@ -71,6 +71,15 @@
      - Directory where MongoDB Shell writes log files. Specify an
        absolute filepath. See :ref:`mongosh-log-location`.
 
+   * - ``logRetentionDays``
+     - integer or Infinity
+     - 30
+     - Number of days that |mdb-shell| log files are retained. If this
+       value is set to ``Infinity``, log files are not deleted based on
+       age. To prevent log storage from growing too large, always
+       specify at least one log retention criterion. See
+       :ref:`mongosh-logs-retention`.
+
    * - ``redactHistory``
      - string
      - ``remove``
