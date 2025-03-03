@@ -7,17 +7,12 @@ import (
 	"log"
 	"os"
 
-	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 func main() {
-	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found")
-	}
-
 	uri := os.Getenv("MONGODB_URI")
 	docs := "www.mongodb.com/docs/drivers/go/current/"
 	if uri == "" {
