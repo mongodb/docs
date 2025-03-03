@@ -96,7 +96,7 @@ Example
 The following example creates an ``InsertOneModel`` for two documents
 describing people:
 
-.. literalinclude:: /includes/fundamentals/code-snippets/BulkWrite.java
+.. literalinclude:: /includes/fundamentals/code-snippets/bulk-write/BulkWrite.java
    :language: java
    :dedent:
    :start-after: begin insertDocumentsExample
@@ -111,7 +111,7 @@ describing people:
    The following example tries to insert two documents where the ``_id`` is
    ``1`` and ``3``:
    
-   .. literalinclude:: /includes/fundamentals/code-snippets/BulkWrite.java
+   .. literalinclude:: /includes/fundamentals/code-snippets/bulk-write/BulkWrite.java
       :language: java
       :dedent:
       :start-after: begin insertExceptionExample
@@ -156,7 +156,7 @@ The following example creates a ``ReplaceOneModel`` to
 replace a document where the ``_id`` is ``1`` with a document that
 contains an added ``location`` field: 
 
-.. literalinclude:: /includes/fundamentals/code-snippets/BulkWrite.java
+.. literalinclude:: /includes/fundamentals/code-snippets/bulk-write/BulkWrite.java
    :language: java
    :dedent:
    :start-after: begin replaceDocumentsExample
@@ -165,7 +165,7 @@ contains an added ``location`` field:
 If multiple documents match the query filter specified in
 the ``ReplaceOneModel`` instance, the operation replaces the first
 result. You can specify a sort in a ``ReplaceOptions`` instance to apply
-an order to matched documents before the driver performs the replace
+an order to matched documents before the server performs the replace
 operation, as shown in the following code:
 
 .. code-block:: java
@@ -207,7 +207,7 @@ Example
 The following example creates an ``UpdateOneModel`` to update
 the ``age`` field in a document where the ``_id`` is ``2``:
 
-.. literalinclude:: /includes/fundamentals/code-snippets/BulkWrite.java
+.. literalinclude:: /includes/fundamentals/code-snippets/bulk-write/BulkWrite.java
    :language: java
    :dedent:
    :start-after: begin updateDocumentsExample
@@ -216,7 +216,7 @@ the ``age`` field in a document where the ``_id`` is ``2``:
 If multiple documents match the query filter specified in
 the ``UpdateOneModel`` instance, the operation updates the first
 result. You can specify a sort in an ``UpdateOptions`` instance to apply
-an order to matched documents before the driver performs the update
+an order to matched documents before the server performs the update
 operation, as shown in the following code:
 
 .. code-block:: java
@@ -260,7 +260,7 @@ Example
 The following example creates a ``DeleteOneModel`` to delete
 a document where the ``_id`` is ``1``:
 
-.. literalinclude:: /includes/fundamentals/code-snippets/BulkWrite.java
+.. literalinclude:: /includes/fundamentals/code-snippets/bulk-write/BulkWrite.java
    :language: java
    :dedent:
    :start-after: begin deleteDocumentsExample
@@ -301,7 +301,7 @@ The following example performs these bulk operations:
   changes the ``name`` to ``"Zaynab Hassan"``
 - An operation that deletes all documents where the ``age`` value is greater than ``50``
 
-.. literalinclude:: /includes/fundamentals/code-snippets/BulkWrite.java
+.. literalinclude:: /includes/fundamentals/code-snippets/bulk-write/BulkWrite.java
    :language: java
    :dedent:
    :start-after: begin bulkWriteExample
@@ -328,7 +328,7 @@ the bulk operation reports them at the end.
 Adding to the preceding example, including the following specifies the bulk
 operations to execute in any order: 
 
-.. literalinclude:: /includes/fundamentals/code-snippets/BulkWrite.java
+.. literalinclude:: /includes/fundamentals/code-snippets/bulk-write/BulkWrite.java
    :language: java
    :dedent:
    :start-after: begin bulkWriteNotOrderedExample
@@ -479,6 +479,8 @@ see the following API documentation:
   <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/bulk/ClientNamespacedWriteModel.html>`__
 - `MongoNamespace <{+api+}/apidocs/mongodb-driver-core/com/mongodb/MongoNamespace.html>`__
 
+.. _java-sync-client-bulk-write-insert:
+
 Insert Example
 ~~~~~~~~~~~~~~
 
@@ -488,62 +490,76 @@ the other document is inserted into the ``db.things`` collection.
 The ``MongoNamespace`` instance defines the databases and collections that 
 each write operation applies to.
 
+.. literalinclude:: /includes/fundamentals/code-snippets/bulk-write/ClientBulkWrite.java
+   :language: java
+   :dedent:
+   :start-after: start-insert-models
+   :end-before: end-insert-models
+
+.. _java-sync-client-bulk-write-update:
+
+Update Example
+~~~~~~~~~~~~~~
+
+The following example shows how to use the ``bulkWrite()`` method to update
+existing documents in the ``db.people`` and ``db.things`` collections:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/bulk-write/ClientBulkWrite.java
+   :language: java
+   :dedent:
+   :start-after: start-update-models
+   :end-before: end-update-models
+
+This example increments the value of the ``age`` field by ``1`` in the
+document that has a ``name`` value of ``"Freya Polk"`` in the ``people``
+collection. It also sets the value of the ``manufacturer`` field to
+``"Premium Technologies"`` in all documents that have a ``category``
+value of ``"electronic"`` in the ``things`` collection.
+
+If multiple documents match the query filter specified in
+a ``ClientNamespacedUpdateOneModel`` instance, the operation updates the
+first result. You can specify a sort order in a `ClientUpdateOneOptions
+<{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/bulk/ClientUpdateOneOptions.html>`__
+instance to apply an order to matched documents before the driver
+performs the update operation, as shown in the following code:
+
 .. code-block:: java
 
-   MongoNamespace peopleNamespace = new MongoNamespace("db", "people");
-   MongoNamespace thingsNamespace = new MongoNamespace("db", "things");
+   ClientUpdateOneOptions options = ClientUpdateOneOptions
+           .clientUpdateOneOptions()
+           .sort(Sorts.ascending("_id"));
 
-   List<ClientNamespacedWriteModel> bulkOperations = new ArrayList<>();
-
-   bulkOperations.add(ClientNamespacedWriteModel
-      .insertOne(
-         peopleNamespace, 
-         new Document("name", "Julia Smith")
-      )
-   );
-
-   bulkOperations.add(ClientNamespacedWriteModel
-      .insertOne(
-         thingsNamespace, 
-         new Document("object", "washing machine")
-      )
-   );
-
-   ClientBulkWriteResult result = mongoClient.bulkWrite(bulkOperations);
+.. _java-sync-client-bulk-write-replace:
 
 Replace Example
 ~~~~~~~~~~~~~~~
 
 The following example shows how to use the ``bulkWrite()`` method to replace
-existing documents in the ``db.people`` and ``db.things`` collections.
+existing documents in the ``db.people`` and ``db.things`` collections:
 
-.. code-block:: java
-
-   MongoNamespace peopleNamespace = new MongoNamespace("db", "people");
-   MongoNamespace thingsNamespace = new MongoNamespace("db", "things");
-
-   List<ClientNamespacedWriteModel> bulkOperations = new ArrayList<>();
-
-   bulkOperations.add(ClientNamespacedWriteModel.replaceOne(
-         peopleNamespace, 
-         Filters.eq("_id", 1),
-         new Document("name", "Frederic Hilbert")
-      )
-   );
-
-   bulkOperations.add(ClientNamespacedWriteModel.replaceOne(
-         thingsNamespace, 
-         Filters.eq("_id", 1),
-         new Document("object", "potato")
-      )
-   );
-
-   ClientBulkWriteResult result = mongoClient.bulkWrite(bulkOperations);
+.. literalinclude:: /includes/fundamentals/code-snippets/bulk-write/ClientBulkWrite.java
+   :language: java
+   :dedent:
+   :start-after: start-replace-models
+   :end-before: end-replace-models
 
 After this example runs successfully, the document that has an ``_id`` value of ``1`` 
 in the ``people`` collection is replaced with a new document. The document in 
 the ``things`` collection that has an ``_id`` value of ``1`` 
 is replaced with a new document.
+
+If multiple documents match the query filter specified in
+a ``ClientNamespacedReplaceOneModel`` instance, the operation replaces the
+first result. You can specify a sort order in a `ClientReplaceOneOptions
+<{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/bulk/ClientReplaceOneOptions.html>`__
+instance to apply an order to matched documents before the driver
+performs the replace operation, as shown in the following code:
+
+.. code-block:: java
+
+   ClientReplaceOneOptions options = ClientReplaceOneOptions
+           .clientReplaceOneOptions()
+           .sort(Sorts.ascending("_id"));
 
 .. _java-sync-client-bulk-write-options:
 
@@ -568,39 +584,11 @@ The following code sets the ``ordered()`` method on an
 instance of ``ClientBulkWriteOptions`` and performs a bulk write operation to 
 insert multiple documents.
 
-.. code-block:: java
-
-   MongoNamespace namespace = new MongoNamespace("db", "people");
-
-   ClientBulkWriteOptions options = ClientBulkWriteOptions
-           .clientBulkWriteOptions()
-           .ordered(false);
-
-   List<ClientNamespacedWriteModel> bulkOperations = new ArrayList<>();
-
-   bulkOperations.add(
-      ClientNamespacedWriteModel.insertOne(
-         namespace, 
-         new Document("_id", 1).append("name", "Rudra Suraj")
-      )
-   );
-   
-   // Causes a duplicate key error
-   bulkOperations.add(
-      ClientNamespacedWriteModel.insertOne(
-         namespace, 
-         new Document("_id", 1).append("name", "Mario Bianchi")
-      )
-   );
-
-   bulkOperations.add(
-      ClientNamespacedWriteModel.insertOne(
-         namespace, 
-         new Document("name", "Wendy Zhang")
-      )
-   );
-
-   ClientBulkWriteResult result = mongoClient.bulkWrite(bulkOperations, options);
+.. literalinclude:: /includes/fundamentals/code-snippets/bulk-write/ClientBulkWrite.java
+   :language: java
+   :dedent:
+   :start-after: start-order-exec
+   :end-before: end-order-exec
 
 Even though the write operation inserting a document with a duplicate key results
 in an error, the other operations are executed because the write operation is
