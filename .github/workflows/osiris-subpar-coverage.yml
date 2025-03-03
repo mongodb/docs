@@ -18,7 +18,7 @@ jobs:
       - name: Checkout Repos
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          token: ${{ secrets.API_TOKEN_GITHUB }}
           fetch-depth: 0
           ref: DOP-5399-CB
 
@@ -30,51 +30,14 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y wget
 
       - name: Clone Osiris
-        run: git clone https://x-access-token:${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/10gen/osiris.git cloned-osiris-repo
+        run: git clone https://x-access-token:${{ secrets.API_TOKEN_GITHUB }}@github.com/10gen/osiris.git cloned-osiris-repo
 
       - name: Run Coverage Check
         id: run_coverage
-        run: |
-          cd cloned-osiris-repo
-          npm ci
-          COVERAGE_OUTPUT=$(npm run dev -- -c "$GITHUB_WORKSPACE" -v --sp 95)
-
-          REQUIRED_COVERAGE=100.0
-          
-          # Extract all Average Coverage values below the threshold
-          SITE_COVERAGE_LIST=$(echo "$COVERAGE_OUTPUT" | awk -v threshold=$REQUIRED_COVERAGE '
-            /Average Coverage:/ {
-                coverage = $3 + 0;
-                if (coverage < threshold) {
-                    low_coverage_detected = 1;
-                    last_coverage = coverage;
-                } else {
-                    low_coverage_detected = 0;
-                }
-            }
-            /Finished processing site "/ {
-                if (low_coverage_detected) {
-                    site = $4;
-                    gsub(/"/, "", site);  # Extract site name
-                    print site ":" last_coverage;  # Store as site:coverage
-                }
-            }
-          ' | paste -sd ',' - )
-
-          # Print detected values
-          echo "Detected Coverage Below Threshold: $SITE_COVERAGE_LIST"
-
-          echo "Required Coverage: $REQUIRED_COVERAGE"
-
-          # Check if SITE_COVERAGE_LIST is empty or not
-          if [ -n "$SITE_COVERAGE_LIST" ]; then
-              echo "Test coverage is below the required threshold ($REQUIRED_COVERAGE%)."
-              echo "coverage_below_threshold=true" >> $GITHUB_ENV
-              echo "SITE_COVERAGE_LIST=$SITE_COVERAGE_LIST" >> $GITHUB_ENV
-          else
-              echo "Test coverage meets the required threshold."
-              echo "coverage_below_threshold=false" >> $GITHUB_ENV
-          fi
+        uses: mongodb/docs-worker-actions/coverage-check@DOP-5399
+        with:
+          repo-path: cloned-osiris-repo
+          required-coverage: '100'
 
       - name: Set Workflow Outputs
         id: set_coverage
@@ -97,24 +60,13 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_URL: ${{ github.event.pull_request.html_url }}
           PR_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          TEXT_MESSAGE="⚠️ *Test Coverage Alert* ⚠️\n\nThe test coverage is below the required threshold of 90%.\n\n*Sites with Low Coverage:* \n"
-
-          IFS=',' read -r -a SITE_COVERAGE_ARRAY <<< "$SITE_COVERAGE_LIST"
-
-          for item in "${SITE_COVERAGE_ARRAY[@]}"; do
-              site_name="${item%%:*}"
-              coverage_value="${item##*:}"
-              TEXT_MESSAGE+="• ${site_name}: ${coverage_value}%\n"
-          done
-
-          TEXT_MESSAGE+="\n*Repository:* <https://github.com/$REPOSITORY|$REPOSITORY>\n"
-          TEXT_MESSAGE+="*PR Title:* $PR_TITLE\n"
-          TEXT_MESSAGE+="*PR Number:* #$PR_NUMBER\n"
-          TEXT_MESSAGE+="*PR URL:* <$PR_URL|View PR>\n"
-          TEXT_MESSAGE+="*Commit SHA:* \`$PR_SHA\`\n\n"
-          TEXT_MESSAGE+="Please review the test coverage and take action if necessary."
-
-          curl -v -X POST -H 'Content-type: application/json' \
-            --data '{"text": "'"$TEXT_MESSAGE"'"}' \
-            $SLACK_WEBHOOK_URL
+        uses: mongodb/docs-worker-actions/coverage-report-to-slack@DOP-5399
+        with:
+          required-coverage: '100'
+          site-coverage-list: $SITE_COVERAGE_LIST
+          slack-webhook-url: $SLACK_WEBHOOK_URL
+          repository: $REPOSITORY
+          pr-title: $PR_TITLE
+          pr-number: $PR_NUMBER
+          pr-url: $PR_URL
+          pr-sha: $PR_SHA
