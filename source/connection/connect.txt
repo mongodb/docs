@@ -4,6 +4,12 @@
 Connect to MongoDB
 ==================
 
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
 .. facet::
    :name: genre
    :values: reference
@@ -200,3 +206,118 @@ class. Select the tab that corresponds to your preferred class.
                  .build();
          MongoClient mongoClient = MongoClients.create(settings);
 
+Frequently Asked Questions
+--------------------------
+
+This section answers questions that may arise when
+connecting to MongoDB.
+
+Why are there two types of ``MongoClient`` in the Java driver?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+There are two types of ``MongoClient`` because we wanted a cleaner API
+for new users that didn't have the confusion of including multiple CRUD
+Frequently AsAPIs. We wanted to ensure that the new CRUD API was available in a Java
+package structure that would work well with Java module support
+introduced in Java 9.
+
+Which type of ``MongoClient`` should I use?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+New applications generally use the ``com.mongodb.client.MongoClient`` interface,
+which supports the following features:
+
+- Configuration with ``MongoClientSettings`` and ``ConnectionString``.  You can create
+  instances of this interface by using factory methods defined in the ``com.mongodb.client.MongoClients``
+  class.
+- Access to the CRUD API by using ``MongoDatabase``, and from there, ``MongoCollection``.
+
+Use the ``com.mongodb.MongoClient`` class if you require support for the legacy API, which supports
+the following features:
+
+- Configuration by using ``MongoClientOptions`` and ``MongoClientURI``.
+- Access to the CRUD API by using ``DB``, and from there, ``DBCollection``.  You can access this API
+  by using the ``getDB()`` method.
+
+For applications that require a mix of the new and legacy APIs, ``com.mongodb.MongoClient`` also supports
+the following features:
+
+- Configuration by using ``MongoClientSettings`` and ``ConnectionString``, the only difference
+  being that you create instances via constructors instead of a factory class.
+- Access to the CRUD API using ``MongoDatabase``, and from there, ``MongoCollection``.  You can access this
+  API by using the ``getDatabase()`` method.
+
+How do I prevent the "java.lang.NoClassDefFoundError: com/mongodb/MongoClient" error?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You might encounter a ``java.lang.NoClassDefFoundError`` exception when your
+Java runtime environment cannot locate a class file at runtime. When you
+attempt to run application code that uses the {+driver-long+}, you must include
+the appropriate driver JAR files on the classpath.
+
+If you receive this error after adding the {+driver-short+} JAR files to
+your classpath, check the following items in your environment:
+
+- The JAR files exist in the locations specified by the classpath.
+- The classpath syntax is correct.
+- If you define the classpath in an environment variable, the Java runtime
+  environment uses that variable.
+- If you use a dependency manager, it does not report any unresolvable conflicts.
+
+.. tip::
+
+   This error contains the package and class name, which can help you identify
+   which driver JAR might be missing from your classpath. To locate the
+   driver JAR that the error refers to, check each of the entries in the
+   :ref:`API documentation <java-api-landing>`.
+
+How do I prevent the "com.mongodb.MongoSecurityException" error?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Your application might throw this exception if you specify invalid or
+incorrectly formatted credentials when connecting to a MongoDB deployment.
+
+If you receive this error when you attempt to connect to a MongoDB deployment,
+check the following items in your code:
+
+- The connection URI corresponds to the correct MongoDB deployment.
+  To learn more about setting your connection URI, see :ref:`connection-uri`.
+
+- The credentials for the authentication mechanism that you specified are
+  correct. To learn how to specify your credentials, see the
+  :ref:`authentication-mechanisms` and :ref:`enterprise-authentication-mechanisms`
+  guides.
+
+- The name of the authentication database that you specified is correct. To
+  learn how to set up the users and roles for your MongoDB deployment, see
+  `Manage Users and Roles <https://www.mongodb.com/docs/manual/tutorial/manage-users-and-roles/>`__
+  in the Server documentation.
+
+How do I prevent the "IllegalStateException: state should be: open" error?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You might encounter this exception if you call an operation on a ``MongoClient``
+instance that closed its connections to MongoDB. Once the ``close()`` method
+is called on the ``MongoClient``, any further operation calls on that instance
+throw this exception.
+
+To avoid this exception, do not call operations on ``MongoClient`` instance
+after any code that calls ``close()`` on it.
+
+.. tip::
+
+   The code that closes the ``MongoClient`` instance might be difficult to
+   locate in certain cases. To locate potential sources of this exception,
+   search for the following cases:
+
+   - Calls to ``close()`` on a ``MongoClient`` instance
+   - Operation calls on a ``MongoClient`` instance that are outside the scope
+     of the try-with-resources statement in which the ``MongoClient`` is
+     declared
+
+   If your application uses a framework to manage the ``MongoClient``
+   such as Spring Boot, check the documentation of the framework to locate the
+   best practices for managing the connection behavior.
+
+   To learn more about accessing MongoDB from Spring Boot, see
+   `Spring Boot and MongoDB <https://www.mongodb.com/compatibility/spring-boot>`__.
