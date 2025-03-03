@@ -57,6 +57,13 @@
      - The depth to which objects are printed. Setting ``inspectDepth``
        to ``Infinity`` (the javascript object) prints all nested
        objects to their full depth. 
+   
+   * - ``logCompressionEnabled``
+     - boolean
+     - false
+     - Specifies whether |mdb-shell| compresses log files. When this
+       value is ``true``, |mdb-shell| uses gzip to compress logs. See
+       :ref:`mongosh-log-compression`.
 
    * - ``logLocation``
      - string
