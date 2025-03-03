@@ -1,0 +1,326 @@
+.. _php-builders:
+
+========================
+Operations with Builders
+========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: aggregation, query, code example, type-safe
+
+Overview
+--------
+
+In this guide, you can learn about the **builder classes**
+that the {+library-short+} provides to create types used in your
+operations. You can use the builder classes and factory methods from the
+Aggregation Builder feature to create filters for other operations such
+as find, update, and delete operations. To learn more about the Aggregation
+Builder, see the :ref:`php-aggregation-builder-api` section of the
+Aggregation guide. 
+
+Using builders to create queries helps you identify errors at compile
+time and avoid them at runtime. This guide provides information on
+builder classes that you can use to perform the following tasks:
+
+- :ref:`php-builders-filter`
+- :ref:`php-builders-update`
+- :ref:`php-builders-changestream`
+
+.. note:: Setting Operation Options
+
+   You cannot specify options by using factory methods for the equivalent
+   aggregation stages. For example, you cannot use the ``Stage::limit()`` method
+   to set a returned documents limit on your find operation. You must specify
+   options by using the string-based syntax, as shown in the following code:
+   
+   .. code-block:: php
+   
+      $options = [
+          'limit' => 5,
+          '<option name>' => '<specification>',
+      ];
+
+This guide provides examples of how to use builders in non-aggregation
+operations. To view aggregation examples, see the :ref:`php-aggregation`
+guide.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``shipwrecks`` collection in the
+``sample_geospatial`` database from the :atlas:`Atlas sample datasets
+</sample-data>`. To access this collection from your PHP application,
+instantiate a ``MongoDB\Client`` that connects to an Atlas cluster
+and assign the following value to your ``$collection`` variable:
+
+.. literalinclude:: /includes/builders.php
+   :language: php
+   :dedent:
+   :start-after: start-db-coll
+   :end-before: end-db-coll
+
+To learn how to create a free MongoDB Atlas cluster and load the sample
+datasets, see the :atlas:`Get Started with Atlas </getting-started>` guide.
+
+Import Builder Classes
+----------------------
+
+To run the examples in this guide, you must import the following classes
+into your application:
+
+.. literalinclude:: /includes/builders.php
+   :language: php
+   :dedent:
+   :start-after: start-imports
+   :end-before: end-imports
+
+.. _php-builders-filter:
+
+Create a Filter
+---------------
+
+You can use factory methods from the ``Query`` builder class to create
+filter definitions to use in find, update, and delete operations. When
+using the ``Query::query()`` factory method to create queries, you can
+use named argument syntax and implement type safety. To learn more about
+creating filters, see the :ref:`php-specify-query` guide.
+
+The following steps describe how to create a filter definition by using
+builders:
+
+1. Call the ``Query::query()`` method to create a query.
+   
+#. Pass the field name to filter on and a factory method from the
+   ``Query`` class. You can pass one or more pairs of field names and
+   criteria in the filter to apply multiple clauses.
+
+The following code shows the template to create a filter definition by
+using builders:
+
+.. code-block:: php
+    
+   $filter = Query::query(
+       <field name>: Query::<factory method>(<parameters>),
+       <field name>: Query::<factory method>(<parameters>),
+       ...
+   );
+
+To combine query criteria by using logical query operators
+(``$and``, ``$or``, ``$not``, ``$nor``), you can use the following
+query template:
+
+.. code-block:: php
+    
+   $filter = Query::<logical operator>(
+       Query::query(<field name>: Query::<factory method>(<parameters>)),
+       Query::query(<field name>: Query::<factory method>(<parameters>)),
+       ...
+   );
+
+To learn more, see :manual:`Logical Query Operators
+</reference/operator/query-logical/>` in the {+mdb-server+} manual.
+
+The following sections provide examples that use builders to create
+filter definitions for different operations.
+
+Retrieve Example
+~~~~~~~~~~~~~~~~
+
+This example performs the following actions:
+
+- Uses the ``Query::eq()`` factory method to match documents in which
+  the ``feature_type`` field value is ``'Wrecks - Visible'``
+- Uses the ``Query::near()`` factory method to match documents in which
+  the ``coordinates`` location field is within ``10000`` meters of the
+  specified coordinates
+- Calls the :phpmethod:`MongoDB\Collection::find()`
+  method to retrieve the matching documents
+- Prints the matching documents
+
+.. io-code-block::
+   :copyable:   
+
+   .. input:: /includes/builders.php
+      :start-after: start-find
+      :end-before: end-find
+      :language: php
+      :dedent:
+
+   .. output::
+      :language: json
+      :visible: false
+
+      {"_id":...,"feature_type":"Wrecks - Visible","coordinates":[-79.9137115,9.3390503],...}
+      {"_id":...,"feature_type":"Wrecks - Visible","coordinates":[-79.9357223,9.3340302],...}
+      {"_id":...,"feature_type":"Wrecks - Visible","coordinates":[-79.9081268,9.3547792],...}
+      // Results truncated
+
+To learn more about find operations, see the :ref:`php-retrieve` guide.
+
+Delete Example
+~~~~~~~~~~~~~~
+
+This example performs the following actions:
+
+- Uses the ``Query::or()`` factory method to match documents that
+  satisfy the either of the following query clauses:
+  
+  - Clause that uses the ``Query::regex()`` factory method to check if
+    the ``feature_type`` field value contains the string ``'nondangerous'``
+  
+  - Clause that uses the ``Query::gt()`` factory method to check if the
+    ``depth`` field value is greater than ``10.0``
+
+- Calls the :phpmethod:`MongoDB\Collection::deleteOne()`
+  method to delete the first matching document
+
+- Prints the number of deleted documents
+
+.. io-code-block::
+   :copyable:   
+
+   .. input:: /includes/builders.php
+      :start-after: start-deleteone
+      :end-before: end-deleteone
+      :language: php
+      :dedent:
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Deleted documents: 1
+
+To learn more about delete operations, see the :ref:`php-write-delete`
+guide.
+
+.. _php-builders-update:
+
+Define an Update Document
+-------------------------
+
+You can use factory methods from the ``Stage`` builder class to create
+update documents. Update documents describe the updates to make to target
+documents. To learn more about updating documents, see the
+:ref:`php-write-update` guide.
+
+The following steps describe how to create an update document by using
+builders:
+
+1. Create a ``Pipeline`` instance.
+   
+#. Pass one or more stages by calling methods from the ``Stage`` class
+   such as ``Stage::set()`` and passing field names and values.
+
+The following code shows the template to define an update by using
+builders:
+
+.. code-block:: php
+    
+   $update = new Pipeline(
+       Stage::set(<field name>: <value>),
+       Stage::set(<field name>: <value>),
+       ...
+   );
+
+This example performs the following actions:
+
+- Uses the ``Query::eq()`` factory method to match documents in which
+  the ``watlev`` field value is ``'partly submerged at high water'``
+- Uses the ``Stage::set()`` method to set the ``year`` field to ``1870``
+- Calls the :phpmethod:`MongoDB\Collection::updateOne()`
+  method to perform the update
+- Prints the number of updated documents
+
+.. io-code-block::
+   :copyable:   
+
+   .. input:: /includes/builders.php
+      :start-after: start-updateone
+      :end-before: end-updateone
+      :language: php
+      :dedent:
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Updated documents: 1
+
+.. _php-builders-changestream:
+
+Modify Change Stream Output
+---------------------------
+
+You can use factory methods from the ``Stage`` class to modify a change
+stream's output by creating a pipeline. To learn more about change
+streams, see the :ref:`php-change-streams` guide.
+
+The following steps describe how to create a change stream filter by
+using builders:
+
+1. Create an array.
+   
+#. Pass one or more ``$match`` stages by calling factory methods from
+   the ``Stage`` class and the required parameters.
+
+The following code shows the template to modify change stream output by
+using builders:
+
+.. code-block:: php
+
+   $pipeline = [
+       Stage::<factory method>(...),
+       Stage::<factory method>(...),
+       ...
+   ];
+
+You can pass this pipeline to the following methods:
+
+- :phpmethod:`MongoDB\Client::watch()`
+- :phpmethod:`MongoDB\Database::watch()`
+- :phpmethod:`MongoDB\Collection::watch()`
+
+This example performs the following actions:
+
+- Uses the ``Stage::match()`` method to filter for only change
+  events for update operations
+- Uses the ``Stage::project()`` method to output only the
+  ``operationType``, ``ns`` (namespace), and ``fullDocument`` fields
+- Calls the :phpmethod:`MongoDB\Collection::watch()`
+  method to open the change stream and sets the ``fullDocument`` option
+  to output the full document after update
+- Prints change events as they occur
+
+.. io-code-block::
+   :copyable:   
+
+   .. input:: /includes/builders.php
+      :start-after: start-cs
+      :end-before: end-cs
+      :language: php
+      :dedent:
+
+   .. output::
+      :language: json
+      :visible: false
+
+      {
+        "_id":...,
+        "operationType":"update",
+        "fullDocument":{"_id":...,"feature_type":"Wrecks - Visible",...},
+        "ns":{"db":"sample_geospatial","coll":"shipwrecks"}
+      }
+
+To learn more about the information provided by change events, see
+:manual:`Change Events </reference/change-events>` in the {+mdb-server+} manual.
