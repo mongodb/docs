@@ -277,6 +277,8 @@ fill missing values:
 - :ref:`With linear interpolation <fill-example-linear>`
 - :ref:`Based on the last observed value <fill-example-locf>`
 - :ref:`For distinct partitions <fill-example-partition>`
+- :ref:`With linear interpolation for identical values in different
+  partitions <fill-example-interpolating-new-values>`
 
 .. _fill-example-constant-value:
 
@@ -876,5 +878,67 @@ Output:
          date: ISODate("2021-03-13T00:00:00.000Z"),
          valueExisted: false,
          score: 85
+      }
+   ]
+
+.. _fill-example-interpolating-new-values:
+
+Interpolate Identical Values in Different Partitions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 8.1
+
+.. include:: /includes/fill-linear-method.rst
+
+Create the following ``restaurantReviewsMultiple`` collection with
+restaurant review scores on identical dates:
+
+.. code-block:: javascript
+
+   db.restaurantReviewsMultiple.insertMany( [
+      {
+         date: ISODate("2021-03-08"),
+         restaurant: "Steve's Pizza",
+         score: 90
+      },
+      {
+         date: ISODate("2021-03-08"),
+         restaurant: "Sally's Deli",
+         score: 75
+      }
+   ] )
+
+The following aggregation example uses ``"linear"`` to interpolate
+the identical dates in the different partitions:
+
+.. code-block:: javascript
+
+   db.restaurantReviewsMultiple.aggregate( [
+      {
+         $fill: {
+            sortBy: { date: 1 },
+            partitionBy: { "restaurant": "$restaurant" },
+            output: { "score": { method: "linear" } }
+         }
+      }
+   ] )
+
+Starting in MongoDB 8.1, the example returns this output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      {
+         _id: ObjectId("620559f4394d47411658b590"),
+         date: ISODate("2021-03-08T00:00:00.000Z"),
+         restaurant: "Sally's Deli",
+         score: 75
+      },
+      {
+         _id: ObjectId("620559f4394d47411658b58f"),
+         date: ISODate("2021-03-08T00:00:00.000Z"),
+         restaurant: "Steve's Pizza",
+         score: 90
       }
    ]
