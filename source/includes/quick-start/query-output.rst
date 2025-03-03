@@ -1,5 +1,5 @@
-When you run ``main.go``, it should output the details of the movie from
-the sample dataset which looks something like the following:
+When you run ``main.go``, it outputs the details of the movie from
+the sample dataset, which resembles the following:
 
 .. code-block:: json
 
@@ -9,7 +9,3 @@ the sample dataset which looks something like the following:
        "title": "Back to the Future",
        ...
    }
-
-If you receive no output or an error, check whether you properly set up
-your environment variable and whether you loaded the sample dataset in
-your MongoDB Atlas cluster.
