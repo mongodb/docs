@@ -176,20 +176,17 @@
            your migration host is reachable, and performs the following
            validation checks to ensure that you can start live migration
            to |service|.
-      
+
            To take advantage of the following validation checks,
-           :opsmgr:`upgrade the MongoDB Agent in Ops Manager
-           </tutorial/update-mongodb-agent-from-automation-agent/>`, or
-           :cloudmgr:`upgrade the MongoDB Agent in Cloud Manager 
-           </tutorial/update-mongodb-agent-from-automation-agent/>` to
-           the latest version.
-           If the live migration process detects that the source cluster is
-           running a version of MongoDB Agent earlier than 12.0.11.7606 for
-           Ops Manager, or 12.5.0.7713 for |mms|, it displays a banner
-           warning suggesting that you upgrade the MongoDB Agent.
-      
+           :opsmgr:`upgrade the MongoDB Agent in Ops Manager </tutorial/update-mongodb-agent-from-automation-agent/>`,
+           or :cloudmgr:`upgrade the MongoDB Agent in Cloud Manager </tutorial/update-mongodb-agent-from-automation-agent/>`
+           to the latest version. If the live migration process detects that
+           the source {+cluster+} is running a version of MongoDB Agent
+           earlier than 12.0.11.7606 for Ops Manager, or 12.5.0.7713 for |mms|,
+           it displays a banner warning suggesting that you upgrade the MongoDB Agent.
+
            The following validation checks run during the live migration:
-      
+
            - The migration host can connect to the destination {+cluster+}.
            - If the source cluster uses |tls-ssl| with a custom Root
              Certificate Authority (CA), the migration host can access
@@ -225,10 +222,10 @@
       
    .. step:: Prepare to Cut Over.
 
-      A lag time value dispays during the final oplog tailing phase that
+      A lag time value displays during the final oplog tailing phase that
       represents the current lag between the source and destination {+clusters+}.
       This lag time may fluctuate depending on the rate of oplog generation
-      on the source cluster, but should decrease over time as the live
+      on the source {+cluster+}, but should decrease over time as the live
       migration process copies the oplog entries to the destination {+cluster+}.
 
       a. When the lag timer and the :guilabel:`Prepare to Cutover` button
@@ -271,19 +268,20 @@
          complete the migration process.
 
       #. Wait until |service| configures your destination {+cluster+} and
-         it is ready to use. For smaller clusters, this time is 3-5 minutes.
+         it is ready to use. For smaller {+clusters+}, this time is 3-5 minutes.
          For larger clusters, this time can extend up to 10 minutes or
          longer, depending on the {+cluster+} size and configuration.
 
          .. include:: /includes/import/migration-email-lm-in-progress.rst
 
-      #. When you are ready to redirect writes to the destination {+cluster+}   in |service|:
+      #. When you are ready to redirect writes to the destination {+cluster+} in |service|:
 
          i. Use the destination {+cluster+}'s connection string to connect to your application.
+
+         #. .. include:: /includes/fact-legacy-live-migration-data-verification.rst
          #. Confirm that your application is working with the destination |service| {+cluster+}.
-         #. Verify your data on the destination {+cluster+}.
          #. Resume writes to the destination {+cluster+}.
-      
+
          |service| performs these actions to complete the process:
 
          - Removes the MongoDB live migration server subnets from the IP access

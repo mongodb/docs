@@ -143,19 +143,21 @@
 
             .. include:: /includes/import/migration-email-lm-in-progress.rst
 
-            |service| is still finalizing the migration, but the destination
+         #. |service| is still finalizing the migration, but the destination
             {+cluster+} is ready to accept writes. You can restart your
             application and connect to your new |service| destination
             {+cluster+} now if you want to minimize downtime. Don't delete
             your source {+cluster+} until the migration is fully complete.
 
-            - Click :guilabel:`Connect to your new cluster`. |service| redirects
-              you to the :guilabel:`Connect to Atlas` page, where you can
-              choose a connection method.
+         #. .. include:: /includes/fact-legacy-live-migration-data-verification.rst
+
+         #. Click :guilabel:`Connect to your new cluster`. |service| redirects
+            you to the :guilabel:`Connect to Atlas` page, where you can
+            choose a connection method.
             - Resume writes to the destination {+cluster+}. 
             - Confirm that your application is working with the destination
-              |service| {+cluster+} and verify your data on the destination
-              {+cluster+}.
+            |service| {+cluster+} and verify your data on the destination
+            {+cluster+}.
 
          #. If the migration succeeds, the :guilabel:`You have successfully
             migrated to Atlas` page displays.
