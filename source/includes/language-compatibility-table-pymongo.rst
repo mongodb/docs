@@ -1,6 +1,15 @@
 Python 3
 ~~~~~~~~
 
+The following compatibility tables show {+driver-short+}'s compatibility with different
+versions of CPython and PyPy.
+
+For more information about how to read the compatibility tables, see
+:ref:`MongoDB Compatibility Tables. <about-driver-compatibility>`
+
+CPython
+```````
+
 .. list-table::
    :header-rows: 1
    :stub-columns: 1
@@ -17,7 +26,6 @@ Python 3
      - CPython 3.6
      - CPython 3.5
      - CPython 3.4
-     - PyPy3
 
    * - 4.11
      - ✓ 
@@ -26,7 +34,6 @@ Python 3
      - ✓ 
      - ✓ 
      - 
-     -
      -
      -
      -
@@ -43,7 +50,6 @@ Python 3
      -
      -
      -
-     -
 
    * - 4.8
      -
@@ -52,7 +58,6 @@ Python 3
      - ✓ 
      - ✓ 
      - ✓ 
-     -
      -
      -
      -
@@ -69,7 +74,6 @@ Python 3
      -
      -
      -
-     -
 
    * - 4.3 to 4.4
      -
@@ -79,7 +83,6 @@ Python 3
      - ✓
      - ✓
      - ✓
-     -
      -
      -
      -
@@ -95,7 +98,6 @@ Python 3
      -
      -
      -
-     -
 
    * - 4.1 [#three-six-compat]_
      -
@@ -106,7 +108,6 @@ Python 3
      - ✓
      - ✓
      - ✓
-     -
      -
      -
 
@@ -121,12 +122,10 @@ Python 3
      - ✓
      -
      -
-     -
 
    * - 3.13
      -
      -
-     - ✓
      - ✓
      - ✓
      - ✓
@@ -147,14 +146,12 @@ Python 3
      - ✓
      - ✓
      - ✓
-     - ✓
 
    * - 3.11
      -
      -
      -
      -
-     - ✓
      - ✓
      - ✓
      - ✓
@@ -173,7 +170,6 @@ Python 3
      - ✓
      - ✓
      - ✓
-     - ✓
 
    * - 3.7 to 3.9
      -
@@ -186,21 +182,113 @@ Python 3
      - ✓
      - ✓
      - ✓
+
+PyPy
+````
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :class: compatibility-large
+
+   * - {+driver-short+} Version
+     - PyPy3.10
+     - PyPy3.9
+     - PyPy3.8
+     - PyPy3.7
+     - PyPy3.6
+     - PyPy3.5
+
+   * - 4.11
+     - ✓ 
+     -
+     -
+     -
+     -
+     -
+
+   * - 4.8 to 4.10
+     - ✓ 
+     - ✓ 
+     -
+     -
+     -
+     -
+
+   * - 4.5 to 4.7
+     - ✓ 
+     - ✓ 
+     - ✓ 
+     -
+     -
+     -
+
+   * - 4.2 to 4.4
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     -
+     -
+
+   * - 4.1 [#three-six-compat]_
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     -
+
+   * - 4.0
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     -
+
+   * - 3.12
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+
+   * - 3.11
+     -
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+
+   * - 3.10
+     -
+     -
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+
+   * - 3.7 to 3.9
+     -
+     -
+     -
+     - ✓
+     - ✓
      - ✓
 
 .. [#ssl-4.0-issue] Versions of Python 3.10 and later are not compatible with
    TLS/SSL for versions of MongoDB 4.0 and earlier. For more information, see the
    :ref:`TLS <pymongo-troubleshoot-tls>` section of the Troubleshooting guide.
-.. [#three-six-compat] Pymongo 4.1 requires Python 3.6.2 or later.
-
-For more information about how to read the compatibility tables, see
-:ref:`MongoDB Compatibility Tables. <about-driver-compatibility>`
+.. [#three-six-compat] {+driver-short+} 4.1 requires Python 3.6.2 or later.
 
 Python 2
 ~~~~~~~~
 
-{+driver-short+} versions 3.7 through 3.12 are compatible with Python 2.7 and PyPy, a
-Python 2.7-compatible alternative interpreter. However, in some cases, {+driver-short+}
+{+driver-short+} versions 3.7 through 3.12 are compatible with Python 2.7 and PyPy2.7.
+However, in some cases, {+driver-short+}
 applications behave differently when running in a Python 2 environment.
 
 The following sections describe the differences in behavior between Python 2 and Python 3
