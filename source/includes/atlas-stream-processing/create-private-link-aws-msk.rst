@@ -74,7 +74,7 @@
          * - ``provider``
 	   - Must be set to ``"aws"``
 
-         * - ``targetClusterArn``
+         * - ``arn``
 	   - String representing the Amazon Resource Number of your {+aws-msk+} cluster.
 
       You can find the |arn| in your {+aws-msk+} cluster's networking details.
@@ -95,7 +95,7 @@
             --header 'Accept: application/vnd.atlas.2023-02-01+json' \
             --data '{ "vendor": "msk",
 	      "provider": "AWS",
-              "targetClusterArn": "1235711"}'
+              "arn": "1235711"}'
 
          .. output::
             :language: bash
