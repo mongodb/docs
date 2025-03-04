@@ -136,10 +136,14 @@ resembles the following:
       "msg" : "draining started successfully",
       "state" : "started",
       "shard" : "bristol01",
-      "note" : "you need to drop or movePrimary these databases", 
+      "note" : "you need to call moveCollection for collectionsToMove and afterwards movePrimary for the dbsToMove", 
       "dbsToMove" : [
          "fizz",
          "buzz"
+      ],
+      "collectionsToMove" : [
+         "fizz.coll1",
+         "buzz.coll1"
       ],
       "ok" : 1,
       "operationTime" : Timestamp(1575398919, 2),
@@ -156,12 +160,6 @@ The balancer begins migrating ("draining") chunks from the shard named
 ``bristol01`` to other shards in the cluster. These migrations happen
 slowly in order to avoid placing undue load on the cluster.
 
-The output includes the field ``dbsToMove`` indicating the databases
-for which ``bristol01`` is the :ref:`primary shard <primary-shard>`.
-After the balancer moves all chunks and after all collections are moved 
-by :dbcommand:`moveCollection`, you must :dbcommand:`movePrimary` 
-for the database(s).
-
 If you run the command again, :dbcommand:`removeShard` returns the
 current status of the process. For example, if the operation is in an
 ``ongoing`` state, the command returns an output that resembles the
@@ -175,12 +173,17 @@ following:
       "remaining" : {
          "chunks" : NumberLong(2),
          "dbs" : NumberLong(2),
-         "jumboChunks" : NumberLong(0)
+         "jumboChunks" : NumberLong(0),
+         "collectionsToMove": NumberLong(2)  
       },
-      "note" : "you need to drop or movePrimary these databases",
+      "note" : "you need to call moveCollection for collectionsToMove and afterwards movePrimary for the dbsToMove",
       "dbsToMove" : [
          "fizz",
          "buzz"
+      ],
+      "collectionsToMove" : [
+         "fizz.coll1",
+         "buzz.coll1"
       ],
       "ok" : 1,
       "operationTime" : Timestamp(1575399086, 1655),
@@ -197,7 +200,7 @@ In the output, the ``remaining`` field includes the following fields:
 
 .. list-table::
    :header-rows: 1
-   :widths: 10 90
+   :widths: 30 70
 
    * - Field
 
@@ -227,6 +230,11 @@ In the output, the ``remaining`` field includes the following fields:
        chunks. For details on the migration procedure, see 
        :ref:`range-migration-procedure`.
 
+   * - ``collectionsToMove``
+
+     - Total number of unsharded collections that you need to move from the
+       shard.
+
 Continue checking the status of the :dbcommand:`removeShard` command
 (i.e. rerun the command) until the number of chunks remaining is ``0``.
 
@@ -238,12 +246,17 @@ Continue checking the status of the :dbcommand:`removeShard` command
       "remaining" : {
          "chunks" : NumberLong(0),             // All chunks have moved
          "dbs" : NumberLong(2),
-         "jumboChunks" : NumberLong(0)         
+         "jumboChunks" : NumberLong(0),
+         "collectionsToMove": NumberLong(2)       
       },
-      "note" : "you need to drop or movePrimary these databases",
+      "note" : "you need to call moveCollection for collectionsToMove and afterwards movePrimary for the dbsToMove",
       "dbsToMove" : [
          "fizz",
          "buzz"
+      ],
+      "collectionsToMove" : [
+         "fizz.coll1",
+         "buzz.coll1"
       ],
       "ok" : 1,
       "operationTime" : Timestamp(1575400343, 1),
@@ -256,14 +269,25 @@ Continue checking the status of the :dbcommand:`removeShard` command
       }
    }
 
-After all chunks have been drained from the shard, if you have
-``dbsToMove``, you can either :dbcommand:`movePrimary` for those
-databases or alternatively, drop the databases (which deletes the
+After the balancer drains all chunks from the shard, you may need to manually
+move your collections and databases out of the drained shard. 
+
+If the ``removeShard`` output contains collections in the ``collectionsToMove``
+field, use :dbcommand:`moveCollection` to move those collections to a shard
+other than the draining shard or drop the collections (which deletes the
 associated data files).
 
-After the balancer completes moving all chunks off the shard and you
-have handled the ``dbsToMove``, :dbcommand:`removeShard` can finish.
-Running :dbcommand:`removeShard` again returns output that resembles
+If the ``removeShard`` output contains databases in the ``dbsToMove`` field, use
+:dbcommand:`movePrimary` for those databases or drop the databases (which
+deletes the associated data files).
+
+.. note::
+
+   For best performance, move your collections before you move your databases. 
+
+After the balancer completes moving all chunks off the shard and you have
+handled the ``dbsToMove`` and ``collectionsToMove``, :dbcommand:`removeShard`
+can finish. Running :dbcommand:`removeShard` again returns output that resembles
 the following:
 
 .. code-block:: javascript
