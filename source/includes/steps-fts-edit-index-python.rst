@@ -7,7 +7,7 @@ Example
 .. procedure:: 
    :style: normal 
 
-   .. step:: Create a new file named ``edit-index.py``.
+   .. step:: Create a new file named ``edit_index.py``.
 
    .. step:: Copy the following code example into the file. 
 
@@ -16,7 +16,7 @@ Example
       the ``update_search_index()`` method, which updates the existing index to
       reflect the new definition document.
 
-      .. literalinclude:: /includes/fts-tutorial/search-index-management/python/edit-index.py
+      .. literalinclude:: /includes/fts-tutorial/search-index-management/python/edit_index.py
          :language: python
          :copyable: true
 
@@ -31,4 +31,4 @@ Example
 
       .. code-block:: shell
 
-         python edit-index.py
+         python edit_index.py

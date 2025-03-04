@@ -15,7 +15,7 @@ Example
 .. procedure:: 
    :style: normal 
 
-   .. step:: Create a new file named ``create-index.py``.
+   .. step:: Create a new file named ``create_index.py``.
 
    .. step:: Copy the following code example into the file. 
 
@@ -29,7 +29,7 @@ Example
             ``create_search_index()`` method on a collection to create the search index.
             To learn more, see :ref:`ref-index-definitions`.
 
-            .. literalinclude:: /includes/fts-tutorial/search-index-management/python/create-index.py
+            .. literalinclude:: /includes/fts-tutorial/search-index-management/python/create_index.py
                :language: python
                :copyable:
                
@@ -65,4 +65,4 @@ Example
 
       .. code-block:: shell
 
-         python create-index.py
+         python create_index.py

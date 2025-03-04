@@ -7,7 +7,7 @@
          NOTE: If you edit this Python file, also update the Jupyter Notebook
          at https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/delete-indexes.ipynb
 
-      .. literalinclude:: /includes/avs-examples/index-management/delete-index/delete-index.py  
+      .. literalinclude:: /includes/avs-examples/index-management/delete-index/delete_index.py  
          :language: python
          :copyable: true 
          :linenos: 

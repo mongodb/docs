@@ -7,14 +7,14 @@ Example
 .. procedure:: 
    :style: normal 
 
-   .. step:: Create a new file named ``delete-index.py``.
+   .. step:: Create a new file named ``delete_index.py``.
 
    .. step:: Copy the following code example into the file. 
 
       The following sample application passes an |fts| index name to
       the ``drop_search_index()`` method to delete the index.
 
-      .. literalinclude:: /includes/fts-tutorial/search-index-management/python/delete-index.py
+      .. literalinclude:: /includes/fts-tutorial/search-index-management/python/delete_index.py
          :language: python
          :copyable: true
 
@@ -28,4 +28,4 @@ Example
 
       .. code-block:: shell
 
-         python delete-index.py
+         python delete_index.py

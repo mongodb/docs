@@ -8,7 +8,7 @@
          .. tab:: 
             :tabid: Single Index
 
-            .. literalinclude:: /includes/avs-examples/index-management/create-index/create-index.py  
+            .. literalinclude:: /includes/avs-examples/index-management/create-index/create_index.py  
                :language: python
                :copyable: true 
                :linenos: 

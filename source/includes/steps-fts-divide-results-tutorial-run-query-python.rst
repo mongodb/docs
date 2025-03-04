@@ -12,7 +12,7 @@
 
             .. include:: /includes/extracts/fts-paginate-results-basic-query-desc.rst
 
-            .. literalinclude:: /includes/fts-tutorial/divide-results/simple-query.py 
+            .. literalinclude:: /includes/fts-tutorial/divide-results/simple_query.py 
                :language: go
                :linenos:
                :dedent:

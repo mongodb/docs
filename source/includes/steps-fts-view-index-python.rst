@@ -7,7 +7,7 @@ Example
 .. procedure:: 
    :style: normal 
 
-   .. step:: Create a new file named ``view-index.py``.
+   .. step:: Create a new file named ``view_index.py``.
 
    .. step:: Copy the following code example into the file. 
 
@@ -15,7 +15,7 @@ Example
       on a collection. This method returns a cursor from which the code accesses
       and prints each |fts| index:
 
-      .. literalinclude:: /includes/fts-tutorial/search-index-management/python/view-index.py
+      .. literalinclude:: /includes/fts-tutorial/search-index-management/python/view_index.py
          :language: python
          :copyable: true
 
@@ -28,4 +28,4 @@ Example
 
       .. code-block:: shell
 
-         python view-index.py
+         python view_index.py

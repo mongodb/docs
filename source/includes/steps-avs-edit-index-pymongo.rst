@@ -7,7 +7,7 @@
          NOTE: If you edit this Python file, also update the Jupyter Notebook
          at https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/edit-indexes.ipynb
 
-      .. literalinclude:: /includes/avs-examples/index-management/update-index/edit-index.py  
+      .. literalinclude:: /includes/avs-examples/index-management/update-index/edit_index.py  
          :language: python
          :copyable: true 
          :linenos: 
