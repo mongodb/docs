@@ -1,56 +1,35 @@
-The following table shows the modes of access each role supports.
+The following table shows the modes of access that each user role supports for the specified {+fts+} actions:
 
 .. list-table::
    :header-rows: 1
    :stub-columns: 1
-   :widths: 25 35 10 10 10 10
+   :widths: 25 35 10 10 10
 
    * - Role
-     - Action
-     - |service| UI
-     - |service| API
-     - |fts| API 
+     - {+fts+} Action
+     - |service| UI 
      - {+atlas-cli+}
+     - |service| API [*]_ 
 
-   * - :authrole:`Project Data Access Read Only` or higher role 
-     - To view |fts| analyzers and indexes.
-     - ✓
+   * - :authrole:`Project Data Access Read Only` or higher 
+     - To view {+fts+} analyzers and indexes.
      - ✓
      - 
-     - 
-
-
-   * - :authrole:`Project Data Access Admin` or higher role
-     - To create and manage |fts| analyzers and indexes, and 
-       :oas-atlas-op:`assign the role to your API Key 
-       </createAndAssignOneOrganizationApiKeyToOneProject>`. 
-     - ✓
-     - ✓
-     - ✓
      - ✓
 
-   * - :authrole:`Project Owner` role
-     - To :oas-atlas-op:`create and assign project access to API Keys 
-       </createAndAssignOneOrganizationApiKeyToOneProject>`.
-     - 
-     - 
-     - ✓ 
+   * - :authrole:`Project Data Access Admin` or higher
+     - To create and manage {+fts+} analyzers and indexes.
      - ✓
-
-   * - :authrole:`Organization Owner` role 
-     - To :oas-atlas-op:`create access list entries
-       </createAccessListEntriesForOneOrganizationApiKey>` for your API 
-       Key and send the request from a client that appears in the
-       access list for your API Key.
-     - 
-     - 
      - ✓
      - ✓
 
    * - :authrole:`Project Search Index Editor` 
-     - To create, view, edit, and delete |fts| indexes using the 
-       {+atlas-ui+} or API.
+     - To create, view, update, and delete {+fts+} indexes.
      - ✓
      - ✓
      - ✓
-     - 
+
+.. [*] Each role grants permission to call either a subset or the full set
+       of :oas-atlas-tag:`{+fts+} API endpoints </Atlas-Search>` in the {+atlas-admin-api+}.
+       See the {+fts+} Action column for descriptions of the API endpoints
+       that each role grants access to. 
