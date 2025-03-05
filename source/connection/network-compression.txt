@@ -1,95 +1,102 @@
-.. _compression:
+.. _java-compression:
 .. _network-compression:
 
-===================
-Network Compression
-===================
+========================
+Compress Network Traffic
+========================
 
-You can enable a driver option to compress messages which reduces the amount
-of data passed over the network between MongoDB and your application.
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
 
-The driver supports the following algorithms:
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: zlib, zstandard, zstd, snappy
 
-1. `Snappy <https://google.github.io/snappy/>`__: available in MongoDB 3.4 and later.
+Overview
+--------
 
-2. `Zlib <https://zlib.net/>`__: available in MongoDB 3.6 and later.
+In this guide, you can learn how to use the {+driver-short+} to enable network
+compression. The driver provides a connection option to compress messages, which
+reduces the amount of data passed over the network between MongoDB and your application.
 
-3. `Zstandard <https://github.com/facebook/zstd/>`__: available in MongoDB 4.2 and later.
+The driver supports the following compression algorithms:
+
+- `Snappy <https://google.github.io/snappy/>`__: Available in {+mdb-server+} v3.4 and later.
+- `Zlib <https://zlib.net/>`__: Available in {+mdb-server+} v3.6 and later.
+- `Zstandard <https://github.com/facebook/zstd/>`__: Available in {+mdb-server+} v4.2 and later.
 
 The driver tests against the following versions of these libraries:
 
 - ``{+snappyVersion+}``
 - ``{+zstdVersion+}``
 
-If you specify multiple compression algorithms, the driver selects the
-first one in the list supported by the MongoDB instance to which it is
-connected.
+If you specify multiple compression algorithms, the driver selects the first one
+in the list supported by your MongoDB instance.
 
 .. note::
 
    Applications that require Snappy or Zstandard compression must
-   :ref:`add explicit dependencies <compression-dependencies>` for those
-   algorithms.
+   add explicit dependencies for those algorithms. To learn more,
+   see the :ref:`java-compression-dependencies` section of this guide.
 
-.. _enable-compression:
+.. _java-compression-specify:
 
 Specify Compression Algorithms
 ------------------------------
 
 You can enable compression for the connection to your MongoDB instance
-by specifying the algorithms in one of two ways: adding the parameter to your
-connection string using ``ConnectionString`` or by calling the method in the
-``MongoClientSettings.Builder`` class.
+by specifying the algorithms in one of the following ways: 
+
+- Use the ``compressors`` parameter in your connection string.
+- Chain the ``compressorList()`` method to the ``MongoClientSettings.builder()`` method.
+
+This example shows how to specify the Snappy, Zstandard, and Zlib compression
+algorithms. Select the :guilabel:`Connection String` or :guilabel:`MongoClientSettings`
+tab to see the corresponding syntax:
 
 .. tabs::
 
-   .. tab:: ConnectionString
+   .. tab:: Connection String
       :tabid: connectionstring
 
-      To enable compression using the `ConnectionString <{+api+}/apidocs/mongodb-driver-core/com/mongodb/ConnectionString.html>`__,
-      add the parameter ``compressors`` in the connection string passed to
-      ``MongoClients.create()``. You can specify one or more compression
-      algorithms, separating them with commas:
-
-      .. code-block:: java
-
-         ConnectionString connectionString = new ConnectionString("mongodb+srv://<db_username>:<db_password>@<cluster-url>/?compressors=snappy,zlib,zstd");
-         MongoClient mongoClient = MongoClients.create(connectionString);
-
-      Specify compression algorithms using the following strings:
-
-      - "snappy" for `Snappy <https://google.github.io/snappy/>`__ compression
-      - "zlib" for `Zlib <https://zlib.net/>`__ compression
-      - "zstd" for `Zstandard <https://github.com/facebook/zstd/>`__ compression
+      .. literalinclude:: /includes/connect/NetworkCompression.java
+         :start-after: start-specify-connection-string
+         :end-before: end-specify-connection-string
+         :language: java
 
    .. tab:: MongoClientSettings
       :tabid: mongoclientsettings
 
-      To enable compression using the `MongoClientSettings <{+api+}/apidocs/mongodb-driver-core/com/mongodb/MongoClientSettings.html>`__,
-      pass the `compressorList() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/MongoClientSettings.Builder.html#compressorList(java.util.List)>`__
-      builder method a list of `MongoCompressor <{+api+}/apidocs/mongodb-driver-core/com/mongodb/MongoCompressor.html>`__
-      instances. You can specify one or more compression algorithms in the list:
+      .. literalinclude:: /includes/connect/NetworkCompression.java
+         :start-after: start-specify-client-settings
+         :end-before: end-specify-client-settings
+         :language: java
 
-      .. code-block:: java
-         :emphasize-lines: 2-4
-
-         MongoClientSettings settings = MongoClientSettings.builder()
-              .compressorList(Arrays.asList(MongoCompressor.createSnappyCompressor(),
-                                            MongoCompressor.createZlibCompressor(),
-                                            MongoCompressor.createZstdCompressor()))
-              .build();
-         MongoClient client = MongoClients.create(settings);
-
-.. _compression-dependencies:
+.. _java-compression-dependencies:
 
 Compression Algorithm Dependencies
 ----------------------------------
 
-The JDK supports `Zlib <https://zlib.net/>`__ compression natively, but
-`Snappy <https://google.github.io/snappy/>`__ and
-`Zstandard <https://github.com/facebook/zstd/>`__ depend on open source
-implementations. See
-`snappy-java <https://github.com/xerial/snappy-java>`__ and
-`zstd-java <https://github.com/luben/zstd-jni>`__ for details.
+The JDK natively supports `Zlib <https://zlib.net/>`__ compression. However,
+Snappy and Zstandard depend on open source Java implementations. To learn more
+about these implementations, see the following GitHub repositories:
 
+- `snappy-java <https://github.com/xerial/snappy-java>`__
+- `zstd-java <https://github.com/luben/zstd-jni>`__
 
+API Documentation
+-----------------
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `MongoClient <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoClient.html>`__
+- `createSnappyCompressor() <{+core-api+}/com/mongodb/MongoCompressor.html#createSnappyCompressor()>`__
+- `createZlibCompressor() <{+core-api+}/com/mongodb/MongoCompressor.html#createZlibCompressor()>`__
+- `createZstdCompressor() <{+core-api+}/com/mongodb/MongoCompressor.html#createZstdCompressor()>`__
