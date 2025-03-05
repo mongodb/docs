@@ -1,3 +1,32 @@
+
+.. _atlas_2024_12_18:
+
+18 December 2024 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Allows you to :ref:`save a cluster draft <scale-cluster-payment>` and sends
+  you an email with a {+cluster+} link so that you can return to the {+cluster+}
+  to continue making changes.
+
+- Supports configuring :ref:`custom ciphers <set-custom-cipher-suite-configuration>`
+  for conducting all node-to-node and client-to-client communications in
+  your |service| {+clusters+}.
+
+- Improves handling of {+bcp+} where disabling {+bcp+} becomes a two-person
+  process that requires approvals by MongoDB Support. To learn more, see
+  :ref:`Configure a Backup Compliance Policy <backup-compliance-policy>`.
+
+- Adds a message asking you to increase the oplog size on the source and
+  destination {+clusters+} to prevent errors during the :ref:`data verification stage <verify-migrations>`
+  of live migration. To learn more, see :ref:`oplog-reqs-live-migration`.
+
+- Adds a :guilabel:`spill to disk during sort` {+atlas-ui+} performance metric
+  and a ``Spill to disk during sort is`` :ref:`sort alert condition <alert-conditions-sort>`
+  that reflect the total number of writes to disk caused by :pipeline:`$sort` stages.
+  This metric is also added to the :ref:`Datadog integration <datadog-integration>`.
+  To learn more, see :ref:`Review Available Metrics <review-available-metrics>`
+  and search for :guilabel:`Sort`.
+
 .. _atlas_2024_12_04:
 
 4 December 2024 Release
