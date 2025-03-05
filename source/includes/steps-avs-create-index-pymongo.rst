@@ -71,10 +71,11 @@
             .. tab:: Basic Example
                :tabid: basic
 
-               .. tip::
+               .. cta-banner::
+                  :url: https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-basic.ipynb?tck=docs
+                  :icon: Code
 
-                  Work with a runnable version of this example as a
-                  :github:`Python notebook <mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-basic.ipynb?tck=docs>`.
+                  Work with a runnable version of this example as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-basic.ipynb?tck=docs>`.
 
                The following index definition indexes only the vector
                embeddings field (``plot_embedding``) for performing
@@ -92,10 +93,11 @@
             .. tab:: Filter Example 
                :tabid: advanced
 
-               .. tip::
+               .. cta-banner::
+                  :url: https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-filter.ipynb?tck=docs
+                  :icon: Code
 
-                  Work with a runnable version of this example as a
-                  :github:`Python notebook <mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-filter.ipynb?tck=docs>`.
+                  Work with a runnable version of this example as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-filter.ipynb?tck=docs>`.
 
                This index definition indexes the following fields: 
       
