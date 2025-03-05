@@ -58,7 +58,7 @@ public class MCSettings {
             MongoClient mongoClient = MongoClients.create(
                 MongoClientSettings.builder()
                 .applyToClusterSettings(builder ->
-                    builder.mode(ClusterConnectionMode.SINGLE)
+                    builder.mode(ClusterConnectionMode.SINGLE))
                 .build());
             //end ClusterSettings
             mongoClient.listDatabaseNames().forEach(n -> System.out.println(n));
@@ -109,7 +109,7 @@ public class MCSettings {
                 MongoClientSettings.builder().applyConnectionString(new ConnectionString("<your connection string>"))
                 .applyToConnectionPoolSettings(builder ->
                     builder.maxWaitTime(10, SECONDS)
-                    .maxSize(200)
+                    .maxSize(200))
                 .build());
             //end ConnectionPoolSettings
             mongoClient.listDatabaseNames().forEach(n -> System.out.println(n));
