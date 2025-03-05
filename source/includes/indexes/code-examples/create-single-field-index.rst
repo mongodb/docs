@@ -1,3 +1,3 @@
 .. code-block:: javascript
 
-   db.<collection>.createIndex( { <field>: 1 } )
+   db.<collection>.createIndex( { <field>: <sort-order> } )
