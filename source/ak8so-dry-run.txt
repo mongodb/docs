@@ -1,0 +1,203 @@
+.. _ak8so-dry-run:
+
+================
+|ak8so| Dry Run
+================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+With the |ak8so| Dry Run feature, you can see what |ak8so| is going to change in 
+|service|, with those custom resources applied to the K8S cluster. The |ak8so| 
+emits events for every resource that it is going to create/update/delete in 
+|service|. Events emitted by the |ak8so| running in Dry Run mode can be 
+filtered by "Dry Run" reason. This feature is particularly useful for upgrading 
+your |ak8so| resources from `v1.9 to v2.x <(for example from 1.9 to 2.x: https://www.mongodb.com/docs/atlas/operator/v2.0/upgrade-ako-v1-to-v2/)>`__.
+
+Prerequisites
+-------------
+
+In order to use the |ak8so| Dry Run feature, you need to:
+
+- have access to a |k8s| or Open Shift {+cluster+}.
+- install CRDs to your {+cluster+} for the version of the |ak8so| you want to execute dry-run for.
+- create a ``mongodb-atlas-operator`` service account in your |k8s| {+cluster+}. 
+- either manually or with the :ref:`Atlas CLI <ak8so-quick-start-ref>`, create a 
+  `role <https://github.com/mongodb/mongodb-atlas-kubernetes/blob/main/config/rbac/clusterwide/role.yaml>`__ and `rolebinding <https://github.com/mongodb/mongodb-atlas-kubernetes/blob/main/config/rbac/clusterwide/role_binding.yaml>`__ for your `service account <https://github.com/mongodb/mongodb-atlas-kubernetes/blob/main/config/rbac/service_account.yaml>`__ with the following permissions 
+  related to your |ak8so| custom resources: 
+  
+  - ``list``
+  - ``get``
+  - ``create``
+  - ``update``
+  - ``delete`` 
+
+- apply |ak8so| custom resources to your new |k8s| {+cluster+}. 
+  When you apply your resources, make sure you provide a `secret with credentials <https://www.mongodb.com/docs/atlas/operator/stable/ak8so-quick-start/#create-a-secret-with-your-api-keys-and-organization-id>`__.
+  You need a new {+cluster+}, because upgrading CRDs on your existing |k8s| {+cluster+} 
+  might leave |ak8so| unable to reconcile existing custom resources. Moreover, 
+  the CRDs that are applied can be a newer version with potential breaking changes.
+
+  .. note:: 
+
+     Only one version of the AKO CRDs can exist in a specific |k8s| cluster. 
+     This means that to test upgrading to a new version of the |ak8so|, you 
+     need to deploy a new |k8s| cluster (possibly a temporary cluster) to 
+     execute the dry run.
+
+Dry Run Events
+--------------
+
+The Dry Run process emits either the following message types, each of which 
+can be either of the type ``Normal`` or ``Warning``:
+
+- ``Would [verb] ([HTTP-Method]) [Atlas resource URL]``
+  
+  - A description of a given |ak8so| resource and the |k8s| required |k8s| 
+    process should the change be applied to your |service| environment. When in 
+    Dry Run mode, |ak8so| only emits dry-run events for HTTP verbs 
+    that would create/update/delete resources in |service|, such as 
+    ``POST``, ``PATCH``, ``PUT``, ``DELETE``. 
+
+- ``Done``
+
+  - No further dry-run events will be reported.
+
+- ``Finished``
+
+  - The |k8s| Job running the dry-run process has completed.
+
+Procedure
+---------
+
+.. tabs::
+
+   .. tab:: kubectl
+      :tabid: kubectl-dry-run
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Apply the following |k8s| Job.
+
+            Save the following example in a file called ``dry-run-job.yaml`` 
+            and apply it to your {+cluster+} by running ``kubectl apply -f dry-run-job.yaml``. 
+            This will start |ak8so| as a |k8s| Job with the ``--dry-run`` parameter. 
+            Every reconciliation in the |ak8so| will run only once, emitting 
+            events for each resource if there are changes between the resource 
+            spec and its state in |service|.
+
+            You can run this command multiple times without making any changes 
+            to your |service| resources.
+
+            .. code-block:: yaml
+               :linenos: 
+               :copyable:
+
+               apiVersion: batch/v1
+               kind: Job
+               metadata:
+                 name: ako-dry-run
+                 namespace: mongodb-atlas-system
+               spec:
+                 backoffLimit: 1
+                 template:
+                   spec:
+                     containers:
+                     - args:
+                     - --atlas-domain=https://cloud.mongodb.com/
+                     - --log-level=info
+                     - --log-encoder=json
+                     - --dry-run
+                     command:
+                     - /manager
+                     env:
+                     - name: OPERATOR_POD_NAME
+                       value: ako-dry-run
+                     - name: OPERATOR_NAMESPACE
+                       value: mongodb-atlas-system
+                     - name: WATCH_NAMESPACE
+                       value: mongodb-atlas-system
+                     - name: JOB_NAME
+                       value: ako-dry-run
+                       image: quay.io/mongodb/atlas-kubernetes-operator:2.8.0
+                       imagePullPolicy: Always
+                       livenessProbe:
+                         failureThreshold: 3
+                         httpGet:
+                           path: /healthz
+                           port: 8081
+                           scheme: HTTP
+                         initialDelaySeconds: 15
+                         periodSeconds: 20
+                         successThreshold: 1
+                         timeoutSeconds: 1
+                       name: ako-dry-run
+                     restartPolicy: Never
+                     serviceAccountName: mongodb-atlas-operator
+
+         .. step:: List the dry-run output.
+
+            When the |k8s| Job is finished, you can list the events emitted 
+            by running the following command:
+
+            .. code-block:: bash
+
+               kubectl -n mongodb-atlas-system get events --field-selector reason=DryRun
+
+            This command will return output similar to the following:
+
+            .. code-block:: bash
+
+               LAST SEEN   TYPE      REASON   OBJECT                    MESSAGE
+               103s        Normal    DryRun   atlasproject/my-project   Would delete (DELETE) /api/atlas/v1.0/groups/6558f184beba40022cbb2043/integrations/SLACK
+               101s        Warning   DryRun   atlasproject/my-project   finished dry run
+
+   .. tab:: Atlas CLI 
+      :tabid: atlas-cli-dry-run
+
+      .. procedure:: 
+         :style: normal
+
+         .. step:: Install the |ak8so| CRDs, RBAC and Service Account resources.
+
+            .. code-block:: bash
+
+               atlas kubernetes operator install --targetNamespace=mongodb-atlas-system --config-only
+
+         .. step:: Run the following Atlas CLI command.
+
+            Run the following |service| CLI command to start the dry run process. 
+            You can run this command multiple times without making any changes 
+            to your |service| resources.
+
+            .. code-block:: bash
+
+               atlas kubernetes dry-run --targetNamespace=mongodb-atlas-system --watch
+
+            .. note:: 
+
+               If the ``--watch`` flag is not provided, the |service| CLI exits  
+               after completing the installation.
+
+         .. step:: List the dry-run output.
+
+            When the |k8s| Job is finished, you can list the events emitted 
+            by running the following command:
+
+            .. code-block:: bash
+
+               kubectl -n mongodb-atlas-system get events --field-selector reason=DryRun
+
+            This command will return output similar to the following:
+
+            .. code-block:: bash
+
+               LAST SEEN   TYPE      REASON   OBJECT                    MESSAGE
+               103s        Normal    DryRun   atlasproject/my-project   Would delete (DELETE) /api/atlas/v1.0/groups/6558f184beba40022cbb2043/integrations/SLACK
+               101s        Warning   DryRun   atlasproject/my-project   finished dry run
