@@ -1,0 +1,237 @@
+.. _atlasnetworkcontainer-custom-resource:
+
+=========================================
+``AtlasNetworkContainer`` Custom Resource
+=========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The ``AtlasNetworkContainer`` custom resource defines a :ref:`network
+container <ak8so-network-peering>` for a |service|
+project. You create |vpc| peering connections between network
+containers and the networks hosting your applications.
+
+.. include:: /includes/fact-ak8so-crds.rst
+
+|ak8so| does one of the following actions using the |service| 
+:oas-atlas-tag:`Network Peering API Resource </Network-Peering>`:
+   
+- Creates a new network container.
+- Updates an existing network container.
+
+Examples
+--------
+
+The following examples illustrate configurations for
+``AtlasNetworkContainer`` CRDs.
+
+- The basic example configuration defines a resource that you manage
+  with the same |ak8so| instance with which you manage its parent
+  {+service+} project.
+
+- The :ref:`Independent CRD <ak8so-independent-crd>` example
+  configures the same network container as the basic example,
+  but for a {+service+} project that you manage outside of the |ak8so|
+  instance with which you manage the network container.
+
+.. _atlasnetworkcontainer-example-basic:
+
+Basic Example
+~~~~~~~~~~~~~
+
+The following shows an ``AtlasNetworkContainer`` custom resource for a
+container named ``my-atlas-nc`` that allows you to create a |vpc|
+peering connection between {+service+} and {+aws+} within the
+``my-project`` project. To manage this resource in the same |ak8so|
+instance as its parent {+service+} project, you must identify the
+project with ``projectRef`` instead of ``externalProjectRef``.
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasNetworkContainer
+   metadata:
+     name: my-atlas-nc
+   spec:
+     projectRef:
+       name: my-project
+       namespace: my-operator-namespace
+     provider: AWS
+     id: 66e2f2b7e69a89b66b621571
+     cidrBlock: 10.11.0.0/16
+     region: US_EAST_1
+   
+Independent CRD Example
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example shows an ``AtlasNetworkContainer``
+:ref:`independent CRD <ak8so-independent-crd>` that enables |vpc|
+peering under the same parameters enabled by the :ref:`Basic Example
+<atlasnetworkcontainer-example-basic>`. To enable independent
+operation, you must use an ``externalProjectRef`` instead of a
+``projectRef``, and you must supply a ``connectionSecret`` directly
+since this resource can't inherit API credentials from its parent
+project.
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasNetworkContainer
+   metadata:
+     name: my-atlas-nc
+   spec:
+     externalProjectRef:
+       projectId: 66e2f2b621571b7e69a89b66
+     connectionSecret:
+       name: atlas-connection-secret
+     provider: AWS
+     id: 66e2f2b7e69a89b66b621571
+     cidrBlock: 10.11.0.0/16
+     region: US_EAST_1
+
+Parameters
+----------
+
+This section describes the ``AtlasNetworkContainer`` parameters
+available in this custom resource definition.
+
+.. setting:: metadata.name
+
+   *Type*: string
+
+   *Required*
+
+   Name that the :ref:`atlasnetworkcontainer-custom-resource` uses to
+   add this network container to a project.
+
+.. setting:: metadata.namespace
+
+   *Type*: string
+
+   *Optional*
+
+   Namespace other than ``default`` that you want to contain the
+   ``AtlasNetworkContainer`` custom resource.
+
+.. setting:: spec.connectionSecret.name
+
+   *Type*: string
+
+   *Conditional*
+
+   Name of the opaque |k8s-secret| that contains the organization ID
+   and :ref:`API keys <about-org-api-keys>` that |ak8so| uses to
+   :ref:`connect <ak8so-access-to-atlas-ref>` to |service|.  If
+   unspecified, |ak8so| defaults to one of the following options:
+
+   - The ``spec.connectionSecretRef.name`` parameter of the parent
+     ``atlasProject``
+   - The default ``global`` secret, if you haven't defined the
+     ``spec.connectionSecretRef.name`` for the parent ``atlasProject``
+
+   This parameter is required for :ref:`independent CRDs
+   <ak8so-independent-crd>`.
+   
+   .. include:: /includes/fact-ak8so-label-secret.rst
+
+.. setting:: spec.externalProjectRef.id
+
+   *Type*: string
+
+   *Conditional*
+
+   ID of the project to which the network container belongs. You must
+   specify the project ID of an existing :ref:`Atlas Project
+   <manage-projects>`. You must specify this parameter for network
+   containers that belong to projects managed by either:
+
+   - A different instance of |ak8so|
+   - Tooling other than |ak8so|
+
+   For deployments that belong to projects managed by the same
+   instance of |ak8so|, use ``spec.projectRef.name``. These parameters
+   are mutually exclusive with each other.
+
+.. setting:: spec.projectRef.name
+
+   *Type*: string
+
+   *Conditional*
+
+   Name of the project to which the network container belongs. You must
+   specify an existing :ref:`atlasproject-custom-resource`. This
+   parameter applies only to network containers that belong to projects
+   managed by the same instance |ak8so|.
+
+   For network containers that belong to projects managed by either:
+
+   - a different instance of |ak8so|
+   - tooling other than |ak8so|
+
+   use ``spec.externalProjectRef.id``. These parameters are mutually
+   exclusive with each other.
+
+.. setting:: spec.projectRef.namespace
+
+   *Type*: string
+
+   *Conditional*
+
+   Namespace in which the :ref:`atlasproject-custom-resource`
+   specified in ``spec.projectRef.name`` exists.
+
+   Don't set this parameter for deployments that belong to projects
+   managed by either:
+
+   - a different instance of |ak8so|
+   - tooling other than |ak8so|
+
+.. setting:: spec.provider
+
+   *Type*: string
+
+   *Required*
+
+   Cloud provider with which to support a |vpc| peering
+   connection. Must be one of the following:
+
+   - ``AWS``
+   - ``Azure``
+   - ``GCP``
+
+.. setting:: spec.id
+
+   *Type*: string
+
+   *Conditional*
+
+   Unique identifier of the existing network container within
+   {+service+}. This parameter is required for and limited to
+   scenarios in which |ak8so| manages a pre-existing network peering
+   container.
+
+.. setting:: spec.cidrBlock
+
+   *Type*: string
+
+   *Required*
+
+   CIDR block of your {+service+} network container.
+
+.. setting:: spec.region
+
+   *Type*: string
+
+   *Conditional*
+
+   {+service+} region within which to host the network container. Must
+   conform to the {+service+} format for hosting regions. This
+   parameter is required for and limited to {+aws+} and |azure|
+   network containers.
+
