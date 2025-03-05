@@ -88,6 +88,18 @@
        specify at least one log retention criterion. See
        :ref:`mongosh-logs-retention`.
 
+   * - ``logRetentionGB``
+     - float or Infinity
+     - Unset
+     - Maximum amount of space in gigabytes used for |mdb-shell| logs.
+       If the combined size of |mdb-shell| logs exceeds this value, log
+       files are deleted starting with the oldest logs.
+
+       If this value is set to ``Infinity``, log files are not deleted
+       based on storage size. To prevent log storage from growing too
+       large, always specify at least one log retention criterion. See
+       :ref:`mongosh-logs-retention`.
+
    * - ``redactHistory``
      - string
      - ``remove``
