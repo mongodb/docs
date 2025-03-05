@@ -5,7 +5,7 @@
 
    * - Instance Size 
      - Default RAM
-     - AWS Region
+     - Default Storage
      - Location 
 
    * - S20
