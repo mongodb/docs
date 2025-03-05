@@ -71,6 +71,14 @@
      - Directory where MongoDB Shell writes log files. Specify an
        absolute filepath. See :ref:`mongosh-log-location`.
 
+   * - ``logMaxFileCount``
+     - integer or Infinity
+     - 100
+     - Maximum number of log files that the |mdb-shell| retains. After
+       the |mdb-shell| reaches the maximum log file count, it starts
+       deleting the oldest log files until the count is below the
+       threshold. See :ref:`mongosh-log-file-count`.
+
    * - ``logRetentionDays``
      - integer or Infinity
      - 30
