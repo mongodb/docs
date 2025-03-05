@@ -78,7 +78,7 @@
       #. In :guilabel:`Peered VPC network`, select
          :guilabel:`In another project`.
       
-      #. In :guilabel:`Project ID`, enter your |service| Project ID.
+      #. In :guilabel:`Project ID`, enter your |service| GCP Project ID.
       
          To find this name in the |vpc| Peering view in |service|. In
          the :guilabel:`Security` section of the left navigation:
