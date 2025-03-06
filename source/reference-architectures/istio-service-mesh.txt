@@ -1,0 +1,201 @@
+.. _reference-architectures-istio-service-mesh:
+
+==================
+Istio Service Mesh
+==================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+While it is possible to deploy Multi-Cluster Ops Manager, Multi-Cluster 
+Sharded Cluster, and Multi-Cluster Replica Set configurations 
+:ref:`without a service mesh <reference-architectures-istio-service-mesh>`, 
+the recommended approach (presented here) is to leverage a service mesh to 
+handle the networking across multiple Kubernetes clusters. To learn more, 
+see :ref:`How Does the Kubernetes Operator Establish Connectivity <external_connectivity_how>`.
+
+This page walks you through the process of deploying and validating an `Istio <https://istio.io/>`__ 
+service mesh across multiple |k8s| clusters. Istio is only one of many options 
+for deploying a service mesh, and it is not supported by MongoDB.
+
+.. note:: Istio is not supported by MongoDB
+
+   Istio is not supported by MongoDB and is only one of many tools you can use 
+   to deploy a service mesh across your |k8s| clusters.
+
+Prerequisites
+-------------
+
+Before you begin, perform the following tasks:
+
+- Install ``kubectl``.
+- Set the ``K8S_CLUSTER_*_CONTEXT_NAME`` environment variables as 
+  explained in the :ref:`GKE Clusters guide <reference-architectures-gke-clusters>`.
+
+Source Code
+-----------
+
+You can find all included source code in the `MongoDB Kubernetes Operator repository <https://github.com/mongodb/mongodb-enterprise-kubernetes/tree/${current_branch}/architectures/setup-multi-cluster/setup-gke/setup-istio>`__.
+
+Procedure
+---------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Clone the |k8s-op-short| repository.
+
+      Run the following command to clone the repository.
+
+      .. code-block:: bash 
+
+         git clone https://github.com/mongodb/mongodb-enterprise-kubernetes.git && \
+         cd mongodb-enterprise-kubernetes/samples/mongodb
+
+
+   .. step:: Install Istio service mesh.
+
+      Install |istio| service mesh to allow cross-cluster |dns| resolution
+      and network connectivity between |k8s| clusters.
+     
+      .. literalinclude:: /includes/code-examples/reference-architectures/setup-multi-cluster/setup-istio/code_snippets/0040_install_istio.sh
+         :language: bash
+         :linenos:
+
+   .. step:: Optional. Check cluster connectivity.
+
+      The following optional scripts verify whether the service mesh is
+      configured correctly for cross-cluster DNS resolution and connectivity.
+
+      a. Create a |k8s| namespace for the connectivity test.
+
+         .. literalinclude:: /includes/code-examples/reference-architectures/setup-multi-cluster/verify-connectivity/code_snippets/0045_create_connectivity_test_namespaces.sh
+            :language: bash
+            :linenos:
+
+      b. Run this script on cluster 0:
+
+         .. literalinclude:: /includes/code-examples/reference-architectures/setup-multi-cluster/verify-connectivity/code_snippets/0050_check_cluster_connectivity_create_sts_0.sh
+            :language: bash
+            :linenos:
+
+      c. Run this script on cluster 1:
+
+         .. literalinclude:: /includes/code-examples/reference-architectures/setup-multi-cluster/verify-connectivity/code_snippets/0050_check_cluster_connectivity_create_sts_1.sh
+            :language: bash
+            :linenos:
+
+      d. Run this script on cluster 2:
+
+         .. literalinclude:: /includes/code-examples/reference-architectures/setup-multi-cluster/verify-connectivity/code_snippets/0050_check_cluster_connectivity_create_sts_2.sh
+            :language: bash
+            :linenos:
+
+      e. Run this script to wait for the creation of StatefulSets:
+
+         .. literalinclude:: /includes/code-examples/reference-architectures/setup-multi-cluster/verify-connectivity/code_snippets/0060_check_cluster_connectivity_wait_for_sts.sh
+            :language: bash
+            :linenos:
+
+      f. Create Pod service on cluster 0:
+
+         .. literalinclude:: /includes/code-examples/reference-architectures/setup-multi-cluster/verify-connectivity/code_snippets/0070_check_cluster_connectivity_create_pod_service_0.sh
+            :language: bash
+            :linenos:
+
+      g. Create Pod service on cluster 1:
+
+         .. literalinclude:: /includes/code-examples/reference-architectures/setup-multi-cluster/verify-connectivity/code_snippets/0070_check_cluster_connectivity_create_pod_service_1.sh
+            :language: bash
+            :linenos:
+
+      h. Create Pod service on cluster 2:
+
+         .. literalinclude:: /includes/code-examples/reference-architectures/setup-multi-cluster/verify-connectivity/code_snippets/0070_check_cluster_connectivity_create_pod_service_2.sh
+            :language: bash
+            :linenos:
+
+      i. Create round robin service on cluster 0:
+
+         .. literalinclude:: /includes/code-examples/reference-architectures/setup-multi-cluster/verify-connectivity/code_snippets/0080_check_cluster_connectivity_create_round_robin_service_0.sh
+            :language: bash
+            :linenos:
+
+      j. Create round robin service on cluster 1:
+
+         .. literalinclude:: /includes/code-examples/reference-architectures/setup-multi-cluster/verify-connectivity/code_snippets/0080_check_cluster_connectivity_create_round_robin_service_1.sh
+            :language: bash
+            :linenos:
+
+      k. Create round robin service on cluster 2:
+
+         .. literalinclude:: /includes/code-examples/reference-architectures/setup-multi-cluster/verify-connectivity/code_snippets/0080_check_cluster_connectivity_create_round_robin_service_2.sh
+            :language: bash
+            :linenos:
+
+      l. Verify Pod 0 from cluster 1:
+
+         .. io-code-block:: 
+            :copyable: true 
+
+            .. input:: /includes/code-examples/reference-architectures/setup-multi-cluster/verify-connectivity/code_snippets/0090_check_cluster_connectivity_verify_pod_0_0_from_cluster_1.sh
+               :linenos:
+               :language: bash
+
+            .. output:: /includes/code-examples/reference-architectures/setup-multi-cluster/verify-connectivity/output/0090_check_cluster_connectivity_verify_pod_0_0_from_cluster_1.out
+               :linenos:
+               :language: bash
+               :visible: false
+
+      m. Verify Pod 1 from cluster 0:
+
+         .. io-code-block:: 
+            :copyable: true 
+
+            .. input:: /includes/code-examples/reference-architectures/setup-multi-cluster/verify-connectivity/code_snippets/0090_check_cluster_connectivity_verify_pod_1_0_from_cluster_0.sh
+               :linenos:
+               :language: bash
+
+            .. output:: /includes/code-examples/reference-architectures/setup-multi-cluster/verify-connectivity/output/0090_check_cluster_connectivity_verify_pod_1_0_from_cluster_0.out
+               :linenos:
+               :language: bash
+               :visible: false
+
+      n. Verify Pod 1 from cluster 2:
+
+         .. io-code-block:: 
+            :copyable: true 
+
+            .. input:: /includes/code-examples/reference-architectures/setup-multi-cluster/verify-connectivity/code_snippets/0090_check_cluster_connectivity_verify_pod_1_0_from_cluster_2.sh
+               :linenos:
+               :language: bash
+
+            .. output:: /includes/code-examples/reference-architectures/setup-multi-cluster/verify-connectivity/output/0090_check_cluster_connectivity_verify_pod_1_0_from_cluster_2.out
+               :linenos:
+               :language: bash
+               :visible: false
+
+      o. Verify Pod 2 from cluster 0:
+
+         .. io-code-block::
+            :copyable: true 
+
+            .. input:: /includes/code-examples/reference-architectures/setup-multi-cluster/verify-connectivity/code_snippets/0090_check_cluster_connectivity_verify_pod_2_0_from_cluster_0.sh
+               :linenos:
+               :language: bash
+
+            .. output:: /includes/code-examples/reference-architectures/setup-multi-cluster/verify-connectivity/output/0090_check_cluster_connectivity_verify_pod_2_0_from_cluster_0.out
+               :linenos:
+               :language: bash
+               :visible: false
+
+      p. Run the cleanup script:
+
+         .. literalinclude:: /includes/code-examples/reference-architectures/setup-multi-cluster/verify-connectivity/code_snippets/0100_check_cluster_connectivity_cleanup.sh
+            :language: bash
+            :linenos:
