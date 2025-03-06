@@ -1,3 +1,19 @@
+.. _opsmgr-server-7.0.14:
+
+|onprem| Server 7.0.14
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-01-23*
+
+- Adds support for |bic-full| 2.14.21.
+
+- Fixes the following issues:
+
+  - Deployment IDs were not filtered out when multi-region backups are enabled.
+
+  - Downloading logs could fail for systems that use 
+    :term:`syslog`.
+
 .. _opsmgr-server-7.0.13:
 
 |onprem| Server 7.0.13
