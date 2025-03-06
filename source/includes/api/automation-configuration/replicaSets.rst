@@ -99,7 +99,7 @@ This field is required for deployments with replica sets.
 
    * - replicaSets[n].members[m]._id
      - integer
-     - Optional
+     - Required
      - Any positive integer that indicates the member of the replica
        set.
 
