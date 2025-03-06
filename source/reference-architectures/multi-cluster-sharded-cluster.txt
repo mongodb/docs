@@ -1,0 +1,104 @@
+.. _reference-architectures-multi-cluster-sharded-cluster:
+
+=============================
+Multi-Cluster Sharded Cluster
+=============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can distribute MongoDB Sharded Clusters over 
+multiple |k8s| Clusters. With multi-cluster functionality, you can:
+
+- Improve the resilience of your deployment by distributing it across multiple 
+  |k8s| clusters, each in a different geographic region. 
+- Configure your deployment for geo sharding by deploying primary nodes of 
+  specified shards in different |k8s| clusters that are located closer to the 
+  application or clients that depend on that data, reducing latency.  
+- Tune your deployment for improved performance. For example, you can deploy 
+  read-only analytical nodes for all or specified shards in different 
+  |k8s| clusters or with customized resource allocations.
+
+Prerequisites
+-------------
+
+Before you begin the following procedure, perform the following actions:
+
+- Install ``kubectl``.
+- Install `Mongosh <https://www.mongodb.com/docs/mongodb-shell/install/>`__
+- Complete the :ref:`GKE Clusters procedure <reference-architectures-gke-clusters>` or the equivalent.
+- Complete the :ref:`TLS Certificates procedure <reference-architectures-ca-certs>` or the equivalent.
+- Complete the :ref:`Istio Service mesh procedure <reference-architectures-istio-service-mesh>` or the equivalent.
+- Complete the :ref:`Deploy the MongoDB Operator <reference-architectures-deploy-operator>` procedure.
+- Complete the :ref:`Multi-Cluster Ops Manager procedure <reference-architectures-multi-cluster-ops-manager>` procedure. 
+  You can skip this step if you use Cloud Manager instead of |onprem|.
+- Set the required environment variables as follows:
+
+.. literalinclude:: /includes/code-examples/reference-architectures/mongodb-replicaset-multi-cluster/env_variables.sh
+   :language: bash
+
+Source Code
+-----------
+
+You can find all included source code in the `MongoDB Kubernetes Operator repository <https://github.com/mongodb/mongodb-enterprise-kubernetes/tree/${current_branch}/architectures/mongodb-sharded-multi-cluster>`__.
+
+Procedure
+---------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Generate TLS certificates.
+
+      Run the following command to generate the required TLS certificates for 
+      each shard, your mongos, and your config servers.
+
+      .. literalinclude:: /includes/code-examples/reference-architectures/mongodb-sharded-multi-cluster/code_snippets/2050_generate_certs.sh
+         :language: bash
+
+   .. step:: Deploy a MongoDB custom resource.
+
+      Run the following command to deploy your custom resources.
+      
+      .. literalinclude:: /includes/code-examples/reference-architectures/mongodb-sharded-multi-cluster/code_snippets/2100_mongodb_sharded_multi_cluster.sh
+         :language: bash
+
+   .. step:: Wait for the resources to spin up.
+
+      Run the following command to confirm that all resources are up and running.
+
+      .. literalinclude:: /includes/code-examples/reference-architectures/mongodb-sharded-multi-cluster/code_snippets/2110_mongodb_sharded_multi_cluster_wait_for_running_state.sh 
+         :language: bash
+
+   .. step:: Enable external access to your |k8s-op-short| custom resources.
+
+      Run the following command to enable external access to your MongoDB database 
+      custom resource. This command creates load balancers with externally 
+      accesible IP addresses for each mongos instance.
+
+      .. literalinclude:: /includes/code-examples/reference-architectures/mongodb-sharded-multi-cluster/code_snippets/2120_mongodb_sharded_multi_cluster_external_access.sh
+         :language: bash
+
+   .. step:: Create a MongoDB user and credentials. 
+
+      Run the following command to create a user and credentials in your sharded cluster. 
+
+      .. literalinclude:: /includes/code-examples/reference-architectures/mongodb-sharded-multi-cluster/code_snippets/2200_create_mongodb_user.sh
+         :language: bash
+
+   .. step:: Verify connectivity with the MongoDB Shell.
+
+      Run the following command to verify that your MongoDB resource in your sharded cluster is accessible.
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/code-examples/reference-architectures/mongodb-sharded-multi-cluster/code_snippets/2210_verify_mongosh_connection.sh
+            :language: bash
+
+         .. output:: /includes/code-examples/reference-architectures/mongodb-sharded-multi-cluster/output/2210_verify_mongosh_connection.out

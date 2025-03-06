@@ -1,0 +1,230 @@
+.. _reference-architectures-multi-cluster-ops-manager:
+
+=========================
+Multi-Cluster Ops Manager
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The Ops Manager is responsible for facilitating workloads such as backing up 
+data, monitoring database performance and more. To make your multi-cluster Ops 
+Manager and the Application Database deployment resilient to entire data center 
+or zone failures, deploy the Ops Manager Application and the Application 
+Database on multiple Kubernetes clusters.
+
+Prerequisites
+-------------
+
+Before you begin the following procedure, perform the following actions:
+
+- Install ``kubectl``.
+- Complete the :ref:`GKE Clusters procedure <reference-architectures-gke-clusters>` or the equivalent.
+- Complete the :ref:`TLS Certificates procedure <reference-architectures-ca-certs>` or the equivalent.
+- Complete the :ref:`Istio Service mesh procedure <reference-architectures-istio-service-mesh>` or the equivalent.
+- Complete the :ref:`Deploy the MongoDB Operator <reference-architectures-deploy-operator>` procedure.
+- Set the required environment variables as follows:
+
+.. literalinclude:: /includes/code-examples/reference-architectures/ops-manager-multi-cluster/env_variables.sh
+   :language: bash
+   :copyable: true
+
+Source Code
+-----------
+
+You can find all included source code in the `MongoDB Kubernetes Operator repository <https://github.com/mongodb/mongodb-enterprise-kubernetes/tree/${current_branch}/architectures/ops-manager-multi-cluster>`__.
+
+Procedure
+----------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Generate TLS certificates.
+
+      .. literalinclude:: /includes/code-examples/reference-architectures/ops-manager-multi-cluster/code_snippets/0250_generate_certs.sh
+         :language: bash
+
+   .. step:: Install |onprem|.
+
+      At this point, you have prepared the environment and the |k8s-op-short|
+      to deploy the |onprem| resource.
+
+      a. Create the necessary credentials for the |onprem| admin user that the
+         |k8s-op-short| will create after deploying the |application| instance:
+
+         .. literalinclude:: /includes/code-examples/reference-architectures/ops-manager-multi-cluster/code_snippets/0300_ops_manager_create_admin_credentials.sh
+            :language: bash
+            :linenos:
+
+      b. Deploy the simplest ``MongoDBOpsManager`` custom resource possible
+         (with |tls| enabled) on a single member cluster, which is also known as
+         the operator cluster.
+
+         This deployment is almost the same as the deployment for the :ref:`single-cluster mode <mode-multi-or-single>`,
+         but with :opsmgrkube:`spec.topology` and :opsmgrkube:`spec.applicationDatabase.topology`
+         set to ``MultiCluster``.
+
+         Deploying this way shows that a single |k8s| cluster deployment is
+         a special case of a multi-|k8s| cluster deployment on a single |k8s| member cluster.
+         You can start deploying the |application| and the {+appdb+}
+         on as many |k8s| clusters as necessary from the beginning, and don't
+         have to start with the deployment with only a single member |k8s| cluster.
+
+         At this point, you have prepared the |onprem| deployment to span more
+         than one |k8s| cluster, which you will do later in this procedure.
+
+         .. literalinclude:: /includes/code-examples/reference-architectures/ops-manager-multi-cluster/code_snippets/0310_ops_manager_deploy_on_single_member_cluster.sh
+            :language: bash
+            :linenos:
+
+      c. Wait for the |k8s-op-short| to pick up the work and reach the
+         ``status.applicationDatabase.phase=Pending`` state. Wait for both the
+         {+appdb+} and |onprem| deployments to complete.
+
+         .. io-code-block::
+            :copyable: true
+
+            .. input:: /includes/code-examples/reference-architectures/ops-manager-multi-cluster/code_snippets/0311_ops_manager_wait_for_pending_state.sh
+               :linenos:
+               :language: bash
+
+            .. output:: /includes/code-examples/reference-architectures/ops-manager-multi-cluster/output/0311_ops_manager_wait_for_pending_state.out
+               :linenos:
+               :language: bash
+               :visible: false
+
+      d. Deploy |onprem|. The |k8s-op-short| deploys |onprem| by performing
+         the following steps. It:
+
+         - Deploys the {+appdb+}\'s replica set nodes and waits
+           for the MongoDB processes in the replica set to start running.
+         - Deploys the |application| instance with the {+appdb+}\'s
+           connection string and waits for it to become ready.
+         - Adds the Monitoring {+mdbagent+} containers to each {+appdb+}\'s Pod.
+         - Waits for both the |application| and the {+appdb+} Pods to start running.
+
+         .. io-code-block::
+            :copyable: true
+
+            .. input:: /includes/code-examples/reference-architectures/ops-manager-multi-cluster/code_snippets/0312_ops_manager_wait_for_running_state.sh
+               :linenos:
+               :language: bash
+
+            .. output:: /includes/code-examples/reference-architectures/ops-manager-multi-cluster/output/0312_ops_manager_wait_for_running_state.out
+               :linenos:
+               :language: bash
+               :visible: false
+
+         Now that you have deployed a single-member cluster in a :ref:`multi-cluster mode <mode-multi-or-single>`,
+         you can reconfigure this deployment to span more than one |k8s| cluster.
+
+      e. On the second member cluster, deploy two additional {+appdb+}
+         replica set members and one additional instance of the |application|:
+
+         .. literalinclude:: /includes/code-examples/reference-architectures/ops-manager-multi-cluster/code_snippets/0320_ops_manager_add_second_cluster.sh
+            :language: bash
+            :linenos:
+
+      f. Wait for the |k8s-op-short| to pick up the work (pending phase):
+
+         .. io-code-block::
+            :copyable: true
+
+            .. input:: /includes/code-examples/reference-architectures/ops-manager-multi-cluster/code_snippets/0321_ops_manager_wait_for_pending_state.sh
+               :linenos:
+               :language: bash
+
+            .. output:: /includes/code-examples/reference-architectures/ops-manager-multi-cluster/output/0321_ops_manager_wait_for_pending_state.out
+               :linenos:
+               :language: bash
+               :visible: false
+
+      g. Wait for the |k8s-op-short| to finish deploying all components:
+
+         .. io-code-block::
+            :copyable: true 
+
+            .. input:: /includes/code-examples/reference-architectures/ops-manager-multi-cluster/code_snippets/0322_ops_manager_wait_for_running_state.sh
+               :linenos:
+               :language: bash
+
+            .. output:: /includes/code-examples/reference-architectures/ops-manager-multi-cluster/output/0322_ops_manager_wait_for_running_state.out
+               :linenos:
+               :language: bash
+               :visible: false
+
+   .. step:: Enable backup.
+
+      In a multi-|k8s| cluster deployment of the |application|, you can configure
+      only |s3|-based backup storage. This procedure refers to ``S3_*``
+      defined in :ref:`env_variables.sh <set-env-vars-om-mc>`.
+
+      a. Optional. Install the |minio|.
+
+         This procedure deploys |s3|-compatible storage for your backups using the |minio|.
+         You can skip this step if you have |aws| |s3| or other |s3|-compatible
+         buckets available. Adjust the ``S3_*`` variables accordingly in
+         :ref:`env_variables.sh <set-env-vars-om-mc>` in this case.
+
+         .. literalinclude:: /includes/code-examples/reference-architectures/ops-manager-multi-cluster/code_snippets/0400_install_minio_s3.sh
+            :language: bash
+            :linenos:
+
+      b. Before you configure and enable backup, create secrets:
+
+         - ``s3-access-secret`` - contains |s3| credentials.
+         - ``s3-ca-cert`` - contains a |certauth| certificate that issued the bucket's
+           server certificate. In the case of the sample MinIO deployment used
+           in this procedure, the default |k8s| Root |certauth| certificate
+           is used to sign the certificate. Because it's not a publicly trusted
+           |certauth| certificate, you must provide it so that |onprem| can
+           trust the connection.
+
+         If you use publicly trusted certificates, you may skip this step and
+         remove the values from the :opsmgrkube:`spec.backup.s3Stores.customCertificateSecretRefs`
+         and :opsmgrkube:`spec.backup.s3OpLogStores.customCertificateSecretRefs` settings.
+
+         .. literalinclude:: /includes/code-examples/reference-architectures/ops-manager-multi-cluster/code_snippets/0500_ops_manager_prepare_s3_backup_secrets.sh
+            :language: bash
+            :linenos:
+
+   .. step:: Re-deploy |onprem| with backup enabled.
+
+      a. The |k8s-op-short| can configure and deploy all components,
+         the |application|, the Backup Daemon instances, and the Application
+         Database's replica set nodes in any combination on any member clusters
+         for which you configure the |k8s-op-short|.
+   
+         To illustrate the flexibility of the multi-|k8s| cluster deployment
+         configuration, deploy only one Backup Daemon instance on the third
+         member cluster and specify zero Backup Daemon members for the first
+         and second clusters.
+
+         .. literalinclude:: /includes/code-examples/reference-architectures/ops-manager-multi-cluster/code_snippets/0510_ops_manager_enable_s3_backup.sh
+            :language: bash
+            :linenos:
+
+      b. Wait until the |k8s-op-short| finishes its configuration:
+
+         .. io-code-block:: 
+            :copyable: true 
+
+            .. input:: /includes/code-examples/reference-architectures/ops-manager-multi-cluster/code_snippets/0522_ops_manager_wait_for_running_state.sh
+               :linenos:
+               :language: bash
+
+            .. output:: /includes/code-examples/reference-architectures/ops-manager-multi-cluster/output/0522_ops_manager_wait_for_running_state.out
+               :linenos:
+               :visible: false
+
+   .. step:: Create credentials for the Kubernetes Operator.
+
+      To configure credentials, you must create an |onprem| organization,
+      generate programmatic API keys in the |onprem| UI, and create a |k8s-secret| 
+      with your Load Balancer IP. See :ref:`create-k8s-credentials` to learn more.
