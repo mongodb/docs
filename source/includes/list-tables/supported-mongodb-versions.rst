@@ -31,8 +31,4 @@
      - 
      - Deprecated
 
-   * - MongoDB 3.6
-     - 
-     - 
-
 .. include:: /includes/deprecated-definition.rst
