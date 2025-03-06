@@ -38,10 +38,6 @@
    * - ``Config Server``
      - The name of the config server that incurred the charge
 
-   * - ``Application``
-     - Name of the :appservices:`{+atlas-app-services+} </>` app associated with
-       the line item.
-
    * - ``Unit``
      - Unit of measure of the item (e.g. hours, GB, etc.)
 

@@ -20,7 +20,3 @@
      - Type of structure for the {+cluster+} (i.e., Replica Set or
        Sharded {+Cluster+}), and number of nodes in the {+cluster+}
        ({+clusters+} only).
-
-   * - :guilabel:`Linked {+app-services+} App`
-     - Name of the :appservices:`{+atlas-app-services+} </>` application linked
-       to this {+cluster+}, if appropriate ({+clusters+} only).

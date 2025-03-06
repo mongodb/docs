@@ -64,9 +64,7 @@ Currently, {+Serverless-instances+} don't support the following actions:
 
 - Use :doc:`Online Archive </online-archive/manage-online-archive>`.
 
-- Use :appservices:`Atlas Device Sync </sync/learn/overview/>`.
-
-- Use :appservices:`triggers </triggers/>`.
+- Use :ref:`atlas-triggers`.
 
 - Use predefined :doc:`replica set tags </reference/replica-set-tags>`.
 

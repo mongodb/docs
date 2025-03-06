@@ -92,11 +92,6 @@
             - |iso8601-time| when the period for which the line item
               applies began.
 
-          * - ``stitchAppName``
-
-            - Name of the :appservices:`{+atlas-app-services+} </>` app
-              associated with the line item.
-
           * - ``tierLowerBound``
             - The lower bound of the specific tier used for the line item.
 
