@@ -149,26 +149,78 @@ main (void)
         // end-create-search-index
     }
     {
-        // start-create-search-indexes
-        bson_t cmd;
-        bson_error_t error;
-        char *cmd_str = bson_strdup_printf (
-            BSON_STR ({
-                "createSearchIndexes" : "%s",
-                "indexes" : [ {"definition" : {"mappings" : {"dynamic" : false}}, "name" : "<first index name>"},
-                              {"definition" : {"mappings" : {"dynamic" : false}}, "name" : "<second index name>"} ]
-            }),
-            "<collection name>");
-        bson_init_from_json (&cmd, cmd_str, -1, &error);
-        bson_free (cmd_str);
+      // start-create-vector-search-index
+      bson_t cmd;
+      bson_error_t error;
+      char * cmd_str = bson_strdup_printf(
+        BSON_STR({
+          "createSearchIndexes": "%s",
+          "indexes": [{
+            "name": "<index name>",
+            "type": "vectorSearch",
+            "definition": {
+              "fields": [{
+                "type": "vector",
+                "path": "plot_embedding",
+                "numDimensions": 1536,
+                "similarity": "euclidean"
+              }]
+            }
+          }]
+        }),
+        "<collection name>"
+      );
+      bson_init_from_json(&cmd, cmd_str, -1, &error);
+      bson_free(cmd_str);
 
-        if (mongoc_collection_command_simple (collection, &cmd, NULL, NULL, &error)) {
-            printf ("Successfully created search indexes\n");
-        } else {
-            fprintf (stderr, "Failed to create search indexes: %s", error.message);
-        }
-        bson_destroy (&cmd);
-        // end-create-search-indexes
+      if (mongoc_collection_command_simple(collection, &cmd, NULL, NULL, &error)) {
+        printf("Successfully created Vector Search index\n");
+      } else {
+        fprintf(stderr, "Failed to create Vector Search index: %s", error.message);
+      }
+      bson_destroy(&cmd);
+      // end-create-vector-search-index
+    }
+    {
+      // start-create-search-indexes
+      bson_t cmd;
+      bson_error_t error;
+      char * cmd_str = bson_strdup_printf(
+        BSON_STR({
+          "createSearchIndexes": "%s",
+          "indexes": [{
+              "definition": {
+                "mappings": {
+                  "dynamic": false
+                }
+              },
+              "name": "<Atlas Search index name>"
+            },
+            {
+              "name": "<Vector Search index name>",
+              "type": "vectorSearch",
+              "definition": {
+                "fields": [{
+                  "type": "vector",
+                  "path": "plot_embedding",
+                  "numDimensions": 1536,
+                  "similarity": "euclidean"
+                }]
+              }
+            }
+          ]
+        }),
+        "<collection name>");
+      bson_init_from_json(&cmd, cmd_str, -1, &error);
+      bson_free(cmd_str);
+
+      if (mongoc_collection_command_simple(collection, &cmd, NULL, NULL, &error)) {
+        printf("Successfully created search indexes\n");
+      } else {
+        fprintf(stderr, "Failed to create search indexes: %s", error.message);
+      }
+      bson_destroy(&cmd);
+      // end-create-search-indexes
     }
     {
         // start-list-search-indexes
@@ -211,6 +263,36 @@ main (void)
         }
         bson_destroy (&cmd);
         // end-update-search-index
+    }
+    {
+        // start-update-vector-search-index
+        bson_t cmd;
+        bson_error_t error;
+        char * cmd_str = bson_strdup_printf(
+        BSON_STR({
+            "updateSearchIndex": "%s",
+            "name": "<index name>",
+            "definition": {
+            "fields": [{
+                "type": "vector",
+                "path": "plot_embedding",
+                "numDimensions": 1536,
+                "similarity": "cosine"
+            }]
+            }
+        }),
+        "<collection name>"
+        );
+        bson_init_from_json(&cmd, cmd_str, -1, &error);
+        bson_free(cmd_str);
+
+        if (mongoc_collection_command_simple(collection, &cmd, NULL, NULL, &error)) {
+        printf("Successfully updated search index\n");
+        } else {
+        fprintf(stderr, "Failed to create search index: %s", error.message);
+        }
+        bson_destroy(&cmd);
+        // end-update-vector-search-index
     }
     {
         // start-drop-search-index
