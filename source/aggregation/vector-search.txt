@@ -1,0 +1,216 @@
+.. _php-vector-search:
+
+===================
+Atlas Vector Search
+===================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, semantic, text, embeddings
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to perform searches on your documents
+by using the Atlas Vector Search feature. The {+library-short+} allows you to
+perform Atlas Vector Search queries by using the :ref:`php-aggregation-builder-api`.
+
+.. note:: Deployment Compatibility
+
+     You can use the Atlas Search feature only when
+     you connect to MongoDB Atlas clusters. This feature is not
+     available for self-managed deployments.
+
+To learn more about Atlas Vector Search, see the :atlas:`Atlas Vector
+Search Overview </atlas-vector-search/vector-search-overview/>`. The
+Atlas Vector Search implementation for the {+library-short+} internally
+uses the ``$vectorSearch`` aggregation operator to perform queries. To
+learn more about this operator, see the :atlas:`$vectorSearch
+</atlas-vector-search/vector-search-stage/#syntax>` reference in the
+Atlas documentation.
+
+.. note:: Atlas Search
+
+   To perform advanced full-text search on your documents, you can use the
+   Atlas Search API. To learn about this feature, see the
+   :ref:`php-atlas-search` guide.
+
+Atlas Vector Search Index
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Before you can perform Atlas Vector Search queries, you must create an
+Atlas Vector Search index on your collection. To learn more about
+creating this index type, see the :ref:`php-atlas-search-index` guide.
+
+Vector Search Aggregation Stage
+-------------------------------
+
+Import the following classes into your application to perform Atlas
+Search queries by using the Aggregation Builder:
+
+.. literalinclude:: /includes/aggregation/vector-search.php
+   :language: php
+   :dedent:
+   :start-after: start-imports
+   :end-before: end-imports
+
+To create a ``$vectorSearch`` stage in your aggregation pipeline, perform the
+following actions:
+
+1. Create an array to store the pipeline stages.
+
+#. Call the ``Stage::vectorSearch()`` method to create the Atlas Vector
+   Search stage.
+
+#. Within the body of the ``vectorSearch()`` method, specify the
+   criteria for your vector query.
+
+The following code demonstrates the template for constructing basic Atlas Search
+queries:
+
+.. code-block:: php
+
+   $pipeline = [
+       Stage::vectorSearch(
+           /* Atlas Vector Search query specifications
+           index: '<index name>',
+           path: '<path to embeddings>', ...*/
+       ),
+   ];
+
+You must pass the following parameters to the ``vectorSearch()`` method:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+     - Description
+
+   * - ``index``
+     - ``string``
+     - Name of the vector search index
+
+   * - ``path``
+     - ``array`` or ``string``
+     - Field that stores vector embeddings
+
+   * - ``queryVector``
+     - ``array``
+     - Vector representation of your query
+
+   * - ``limit``
+     - ``int``
+     - Number of results to return
+
+Atlas Search Query Examples
+---------------------------
+
+In this section, you can learn how to perform Atlas Vector
+Search queries by using the Aggregation Builder. The examples in this
+section use sample data from the ``sample_mflix.embedded_movies``
+collection.
+
+.. note:: Query Vector Length
+    
+   For demonstrative purposes, the examples in this section use
+   sample query vectors that contain very few elements, compared to 
+   the query vector you might use in a runnable application. To view an
+   example that contains the full-length query vector, see the
+   :atlas:`Atlas Vector Search Quick Start </atlas-vector-search/tutorials/vector-search-quick-start/>`
+   and select :guilabel:`PHP` from the :guilabel:`Select your language` dropdown in the upper-right
+   corner of the page.
+
+Basic Vector Search Query
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following code performs an Atlas Vector Search query on the
+``plot_embedding`` vector field:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/aggregation/vector-search.php
+      :language: php
+      :dedent:
+      :start-after: start-basic-query
+      :end-before: end-basic-query
+
+   .. output::
+      :language: json
+      :visible: false
+
+      {"title":"Thrill Seekers"}
+      {"title":"About Time"}
+      {"title":"Timecop"}
+      // Results truncated
+
+Vector Search Score
+~~~~~~~~~~~~~~~~~~~
+
+The following code performs the same query as in the preceding example,
+but outputs only the ``title`` field and ``vectorSearchScore`` meta
+field, which describes how well the document matches the query vector:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/aggregation/vector-search.php
+      :language: php
+      :dedent:
+      :start-after: start-score-query
+      :end-before: end-score-query
+
+   .. output::
+      :language: json
+      :visible: false
+
+      {"title":"Thrill Seekers","score":0.927734375}
+      {"title":"About Time","score":0.925750732421875}
+      {"title":"Timecop","score":0.9241180419921875}
+      // Results truncated
+
+Vector Search Options
+---------------------
+
+You can use the ``vectorSearch()`` method to perform many types of Atlas
+Vector Search queries. Depending on your desired query, you can pass the
+following optional parameters to ``vectorSearch()``:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Optional Parameter
+     - Type
+     - Description
+     - Default Value
+
+   * - ``exact``
+     - ``bool``
+     - Specifies whether to run an Exact Nearest Neighbor (``true``) or
+       Approximate Nearest Neighbor (``false``) search
+     - ``false``
+
+   * - ``filter``
+     - ``QueryInterface`` or ``array``
+     - Specifies a pre-filter for documents to search on
+     - no filtering
+
+   * - ``numCandidates``
+     - ``int`` or ``null``
+     - Specifies the number of nearest neighbors to use during the
+       search
+     - ``null``
+
+To learn more about these parameters, see the :atlas:`Fields
+</atlas-vector-search/vector-search-stage/#fields>` section of the
+``$vectorSearch`` operator reference in the Atlas documentation.

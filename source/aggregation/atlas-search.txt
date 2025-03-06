@@ -1,0 +1,255 @@
+.. _php-atlas-search:
+
+============
+Atlas Search
+============
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, semantic, text
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to perform searches on your documents
+by using the Atlas Search feature. The {+library-short+} allows you to
+perform Atlas Search queries by using the :ref:`php-aggregation-builder-api`.
+
+.. note:: Deployment Compatibility
+
+   You can use the Atlas Search feature only when
+   you connect to MongoDB Atlas clusters. This feature is not
+   available for self-managed deployments.
+
+To learn more about Atlas Search, see the :atlas:`Atlas Search Overview
+</atlas-search/atlas-search-overview/>`. The Atlas Search implementation
+for the {+library-short+} internally uses the ``$search`` aggregation operator
+to perform queries. To learn more about this operator, see the
+:atlas:`$search </atlas-search/aggregation-stages/search/>` reference in
+the Atlas documentation.
+
+.. note:: Atlas Vector Search
+
+   To perform searches on vector embeddings in MongoDB, you can use the
+   Atlas Vector Search API. To learn about this feature, see
+   the :ref:`php-vector-search` guide.
+
+Atlas Search Index
+~~~~~~~~~~~~~~~~~~
+
+Before you can perform Atlas Search queries, you must create an Atlas
+Search index on your collection. To learn more about creating this index
+type, see the :ref:`php-atlas-search-index` guide.
+
+Search Aggregation Stage
+------------------------
+
+Import the following classes into your application to perform Atlas
+Search queries by using the Aggregation Builder:
+
+.. literalinclude:: /includes/aggregation/atlas-search.php
+   :language: php
+   :dedent:
+   :start-after: start-imports
+   :end-before: end-imports
+
+To create a ``$search`` stage in your aggregation pipeline, perform the
+following actions:
+
+1. Create an array to store the pipeline stages.
+
+#. Call the ``Stage::search()`` method to create the Atlas Search stage.
+
+#. Within the body of the ``search()`` method, use methods from the
+   ``Search`` builder class to construct your Search query criteria.
+
+The following code demonstrates the template for constructing basic Atlas Search
+queries:
+
+.. code-block:: php
+
+   $pipeline = [
+       Stage::search(
+           /* Atlas Search query specifications
+           Search::compound(...) */
+       ),
+   ];
+
+Atlas Search Query Examples
+---------------------------
+
+In this section, you can learn how to perform different types of Atlas
+Search queries by using the Aggregation Builder. The examples in this
+section use sample data from the ``sample_restaurants.restaurants``
+collection.
+
+Compound Query with Filter 
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use the ``Search::compound()`` method to combine two or more operators
+into a single query. This method takes named arguments for your clauses,
+such as ``must`` and ``filter``. In each clause, use the
+``Search::text()`` method to specify the strings to look for when
+performing the full-text search.
+
+This example performs an Atlas Search query that has the following
+specifications:
+
+- Includes a ``must`` clause to search the ``name`` field for the string
+  ``"kitchen"``
+- Includes a ``should`` clause to highly rank documents in which the
+  ``cuisine`` field includes ``"american"``
+- Includes a ``filter`` field to include only documents in which the
+  ``borough`` value is ``"Queens"`` in the results
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/aggregation/atlas-search.php
+      :language: php
+      :dedent:
+      :start-after: start-compound-search-query
+      :end-before: end-compound-search-query
+
+   .. output::
+      :language: json
+      :visible: false
+
+      {"_id":...,"borough":"Queens","cuisine":"American","name":"Kitchen Door"}
+      {"_id":...,"borough":"Queens","cuisine":"American","name":"Cc Kitchen"}
+      {"_id":...,"borough":"Queens","cuisine":"American","name":"Suite Kitchen"}
+      // Results truncated
+
+Autocomplete Query 
+~~~~~~~~~~~~~~~~~~
+
+The {+library-short+} provides the ``Search::autocomplete()`` method to run
+autocomplete searches on documents in your collections.
+
+To learn more about this type of Atlas Search query, see the
+:atlas:`autocomplete </atlas-search/autocomplete/>` reference in the
+Atlas documentation.
+
+.. note::
+
+   Your Atlas Search index must be configured for autocomplete queries.
+   To learn more, see :atlas:`How to Index Fields for Autocompletion 
+   </atlas-search/field-types/autocomplete-type/>` in the Atlas
+   documentation.
+
+The following code performs an Atlas Search autocomplete query for the
+string ``"Lucy"`` on the ``name`` field:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/aggregation/atlas-search.php
+      :language: php
+      :dedent:
+      :start-after: start-autocomplete-search-query
+      :end-before: end-autocomplete-search-query
+
+   .. output::
+      :language: json
+      :visible: false
+      
+      {"name":"Juicy Lucy"}
+      {"name":"Lucy'S Vietnamese Kitchen"}
+      {"name":"Lucy'S Cantina Royale"}
+      // Results Truncated
+
+You can also pass the following optional parameters to the ``autocomplete()``
+method to customize the query:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Optional Parameter
+     - Description
+     - Default Value
+
+   * - ``fuzzy``
+     - Enables fuzzy search and fuzzy search options
+     - ``false``
+
+   * - ``tokenOrder``
+     - Specifies order in which to search for tokens
+     - ``'any'``
+
+To learn more about these parameters, see the :atlas:`Options
+</atlas-search/autocomplete/#options>` section of the
+``autocomplete`` operator reference in the Atlas documentation.
+
+Search Options
+--------------
+
+You can use the ``search()`` method to perform many types of Atlas
+Search queries. Depending on your desired query, you can pass the
+following optional parameters to ``search()``:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Optional Parameter
+     - Type
+     - Description
+
+   * - ``index``
+     - ``string``
+     - Provides the name of the Atlas Search index to use
+
+   * - ``highlight``
+     - ``array``
+     - Specifies highlighting options for displaying search terms in their
+       original context
+
+   * - ``concurrent``
+     - ``bool``
+     - Parallelizes search query across segments on dedicated search nodes
+
+   * - ``count``
+     - ``string``
+     - Specifies the count options for retrieving a count of the results
+
+   * - ``searchAfter``
+     - ``string``
+     - Specifies a reference point for returning documents starting
+       immediately following that point
+
+   * - ``searchBefore``
+     - ``string``
+     - Specifies a reference point for returning documents starting
+       immediately preceding that point
+
+   * - ``scoreDetails``
+     - ``bool``
+     - Specifies whether to retrieve a detailed breakdown of the score
+       for results
+
+   * - ``sort``
+     - ``array``
+     - Specifies the fields on which to sort the results
+
+   * - ``returnStoredSource``
+     - ``bool``
+     - Specifies whether to perform a full document lookup on the
+       backend database or return only stored source fields directly
+       from Atlas Search
+
+   * - ``tracking``
+     - ``array``
+     - Specifies the tracking option to retrieve analytics information
+       on the search terms
+
+To learn more about these parameters, see the :atlas:`Fields
+</atlas-search/aggregation-stages/search/#fields>` section of the
+``$search`` operator reference in the Atlas documentation.
