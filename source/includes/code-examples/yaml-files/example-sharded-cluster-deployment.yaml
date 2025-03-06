@@ -7,7 +7,8 @@ spec:
   type: ShardedCluster
   # this deployment will have 3 shards
   shardCount: 3
-  # you cannot specify mongodsPerShardCount, configServerCount and mongosCount in MultiCluster topology
+  # you cannot specify mongodsPerShardCount, configServerCount and mongosCount
+  # in MultiCluster topology
   version: 8.0.3
   opsManager:
     configMapRef:
@@ -18,7 +19,10 @@ spec:
   shardPodSpec: # applies to all shards on all clusters
     persistence:
       single:
-        storage: 10G # all pods for all shards on all clusters will use that storage size in their PersistentVolumeClaim unless overridden in spec.shard.clusterSpecList or spec.shardOverrides.
+        # all pods for all shards on all clusters will use that storage size in their
+        # PersistentVolumeClaim unless overridden in spec.shard.clusterSpecList or
+        # spec.shardOverrides.
+        storage: 10G
 
   configSrvPodSpec: # applies to all config server nodes in all clusters
     persistence:
@@ -30,43 +34,62 @@ spec:
         logs:
           storage: 1G
 
-  shard: # consider this section as a default configuration for ALL shards
+  # consider this section as a default configuration for ALL shards
+  shard:
     clusterSpecList:
       - clusterName: kind-e2e-cluster-1
-        members: 1 # each shard will have only one mongod process deployed in this cluster
+        # each shard will have only one mongod process deployed in this cluster
+        members: 1
         memberConfig:
           - votes: 1
             priority: "20" # we increase the priority to have primary in this cluster
       - clusterName: kind-e2e-cluster-2
-        members: 1 # one member in this cluster, no votes and priority defined means it'll get the default values votes=1, priority="1"
+        # one member in this cluster, no votes and priority defined means it'll get
+        # the default values votes=1, priority="1"
+        members: 1
       - clusterName: kind-e2e-cluster-3
         members: 1 # one member in this cluster
 
   shardOverrides: # here you specify customizations for specific shards
-    - shardNames: # here you specify to which shard names the following configuration will apply
+    # here you specify to which shard names the following configuration will
+    # apply
+    - shardNames:
         - sc-0
       clusterSpecList:
         - clusterName: kind-e2e-cluster-1
           # all fields here are optional
-          members: 2 # shard "sc-0" will have two members instead of one, which was defined as the default for all shards in spec.shard.clusterSpecList[0].members
+          # shard "sc-0" will have two members instead of one, which was defined as the
+          # default for all shards in spec.shard.clusterSpecList[0].members
+          members: 2
           memberConfig:
             - votes: 1
-              priority: "1" # shard "sc-0" should not have primary in this cluster like every other shard
+              # shard "sc-0" should not have primary in this cluster like every other shard
+              priority: "1"
             - votes: 1
               priority: "1"
         - clusterName: kind-e2e-cluster-2
           members: 2 # shard "sc-0" will have two members instead of one
           memberConfig:
             - votes: 1
-              priority: "20" # both processes of shard "sc-0" in this cluster will have the same likelihood to become a primary member
+              # both processes of shard "sc-0" in this cluster will have the same
+              # likelihood to become a primary member
+              priority: "20"
             - votes: 1
               priority: "20"
-        - clusterName: kind-e2e-cluster-3 # We need to specify the list of all clusters on which this shard will be deployed.
-          # If the clusterName element is omitted here, it will be considered as an override for this shard, so that the operator shouldn't deploy any member to it.
-          # No fields are mandatory in here, though. In case a field is not set, it's not overridden and the default value is taken from a top level spec.shard settings.
+        # We need to specify the list of all clusters on which this shard will be
+        # deployed.
+        - clusterName: kind-e2e-cluster-3
+          # If the clusterName element is omitted here, it will be considered as an
+          # override for this shard, so that the operator shouldn't deploy any member
+          # to it.
+          # No fields are mandatory in here, though. In case a field is not set, it's
+          # not overridden and the default value is taken from a top level spec.shard
+          # settings.
 
   configSrv:
-    clusterSpecList: # the same configuration fields are available as in spec.shard.clusterSpecList.
+    # the same configuration fields are available as in
+    # spec.shard.clusterSpecList.
+    clusterSpecList:
       - clusterName: kind-e2e-cluster-1
         members: 1
       - clusterName: kind-e2e-cluster-2
@@ -75,11 +98,13 @@ spec:
         members: 1
 
   mongos:
-    clusterSpecList: # the same configuration fields are available as in spec.shard.clusterSpecList apart from storage and replica-set related fields.
+    # the same configuration fields are available as in
+    # spec.shard.clusterSpecList apart from storage and replica-set related
+    # fields.
+    clusterSpecList:
       - clusterName: kind-e2e-cluster-1
         members: 1
       - clusterName: kind-e2e-cluster-2
         members: 1
       - clusterName: kind-e2e-cluster-3
         members: 1
-

@@ -15,13 +15,23 @@ Multi-Cluster Sharded Cluster
    :depth: 2
    :class: singlecol
 
-The multi-cluster sharded cluster deployment topology is currently in public preview. 
-Multi-cluster sharded cluster deployments are not recommended for 
-use in production environments, as there may be breaking changes in the 
-functionality before this features becomes generally available and supported 
-for production use. Moreover, during the public preview we are unable to provide 
-support for this specific deployment topology without prior commitment from the 
-product and engineering teams responsible for this feature.
+You can distribute MongoDB Sharded Clusters over 
+multiple |k8s| Clusters. With multi-cluster functionality, you can:
+
+- Improve the resilience of your deployment by distributing it across multiple 
+  |k8s| clusters, each in a different geographic region. 
+- Configure your deployment for geo sharding by deploying primary nodes of 
+  specified shards in different |k8s| clusters that are located closer to the 
+  application or clients that depend on that data, reducing latency.  
+- Tune your deployment for improved performance. For example, you can deploy 
+  read-only analytical nodes for all or specified shards in different 
+  |k8s| clusters or with customized resource allocations.
+
+Additionally, you can configure shard, mongos, and config server details at 
+different levels. This means that you can define a top-level, default 
+configuration for shards, config server and mongos, and customize them for 
+each |k8s| cluster independently. Additionally, it is possible to customise 
+individual shards to suit your specific needs. 
 
 .. important:: 
    
@@ -29,22 +39,324 @@ product and engineering teams responsible for this feature.
    MongoDB resources across multiple |k8s| clusters in multiple geographic regions; 
    however, doing so will likely increase latency for replication operations.
 
-If you are interested in discussing the public preview of multi-cluster 
-sharded cluster deployments, or have any feedback on the feature, please contact 
-your MongoDB account team.
-
-The scope of the public preview release of the multi-cluster sharded 
-cluster feature includes the following:
-
-- Implement multi-cluster sharded cluster deployment capabilities by defining 
-  a ``MongoDB`` custom resource as having a ``spec.topology`` value of 
-  ``MultiCluster``, and a ``spec.type`` value of ``ShardedCluster``.
-
-- Introduce the ability to override any settings for a particular shard 
-  via the new ``spec.shard.shardOverrides`` field.
-
-- Ensure backwards compatibility for existing :ref:`single-cluster MongoDB sharded 
-  cluster deployments <deploy-sharded-cluster>`.
 
 To learn more about the specific configuration options for the multi-cluster 
-sharded cluster topology, please see the :ref:`sharded cluster reference documentation <sharded-cluster-settings>`.
+sharded cluster topology, see the :ref:`sharded cluster reference <sharded-cluster-settings>`.
+
+Limitations
+-----------
+
+- Hashicorp Vault support is not available for |k8s| Secret injection.
+- The |k8s-op-short| doesn't automatically shift resources from failed |k8s| 
+  clusters into healthy ones. In case of a member cluster failure, you must 
+  redistribute resources across remaining healthy |k8s| clusters manually by 
+  updating the CRD resource deployed to the central cluster.
+- In case of a member cluster failure, you must first manually scale down failed 
+  clusters to zero to remove unhealthy processes. Then you can redistribute resources 
+  across remaining healthy |k8s| clusters manually by updating the CRD 
+  resource deployed to the central cluster. See :ref:`Disaster Recovery <disaster-recovery-ref>` 
+  to learn more.
+
+.. _mcsc-prereqs:
+
+Prerequisites
+-------------
+
+- Prepare your |k8s| clusters for a multi-cluster deployment.
+  
+  - Install and configure the |k8s-op-short| for multi-cluster deployments in one of your |k8s| clusters. 
+  - Option 1: Deploy a :ref:`service mesh across member clusters <multi-cluster-diagram-with-service-mesh>`. 
+    You can find a detailed procedure in steps 1 - 6 of the :ref:`Ops Manager Multi-Cluster Deployment Guide <deploy-om-multi-cluster>`. 
+    Note that this procedure is opinionated, and only one of many possible configurations. 
+  - Option 2: Configure your |k8s| clusters for a :ref:`non-service mesh deployment <mcsc-non-service-mesh>`.
+
+- :ref:`Deploy a config map <create-k8s-project>` with Ops Manager or Cloud Manager and 
+  MongoDB project details to your central cluster, which |k8s-op-short| 
+  requires to deploy the MongoDB database resource.
+- :ref:`Create credentials <create-k8s-credentials>` for Ops your Manager or Cloud Manager instance and your 
+  MongoDB organization and project. 
+
+Example Sharded Cluster Deployment
+----------------------------------
+
+When applied to your central cluster, the example below deploys a sharded 
+MongoDB cluster with 3 shards that are configured as follows:
+
+- Each shard has nodes distributed over all |k8s| clusters (1 node per cluster).
+  
+- By default each shard's Replica Set:
+  
+  - Has 3 voting members in total deployed across 3 clusters (1 node in each cluster)
+  - The primary shard is preferred to be in ``kind-e2e-cluster-1``.
+  
+- With a ``shardOverride`` for shard ``sc-0``, we change the default values (specified in ``spec.shard``) to the following:
+  
+  - 5 members in total
+  - 2 members in ``kind-e2e-cluster-1``
+  - 2 members in ``kind-e2e-cluster-2``
+  - 1 member in ``kind-e2e-cluster-3``
+  - When possible, the primary shard is preferred to be in ``kind-e2e-cluster-2``
+
+- Customized default storage settings for all shards in all clusters as defined in ``spec.shardPodSpec``
+- A Config Server Replica Set with 3 members, with 1 member in each cluster
+- 3 mongos instances deployed in total, with 1 instance in each cluster
+
+The default configuration consists of three shards, each with
+one member on each of the three clusters, for a total of three members per shard. 
+But in the overrides we change shard ``sc-0`` to have five members, two on cluster 
+``1``, two on cluster ``2``, and cluster ``3`` still has one shard as per the 
+default. 
+
+This example configuration also shifts (with ``shardOverrides``) the primary to cluster ``2``, 
+for the shard ``sc-0``, which can reduce latency for users operating in the region where  cluster ``2`` 
+is located. In this way, you still have resilience across the clusters 
+(and their regions), but if the data in shard ``0`` is data most relevant to the 
+users in in which cluster ``2`` is deployed, they'll experience lower latency.
+
+.. literalinclude:: /includes/code-examples/yaml-files/example-sharded-cluster-deployment.yaml
+   :language: yaml
+   :linenos:
+
+Shard Overrides 
+---------------
+
+To deploy a sharded cluster to multiple |k8s| clusters, you apply the sharded 
+cluster configuration (MongoDB custom resource yaml) to your operator cluster - 
+the |k8s| cluster on which your MongoDB Operator instance is deployed. This 
+configuration's ``spec.shard`` definition is considered your deployment's base 
+shard definition.
+
+If you would like to customize specific shards on specific |k8s| clusters, 
+you can use shard overrides to update the base shard defintion for a given shard. 
+
+The following tables list fields that you can define in order to update or 
+extend your base shard definition. The fields are listed in order of precedence. 
+The topmost field in a given table represents the setting with the lowest 
+precedence, and the bottommost field, if defined, overrides all other fields 
+(e.g. specific shard, on a specific cluster).
+
+Additionally, the override policy denoted for each field type describes whether that 
+specific field is overridden by the newly defined value, or whether the complete 
+object in which that field is defined is overidden. If the entire object is overridden, 
+any fields defined in the base shard definition that are not also explicitly 
+defined in the override definition are removed.The ``merge`` value indicates 
+that a single field is updated, and the ``replace`` value indicates that the 
+complete parent object is overridden.
+
+Customize Persistence and Statefulset Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+  :widths: 33 33 33
+  :header-rows: 1
+
+  * - ShardedClusterSpec Field
+    - To Specify
+    - Applies to
+   
+  * - ``spec.shardPodSpec``
+    - Persistence and Pod Template
+    - All pods
+
+  * - ``spec.shardSpecificPodSpec`` (deprecated)
+    - Persistence and Pod Template
+    - All pods
+
+  * - ``spec.shard.clusterSpecList.podSpec``
+    - Persistence (Pod Template field is ignored)
+    - All shards in the cluster
+
+  * - ``spec.shard.clusterSpecList.statefulSet``
+    - Pod Template
+    - All shards in the cluster
+
+  * - ``spec.shardOverrides.podSpec`` 
+    - Persistence (Pod Template field is ignored)
+    - All shards in the cluster
+
+  * - ``spec.shardOverrides.statefulSet`` 
+    - Pod Template
+    - One shard in the cluster
+
+  * - ``spec.shardOverrides.clusterSpecList.podSpec`` 
+    - Persistence (Pod Template field is ignored)
+    - One shard in a specific cluster
+
+  * - ``spec.shardOverrides.clusterSpecList.statefulSet``
+    - Pod Template
+    - One shard in a specific cluster
+
+.. note:: Deprecation of ShardSpecificPodSpec
+
+   The ``ShardSpecificPodSpec`` field is deprecated, but is still supported. 
+   It was previously used to specify Persistence and Pod Template parameters, 
+   per shards, for single cluster sharded cluster. Now that it is deprecated, you should :ref:`migrate <update-from-deprecated-example>` to 
+   ``ShardOverrides.PodSpec``, and ``ShardOverrides.StatefulSetConfiguration``.
+   See the provided example YAML file for guidance on updating from 
+   ``shardSpecificPodSpec`` and ``shardOverrides`` for a single cluster deployments.
+
+Override pod template and persistence settings in ``clusterSpecList``
+`````````````````````````````````````````````````````````````````````
+
+The following example illustrates how to override custom pod templates and 
+persistence settings in ``clusterSpecList``.
+
+.. literalinclude:: /includes/code-examples/yaml-files/pod_template_shards_0.yaml
+   :language: yaml
+   :linenos:
+   :start-after: members: 1 # cluster count
+
+To learn more, you can review `the complete file <https://github.com/mongodb/mongodb-enterprise-kubernetes/blob/master/samples/sharded_multicluster/pod_template_shards_0.yaml>`__.
+
+
+Define custom pod templates and persistence settings with ``shardOverrides``
+`````````````````````````````````````````````````````````````````````````````
+
+The following example illustrates how to define custom pod templates and persistence settings
+in ``shardOverrides``.
+
+.. literalinclude:: /includes/code-examples/yaml-files/pod_template_shards_1.yaml
+   :language: yaml
+   :linenos:
+   :start-after: memory: 2.0G
+
+To learn more, you can review `the complete file <https://github.com/mongodb/mongodb-enterprise-kubernetes/blob/master/samples/sharded_multicluster/pod_template_shards_1.yaml>`__.
+
+
+.. _update-from-deprecated-example:
+
+Migrating from deprecated ``shardSpecificPodSpec`` field
+`````````````````````````````````````````````````````````
+
+The following example illustrates how to update from the deprecated 
+``shardSpecificPodSpec`` field to the new ``shardOverrides`` field. 
+
+.. literalinclude:: /includes/code-examples/yaml-files/shardSpecificPodSpec_migration.yaml
+   :language: yaml
+   :linenos:
+
+To learn more, you can review `the complete file <https://github.com/mongodb/mongodb-enterprise-kubernetes/blob/master/samples/sharded_multicluster/shardSpecificPodSpec_migration.yaml>`__.
+
+External Access Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+  :widths: 55 15 15
+  :header-rows: 1
+
+  * - Field
+    - Which clusters
+    - Which shards
+
+  * - ``spec.externalAccess``
+    - all
+    - all
+
+  * - ``spec.shard.externalAccess``
+    - one
+    - all
+
+  * - ``spec.shard.clusterSpecList.externalAccess``
+    - one
+    - all
+
+Members, MemberConfig, Additional MongodConfig, AgentConfig
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+  :widths: 33 33 33
+  :header-rows: 1
+
+  * - ShardedClusterSpec Field
+    - To Specify
+    - Applies to
+
+  * - ``spec.shard``
+    - not applicable
+    - not applicable
+
+  * - ``spec.shard.clusterSpecList``
+    - applies
+    - applies
+
+  * - ``spec.shardOverrides`` (single cluster only)
+    - applies
+    - applies
+
+  * - ``spec.sharOverrides``
+    - not applicable
+    - not applicable
+
+  * - ``spec.shardOverrides.clusterSpecList``
+    - applies
+    - applies
+  
+Config Server Overrides
+-----------------------
+
+.. list-table::
+  :widths: 33 33 33
+  :header-rows: 1
+
+  * - ShardedClusterSpec Field
+    - To Specify
+    - Applies to
+
+  * - ``spec.configSrv``
+    - not applicable
+    - not applicable
+
+  * - ``spec.configSrv``
+    - applies
+    - applies
+  
+  * - ``spec.configSrv.clusterSpecList``
+    - not applicable
+    - not applicable
+  
+  * - ``spec.configSrv.clusterSpecList.podSpec``
+    - applies
+    - ignored
+  
+  * - ``spec.configSrv.clusterSpecList.statefulSet``
+    - not applicable
+    - applies
+
+.. literalinclude:: /includes/code-examples/yaml-files/pod_template_config_servers.yaml
+   :language: yaml
+   :linenos:
+   :start-after: memory: 2.0G
+
+To learn more, you can review `the complete file <https://github.com/mongodb/mongodb-enterprise-kubernetes/blob/master/samples/sharded_multicluster/pod_template_config_servers.yaml>`__.
+
+Mongos Overrides
+----------------
+
+.. list-table::
+  :widths: 33 33 33
+  :header-rows: 1
+
+  * - ShardedClusterSpec Field
+    - To Specify
+    - Applies to
+
+  * - ``ConfigSrvSpec``
+    - not applicable
+    - not applicable
+
+  * - ``ConfigSrvPodSpec``
+    - applies
+    - not applicable
+  
+  * - ``ConfigSrvSpec.ClusterSpecList``
+    - not applicable
+    - applies
+  
+  * - ``ConfigSrvSpec.ClusterSpecList.PodSpec``
+    - ignored
+    - not applicable
+  
+  * - ``ConfigSrvSpec.ClusterSpecList.StatefulSetConfiguration``
+    - applies
+    - not applicable
+ 

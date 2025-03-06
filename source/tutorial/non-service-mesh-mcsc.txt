@@ -1,0 +1,264 @@
+.. _mcsc-non-service-mesh:
+
+==================================================
+Multi-Cluster Sharded Cluster Without Service Mesh
+==================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+We recommend deploying a service mesh in order to facilitate connectivity between 
+resources in a multi-cluster sharded cluster deployment; however, if you would 
+prefer to stand up a multi-cluster sharded cluster deployment without a service-mesh, 
+you can follow this guide to configure the required networking between 
+multi-cluster resources.
+
+Sharded Cluster deployments over multiple |k8s| clusters without a service mesh 
+require that each process is exposed externally and configured to identify itself 
+by the externally available hostname. If the networking for each hostname is 
+properly configured (i.e. the traffic when connecting on any given hostname is 
+routed to a particular process/pod) then every other MongoDB process and clients 
+can connect to all processes in the cluster. While the clients will be connecting 
+only to mongos processes, exposing other components is necessary because in the 
+sharded cluster deployment all processes must be able connect to every other 
+process in the sharded cluster.
+
+Procedure 
+---------
+
+.. procedure:: 
+   :style: normal
+
+   .. step:: Prepare |k8s| clusters.
+
+   .. step:: Configure the namespaces on each |k8s| cluster.
+
+      1. We recommend that you use the ``kubectl mongodb`` plugin to perform the 
+         necessary configuration (i.e. RBACs, service accounts and the |k8s| secret 
+         for the |k8s-op-short| containing credentials to other |k8s| clusters) 
+         automatically on all clusters. See :ref:`Multi-Cluster Sharded Cluster <mcsc-prereqs>` to learn more.
+      
+   .. step:: Install and configure the |k8s-op-short|.
+
+      You can follow :ref:`this parallel procedure <deploy-om-multi-cluster>` 
+      from the Multi-Cluster |onprem| deployment guide.
+
+   .. step:: Deploy MongoDB resource.
+      
+      As shown in the following example, configure the ``type`` and ``topology``  
+      as ``type=ShardedCluster`` and ``topology=MultiCluster``.
+
+      .. code-block:: yaml
+
+         apiVersion: mongodb.com/v1
+         kind: MongoDB
+         metadata:
+         annotations:
+             mongodb.com/v1.architecture: non-static
+         name: mdb-sharded
+         namespace: ls
+         spec:
+         shardCount: 1
+         topology: MultiCluster
+         type: ShardedCluster
+         version: 8.0.4-ent
+         credentials: my-credentials
+         opsManager:
+             configMapRef:
+             name: my-project
+         persistent: true
+         security:
+             authentication:
+             agents:
+                 mode: X509
+             enabled: true
+             internalCluster: X509
+             modes:
+                 - X509
+             certsSecretPrefix: prefix
+             tls:
+             ca: issuer-ca
+             enabled: true
+         externalAccess: {}
+         configSrv:
+             clusterSpecList:
+             - clusterName: kind-e2e-cluster-1
+                 externalAccess:
+                 externalDomain: kind-e2e-cluster-1.interconnected
+                 externalService: {}
+                 members: 1
+             - clusterName: kind-e2e-cluster-2
+                 externalAccess:
+                 externalDomain: kind-e2e-cluster-2.interconnected
+                 externalService: {}
+                 members: 1
+             - clusterName: kind-e2e-cluster-3
+                 externalAccess:
+                 externalDomain: kind-e2e-cluster-3.interconnected
+                 externalService: {}
+                 members: 1
+         mongos:
+             clusterSpecList:
+             - clusterName: kind-e2e-cluster-1
+                 externalAccess:
+                 externalDomain: kind-e2e-cluster-1.interconnected
+                 externalService: {}
+                 members: 1
+             - clusterName: kind-e2e-cluster-2
+                 externalAccess:
+                 externalDomain: kind-e2e-cluster-2.interconnected
+                 externalService: {}
+                 members: 1
+             - clusterName: kind-e2e-cluster-3
+                 externalAccess:
+                 externalDomain: kind-e2e-cluster-3.interconnected
+                 externalService: {}
+                 members: 1
+         shard:
+             clusterSpecList:
+             - clusterName: kind-e2e-cluster-1
+                 externalAccess:
+                 externalDomain: kind-e2e-cluster-1.interconnected
+                 externalService: {}
+                 members: 1
+             - clusterName: kind-e2e-cluster-2
+                 externalAccess:
+                 externalDomain: kind-e2e-cluster-2.interconnected
+                 externalService: {}
+                 members: 1
+             - clusterName: kind-e2e-cluster-3
+                 externalAccess:
+                 externalDomain: kind-e2e-cluster-3.interconnected
+                 externalService: {}
+                 members: 1
+
+Example Details and Considerations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The above example is not production ready. Please make note of the 
+following details and considerations:
+
+- The domain in the example (``kind-e2e-cluster-3.interconnected``) is 
+  artificial and should be replaced with the proper externally accessible domain.
+
+- The configuration uses TLS (it's not possible to securely expose externally 
+  MongoDB processes without TLS) and x509 authentication. This can be configured 
+  arbitrarily according to the needs. See the appropriate :ref:`Encryption <k8s-encryption>` and 
+  :ref:`Authentication <k8s-authentication>` to learn more.
+
+- The TLS certificates in sharded cluster must be issued for the 
+  following components:
+
+  - Each shard replica set
+  - Config Server replica set
+  - Mongos
+
+- Each TLS certificate (``-cert`` secrets of TLS type, provided manually or issued 
+  by cert-manager) must be provided in the |k8s| cluster where the |k8s-op-short| 
+  is running. From there, the |k8s-op-short| automatically replicates necessary 
+  resources (generated ``-cert-pem`` secrets) to the other |k8s| clusters.
+
+- Each TLS certificate for each component must contain all the hostnames of all 
+  processes of that component's replica set. For example, the certificate issued 
+  for the first shard (index 0) must have in the cert's SANs field 
+  the following hostnames (for each cluster it's deployed on; the pod name 
+  follows the convention ``mdb-sharded-<shardIdx>-<clusterIdx>-<podIdxInThisCluster>``).
+
+  - ``mdb-sharded-0-0-0.kind-e2e-cluster-1.interconnected``
+  - ``mdb-sharded-0-1-0.kind-e2e-cluster-2.interconnected``
+  - ``mdb-sharded-0-2-0.kind-e2e-cluster-3.interconnected``
+  
+- For reference, all the processes of the sharded cluster deployed with the 
+  provided example are configured with the following hostnames:
+
+  .. code-block::
+
+     mdb-sharded-0-0-0.kind-e2e-cluster-1.interconnected (shard-0)
+     mdb-sharded-0-1-0.kind-e2e-cluster-2.interconnected (shard-0)
+     mdb-sharded-0-2-0.kind-e2e-cluster-3.interconnected (shard-0)
+     mdb-sharded-config-0-0.kind-e2e-cluster-1.interconnected (cs)
+     mdb-sharded-config-1-0.kind-e2e-cluster-2.interconnected (cs)
+     mdb-sharded-config-2-0.kind-e2e-cluster-3.interconnected (cs)
+     mdb-sharded-mongos-0-0.kind-e2e-cluster-1.interconnected (mongos)
+     mdb-sharded-mongos-1-0.kind-e2e-cluster-2.interconnected (mongos)
+     mdb-sharded-mongos-2-0.kind-e2e-cluster-3.interconnected (mongos)
+
+- Each ``externalService:`` is defined with a default object ``{}``. 
+  
+  This means that the |k8s-op-short| creates the External Services 
+  (services created for each pod which should be used to route the external 
+  traffic to) with the default values:
+
+  - ``type: LoadBalancer``
+  - ``ports: 27017``, ``27018`` for backup purposes
+
+-  Depending on the cluster configuration and load balancer controller in the 
+   |k8s| cluster, using LoadBalancer type for external services will cause 
+   provisioning of load balancer resources for each of the processes in the 
+   sharded clusters. This might lead to the large number of LoadBalancer 
+   resources allocated. In the minimal deployment (1 mongos, 3-node config 
+   server replica set, 1 shard of 3-node replica set) this creates 7 LoadBalancer 
+   services.
+
+   In order to minimize the number of LoadBalancer resources that are created, 
+   we recommend that you configure external access with ClusterIP services, as 
+   shown in the following example:
+
+   .. code-block:: yaml
+
+      - clusterName: kind-e2e-cluster-3
+        externalAccess:
+          externalDomain: kind-e2e-cluster-3.interconnected
+          externalService:
+            type: ClusterIP
+
+-  With each process (pod) having one associated ClusterIP external service, 
+   you need to create one external "entry point" proxy component to the 
+   |k8s| cluster, which might be any proxy (e.g. HAProxy, Nginx) that supports 
+   TLS Passthrough routing.
+
+   - The proxy component must be deployed in each |k8s| cluster and exposed 
+     externally on a hostname defined for the components in each cluster:
+
+     - In the example above, each component (mongos, config server, shards) defined 
+       for ``kind-e2e-cluster-3`` use externalDomain: ``externalDomain: kind-e2e-cluster-3.interconnected``
+
+       This means, the proxy component should be configured to receive all 
+       connections to ``*.kind-e2e-cluster-3.interconnected``.
+
+       Each connection is be a hostname following the naming convention 
+       ``<pod-name>.<externalDomain>``, for example: 
+
+       Shard pod: ``mdb-sharded-0-2-0.kind-e2e-cluster-2.interconnected (mdb-sharded-<shardIdx>-<clusterIdx>-<podIdx>``
+
+   - The proxy component should be configured such that any traffic (on ports ``27017`` or ``27018``) 
+     is proxied (on a TCP level, without re-encrypting the traffic) to the 
+     respective external service.
+
+     - For example, for ``mdb-sharded-0-2-0-svc-external`` a generic rule might be 
+       used when configuring the dispatching as ``<pod-name>.kind-e2e-cluster-2.interconnected`` 
+       forwarded to ``<pod-name>-mdb-sharded-0-2-0-svc-external``.
+
+- Note that the ``externalDomain`` used in the example is an artificial one. 
+  It must be replaced with a proper domain name.
+
+- The operator deploys all processes across the |k8s| clusters along with all 
+  the necessary external services.
+
+- Each external service in each cluster must receive external traffic on the 
+  defined external domains. Until the networking is fully configured, the cluster 
+  is not configured properly, because for the the replicaset to be configured, 
+  the mongod processes need to be able to connect with each other for replication 
+  purposes.
+
+- When using external domains, all the networking (for replication and MongoDB 
+  Agent to MongoDB connectivity) is by default routed via external domain, 
+  which might not be efficient. One of the ways to improve it is to configure 
+  networking or the DNS resolution inside the cluster so that the external 
+  hostnames of the pods deployed in the same |k8s| clusters are resolved to the 
+  cluster local IP address of the external services.

@@ -1,0 +1,61 @@
+.. _recover-mcsc-yes-k8sop-cluster:
+
+====================================================================
+Recover the |sharded-cluster| if the Operator Cluster is Operational
+====================================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+If one of your |k8s| clusters fails, but your operator cluster is available, 
+and each of your MongoDB shard's replica sets and config server replica sets 
+maintain a voting majority, you can use the |k8s-op-short| to reconfigure 
+deployments of the |sharded-cluster|.
+
+Procedure 
+---------
+
+.. procedure:: 
+   :style: normal
+
+   .. step:: Remove the failed cluster from the ``mongodb-enterprise-operator-member-list``.
+    
+      1. When a member cluster is no longer operational, you must remove 
+         it from the ``mongodb-enterprise-operator-member-list`` configmap containing 
+         the list of member clusters the |k8s-op-short| is managing. 
+      
+      2. When you update the config map, the |k8s-op-short| restarts.
+    
+      3. After the |k8s-op-short| restarts, without the failed member cluster in its 
+         configuration, the |multi-cluster| custom resource referencing this 
+         failed cluster in its ``clusterSpecList`` reconciles correctly. 
+         
+         Even though the failed member cluster is still referenced in the ``clusterSpecList``,
+         it is ignored during the reconciliation (other clusters are be reconciled 
+         normally). However, the failed memeber's processes are not removed from |onprem|. 
+         Instead, they are ignored and shown in the |onprem| UI as being in a down/stale state.
+
+   .. step:: Manually scale down the replica set members in the failed cluster.
+    
+      In order to reconfigure the deployment, you must first manually 
+      scale down the replica set members deployed in the failed member clusters 
+      to ``0``. To do so, you can either remove the whole cluster element from ``clusterSpecList`` element 
+      or specify its ``members`` count to ``0``.
+
+      .. note:: 
+    
+         Sometimes it is not possible to correctly reconfigure the deployment 
+         when there are non-operational members of replica sets. In such a case, 
+         you must remove the failed processes first from both the shard and config 
+         server replica sets.
+
+   .. step:: Reconfigure the deployment to its original state.
+    
+      After you've scaled the failed ``members`` counts to ``0``, you can 
+      reconfigure the deployment to its original size by adding members on 
+      healthy |k8s| clusters or by adding entirely new clusters as well. 
