@@ -1,0 +1,236 @@
+.. _meko-telemetry:
+
+========================================
+Configure {+k8s-op-short+} Telemetry
+========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+|k8s-op|'s telemetry collects anonymous, aggregate usage data to
+help MongoDB identify improvements with the greatest impact to customers. The 
+{+k8s-op-short+} enables telemetry by default. 
+
+This telemetry data helps MongoDB:
+
+* Improve product reliability and stability.
+* Optimize performance based on real-world cluster configurations.
+* Ensure smooth upgrades and simplified issue resolution.
+
+{+k8s-op-short+} telemetry is separate from the data collected by the {+mdbagent+}
+and does not depend on |onprem|.
+
+.. _meko-telemetry-tracks:
+
+Learn What the {+k8s-op-short+} Tracks
+-----------------------------------------
+
+{+k8s-op-short+} telemetry tracks 
+non-Personally-Identifiable Information (PII), which includes but is
+not limited to the following information:
+
+.. note::
+   
+   This list is kept up to date in alignment with iterations to the telemetry data sent, 
+   but might not be exhaustive or include full detail. For full insight into the telemetry 
+   sent to MongoDB for analysis, see :ref:`view-meko-telemetry`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 60 40
+
+   * - Data
+     - Example Value
+
+   * - {+k8s-op-short+} version number
+     - ``1.31.0``
+  
+   * - |k8s| cluster version
+     - ``v1.22.0``
+
+   * - |k8s| cluster provider
+     - ``gke``, ``eks``, ``aks``
+
+   * - |k8s| UUID. This is the same as the UID of the ``kube-system`` namespace. 
+       To learn more, see the `OpenTelemetry documentation <https://opentelemetry.io/docs/specs/semconv/attributes-registry/k8s/>`__.
+     - ``f47ac10b-58cc-4372-a567-0e02b2c3d479`` 
+
+   * - ``mongodb`` |crd| deployments and resource types. {+k8s-op-short+} telemetry 
+       does *not* track custom deployment names.
+     - Example values:
+
+       - Architecture: ``static``, ``non-static`` 
+       - Multi-Cluster: ``true``, ``false`` 
+       - Deployment Type: ``ReplicaSet``
+
+   * - Self-generated {+k8s-op-short+} UUID. {+k8s-op-short+} telemetry 
+       does *not* track custom names. 
+     - ``d2d2c3e0-6666-4e83-1234-abcd5678efgh``
+   
+   * - Telemetry send timestamps
+     - ``2025-02-14T15:45:34.27814598Z``
+
+.. _meko-telemetry-not-tracks:
+
+Learn What the {+k8s-op-short+} Doesn't Track
+------------------------------------------------
+
+{+k8s-op-short+} telemetry *doesn't* track:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 60 40
+
+   * - Data
+     - Example
+
+   * - PII and values that could potentially contain PII, including all
+       self-set, free-text fields such as custom names or database user
+       names.
+     - ``--clusterName MyCluster``
+
+   * - Data that could uniquely identify the company using the |k8s-op-short|.
+     - ``<hostname>:<port>``
+
+   * - |api| key values or |service| login credentials.
+     - ``private_api_key abcdefghi123456789``
+
+.. _telemetry-rbac:
+
+Required RBAC for MongoDB
+-------------------------
+
+MongoDB requires specific :k8sdocs:`role-based access control (RBAC) </reference/access-authn-authz/rbac>` permissions to collect telemetry.
+*Do not disable these permissions*. These permissions allow MongoDB to:
+
+* Retrieve the |k8s| cluster UID.
+* Access information for a single node to determine the cloud provider, such as EKS, GKE, or AKS.
+* Query the ``/version`` endpoint to detect the |k8s| server version and ensure compatibility.
+
+Disabling these RBAC roles might lead to degraded functionality, compatibility issues, 
+and reduced support effectiveness. To maintain full functionality and receive the best 
+support experience, these permissions must remain enabled.
+
+.. _view-meko-telemetry:
+
+View Your Telemetry 
+-------------------
+
+To review the telemetry collected by your {+k8s-op-short+} before it sends 
+your data to MongoDB for analysis, follow these steps:
+
+.. procedure::
+   :style: normal
+
+   .. step:: (Optional) Disable telemetry transmission.
+
+      To prevent the {+k8s-op-short+} from sending telemetry to MongoDB before you review it, 
+      set :ref:`mdb-operator-telemetry-send-enabled` to ``false``. 
+      
+      Alternatively, if you use |helm|, set :ref:`operator.telemetry.send.enabled <helm-meko-telemetry>` to ``false``.
+
+   .. step:: View your telemetry.
+
+      Your telemetry is collected in a ConfigMap named ``mongodb-enterprise-operator-telemetry``. 
+      To view this ConfigMap, replace ``<namespace>`` and run:
+
+      .. io-code-block:: 
+          :copyable: true 
+
+          .. input:: 
+            :language: sh
+
+             kubectl get configmap mongodb-enterprise-operator-telemetry -n <namespace> -o yaml
+          
+          .. output::
+             :language: sh
+
+             - apiVersion: v1
+               data:
+                lastSendPayloadClusters: '[{"timestamp":"2025-02-14T15:45:34.27814598Z","source":"Clusters","properties":              {"kubernetesAPIVersion":"v1.30.4","kubernetesClusterID":"80b25668-6732-4463-93fb-61ae0487c3e8",              "kubernetesFlavour":"Unknown"}},{"timestamp":"2025-02-14T15:45:34.278149016Z","source":"Clusters","properties":              {"kubernetesAPIVersion":"v1.30.4","kubernetesClusterID":"80b25668-6732-4463-93fb-61ae0487c3e8",              "kubernetesFlavour":"Unknown"}}]'
+                  lastSendPayloadDeployments: '[{"timestamp":"2025-02-14T15:45:34.280318302Z","source":"Deployments","properties":              {"architecture":"non-static","deploymentUID":"ff43ecfb-d244-4639-bca9-9cbbb9fbaa56","isMultiCluster":false,              "operatorID":"4ae3880d-4bc5-495c-b5ea-ff9c9fc0bb34","type":"ReplicaSet"}}]'
+                  lastSendPayloadOperators: '[{"timestamp":"2025-02-14T15:45:34.270025096Z","source":"Operators","properties":              {"kubernetesClusterID":"80b25668-6732-4463-93fb-61ae0487c3e8","kubernetesClusterIDs":              ["80b25668-6732-4463-93fb-61ae0487c3e8"],"operatorID":"4ae3880d-4bc5-495c-b5ea-ff9c9fc0bb34","operatorType":"MEKO",              "operatorVersion":"67af61832ac9680007bb966b"}}]'
+                  lastSendTimestampClusters: Initial-Value
+                  lastSendTimestampDeployments: "1739377730"
+                  lastSendTimestampOperators: "1739377728"
+                  Operator-UUID: 9cc0fb41-5142-419d-b440-baae616f66d4
+                kind: ConfigMap
+                metadata:
+                  name: mongodb-enterprise-operator-telemetry
+
+      .. note::
+                
+         * ``lastSendPayload<type>`` is the most recently collected data 
+           for a cluster, deployment, or {+k8s-op-short+} instance.
+         * ``lastSendTimestamp<type>`` is the date and time when the {+k8s-op-short+} last
+           sent ``lastSendPayload<type>`` to MongoDB for analysis. If the value is 
+           ``Initial-Value``, no telemetry has yet been sent to MongoDB. If you 
+           :ref:`disable telemetry <disable-meko-telemetry>`, ``Initial-Value`` never changes.
+
+.. _disable-meko-telemetry:
+
+Disable Telemetry for the {+k8s-op-short+}
+---------------------------------------------
+
+The {+k8s-op-short+} enables telemetry by default. You can disable {+k8s-op-short+} telemetry 
+in the following ways:
+
+- Add the environment variable :ref:`MDB_OPERATOR_TELEMETRY_ENABLED <mdb-operator-telemetry-enabled>` to your {+k8s-op-short+} deployment 
+  configuration and set to ``false``. 
+  
+  .. code-block:: yaml
+
+     spec:
+       template:
+         spec:
+           serviceAccountName: mongodb-enterprise-operator
+           containers:
+           - name: mongodb-enterprise-operator
+             env:
+             - name: MDB_OPERATOR_TELEMETRY_ENABLED
+               value: "false"    
+
+- Alternatively, if you use |helm|, set :ref:`operator.telemetry.enabled <helm-meko-telemetry>` to ``false``.
+
+  .. code-block:: sh
+
+     helm template operator helm_chart --set operator.telemetry.enabled=false
+
+.. _enable-meko-telemetry:
+
+Enable Telemetry for the {+k8s-op-short+}
+--------------------------------------------
+
+The {+k8s-op-short+} enables telemetry by default. If telemetry is
+currently disabled, you can enable telemetry by setting the following environment variables 
+to ``true``, or removing the values entirely, which then defaults the settings to ``true``.
+
+- Set the environment variables ``MDB_OPERATOR_TELEMETRY_ENABLED`` and 
+  ``MDB_OPERATOR_TELEMETRY_SEND_ENABLED`` in your {+k8s-op-short+} deployment 
+  configuration to ``true`` or remove the values entirely, which then defaults the settings 
+  to ``true``. To learn more, see :ref:`mdb-operator-telemetry-enabled`.
+  
+  .. code-block:: yaml
+
+     spec:
+       template:
+         spec:
+           serviceAccountName: mongodb-enterprise-operator
+           containers:
+           - name: mongodb-enterprise-operator
+             env:
+             - name: MDB_OPERATOR_TELEMETRY_ENABLED
+               value: "true"
+             - name: MDB_OPERATOR_TELEMETRY_SEND_ENABLED
+               value: "true"     
+
+- Alternatively, if you use |helm|, set the following settings to ``true`` or remove 
+  the values entirely, which then defaults the settings to ``true``.
+  To learn more, see :ref:`helm-meko-telemetry`.
+
+  .. include:: /includes/example-telemetry-helm.rst
