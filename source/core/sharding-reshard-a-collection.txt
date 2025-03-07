@@ -170,21 +170,21 @@ requirements:
   Once the resharding operation completes, you can remove the old shard
   key from the queries.
 
-- No index builds are in progress. Use ``db.currentOp()`` to
-  check for any running index builds:
+- No index builds are in progress. To check for running index builds, 
+  use ``$currentOp``:
 
   .. code-block:: javascript
-     :copyable: false
-
-     db.adminCommand(
-        {
-          currentOp: true,
-          $or: [
-            { op: "command", "command.createIndexes": { $exists: true }  },
-            { op: "none", "msg" : /^Index Build/ }
-          ]
+     
+     db.getSiblingDB("admin").aggregate( [
+        { $currentOp : { idleConnections: true } },
+        { $match: {
+              $or: [
+                  { "op": "command", "command.createIndexes": { $exists: true } },
+                  { "op": "none", "msg": /^Index Build/ }
+              ]
+           }
         }
-    )
+     ] )
 
   In the result document, if the ``inprog`` field value is an empty
   array, there are no index builds in progress:

@@ -217,15 +217,20 @@ The following example returns information on index creation operations:
 
 .. code-block:: javascript
 
-   db.adminCommand(
-       {
-         currentOp: true,
-         $or: [
-           { op: "command", "command.createIndexes": { $exists: true }  },
-           { op: "none", "msg" : /^Index Build/ }
-         ]
-       }
-   )
+   db.getSiblingDB("admin").aggregate( [
+      { $currentOp : { idleConnections: true } },
+      { $match: {
+            $or: [
+               { "op": "command", "command.createIndexes": { $exists: true } },
+               { "op": "none", "msg": /^Index Build/ }
+            ]
+        }
+      }
+   ] )
+
+MongoDB marks index builds waiting on commit quorum to complete the operation as an 
+idle connection by setting the ``active`` field to ``false``. The ``idleConnections: true``
+setting includes these idle connections in the ``$currentOp`` output. 
 
 Output Example
 --------------
