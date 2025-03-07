@@ -1,4 +1,4 @@
-Consider the following writes with commit timestamps:
+For example, consider the following writes with commit timestamps:
 
 - writeA with Timestamp1
 - writeB with Timestamp2
