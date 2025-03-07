@@ -7,8 +7,10 @@
     You can still use existing ``M2`` and ``M5`` {+clusters+} and {+Serverless-instances+}.
 
     |service| deprecated ``M2`` and ``M5`` {+clusters+} and {+Serverless-instances+}.
-    |service| will automatically migrate all existing ``M2`` and ``M5`` {+clusters+}
-    to {+Flex-clusters+}. For {+Serverless-instances+}, |service| will
+    Beginning  April 2, 2025, |service| will automatically migrate all existing
+    ``M2`` and ``M5`` {+clusters+} to {+Flex-clusters+}.
+    
+    For {+Serverless-instances+}, beginning May 5 2025, |service| will
     determine whether to migrate instances to {+Free-clusters+},
     {+Flex-clusters+}, or {+Dedicated-clusters+} according to your usage. 
     To see which tiers |service| will migrate your instances
