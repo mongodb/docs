@@ -19,11 +19,13 @@ Definition
    
    .. |operation| replace:: :method:`db.currentOp()`
 
+   .. important:: 
+   
+      .. include:: /includes/fact-currentOp-aggregation-stage.rst
+
    Returns a :term:`document` that contains information on in-progress
    operations for the database instance. The :method:`db.currentOp()`
    method wraps the database command :dbcommand:`currentOp`. 
-
-   .. include:: /includes/fact-currentOp-aggregation-stage.rst
 
    .. note::
 
@@ -108,6 +110,7 @@ filter. The filter document can contain:
    * - ``"$all"``
      - Boolean. If set to ``true``, returns information on all operations,
        including operations on idle connections and system operations.
+       For more information, see :ref:`<current-op-agg>`.
 
        If the document includes ``"$all": true`` along with
        :ref:`db.currentOp-output-fields` conditions, only the
@@ -224,16 +227,16 @@ on any number of fields:
 
 .. code-block:: javascript
 
-   db.adminCommand(
-       {
-         currentOp: true,
-         $or: [
-           { op: "command", "command.createIndexes": { $exists: true }  },
-           { op: "command", "command.$truncated": /^\{ createIndexes/  },
-           { op: "none", "msg" : /^Index Build/ }
-         ]
-       }
-   )
+   db.getSiblingDB("admin").aggregate( [
+      { $currentOp : { idleConnections: true } },
+      { $match: {
+            $or: [
+               { "op": "command", "command.createIndexes": { $exists: true } },
+               { "op": "none", "msg": /^Index Build/ }
+            ]
+         }
+      }
+   ] )
 
 Output Example
 --------------
