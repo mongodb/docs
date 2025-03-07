@@ -12,6 +12,70 @@ Release Notes for |k8s-op-full|
    :depth: 1
    :class: singlecol
 
+.. _ent-op-1.32.x:
+
+|k8s-op-full| 1.32 Series
+-------------------------
+
+.. _ent-op-1.32.0:
+
+|k8s-op-full| 1.32.0
+~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-03-06*
+
+New Features
+````````````
+
+- **General Availability - Multi Cluster Sharded Clusters**: Support configuring 
+  highly available MongoDB Sharded Clusters across multiple Kubernetes clusters.
+  
+  - ``MongoDB`` resources of type Sharded Cluster now support both single and 
+    multi cluster topologies.
+  - The implementation is backwards compatible with single cluster deployments 
+    of MongoDB Sharded Clusters, by defaulting ``spec.topology`` to 
+    ``SingleCluster``. Existing ``MongoDB`` resources do not need to be modified 
+    to upgrade to this version of the |k8s-op-short|.
+  - Introduces support for Sharded deployments across multiple |k8s| clusters 
+    without requiring a Service Mesh, which you can achieve by enabling all 
+    components of such a deployment (including mongos, config servers, and mongod) 
+    to be exposed externally to the |k8s| clusters, which enables routing 
+    via external interfaces.
+  - To learn more, see the `public documentation <https://www.mongodb.com/docs/kubernetes-operator/current/reference/k8s-operator-specification/#sharded-cluster-settings>`__.
+
+- **MongoDB**: Adds opt-out to anonymized telemetry for the |k8s-op-short|. The 
+  data collected by telementry does not contain any Personally Identifiable 
+  Information (PII) or even data that can be tied back to any specific customer 
+  or company. See the `public documentation <https://www.mongodb.com/docs/kubernetes-operator/current/reference/meko-telemetry>`__ to learn more about:
+  
+  - What data is included in the telemetry
+  - How to disable telemetry
+  - What RBACs are added and why they are required
+
+- **MongoDB**: Adds a new validation to Sharded Cluster deployments to ensure 
+  the correctness of scaling operations,. This validation restricts scaling 
+  different components in two directions simultaneously within a single change 
+  to the YAML file. For example, it is not allowed to add more nodes (scaling up) 
+  to shards while simultaneously removing (scaling down) config servers or mongos. 
+  This restriction also applies to multi-cluster deployments. A simple change 
+  that involves "moving" one node from one cluster to another—without altering 
+  the total number of members—will now be blocked. It is necessary to perform 
+  a scale-up operation first and then execute a separate change for scaling down.
+
+Bug Fixes
+`````````
+
+- Fixes the bug when status of ``MongoDBUser`` was being set to ``Updated`` 
+  prematurely. For example, new users were not immediately usable following 
+  ``MongoDBUser`` creation despite the operator reporting ``Updated`` state.
+- Fixed a bug causing cluster health check issues when ordering of users and 
+  tokens differed in Kubeconfig.
+- Fixed a bug when deploying a Multi-Cluster sharded resource with an external 
+  access configuration could result in pods not being able to reach each others.
+- Fixed a bug when setting ``spec.fcv = AlwaysMatchVersion`` and ``agentAuth`` 
+  to be ``SCRAM`` causes the operator to set the auth value to be ``SCRAM-SHA-1`` 
+  instead of ``SCRAM-SHA-256``.
+
 .. _ent-op-1.31.x:
 
 |k8s-op-full| 1.31 Series
