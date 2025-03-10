@@ -65,6 +65,23 @@ The following example creates an instance of ``InsertOne``:
    :language: python
    :copyable:
 
+You can also create an instance of ``InsertOne`` by passing an instance of a custom class
+to the constructor. This provides additional type safety if you're using a type-checking
+tool. The instance you pass must inherit from the ``TypedDict`` class.
+
+.. note:: TypedDict in Python 3.7 and Earlier
+
+   .. include:: /includes/type-hints/typeddict-availability.rst
+
+The following example constructs an ``InsertOne`` instance by using a custom
+class for added type safety:
+
+.. literalinclude:: /includes/write/bulk-write.py
+   :start-after: start-bulk-insert-one-typed
+   :end-before: end-bulk-insert-one-typed
+   :language: python
+   :copyable:
+
 To insert multiple documents, create an instance of ``InsertOne`` for each document.
 
 .. include:: /includes/write/unique-id-note.rst
@@ -118,7 +135,26 @@ The following example creates an instance of ``ReplaceOne``:
    :language: python
    :copyable:
 
+You can also create an instance of ``ReplaceOne`` by passing an instance of a custom class
+to the constructor. This provides additional type safety if you're using a type-checking
+tool. The instance you pass must inherit from the ``TypedDict`` class.
+
+.. note:: TypedDict in Python 3.7 and Earlier
+
+   .. include:: /includes/type-hints/typeddict-availability.rst
+
+The following example constructs a ``ReplaceOne`` instance by using a custom
+class for added type safety:
+
+.. literalinclude:: /includes/write/bulk-write.py
+   :start-after: start-bulk-replace-one-typed
+   :end-before: end-bulk-replace-one-typed
+   :language: python
+   :copyable:
+
 To replace multiple documents, you must create an instance of ``ReplaceOne`` for each document.
+
+.. include:: /includes/type-hints/tip-type-checkers.rst
 
 Delete Operations
 ~~~~~~~~~~~~~~~~~
@@ -281,6 +317,92 @@ The ``bulk_write()`` method returns a ``BulkWriteResult`` object. The
    * - ``upserted_ids``
      - | A map of the operation's index to the ``_id`` of the upserted documents, if
          applicable.
+
+.. _pymongo-bulk-write-client-return:
+
+Client Bulk Write Return Value
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``MongoClient.bulk_write()`` method returns a ``ClientBulkWriteResult`` object. The
+``ClientBulkWriteResult`` object contains the following properties:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Property
+     - Description
+
+   * - ``acknowledged``
+     - | Indicates if the server acknowledged the write operation.
+
+   * - ``bulk_api_result``
+     - | The raw bulk API result returned by the server.
+
+   * - ``delete_results``
+     - | A map of any successful delete operations and their results.
+
+   * - ``deleted_count``
+     - | The number of documents deleted, if any.
+
+   * - ``has_verbose_results``
+     - | Indicates whether the returned results are verbose.
+
+   * - ``insert_results``
+     - | A map of any successful insert operations and their results.
+
+   * - ``inserted_count``
+     - | The number of documents inserted, if any.
+
+   * - ``matched_count``
+     - | The number of documents matched for an update, if applicable.
+
+   * - ``modified_count``
+     - | The number of documents modified, if any.
+
+   * - ``update_results``
+     - | A map of any successful update operations and their results.
+
+   * - ``upserted_count``
+     - | The number of documents upserted, if any.
+
+Type Hints
+----------  
+
+.. include:: /includes/type-hints/intro.rst
+
+When you use the ``bulk_write()`` method to perform an ``InsertOne`` or ``ReplaceOne``
+operation, 
+The following code example shows how to insert 
+- ``~pymongo.collection.Collection.bulk_write()``
+
+For ``bulk_write()``, both the ``~pymongo.operations.InsertOne()`` and
+``~pymongo.operations.ReplaceOne()`` operators are generic.
+
+The following code example shows that the results are the same as the preceding examples
+when you call the ``bulk_write()`` method:
+
+.. code-block:: python
+
+   from typing import TypedDict
+   from pymongo import MongoClient
+   from pymongo.operations import InsertOne
+   from pymongo.collection import Collection
+   client: MongoClient = MongoClient()
+   collection: Collection[Movie] = client.test.test
+   inserted = collection.bulk_write([InsertOne(Movie(name="Jurassic Park", year=1993))])
+   result = collection.find_one({"name": "Jurassic Park"})
+   assert result is not None
+   assert result["year"] == 1993
+
+.. include:: /includes/type-hints/tip-more-info.rst
+
+Troubleshooting
+---------------
+
+.. include:: /includes/type-hints/troubleshooting-client-type.rst
+
+.. include:: /includes/type-hints/troubleshooting-incompatible-type.rst
 
 Additional Information
 ----------------------
