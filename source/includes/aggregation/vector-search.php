@@ -1,6 +1,7 @@
 <?php
 
 // start-imports
+use MongoDB\Builder\Pipeline;
 use MongoDB\Builder\Stage;
 // end-imports
 
@@ -42,7 +43,7 @@ wait(function () use ($collection) {
 echo "\n";
 
 // start-basic-query
-$pipeline = [
+$pipeline = new Pipeline(
     Stage::vectorSearch(
         index: 'vector',
         path: 'plot_embedding',
@@ -54,7 +55,7 @@ $pipeline = [
         _id: 0,
         title: 1,
     ),
-];
+);
 
 $cursor = $collection->aggregate($pipeline);
 
@@ -64,7 +65,7 @@ foreach ($cursor as $doc) {
 // end-basic-query
 
 // start-score-query
-$pipeline = [
+$pipeline = new Pipeline(
     Stage::vectorSearch(
         index: 'vector',
         path: 'plot_embedding',
@@ -77,7 +78,7 @@ $pipeline = [
         title: 1,
         score: ['$meta' => 'vectorSearchScore'],
     ),
-];
+);
 
 $cursor = $collection->aggregate($pipeline);
 

@@ -40,7 +40,7 @@ echo json_encode($result), PHP_EOL;
 // end-array-explain
 
 // start-builder-match-group
-$pipeline = [
+$pipeline = new MongoDB\Builder\Pipeline(
     MongoDB\Builder\Stage::match(
         date: [
             MongoDB\Builder\Query::gte(new MongoDB\BSON\UTCDateTime(new DateTimeImmutable('2014-01-01'))),
@@ -63,7 +63,7 @@ $pipeline = [
     MongoDB\Builder\Stage::sort(
         totalSaleAmount: MongoDB\Builder\Type\Sort::Desc,
     ),
-];
+);
 
 $cursor = $collection->aggregate($pipeline);
 
@@ -73,7 +73,7 @@ foreach ($cursor as $doc) {
 // end-builder-match-group
 
 // start-builder-unwind
-$pipeline = [
+$pipeline = new MongoDB\Builder\Pipeline(
     MongoDB\Builder\Stage::unwind(MongoDB\Builder\Expression::arrayFieldPath('items')),
     MongoDB\Builder\Stage::unwind(MongoDB\Builder\Expression::arrayFieldPath('items.tags')),
     MongoDB\Builder\Stage::group(
@@ -85,7 +85,7 @@ $pipeline = [
             ),
         ),
     ),
-];
+);
 
 $cursor = $collection->aggregate($pipeline);
 
@@ -97,14 +97,14 @@ foreach ($cursor as $doc) {
 $collection = $client->db->orders;
 
 // start-builder-lookup
-$pipeline = [
+$pipeline = new MongoDB\Builder\Pipeline(
     MongoDB\Builder\Stage::lookup(
         from: 'inventory',
         localField: 'item',
         foreignField: 'sku',
         as: 'inventory_docs',
     ),
-];
+);
 
 /* Performs the aggregation on the orders collection */
 $cursor = $collection->aggregate($pipeline);
