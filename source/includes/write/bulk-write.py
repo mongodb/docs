@@ -9,6 +9,17 @@ operation = pymongo.InsertOne(
 )
 # end-bulk-insert-one
 
+# start-bulk-insert-one-typed
+class Restaurant (TypedDict):
+    name: str
+    cuisine: str
+    borough: str
+    restaurant_id: str
+
+operation = pymongo.InsertOne(Restaurant(
+    name="Mongo's Deli", cuisine="Sandwiches", borough="Manhattan", restaurant_id="1234"))
+# end-bulk-insert-one-typed
+
 # start-bulk-update-one
 operation = pymongo.UpdateOne(
     { "name": "Mongo's Deli" },
@@ -34,6 +45,19 @@ operation = pymongo.ReplaceOne(
     }
 )
 # end-bulk-replace-one
+
+# start-bulk-replace-one-typed
+class Restaurant (TypedDict):
+    name: str
+    cuisine: str
+    borough: str
+    restaurant_id: str
+
+operation = pymongo.ReplaceOne(
+    { "restaurant_id": "1234" },
+    Restaurant(name="Mongo's Pizza", cuisine="Pizza", borough="Brooklyn", restaurant_id="5678")
+)
+# end-bulk-replace-one-typed
 
 # start-bulk-delete-one
 operation = pymongo.DeleteOne({ "restaurant_id": "5678" })
