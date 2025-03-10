@@ -223,6 +223,66 @@ The output of this command includes information about the collections in
 the database, and describes the amount and size of data stored across
 collections.
 
+Type Hints
+----------
+
+The ``Database.command()`` method can decode the returned BSON documents to instances
+of a specific class. To specify this class, construct a ``CodecOptions`` object and pass
+the class name. The class can be one of the following types:
+
+- ``bson.raw_bson.RawBSONDocument``. To learn more about the ``RawBSONDocument`` class,
+  see :ref:`pymongo-bson-raw`.
+- A subclass of the ``collections.abc.Mapping`` type, such as ``OrderedDict``. 
+  Depending on the strictness of your type-checking rules, you might also need to
+  specify types for the key and value.
+- A subclass of the ``TypedDict`` type. To pass a ``TypedDict`` subclass for this
+  parameter, you must also include the class in a type hint for your ``CodecOptions``
+  object.
+
+.. note:: TypedDict in Python 3.7 and Earlier
+
+   .. include:: /includes/type-hints/typeddict-availability.rst
+
+The following example decodes the BSON returned by the ``ping`` command to instances
+of the ``RawBSONDocument`` class:
+
+.. code-block:: python
+   :emphasize-lines: 3, 6-7
+
+   from pymongo import MongoClient
+   from bson.raw_bson import RawBSONDocument
+   from bson import CodecOptions
+
+   client: MongoClient = MongoClient()
+   options = CodecOptions(RawBSONDocument)
+   result = client.admin.command("ping", codec_options=options)
+
+To decode BSON to a subclass of the ``TypedDict`` class, specify the class name in
+the ``CodecOptions`` type hint, as shown in the following example:
+
+.. code-block:: python
+   :emphasize-lines: 4, 6-8, 11
+  
+   from pymongo import MongoClient
+   from bson.raw_bson import RawBSONDocument
+   from bson import CodecOptions
+   from typing import TypedDict
+   
+   class Movie(TypedDict):
+       name: str
+       year: int
+   
+   client: MongoClient = MongoClient()
+   options: CodecOptions[Movie] = CodecOptions(Movie)
+   result = client.admin.command("ping", codec_options=options)
+
+Troubleshooting
+---------------
+
+.. include:: /includes/type-hints/troubleshooting-client-type.rst
+
+.. include:: /includes/type-hints/troubleshooting-incompatible-type.rst
+
 .. _pymongo-addtl-info-runcommand:
 
 Additional Information
