@@ -1,3 +1,3 @@
-.. figure:: /images/crud-annotated-document.bakedsvg.svg
+.. figure:: /images/crud-annotated-document.svg
    :alt: A MongoDB document.
    :figwidth: 570px
