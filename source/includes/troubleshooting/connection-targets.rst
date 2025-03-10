@@ -16,7 +16,7 @@ AutoReconnect
 ~~~~~~~~~~~~~
 
 An ``AutoReconnect`` exception indicates that a
-:manual:`failover <reference/glossary/#std-term-failover>` has occurred. This means that
+:manual:`failover </reference/glossary/#std-term-failover>` has occurred. This means that
 {+driver-short+} has lost its connection to the original primary member
 of the replica set, and its last operation might have failed.
 
