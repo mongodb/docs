@@ -1,0 +1,140 @@
+.. _langgraph-build-agents:
+
+===========================================================
+Build an AI Agent with LangGraph and {+avs+}
+===========================================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. facet::
+   :name: programming_language
+   :values: python
+
+.. meta::
+   :description: Learn how to build AI agents with LangGraph and Atlas Vector Search.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can integrate {+avs+} with :ref:`LangGraph <langgraph>`
+to build AI agents. This tutorial demonstrates how to build a simple
+agent with LangGraph that answers questions about some sample data in 
+|service|. You can use the code in this tutorial as a starting point to 
+build more complex AI agents.
+
+Specifically, you perform the following actions:
+
+1. Set up the environment.
+2. Use |service| as a vector database.
+3. Define tools for the agent.
+4. Build and run the graph.
+5. Add memory to the agent.
+
+.. cta-banner::
+   :url: https://github.com/mongodb/docs-notebooks/blob/main/ai-integrations/langgraph.ipynb?tck=docs
+   :icon: Code
+
+   Work with a runnable version of this tutorial as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/ai-integrations/langgraph.ipynb?tck=docs>`.
+
+Prerequisites
+-------------
+
+To complete this tutorial, you must have the following:
+
+.. include:: /includes/avs-python-openai-prerequisites.rst
+
+Set Up the Environment
+----------------------
+
+.. include:: /includes/set-up-python-notebook-environment.rst
+
+.. include:: /includes/ai-integrations/langgraph/set-up-environment.rst
+
+Use |service| as a Vector Database
+----------------------------------
+
+You will use |service| as the vector database to 
+store and retrieve documents for the agent. To
+quickly start using |service| as a vector database:
+
+.. include:: /includes/ai-integrations/langgraph/steps-vector-database.rst
+
+Define Agent Tools
+------------------
+
+In this section, you define tools that the agent
+can use to perform specific tasks, and then bind 
+these tools to the |llm|. You define the following tools:
+
+- **Vector search tool** to retrieve movies that are semantically similar to the user query.
+
+- **Full-text search tool** to find a specific movie title and retrieve its plot.
+
+Paste and run the following code in your notebook to define and test the tools:
+
+.. include:: /includes/ai-integrations/langgraph/steps-define-agent-tools.rst
+
+.. note:: 
+
+   You can define any tool that you need to perform a 
+   specific task. You can also define tools for other retrieval 
+   methods, such as :ref:`hybrid search <langchain-hybrid-search>` 
+   or :ref:`parent-document retrieval <langchain-parent-document>`. 
+
+Build the Graph
+---------------
+
+In this section, you build a `graph <https://langchain-ai.github.io/langgraph/concepts/low_level/#graphs>`__
+to orchestrate the agentic workflow. The graph defines the sequence of steps that
+the agent takes to respond to a query.
+
+This agent uses the following workflow:
+
+1. The agent receives a user query.
+
+#. In the **agent node**, the tool-bound |llm| generates a response based on the query. 
+   
+   This response includes information about whether the agent should use a tool.
+   If the agent determines a tool is needed, it adds the tool configuration to the 
+   graph state and proceeds to the **tools node**. Otherwise, the agent generates an
+   answer directly without using a tool.
+
+#. If the response indicates a tool is needed, the workflow continues to the **tools node**.
+
+   In this node, the agent reads the tool configuration from the graph state.
+
+#. Back in the agent node, the |llm| receives the retrieved context
+   and generates a final response.
+
+.. figure:: /images/langgraph-agent-workflow.svg
+   :alt: Diagram that shows the workflow of the LangGraph-MongoDB agent.
+   :figwidth: 500px
+
+Paste and run the following code in your 
+notebook to build and run the graph:
+
+.. include:: /includes/ai-integrations/langgraph/steps-build-graph.rst
+
+.. _langgraph-add-memory:
+
+Add Memory
+----------
+
+To improve the agent's performance, you can persist its state.
+Persistence allows the agent to store information about previous interactions,
+which the agent can use in future interactions to provide more contextually
+relevant responses.
+
+.. tip::
+
+   - `MongoDB Checkpointer Documentation <https://langchain-ai.github.io/langgraph/how-tos/persistence_mongodb/>`__
+   - `API reference <https://langchain-mongodb.readthedocs.io/en/latest/langgraph_checkpoint_mongodb/api_docs.html>`__
+
+.. include:: /includes/ai-integrations/langgraph/steps-add-memory.rst

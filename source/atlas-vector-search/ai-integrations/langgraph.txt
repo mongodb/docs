@@ -1,0 +1,319 @@
+.. _langgraph:
+
+================================
+Integrate MongoDB with LangGraph
+================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. facet::
+   :name: programming_language
+   :values: python, javascript/typescript
+
+.. meta::
+   :description: Integrate MongoDB with LangGraph to build AI agents and advanced RAG applications.
+   :keywords: AI agents, agents, agentic, RAG, retrieval, langgraph, langchain, chatbot, vector database, integration
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. tabs-selector:: drivers
+   :default-tabid: python
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: python
+
+      You can integrate MongoDB with `LangGraph <https://langchain-ai.github.io/langgraph/>`__
+      to build AI agents and advanced |rag| applications. 
+      This page provides an overview of the MongoDB LangGraph integration and how you 
+      can use MongoDB for both retrieval and agent state persistence in your LangGraph
+      workflows.
+
+   .. tab::
+      :tabid: nodejs
+
+      You can integrate MongoDB with `LangGraph <https://langchain-ai.github.io/langgraphjs/>`__
+      to build AI agents and advanced |rag| applications. 
+      This page provides an overview of the MongoDB LangGraph integration and how you 
+      can use MongoDB for both retrieval and agent state persistence in your LangGraph
+      workflows.
+
+.. button:: Get Started
+   :uri: https://www.mongodb.com/docs/atlas/atlas-vector-search/ai-integrations/langgraph/build-agents
+
+----------
+
+.. |arrow| unicode:: U+27A4
+
+|arrow| Use the **Select your language** drop-down menu to set the 
+language of the examples on this page.
+
+----------
+
+Background
+----------
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: python
+
+      LangGraph is a specialized framework within the LangChain ecosystem 
+      designed for building AI agents and complex multi-agent workflows.
+      `Graphs <https://langchain-ai.github.io/langgraph/concepts/low_level/>`__
+      are the core components of LangGraph, representing the workflow 
+      of your agent. The MongoDB LangGraph integration enables 
+      the following capabilities: 
+
+   .. tab::
+      :tabid: nodejs
+
+      LangGraph is a specialized framework within the LangChain ecosystem 
+      designed for building AI agents and complex multi-agent workflows.
+      `Graphs <https://langchain-ai.github.io/langgraphjs/concepts/low_level/>`__
+      are the core components of LangGraph, representing the workflow 
+      of your agent. The MongoDB LangGraph integration enables 
+      the following capabilities: 
+
+- **Retrieval Tools**: You can use the MongoDB LangChain 
+  integration to quickly create retrieval tools for your LangGraph workflows.
+
+- **MongoDB Checkpointer**: You can persist the state of your LangGraph agents 
+  in MongoDB, providing conversation memory and fault tolerance.
+
+Integrating your LangGraph applications with MongoDB allows you to consolidate 
+both retrieval capabilities and agent state persistence in a single database,
+simplifying your architecture and reducing operational complexity.
+
+Retrieval Tools
+---------------
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: python
+
+      You can seamlessly use LangChain retrievers as
+      tools in your LangGraph workflow to retrieve relevant 
+      data from |service|.
+
+      The MongoDB LangChain integration natively supports 
+      full-text search, vector search, hybrid search, and 
+      parent-document retrieval. For a complete list of
+      retrieval methods, see :ref:`MongoDB LangChain Retrievers 
+      <langchain-retrievers>`.
+
+   .. tab::
+      :tabid: nodejs
+
+      You can seamlessly use `retrievers <https://js.langchain.com/docs/concepts#retrievers>`__ 
+      as tools in your LangGraph workflow to retrieve relevant 
+      data from |service|.
+
+Usage
+~~~~~
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: python
+
+      1. To create a basic retrieval tool with {+avs+} and LangChain:
+
+         .. code-block:: python
+
+            from langchain.tools.retriever import create_retriever_tool
+            from langchain_mongodb.vectorstores import MongoDBAtlasVectorSearch
+            from pymongo import MongoClient
+            from langchain_voyageai import VoyageAIEmbeddings
+
+            # Instantiate the vector store
+            client = MongoClient("<connection-string>")
+            collection = client["<database-name>"]["<collection-name>"]
+            
+            vector_store = MongoDBAtlasVectorSearch(
+               collection = collection,        
+               embedding = VoyageAIEmbeddings(),   
+               index_name = "vector_index",    
+               relevance_score_fn = "cosine" 
+            )
+            
+            # Create a retrieval tool
+            retriever = vector_store.as_retriever()
+            retriever_tool = create_retriever_tool(
+                retriever,
+                "vector_search_retriever", # Tool name
+                "Retrieve relevant documents from the collection" # Tool description
+            )
+
+      #. To add the tool as a node in LangGraph:
+
+         a. Convert the tool into a node.
+         #. Add the node to the graph.
+
+         .. code-block:: python
+
+            from langgraph.graph import StateGraph
+            from langgraph.prebuilt import ToolNode
+
+            # Define the graph
+            workflow = StateGraph()
+
+            # Convert the retriever tool into a node
+            retriever_node = ToolNode([retriever_tool])
+
+            # Add the tool as a node in the graph
+            workflow.add_node("vector_search_retriever", retriever_node)
+
+            graph = workflow.compile()
+
+      .. note::
+
+         - :ref:`Tutorial <langgraph-build-agents>`
+         - `MongoDB LangChain Integration <langchain>`__
+         - `LangGraph Documentation <https://langchain-ai.github.io/langgraph/>`__
+
+   .. tab::
+      :tabid: nodejs
+
+      1. To create a basic retrieval tool with {+avs+} and LangChain:
+
+         .. code-block:: javascript
+
+            import { MongoDBAtlasVectorSearch } from "@langchain/mongodb";
+            import { MongoClient } from "mongodb";
+            import { VoyageEmbeddings } from "@langchain/community/embeddings/voyage";
+            import { createRetrieverTool } from "langchain/tools/retriever";
+
+            # Instantiate the vector store
+            const client = new MongoClient("<connection-string>");
+            const collection = client.db("<databaseName>").collection("<collectionName>");
+            const embeddingModel = new VoyageAIEmbeddings();
+
+            const vectorStore = new MongoDBAtlasVectorSearch(embeddingModel, {
+              collection: collection,
+              indexName: "vector_index", // Name of the index
+              textKey: "text",           // Name of the collection field containing the raw content
+              embeddingKey: "embedding", // Name of the collection field containing the embedded text
+            });
+
+            // Create a retriever tool
+            const retriever = vectorStore.asRetriever();
+            const retrieverTool = createRetrieverTool(
+              retriever,
+              {
+                name: "vector_search_retriever", // Tool name
+                description:
+                  "Retrieve relevant documents from the collection" // Tool description
+              },
+            );
+
+      #. To add the tool as a node in LangGraph:
+
+         a. Convert the tool into a node.
+         #. Add the node to the graph.
+
+         .. code-block:: javascript
+
+            import { StateGraph } from "@langchain/langgraph";
+            import { ToolNode } from "@langchain/langgraph/prebuilt";
+
+            // Convert the retriever tool into a node
+            retrieverNode = new ToolNode([retrieverTool]);
+
+            // Define the graph
+            const workflow = new StateGraph(SomeGraphState)
+              // Add the tool as a node in the graph
+              .addNode("vector_search_retriever", retrieverNode);
+
+            const graph = workflow.compile();
+
+      .. note::
+
+         - `MongoDB LangChain JS/TS Integration <langchain-js>`__
+         - `LangGraph JS Documentation <https://langchain-ai.github.io/langgraphjs/>`__
+
+MongoDB Checkpointer
+--------------------
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: python
+
+      The MongoDB Checkpointer allows you to `persist
+      <https://langchain-ai.github.io/langgraph/concepts/persistence/>`__
+      your agent's state in MongoDB. This feature enables human-in-the-loop,
+      memory, time travel, and fault-tolerance for your LangGraph agents.
+
+   .. tab::
+      :tabid: nodejs
+
+      The MongoDB Checkpointer allows you to `persist
+      <https://langchain-ai.github.io/langgraphjs/concepts/persistence/>`__
+      your agent's state in MongoDB. This feature enables human-in-the-loop,
+      memory, time travel, and fault-tolerance for your LangGraph agents.
+
+Usage
+~~~~~
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: python
+
+      .. code-block:: python
+
+         from langgraph.checkpoint.mongodb import MongoDBSaver
+         from pymongo import MongoClient
+
+         # Connect to your Atlas cluster or local Atlas deployment
+         client = MongoClient("<connection-string>")
+
+         # Initialize the MongoDB checkpointer
+         checkpointer = MongoDBSaver(client)
+
+         # Instantiate the graph with the checkpointer
+         app = graph.compile(checkpointer=checkpointer)
+
+      .. note::
+
+         - :ref:`Tutorial <langgraph-add-memory>`
+         - `MongoDB Checkpointer Documentation <https://langchain-ai.github.io/langgraph/how-tos/persistence_mongodb/>`__
+         - `LangGraph API Reference <https://langchain-mongodb.readthedocs.io/en/latest/langgraph_checkpoint_mongodb/api_docs.html>`__
+
+   .. tab::
+      :tabid: nodejs
+
+      .. code-block:: javascript
+
+         import { MongoDBSaver } from "@langchain/langgraph-checkpoint-mongodb";
+         import { MongoClient } from "mongodb";
+
+         // Connect to your Atlas cluster or local Atlas deployment
+         const client = new MongoClient("<connection-string>");
+
+         // Initialize the MongoDB checkpointer
+         const checkpointer = new MongoDBSaver(client);
+
+         // Instantiate the graph with the checkpointer
+         const app = graph.compile(checkpointer);
+
+      .. note::
+         
+         - :website:`Tutorial </developer/languages/typescript/build-javascript-ai-agent-langgraphjs-mongodb/>`
+         - `LangGraph JS API Reference <https://langchain-ai.github.io/langgraphjs/reference/classes/checkpoint_mongodb.MongoDBSaver.html>`__
+
+.. toctree::
+    :titlesonly:
+
+    Build Agents </atlas-vector-search/ai-integrations/langgraph/build-agents>
