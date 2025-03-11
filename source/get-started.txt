@@ -18,14 +18,6 @@ Get Started with the C++ Driver
    :description: Learn how to create an app to connect to MongoDB deployment by using the C++ driver.
    :keywords: quick start, tutorial, basics
 
-.. toctree::
-
-   Download & Install </get-started/download-and-install/>
-   Create a Deployment </get-started/create-a-deployment/>
-   Create a Connection String </get-started/create-a-connection-string/>
-   Connect to MongoDB </get-started/connect-to-mongodb/>
-   Next Steps </get-started/next-steps/>
-
 Overview
 --------
 
@@ -43,3 +35,308 @@ MongoDB Atlas and query data in your cluster.
 Follow this guide to connect a sample C++ application to a MongoDB Atlas
 deployment. If you prefer to connect to MongoDB using a different driver or
 programming language, see our :driver:`list of official drivers <>`.
+
+.. _cpp-quick-start-download-and-install:
+
+Download and Install
+--------------------
+
+.. procedure::
+   :style: connected
+
+   .. step:: Install dependencies
+
+      Before you begin this tutorial, ensure you have the following dependencies
+      installed in your development environment:
+      
+      - Compiler that supports C++17, such as `GCC <https://gcc.gnu.org/install/>`__, `Clang <https://clang.llvm.org/>`__,
+        or `Visual Studio <https://visualstudio.microsoft.com/>`__
+      - `CMake <https://cmake.org/>`__ v3.15 or later
+      - `pkg-config <https://www.freedesktop.org/wiki/Software/pkg-config/>`__
+
+      .. note:: Pre-C++17 Configurations
+
+         Although C++11 is the minimum supported language version, this tutorial
+         configures the {+driver-short+} to use the C++17 standard library
+         as recommended by the :ref:`cpp-polyfill-config` section. If you want to install
+         the driver for pre-C++17 configurations, set the ``CMAKE_CXX_STANDARD``
+         configuration option to your C++ version. Then, the driver will automatically use
+         bsoncxx library polyfill implementations for required C++17 features.
+
+   .. step:: Download the {+driver-short+}
+
+      To download the latest version of the {+driver-short+} from the ``mongo-cxx-driver`` Github
+      repository, run the following commands in your shell from your root directory:
+      
+      .. code-block:: bash
+
+         curl -OL https://github.com/mongodb/mongo-cxx-driver/releases/download/r{+full-version+}/mongo-cxx-driver-r{+full-version+}.tar.gz
+         tar -xzf mongo-cxx-driver-r{+full-version+}.tar.gz
+         cd mongo-cxx-driver-r{+full-version+}/build
+
+   .. step:: Configure the driver for installation
+
+      Select the tab corresponding to your operating system and run following command from your
+      ``mongo-cxx-driver-r{+full-version+}/build`` directory:
+
+      .. tabs::
+
+          .. tab:: macOS / Linux
+             :tabid: configure-mac-linux
+
+             .. code-block:: bash
+
+                cmake ..                                \
+                    -DCMAKE_BUILD_TYPE=Release          \
+                    -DCMAKE_CXX_STANDARD=17              
+            
+             This command instructs CMake to install ``mongocxx`` into the ``/usr/local`` directory.
+
+          .. tab:: Windows
+             :tabid: configure-windows
+
+             .. code-block:: bash
+
+                'C:\<path>\cmake.exe' .. \
+                    -G "Visual Studio <version> <year>" -A "x64"         \
+                    -DCMAKE_CXX_STANDARD=17                     \
+                    -DCMAKE_INSTALL_PREFIX=C:\mongo-cxx-driver  \
+             
+             This command instructs CMake to install ``mongocxx`` into the ``C:\mongo-cxx-driver``
+             directory. Replace the following placeholder values:
+             
+             - ``<path>``: The path to your CMake executable
+             - ``<version>``: Your Visual Studio version number
+             - ``<year>``: The year corresponding to your Visual Studio version
+
+   .. step:: Build and install the driver
+
+      Select the tab corresponding to your operating system and run following commands to install
+      the driver:
+
+      .. tabs::
+
+          .. tab:: macOS / Linux
+             :tabid: configure-mac-linux
+
+             .. code-block:: bash
+
+                cmake --build .
+                sudo cmake --build . --target install
+
+          .. tab:: Windows
+             :tabid: configure-windows
+
+             .. code-block:: bash
+
+                cmake --build . --config RelWithDebInfo
+                cmake --build . --target install --config RelWithDebInfo
+
+After you complete these steps, you have the {+driver-short+} installed 
+on your machine.
+
+.. _cpp-quick-start-create-deployment:
+
+Create a MongoDB Deployment
+---------------------------
+
+You can create a free tier MongoDB deployment on MongoDB Atlas
+to store and manage your data. MongoDB Atlas hosts and manages
+your MongoDB database in the cloud.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create a Free MongoDB deployment on Atlas
+
+      Complete the :atlas:`Get Started with Atlas </getting-started>`
+      guide to set up a new Atlas account and load sample data into a new free
+      tier MongoDB deployment.
+      
+   .. step:: Save your Credentials
+
+      After you create your database user, save that user's 
+      username and password to a safe location for use in an upcoming step.
+  
+After you complete these steps, you have a new free tier MongoDB
+deployment on Atlas, database user credentials, and sample data loaded
+into your database.
+
+.. _cpp-quick-start-connection-string:
+
+Create a Connection String
+--------------------------
+
+You can connect to your MongoDB deployment by providing a
+**connection URI**, also called a *connection string*, which
+instructs the driver on how to connect to a MongoDB deployment
+and how to behave while connected.
+
+The connection string includes the hostname or IP address and 
+port of your deployment, the authentication mechanism, user credentials 
+when applicable, and connection options.
+
+To connect to an instance or deployment not hosted on Atlas, see the
+:ref:`cpp-connection-targets` guide.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Find your MongoDB Atlas Connection String
+
+      To retrieve your connection string for the deployment that
+      you created in the :ref:`previous step <cpp-quick-start-create-deployment>`,
+      log in to your Atlas account and navigate to the
+      :guilabel:`Database` section and click the :guilabel:`Connect` button
+      for your new deployment.
+
+      .. figure:: /includes/figures/atlas_connection_select_cluster.png
+         :alt: The connect button in the clusters section of the Atlas UI
+
+      Proceed to the :guilabel:`Connect your application` section and select
+      "C++" from the :guilabel:`Driver` selection menu and the version
+      that best matches the version you installed from the :guilabel:`Version`
+      selection menu.
+
+      Select the :guilabel:`Password (SCRAM)` authentication mechanism.
+      
+      Deselect the :guilabel:`Include full driver code example` option to view
+      only the connection string.
+
+   .. step:: Copy your Connection String
+
+      Click the button on the right of the connection string to copy it
+      to your clipboard, as shown in the following screenshot:
+
+      .. figure:: /includes/figures/atlas_connection_copy_string_cpp.png
+         :alt: The copy button next to the connection string in the Atlas UI
+
+   .. step:: Update the Placeholders
+
+      Paste this connection string into a file in your preferred text editor
+	   and replace the ``<username>`` and ``<password>`` placeholders with
+	   your database user's username and password.
+      
+      Save this file to a safe location for use in the next step.
+
+After completing these steps, you have a connection string that
+corresponds to your Atlas cluster.
+
+.. _cpp-quick-start-connect-to-mongodb:
+
+Run a Sample Query
+------------------
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: test connection, runnable, code example
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create a project directory
+
+      From your root directory, run the following command in your shell to create a directory called
+      ``cpp-quickstart`` for this project:
+
+      .. code-block:: bash
+
+         mkdir cpp-quickstart
+
+      Run the following commands to create a ``quickstart.cpp`` application file in the ``cpp-quickstart``
+      directory:
+
+      .. code-block:: bash
+
+         cd cpp-quickstart
+         touch quickstart.cpp
+
+   .. step:: Create your {+driver-short+} application
+
+      Copy and paste the following code into the ``quickstart.cpp`` file, which queries
+      the ``movies`` collection in the ``sample_mflix`` database:
+
+      .. literalinclude:: /includes/get-started/quickstart.cpp
+
+   .. step:: Assign the connection string
+
+      Replace the ``<connection string>`` placeholder with the 
+      connection string that you copied from the :ref:`cpp-quick-start-connection-string`
+      step of this guide.
+
+   .. step:: Run your C++ application
+
+      In your shell, run the following commands to compile and run this application:
+      
+      .. code-block:: none
+
+         c++ --std=c++17 quickstart.cpp $(pkg-config --cflags --libs libmongocxx) -o ./app.out
+         ./app.out
+      
+      .. tip::
+
+         MacOS users might see the following error after running the preceding commands:
+
+         .. code-block:: bash
+            :copyable: false
+
+            dyld[54430]: Library not loaded: @rpath/libmongocxx._noabi.dylib
+ 
+         To resolve this error, use the ``-Wl,-rpath`` linker option to set the ``@rpath``, as shown
+         in the following code: 
+
+         .. code-block:: none
+
+            c++ --std=c++17 quickstart.cpp -Wl,-rpath,/usr/local/lib/ $(pkg-config --cflags --libs libmongocxx) -o ./app.out
+            ./app.out
+
+      The command line output contains details about the retrieved movie
+      document:
+
+      .. code-block:: none
+         :copyable: false
+
+         { "_id" : { "$oid" : "573a1399f29313caabceeb20" },
+         "plot" : "Two imprisoned men bond over a number of years, finding solace
+         and eventual redemption through acts of common decency.",
+         ...
+         "title" : "The Shawshank Redemption", 
+         ...
+
+      If you encounter an error or see no output, ensure that you specified the
+      proper connection string in the ``quickstart.cpp`` file and that you loaded the
+      sample data.
+
+After you complete these steps, you have a working application that
+uses the driver to connect to your MongoDB deployment, runs a query on
+the sample data, and prints out the result.
+
+.. _cpp-quick-start-next-steps:
+
+==========
+Next Steps
+==========
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: learn more
+
+Congratulations on completing the quick start tutorial!
+
+.. include:: /includes/get-started/troubleshoot.rst
+
+In this tutorial, you created a C++ application that
+connects to a MongoDB deployment hosted on MongoDB Atlas
+and retrieves a document that matches a query.
+
+Learn more about {+driver-short+} from the following resources:
+
+- Learn how to perform read operations in the :ref:`<cpp-read>` section.
+
+- Learn how to perform write operations in the :ref:`<cpp-write>` section.
