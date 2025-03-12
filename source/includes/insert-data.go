@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-// Define structure of documents in the people collection
+// Defines structure of documents in the people collection
 type Person struct {
 	Name     Name
 	Birth    time.Time
@@ -29,17 +29,17 @@ func main() {
 	// Replace the following with your Atlas connection string
 	uri := "<connection-string>"
 
-	// Connect to your Atlas cluster
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
+	// Connects to your Atlas cluster
+	client, err := mongo.Connect(options.Client().ApplyURI(uri))
 	if err != nil {
 		panic(err)
 	}
 	defer client.Disconnect(context.TODO())
 
-	// Reference the database and collection to use
+	// References the database and collection to use
 	collection := client.Database("gettingStarted").Collection("people")
 
-	// Create new documents
+	// Creates new documents
 	newPeople := []interface{}{
 		Person{
 			Name:     Name{First: "Alan", Last: "Turing"},
@@ -57,12 +57,12 @@ func main() {
 		},
 	}
 
-	// Insert the document into the specified collection
+	// Inserts the document into the specified collection
 	collection.InsertMany(context.TODO(), newPeople)
 
-	// Find the document
+	// Finds the document
 	collection = client.Database("gettingStarted").Collection("people")
-	filter := bson.D{{"name.last", "Turing"}}
+	filter := bson.D{{Key: "name.last", Value: "Turing"}}
 
 	var result Person
 	err = collection.FindOne(context.TODO(), filter).Decode(&result)
@@ -70,6 +70,6 @@ func main() {
 		panic(err)
 	}
 
-	// Print results
+	// Prints results
 	fmt.Printf("Document Found:\n%+v\n", result)
 }

@@ -33,8 +33,8 @@ To run the sample application, use the following command:
    .. output::
       :language: json
 
-      Document Found: 
-      {Name:{First:Alan Last:Turing} Birth:1912-06-23 06:00:00 +0000 UTC Death:1954-06-07 05:00:00 +0000 UTC Contribs:[Turing machine Turing test Turingery] Views:1250000}
+      Document Found:
+      {Name:{First:Alan Last:Turing} Birth:1912-05-23 00:00:00 +0000 UTC Death:1954-05-07 00:00:00 +0000 UTC Contribs:[Turing machine Turing test Turingery] Views:1250000}
 
 .. note::
 
