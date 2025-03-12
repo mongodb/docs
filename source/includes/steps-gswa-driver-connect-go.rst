@@ -46,7 +46,7 @@
       
          .. code-block:: shell
       
-            go get go.mongodb.org/mongo-driver/mongo
+            go get go.mongodb.org/mongo-driver/v2/mongo
             go get github.com/joho/godotenv
       
       #. In your project, create a new file called ``connect.go`` and paste 

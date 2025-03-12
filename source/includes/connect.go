@@ -4,26 +4,25 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo/readpref"
 )
 
 func main() {
 
-	// Replace the following with your Atlas connection string               
+	// Replace the following with your Atlas connection string
 	uri := "mongodb+srv://<db_username>:<db_password>@<clusterName>.mongodb.net/?retryWrites=true&w=majority"
 
-	// Connect to your Atlas cluster
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
+	// Connects to your Atlas cluster
+	client, err := mongo.Connect(options.Client().ApplyURI(uri))
 	if err != nil {
 		panic(err)
 	}
 	defer client.Disconnect(context.TODO())
 
-	// Send a ping to confirm a successful connection
-	var result bson.M
-	if err := client.Database("admin").RunCommand(context.TODO(), bson.D{{"ping", 1}}).Decode(&result); err != nil {
+	// Sends a ping to confirm a successful connection
+	if err := client.Ping(context.Background(), readpref.Primary()); err != nil {
 		panic(err)
 	}
 	fmt.Println("Successfully connected to Atlas")
