@@ -22,8 +22,8 @@
      - id: java-sync
        content: |
 
-         The MongoDB Java Driver includes
-         `Builders <https://www.mongodb.com/docs/drivers/java/sync/current/fundamentals/builders/>`__
+         The MongoDB Java Sync Driver includes
+         :driver:`Builders </java/sync/current/fundamentals/builders/>`
          that simplify the process of creating queries (and other operations).
          Here, you use the ``Filters.and``, ``Filters.lt``, and
          ``Filters.gt`` builders to construct the query document.
