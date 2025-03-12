@@ -5,4 +5,4 @@ Add the MongoDB Go driver using ``go mod``.
    mkdir guides
    cd guides
    go mod init guides
-   go get go.mongodb.org/mongo-driver/mongo
+   go get go.mongodb.org/mongo-driver/v2/mongo
