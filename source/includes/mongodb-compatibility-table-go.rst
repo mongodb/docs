@@ -14,6 +14,17 @@
      - MongoDB 4.0
      - MongoDB 3.6
 
+   * - 2.1
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+
    * - 1.12 to 2.0
      - ⊛ [#8.0-support]_
      - ✓
@@ -36,4 +47,4 @@
      - ✓
      - ✓
 
-.. [#8.0-support] {+driver-short+} v1.17 is partially compatible with {+mdb-server+} 8.0 but does not support client bulk write.
+.. [#8.0-support] {+driver-short+} v1.17 and v2.0 are partially compatible with {+mdb-server+} 8.0 but do not support client bulk write.
