@@ -22,7 +22,7 @@
          .. code-block::
 
             go get github.com/joho/godotenv
-            go get go.mongodb.org/mongo-driver/mongo
+            go get go.mongodb.org/mongo-driver/v2/mongo
             go get github.com/tmc/langchaingo/llms
             go get github.com/tmc/langchaingo/documentloaders
             go get github.com/tmc/langchaingo/embeddings/huggingface

@@ -1,7 +1,7 @@
 1. Load the data.
 
    Use tools like
-   `document loaders <https://pkg.go.dev/github.com/tmc/langchaingo@v0.1.12/documentloaders>`__
+   `document loaders <https://pkg.go.dev/github.com/tmc/langchaingo/documentloaders>`__
    to load data from different data formats and locations.
 
 #. Split the data into chunks.

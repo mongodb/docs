@@ -6,11 +6,10 @@ import (
 	"os"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
-
 	"github.com/joho/godotenv"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 func main() {
@@ -25,7 +24,7 @@ func main() {
 		log.Fatal("set your 'ATLAS_CONNECTION_STRING' environment variable.")
 	}
 	clientOptions := options.Client().ApplyURI(uri)
-	client, err := mongo.Connect(ctx, clientOptions)
+	client, err := mongo.Connect(clientOptions)
 	if err != nil {
 		log.Fatalf("failed to connect to the server: %v", err)
 	}
