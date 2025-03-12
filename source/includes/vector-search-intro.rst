@@ -52,15 +52,6 @@ You can use the ``options`` parameter to configure your vector search operation.
    * - Property
      - Description
 
-   * - ``Exact``
-     - Whether the vector search uses the exact nearest neighbor (ENN) algorithm.
-       If this property is set to ``false``, the vector search uses the approximate nearest
-       neighbor (ANN) algorithm. If this property is set to ``true``, the
-       ``NumberOfCandidates`` property must be ``null``.
-   
-       | **Data type**: {+bool-data-type+}
-       | **Default**: ``false``
-
    * - ``Filter``
      - Additional search criteria that the found documents must match.
    
