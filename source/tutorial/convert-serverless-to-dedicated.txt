@@ -12,38 +12,118 @@ Convert a {+Serverless-Instance+} to a {+Dedicated-Cluster+}
    :depth: 1
    :class: singlecol
 
-You can manually migrate your data from a {+Serverless-instance+} to a
-{+dedicated-cluster+}. To migrate your data, you can do one of the
-following: 
+You can migrate your data from a {+Serverless-instance+} to a
+{+dedicated-cluster+} using one of the following methods:
 
-- Restore data from a scheduled or on-demand {+Cloud-Backup+}. To learn
-  more about restoring from a snapshot, see
-  :ref:`restore-from-snapshot`. 
-- Migrate data using |mongodump| and |mongorestore|. To learn more, see
-  the prerequisites and procedure on this page. 
+- (Recommended). :ref:`Migrate Using Atlas UI <convert-serverless-to-dedicated-atlas-ui>`.
+  This process ensures correctness and allows you to **keep** the existing public connection strings.
 
-.. important::
+- :ref:`Migrate Using mongodump and mongorestore <convert-serverless-to-dedicated-atlas-manual>`.
+- :ref:`Restore data from a scheduled or on-demand {+Cloud-Backup+}<restore-from-snapshot>`.
 
-   In early 2025, we will release a UI-based tool to assist you in 
-   migrating your workloads from {+Serverless-instances+} to {+Dedicated-clusters+}. 
-   This tool will ensure correct migration and you will not need to change 
-   connection strings. There will be some downtime while using this tool.
+.. _convert-serverless-to-dedicated-atlas-ui:
 
-Prerequisites 
--------------
+Migrate Using {+atlas-ui+}
+------------------------------------
 
-To manually migrate your data from a {+Serverless-instance+} to a
-{+dedicated-cluster+}, you must have the following: 
+The UI-based conversion from a {+Serverless-instance+} to a {+dedicated-cluster+}
+has the following considerations:
+
+- The conversion process creates a {+dedicated-cluster+}.
+- Using the {+atlas-ui+}-based process causes some downtime. Your {+database-deployment+}
+  must go offline while |service| converts your {+Serverless-instance+} to a {+dedicated-cluster+}.
+- If some of your connections use private endpoints, :ref:`reconfigure private endpoints <cluster-private-endpoint>`
+  once |service| upgrades your {+Serverless-instance+} to a {+dedicated-cluster+} tier.
+- You can't change the cloud provider or region during this conversion process.
+  After the upgrade, you can :ref:`move a cluster to a different provider or region <move-cluster>`.
+- Charts that have the {+Serverless-instance+} as the data source
+  are unavailable during the conversion to a {+dedicated-cluster+},
+  but will become available once |service| completes the conversion.
+- Upgrading your {+Serverless-instance+} to a {+dedicated-cluster+} is irreversible.
+
+Required Access
+~~~~~~~~~~~~~~~
+
+To migrate your data from a {+Serverless-instance+} (deprecated) to a {+dedicated-cluster+},
+you must have :authrole:`Project Cluster Manager` access or higher to the project.
+
+Convert Your {+Serverless-Instance+} to a {+Dedicated-Cluster+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To convert your {+Serverless-instance+} to a {+dedicated-cluster+}:
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-db-deployments-page.rst
+
+   .. step:: Edit the configuration.
+
+      For the {+cluster+} you want to modify, click the :icon-fa5:`ellipsis-h` icon,
+      and then select :guilabel:`Edit Configuration`.
+
+   .. step:: At the top of your configuration settings, click the :guilabel:`Dedicated` tab.
+
+   .. step:: Select the recommended  :guilabel:`Cluster Tier` and storage size.
+
+      .. important::
+
+         |service| recommends a {+cluster+} tier and storage size based
+         on your {+Serverless-instance+} tier, storage size, and usage. After
+         the conversion process, you can :ref:`modify the cluster tier <scale-cluster-instance>`
+         and storage size based on your needs.
+
+   .. step:: (Optional) Change additional options.
+      To learn more, see :ref:`create-cluster-more-configuration-options`,
+      and :ref:`Manage Cluster Tags <manage-tags-modify-cluster>`.
+
+   .. step:: (Optional) Review backups and billing.
+      To learn more, see :ref:`Dedicated Cluster Billing <cluster-config-billing>`
+      and :ref:`{+Cloud-Backup+}s <backup-cloud-provider>`.
+
+   .. step:: Click :guilabel:`Review Changes` to review the changes you have made.
+
+      The :guilabel:`Review Changes` page displays a complete side-by-side
+      summary of the modified attributes with any warnings or notes
+      pertaining to the changes. The original attribute settings are listed
+      on the left and the corresponding new settings with changes in pricing
+      are listed on the right.
+
+      |service| displays the following warnings and notes related to the change at the top:
+
+      - If you used a private endpoint with your {+Serverless-instance+},
+        :ref:`reconfigure the private endpoint <cluster-private-endpoint>` once
+        |service| upgrades your {+Serverless-instance+} to a {+dedicated-cluster+} tier.
+      - If you enable disk auto-scaling, the minimum oplog window changes to 24 hours.
+      - Charts that have the {+Serverless-instance+} as the data source
+        are unavailable during the conversion to a {+dedicated-cluster+},
+        but will become available once |service| completes the conversion.
+      - Upgrading your {+Serverless-instance+} to a {+dedicated-cluster+} is irreversible.
+
+   .. step:: Click :guilabel:`Apply Changes`.
+
+      Once you have reviewed the changes, click :guilabel:`Apply Changes`
+      to apply them to your {+cluster+}.
+
+      You can use the same :manual:`DNS seed list connection string 
+      </reference/connection-string/#dns-seed-list-connection-format>`
+      to connect to your new {+dedicated-cluster+} as you have used
+      for your {+Serverless-instance+}.
+
+.. _convert-serverless-to-dedicated-atlas-manual:
+
+Migrate Using ``mongodump`` and ``mongorestore``
+-------------------------------------------------
+
+To migrate your data from a {+Serverless-instance+} to a
+{+dedicated-cluster+} using tools, you must have the following: 
 
 - A {+dedicated-cluster+} that runs the same major version of MongoDB as
   the {+Serverless-instance+} from which you want to migrate data.
 - The following command-line tools:
 
-  - |mongodump| 
-  - |mongorestore|  
-
-Migrate Using ``mongodump`` and ``mongorestore``
-------------------------------------------------
+  - |mongodump|
+  - |mongorestore|
 
 .. procedure:: 
    :style: normal
@@ -52,7 +132,7 @@ Migrate Using ``mongodump`` and ``mongorestore``
 
    .. step:: Pause writes on the {+Serverless-instance+} to obtain a consistent snapshot of your data.
 
-   .. step:: Connect to your {+Serverless-instance+} using |mongodump| to retrieve the data to migrate. 
+   .. step:: Connect to your {+Serverless-instance+} using |mongodump| to retrieve the data to migrate.
 
       To connect to your {+Serverless-instance+} and retrieve the data,
       do the following in the {+atlas-ui+}:
@@ -77,7 +157,7 @@ Migrate Using ``mongodump`` and ``mongorestore``
             
       To learn more, see :ref:`command-line-tools`.
 
-   .. step:: Run the |mongodump| command in a terminal to retrieve the data. 
+   .. step:: Run the |mongodump| command in a terminal to retrieve the data.
 
       To run the |mongodump| command that you copied, do the
       following in a terminal: 
@@ -128,7 +208,7 @@ Migrate Using ``mongodump`` and ``mongorestore``
             
       To learn more, see :ref:`command-line-tools`.
             
-   .. step:: Run the |mongorestore| command in a terminal to retrieve the data. 
+   .. step:: Run the |mongorestore| command in a terminal to retrieve the data.
 
       To run the |mongorestore| command that you copied, do the
       following in a terminal: 

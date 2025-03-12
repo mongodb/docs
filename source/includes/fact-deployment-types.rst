@@ -1,14 +1,14 @@
+{+Flex-clusters+}
+  {+Flex-clusters+} are low-cost cluster types suitable for teams who are
+  learning MongoDB or developing small proof-of-concept applications.
+  You can begin your project with an {+Atlas-Flex+} cluster and upgrade to 
+  a production-ready {+Dedicated-cluster+} tier at a future time.
+
 ``M10`` {+Dedicated-Clusters+}
   ``M10`` {+dedicated-clusters+} are suitable
   for production applications with sophisticated workload
   requirements. {+Dedicated-clusters+} can be deployed into a single
   geographical region or multiple geographical regions.
-
-{+Serverless-Instances+}
-  {+Serverless-instances+} require minimal configuration and are best
-  for application development and testing or workloads with variable
-  traffic. To learn more about {+Serverless-instances+}, see
-  :ref:`Choose a {+Database-Deployment+} Type <ref-deployment-types>`.
 
 ``M0`` {+Free-Clusters+}
   ``M0`` {+Free-clusters+} are for learning and exploring MongoDB in
