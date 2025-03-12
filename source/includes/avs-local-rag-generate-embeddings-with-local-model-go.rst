@@ -57,7 +57,7 @@
          number of documents you're generating embeddings for:
          
          - Change the number of documents: Adjust the ``.SetLimit(250)``
-           number in the ``Find()`` options in line 52.
+           number in the ``Find()`` options in line 51.
          - Generate embeddings for all documents: Omit the options in the
            ``Find()`` call in line 54.
 
@@ -74,5 +74,5 @@
             .. output::
                :language: console
 
-               2024/10/10 15:49:23 Generating embeddings.
-               2024/10/10 15:49:28 250 documents updated successfully.
+               2025/03/11 11:26:58 Generating embeddings.
+               2025/03/11 11:27:00 250 documents updated successfully.
