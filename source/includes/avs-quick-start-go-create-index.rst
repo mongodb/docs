@@ -10,7 +10,7 @@ a. Initialize your Go module:
 
    .. code-block:: sh
 
-      go get go.mongodb.org/mongo-driver/mongo
+      go get go.mongodb.org/mongo-driver/v2/mongo
 
    For more detailed installation instructions, see the
    :ref:`MongoDB Go Driver documentation <golang-quickstart>`.
@@ -48,6 +48,6 @@ a. Initialize your Go module:
       .. output::
          :language: console
 
-         2024/10/17 09:38:21 New search index named vector_index is building.
-         2024/10/17 09:38:22 Polling to check if the index is ready. This may take up to a minute.
-         2024/10/17 09:38:48 vector_index is ready for querying.
+         2025/03/11 10:46:44 New search index named vector_index is building.
+         2025/03/11 10:46:44 Polling to check if the index is ready. This may take up to a minute.
+         2025/03/11 10:47:09 vector_index is ready for querying.

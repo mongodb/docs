@@ -6,20 +6,20 @@ import (
 	"log"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 func main() {
 	ctx := context.Background()
 
 	// Replace the placeholder with your Atlas connection string
-	const uri = "<connectionString>"
+	const uri = "<connection-string>"
 
 	// Connect to your Atlas cluster
 	clientOptions := options.Client().ApplyURI(uri)
-	client, err := mongo.Connect(ctx, clientOptions)
+	client, err := mongo.Connect(clientOptions)
 	if err != nil {
 		log.Fatalf("failed to connect to the server: %v", err)
 	}
@@ -51,7 +51,7 @@ func main() {
 				Path:          "plot_embedding",
 				NumDimensions: 1536,
 				Similarity:    "dotProduct",
-			    Quantization:  "scalar"}},
+				Quantization:  "scalar"}},
 		},
 		Options: opts,
 	}
