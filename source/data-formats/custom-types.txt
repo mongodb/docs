@@ -29,54 +29,26 @@ the driver doesn't understand. For example, the
 BSON library's ``Decimal128`` type is distinct
 from Python's built-in ``Decimal`` type. Attempting
 to save an instance of ``Decimal`` with {+driver-short+} results in an
-``InvalidDocument`` exception, as shown in the following code example. Select the
-:guilabel:`Synchronous` or :guilabel:`Asynchronous` tab to see the corresponding code:
+``InvalidDocument`` exception, as shown in the following code example:
 
-.. tabs::
+.. io-code-block::
+   :copyable: true
 
-   .. tab:: Synchronous
-      :tabid: sync
+   .. input::
+      :language: python
 
-      .. io-code-block::
-         :copyable: true
+      from decimal import Decimal
 
-         .. input::
-            :language: python
+      num = Decimal("45.321")
+      db["coll"].insert_one({"num": num})
 
-            from decimal import Decimal
+   .. output::
+      :language: shell
 
-            num = Decimal("45.321")
-            db["coll"].insert_one({"num": num})
-
-         .. output::
-            :language: shell
-
-            Traceback (most recent call last):
-            ...
-            bson.errors.InvalidDocument: cannot encode object: Decimal('45.321'), of
-            type: <class 'decimal.Decimal'>
-
-   .. tab:: Asynchronous
-      :tabid: async
-
-      .. io-code-block::
-         :copyable: true
-
-         .. input::
-            :language: python
-
-            from decimal import Decimal
-
-            num = Decimal("45.321")
-            await db["coll"].insert_one({"num": num})
-
-         .. output::
-            :language: shell
-
-            Traceback (most recent call last):
-            ...
-            bson.errors.InvalidDocument: cannot encode object: Decimal('45.321'), of
-            type: <class 'decimal.Decimal'>
+      Traceback (most recent call last):
+      ...
+      bson.errors.InvalidDocument: cannot encode object: Decimal('45.321'), of
+      type: <class 'decimal.Decimal'>
 
 The following sections show how to define a custom type for this ``Decimal`` type.
 
@@ -182,97 +154,46 @@ object as a keyword argument. Pass your ``CodecOptions`` object to the
   codec_options = CodecOptions(type_registry=type_registry)
   collection = db.get_collection("test", codec_options=codec_options)
 
-You can then encode and decode instances of the ``Decimal`` class. Select the
-:guilabel:`Synchronous` or :guilabel:`Asynchronous` tab to see the corresponding code:
+You can then encode and decode instances of the ``Decimal`` class:
 
-.. tabs::
-   
-   .. tab:: Synchronous
-      :tabid: sync
+.. io-code-block::
+   :copyable: true
 
-      .. io-code-block::
-         :copyable: true
+   .. input::
+      :language: python
 
-         .. input::
-            :language: python
+      import pprint
+  
+      collection.insert_one({"num": Decimal("45.321")})
+      my_doc = collection.find_one()
+      pprint.pprint(my_doc)
 
-            import pprint
-      
-            collection.insert_one({"num": Decimal("45.321")})
-            my_doc = collection.find_one()
-            pprint.pprint(my_doc)
-
-         .. output::
-            :language: shell
-      
-            {'_id': ObjectId('...'), 'num': Decimal('45.321')}
-
-   .. tab:: Asynchronous
-      :tabid: async
-
-      .. io-code-block::
-         :copyable: true
-
-         .. input::
-            :language: python
-
-            import pprint
-      
-            await collection.insert_one({"num": Decimal("45.321")})
-            my_doc = await collection.find_one()
-            pprint.pprint(my_doc)
-
-         .. output::
-            :language: shell
-      
-            {'_id': ObjectId('...'), 'num': Decimal('45.321')}
+   .. output::
+      :language: shell
+  
+      {'_id': ObjectId('...'), 'num': Decimal('45.321')}
 
 To see how MongoDB stores an instance of the custom type,
 create a new collection object without the customized codec options, then use it
 to retrieve the document containing the custom type. The following example shows
 that {+driver-short+} stores an instance of the ``Decimal`` class as a ``Decimal128``
-value. Select the :guilabel:`Synchronous` or :guilabel:`Asynchronous` tab to see the
-corresponding code:
+value:
 
-.. tabs::
+.. io-code-block::
+   :copyable: true
 
-   .. tab:: Synchronous
-      :tabid: sync
+   .. input::
+      :language: python
 
-      .. io-code-block::
-         :copyable: true
+      import pprint
 
-         .. input::
-            :language: python
+      new_collection = db.get_collection("test")
+      pprint.pprint(new_collection.find_one())
 
-            import pprint
+   .. output::
+      :language: shell
 
-            new_collection = db.get_collection("test")
-            pprint.pprint(new_collection.find_one())
-
-         .. output::
-            :language: shell
-
-            {'_id': ObjectId('...'), 'num': Decimal128('45.321')}
-
-   .. tab:: Asynchronous
-      :tabid: async
-
-      .. io-code-block::
-         :copyable: true
-
-         .. input::
-            :language: python
-
-            import pprint
-
-            new_collection = db.get_collection("test")
-            pprint.pprint(await new_collection.find_one())
-
-         .. output::
-            :language: shell
-
-            {'_id': ObjectId('...'), 'num': Decimal128('45.321')}
+      {'_id': ObjectId('...'), 'num': Decimal128('45.321')}
 
 Encode a Subtype
 ----------------
@@ -288,48 +209,23 @@ return its value as an integer:
            return int(self)
 
 If you try to save an instance of the ``DecimalInt`` class without first registering a type
-codec for it, {+driver-short+} raises an error. Select the
-:guilabel:`Synchronous` or :guilabel:`Asynchronous` tab to see the corresponding code:
+codec for it, {+driver-short+} raises an error:
 
-.. tabs::
+.. io-code-block::
+   :copyable: true
 
-   .. tab:: Synchronous
-      :tabid: sync
+   .. input::
+      :language: python
 
-      .. io-code-block::
-         :copyable: true
+      collection.insert_one({"num": DecimalInt("45.321")})
 
-         .. input::
-            :language: python
+   .. output::
+      :language: shell
 
-            collection.insert_one({"num": DecimalInt("45.321")})
-
-         .. output::
-            :language: shell
-
-            Traceback (most recent call last):
-            ...
-            bson.errors.InvalidDocument: cannot encode object: Decimal('45.321'),
-            of type: <class 'decimal.Decimal'>
-
-   .. tab:: Asynchronous
-      :tabid: async
-
-      .. io-code-block::
-         :copyable: true
-
-         .. input::
-            :language: python
-
-            await collection.insert_one({"num": DecimalInt("45.321")})
-
-         .. output::
-            :language: shell
-
-            Traceback (most recent call last):
-            ...
-            bson.errors.InvalidDocument: cannot encode object: Decimal('45.321'),
-            of type: <class 'decimal.Decimal'>
+      Traceback (most recent call last):
+      ...
+      bson.errors.InvalidDocument: cannot encode object: Decimal('45.321'),
+      of type: <class 'decimal.Decimal'>
 
 To encode an instance of the ``DecimalInt`` class, you must define a type codec for
 the class. This type codec must inherit from the parent class's codec, ``DecimalCodec``,
@@ -344,64 +240,31 @@ as shown in the following example:
            return DecimalInt
 
 You can then add the sublcass's type codec to the type registry and encode instances
-of the custom type. Select the
-:guilabel:`Synchronous` or :guilabel:`Asynchronous` tab to see the corresponding code:
+of the custom type:
 
-.. tabs::
+.. io-code-block::
+   :copyable: true
 
-   .. tab:: Synchronous
-      :tabid: sync
+   .. input::
+      :language: python
 
-      .. io-code-block::
-         :copyable: true
+      import pprint
+      from bson.codec_options import CodecOptions
 
-         .. input::
-            :language: python
+      decimal_int_codec = DecimalIntCodec()
+      type_registry = TypeRegistry([decimal_codec, decimal_int_codec])
+      codec_options = CodecOptions(type_registry=type_registry)
 
-            import pprint
-            from bson.codec_options import CodecOptions
+      collection = db.get_collection("test", codec_options=codec_options)
+      collection.insert_one({"num": DecimalInt("45.321")})
+  
+      my_doc = collection.find_one()
+      pprint.pprint(my_doc)
 
-            decimal_int_codec = DecimalIntCodec()
-            type_registry = TypeRegistry([decimal_codec, decimal_int_codec])
-            codec_options = CodecOptions(type_registry=type_registry)
+   .. output::
+      :language: shell
 
-            collection = db.get_collection("test", codec_options=codec_options)
-            collection.insert_one({"num": DecimalInt("45.321")})
-      
-            my_doc = collection.find_one()
-            pprint.pprint(my_doc)
-
-         .. output::
-            :language: shell
-
-            {'_id': ObjectId('...'), 'num': Decimal('45.321')}
-
-   .. tab:: Asynchronous
-      :tabid: async
-
-      .. io-code-block::
-         :copyable: true
-
-         .. input::
-            :language: python
-
-            import pprint
-            from bson.codec_options import CodecOptions
-
-            decimal_int_codec = DecimalIntCodec()
-            type_registry = TypeRegistry([decimal_codec, decimal_int_codec])
-            codec_options = CodecOptions(type_registry=type_registry)
-
-            collection = db.get_collection("test", codec_options=codec_options)
-            await collection.insert_one({"num": DecimalInt("45.321")})
-      
-            my_doc = await collection.find_one()
-            pprint.pprint(my_doc)
-
-         .. output::
-            :language: shell
-
-            {'_id': ObjectId('...'), 'num': Decimal('45.321')}
+      {'_id': ObjectId('...'), 'num': Decimal('45.321')}
 
 .. note::
   
@@ -443,50 +306,24 @@ The following code example shows this process:
    collection = db.get_collection("test", codec_options=codec_options)
 
 You can then use this reference to a collection to store instances of the ``Decimal``
-class. Select the :guilabel:`Synchronous` or :guilabel:`Asynchronous` tab to see the
-corresponding code:
+class:
 
-.. tabs::
-   
-   .. tab:: Synchronous
-      :tabid: sync
+.. io-code-block::
+   :copyable: true
 
-      .. io-code-block::
-         :copyable: true
+   .. input::
+      :language: python
 
-         .. input::
-            :language: python
+      import pprint
 
-            import pprint
+      collection.insert_one({"num": Decimal("45.321")})
+      my_doc = collection.find_one()
+      pprint.pprint(my_doc)
 
-            collection.insert_one({"num": Decimal("45.321")})
-            my_doc = collection.find_one()
-            pprint.pprint(my_doc)
+   .. output::
+      :language: shell
 
-         .. output::
-            :language: shell
-
-            {'_id': ObjectId('...'), 'num': Decimal128('45.321')}
-
-   .. tab:: Asynchronous
-      :tabid: async
-
-      .. io-code-block::
-         :copyable: true
-
-         .. input::
-            :language: python
-
-            import pprint
-
-            await collection.insert_one({"num": Decimal("45.321")})
-            my_doc = await collection.find_one()
-            pprint.pprint(my_doc)
-
-         .. output::
-            :language: shell
-
-            {'_id': ObjectId('...'), 'num': Decimal128('45.321')}
+      {'_id': ObjectId('...'), 'num': Decimal128('45.321')}
 
 .. note::
 
@@ -546,74 +383,36 @@ back into Python objects:
           return value
 
 You can then add the ``PickledBinaryDecoder`` to the codec options for a collection
-and use it to encode and decode your custom types. Select the
-:guilabel:`Synchronous` or :guilabel:`Asynchronous` tab to see the corresponding code:
+and use it to encode and decode your custom types:
 
-.. tabs::
-   
-   .. tab:: Synchronous
-      :tabid: sync
+.. io-code-block::
+   :copyable: true
 
-      .. io-code-block::
-         :copyable: true
+   .. input::
+      :language: python
 
-         .. input::
-            :language: python
+      from bson.codec_options import CodecOptions,TypeRegistry
 
-            from bson.codec_options import CodecOptions,TypeRegistry
+      codec_options = CodecOptions(
+          type_registry=TypeRegistry(
+              [PickledBinaryDecoder()], fallback_encoder=fallback_pickle_encoder
+        )
+      )
 
-            codec_options = CodecOptions(
-               type_registry=TypeRegistry(
-                  [PickledBinaryDecoder()], fallback_encoder=fallback_pickle_encoder
-            )
-            )
+      collection = db.get_collection("test", codec_options=codec_options)
+      collection.insert_one(
+          {"_id": 1, "str": MyStringType("hello world"), "num": MyNumberType(2)}
+      )
+      my_doc = collection.find_one()
 
-            collection = db.get_collection("test", codec_options=codec_options)
-            collection.insert_one(
-               {"_id": 1, "str": MyStringType("hello world"), "num": MyNumberType(2)}
-            )
-            my_doc = collection.find_one()
+      print(isinstance(my_doc["str"], MyStringType))
+      print(isinstance(my_doc["num"], MyNumberType))
 
-            print(isinstance(my_doc["str"], MyStringType))
-            print(isinstance(my_doc["num"], MyNumberType))
+   .. output::
+      :language: shell
 
-         .. output::
-            :language: shell
-
-            True
-            True
-
-   .. tab:: Asynchronous
-      :tabid: async
-
-      .. io-code-block::
-         :copyable: true
-
-         .. input::
-            :language: python
-
-            from bson.codec_options import CodecOptions,TypeRegistry
-
-            codec_options = CodecOptions(
-               type_registry=TypeRegistry(
-                  [PickledBinaryDecoder()], fallback_encoder=fallback_pickle_encoder
-            )
-            )
-
-            collection = db.get_collection("test", codec_options=codec_options)
-            await collection.insert_one(
-               {"_id": 1, "str": MyStringType("hello world"), "num": MyNumberType(2)}
-            )
-            my_doc = await collection.find_one()
-
-            print(isinstance(my_doc["str"], MyStringType))
-            print(isinstance(my_doc["num"], MyNumberType))
-
-         .. output::
-            :language: shell
-
-            True
-            True
+      True
+      True
 
 Limitations
 -----------
