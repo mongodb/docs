@@ -96,8 +96,8 @@ Filter by event
           - Inside metric threshold
           - Outside metric threshold
           - Run aggregation
-          - Serverless metric inside threshold
-          - Serverless metric outside threshold
+          - {+Flex-cluster+} metric inside threshold
+          - {+Flex-cluster+} metric outside threshold
 
       * - Atlas
         - Events related to |service|. The following filters are available:
@@ -493,7 +493,7 @@ Filter by event
           - Search Index Updated
 
       * - Serverless
-        - Events related to |service| Serverless. The following filters are available:
+        - Events related to |service| Serverless (deprecated). The following filters are available:
 
           - New serverless instance created
           - New serverless instance ready to use
