@@ -1,20 +1,13 @@
 .. list-table::
    :header-rows: 1
-   :widths: 20 15 10 55
+   :widths: 30 15 10 55
 
    * - Field
      - Type
      - Necessity
      - Description
 
-   * - ``analyzeShardKey``
-     - string
-     - Required
-     - Namespace of the collection to analyze.
-       
-       There is no default value.
-
-   * - ``key``
+   * - ``shardKey``
      - document
      - Required
      - Shard key to analyze. This can be a candidate shard key for an 
