@@ -56,28 +56,52 @@ similar to the following:
      }
    }
 
+.. important::
+
+   The {+atlas-admin-api+} uses the terms ``inbound`` and ``outbound``
+   in relation to the control plane, not your network. As a result:
+     
+   - Your network's **inbound** rules must match the ``outbound``
+     CIDRs listed in the {+atlas-admin-api+}.
+   - Your network's **outbound** rules must match the ``inbound``
+     CIDRs listed in the {+atlas-admin-api+}.
+
+The following diagram shows the relationship between ``inbound`` and
+``outbound`` for the control plane and your network:
+
+.. figure:: /images/ControlPlaneInboundVsOutbound.svg
+   :figwidth: 650px
+   :alt: A diagram showing that inbound traffic for the control plane 
+         reflects outbound traffic from your network, and outbound traffic for the 
+         control plane reflects inbound traffic to your network.
+
 To add the returned IP addresses to your cloud provider's KMS IP access list, 
 see the prerequisites for managing customer keys with :ref:`AWS <aws-ksm-prereqs>`, 
 :ref:`Azure <azure-kms-prereqs>`, and :ref:`GCP <gcp-kms-prereqs>`.
 
 .. _atlas-required-outbound-access:
 
-Required Outbound Access
-------------------------
+Required Access: ``controlPlane.outbound`` IP Addresses
+-------------------------------------------------------
 
-Outbound access is traffic coming from the |service| control plane. We
-recommend that you :ref:`use the Atlas Admin API
+``controlPlane.outbound`` lists the IP addresses traffic coming from the 
+control plane. Your network's **inbound** HTTP IP address list must allow 
+access from the IP addresses listed in ``controlPlane.outbound``. 
+
+We recommend that you :ref:`use the Atlas Admin API
 <atlas-fetch-control-plane-ips>` to fetch the current outbound |service|
 control plane IP addresses.
 
 .. _atlas-required-inbound-access:
 
-Required Inbound Access
------------------------
+Required Access: ``controlPlane.inbound`` IP Addresses
+-------------------------------------------------------
 
-Inbound access is traffic coming into the |service| control plane. If
-your network allows outbound HTTP requests only to specific IP
-addresses, you must allow access from the inbound IP addresses so that
-|service| can communicate with your webhooks and |kms|. We recommend
-that you :ref:`use the Atlas Admin API <atlas-fetch-control-plane-ips>`
+``controlPlane.inbound`` lists the IP addresses traffic coming into
+the control plane. If your network allows **outbound** HTTP requests only to 
+specific IP addresses, you must allow access to the IP addresses listed in 
+``controlPlane.inbound`` so that |service| can communicate with your webhooks 
+and |kms|.
+
+We recommend that you :ref:`use the Atlas Admin API <atlas-fetch-control-plane-ips>`
 to fetch the current inbound |service| control plane IP addresses.
