@@ -6,10 +6,10 @@
      - Description
 
    * - ``_id``
-     - The name of the shard.
+     - Name of the shard.
 
    * - ``host``
-     - The hostname of the shard. If the shard is a replica set,
+     - Hostname of the shard. If the shard is a replica set,
        ``host`` lists the hostname of each mongod instance in the
        replica set.
 
@@ -19,10 +19,10 @@
        being drained.
 
    * - ``tags``
-     - A list of :term:`zones <zone>` to which the shard belongs.
+     - List of :term:`zones <zone>` to which the shard belongs.
 
    * - ``state``
-     - An internal field used during the 
+     - Internal field used during the 
        :ref:`sharding-add-shard` sequence to ensure that all
        steps and configuration necessary to add the shard to the
        cluster are completed.
