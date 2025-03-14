@@ -14,7 +14,7 @@ atlas users
 
 Manage your Atlas users.
 
-Create, list and manage your Atlas users.
+Create and manage your Atlas users.
 
 Options
 -------
