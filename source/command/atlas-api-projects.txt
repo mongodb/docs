@@ -56,7 +56,7 @@ Related Commands
 * :ref:`atlas-api-projects-deleteProjectInvitation` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Cancels one pending invitation sent to the specified MongoDB Cloud user to join a project.
 * :ref:`atlas-api-projects-deleteProjectLimit` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Removes the specified project limit.
 * :ref:`atlas-api-projects-getProject` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns details about the specified project.
-* :ref:`atlas-api-projects-getProjectByName` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns details about the specified project.
+* :ref:`atlas-api-projects-getProjectByName` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns details about the project identified by its name.
 * :ref:`atlas-api-projects-getProjectInvitation` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns the details of one pending invitation to the specified project.
 * :ref:`atlas-api-projects-getProjectLimit` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns the specified limit for the specified project.
 * :ref:`atlas-api-projects-getProjectLtsVersions` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns the MongoDB Long Term Support Major Versions available to new clusters in this project.
@@ -70,8 +70,8 @@ Related Commands
 * :ref:`atlas-api-projects-returnAllIpAddresses` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns all IP addresses for this project.
 * :ref:`atlas-api-projects-setProjectLimit` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Sets the specified project limit.
 * :ref:`atlas-api-projects-updateProject` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Updates the human-readable label that identifies the specified project, or the tags associated with the project.
-* :ref:`atlas-api-projects-updateProjectInvitation` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Updates the details of one pending invitation to the specified project.
-* :ref:`atlas-api-projects-updateProjectInvitationById` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Updates the details of one pending invitation to the specified project.
+* :ref:`atlas-api-projects-updateProjectInvitation` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Updates the details of one pending invitation, identified by the username of the invited user, to the specified project.
+* :ref:`atlas-api-projects-updateProjectInvitationById` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Updates the details of one pending invitation, identified by its unique ID, to the specified project.
 * :ref:`atlas-api-projects-updateProjectRoles` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Updates the roles of the specified user in the specified project.
 * :ref:`atlas-api-projects-updateProjectSettings` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Updates the settings of the specified project.
 

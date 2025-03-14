@@ -56,7 +56,7 @@ Options
    * - -f, --file
      - string
      - false
-     - Path to an optional JSON configuration file that defines invitation settings. To learn more about invitation configuration files for the Atlas CLI, see https://XXX.
+     - Path to an optional JSON configuration file that defines invitation settings. Note: Unsupported fields in the JSON file are ignored.
 
        Mutually exclusive with --role, --teamId.
    * - -h, --help

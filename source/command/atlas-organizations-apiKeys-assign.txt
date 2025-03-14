@@ -76,7 +76,7 @@ Options
    * - --role
      - strings
      - false
-     - Role or roles that you want to assign to the API key. To assign more than one role, specify each role with a separate role flag or specify all of the roles as a comma-separated list using one role flag. To learn which values the CLI accepts, see the Items Enum for roles in the Atlas API spec: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Programmatic-API-Keys/operation/createApiKey/. Passing this flag replaces preexisting data.
+     - Role or roles that you want to assign to the API key. To assign more than one role, specify each role with a separate role flag or specify all of the roles as a comma-separated list using one role flag. For the full list of accepted values, see the Items Enum for the corresponding Atlas API endpoint: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Programmatic-API-Keys/operation/updateApiKey. To learn more about organization level user roles, see: https://dochub.mongodb.org/core/atlas-org-roles. Passing this flag replaces preexisting data.
 
 Inherited Options
 -----------------

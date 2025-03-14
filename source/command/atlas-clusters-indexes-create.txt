@@ -72,7 +72,7 @@ Options
    * - -f, --file
      - string
      - false
-     - Path to an optional JSON configuration file that defines index settings.
+     - Path to an optional JSON configuration file that defines index settings. Note: Unsupported fields in the JSON file are ignored.
 
        Mutually exclusive with --db, --collection, --key.
    * - -h, --help

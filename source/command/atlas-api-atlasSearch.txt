@@ -59,8 +59,8 @@ Related Commands
 * :ref:`atlas-api-atlasSearch-deleteAtlasSearchIndexByName` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Removes one Atlas Search index that you identified with its database, collection, and name.
 * :ref:`atlas-api-atlasSearch-deleteAtlasSearchIndexDeprecated` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Removes one Atlas Search index that you identified with its unique ID.
 * :ref:`atlas-api-atlasSearch-getAtlasSearchDeployment` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Return the Search Nodes for the specified cluster.
-* :ref:`atlas-api-atlasSearch-getAtlasSearchIndex` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns one Atlas Search index in the specified project.
-* :ref:`atlas-api-atlasSearch-getAtlasSearchIndexByName` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns one Atlas Search index in the specified project.
+* :ref:`atlas-api-atlasSearch-getAtlasSearchIndex` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns one Atlas Search index that you identified with its unique ID.
+* :ref:`atlas-api-atlasSearch-getAtlasSearchIndexByName` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns one Atlas Search index that you identified with its database, collection name, and index name.
 * :ref:`atlas-api-atlasSearch-getAtlasSearchIndexDeprecated` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns one Atlas Search index in the specified project.
 * :ref:`atlas-api-atlasSearch-listAtlasSearchIndexes` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns all Atlas Search indexes on the specified collection.
 * :ref:`atlas-api-atlasSearch-listAtlasSearchIndexesCluster` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns all Atlas Search indexes on the specified cluster.

@@ -42,7 +42,7 @@ Options
    * - --file
      - string
      - true
-     - Path to a JSON configuration file that defines connected orgs configurations. To learn more about connected org configuration file format, see the request body in https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Federated-Authentication/operation/updateConnectedOrgConfig.
+     - Path to a JSON configuration file that defines connected orgs configurations. Note: Unsupported fields in the JSON file are ignored. To learn more about connected org configuration file format, see the request body in https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Federated-Authentication/operation/updateConnectedOrgConfig.
    * - -h, --help
      - 
      - false

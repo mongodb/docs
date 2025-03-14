@@ -49,7 +49,7 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-api-teams-addAllTeamsToProject` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Adds one team to the specified project.
+* :ref:`atlas-api-teams-addAllTeamsToProject` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Adds one or more teams to the specified project.
 * :ref:`atlas-api-teams-addTeamUser` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Adds one or more MongoDB Cloud users from the specified organization to the specified team.
 * :ref:`atlas-api-teams-createTeam` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Creates one team in the specified organization.
 * :ref:`atlas-api-teams-deleteTeam` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Removes one team specified using its unique 24-hexadecimal digit identifier from the organization specified using its unique 24-hexadecimal digit identifier.

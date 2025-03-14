@@ -56,7 +56,7 @@ Options
    * - -f, --file
      - string
      - true
-     - Path to a JSON configuration file that defines an Atlas Stream Processing connection.
+     - Path to a JSON configuration file that defines an Atlas Stream Processing connection. Note: Unsupported fields in the JSON file are ignored.
    * - -h, --help
      - 
      - false
