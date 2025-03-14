@@ -14,7 +14,10 @@ atlas api thirdPartyIntegrations
 
 `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns, adds, edits, and removes third-party service integration configurations.
 
-MongoDB Cloud sends alerts to each third-party service that you configure. IMPORTANT: Each project can only have one configuration per integrationType.
+MongoDB Cloud sends alerts to each third-party service that you configure.
+
+
+IMPORTANT: Each project can only have one configuration per integrationType.
 
 Options
 -------

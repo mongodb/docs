@@ -68,7 +68,7 @@ Options
    * - -f, --file
      - string
      - false
-     - Path to the JSON configuration file that defines alert configuration settings. To learn more about alert configuration files for the Atlas CLI, see https://dochub.mongodb.org/core/alert-config-atlas-cli.
+     - Path to the JSON configuration file that defines alert configuration settings. Note: Unsupported fields in the JSON file are ignored. To learn more about alert configuration files for the Atlas CLI, see https://dochub.mongodb.org/core/alert-config-atlas-cli.
    * - -h, --help
      - 
      - false

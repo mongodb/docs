@@ -62,8 +62,8 @@ Related Commands
 * :ref:`atlas-api-organizations-listOrganizations` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns all organizations to which the requesting API Key has access.
 * :ref:`atlas-api-organizations-removeOrganizationUser` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Removes one MongoDB Cloud user from the specified organization.
 * :ref:`atlas-api-organizations-updateOrganization` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Updates one organization.
-* :ref:`atlas-api-organizations-updateOrganizationInvitation` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Updates the details of one pending invitation to the specified organization.
-* :ref:`atlas-api-organizations-updateOrganizationInvitationById` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Updates the details of one pending invitation to the specified organization.
+* :ref:`atlas-api-organizations-updateOrganizationInvitation` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Updates the details of one pending invitation, identified by the username of the invited user, to the specified organization.
+* :ref:`atlas-api-organizations-updateOrganizationInvitationById` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Updates the details of one pending invitation, identified by its unique ID, to the specified organization.
 * :ref:`atlas-api-organizations-updateOrganizationRoles` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Updates the roles of the specified user in the specified organization.
 * :ref:`atlas-api-organizations-updateOrganizationSettings` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Updates the organization's settings.
 

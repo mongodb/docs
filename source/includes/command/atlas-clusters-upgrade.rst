@@ -76,7 +76,7 @@ Options
    * - -f, --file
      - string
      - false
-     - Path to an optional JSON configuration file that defines cluster settings. To learn more about cluster configuration files for the Atlas CLI, see https://dochub.mongodb.org/core/cluster-config-file-atlascli.
+     - Path to an optional JSON configuration file that defines cluster settings. Note: Unsupported fields in the JSON file are ignored. To learn more about cluster configuration files for the Atlas CLI, see https://dochub.mongodb.org/core/cluster-config-file-atlascli.
 
        Mutually exclusive with --tier, --diskSizeGB, --mdbVersion, --enableTerminationProtection, --disableTerminationProtection, --tag.
    * - -h, --help

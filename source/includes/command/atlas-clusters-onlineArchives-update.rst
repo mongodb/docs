@@ -72,7 +72,7 @@ Options
    * - --file
      - string
      - false
-     - Path to an optional JSON configuration file that defines online archive settings. To learn more about online archive configuration files for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-json-online-archive-config.
+     - Path to an optional JSON configuration file that defines online archive settings. Note: Unsupported fields in the JSON file are ignored. To learn more about online archive configuration files for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-json-online-archive-config.
 
        Mutually exclusive with --archiveAfter, --expireAfterDays.
    * - -h, --help

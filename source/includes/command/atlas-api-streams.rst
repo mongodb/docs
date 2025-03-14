@@ -64,13 +64,14 @@ Related Commands
 * :ref:`atlas-api-streams-deleteVpcPeeringConnection` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Deletes an incoming VPC Peering connection.
 * :ref:`atlas-api-streams-downloadStreamTenantAuditLogs` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Downloads the audit logs for the specified Atlas Streams Processing instance.
 * :ref:`atlas-api-streams-getAccountDetails` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns the Account ID, and the VPC ID for the group and region specified.
+* :ref:`atlas-api-streams-getActiveVpcPeeringConnections` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns a list of active incoming VPC Peering Connections.
 * :ref:`atlas-api-streams-getPrivateLinkConnection` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns the details of one Private Link connection within the project.
 * :ref:`atlas-api-streams-getStreamConnection` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns the details of one stream connection within the specified stream instance.
 * :ref:`atlas-api-streams-getStreamInstance` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns the details of one stream instance within the specified project.
 * :ref:`atlas-api-streams-getStreamProcessor` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Get one Stream Processor within the specified stream instance.
 * :ref:`atlas-api-streams-getVpcPeeringConnections` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns a list of incoming VPC Peering Connections.
-* :ref:`atlas-api-streams-listPrivateLinkConnections` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns all Private Link connections for the specified project.To use this resource, the requesting API Key must have the Project Data Access roles, Project Owner role or Project Stream Processing Owner role.
-* :ref:`atlas-api-streams-listStreamConnections` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns all connections of the stream instance for the specified project.To use this resource, the requesting API Key must have the Project Data Access roles, Project Owner role or Project Stream Processing Owner role.
+* :ref:`atlas-api-streams-listPrivateLinkConnections` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns all Private Link connections for the specified project.
+* :ref:`atlas-api-streams-listStreamConnections` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns all connections of the stream instance for the specified project.
 * :ref:`atlas-api-streams-listStreamInstances` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns all stream instances for the specified project.
 * :ref:`atlas-api-streams-listStreamProcessors` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns all Stream Processors within the specified stream instance.
 * :ref:`atlas-api-streams-modifyStreamProcessor` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Modify one existing Stream Processor within the specified stream instance.
@@ -97,6 +98,7 @@ Related Commands
    deleteVpcPeeringConnection </command/atlas-api-streams-deleteVpcPeeringConnection>
    downloadStreamTenantAuditLogs </command/atlas-api-streams-downloadStreamTenantAuditLogs>
    getAccountDetails </command/atlas-api-streams-getAccountDetails>
+   getActiveVpcPeeringConnections </command/atlas-api-streams-getActiveVpcPeeringConnections>
    getPrivateLinkConnection </command/atlas-api-streams-getPrivateLinkConnection>
    getStreamConnection </command/atlas-api-streams-getStreamConnection>
    getStreamInstance </command/atlas-api-streams-getStreamInstance>
