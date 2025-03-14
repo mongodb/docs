@@ -49,7 +49,7 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-api-serverlessInstances-createServerlessInstance` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Creates one serverless instance in the specified project.
+* :ref:`atlas-api-serverlessInstances-createServerlessInstance` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Update as of Feb 2025: This endpoint now creates a Flex cluster instead.
 * :ref:`atlas-api-serverlessInstances-deleteServerlessInstance` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Removes one serverless instance from the specified project.
 * :ref:`atlas-api-serverlessInstances-getServerlessInstance` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns details for one serverless instance in the specified project.
 * :ref:`atlas-api-serverlessInstances-listServerlessInstances` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns details for all serverless instances in the specified project.

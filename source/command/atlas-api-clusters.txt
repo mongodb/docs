@@ -68,8 +68,7 @@ Related Commands
 * :ref:`atlas-api-clusters-unpinFeatureCompatibilityVersion` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Unpins the current fixed Feature Compatibility Version (FCV).
 * :ref:`atlas-api-clusters-updateCluster` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Updates the details for one cluster in the specified project.
 * :ref:`atlas-api-clusters-updateClusterAdvancedConfiguration` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Updates the advanced configuration details for one cluster in the specified project.
-* :ref:`atlas-api-clusters-upgradeSharedCluster` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Upgrades a shared-tier cluster to a dedicated cluster (M10+) in the specified project.
-* :ref:`atlas-api-clusters-upgradeSharedClusterToServerless` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Upgrades a shared-tier cluster to a serverless instance in the specified project.
+* :ref:`atlas-api-clusters-upgradeSharedCluster` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Upgrades a shared-tier cluster to a Flex or Dedicated (M10+) cluster in the specified project.
 
 
 .. toctree::
@@ -93,5 +92,4 @@ Related Commands
    updateCluster </command/atlas-api-clusters-updateCluster>
    updateClusterAdvancedConfiguration </command/atlas-api-clusters-updateClusterAdvancedConfiguration>
    upgradeSharedCluster </command/atlas-api-clusters-upgradeSharedCluster>
-   upgradeSharedClusterToServerless </command/atlas-api-clusters-upgradeSharedClusterToServerless>
 

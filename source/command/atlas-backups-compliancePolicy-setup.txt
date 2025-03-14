@@ -38,7 +38,7 @@ Options
    * - -f, --file
      - string
      - true
-     - Path to a JSON configuration file that defines backup compliance policy settings.
+     - Path to a JSON configuration file that defines backup compliance policy settings. Note: Unsupported fields in the JSON file are ignored.
    * - --force
      - 
      - false

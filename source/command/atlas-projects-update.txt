@@ -56,7 +56,7 @@ Options
    * - -f, --file
      - string
      - true
-     - Path to the JSON configuration file that defines project configuration settings. To learn more about project configuration files for the Atlas CLI, see https://dochub.mongodb.org/core/project-config-file.
+     - Path to the JSON configuration file that defines project configuration settings. Note: Unsupported fields in the JSON file are ignored. To learn more about project configuration files for the Atlas CLI, see https://dochub.mongodb.org/core/project-config-file.
    * - -h, --help
      - 
      - false

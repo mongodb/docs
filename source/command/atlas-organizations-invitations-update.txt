@@ -59,6 +59,10 @@ Options
      - string
      - false
      - Email address for the user.
+   * - -f, --file
+     - string
+     - false
+     - Path to an optional JSON configuration file that defines invitation settings. Note: Unsupported fields in the JSON file are ignored.
    * - -h, --help
      - 
      - false

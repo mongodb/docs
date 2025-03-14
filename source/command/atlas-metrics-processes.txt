@@ -101,7 +101,7 @@ Options
    * - --type
      - strings
      - false
-     - Measurements to return. This option returns all measurements by default. To learn which values the CLI accepts, see the Items Enum for m in the Atlas API spec: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Monitoring-and-Logs/operation/getHostMeasurements/.
+     - Measurements to return. This option returns all measurements by default. To learn which values the CLI accepts, see the Items Enum for m in the Atlas API spec: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Monitoring-and-Logs/operation/getHostMeasurements.
 
 Inherited Options
 -----------------
