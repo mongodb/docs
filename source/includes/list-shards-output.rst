@@ -14,7 +14,7 @@
        replica set.
 
    * - ``draining``
-     - If true, indicates that :ref:`sharding-remove-shard`
+     - If ``true``, indicates that :ref:`sharding-remove-shard`
        has been called for this shard and it is in the process of
        being drained.
 
