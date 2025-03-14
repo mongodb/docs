@@ -1,0 +1,365 @@
+.. _avs-explain-ref:
+
+============================================
+Explain {+avs+} Results
+============================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: all plans execution, explain response parameters, explain method limitations, execution stats example, vector search
+   :description: Run your Atlas Vector Search query with the explain method to learn about your $vectorSearch query plan and its execution statistics.
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+.. |search-type| replace:: {+avs+}
+.. |query-type| replace:: vector search
+.. |timing-ref| replace:: :ref:`time <avs-timing-breakdown>`
+.. |area-of-query-ref| replace:: :ref:`areas of query <avs-areas-of-query>`
+.. |area-ref| replace:: :ref:`area <avs-areas-of-query>`
+
+When you run an {+avs+} query with the ``explain`` method, the query returns a
+|bson| document containing query plan and execution statistics that describe how the
+query was run internally.
+
+.. seealso:: 
+
+   :manual:`explain command </reference/command/explain/>` 
+
+.. _avs-explain-syntax:
+
+Syntax 
+------
+
+.. code-block:: json 
+   :emphasize-lines: 1
+
+   db.<myCollection>.explain("<verbosity>").aggregate([
+      {
+        "$vectorSearch": {
+          "exact": true | false,
+          "filter": {<filter-specification>},
+          "index": "<index-name>",
+          "limit": <number-of-results>,
+          "numCandidates": <number-of-candidates>,
+          "path": "<field-to-search>",
+          "queryVector": [<array-of-numbers>]
+        }
+      }
+   ])
+
+.. _avs-explain-verbosity:
+
+Verbosity 
+---------
+
+.. include:: /includes/extracts/explain-verbosity.rst
+
+.. _avs-explain-response:
+
+Explain Results 
+---------------
+
+The ``explain`` method returns a |bson| document with the following fields.
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 15 15 10 60
+
+   * - Option 
+     - Type 
+     - Necessity 
+     - Purpose
+
+   * - ``collectors``
+     - document
+     - Optional
+     - Describes the execution statistics for the collector.
+
+   * - ``metadata``
+     - document
+     - Optional
+     - Contains useful metadata.
+
+   * - ``query``
+     - document
+     - Optional
+     - Describes the execution statistics for the query. This is not
+       present at the the top level for ``indexPartitionExplain``.
+
+   * - ``resultMaterialization``
+     - document
+     - Optional
+     - Details related to retrieving per-document data after
+       query execution. This is not returned for ``queryPlanner``
+       verbosity mode. 
+
+   * - ``resourceUsage``
+     - document
+     - Optional
+     - Details the resource usage of the query when it was executed.
+       This is not returned for ``queryPlanner`` verbosity mode.
+
+.. _avs-explain-search-collect-stats:
+
+``collectors`` 
+~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/avs-collect-stats.rst
+
+.. _avs-explain-search-all-collector-stats:
+
+``allCollectorStats``
+`````````````````````
+
+.. include:: /includes/extracts/avs-all-collector-stats.rst
+
+.. _avs-explain-search-metadata:
+
+``metadata`` 
+~~~~~~~~~~~~
+
+.. include:: /includes/extracts/avs-explain-metadata.rst
+
+.. _avs-explain-search-query:
+
+``query`` 
+~~~~~~~~~
+
+.. include:: /includes/extracts/avs-explain-query.rst
+
+.. _avs-explain-query:
+
+``args``
+````````
+
+.. include:: /includes/extracts/avs-explain-args.rst
+
+.. _avs-explain-timing-breakdown:
+
+``stats`` 
+`````````
+
+.. include:: /includes/extracts/avs-explain-stats.rst
+
+.. _avs-timing-breakdown:
+
+Timing Breakdown 
+++++++++++++++++
+
+.. include:: /includes/extracts/explain-time-breakdown.rst
+
+.. _avs-areas-of-query:
+
+Areas of Query 
+++++++++++++++
+
+.. include:: /includes/extracts/explain-areas-of-query.rst
+
+.. _avs-explain-search-resource-usage:
+
+``resourceUsage``
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/explain-resource-usage.rst
+
+.. _avs-explain-egs:
+
+Examples 
+--------
+
+The following examples use the ``explain`` method on sample |ann| and |enn| queries.
+If you want to run the following examples in your own environment, you must
+first complete the :ref:`{+avs+} Quick Start <vector-search-quick-start>`
+using {+mongosh+}.
+
+.. _avs-allplansexecution-ex:
+
+``allPlansExecution`` 
+~~~~~~~~~~~~~~~~~~~~~
+
+The following example runs the explain method on an |ann| and |enn| vector search 
+query for the ``plot_embedding`` field with the ``allPlansExecution`` 
+:ref:`verbosity <explain-verbosity>` mode.
+
+.. tabs::
+   
+   .. tab:: ANN
+      :tabid: ann
+
+      .. io-code-block:: 
+         :copyable: true
+
+         .. input::
+            :language: shell
+
+            db.embedded_movies.explain("allPlansExecution").aggregate([
+              {
+                "$vectorSearch": {
+                  "index": "vector_index",
+                  "path": "plot_embedding",
+                  "queryVector": QUERY_EMBEDDING,
+                  "numCandidates": 150,
+                  "limit": 10
+                }
+              }
+            ])
+
+         .. output:: /includes/avs-examples/outputs/allPlansExecution-ann-output.json
+            :language: json
+            :visible: false
+
+   .. tab:: ENN
+      :tabid: enn
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: 
+            :language: shell
+
+            db.embedded_movies.explain("allPlansExecution").aggregate([
+              {
+                "$vectorSearch": {
+                  "index": "vector_index",
+                  "path": "plot_embedding",
+                  "queryVector": QUERY_EMBEDDING,
+                  "exact": true,
+                  "limit": 10
+                }
+              }
+            ])
+
+         .. output:: /includes/avs-examples/outputs/allPlansExecution-enn-output.json
+            :language: json
+            :visible: false
+
+.. _avs-queryplanner-ex:
+
+``queryPlanner`` 
+~~~~~~~~~~~~~~~~
+
+The following example runs the explain method on an |ann| and |enn| vector search 
+query for the ``plot_embedding`` field with the ``queryPlanner`` 
+:ref:`verbosity <explain-verbosity>` mode.  
+
+.. tabs::
+   
+   .. tab:: ANN
+      :tabid: ann
+
+      .. io-code-block:: 
+         :copyable: true
+
+         .. input::
+            :language: shell
+
+            db.embedded_movies.explain("queryPlanner").aggregate([
+              {
+                "$vectorSearch": {
+                  "index": "vector_index",
+                  "path": "plot_embedding",
+                  "queryVector": QUERY_EMBEDDING,
+                  "numCandidates": 150,
+                  "limit": 10
+                }
+              }
+            ])
+
+         .. output:: /includes/avs-examples/outputs/queryPlanner-ann-output.json
+            :language: json
+            :visible: false
+
+   .. tab:: ENN
+      :tabid: enn
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: 
+            :language: shell
+            
+            db.embedded_movies.explain("queryPlanner").aggregate([
+              {
+                "$vectorSearch": {
+                  "index": "vector_index",
+                  "path": "plot_embedding",
+                  "queryVector": QUERY_EMBEDDING,
+                  "exact": true,
+                  "limit": 10
+                }
+              }
+            ])
+
+         .. output:: /includes/avs-examples/outputs/queryPlanner-enn-output.json
+            :language: json
+            :visible: false
+
+.. _avs-exstats-ex:
+
+``executionStats`` 
+~~~~~~~~~~~~~~~~~~
+
+The following example runs the explain method on an |ann| and |enn| vector search 
+query for the ``plot_embedding`` field with the ``executionStats`` 
+:ref:`verbosity <explain-verbosity>` mode. 
+
+.. tabs::
+   
+   .. tab:: ANN
+      :tabid: ann
+
+      .. io-code-block:: 
+         :copyable: true
+
+         .. input:: 
+            :language: shell
+
+            db.embedded_movies.explain("executionStats").aggregate([
+              {
+                "$vectorSearch": {
+                  "index": "vector_index",
+                  "path": "plot_embedding",
+                  "queryVector": QUERY_EMBEDDING,
+                  "numCandidates": 150,
+                  "limit": 10
+                }
+              }
+            ])
+
+         .. output:: /includes/avs-examples/outputs/executionStats-ann-output.json
+            :language: json
+            :visible: false
+
+   .. tab:: ENN
+      :tabid: enn
+
+      .. io-code-block::
+         :copyable: true
+        
+         .. input:: 
+            :language: shell
+
+            db.embedded_movies.explain("executionStats").aggregate([
+              {
+                "$vectorSearch": {
+                  "index": "vector_index",
+                  "path": "plot_embedding",
+                  "queryVector": QUERY_EMBEDDING,
+                  "exact": true,
+                  "limit": 10
+                }
+              }
+            ])
+
+         .. output:: /includes/avs-examples/outputs/executionStats-enn-output.json
+            :language: json
+            :visible: false
