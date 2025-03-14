@@ -2,17 +2,19 @@ val docsToInsert = mutableListOf<ClientNamespacedWriteModel>()
 
 docsToInsert.add(
     ClientNamespacedWriteModel
-        .insertOne(
+        .updateOne(
             MongoNamespace("sample_db", "people"),
-            Person(2, "Julia Smith")
+            Filters.eq(Person::name.name, "Freya Polk"),
+            Updates.inc(Person::age.name, 1)
         )
 )
 
 docsToInsert.add(
     ClientNamespacedWriteModel
-        .insertOne(
+        .updateMany(
             MongoNamespace("sample_db", "objects"),
-            Object(2, "washing machine")
+            Filters.eq(Object::category.name, "electronic"),
+            Updates.set(Object::manufacturer.name, "Premium Technologies")
         )
 )
 
