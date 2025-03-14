@@ -26,8 +26,8 @@ To learn more about backup considerations, see
 
 If you choose to upgrade to MongoDB 4.2 with
 ``"featureCompatibilityVersion" : 4.2``, |mms| displays a modal that
-asks you to agree to the :doc:`special license
-</reference/legal/cloud-manager-backup-license>` that MongoDB, Inc.
+asks you to agree to the :ref:`special license
+<cm_backup_license>` that MongoDB, Inc.
 grants to use MongoDB Enterprise for backups. 
 
 Storage Engine
