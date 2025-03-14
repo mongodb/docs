@@ -279,11 +279,13 @@ aggregation pipeline stages:
 - :pipeline:`$collStats`
 - :pipeline:`$count`
 - :pipeline:`$geoNear`
+- :pipeline:`$graphLookup` (For usage requirements, see 
+  :ref:`qe-lookup-graphLookup-behavior`)
 - :pipeline:`$group` on unencrypted fields
 - :pipeline:`$indexStats`
 - :pipeline:`$limit`
-- :pipeline:`$lookup` and :pipeline:`$graphLookup` (For usage
-  requirements, see :ref:`csfle-lookup-graphLookup-behavior`)
+- :pipeline:`$lookup` (For usage requirements, see 
+  :ref:`qe-lookup-graphLookup-behavior`)
 - :pipeline:`$match`
 - :pipeline:`$project`
 - :pipeline:`$redact`
@@ -306,16 +308,26 @@ Each supported stage must specify only supported
 :ref:`aggregation expressions
 <qe-supported-aggregation-expressions>`.
 
-.. _qe-csfle-lookup-graphLookup-behavior:
+.. _qe-lookup-graphLookup-behavior:
 
 ``$lookup`` and ``$graphLookup`` Behavior
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Automatic encryption supports the :pipeline:`$lookup` and
-:pipeline:`$graphLookup` *only if* the ``from`` collection matches the
-collection  the aggregation runs against.
-``$lookup`` and ``$graphLookup`` stages that reference a different ``from``
-collection return an error.
+Starting in MongoDB 8.1, you can reference multiple encrypted collections in a 
+:pipeline:`$lookup` stage. However, ``$lookup`` does not support: 
+
+- Using an encrypted field as the join field in the ``localField`` or 
+  ``foreignField``. 
+
+- Using any field in an encrypted array. An array is considered as encrypted if 
+  it contains any encrypted elements. 
+
+  - For example, you can't use any field within the resulting 
+    :ref:`as <lookup-eq-as>` array of the ``$lookup`` operation.
+
+Automatic encryption supports :pipeline:`$graphLookup` *only if* the ``from`` 
+collection matches the collection the aggregation runs against. ``$graphLookup`` 
+stages that reference a different ``from`` collection return an error.
 
 Automatic encryption does not support "connectionless" aggregation metadata
 sources, which read metadata that doesn't pertain to a particular
@@ -328,9 +340,6 @@ collection, such as:
 
 Automatic encryption does not support the :pipeline:`$planCacheStats` stage
 as the result may contain sensitive information.
-
-You cannot perform a :pipeline:`$lookup` from a Queryable Encryption-enabled 
-``MongoClient`` on unencrypted collections.
 
 .. _qe-supported-aggregation-expressions:
 
