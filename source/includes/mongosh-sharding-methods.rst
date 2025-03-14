@@ -1,5 +1,5 @@
 .. list-table::
-   :widths: 30,70
+   :widths: 35 65
    :header-rows: 1
 
    * - Name
