@@ -69,8 +69,6 @@
                role applies to all non-``system`` collections in the
                database.
       
-               .. include:: /includes/fact-read-read-write-actions.rst
-      
              For information on the built-in |service| privileges, see
              :ref:`atlas-user-privileges`.
       
