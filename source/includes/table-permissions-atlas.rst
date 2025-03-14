@@ -4,41 +4,26 @@
 
 .. list-table::
    :header-rows: 1
+   :stub-columns: 1
+   :widths: 15 20 20
 
    * - Sync Type
-     - Target
-     - Required Permissions
+     - Required Source Permissions
+     - Required Destination Permissions
 
-   * - default
-     - source cluster
-     -
+   * - Default
+     - - atlasAdmin
+     - - atlasAdmin
+       - :authaction:`bypassWriteBlockingMode`
+       
+   * - Write-blocking or reversing
+     - - atlasAdmin
+       - :authaction:`bypassWriteBlockingMode`
+     - - atlasAdmin
+       - :authaction:`bypassWriteBlockingMode`
 
-         - atlasAdmin
-
-   * - default
-     - destination cluster
-     -
-
-         - atlasAdmin
-
-   * - write-blocking or reversing
-     - source cluster
-     -
-
-         - atlasAdmin
-         - bypassWriteBlockMode privilege
-
-   * - write-blocking or reversing
-     - destination cluster
-     -
-
-         - atlasAdmin
-         - bypassWriteBlockMode privilege
-
-For details on Atlas roles, see: :atlas:`Atlas User Roles
-</reference/user-roles/>`.
+For details on Atlas roles, see: :atlas:`Built-In Roles and Privileges
+</mongodb-users-roles-and-privileges/>`.
 
 To update Atlas user permissions, see:
 :atlas:`Manage Access to a Project </access/manage-project-access/>`.
-
-
