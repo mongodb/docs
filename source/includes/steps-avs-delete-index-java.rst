@@ -23,7 +23,7 @@
            - The collection for which you want to create the index.
 
          * - ``<indexName>``
-           - The name of your index. If you omit the index name, |fts| names the index ``vector_index``.
+           - The name of your index. If you omit the index name, defaults to ``vector_index``.
 
    .. step:: Execute the code to delete the index.
 

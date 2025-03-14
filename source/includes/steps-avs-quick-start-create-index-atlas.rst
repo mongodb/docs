@@ -36,6 +36,8 @@
 
    .. step:: Create a Vector Search index.
       
+      .. |search-type| replace:: {+avs+}
+      
       .. include:: /includes/fact-search-commands-cluster-tier.rst
 
       .. tabs-drivers::

@@ -23,7 +23,7 @@
            - Collection for which you want to create the index.
 
          * - ``<indexName>``
-           - Bame of your index. If you omit the index name, |fts| names the index ``vector_index``.
+           - Bame of your index. If you omit the index name, defaults to ``vector_index``.
 
          * - ``<numberOfDimensions>``
            - Number of vector dimensions that {+avs+} enforces at index-time and query-time.
