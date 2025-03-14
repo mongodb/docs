@@ -5,26 +5,25 @@
 .. list-table::
    :header-rows: 1
    :stub-columns: 1
+   :widths: 15 20 20
 
    * - Sync Type
      - Required Source Permissions
      - Required Destination Permissions
 
-   * - default
+   * - Default
      - - atlasAdmin
      - - atlasAdmin
-       - bypassWriteBlockMode privilege
+       - :authaction:`bypassWriteBlockingMode`
        
-   * - dual write-blocking, reversing, or multiple reversals
+   * - Dual write-blocking, reversing, or multiple reversals
      - - atlasAdmin
-       - bypassWriteBlockMode privilege
+       - :authaction:`bypassWriteBlockingMode`
      - - atlasAdmin
-       - bypassWriteBlockMode privilege
+       - :authaction:`bypassWriteBlockingMode`
 
-For details on Atlas roles, see: :atlas:`Atlas User Roles
-</reference/user-roles/>`.
+For details on Atlas roles, see: :atlas:`Built-In Roles and Privileges
+</mongodb-users-roles-and-privileges/>`.
 
 To update Atlas user permissions, see:
 :atlas:`Manage Access to a Project </access/manage-project-access/>`.
-
-
