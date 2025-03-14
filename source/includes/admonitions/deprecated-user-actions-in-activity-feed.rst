@@ -1,7 +1,7 @@
 .. important::
 
-   Effective January 13, 2025, the :guilabel:`Project Activity Feed`
-   no longer logs the usernames of |service| users when they read or
+   Effective June 30, 2025, the :guilabel:`Project Activity Feed` will
+   no longer log the usernames of |service| users when they read or
    modify data in the :guilabel:`Data Explorer` in the {+atlas-ui+}.
    Even though the :guilabel:`Project Activity Feed` will no longer log
    usernames, it continues to log user connections from the {+atlas-ui+}
