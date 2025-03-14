@@ -1,3 +1,42 @@
+.. _opsmgr-server-8.0.5:
+
+|onprem| Server 8.0.5
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-03-06*
+
+Improvements
+`````````````
+
+- Adds support for |bic-full| 2.14.22.
+  
+- Compatible with :dbtools:`MongoDB Database Tools 100.11.0 </release-notes/database-tools-changelog>`.
+
+- Releases {+mongosh+} 2.3.9, which addresses {+mongosh+} |cve|\s, to |onprem|. To learn more, see {+mongosh+} 
+  Release Notes.
+
+- Adds support for configuring multiple passwords in the :setting:`security.ldap.bind.queryPassword` 
+  configuration file option so that users can ensure MongoDB doesn't disconnect from |ldap| 
+  after a restart when performing an |ldap| credential rotation. To learn more, see :ref:`enable-ldap-auth`.
+
+- Improves handling of misconfigured core and maximum connection pool sizes.
+
+- Adds ability for |onprem| to recognize a dash (``-``) in the deployment name.
+
+- Exports all stored telemetry data into the related files of the diagnostic logs.
+
+- Improves error handling to avoid ``mongodb-mms stop`` crashing from ``Mongodb-mms-backup-daemon`` 
+  errors when the PID file does not exist.
+
+Bug Fixes
+```````````
+
+Fixes the following issues:
+
+- Broken documentation link when adding an access list entry.
+
+- Error when saving custom parameter settings due to ``mms.mail.transport``.
+
 .. _opsmgr-server-8.0.4:
 
 |onprem| Server 8.0.4
