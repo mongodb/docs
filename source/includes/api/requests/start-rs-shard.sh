@@ -12,7 +12,7 @@ curl localhost:27182/api/v1/start -XPOST \
                 "shardCollection": {
                    "key": [
                       { "location": 1 },
-                      { "region": 1 },
+                      { "region": 1 }
                    ]
                 }
             }
