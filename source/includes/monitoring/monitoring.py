@@ -1,9 +1,9 @@
-from pymongo import MongoClient
+from pymongo import MongoClient, AsyncMongoClient
 from pymongo.monitoring import CommandListener, CommandSucceededEvent, ServerListener, \
     ConnectionPoolListener, ServerHeartbeatStartedEvent, \
     ConnectionCreatedEvent
 
-# start-monitoring
+# start-monitoring-listeners
 class MyCommandListener(CommandListener):
     def succeeded(self, event: CommandSucceededEvent):
         print(f"Command {event.command_name} succeeded")
@@ -21,7 +21,14 @@ class MyPoolListener(ConnectionPoolListener):
         print(f"Connection {event.connection_id} created")
 
     # Include other event method implementations here
+# end-monitoring-listeners
 
+# start-monitoring-client
 listeners = [MyCommandListener(), MyServerListener(), MyPoolListener()]
 client = MongoClient("<connection URI>", event_listeners=listeners)
-# end-monitoring
+# end-monitoring-client
+
+# start-monitoring-client-async
+listeners = [MyCommandListener(), MyServerListener(), MyPoolListener()]
+client = AsyncMongoClient("<connection URI>", event_listeners=listeners)
+# end-monitoring-client-async
