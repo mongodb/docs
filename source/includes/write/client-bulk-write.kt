@@ -1,5 +1,7 @@
 import com.mongodb.MongoNamespace
+import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Filters.eq
+import com.mongodb.client.model.Updates
 import com.mongodb.client.model.bulk.ClientBulkWriteOptions
 import com.mongodb.client.model.bulk.ClientBulkWriteResult
 import com.mongodb.client.model.bulk.ClientNamespacedWriteModel
@@ -12,11 +14,13 @@ data class Restaurant(
     val name: String,
     val borough: String,
     val cuisine: String,
+    val stars: Int? = null,
 )
 
 data class Movie(
     val title: String,
-    val year: Int
+    val year: Int,
+    val seen: Boolean? = null,
 )
 // end-data-classes
 
@@ -38,6 +42,22 @@ fun main() {
             Movie("Silly Days", 2022)
         )
     // end-insert-models
+
+    // start-update-models
+    val restaurantUpdate = ClientNamespacedWriteModel
+        .updateOne(
+            MongoNamespace("sample_restaurants", "restaurants"),
+            Filters.eq(Restaurant::name.name, "Villa Berulia"),
+            Updates.inc(Restaurant::stars.name, 1)
+        )
+
+    val movieUpdate = ClientNamespacedWriteModel
+        .updateMany(
+            MongoNamespace("sample_mflix", "movies"),
+            Filters.eq(Movie::title.name, "Carrie"),
+            Updates.set(Movie::seen.name, true)
+        )
+    // end-update-models
 
     // start-replace-models
     val restaurantReplacement = ClientNamespacedWriteModel
@@ -102,7 +122,7 @@ fun main() {
         )
     )
 
-    val result= mongoClient
+    val result = mongoClient
         .bulkWrite(bulkOps, options)
     // end-options
 }
