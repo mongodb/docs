@@ -5,24 +5,24 @@ import (
 	"fmt"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 func main() {
-	// connect to your Atlas cluster
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("<connection-string>"))
+	// Connects to your Atlas cluster
+	client, err := mongo.Connect(options.Client().ApplyURI("<connection-string>"))
 	if err != nil {
 		panic(err)
 	}
 	defer client.Disconnect(context.TODO())
 
-	// set namespace
+	// Sets the namespace
 	collection := client.Database("sample_mflix").Collection("movies")
 
-	// define pipeline stages
-	searchStage := bson.D{{"$search", bson.M{
+	// Defines the pipeline stages
+	searchStage := bson.D{{Key: "$search", Value: bson.M{
 		"index": "facet-tutorial",
 		"facet": bson.M{
 			"operator": bson.M{
@@ -43,25 +43,25 @@ func main() {
 		},
 	}}}
 
-	facetStage:= bson.D{{"$facet", bson.D{
-        {"meta", bson.A{
-            bson.D{{"$replaceWith", "$$SEARCH_META"}},
-            bson.D{{"$limit", 1}},
-        }},
-    }}}
-	setStage:= bson.D{{"$set", bson.D{
-        {"meta", bson.D{
-            {"$arrayElemAt", bson.A{"$meta",  0}},
-        }},
-    }}}
+	facetStage := bson.D{{Key: "$facet", Value: bson.D{
+		{Key: "meta", Value: bson.A{
+			bson.D{{Key: "$replaceWith", Value: "$$SEARCH_META"}},
+			bson.D{{Key: "$limit", Value: 1}},
+		}},
+	}}}
+	setStage := bson.D{{Key: "$set", Value: bson.D{
+		{Key: "meta", Value: bson.D{
+			{Key: "$arrayElemAt", Value: bson.A{"$meta", 0}},
+		}},
+	}}}
 
-	// run pipeline
+	// Runs the pipeline
 	cursor, err := collection.Aggregate(context.TODO(), mongo.Pipeline{searchStage, facetStage, setStage})
 	if err != nil {
 		panic(err)
 	}
 
-	// print results
+	// Prints the results
 	var results []bson.D
 	if err = cursor.All(context.TODO(), &results); err != nil {
 		panic(err)

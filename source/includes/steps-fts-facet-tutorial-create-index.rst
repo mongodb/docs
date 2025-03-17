@@ -29,7 +29,7 @@
             a. Click :guilabel:`Next`, then click :guilabel:`Review Your Index`.
             #. Click :guilabel:`Add Field Mapping` under :guilabel:`Field 
                Mappings` section. 
-            #. Click :guilabel:`Customzed COnfiguration` and select the following 
+            #. Click :guilabel:`Customized Configuration` and select the following 
                from the dropdowns: 
 
                .. list-table:: 
