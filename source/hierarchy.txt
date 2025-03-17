@@ -130,12 +130,17 @@ projects and {+clusters+}:
 Local {+service+} Deployments
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For your dev and test environments, you can also develop {+service+}
-{+clusters+} locally with the {+atlas-cli+}. This can enable developers
-to work locally from their machine and cut down on costs for
-development and test environments. To learn more, see 
-:atlascli:`Create a Local {+service+} Deployment
-</atlas-cli-deploy-local>`.
+For development and testing purposes, developers can use the {+atlas-cli+} to 
+:atlascli:`create a local {+service+} deployment</atlas-cli-deploy-local>`.
+By working locally from their machines, developers can cut down on costs
+for external development and testing environments. 
+
+Developers can also :atlascli:`run {+atlas-cli+} commands with Docker </atlas-cli-docker>`
+to build, run, and manage local {+service+} deployments using containers.
+Containers are standardized units that contain all of the software 
+needed to run an application. Containerization allows developers to build
+local {+service+} deployments in secure, reliable, and portable test 
+environments. To learn more, see :atlascli:`Create a Local {+service+} Deployment with Docker </atlas-cli-deploy-docker>`.
 
 Org and Project Hierarchies
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -193,29 +198,39 @@ this hierarchy.
 ~~~~~~~~~~~~~~~~~~~~~
 
 To maintain isolation between environments, we recommend that you deploy 
-{+cluster+}s that belong to the same application and are administered 
-by the same team in the same project, as shown in the following diagram:
+each cluster within its own project, as shown in the following diagram. 
+This allows administrators to maintain different project configurations between environments
+and uphold the principle of least privilege, which states that users should 
+only be granted the least level of access necessary for their role.
+
+However, this hierarchy may make it more complicated to share project-level configurations such as private endpoints and |cmk|\s across clusters.
+To learn more, see :ref:`hierarchy-multiple-clusters`. 
 
 .. figure:: /includes/images/deployment-hierarchy.svg
    :alt: An image showing one deployment per project in each organization.
    :align: center
    :lightbox:
 
-Grouping multiple {+clusters+} and therefore applications into one
-project by environment as shown in the following diagram simplifies
-administration when the same team is responsible for multiple
-applications across environments. This eases the setup cost for
-features such as private endpoints and customer-managed keys, since 
-all {+clusters+} in the same project share this configuration. However,
-this {+cluster+} hierarchy may violate the least-privilege rule.
+.. _hierarchy-multiple-clusters: 
 
-You should use this hierarchy only if both of the following are true:
+When to Consider Multiple {+Clusters+} Per Project 
+``````````````````````````````````````````````````
 
-- Every team member with access to the project is working on all other
+The following diagram shows an organization whose projects each contain multiple {+service+} {+clusters+}, grouped by environment. 
+Deploying multiple {+clusters+} within the same project simplifies administration when one application uses multiple backing clusters, or 
+the same team is responsible for multiple applications across environments. 
+This eases the setup cost for features such as private endpoints and customer-managed keys, 
+because all {+clusters+} in the same project share the same project configuration.
+
+However, this {+cluster+} hierarchy may violate the principle of least privilege.
+
+Deploy multiple {+clusters+} within the same project only if both of the following are true:
+
+- Each team member with access to the project is working on all other
   applications and {+clusters+} in the project. 
-- You are creating {+clusters+} for lower environments. Production
-  {+clusters+} should belong to the same application and be administered 
-  by the same team in the same project.
+- You are creating {+clusters+} for development and testing environments. 
+  In staging and production environments, we recommend that {+clusters+} in the same project
+  should belong to the same application and be administered by the same team.
 
 .. figure:: /includes/images/alt-deployment-by-environment.svg
    :alt: An image showing deployments grouped by environment.
@@ -247,42 +262,39 @@ To learn more about parsing billing data using tags, see
 
 In a dedicated deployment ({+cluster+} size ``M10``\+), {+service+}
 allocates resources exclusively. We recommend dedicated deployments
-because they provide higher security and performance than shared
+for production use cases because they provide higher security and performance than shared
 clusters.
 
-Use the following {+cluster+} size guide to select a {+cluster+} tier that ensures performance without over-provisioning. The {+cluster+} size guide also provides recommendations on which {+cluster+} tiers
-are suitable for development and testing environments, and which are
-suitable for staging and production environments.
-
-The {+cluster+}
-size guide uses "t-shirt sizing," a common analogy used in software
+The following {+cluster+} size guide uses "t-shirt sizing," a common analogy used in software
 development and infrastructure to describe capacity planning in a
-simplified manner. You should consider t-shirt sizes as approximate
-starting points. Sizing a {+cluster+} is an iterative process based on
+simplified manner. Use t-shirt sizing recommendations only as approximate
+starting points in your sizing analysis. Sizing a {+cluster+} is an iterative process based on
 changing resource needs, performance requirements, workload
 characteristics, and growth expectations.
 
 .. important::
    
    This guidance excludes mission-critical applications, high-memory
-   workloads, and high-CPU workloads. For mission-critical
-   applications, high-memory workloads, and high-CPU workloads, contact
-   |mdb-support| for customized guidance.
+   workloads, and high-CPU workloads. For these use cases,
+   contact |mdb-support| for customized guidance.
 
-You can estimate 
-the {+cluster+} resources required by using your organization's approximate data size and workload:
+You can estimate the {+cluster+} resources that your deployment requires by using your organization's approximate data size and workload:
 
 - **Total Storage Required**: 50% of the
   total raw data size
 - **Total RAM Required**: 10% of the total raw data size
 - **Total CPU Cores Required**: expected peak read/write database
   operations per second ÷ 4000
-- **Total Storage IOPS Required**: expected peak database writes per
+- **Total Storage IOPS Required**: expected peak read/write database operations per
   second (min IOPS = 5%, max IOPS = 95%)
+
+Use the following {+cluster+} size guide to select a {+cluster+} tier that ensures performance without over-provisioning. 
+This table displays the default storage and performance capabilities for each {+cluster+} tier, as well as 
+whether or not the {+cluster+} tier is suitable for staging and production environments. 
 
 .. list-table::
    :header-rows: 1
-   :widths: 10 10 20 20 10 10 10 20
+   :widths: 10 10 20 20 10 10 10 10
 
    * - T-Shirt Size
      - Cluster Tier
@@ -291,7 +303,7 @@ the {+cluster+} resources required by using your organization's approximate data
      - CPUs (#)
      - Default RAM
      - Default IOPS
-     - Recommended For
+     - Suitable For
 
    * - Small
      - ``M10`` [1]_
