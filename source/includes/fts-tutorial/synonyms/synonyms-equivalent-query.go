@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 // define structure of movies collection
@@ -19,7 +19,7 @@ func main() {
 	var err error
 	// connect to the Atlas cluster
 	ctx := context.Background()
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI("<connection-string>"))
+	client, err := mongo.Connect(options.Client().ApplyURI("<connection-string>"))
 	if err != nil {
 		panic(err)
 	}
