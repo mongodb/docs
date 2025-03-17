@@ -1,0 +1,193 @@
+.. _csharp-atlas-vector-search:
+
+===================
+{+vector-search+}
+===================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: .NET, search, semantic, AI, RAG
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+You can use {+vector-search+} to perform vector search on your data stored in
+Atlas. Vector search allows you to query your data based on semantic meaning
+rather than just keyword matches, which helps you retrieve more relevant search
+results. It enables your AI-powered applications to support use cases such as
+semantic search, hybrid search, and generative search, including
+Retrieval-Augmented Generation (RAG).
+
+By using Atlas as a vector database, you can seamlessly index vector data along
+with your other data in Atlas. This allows you to filter on fields in your
+collection and perform vector search queries against vector data. You can also
+combine vector search with full-text search queries to return the most relevant
+results for your use case. You can integrate {+vector-search+} with popular AI
+frameworks and services to easily implement vector search in your applications.
+
+To learn more about {+vector-search+}, see the :atlas:`{+vector-search+}
+</atlas-vector-search/vector-search-overview/>` guide in the MongoDB Atlas
+documentation.
+
+Supported Vector Embedding Types
+--------------------------------
+
+:atlas:`Vector embeddings
+</atlas-vector-search/vector-search-overview/#std-term-vector-embeddings>`
+are vectors you use to represent your data. These embeddings
+capture meaningful relationships in your data and enable tasks like semantic
+search and retrieval.
+
+The {+driver-short+} supports vector embeddings of several types. The following
+sections describe the supported vector embedding types.
+
+
+.. _csharp-vector-array-representation:
+
+Array Representations
+~~~~~~~~~~~~~~~~~~~~~
+
+The {+driver-short+} supports the following representations of the array
+type in vector embeddings:
+
+- ``BsonArray``
+- ``Memory``
+- ``ReadOnlyMemory``
+- ``float[]`` and ``double[]``
+
+The following example shows a class with properties of the preceding types:
+
+.. literalinclude:: /includes/fundamentals/code-examples/atlas-vector-search/VectorSearchExamples.cs
+   :language: csharp
+   :start-after: start-bson-arrays
+   :end-before: end-bson-arrays
+
+.. _csharp-binary-vector-representation:
+
+Binary Vector Representations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The {+driver-short+} supports the following binary vector representations in
+vector embeddings:
+
+- ``BinaryVectorFloat32`` (not supported on big-endian architectures)
+- ``BinaryVectorInt8``
+- ``BinaryVectorPackedBit``
+- ``Memory<float>``, ``Memory<byte>``, ``Memory<sbyte>``
+- ``ReadOnlyMemory<float>``, ``ReadOnlyMemory<byte>``, ``ReadOnlyMemory<sbyte>``
+- ``float[]``, ``byte[]``, ``sbyte[]``
+
+.. note::
+
+   You must use the ``BinaryVector`` attribute when specifying binary vector
+   representations of the ``Memory<T>``, ``ReadOnlyMemory<T>``, or array
+   types.
+
+The following example shows a class with properties of the preceding types:
+
+.. literalinclude:: /includes/fundamentals/code-examples/atlas-vector-search/VectorSearchExamples.cs
+   :language: csharp
+   :start-after: start-binary-vectors
+   :end-before: end-binary-vectors
+
+Binary Vector Data Serialization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can serialize ``Int8`` binary vector typed data as ``byte`` or ``sbyte``.
+You can also serialize ``Float32`` binary vector typed data as ``float``. The
+following example serializes ``Int8`` and ``Float32`` binary vector data:
+
+.. literalinclude:: /includes/fundamentals/code-examples/atlas-vector-search/VectorSearchExamples.cs
+   :language: csharp
+   :start-after: start-binary-int-float-serialize
+   :end-before: end-binary-int-float-serialize
+
+You can deserialize ``PackedBit`` vector data to a :ref:`binary vector
+represented <csharp-binary-vector-representation>` ``byte`` data type only if the
+vector data has a padding value of ``0``. If the vector data has a padding value not
+equal to ``0``, you can deserialize it only to a ``BsonVectorPackedBit``.
+
+Vector Search Query Example
+---------------------------
+
+You can perform a vector search query by calling the ``VectorSearch()`` method
+in an :ref:`aggregation pipeline <csharp-aggregation>`. To perform a vector
+search on a collection, you must first have a collection with a field that contains
+vector data and a vector search index that covers that field.
+
+.. tip::
+
+   To learn more about configuring a collection for vector search, see the :atlas:`{+vector-search+}
+   </atlas-vector-search/vector-search-overview/>` guide in the MongoDB Atlas
+   documentation.
+
+You can convert ``BinaryVectorFloat32``, ``BinaryVectorInt8``, and
+``BinaryVectorPackedBit`` data to the ``BsonBinaryData`` type to use in a vector
+search query by using the ``ToQueryVector()`` method. The following example
+converts ``BinaryVectorInt8`` into a ``BsonBinaryData`` object:
+
+.. literalinclude:: /includes/fundamentals/code-examples/atlas-vector-search/VectorSearchExamples.cs
+   :language: csharp
+   :start-after: start-to-query-vector
+   :end-before: end-to-query-vector
+
+You can specify your :ref:`array-represented
+<csharp-vector-array-representation>` vector data as an instance of the
+``QueryVector`` class to use in a vector search query. The following example 
+creates an array of ``ReadOnlyMemory<float>`` values as a ``QueryVector`` object
+to use in a vector search query:
+
+.. literalinclude:: /includes/fundamentals/code-examples/atlas-vector-search/VectorSearchExamples.cs
+   :language: csharp
+   :start-after: start-array-query-vector
+   :end-before: end-array-query-vector
+
+Example
+~~~~~~~
+
+This example performs the following steps to run an {+vector-search+} query on a collection that
+contains vector data and a vector search index on the ``PlotEmbedding`` field:
+
+1. Creates an array that contains the :ref:`array-represented
+   <csharp-vector-array-representation>` vector data to search for
+#. Specifies a ``VectorSearchOptions`` object that contains the name of the index
+   and the number of nearest neighbors to use during the search
+#. Creates an aggregation pipeline that uses the ``VectorSearch()`` stage to
+   perform the vector search query and a ``Project()`` stage to filter the
+   results
+#. Prints the results of the query
+
+.. literalinclude:: /includes/fundamentals/code-examples/atlas-vector-search/VectorSearchQueryExample.cs
+   :language: csharp
+   :start-after: start-search-example
+   :end-before: end-search-example
+   :emphasize-lines: 11
+
+Additional Information
+----------------------
+
+To learn more about {+vector-search+}, see the :atlas:`{+vector-search+}
+</atlas-vector-search/vector-search-overview/>` guide in the MongoDB Atlas
+documentation.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the functions or types discussed in this
+guide, see the following API Documentation:
+
+- `BinaryVectorFloat32 <{+new-api-root+}/MongoDB.Bson/MongoDB.Bson.BinaryVectorFloat32.html>`__
+- `BinaryVectorInt8 <{+new-api-root+}/MongoDB.Bson/MongoDB.Bson.BinaryVectorInt8.html>`__
+- `BinaryVectorFloat32 <{+new-api-root+}/MongoDB.Bson/MongoDB.Bson.BinaryVectorPackedBit.html>`__
+- `ToQueryVector() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.BinaryVectorDriverExtensions.ToQueryVector.html>`__
+- `VectorSearch() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.AggregateFluentBase-1.VectorSearch.html>`__
+- `Aggregate() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.IMongoCollectionExtensions.Aggregate.html>`__
