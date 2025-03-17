@@ -1,7 +1,7 @@
 .. procedure:: 
    :style: normal 
 
-   .. step:: Create the ``.go`` file and use the ``SearchIndexes().DropOne()`` method to delete the index. 
+   .. step:: Create a file called ``delete-index.go`` and use the ``SearchIndexes().DropOne()`` method to delete the index. 
 
       .. literalinclude:: /includes/avs-examples/index-management/delete-index/delete-index.go
          :language: go
@@ -29,4 +29,4 @@
 
       .. code-block:: shell
 
-         go run <file-name>.go
+         go run delete-index.go

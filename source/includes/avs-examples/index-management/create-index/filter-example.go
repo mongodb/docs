@@ -6,9 +6,9 @@ import (
 	"log"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 func main() {
@@ -19,7 +19,7 @@ func main() {
 
 	// Connect to your Atlas cluster
 	clientOptions := options.Client().ApplyURI(uri)
-	client, err := mongo.Connect(ctx, clientOptions)
+	client, err := mongo.Connect(clientOptions)
 	if err != nil {
 		log.Fatalf("failed to connect to the server: %v", err)
 	}
@@ -52,12 +52,12 @@ func main() {
 		Path:          "plot_embedding",
 		NumDimensions: 1536,
 		Similarity:    "dotProduct",
-	        Quantization:  "scalar"}
+		Quantization:  "scalar"}
 	genreFilterDefinition := filterField{"filter", "genres"}
 	yearFilterDefinition := filterField{"filter", "year"}
 
 	indexModel := mongo.SearchIndexModel{
-		Definition: bson.D{{"fields", [3]interface{}{
+		Definition: bson.D{{Key: "fields", Value: [3]interface{}{
 			vectorDefinition,
 			genreFilterDefinition,
 			yearFilterDefinition}}},

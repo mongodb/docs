@@ -1,16 +1,17 @@
 .. procedure:: 
    :style: normal 
 
-   .. step:: Create a ``.go`` file and define the index in the file. 
+   .. step:: Create a file called ``create-index.go`` and define the index in the file.
 
       .. literalinclude:: /includes/avs-examples/index-management/create-index/create-index.go
          :language: go
          :copyable: true 
-         :linenos: 
+         :linenos:
 
-      .. example:: 
-
-         Create a file named ``vector-index.go``.
+      .. note:: Programmatic Index Creation
+      
+         The MongoDB Go driver supports programmatic {+avs+} index management starting
+         in v1.16.0, but the preceding code shows the syntax for the v2.x driver.
 
    .. step:: Replace the following values and save the file.
 
@@ -35,9 +36,9 @@
          * - ``<fieldToIndex>``
            - Vector and filter fields to index.
 
-      .. example:: 
+      .. example::
 
-         Copy and paste the following into the ``vector-index.go`` file
+         Copy and paste the following into the ``create-index.go`` file
          and replace the ``<connectionString>`` placeholder value. The
          following index definition indexes the ``plot_embedding`` field
          as the ``vector`` type and the ``genres`` and ``year`` fields
@@ -57,7 +58,8 @@
 
                .. literalinclude:: /includes/avs-examples/index-management/create-index/basic-example.go
                   :language: go
-                  :copyable: true 
+                  :copyable: true
+                  :emphasize-lines: 47-57
                   :linenos:
 
             .. tab:: Filter Example 
@@ -66,23 +68,18 @@
                This index definition indexes the following fields: 
       
                - A string field (``genres``) and a numeric field (``year``)
-                 for pre-filtering the data. 
+                 for pre-filtering the data.
                - The vector embeddings field (``plot_embedding``) for
                  performing vector search against pre-filtered data.
 
                .. literalinclude:: /includes/avs-examples/index-management/create-index/filter-example.go
                   :language: go
-                  :copyable: true 
+                  :copyable: true
+                  :emphasize-lines: 50-57
                   :linenos:
 
    .. step:: Run the following command to create the index.
 
       .. code-block:: shell
 
-         go run <file-name>.go
-
-      .. example:: 
-
-         .. code-block:: shell
-
-            go run vector-index.go
+         go run create-index.go

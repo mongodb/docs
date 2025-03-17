@@ -1,7 +1,7 @@
 .. procedure:: 
    :style: normal 
 
-   .. step:: Create the ``go`` file and define the index changes in the file. 
+   .. step:: Create a file called ``edit-index.go`` and define the index changes in the file. 
 
       .. literalinclude:: /includes/avs-examples/index-management/update-index/edit-index.go
          :language: go
@@ -35,4 +35,4 @@
 
       .. code-block:: shell
 
-         go run <file-name>.go
+         go run edit-index.go

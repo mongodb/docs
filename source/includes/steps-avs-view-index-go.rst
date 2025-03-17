@@ -1,7 +1,7 @@
 .. procedure:: 
    :style: normal 
 
-   .. step:: Create the ``.go`` file and use the ``SearchIndexes().List()`` method to retrieve the index. 
+   .. step:: Create a file named ``get-index.go`` and use the ``SearchIndexes().List()`` method to retrieve the index. 
 
       .. literalinclude:: /includes/avs-examples/index-management/return-index/get-index.go
          :language: go
@@ -25,10 +25,11 @@
          * - ``<indexName>``
            - The name of your index if you want to retrieve a specific
              index. To return all indexes on the collection, omit this
-             value.
+             value and remove the call to the ``SetName()`` method when
+             creating the Search index options.
 
    .. step:: Run the following command to retrieve the index.
 
       .. code-block:: shell
 
-         go run <file-name>.go
+         go run get-index.go
