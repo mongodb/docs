@@ -84,7 +84,7 @@ see the prerequisites for managing customer keys with :ref:`AWS <aws-ksm-prereqs
 Required Access: ``controlPlane.outbound`` IP Addresses
 -------------------------------------------------------
 
-``controlPlane.outbound`` lists the IP addresses traffic coming from the 
+``controlPlane.outbound`` lists the IP addresses of traffic coming from the 
 control plane. Your network's **inbound** HTTP IP address list must allow 
 access from the IP addresses listed in ``controlPlane.outbound``. 
 
