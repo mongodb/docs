@@ -89,31 +89,19 @@ single result set by performing the following actions:
 Prerequisites 
 -------------
 
-Before you begin, you must have the following:
+Before you begin, complete the |prereq-link|. For this tutorial,
+you must have an |service| cluster with MongoDB version v6.0.11, 
+or v7.0.2 or later. 
 
-- An |service| cluster with MongoDB version v6.0.11, or v7.0.2 or later. 
+This tutorial includes examples for the following clients:
 
-  .. note:: 
+- {+mongosh+}
+- :driver:`MongoDB Node Driver </node/current/>`
 
-     Ensure that your |service| {+cluster+} has enough memory to store
-     both |fts| and {+avs+} indexes and run performant queries.
+.. note::
 
-- The :doc:`sample data </sample-data>` loaded into your |service| 
-  cluster.
-  
-- One of the following clients to run queries on your |service|
-  {+cluster+}:
-
-  - :ref:`Search Tester <atlas-search-query-ui>`
-  - {+mongosh+}
-  - {+Compass+}
-  - :driver:`C# </csharp/current/>`
-  - :driver:`Java </java-drivers/>`
-  - :driver:`MongoDB Node Driver </node/current/>`
-  - :driver:`PyMongo </pymongo/>`
-  
-- :authrole:`Project Data Access Admin` access to the project to create
-  {+avs+} and |fts| indexes. 
+   Ensure that your |service| {+cluster+} has enough memory to store
+   both |fts| and {+avs+} indexes and run performant queries.
 
 Create the {+avs+} and |fts| Indexes 
 -------------------------------------------------
