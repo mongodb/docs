@@ -39,6 +39,22 @@ public class QuickStart {
             );
             // end-insert-models
 
+            // start-update-models
+            ClientNamespacedUpdateOneModel personUpdate = ClientNamespacedWriteModel
+                    .updateOne(
+                            new MongoNamespace("db", "people"),
+                            Filters.eq("name", "Freya Polk"),
+                            Updates.inc("age", 1)
+                    );
+
+            ClientNamespacedUpdateManyModel thingUpdate = ClientNamespacedWriteModel
+                    .updateMany(
+                            new MongoNamespace("db", "things"),
+                            Filters.eq("category", "electronic"),
+                            Updates.set("manufacturer", "Premium Technologies")
+                    );
+            // end-update-models
+
             // start-replace-models
             ClientNamespacedReplaceOneModel personReplacement = ClientNamespacedWriteModel
                     .replaceOne(
