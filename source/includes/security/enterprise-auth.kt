@@ -121,6 +121,28 @@ val mongoClient = MongoClient.create(
         .build())
 // end-oidc-gcp-mongo-cred
 
+// start-oidc-k8s-connect-str
+val connectionString = ConnectionString(
+    "mongodb://<OIDC principal>@<hostname>:<port>/?" +
+            "authMechanism=MONGODB-OIDC" +
+            "&authMechanismProperties=ENVIRONMENT:k8s,TOKEN_RESOURCE:<percent-encoded audience>")
+val mongoClient = MongoClient.create(connectionString)
+// end-oidc-k8s-connect-str
+
+// start-oidc-k8s-mongo-cred
+val credential = MongoCredential.createOidcCredential("<OIDC principal>")
+    .withMechanismProperty("ENVIRONMENT", "k8s")
+    .withMechanismProperty("TOKEN_RESOURCE", "<audience>")
+
+val mongoClient = MongoClient.create(
+    MongoClientSettings.builder()
+        .applyToClusterSettings { builder ->
+            builder.hosts(listOf(ServerAddress("<hostname>", <port>)))
+        }
+        .credential(credential)
+        .build())
+// end-oidc-k8s-mongo-cred
+
 // start-oidc-custom-callback
 val credential = MongoCredential.createOidcCredential(null)
     .withMechanismProperty("OIDC_CALLBACK") { context: Context ->
