@@ -171,6 +171,32 @@ internal class EnterpriseAuthTest {
         // :snippet-end:
     }
 
+    fun oidcKubernetesConnectionString() = runBlocking {
+        // :snippet-start: oidc-k8s-connection-string
+        val connectionString = ConnectionString(
+            "mongodb://<OIDC principal>@<hostname>:<port>/?" +
+                    "authMechanism=MONGODB-OIDC" +
+                    "&authMechanismProperties=ENVIRONMENT:k8s,TOKEN_RESOURCE:<percent-encoded audience>")
+        val mongoClient = MongoClient.create(connectionString)
+        // :snippet-end:
+    }
+
+    fun oidcKubernetesCredential() = runBlocking {
+        // :snippet-start: oidc-k8s-credential
+        val credential = MongoCredential.createOidcCredential("<OIDC principal>")
+            .withMechanismProperty("ENVIRONMENT", "k8s")
+            .withMechanismProperty("TOKEN_RESOURCE", "<audience>")
+
+        val mongoClient = MongoClient.create(
+            MongoClientSettings.builder()
+                .applyToClusterSettings { builder ->
+                    builder.hosts(listOf(ServerAddress("<hostname>", PORT)))
+                }
+                .credential(credential)
+                .build())
+        // :snippet-end:
+    }
+
     fun oidcCallback() = runBlocking {
         // :snippet-start: oidc-callback
         val credential = MongoCredential.createOidcCredential(null)
