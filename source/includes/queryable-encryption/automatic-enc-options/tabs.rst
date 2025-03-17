@@ -487,7 +487,7 @@
 
          For more information on these automatic encryption options, see the 
          API documentation for the
-         `AutoEncryptionOptions <https://pkg.go.dev/go.mongodb.org/mongo-driver@v1.12.1/mongo/options#AutoEncryptionOptions>`__
+         `AutoEncryptionOptions <https://pkg.go.dev/go.mongodb.org/mongo-driver/v2/mongo/options#AutoEncryptionOptions>`__
          type.
 
    .. tab::

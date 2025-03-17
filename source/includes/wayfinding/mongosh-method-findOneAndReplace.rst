@@ -25,7 +25,7 @@
    .. wayfinding-option:: https://www.mongodb.com/docs/drivers/node/current/fundamentals/crud/compound-operations/#built-in-methods
       :id: nodejs
 
-   .. wayfinding-option:: https://pkg.go.dev/go.mongodb.org/mongo-driver@v1.17.0/mongo#Collection.FindOneAndReplace
+   .. wayfinding-option:: https://pkg.go.dev/go.mongodb.org/mongo-driver/v2/mongo#Collection.FindOneAndReplace
       :id: go
 
    .. wayfinding-option:: https://www.mongodb.com/docs/php-library/current/reference/method/MongoDBCollection-findOneAndReplace/

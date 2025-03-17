@@ -7,10 +7,9 @@ import (
 
 	"crypto/tls"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 func Insert() error {
@@ -35,7 +34,7 @@ func Insert() error {
 	uri := "<Your MongoDB URI>"
 
 	// start-schema
-	regularClient, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
+	regularClient, err := mongo.Connect(options.Client().ApplyURI(uri))
 	if err != nil {
 		return fmt.Errorf("Connect error for regular client: %v", err)
 	}
@@ -48,25 +47,25 @@ func Insert() error {
 	if err != nil {
 		panic(err)
 	}
-	var dataKeyID1 = foundDoc1["_id"].(primitive.Binary)
+	var dataKeyID1 = foundDoc1["_id"].(bson.Binary)
 	var foundDoc2 bson.M
 	err = regularClient.Database(keyVaultDb).Collection(keyVaultColl).FindOne(context.TODO(), bson.D{{"keyAltNames", "demoDataKey2"}}).Decode(&foundDoc2)
 	if err != nil {
 		panic(err)
 	}
-	var dataKeyID2 = foundDoc2["_id"].(primitive.Binary)
+	var dataKeyID2 = foundDoc2["_id"].(bson.Binary)
 	var foundDoc3 bson.M
 	err = regularClient.Database(keyVaultDb).Collection(keyVaultColl).FindOne(context.TODO(), bson.D{{"keyAltNames", "demoDataKey3"}}).Decode(&foundDoc3)
 	if err != nil {
 		panic(err)
 	}
-	var dataKeyID3 = foundDoc3["_id"].(primitive.Binary)
+	var dataKeyID3 = foundDoc3["_id"].(bson.Binary)
 	var foundDoc4 bson.M
 	err = regularClient.Database(keyVaultDb).Collection(keyVaultColl).FindOne(context.TODO(), bson.D{{"keyAltNames", "demoDataKey4"}}).Decode(&foundDoc4)
 	if err != nil {
 		panic(err)
 	}
-	var dataKeyID4 = foundDoc4["_id"].(primitive.Binary)
+	var dataKeyID4 = foundDoc4["_id"].(bson.Binary)
 
 	encryptedFieldsMap := bson.M{
 		"medicalRecords.patients": bson.M{
