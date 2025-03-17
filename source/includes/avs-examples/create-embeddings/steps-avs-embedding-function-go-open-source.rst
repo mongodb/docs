@@ -10,7 +10,7 @@
       .. code-block::
 
          go get github.com/joho/godotenv
-         go get go.mongodb.org/mongo-driver/mongo
+         go get go.mongodb.org/mongo-driver/v2/mongo
          go get github.com/tmc/langchaingo/llms
 
    .. step:: Create a ``.env`` file to manage secrets.

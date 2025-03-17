@@ -3,7 +3,7 @@ package common
 import (
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type Image struct {
@@ -73,45 +73,45 @@ type Review struct {
 }
 
 type Listing struct {
-	ID                   string               `bson:"_id"`
-	ListingURL           string               `bson:"listing_url"`
-	Name                 string               `bson:"name"`
-	Summary              string               `bson:"summary"`
-	Space                string               `bson:"space"`
-	Description          string               `bson:"description"`
-	NeighborhoodOverview string               `bson:"neighborhood_overview"`
-	Notes                string               `bson:"notes"`
-	Transit              string               `bson:"transit"`
-	Access               string               `bson:"access"`
-	Interaction          string               `bson:"interaction"`
-	HouseRules           string               `bson:"house_rules"`
-	PropertyType         string               `bson:"property_type"`
-	RoomType             string               `bson:"room_type"`
-	BedType              string               `bson:"bed_type"`
-	MinimumNights        string               `bson:"minimum_nights"`
-	MaximumNights        string               `bson:"maximum_nights"`
-	CancellationPolicy   string               `bson:"cancellation_policy"`
-	LastScraped          time.Time            `bson:"last_scraped,omitempty"`
-	CalendarLastScraped  time.Time            `bson:"calendar_last_scraped,omitempty"`
-	FirstReview          time.Time            `bson:"first_review,omitempty"`
-	LastReview           time.Time            `bson:"last_review,omitempty"`
-	Accommodates         int32                `bson:"accommodates"`
-	Bedrooms             int32                `bson:"bedrooms"`
-	Beds                 int32                `bson:"beds"`
-	NumberOfReviews      int32                `bson:"number_of_reviews"`
-	Bathrooms            primitive.Decimal128 `bson:"bathrooms"`
-	Amenities            []string             `bson:"amenities"`
-	Price                primitive.Decimal128 `bson:"price"`
-	WeeklyPrice          primitive.Decimal128 `bson:"weekly_price"`
-	MonthlyPrice         primitive.Decimal128 `bson:"monthly_price"`
-	CleaningFee          primitive.Decimal128 `bson:"cleaning_fee"`
-	ExtraPeople          primitive.Decimal128 `bson:"extra_people"`
-	GuestsIncluded       primitive.Decimal128 `bson:"guests_included"`
-	Image                Image                `bson:"images"`
-	Host                 Host                 `bson:"host"`
-	Address              Address              `bson:"address"`
-	Availability         Availability         `bson:"availability"`
-	ReviewScores         ReviewScores         `bson:"review_scores"`
-	Reviews              []Review             `bson:"reviews"`
-	Embeddings           []float32            `bson:"embeddings,omitempty"`
+	ID                   string          `bson:"_id"`
+	ListingURL           string          `bson:"listing_url"`
+	Name                 string          `bson:"name"`
+	Summary              string          `bson:"summary"`
+	Space                string          `bson:"space"`
+	Description          string          `bson:"description"`
+	NeighborhoodOverview string          `bson:"neighborhood_overview"`
+	Notes                string          `bson:"notes"`
+	Transit              string          `bson:"transit"`
+	Access               string          `bson:"access"`
+	Interaction          string          `bson:"interaction"`
+	HouseRules           string          `bson:"house_rules"`
+	PropertyType         string          `bson:"property_type"`
+	RoomType             string          `bson:"room_type"`
+	BedType              string          `bson:"bed_type"`
+	MinimumNights        string          `bson:"minimum_nights"`
+	MaximumNights        string          `bson:"maximum_nights"`
+	CancellationPolicy   string          `bson:"cancellation_policy"`
+	LastScraped          time.Time       `bson:"last_scraped,omitempty"`
+	CalendarLastScraped  time.Time       `bson:"calendar_last_scraped,omitempty"`
+	FirstReview          time.Time       `bson:"first_review,omitempty"`
+	LastReview           time.Time       `bson:"last_review,omitempty"`
+	Accommodates         int32           `bson:"accommodates"`
+	Bedrooms             int32           `bson:"bedrooms"`
+	Beds                 int32           `bson:"beds"`
+	NumberOfReviews      int32           `bson:"number_of_reviews"`
+	Bathrooms            bson.Decimal128 `bson:"bathrooms"`
+	Amenities            []string        `bson:"amenities"`
+	Price                bson.Decimal128 `bson:"price"`
+	WeeklyPrice          bson.Decimal128 `bson:"weekly_price"`
+	MonthlyPrice         bson.Decimal128 `bson:"monthly_price"`
+	CleaningFee          bson.Decimal128 `bson:"cleaning_fee"`
+	ExtraPeople          bson.Decimal128 `bson:"extra_people"`
+	GuestsIncluded       bson.Decimal128 `bson:"guests_included"`
+	Image                Image           `bson:"images"`
+	Host                 Host            `bson:"host"`
+	Address              Address         `bson:"address"`
+	Availability         Availability    `bson:"availability"`
+	ReviewScores         ReviewScores    `bson:"review_scores"`
+	Reviews              []Review        `bson:"reviews"`
+	Embeddings           []float32       `bson:"embeddings,omitempty"`
 }
