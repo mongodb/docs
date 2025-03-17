@@ -24,16 +24,57 @@ This guide shows you how to use the {+driver-short+} to perform a bulk
 write operation that makes multiple changes to your data in a single
 database call.
 
-Consider a situation that requires you to insert documents, update
-documents, and delete documents for the same task. If you use
-the individual write methods to perform each type of operation, each write
-accesses the database separately. You can use a bulk write operation to
-optimize the number of calls your application makes to the server.
+Consider a scenario in which you want to insert a document,
+update multiple other documents, then delete a document. If you use
+individual methods, each operation requires its own database call.
+
+By using a bulk write operation, you can perform multiple write operations in
+fewer database calls. You can perform bulk write operations at the following levels:
+
+- :ref:`Collection <scala-coll-bulk-write>`: You can use the 
+  ``MongoCollection.bulkWrite()`` method to perform bulk write operations on a 
+  single collection. In this method, each kind of write operation requires at
+  least one database call. For example, ``MongoCollection.bulkWrite()`` puts multiple update
+  operations in one call, but makes two separate calls to the database for an insert
+  operation and a replace operation.
+
+- :ref:`Client <scala-client-bulk-write>`: If your application connects to
+  {+mdb-server+} version 8.0 or later, you can use the ``MongoClient.bulkWrite()``
+  method to perform bulk write operations on multiple collections and databases 
+  in the same cluster. This method performs all write operations 
+  in one database call.
+
+.. _scala-coll-bulk-write:
+
+Collection Bulk Write
+---------------------
+
+Bulk write operations contain one or more write operations. To perform a bulk 
+write operation at the collection level, pass a ``Seq`` of ``WriteModel`` 
+documents to the ``MongoCollection.bulkWrite()`` method. A ``WriteModel`` is a 
+model that represents a write operation.
+
+For each write operation that you want to perform, create an instance of
+one of the following classes that inherit from ``WriteModel``:
+
+- ``InsertOneModel``
+- ``UpdateOneModel``
+- ``UpdateManyModel``
+- ``ReplaceOneModel``
+- ``DeleteOneModel``
+- ``DeleteManyModel``
+
+Then, pass a list of these instances to the ``bulkWrite()`` method.
+
+The following sections show how to create and use instances of the
+preceding classes. The :ref:`scala-coll-bulkwrite-method` section
+demonstrates how to pass a list of models to the ``bulkWrite()`` method
+to perform the bulk operation.
 
 Sample Data
 ~~~~~~~~~~~
 
-The examples in this guide use the ``restaurants`` collection in the ``sample_restaurants``
+The examples in this section use the ``restaurants`` collection in the ``sample_restaurants``
 database from the :atlas:`Atlas sample datasets </sample-data>`. To access this collection
 from your Scala application, create a ``MongoClient`` that connects to an Atlas cluster
 and assign the following values to your ``database`` and ``collection`` variables:
@@ -46,27 +87,6 @@ and assign the following values to your ``database`` and ``collection`` variable
 
 To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see the
 :atlas:`Get Started with Atlas </getting-started>` guide.
-
-Define the Write Operations
----------------------------
-
-For each write operation you want to perform, create a corresponding
-instance of one of the following operation classes that inherit from the
-generic ``WriteModel`` class:
-
-- ``InsertOneModel``
-- ``UpdateOneModel``
-- ``UpdateManyModel``
-- ``ReplaceOneModel``
-- ``DeleteOneModel``
-- ``DeleteManyModel``
-
-Then, pass a list of these instances to the ``bulkWrite()`` method.
-
-The following sections show how to create and use instances of the
-preceding classes. The :ref:`scala-bulkwrite-method` section
-demonstrates how to pass a list of models to the ``bulkWrite()`` method
-to perform the bulk operation.
 
 Insert Operations
 ~~~~~~~~~~~~~~~~~
@@ -100,7 +120,7 @@ To update a document, create an instance of ``UpdateOneModel`` and pass
 the following arguments:
 
 - **Query filter** that specifies the criteria used to match documents in your collection.
-- Update operation you want to perform. For more information about update
+- **Update operation** that you want to perform. To learn more about update
   operations, see the :manual:`Field Update Operators
   </reference/operator/update-field/>` guide in the {+mdb-server+} manual.
 
@@ -119,11 +139,11 @@ result. You can specify a sort in an ``UpdateOptions`` instance to apply
 an order to matched documents before the driver performs the update
 operation, as shown in the following code:
 
-.. code-block:: java
+.. code-block:: scala
 
    val options = UpdateOptions.sort(ascending("name"))
 
-To update multiple documents, create an instance of ``UpdateManyModel`` and pass
+To update *multiple* documents, create an instance of ``UpdateManyModel`` and pass
 the same arguments as for ``UpdateOneModel``. The ``UpdateManyModel``
 class specifies updates for *all* documents that match your query
 filter.
@@ -163,7 +183,7 @@ result. You can specify a sort in a ``ReplaceOptions`` instance to apply
 an order to matched documents before the driver performs the replace
 operation, as shown in the following code:
 
-.. code-block:: java
+.. code-block:: scala
 
    val options = ReplaceOptions.sort(ascending("name"))
 
@@ -203,15 +223,15 @@ The following example creates an instance of ``DeleteManyModel``:
    :copyable:
    :dedent:
 
-.. _scala-bulkwrite-method:
+.. _scala-coll-bulkwrite-method:
 
 Perform the Bulk Operation
---------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-After you define a model instance for each operation you want to perform,
-pass a list of these instances to the ``bulkWrite()`` method.
-By default, the method runs the operations in the order
-specified by the list of models.
+After you define a model instance for each operation that you want to
+perform, pass a ``Seq`` instance containing the models to the
+``MongoCollection.bulkWrite()`` method. By default, the method runs the
+operations in the order specified by the list of models.
 
 The following example performs multiple write operations by using the
 ``bulkWrite()`` method:
@@ -243,13 +263,15 @@ operation that failed and details about the exception.
    target collection. The driver reports all write concern errors after
    attempting all operations, regardless of execution order.
 
-Customize Bulk Write Operation
-------------------------------
+Customize Bulk Write
+~~~~~~~~~~~~~~~~~~~~
 
-The ``bulkWrite()`` method optionally accepts a ``BulkWriteOptions`` parameter, which
-specifies options you can use to configure the bulk write
-operation. If you don't specify any options, the driver performs the
-bulk operation with default settings.
+The ``MongoCollection.bulkWrite()`` method optionally accepts a
+``BulkWriteOptions`` parameter, which specifies options that you can use to
+configure the bulk write operation. If you don't specify any options,
+the driver performs the bulk operation with default settings. To modify
+the behavior of the write operation, pass the class instance as the last
+argument to the ``bulkWrite()`` method.
 
 The following table describes the setter methods that you can use to
 configure a ``BulkWriteOptions`` instance:
@@ -306,7 +328,7 @@ reports the errors only after attempting all operations.
    order can differ from the way you list them to optimize the runtime.
 
 Return Value
-------------
+~~~~~~~~~~~~
 
 The ``bulkWrite()`` method returns a ``SingleObservable`` object that contains a
 ``BulkWriteResult``. You can access information from the ``BulkWriteResult`` instance by 
@@ -340,6 +362,260 @@ subscribing to the observable and using the following methods:
    * - ``getUpserts()``
      - | The list of upserted documents, if any.
 
+.. _scala-client-bulk-write:
+
+Client Bulk Write
+-----------------
+
+When connecting to a deployment running {+mdb-server+} 8.0 or later,
+you can use the ``MongoClient.bulkWrite()`` method to write
+to multiple databases and collections in the same cluster. The
+``MongoClient.bulkWrite()`` method performs all write operations in a
+single call.
+
+The ``MongoClient.bulkWrite()`` method takes a 
+``List`` containing one or more ``ClientNamespacedWriteModel`` instances
+to represent different write operations. You can construct instances of
+the ``ClientNamespacedWriteModel`` interface by using instance methods.
+For example, an instance of ``ClientNamespacedInsertOneModel`` represents an
+operation to insert one document, and you can create this model by using
+the ``ClientNamespacedWriteModel.insertOne()`` method.
+
+The following table describes the models and their corresponding
+instance methods:
+
+.. list-table::
+   :widths: 20 20 15 45
+   :header-rows: 1
+   
+   * - Model
+     - Instance Method
+     - Description
+     - Parameters
+
+   *  - ``ClientNamespacedInsertOneModel``
+      - ``insertOne()``
+      - Creates a model to insert a document into the ``namespace``.
+      - ``namespace``: Database and collection to write to
+        
+        ``document``: Document to insert
+
+   * - ``ClientNamespacedUpdateOneModel``
+     - ``updateOne()``
+     - Creates a model to update the first document in the ``namespace``
+       that matches ``filter``.
+     - ``namespace``: Database and collection to write to
+
+       ``filter``: Filter that selects which document to update
+
+       ``update``: Update to apply to matching document
+
+       ``updatePipeline``: Update pipeline to apply to matching document
+
+       ``options``: *(optional)* Options to apply when updating document
+
+       You must pass a value for either the ``update`` or ``updatePipeline`` 
+       parameter.
+
+   * - ``ClientNamespacedUpdateManyModel``
+     - ``updateMany()``
+     - Creates a model to update all documents in the ``namespace`` that match 
+       ``filter``.
+     - ``namespace``: Database and collection to write to
+
+       ``filter``: Filter that selects which documents to update
+
+       ``update``: Update to apply to matching documents
+
+       ``updatePipeline``: Update pipeline to apply to matching documents
+
+       ``options``: *(optional)* Options to apply when updating documents
+
+       You must pass a value for either the ``update`` or ``updatePipeline`` 
+       parameter.
+
+   * - ``ClientNamespacedReplaceOneModel``
+     - ``replaceOne()``
+     - Creates a model to replace the first document in the ``namespace`` that 
+       matches ``filter``.
+     - ``namespace``: Database and collection to write to
+
+       ``filter``: Filter that selects which document to replace
+
+       ``replacement``: Replacement document
+
+       ``options``: *(optional)* Options to apply when replacing documents
+
+   * - ``ClientNamespacedDeleteOneModel``
+     - ``deleteOne()``
+     - Creates a model to delete the first document in the ``namespace`` that 
+       matches ``filter``.
+     - ``namespace``: Database and collection to write to
+
+       ``filter``: Filter that selects which document to delete
+
+       ``option``: *(optional)* Options to apply when deleting document
+
+   * - ``ClientNamespacedDeleteManyModel``
+     - ``deleteMany()``
+     - Creates a model to delete all documents in the ``namespace`` that match 
+       ``filter``.
+     - ``namespace``: Database and collection to write to
+
+       ``filter``: Filter that selects which documents to delete
+
+       ``option``: *(optional)* Options to apply when deleting documents
+
+The following sections provide some examples of how to create models and use
+the client ``bulkWrite()``  method.
+
+Insert Operations
+~~~~~~~~~~~~~~~~~
+
+This example shows how to create models that contain instructions to
+insert two documents. One document is inserted into the ``db.people``
+collection, and the other document is inserted into the ``db.things`` collection.
+The ``MongoNamespace`` instance defines the target database and collection that 
+each write operation applies to.
+
+.. literalinclude:: /includes/write/client-bulk-write.scala
+   :start-after: start-insert-models
+   :end-before: end-insert-models
+   :language: scala
+   :copyable:
+   :dedent:
+
+Update Operations
+~~~~~~~~~~~~~~~~~
+
+The following example shows how to use the ``bulkWrite()`` method to update
+existing documents in the ``db.people`` and ``db.things`` collections:
+
+.. literalinclude:: /includes/write/client-bulk-write.scala
+   :language: scala
+   :dedent:
+   :start-after: start-update-models
+   :end-before: end-update-models
+
+This example increments the value of the ``age`` field by ``1`` in the
+document that has a ``name`` value of ``"Freya Polk"`` in the ``people``
+collection. It also sets the value of the ``manufacturer`` field to
+``"Premium Technologies"`` in all documents that have a ``category``
+value of ``"electronic"`` in the ``things`` collection.
+
+If multiple documents match the query filter specified in
+a ``ClientNamespacedUpdateOneModel`` instance, the operation updates the
+first result. You can specify a sort order in a `ClientUpdateOneOptions
+<{+core-api+}/com/mongodb/client/model/bulk/ClientUpdateOneOptions.html>`__
+instance to apply an order to matched documents before the driver
+performs the update operation, as shown in the following code:
+
+.. code-block:: scala
+
+   val options = ClientUpdateOneOptions
+     .clientUpdateOneOptions()
+     .sort(ascending("_id"))
+
+Replace Operations
+~~~~~~~~~~~~~~~~~~
+
+The following example shows how to create models to replace
+existing documents in the ``db.people`` and ``db.things`` collections:
+
+.. literalinclude:: /includes/write/client-bulk-write.scala
+   :start-after: start-replace-models
+   :end-before: end-replace-models
+   :language: scala
+   :copyable:
+   :dedent:
+
+The preceding code example replaces the following documents with new
+documents:
+
+- Document in the ``people`` collection that has an ``_id`` value of ``1`` 
+- Document in the ``things`` collection that has an ``_id`` value of ``1`` 
+
+If multiple documents match the query filter specified in
+a ``ClientNamespacedReplaceOneModel`` instance, the operation replaces the
+first result. You can specify a sort order in a `ClientReplaceOneOptions
+<{+core-api+}/com/mongodb/client/model/bulk/ClientReplaceOneOptions.html>`__
+instance to apply an order to matched documents before the driver
+performs the replace operation, as shown in the following code:
+
+.. code-block:: scala
+
+   val options = ClientReplaceOneOptions
+     .clientReplaceOneOptions()
+     .sort(ascending("_id"))
+
+Perform the Bulk Operation
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After you define a ``ClientNamespacedWriteModel`` instance for each
+operation that you want to perform, pass a list of these instances to the
+client ``bulkWrite()`` method. By default, the method runs the
+operations in the order that you specify them.
+
+The following example performs multiple write operations by using the
+``bulkWrite()`` method:
+
+.. io-code-block::
+   :copyable: 
+
+   .. input:: /includes/write/client-bulk-write.scala
+      :start-after: start-perform
+      :end-before: end-perform
+      :language: scala
+      :dedent:
+
+   .. output::
+      
+      AcknowledgedSummaryClientBulkWriteResult{insertedCount=1, matchedCount=1, ...}
+
+If any of the write operations fail, the driver raises a
+``ClientBulkWriteException`` and does not perform any further individual operations.
+``ClientBulkWriteException`` includes a ``BulkWriteError`` that can be accessed by using the
+``ClientBulkWriteException.getWriteErrors()`` method, which provides
+information about the failure.
+
+.. _scala-client-bulk-write-options:
+
+Customize Bulk Write
+~~~~~~~~~~~~~~~~~~~~
+
+You can pass an instance of ``ClientBulkWriteOptions`` to the
+``bulkWrite()`` method to customize how the driver performs the bulk write
+operation.
+
+Order of Execution
+``````````````````
+
+By default, the driver runs the individual operations in a bulk
+operation in the order that you specify them. The driver runs the
+operations until an error occurs, or until the total bulk operation
+successfully completes.
+
+However, you can pass ``false`` to the ``ordered()`` method when creating
+a ``ClientBulkWriteOptions`` instance to direct the driver to perform
+write operations in an unordered way. If you pass ``false``, the driver
+attempts to run all write operations in the bulk write operation, even if one
+operation produces an error.
+
+The following code sets the ``ordered`` option to ``false`` in an
+instance of ``ClientBulkWriteOptions`` and performs a bulk write operation to 
+insert multiple documents:
+
+.. literalinclude:: /includes/write/client-bulk-write.scala
+   :start-after: start-options
+   :end-before: end-options
+   :language: scala
+   :copyable:
+   :dedent:
+
+Because the write operation is unordered, the driver performs all the
+non-erroring operations even though the write operation that inserts a
+document with a duplicate key results in an error.
+
 Additional Information
 ----------------------
 
@@ -356,12 +632,24 @@ API Documentation
 To learn more about any of the methods or types discussed in this
 guide, see the following API documentation:
 
-- `bulkWrite() <{+api+}/org/mongodb/scala/MongoCollection.html#bulkWrite(clientSession:org.mongodb.scala.ClientSession,requests:Seq[_%3C:org.mongodb.scala.model.WriteModel[_%3C:TResult]],options:org.mongodb.scala.model.BulkWriteOptions):org.mongodb.scala.SingleObservable[org.mongodb.scala.BulkWriteResult]>`__
-- `InsertOneModel <{+core-api+}/com/mongodb/client/model/InsertOneModel.html>`__
-- `UpdateOneModel <{+core-api+}/com/mongodb/client/model/UpdateOneModel.html>`__
-- `UpdateManyModel <{+core-api+}/com/mongodb/client/model/UpdateManyModel.html>`__
-- `ReplaceOneModel <{+core-api+}/com/mongodb/client/model/ReplaceOneModel.html>`__
-- `DeleteOneModel <{+core-api+}/com/mongodb/client/model/DeleteOneModel.html>`__
-- `DeleteManyModel <{+core-api+}/com/mongodb/client/model/DeleteManyModel.html>`__
-- `BulkWriteOptions <{+core-api+}/com/mongodb/client/model/BulkWriteOptions.html>`__
-- `BulkWriteResult <{+core-api+}/com/mongodb/bulk/BulkWriteResult.html>`__
+- Collection Bulk Write
+
+  - `bulkWrite() <{+api+}/org/mongodb/scala/MongoCollection.html#bulkWrite(requests:Seq[_%3C:org.mongodb.scala.model.WriteModel[_%3C:TResult]]):org.mongodb.scala.SingleObservable[org.mongodb.scala.BulkWriteResult]>`__
+  - `InsertOneModel <{+core-api+}/com/mongodb/client/model/InsertOneModel.html>`__
+  - `UpdateOneModel <{+core-api+}/com/mongodb/client/model/UpdateOneModel.html>`__
+  - `UpdateManyModel <{+core-api+}/com/mongodb/client/model/UpdateManyModel.html>`__
+  - `ReplaceOneModel <{+core-api+}/com/mongodb/client/model/ReplaceOneModel.html>`__
+  - `DeleteOneModel <{+core-api+}/com/mongodb/client/model/DeleteOneModel.html>`__
+  - `DeleteManyModel <{+core-api+}/com/mongodb/client/model/DeleteManyModel.html>`__
+  - `BulkWriteOptions <{+core-api+}/com/mongodb/client/model/BulkWriteOptions.html>`__
+  - `BulkWriteResult <{+core-api+}/com/mongodb/bulk/BulkWriteResult.html>`__
+
+.. TODO fix bulk write link
+
+- Client Bulk Write
+
+  - `bulkWrite() <{+api+}/org/mongodb/scala/MongoCluster.html#bulkWrite>`__
+  - `ClientNamespacedWriteModel <{+core-api+}/com/mongodb/client/model/bulk/ClientNamespacedWriteModel.html>`__
+  - `MongoNamespace <{+core-api+}/com/mongodb/MongoNamespace.html>`__
+  - `ClientBulkWriteOptions <{+core-api+}/com/mongodb/client/model/bulk/ClientBulkWriteOptions.html>`__
+  - `ClientBulkWriteResult <{+core-api+}/com/mongodb/client/model/bulk/ClientBulkWriteResult.html>`__

@@ -32,7 +32,7 @@ object BulkWrite {
       // start-bulk-update-many
       val updateManyFilter = equal("name", "Wendy's")
       val updateManyDoc = set("cuisine", "Fast food")
-      val updateManyModel = UpdateOneModel(updateManyFilter, updateManyDoc)
+      val updateManyModel = UpdateManyModel(updateManyFilter, updateManyDoc)
       // end-bulk-update-many
 
       // start-bulk-replace-one
