@@ -48,7 +48,7 @@ a. Create a service account:
       :copyable: true
 
       GRANT CREATE SESSION TO <user>;
-      GRANT SELECT ON V$DATABASE TO <user>;
+      GRANT SELECT ON V_$DATABASE TO <user>;
 
    If the service account *is not* the table owner:
 
@@ -58,5 +58,5 @@ a. Create a service account:
       GRANT CREATE SESSION TO <user>;
       GRANT SELECT_CATALOG_ROLE TO <user>;
       GRANT SELECT ANY TABLE TO <user>;
-      GRANT SELECT ON V$DATABASE TO <user>;
+      GRANT SELECT ON V_$DATABASE TO <user>;
       GRANT FLASHBACK ANY TABLE TO <user>;
