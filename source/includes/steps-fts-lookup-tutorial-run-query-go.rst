@@ -11,7 +11,7 @@
          :language: go
          :linenos:
          :dedent:
-         :emphasize-lines: 16
+         :emphasize-lines: 17
 
    .. step:: Replace the ``<connection-string>`` in the query and then save the file.
 
@@ -28,11 +28,12 @@
             
             go run lookup-with-search-query.go
       
-         .. output:: 
-            :language: javascript
+         .. output::
+            :language: none
 
-            [{_id ObjectID("5ca4bbcea2dd94ee58162a68")} {name Elizabeth Ray} {email arroyocolton@gmail.com} {active true} {accounts [371138 324287 276528 332179 422649 387979]} {purchases [[{account_id 422649} {limit 10000} {products [CurrencyService InvestmentStock]}] [{account_id 324287} {limit 10000} {products [Commodity CurrencyService Derivatives InvestmentStock]}] [{account_id 332179} {limit 10000} {products [Commodity CurrencyService InvestmentFund Brokerage InvestmentStock]}]]}]
-            [{_id ObjectID("5ca4bbcea2dd94ee58162a69")} {name Lindsay Cowan} {email cooperalexis@hotmail.com} {accounts [116508]} {purchases []}]
-            [{_id ObjectID("5ca4bbcea2dd94ee58162a6a")} {name Katherine David} {email timothy78@hotmail.com} {accounts [462501 228290 968786 515844 377292]} {purchases [[{account_id 228290} {limit 10000} {products [CurrencyService InvestmentStock InvestmentFund Brokerage]}] [{account_id 515844} {limit 10000} {products [Commodity CurrencyService InvestmentFund Brokerage InvestmentStock]}]]}]
-            [{_id ObjectID("5ca4bbcea2dd94ee58162a6b")} {name Leslie Martinez} {email tcrawford@gmail.com} {accounts [170945 951849]} {purchases []}]
-            [{_id ObjectID("5ca4bbcea2dd94ee58162a6c")} {name Brad Cardenas} {email dustin37@yahoo.com} {accounts [721914 817222 973067 260799 87389]} {purchases [[{account_id 87389} {limit 10000} {products [CurrencyService InvestmentStock]}] [{account_id 260799} {limit 10000} {products [Brokerage InvestmentStock Commodity CurrencyService]}]]}]
+            {"_id":...,"name":"Gary Nichols","email":"laura34@yahoo.com","accounts":[{"$numberInt":"385397"},{"$numberInt":"337979"},{"$numberInt":"325377"},{"$numberInt":"440243"},{"$numberInt":"586395"},{"$numberInt":"86702"}],"purchases":[{"account_id":{"$numberInt":"337979"},"limit":{"$numberInt":"10000"},"products":["Brokerage","Derivatives","InvestmentStock","CurrencyService"]}]}
+            {"_id":...,"name":"Ashley Lopez","email":"michael16@hotmail.com","accounts":[{"$numberInt":"662207"},{"$numberInt":"816481"}],"purchases":[]}
+            {"_id":...,"name":"John Parks","email":"zmelton@gmail.com","accounts":[{"$numberInt":"702610"},{"$numberInt":"240640"}],"purchases":[{"account_id":{"$numberInt":"702610"},"limit":{"$numberInt":"10000"},"products":["Commodity","CurrencyService","InvestmentStock"]}]}
+            {"_id":...,"name":"Jennifer Lawrence","email":"scott50@yahoo.com","accounts":[{"$numberInt":"344885"},{"$numberInt":"839927"},{"$numberInt":"853542"}],"purchases":[{"account_id":{"$numberInt":"853542"},"limit":{"$numberInt":"10000"},"products":["CurrencyService","InvestmentStock"]},{"account_id":{"$numberInt":"344885"},"limit":{"$numberInt":"10000"},"products":["Commodity","InvestmentFund","CurrencyService","InvestmentStock"]},{"account_id":{"$numberInt":"839927"},"limit":{"$numberInt":"10000"},"products":["InvestmentFund","CurrencyService","Brokerage","Commodity","InvestmentStock"]}]}
+            {"_id":...,"name":"Jacqueline Haynes","email":"virginia36@hotmail.com","accounts":[{"$numberInt":"631901"},{"$numberInt":"814687"}],"purchases":[]}
+            

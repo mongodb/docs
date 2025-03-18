@@ -1,82 +1,83 @@
 package main
+
 import (
 	"context"
 	"fmt"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 func main() {
-  var err error
-  // connect to the Atlas cluster
-  ctx := context.Background()
-  client, err := mongo.Connect(ctx, options.Client().ApplyURI("<connection-string>"))
-  if err != nil {
-	  panic(err)
-  }
-  defer client.Disconnect(ctx)
-  // set namespace
-  collection := client.Database("sample_analytics").Collection("customers")
-  // define pipeline
-  lookupStage := bson.D{{"$lookup", bson.D{
-	{"from", "accounts"},
-	{"localField", "accounts"},
-	{"foreignField", "account_id"},
-	{"as", "purchases"},
-	{"pipeline", bson.A{
-	  bson.D{
-		{"$search", bson.D{
-		  {"index", "lookup-with-search-tutorial"},
-		  {"compound", bson.D{
-			{"must", bson.A{
-			  bson.D{{"queryString", bson.D{
-				{"defaultPath", "products"},
-				{"query", "products: (CurrencyService AND InvestmentStock)"},
-			  }}},
-			}},
-			{"should", bson.A{
-			  bson.D{{"range", bson.D{
-				{"path", "limit"},
-				{"gte", 5000},
-				{"lte", 10000},
-			  }}},
-			}},
-		  }},
+	var err error
+	// connect to the Atlas cluster
+	ctx := context.Background()
+	clOpts := options.Client().ApplyURI("<connection-string>").SetTimeout(5 * time.Second)
+	client, err := mongo.Connect(clOpts)
+	if err != nil {
+		panic(err)
+	}
+	defer client.Disconnect(ctx)
+	// set namespace
+	collection := client.Database("sample_analytics").Collection("customers")
+	// define pipeline
+	lookupStage := bson.D{{Key: "$lookup", Value: bson.D{
+		{Key: "from", Value: "accounts"},
+		{Key: "localField", Value: "accounts"},
+		{Key: "foreignField", Value: "account_id"},
+		{Key: "as", Value: "purchases"},
+		{Key: "pipeline", Value: bson.A{
+			bson.D{
+				{Key: "$search", Value: bson.D{
+					{Key: "index", Value: "lookup-with-search-tutorial"},
+					{Key: "compound", Value: bson.D{
+						{Key: "must", Value: bson.A{
+							bson.D{{Key: "queryString", Value: bson.D{
+								{Key: "defaultPath", Value: "products"},
+								{Key: "query", Value: "products: (CurrencyService AND InvestmentStock)"},
+							}}},
+						}},
+						{Key: "should", Value: bson.A{
+							bson.D{{Key: "range", Value: bson.D{
+								{Key: "path", Value: "limit"},
+								{Key: "gte", Value: 5000},
+								{Key: "lte", Value: 10000},
+							}}},
+						}},
+					}},
+				}},
+			},
+			bson.D{{Key: "$project", Value: bson.D{
+				{Key: "_id", Value: 0},
+				{Key: "address", Value: 0},
+				{Key: "birthdate", Value: 0},
+				{Key: "username", Value: 0},
+				{Key: "tier_and_details", Value: 0},
+			}}},
 		}},
-	  },
-	  bson.D{{"$project", bson.D{
-		{"_id", 0},
-		{"address", 0},
-        {"birthdate", 0},
-	    {"username", 0},
-	    {"tier_and_details", 0},
-	  }}},
-	}},
-  }}}
-  limitStage := bson.D{{"$limit", 5}}
-  projectStage := bson.D{{"$project", bson.D{
-    {"name", 1},
-	{"email", 1},
-	{"active", 1},
-	{"accounts", 1},
-	{"purchases", 1},
-  }}}
-  // specify the amount of time the operation can run on the server
-  opts := options.Aggregate().SetMaxTime(5 * time.Second)
-  // run pipeline
-  cursor, err := collection.Aggregate(ctx, mongo.Pipeline{lookupStage, limitStage, projectStage}, opts)
-  if err != nil {
-	  panic(err)
-  }
-  // print results
-  var results []bson.D
-  if err = cursor.All(context.TODO(), &results); err != nil {
-	  panic(err)
-  }
-  for _, result := range results {
-	  fmt.Println(result)
-  }
+	}}}
+	limitStage := bson.D{{Key: "$limit", Value: 5}}
+	projectStage := bson.D{{Key: "$project", Value: bson.D{
+		{Key: "name", Value: 1},
+		{Key: "email", Value: 1},
+		{Key: "active", Value: 1},
+		{Key: "accounts", Value: 1},
+		{Key: "purchases", Value: 1},
+	}}}
+
+	// run pipeline
+	cursor, err := collection.Aggregate(ctx, mongo.Pipeline{lookupStage, limitStage, projectStage})
+	if err != nil {
+		panic(err)
+	}
+	// print results
+	var results []bson.D
+	if err = cursor.All(context.TODO(), &results); err != nil {
+		panic(err)
+	}
+	for _, result := range results {
+		fmt.Println(result)
+	}
 }
