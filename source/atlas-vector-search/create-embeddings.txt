@@ -143,8 +143,8 @@ To complete this tutorial, you must have the following:
 
 .. _define-embedding-functions:
 
-Define an Embedding Function
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Use an Embedding Model
+~~~~~~~~~~~~~~~~~~~~~~
 
 .. tabs-drivers::
 
@@ -200,7 +200,7 @@ Define an Embedding Function
    .. tab::
       :tabid: nodejs
 
-      .. include:: /includes/extracts/define-embedding-function-simple-intro.rst
+      .. include:: /includes/extracts/define-embedding-function-advanced-intro.rst
 
       .. tabs::
          
@@ -257,12 +257,7 @@ in |service|.
          .. tab:: From Existing Data
             :tabid: existing-data
 
-            .. note::
-
-               This example uses the ``sample_airbnb.listingsAndReviews`` 
-               collection from our :ref:`sample data <sample-data>`, 
-               but you can adapt the code to work with any collection
-               in your {+cluster+}.
+            .. include:: /includes/fact-existing-sample-data.rst
 
             .. include:: /includes/avs-examples/create-embeddings/steps-avs-create-embeddings-existing-csharp.rst
 
@@ -279,12 +274,7 @@ in |service|.
          .. tab:: From Existing Data
             :tabid: existing-data
 
-            .. note::
-
-               This example uses the ``sample_airbnb.listingsAndReviews`` 
-               collection from our :ref:`sample data <sample-data>`, 
-               but you can adapt the code to work with any collection
-               in your {+cluster+}.
+            .. include:: /includes/fact-existing-sample-data.rst
 
             .. include:: /includes/avs-examples/create-embeddings/steps-avs-create-embeddings-existing-go.rst
 
@@ -301,12 +291,7 @@ in |service|.
          .. tab:: From Existing Data
             :tabid: existing-data
 
-            .. note::
-
-               This example uses the ``sample_airbnb.listingsAndReviews`` 
-               collection from our :ref:`sample data <sample-data>`, 
-               but you can adapt the code to work with any collection
-               in your {+cluster+}.
+            .. include:: /includes/fact-existing-sample-data.rst
 
             .. include:: /includes/avs-examples/create-embeddings/steps-avs-create-embeddings-existing-java.rst
 
@@ -323,12 +308,7 @@ in |service|.
          .. tab:: From Existing Data
             :tabid: existing-data
 
-            .. note::
-
-               This example uses the ``sample_airbnb.listingsAndReviews`` 
-               collection from our :ref:`sample data <sample-data>`, 
-               but you can adapt the code to work with any collection
-               in your {+cluster+}.
+            .. include:: /includes/fact-existing-sample-data.rst
 
             .. include:: /includes/avs-examples/create-embeddings/steps-avs-create-embeddings-existing-node.rst
 
@@ -340,49 +320,14 @@ in |service|.
          .. tab:: From New Data
             :tabid: new-data
 
-            .. tabs::
-               :hidden:
-
-               .. tab:: Open-Source
-                  :tabid: open-source
-
-                  .. include:: /includes/avs-examples/create-embeddings/steps-avs-create-embeddings-new-python-open-source.rst 
-
-               .. tab:: OpenAI
-                  :tabid: openai
-
-                  .. note::
-
-                     This example uses the ``sample_airbnb.listingsAndReviews`` 
-                     collection from our :ref:`sample data <sample-data>`, 
-                     but you can adapt the code to work with any collection
-                     in your {+cluster+}.
-
-                  .. include:: /includes/avs-examples/create-embeddings/steps-avs-create-embeddings-new-python-openai.rst
+            .. include:: /includes/avs-examples/create-embeddings/steps-avs-create-embeddings-new-python.rst 
 
          .. tab:: From Existing Data
             :tabid: existing-data
 
-            .. tabs::
-               :hidden:
+            .. include:: /includes/fact-existing-sample-data.rst
 
-               .. tab:: Open-Source
-                  :tabid: open-source
-
-                  .. include:: /includes/avs-examples/create-embeddings/steps-avs-create-embeddings-existing-python-open-source.rst
-
-               .. tab:: OpenAI
-                  :tabid: openai
-
-                  .. note::
-
-                     This example uses the ``sample_airbnb.listingsAndReviews`` 
-                     collection from our :ref:`sample data <sample-data>`, 
-                     but you can adapt the code to work with any collection
-                     in your {+cluster+}.
-
-                  .. include:: /includes/avs-examples/create-embeddings/steps-avs-create-embeddings-existing-python-openai.rst
-
+            .. include:: /includes/avs-examples/create-embeddings/steps-avs-create-embeddings-existing-python.rst
 
 Create Embeddings for Queries
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -444,6 +389,7 @@ are similar in meaning.
             :tabid: existing-data
 
             .. include:: /includes/avs-examples/create-embeddings/steps-avs-query-embedding-existing-java.rst
+
 
    .. tab::
       :tabid: nodejs
@@ -563,10 +509,54 @@ consider the following metrics:
   results. This score is important when choosing a model 
   for :ref:`RAG <avs-rag>` applications.
 
-.. seealso:: 
+.. tip:: 
     
    :website:`How to Choose the Right Embedding Model for Your Application
    </developer/products/atlas/choose-embedding-model-rag/#step-5--create-embeddings>`
+
+.. _avs-vector-compression:
+
+Vector Compression
+~~~~~~~~~~~~~~~~~~
+
+If you have a large number of float vectors and want to reduce the
+storage and :manual:`WiredTiger </core/wiredtiger/>` footprint 
+(such as disk and memory usage) in ``mongod``, compress your embeddings 
+by converting them to ``binData`` vectors.
+
+:manual:`BinData </reference/method/BinData/>` is a |bson| data type 
+that stores binary data. The default type for vector embeddings is an
+array of 32-bit floats (``float32``). Binary data is more storage efficient than 
+the default array format, and therefore requires three times less disk space.
+
+Storing ``binData`` vectors improves query performance
+since less resources are needed to load a document into the working set. 
+This can significantly improve query speed for vector queries where you are 
+returning over 20 documents. If you compress your ``float32`` embeddings, 
+you can query them with either ``float32`` or ``binData`` vectors.
+
+The tutorial on this page includes an :ref:`example function 
+<define-embedding-functions>` that you can use to convert your 
+``float32`` vectors to ``binData`` vectors.
+  
+Supported Drivers
+`````````````````
+
+|bson| :manual:`BinData </reference/method/BinData/>` vectors
+are supported by the following drivers:
+
+.. include:: /includes/avs-bson-bindata-supported-drivers.rst
+
+Background
+``````````
+
+Float vectors are typically difficult to compress because each 
+element in the array has its own type (despite most vectors 
+being uniformly typed). For this reason, converting 
+the float vector output of an embedding model to a ``binData`` 
+vector with subtype ``float32`` is a more efficient 
+serialization scheme. ``binData`` vectors store a single type 
+descriptor for the entire vector, which reduces storage overhead.
 
 .. _validating-embeddings:
 
@@ -576,59 +566,69 @@ Validating Your Embeddings
 Consider the following strategies to ensure that your 
 embeddings are correct and optimal:
 
-- **Test your functions and scripts**.
+.. collapsible:: 
+   :heading: Best Practices
+   :sub_heading: Learn best practices when creating embeddings.
+   :expanded: false
 
-  Generating embeddings takes time and computational resources. 
-  Before you create embeddings from large datasets or collections, 
-  test that your embedding functions or scripts work as expected
-  on a small subset of your data.
+   Consider the following best practices
+   when generating and querying your embeddings:
 
-- **Create embeddings in batches**.
+   - **Test your functions and scripts**.
 
-  If you want to generate embeddings
-  from a large dataset or a collection with many documents, 
-  create them in batches to avoid memory issues and optimize performance.
+     Generating embeddings takes time and computational resources. 
+     Before you create embeddings from large datasets or collections, 
+     test that your embedding functions or scripts work as expected
+     on a small subset of your data.
 
-- **Evaluate performance**.
+   - **Create embeddings in batches**.
 
-  Run test queries to check if your search results are relevant 
-  and accurately ranked. 
-  
-  To learn more about how to evaluate your results and fine-tune
-  the performance of your indexes and queries, see 
-  :ref:`avs-improve-results` and :ref:`avs-performance-tuning`.
+     If you want to generate embeddings
+     from a large dataset or a collection with many documents, 
+     create them in batches to avoid memory issues and optimize performance.
 
-Troubleshooting
-~~~~~~~~~~~~~~~
+   - **Evaluate performance**.
 
-Consider the following strategies if you encounter issues 
-with your embeddings:
+     Run test queries to check if your search results are relevant 
+     and accurately ranked. 
+     
+     To learn more about how to evaluate your results and fine-tune
+     the performance of your indexes and queries, see 
+     :ref:`avs-improve-results` and :ref:`avs-performance-tuning`.
 
-- **Verify your environment**.
+.. collapsible:: 
+   :heading: Troubleshooting
+   :sub_heading: Learn strategies to troubleshoot issues with your embeddings.
+   :expanded: false
 
-  Check that the necessary dependencies are installed and up-to-date. 
-  Conflicting library versions can cause unexpected behavior. 
-  Ensure that no conflicts exist by creating a new environment and 
-  installing only the required packages.
+   Consider the following strategies if you encounter issues 
+   with your embeddings:
 
-  .. include:: /includes/fact-colab-ip-address.rst
+   - **Verify your environment**.
 
-- **Monitor memory usage**.
+     Check that the necessary dependencies are installed and up-to-date. 
+     Conflicting library versions can cause unexpected behavior. 
+     Ensure that no conflicts exist by creating a new environment and 
+     installing only the required packages.
 
-  If you experience performance issues, check your RAM, CPU, and disk usage
-  to identify any potential bottlenecks. For hosted environments 
-  like Colab or Jupyter Notebooks, ensure that your instance is 
-  provisioned with sufficient resources and upgrade the instance 
-  if necessary.
+     .. include:: /includes/fact-colab-ip-address.rst
 
-- **Ensure consistent dimensions**.
-  
-  Verify that the {+avs+} index definition matches the dimensions of the   
-  embeddings stored in |service| and your query embeddings match the 
-  dimensions of the indexed embeddings. Otherwise, you might
-  encounter errors when running vector search queries.
+   - **Monitor memory usage**.
 
-To troubleshoot specific problems, see :ref:`vector-search-troubleshooting`.
+     If you experience performance issues, check your RAM, CPU, and disk usage
+     to identify any potential bottlenecks. For hosted environments 
+     like Colab or Jupyter Notebooks, ensure that your instance is 
+     provisioned with sufficient resources and upgrade the instance 
+     if necessary.
+
+   - **Ensure consistent dimensions**.
+     
+     Verify that the {+avs+} index definition matches the dimensions of the   
+     embeddings stored in |service| and your query embeddings match the 
+     dimensions of the indexed embeddings. Otherwise, you might
+     encounter errors when running vector search queries.
+
+   To troubleshoot specific problems, see :ref:`vector-search-troubleshooting`.
 
 Next Steps  
 ----------
@@ -641,6 +641,7 @@ retrieval-augmented generation (RAG):
 - :ref:`avs-rag`
 - :ref:`local-rag`
 
-You can also convert your embeddings to |bson| vectors for
-efficient storage and ingestion of vectors in |service|. 
-To learn more, see :ref:`avs-bindata-vector-subtype`. 
+You can also quantize your 32-bit float vector 
+embeddings into fewer bits to further reduce 
+resource consumption and improve query speed. 
+To learn more, see :ref:`avs-quantization`.

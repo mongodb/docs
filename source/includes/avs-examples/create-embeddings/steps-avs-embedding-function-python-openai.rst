@@ -12,7 +12,7 @@
 
          pip install --quiet --upgrade openai pymongo
 
-   .. step:: Define a function to generate vector embeddings.
+   .. step:: Define and test a function to generate vector embeddings.
 
       Paste and run the following code in your notebook to create
       a function that generates vector embeddings by using a 
@@ -27,10 +27,7 @@
       - Tests the function by generating a single embedding 
         for the string ``foo``.
 
-      ..
-         NOTE: If you edit this Python code, also update the Jupyter Notebooks
-         at https://github.com/mongodb/docs-notebooks/blob/main/create-embeddings/openai-new-data.ipynb
-         and https://github.com/mongodb/docs-notebooks/blob/main/create-embeddings/openai-existing-data.ipynb
+      .. NOTE: If you edit this Python code, also update the Jupyter Notebooks at https://github.com/mongodb/docs-notebooks/blob/main/create-embeddings/openai-new-data.ipynb and https://github.com/mongodb/docs-notebooks/blob/main/create-embeddings/openai-existing-data.ipynb
 
       .. io-code-block:: 
          :copyable: true 
@@ -54,7 +51,8 @@
                return embedding
 
             # Generate an embedding
-            get_embedding("foo")
+            embedding = get_embedding("foo")
+            print(embedding)
 
          .. output:: 
             :language: sh
@@ -64,4 +62,24 @@
       .. seealso::
 
          For |api| details and a list of available models, refer to
-         the `OpenAI documentation <https://platform.openai.com/docs/guides/embeddings>`__.
+         the `OpenAI documentation
+         <https://platform.openai.com/docs/guides/embeddings>`__.
+         
+      .. collapsible::
+         :heading: (Advanced) Compress your embeddings.
+         :sub_heading: Expand this section to define a function that converts your embeddings to BSON binary format.
+         :expanded: false
+
+         .. include:: /includes/extracts/avs-bson-function-python-description.rst
+
+         .. io-code-block::
+            :copyable: true 
+
+            .. input:: /includes/avs-examples/create-embeddings/generate_bson_vector.py
+               :language: python
+         
+            .. output:: 
+               :language: shell
+               :visible: false
+
+               The converted BSON embedding is: b'\'\x00:y\xbf\...\xbb\xdaC\x9a\xbc'

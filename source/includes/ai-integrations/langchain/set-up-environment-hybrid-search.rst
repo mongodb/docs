@@ -13,9 +13,9 @@
 
          pip install --quiet --upgrade langchain langchain-community langchain-core langchain-mongodb langchain-openai pymongo pypdf
 
-   .. step:: Set environmental variables.
+   .. step:: Set environment variables.
 
-      Run the following code to set the environmental variables for this tutorial.
+      Run the following code to set the environment variables for this tutorial.
       Provide your OpenAI API Key and |service| {+cluster+}'s |srv| :manual:`connection string
       </reference/connection-string/#find-your-mongodb-atlas-connection-string>`
       when prompted.

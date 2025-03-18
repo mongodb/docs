@@ -32,7 +32,7 @@
          from llama_index.llms.openai import OpenAI
          from llama_index.vector_stores.mongodb import MongoDBAtlasVectorSearch
                            
-   .. step:: Define environmental variables.
+   .. step:: Define environment variables.
 
       Run the following code, replacing the placeholders with 
       the following values:

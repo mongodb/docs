@@ -18,7 +18,7 @@ def get_embedding(text):
     return model.encode(text).tolist()
 
 # Filters for only documents with a summary field and without an embeddings field
-filter = { '$and': [ { 'summary': { '$exists': True, '$ne': None } }, { 'embeddings': { '$exists': False } } ] }
+filter = { '$and': [ { 'summary': { '$exists': True, "$nin": [ None, "" ] } }, { 'embeddings': { '$exists': False } } ] }
 
 # Creates embeddings for subset of the collection
 updated_doc_count = 0

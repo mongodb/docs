@@ -30,7 +30,7 @@
       the tutorial.
       
       This initial code snippet imports
-      required packages for this tutorial, defines environmental variables,
+      required packages for this tutorial, defines environment variables,
       and establishes a connection to your |service| {+cluster+}.
 
       .. code-block:: javascript

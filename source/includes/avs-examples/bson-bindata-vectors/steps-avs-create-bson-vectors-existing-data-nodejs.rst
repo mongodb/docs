@@ -29,7 +29,7 @@
             :linenos:
 
       #. Replace the ``<CONNECTION-STRING>`` placeholder if you didn't
-         set the environmental variable for your |service| connection
+         set the environment variable for your |service| connection
          string and then save the file. 
          
       #. Run the following command to fetch the data:
@@ -80,7 +80,7 @@
             :copyable: true
             :linenos:
 
-      #. If you didn't set the environmental variable for your 
+      #. If you didn't set the environment variable for your 
          Cohere API Key, replace the ``<COHERE-API-KEY>``
          placeholder and save the file. 
 
@@ -173,7 +173,7 @@
             :linenos:
 
       #. Replace the ``<CONNECTION-STRING>`` placeholder if you didn't
-         set the environmental variable for your |service| connection
+         set the environment variable for your |service| connection
          string and then save the file. 
 
       #. Run the following command to upload the data. 

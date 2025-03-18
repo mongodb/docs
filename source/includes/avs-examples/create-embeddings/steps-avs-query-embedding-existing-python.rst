@@ -26,16 +26,16 @@
 
             .. NOTE: If you edit this Python file, also update the Jupyter Notebook at https://github.com/mongodb/docs-notebooks/blob/main/create-embeddings/open-source-existing-data.ipynb
             
-            .. include:: /includes/admonitions/avs-run-query-description-python.rst
+            .. include:: /includes/avs-run-query-description.rst
 
             .. io-code-block:: 
                :copyable: true 
                
-               .. input:: /includes/avs-examples/create-embeddings/avs-query-embeddings-existing-open-source.py 
+               .. input:: /includes/avs-examples/create-embeddings/query_embeddings_existing.py
                   :language: python
                
                .. output:: /includes/avs-examples/tutorial/output-existing-open-source-python.json
-                  :language: json
+                  :language: shell
 
          .. tab:: OpenAI
             :tabid: openai
@@ -47,8 +47,8 @@
             .. io-code-block:: 
                :copyable: true 
                
-               .. input:: /includes/avs-examples/create-embeddings/avs-query-embeddings-existing-openai.py
+               .. input:: /includes/avs-examples/create-embeddings/query_embeddings_existing.py
                   :language: python
 
                .. output:: /includes/avs-examples/tutorial/output-existing-openai.json
-                  :language: json
+                  :language: shell

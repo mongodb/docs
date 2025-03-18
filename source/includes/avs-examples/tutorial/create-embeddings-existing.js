@@ -1,5 +1,6 @@
 import { MongoClient } from 'mongodb';
 import { getEmbedding } from './get-embeddings.js';
+// import { convertEmbeddingsToBSON } from './convert-embeddings.js';
 
 async function run() {
 
@@ -22,8 +23,12 @@ async function run() {
         await Promise.all(documents.map(async doc => {
 
             // Generate an embedding using the function that you defined
-            const embedding = await getEmbedding(doc.summary);
+            var embedding = await getEmbedding(doc.summary);
 
+            // Uncomment the following lines to convert the generated embedding into BSON format
+            // const bsonEmbedding = await convertEmbeddingsToBSON([embedding]); // Since convertEmbeddingsToBSON is designed to handle arrays
+            // embedding = bsonEmbedding; // Use BSON embedding instead of the original float32 embedding
+             
             // Add the embedding to an array of update operations
             updateDocuments.push(
                 {

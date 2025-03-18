@@ -11,7 +11,7 @@ async function run() {
         const collection = db.collection("listingsAndReviews");
 
         const filter = { '$and': [
-            { 'summary': { '$exists': true, '$ne': null } }, 
+            { 'summary': { '$exists': true, "$nin": [ null, "" ] } }, 
             { 'embeddings': { '$exists': false } }
         ]};
 

@@ -28,7 +28,7 @@ def create_indexes():
          ]
        },
        name="<indexName>",
-       type="vectorSearch", 
+       type="vectorSearch"
        )
                 
      second_model = SearchIndexModel(
@@ -48,7 +48,7 @@ def create_indexes():
          ]
        },
        name="<index name>",
-       type="vectorSearch",
+       type="vectorSearch"
      )
 
      ...

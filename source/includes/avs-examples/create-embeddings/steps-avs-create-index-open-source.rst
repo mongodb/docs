@@ -7,12 +7,9 @@ a. Paste the following code in your notebook.
    This code creates an index on your collection that specifies the
    following: 
 
-   - ``BSON-Float32-Embedding``, ``BSON-Int8-Embedding``, and
-     ``BSON-Int1-Embedding`` fields as the :ref:`vector
-     <avs-types-vector-search>` type fields.
-   - ``euclidean`` as the similarity function for ``int1`` embeddings
-     and ``dotProduct`` as the similarity type for ``float32`` and
-     ``int8`` embeddings.
+   - ``embedding`` field as the :ref:`vector <avs-types-vector-search>`
+     type field. 
+   - ``dotProduct`` as the similarity type for ``float32`` embeddings.
    - ``768`` as the number of dimensions in the embeddings.
 
    ..
@@ -31,26 +28,14 @@ a. Paste the following code in your notebook.
           "fields": [
             {
               "type": "vector",
-              "path": "BSON-Float32-Embedding",
+              "path": "embedding",
               "similarity": "dotProduct",
-              "numDimensions": 768
-            },
-            {
-              "type": "vector",
-              "path": "BSON-Int8-Embedding",
-              "similarity": "dotProduct",
-              "numDimensions": 768
-            },
-            {
-              "type": "vector",
-              "path": "BSON-Int1-Embedding",
-              "similarity": "euclidean",
               "numDimensions": 768
             }
           ]
         },
         name="vector_index",
-        type="vectorSearch",
+        type="vectorSearch"
       )
       collection.create_search_index(model=search_index_model)
 

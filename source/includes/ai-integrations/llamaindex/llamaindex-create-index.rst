@@ -42,7 +42,7 @@ that indexes the following fields:
        ]
      },
      name="vector_index",
-     type="vectorSearch",
+     type="vectorSearch"
    )
 
    collection.create_search_index(model=search_index_model)

@@ -9,7 +9,7 @@
 
          pip install --quiet --upgrade langchain langchain-community langchain-core langchain-mongodb langchain-openai pymongo pypdf
 
-   .. step:: Define environmental variables.
+   .. step:: Define environment variables.
 
       Run the following code, replacing the placeholders with 
       the following values:

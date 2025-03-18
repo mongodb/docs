@@ -62,7 +62,7 @@
           {title Kissed by Winter}
          ]
          [
-          {plot The American oil company KIC Corporation is building an ice road to explore the remote Northern Arctic National Wildlife Refuge seeking energy independence. Independent environmentalists ...}
+          {plot The American oil company KIC Corporation is building an ice road to explore the remote Northern Arctic National Wildlife Refuge seeking energy independence. Independent environmentists ...}
           {title The Last Winter}
          ]
          [

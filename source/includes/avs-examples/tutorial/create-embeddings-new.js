@@ -1,8 +1,9 @@
 import { MongoClient } from 'mongodb';
 import { getEmbedding } from './get-embeddings.js';
+// import { convertEmbeddingsToBSON } from './convert-embeddings.js';
 
 // Data to embed
-const data = [ 
+const texts = [ 
     "Titanic: The story of the 1912 sinking of the largest luxury liner ever built",
     "The Lion King: Lion cub and future king Simba searches for his identity",
     "Avatar: A marine is dispatched to the moon Pandora on a unique mission"
@@ -20,20 +21,23 @@ async function run() {
 
         console.log("Generating embeddings and inserting documents...");
         const insertDocuments = [];
-        await Promise.all(data.map(async text => {
+        await Promise.all(texts.map(async text => {
             // Check if the document already exists
             const existingDoc = await collection.findOne({ text: text });
 
             // Generate an embedding using the function that you defined
-            const embedding = await getEmbedding(text);
+            var embedding = await getEmbedding(text);
             
+            // Uncomment the following lines to convert the generated embedding into BSON format
+            // const bsonEmbedding = await convertEmbeddingsToBSON([embedding]); // Since convertEmbeddingsToBSON is designed to handle arrays
+            // embedding = bsonEmbedding; // Use BSON embedding instead of the original float32 embedding
+                      
             // Add the document with the embedding to array of documents for bulk insert
             if (!existingDoc) {
                 insertDocuments.push({
                     text: text,
                     embedding: embedding
                 })
-                console.log(embedding)
             }
         }));
 

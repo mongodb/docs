@@ -25,7 +25,7 @@
          dotnet add package Microsoft.SemanticKernel.Memory
          dotnet add package Microsoft.SemanticKernel.Plugins.Memory --prerelease
 
-   .. step:: Define environmental variables.
+   .. step:: Define environment variables.
 
       In your terminal, run the following commands to add your |service| {+cluster+}'s |srv| :manual:`connection string 
       </reference/connection-string/#find-your-mongodb-atlas-connection-string>` and OpenAI API Key to your environment.

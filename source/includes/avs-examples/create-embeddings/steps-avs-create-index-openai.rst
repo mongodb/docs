@@ -7,10 +7,7 @@ a. Paste the following code in your notebook.
    This code creates an index on your collection and specifies the 
    ``embedding`` field as the :ref:`vector
    <avs-types-vector-search>` type, the similarity function 
-   as ``dotProduct``, and the number of dimensions as ``1536``. It
-   also enables :ref:`automatic scalar quantization
-   <avs-automatic-quantization>` for the vectors in the ``embedding``
-   field for efficient processing of your vector data. 
+   as ``dotProduct``, and the number of dimensions as ``1536``.
 
    ..
       NOTE: If you edit this Python code, also update the Jupyter Notebooks
@@ -30,13 +27,12 @@ a. Paste the following code in your notebook.
               "type": "vector",
               "path": "embedding",
               "similarity": "dotProduct",
-              "numDimensions": 1536,
-              "quantization": "scalar"
+              "numDimensions": 1536
             }
           ]
         },
         name="vector_index",
-        type="vectorSearch",
+        type="vectorSearch"
       )
       collection.create_search_index(model=search_index_model)
 

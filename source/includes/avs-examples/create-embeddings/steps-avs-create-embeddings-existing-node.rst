@@ -19,6 +19,10 @@
         that contains the embedding value by using the MongoDB 
         :driver:`Node.js Driver </nodejs/>`.
 
+      If you defined the ``convertEmbeddingsToBSON`` function,  
+      uncomment lines ``3`` and ``29``-``30``  to convert your 
+      embeddings to |bson| ``binData`` vectors.
+
       .. literalinclude:: /includes/avs-examples/tutorial/create-embeddings-existing.js
          :language: javascript
          :copyable:
@@ -39,7 +43,5 @@
             Generating embeddings and updating documents...
             Count of documents updated: 50
 
-      You can view your vector embeddings as they generate by 
-      navigating to the ``sample_airbnb.listingsAndReviews`` collection 
-      :ref:`in the {+atlas-ui+} <atlas-ui-view-collections>` and expanding 
-      the fields in a document.
+      .. include:: /includes/fact-view-embeddings-atlas-ui-airbnb.rst
+       

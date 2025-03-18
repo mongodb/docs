@@ -9,9 +9,9 @@
 
          pip install --quiet --upgrade langgraph langgraph-checkpoint-mongodb langchain langchain_mongodb langchain-openai pymongo
 
-   .. step:: Set environmental variables.
+   .. step:: Set environment variables.
 
-      Run the following code to set the environmental variables for this tutorial.
+      Run the following code to set the environment variables for this tutorial.
       Provide your OpenAI API Key and |service| {+cluster+}'s |srv| :manual:`connection string
       </reference/connection-string/#find-your-mongodb-atlas-connection-string>`
       when prompted.

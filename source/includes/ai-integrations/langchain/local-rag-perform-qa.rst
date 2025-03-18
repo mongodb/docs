@@ -55,7 +55,7 @@
 
       .. note::
          
-         Your output might vary since environmental differences
+         Your output might vary since environment differences
          can introduce slight variations to your embeddings.
 
       ..

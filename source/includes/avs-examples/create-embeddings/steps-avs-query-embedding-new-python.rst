@@ -18,7 +18,7 @@
 
    .. step:: Create embeddings for a vector search query, then run the query. 
 
-      .. include:: /includes/admonitions/avs-run-query-description-python.rst 
+      .. include:: /includes/avs-run-query-description.rst
 
       .. note:: 
 
@@ -37,7 +37,7 @@
             .. io-code-block:: 
                :copyable: true 
                
-               .. input:: /includes/avs-examples/create-embeddings/vector-search-query-embeddings-new-open-source.py
+               .. input:: /includes/avs-examples/create-embeddings/query_embeddings_new.py
                   :language: python
 
                .. output:: /includes/avs-examples/create-embeddings/output-new-open-source-python.json
@@ -53,7 +53,7 @@
             .. io-code-block:: 
                :copyable: true 
                
-               .. input:: /includes/avs-examples/create-embeddings/vector-search-query-embeddings-new-openai.py
+               .. input:: /includes/avs-examples/create-embeddings/query_embeddings_new.py
                   :language: python
 
                .. output:: /includes/avs-examples/create-embeddings/output-new-openai.json

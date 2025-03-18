@@ -38,8 +38,7 @@ public class CreateIndex {
                             new Document("type", "vector")
                                     .append("path", "embeddings")
                                     .append("numDimensions", <dimensions>) // replace with var for the model used
-                                    .append("similarity", "dotProduct")
-                                    .append('quantization', "scalar")));
+                                    .append("similarity", "dotProduct")));
 
             // define the index model using the specified details
             SearchIndexModel indexModel = new SearchIndexModel(

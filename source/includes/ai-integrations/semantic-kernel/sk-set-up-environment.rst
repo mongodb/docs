@@ -31,7 +31,7 @@
             from pymongo import MongoClient
             from pymongo.operations import SearchIndexModel
 
-   .. step:: Define environmental variables.
+   .. step:: Define environment variables.
 
       Run the following code, replacing the placeholders with 
       the following values:

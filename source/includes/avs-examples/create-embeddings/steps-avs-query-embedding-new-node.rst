@@ -63,7 +63,7 @@
                      node --env-file=.env vector-query.js
 
                   .. output:: /includes/avs-examples/tutorial/output-new-open-source-node.json
-                     :language: json
+                     :language: shell
 
             .. tab:: OpenAI
                :tabid: openai
@@ -77,4 +77,4 @@
                      node --env-file=.env vector-query.js
 
                   .. output:: /includes/avs-examples/create-embeddings/output-new-openai.json 
-                     :language: json
+                     :language: shell
