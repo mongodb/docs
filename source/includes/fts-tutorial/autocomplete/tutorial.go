@@ -21,9 +21,9 @@ func main() {
 	collection := client.Database("sample_mflix").Collection("movies")
 
 	// define pipeline stages
-	searchStage := bson.D{{"$search", bson.D{{"index", "autocomplete-tutorial"}, {"autocomplete", bson.D{{"query", "ger"}, {"path", "title"}}}}}}
-	limitStage := bson.D{{"$limit", 20}}
-	projectStage := bson.D{{"$project", bson.D{{"title", 1}, {"_id", 0}}}}
+	searchStage := bson.D{{Key: "$search", Value: bson.D{{Key: "index", Value: "autocomplete-tutorial"}, {Key: "autocomplete", Value: bson.D{{Key: "query", Value: "ger"}, {Key: "path", Value: "title"}}}}}}
+	limitStage := bson.D{{Key: "$limit", Value: 20}}
+	projectStage := bson.D{{Key: "$project", Value: bson.D{{Key: "title", Value: 1}, {Key: "_id", Value: 0}}}}
 	// run pipeline
 	cursor, err := collection.Aggregate(context.TODO(), mongo.Pipeline{searchStage, limitStage, projectStage})
 	if err != nil {

@@ -4,14 +4,14 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 func main() {
 	// connect to your Atlas cluster
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("<connection-string>"))
+	client, err := mongo.Connect(options.Client().ApplyURI("<connection-string>"))
 	if err != nil {
 		panic(err)
 	}
@@ -21,9 +21,9 @@ func main() {
 	collection := client.Database("sample_mflix").Collection("movies")
 
 	// define pipeline stages
-	searchStage := bson.D{{"$search", bson.D{{"autocomplete", bson.M{"query": "ger","path": "title"}}, {"highlight",  bson.D{{"path", "title"}}}}}}
-	limitStage := bson.D{{"$limit", 5}}
-	projectStage := bson.D{{"$project",  bson.D{{"score", bson.D{{"$meta", "searchScore"}}}, {"title", 1}, {"_id", 0}, {"highlight",  bson.D{{"$meta", "searchHighlights"}}}}}}
+	searchStage := bson.D{{Key: "$search", Value: bson.D{{Key: "autocomplete", Value: bson.M{"query": "ger", "path": "title"}}, {Key: "highlight", Value: bson.D{{Key: "path", Value: "title"}}}}}}
+	limitStage := bson.D{{Key: "$limit", Value: 5}}
+	projectStage := bson.D{{Key: "$project", Value: bson.D{{Key: "score", Value: bson.D{{Key: "$meta", Value: "searchScore"}}}, {Key: "title", Value: 1}, {Key: "_id", Value: 0}, {Key: "highlight", Value: bson.D{{Key: "$meta", Value: "searchHighlights"}}}}}}
 	// run pipeline
 	cursor, err := collection.Aggregate(context.TODO(), mongo.Pipeline{searchStage, limitStage, projectStage})
 	if err != nil {

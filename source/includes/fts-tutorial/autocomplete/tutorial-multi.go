@@ -22,23 +22,23 @@ func main() {
 
 	// define pipeline stages
 	searchStage := bson.D{
-		{"$search", bson.D{
-			{"index", "autocomplete-tutorial"},
-			{"compound", bson.D{
-				{"should", bson.A{
+		{Key: "$search", Value: bson.D{
+			{Key: "index", Value: "autocomplete-tutorial"},
+			{Key: "compound", Value: bson.D{
+				{Key: "should", Value: bson.A{
 					bson.D{
-						{"autocomplete", bson.D{{"query", "pri"}, {"path", "title"}}},
+						{Key: "autocomplete", Value: bson.D{{Key: "query", Value: "pri"}, {Key: "path", Value: "title"}}},
 					},
 					bson.D{
-						{"autocomplete", bson.D{{"query", "pri"}, {"path", "plot"}}},
+						{Key: "autocomplete", Value: bson.D{{Key: "query", Value: "pri"}, {Key: "path", Value: "plot"}}},
 					},
 				}},
-				{"minimumShouldMatch", 1},
+				{Key: "minimumShouldMatch", Value: 1},
 			}},
 		}},
 	}
-	limitStage := bson.D{{"$limit", 5}}
-	projectStage := bson.D{{"$project", bson.D{{"title", 1}, {"plot", 1}, {"_id", 0}}}}
+	limitStage := bson.D{{Key: "$limit", Value: 5}}
+	projectStage := bson.D{{Key: "$project", Value: bson.D{{Key: "title", Value: 1}, {Key: "plot", Value: 1}, {Key: "_id", Value: 0}}}}
 	// run pipeline
 	cursor, err := collection.Aggregate(context.TODO(), mongo.Pipeline{searchStage, limitStage, projectStage})
 	if err != nil {
