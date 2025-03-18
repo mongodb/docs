@@ -232,9 +232,9 @@ built-in Azure support.
 
 You can configure OIDC for Azure IMDS in the following ways:
 
-- By creating a ``Credential`` struct and passing it to the
-  ``SetAuth()`` method when creating a client
-- By setting parameters in your connection string
+- Create a ``Credential`` struct and pass it to the
+  ``SetAuth()`` method when you create a client
+- Set parameters in your connection string
 
 .. include:: /includes/authentication/auth-properties-commas.rst
 
@@ -321,9 +321,9 @@ support.
 
 You can configure OIDC for GCP IMDS in the following ways:
 
-- By creating a ``Credential`` struct and passing it to the
-  ``SetAuth()`` method when creating a client
-- By setting parameters in your connection string
+- Create a ``Credential`` struct and pass it to the
+  ``SetAuth()`` method when you create a client
+- Set parameters in your connection string
 
 .. include:: /includes/authentication/auth-properties-commas.rst
    
@@ -477,6 +477,74 @@ callback function that you defined:
    :start-after: start-credential-callback
    :end-before: end-credential-callback
    :emphasize-lines: 6
+
+Kubernetes
+~~~~~~~~~~
+
+If your application runs on a Kubernetes cluster with a configured service account, 
+you can authenticate to MongoDB by using the {+driver-short+}'s built-in Kubernetes 
+support. To learn more about how to configure a service account, see the 
+`Managing Service Accounts <https://kubernetes.io/docs/reference/access-authn-authz/service-accounts-admin/>`__ 
+guide in the Kubernetes documentation. 
+
+You can configure OIDC for Kubernetes in the following ways:
+
+- Create a ``Credential`` struct and pass it to the
+  ``SetAuth()`` method when you create a client
+- Set parameters in your connection string
+
+.. include:: /includes/authentication/auth-properties-commas.rst
+   
+.. tabs::
+
+   .. tab:: Credential
+      :tabid: credential struct
+
+      First, create a map to store your authentication
+      mechanism properties, as shown in the following example:
+
+      .. code-block:: go
+
+         props := map[string]string{
+         	"ENVIRONMENT":    "k8s",
+         }
+
+      Then, set the following ``Credential`` struct fields:
+ 
+      - ``AuthMechanism``: Set to ``"MONGODB-OIDC"``.
+      - ``AuthMechanismProperties``: Set to the ``props`` map that you
+        previously created.
+
+      The following code example shows how to set these options when creating a
+      ``Client``:
+
+      .. literalinclude:: /includes/authentication/kubernetes.go
+            :language: go
+            :dedent:
+            :copyable: true
+            :start-after: start-kubernetes
+            :end-before: end-kubernetes
+
+   .. tab:: Connection String
+      :tabid: connectionstring
+
+      Include the following connection options in your connection string:
+
+      - ``authMechanism``: Set to ``MONGODB-OIDC``.
+      - ``authMechanismProperties``: Set to ``ENVIRONMENT:k8s``.
+
+      The following code example shows how to set these options in your connection string:
+      
+      .. code-block:: go
+         
+         uri := "mongodb://<hostname>:<port>/?" +
+                  "&authMechanism=MONGODB-OIDC" +
+                  "&authMechanismProperties=ENVIRONMENT:k8s"
+                  
+         client, err := mongo.Connect(options.Client().ApplyURI(uri))
+         if err != nil {
+         	panic(err)
+         }
 
 Additional Information
 ----------------------
