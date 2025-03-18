@@ -3,8 +3,6 @@ MongoDB {+version+} Enterprise Edition supports the following
 
 - Windows Server 2022
 
-- Windows Server 2019
-
 - Windows 11
 
 MongoDB only supports the 64-bit versions of these platforms.
