@@ -1,4 +1,9 @@
-// Runs count operations on a collection by using the Java driver
+/**
+ * This file demonstrates how to open a change stream by using the Java driver.
+ * It connects to a MongoDB deployment, accesses the "sample_mflix" database, and listens
+ * to change events in the "movies" collection. The code uses a change stream with a pipeline
+ * to only filter for "insert" and "update" events.
+ */
 
 package usage.examples;
 
@@ -24,19 +29,13 @@ public class CountDocuments {
 
             Bson query = eq("countries", "Spain");
 
-            try {
-                // Retrieves and prints the estimated number of documents in the collection
-                long estimatedCount = collection.estimatedDocumentCount();
-                System.out.println("Estimated number of documents in the movies collection: " + estimatedCount);
+            // Retrieves and prints the estimated number of documents in the collection
+            long estimatedCount = collection.estimatedDocumentCount();
+            System.out.println("Estimated number of documents in the movies collection: " + estimatedCount);
 
-                // Retrieves and prints the number of documents with a "countries" value of "Spain"
-                long matchingCount = collection.countDocuments(query);
-                System.out.println("Number of movies from Spain: " + matchingCount);
-            
-            // Prints a message if any exceptions occur during the operations
-            } catch (MongoException me) {
-                System.err.println("An error occurred: " + me);
-            }
+            // Retrieves and prints the number of documents with a "countries" value of "Spain"
+            long matchingCount = collection.countDocuments(query);
+            System.out.println("Number of movies from Spain: " + matchingCount);
         }
     }
 }

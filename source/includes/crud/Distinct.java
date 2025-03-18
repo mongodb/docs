@@ -22,19 +22,13 @@ public class Distinct {
             MongoDatabase database = mongoClient.getDatabase("sample_mflix");
             MongoCollection<Document> collection = database.getCollection("movies");
 
-            try {
-                // Retrieves the distinct values of the "year" field present in documents that match the filter
-                DistinctIterable<Integer> docs = collection.distinct("year", Filters.eq("directors", "Carl Franklin"), Integer.class);
-                MongoCursor<Integer> results = docs.iterator();
+            // Retrieves the distinct values of the "year" field present in documents that match the filter
+            DistinctIterable<Integer> docs = collection.distinct("year", Filters.eq("directors", "Carl Franklin"), Integer.class);
+            MongoCursor<Integer> results = docs.iterator();
 
-                // Prints the distinct "year" values
-                while(results.hasNext()) {
-                    System.out.println(results.next());
-                }
-
-            // Prints a message if any exceptions occur during the operation
-            } catch (MongoException me) {
-                System.err.println("An error occurred: " + me);
+            // Prints the distinct "year" values
+            while(results.hasNext()) {
+                System.out.println(results.next());
             }
         }
     }

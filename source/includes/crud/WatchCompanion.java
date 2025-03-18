@@ -1,12 +1,8 @@
 // Performs CRUD operations to generate change events when run with the Watch application
 
-
-package usage.examples;
-
-import java.util.Arrays;
+package org.example;
 
 import org.bson.Document;
-import org.bson.types.ObjectId;
 
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoClient;
@@ -14,6 +10,9 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.result.InsertOneResult;
+import com.mongodb.client.model.Updates;
+import com.mongodb.client.result.UpdateResult;
+import com.mongodb.client.result.DeleteResult;
 
 public class WatchCompanion {
     public static void main(String[] args) {
@@ -27,7 +26,7 @@ public class WatchCompanion {
             try {
                 // Inserts a sample document into the "movies" collection and print its ID
                 InsertOneResult insertResult = collection.insertOne(new Document("test", "sample movie document"));
-                System.out.println("Success! Inserted document id: " + insertResult.getInsertedId());
+                System.out.println("Inserted document id: " + insertResult.getInsertedId());
 
                 // Updates the sample document and prints the number of modified documents
                 UpdateResult updateResult = collection.updateOne(new Document("test", "sample movie document"), Updates.set("field2", "sample movie document update"));
@@ -36,8 +35,8 @@ public class WatchCompanion {
                 // Deletes the sample document and prints the number of deleted documents
                 DeleteResult deleteResult = collection.deleteOne(new Document("field2", "sample movie document update"));
                 System.out.println("Deleted " + deleteResult.getDeletedCount() + " document.");
-            
-            // Prints a message if any exceptions occur during the operations
+
+                // Prints a message if any exceptions occur during the operations
             } catch (MongoException me) {
                 System.err.println("Unable to insert, update, or replace due to an error: " + me);
             }

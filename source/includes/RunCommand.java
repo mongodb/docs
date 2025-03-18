@@ -1,6 +1,6 @@
 // Runs a database command by using the Java driver
 
-package usage.examples;
+package org.example;
 
 import org.bson.BsonDocument;
 import org.bson.BsonInt64;

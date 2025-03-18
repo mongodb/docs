@@ -5,7 +5,7 @@
  * to only filter for "insert" and "update" events.
  */
 
-package usage.examples;
+package org.example;
 
 import java.util.Arrays;
 import java.util.List;
@@ -20,6 +20,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.changestream.FullDocument;
+import com.mongodb.client.model.Aggregates;
 
 public class Watch {
     public static void main( String[] args ) {
@@ -33,21 +34,21 @@ public class Watch {
 
             // Creates instructions to match insert and update operations
             List<Bson> pipeline = Arrays.asList(
-                Aggregates.match(
-                        Filters.in("operationType",
-                                Arrays.asList("insert", "update"))));
-            
+                    Aggregates.match(
+                            Filters.in("operationType",
+                                    Arrays.asList("insert", "update"))));
+
             // Creates a change stream that receives change events for the specified operations
             ChangeStreamIterable<Document> changeStream = database.watch(pipeline)
-                .fullDocument(FullDocument.UPDATE_LOOKUP);
-           
+                    .fullDocument(FullDocument.UPDATE_LOOKUP);
+
             final int[] numberOfEvents = {0};
 
             // Prints a message each time the change stream receives a change event, until it receives two events
             changeStream.forEach(event -> {
-            System.out.println("Received a change to the collection: " + event);
+                System.out.println("Received a change to the collection: " + event);
                 if (++numberOfEvents[0] >= 2) {
-                  System.exit(0);
+                    System.exit(0);
                 }
             });
         }

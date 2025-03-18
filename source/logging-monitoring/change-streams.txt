@@ -1,16 +1,23 @@
 .. _java-fundamentals-change-streams:
 .. _retrieve-watch:
+.. _java-usage-watch:
 
 ===================
 Open Change Streams
 ===================
 
+.. facet::
+   :name: genre
+   :values: reference
 
+.. meta::
+   :keywords: watch, changestream, log, monitor, events, code example
+   :description: Learn about how to use change streams in the {+driver-long+}.
 
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 3
    :class: singlecol
 
 Overview
@@ -41,6 +48,9 @@ Open a Change Stream
 You can open a change stream to subscribe to specific types of data changes
 and produce change events in your application.
 
+Select a Scope to Watch
+~~~~~~~~~~~~~~~~~~~~~~~
+
 To open a change stream, call the ``watch()`` method on an instance of a
 ``MongoCollection``, ``MongoDatabase``, or ``MongoClient``.
 
@@ -51,16 +61,79 @@ To open a change stream, call the ``watch()`` method on an instance of a
    see the :ref:`<replica-set-oplog>` {+mdb-server+} manual page.
 
 The object on which you call the ``watch()`` method on determines the scope of
-events that the change stream listens for.
+events that the change stream listens for:
 
-If you call ``watch()`` on a ``MongoCollection``, the change stream monitors
-a collection.
+- ``MongoCollection.watch()`` monitors a collection.
+- ``MongoDatabase.watch()`` monitors all collections in a database.
+- ``MongoClient.watch()`` monitors all changes in the connected MongoDB deployment.
 
-If you call ``watch()`` on a ``MongoDatabase``, the change stream monitors all
-collections in that database.
+Filter the Events
+~~~~~~~~~~~~~~~~~
 
-If you call ``watch()`` on a ``MongoClient``, the change stream monitors all
-changes in the connected MongoDB deployment.
+The ``watch()`` method takes an optional **aggregation pipeline** as the first
+parameter, which consists of a list of **stages** that can be used to
+filter and transform the change event output, as follows:
+
+.. code-block:: java
+
+   List<Bson> pipeline = List.of(
+                           Aggregates.match(
+                              Filters.in("operationType",
+                                    List.of("insert", "update"))),
+                           Aggregates.match(
+                              Filters.lt("fullDocument.runtime", 15)));
+   ChangeStreamIterable<Document> changeStream = database.watch(pipeline);
+
+.. note::
+
+   For update operation change events, change streams only return the modified
+   fields by default rather than the entire updated document. You can configure
+   your change stream to also return the most current version of the document
+   by calling the ``fullDocument()`` member method of the ``ChangeStreamIterable``
+   object with the value ``FullDocument.UPDATE_LOOKUP`` as follows:
+
+   .. code-block:: java
+
+      ChangeStreamIterable<Document> changeStream = database.watch()
+             .fullDocument(FullDocument.UPDATE_LOOKUP);
+
+Manage the Output
+~~~~~~~~~~~~~~~~~
+
+The ``watch()`` method returns an instance of ``ChangeStreamIterable``, an interface
+that offers several methods to access, organize, and traverse the results.
+``ChangeStreamIterable`` also inherits methods from its parent interface,
+``MongoIterable`` which implements the core Java interface ``Iterable``.
+
+You can call ``forEach()`` on the ``ChangeStreamIterable`` to handle
+events as they occur, or you can use the ``iterator()`` method which
+returns a ``MongoChangeStreamCursor`` instance that you can use to traverse the results.
+
+You can call the following methods on the ``MongoChangeStreamCursor`:
+
+ - ``hasNext()``: checks if there are more results. 
+ - ``next()`` returns the next document in the collection.
+ - ``tryNext()`` immediately returns either the next available element in the
+   change stream or ``null``. 
+
+.. important:: Iterating the Cursor Blocks the Current Thread
+
+   Iterating through a cursor using ``forEach()`` or any ``iterator()`` method
+   blocks the current thread while the corresponding change stream listens for
+   events. If your program needs to continue executing other logic, such as
+   processing requests or responding to user input, consider creating and
+   listening to your change stream in a separate thread.
+
+Unlike the ``MongoCursor`` returned by other queries, a
+``MongoChangeStreamCursor`` associated with a change stream waits until a change
+event arrives before returning a result from ``next()``. As a result, calls to
+``next()`` using a change stream's ``MongoChangeStreamCursor`` never throw a ``java.util.NoSuchElementException``.
+
+To configure options for processing the documents returned from the change
+stream, use member methods of the ``ChangeStreamIterable`` object returned
+by ``watch()``. See the link to the ``ChangeStreamIterable`` API
+documentation at the bottom of this example for more details on the
+available methods.
 
 Example
 ~~~~~~~
@@ -92,7 +165,84 @@ An insert operation on the collection produces the following output:
       ...
    }
 
-For a runnable example, see the :ref:`<java-usage-watch>` usage example page.
+.. _java-usage-watch:
+
+Watch Example: Full Files 
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/crud/example-intro.rst
+
+This example demonstrates how to open a change stream by using the watch method.
+The ``Watch.java`` file calls the ``watch()`` method with a pipeline as an
+argument to filter for only ``"insert"`` and ``"update"`` events. The
+``WatchCompanion.java`` file inserts, updates and deletes a document.
+
+To use the following examples, run the files in this order:
+
+#. Run the ``Watch.java`` file.
+#. Run the ``WatchCompanion.java`` file.
+
+.. note::
+
+   The ``Watch.java`` file will continue running until the
+   ``WatchCompanion.java`` file is run.
+
+``Watch.java``:
+
+.. literalinclude:: /includes/crud/Watch.java
+   :language: java
+
+``WatchCompanion.java``:
+
+.. literalinclude:: /includes/crud/WatchCompanion.java
+   :language: java
+
+Full File Example Output
+````````````````````````
+
+The preceding applications will generate the following output:
+
+``Watch.java`` will capture only the  ``insert`` and ``update`` operations, since the aggregation pipeline filters out the ``delete`` operation:
+
+.. code-block::
+   :copyable: false
+
+   Received a change to the collection: ChangeStreamDocument{
+     operationType=OperationType{value='insert'},
+     resumeToken={"_data": "825E..."},
+     namespace=sample_mflix.movies,
+     destinationNamespace=null,
+     fullDocument=Document{{_id=5ec3..., test=sample movie document}},
+     documentKey={"_id": {"$oid": "5ec3..."}},
+     clusterTime=Timestamp{...},
+     updateDescription=null,
+     txnNumber=null,
+     lsid=null,
+     wallTime=BsonDateTime{value=1657...}
+   }
+   Received a change to the collection: ChangeStreamDocument{
+     operationType=OperationType{value='update'},
+     resumeToken={"_data": "825E..."},
+     namespace=sample_mflix.movies,
+     destinationNamespace=null,
+     fullDocument=Document{{_id=5ec3..., test=sample movie document, field2=sample movie document update}},
+     documentKey={"_id": {"$oid": "5ec3..."}},
+     clusterTime=Timestamp{...},
+     updateDescription=UpdateDescription{removedFields=[], updatedFields={"field2": "sample movie document update"}},
+     txnNumber=null,
+     lsid=null,
+     wallTime=BsonDateTime{value=1657...}
+   }
+
+``WatchCompanion`` will print a summary of the operations it completed:
+
+.. code-block::
+   :copyable: false
+
+   Inserted document id: BsonObjectId{value=5ec3...}
+   Updated 1 document.
+   Deleted 1 document.
+
 
 To learn more about the ``watch()`` method, see the following API
 documentation:
@@ -172,7 +322,7 @@ The following example modifies your change stream by using the
 .. code-block:: java
 
    ChangeStreamIterable<Document> changeStream = collection.watch(
-         Arrays.asList(Document.parse("{ $changeStreamSplitLargeEvent: {} }")));
+         List.of(Document.parse("{ $changeStreamSplitLargeEvent: {} }")));
 
 .. note::
 
@@ -342,3 +492,25 @@ output:
 
 For a list of options, see the `FullDocument <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/changestream/FullDocument.html>`__
 API documentation.
+
+Additional Information
+----------------------
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+For more information about the methods and classes used to manage change streams, see the following API documentation:
+
+- `MongoCollection.watch() <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoCollection.html#watch()>`__ 
+- `MongoDatabase.watch() <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoDatabase.html#watch()>`__ 
+- `MongoClient.watch() <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoClient.html#watch()>`__ 
+- `ChangeStreamIterable <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/ChangeStreamIterable.html>`__ 
+- `MongoCursor <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoCursor.html>`__ 
+
+Server Manual Entries
+~~~~~~~~~~~~~~~~~~~~~
+
+- :manual:`Change Streams </changeStreams/>`
+- :manual:`Change Events </reference/change-events/>`
+- :manual:`Aggregation Pipeline </reference/operator/aggregation-pipeline/>`
+- :manual:`Aggregation Stages </changeStreams/#modify-change-stream-output>`
