@@ -17,7 +17,6 @@ LINQ Syntax for Aggregation Operations
 .. meta::
    :keywords: code example, query, aggregation
 
-
 Overview
 --------
 
@@ -541,13 +540,6 @@ from another collection in the same database. The ``$lookup`` stage adds a new
 array field to each input document. The new array field contains the matching
 documents from the "joined" collection.
 
-.. note:: 
-
-   To perform a lookup, you must make both collections queryable by using the
-   ``AsQueryable()`` method.
-
-   To learn how to make a collection queryable, see :ref:`csharp-linq-queryable`.
-
 Consider a second collection in the ``sample_restaurants`` database called
 ``reviews`` that has restaurant reviews. You can join documents from that collection
 to documents with the same ``name`` value in the ``restaurants`` collection using
@@ -560,6 +552,55 @@ The following ``Review`` class models the documents in the ``reviews`` collectio
    :dedent:
    :start-after: start-review-model
    :end-before: end-review-model
+
+You can specify a ``$lookup`` stage by calling the ``Lookup()`` method
+or the ``GroupJoin()`` method. The following sections show how to perform a
+``$lookup`` by using each method.
+
+Lookup()
+++++++++
+
+The following code specifies a ``$lookup`` stage by using the ``Lookup()``
+method. This example joins documents from the ``reviews`` collection to
+documents from the ``restaurants`` collection where the ``RestaurantName`` field in the
+``reviews`` collection matches the ``Name`` field in the ``restaurants`` collection:
+
+.. code-block:: csharp
+
+   var lookupResult = restaurantsCollection.AsQueryable()
+    .Lookup(reviewCollection,
+        restaurant => restaurant.Name,
+        review => review.RestaurantName);
+
+The preceding example returns a list of ``LookupResult`` objects that
+each contain a joined document. To learn more about the ``LookupResult`` class,
+see the `LookupResult API documentation
+<{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.Linq.LookupResult-2.html>`__.
+
+You can also use a ``Lookup()`` method overload to specify additional criteria
+for the join. The following example joins documents from the ``restaurants``
+collection to documents from the ``reviews`` collection where the
+``RestaurantName`` field in the ``reviews`` collection matches the ``Name``
+field in the ``restaurants`` collection and the ``ReviewText`` field in the
+``reviews`` collection contains the name of the restaurant:
+
+.. code-block:: csharp
+
+   var lookupResult = restaurantsCollection.AsQueryable()
+      .Lookup(reviewCollection,
+         (restaurant, reviews) => reviews
+            .Where(review => review.ReviewText.Contains(restaurant.Name)));
+
+To view a full list of overloads for the ``Lookup()`` method, see the `Lookup
+API documentation <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.Linq.MongoQueryable.Lookup.html>`__.
+
+GroupJoin()
++++++++++++
+
+You can specify a ``$lookup`` stage by using the LINQ ``GroupJoin()`` method. To
+perform a ``GroupJoin()`` lookup, you must make both collections queryable by
+using the ``AsQueryable()`` method. To learn how to make a collection queryable,
+see :ref:`csharp-linq-queryable`.
 
 Select the :guilabel:`Method Syntax` or :guilabel:`Query Syntax` tab to see how 
 to generate a ``$lookup`` stage by using LINQ:
