@@ -16,7 +16,7 @@
                :language: go
                :linenos:
                :dedent:
-               :emphasize-lines: 23
+               :emphasize-lines: 25
 
          .. tab:: Bury Specified Documents 
             :tabid: bury-id
@@ -27,7 +27,7 @@
                :language: go
                :linenos:
                :dedent:
-               :emphasize-lines: 25
+               :emphasize-lines: 26
 
    .. step:: Replace the ``<connection-string>`` in the query and then save the file.
 
