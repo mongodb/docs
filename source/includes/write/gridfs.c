@@ -16,7 +16,8 @@ main (void)
         mongoc_database_t *db = mongoc_client_get_database (client, "db");
 
         bson_error_t error;
-        if (!mongoc_gridfs_bucket_new (db, NULL, NULL, &error)) {
+        mongoc_gridfs_bucket_t *bucket = mongoc_gridfs_bucket_new (db, NULL, NULL, &error);
+        if (!bucket) {
             fprintf (stderr, "Failed to create bucket: %s\n", error.message);
         }
         // end-create-bucket
@@ -75,7 +76,7 @@ main (void)
         const bson_t *file_doc;
 
         while (mongoc_cursor_next(cursor, &file_doc)) {
-            char *json = bson_as_json(file_doc, NULL);
+            char *json = bson_as_relaxed_extended_json(file_doc, NULL);
             printf("%s\n", json);
             bson_free(json);
         }
