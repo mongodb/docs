@@ -124,6 +124,48 @@ View Sampled Queries
 To see sampled queries for all collections or a specific collection, use
 the :pipeline:`$listSampledQueries` aggregation stage.
 
+To see the count of every command type captured by the query analyzer, use:
+
+.. io-code-block::
+    :copyable: true
+
+    .. input::
+        :language: javascript
+
+        db.getSiblingDB("admin").aggregate( [
+          { "$listSampledQueries": { ns: "<db.collectionName>" } },
+          {
+            "$group": {
+              "_id": {
+                ns: "$ns",
+                cmdName: "$cmdName"
+              },
+              count: { "$sum": 1 }
+            }
+          },
+          {
+           "$project": {
+             "_id.ns": 1,
+              "_id.cmdName": 1,
+              "count": 1 // Explicitly include fields to output
+            }
+          },
+          { "$sort": { "_id.ns": 1 } }
+        ] );
+
+    .. output:: 
+        :language: javascript
+
+        [{ count: 10, cmdName: 'aggregate' },
+          { count: 51, cmdName: 'delete' },
+          { count: 25, cmdName: 'distinct' },
+          { count: 100, cmdName: 'find' },
+          { count: 24, cmdName: 'findAndModify' },
+          { count: 7, cmdName: 'update' }]
+
+When you have enough samples, you can disable the query analyzer.
+
+
 Limitations
 ~~~~~~~~~~~
 
