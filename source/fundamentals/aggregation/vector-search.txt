@@ -1,0 +1,219 @@
+.. _rust-vector-search:
+
+===================
+Atlas Vector Search
+===================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, semantic, text, embeddings
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to perform searches on your documents
+by using the Atlas Vector Search feature. The {+driver-short+} allows you to
+perform Atlas Vector Search queries by using the aggregation framework.
+To learn more about performing aggregations, see the
+:ref:`rust-aggregation` guide.
+
+.. note:: Deployment Compatibility
+
+   You can use the Atlas Vector Search feature only when
+   you connect to MongoDB Atlas clusters. This feature is not
+   available for self-managed deployments.
+
+To learn more about Atlas Vector Search, see the :atlas:`Atlas Vector
+Search Overview </atlas-vector-search/vector-search-overview/>`.
+
+.. note:: Atlas Search
+
+   To perform advanced full-text search on your documents, you can use the
+   Atlas Search feature. To learn about this feature, see the
+   :atlas:`Atlas Search Overview </atlas-search/atlas-search-overview/>`.
+
+.. TODO update when we add VS type updates to the linked page
+
+.. Atlas Vector Search Index
+.. ~~~~~~~~~~~~~~~~~~~~~~~~~
+.. 
+.. Before you can perform Atlas Vector Search queries, you must create an
+.. Atlas Vector Search index on your collection. To learn more about
+.. creating this index type, see the :ref:`rust-atlas-search-indexes` guide.
+
+Vector Search Aggregation Stage
+-------------------------------
+
+To create a ``$vectorSearch`` stage in your aggregation pipeline, perform the
+following actions:
+
+1. Create a vector to store the pipeline stages.
+
+#. Specify the ``$vectorSearch`` operator and provide details about the
+   vector search query.
+
+You must define the following fields in your ``$vectorSearch`` stage:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+     - Description
+
+   * - ``index``
+     - string
+     - Name of the vector search index
+
+   * - ``path``
+     - string
+     - Field that contains vector embeddings
+
+   * - ``queryVector``
+     - array of numbers
+     - Vector representation of your query
+
+   * - ``limit``
+     - number
+     - Number of results to return
+
+Atlas Search Query Examples
+---------------------------
+
+In this section, you can learn how to perform Atlas Vector
+Search queries. The examples in this section use sample data from the
+``sample_mflix.embedded_movies`` collection. To learn how to load this
+sample data, see the :atlas:`Load Data into Atlas </sample-data/>`
+tutorial in the Atlas documentation.
+
+Basic Vector Search Query
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following code performs an Atlas Vector Search query on the
+``plot_embedding`` vector field by using a query vector that represents
+the term *time travel*:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/aggregation/vector-search.rs
+      :language: rust
+      :dedent:
+      :start-after: start-basic-query
+      :end-before: end-basic-query
+
+   .. output::
+      :language: json
+      :visible: false
+
+      { "plot": "A reporter, learning of time travelers visiting 20th century disasters, tries to change the history they know by averting upcoming disasters.", "title": "Thrill Seekers" }
+      { "plot": "At the age of 21, Tim discovers he can travel in time and change what happens and has happened in his own life. His decision to make his world a better place by getting a girlfriend turns out not to be as easy as you might think.", "title": "About Time" }
+      { "plot": "Hoping to alter the events of the past, a 19th century inventor instead travels 800,000 years into the future, where he finds humankind divided into two warring races.", "title": "The Time Machine" }
+      { "plot": "After using his mother's newly built time machine, Dolf gets stuck involuntary in the year 1212. He ends up in a children's crusade where he confronts his new friends with modern techniques...", "title": "Crusade in Jeans" }
+      { "plot": "An officer for a security agency that regulates time travel, must fend for his life against a shady politician who has a tie to his past.", "title": "Timecop" }
+
+.. tip:: Query Vector Type
+
+   The preceding example creates an instance of
+   ``bson::binary::Vector``, introduced in ``bson`` v2.14,
+   to serve as the query vector. You can also use a ``vec`` of
+   numbers as a query vector, but we recommend that you use the
+   ``Vector`` type to improve storage efficiency.
+
+Vector Search Score
+~~~~~~~~~~~~~~~~~~~
+
+The following code performs the same query as in the preceding example,
+but outputs only the ``title`` field and ``vectorSearchScore`` meta
+field, which describes how well the document matches the query vector:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/aggregation/vector-search.rs
+      :language: rust
+      :dedent:
+      :start-after: start-score-query
+      :end-before: end-score-query
+      :emphasize-lines: 15
+
+   .. output::
+      :language: json
+      :visible: false
+
+      { "title": "Thrill Seekers", "score": 0.9332504272460938 }
+      { "title": "About Time", "score": 0.9312690496444702 }
+      { "title": "The Time Machine", "score": 0.9295310378074646 }
+      { "title": "Crusade in Jeans", "score": 0.9290415048599243 }
+      { "title": "Timecop", "score": 0.9283164739608765 }
+
+Vector Search Options
+---------------------
+
+You can use a ``$vectorSearch`` stage to perform many types of Atlas
+Vector Search queries. Depending on your desired query, you can specify the
+following options in the stage definition:
+
+.. list-table::
+   :widths: 20 20 40 20
+   :header-rows: 1
+
+   * - Optional Parameter
+     - Type
+     - Description
+     - Default Value
+
+   * - ``exact``
+     - boolean
+     - Specifies whether to run an Exact Nearest Neighbor (``true``) or
+       Approximate Nearest Neighbor (``false``) search
+     - ``false``
+
+   * - ``filter``
+     - document
+     - Specifies a pre-filter for documents to search on
+     - No filtering
+
+   * - ``numCandidates``
+     - number
+     - Specifies the number of nearest neighbors to use during the
+       search
+     - No limit
+
+To learn more about these options, see the :atlas:`Fields
+</atlas-vector-search/vector-search-stage/#fields>` section of the
+``$vectorSearch`` operator reference in the Atlas documentation.
+
+.. _rust-avs-addtl-info:
+
+Additional Information
+----------------------
+
+To learn more about the concepts mentioned in this guide, see the
+following Server manual entries:
+
+- :atlas:`Run Vector Search Queries </atlas-vector-search/vector-search-stage/>`
+- :manual:`Aggregation Pipeline </core/aggregation-pipeline/>`
+- :manual:`Aggregation Stages </meta/aggregation-quick-reference/#stages>`
+
+To learn more about the behavior of the ``aggregate()`` method, see the
+:ref:`Aggregation Operations <rust-retrieve-aggregation>` section of the
+Retrieve Data guide.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the methods and types mentioned in this
+guide, see the following API documentation:
+
+- `aggregate() <{+api+}/struct.Collection.html#method.aggregate>`__
+- `Vector <{+bson-api+}/binary/enum.Vector.html>`__
