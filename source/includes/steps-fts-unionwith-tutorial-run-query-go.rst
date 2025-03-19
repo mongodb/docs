@@ -18,7 +18,7 @@
                :language: go
                :linenos:
                :dedent:
-               :emphasize-lines: 16
+               :emphasize-lines: 18
 
          .. tab:: Facet Example 
             :tabid: facet
@@ -29,7 +29,7 @@
                :language: go
                :linenos:
                :dedent:
-               :emphasize-lines: 16
+               :emphasize-lines: 18
 
    .. step:: Replace the ``<connection-string>`` in the query and then save the file.
 
