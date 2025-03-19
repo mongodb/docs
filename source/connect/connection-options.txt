@@ -17,11 +17,21 @@ Specify Connection Options
 .. meta::
    :keywords: connection string, URI, server, Atlas, settings, configure
 
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   Compress Network Traffic </connect/connection-options/network-compression>
+   Customize Server Selection </connect/connection-options/server-selection>
+   Stable API </connect/connection-options/stable-api>
+   Limit Server Execution Time </connect/connection-options/csot>
+   Connection Pools </connect/connection-options/connection-pools>
+
 Overview
 --------
 
 This section describes the MongoDB connection and authentication options
-available in {+driver-short+}. You can configure your connection using either
+available in {+driver-short+}. You can configure your connection by using either
 the connection URI or arguments to the ``MongoClient`` constructor.
 
 .. _pymongo-connection-uri:
@@ -59,314 +69,26 @@ connection options:
 Connection Options
 ------------------
 
-The following sections describe the connection options available in {+driver-short+}.
-If a ``MongoClient`` parameter maps to more than one
-option in the connection string, the **Connection URI Example** shows all
-relevant options.
+To learn about the connection options available in {+driver-short+}, see the following
+sections:
 
-.. todo: .. note::
-   If you're using a query parameter for a time duration, the value must be in
-   milliseconds. For example, to specify 60 seconds, use the value ``60000``. If you're
-   using a ``MongoClientSettings`` object for a time duration, use the appropriate
-   ``TimeSpan`` value.
+- :ref:`Enable Authentication <pymongo-security>`
+- :ref:`Compress Network Traffic <pymongo-network-compression>`
+- :ref:`Customize Server Selection <pymongo-server-selection>`
+- :ref:`Stable API <pymongo-stable-api>`
+- :ref:`Limit Server Execution Time <pymongo-csot>`
+- :ref:`Connection Pools <pymongo-connection-pools>`
+- :ref:`Configure CRUD Operations <pymongo-configure-crud>`
 
-Network Compression
-~~~~~~~~~~~~~~~~~~~
+.. tip:: Authentication and Encryption
 
-.. list-table::
-   :header-rows: 1
-   :widths: 30 70
+   To learn how to enable TLS encryption and authentication in {+driver-short+},
+   see :ref:`pymongo-tls` and :ref:`pymongo-auth` in the Security section.
 
-   * - Connection Option
-     - Description
-     
-   * - ``compressors``
-     - | The preferred compression types, in order, for wire-protocol messages sent to
-       | or received from the server. The driver uses the first of these compression types
-       | that the server supports.
-       |
-       | **Data Type**: {+string-data-type+}
-       | **Default**: ``None``
-       | **MongoClient Example**: ``compressors = "snappy,zstd,zlib"``
-       | **Connection URI Example**: ``compressors=snappy,zstd,zlib``
+API Documentation
+-----------------
 
-   * - ``zlibCompressionLevel``
-     - | The compression level for zlib to use. This option accepts
-       | an integer value between ``-1`` and ``9``:
-       | 
-       | - **-1:** (Default). zlib uses its default compression level (usually ``6``).
-       | - **0:** No compression.
-       | - **1:** Fastest speed but lowest compression.
-       | - **9:** Best compression but slowest speed.
-       |
-       | **Data Type**: {+int-data-type+}
-       | **Default**: ``-1``
-       | **MongoClient Example**: ``zlibCompressionLevel = 3``
-       | **Connection URI Example**: ``zlibCompressionLevel=3``
+To learn more about creating a ``MongoClient`` object in {+driver-short+},
+see the following API documentation:
 
-Timeouts
-~~~~~~~~
-
-.. list-table::
-   :header-rows: 1
-   :widths: 30 70
-
-   * - Connection Option
-     - Description
-     
-   * - ``timeoutMS``
-     - | The number of milliseconds each driver operation must complete within. If an
-       | operation doesn't finish in the specified time, {+driver-short+} raises a timeout exception.
-       | For more information, see :ref:`<pymongo-csot>`.
-       |
-       | **Data Type**: ``int``
-       | **Default**: ``None``
-       | **MongoClient Example**: ``timeoutMS = 10000``
-       | **Connection URI Example**: ``timeoutMs=10000``
-       
-Server Selection
-~~~~~~~~~~~~~~~~
-
-.. list-table::
-   :header-rows: 1
-   :widths: 30 70
-
-   * - Connection Option
-     - Description
-
-   * - ``server_selector``
-     - | A user-defined Python function called by {+driver-short+} to choose the server
-       | to run an operation against. For more information, see
-       | :ref:`<pymongo-server-selection>`.
-       |
-       | **Data Type**: ``callable``
-       | **Default**: ``None``
-       | **MongoClient Example**: ``server_selector = your_function``
-       | **Connection URI Example**: N/A
-
-Connection Pools
-~~~~~~~~~~~~~~~~
-
-A **connection pool** is a cache of open database connections maintained by {+driver-short+}.
-When your application requests a connection to MongoDB, {+driver-short+}
-gets a connection from the pool, performs operations, and returns the connection
-to the pool for reuse. Connection pools help reduce application latency and the number
-of times that {+driver-short+} must create new connections.
-
-To learn more about connection pools, see
-:manual:`Connection Pool Overview </administration/connection-pool-overview/>`
-in the {+mdb-server+} manual.
-
-.. list-table::
-   :widths: 30 70
-   :header-rows: 1
-
-   * - Setting
-     - Description
-
-   * - ``connectTimeoutMS``
-     - | The time that {+driver-short+} waits when establishing a new
-         connection before timing out.
-       |
-       | **Data Type**: ``int``
-       | **Default**: ``20000``
-       | **MongoClient Example**: ``connectTimeoutMS = 40000``
-       | **Connection URI Example**: ``connectTimeoutMS=40000``
-
-   * - ``maxConnecting``
-     - | The maximum number of connections that each pool can establish concurrently.
-         If this limit is reached, further requests wait until a connection is established
-         or another in-use connection is checked back into the pool.
-       |
-       | **Data Type**: ``int``
-       | **Default**: ``2``
-       | **MongoClient Example**: ``maxConnecting = 3``
-       | **Connection URI Example**: ``maxConnecting=3``
-
-   * - ``maxIdleTimeMS``
-     - | The maximum time that a connection can remain idle in the pool. When a connection
-         exceeds this limit, {+driver-short+} closes the connection and removes it from
-         the pool.
-       |
-       | **Data Type**: ``int``
-       | **Default**: ``None`` (no limit)
-       | **MongoClient Example**: ``maxIdleTimeMS = 60000``
-       | **Connection URI Example**: ``maxIdleTimeMS=60000``
-
-   * - ``maxPoolSize``
-     - | The maximum number of concurrent connections that the pool maintains.
-         If the maximum pool size is reached, further requests wait until a connection
-         becomes available.
-       |
-       | **Data Type**: ``int``
-       | **Default**: ``100``
-       | **MongoClient Example**: ``maxPoolSize = 150``
-       | **Connection URI Example**: ``maxPoolSize=150``
-
-   * - ``minPoolSize``
-     - | The minimum number of concurrent connections that the pool maintains. If
-         the number of open connections falls below this value due to network errors,
-         {+driver-short+} attempts to create new connections to maintain this minimum.
-       |
-       | **Data Type**: ``int``
-       | **Default**: ``0``
-       | **MongoClient Example**: ``minPoolSize = 3``
-       | **Connection URI Example**: ``minPoolSize=3``
-
-   * - ``socketTimeoutMS``
-     - | The length of time that {+driver-short+} waits for a response from the server
-         before timing out.
-       |
-       | **Data Type**: ``int``
-       | **Default**: ``None`` (no timeout)
-       | **MongoClient Example**: ``socketTimeoutMS = 100000``
-       | **Connection URI Example**: ``socketTimeoutMS=100000``
-
-   * - ``waitQueueTimeoutMS``
-     - | How long a thread waits for a connection to become available in the connection pool
-         before timing out.
-       |
-       | **Data Type**: ``int``
-       | **Default**: ``None`` (no timeout)
-       | **MongoClient Example**: ``waitQueueTimeoutMS = 100000``
-       | **Connection URI Example**: ``waitQueueTimeoutMS=100000``
-
-Authentication
-~~~~~~~~~~~~~~
-
-.. list-table::
-   :header-rows: 1
-   :widths: 30 70
-
-   * - Connection Option
-     - Description
-
-   * - ``authMechanism``
-     - | The mechanism {+driver-short+} uses to authenticate the application. Valid
-       | options are defined in `MECHANISMS. <{+api-root+}pymongo/database.html#pymongo.auth.MECHANISMS>`__
-       |
-       | **Data Type**: {+string-data-type+}
-       | **Default**: ``"SCRAM-SHA-256"`` when connecting to MongoDB v4.0 or later.
-       | ``"SCRAM-SHA-1"`` when connecting to MongoDB v3.0 through v3.13.
-       | **MongoClient Example**: ``authMechanism = "MONGODB-X509"``
-       | **Connection URI Example**: ``authMechanism=MONGODB-X509``
-  
-   * - ``authMechanismProperties``
-     - | Options specific to the authentication mechanism. Not needed for all authentication
-       | mechanisms.
-       |
-       | **Data Type**: {+string-data-type+}
-       | **Default**: ``""``
-       | **MongoClient Example**: ``authMechanismProperties = "AWS_SESSION_TOKEN:12345"``
-       | **Connection URI Example**: ``authMechanismProperties=AWS_SESSION_TOKEN:12435``
-
-   * - ``authSource``
-     - | The database to authenticate against.
-       |
-       | **Data Type**: {+string-data-type+}
-       | **Default**: The database in the connection URI, or ``"admin"`` if none is provided
-       | **MongoClient Example**: ``authSource = "admin"``
-       | **Connection URI Example**: ``authSource=admin``
-
-   * - ``username``
-     - | The username for authentication. When this option is included in a connection
-       | URI, you must percent-escape it.
-       |
-       | **Data Type**: {+string-data-type+}
-       | **Default**: ``""``
-       | **MongoClient Example**: ``username = "my user"``
-       | **Connection URI Example**: ``username=my+user``
-
-   * - ``password``
-     - | The password for authentication. When this option is included in a connection
-       | URI, you must percent-escape it.
-       |
-       | **Data Type**: {+string-data-type+}
-       | **Default**: ``""``
-       | **MongoClient Example**: ``password = "strong password"``
-       | **Connection URI Example**: ``password=strong+password``
-
-For more information about the connection option in this section, see :ref:`pymongo-auth`. 
-
-Read and Write Operations
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. list-table::
-   :header-rows: 1
-   :widths: 30 70
-
-   * - Connection Option
-     - Description
-
-   * - ``replicaSet``
-     - | Specifies the name of the replica set to connect to.
-       |
-       | **Data Type**: {+string-data-type+}
-       | **Default**: ``null``
-       | **MongoClient Example**: ``replicaSet='replicaSetName'``
-       | **Connection URI Example**: ``replicaSet=replicaSetName``
-    
-   * - ``directConnection``
-     - | Whether to connect only to the primary member of the replica set.
-       |
-       | **Data Type**: {+bool-data-type+}
-       | **Default**: ``False``
-       | **MongoClient Example**: ``directConnection=True``
-       | **Connection URI Example**: ``directConnection=true``
-   
-   * - ``readPreference``
-     - | Specifies the client's read-preference settings.
-       |
-       | **Data Type**: `read_preferences <{+api-root+}pymongo/read_preferences.html#pymongo.read_preferences>`__
-       | **Default**: ``ReadPreference.Primary``
-       | **MongoClient Example**: ``readPreference=ReadPreference.SECONDARY_PREFERRED``
-       | **Connection URI Example**: ``readPreference=secondaryPreferred``
-
-   * - ``readConcern``
-     - | Specifies the client's read-concern settings. For more information, see :manual:`</reference/read-concern/>`.
-       |
-       | **Data Type**: {+string-data-type+}
-       | **Default**: ``None``
-       | **MongoClient Example**: ``readConcern="majority"``
-       | **Connection URI Example**: ``readConcern=majority``
-
-   * - ``writeConcern``
-     - | Specifies the client's write-concern settings. For more information, see
-         :manual:`</reference/write-concern/>`.
-       |
-       | **Data Type**: {+string-data-type+}
-       | **Default**: ``None``
-       | **MongoClient Example**: ``writeConcern="majority"``
-       | **Connection URI Example**: ``writeConcern=majority``
-
-   * - ``localThresholdMS``
-     - | The latency window for a replica-set members eligibility. If a member's
-         round trip ping takes longer than the fastest server's round-trip ping
-         time plus this value, the server isn't eligible for selection.
-       |
-       | **Data Type**: `read_preferences <{+api-root+}pymongo/read_preferences.html#pymongo.read_preferences>`__
-       | **Default**: {+int-data-type+}
-       | **MongoClient Example**: ``localThresholdMS=35``
-       | **Connection URI Example**: ``localThresholdMS=35``
-
-   * - ``retryReads``
-     - | Specifies whether the client retries supported read operations. For more
-         information, see :manual:`Retryable Reads </core/retryable-reads/>` in the {+mdb-server+}
-         manual.
-       |
-       | **Data Type**: {+bool-data-type+}
-       | **Default**: ``True``
-       | **MongoClient Example**: ``retryReads=False``
-       | **Connection URI Example**: ``retryReads=false``
-
-   * - ``retryWrites``
-     - | Specifies whether the client retries supported write operations. For more
-         information, see :manual:`Retryable Writes </core/retryable-writes/>` in the {+mdb-server+}
-         manual.
-       |
-       | **Data Type**: {+bool-data-type+}
-       | **Default**: ``True``
-       | **MongoClient Example**: ``retryWrites=False``
-       | **Connection URI Example**: ``retryWrites=false``
-
-For more information about the connection options in this section, see :ref:`pymongo-databases-collections`. 
+- `MongoClient <{+api-root+}pymongo/mongo_client.html#pymongo.mongo_client.MongoClient>`__ 

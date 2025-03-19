@@ -1,0 +1,85 @@
+.. _pymongo-serialization:
+
+=============
+Serialization
+=============
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: class, map, deserialize
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use {+driver-short+} to serialize your custom types.
+
+Serialization is the process of mapping a {+language+} object to a BSON
+document for storage in MongoDB. {+driver-short+} automatically converts basic {+language+}
+types into BSON when you insert a document into a collection. Similarly, when you retrieve a
+document from a collection, {+driver-short+} automatically converts the returned BSON
+back into the corresponding {+language+} types.
+
+For a complete list of {+language+}-to-BSON mappings, see the `bson <{+api-root+}bson/index.html>`__
+API documentation.
+
+Custom Classes
+--------------
+
+To serialize and deserialize custom {+language+} classes, you must implement custom logic
+to handle the conversion. The following sections show how to serialize and deserialize
+custom classes.
+
+Serializing Custom Classes
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To serialize a custom class, you must convert the class to a dictionary. The following
+example serializes a custom class by using the ``vars()`` method, and then inserts the
+serialized object into a collection:
+
+.. code-block:: python
+
+   class Restaurant:
+       def __init__(self, name, cuisine):
+           self.name = name
+           self.cuisine = cuisine
+
+   restaurant = Restaurant("Example Cafe", "Coffee")
+   restaurant_dict = vars(restaurant)
+
+   collection.insert_one(restaurant_dict)
+
+The preceding example serializes the ``Restaurant`` object into the following dictionary:
+
+.. code-block:: none
+
+   {'name': 'Example Cafe', 'cuisine': 'Coffee'}
+
+To learn more about inserting documents into a collection, see the :ref:`pymongo-write-insert`
+guide.
+
+Deserializing Custom Classes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To deserialize a custom class, you must convert the dictionary back into an instance of
+the class. The following example retrieves a document from a collection, and then converts
+it back into a ``Restaurant`` object from the preceding example:
+
+.. code-block:: python
+
+   def deserialize_restaurant(doc):
+       return Restaurant(name=doc["name"], cuisine=doc["cuisine"])
+
+   restaurant_doc = collection.find_one({"name": "Example Cafe"})
+   restaurant = deserialize_restaurant(restaurant_doc)
+
+To learn more about retrieving documents from a collection, see the :ref:`pymongo-retrieve`
+guide.
