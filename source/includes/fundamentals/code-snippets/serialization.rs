@@ -1,15 +1,18 @@
-use mongodb::{ bson::doc, Client, Collection };
-use serde::{ Deserialize, Serialize };
 use std::env;
 
-// begin-veg-struct
+use bson::{binary::Vector, DateTime};
+use mongodb::{bson::doc, Client, Collection};
+use serde::{Deserialize, Serialize};
+
+// begin-struct
 #[derive(Serialize, Deserialize)]
-struct Vegetable {
-    name: String,
-    category: String,
-    tropical: bool,
+struct Article {
+    title: String,
+    date: DateTime,
+    content: String,
+    content_embeddings: Vector,
 }
-// end-veg-struct
+// end-struct
 
 #[derive(Serialize, Deserialize)]
 struct Square {
@@ -27,20 +30,21 @@ async fn main() -> mongodb::error::Result<()> {
     let client = Client::with_uri_str(uri).await?;
 
     // begin-access-coll
-    let my_coll: Collection<Vegetable> = client
+    let my_coll: Collection<Article> = client
         .database("db")
-        .collection("vegetables");
+        .collection("articles");
     // end-access-coll
 
-    // begin-insert-veg
-    let calabash = Vegetable {
-        name: "calabash".to_string(),
-        category: "gourd".to_string(),
-        tropical: true,
+    // begin-insert-struct
+    let article = Article {
+        title: "Mainting Your Garden in Winter".to_string(),
+        date: DateTime::now(),
+        content: "As fall winds down, you might be wondering what you should be doing in your garden in the coming months ...".to_string(),
+        content_embeddings: Vector::Float32(vec! [0.01020927,-0.011224265,0.015686288,-0.018586276,-0.023160344])
     };
 
-    my_coll.insert_one(calabash).await?;
-    // end-insert-veg
+    my_coll.insert_one(article).await?;
+    // end-insert-struct
 
     // begin-multiple-types
     let shapes_coll: Collection<Square> = client
