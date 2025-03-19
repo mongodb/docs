@@ -1,0 +1,101 @@
+.. _pymongo-network-compression:
+
+========================
+Compress Network Traffic
+========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: zlib, zstandard, zstd, snappy
+
+Overview
+--------
+
+{+driver-short+} provides connection options to compress messages, which reduce the amount
+of data passed over the network between MongoDB and your application.
+
+.. _pymongo-enable-compression:
+.. _pymongo-compression-algorithms:
+
+Specify Compression Algorithms
+------------------------------
+
+{+driver-short+} supports the following compression algorithms:
+
+1. `Snappy <https://google.github.io/snappy/>`__: Available in MongoDB 3.6 and later. This
+   option requires the `python-snappy <https://pypi.org/project/python-snappy/>`__ package.
+
+2. `Zlib <https://zlib.net/>`__: Available in MongoDB 3.6 and later. This option requires
+   the zlib module, included in the standard library in Python v1.5 and later.
+
+3. `Zstandard <https://github.com/facebook/zstd/>`__: Available in MongoDB 4.2 and later.
+   This option requires the `zstandard <https://pypi.org/project/zstandard/>`__ package.
+
+To enable compression for the connection to your MongoDB instance, use the
+``compressors`` connection option and specify the compression algorithms you want to use.
+You can do this in two ways:
+
+- Pass the algorithms as an argument to the ``MongoClient`` constructor.
+- Specify the algorithms in your connection string.
+
+The following code example shows both options:
+
+.. include:: /includes/connect/compression-tabs.rst
+
+If you don't specify a compression algorithm, {+driver-short+} doesn't compress your
+network traffic. If you specify multiple compression algorithms, the driver selects the
+first one in the list supported by your MongoDB instance.
+
+Specify the zlib Compression Level
+----------------------------------
+
+If you specify ``zlib`` as one of your compression algorithms, you can also use the
+``zlibCompressionLevel`` option to specify a compression level. This option accepts
+an integer value between ``-1`` and ``9``:
+
+- **-1:** (Default). zlib uses its default compression level (usually ``6``).
+- **0:** No compression.
+- **1:** Fastest speed but lowest compression.
+- **9:** Best compression but slowest speed.
+
+The following code example specifies the ``zlib`` compression algorithm and a value of
+``1`` for the ``zlibCompressionLevel`` option:
+
+.. tabs::
+
+   .. tab:: MongoClient
+      :tabid: mongoclient
+
+      .. code-block:: python
+         :emphasize-lines: 2-3
+
+         client = pymongo.MongoClient("mongodb://<db_username>:<db_password>@<hostname>:<port>",
+                                      compressors = "zlib",
+                                      zlibCompressionLevel=1)
+
+   .. tab:: Connection String
+      :tabid: connectionstring
+
+      .. code-block:: python
+         :emphasize-lines: 2-3
+
+         uri = ("mongodb://<db_username>:<db_password>@<hostname>:<port>/?"
+                "compressors=zlib"
+                "zlibCompressionLevel=1")
+         client = pymongo.MongoClient(uri)
+
+API Documentation
+-----------------
+
+To learn more about any of the methods or types discussed in this
+guide, see the `MongoClient <{+api-root+}pymongo/mongo_client.html#pymongo.mongo_client.MongoClient>`__
+API documentation.

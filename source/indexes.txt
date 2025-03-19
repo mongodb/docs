@@ -1,8 +1,9 @@
+.. _pymongo-work-with-indexes:
 .. _pymongo-indexes:
 
-=============================
-Optimize Queries with Indexes
-=============================
+=======
+Indexes
+=======
 
 .. contents:: On this page
    :local:
@@ -18,198 +19,531 @@ Optimize Queries with Indexes
    :description: Learn how to use indexes with the MongoDB {+driver-short+} driver.
    :keywords: query, optimization, efficiency, usage example, code example
 
-.. toctree::
-   :titlesonly:
-   :maxdepth: 1
-
-   Work with Indexes </work-with-indexes>
-
 Overview
 --------
 
-On this page, you can see copyable code examples that show how to work with common
-types of indexes that you can use with {+driver-short+}.
+In this guide, you can learn how to use **indexes** with {+driver-short+}.
+Indexes can improve the efficiency of queries and add additional functionality
+to querying and storing documents.
+
+Without indexes, MongoDB must scan every document in a collection to find the
+documents that match each query. These collection scans are
+slow and can negatively affect the performance of your application. However, if an
+appropriate index exists for a query, MongoDB can use the index to limit the
+documents it must inspect.
+
+Operational Considerations
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To improve query performance, build indexes on fields that appear often in
+your application's queries and operations that return sorted results. Each
+index that you add consumes disk space and memory when active, so we recommend
+that you track index memory and disk usage for capacity planning. In addition,
+when a write operation updates an indexed field, MongoDB updates the related
+index.
+
+Because MongoDB supports dynamic schemas, applications can query against fields
+whose names are not known in advance or are arbitrary. MongoDB 4.2 introduced
+:manual:`wildcard indexes </core/index-wildcard/>` to help support these
+queries. Wildcard indexes are not designed to replace workload-based index
+planning.
+
+For more information about designing your data model and choosing indexes appropriate for your application, see the
+:manual:`Data Modeling and Indexes </core/data-model-operations/#indexes>` guide
+in the {+mdb-server+} manual.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``sample_mflix.movies`` collection
+from the :atlas:`Atlas sample datasets </sample-data>`. To learn how to create a
+free MongoDB Atlas cluster and load the sample datasets, see the
+:ref:`<pymongo-get-started>`.
+
+Index Types
+-----------
+
+.. _pymongo-single-field-index:
+
+Single Field and Compound Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Single Field Indexes
+````````````````````
+
+:manual:`Single field indexes </core/index-single/>` are indexes with a reference to a
+single field within a collection's documents. They improve single field query and sort
+performance, and support :manual:`TTL Indexes </core/index-ttl>` that
+automatically remove documents from a collection after a certain amount of time or at a
+specific clock time.
+
+.. note::
+
+   The ``_id_`` index is an example of a single field index. This index is automatically
+   created on the ``_id`` field when a new collection is created.
+
+The following example creates an index in ascending order on the ``title`` field:
+
+.. literalinclude:: /includes/indexes/indexes.py
+   :start-after: start-index-single
+   :end-before: end-index-single
+   :language: python
+   :copyable:
+
+The following is an example of a query that is covered by the index created in the
+preceding code example:
+
+.. literalinclude:: /includes/indexes/indexes.py
+   :language: python
+   :start-after: start-index-single-query
+   :end-before: end-index-single-query
+
+To learn more, see :manual:`Single Field Indexes
+</core/index-single>` in the {+mdb-server+} manual.
+
+Compound Indexes
+````````````````
+
+:manual:`Compound indexes </core/index-compound/>` hold references to multiple
+fields within a collection's documents, improving query and sort performance.
+
+The following example creates a compound index on the ``type`` and ``genre`` fields:
+
+.. literalinclude:: /includes/indexes/indexes.py
+   :language: python
+   :start-after: start-compound-index
+   :end-before: end-compound-index
+
+The following is an example of a query that uses the index created in
+the preceding code example:
+
+.. literalinclude:: /includes/indexes/indexes.py
+   :language: python
+   :start-after: start-index-compound-query
+   :end-before: end-index-compound-query
+
+For more information, see :manual:`Compound Indexes </core/index-compound>` in
+the {+mdb-server+} manual.
+
+.. _pymongo-multikey-index:
+
+Multikey Indexes (Indexes on Array Fields)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Multikey indexes** are indexes that improve performance for queries that specify a field
+with an index that contains an array value. You can define a multikey index by using the
+same syntax as a single field or compound index.
+
+The following example creates a multikey index on the ``cast`` field:
+
+.. literalinclude:: /includes/indexes/indexes.py
+   :language: python
+   :start-after: start-index-multikey
+   :end-before: end-index-multikey
+
+The following is an example of a query that uses the index created in the preceding code example:
+
+.. literalinclude:: /includes/indexes/indexes.py
+   :language: python
+   :start-after: start-index-multikey-query
+   :end-before: end-index-multikey-query
+
+Multikey indexes behave differently from other indexes in terms of query coverage, index-
+bound computation, and sort behavior. To learn more about multikey indexes, including a
+discussion of their behavior and limitations, see the
+:manual:`Multikey Indexes </core/index-multikey>` guide in the {+mdb-server+} manual.
+
+.. _pymongo-atlas-search-index:
+
+Atlas Search and Vector Search Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can manage your :atlas:`Atlas Search </atlas-search>` and 
+:atlas:`Atlas Vector Search </atlas-vector-search/vector-search-overview/>`
+indexes by using {+driver-short+}. The indexes specify the behavior of
+the search and which fields to index.
+
+Atlas Search enables you to perform full-text searches on
+collections hosted on MongoDB Atlas. Atlas Search indexes specify the behavior of
+the search and which fields to index.
+
+Atlas Vector Search enables you to perform semantic searches on vector
+embeddings stored in MongoDB Atlas. Vector Search indexes define the
+indexes for the vector embeddings that you want to query and the boolean,
+date, objectId, numeric, string, or UUID values that you want to use to
+pre-filter your data.
+
+You can call the following methods on a collection to manage your Atlas Search
+and Vector Search indexes:
+
+- ``create_search_index()``
+- ``create_search_indexes()``
+- ``list_search_indexes()``
+- ``update_search_index()``
+- ``drop_search_index()``
+
+.. note::
+
+   The Atlas Search Index management methods run asynchronously. The
+   driver methods can return before confirming that they ran
+   successfully. To determine the current status of the indexes, call the
+   ``list_search_indexes()`` method.
+
+The following sections provide code examples that demonstrate how to use
+each of the preceding methods.
+
+.. _pymongo-atlas-search-index-create:
+
+Create a Search Index
+`````````````````````
+
+You can use the `create_search_index() <{+api-root+}pymongo/collection.html#pymongo.collection.Collection.create_search_index>`__
+and the
+`create_search_indexes() <{+api-root+}pymongo/collection.html#pymongo.collection.Collection.create_search_indexes>`__
+methods to create Atlas Search indexes or Atlas Vector Search indexes.
+
+The following code example shows how to create a single Atlas Search index:
+
+.. literalinclude:: /includes/indexes/indexes.py
+   :language: python
+   :start-after: start-create-search-index
+   :end-before: end-create-search-index
+
+The following code example shows how to create a single Atlas Vector Search index
+by using the `SearchIndexModel <{+api-root+}pymongo/operations.html#pymongo.operations.SearchIndexModel>`__
+object:
+
+.. literalinclude:: /includes/indexes/indexes.py
+   :language: python
+   :start-after: start-create-vector-search-index
+   :end-before: end-create-vector-search-index
+
+You can use the `create_search_indexes() <{+api-root+}pymongo/collection.html#pymongo.collection.Collection.create_search_indexes>`__
+method to create multiple indexes. These indexes can be Atlas Search or
+Vector Search indexes. The ``create_search_indexes()`` method takes a list of
+``SearchIndexModel`` objects that correspond to each index you want to create.
+
+The following code example shows how to create an Atlas Search index and an Atlas
+Vector Search index:
+
+.. literalinclude:: /includes/indexes/indexes.py
+   :language: python
+   :start-after: start-create-search-indexes
+   :end-before: end-create-search-indexes
+
+.. _pymongo-atlas-search-index-list:
+
+List Search Indexes
+```````````````````
+
+You can use the
+`list_search_indexes() <{+api-root+}pymongo/collection.html#pymongo.collection.Collection.list_search_indexes>`__
+method to get information about the Atlas Search and Vector Search indexes 
+of a collection.
+
+The following code example shows how to print a list of the search indexes of
+a collection:
+
+.. literalinclude:: /includes/indexes/indexes.py
+   :language: python
+   :dedent:
+   :start-after: start-list-search-indexes
+   :end-before: end-list-search-indexes
+
+.. _pymongo-atlas-search-index-update:
+
+Update a Search Index
+`````````````````````
+
+You can use the
+`update_search_index() <{+api-root+}pymongo/collection.html#pymongo.collection.Collection.update_search_index>`__
+method to update an Atlas Search or Vector Search index.
+
+The following code example shows how to update an Atlas Search index:
+
+.. literalinclude:: /includes/indexes/indexes.py
+   :language: python
+   :dedent:
+   :start-after: start-update-search-indexes
+   :end-before: end-update-search-indexes
+
+The following code example shows how to update an Atlas Vector Search index:
+
+.. literalinclude:: /includes/indexes/indexes.py
+   :language: python
+   :dedent:
+   :start-after: start-update-vector-search-indexes
+   :end-before: end-update-vector-search-indexes
+
+.. _pymongo-atlas-search-index-drop:
+
+Delete a Search Index
+`````````````````````
+
+You can use the
+`drop_search_index() <{+api-root+}pymongo/collection.html#pymongo.collection.Collection.drop_search_index>`__
+method to remove an Atlas Search or Vector Search index.
+
+The following code shows how to delete a search index from a collection:
+
+.. literalinclude:: /includes/indexes/indexes.py
+   :language: python
+   :dedent:
+   :start-after: start-delete-search-indexes
+   :end-before: end-delete-search-indexes
+
+.. _pymongo-text-index:
+
+Text Indexes
+~~~~~~~~~~~~
+
+**Text indexes** support text search queries on string content. These indexes
+can include any field whose value is a string or an array of string elements.
+MongoDB supports text search for various languages. You can specify the default
+language as an option when creating the index.
 
 .. tip::
 
-  To learn more about working with indexes, see the :ref:`pymongo-work-with-indexes`
-  guide. To learn more about any of the indexes shown on this page, see the link
-  provided in each section.
+   MongoDB offers an improved full-text search solution,
+   :atlas:`Atlas Search </atlas-search/>`. To learn more about Atlas Search
+   indexes and how to use them, see the :ref:`pymongo-atlas-search-index`
+   section of this page.
 
-To use an example from this page, copy the code example into the
-:ref:`sample application <pymongo-index-sample>` or your own application.
-Be sure to replace all placeholders in the code examples, such as ``<connection string URI>``, with
-the relevant values for your MongoDB deployment.
+Text Index on a Single Field
+````````````````````````````
 
-.. _pymongo-index-sample:
+The following example creates a text index on the ``plot`` field:
 
-.. include:: /includes/usage-examples/sample-app-intro.rst
-
-.. literalinclude:: /includes/usage-examples/sample-app.py
+.. literalinclude:: /includes/indexes/indexes.py
    :language: python
-   :copyable:
-   :linenos:
-   :emphasize-lines: 11-13
+   :start-after: start-index-text-single
+   :end-before: end-index-text-single
 
-Single Field Index
-------------------
+The following is an example of a query that uses the index created in the
+preceding code example:
 
-.. literalinclude:: /includes/usage-examples/index-code-examples.py
-   :start-after: start-single-field
-   :end-before: end-single-field
+.. literalinclude:: /includes/indexes/indexes.py
    :language: python
-   :copyable:
+   :start-after: start-index-text-single-query
+   :end-before: end-index-text-single-query
 
-To learn more about single field indexes, see the
-:ref:`pymongo-single-field-index` guide.
+Text Index on Multiple Fields
+`````````````````````````````
 
-Compound Index
---------------
+A collection can contain only one text index. If you want to create a
+text index for multiple text fields, create a compound
+index. A text search runs on all the text fields within the compound
+index.
 
-.. literalinclude:: /includes/usage-examples/index-code-examples.py
-   :start-after: start-compound
-   :end-before: end-compound
+The following example creates a compound text index for the ``title`` and ``genre``
+fields:
+
+.. literalinclude:: /includes/indexes/indexes.py
    :language: python
-   :copyable:
+   :start-after: start-index-text-multi
+   :end-before: end-index-text-multi
 
-To learn more about compound indexes, see the :ref:`pymongo-compound-index`
-guide.
+For more information, see :manual:`Compound Text Index Restrictions
+</core/index-text/#std-label-text-index-compound>` and
+:manual:`Text Indexes </core/index-text>` in the {+mdb-server+} manual.
 
-Multikey Index
---------------
+.. _pymongo-geospatial-index:
 
-.. literalinclude:: /includes/usage-examples/index-code-examples.py
-   :start-after: start-multikey
-   :end-before: end-multikey
+Geospatial Indexes
+~~~~~~~~~~~~~~~~~~
+
+MongoDB supports queries of geospatial coordinate data using **2dsphere indexes**. With
+a ``2dsphere`` index, you can query the geospatial data for inclusion, intersection,
+and proximity. For more information about querying geospatial data, see
+:manual:`Geospatial Queries </geospatial-queries/>`.
+
+To create a ``2dsphere`` index, you must specify a field that contains only
+**GeoJSON objects**. For more details on this
+type, see the :manual:`GeoJSON objects </reference/geojson>` guide in the MongoDB
+Server manual.
+
+The ``location.geo`` field in the following sample document from the ``theaters``
+collection in the ``sample_mflix``
+database is a GeoJSON Point object that describes the coordinates of the theater:
+
+.. code-block:: javascript
+
+   {
+      "_id" : ObjectId("59a47286cfa9a3a73e51e75c"),
+      "theaterId" : 104,
+      "location" : {
+         "address" : {
+            "street1" : "5000 W 147th St",
+            "city" : "Hawthorne",
+            "state" : "CA",
+            "zipcode" : "90250"
+         },
+         "geo" : {
+            "type" : "Point",
+            "coordinates" : [
+               -118.36559,
+               33.897167
+            ]
+         }
+      }
+   }
+
+Create a Geospatial Index
+`````````````````````````
+
+The following example creates a ``2dsphere`` index on the ``location.geo`` field:
+
+.. literalinclude:: /includes/indexes/indexes.py
    :language: python
-   :copyable:
+   :start-after: start-index-geo
+   :end-before: end-index-geo
 
-To learn more about multikey indexes, see the :ref:`pymongo-multikey-index`
-guide.
+MongoDB also supports ``2d`` indexes for calculating distances on a Euclidean plane and for working with the "legacy
+coordinate pairs" syntax used in MongoDB 2.2 and earlier. For more information,
+see the :manual:`Geospatial Queries guide </geospatial-queries>` in the MongoDB
+Server manual.
 
-Atlas Search Index
-------------------
+.. _pymongo-unique-index:
 
-To learn more about Atlas search indexes, see the :ref:`pymongo-atlas-search-index`
-guide.
+Unique Indexes
+~~~~~~~~~~~~~~
 
-Create Search Index
-~~~~~~~~~~~~~~~~~~~
+Unique indexes ensure that the indexed fields do not store duplicate values. By
+default, MongoDB creates a unique index on the ``_id`` field during the creation
+of a collection. To create a unique index, perform the following steps:
 
-.. literalinclude:: /includes/usage-examples/index-code-examples.py
-   :start-after: start-search-create
-   :end-before: end-search-create
+- Specify the field or combination of fields that you want to prevent duplication on.
+- Set the ``unique`` option to``True``.
+
+Create a Unique Index
+`````````````````````
+
+The following example creates a descending unique index on the ``theaterId`` field:
+
+.. literalinclude:: /includes/indexes/indexes.py
    :language: python
-   :copyable:
+   :start-after: start-index-unique
+   :end-before: end-index-unique
 
-To learn more about creating serach indexes, see the :ref:`pymongo-atlas-search-index-create`
-guide.
+For more information, see the :manual:`Unique Indexes </core/index-unique>` guide
+in the {+mdb-server+} manual.
 
-List Search Indexes
-~~~~~~~~~~~~~~~~~~~
+.. _pymongo-wildcard-index:
 
-.. literalinclude:: /includes/usage-examples/index-code-examples.py
-   :start-after: start-search-list
-   :end-before: end-search-list
+Wildcard Indexes
+~~~~~~~~~~~~~~~~
+
+Wildcard indexes enable queries against unknown or arbitrary fields.
+These indexes can be beneficial if you are using a dynamic schema.
+
+Create a Wildcard Index
+```````````````````````
+
+The following example creates an ascending wildcard index on all
+values of the ``location`` field, including values nested in subdocuments and arrays:
+
+.. literalinclude:: /includes/indexes/indexes.py
    :language: python
-   :copyable:
+   :start-after: start-index-wildcard
+   :end-before: end-index-wildcard
 
-To learn more about listing search indexes, see the :ref:`pymongo-atlas-search-index-list`
-guide.
+For more information, see the :manual:`Wildcard Indexes</core/index-wildcard>`
+page in the {+mdb-server+} manual.
 
-Update Search Indexes
-~~~~~~~~~~~~~~~~~~~~~
+.. _pymongo-clustered-index:
 
-.. literalinclude:: /includes/usage-examples/index-code-examples.py
-   :start-after: start-search-update
-   :end-before: end-search-update
+Clustered Indexes
+~~~~~~~~~~~~~~~~~
+
+**Clustered indexes** instruct a collection to store documents ordered
+by a key value. To create a clustered index, perform the following steps when
+you create your collection:
+
+- Specify the clustered index option with the ``_id`` field as the key.
+- Set the unique field to ``True``.
+
+Create a Clustered Index
+````````````````````````
+
+The following example creates a clustered index on the ``_id`` field in
+a new ``movie_reviews`` collection:
+
+.. literalinclude:: /includes/indexes/indexes.py
    :language: python
-   :copyable:
+   :start-after: start-index-clustered
+   :end-before: end-index-clustered
 
-To learn more about updating search indexes, see the :ref:`pymongo-atlas-search-index-update`
-guide.
+For more information, see the :manual:`Clustered Index
+</reference/method/db.createCollection/#std-label-db.createCollection.clusteredIndex>`
+and :manual:`Clustered Collections </core/clustered-collections>` sections in
+the {+mdb-server+} manual.
 
-Delete Search Indexes
-~~~~~~~~~~~~~~~~~~~~~
-
-.. literalinclude:: /includes/usage-examples/index-code-examples.py
-   :start-after: start-search-drop
-   :end-before: end-search-drop
-   :language: python
-   :copyable:
-
-To learn more about deleting search indexes, see the :ref:`pymongo-atlas-search-index-drop`
-guide.
-
-
-Text Index
-----------
-
-.. literalinclude:: /includes/usage-examples/index-code-examples.py
-   :start-after: start-text
-   :end-before: end-text
-   :language: python
-   :copyable:
-
-To learn more about text indexes, see the :ref:`pymongo-text-index`
-guide.
-
-Geospatial Index
-----------------
-
-.. literalinclude:: /includes/usage-examples/index-code-examples.py
-   :start-after: start-geo
-   :end-before: end-geo
-   :language: python
-   :copyable:
-
-To learn more about geospatial indexes, see the :ref:`pymongo-geospatial-index`
-guide.
-
-Unique Index
-------------
-
-.. literalinclude:: /includes/usage-examples/index-code-examples.py
-   :start-after: start-unique
-   :end-before: end-unique
-   :language: python
-   :copyable:
-
-To learn more about unique indexes, see the :ref:`pymongo-unique-index`
-guide.
-
-Wildcard Index
---------------
-
-.. literalinclude:: /includes/usage-examples/index-code-examples.py
-   :start-after: start-wildcard
-   :end-before: end-wildcard
-   :language: python
-   :copyable:
-
-To learn more about wildcard indexes, see the :ref:`pymongo-wildcard-index`
-guide.
-
-Clustered Index
----------------
-
-.. literalinclude:: /includes/usage-examples/index-code-examples.py
-   :start-after: start-clustered
-   :end-before: end-clustered
-   :language: python
-   :copyable:
-
-To learn more about wildcard indexes, see the :ref:`pymongo-clustered-index`
-guide.
+.. _pymongo-indexes-remove:
 
 Remove an Index
 ---------------
 
-.. literalinclude:: /includes/usage-examples/index-code-examples.py
-   :start-after: start-remove
-   :end-before: end-remove
-   :language: python
-   :copyable:
+You can remove any unused index except the default unique index on the
+``_id`` field.
 
-To learn more about removing indexes, see :ref:`pymongo-indexes-remove`
-in the Work with Indexes guide.
+The following sections show how to remove a single index or to remove all
+indexes in a collection.
+
+Remove a Single Index
+~~~~~~~~~~~~~~~~~~~~~
+
+Pass an instance of an index or the index name to the ``drop_index()`` method to
+remove an index from a collection.
+
+The following example removes an index with the name ``"_title_"`` from the ``movies``
+collection:
+
+.. literalinclude:: /includes/indexes/indexes.py
+   :language: python
+   :start-after: start-remove-index
+   :end-before: end-remove-index
+
+.. note::
+
+   You cannot remove a single field from a compound text index. You must
+   drop the entire index and create a new one to update the indexed
+   fields.
+
+Remove All Indexes
+~~~~~~~~~~~~~~~~~~
+
+Starting with MongoDB 4.2, you can drop all indexes by calling the
+``drop_indexes()`` method on your collection:
+
+.. code-block:: java
+
+   collection.drop_indexes()
+
+For earlier versions of MongoDB, pass ``"*"`` as a parameter to your call to
+``drop_index()`` on your collection:
+
+.. code-block:: java
+
+   collection.drop_index("*")
+
+Troubleshooting
+---------------
+
+.. include:: /includes/troubleshooting/unique-index.rst
+
+Additional Information
+----------------------
+
+To learn more about indexes in MongoDB, see the :manual:`Indexes </indexes>`
+guide in the {+mdb-server+} manual.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `create_index() <{+api-root+}pymongo/collection.html#pymongo.collection.Collection.create_index>`__
+- `create_indexes() <{+api-root+}pymongo/collection.html#pymongo.collection.Collection.create_indexes>`__
+- `drop_index() <{+api-root+}pymongo/collection.html#pymongo.collection.Collection.drop_index>`__
+- `drop_indexes() <{+api-root+}pymongo/collection.html#pymongo.collection.Collection.drop_indexes>`__
