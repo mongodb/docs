@@ -23,7 +23,7 @@
                      :language: go
                      :linenos:
                      :dedent:
-                     :emphasize-lines: 17
+                     :emphasize-lines: 19
 
                   .. include:: /includes/fact-fts-driver-connection-string.rst
 
@@ -36,7 +36,7 @@
                      :language: go
                      :linenos:
                      :dedent:
-                     :emphasize-lines: 17
+                     :emphasize-lines: 19
 
                   .. include:: /includes/fact-fts-driver-connection-string.rst
 
@@ -54,7 +54,7 @@
                      :language: go
                      :linenos:
                      :dedent:
-                     :emphasize-lines: 22
+                     :emphasize-lines: 24
 
                   .. include:: /includes/fact-fts-driver-connection-string.rst
 
@@ -67,7 +67,7 @@
                      :language: go
                      :linenos:
                      :dedent:
-                     :emphasize-lines: 22
+                     :emphasize-lines: 24
 
                   .. include:: /includes/fact-fts-driver-connection-string.rst
 

@@ -5,16 +5,20 @@ import (
 	"fmt"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 func main() {
 	var err error
-	// connect to the Atlas cluster
+	// connect to the Atlas cluster and set a maximum operation time
 	ctx := context.Background()
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI("<connection-string>"))
+	opts := options.Client().
+		SetTimeout(5 * time.Second).
+		ApplyURI("<connection-string>")
+
+	client, err := mongo.Connect(opts)
 	if err != nil {
 		panic(err)
 	}
@@ -30,10 +34,8 @@ func main() {
 		}}}}}
 	limitStage := bson.D{{"$limit", 5}}
 	projectStage := bson.D{{"$project", bson.D{{"_id", 0}}}}
-	// specify the amount of time the operation can run on the server
-	opts := options.Aggregate().SetMaxTime(5 * time.Second)
 	// run pipeline
-	cursor, err := collection.Aggregate(ctx, mongo.Pipeline{searchStage, limitStage, projectStage}, opts)
+	cursor, err := collection.Aggregate(ctx, mongo.Pipeline{searchStage, limitStage, projectStage})
 	if err != nil {
 		panic(err)
 	}
