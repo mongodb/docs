@@ -1,0 +1,255 @@
+.. _pymongo-aggregation-multi-field:
+
+================
+Multi-Field Join
+================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: code example, python, lookup, aggregation
+
+Introduction
+------------
+
+In this tutorial, you can learn how to use {+driver-short+} to
+construct an aggregation pipeline, perform the
+aggregation on a collection, and print the results by completing and
+running a sample app.
+
+This aggregation performs a multi-field join. A multi-field join occurs when there are
+multiple corresponding fields in the documents of two collections that you use to
+match documents together. The aggregation matches these documents on the
+field values and combines information from both into one document.
+
+.. tip:: One-to-many Joins
+
+   A one-to-many join is a variety of a multi-field join. When you
+   perform a one-to-many join, you select one field from a document that
+   matches a field value in multiple documents on the other side of the
+   join. To learn more about these data relationships,
+   see the Wikipedia entries about :wikipedia:`One-to-many (data model)
+   <w/index.php?title=One-to-many_(data_model)&oldid=1112674599>` and
+   :wikipedia:`Many-to-many (data model)
+   <w/index.php?title=Many-to-many_(data_model)&oldid=1169943560>`.
+
+Aggregation Task Summary
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+This tutorial demonstrates how to combine data from a collection that
+describes product information with another collection that describes
+customer orders. The results show a list of products ordered in 2020
+that also contains details about each order.
+
+This example uses two collections:
+
+- ``products``, which contains documents describing the products that
+  a shop sells
+- ``orders``, which contains documents describing individual orders
+  for products in a shop
+
+An order can only contain one product, so the aggregation uses a
+multi-field join to match a product document to documents representing orders of
+that product. The collections are joined by the ``name`` and
+``variation`` fields in documents in the ``products`` collection, corresponding
+to the ``product_name`` and ``product_variation`` fields in documents in
+the ``orders`` collection.
+
+Before You Get Started
+----------------------
+
+.. include:: /includes/aggregation-tutorial-intro.rst
+
+After you set up the app, access the ``products`` and ``orders``
+collections by adding the following code to the application:
+
+.. literalinclude:: /includes/aggregation/multi-field-join.py
+   :language: python
+   :copyable: true
+   :start-after: start-colls
+   :end-before: end-colls
+   :dedent:
+
+Delete any existing data and insert sample data into
+the ``products`` collection as shown in the following code:
+
+.. literalinclude:: /includes/aggregation/multi-field-join.py
+   :language: python
+   :copyable: true
+   :start-after: start-insert-products
+   :end-before: end-insert-products
+   :dedent:
+
+Delete any existing data and insert sample data into
+the ``orders`` collection as shown in the following code:
+
+.. literalinclude:: /includes/aggregation/multi-field-join.py
+   :language: python
+   :copyable: true
+   :start-after: start-insert-orders
+   :end-before: end-insert-orders
+   :dedent:
+
+Tutorial
+--------
+
+.. procedure::
+   :style: connected
+
+   .. step:: Add a lookup stage to link the collections and import fields
+
+      The first stage of the pipeline is a :manual:`$lookup
+      </reference/operator/aggregation/lookup>` stage to join the
+      ``orders`` collection to the ``products`` collection by two
+      fields in each collection. The lookup stage contains an
+      embedded pipeline to configure the join.
+            
+      Within the embedded pipeline, add a :manual:`$match
+      </reference/operator/aggregation/match>` stage to match the
+      values of two fields on each side of the join. Note that the following
+      code uses aliases for the ``name`` and ``variation`` fields
+      set when creating the ``$lookup`` stage:
+
+      .. literalinclude:: /includes/aggregation/multi-field-join.py
+         :language: python
+         :copyable: true
+         :start-after: start-embedded-pl-match1
+         :end-before: end-embedded-pl-match1
+         :dedent:
+
+      Within the embedded pipeline, add another :manual:`$match
+      </reference/operator/aggregation/match>` stage to match
+      orders placed in 2020:
+
+      .. literalinclude:: /includes/aggregation/multi-field-join.py
+         :language: python
+         :copyable: true
+         :start-after: start-embedded-pl-match2
+         :end-before: end-embedded-pl-match2
+         :dedent:
+
+      Within the embedded pipeline, add an :manual:`$unset
+      </reference/operator/aggregation/unset>` stage to remove
+      unneeded fields from the ``orders`` collection side of the join:
+
+      .. literalinclude:: /includes/aggregation/multi-field-join.py
+         :language: python
+         :copyable: true
+         :start-after: start-embedded-pl-unset
+         :end-before: end-embedded-pl-unset
+         :dedent:
+
+      After the embedded pipeline is completed, add the
+      ``$lookup`` stage to the main aggregation pipeline.
+      Configure this stage to store the processed lookup fields in
+      an array field called ``orders``:
+
+      .. literalinclude:: /includes/aggregation/multi-field-join.py
+         :language: python
+         :copyable: true
+         :start-after: start-lookup
+         :end-before: end-lookup
+         :dedent:
+
+   .. step:: Add a match stage for products ordered in 2020
+
+      Next, add a :manual:`$match
+      </reference/operator/aggregation/match>` stage to only show
+      products for which there is at least one order in 2020,
+      based on the ``orders`` array calculated in the previous step:
+
+      .. literalinclude:: /includes/aggregation/multi-field-join.py
+         :language: python
+         :copyable: true
+         :start-after: start-match
+         :end-before: end-match
+         :dedent:
+
+   .. step:: Add an unset stage to remove unneeded fields
+
+      Finally, add an :manual:`$unset
+      </reference/operator/aggregation/unset>` stage. The
+      ``$unset`` stage removes the ``_id`` and ``description``
+      fields from the result documents:
+
+      .. literalinclude:: /includes/aggregation/multi-field-join.py
+         :language: python
+         :copyable: true
+         :start-after: start-unset
+         :end-before: end-unset
+         :dedent:
+
+   .. step:: Run the aggregation pipeline
+
+      Add the following code to the end of your application to perform
+      the aggregation on the ``products`` collection:
+
+      .. literalinclude:: /includes/aggregation/multi-field-join.py
+         :language: python
+         :copyable: true
+         :start-after: start-run-agg
+         :end-before: end-run-agg
+         :dedent:
+
+      Finally, run the following command in your shell to start your
+      application:
+
+      .. code-block:: bash
+      
+         python3 agg_tutorial.py
+
+   .. step:: Interpret results
+
+      The aggregated result contains two documents. The documents
+      represent products for which there were orders placed in 2020.
+      Each document contains an ``orders`` array field that lists details
+      about each order for that product:
+
+      .. code-block:: javascript
+         :copyable: false
+         
+         {
+           'name': 'Asus Laptop',
+           'variation': 'Standard Display',
+           'category': 'ELECTRONICS',
+           'orders': [
+             {
+               'customer_id': 'elise_smith@myemail.com',
+               'orderdate': datetime.datetime(2020, 5, 30, 8, 35, 52),
+               'value': 431.43
+             },
+             {
+               'customer_id': 'jjones@tepidmail.com',
+               'orderdate': datetime.datetime(2020, 12, 26, 8, 55, 46),
+               'value': 429.65
+             }
+           ]
+         }
+         {
+           'name': 'Morphy Richards Food Mixer',
+           'variation': 'Deluxe',
+           'category': 'KITCHENWARE',
+           'orders': [
+             {
+               'customer_id': 'oranieri@warmmail.com',
+               'orderdate': datetime.datetime(2020, 1, 1, 8, 25, 37),
+               'value': 63.13
+             }
+           ]
+         }
+      
+      The result documents contain details from documents in the
+      ``orders`` collection and the ``products`` collection, joined by
+      the product names and variations.
+
+To view the complete code for this tutorial, see the `Completed Multi-field Join App
+<https://github.com/mongodb/docs-pymongo/tree/master/source/includes/aggregation/multi-field-join.py>`__
+on GitHub.

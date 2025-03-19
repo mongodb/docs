@@ -1,0 +1,186 @@
+.. _pymongo-aggregation-filtered-subset:
+
+===============
+Filtered Subset
+===============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: code example, python, sort, limit, aggregation
+
+Introduction
+------------
+
+In this tutorial, you can learn how to use {+driver-short+} to
+construct an aggregation pipeline, perform the
+aggregation on a collection, and print the results by completing and
+running a sample app. This aggregation performs the following operations:
+
+- Matches a subset of documents by a field value
+- Formats result documents
+
+Aggregation Task Summary
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+This tutorial demonstrates how to query a collection for a specific
+subset of documents in a collection. The results contain
+documents that describe the three youngest people who are engineers.
+
+This example uses one collection, ``persons``, which contains
+documents describing people. Each document includes a person's name,
+date of birth, vocation, and other details.
+
+Before You Get Started
+----------------------
+
+.. include:: /includes/aggregation-tutorial-intro.rst
+
+After you set up the app, access the ``persons`` collection by adding the
+following code to the application:
+
+.. literalinclude:: /includes/aggregation/filtered-subset.py
+   :language: python
+   :copyable: true
+   :start-after: start-collection
+   :end-before: end-collection
+   :dedent:
+
+Delete any existing data in the collections and insert sample data into
+the ``persons`` collection as shown in the following code:
+
+.. literalinclude:: /includes/aggregation/filtered-subset.py
+   :language: python
+   :copyable: true
+   :start-after: start-insert-persons
+   :end-before: end-insert-persons
+   :dedent:
+
+Tutorial
+--------
+
+.. procedure::
+   :style: connected
+
+   .. step:: Add a match stage for people who are engineers
+
+      First, add a :manual:`$match
+      </reference/operator/aggregation/match>` stage that finds documents in which
+      the value of the ``vocation`` field is ``"ENGINEER"``:
+
+      .. literalinclude:: /includes/aggregation/filtered-subset.py
+         :language: python
+         :copyable: true
+         :start-after: start-match
+         :end-before: end-match
+         :dedent:
+
+   .. step:: Add a sort stage to sort from youngest to oldest
+
+      Next, add a :manual:`$sort
+      </reference/operator/aggregation/sort>` stage that sorts the
+      documents in descending order by the ``dateofbirth`` field to
+      list the youngest people first:
+
+      .. literalinclude:: /includes/aggregation/filtered-subset.py
+         :language: python
+         :copyable: true
+         :start-after: start-sort
+         :end-before: end-sort
+         :dedent:
+
+   .. step:: Add a limit stage to see only three results
+
+      Next, add a :manual:`$limit </reference/operator/aggregation/limit>`
+      stage to the pipeline to output only the first three documents in
+      the results.
+
+      .. literalinclude:: /includes/aggregation/filtered-subset.py
+         :language: python
+         :copyable: true
+         :start-after: start-limit
+         :end-before: end-limit
+         :dedent:
+
+   .. step:: Add an unset stage to remove unneeded fields
+
+      Finally, add an :manual:`$unset
+      </reference/operator/aggregation/unset>` stage. The
+      ``$unset`` stage removes unnecessary fields from the result documents:
+            
+      .. literalinclude:: /includes/aggregation/filtered-subset.py
+         :language: python
+         :copyable: true
+         :start-after: start-unset
+         :end-before: end-unset
+         :dedent:
+
+      .. tip::
+
+         Use the ``$unset`` operator instead of ``$project`` to avoid
+         modifying the aggregation pipeline if documents with
+         different fields are added to the collection.
+
+   .. step:: Run the aggregation pipeline
+
+      Add the following code to the end of your application to perform
+      the aggregation on the ``persons`` collection:
+
+      .. literalinclude:: /includes/aggregation/filtered-subset.py
+         :language: python
+         :copyable: true
+         :start-after: start-run-agg
+         :end-before: end-run-agg
+         :dedent:
+
+      Finally, run the following command in your shell to start your
+      application:
+
+      .. code-block:: bash
+      
+         python3 agg_tutorial.py
+
+   .. step:: Interpret results
+
+      The aggregated result contains three documents. The documents
+      represent the three youngest people with the vocation of ``"ENGINEER"``,
+      ordered from youngest to oldest. The results omit the ``_id`` and ``address``
+      fields.
+
+      .. code-block:: javascript
+         :copyable: false
+
+         {
+           'person_id': '7363626383',
+           'firstname': 'Carl',
+           'lastname': 'Simmons',
+           'dateofbirth': datetime.datetime(1998, 12, 26, 13, 13, 55),
+           'vocation': 'ENGINEER'
+         }
+         {
+           'person_id': '1723338115',
+           'firstname': 'Olive',
+           'lastname': 'Ranieri',
+           'dateofbirth': datetime.datetime(1985, 5, 12, 23, 14, 30),
+           'gender': 'FEMALE',
+           'vocation': 'ENGINEER'
+         }
+         {
+           'person_id': '6392529400',
+           'firstname': 'Elise',
+           'lastname': 'Smith',
+           'dateofbirth': datetime.datetime(1972, 1, 13, 9, 32, 7),
+           'vocation': 'ENGINEER'
+         }
+
+To view the complete code for this tutorial, see the `Completed Filtered Subset App
+<https://github.com/mongodb/docs-pymongo/tree/master/source/includes/aggregation/filtered-subset.py>`__
+on GitHub.
