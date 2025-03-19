@@ -4,14 +4,14 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 func main() {
 	// connect to your Atlas cluster
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("<connection-string>"))
+	client, err := mongo.Connect(options.Client().ApplyURI("<connection-string>"))
 	if err != nil {
 		panic(err)
 	}
@@ -21,29 +21,29 @@ func main() {
 	collection := client.Database("sample_mflix").Collection("movies")
 
 	// define pipeline stages
-	searchStage := bson.D{{"$search", bson.M{
+	searchStage := bson.D{{Key: "$search", Value: bson.M{
 		"index": "sort-tutorial",
 		"compound": bson.M{
 			"should": bson.A{
 				bson.M{
 					"wildcard": bson.D{
-						{"path", "title"},
-						{"query", "Prance*"},
-						{"allowAnalyzedField", true},
+						{Key: "path", Value: "title"},
+						{Key: "query", Value: "Prance*"},
+						{Key: "allowAnalyzedField", Value: true},
 					}},
 				bson.M{
 					"wildcard": bson.D{
-						{"path", "title"},
-						{"query", "Prince*"},
-						{"allowAnalyzedField", true},
+						{Key: "path", Value: "title"},
+						{Key: "query", Value: "Prince*"},
+						{Key: "allowAnalyzedField", Value: true},
 					}},
 			},
 		},
-		"sort": bson.D{{"title", 1}},
+		"sort": bson.D{{Key: "title", Value: 1}},
 	}}}
 
-	limitStage := bson.D{{"$limit", 5}}
-	projectStage := bson.D{{"$project", bson.D{{"title", 1}, {"_id", 0}, {"score", bson.D{{"$meta", "searchScore"}}}}}}
+	limitStage := bson.D{{Key: "$limit", Value: 5}}
+	projectStage := bson.D{{Key: "$project", Value: bson.D{{Key: "title", Value: 1}, {Key: "_id", Value: 0}, {Key: "score", Value: bson.D{{Key: "$meta", Value: "searchScore"}}}}}}
 
 	// run pipeline
 	cursor, err := collection.Aggregate(context.TODO(), mongo.Pipeline{searchStage, limitStage, projectStage})
