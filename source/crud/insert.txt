@@ -1,0 +1,345 @@
+.. _pymongo-write-insert:
+.. _pymongo-insert:
+
+================
+Insert Documents
+================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code examples, write, save, create
+
+Overview
+--------
+
+In this guide, you can learn how to use {+driver-short+} to add
+documents to a MongoDB collection by performing insert operations.
+
+An insert operation inserts one or more documents into a MongoDB collection.
+You can perform an insert operation by using the ``insert_one()`` or
+``insert_many()`` method.
+
+.. include:: /includes/write/unique-id-note.rst
+
+.. .. tip:: Interactive Lab
+   
+..    This page includes a short interactive lab that demonstrates how to
+..    insert data by using the ``insert_one()`` method. You can complete this
+..    lab directly in your browser window without installing MongoDB or a code editor.
+
+..    To start the lab, click the :guilabel:`Open Interactive Tutorial` button at the
+..    top of the page. To expand the lab to a full-screen format, click the
+..    full-screen button (:guilabel:`⛶`) in the top-right corner of the lab pane.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``sample_restaurants.restaurants`` collection
+from the :atlas:`Atlas sample datasets </sample-data>`. To learn how to create a
+free MongoDB Atlas cluster and load the sample datasets, see the
+:ref:`<pymongo-get-started>` tutorial.
+
+Insert One Document
+-------------------
+
+To add a single document to a MongoDB collection, call the ``insert_one()``
+method and pass the document you want to add.
+
+The following example inserts a document into the ``restaurants`` collection:
+
+.. code-block:: python
+   :copyable: true
+
+   sample_restaurants.restaurants.insert_one({"name" : "Mongo's Burgers"})
+
+You can also pass an instance of a custom class to the ``insert_one()`` method.
+This provides additional type safety if you're using a type-checking
+tool. The instance you pass must inherit from the ``TypedDict`` class.
+
+.. note:: TypedDict in Python 3.7 and Earlier
+
+   .. include:: /includes/type-hints/typeddict-availability.rst
+
+The following example passes an instance of the ``Restaurant`` class to the ``insert_one()``
+method for added type safety:
+
+.. code-block:: python
+   :copyable: true
+
+   class Restaurant(TypedDict):
+       name: str
+   
+   sample_restaurants.restaurants.insert_one(Restaurant(name="Mongo's Burgers")
+
+.. include:: /includes/type-hints/tip-type-checkers.rst
+
+Insert Multiple Documents
+-------------------------
+
+To add multiple documents to a MongoDB collection, call the ``insert_many()``
+method and pass a list of documents you want to add.
+
+The following example inserts a list of documents into the ``restaurants`` collection:
+
+.. code-block:: python
+   :copyable: true
+
+   document_list = [
+      { "name" : "Mongo's Burgers" },
+      { "name" : "Mongo's Pizza" }
+   ]
+
+   sample_restaurants.restaurants.insert_many(document_list)
+
+You can also pass a list of instances of a custom class to the ``insert_many()`` method.
+This provides additional type safety if you're using a type-checking
+tool. The instances you pass must inherit from the ``TypedDict`` class.
+
+.. note:: TypedDict in Python 3.7 and Earlier
+
+   .. include:: /includes/type-hints/typeddict-availability.rst
+
+The following example calls the ``insert_many()`` method and passes a list that contains
+instances of the ``Restaurant`` class. This adds type safety to the insert operation. 
+
+.. code-block:: python
+   :copyable: true
+
+   class Restaurant(TypedDict):
+       name: str
+   
+   document_list = [
+      Restaurant(name="Mongo's Burgers"),
+      Restaurant(name="Mongo's Pizza")
+   ]
+
+   sample_restaurants.restaurants.insert_many(document_list)
+
+.. include:: /includes/type-hints/tip-type-checkers.rst
+
+Modify Insert Behavior
+----------------------
+
+The ``insert_one()`` method optionally accepts additional parameters
+which represent options you can use to configure the insert operation.
+If you don't specify any additional parameters, the driver does
+not customize the insert.
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Property
+     - Description
+
+   * - ``bypass_document_validation``
+     - | If set to ``True``, allows the write to opt out of
+         :manual:`document-level validation </core/schema-validation>`. 
+       | Defaults to ``False``.
+
+   * - ``session``
+     - | An instance of ``ClientSession``.
+
+   * - ``comment``
+     - | A comment to attach to the operation. For more information, see the :manual:`insert command
+         fields </reference/command/insert/#command-fields>` guide in the
+         {+mdb-server+} manual for more information.
+
+The ``insert_many()`` method accepts the preceding optional parameters,
+as well as the optional ``ordered`` property:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Property
+     - Description
+
+   * - ``ordered``
+     - | If set to ``True``, the driver sends documents to the
+         server in the order provided. If an error occurs, the driver
+         and server cancel all remaining insert operations.
+       | Defaults to ``True``. 
+
+Example
+~~~~~~~
+
+The following code uses the ``insert_many()`` method to insert three new
+documents into a collection. Because the second method argument is
+``bypass_document_validation = True``, this insert operation bypasses 
+document-level validation.
+
+.. code-block:: python
+
+  document_list = [
+      { "name" : "Mongo's Burgers" },
+      { "name" : "Mongo's Pizza" },
+      { "name" : "Mongo's Tacos" }
+   ]
+
+   sample_restaurants.restaurants.insert_many(document_list, bypass_document_validation = True)
+
+Troubleshooting
+---------------
+
+.. include:: /includes/type-hints/troubleshooting-client-type.rst
+
+.. include:: /includes/type-hints/troubleshooting-incompatible-type.rst
+
+You might see a similar error if you pass a list to the ``insert_one()`` method:
+
+.. code-block:: bash
+
+   error: Argument 1 to "insert_one" of "Collection" has
+   incompatible type "List[Dict[<nothing>, <nothing>]]";
+   expected "Mapping[str, Any]"
+
+This error occurs because the ``insert_one()`` method accepts a document, not a list.
+You can resolve this error by passing a document to the ``insert_one()`` method or by
+calling the ``insert_many()`` method instead.
+
+TypedDict Missing _id Key
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you don't specify the ``_id`` field, {+driver-short+} automatically
+inserts it into the document.
+You can retrieve the value of the ``_id`` field at runtime, but if you use MyPy or another
+tool to perform static type-checking, it won't find the ``_id`` field in your class and
+will show an error similar to the following: 
+
+.. code-block:: bash
+
+   TypedDict has no key "_id"
+
+This is caused by code similar to the following:
+
+.. code-block:: python
+   :emphasize-lines: 13
+
+   from typing import TypedDict
+   from pymongo import MongoClient
+   from pymongo.collection import Collection
+   class Movie(TypedDict):
+       name: str
+       year: int
+   
+   client: MongoClient = MongoClient()
+   collection: Collection[Movie] = client.test.test
+   inserted = collection.insert_one(Movie(name="Jurassic Park", year=1993))
+   result = collection.find_one({"name": "Jurassic Park"})
+   # _id is present but was added by PyMongo; this will raise a type-checking error
+   assert result["_id"]
+
+One solution is to add a ``# type:ignore``
+comment to the end of the line that uses the ``_id`` field. This comment instructs the
+type-checking tool to ignore any errors that the line causes. The following example shows
+how to implement this solution;
+
+.. code-block:: python
+   :emphasize-lines: 15
+   
+   from typing import TypedDict
+   from pymongo import MongoClient
+   from pymongo.collection import Collection
+
+   class Movie(TypedDict):
+       name: str
+       year: int
+
+   collection: Collection[Movie] = client.test.test
+   inserted = collection.insert_one(
+       Movie(name="Jurassic Park", year=1993)
+   )
+   result = collection.find_one({"name": "Jurassic Park"})
+   assert result is not None
+   assert result["_id"] # type:ignore[typeddict-item]
+
+Instead of ignoring the type error, you can avoid it by including the ``_id`` field in
+your model class, and explicitly specifying a value for this field when you create the
+class instance. The following code shows how to implement this solution:
+
+.. code-block:: python
+   :emphasize-lines: 4,7,13
+
+   from typing import TypedDict
+   from pymongo import MongoClient
+   from pymongo.collection import Collection
+   from bson import ObjectId
+
+   class Movie(TypedDict):
+       _id: ObjectId
+       name: str
+       year: int
+
+   collection: Collection[ExplicitMovie] = client.test.test
+   inserted = collection.insert_one(
+       ExplicitMovie(_id=ObjectId(), name="Jurassic Park", year=1993)
+   )
+   result = collection.find_one({"name": "Jurassic Park"})
+   assert result is not None
+   assert result["_id"]
+
+One drawback to adding the ``_id`` field to your custom class is that you must include a
+value for the field for every instance of the class that you create.
+To avoid this, you can install the
+``typing.NotRequired`` package, which includes the ``NotRequired`` type hint. If you
+use this type hint for the ``_id`` field, you can access the value of the ``_id`` field
+at runtime without seeing any compile-time type errors.
+
+The following code example shows how to implement this solution:
+
+.. code-block:: python
+
+   from typing import TypedDict, NotRequired
+   from pymongo import MongoClient
+   from pymongo.collection import Collection
+   from bson import ObjectId
+   
+   class Movie(TypedDict):
+        _id: NotRequired[ObjectId]
+       name: str
+       year: int
+   
+   client: MongoClient = MongoClient() 
+   collection: Collection[Movie] = client.test.test
+   inserted = collection.insert_one(Movie(name="Jurassic Park", year=1993))
+   result = collection.find_one({"name": "Jurassic Park"})
+   assert result is not None
+   assert result["_id"]
+
+.. important:: NotRequired Requires Python 3.11+
+   
+   The `NotRequired <https://docs.python.org/3/library/typing.html#typing.NotRequired>`__
+   class is available only in Python 3.11 and later.
+   To use ``NotRequired`` in earlier versions of Python, install the
+   `typing_extensions <https://pypi.org/project/typing-extensions/>`__
+   package instead.
+
+Additional Information
+----------------------
+
+For runnable code examples of inserting documents with {+driver-short+}, see
+:ref:`pymongo-crud`.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API Documentation:
+
+- `insert_one() <{+api-root+}pymongo/collection.html#pymongo.collection.Collection.insert_one>`__
+- `insert_many() <{+api-root+}pymongo/collection.html#pymongo.collection.Collection.insert_many>`__
+- `ClientSession <{+api-root+}pymongo/client_session.html#pymongo.client_session.ClientSession>`__
+
+.. .. instruqt:: 
+..    :title: insert_one() Lesson
+..    :drawer:
