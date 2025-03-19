@@ -1,0 +1,231 @@
+.. _pymongo-retrieve:
+.. _pymongo-find:
+
+==============
+Find Documents
+==============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: code examples, read, search, cursor
+
+Overview
+--------
+
+In this guide, you can learn how to use {+driver-long+} to retrieve
+data from a MongoDB collection by using read operations. You can call the
+``find()`` or ``find_one()`` method to retrieve documents that match a set of criteria.
+
+.. TODO: .. tip:: Interactive Lab
+   You can complete a short interactive lesson that demonstrates how to
+   retrieve data by using the ``Find()`` method in an in-browser coding
+   experience. To learn more, see the :ref:`pymongo-retrieve-instruqt-lab`
+   section of this guide.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``sample_restaurants.restaurants`` collection
+from the :atlas:`Atlas sample datasets </sample-data>`. To learn how to create a
+free MongoDB Atlas cluster and load the sample datasets, see the :ref:`<pymongo-get-started>`
+tutorial.
+
+.. _pymongo-retrieve-find:
+
+Finding Documents
+-----------------
+
+{+driver-short+} includes two methods for retrieving documents from a collection:
+``find_one()`` and ``find()``.
+These methods take a **query filter** and return one or more matching documents.
+A query filter is an object that specifies the documents you want to retrieve in
+your query. 
+
+To learn more about query filters, see :ref:`pymongo-specify-query`.
+
+.. _pymongo-retrieve-find-one:
+
+Find One Document
+~~~~~~~~~~~~~~~~~
+
+To find a single document in a collection, call the ``find_one()`` method and pass a query
+filter that specifies the criteria of the document you want to find.
+If more than one document matches the query
+filter, this method returns the *first* matching document from the retrieved
+results as a Python dictionary. If no documents match the query filter, the method returns
+``None``.
+
+.. tip::
+   
+   The ``find_one()`` method is useful when you know there's only one matching document,
+   or you're only interested in the first match.  
+
+The following example uses the ``find_one()`` method to find the first document where
+the ``"cuisine"`` field has the value ``"Bakery"``:
+
+.. code-block:: python
+   :copyable: true
+
+   restaurant = sample_restaurants.restaurants.find_one({"cuisine": "Bakery"})
+   
+.. tip:: Sort Order
+
+   The ``find_one()`` method returns the first document in 
+   :manual:`natural order </reference/glossary/#std-term-natural-order>`
+   on disk if no sort criteria is specified.
+
+   To learn more about sorting, see the :ref:`sort guide <pymongo-sort>`.
+
+.. _pymongo-retrieve-find-multiple:
+
+Find Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To find multiple documents in a collection, pass a query filter to the ``find()``
+method that specifies the criteria of the documents you want to retrieve.
+
+The following example uses the ``find()`` method to find all documents where
+the ``"cuisine"`` field has the value ``"Spanish"``:
+
+
+.. code-block:: python
+   :copyable: true
+
+   cursor = sample_restaurants.restaurants.find({"cuisine": "Spanish"})
+
+You can use a **cursor** to iterate over the documents returned by the ``find()``
+method. A cursor is a mechanism that allows an application to iterate over database 
+results while holding only a subset of them in memory at a given time. Cursors
+are useful when your ``find()`` method returns a large amount of documents.
+
+You can iterate over the documents in a cursor by using a ``for-in`` loop, as shown in
+the following example:
+
+.. code-block:: python
+   :copyable: true
+
+   cursor = sample_restaurants.restaurants.find({"cuisine": "Spanish"})
+   for restaurant in cursor:
+   ...
+
+.. note:: Find All Documents
+
+   To find all documents in a collection, pass an empty filter 
+   to the ``find()`` method:
+
+   .. code-block:: python
+
+      all_restaurants = sample_restaurants.restaurants.find({})
+
+Modify Find Behavior
+~~~~~~~~~~~~~~~~~~~~
+
+You can modify the behavior of the ``find()`` and ``find_one()`` methods by passing
+named arguments to them. The following table describes the commonly used arguments:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Argument
+     - Description
+
+   * - ``batch_size`` 
+     - | Limits the number of documents to hold in a cursor at a given time.
+
+   * - ``collation`` 
+     - | The collation options for the find operation. See the :ref:`pymongo-retrieve-collation`
+         guide for more information.
+
+   * - ``comment`` 
+     - | A string to attach to the query. This can help you trace and interpret the
+         operation in the server logs and in profile data. To learn more about query comments, 
+         see the :manual:`cursor.comment() </reference/method/cursor.comment/>` page in the
+         {+mdb-server+} manual.
+   
+   * - ``hint`` 
+     - | The index to use for the query.
+
+   * - ``max_time_ms`` 
+     - | The maximum execution time on the server for this operation. If this time is
+         exceeded, {+driver-short+} aborts the operation and raises an ``ExecutionTimeout``.
+
+The following example uses the ``find()`` method to find all documents where
+the ``"cuisine"`` field has the value ``"Italian"`` and sets a maximum execution
+time of 10 seconds (10,000 milliseconds):
+
+.. code-block:: python
+   :copyable: true
+
+   cursor = sample_restaurants.restaurants.find({"cuisine": "Italian"}, max_time_ms=10000)
+
+For a full list of available arguments, see the
+`API documentation <{+api-root+}pymongo/collection.html#pymongo.collection.Collection.find>`__
+for the  ``find() method``.
+
+.. _pymongo-retrieve-collation:
+
+Collation
+`````````
+
+When you perform a query, you can specify a **collation** for the driver to follow when
+sorting the results.
+
+.. include:: /includes/collation-description.rst
+
+The following example performs the same find operation as the previous example,
+but with a default collation of ``fr_CA``:
+
+.. code-block:: python
+   :copyable: true
+
+   cursor = sample_restaurants.restaurants.find({"cuisine": "Italian"}, max_time_ms=10000,
+                                              collation=Collation(locale="fr_CA"))
+
+Alternatively, you can specify a collation by chaining the ``collation()`` method
+to the ``find()`` method:
+
+.. code-block:: python
+   :copyable: true
+
+   cursor = sample_restaurants.restaurants.find({"cuisine": "Italian"}, max_time_ms=10000)
+                                          .collation(Collation(locale="fr_CA")
+
+.. include:: /includes/collation-override-note.rst
+
+.. _pymongo-retrieve-additional-information:
+
+Additional Information
+----------------------
+
+The PyMongoArrow library lets you load MongoDB query result-sets as
+`Pandas DataFrames <https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html>`__,
+`NumPy ndarrays <https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html>`__, or
+`Apache Arrow Tables <https://arrow.apache.org/docs/python/generated/pyarrow.Table.html>`__.
+To learn more about PyMongoArrow, see the
+`PyMongoArrow documentation <https://www.mongodb.com/docs/languages/python/pymongo-arrow-driver/current/>`__.
+
+To learn more about query filters, see :ref:`pymongo-specify-query`.
+
+For runnable code examples of retrieving documents with {+driver-short+}, see
+:ref:`pymongo-query`.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `find() <{+api-root+}pymongo/collection.html#pymongo.collection.Collection.find>`__
+- `find_one() <{+api-root+}pymongo/collection.html#pymongo.collection.Collection.find_one>`__
+- `Collation <{+api-root+}pymongo/collation.html#pymongo.collation.Collation>`__
+- `Cursor <{+api-root+}pymongo/cursor.html#pymongo.cursor.Cursor>`__
