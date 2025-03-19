@@ -5,7 +5,7 @@ metadata:
   name: ${RESOURCE_NAME}
 spec:
   type: ReplicaSet
-  version: 8.0.3
+  version: ${MONGODB_VERSION}
   opsManager:
     configMapRef:
       name: mdb-org-project-config

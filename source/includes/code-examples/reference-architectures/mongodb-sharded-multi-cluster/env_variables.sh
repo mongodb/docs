@@ -7,3 +7,4 @@
 #  ${MDB_NAMESPACE}
 
 export RESOURCE_NAME=mdb-sh
+export MONGODB_VERSION=8.0.5
