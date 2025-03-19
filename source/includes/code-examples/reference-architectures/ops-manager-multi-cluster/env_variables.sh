@@ -20,5 +20,5 @@ export S3_SECRET_KEY="console123"
 # server certificates for Ops Manager Application.
 export OPS_MANAGER_EXTERNAL_DOMAIN="om-svc.${OM_NAMESPACE}.svc.cluster.local"
 
-export OPS_MANAGER_VERSION="8.0.0"
-export APPDB_VERSION="8.0.3"
+export OPS_MANAGER_VERSION="8.0.4"
+export APPDB_VERSION="8.0.5"

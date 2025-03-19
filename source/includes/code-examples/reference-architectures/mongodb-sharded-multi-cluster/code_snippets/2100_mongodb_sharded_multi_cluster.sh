@@ -8,7 +8,7 @@ spec:
   # we don't specify mongodsPerShardCount, mongosCount and configServerCount as they don't make sense for multi-cluster
   topology: MultiCluster
   type: ShardedCluster
-  version: 8.0.3
+  version: ${MONGODB_VERSION}
   opsManager:
     configMapRef:
       name: mdb-org-project-config
