@@ -15,9 +15,9 @@
       
          * - Client ID
            - Enter the :guilabel:`Client ID` (or
-             :guilabel:`Application ID`) of the Azure application. The 
-             :guilabel:`Active Directory Application` must have the role 
-             of :guilabel:`Azure key Vault Reader` assigned to it.
+             :guilabel:`Application ID`) of the Azure application. Ensure 
+             that you have assigned the :guilabel:`Active Directory Application` 
+             the necessary access. To learn more, see :ref:`azure-ear-required-access`.
       
          * - Tenant ID
            - Enter the :guilabel:`Tenant ID` (or :guilabel:`Directory ID`)
@@ -44,16 +44,9 @@
              :guilabel:`Azure Resource Group` containing the Key Vault.
       
          * - Key Vault Name
-           - Enter the name of the Key Vault. The Key Vault resource 
-             group must match the :guilabel:`Resource Group` and the Key 
-             Vault must have the following Access Policies:
-
-             - Key Management Operations
-             - ``GET``
-             - Cryptographic Operations:
-
-               - ``ENCRYPT``
-               - ``DECRYPT``
+           - Enter the name of the Key Vault. Ensure that the Key Vault has 
+             the necessary Access Policies. To learn more, see 
+             :ref:`azure-ear-required-access`. 
 
       .. note:: 
 
