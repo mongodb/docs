@@ -4,49 +4,53 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 func main() {
-	// connect to your Atlas cluster
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("<connection-string>"))
+	// Connects to your Atlas cluster
+	client, err := mongo.Connect(options.Client().ApplyURI("<connection-string>"))
 	if err != nil {
 		panic(err)
 	}
 	defer client.Disconnect(context.TODO())
 
-	// set namespace
+	// Sets the namespace
 	collection := client.Database("local_school_district").Collection("schools")
 
-	// define pipeline stages
-	searchStage := bson.D{{"$search", bson.M{
+	// Defines the pipeline stages
+	searchStage := bson.D{{Key: "$search", Value: bson.M{
 		"index": "embedded-documents-tutorial",
 		"embeddedDocument": bson.D{
-			{"path", "clubs.sports"},
-			{"operator",
-				bson.D{
-					{"queryString",
-						bson.D{
-							{"defaultPath", "clubs.sports.club_name"},
-							{"query", "dodgeball OR frisbee"},
-						},
-					},
-				},
-			},
+			{Key: "path", Value: "clubs.sports"},
+			{Key: "operator", Value: bson.D{
+				{Key: "queryString", Value: bson.D{
+					{Key: "defaultPath", Value: "clubs.sports.club_name"},
+					{Key: "query", Value: "dodgeball OR frisbee"},
+				}},
+			}},
 		},
 	}}}
 
-	projectStage := bson.D{{"$project", bson.D{{"name", 1}, {"clubs.sports", 1}, {"score", bson.D{{"$meta", "searchScore"}}}}}}
+	projectStage := bson.D{
+		{Key: "$project", Value: bson.D{
+			{Key: "name", Value: 1},
+			{Key: "clubs.sports", Value: 1},
+			{Key: "score", Value: bson.D{
+				{Key: "$meta", Value: "searchScore"},
+			}},
+		}},
+	}
 
-	// run pipeline
+	// Runs the pipeline
 	cursor, err := collection.Aggregate(context.TODO(), mongo.Pipeline{searchStage, projectStage})
 	if err != nil {
 		panic(err)
 	}
 
-	// print results
+	// Prints the results
 	var results []bson.D
 	if err = cursor.All(context.TODO(), &results); err != nil {
 		panic(err)

@@ -4,14 +4,14 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 func main() {
 	// connect to your Atlas cluster
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("<connection-string>"))
+	client, err := mongo.Connect(options.Client().ApplyURI("<connection-string>"))
 	if err != nil {
 		panic(err)
 	}
@@ -21,19 +21,25 @@ func main() {
 	collection := client.Database("local_school_district").Collection("schools")
 
 	// define pipeline stages
-	searchStage := bson.D{{"$searchMeta", bson.M{
-		"index": "embedded-documents-tutorial",
-		"facet": bson.M{
-			"operator": bson.M{
-				"text": bson.M{
-					"path":  "name",
-					"query": "High"},
+	searchStage := bson.D{
+		{Key: "$searchMeta", Value: bson.M{
+			"index": "embedded-documents-tutorial",
+			"facet": bson.M{
+				"operator": bson.M{
+					"text": bson.M{
+						"path":  "name",
+						"query": "High",
+					},
+				},
+				"facets": bson.M{
+					"gradeFacet": bson.M{
+						"path": "teachers.classes.grade",
+						"type": "string",
+					},
+				},
 			},
-			"facets": bson.M{
-				"gradeFacet": bson.M{
-					"path": "teachers.classes.grade",
-					"type": "string"},
-			}}}}}
+		}},
+	}
 
 	// run pipeline
 	cursor, err := collection.Aggregate(context.TODO(), mongo.Pipeline{searchStage})
