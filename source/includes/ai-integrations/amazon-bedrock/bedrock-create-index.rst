@@ -30,7 +30,7 @@
         specifies ``1024`` vector dimensions and
         measures similarity using ``cosine``.
 
-      - ``metadata`` and ``text_chunk`` fields 
+      - ``metadata``, ``text_chunk``, and ``page_number`` fields 
         as the :ref:`filter <avs-types-vector-search>` type for 
         pre-filtering your data. You will also specify these fields
         in Amazon Bedrock when you configure the knowledge base.
@@ -40,7 +40,8 @@
          .. tab:: Visual Editor 
             :tabid: vib 
 
-            .. include:: /includes/avs-vib-description-short.rst
+            Specify |embedding-field-name| as the field to index and specify
+            ``1024`` dimensions.
 
             .. include:: /includes/extracts/steps-avs-index-filters.rst
 
@@ -68,7 +69,11 @@
                        {
                            "path": "text_chunk",
                            "type": "filter"
-                       }
+                       },
+                       {
+                           "path": "page_number",
+                           "type": "filter"
+                       },      
                    ]
                }
 
