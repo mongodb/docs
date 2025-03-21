@@ -6,7 +6,7 @@
     },
     "description": "OpenAPI specification for MongoDB Relational Migrator tool",
     "title": "MongoDB Relational Migrator REST API",
-    "version": "1.12.0"
+    "version": "1.13.0"
   },
   "servers": [
     {
@@ -14,6 +14,192 @@
     }
   ],
   "paths": {
+    "/analysis/{projectId}/task": {
+      "get": {
+        "operationId": "getAnalysisTask",
+        "description": "Get pre-migration analysis task by `projectId`.",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "description": "Project ID",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/analysis-task"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-response"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Analysis"
+        ]
+      },
+      "post": {
+        "operationId": "createAnalysisTask",
+        "description": "Create a task for pre-migration analysis.",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "description": "Project ID",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/analysis-task-create-request"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/analysis-task"
+                }
+              }
+            }
+          },
+          "433": {
+            "description": "Trouble connecting to SQL database with provided information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-response"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Analysis"
+        ]
+      }
+    },
+    "/analysis/{projectId}/task/cancel": {
+      "post": {
+        "operationId": "cancelAnalysisTask",
+        "description": "Cancel a running pre-migration analysis task.",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "description": "Project ID",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/analysis-task"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-response"
+                }
+              }
+            }
+          },
+          "498": {
+            "description": "Analysis task could not be cancelled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-response"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Analysis"
+        ]
+      }
+    },
+    "/analysis/{projectId}/report": {
+      "get": {
+        "operationId": "getReport",
+        "description": "Get a pre-migration analysis report.",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "description": "Project ID",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/analysis-report"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-response"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Analysis"
+        ]
+      }
+    },
     "/jobs": {
       "get": {
         "operationId": "getJobs",
@@ -218,8 +404,8 @@
               }
             }
           },
-          "404": {
-            "description": "Not found",
+          "400": {
+            "description": "Bad request",
             "content": {
               "application/json": {
                 "schema": {
@@ -228,8 +414,8 @@
               }
             }
           },
-          "465": {
-            "description": "Migration job not paused",
+          "404": {
+            "description": "Not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -270,8 +456,8 @@
               }
             }
           },
-          "404": {
-            "description": "Not found",
+          "400": {
+            "description": "Bad request",
             "content": {
               "application/json": {
                 "schema": {
@@ -280,8 +466,8 @@
               }
             }
           },
-          "466": {
-            "description": "Migration job could not be resumed",
+          "404": {
+            "description": "Not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -844,6 +1030,33 @@
         "type": "string",
         "pattern": "^[A-Za-z0-9\\-]+$"
       },
+      "analysis-task": {
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "$ref": "#/components/schemas/id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "RUNNING",
+              "FAILED",
+              "CANCELLED",
+              "COMPLETED"
+            ]
+          },
+          "submittedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "projectId",
+          "status",
+          "submittedAt"
+        ]
+      },
       "error-response": {
         "type": "object",
         "properties": {
@@ -865,6 +1078,95 @@
         "required": [
           "message",
           "timestamp"
+        ]
+      },
+      "analysis-task-create-request": {
+        "type": "object",
+        "properties": {
+          "jdbcConnectionDetails": {
+            "$ref": "#/components/schemas/jdbc-connection-details"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "jdbcConnectionDetails"
+        ]
+      },
+      "analysis-report": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/id"
+          },
+          "projectId": {
+            "$ref": "#/components/schemas/id"
+          },
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "preflightChecks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/analysis-report-preflight-checks"
+            }
+          },
+          "rules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/analysis-report-rules"
+            }
+          },
+          "dbMetrics": {
+            "$ref": "#/components/schemas/analysis-report-db-metrics"
+          },
+          "databaseMetadata": {
+            "$ref": "#/components/schemas/analysis-report-database-metadata"
+          },
+          "healthScore": {
+            "type": "number"
+          },
+          "resolvedRules": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "takeaways": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/analysis-report-confidence-takeaway"
+            }
+          },
+          "uniqueDboAlerts": {
+            "$ref": "#/components/schemas/analysis-report-rule-type-count-by-severity"
+          },
+          "detectionCountsByDboType": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/detection-category-counts"
+            }
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "databaseMetadata",
+          "dbMetrics",
+          "detectionCountsByDboType",
+          "generatedAt",
+          "healthScore",
+          "id",
+          "projectId",
+          "resolvedRules",
+          "rules",
+          "takeaways",
+          "uniqueDboAlerts"
         ]
       },
       "jdbc-connection-details": {
@@ -1382,6 +1684,206 @@
           "JAVASCRIPT"
         ]
       },
+      "analysis-report-preflight-checks": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "migrationMode": {
+            "$ref": "#/components/schemas/migration-mode"
+          },
+          "passed": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "migrationMode",
+          "name",
+          "passed"
+        ]
+      },
+      "analysis-report-rules": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "dboType": {
+            "$ref": "#/components/schemas/rule_dbo_type"
+          },
+          "ruleType": {
+            "$ref": "#/components/schemas/rule_type"
+          },
+          "entityName": {
+            "type": "string"
+          },
+          "detectionText": {
+            "type": "string"
+          },
+          "difficulty": {
+            "$ref": "#/components/schemas/rule_difficulty"
+          },
+          "mitigationText": {
+            "type": "string"
+          },
+          "category": {
+            "$ref": "#/components/schemas/rule_category"
+          },
+          "incompatibleFeatureType": {
+            "$ref": "#/components/schemas/incompatible-feature-type"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "category",
+          "dboType",
+          "detectionText",
+          "difficulty",
+          "entityName",
+          "id",
+          "mitigationText",
+          "ruleType"
+        ]
+      },
+      "analysis-report-db-metrics": {
+        "type": "object",
+        "properties": {
+          "totalDbSize": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "readHeavyTables": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/database-object-path"
+            }
+          },
+          "writeHeavyTables": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/database-object-path"
+            }
+          },
+          "allTables": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/table-analysis-description"
+            }
+          },
+          "allStoredProcedures": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/stored-procedure-analysis-description"
+            }
+          },
+          "allTriggers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/trigger-analysis-description"
+            }
+          },
+          "allViews": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/view-analysis-description"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "allStoredProcedures",
+          "allTables",
+          "allTriggers",
+          "allViews",
+          "readHeavyTables",
+          "totalDbSize",
+          "writeHeavyTables"
+        ]
+      },
+      "analysis-report-database-metadata": {
+        "type": "object",
+        "properties": {
+          "databaseVersion": {
+            "type": "string"
+          },
+          "connectionId": {
+            "type": "string"
+          },
+          "connectionName": {
+            "type": "string"
+          },
+          "connectionUrl": {
+            "type": "string"
+          },
+          "databaseType": {
+            "type": "string"
+          },
+          "connectionType": {
+            "$ref": "#/components/schemas/connection-type"
+          }
+        },
+        "required": [
+          "connectionId",
+          "databaseType"
+        ]
+      },
+      "analysis-report-confidence-takeaway": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/rule_category"
+          },
+          "value": {
+            "type": "number"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "value"
+        ]
+      },
+      "analysis-report-rule-type-count-by-severity": {
+        "type": "object",
+        "properties": {
+          "task": {
+            "type": "integer"
+          },
+          "risk": {
+            "type": "integer"
+          },
+          "notice": {
+            "type": "integer"
+          },
+          "none": {
+            "type": "integer"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "none",
+          "notice",
+          "risk",
+          "task"
+        ]
+      },
+      "detection-category-counts": {
+        "type": "object",
+        "properties": {
+          "severityCountsByDetectionCategory": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/analysis-report-rule-type-count-by-severity"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "countsByDetectionCategory"
+        ]
+      },
       "mongodb-connection-details": {
         "type": "object",
         "properties": {
@@ -1416,8 +1918,21 @@
           "connectionString"
         ]
       },
+      "connection-type": {
+        "type": "string",
+        "enum": [
+          "DEMO",
+          "QA",
+          "STAGING",
+          "DEVELOPMENT",
+          "PRODUCTION",
+          "NONE"
+        ]
+      },
       "database-type": {
-        "type": "string"
+        "description": "Database type or a custom database type. For example, `MYSQL`, `ORACLE`, `POSTGRESQL`, `SQL_SERVER`, `COCKROACHDB`, `DB2`, `SQLANYWHERE`, `SYBASE`, `SYBASEIQ`, or `YUGABYTE`.",
+        "type": "string",
+        "example": "ORACLE"
       },
       "migration-job-descriptor-options": {
         "type": "object",
@@ -1494,7 +2009,6 @@
           "eventType": {
             "type": "string",
             "enum": [
-              "DB_SETUP_ERROR",
               "ERROR",
               "WARNING",
               "INFO"
@@ -1517,6 +2031,34 @@
           "timestamp": {
             "type": "string",
             "format": "date-time"
+          },
+          "stackTrace": {
+            "type": "string"
+          },
+          "errorCode": {
+            "type": "string"
+          },
+          "suggestion": {
+            "type": "string"
+          },
+          "locationType": {
+            "type": "string",
+            "enum": [
+              "TABLE",
+              "COLLECTION"
+            ]
+          },
+          "locationName": {
+            "type": "string"
+          },
+          "fieldName": {
+            "type": "string"
+          },
+          "key": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
           },
           "count": {
             "type": "integer",
@@ -1570,13 +2112,24 @@
         ]
       },
       "relational-table-filters": {
-        "description": "Schema",
+        "description": "An object where each key represents a schema name. Each schema contains tables that you can apply table filters on.",
         "type": "object",
+        "example": {
+          "schema_1_name": {
+            "table_1_name": {
+              "whereClause": "id > 1000 AND id <= 2000"
+            },
+            "table_2_name": {
+              "whereClause": "TRUE",
+              "rowCount": 10
+            }
+          }
+        },
         "additionalProperties": {
           "additionalProperties": {
             "$ref": "#/components/schemas/table-filter"
           },
-          "description": "Table",
+          "description": "An object where each key represents a table name within a schema.",
           "type": "object"
         }
       },
@@ -1736,12 +2289,195 @@
           "stdout"
         ]
       },
+      "project-to-language-model-document": {
+        "type": "object",
+        "properties": {
+          "collectionName": {
+            "type": "string"
+          },
+          "documentType": {
+            "type": "string"
+          },
+          "documentPath": {
+            "type": "string"
+          },
+          "table": {
+            "type": "string"
+          },
+          "fields": {
+            "$ref": "#/components/schemas/project-to-language-model-fields"
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/project-to-language-model-document"
+            }
+          }
+        }
+      },
       "migration-mode": {
         "type": "string",
         "enum": [
           "SNAPSHOT",
           "CDC",
           "CDC_ONLY"
+        ]
+      },
+      "rule_dbo_type": {
+        "type": "string",
+        "enum": [
+          "TABLE",
+          "VIEW",
+          "ROUTINE",
+          "INDEX",
+          "TRIGGER",
+          "DATABASE",
+          "COLUMN"
+        ]
+      },
+      "rule_type": {
+        "type": "string",
+        "enum": [
+          "TASK",
+          "RISK",
+          "NOTICE"
+        ]
+      },
+      "rule_difficulty": {
+        "type": "string",
+        "enum": [
+          "HIGH",
+          "MEDIUM",
+          "LOW"
+        ]
+      },
+      "rule_category": {
+        "type": "string",
+        "enum": [
+          "DATA_TYPE",
+          "UNSUPPORTED_FEATURE",
+          "PERFORMANCE",
+          "SCHEMA"
+        ]
+      },
+      "incompatible-feature-type": {
+        "type": "string",
+        "enum": [
+          "ORACLE-PACKAGE",
+          "ROUTINE",
+          "TRIGGERS",
+          "MATERIALIZED-VIEWS"
+        ]
+      },
+      "database-object-path": {
+        "type": "object",
+        "properties": {
+          "database": {
+            "type": "string"
+          },
+          "schema": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "database",
+          "name",
+          "schema"
+        ]
+      },
+      "table-analysis-description": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "$ref": "#/components/schemas/database-object-path"
+          },
+          "dataSize": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "rowCount": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "readCount": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "writeCount": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "readWriteClassification": {
+            "$ref": "#/components/schemas/read-write-classification"
+          },
+          "columns": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/column"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "columns",
+          "dataSize",
+          "path",
+          "readCount",
+          "readWriteClassification",
+          "rowCount",
+          "writeCount"
+        ]
+      },
+      "stored-procedure-analysis-description": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "$ref": "#/components/schemas/database-object-path"
+          },
+          "definition": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "definition",
+          "path"
+        ]
+      },
+      "trigger-analysis-description": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "$ref": "#/components/schemas/database-object-path"
+          },
+          "definition": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "definition",
+          "path"
+        ]
+      },
+      "view-analysis-description": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "$ref": "#/components/schemas/database-object-path"
+          },
+          "definition": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "definition",
+          "path"
         ]
       },
       "migration-job-statistics-details": {
@@ -1817,14 +2553,141 @@
         "type": "object",
         "properties": {
           "whereClause": {
+            "description": "Contents of the SQL WHERE clause to filter rows for the specified source table.",
             "type": "string"
           },
           "rowCount": {
+            "description": "Optional limit to the number of rows returned from the source table.",
             "type": "integer",
             "format": "int64"
           }
         },
         "additionalProperties": false
+      },
+      "project-to-language-model-fields": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/project_to_language_model_fields_inner"
+        }
+      },
+      "read-write-classification": {
+        "type": "string",
+        "enum": [
+          "READ_HEAVY",
+          "WRITE_HEAVY",
+          "READ_AND_WRITE_HEAVY",
+          "NONE"
+        ]
+      },
+      "column": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/column-type"
+          },
+          "ordinalPosition": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "primaryKey": {
+            "$ref": "#/components/schemas/primary-key"
+          },
+          "foreignKey": {
+            "$ref": "#/components/schemas/foreign-key"
+          },
+          "nullable": {
+            "type": "boolean"
+          },
+          "autoIncremented": {
+            "type": "boolean"
+          },
+          "generated": {
+            "type": "boolean"
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "indexed": {
+            "type": "boolean"
+          },
+          "uniqueIndexed": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "autoIncremented",
+          "generated",
+          "hidden",
+          "indexed",
+          "nullable",
+          "ordinalPosition",
+          "type",
+          "uniqueIndexed"
+        ]
+      },
+      "column-type": {
+        "type": "object",
+        "properties": {
+          "databaseSpecificType": {
+            "type": "string"
+          },
+          "precision": {
+            "type": "integer"
+          },
+          "scale": {
+            "type": "integer"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "databaseSpecificType"
+        ]
+      },
+      "primary-key": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "name"
+        ]
+      },
+      "foreign-key": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "schema": {
+            "type": "string"
+          },
+          "table": {
+            "type": "string"
+          },
+          "column": {
+            "type": "string"
+          },
+          "cardinality": {
+            "type": "string",
+            "enum": [
+              "UNKNOWN",
+              "ZERO_TO_ONE",
+              "ONE_TO_ONE",
+              "ZERO_TO_MANY"
+            ]
+          },
+          "synthetic": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "name"
+        ]
       },
       "migration_job_status_atlasMetadata": {
         "type": "object",
@@ -1935,10 +2798,31 @@
             "$ref": "#/components/schemas/documentLocation"
           }
         ]
+      },
+      "project_to_language_model_fields_inner": {
+        "type": "object",
+        "properties": {
+          "columnName": {
+            "type": "string"
+          },
+          "columnType": {
+            "type": "string"
+          },
+          "fieldName": {
+            "type": "string"
+          },
+          "fieldType": {
+            "type": "string"
+          }
+        }
       }
     }
   },
   "tags": [
+    {
+      "description": "Generates an analysis report for an application before migration",
+      "name": "Analysis"
+    },
     {
       "description": "Code generation based on project mappings",
       "name": "Codegen"
