@@ -32,9 +32,51 @@ MongoClient
 -----------
 
 You can connect to and communicate with MongoDB using the ``MongoClient``
-class.
+class. To create a `MongoClientSettings
+<{+api+}/apidocs/mongodb-driver-core/com/mongodb/MongoClientSettings.html>`__ object, use the ``MongoClientSettings.builder()`` method and chain methods to specify your
+settings. After chaining them, use the ``build()`` method to create the
+``MongoClientSettings`` object.
 
-Use the ``MongoClients.create()`` method to construct a ``MongoClient``.
+To learn about the different settings you can use to control the behavior of your ``MongoClient``, see the :ref:`Specify MongoClient Settings <specify-mongoclient-settings>` guide.
+
+Example
+~~~~~~~
+
+This example demonstrates specifying a ``ConnectionString``:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/MCSettings.java
+   :start-after: begin ConnectionString
+   :end-before: end ConnectionString
+   :language: java
+   :emphasize-lines: 3
+   :dedent:
+
+.. note:: Chain Order
+
+   Some options in the settings map to a connection string option.
+   If you specify the same options in your settings and connection
+   string, the order you chain them determines which option the driver
+   uses. The driver uses the **last** setting it reads.
+
+   For example, this snippet contains settings with the following times
+   for the driver to connect to an available socket:
+
+   - The connection string specifies within ``2 SECONDS``
+   - The :ref:`socket settings <mcs-socket-settings>` specifies within
+     ``5 SECONDS``
+
+   .. code-block:: java
+      :emphasize-lines: 2,4
+
+      MongoClient mongoClient = MongoClients.create(
+         MongoClientSettings.builder().applyConnectionString(new ConnectionString("mongodb+srv://<db_username>:<db_password>@<hostname>:<port>/<auth db>?connectTimeoutMS=2000"))
+            .applyToSocketSettings(builder ->
+            builder.connectTimeout(5L, SECONDS))
+            .build());
+
+   Because the driver reads the socket settings options last, the driver
+   expects to connect to an available socket within ``5 SECONDS`` before
+   timing out.
 
 .. important:: Reuse Your Client
  
@@ -43,10 +85,6 @@ Use the ``MongoClients.create()`` method to construct a ``MongoClient``.
    ``MongoClient``, even across multiple threads. 
    All resource usage limits, such as max connections, apply to individual
    ``MongoClient`` instances.
-
-To learn about the different settings you can use to control the
-behavior of your ``MongoClient``, see the guide on
-:ref:`MongoClient Settings <specify-mongoclient-settings>`.
 
 .. tip::
 
@@ -96,7 +134,7 @@ Replace these values to refer to your MongoDB instance.
 The last part of the connection URI contains connection options as parameters.
 In the example, you set two connection options: ``maxPoolSize=20`` and
 ``w=majority``. For more information about connection options, skip to the
-:ref:`connection-options` section of this guide.
+:ref:`java-specify-connection-options` section of this guide.
 
 .. _connection-uri-srv:
 

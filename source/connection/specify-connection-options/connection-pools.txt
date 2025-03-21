@@ -1,4 +1,6 @@
 .. _java-connection-pools:
+.. _connection-pools:
+.. _mcs-connectionpool-settings:
 
 ================
 Connection Pools
@@ -51,7 +53,6 @@ You can specify settings for your connection pool using either a connection
 string or by passing a ``MongoClientSettings`` object to the 
 ``MongoClients.create()`` method.
 
-The following code creates a client with a maximum connection pool size of ``50``. 
 Select the :guilabel:`Connection String` or :guilabel:`MongoClientSettings`  tab to
 see the corresponding syntax:
 
@@ -59,11 +60,6 @@ see the corresponding syntax:
 
   .. tab:: Connection String
     :tabid: uri
-    
-    .. code-block:: java
-
-      ConnectionString connectionString = "mongodb://<host>:<port>/?maxPoolSize=50"
-      MongoClient mongoClient = MongoClients.create(connectionString)
 
     The following are connection string settings you can use to configure your 
     connection pool:
@@ -114,22 +110,96 @@ see the corresponding syntax:
 
           *Default*: ``120000`` (120 seconds)
 
-    To learn more about connection string options, see the 
-    :ref:`Connection Options <connection-options>`
-    guide. 
+      * - ``maxLifeTimeMS``
+
+        - Specifies the maximum amount of time, in milliseconds, the Java driver
+          will continue to use a pooled connection before closing the
+          connection. A value of ``0`` indicates that there is no upper bound on
+          how long the driver can keep a pooled connection open. 
+
+          *Default*: ``0``
+    
+    The following code creates a client with a maximum connection pool size of ``50``. 
+    
+    .. code-block:: java
+
+      ConnectionString connectionString = "mongodb://<host>:<port>/?maxPoolSize=50"
+      MongoClient mongoClient = MongoClients.create(connectionString)
+    
+    For more information about these parameters, see the `ConnectionString
+    <{+api+}/apidocs/mongodb-driver-core/com/mongodb/ConnectionString.html>`__
+    API documentation.
 
   .. tab:: MongoClientSettings
-     :tabid: MongoClient
+    :tabid: MongoClient
+     
+    Chain the `applyToConnectionPoolSettings() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/MongoClientSettings.Builder.html#applyToConnectionPoolSettings(com.mongodb.Block)>`__ method to modify the way the driver manages its connection pool. 
+     
+    The following table describes the methods you can chain to your settings to modify the driver's behavior:
 
-     .. literalinclude:: /includes/fundamentals/code-snippets/ConnectionPool.java
-        :start-after: begin MongoSettings
-        :end-before: end MongoSettings
-        :language: java
-        :dedent:
+    .. list-table::
+        :widths: 40 60
+        :header-rows: 1
 
-     For more information on configuring you connection pool by using a 
-     ``MongoClientSettings`` object see the Connection Pool Settings section
-     of the :ref:`<specify-mongoclient-settings>` guide. 
+        * - Method
+          - Description
+
+        * - ``addConnectionPoolListener()``
+          - Adds a listener for connection pool-related events.
+
+        * - ``applyConnectionString()``
+          - Uses the settings from a ``ConnectionString`` object.
+
+        * - ``applySettings()``
+          - Uses the connection pool settings specified in a
+            ``ConnectionPoolSettings`` object.
+
+        * - ``maintenanceFrequency()``
+          - Sets the frequency for running a maintenance job.
+
+        * - ``maintenanceInitialDelay()``
+          - Sets the time to wait before running the first maintenance job.
+
+        * - ``maxConnectionIdleTime()``
+          - Sets the maximum time a connection can be idle before it's closed.
+
+        * - ``maxConnectionLifeTime()``
+          - Sets the maximum time a pooled connection can be alive before it's
+            closed.
+
+        * - ``maxSize()``
+          - Sets the maximum number of connections associated with a connection
+              pool.
+            
+            *Default*: ``100``
+
+        * - ``maxWaitTime()``
+          - Sets the maximum time to wait for an available connection.
+            
+            *Default*: ``2 minutes``
+
+        * - ``minSize()``
+          - Sets the minimum number of connections associated with a connection
+              pool.
+            
+            *Default*: ``0``
+
+    .. note::
+
+      This ``maxSize`` and ``minSize`` settings apply to each server in the cluster you connect the driver to. 
+       
+      For example, assume you connect the driver to a cluster with three
+      ``mongos`` servers. This means that there can be at most ``maxSize``
+      connections and at least ``minSize`` connections to each ``mongos``
+      server.
+      
+      The following example chains the ``applyToConnectionPoolSettings()`` method to set the thread to wait at most ``10 SECONDS`` for an available connection, and the ``maxSize`` of the connection pool to 200:
+
+    .. literalinclude:: /includes/fundamentals/code-snippets/ConnectionPool.java
+          :start-after: begin MongoSettings
+          :end-before: end MongoSettings
+          :language: java
+          :dedent:
 
 Additional Information
 ----------------------

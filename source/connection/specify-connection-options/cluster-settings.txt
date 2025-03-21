@@ -1,0 +1,198 @@
+.. _mcs-cluster-settings:
+
+================
+Cluster Settings
+================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: timeout, replica set
+
+Overview
+--------
+
+In this guide, you can learn about how the {+driver-short+} manages clusters.
+
+You can specify settings for your clusters by using either a :ref:`connection
+string <connection-uri>` or by passing a ``MongoClientSettings`` object to the 
+:ref:`MongoClient <mongoclient>` constructor. Select the :guilabel:`Connection
+String` or :guilabel:`MongoClientSettings` tab to see the options available:
+
+
+.. tabs::
+
+  .. tab:: Connection String
+    :tabid: uri
+
+    Include the following parameters in your connection string to modify the driver's behavior when interacting with your MongoDB cluster:
+
+    .. list-table:: 
+       :header-rows: 1 
+       :widths: 25,20,60
+
+       * - Option Name
+         - Type
+         - Description
+        
+       * - ``serverSelectionTimeoutMS``
+         - integer
+         - Specifies the maximum amount of time, in milliseconds, the driver
+           waits for server selection to succeed before throwing an
+           exception. 
+            
+           *Default*: ``30000`` (30 seconds)
+        
+       * - ``localThresholdMS``
+         - integer
+         - When communicating with multiple instances of MongoDB in a replica
+           set, the driver sends requests only to a server whose response
+           time is less than or equal to the server with the fastest response
+           time plus the local threshold, in milliseconds.  
+            
+           *Default*: ``15``
+       * - ``replicaSet``
+         - string
+         - Specifies that the :ref:`connection string <connection-uri>`
+           provided includes multiple hosts. When specified, the driver
+           attempts to find all members of that set. 
+            
+           *Default*: ``null``
+        
+       * - ``directConnection``
+         - boolean
+         - Specifies that the driver must connect to the host directly. This
+           maps to applying ``mode(ClusterConnectionMode.SINGLE)`` to your
+           ``MongoClientSettings``. 
+            
+           *Default*: ``false``
+        
+       * - ``srvServiceName``
+         - string
+         - Specifies the service name of the `SRV resource records
+           <https://www.rfc-editor.org/rfc/rfc2782>`__ the driver retrieves to
+           construct your :manual:`seed list
+           </reference/glossary/#std-term-seed-list>`. You must use the
+           :manual:`DNS Seed List Connection Format
+           </reference/connection-string/#dns-seed-list-connection-format>` in
+           your :ref:`connection URI <connection-uri>` to use this option.  
+            
+           *Default*: ``mongodb``
+    
+    This example connects the driver directly to a server,
+    regardless of the type of MongoDB cluster it's a part of:
+
+    .. code-block:: java
+
+      ConnectionString connectionString = "mongodb://<host>:<port>/?directConnection=true"
+      MongoClient mongoClient = MongoClients.create(connectionString)
+    
+    For more information about these parameters, see the `ConnectionString
+    <{+api+}/apidocs/mongodb-driver-core/com/mongodb/ConnectionString.html>`__
+    API documentation.
+
+  .. tab:: MongoClientSettings
+    :tabid: MongoClient
+
+    Chain the `applyToClusterSettings()
+    <{+api+}/apidocs/mongodb-driver-core/com/mongodb/MongoClientSettings.Builder.html#applyToClusterSettings(com.mongodb.Block)>`__
+    method to modify the driver's behavior when interacting with your MongoDB
+    cluster.
+
+    The following table describes the methods you can chain to your
+    settings to modify the driver's behavior:
+
+    .. list-table::
+       :header-rows: 1
+       :stub-columns: 1
+       :widths: 40 60
+
+       * - Method
+         - Description
+
+       * - ``addClusterListener()``
+         - Adds a listener for cluster-related events.
+
+       * - ``applyConnectionString()``
+         - Uses the settings from a ``ConnectionString`` object.
+
+       * - ``applySettings()``
+         - Uses the cluster settings specified in a ``ClusterSettings`` object.
+
+       * - ``hosts()``
+         - Sets all the specified locations of a Mongo deployment.
+
+       * - ``localThreshold()``
+         - Sets the amount of time that a server’s round trip can take and
+           still be eligible for server selection.
+           
+           *Default*: ``15 milliseconds``
+
+       * - ``mode()``
+         - Sets how to connect to a MongoDB deployment.
+
+       * - ``requiredClusterType()``
+         - Sets the type of cluster required for the cluster.
+
+       * - ``requiredReplicaSetName()``
+         - Sets the replica set name required for the cluster.
+
+       * - ``serverSelectionTimeout()``
+         - Sets the maximum time to select a primary node before throwing a
+           timeout exception.  
+           
+           *Default*: ``30 seconds``
+
+       * - ``serverSelector()``
+         - Adds a server selector to apply before server selection.
+
+       * - ``srvHost()``
+         - Sets the host name to use to look up an SRV DNS record to find the MongoDB hosts.  
+            
+           If you want to enable the processing of TXT records associated with the host, specify the SRV host in the connection string using the ``applyConnectionString()`` method.   
+           
+           For example:
+                
+           .. code-block:: java
+              :emphasize-lines: 3
+
+              MongoClient mongoClient = 
+                MongoClients.create(MongoClientSettings.builder()
+                  .applyConnectionString(new ConnectionString("mongodb+srv://host1.acme.com")))
+
+       * - ``srvMaxHosts()``
+         - Sets the maximum number of hosts the driver can connect to when
+           using the DNS seedlist (SRV) connection protocol, identified by
+           the ``mongodb+srv`` connection string prefix.  
+           
+           Throws an exception if you are not using the SRV connection protocol.
+
+    This example connects the driver directly to a server,
+    regardless of the type of MongoDB cluster it's a part of:
+
+    .. literalinclude:: /includes/fundamentals/code-snippets/MCSettings.java
+        :start-after: begin ClusterSettings
+        :end-before: end ClusterSettings
+        :language: java
+        :emphasize-lines: 3-4
+        :dedent:
+
+    .. tip::
+
+       This is analogous to the ``directConnection`` parameter you can specify
+       in your connection URI. See the Connection String tab for more
+       information.
+
+    For more information about the chained methods, see the `MongoClientSettings.Builder
+    <{+api+}/apidocs/mongodb-driver-core/com/mongodb/MongoClientSettings.Builder.html>`__
+    API documentation.
+          
+          

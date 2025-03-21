@@ -89,7 +89,8 @@ public class MCSettings {
         try {
             //begin SocketSettings
             MongoClient mongoClient = MongoClients.create(
-                MongoClientSettings.builder().applyConnectionString(new ConnectionString("<your connection string>"))
+                MongoClientSettings.builder()
+                .applyConnectionString(new ConnectionString("<your connection string>"))
                 .applyToSocketSettings(builder ->
                     builder.connectTimeout(10, SECONDS)
                     .readTimeout(15, SECONDS))
@@ -140,10 +141,26 @@ public class MCSettings {
             ////begin LoggerSettings
             MongoClient mongoClient = MongoClients.create(
                 MongoClientSettings.builder().applyConnectionString(new ConnectionString("<your connection string>"))
+                .applicationName("<application name>")
                 .applyToLoggerSettings(builder ->
                      builder.maxDocumentLength(5_000))
                 .build());
             //end LoggerSettings
+            mongoClient.listDatabaseNames().forEach(n -> System.out.println(n));
+            mongoClient.close();
+        } finally {
+            System.out.print("---------------------------------------");
+        }
+    }
+
+    private static void createReadConcern() {
+        try {
+            ////begin ReadConcern
+            MongoClient mongoClient = MongoClients.create(
+                    MongoClientSettings.builder().applyConnectionString(new ConnectionString("<your connection string>"))
+                            .readPreference(ReadPreference.nearest())
+                            .build());
+            //end ReadConcern
             mongoClient.listDatabaseNames().forEach(n -> System.out.println(n));
             mongoClient.close();
         } finally {
