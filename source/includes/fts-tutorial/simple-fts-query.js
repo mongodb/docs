@@ -1,5 +1,4 @@
-const MongoClient = require("mongodb").MongoClient;
-const assert = require("assert");
+import { MongoClient } from "mongodb";
 
 const agg = [
   {
@@ -22,14 +21,11 @@ const agg = [
   },
 ];
 
-MongoClient.connect(
-  "<connection-string>",
-  { useNewUrlParser: true, useUnifiedTopology: true },
-  async function (connectErr, client) {
-    assert.equal(null, connectErr);
-    const coll = client.db("sample_mflix").collection("movies");
-    let cursor = await coll.aggregate(agg);
-    await cursor.forEach((doc) => console.log(doc));
-    client.close();
-  }
-);
+const client = new MongoClient("<connection-string>")
+const coll = client.db("sample_mflix").collection("movies");
+const cursor = coll.aggregate(agg);
+for await (const doc of cursor) {
+    console.log(doc)
+}
+await client.close();
+
