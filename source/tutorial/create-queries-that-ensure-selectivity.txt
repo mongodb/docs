@@ -1,8 +1,8 @@
 .. _index-selectivity:
 
-==========================================
-Create Indexes to Ensure Query Selectivity
-==========================================
+======================================================
+Create Selective Indexes to Answer Queries Efficiently
+======================================================
 
 .. default-domain:: mongodb
 
@@ -12,13 +12,18 @@ Create Indexes to Ensure Query Selectivity
    :depth: 1
    :class: singlecol
 
-Selectivity is the ability of a query to narrow results using indexes.
-Effective queries are more selective and allow MongoDB to use indexes
-for a larger portion of the work associated with fulfilling the query.
+Selectivity is a query property that describes the ratio of documents
+matching the query versus the total number of documents in a collection.
+The selectivity of an index describes how many documents a unique index
+key matches. A query or index has high selectivity when 
+proportionally few documents match a query or a given index key.
 
-To ensure selectivity, write queries that limit the number of possible
-documents with the indexed field or fields. Write queries that are
-appropriately selective relative to your indexed data.
+Because indexes can have different selectivities depending on the index 
+keys used, ensure that the most selective indexes are
+available based on the predicates contained in a query. To ensure 
+the most efficient query execution, create indexes 
+that most uniquely match the predicates contained in a query.
+
 
 Examples
 --------
@@ -37,13 +42,13 @@ Consider a collection of documents that have the following form:
 
 In this example, the ``status`` of 99% of documents in the collection is
 ``processed``. If you add an index on ``status`` and query for documents
-with the ``status`` of ``processed``, the index has low selectivity with
-this query. However, if you want to query for documents that do **not**
-have the ``status`` of ``processed``, this index has high selectivity
-because the query only reads 1% of the index. 
+with the ``status`` of ``processed``, both the index and the query have low 
+selectivity. However, if you want to query for documents that do **not**
+have the ``status`` of ``processed``, the index and the query have high selectivity
+because the query only returns 1% of the documents in a collection.
 
-Selectivity with Distributed Values
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Selectivity When Values are Distributed
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Consider a collection of documents where the ``status`` field has three
 values distributed across the collection:
@@ -63,10 +68,11 @@ values distributed across the collection:
    ]
 
 If you add an index on ``status`` and query for ``{ "status": "pending",
-"product_type": "electronics" }``, MongoDB must read three index keys to
-return the one matching result. Similarly, a query for ``{ "status": {
-$in: ["processed", "pending"] }, "product_type" : "electronics" }`` must
-read six documents to return the two matching documents. 
+"product_type": "electronics" }``, MongoDB must read three index keys, 
+retrieve three documents matching that status, and filter those 
+documents further on ``product_type`` to return the one matching document. 
+Similarly, a query for ``{ "status": {$in: ["processed", "pending"] }, "product_type" : "electronics" }``
+must read six documents to return the two matching documents. 
 
 Consider the same index on a collection where ``status`` has *nine*
 values distributed across the collection:
@@ -86,24 +92,27 @@ values distributed across the collection:
    ]
 
 If you query for ``{ "status": 2, "product_type": "grocery" }``, MongoDB
-only reads one document to fulfill the query. The index and query are
-more selective because there is only one matching document and the query
-can select that specific document using the index.
+only reads one document matching the index key, indicating the index is 
+highly selective. By using this index, you can receive a query response more
+efficiently, since MongoDB must only further filter one document 
+matching the index value. In this case, the 
+filter also matches, and the query only returns one document.
 
 Although this example's query on ``status`` equality is more selective,
 a query such as ``{ "status": { $gt: 5 }, "product_type": "grocery" }``
-would still need to read four documents. However, if you create a
-compound index on ``product_type`` and ``status``, a query for ``{
-"status": { $gt: 5 }, "product_type": "grocery" }`` would only need to
-read two documents. 
+still needs to read four documents if you use the 
+same index on ``status``. However, if you create a compound index 
+on ``product_type`` and ``status``, MongoDB can more efficiently
+answer a query for ``{"status": { $gt: 5 }, "product_type": "grocery" }`` 
+via the compound index, as the query returns only one matching document.
 
-To improve selectivity, you can create a :ref:`compound index
+To improve query performance, you can create a :ref:`compound index
 <index-type-compound>` that narrows the documents that queries read. For
-example, if you want to improve selectivity for queries on ``status``
+example, if you want to improve performance for queries on ``status``
 and ``product_type``, you could create a compound index on those two
 fields. 
 
-If MongoDB reads a high number of documents to return results, some
+If MongoDB reads a relatively large number of documents to return results, some
 queries may perform faster without indexes. To determine performance,
 see :ref:`indexes-measuring-use`.
 
