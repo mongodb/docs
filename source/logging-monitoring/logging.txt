@@ -1,0 +1,463 @@
+.. _java-fundamentals-logging:
+
+=======
+Logging
+=======
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. _logging:
+
+Overview
+--------
+
+.. What is on this page?
+
+In this guide, you can learn how to set up and configure a logger in the
+MongoDB Java driver.
+
+.. What do any new terms mean?
+
+.. Not applicable. We are treating definition of logger as understood.
+
+.. What can you expect to see on this page?
+
+You will learn how to:
+
+- Set up a logger using the Simple Logging Facade For Java (SLF4J)
+- Configure the log level of your logger
+
+.. Who should read this? Where should I go if this isn't the page I was looking for?
+
+This guide shows how to record events in the driver.
+If you would like to learn how to use information about the activity of the
+driver in code, consider reading our
+:doc:`guide on monitoring </monitoring>`.
+
+Set Up a Logger
+---------------
+
+This section gives background on the dependencies necessary to set up a
+logger and provides an example logger setup.
+
+Background
+~~~~~~~~~~
+
+The MongoDB Java driver uses the Simple Logging Facade For Java (SLF4J).
+SLF4J allows you to specify your logging framework of choice at deployment time.
+For more information about SLF4J,
+`see the SLF4J documentation <http://www.slf4j.org/>`__.
+
+Setting up a logger is optional. When you start your application the MongoDB
+Java driver looks for the ``slf4j-api`` artifact in your classpath. If the driver
+can't find the ``slf4j-api`` artifact, the driver logs the following warning with
+``java.util.logging`` and disables all further logging:
+
+.. code-block:: none
+   :copyable: false
+
+   WARNING: SLF4J not found on the classpath.  Logging is disabled for the 'org.mongodb.driver' component
+
+To set up a logger, you must include the following in your project.
+
+* The ``slf4j-api`` artifact
+* A logging framework
+* A **binding**
+
+.. note::
+
+    For the most popular logging frameworks, there is often a single binding
+    artifact that lists the ``slf4j-api`` and the logging framework as
+    dependencies. This means that you can set up a logger by adding one artifact
+    to your project's dependency list. You will see this in the example below.
+
+A binding is a piece of code that connects the ``slf4j-api`` artifact with a
+logging framework. The following example shows how to bind the ``slf4j-api`` artifact
+to the two most popular logging frameworks, Log4j2 and Logback.
+
+Example - Set Up
+~~~~~~~~~~~~~~~~
+
+This example shows how to set up your logger. Click the
+tab corresponding to the logging framework you would like to use in your project.
+
+.. tip:: Dependency Versions
+
+   The following versions listed are illustrative rather than a
+   source of truth. You should check the official documentation for SLF4J and
+   your logging framework of choice for guaranteed up-to-date version
+   information.
+
+   * `SLF4J documentation <http://www.slf4j.org/>`__
+   * `Logback documentation <https://logback.qos.ch/>`__
+   * `Log4j2 documentation <https://logging.apache.org/log4j/2.x/manual/>`__
+
+.. tabs::
+
+   .. tab:: Logback
+      :tabid: Logback-binding
+
+      Select the build tool you are using in your project.
+
+      .. tabs::
+
+         .. tab:: Maven
+            :tabid: maven
+
+            Add the following dependency to your ``pom.xml`` file.
+
+            .. include:: /includes/logback-maven-versioned.rst
+
+
+         .. tab:: Gradle
+            :tabid: gradle
+
+            Add the following dependency to your ``build.gradle`` file.
+
+            .. include:: /includes/logback-gradle-versioned.rst
+
+      Once you have included the preceding dependency, connect to your
+      MongoDB instance and retrieve a document with the following code.
+
+      .. include:: /includes/fundamentals/logging.rst
+
+      You should see output that resembles the following:
+
+      .. code-block:: none
+         :copyable: false
+
+         ...
+         12:14:55.853 [main] DEBUG org.mongodb.driver.connection - Opened connection [connectionId{localValue:3, serverValue:3}] to <MongoDB hostname>
+         12:14:55.861 [main] DEBUG org.mongodb.driver.protocol.command - Command "find" started on database <database> using a connection with driver-generated ID 3 and server-generated ID 3 to <MongoDB hostname>. The request ID is 5. Command: {"find": "<collection>", "filter": {}, "limit": 1, "singleBatch": true, "$db": "<database>", "lsid": {"id": {"$binary": {"base64": "<_id>", "subType": "04"}}}, "$readPreference": {"mode": "primaryPreferred"}}
+         12:14:55.864 [main] DEBUG org.mongodb.driver.protocol.command - Command "find" succeeded in 4.34 ms using a connection with driver-generated ID 3 and server-generated ID 3 to <MongoDB hostname. The request ID is 5. Command reply: {"cursor": {"id": 0, "ns": "<database>.<collection>", "firstBatch": []}, "ok": 1.0, "$clusterTime": {"clusterTime": {"$timestamp": {"t": 1673778535, "i": 1}}, "signature": {"hash": {"$binary": {"base64": "<_id>", "subType": "00"}}, "keyId": 0}}, "operationTime": {"$timestamp": {"t": 1673778535, "i": 1}}}
+
+      .. note:: Default Log Level
+
+         The default log level of Logback is DEBUG. To learn how to change your
+         Logback logger's log level, see the
+         :ref:`example in the Configure Your Logger section of this page <configure-log-level>`.
+
+      For more information about Logback, see the
+      `Logback manual <https://logback.qos.ch/manual/>`__.
+
+   .. tab:: Log4j2
+      :tabid: Log4j2-binding
+
+      Select the build tool you are using in your project.
+
+      .. tabs::
+
+         .. tab:: Maven
+            :tabid: maven
+
+            Add the following dependency to your ``pom.xml`` file.
+
+            .. include:: /includes/log4j2-maven-versioned.rst
+
+         .. tab:: Gradle
+            :tabid: gradle
+
+            Add the following dependency to your ``build.gradle`` file.
+
+            .. include:: /includes/log4j2-gradle-versioned.rst
+
+      Once you have included the preceding dependency, log an error using the
+      following code.
+
+      .. code-block:: java
+
+         import org.slf4j.Logger;
+         import org.slf4j.LoggerFactory;
+
+         ...
+
+         Logger logger = LoggerFactory.getLogger("MyApp");
+         logger.error("Logging an Error");
+
+      You should see output that resembles the following:
+
+      .. code-block:: none
+         :copyable: false
+
+         12:35:00.438 [main] ERROR <my package path> - Logging an Error
+
+      .. note:: Default Log Level
+
+         The default log level of Log4J2 is ERROR. This means that running
+         standard operations in the MongoDB Java driver will not produce output
+         from Log4J2 without configuration. To learn how to change your Log4J2
+         logger's log level, see the
+         :ref:`example in the Configure Your Logger section of this page <configure-log-level>`.
+
+      For more information about Log4j2, see the
+      `Log4j2 manual <https://logging.apache.org/log4j/2.x/manual/>`__.
+
+Configure Your Logger
+---------------------
+
+To configure your logger, you must use the configuration system of the logging
+framework bound to SLF4J.
+
+In the following example we show how you can use your logging framework's
+configuration system to set your logger's **log level**.
+
+A logger's log level specifies a lower bound for how urgent a message must be
+for the logger to output that message.
+
+Example - Configure
+~~~~~~~~~~~~~~~~~~~
+
+This example shows how to configure your logger's log level to INFO.
+Select the tab corresponding to the logging framework you are using in your
+project.
+
+.. _configure-log-level:
+
+.. tabs::
+
+   .. tab:: Logback
+      :tabid: Logback-binding
+
+      Specify Logback configurations in a file named ``logback.xml``.
+      You don't need to create your ``logback.xml`` file in a specific
+      location, but you must be able to access it from your classpath.
+
+      The Logback framework defines the following log levels. The
+      following lists the log levels, ordered from most urgent to least
+      urgent:
+
+      - ERROR
+      - WARN
+      - INFO
+      - DEBUG
+      - TRACE
+
+      Set your ``logback.xml`` file to the following.
+
+      .. code-block:: xml
+
+         <configuration>
+            <appender name="CONSOLE"
+                      class="ch.qos.logback.core.ConsoleAppender">
+               <encoder>
+                  <pattern>
+                        %-4relative [%thread] %-5level %logger{30} - %msg%n
+                  </pattern>
+               </encoder>
+            </appender>
+            <root level="INFO">
+               <appender-ref ref="CONSOLE" />
+            </root>
+         </configuration>
+
+      To test that your logger configuration was successful, run the following
+      code.
+
+      .. include:: /includes/fundamentals/logging.rst
+
+      You should see output that resembles the following.
+
+      .. code-block:: none
+         :copyable: false
+
+         ...
+         1317 [cluster-ClusterId{value='<your cluster id>', description='null'}-<your connection uri>] INFO  org.mongodb.driver.cluster - Discovered replica set primary <your connection uri>
+         1568 [main] INFO  org.mongodb.driver.connection - Opened connection [connectionId{localValue:7, serverValue:<server value>}] to <your connection uri>
+
+      For more information about configuring Logback, see the
+      `the Logback Manual <https://logback.qos.ch/manual/configuration.html>`__.
+
+      .. tabs::
+
+   .. tab:: Log4j2
+      :tabid: Log4j2-binding
+
+      Specify Log4j2 configurations in a file named ``log4j2.xml``.
+      You don't need to create your ``log4j2.xml`` file in a specific
+      location, but you must be able to access it from your classpath.
+
+      The Log4j2 framework defines the following log levels. The following lists the
+      log levels, ordered from most urgent to least urgent:
+
+      - FATAL
+      - ERROR
+      - WARN
+      - INFO
+      - DEBUG
+      - TRACE
+      - ALL
+
+      Set your ``log4j2.xml`` file to the following.
+
+      .. code-block:: xml
+
+         <?xml version="1.0" encoding="UTF-8"?>
+         <Configuration status="INFO">
+            <Appenders>
+               <Console name="Console" target="SYSTEM_OUT">
+                     <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+               </Console>
+            </Appenders>
+            <Loggers>
+               <Root level="INFO">
+                     <AppenderRef ref="Console"/>
+               </Root>
+            </Loggers>
+         </Configuration>
+
+      To test that your logger configuration was successful, run the following
+      code.
+
+      .. include:: /includes/fundamentals/logging.rst
+
+      You should see output that resembles the following.
+
+      .. code-block:: none
+         :copyable: false
+
+         ...
+         10:14:57.633 [cluster-ClusterId{value=<your cluster id>, description='null'}-<your connection uri>] INFO  org.mongodb.driver.cluster - Discovered replica set primary <your connection uri>
+         10:14:57.790 [main] INFO  org.mongodb.driver.connection - Opened connection [connectionId{localValue:7, serverValue:<your server value>}] to <your connection uri>
+
+      For more information about configuring Log4j2, see the official
+      `Log4j2 configuration guide
+      <https://logging.apache.org/log4j/2.x/manual/configuration.html>`__.
+
+Logger Names
+------------
+
+Your logger uses logger names to help organize different logging events. Logger
+names are strings that form a hierarchy. A logger is an ancestor of another logger if
+its name followed by a ``"."`` is a prefix of the other logger's name. For example,
+``"grandparent"`` is an ancestor of ``"grandparent.parent"`` which is an
+ancestor of ``"grandparent.parent.child"``.
+
+For a concrete example, this is what a logger hierarchy looks like in code.
+
+.. code-block:: java
+
+   import org.slf4j.Logger;
+   import org.slf4j.LoggerFactory;
+
+   ...
+
+   Logger logger_parent = LoggerFactory.getLogger("parent");
+   Logger logger_child = LoggerFactory.getLogger("parent.child");
+
+A logger inherits the properties of its ancestor logger and can define
+its own. You can think of this as similar to class inheritance in Java.
+
+The MongoDB Java driver defines the following logger names to organize different
+logging events in the driver. Here are the logger names defined in the driver
+and the logging events they correspond to.
+
+* ``org.mongodb.driver.authenticator`` : authentication
+* ``org.mongodb.driver.client`` : events related to ``MongoClient`` instances
+* ``org.mongodb.driver.cluster`` : monitoring of MongoDB deployments
+* ``org.mongodb.driver.connection`` : connections and connection pools
+* ``org.mongodb.driver.connection.tls`` : TLS/SSL
+* ``org.mongodb.driver.operation`` : operations, including logging related to automatic retries
+* ``org.mongodb.driver.protocol`` : commands sent to and replies received from MongoDB deployments
+* ``org.mongodb.driver.uri`` : connection string parsing
+* ``org.mongodb.driver.management`` : JMX (Java Management Extensions)
+
+Example - Names
+~~~~~~~~~~~~~~~
+
+This example shows how to change the log level for a specific driver logger.
+We set the root logger to OFF and the ``org.mongodb.driver.connection`` logger to
+INFO. This will cause the application to only log messages related to connecting
+to a MongoDB instance.
+
+Select the tab corresponding to the logging framework you are using in your
+project.
+
+.. tabs::
+
+   .. tab:: Logback
+      :tabid: Logback-binding
+
+      Set your ``logback.xml`` file to the following.
+
+      .. code-block:: xml
+         :emphasize-lines: 10
+
+         <configuration>
+            <appender name="CONSOLE"
+                      class="ch.qos.logback.core.ConsoleAppender">
+               <encoder>
+                  <pattern>
+                        %-4relative [%thread] %-5level %logger{30} - %msg%n
+                  </pattern>
+               </encoder>
+            </appender>
+            <logger name="org.mongodb.driver.connection" level="INFO" additivity="true"/>
+            <root level="OFF">
+               <appender-ref ref="CONSOLE" />
+            </root>
+         </configuration>
+
+      To test that your logger configuration was successful, run the following
+      code.
+
+      .. include:: /includes/fundamentals/logging.rst
+
+      You should see output that resembles the following.
+
+      .. code-block:: none
+         :copyable: false
+
+         ...
+         829  [cluster-rtt-ClusterId{value='<some value>', description='null'}-<your connection URI>] INFO  org.mongodb.driver.connection - Opened connection [connectionId{localValue:2, serverValue:<your server value>}] to <your connection uri>
+         977  [main] INFO  org.mongodb.driver.connection - Opened connection [connectionId{localValue:7, serverValue:<your server value>}] to <your connection uri>
+
+      For more information about configuring Logback, see the
+      `official Logback configuration guide <https://logback.qos.ch/manual/configuration.html#syntax>`__.
+
+      .. tabs::
+
+   .. tab:: Log4j2
+      :tabid: Log4j2-binding
+
+      Set your ``log4j2.xml`` file to the following.
+
+      .. code-block:: xml
+         :emphasize-lines: 9
+
+         <?xml version="1.0" encoding="UTF-8"?>
+         <Configuration status="INFO">
+            <Appenders>
+               <Console name="Console" target="SYSTEM_OUT">
+                     <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+               </Console>
+            </Appenders>
+            <Loggers>
+               <Logger name="org.mongodb.driver.connection" level="INFO"/>
+               <Root level="OFF">
+                     <AppenderRef ref="Console"/>
+               </Root>
+            </Loggers>
+         </Configuration>
+
+      To test that your logger configuration was successful, run the following
+      code.
+
+      .. include:: /includes/fundamentals/logging.rst
+
+      You should see output that resembles the following.
+
+      .. code-block:: none
+         :copyable: false
+
+         ...
+         15:40:23.005 [cluster-ClusterId{value='<some value>', description='null'}-<your connection uri>] INFO  org.mongodb.driver.connection - Opened connection [connectionId{localValue:3, serverValue:<your server value>}] to <your connection uri>
+         15:40:23.159 [main] INFO  org.mongodb.driver.connection - Opened connection [connectionId{localValue:7, serverValue:<your server value>}] to <your connection uri>
+
+      For more information about configuring Log4j2, see the
+      `official Log4J2 configuration guide <https://logging.apache.org/log4j/2.x/manual/configuration.html>`__.
