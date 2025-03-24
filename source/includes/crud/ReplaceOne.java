@@ -1,6 +1,6 @@
 // Replaces the first document that matches a filter by using the Java driver
 
-package usage.examples;
+package org.example;
 
 import static com.mongodb.client.model.Filters.eq;
 
