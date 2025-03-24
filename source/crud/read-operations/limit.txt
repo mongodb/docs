@@ -1,0 +1,168 @@
+.. _java-fundamentals-limit:
+
+====================================
+Limit the Number of Returned Results
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to limit the number of results returned
+from read operations with the MongoDB Java driver.
+
+Use ``limit()`` to cap the number of documents that a read operation returns.
+This instance method designates the maximum number of
+documents that a read operation can return. If there are not enough documents
+to reach the specified limit, it can return a smaller number.
+If you use ``limit()`` with the ``skip()`` instance method, the skip applies
+first and the limit only applies to the documents left over after
+the skip. For more information about the ``skip()`` method, see our
+:doc:`guide on Skipping Returned Documents </crud/read-operations/skip/>`.
+
+The following examples demonstrate, respectively, how to insert data into
+a collection, how to use ``limit()`` to restrict the number of returned documents,
+and how to combine ``limit()`` with ``skip()`` to further narrow the results returned from a query.
+
+Sample Documents
+~~~~~~~~~~~~~~~~
+
+The following operation inserts documents representing books into a collection:
+
+.. code-block:: java
+
+    collection.insertMany(Arrays.asList(
+        new Document().append("_id", 1)
+            .append("title", "The Brothers Karamazov").append("length", 824)
+            .append("author", "Dostoyevsky"),
+        new Document().append("_id", 2)
+            .append("title", "Les Misérables").append("length", 1462).append("author", "Hugo"),
+        new Document().append("_id", 3)
+            .append("title", "Atlas Shrugged").append("length", 1088).append("author", "Rand"),
+        new Document().append("_id", 4)
+            .append("title", "Infinite Jest").append("length", 1104).append("author", "Wallace"),
+        new Document().append("_id", 5)
+            .append("title", "Cryptonomicon").append("length", 918).append("author", "Stephenson"),
+        new Document().append("_id", 6)
+            .append("title", "A Dance with Dragons").append("length", 1104)
+            .append("author", "Martin")
+    ));
+
+Specify a Limit
+---------------
+
+The next example queries the collection to return the top three
+longest books. It first matches all the documents with the query, then sorts on the
+``length`` field to return books with longer lengths before
+books with shorter lengths. Lastly, it limits the return value to ``3`` documents:
+
+.. code-block:: java
+   :emphasize-lines: 10
+
+   import com.mongodb.client.*;
+   import org.bson.Document;
+   import static com.mongodb.client.model.Sorts.descending;
+
+   // ...
+
+   // define a cursor that will return the first 3 sorted items
+   MongoCursor<Document> cursor = collection.find()
+       .sort(descending("length"))
+       .limit(3)
+       .iterator();
+   // print out items
+   try {
+       while (cursor.hasNext()) {
+           System.out.println(cursor.next());
+       }
+   }
+   // close the cursor
+   finally {
+       cursor.close();
+   }
+
+The preceding code example prints out the following three documents, sorted by
+length:
+
+.. code-block:: java
+   :copyable: false
+
+    Document{{_id=2, title=Les Misérables, author=Hugo, length=1462}}
+    Document{{_id=6, title=A Dance with Dragons, author=Martin, length=1104}}
+    Document{{_id=4, title=Infinite Jest, author=Wallace, length=1104}}
+
+.. tip::
+
+   The order in which you call ``limit()`` and ``sort()`` does not matter
+   because the driver reorders the calls to apply the sort first and the
+   limit after it. The following two calls are equivalent:
+
+   .. code-block:: java
+
+      collection.find().sort(descending("length")).limit(3);
+      collection.find().limit(3).sort(descending("length"));
+
+Combining Skip and Limit
+------------------------
+
+To see the next three longest books, append the ``skip()`` method to your
+``find()`` call as shown in the following code example:
+
+.. code-block:: java
+   :emphasize-lines: 3, 4
+
+   MongoCursor<Document> cursor = collection.find()
+       .sort(descending("length"))
+       .limit(3)
+       .skip(3)
+       .iterator();
+
+This operation returns the documents that describe the fourth through sixth
+longest books:
+
+.. code-block:: java
+   :copyable: false
+
+   Document{{_id=3, title=Atlas Shrugged, author=Rand, length=1088}}
+   Document{{_id=5, title=Cryptonomicon, author=Stephenson, length=918}}
+   Document{{_id=1, title=The Brothers Karamazov, author=Dostoyevsky, length=824}}
+
+You can combine ``skip()`` and ``limit()`` in this way to implement paging for your
+collection, returning only small subsets of the collection at one time.
+
+.. note::
+
+  In order to ensure stable sorts across multiple queries, you must sort
+  using a unique key (such as ``_id``). Otherwise, a call to ``skip()``
+  and ``limit()`` might produce unpredictable results when combined with
+  ``sort()``.
+
+  For example, consider the following data:
+
+  .. code-block:: java
+     :copyable: false
+
+     { type: "computer", data: "1", serial_no: 235235 }
+     { type: "computer", data: "2", serial_no: 235237 }
+     { type: "computer", data: "3", serial_no: 235239 }
+     { type: "computer", data: "4", serial_no: 235241 }
+
+  If you sorted by ``type`` alone, ``sort()`` does not guarantee the same order
+  upon return. Appending ``skip()`` and ``limit()`` to the ``sort()``
+  can return different documents for different queries. In this case, sorting
+  by ``data`` or ``serial_no`` would guarantee a stable sort, as both are unique keys.
+
+For more information about the methods and classes mentioned in this guide,
+see the following API Documentation:
+
+- `FindIterable <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/FindIterable.html>`__
+- `MongoIterable <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoIterable.html>`__
+- `MongoCursor <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoCursor.html>`__
+- `find() <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoCollection.html#find()>`__

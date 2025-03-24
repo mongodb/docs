@@ -1,0 +1,341 @@
+===================
+Search Geospatially
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to search **geospatial data** with the
+MongoDB Java Driver, and the different geospatial data formats supported by MongoDB.
+
+Geospatial data is data that represents a geographic location on
+the surface of the Earth. Examples of geospatial data include:
+
+- Locations of movie theaters
+- Borders of countries
+- Routes of bicycle rides
+- Dog exercise areas in New York City
+
+Coordinates on Earth
+--------------------
+
+To store and query your geospatial data in MongoDB, use **GeoJSON**. GeoJSON is
+a data format created by the Internet Engineering Task Force (IETF). 
+
+Here is the location of MongoDB headquarters in GeoJSON:
+
+.. code-block:: json
+
+   "MongoDB Headquarters" : {
+      "type": "point",
+      "coordinates": [-73.986805, 40.7620853]
+   }
+
+For definitive information on GeoJSON, see the
+`official IETF specification <https://datatracker.ietf.org/doc/html/rfc7946>`__.
+
+.. external resource
+
+GeoJSON Positions
+~~~~~~~~~~~~~~~~~
+
+A position represents a single place on Earth, and exists in code as an array
+containing two or three number values: 
+
+- Longitude in the first position (required)
+- Latitude in the second position (required)
+- Elevation in the third position (optional)
+
+.. important:: Longitude then Latitude
+
+  GeoJSON orders coordinates as longitude first and latitude second. This might
+  be surprising as geographic coordinate system conventions generally list
+  latitude first and longitude second. Make sure to check what format any other
+  tools you are working with use. Popular tools such as OpenStreetMap and Google
+  Maps list coordinates as latitude first and longitude second.
+
+GeoJSON Types
+~~~~~~~~~~~~~
+
+Your GeoJSON object's type determines its geometric shape. Geometric shapes are
+made up of positions.
+
+Here are some common GeoJSON types and how you can specify them with positions:
+
+- ``Point``: a single position. This can represent the location of a
+  `sculpture <https://en.wikipedia.org/wiki/Chicago_Picasso>`__. 
+- ``LineString``: an array of two or more positions, thus forming a series of line
+  segments. This can represent
+  `the route of the Great Wall of China <https://commons.wikimedia.org/wiki/File:GreatWallChina4.png>`__. 
+- ``Polygon``: an array of positions in which the first and last
+  position are the same, thus enclosing some space. This can represent 
+  `the land within Vatican City <https://commons.wikimedia.org/wiki/File:Vatican_City_map_EN.png>`__.
+
+
+To learn more about the shapes you can use in MongoDB, see the
+:manual:`GeoJSON manual entry </reference/geojson/>`.
+
+.. external resource
+
+Insert a Document Containing GeoJSON Data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To insert a document that stores GeoJSON data, create a document that contains a GeoJSON
+value and pass the document to the ``insertOne()`` method.
+
+The following example inserts a document that includes a ``location.geo`` field,
+which contains GeoJSON data:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/Geo.java
+   :language: java
+   :dedent:
+   :start-after: begin insertGeoJSONExample
+   :end-before: end insertGeoJSONExample
+
+To learn more about inserting documents, see the :ref:`java-fundamentals-insert` guide.
+
+Index
+~~~~~
+
+To query data stored in the GeoJSON format, add the field containing
+GeoJSON data to a ``2dsphere`` index. The following snippet creates a
+``2dsphere`` index on the ``location.geo`` field using the ``Indexes`` builder:
+
+.. code-block:: java
+
+   // <MongoCollection setup code here>
+   collection.createIndex(Indexes.geo2dsphere("location.geo"));
+
+For more information about the ``Indexes`` builder, see our 
+:doc:`guide on the Indexes builder </builders/indexes>`.
+
+.. guide resource
+
+Coordinates on a 2D Plane
+-------------------------
+
+You can store geospatial data using ``x`` and ``y`` coordinates on 
+a two-dimensional Euclidean plane. We refer to coordinates on a two-dimensional
+plane as "legacy coordinate pairs".
+
+Legacy coordinate pairs have the following structure:
+
+.. code-block:: json
+
+   "<field name>" : [ x, y ]
+
+Your field should contain an array of two values in which the first represents 
+the ``x`` axis value and the second represents the ``y`` axis value.
+
+Insert a Document Containing Legacy Coordinates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To insert a document that stores a legacy coordinate pair, create a document that
+assigns a coordinate pair value to a field. Then, pass the document to the
+``insertOne()`` method.
+
+The following example inserts a document that includes a ``coordinates`` field,
+which contains a legacy coordinate pair:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/Geo.java
+   :language: java
+   :dedent:
+   :start-after: begin insertLegacyExample
+   :end-before: end insertLegacyExample
+
+To learn more about inserting documents, see the :ref:`java-fundamentals-insert` guide.
+
+Index
+~~~~~
+
+To query data stored as legacy coordinate pairs, you must add the field containing
+legacy coordinate pairs to  a ``2d`` index. The following snippet creates a
+``2d`` index on the ``coordinates`` field using the ``Indexes`` builder:
+
+.. code-block:: java
+
+   // <MongoCollection setup code here>
+   collection.createIndex(Indexes.geo2d("coordinates"));
+
+For more information about the ``Indexes`` builder, see our 
+:doc:`guide on the Indexes builder </builders/indexes>`. 
+   
+For more information about legacy coordinate pairs, see the
+:manual:`{+mdb-server+} manual page on legacy coordinate pairs </geospatial-queries/#legacy-coordinate-pairs>`.
+
+.. external resource
+
+.. tip:: Supported Operators
+
+   Spherical (``2dsphere``) and flat (``2d``) indexes support some, but
+   not all, of the same query operators. For a full list of operators
+   and their index compatibility, see the
+   :manual:`manual entry for geospatial queries </geospatial-queries/#geospatial-query-operators>`.
+
+   .. external resource
+
+Geospatial Queries
+------------------
+
+Geospatial queries consist of a query operator and GeoJSON shapes as query
+parameters.
+
+Query Operators
+~~~~~~~~~~~~~~~
+
+To query your geospatial data, use one of the following query operators: 
+
+- ``$near``
+- ``$geoWithin``
+- ``$nearSphere``
+- ``$geoIntersects`` *requires a 2dsphere index*
+
+You can specify these query operators in the MongoDB Java driver with the
+``near()``, ``geoWithin()``, ``nearSphere()``, and ``geoIntersects()`` utility
+methods of the ``Filters`` builder class.
+
+For more information about geospatial query operators, see the
+:manual:`manual entry for geospatial queries </geospatial-queries/#geospatial-query-operators>`.
+
+.. external resource
+
+For more information about ``Filters``, see our 
+:doc:`guide on the Filters builder </builders/filters>`.  
+
+Query Parameters
+~~~~~~~~~~~~~~~~
+
+To specify a shape to use in a geospatial query, use the
+``Position``, ``Point``, ``LineString``, and ``Polygon`` classes of the MongoDB
+Java driver.
+
+For a full list of the GeoJSON shapes available in the MongoDB Java driver, see the
+`GeoJSON package
+<{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/geojson/package-summary.html>`__
+API Documentation.
+
+.. external resource
+
+Examples
+--------
+
+The following examples use the MongoDB Atlas sample dataset. You can learn how
+to  set up your own free-tier Atlas cluster and how to load the sample dataset
+in our :doc:`quick start guide </quick-start>`.
+
+The examples use the ``theaters`` collection in the ``sample_mflix`` database
+from the sample dataset. The ``theaters`` collection contains a ``2dsphere`` index
+on the ``location.geo`` field.
+
+The examples require the following imports:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/Geo.java
+   :language: java
+   :dedent:
+   :start-after: begin exampleImports
+   :end-before: end exampleImports
+
+You can find the  
+`source code for the examples on Github here <https://github.com/mongodb/docs-java/blob/master/source/includes/fundamentals/code-snippets/Geo.java>`__.
+
+.. external resource
+
+Query by Proximity
+~~~~~~~~~~~~~~~~~~
+
+To search for and return documents from nearest to farthest from a point, use
+the ``near()`` static utility method of the ``Filters`` builder class. The
+``near()`` method constructs a query with the ``$near`` query operator. 
+
+The following example queries for theaters between ``10,000`` and ``5,000``
+meters from the 
+`Great Lawn of Central Park <https://en.wikipedia.org/wiki/Great_Lawn_and_Turtle_Pond>`__.
+
+.. literalinclude:: /includes/fundamentals/code-snippets/Geo.java
+   :language: java
+   :dedent:
+   :start-after: begin findExample
+   :end-before: end findExample
+
+The output of the preceding code resembles the following:
+
+.. code-block:: json
+   :copyable: false
+   
+   {"location": {"address": {"city": "Bronx"}}}
+   {"location": {"address": {"city": "New York"}}}
+   {"location": {"address": {"city": "New York"}}}
+   {"location": {"address": {"city": "Long Island City"}}}
+   {"location": {"address": {"city": "New York"}}}
+   {"location": {"address": {"city": "Secaucus"}}}
+   {"location": {"address": {"city": "Jersey City"}}}
+   {"location": {"address": {"city": "Elmhurst"}}}
+   {"location": {"address": {"city": "Flushing"}}}
+   {"location": {"address": {"city": "Flushing"}}}
+   {"location": {"address": {"city": "Flushing"}}}
+   {"location": {"address": {"city": "Elmhurst"}}}
+
+.. tip:: Fun Fact
+
+   MongoDB uses the
+   :manual:`same reference system </reference/glossary/#std-term-WGS84>`
+   as GPS satellites to calculate geometries over the Earth.
+
+For more information about the ``$near`` operator, see  
+:manual:`the reference documentation for $near </reference/operator/query/near/#mongodb-query-op.-near>`.
+
+For more information about ``Filters``,
+:doc:`see our guide on the Filters builder </builders/filters>`.
+
+Query Within a Range
+~~~~~~~~~~~~~~~~~~~~
+
+To search for geospatial data within a specified shape use the ``geoWithin()``
+static utility method of the ``Filters`` builder class. The ``geoWithin()``
+method constructs a query with the ``$geoWithin`` query operator. 
+
+The following example searches for movie theaters in a section of Long Island.
+
+.. _example_range_query:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/Geo.java
+   :language: java
+   :dedent:
+   :start-after: begin rangeExample
+   :end-before: end rangeExample
+
+The output of the preceding code resembles the following:
+
+.. code-block:: json
+   :copyable: false
+
+   {"location": {"address": {"city": "Baldwin"}}}
+   {"location": {"address": {"city": "Levittown"}}}
+   {"location": {"address": {"city": "Westbury"}}}
+   {"location": {"address": {"city": "Mount Vernon"}}}
+   {"location": {"address": {"city": "Massapequa"}}}
+
+The following figure shows the polygon defined by the
+``longIslandTriangle`` variable and dots representing the locations of
+the movie theaters returned by our query. 
+
+.. figure:: /includes/figures/geo_geometry.png
+   :alt: Area of Long Island we are searching for movie theaters
+
+For more information about the ``$geoWithin`` operator, see the
+:manual:`reference documentation for $geoWithin </reference/operator/query/geoWithin/>`
+
+.. external resource
+
+For more information about the operators you can use in your query, see the
+:manual:`{+mdb-server+} manual page on geospatial query operators </geospatial-queries/index.html>`
+
+.. external resource
