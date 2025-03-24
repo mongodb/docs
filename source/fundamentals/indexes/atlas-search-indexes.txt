@@ -1,15 +1,15 @@
 .. _rust-atlas-search-indexes:
 
-====================
-Atlas Search Indexes
-====================
+======================================
+Atlas Search and Vector Search Indexes
+======================================
 
 .. facet::
    :name: genre
    :values: reference
 
 .. meta::
-   :keywords: code example, full text, atlas deployment
+   :keywords: code example, full text, atlas deployment, text search, embeddings
 
 .. contents:: On this page
    :local:
@@ -20,14 +20,22 @@ Atlas Search Indexes
 Overview
 --------
 
-In this guide, you can learn how to create and manage **Atlas Search indexes**. These indexes
-allow you to use MongoDB's Atlas Search feature to perform fast, full-text searches
-on data stored in an Atlas cluster. An Atlas Search index configures the behavior of Atlas
-Search by specifying which fields to index, how these fields are indexed, and other optional
-settings. To learn more about Atlas Search indexes, see the :atlas:`Atlas Search documentation
-</atlas-search/>`.
+In this guide, you can learn how to create and manage **Atlas Search and
+Vector Search indexes**. These indexes allow you to use the following
+features:
 
-This guide explains how to perform the following actions to manage your Atlas Search indexes:
+- :atlas:`Atlas Search </atlas-search/>`: Perform fast, full-text
+  searches
+
+- :ref:`Atlas Vector Search <rust-vector-search>`: Perform
+  semantic (similarity) searches on vector embeddings
+
+Atlas Search and Vector Search indexes specify which fields to index,
+specify how these fields are indexed, and set other optional
+configurations.
+
+This guide explains how to perform the following actions to manage your
+Atlas Search and Vector Search indexes:
 
 - :ref:`rust-create-model`
 - :ref:`rust-create-search-index`
@@ -36,12 +44,12 @@ This guide explains how to perform the following actions to manage your Atlas Se
 - :ref:`rust-update-search-index`
 - :ref:`rust-drop-search-index`
 
-.. note:: 
+.. note:: Sample Data
 
-   The examples in this guide access the ``posts`` collection in the ``sample_training``
-   database, which is one of the Atlas sample datasets. For instructions on importing
-   the Atlas sample data, see :atlas:`Load Sample Data </sample-data>` in the Atlas
-   documentation.
+   The examples in this guide use the ``embedded_movies`` collection
+   in the ``sample_mflix`` database, which is one of the Atlas sample
+   datasets. For instructions on importing the Atlas sample data, see
+   :atlas:`Load Sample Data </sample-data>` in the Atlas documentation.
 
 .. _rust-create-model:
 
@@ -61,30 +69,57 @@ call the ``SearchIndexModel::builder()`` method.
 
 The {+driver-short+} provides the following ``SearchIndexModel`` builder methods:
 
-- ``definition()``, which accepts a BSON document parameter and sets your index definition
-- ``name()``, which accepts a string parameter and sets your index name 
+.. list-table::
+   :header-rows: 1
+   :widths: 25 25 50
 
-The BSON document that you pass to the ``definition()`` builder method must include
-the ``mappings`` field. To automatically index all supported fields in your collection,
-enable dynamic mappings by setting the ``mappings.dynamic`` nested field to ``true``. To
-index only specified fields, enable static mappings by setting the ``mappings.dynamic``
-nested field to ``false`` and including a list of fields you want to index.
+   * - Builder Method
+     - Parameter Type
+     - Description
 
-.. tip:: Atlas Search Field Mappings
+   * - ``definition()``
+     - ``Document``
+     - Specifies the index definition. If you omit this setting, the
+       driver creates an Atlas Search index with dynamic mappings.
 
-   To learn more about Atlas Search field mappings, see :atlas:`Define Field Mappings
-   </atlas-search/define-field-mappings/>` in the Atlas documentation.
+   * - ``name()``
+     - ``String``
+     - Sets the index name. If you omit this setting, the
+       driver sets the name to ``default``.
 
-Example
-~~~~~~~
+   * - ``index_type()``
+     - ``SearchIndexType``
+     - Sets the index type. If you omit this setting, the
+       driver creates an Atlas Search index by default.
 
-The following example creates specifications for a index named ``example_index`` in a
-``SearchIndexModel`` instance. The code sets a static mapping to index only the ``body``
-and ``date`` fields:
+To learn more about Atlas Search field mappings, see :atlas:`Define Field Mappings
+</atlas-search/define-field-mappings/>` in the Atlas documentation.
 
-.. literalinclude:: /includes/fundamentals/code-snippets/indexes.rs
-   :start-after: begin-atlas-model
-   :end-before: end-atlas-model
+To learn more about defining Atlas Vector Search indexes, see
+:atlas:`How to Index Fields for Vector Search
+</atlas-vector-search/vector-search-type/>` in the Atlas documentation.
+
+Example Models
+~~~~~~~~~~~~~~
+
+The following example creates a ``SearchIndexModel`` instance to provide
+specifications for an index named ``search_idx``. The code specifies static
+mappings of the ``title`` and ``released`` fields:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/indexes/atlas-indexes.rs
+   :start-after: begin-as-model
+   :end-before: end-as-model
+   :language: rust
+   :dedent:
+
+The following example creates a ``SearchIndexModel`` instance to provide
+specifications for an index named ``vs_idx``. The code specifies the
+embedding path as  ``plot_embedding``, indexes ``1536`` dimensions, and
+uses the ``"euclidean"`` vector similarity function:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/indexes/atlas-indexes.rs
+   :start-after: begin-avs-model
+   :end-before: end-avs-model
    :language: rust
    :dedent:
 
@@ -93,25 +128,28 @@ and ``date`` fields:
 Create a Search Index
 ---------------------
 
-You can create an Atlas Search index on a collection by calling the ``create_search_index()``
-method on a ``Collection`` instance. This method accepts an index model as a parameter, specified
+You can create an Atlas Search or Vector Search index on a collection by
+calling the ``create_search_index()`` method on a ``Collection``
+instance. This method accepts an index model as a parameter, specified
 in a ``SearchIndexModel`` instance.
 
 Example
 ~~~~~~~
 
-The following example creates an Atlas Search index on the ``posts`` collection.
-The code creates a ``SearchIndexModel`` that sets the index name and enables dynamic
-mapping. Then, the code passes the ``SearchIndexModel`` instance to the ``create_search_index()``
+The following example creates an Atlas Search index on the
+``embedded_movies`` collection. The code creates a ``SearchIndexModel``
+that sets the index name and enables dynamic mapping. Then, the code
+passes the ``SearchIndexModel`` instance to the ``create_search_index()``
 method to create the Atlas Search index:
 
 .. io-code-block::
    :copyable: true
 
-   .. input:: /includes/fundamentals/code-snippets/indexes.rs
+   .. input:: /includes/fundamentals/code-snippets/indexes/atlas-indexes.rs
       :start-after: begin-atlas-create-one
       :end-before: end-atlas-create-one
       :language: rust
+      :emphasize-lines: 6
       :dedent:
 
    .. output::
@@ -126,26 +164,36 @@ method to create the Atlas Search index:
 Create Multiple Search Indexes
 ------------------------------
 
-You can create multiple Atlas Search indexes at once by calling the ``create_search_indexes()``
-method on a ``Collection`` instance. This method accepts a list of index models as a parameter,
-specified as a vector of ``SearchIndexModel`` instances.
+You can create multiple Atlas Search and Vector Search indexes
+by calling the ``create_search_indexes()`` method on a ``Collection``
+instance. This method accepts a vector of ``SearchIndexModel`` instances
+as a parameter.
 
 Example
 ~~~~~~~
 
-The following example creates two Atlas Search indexes named ``dynamic_index`` and
-``static_index`` on the ``posts`` collection. The code creates ``SearchIndexModel``
-instances for each index that specify the index names and definitions. Then, the code
-passes these models as a vector to the ``create_search_indexes()`` method and creates
-the indexes:
+This example performs the following actions:
+
+1. Creates a ``SearchIndexModel`` instance that specifies an Atlas
+   Search index named ``as_idx``
+
+#. Creates a ``SearchIndexModel`` instance that specifies an Atlas
+   Vector Search index named ``vs_idx``
+
+#. Passes a ``vec`` of both ``SearchIndexModel`` instances to
+   the ``create_search_indexes()`` method
+
+#. Creates the Atlas Search and Vector Search indexes on the
+   ``embedded_movies`` collection
 
 .. io-code-block::
    :copyable: true
 
-   .. input:: /includes/fundamentals/code-snippets/indexes.rs
+   .. input:: /includes/fundamentals/code-snippets/indexes/atlas-indexes.rs
       :start-after: begin-atlas-create-many
       :end-before: end-atlas-create-many
       :language: rust
+      :emphasize-lines: 20
       :dedent:
 
    .. output::
@@ -153,28 +201,30 @@ the indexes:
       :visible: false
 
       Created Atlas Search indexes:
-      ["dynamic_index", "static_index"]
+      ["as_idx", "vs_idx"]
 
 .. _rust-list-search-index:
 
 List Search Indexes
 -------------------
 
-You can access information about a collection's existing Atlas Search indexes
-by calling the ``list_search_indexes()`` method on the collection.
+You can access information about a collection's existing Atlas Search
+and Vector Search indexes by calling the ``list_search_indexes()``
+method on the collection.
 
 Example
 ~~~~~~~
 
-The following example accesses information about the Atlas Search indexes created
-in the :ref:`rust-create-search-indexes` section of this page. The code calls the
-``list_search_indexes()`` method and outputs all the Atlas Search indexes on the
-collection:
+The following example accesses information about the Atlas Search and
+Vector Search indexes created in the :ref:`rust-create-search-indexes`
+section of this page. The code calls the ``list_search_indexes()``
+method and prints a list of the Atlas Search and Vector Search indexes
+on the collection:
 
 .. io-code-block::
    :copyable: true
 
-   .. input:: /includes/fundamentals/code-snippets/indexes.rs
+   .. input:: /includes/fundamentals/code-snippets/indexes/atlas-indexes.rs
       :start-after: begin-atlas-list
       :end-before: end-atlas-list
       :language: rust
@@ -184,12 +234,14 @@ collection:
       :language: console
       :visible: false
 
-      { "id": "...", "name": "dynamic_index", "status": "READY", "queryable": true, "latestDefinitionVersion": {...},
-      "latestDefinition": { "mappings": { "dynamic": true } }, "statusDetail": [...] }
+      { "id": "...", "name": "as_idx", "status": "READY", "queryable":
+      true, "latestDefinitionVersion": {...}, "latestDefinition": {
+      "mappings": { "dynamic": true } }, "statusDetail": [...] }
 
-      { "id": "...", "name": "static_index", "status": "READY", "queryable": true, "latestDefinitionVersion": {...},
-      "latestDefinition": { "mappings": { "dynamic": false, "fields": { "title": { "type": "string" } } } },
-      "statusDetail": [...] }
+      { "id": "...", "name": "vs_idx", "type": "vectorSearch", "status":
+      "READY", "queryable": true, ..., "latestDefinition": { "fields": [{
+      "type": "vector", "path": "plot_embedding", "numDimensions": 1536,
+      "similarity": "euclidean" }] }, "statusDetail": [...] }
 
 .. tip:: 
 
@@ -200,8 +252,9 @@ collection:
 Update a Search Index
 ---------------------
 
-You can update an Atlas Search index by calling the ``update_search_index()``
-method on a ``Collection`` instance. This method accepts the following parameters:
+You can update an Atlas Search or Vector Search index by calling the
+``update_search_index()`` method on a ``Collection`` instance. This
+method accepts the following parameters:
 
 - Name of the index to update
 - Modified index definition document
@@ -209,16 +262,17 @@ method on a ``Collection`` instance. This method accepts the following parameter
 Example
 ~~~~~~~
 
-The following example updates the Atlas Search index named ``static_index``
+The following example updates the Vector Search index named ``vs_index``
 created in the :ref:`rust-create-search-indexes` section of this page. The code
-creates a new index definition document that instructs the index to use dynamic
-mappings instead of static mappings. Then, the code calls the ``update_search_index()``
-method to update the index:
+creates a new index definition document that instructs the index to use
+``"dotProduct"`` as the vector similarity function. Then, the code calls
+the ``update_search_index()`` method to update the index:
 
-.. literalinclude:: /includes/fundamentals/code-snippets/indexes.rs
+.. literalinclude:: /includes/fundamentals/code-snippets/indexes/atlas-indexes.rs
    :start-after: begin-atlas-update
    :end-before: end-atlas-update
    :language: rust
+   :emphasize-lines: 10
    :dedent:
 
 .. _rust-drop-search-index:
@@ -226,9 +280,9 @@ method to update the index:
 Delete a Search Index
 ---------------------
 
-You can delete an Atlas Search index by calling the ``delete_search_index()``
-method on a ``Collection`` instance. This method accepts the name of the index to delete
-as a parameter.
+You can delete an Atlas Search or Vector Search index by calling the
+``delete_search_index()`` method on a ``Collection`` instance. This
+method accepts the name of the index to delete as a parameter.
 
 Example
 ~~~~~~~
@@ -237,7 +291,7 @@ The following example deletes the Atlas Search index named ``example_index``
 created in the :ref:`rust-create-search-index` section of this page. The code
 passes the index name to the ``delete_search_index()`` method to delete the index:
 
-.. literalinclude:: /includes/fundamentals/code-snippets/indexes.rs
+.. literalinclude:: /includes/fundamentals/code-snippets/indexes/atlas-indexes.rs
    :start-after: begin-atlas-drop
    :end-before: end-atlas-drop
    :language: rust
@@ -256,6 +310,12 @@ To learn more about Atlas Search, see the following Atlas documentation:
 - :atlas:`Atlas Search M0, M2, and M5 Limitations </atlas-search/limitations/>`
 - :atlas:`FAQ: Atlas Search </atlas-search/faq/>`
 
+To learn more about Atlas Vector Search, see the following Atlas documentation:
+
+- :atlas:`Improve Vector Search Performance </atlas-vector-search/tune-vector-search/>`
+- :atlas:`Atlas Vector Search Quick Start </atlas-vector-search/tutorials/vector-search-quick-start/>`
+- :atlas:`How to Measure the Accuracy of Your Query Results </atlas-vector-search/evaluate-results/>`
+
 API Documentation
 ~~~~~~~~~~~~~~~~~
 
@@ -264,6 +324,7 @@ guide, see the following API documentation:
 
 - `create_search_index() <{+api+}/struct.Collection.html#method.create_search_index>`__
 - `SearchIndexModel <{+api+}/struct.SearchIndexModel.html>`__
+- `SearchIndexType <{+api+}/enum.SearchIndexType.html>`__
 - `create_search_indexes() <{+api+}/struct.Collection.html#method.create_search_indexes>`__
 - `list_search_indexes() <{+api+}/struct.Collection.html#method.list_search_indexes>`__
 - `update_search_index() <{+api+}/struct.Collection.html#method.create_search_index>`__
