@@ -24,8 +24,8 @@ Vector Quantization
 
    .. include:: /includes/fact-avs-int1-ingestion-preview.rst
 
-{+avs+} supports automatic quantization of your 32-bit float vector
-embeddings. It also supports ingesting and indexing your 
+{+avs+} supports automatic quantization of your float vector
+embeddings (both 32-bit and 64-bit). It also supports ingesting and indexing your 
 pre-quantized scalar and binary vectors from certain embedding models.
 
 .. _avs-quantization-about:
@@ -86,7 +86,13 @@ Requirements
 ------------
 
 The following table shows the requirements for automatically quantizing
-and ingesting quantized vectors: 
+and ingesting quantized vectors.
+
+.. note::
+
+   |service| stores all floating-point values as the ``double`` data type
+   internally; therefore, both 32-bit and 64-bit embeddings are compatible 
+   with automatic quantization without conversion.
 
 .. list-table:: 
    :header-rows: 1 
@@ -113,10 +119,10 @@ and ingesting quantized vectors:
      - ``binData(int1)``
      - ``binData(int8)``
      - | ``binData(float32)``
-       | ``array(float32)``
+       | ``array(double)``
 
      - | ``binData(float32)``
-       | ``array(float32)``
+       | ``array(double)``
 
    * - Supported Similarity method
      - ``euclidean``
@@ -150,9 +156,9 @@ and ingesting quantized vectors:
 How to Enable Automatic Quantization of Vectors
 -----------------------------------------------
 
-You can configure {+avs+} to automatically quantize 32-bit float vector
-embeddings in your collection to reduced representation types, such as
-``int8`` (scalar) and ``binary`` in your vector indexes.
+You can configure {+avs+} to automatically quantize float
+vector embeddings in your collection to reduced representation types, 
+such as ``int8`` (scalar) and ``binary`` in your vector indexes.
 
 To set or change the quantization type, specify a ``quantization`` field
 value of either ``scalar`` or ``binary`` in your index definition. This
@@ -172,7 +178,7 @@ Benefits
 {+avs+} provides native capabilities for scalar quantization as well as
 binary quantization with rescoring. Automatic quantization increases 
 scalability and cost savings for your applications by reducing the
-storage and computational resources for efficient processing of your
+computational resources for efficient processing of your
 vectors. Automatic quantization reduces the RAM for ``mongot`` by 3.75x
 for scalar and by 24x for binary; the vector values shrink by 4x and 32x
 respectively, but |hnsw| graph itself does not shrink. This improves
@@ -200,12 +206,15 @@ To enable automatic quantization:
       quantization types in the ``fields.quantization`` field
       for your :ref:`index definition <avs-index-definition>`:
 
-      - ``scalar``: to produce byte vectors from 32-bit input vectors.
-      - ``binary``: to produce bit vectors from 32-bit input vectors.
-
-      If you specify automatic quantization on data that is not an array of
-      32-bit ``float`` values, {+avs+} silently ignores that
-      vector instead of indexing it, and those vectors will be skipped. 
+      - ``scalar``: to produce byte vectors from float input vectors.
+      - ``binary``: to produce bit vectors from float input vectors.
+     
+      If you specify automatic quantization on data that is not an 
+      array of float values, {+avs+} silently ignores that vector 
+      instead of indexing it, and those vectors will be skipped. 
+      Since |service| stores float values (both 32-bit and 64-bit) 
+      as the ``double`` type internally, embeddings from models 
+      that output either precision will work with automatic quantization.
 
    .. step:: Create or update the index.
     
