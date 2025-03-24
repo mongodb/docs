@@ -1,0 +1,311 @@
+.. _java-connection-troubleshooting:
+
+==========================
+Connection Troubleshooting
+==========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, disconnected, deployment
+
+.. sharedinclude:: dbx/connection-troubleshooting.rst
+
+   .. replacement:: non-connection-issue-callout
+
+      .. note::
+
+         This page addresses only connection issues. If you encounter other
+         issues when using MongoDB or the driver, visit the following resources:
+
+         - The :ref:`Issues & Help <java-issues-and-help>` page for
+           information about reporting bugs, contributing to the driver, and
+           finding more resources
+         - The `MongoDB Community Forums <{+communityForums+}>`__ for
+           questions, discussions, or general technical support
+
+   .. replacement:: server-selection-timeout-error
+
+      .. code-block:: none
+         :copyable: false
+
+         Error: couldn't connect to server 127.0.0.1:27017
+
+   .. replacement:: check-connection-string-anchor
+
+      .. _java-connection-string-port:
+
+   .. replacement:: multiple-hosts-connection-guide-link
+
+      To learn how to specify multiple replica set hosts, see the
+      :ref:`Connect to a Replica Set <connect-replica-set>` section of the
+      Connection Guide.
+
+   .. replacement:: configure-firewall-anchor
+
+      .. _java-connection-firewall:
+
+   .. replacement:: authentication-error-anchor
+
+      .. _java-authentication-error:
+
+   .. replacement:: scram-failure-error
+
+      .. code-block:: none
+         :copyable: false
+
+         Command failed with error 18 (AuthenticationFailed): 'Authentication failed.' on server localhost:27017.
+
+   .. replacement:: check-credentials-formatting-anchor
+
+      .. _java-connection-string-auth:
+
+   .. replacement:: learn-more-connection-string-admonition
+
+      .. tip::
+
+         For more information about using connection strings,
+         see :ref:`Connection URI <connection-uri>` in the Connection Guide.
+
+   .. replacement:: percent-encode-example
+
+   .. replacement:: verify-authentication-database-anchor
+
+      .. _java-verify-auth-db:
+
+   .. replacement:: authsource-param-code-block
+
+      .. code-block:: java
+         :copyable: false
+
+         String uri = "mongodb://<db_username>:<db_password>@<hostname>:<port>/?authSource=users&authMechanism=SCRAM-SHA-256";
+         MongoClient mongoClient = MongoClients.create(uri);
+
+   .. replacement:: credentials-provider-alternative-method-description
+
+      If you construct a client by using a ``MongoCredential``, the builder method
+      corresponds to the authentication mechanism. The following code shows the builder
+      method for the ``SCRAM-SHA-256`` authentication mechanism:
+
+      .. code-block:: java
+         :copyable: false
+
+         MongoCredential credential = MongoCredential.createScramSha256Credential("<db_username>", "<authenticationDb>", "<dbpassword>");
+
+
+   .. replacement:: authentication-guide-reference
+
+      To learn more about specifying authentication mechanisms, see the :ref:`authentication-mechanisms` and
+      :ref:`enterprise-authentication-mechanisms` guides.
+
+   .. replacement:: verify-authentication-mechanism-anchor
+
+      .. _java-verify-auth-mechanism:
+
+   .. replacement:: authsource-param-code-block
+
+      .. code-block:: java
+         :copyable: false
+
+         MongoClient mongoClient = MongoClients.create("mongodb://<db_username>:<db_password>@<hostname>:<port>/?authSource=users");
+
+   .. replacement:: dns-resolution-anchor
+
+      .. _java-dns-resolution-error:
+
+   .. replacement:: dns-error-message
+
+      .. code-block:: none
+         :copyable: false
+
+         com.mongodb.MongoSocketWriteException: Exception sending message
+
+   .. replacement:: check-the-number-of-connections-anchor
+
+      .. _java-connection-num-connections:
+
+   .. replacement:: mongo-client-class
+
+      ``MongoClient``
+
+   .. replacement:: max-pool-size-param
+
+      ``maxPoolSize``
+
+   .. replacement:: max-pool-size-default
+
+      ``100``
+
+   .. replacement:: max-idle-time-param
+
+      ``maxIdleTimeMS``
+
+   .. replacement:: scram-failure-error
+
+      .. code-block::
+
+         Command failed with error 18 (AuthenticationFailed): 'Authentication failed.' on server localhost:27017.
+
+   .. replacement:: check-credentials-formatting-anchor
+
+      .. _java-troubleshooting-connection-string-auth:
+
+.. _java-connection-certificate:
+
+Security Certificate Errors
+---------------------------
+
+If you use Java version 8 or earlier, you might need to add a
+certificate to your trust store. You can either upgrade to a later
+version of the JDK or read the :atlas:`Security FAQ
+</reference/faq/security/#java-users>` instructions in the Atlas
+documentation for information on how to add the certificate.
+
+.. _java-timeout-errors:
+
+Timeout Errors
+--------------
+
+When you send messages through the driver to the server, sometimes the
+messages take a while to respond. When this happens, you might receive an error
+message similar to one of the following messages:
+
+.. code-block:: none
+   :copyable: false
+
+   Timed out after 30000 ms while waiting for a server that matches ReadPreferenceServerSelector{readPreference=primary}.
+
+.. code-block:: none
+   :copyable: false
+
+   No server chosen by ReadPreferenceServerSelector{readPreference=primary} from cluster description
+
+If you receive one of these errors, try the following methods to resolve the
+issue.
+
+Set ``maxConnectionTimeoutMS``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``maxConnectionTimeoutMS`` option indicates the time the Java driver waits
+for a connection before timing out. The default value is ``10000``. You can
+increase this value or set it to ``0`` if you want the driver to never timeout.
+
+Set ``maxConnectionLifeTime`` and ``maxConnectionIdleTime``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider setting ``maxConnectionLifeTime`` and
+``maxConnectionIdleTime``. These parameters configure how long the driver
+maintains a connection to a MongoDB instance. For more information about these
+parameters, see :ref:`Connection Pool Settings <mcs-connectionpool-settings>`.
+
+.. _java-server-selection-errors:
+
+Server Selection Timeout Exceptions
+-----------------------------------
+
+Your application might not be able to complete a request even when some servers
+are available, causing the driver to return a server selection timeout
+exception.
+
+This exception is of type ``MongoTimeoutException``. The following
+shows a sample of the exception that occurs if you attempt to send a
+request to a replica set in which the primary is not reachable:
+
+.. code-block:: none
+
+   com.mongodb.MongoTimeoutException:
+   Timed out while waiting for a server that matches ReadPreferenceServerSelector{readPreference=primary}.
+   Client view of cluster state is
+   {type=REPLICA_SET,
+    servers=[
+     {address=localhost:27017, type=UNKNOWN, state=CONNECTING, exception={com.mongodb.MongoSocketOpenException: Exception opening socket}, caused by {java.net.ConnectException: Connection refused}},
+     {address=localhost:27018, type=UNKNOWN, state=CONNECTING, exception={com.mongodb.MongoSocketOpenException: Exception opening socket}, caused by {java.net.ConnectException: Connection refused}},
+     {address=localhost:27019, type=REPLICA_SET_SECONDARY, roundTripTime=15.0 ms, state=CONNECTED}
+    ]
+   }
+
+The error includes a view of the cluster state that describes the
+connection state of each node, which can help you identify the source of
+your connection issue.
+
+In the preceding error, the only connected server, ``localhost:27019``,
+is a secondary node. Because of this, the request times out as the
+driver is unable to select a server that satisfies the read preference
+of ``primary``. In this situation, you can still perform read operations
+against the connected secondary node if you set the read preference to
+``secondary``, ``secondaryPreferred``, or ``nearest``.
+
+You can also specify the ``serverSelectionTimeoutMS`` connection option
+to adjust the amount of time in which the driver must select a server. To
+learn more, see the :ref:`java-connection-options` guide.
+
+.. _java-miscellaneous-errors:
+
+Miscellaneous Errors
+--------------------
+
+This section shows connection errors that do not fall into a broader category.
+
+Monitor Thread Exception
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: none
+   :copyable: false
+
+   INFO: Exception in monitor thread while connecting to server ssc-cluster-01-shard-00-02.9cbnp.mongodb.net:27017
+
+This log line indicates that the monitor that continuously
+checks the status of each replica set member or ``mongos`` server failed to
+contact one of the nodes or servers. This is an expected message during server
+maintenance operations and can be safely ignored.
+
+Certificate Request Exception
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: none
+   :copyable: false
+
+   javax.net.ssl.SSLHandshakeException: extension (5) should not be presented in certificate_request
+
+This is a known issue in certain versions of the JDK that can occur when
+attempting to connect by using the TLS 1.3 protocol.
+
+If you encounter this error when connecting to your MongoDB instance or
+cluster, update your JDK to one of the following patch versions or newer:
+
+- JDK 11.0.7
+- JDK 13.0.3
+- JDK 14.0.2
+
+To learn more about this issue, see the
+`issue description <https://bugs.openjdk.java.net/browse/JDK-8236039>`__
+in the OpenJDK Bug system tracker issue.
+
+.. _java-debugging-tips:
+
+Debugging Tips
+--------------
+
+While not related to a specific error message, this section includes
+information that can help in the process of troubleshooting connection
+issues.
+
+Verbose Logging for TLS/SSL
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use the ``-Djavax.net.debug=all`` system property to enable
+debug-level logging related to all connections, including those
+established by using TLS/SSL.
+
+Enabling debug-level logging can help you diagnose the root problem of
+connection issues. To learn more about the TLS/SSL logging messages,
+see the `Debugging SSL/TLS Connections <https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/ReadDebug.html>`__
+Java documentation.
