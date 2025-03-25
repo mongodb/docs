@@ -32,5 +32,7 @@ specific version of MongoDB.
          echo "{+package-name-org+}-server hold" | sudo dpkg --set-selections
          echo "{+package-name+}-mongosh hold" | sudo dpkg --set-selections
          echo "{+package-name-org+}-mongos hold" | sudo dpkg --set-selections
+         echo "{+package-name-org+}-cryptd hold" | sudo dpkg --set-selections
          echo "{+package-name-org+}-tools hold" | sudo dpkg --set-selections
+         echo "{+package-name-org+}-database-tools-extra hold" | sudo dpkg --set-selections
 

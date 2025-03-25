@@ -27,8 +27,10 @@ specific release of MongoDB.
             mongodb-enterprise-database-{+release+} \
             mongodb-enterprise-server-{+release+} \
             mongodb-mongosh \
+            mongodb-enterprise-cryptd-{+release+} \
             mongodb-enterprise-mongos-{+release+} \
-            mongodb-enterprise-tools-{+release+}
+            mongodb-enterprise-tools-{+release+} \
+            mongodb-enterprise-tools-extra-{+release+}
 
       You can specify any available version of MongoDB. However,
       zypper upgrades the packages when a newer version becomes
@@ -38,12 +40,14 @@ specific release of MongoDB.
       .. code-block:: sh
 
          sudo zypper addlock \\
-            mongodb-enterprise-{+release+}
-            mongodb-enterprise-database-{+release+}
-            mongodb-enterprise-server-{+release+}
-            mongodb-mongosh
-            mongodb-enterprise-mongos-{+release+}
-            mongodb-enterprise-tools-{+release+}
+            mongodb-enterprise-{+release+} \
+            mongodb-enterprise-database-{+release+} \
+            mongodb-enterprise-server-{+release+} \
+            mongodb-mongosh \
+            mongodb-enterprise-cryptd-{+release+} \
+            mongodb-enterprise-mongos-{+release+} \
+            mongodb-enterprise-tools-{+release+} \
+            mongodb-enterprise-tools-extra-{+release+}
 
       Previous versions of MongoDB packages use a different
       repository location. Refer to the version of the
