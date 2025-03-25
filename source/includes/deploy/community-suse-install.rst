@@ -27,7 +27,6 @@ specific release of MongoDB.
             mongodb-org-database-{+release+} \
             mongodb-org-server-{+release+} \
             mongodb-mongosh \
-            mongodb-org-cryptd-{+release+} \
             mongodb-org-mongos-{+release+} \
             mongodb-org-tools-{+release+} \
             mongodb-org-database-tools-extra-{+release+}
@@ -44,7 +43,6 @@ specific release of MongoDB.
             mongodb-org-database-{+release+} \
             mongodb-org-server-{+release+} \
             mongodb-mongosh \
-            mongodb-org-cryptd-{+release+} \
             mongodb-org-mongos-{+release+} \
             mongodb-org-tools-{+release+} \
             mongodb-org-database-tools-extra-{+release+}
