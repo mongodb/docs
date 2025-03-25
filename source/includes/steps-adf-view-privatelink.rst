@@ -3,8 +3,6 @@
       
    .. include:: /includes/nav/steps-network-access.rst
       
-   .. step:: Click the :guilabel:`Private Endpoint` tab and then the following tab for the resource.
+   .. step:: Click the :guilabel:`Private Endpoint` tab.
       
-      :guilabel:`Data Federation / Online Archive` to manage the 
-      private endpoint for your {+fdi+} or online archive. 
-      
+   .. step:: Click the :guilabel:`Federated Database Instance / Online Archive` tab.

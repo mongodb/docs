@@ -3,18 +3,17 @@
       
    .. include:: /includes/nav/steps-network-access.rst
       
-   .. step:: Click the :guilabel:`Private Endpoint` tab and then the following tab for the resource.
+   .. step:: Click the :guilabel:`Private Endpoint` tab.
+
+   .. step:: Click the :guilabel:`Federated Database Instance / Online Archive` tab.   
       
-      :guilabel:`Data Federation / Online Archive` to manage the 
-      private endpoint for your {+fdi+} or online archive. 
+   .. step:: Click the :guilabel:`Create New Endpoint` button.
+
+   .. step:: Choose a cloud provider and region.
       
-   .. step:: Click the following button to set up the private endpoint.
-      
-      Click :guilabel:`Create new endpoint` button.
-      
-   .. step:: Choose an |aws| region.
-      
-      a. From the :guilabel:`AWS Region` list, select the region where you 
+      a. Click the :guilabel:`AWS` button.
+
+      #. From the dropdown, select the region where you 
          want to create the private endpoint.
       
          You can select one of the following regions: 

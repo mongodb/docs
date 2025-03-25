@@ -5,12 +5,12 @@
       
    .. step:: Click the :guilabel:`Private Endpoint` tab and then the following tab for the resource.
       
-      :guilabel:`Data Federation / Online Archive` to manage the 
+      :guilabel:`Federated Database Instance / Online Archive` to manage the 
       private endpoint for your {+fdi+} or online archive. 
       
    .. step:: Click the following button to set up the private endpoint.
       
-      Click :guilabel:`Add existing endpoint` button.
+      Click :guilabel:`Connect existing endpoint` button.
        
    .. step:: Enter your VPC endpoint ID and DNS name.
 

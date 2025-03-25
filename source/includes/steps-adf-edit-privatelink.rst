@@ -3,13 +3,12 @@
       
    .. include:: /includes/nav/steps-network-access.rst
       
-   .. step:: Click the :guilabel:`Private Endpoint` tab and then the following tab for the resource.
+   .. step:: Click the :guilabel:`Private Endpoint` tab.
       
-      :guilabel:`Data Federation / Online Archive` to manage the 
-      private endpoint for your {+fdi+} or online archive.     
+   .. step:: Click :guilabel:`Federated Database Instance / Online Archive`.     
       
-   .. step:: Click :guilabel:`Edit` for the VPC endpoint ID that you wish to modify.
+   .. step:: Click :guilabel:`Edit` for the private endpoint that you wish to modify.
       
-   .. step:: Make changes to the comment associated with the VPC endpoint ID.
-      
-   .. step:: Click :guilabel:`Confirm` for the changes to take effect.
+      To learn more about the fields you can edit, see :ref:`config-private-endpoint`.
+
+   .. step:: Click :guilabel:`Confirm` or :guilabel:`Finish` for the changes to take effect.
