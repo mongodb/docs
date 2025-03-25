@@ -38,3 +38,21 @@ Band.offset(3)
 # start-batch
 Band.batch_size(500)
 # end-batch
+
+# start-raw
+Band.where(country: 'Argentina').raw
+# end-raw
+
+# start-raw-typed
+Band.where(country: 'Argentina').raw(typed: true)
+# end-raw-typed
+
+# start-raw-false
+# Retrieves raw results
+results = Band.where(members: 4).raw
+
+# ... Perform actions on results
+
+# Returns instantiated model objects from raw results
+bands = results.raw(false).to_a
+# end-raw-false
