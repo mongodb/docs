@@ -7,7 +7,7 @@
       steps to :ref:`load sample data into your Atlas {+cluster+} 
       <sample-data>`.
 
-      .. include:: /includes/fact-avs-integrations-own-data.rst
+      .. include:: /includes/avs/facts/fact-avs-integrations-own-data.rst
        
    .. step:: Instantiate the vector store.
 

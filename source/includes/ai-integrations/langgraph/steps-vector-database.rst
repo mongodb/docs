@@ -12,7 +12,7 @@
       <mflix-embedded_movies>` dataset, which contains documents 
       about movies, including the vector embeddings of their plots.
 
-      .. include:: /includes/fact-avs-integrations-own-data.rst
+      .. include:: /includes/avs/facts/fact-avs-integrations-own-data.rst
 
    .. step:: Instantiate the vector store.
 
@@ -37,7 +37,7 @@
 
    .. step:: Create the indexes.
 
-      .. include:: /includes/note-avs-index-required-access.rst
+      .. include:: /includes/avs/facts/note-avs-index-required-access.rst
 
       To enable vector search and full-text search queries on
       your data in |service|, create an {+avs+} and |fts| index 

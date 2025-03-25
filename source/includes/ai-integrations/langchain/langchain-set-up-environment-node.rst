@@ -21,7 +21,7 @@
 
          npm install langchain @langchain/community @langchain/mongodb @langchain/openai pdf-parse fs
 
-   .. include:: /includes/steps-avs-nodejs-config-modules.rst
+   .. include:: /includes/avs/shared/steps-avs-nodejs-config-modules.rst
 
    .. step:: Create a file named ``get-started.js`` and paste the following code.
 

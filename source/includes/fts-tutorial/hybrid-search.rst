@@ -122,12 +122,12 @@ Procedure
    .. tab::
       :tabid: nodejs
 
-      .. include:: /includes/steps-avs-rrf-tutorial-create-index-javascript.rst
+      .. include:: /includes/avs/rrf-tutorial/steps-avs-rrf-tutorial-create-index-javascript.rst
 
    .. tab::
       :tabid: shell
 
-      .. include:: /includes/steps-avs-rrf-tutorial-create-index-mongosh.rst
+      .. include:: /includes/avs/rrf-tutorial/steps-avs-rrf-tutorial-create-index-mongosh.rst
 
 Run a Combined Semantic Search and Full-Text Search Query 
 ---------------------------------------------------------
@@ -148,12 +148,12 @@ Procedure
    .. tab::
       :tabid: nodejs
 
-      .. include:: /includes/steps-avs-rrf-javascript-query.rst
+      .. include:: /includes/avs/rrf-tutorial/steps-avs-rrf-javascript-query.rst
 
    .. tab::
       :tabid: shell
 
-      .. include:: /includes/steps-avs-rrf-shell-query.rst
+      .. include:: /includes/avs/rrf-tutorial/steps-avs-rrf-shell-query.rst
 
 About the Query 
 ~~~~~~~~~~~~~~~

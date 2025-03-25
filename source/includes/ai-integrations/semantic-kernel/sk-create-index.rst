@@ -22,7 +22,7 @@
          .. tab:: Visual Editor 
             :tabid: vib 
 
-            .. include:: /includes/avs-vib-description-short.rst
+            .. include:: /includes/avs/shared/avs-vib-description-short.rst
 
             To configure the index, select :guilabel:`Cosine` 
             from the :guilabel:`Similarity Method` dropdown.
@@ -49,4 +49,4 @@
 
    .. step:: Click :guilabel:`Next` to review the index. 
 
-   .. include:: /includes/steps-avs-finish-index-creation.rst
+   .. include:: /includes/avs/index-examples/steps-avs-finish-index-creation.rst

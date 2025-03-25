@@ -43,7 +43,7 @@
             Specify |embedding-field-name| as the field to index and specify
             ``1024`` dimensions.
 
-            .. include:: /includes/extracts/steps-avs-index-filters.rst
+            .. include:: /includes/avs/extracts/steps-avs-index-filters.rst
 
          .. tab:: JSON Editor 
             :tabid: jsoneditor 
@@ -79,4 +79,4 @@
 
    .. step:: Click :guilabel:`Next` to review the index. 
 
-   .. include:: /includes/steps-avs-finish-index-creation.rst
+   .. include:: /includes/avs/index-examples/steps-avs-finish-index-creation.rst
