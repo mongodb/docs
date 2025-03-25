@@ -103,12 +103,17 @@
    * - ``redactHistory``
      - string
      - ``remove``
-     - Controls what information is recorded in the shell history.
-       Must be one of:
+     - Controls what information is recorded in the ``mongosh`` command history.
+       You can access the ``mongosh`` command history via the up and down keys 
+       or Ctrl+R while inside the shell.
+
+       Must be one of the following values:
 
        - ``keep``: Retain all history.
-       - ``remove``: Remove lines which contain sensitive information.
-       - ``remove-redact``: Redact sensitive information.
+       - ``remove``: Remove lines that contain sensitive commands from the history. 
+         For example, ``remove`` removes calls to db.auth() or connect().
+       - ``remove-redact``: Remove lines that contain sensitive commands and redact 
+         specific strings in other history lines, such as file paths, email addresses, and URLs. 
 
    * - ``showStackTraces``
      - boolean
