@@ -1,0 +1,140 @@
+.. _semantic-kernel:
+
+=======================================================
+Get Started with the Semantic Kernel Python Integration
+=======================================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. facet::
+   :name: programming_language
+   :values: python
+
+.. meta::
+   :description: Integrate Atlas Vector Search with Microsoft Semantic Kernel to build Gen AI applications and implement RAG.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. note::
+
+   This tutorial uses the Semantic Kernel :github:`Python library
+   </microsoft/semantic-kernel/tree/main/python/semantic_kernel/connectors/memory/mongodb_atlas>`.
+   For a tutorial that uses the C# library, see :ref:`semantic-kernel-csharp`.
+
+.. include:: /includes/ai-integrations/semantic-kernel/sk-overview.rst
+
+.. cta-banner::
+   :url: https://github.com/mongodb/docs-notebooks/blob/main/ai-integrations/semantic-kernel.ipynb?tck=docs
+   :icon: Code
+
+   Work with a runnable version of this tutorial as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/ai-integrations/semantic-kernel.ipynb?tck=docs>`.
+
+Background
+----------
+
+.. include:: /includes/ai-integrations/semantic-kernel/sk-background.rst
+
+Prerequisites
+-------------
+
+To complete this tutorial, you must have the following:
+
+- .. include:: /includes/avs/shared/avs-requirements-cluster.rst
+
+- .. include:: /includes/avs/shared/avs-requirements-openai-api-key.rst
+
+- An environment to run interactive Python notebooks 
+  such as `Colab <https://colab.research.google.com>`__.
+
+Set Up the Environment
+----------------------
+
+.. include:: /includes/set-up-python-notebook-environment.rst
+
+.. include:: /includes/ai-integrations/semantic-kernel/sk-set-up-environment.rst
+
+Store Custom Data in |service|
+------------------------------
+
+In this section, you initialize the `kernel
+<https://learn.microsoft.com/en-us/semantic-kernel/agents/kernel/>`__,
+which is the main interface used to manage your
+application's services and plugins. Through the kernel, you configure your
+AI services, instantiate |service| as a vector database (also called a memory
+store), and load custom data into your |service| {+cluster+}.
+
+To store custom data in |service|, paste and
+run the following code snippets in your notebook:
+
+.. include:: /includes/ai-integrations/semantic-kernel/sk-store-custom-data.rst
+
+Create the {+avs+} Index
+------------------------------------
+
+.. include:: /includes/avs/facts/note-avs-index-required-access.rst
+
+To enable vector search queries on your vector store,
+run the following code in your notebook to 
+create an {+avs+} index on the ``semantic_kernel_db.test`` collection.
+
+.. code-block:: python
+
+   # Connect to your Atlas cluster and specify the collection
+   client = MongoClient(ATLAS_CONNECTION_STRING)
+   collection = client["semantic_kernel_db"]["test"]
+
+   # Create your index model, then create the search index
+   search_index_model = SearchIndexModel(
+      definition={
+         "fields": [
+            {
+            "type": "vector",
+            "path": "embedding",
+            "numDimensions": 1536,
+            "similarity": "cosine"
+            }
+         ]
+      },
+      name="vector_index",
+      type="vectorSearch"
+   )
+
+   collection.create_search_index(model=search_index_model)
+
+The index definition indexes the ``embedding`` field as 
+the :ref:`vector <avs-types-vector-search>` type. 
+The ``embedding`` field contains the embeddings
+created using OpenAI's ``text-embedding-ada-002`` embedding model. 
+The index definition specifies ``1536`` vector dimensions 
+and measures similarity using ``cosine``.
+
+Run Vector Search Queries
+-------------------------
+
+Once |service| builds your index, you can run vector search
+queries on your data.
+
+.. include:: /includes/ai-integrations/semantic-kernel/sk-query-examples.rst
+
+Answer Questions on Your Data
+-----------------------------
+
+This section shows an example |rag| implementation
+with {+avs+} and Semantic Kernel. Now that you've used {+avs+}
+to retrieve semantically similar documents, run the following code example
+to prompt the |llm| to answer questions based on those documents.
+
+.. include:: /includes/ai-integrations/semantic-kernel/sk-perform-qa.rst
+
+Next Steps
+----------
+
+.. include:: /includes/ai-integrations/semantic-kernel/sk-next-steps.rst
