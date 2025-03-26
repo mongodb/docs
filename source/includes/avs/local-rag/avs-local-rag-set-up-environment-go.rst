@@ -24,6 +24,7 @@
          go get github.com/tmc/langchaingo/llms
          go get github.com/tmc/langchaingo/llms/ollama
          go get github.com/tmc/langchaingo/prompts
+         go get github.com/tmc/langchaingo/vectorstores/mongovector
 
    .. step:: Create a ``.env`` file.
 

@@ -28,6 +28,7 @@
             go get github.com/tmc/langchaingo/embeddings/huggingface
             go get github.com/tmc/langchaingo/llms/huggingface
             go get github.com/tmc/langchaingo/prompts
+            go get github.com/tmc/langchaingo/vectorstores/mongovector
 
       #. Create a ``.env`` file.
 
@@ -44,27 +45,33 @@
 
          .. include:: /includes/avs/shared/avs-replace-connection-string.rst
 
-   .. step:: Create a function to generate vector embeddings.
+   .. step:: Create a function to retrieve and process your data.
 
-      In this section, you create a function that:
+      In this section, you download and process sample 
+      data into |service| that |llm|\s don't have access to.
+      The following code uses the `Go library for LangChain
+      <https://tmc.github.io/langchaingo/docs/>`__ to perform the
+      following tasks:
+      
+      - Create a HTML file that contains a `MongoDB earnings report
+        <https://investors.mongodb.com/node/12236>`__.
+      - Split the data into chunks, specifying the *chunk size*
+        (number of characters) and *chunk overlap* (number of overlapping
+        characters between consecutive chunks).
 
-      - Loads the `mxbai-embed-large-v1 <https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1>`__ 
-        embedding model from Hugging Face's model hub.
-      - Creates vector embeddings from the inputted data.
-
-      a. Run the following command to create a directory that stores common functions, including one that you'll
-         reuse to create embeddings.
+      a. Run the following command to create a directory that stores
+         common functions.
 
          .. code-block::
 
             mkdir common && cd common
 
-      #. Create a file called ``get-embeddings.go`` in the ``common`` directory,
+      #. Create a file called ``process-file.go`` in the ``common`` directory,
          and paste the following code into it:
 
-         .. literalinclude:: /includes/avs/rag/get-embeddings.go
+         .. literalinclude:: /includes/avs/rag/process-file.go
             :language: go
-            :caption: get-embeddings.go
+            :caption: process-file.go
 
    .. step:: Ingest data into |service|.
 
@@ -72,18 +79,19 @@
       data into |service| that |llm|\s don't have access to.
       The following code uses the `Go library for LangChain
       <https://tmc.github.io/langchaingo/docs/>`__
-      and :driver:`Go driver </go/current/quick-start>` to do the
-      following:
-      
-      - Create a HTML file that contains a `MongoDB earnings report
-        <https://investors.mongodb.com/node/12236>`__.
-      - Split the data into chunks, specifying the *chunk size*
-        (number of characters) and *chunk overlap* (number of overlapping
-        characters between consecutive chunks). 
-      - Create vector embeddings from the chunked data by using 
-        the ``GetEmbeddings`` function that you defined.
-      - Store these embeddings alongside the chunked data in the
-        ``rag_db.test`` collection in your |service| {+cluster+}.
+      and :driver:`Go driver </go/current/quick-start>` to perform the
+      following tasks:
+
+      - Load the `mxbai-embed-large-v1 <https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1>`__
+        embedding model from Hugging Face's model hub.
+      - Create an instance of `mongovector
+        <https://pkg.go.dev/github.com/tmc/langchaingo/vectorstores/mongovector>`__
+        from your Go driver client and Hugging Face embedding model to
+        implement the vector store.
+      - Create and store vector embeddings from the chunked data by using 
+        the ``mongovector.AddDocuments()`` method. The code stores the chunked data and
+        corresponding embeddings in the ``rag_db.test`` collection in
+        your |service| {+cluster+}.
 
       a. Navigate to the root of the ``rag-mongodb`` project directory.
 
@@ -118,7 +126,7 @@
          Create a new file named ``rag-vector-index.go`` and paste the
          following code. This code connects to your |service| {+cluster+} and
          creates an index of the :ref:`vectorSearch <avs-types-vector-search>`
-         type on the ``rag_db.test`` collection.    
+         type on the ``rag_db.test`` collection.
 
          .. literalinclude:: /includes/avs/rag/create-index.go
             :language: go
@@ -134,9 +142,9 @@
 
          In this step, you create a retrieval function called
          ``GetQueryResults`` that runs a query to retrieve relevant documents.
-         It uses the ``GetEmbeddings`` function to create embeddings from the
-         search query. Then, it runs the query to return semantically-similar
-         documents.
+         It uses the ``mongovector.SimilaritySearch()`` method, which
+         automatically generates a vector representation of your query
+         string and returns relevant results.
 
          To learn more, refer to :ref:`return-vector-search-results`.
 
@@ -148,10 +156,10 @@
             :caption: get-query-results.go
 
       #. Test retrieving the data.
-      
+
          i. In the ``rag-mongodb`` project directory, create a new file called ``retrieve-documents-test.go``. In this step,
             you check that the function you just defined returns relevant results.
-         
+
          #. Paste this code into your file:
 
             .. literalinclude:: /includes/avs/rag/retrieve-documents-test.go
@@ -160,7 +168,7 @@
 
          #. Run the following command to execute the code:
 
-            .. io-code-block:: 
+            .. io-code-block::
                :copyable: true
 
                .. input::

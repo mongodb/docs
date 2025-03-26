@@ -20,4 +20,4 @@
 #. Store the data and embeddings in |service|.
 
    Store these embeddings in |service|. You store embeddings 
-   as a field alongside other data in your collection.
+   in a field alongside other data in your collection.

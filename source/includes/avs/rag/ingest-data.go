@@ -3,70 +3,21 @@ package main
 import (
 	"context"
 	"fmt"
-	"io"
 	"log"
-	"net/http"
 	"os"
-	"rag-mongodb/common" // Module that contains the embedding function
+	"rag-mongodb/common"
 
 	"github.com/joho/godotenv"
-	"github.com/tmc/langchaingo/documentloaders"
-	"github.com/tmc/langchaingo/textsplitter"
+	"github.com/tmc/langchaingo/embeddings/huggingface"
+	"github.com/tmc/langchaingo/vectorstores/mongovector"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-type DocumentToInsert struct {
-	PageContent string    `bson:"pageContent"`
-	Embedding   []float32 `bson:"embedding"`
-}
-
-func downloadReport(filename string) {
-	_, err := os.Stat(filename)
-	if err == nil {
-		return
-	}
-
-	url := "https://investors.mongodb.com/node/12236"
-	fmt.Println("Downloading ", url, " to ", filename)
-
-	resp, err := http.Get(url)
-	if err != nil {
-		log.Fatalf("failed to connect to download the report: %v", err)
-	}
-	defer func() { _ = resp.Body.Close() }()
-
-	f, err := os.Create(filename)
-	if err != nil {
-		return
-	}
-	defer func() { _ = f.Close() }()
-	_, err = io.Copy(f, resp.Body)
-	if err != nil {
-		log.Fatalf("failed to copy the report: %v", err)
-	}
-}
-
 func main() {
-	ctx := context.Background()
 	filename := "investor-report.html"
-	downloadReport(filename)
-	f, err := os.Open(filename)
-	if err != nil {
-		defer func() { _ = f.Close() }()
-		log.Fatalf("failed to open the report: %v", err)
-	}
-	defer func() { _ = f.Close() }()
-
-	html := documentloaders.NewHTML(f)
-	split := textsplitter.NewRecursiveCharacter()
-	split.ChunkSize = 400
-	split.ChunkOverlap = 20
-	docs, err := html.LoadAndSplit(context.Background(), split)
-	if err != nil {
-		log.Fatalf("failed to chunk the HTML into documents: %v", err)
-	}
-	fmt.Printf("Successfully chunked the HTML into %v documents.\n", len(docs))
+	common.DownloadReport(filename)
+	docs := common.ProcessFile(filename)
 
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("no .env file found")
@@ -77,35 +28,36 @@ func main() {
 	if uri == "" {
 		log.Fatal("set your 'ATLAS_CONNECTION_STRING' environment variable.")
 	}
-	clientOptions := options.Client().ApplyURI(uri)
-	client, err := mongo.Connect(clientOptions)
-	if err != nil {
-		log.Fatalf("failed to connect to the server: %v", err)
-	}
-	defer func() { _ = client.Disconnect(ctx) }()
 
-	// Set the namespace
+	client, err := mongo.Connect(options.Client().ApplyURI(uri))
+	if err != nil {
+		log.Fatalf("failed to connect to server: %v", err)
+	}
+
+	defer func() {
+		if err := client.Disconnect(context.Background()); err != nil {
+			log.Fatalf("error disconnecting the client: %v", err)
+		}
+	}()
+
 	coll := client.Database("rag_db").Collection("test")
 
-	fmt.Println("Generating embeddings.")
-	var pageContents []string
-	for i := range docs {
-		pageContents = append(pageContents, docs[i].PageContent)
-	}
-	embeddings := common.GetEmbeddings(pageContents)
+	embedder, err := huggingface.NewHuggingface(
+		huggingface.WithModel("mixedbread-ai/mxbai-embed-large-v1"),
+		huggingface.WithTask("feature-extraction"))
 
-	docsToInsert := make([]interface{}, len(embeddings))
-	for i := range embeddings {
-		docsToInsert[i] = DocumentToInsert{
-			PageContent: pageContents[i],
-			Embedding:   embeddings[i],
-		}
+	if err != nil {
+		log.Fatal("failed to create an embedder: %v", err)
 	}
 
-	result, err := coll.InsertMany(ctx, docsToInsert)
+	store := mongovector.New(coll, embedder, mongovector.WithPath("embedding"))
+
+	// Add documents to the MongoDB Atlas Database vector store.
+	log.Println("Generating embeddings.")
+	result, err := store.AddDocuments(context.Background(), docs)
 
 	if err != nil {
 		log.Fatalf("failed to insert documents: %v", err)
 	}
-	fmt.Printf("Successfully inserted %v documents into Atlas\n", len(result.InsertedIDs))
+	fmt.Printf("Successfully inserted %v documents into Atlas\n", len(result))
 }

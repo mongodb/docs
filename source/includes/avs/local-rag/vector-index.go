@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"time"
@@ -57,7 +56,7 @@ func main() {
 		},
 		Options: opts,
 	}
-	log.Println("Creating the index.")
+	log.Println("Creating the index...")
 	searchIndexName, err := coll.SearchIndexes().CreateOne(ctx, indexModel)
 	if err != nil {
 		log.Fatalf("failed to create the search index: %v", err)
@@ -71,7 +70,7 @@ func main() {
 	for doc == nil {
 		cursor, err := searchIndexes.List(ctx, options.SearchIndexes().SetName(searchIndexName))
 		if err != nil {
-			fmt.Errorf("failed to list search indexes: %w", err)
+			log.Fatalf("failed to list search indexes: %v", err)
 		}
 
 		if !cursor.Next(ctx) {

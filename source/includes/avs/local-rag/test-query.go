@@ -17,17 +17,25 @@ func main() {
 
 	var textDocuments strings.Builder
 	for _, doc := range matchingDocuments {
+
+		summary := doc.PageContent
+		listingURL, ok := doc.Metadata["listing_url"].(string)
+		if !ok {
+			log.Fatal("expected listing_url to be in document metadata and to be a string")
+		}
+		score := doc.Score
+
 		// Print the contents of the matching documents for verification
-		fmt.Printf("Summary: %v\n", doc.Summary)
-		fmt.Printf("Listing URL: %v\n", doc.ListingURL)
-		fmt.Printf("Score: %v\n", doc.Score)
+		fmt.Printf("Summary: %v\n", summary)
+		fmt.Printf("Listing URL: %v\n", listingURL)
+		fmt.Printf("Score: %v\n", score)
 
 		// Build a single text string to use as the context for the QA
 		textDocuments.WriteString("Summary: ")
-		textDocuments.WriteString(doc.Summary)
+		textDocuments.WriteString(summary)
 		textDocuments.WriteString("\n")
 		textDocuments.WriteString("Listing URL: ")
-		textDocuments.WriteString(doc.ListingURL)
+		textDocuments.WriteString(listingURL)
 		textDocuments.WriteString("\n")
 	}
 

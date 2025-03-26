@@ -16,7 +16,7 @@ func main() {
 	ctx := context.Background()
 
 	if err := godotenv.Load(); err != nil {
-		log.Println("no .env file found")
+		log.Fatal("no .env file found")
 	}
 
 	// Connect to your Atlas cluster
@@ -35,16 +35,16 @@ func main() {
 	coll := client.Database("sample_airbnb").Collection("listingsAndReviews")
 
 	filter := bson.D{
-		{"$and",
-			bson.A{
+		{Key: "$and",
+			Value: bson.A{
 				bson.D{
-					{"$and",
-						bson.A{
-							bson.D{{"summary", bson.D{{"$exists", true}}}},
-							bson.D{{"summary", bson.D{{"$ne", ""}}}},
+					{Key: "$and",
+						Value: bson.A{
+							bson.D{{Key: "summary", Value: bson.D{{Key: "$exists", Value: true}}}},
+							bson.D{{Key: "summary", Value: bson.D{{Key: "$ne", Value: ""}}}},
 						},
 					}},
-				bson.D{{"embeddings", bson.D{{"$exists", false}}}},
+				bson.D{{Key: "embeddings", Value: bson.D{{Key: "$exists", Value: false}}}},
 			}},
 	}
 
@@ -71,8 +71,8 @@ func main() {
 	updateDocuments := make([]mongo.WriteModel, len(listings))
 	for i := range updateDocuments {
 		updateDocuments[i] = mongo.NewUpdateOneModel().
-			SetFilter(bson.D{{"_id", listings[i].ID}}).
-			SetUpdate(bson.D{{"$set", bson.D{{"embeddings", embeddings[i]}}}})
+			SetFilter(bson.D{{Key: "_id", Value: listings[i].ID}}).
+			SetUpdate(bson.D{{Key: "$set", Value: bson.D{{Key: "embeddings", Value: embeddings[i]}}}})
 	}
 
 	bulkWriteOptions := options.BulkWrite().SetOrdered(false)

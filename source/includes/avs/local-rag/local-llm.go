@@ -25,10 +25,14 @@ func main() {
 	var textDocuments strings.Builder
 	for _, doc := range matchingDocuments {
 		textDocuments.WriteString("Summary: ")
-		textDocuments.WriteString(doc.Summary)
+		textDocuments.WriteString(doc.PageContent)
 		textDocuments.WriteString("\n")
 		textDocuments.WriteString("Listing URL: ")
-		textDocuments.WriteString(doc.ListingURL)
+		if metadata := doc.Metadata; metadata != nil {
+			if listingURL, ok := metadata["listing_url"]; ok {
+				textDocuments.WriteString(listingURL)
+			}
+		}
 		textDocuments.WriteString("\n")
 	}
 

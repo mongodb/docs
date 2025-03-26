@@ -6,17 +6,14 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
-	"go.mongodb.org/mongo-driver/v2/bson"
+	"github.com/tmc/langchaingo/embeddings/huggingface"
+	"github.com/tmc/langchaingo/schema"
+	"github.com/tmc/langchaingo/vectorstores/mongovector"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-type TextWithScore struct {
-	PageContent string  `bson:"pageContent"`
-	Score       float64 `bson:"score"`
-}
-
-func GetQueryResults(query string) []TextWithScore {
+func GetQueryResults(query string) []schema.Document {
 	ctx := context.Background()
 
 	if err := godotenv.Load(); err != nil {
@@ -38,32 +35,21 @@ func GetQueryResults(query string) []TextWithScore {
 	// Specify the database and collection
 	coll := client.Database("rag_db").Collection("test")
 
-	queryEmbedding := GetEmbeddings([]string{query})
-
-	vectorSearchStage := bson.D{
-		{"$vectorSearch", bson.D{
-			{"index", "vector_index"},
-			{"path", "embedding"},
-			{"queryVector", queryEmbedding[0]},
-			{"exact", true},
-			{"limit", 5},
-		}}}
-
-	projectStage := bson.D{
-		{"$project", bson.D{
-			{"_id", 0},
-			{"pageContent", 1},
-			{"score", bson.D{{"$meta", "vectorSearchScore"}}},
-		}}}
-
-	cursor, err := coll.Aggregate(ctx, mongo.Pipeline{vectorSearchStage, projectStage})
+	embedder, err := huggingface.NewHuggingface(
+		huggingface.WithModel("mixedbread-ai/mxbai-embed-large-v1"),
+		huggingface.WithTask("feature-extraction"))
 
 	if err != nil {
-		log.Fatalf("failed to execute the aggregation pipeline: %v", err)
+		log.Fatal("failed to create an embedder: %v", err)
 	}
-	var results []TextWithScore
-	if err = cursor.All(context.TODO(), &results); err != nil {
-		log.Fatalf("failed to connect unmarshal retrieved documents: %v", err)
+
+	store := mongovector.New(coll, embedder, mongovector.WithPath("embedding"))
+
+	// Search for similar documents.
+	docs, err := store.SimilaritySearch(context.Background(), query, 5)
+	if err != nil {
+		log.Fatal("error performing similarity search: %v", err)
 	}
-	return results
+
+	return docs
 }

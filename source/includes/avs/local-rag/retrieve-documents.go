@@ -6,22 +6,20 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
+	"github.com/tmc/langchaingo/embeddings"
+	"github.com/tmc/langchaingo/llms/ollama"
+	"github.com/tmc/langchaingo/schema"
+	"github.com/tmc/langchaingo/vectorstores/mongovector"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-type Document struct {
-	Summary    string  `bson:"summary"`
-	ListingURL string  `bson:"listing_url"`
-	Score      float64 `bson:"score"`
-}
-
-func RetrieveDocuments(query string) []Document {
+func RetrieveDocuments(query string) []schema.Document {
 	ctx := context.Background()
 
 	if err := godotenv.Load(); err != nil {
-		log.Println("no .env file found")
+		log.Fatal("no .env file found")
 	}
 
 	// Connect to your Atlas cluster
@@ -36,39 +34,46 @@ func RetrieveDocuments(query string) []Document {
 	}
 	defer func() { _ = client.Disconnect(ctx) }()
 
-	// Set the namespace
+	// Specify the database and collection
 	coll := client.Database("sample_airbnb").Collection("listingsAndReviews")
 
-	var array []string
-	array = append(array, query)
-	queryEmbedding := GetEmbeddings(array)
+	// Define the filter and update
+	filter := bson.D{
+		{Key: "embeddings", Value: bson.D{{Key: "$exists", Value: true}}},
+		{Key: "pageContent", Value: bson.D{{Key: "$exists", Value: false}}},
+		{Key: "metadata.listing_url", Value: bson.D{{Key: "$exists", Value: false}}},
+	}
 
-	vectorSearchStage := bson.D{
-		{"$vectorSearch", bson.D{
-			{"index", "vector_index"},
-			{"path", "embeddings"},
-			{"queryVector", queryEmbedding[0]},
-			{"exact", true},
-			{"limit", 5},
-		}}}
+	update := bson.D{{
+		Key: "$set", Value: bson.D{
+			{Key: "pageContent", Value: "$summary"},
+			{Key: "metadata.listing_url", Value: "$listing_url"},
+		},
+	}}
 
-	projectStage := bson.D{
-		{"$project", bson.D{
-			{"_id", 0},
-			{"summary", 1},
-			{"listing_url", 1},
-			{"score", bson.D{{"$meta", "vectorSearchScore"}}},
-		}}}
-
-	cursor, err := coll.Aggregate(ctx, mongo.Pipeline{vectorSearchStage, projectStage})
-
+	// Perform the update
+	_, err = coll.UpdateMany(ctx, filter, update)
 	if err != nil {
-		log.Fatalf("failed to retrieve data from the server: %v", err)
-	}
-	var results []Document
-	if err = cursor.All(ctx, &results); err != nil {
-		log.Fatalf("failed to unmarshal retrieved docs to model objects: %v", err)
+		log.Fatal(err)
 	}
 
-	return results
+	llm, err := ollama.New(ollama.WithModel("nomic-embed-text"))
+	if err != nil {
+		log.Fatalf("failed to create an embeddings client: %v", err)
+	}
+
+	embedder, err := embeddings.NewEmbedder(llm)
+	if err != nil {
+		log.Fatalf("failed to create an embedder: %v", err)
+	}
+
+	store := mongovector.New(coll, embedder, mongovector.WithPath("embeddings"))
+
+	// Search for similar documents.
+	docs, err := store.SimilaritySearch(context.Background(), query, 5)
+	if err != nil {
+		log.Fatalf("error performing similarity search: %v", err)
+	}
+
+	return docs
 }
