@@ -172,6 +172,35 @@ The :dbcommand:`validate` command no longer supports :ref:`afterClusterTime
 associated with :ref:`causally consistent sessions
 <causal-consistency>`.
 
+Time series collections were introduced in MongoDB 5.0. Starting in v5.2, the default
+internal format for storing time series measurements changed. Due to this change:
+
+- Time series collections created before v5.2 might contain documents in both the 
+  old and new format. Internally, such collections are flagged as 
+  ``timeseriesBucketsMayHaveMixedSchemaData: true``.
+
+- Time series collections created in v5.2 or later will always contain documents 
+  in the new format. Internally, such collections are flagged as 
+  ``timeseriesBucketsMayHaveMixedSchemaData: false`` or not flagged at all. 
+
+When the flag is ``true``, time series queries take both the new and the old format
+into account. When the flag is ``false`` or missing, time series queries take
+only the new format into account.
+
+Due to a bug described in `SERVER-91194 <https://jira.mongodb.org/browse/SERVER-91194>`_,
+under some conditions the flag might be lost. When this happens for time series 
+collections created before v5.2, read query results may be incomplete. That is,
+some documents may be missed, even though they are still stored on the disk.
+
+To determine if you are impacted by this, run :dbcommand:`validate` on your time
+series collection. The command returns an error if the collection is affected
+by the bug. Your read query results may be incorrect if this is the case. 
+
+If affected, upgrade to a fixed version and set ``timeseriesBucketsMayHaveMixedSchemaData``
+to ``true`` for each affected collection to ensure that future queries on the 
+collection return correct results. The full steps for this process are located 
+`here <https://github.com/mongodb/support-tools/tree/master/timeseries-mixed-schema>`_.
+
 Index Key Format
 ~~~~~~~~~~~~~~~~
 
