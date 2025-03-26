@@ -8,7 +8,7 @@ using MongoDB.Driver.Search;
 public class vectorSearchFilterQuery 
 {
   // define connection to your Atlas cluster
-  private const string MongoConnectionString = "mongodb+srv://kanchana:passW0rd@mytest.w2z3k.mongodb-dev.net/?retryWrites=true&w=majority";
+  private const string MongoConnectionString = "<CONNECTION-STRING>";
 
   public static void Main(string[] args){
     var camelCaseConvention = new ConventionPack { new CamelCaseElementNameConvention() };

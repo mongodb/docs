@@ -1,2 +1,3 @@
 - :driver:`PyMongo Driver </pymongo/>` v4.10 or later
 - :driver:`Node.js Driver </node/current/>` v6.11 or later
+- :driver:`Java Driver </java/sync/current/>` v5.3.1 or later
