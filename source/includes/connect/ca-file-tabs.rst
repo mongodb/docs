@@ -16,3 +16,20 @@
 
          uri = "mongodb://<db_username>:<db_password>@<hostname>:<port>/?tls=true&tlsCAFile=/path/to/ca.pem"
          client = pymongo.MongoClient(uri)
+   
+   .. tab:: MongoClient (Asynchronous)
+      :tabid: mongoclient-async
+
+      .. code-block:: python
+
+         client = pymongo.AsyncMongoClient("mongodb://<db_username>:<db_password>@<hostname>:<port>",
+                                           tls=True,
+                                           tlsCAFile="/path/to/ca.pem")
+   
+   .. tab:: Connection String (Asynchronous)
+      :tabid: connectionstring-async
+
+      .. code-block:: python
+
+         uri = "mongodb://<db_username>:<db_password@<hostname>:<port>/?tls=true&tlsCAFile=/path/to/ca.pem"
+         client = pymongo.AsyncMongoClient(uri)

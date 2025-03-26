@@ -18,3 +18,22 @@
                 "tls=true"
                 "&tlsAllowInvalidHostnames=true")
          client = pymongo.MongoClient(uri)
+   
+   .. tab:: MongoClient (Asynchronous)
+      :tabid: mongoclient-async
+
+      .. code-block:: python
+
+         client = pymongo.AsyncMongoClient("mongodb://<db_username>:<db_password>@<hostname>:<port>",
+                                           tls=True,
+                                           tlsAllowInvalidHostnames=True)
+   
+   .. tab:: Connection String (Asynchronous)
+      :tabid: connectionstring-async
+
+      .. code-block:: python
+
+         uri = ("mongodb://<db_username>:<db_password>@<hostname>:<port>/?"
+                "tls=true"
+                "&tlsAllowInvalidHostnames=true")
+         client = pymongo.AsyncMongoClient(uri)

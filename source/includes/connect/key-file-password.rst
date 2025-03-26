@@ -20,3 +20,25 @@
                 "&tlsCertificateKeyFile=path/to/client.pem"
                 "&tlsCertificateKeyFilePassword=<passphrase>")
          client = pymongo.MongoClient(uri)
+   
+   .. tab:: MongoClient (Asynchronous)
+      :tabid: mongoclient-async
+
+      .. code-block:: python
+
+         client = pymongo.AsyncMongoClient("mongodb://<db_username>:<db_password>@<hostname>:<port>",
+                                       tls=True,
+                                       tlsCertificateKeyFile='/path/to/client.pem',
+                                       tlsCertificateKeyFilePassword=<passphrase>)
+   
+   .. tab:: Connection String (Asynchronous)
+      :tabid: connectionstring-async
+
+      .. code-block:: python
+
+         uri = ("mongodb://<db_username>:<db_password"
+                "@<hostname>:<port>/?"
+                "tls=true"
+                "&tlsCertificateKeyFile=path/to/client.pem"
+                "&tlsCertificateKeyFilePassword=<passphrase>")
+         client = pymongo.AsyncMongoClient(uri)
