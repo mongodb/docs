@@ -73,7 +73,7 @@
                        {
                            "path": "page_number",
                            "type": "filter"
-                       },      
+                       }
                    ]
                }
 
