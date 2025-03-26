@@ -12,7 +12,7 @@
      - Java 6
      - Java 5
 
-   * - 4.11 to 5.3
+   * - 4.11 to 5.4
      - ✓
      - ✓
      - ✓
@@ -57,4 +57,5 @@
      - ✓
      -
 
-.. [#virtual-threads-note] This driver version is not compatible with virtual threads.
+.. [#virtual-threads-note] This driver version is not compatible with
+    virtual threads.
