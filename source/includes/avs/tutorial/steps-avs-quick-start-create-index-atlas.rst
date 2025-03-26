@@ -38,7 +38,7 @@
       
       .. |search-type| replace:: {+avs+}
       
-      .. include:: /includes/fact-search-commands-cluster-tier.rst
+      .. include:: /includes/search-shared/fact-search-commands-cluster-tier.rst
 
       .. tabs-drivers::
 

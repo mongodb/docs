@@ -46,4 +46,4 @@ a. Initialize your Node.js project.
 
    .. include:: /includes/avs/shared/avs-replace-connection-string.rst
 
-   .. include:: /includes/note-node-js-env-minimum-requirement.rst
+   .. include:: /includes/avs/shared/note-node-js-env-minimum-requirement.rst

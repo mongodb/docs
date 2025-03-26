@@ -78,5 +78,5 @@
             2024/10/10 09:58:03 Generating embeddings.
             2024/10/10 09:58:12 Successfully added embeddings to 50 documents 
 
-      .. include:: /includes/fact-view-embeddings-atlas-ui-airbnb.rst
+      .. include:: /includes/avs/facts/fact-view-embeddings-atlas-ui-airbnb.rst
        

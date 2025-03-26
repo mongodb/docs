@@ -41,6 +41,6 @@ a. Paste the following code in your notebook.
 
 #. Run the code.
  
-   .. include:: /includes/fact-index-build-initial-sync.rst
+   .. include:: /includes/search-shared/fact-index-build-initial-sync.rst
             
 To learn more, see :ref:`avs-create-index`.

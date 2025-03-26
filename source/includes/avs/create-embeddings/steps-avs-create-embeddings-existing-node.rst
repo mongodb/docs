@@ -43,5 +43,5 @@
             Generating embeddings and updating documents...
             Count of documents updated: 50
 
-      .. include:: /includes/fact-view-embeddings-atlas-ui-airbnb.rst
+      .. include:: /includes/avs/facts/fact-view-embeddings-atlas-ui-airbnb.rst
        

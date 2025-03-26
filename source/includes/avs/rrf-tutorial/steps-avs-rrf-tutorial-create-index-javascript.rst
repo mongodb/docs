@@ -56,7 +56,7 @@
          
                mongodb+srv://<db_username>:<db_password>@<clusterName>.<hostname>.mongodb.net
 
-            .. include:: /includes/note-node-js-env-minimum-requirement.rst
+            .. include:: /includes/avs/shared/note-node-js-env-minimum-requirement.rst
 
    .. step:: Define the {+avs+} index.
 

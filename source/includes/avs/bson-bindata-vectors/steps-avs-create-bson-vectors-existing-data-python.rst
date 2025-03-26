@@ -352,7 +352,7 @@
               time.sleep(5)
             print(result + " is ready for querying.")
 
-      .. include:: /includes/fact-index-build-initial-sync.rst 
+      .. include:: /includes/search-shared/fact-index-build-initial-sync.rst 
 
    .. step:: Define a function to run the {+avs+} queries. 
 

@@ -5,7 +5,7 @@ To complete these tutorials, you must have the following:
 - :authrole:`Project Data Access Admin` access to the project to create
   {+avs+} indexes. 
 
-- The :doc:`sample data </sample-data>` loaded into your |service| 
+- The :ref:`sample data <sample-data>` loaded into your |service| 
   {+cluster+}.
 
 - {+mongosh+} or a supported :driver:`MongoDB Driver </>`

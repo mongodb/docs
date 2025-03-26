@@ -66,4 +66,4 @@
 
          collection.create_search_index(model=search_index_model)
 
-      .. include:: /includes/fact-index-build-initial-sync.rst
+      .. include:: /includes/search-shared/fact-index-build-initial-sync.rst
