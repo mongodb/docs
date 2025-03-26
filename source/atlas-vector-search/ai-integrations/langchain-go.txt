@@ -1,0 +1,369 @@
+.. _langchain-go:
+
+=============================================
+Get Started with the LangChainGo Integration
+=============================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. facet::
+   :name: programming_language
+   :values: go
+
+.. meta::
+   :description: Integrate Atlas Vector Search with LangChainGo to build LLM and RAG applications.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can integrate {+avs+} with `LangChainGo
+<https://pkg.go.dev/github.com/tmc/langchaingo>`__ to build large language model (LLM)
+applications and implement retrieval-augmented generation (RAG). This tutorial
+demonstrates how to start using {+avs+} with LangChainGo to perform semantic
+search on your data and build a |rag| implementation. Specifically, you perform
+the following actions:
+
+#. Set up the environment.
+#. Store custom data on |service|.
+#. Create an {+avs+} index on your data.
+#. Run the following vector search queries:
+
+   - Semantic search.
+   - Semantic search with metadata pre-filtering.
+
+#. Implement |rag| by using {+avs+} to answer questions on your data.
+
+Background
+----------
+
+LangChainGo is the Go programming language implementation of LangChain. It is a
+community-driven, third-party port of the LangChain framework.
+
+.. include:: /includes/ai-integrations/langchain/langchain-background.rst 
+
+LangChainGo facilitates the orchestration of LLMs for AI applications, bringing
+the capabilities of LangChain into the Go ecosystem. It also allows developers
+to connect to their preferred databases using vector stores, including MongoDB.
+
+Prerequisites
+-------------
+
+To complete this tutorial, you must have the following:
+
+- .. include:: /includes/avs/shared/avs-requirements-cluster.rst
+
+- .. include:: /includes/avs/shared/avs-requirements-openai-api-key.rst
+
+- A terminal and code editor to run your Go project.
+
+- `Go installed <https://go.dev/doc/install>`__ on your machine.
+
+Set Up the Environment
+----------------------
+
+You must first set up the environment for this tutorial. Complete the following
+steps to set up your environment.
+
+.. include:: /includes/ai-integrations/langchain/langchain-set-up-environment-go.rst
+
+Use |service| as a Vector Store
+-------------------------------
+
+In this section, you define an asynchronous function to load custom data into
+|service| and instantiate |service| as a vector database, also called a `vector
+store <https://python.langchain.com/docs/concepts/vectorstores/>`__.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Import the following dependencies.
+
+      Add the following imports to the top of your ``main.go`` file.
+
+      .. code-block:: go
+
+         package main
+
+         import (
+           "context"
+           "fmt"
+           "log"
+           "os"
+
+           "github.com/joho/godotenv"
+           "github.com/tmc/langchaingo/embeddings"
+           "github.com/tmc/langchaingo/llms/openai"
+           "github.com/tmc/langchaingo/schema"
+           "github.com/tmc/langchaingo/vectorstores/mongovector"
+           "go.mongodb.org/mongo-driver/v2/mongo"
+           "go.mongodb.org/mongo-driver/v2/mongo/options"
+        )
+
+   .. step:: Define the vector store details.
+
+      .. include:: /includes/ai-integrations/langchain/langchain-vector-store-description-go.rst
+
+      Paste the following code into your ``main.go`` file:
+
+      .. literalinclude:: /includes/ai-integrations/langchain/langchain-create-vector-store.go
+         :language: go
+         :copyable:
+         :dedent:
+         :start-after: start-create-vector-store
+         :end-before: end-create-vector-store
+
+   .. step:: Run your Go project.
+
+      Save the file, then run the following command to load your data into |service|.
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: sh
+
+            go run main.go
+
+         .. output::
+            :language: json
+            :visible: false
+
+            Connected to MongoDB Atlas.
+
+            Successfully added 3 documents to the collection.
+
+      .. tip::
+
+         After running ``main.go``, you can view your vector embeddings :ref:`in the
+         {+atlas-ui+} <atlas-ui-view-collections>` by navigating to the
+         ``langchaingo_db.test`` collection in your {+cluster+}.
+
+.. _langchain-create-index:
+
+Create the {+avs+} Index
+------------------------------------
+
+.. note:: 
+
+   To create an {+avs+} index, you must have :authrole:`Project Data Access
+   Admin` or higher access to the |service| project.
+
+To enable vector search queries on your vector store, create an {+avs+} index on
+the ``langchaingo_db.test`` collection.
+
+Add the following imports to the top of your ``main.go`` file:
+
+.. code-block:: go
+
+   import (
+          // Other imports...
+          "time"
+   
+          "go.mongodb.org/mongo-driver/v2/bson"
+   )
+
+Define the following functions in your ``main.go`` file outside of your
+``main()`` function. These functions create and manage a vector search index for
+your MongoDB collection:
+
+#. The ``SearchIndexExists`` function checks if a search index with the
+   specified name exists and is queryable.
+
+#. The ``CreateVectorSearchIndex`` functions creates a vector search index on the
+   specified collection. This function blocks until the index is created and
+   queryable.
+
+.. literalinclude:: /includes/ai-integrations/langchain/langchain-create-vector-index.go
+   :language: go
+   :copyable:
+   :dedent:
+   :start-after: start-create-vector-search-index
+   :end-before: end-create-vector-search-index
+
+Create the vector store collection and index by calling the preceding functions
+in your ``main()`` function. Add the following code to the end of your
+``main()`` function:
+
+.. literalinclude:: /includes/ai-integrations/langchain/langchain-create-vector-index.go
+   :language: go 
+   :dedent: 
+   :copyable:
+   :start-after: start-search-index-example
+   :end-before: end-search-index-example
+
+Save the file, then run the following command to create your Atlas Vector Search
+index.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: sh
+
+      go run main.go
+
+   .. output::
+      :language: json
+      :visible: false
+
+      Checking if search index exists...
+      Creating vector search index...
+      Successfully created vector search index.
+
+.. tip::
+
+   After running ``main.go``, you can view your vector search index :ref:`in the
+   {+atlas-ui+} <atlas-ui-view-indexes>` by navigating to the
+   ``langchaingo_db.test`` collection in your {+cluster+}.
+
+Run Vector Search Queries
+-------------------------
+
+This section demonstrates various queries that you can run on your vectorized
+data. Now that you've created the index, add the following dependency to your
+``main.go`` file to enable vector search queries:
+
+.. code-block:: go
+
+   package main
+
+      import (
+             // Other imports...
+
+             "github.com/tmc/langchaingo/vectorstores"
+      )
+
+Add the following code to your ``main()`` function to run vector search queries
+against your data.
+
+.. include:: /includes/ai-integrations/langchain/langchain-query-examples-go.rst
+
+Answer Questions on Your Data
+-----------------------------
+
+This section demonstrates a |rag| implementation using {+avs+} and LangChainGo.
+Now that you've used {+avs+} to retrieve semantically similar documents, use the
+following code example to prompt the |llm| to answer questions against the
+documents returned by {+avs+}.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Import the following dependencies.
+
+      Add the following imports to the top of your ``main.go`` file.
+
+      .. code-block:: go
+
+         import (
+                // Other imports...
+                "strings"
+
+                "github.com/tmc/langchaingo/chains"
+                "github.com/tmc/langchaingo/prompts"
+         )
+
+   .. step:: Add the following code to the end of your main function and save the file.
+
+      This code does the following:
+
+      - Instantiates {+avs+} as a retriever to query for semantically similar
+        documents.
+
+      - Defines a LangChainGo prompt template to instruct the |llm| to use the
+        retrieved documents as context for your query. LangChainGo populates
+        these documents into the ``{{.context}}`` input variable and your query
+        into the ``{{.question}}`` variable.
+    
+      - Constructs a chain that uses OpenAI's chat model to generate
+        context-aware responses based on the provided prompt template.
+
+      - Sends a sample query about painting for beginners to the chain, using
+        the prompt and the retriever to gather relevant context.
+
+      - Returns and prints the |llm|'s response and the documents used as
+        context.
+
+      .. literalinclude:: /includes/ai-integrations/langchain/langchain-perform-qa.go
+         :language: go
+         :copyable:
+         :dedent:
+
+   .. step:: Run the following command to execute your file.
+
+      After you save the file, run the following command. The generated response
+      might vary.
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: sh
+
+            go run main.go
+
+         .. output::
+            :language: json
+            :visible: false
+
+            Source documents: [
+              {
+                Document 1: "Successful oil painting necessitates patience,
+                proper equipment, and technique. Begin with a carefully
+                prepared, primed canvas. Sketch your composition lightly before
+                applying paint. Use high-quality brushes and oils to create
+                vibrant, long-lasting artworks. Remember to paint 'fat over
+                lean,' meaning each subsequent layer should contain more oil to
+                prevent cracking. Allow each layer to dry before applying
+                another. Clean your brushes often and avoid solvents that might
+                damage them. Finally, always work in a well-ventilated space."
+              }
+            ]
+
+            Question: How do I get started painting? 
+
+            Generated Answer: To get started painting, you should begin with a
+            carefully prepared, primed canvas. Sketch your composition lightly
+            before applying paint. Use high-quality brushes and oils to create
+            vibrant, long-lasting artworks. Remember to paint 'fat over lean,'
+            meaning each subsequent layer should contain more oil to prevent
+            cracking. Allow each layer to dry before applying another. Clean
+            your brushes often and avoid solvents that might damage them.
+            Finally, always work in a well-ventilated space.
+
+After completing this tutorial, you have successfully integrated {+avs+} with
+LangChainGo to build a |rag| application. You have accomplished the following:
+
+- Initiated and configured the necessary environment to support your application
+- Stored custom data in |service| and instantiated |service| as a vector store
+- Built an {+avs+} index on your data, enabling semantic search capabilities
+- Used vector embeddings to retrieve semantically relevant data
+- Enhanced search results by incorporating metadata filters
+- Implemented a |rag| workflow using {+avs+} to provide meaningful answers to
+  questions based on your data
+
+Next Steps
+----------
+
+To learn how to integrate LangChainGo and Hugging Face, see :ref:`avs-rag`.
+
+MongoDB also provides the following developer resources:
+
+- `How to Build a Go Web app with Gin, MongoDB, and AI <https://www.mongodb.com/developer/products/mongodb/build-go-web-application-gin-mongodb-help-ai/>`__
+- `AI Learning Hub <https://www.mongodb.com/resources/use-cases/artificial-intelligence>`__
+- `What are Vector Databases? <https://www.mongodb.com/resources/basics/databases/vector-databases>`__
+
+.. TODO: Add blog link when available
+
+.. seealso::
+
+   To learn more about integrating LangChainGo, OpenAI, and MongoDB, see `Using
+   MongoDB Atlas as a Vector Store with OpenAI Embeddings
+   <https://github.com/tmc/langchaingo/tree/main/examples/mongovector-vectorstore-example>`__.
