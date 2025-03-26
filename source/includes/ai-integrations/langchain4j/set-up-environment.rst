@@ -43,7 +43,7 @@
             <dependency>
                 <groupId>org.mongodb</groupId>
                 <artifactId>mongodb-driver-sync</artifactId>
-                <version>5.3.0</version>
+                <version>5.4.0</version>
             </dependency>
 
       #. Next, add a ``dependencyManagement`` entry below your
