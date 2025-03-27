@@ -25,8 +25,9 @@
    * - ``dailySnapshotRetentionDays``
      - number
      - Optional
-     - Number of days to retain daily snapshots. You can set a value
-       between ``1`` and ``365``, inclusive.
+     - Number of days to retain daily snapshots. Accepted values are: 
+       ``0``, ``3``, ``4``, ``5``, ``6``, ``7``, ``15``, ``30``, ``60``, 
+       ``90``, ``120``, ``180``, ``360``.
 
        Setting ``dailySnapshotRetentionDays`` to ``0`` disables this
        rule.
