@@ -25,7 +25,7 @@ authenticating using a ``MongoCredential``.
 For more information on these classes and methods, refer to the following API
 documentation:
 
-- `MongoClient.create() <{+api+}/apidocs/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-mongo-client/-factory/create.html>`__
-- `MongoClient <{+api+}/apidocs/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-mongo-client/index.html>`__
-- `MongoClientSettings.Builder <{+api+}/apidocs/mongodb-driver-core/com/mongodb/MongoClientSettings.Builder.html>`__
-- `MongoCredential <{+api+}/apidocs/mongodb-driver-core/com/mongodb/MongoCredential.html>`__
+- `MongoClient.create() <{+driver-api+}/-mongo-client/-factory/create.html>`__
+- `MongoClient <{+driver-api+}/-mongo-client/index.html>`__
+- `MongoClientSettings.Builder <{+core-api+}/MongoClientSettings.Builder.html>`__
+- `MongoCredential <{+core-api+}/MongoCredential.html>`__
