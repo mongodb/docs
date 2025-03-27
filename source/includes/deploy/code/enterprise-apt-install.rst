@@ -31,5 +31,7 @@
          echo "{+package-name-enterprise+}-database hold" | sudo dpkg --set-selections
          echo "{+package-name+}-mongosh hold" | sudo dpkg --set-selections
          echo "{+package-name-enterprise+}-mongos hold" | sudo dpkg --set-selections
+         echo "{+package-name-enterprise+}-cryptd hold" | sudo dpkg --set-selections
          echo "{+package-name-enterprise+}-tools hold" | sudo dpkg --set-selections
+         echo "{+package-name-enterprise+}-databae-tools-extra hold" | sudo dpkg --set-selections
  
