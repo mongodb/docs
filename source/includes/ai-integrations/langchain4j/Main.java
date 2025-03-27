@@ -120,7 +120,6 @@ public class Main {
 
         EmbeddingSearchRequest searchRequest = EmbeddingSearchRequest.builder()
                 .queryEmbedding(queryEmbedding)
-                .filter(new IsIn("author", List.of("B", "C")))
                 .maxResults(3)
                 .build();
 
