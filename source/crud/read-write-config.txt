@@ -1,0 +1,342 @@
+.. _java-configure-replica-sets:
+
+====================================
+Configure Operations on Replica Sets
+====================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta:: 
+   :keywords: customize, preferences, replica set, consistency
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to configure **write concern**, **read concern**,
+and **read preference** options to modify the way that the {+driver-short+} runs
+read and write operations on replica sets.
+
+Read and Write Settings Precedence
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can set write concern, read concern, and read preference options at the following
+levels:
+
+- Client, which sets the *default for all operation executions* unless overridden
+- Transaction
+- Database
+- Collection
+
+This list also indicates the increasing order of precedence of the option settings. For
+example, if you set a read concern for a transaction, it will override the read
+concern settings inherited from the client.
+
+Write concern, read concern, and read preference options allow you to customize the
+causal consistency and availability of the data in your replica sets. To see a full
+list of these options, see the following guides in the {+mdb-server+} manual:
+
+- :manual:`Read Preference </core/read-preference/>`
+- :manual:`Read Concern </reference/read-concern/>`
+- :manual:`Write Concern </reference/write-concern/>`
+
+.. _java-read-write-config:
+
+Configure Read and Write Operations
+-----------------------------------
+
+You can control how the driver routes read operations among replica set members
+by setting a read preference. You can also control how the driver waits for
+acknowledgment of read and write operations on a replica set by setting read and
+write concerns.
+
+The following sections show how to configure these read and write settings
+at various levels.
+
+.. _java-read-write-client:
+
+Client Configuration
+~~~~~~~~~~~~~~~~~~~~
+
+This example shows how to set the read preference, read concern, and
+write concern of a ``MongoClient`` instance by passing a ``MongoClientSettings``
+instance to the constructor. The code configures the following settings:
+
+- ``secondary`` read preference: Read operations retrieve data from 
+  secondary replica set members.
+- ``LOCAL`` read concern: Read operations return the instance's most recent data 
+  without guaranteeing that the data has been written to a majority of the replica
+  set members.
+- ``W2`` write concern: The primary replica set member and one secondary member
+  must acknowledge the write operation.
+
+.. literalinclude:: /includes/fundamentals/code-snippets/ReplicaSets.java
+    :language: java
+    :dedent:
+    :start-after: start-client-settings
+    :end-before: end-client-settings
+
+Alternatively, you can specify the read and write settings in the connection
+URI, which is passed as a parameter to the ``MongoClients`` constructor:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/ReplicaSets.java
+    :language: java
+    :dedent:
+    :start-after: start-client-settings-uri
+    :end-before: end-client-settings-uri
+
+.. _java-read-write-transaction:
+
+Transaction Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example shows how to set the read preference, read concern, and
+write concern of a transaction by passing a ``TransactionOptions``
+instance to the ``startTransaction()`` method. Transactions run within
+**sessions**, which are groupings of related read or write operations that you
+intend to run sequentially. Before applying the transaction options, create a
+``ClientSession`` instance to start a session.
+
+.. tip::
+
+   To learn more about sessions, see :manual:`Server Sessions </reference/server-sessions/>`
+   in the {+mdb-server+} manual.
+
+The example configures the following settings:
+
+- ``primary`` read preference: Read operations retrieve data from 
+  the primary replica set member.
+- ``MAJORITY`` read concern: Read operations return the instance's most recent data 
+  that has been written to a majority of replica set members.
+- ``W1`` write concern: The primary replica set member must acknowledge the
+  write operation.
+
+.. literalinclude:: /includes/fundamentals/code-snippets/ReplicaSets.java
+    :language: java
+    :dedent:
+    :start-after: start-transaction-settings
+    :end-before: end-transaction-settings
+
+.. _java-read-write-database:
+
+Database Configuration
+~~~~~~~~~~~~~~~~~~~~~~
+
+This example shows how to set the read preference, read concern, and
+write concern of a database called ``test_database`` by chaining setter
+methods to the ``getDatabase()`` method. The code configures the following
+settings:
+
+- ``primaryPreferred`` read preference: Read operations retrieve data from 
+  the primary replica set member, or secondary members if the primary is unavailable.
+- ``AVAILABLE`` read concern: Read operations return the instance's most recent data 
+  without guaranteeing that the data has been written to a majority of the replica
+  set members.
+- ``MAJORITY`` write concern: The majority of all replica set members
+  must acknowledge the write operation.
+
+.. literalinclude:: /includes/fundamentals/code-snippets/ReplicaSets.java
+    :language: java
+    :dedent:
+    :start-after: start-database-settings
+    :end-before: end-database-settings
+
+.. _java-read-write-collection:
+
+Collection Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example shows how to set the read preference, read concern, and
+write concern of a collection called ``test_collection`` by chaining setter
+methods to the ``getCollection()`` method. The code configures the following
+settings:
+
+- ``secondaryPreferred`` read preference: Read operations retrieve data from 
+  secondary replica set members, or the primary members if no secondary members are
+  available.
+- ``AVAILABLE`` read concern: Read operations return the instance's most recent data 
+  without guaranteeing that the data has been written to a majority of the replica
+  set members.
+- ``UNACKNOWLEDGED`` write concern: Replica set members do not need to acknowledge
+  the write operation.
+
+.. literalinclude:: /includes/fundamentals/code-snippets/ReplicaSets.java
+    :language: java
+    :dedent:
+    :start-after: start-collection-settings
+    :end-before: end-collection-settings
+
+.. _java-read-write-advanced:
+
+Advanced Read Configurations 
+----------------------------
+
+The following sections describe ways to further customize how the {+driver-short+}
+routes read operations.
+
+.. _java-sharded-clusters:
+
+Sharded Clusters
+~~~~~~~~~~~~~~~~
+
+You can specify a read preference when connecting to a sharded cluster.
+MongoDB uses sharding to divide datasets by key ranges and distribute data across multiple
+database instances. A sharded cluster, or the set of nodes in a sharded deployment,
+includes the following components:
+
+- **Shard**: A replica set that contains a subset of the sharded data.
+- **Mongos**: A query router that provides an interface between your 
+  application and the sharded cluster.
+- **Config servers**: Servers that store the cluster's configuration settings
+  and metadata.
+
+.. tip::
+
+  To learn more about sharded clusters, see :manual:`Sharding </sharding/>`
+  in the {+mdb-server+} manual.
+
+When reading from the replica set shards, mongos applies your specified read
+preference. The read preference is re-evaluated for each operation.
+
+The following example shows how to connect to a sharded cluster and specify a
+``secondary`` read preference in your connection string:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/ReplicaSets.java
+    :language: java
+    :dedent:
+    :start-after: start-sharded-cluster-uri
+    :end-before: end-sharded-cluster-uri
+
+.. _java-tag-sets:
+
+Tag Sets
+~~~~~~~~
+
+In {+mdb-server+}, you can apply key-value :manual:`tags
+</core/read-preference-tags/>` to replica set members
+according to any criteria you choose. You can then use those
+tags to target one or more members for a read operation.
+
+By default, the {+driver-short+} ignores tags when choosing a member
+to read from. To instruct the {+driver-short+} to prefer certain tags,
+pass the tags as a list to your read preference setter method.
+
+Suppose you are connected to a replica set that contains members hosted
+at multiple data centers across the United States. You want the driver to
+prefer reads from secondary replica set members in the following order:
+
+1. Members from the New York data center, tagged with ``("dc", "ny")``
+#. Members from the San Francisco data center, tagged with ``("dc", "sf")``
+#. Any secondary members
+
+This code example passes a list of tags representing the preceding replica
+set members to the ``ReadPreference.secondary()`` setter method. Then, the code
+passes the read preference information to the ``withReadPreference()`` method
+to set the read order on the database:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/ReplicaSets.java
+   :language: java
+   :dedent:
+   :start-after: start-tag-set
+   :end-before: end-tag-set
+
+Load Balancing
+~~~~~~~~~~~~~~
+
+When connecting to a sharded cluster or a replica set, the {+driver-short+} uses
+**load balancing** to handle read and write requests. Load balancing allows the driver to
+distribute these requests across multiple servers, which avoids overwhelming
+any one server and ensures optimal performance.
+
+When connecting to a sharded cluster, the {+driver-short+} determines the closest mongos
+instance by calculating which one has the lowest network round-trip time. Then, the driver
+determines the latency window by adding this mongos's average round-trip time to the
+:ref:`localThresholdMS value <java-local-threshold>`. The driver load balances requests
+across up to two random mongos instances that fall within the latency window. For each request,
+the driver chooses the server with the lower operation load by determining its ``operationCount``
+value.
+
+When connecting to a replica set, the {+driver-short+} first selects replica set members
+according to your read preference. Then, the driver follows the same process as 
+described in the preceding paragraph. After calculating the latency window, the driver
+selects up to two random replica set members that fall within the window and chooses
+the member with the lower ``operationCount`` value to receive the request.
+
+.. tip::
+
+  To learn more about load balancing, see :manual:`Sharded Cluster Balancer
+  </core/sharding-balancer-administration/>` in the {+mdb-server+} manual.
+
+  To learn how to customize the driver's server selection behavior, see
+  :ref:`mcs-cluster-settings` in the Specify MongoClient Settings guide.
+
+.. _java-local-threshold:
+
+Local Threshold
+```````````````
+
+The {+driver-short+} uses the local threshold value to calculate the
+latency window for server selection. This value determines the servers
+that are eligible to receive read and write requests.
+
+By default, the driver uses only mongos instances or replica set members whose
+ping times are within 15 milliseconds of the nearest server. To
+distribute reads among servers with higher latencies, set the ``localThreshold``
+option in a ``MongoClientSettings`` instance or the ``localThresholdMS`` option
+in your connection URI.
+
+.. note::
+  
+   When selecting replica set members from a single mongos instance, the
+   {+driver-short+} ignores the ``localThresholdMS`` option. In this case, use the
+   :manual:`localThreshold </reference/program/mongos/#std-option-mongos.--localThreshold>`
+   command-line option.
+
+The following example connects to a replica set and specifies a local threshold
+of 35 milliseconds. Select the :guilabel:`MongoClientSettings` or :guilabel:`Connection URI`
+tab to see corresponding code for each approach:
+
+.. tabs::
+
+    .. tab:: MongoClientSettings
+      :tabid: settings
+
+      .. literalinclude:: /includes/fundamentals/code-snippets/ReplicaSets.java
+          :language: rust
+          :dedent:
+          :start-after: start-local-threshold-settings
+          :end-before: end-local-threshold-settings
+
+    
+    .. tab:: Connection URI
+      :tabid: uri
+
+      .. literalinclude:: /includes/fundamentals/code-snippets/ReplicaSets.java
+          :language: rust
+          :dedent:
+          :start-after: start-local-threshold-uri
+          :end-before: end-local-threshold-uri
+
+In the preceding example, the {+driver-short+} distributes reads among matching members
+within 35 milliseconds of the closest member's ping time.
+
+API Documentation
+-----------------
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `MongoClient <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoClient.html>`__
+- `MongoClientSettings <{+api+}/apidocs/mongodb-driver-core/com/mongodb/MongoClientSettings.html>`__
+- `TransactionOptions <{+api+}/apidocs/mongodb-driver-core/com/mongodb/TransactionOptions.html>`_
+- `startTransaction() <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/ClientSession.html#startTransaction()>`_
+- `MongoDatabase <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoDatabase.html>`__
+- `MongoCollection <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoCollection.html>`__
+- `TagSet <{+api+}/apidocs/mongodb-driver-core/com/mongodb/TagSet.html>`_
