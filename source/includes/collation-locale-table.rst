@@ -221,13 +221,6 @@
             - ``ja``
             - ``unihan``
 
-     - .. list-table::
-
-
-          * - Language
-            - Locale
-            - Variants
-
           * - Kalaallisut
             - ``kl``
             - ``search``
