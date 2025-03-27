@@ -2,7 +2,7 @@ To complete the following tutorials, you must have:
 
 - An |service| {+cluster+} with MongoDB version 4.2 or higher.
 
-- The :doc:`sample data </sample-data>` loaded into your |service| 
+- The :ref:`sample data <sample-data>` loaded into your |service| 
   {+cluster+}.
 
 - .. include:: /includes/atlas-roles/create-search-index.rst

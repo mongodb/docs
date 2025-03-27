@@ -4,7 +4,7 @@
 
       Open {+mongosh+} in a terminal window and connect to your 
       cluster. For detailed instructions on connecting, see 
-      :doc:`/mongo-shell-connection`.
+      :ref:`connect-mongo-shell`.
 
    .. step:: Switch to the ``sample_analytics`` database.
 
