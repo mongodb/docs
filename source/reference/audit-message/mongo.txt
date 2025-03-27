@@ -23,46 +23,47 @@ In the ``mongo`` schema, recorded log messages have this syntax:
      uuid : { $binary: <string>, $type: <string> },
      local: { ip: <string>, port: <int> || isSystemUser: <boolean> || unix: <string> },
      remote: { ip: <string>, port: <int> || isSystemUser: <boolean> || unix: <string> },
+     intermediates: [   // Added in MongoDB 8.1
+        { 
+           // IP address and port for mongos or load balancer
+           ip: <string>,
+           port: <int>
+        }, {
+           //  IP address and port for mongos or load balancer
+           ip: <string>,
+           port: <int>
+        }
+     ],
      users : [ { user: <string>, db: <string> }, ... ],
      roles: [ { role: <string>, db: <string> }, ... ],
      param: <document>,
      result: <int>
    }
 
+The following table describes the fields in the ``mongo`` schema.
 
 .. list-table::
    :header-rows: 1
    :widths: 20 20 80
 
    * - Field
-
      - Type
-
      - Description
 
    * - ``atype``
-
      - string
-
      - Action type. See :ref:`audit-action-details-results`.
-       
-       
-
+  
    * - ``ts``
-
      - document
-
      - Document that contains the date and UTC time of the event, in ISO
        8601 format.
        
-       
-
    * - .. _audit-message-uuid:
    
        ``uuid``
 
      - document
-
      - A document that contains a message identifier.
        
        The :abbr:`UUID (Universally unique identifier)` identifies a 
@@ -75,14 +76,11 @@ In the ``mongo`` schema, recorded log messages have this syntax:
 
        .. versionadded:: 5.0
 
-
-
    * - .. _audit-message-local:
    
        ``local``
 
      - document
-
      - A document that contains the ``ip`` address and the ``port``
        number of the running instance.
 
@@ -94,61 +92,77 @@ In the ``mongo`` schema, recorded log messages have this syntax:
 
        .. versionchanged:: 5.0
 
+   * - ``intermediates``
+     - array of documents
+     - .. include:: /includes/client-id-audit-logs.rst
 
+       .. include:: /includes/client-id-audit-log-fields.rst
+     
+       Each array element in ``intermediates`` is a document with ``ip``
+       and ``port`` fields, which are either the IP address and port of
+       a load balancer or ``mongos`` that the origin client computer
+       request passes through.
+
+       If the origin client computer request passes through a load
+       balancer:
+
+       - Starting in MongoDB 8.1, the ``remote`` field stores the client
+         computer IP address and port that are read from the
+         proxy protocol header. The ``intermediates`` document contains
+         the load balancer IP address and port.
+       - In MongoDB versions earlier than 8.1, the ``remote`` field
+         stores the load balancer IP address and port. The
+         ``intermediates`` document isn't in the audit log.
+
+       If the audit event occurs on a shard:
+       
+       - Starting in MongoDB 8.1, the ``remote`` field stores the client
+         computer IP address and port. The address and port are read
+         from the proxy protocol header or, if the client computer
+         connects to ``mongos``, the address and port are read from the
+         origin client computer connection. The ``intermediates``
+         document stores the ``mongos`` IP address and port. If a load
+         balancer is used, the ``intermediates`` document also stores
+         the load balancer IP address and port.
+       - In MongoDB versions earlier than 8.1, the ``remote`` field
+         stores the ``mongos`` IP address and port. The
+         ``intermediates`` document isn't in the audit log.
+
+       .. versionadded:: 8.1
 
    * - ``remote``
-
      - document
-
-     - A document that contains the ``ip`` address and the ``port``
+     - A document that stores the ``ip`` address and the ``port``
        number of the incoming connection associated with the event.
+
+       .. include:: /includes/client-id-audit-log-fields.rst
 
        .. include:: /includes/audit-local-remote.rst       
 
-       .. versionchanged:: 5.0
-
-
+       .. versionchanged:: 8.1
 
    * - ``users``
-
      - array
-
      - Array of user identification documents. Because MongoDB allows a
        session to log in with different user per database, this array can
        have more than one user. Each document contains a ``user`` field for
        the username and a ``db`` field for the authentication database for
        that user.
-       
-       
-
+  
    * - ``roles``
-
      - array
-
      - Array of documents that specify the :doc:`roles
        </core/authorization>` granted to the user. Each document contains a
        ``role`` field for the name of the role and a ``db`` field for the
        database associated with the role.
-       
-       
-
+  
    * - ``param``
-
      - document
-
      - Specific details for the event. See :ref:`audit-action-details-results`.
-       
-       
 
    * - ``result``
-
      - integer
-
      - Error code. See :ref:`audit-action-details-results`.
-       
-       
-
-
 
 .. _audit-action-details-results:
 

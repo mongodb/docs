@@ -31,8 +31,28 @@ In the {+ocsf+} schema, recorded log messages have this syntax:
             "name" : <string>,
             "groups" : <array of documents>
          }
+      },
+      "src_endpoint" : {
+         "ip": <string>,   // IP address for origin client computer
+         "port": <int>,    // Port for origin client computer
+         "intermediate_ips": [ {
+            // IP address and port for mongos or load balancer
+            "ip": <string>,
+            "port": <int>
+         }, {
+            // IP address and port for mongos or load balancer
+            "ip": <string>,
+            "port": <int>
+         } ]
+      },
+      "dst_endpoint" : {
+         // IP address and port for local MongoDB server
+         "ip": <string>,
+         "port": <int>
       }
    }
+
+The following table describes the fields in the log message.
 
 .. list-table::
    :header-rows: 1
@@ -75,6 +95,42 @@ In the {+ocsf+} schema, recorded log messages have this syntax:
    * - ``actor``
      - Document
      - Information about the user who performed the action.
+
+   * - ``src_endpoint``
+     - Document
+     - .. include:: /includes/client-id-audit-logs.rst
+
+       ``src_endpoint`` stores information about IP addresses and ports.
+       Each element in the ``intermediate_ips`` array is a document with
+       an IP address and port for a load balancer or ``mongos`` that the
+       origin client computer request passed through.
+
+       If the request passes through a load balancer:
+
+       - ``src_endpoint`` stores the origin client computer IP address
+         and port read from the proxy protocol header.
+       - ``src_endpoint.intermediate_ips`` stores the load balancer IP
+         address and port.
+
+       If the audit event occurs on a shard:
+
+       - ``src_endpoint`` stores the origin client computer IP address
+         and port. The address and port are read from the proxy protocol
+         header or, if the origin client computer connects to
+         ``mongos``, the address and port are read from the client
+         computer connection.
+       - ``src_endpoint.intermediate_ips`` stores the ``mongos`` IP
+         address and port. And, if a load balancer is used, there is an
+         additional ``src_endpoint.intermediate_ips`` that stores the IP
+         address and port of the load balancer.
+
+       .. versionchanged:: 8.1
+
+   * - ``dst_endpoint``
+     - Document
+     - IP address and port of the local MongoDB server.
+
+       .. versionchanged:: 8.1
 
 .. note::
 
