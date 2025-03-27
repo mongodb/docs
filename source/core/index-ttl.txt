@@ -74,27 +74,18 @@ the following operation in :binary:`~bin.mongosh`:
       { expireAfterSeconds: 3600 }
    )
    
-Starting in MongoDB 7.0, you can create partial TTL indexes on 
-:ref:`time series collections <manual-timeseries-landing>`. These
-indexes use the collection ``timeField`` as the key field, and require a
-:ref:`partial filter expression <index-type-partial>` on the  ``metaField``.
-
-Time series collections include an optional ``expireAfterSeconds``
-field. If you don't set ``expireAfterSeconds``, a TTL index with a
-``partialFilterExpression`` lets you set an expiration period for
-documents that match the filter. If you do set ``expireAfterSeconds``,
-a partial TTL index lets you set a different, shorter expiration period
-for matching documents. You can only create a ``partialFilterExpression`` on the ``metaField``.
+Create a TTL Index on a Time Series Collection
+-----------------------------------------------
 
 .. important::
 
-   If the ``expireAfterSeconds`` value of the collection is lower than
-   the ``expireAfterSeconds`` of the partial TTL index, the collection
-   deletes documents after the shorter time, so the TTL index has no effect.
+Starting in MongoDB 6.3, you can create partial TTL indexes on 
+:ref:`time series collections <manual-timeseries-landing>`. When you create a 
+time series collection, you can include the optional ``expireAfterSeconds`` field, 
+which deletes documents after the specified time.
 
-.. include:: /includes/time-series-ttl-deletes.rst
-
-This weather data time series collection deletes documents after 24 hours:
+For example, create the following weather data time series collection and 
+set the ``expireAfterSeconds`` field to delete documents after 24 hours:
 
 .. code-block:: javascript
 
@@ -110,15 +101,42 @@ This weather data time series collection deletes documents after 24 hours:
       }
    )
 
-This TTL index deletes documents from the MongoDB NYC
-headquarters weather sensor after 1 hour, instead of 24 hours:
+
+You can also create a TTL index on the collection with a 
+``partialFilterExpression`` field. These indexes use the collection's ``timeField`` 
+as the key field. You also specify:
+
+- An ``expireAfterSeconds`` field, which sets an explicit expiration time for 
+  the subset of documents. Even if you had set the ``expireAfterSeconds`` field when 
+  creating the collection, the ``partialFilterExpression`` field lets you set a 
+  different, shorter expiration period for the subset of matching documents. 
+
+- A :ref:`partial filter expression <index-type-partial>` on the  ``metaField``. 
+  The ``partial filter expression`` defines the set of documents that will expire  
+  in the time defined by the ``expireAfterSeconds`` field. 
+
+The following TTL index matches documents in the "weather24h" collection where the 
+"sensor" field is set to "MDB_NYC", and deletes them after 1 hour, overriding the 
+default 24 hours we set when creating the collection:
 
 .. code-block:: javascript
 
-   db.eventlog.createIndex( 
-     { "timestamp": 1 },
-     { partialFilterExpression: { "sensor": { $eq: "40.761873, -73.984287" } } },
-     { expireAfterSeconds: 3600 } )
+   db.weather24h.createIndex(
+      { "timestamp": 1 }, 
+      { 
+         expireAfterSeconds: 3600,
+         partialFilterExpression: { "sensor": { $eq: "MDB_NYC" } }
+      }
+   )
+
+
+.. important::
+
+   If the ``expireAfterSeconds`` value of the collection is lower than
+   the ``expireAfterSeconds`` of the partial TTL index, the collection
+   deletes documents after the shorter time, so the TTL index has no effect.
+
+.. include:: /includes/time-series-ttl-deletes.rst
 
 .. _convert-non-ttl-single-field-index-into-ttl:
 
