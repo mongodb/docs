@@ -19,22 +19,22 @@
       
             Review the following index configuration settings:
       
-            .. include:: /includes/list-table-fts-index-visual-editor.rst  
+            .. include:: /includes/fts/list-tables/list-table-fts-index-visual-editor.rst  
       
             Review the following advanced configuration settings:
       
-            .. include:: /includes/list-table-fts-vib-advanced-config.rst
+            .. include:: /includes/fts/list-tables/list-table-fts-vib-advanced-config.rst
       
          .. tab:: JSON Editor
             :tabid: jsonib 
       
             Review the following index configuration settings:
       
-            .. include:: /includes/list-table-fts-index-json-editor.rst
+            .. include:: /includes/fts/list-tables/list-table-fts-index-json-editor.rst
       
             Review the following advanced configuration settings:
       
-            .. include:: /includes/list-table-fts-jib-advanced-config.rst
+            .. include:: /includes/fts/list-tables/list-table-fts-jib-advanced-config.rst
       
             To learn more about these index definition settings, see
             :ref:`ref-index-definitions`.

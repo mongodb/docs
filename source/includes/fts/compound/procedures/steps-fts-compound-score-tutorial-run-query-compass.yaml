@@ -1,0 +1,544 @@
+ref: compound-score-tutorial-connect-compass
+level: 4
+stepnum: 1
+inherit:
+  file: steps-fts-tutorial-run-query-compass.yaml
+  ref: connect-to-database-deployment-fts-compass
+---
+ref: compound-score-tutorial-use-db
+level: 4
+stepnum: 2
+inherit:
+  file: steps-fts-tutorial-run-query-compass.yaml
+  ref: use-sample-mflix-compass
+---
+ref: run-compound-constant-query-compass
+level: 4
+stepnum: 3
+title: "Run an |fts| compound query that alters the score using the 
+       :ref:`scoring-constant` option."
+content: |
+  The query performs the following tasks:
+
+  - Uses the following ``compound`` operator clauses: 
+
+    .. include:: /includes/fts/extracts/fts-compound-constant-desc.rst
+
+  - .. include:: /includes/fts/extracts/fts-compound-highlight-desc.rst
+
+  - Uses the following pipeline stages:
+
+    .. include:: /includes/fts/extracts/fts-compound-score-stages.rst
+
+  To run this query in |compass|:
+
+  a. Click the :guilabel:`Aggregations` tab.
+  #. Click :guilabel:`Select...`, then configure each of the following 
+     pipeline stages by selecting the stage from the dropdown and adding
+     the query for that stage. Click :guilabel:`Add Stage` to add 
+     additional stages.
+
+     .. list-table::
+        :header-rows: 1
+        :widths: 25 75
+
+        * - Pipeline Stage
+          - Query
+
+        * - ``$search``
+          - .. code-block:: javascript
+
+               {
+                 "index": "compound-query-custom-score-tutorial",
+                 "compound": {
+                   "filter": [{
+                     "range": {
+                       "path": "year",
+                       "gte": 2013,
+                       "lte": 2015
+                     }
+                   }],
+                   "should": [{
+                     "text": {
+                       "query": "snow",
+                       "path": "title",
+                       "score": {"constant": {"value": 5}}
+                     }
+                   }]
+                 },
+                 "highlight": { "path": "title" }
+               }
+
+        * - ``$limit``
+          - .. code-block:: javascript
+
+               10
+
+        * - ``$project``
+          - .. code-block:: javascript
+
+               {
+                 "_id": 0,
+                 "title": 1,
+                 "year": 1,
+                 "score": { "$meta": "searchScore" },
+                 "highlights": { "$meta": "searchHighlights" }
+               }
+
+     If you :compass:`enabled </aggregation-pipeline-builder/#set-the-documents-limit-or-auto-preview-documents>` 
+     :guilabel:`Auto Preview`, |compass| displays the following 
+     documents next to the ``$project`` pipeline stage:
+
+     .. code-block:: json
+        :copyable: false
+
+        {
+          title: 'Snow in Paradise',
+          year: 2014,
+          score: 5,
+          highlights: [{
+            score: 1.382846713066101,
+            path: 'title',
+            texts: [
+              { value: 'Snow', type: 'hit' },
+              { value: ' in Paradise', type: 'text' }
+            ]
+          }]
+        },
+        {
+          title: 'Dead Snow 2: Red vs. Dead',
+          year: 2014,
+          score: 5,
+          highlights: [{
+            score: 1.3924485445022583,
+            path: 'title',
+            texts: [
+              { value: 'Dead ', type: 'text' },
+              { value: 'Snow', type: 'hit' },
+              { value: ' 2: Red vs. ', type: 'text' }
+            ]
+          }]
+        },
+        {
+          title: 'The Snow White Murder Case',
+          year: 2014,
+          score: 5,
+          highlights: [{
+            score: 1.3525336980819702,
+            path: 'title',
+            texts: [
+              { value: 'The ', type: 'text' },
+              { value: 'Snow', type: 'hit' },
+              { value: ' White Murder Case', type: 'text' }
+            ]
+          }]
+        },
+        {
+          title: 'Snow on the Blades',
+          year: 2014,
+          score: 5,
+          highlights: [{
+            score: 1.3766303062438965,
+            path: 'title',
+            texts: [
+              { value: 'Snow', type: 'hit' },
+              { value: ' on the Blades', type: 'text' }
+            ]
+          }]
+        },
+        { year: 2013, title: 'The Secret Life of Walter Mitty', score: 0, highlights: [] },
+        { title: 'Jurassic World', year: 2015, score: 0, highlights: [] },
+        { title: 'Action Jackson', year: 2014, score: 0, highlights: [] },
+        { year: 2013, title: 'In Secret', score: 0, highlights: [] },
+        { title: 'The Stanford Prison Experiment', year: 2015, score: 0, highlights: [] },
+        { year: 2014, title: 'The Giver', score: 0, highlights: [] }
+     
+     .. include:: /includes/fts/extracts/fts-compound-constant-score-desc.rst
+
+---
+ref: run-compound-boost-query-compass
+level: 4
+stepnum: 4
+title: "Run |fts| compound queries that alter the score using the 
+       :ref:`scoring-boost` option."
+content: |
+
+  a. Click the :guilabel:`Aggregations` tab.
+  #. Click :guilabel:`Select...`, then configure each of the following 
+     pipeline stages by selecting the stage from the dropdown and adding
+     the query for that stage. Click :guilabel:`Add Stage` to add 
+     additional stages.
+
+     .. tabs:: 
+
+        .. tab:: Simple Example
+           :tabid: simple
+
+           The query uses the following pipeline stages:
+
+           - :pipeline:`$search` to perform the following tasks:
+           
+             - Queries using the following ``compound`` operator clauses: 
+
+               .. include:: /includes/fts/extracts/fts-compound-boost-desc.rst
+
+             - .. include:: /includes/fts/extracts/fts-compound-highlight-desc.rst
+
+           .. include:: /includes/fts/extracts/fts-compound-score-stages.rst
+
+           .. list-table::
+              :header-rows: 1
+              :widths: 25 75
+
+              * - Pipeline Stage
+                - Query
+
+              * - ``$search``
+                - .. code-block:: javascript
+
+                     {
+                       "index": "compound-query-custom-score-tutorial",
+                       "compound": {
+                         "must": [{
+                           "range": {
+                             "path": "year",
+                             "gte": 2013,
+                             "lte": 2015
+                           }
+                         }],
+                         "should": [{
+                           "text": {
+                             "query": "snow",
+                             "path": "title",
+                             "score": {"boost": {"value": 2}}
+                           }
+                         }]
+                       },
+                       "highlight": { "path": "title" }
+                     }
+
+              * - ``$limit``
+                - .. code-block:: javascript
+
+                     10
+
+              * - ``$project``
+                - .. code-block:: javascript
+
+                     {
+                       "_id": 0,
+                       "title": 1,
+                       "year": 1,
+                       "score": { "$meta": "searchScore" },
+                       "highlights": { "$meta": "searchHighlights" }
+                     }
+
+        .. tab:: Multiple Weights Example
+           :tabid: multi
+
+           This query uses the following pipeline stages:
+           
+           - :pipeline:`$search` to perform the following tasks:
+           
+             - Queries using the ``compound`` operator clauses with the 
+               ``boost`` option to prioritize some fields more than 
+               other fields: 
+
+               .. include:: /includes/fts/extracts/fts-compound-boost-advanced-desc.rst
+
+           .. include:: /includes/fts/extracts/fts-compound-score-stages.rst
+        
+           .. include:: /includes/fts/extracts/fts-compound-boost-advanced-desc.rst
+
+           .. list-table::
+              :header-rows: 1
+              :widths: 25 75
+
+              * - Pipeline Stage
+                - Query
+
+              * - ``$search``
+                - .. code-block:: javascript
+
+                     {
+                       "index": "compound-query-custom-score-tutorial",
+                       "compound": {
+                         "must": [{
+                           "text": {
+                             "path": "genres",
+                             "query": "comedy",
+                             "score": {"boost": {"value": 9}}
+                           }
+                         },
+                         {
+                           "text": {
+                             "path": "title",
+                             "query": "snow",
+                             "score": {"boost": {"value": 5}}
+                           }
+                         }],
+                         "should": [{
+                           "range": {
+                             "path": "year",
+                             "gte": 2013,
+                             "lte": 2015,
+                             "score": {"boost": {"value": 3}}
+                           }
+                         }]
+                       }
+                     }
+
+              * - ``$limit``
+                - .. code-block:: javascript
+
+                       10
+
+              * - ``$project``
+                - .. code-block:: javascript
+
+                     {
+                       "_id": 0,
+                       "title": 1,
+                       "year": 1,
+                       "genres": 1,
+                       "score": { "$meta": "searchScore" }
+                     }
+
+     If you :compass:`enabled </aggregation-pipeline-builder/#set-the-documents-limit-or-auto-preview-documents>` 
+     :guilabel:`Auto Preview`, |compass| displays the following 
+     documents next to the ``$project`` pipeline stage:
+
+     .. tabs:: 
+        :hidden:
+
+        .. tab:: Simple Example
+           :tabid: simple
+
+           .. code-block:: json
+              :copyable: false
+
+              {
+                title: 'Snow in Paradise',
+                year: 2014,
+                score: 6.7722930908203125,
+                highlights: [{
+                  score: 1.382846713066101,
+                  path: 'title',
+                  texts: [
+                    { value: 'Snow', type: 'hit' },
+                    { value: ' in Paradise', type: 'text' }
+                  ]
+                }]
+              },
+              {
+                title: 'Snow on the Blades',
+                year: 2014,
+                score: 6.063445568084717,
+                highlights: [{
+                  score: 1.3766303062438965,
+                  path: 'title',
+                  texts: [
+                    { value: 'Snow', type: 'hit' },
+                    { value: ' on the Blades', type: 'text' }
+                  ]
+                }]
+              },
+              {
+                title: 'The Snow White Murder Case',
+                year: 2014,
+                score: 5.509652137756348,
+                highlights: [{
+                  score: 1.3525336980819702,
+                  path: 'title',
+                  texts: [
+                    { value: 'The ', type: 'text' },
+                    { value: 'Snow', type: 'hit' },
+                    { value: ' White Murder Case', type: 'text' }
+                  ]
+                }]
+              },
+              {
+                title: 'Dead Snow 2: Red vs. Dead',
+                year: 2014,
+                score: 5.065053939819336,
+                highlights: [{
+                  score: 1.3924485445022583,
+                  path: 'title',
+                  texts: [
+                    { value: 'Dead ', type: 'text' },
+                    { value: 'Snow', type: 'hit' },
+                    { value: ' 2: Red vs. ', type: 'text' }
+                  ]
+                }]
+              },
+              { year: 2013, title: 'The Secret Life of Walter Mitty',score: 1, highlights: [] },
+              { title: 'Jurassic World', year: 2015, score: 1, highlights: [] },
+              { title: 'Action Jackson', year: 2014, score: 1, highlights: [] },
+              { year: 2013, title: 'In Secret', score: 1, highlights: [] },
+              { title: 'The Stanford Prison Experiment', year: 2015, score: 1,  highlights: [] },
+              { year: 2014, title: 'The Giver', score: 1, highlights: [] }
+
+           .. include:: /includes/fts/extracts/fts-compound-boost-score-desc.rst
+
+        .. tab:: Multiple Weights Example
+           :tabid: multi
+
+           .. literalinclude:: /includes/fts/custom-score/boost-multi-mongosh-compass-query-results.json
+              :language: json
+
+---
+ref: run-compound-function-query-compass
+level: 4
+stepnum: 5
+title: "Run an |fts| compound query that alters the score using the 
+       :ref:`scoring-function` option."
+content: |
+  The query uses the following pipeline stages:
+
+  - :pipeline:`$search` stage to perform the following tasks:
+
+    - Queries using the following ``compound`` operator clauses: 
+
+      .. include:: /includes/fts/extracts/fts-compound-function-desc.rst
+
+    - .. include:: /includes/fts/extracts/fts-compound-highlight-desc.rst
+
+  .. include:: /includes/fts/extracts/fts-compound-score-stages.rst
+
+  To run this query in |compass|:
+
+  a. Click the :guilabel:`Aggregations` tab.
+  #. Click :guilabel:`Select...`, then configure each of the following 
+     pipeline stages by selecting the stage from the dropdown and adding
+     the query for that stage. Click :guilabel:`Add Stage` to add 
+     additional stages.
+
+     .. list-table::
+        :header-rows: 1
+        :widths: 25 75
+
+        * - Pipeline Stage
+          - Query
+
+        * - ``$search``
+          - .. code-block:: javascript
+
+               {
+                 "index": "compound-query-custom-score-tutorial",
+                 "compound": {
+                 "must": [{
+                   "range": {
+                     "path": "year",
+                     "gte": 2013,
+                     "lte": 2015
+                   }
+                 }],
+                 "should": [{
+                   "text": {
+                     "query": "snow",
+                     "path": "title",
+                     "score": {
+                       "function": {
+                         "add": [{
+                           "path": {
+                             "value": "imdb.rating",
+                             "undefined": 2
+                           }
+                         },
+                         {
+                           "score": "relevance"
+                         }]
+                       }
+                     }
+                   }
+                 }]},
+                 "highlight":{ "path": "title" }
+               }
+
+        * - ``$limit``
+          - .. code-block:: javascript
+
+                 10
+
+        * - ``$project``
+          - .. code-block:: javascript
+
+               {
+                 "_id": 0,
+                 "title": 1,
+                 "year": 1,
+                 "score": { "$meta": "searchScore" },
+                 "highlights": { "$meta": "searchHighlights" }
+               }
+
+     If you :compass:`enabled </aggregation-pipeline-builder/#set-the-documents-limit-or-auto-preview-documents>` 
+     :guilabel:`Auto Preview`, |compass| displays the following 
+     documents next to the ``$project`` pipeline stage:
+
+     .. code-block:: json
+        :copyable: false
+
+        {
+          title: 'The Snow White Murder Case',
+          year: 2014,
+          score: 10.454826354980469,
+          highlights: [{
+              score: 1.3525336980819702,
+              path: 'title',
+              texts: [
+                { value: 'The ', type: 'text' },
+                { value: 'Snow', type: 'hit' },
+                { value: ' White Murder Case', type: 'text' }
+              ]
+          }]
+        },
+        {
+          title: 'Snow on the Blades',
+          year: 2014,
+          score: 10.3317232131958,
+          highlights: [{
+            score: 1.3766303062438965,
+            path: 'title',
+            texts: [
+              { value: 'Snow', type: 'hit' },
+              { value: ' on the Blades', type: 'text' }
+            ]
+          }]
+        },
+        {
+          title: 'Dead Snow 2: Red vs. Dead',
+          year: 2014,
+          score: 10.032526969909668,
+          highlights: [{
+            score: 1.3924485445022583,
+            path: 'title',
+            texts: [
+              { value: 'Dead ', type: 'text' },
+              { value: 'Snow', type: 'hit' },
+              { value: ' 2: Red vs. ', type: 'text' }
+            ]
+          }]
+        },
+        {
+          title: 'Snow in Paradise',
+          year: 2014,
+          score: 8.386146545410156,
+          highlights: [{
+            score: 1.382846713066101,
+            path: 'title',
+            texts: [
+              { value: 'Snow', type: 'hit' },
+              { value: ' in Paradise', type: 'text' }
+            ]
+          }]
+        },
+        { year: 2013, title: 'The Secret Life of Walter Mitty', score: 1, highlights: [] },
+        { title: 'Jurassic World', year: 2015, score: 1, highlights: [] },
+        { title: 'Action Jackson', year: 2014, score: 1, highlights: [] },
+        { year: 2013, title: 'In Secret', score: 1, highlights: [] },
+        { title: 'The Stanford Prison Experiment', year: 2015, score: 1, highlights: [] },
+        { year: 2014, title: 'The Giver', score: 1, highlights: [] }
+     
+     .. include:: /includes/fts/extracts/fts-compound-function-score-desc.rst
+
+...

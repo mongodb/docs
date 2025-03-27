@@ -1,0 +1,95 @@
+ref: fts-architecture-coupled
+content: | 
+  In this deployment model, the search ``mongot`` process runs alongside
+  ``mongod`` on each node in the |service| {+cluster+}. The ``mongod`` 
+  process routes queries to the ``mongot`` on the same node and they share
+  the same resources. 
+
+  .. image:: /images/atlas-search/fts-architecture.png
+     :alt: Atlas Search architecture 
+     :figwidth: 100%
+
+  By default, |service| enables the search ``mongot`` process on the same
+  node that runs the ``mongod`` process when you create your first
+  |product-name| index. The ``mongot`` process   performs the actions
+  described in :ref:`about-mongot`.  
+
+---
+ref: fts-coupled-benefits
+content: | 
+  When you enable |fts|, you can easily build search on top of your data
+  with an integrated, fully managed search engine that automatically
+  syncs to your database. |fts| provides a rich query language that uses
+  |fts| aggregation pipeline stages like :pipeline:`$search` and
+  :pipeline:`$searchMeta` for full-text search and
+  :pipeline:`$vectorSearch` for semantic search in conjunction with 
+  other MongoDB aggregation pipeline stages, and score-based results
+  ranking.
+
+  Deploying both the processes on the same node might be more
+  cost-efficient, depending on the resources provisioned for your
+  {+cluster+}, than running the search process on a separate, dedicated
+  node. 
+
+---
+ref: fts-architecture-decoupled
+content: | 
+  In this deployment model, the ``mongot`` process runs on Search Nodes,
+  which are separate from the {+cluster+} nodes on which the ``mongod``
+  process runs. |service| deploys Search Nodes with each {+cluster+} or
+  with each shard on the {+cluster+}. 
+
+  For example, if you deploy two Search Nodes for a {+cluster+} with three
+  shards, |service| deploys six Search Nodes, two per shard. You can also
+  configure the number of Search Nodes and the amount of resources
+  provisioned for each search node. 
+
+  When you deploy separate Search Nodes, |service| automatically assigns a
+  ``mongod`` for each ``mongot`` for indexing. The ``mongot`` communicates
+  with the ``mongod`` to listen for and sync index changes for the indexes
+  that it stores. |product-name| indexes and processes your queries
+  similar to when both the ``mongod`` and ``mongot`` processes run on
+  the same node. To learn more, see |index-doc| and |query-doc|. To
+  learn more about deploying Search Nodes separately, see
+  :ref:`configure-search-nodes`. 
+
+  .. image:: /images/search-nodes-architecture.png
+     :alt: Separate Search Nodes architecture 
+     :figwidth: 100%
+
+  When you migrate to Search Nodes, |service| deploys the Search Nodes,
+  but doesn't serve queries on the nodes until it successfully builds
+  all the indexes on the {+cluster+} on the Search Nodes. While
+  |service| builds the indexes on the new nodes, it continues to serve
+  queries using the indexes on the {+cluster+} nodes. |service| starts
+  serving queries from the Search Nodes only after it successfully
+  builds the indexes on the Search Nodes and removes the indexes on the
+  {+cluster+} nodes. 
+
+  If you delete all the Search Nodes on your {+cluster+}, there will be an 
+  interruption in processing your search query results. To learn more, see
+  :ref:`Modify a Cluster <scale-cluster-cloud-provider>`. If you delete
+  your |service| {+cluster+}, |service| pauses and then deletes all
+  associated |product-name| deployments (``mongot`` processes). 
+
+---
+ref: fts-decoupled-cost
+content: | 
+  MongoDB supports separate Search Nodes on dedicated (``M10`` or higher)
+  {+clusters+}. Search Nodes are deployed on compute-intensive NVMe
+  instances. You must deploy a minimum of two nodes. You will be billed
+  daily for hourly resource usage per node. To learn more, see
+  :ref:`Search Node Costs <fts-search-node-costs>`. 
+
+---
+ref: fts-stored-source-architecture
+content: | 
+  You can define :ref:`stored source <fts-stored-source-definition>` 
+  fields in your |fts| index so that the ``mongot`` process can store the 
+  specified fields on ``mongot``. You can then use the
+  :ref:`returnStoredSource Option <fts-return-stored-source-option>` in 
+  your |fts| query to retrieve the stored fields for matching documents
+  directly from ``mongot`` instead of doing a full document lookup on the 
+  database. 
+
+...

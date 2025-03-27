@@ -1,0 +1,379 @@
+ref: synonyms-tutorial-connect-compass
+level: 4
+stepnum: 1
+inherit:
+  file: steps-fts-tutorial-run-query-compass.yaml
+  ref: connect-to-database-deployment-fts-compass
+---
+ref: synonyms-tutorial-use-db
+level: 4
+stepnum: 2
+inherit:
+  file: steps-fts-tutorial-run-query-compass.yaml
+  ref: use-sample-mflix-compass
+---
+ref: run-synonyms-simple-query-compass
+level: 4
+stepnum: 3
+title: "Run simple |fts| queries on the ``movies`` collection."
+content: |
+  |fts| query results vary based on the type of word mapping defined in 
+  the synonyms source collection.
+
+  .. tabs:: 
+
+     .. tab:: equivalent Mapping Type
+        :tabid: equivalent
+
+        The query searches the ``title`` field for the word 
+        ``automobile`` and uses the synonym mapping definition named 
+        ``transportSynonyms`` to search for words configured as 
+        synonyms of the query word ``automobile`` in the synonyms 
+        source collection named ``transport_synonyms``. The query includes the 
+        following stages: 
+
+        - :manual:`$limit </reference/operator/aggregation/limit>` 
+          stage to limit the output to 10 results 
+        - :manual:`$project </reference/operator/aggregation/project>` 
+          stage to exclude all fields except ``title`` and add a field 
+          named ``score``
+
+        To run this query in |compass|:
+
+        a. Click the :guilabel:`Aggregations` tab.
+        #. Click :guilabel:`Select...`, then configure each of the 
+           following pipeline stages by selecting the stage from the 
+           dropdown and adding the query for that stage. Click 
+           :guilabel:`Add Stage` to add additional stages.
+
+           .. list-table::
+              :header-rows: 1
+              :widths: 25 75
+
+              * - Pipeline Stage
+                - Query
+
+              * - ``$search``
+                - .. code-block:: javascript
+
+                     {
+                       "index": "synonyms-tutorial",
+                       "text": {
+                         "path": "title",
+                         "query": "automobile",
+                         "synonyms": "transportSynonyms"
+                       }
+                     }
+               
+              * - ``$limit``
+
+                - .. code-block:: javascript
+
+                     10
+
+              * - ``$project``
+                - .. code-block:: javascript
+
+                     {
+                       "_id": 0,
+                       "title": 1,
+                       "score": { "$meta": "searchScore" }
+                     }
+
+           If you :compass:`enabled </aggregation-pipeline-builder/#set-the-documents-limit-or-auto-preview-documents>` 
+           :guilabel:`Auto Preview`, |compass| displays the following 
+           documents next to the ``$project`` pipeline stage:
+
+           .. code-block:: json
+              :copyable: false
+
+              {title Cars} {score 4.197734832763672}
+              {title Planes, Trains & Automobiles} {score 3.8511905670166016}
+              {title Car Wash} {score 3.39473032951355}
+              {title Used Cars} {score 3.39473032951355}
+              {title Blue Car} {score 3.39473032951355}
+              {title Cars 2} {score 3.39473032951355}
+              {title Stealing Cars} {score 3.39473032951355}
+              {title Cop Car} {score 3.39473032951355}
+              {title The Cars That Eat People} {score 2.8496146202087402}
+              {title Khrustalyov, My Car!} {score 2.8496146202087402}
+
+           .. include:: /includes/fts/extracts/fts-synonyms-tutorial-equivalent-query-output.rst
+
+     .. tab:: explicit Mapping Type
+        :tabid: explicit
+
+        The query searches the ``title`` field for the word ``boat`` 
+        and uses the synonym mapping definition named 
+        ``transportSynonyms`` to search for words configured as 
+        synonyms of the query word ``boat`` in the synonyms source 
+        collection named ``transport_synonyms``. It includes the 
+        following stages: 
+
+        - :manual:`$limit </reference/operator/aggregation/limit>` 
+          stage to limit the output to 10 results 
+        - :manual:`$project </reference/operator/aggregation/project>` 
+          stage to exclude all fields except ``title`` and add a field 
+          named ``score``
+
+        To run this query in |compass|:
+
+        a. Click the :guilabel:`Aggregations` tab.
+        #. Click :guilabel:`Select...`, then configure each of the 
+           following pipeline stages by selecting the stage from the 
+           dropdown and adding the query for that stage. Click 
+           :guilabel:`Add Stage` to add additional stages.
+
+           .. list-table::
+              :header-rows: 1
+              :widths: 25 75
+
+              * - Pipeline Stage
+                - Query
+
+              * - ``$search``
+                - .. code-block:: javascript
+
+                     {
+                       "index": "synonyms-tutorial",
+                       "text": {
+                         "path": "title",
+                         "query": "boat",
+                         "synonyms": "transportSynonyms"
+                       }
+                     }
+
+              * - ``$limit``
+                - .. code-block:: javascript
+
+                     10
+
+              * - ``$project``
+                - .. code-block:: javascript
+
+                     {
+                       "_id": 0,
+                       "title": 1,
+                       "score": { "$meta": "searchScore" }
+                     }
+
+           If you :compass:`enabled </aggregation-pipeline-builder/#set-the-documents-limit-or-auto-preview-documents>` 
+           :guilabel:`Auto Preview`, |compass| displays the following 
+           documents next to the ``$project`` pipeline stage:
+
+           .. code-block:: json
+              :copyable: false
+
+              {title Vessel} {score 5.373150825500488}
+              {title Boats} {score 4.589139938354492}
+              {title And the Ship Sails On} {score 4.3452959060668945}
+              {title Broken Vessels} {score 4.3452959060668945}
+              {title Sailing to Paradise} {score 4.3452959060668945}
+              {title Boat People} {score 3.711261749267578}
+              {title Boat Trip} {score 3.711261749267578}
+              {title Three Men in a Boat} {score 3.1153182983398438}
+              {title The Glass Bottom Boat} {score 3.1153182983398438}
+              {title Jack Goes Boating} {score 3.1153182983398438}
+
+           .. include:: /includes/fts/extracts/fts-synonyms-tutorial-explicit-query-output.rst
+
+---
+ref: run-synonyms-advanced-query-compass
+level: 4
+stepnum: 4
+title: "Run advanced |fts| queries if you created the index that 
+       contains multiple synonym mappings."
+content: |
+  |fts| query results vary based on the type of word mapping defined in 
+  the synonyms source collection. 
+
+  .. tabs:: 
+
+     .. tab:: equivalent Mapping Type
+        :tabid: equivalent
+  
+        The query searches the ``title`` field for the word 
+        ``automobile`` and uses the synonym mapping definition named 
+        ``transportSynonyms`` to search for words configured as 
+        synonyms of the query word ``automobile`` in the synonyms 
+        source collection named ``transport_synonyms``. The query 
+        searches the ``title`` field for the word ``attire`` also and 
+        uses the synonym mapping definition named ``attireSynonyms`` to 
+        search for words configured as synonyms of the query word 
+        ``attire`` in the synonyms source collection named 
+        ``attire_synonyms``.
+        
+        The query includes the following stages: 
+       
+        - :manual:`$limit </reference/operator/aggregation/limit>` 
+          stage to limit the output to 10 results 
+        - :manual:`$project </reference/operator/aggregation/project>` 
+          stage to exclude all fields except ``title`` and add a field 
+          named ``score``
+
+        To run this query in |compass|:
+
+        a. Click the :guilabel:`Aggregations` tab.
+        #. Click :guilabel:`Select...`, then configure each of the 
+           following pipeline stages by selecting the stage from the 
+           dropdown and adding the query for that stage. Click 
+           :guilabel:`Add Stage` to add additional stages.
+
+           .. list-table::
+              :header-rows: 1
+              :widths: 25 75
+
+              * - Pipeline Stage
+                - Query
+
+              * - ``$search``
+                - .. code-block:: javascript
+
+                     {
+                       "index": "synonyms-tutorial",
+                       "compound": {
+                         "should": [{
+                           "text": {
+                             "path": "title",
+                             "query": "automobile",
+                             "synonyms": "transportSynonyms"
+                           }
+                         },
+                         {
+                           "text": {
+                             "path": "title",
+                             "query": "attire",
+                             "synonyms": "attireSynonyms"
+                           }
+                         }]
+                       }
+                     }
+
+              * - ``$limit``
+                - .. code-block:: javascript
+
+                     10
+
+              * - ``$project``
+                - .. code-block:: javascript
+
+                     {
+                       "_id": 0,
+                       "title": 1,
+                       "score": { "$meta": "searchScore" }
+                     }
+
+           If you :compass:`enabled </aggregation-pipeline-builder/#set-the-documents-limit-or-auto-preview-documents>` 
+           :guilabel:`Auto Preview`, |compass| displays the following 
+           documents next to the ``$project`` pipeline stage:
+
+           .. code-block:: json
+              :copyable: false
+
+              { title: 'The Dress', score: 4.812004089355469 },
+              { title: 'Cars', score: 4.197734832763672 },
+              { title: 'Dressed to Kill', score: 3.891493320465088 },
+              { title: '27 Dresses', score: 3.891493320465088 },
+              { title: 'Planes, Trains & Automobiles', score: 3.8511905670166016 },
+              { title: 'Car Wash', score: 3.39473032951355 },
+              { title: 'Used Cars', score: 3.39473032951355 },
+              { title: 'Blue Car', score: 3.39473032951355 },
+              { title: 'Cars 2', score: 3.39473032951355 },
+              { title: 'Stealing Cars', score: 3.39473032951355 }
+
+           .. include:: /includes/fts/extracts/fts-synonyms-tutorial-equivalent-advanced-query-output.rst
+
+     .. tab:: explicit Mapping Type
+        :tabid: explicit
+
+        The query searches the ``title`` field for the word ``boat`` 
+        and uses the synonym mapping definition named 
+        ``transportSynonyms`` to search for words configured as 
+        synonyms of the query word ``boat`` in the synonyms source 
+        collection named ``transport_synonyms``. The query searches the 
+        ``title`` field for the word ``hat`` also and uses the synonym 
+        mapping definition named ``attireSynonyms`` to search for words 
+        configured as synonyms of the query word ``hat`` in the 
+        synonyms source collection named ``attire_synonyms``.
+
+        The query includes the following stages: 
+       
+        - :manual:`$limit </reference/operator/aggregation/limit>` 
+          stage to limit the output to 10 results 
+        - :manual:`$project </reference/operator/aggregation/project>` 
+          stage to exclude all fields except ``title`` and add a field 
+          named ``score``
+
+        To run this query in |compass|:
+
+        a. Click the :guilabel:`Aggregations` tab.
+        #. Click :guilabel:`Select...`, then configure each of the 
+           following pipeline stages by selecting the stage from the 
+           dropdown and adding the query for that stage. Click 
+           :guilabel:`Add Stage` to add additional stages.
+
+           .. list-table::
+              :header-rows: 1
+              :widths: 25 75
+
+              * - Pipeline Stage
+                - Query
+
+              * - ``$search``
+                - .. code-block:: javascript
+
+                     {
+                       "index": "synonyms-tutorial",
+                       "compound": {
+                         "should": [{
+                           "text": {
+                             "path": "title",
+                             "query": "boat",
+                             "synonyms": "transportSynonyms"
+                           }
+                         },
+                         {
+                           "text": {
+                             "path": "title",
+                             "query": "hat",
+                             "synonyms": "attireSynonyms"
+                           }
+                         }]
+                       }
+                     }
+
+              * - ``$limit``
+                - .. code-block:: javascript
+
+                     10
+
+              * - ``$project``
+                - .. code-block:: javascript
+
+                     {
+                       "_id": 0,
+                       "title": 1,
+                       "score": { "$meta": "searchScore" }
+                     }
+
+           If you :compass:`enabled </aggregation-pipeline-builder/#set-the-documents-limit-or-auto-preview-documents>` 
+           :guilabel:`Auto Preview`, |compass| displays the following 
+           documents next to the ``$project`` pipeline stage:
+
+           .. code-block:: json
+              :copyable: false
+
+              { title: 'Fedora', score: 5.673145294189453 },
+              { title: 'Vessel', score: 5.373150825500488 },
+              { title: 'Boats', score: 4.589139938354492 },
+              { title: 'And the Ship Sails On', score: 4. 3452959060668945 },
+              { title: 'Broken Vessels', score: 4.3452959060668945 },
+              { title: 'Sailing to Paradise', score: 4.3452959060668945 },
+              { title: 'Top Hat', score: 4.066137313842773 },
+              { title: 'A Hatful of Rain', score: 4.066137313842773 },
+              { title: 'Boat People', score: 3.711261749267578 },
+              { title: 'Boat Trip', score: 3.711261749267578 }
+
+           .. include:: /includes/fts/extracts/fts-synonyms-tutorial-explicit-advanced-query-output.rst
+
+...

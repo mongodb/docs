@@ -1,0 +1,485 @@
+stepnum: 1
+ref: fts-score-tutorial-step9
+inherit:
+  file: steps-fts-tutorial-run-query.yaml
+  ref: connect-to-database-deployment-fts
+---
+stepnum: 2
+ref: fts-score-tutorial-step10
+inherit:
+  file: steps-fts-tutorial-run-query.yaml
+  ref: use-sample-mflix
+---
+stepnum: 3
+title: "Run the following |fts| queries with the ``compound`` operator 
+       on the ``movies`` collection."
+ref: fts-score-tutorial-step11
+content: |
+  The following examples use the ``compound`` operator with subqueries 
+  to search for movies between the years ``2013`` to ``2015`` with the 
+  term ``snow`` in the ``title`` field. 
+  
+  .. tabs:: 
+
+     .. tab:: Constant
+        :tabid: constant 
+
+        This query uses the following pipeline stages:
+        
+        - :pipeline:`$search` to query the collection. The query:
+        
+          - Uses the following ``compound`` operator clauses: 
+        
+            .. include:: /includes/fts/extracts/fts-compound-constant-desc.rst
+
+          - .. include:: /includes/fts/extracts/fts-compound-highlight-desc.rst
+
+        - :pipeline:`$limit` stage to limit the output to 
+          ``10`` results.
+        - :pipeline:`$project` stage to:
+
+          - Exclude all fields except ``title`` and ``year``
+          - Add a ``score`` field 
+
+        .. code-block:: json
+
+           db.movies.aggregate([
+             {
+               "$search": {
+                 "index": "compound-query-custom-score-tutorial",
+                 "compound": {
+                   "filter": [{
+                     "range": {
+                       "path": "year",
+                       "gte": 2013,
+                       "lte": 2015
+                     }
+                   }],
+                   "should": [{
+                     "text": {
+                       "query": "snow",
+                       "path": "title",
+                       "score": {"constant": {"value": 5}}
+                     }
+                   }]
+                 }, 
+                 "highlight": {
+                   "path": "title"
+                 }
+               }
+             },
+             {
+               "$limit": 10
+             },
+             {
+               "$project": {
+                 "_id": 0,
+                 "title": 1,
+                 "year": 1,
+                 "score": { "$meta": "searchScore" },
+                 "highlights": { "$meta": "searchHighlights" }
+               }
+             }
+           ])
+
+        |fts| returns the following results for 
+        :ref:`scoring-constant`: 
+
+        .. code-block:: json
+           :copyable: false
+
+           [
+            {
+              title: 'Snow in Paradise',
+              year: 2014,
+              score: 5,
+              highlights: [
+                {
+                  score: 1.382846713066101,
+                  path: 'title',
+                  texts: [
+                    { value: 'Snow', type: 'hit' },
+                    { value: ' in Paradise', type: 'text' }
+                  ]
+                }
+              ]
+            },
+            {
+              title: 'Dead Snow 2: Red vs. Dead',
+              year: 2014,
+              score: 5,
+              highlights: [
+                {
+                  score: 1.3924485445022583,
+                  path: 'title',
+                  texts: [
+                    { value: 'Dead ', type: 'text' },
+                    { value: 'Snow', type: 'hit' },
+                    { value: ' 2: Red vs. ', type: 'text' }
+                  ]
+                }
+              ]
+            },
+            {
+              title: 'The Snow White Murder Case',
+              year: 2014,
+              score: 5,
+              highlights: [
+                {
+                  score: 1.3525336980819702,
+                  path: 'title',
+                  texts: [
+                    { value: 'The ', type: 'text' },
+                    { value: 'Snow', type: 'hit' },
+                    { value: ' White Murder Case', type: 'text' }
+                  ]
+                }
+              ]
+            },
+            {
+              title: 'Snow on the Blades',
+              year: 2014,
+              score: 5,
+              highlights: [
+                {
+                  score: 1.3766303062438965,
+                  path: 'title',
+                  texts: [
+                    { value: 'Snow', type: 'hit' },
+                    { value: ' on the Blades', type: 'text' }
+                  ]
+                }
+              ]
+            },
+            { year: 2013, title: 'The Secret Life of Walter Mitty', score: 0, highlights: [] },
+            { title: 'Jurassic World', year: 2015, score: 0, highlights: [] },
+            { title: 'Action Jackson', year: 2014, score: 0, highlights: [] },
+            { year: 2013, title: 'In Secret', score: 0, highlights: [] },
+            { title: 'The Stanford Prison Experiment', year: 2015, score: 0, highlights: [] },
+            { year: 2014, title: 'The Giver', score: 0, highlights: [] }
+          ]
+
+        .. include:: /includes/fts/extracts/fts-compound-constant-score-desc.rst
+
+     .. tab:: Boost Single
+        :tabid: boostsingle
+
+        This query uses the following pipeline stages:
+        
+        - :pipeline:`$search` to query the collection. The query:
+        
+          - Uses the following ``compound`` operator clauses:
+        
+            .. include:: /includes/fts/extracts/fts-compound-boost-desc.rst
+
+          - .. include:: /includes/fts/extracts/fts-compound-highlight-desc.rst
+
+        - :pipeline:`$limit` stage to limit the output to 
+          ``10`` results.
+        - :pipeline:`$project` stage to:
+
+          - Exclude all fields except ``title`` and ``year``
+          - Add a ``score`` field 
+
+        .. code-block:: json
+
+           db.movies.aggregate([
+             {
+               "$search": {
+                 "index": "compound-query-custom-score-tutorial",
+                 "compound": {
+                   "must": [{
+                     "range": {
+                       "path": "year",
+                       "gte": 2013,
+                       "lte": 2015
+                     }
+                   }],
+                   "should": [{
+                     "text": {
+                       "query": "snow",
+                       "path": "title",
+                       "score": {"boost": {"value": 2}}
+                     }
+                   }]
+                 }, 
+                 "highlight": {
+                   "path": "title"
+                 }
+               }
+             },
+             {
+               "$limit": 10
+             },
+             {
+               "$project": {
+                 "_id": 0,
+                 "title": 1,
+                 "year": 1,
+                 "score": { "$meta": "searchScore" },
+                 "highlights": { "$meta": "searchHighlights" }
+               }
+             }
+           ])
+
+        |fts| returns the following results for 
+        :ref:`scoring-boost`: 
+
+        .. code-block:: json
+           :copyable: false 
+
+           [
+             {
+               title: 'Snow in Paradise',
+               year: 2014,
+               score: 6.7722930908203125,
+               highlights: [
+                {
+                  score: 1.382846713066101,
+                  path: 'title',
+                  texts: [
+                    { value: 'Snow', type: 'hit' },
+                    { value: ' in Paradise', type: 'text' }
+                  ]
+                }
+               ]
+             },
+             {
+               title: 'Snow on the Blades',
+               year: 2014,
+               score: 6.063445568084717,
+               highlights: [
+                 {
+                   score: 1.3766303062438965,
+                   path: 'title',
+                   texts: [
+                     { value: 'Snow', type: 'hit' },
+                     { value: ' on the Blades', type: 'text' }
+                   ]
+                 }
+               ]
+             },
+             {
+               title: 'The Snow White Murder Case',
+               year: 2014,
+               score: 5.509652137756348,
+               highlights: [
+                 {
+                   score: 1.3525336980819702,
+                   path: 'title',
+                   texts: [
+                     { value: 'The ', type: 'text' },
+                     { value: 'Snow', type: 'hit' },
+                     { value: ' White Murder Case', type: 'text' }
+                   ]
+                 }
+               ]
+             },
+             {
+               title: 'Dead Snow 2: Red vs. Dead',
+               year: 2014,
+               score: 5.065053939819336,
+               highlights: [
+                 {
+                   score: 1.3924485445022583,
+                   path: 'title',
+                   texts: [
+                     { value: 'Dead ', type: 'text' },
+                     { value: 'Snow', type: 'hit' },
+                     { value: ' 2: Red vs. ', type: 'text' }
+                   ]
+                 }
+               ]
+             },
+             { year: 2013, title: 'The Secret Life of Walter Mitty', score: 1, highlights: [] },
+             { title: 'Jurassic World', year: 2015, score: 1, highlights: [] },
+             { title: 'Action Jackson', year: 2014, score: 1, highlights: [] },
+             { year: 2013, title: 'In Secret', score: 1, highlights: [] },
+             { title: 'The Stanford Prison Experiment', year: 2015, score: 1,  highlights: [] },
+             { year: 2014, title: 'The Giver', score: 1, highlights: [] }
+           ]
+
+        .. include:: /includes/fts/extracts/fts-compound-boost-score-desc.rst
+
+     .. tab:: Boost Multiple
+        :tabid: boostmulti
+
+        This query uses the following pipeline stages:
+        
+        - :pipeline:`$search` to query the collection. The query 
+          uses the following ``compound`` operator clauses with 
+          the ``boost`` option to prioritize some fields more 
+          than other fields: 
+        
+          .. include:: /includes/fts/extracts/fts-compound-boost-advanced-desc.rst
+
+        - :pipeline:`$limit` stage to limit the output to 
+          ``10`` results.
+        - :pipeline:`$project` stage to:
+
+          - Exclude all fields except ``title``, ``year``, and 
+            ``genres``
+          - Add a ``score`` field 
+
+        .. io-code-block::
+           :copyable: true
+   
+           .. input:: /includes/fts/custom-score/boost-multi-shell-query.json
+              :language: json
+
+           .. output:: /includes/fts/custom-score/boost-multi-mongosh-compass-query-results.json
+              :language: json
+
+     .. tab:: Function Score
+        :tabid: fuction-score 
+
+        This query uses the following pipeline stages:
+        
+        - :pipeline:`$search` to query the collection. The query:
+              
+          - Uses the following ``compound`` operator clauses: 
+        
+            .. include:: /includes/fts/extracts/fts-compound-function-desc.rst
+
+          - .. include:: /includes/fts/extracts/fts-compound-highlight-desc.rst
+
+        - :pipeline:`$limit` stage to limit the output to ``10`` 
+          results.
+        - :pipeline:`$project` stage to:
+
+          - Exclude all fields except ``title`` and ``year``
+          - Add a ``score`` field 
+
+        .. code-block:: json
+
+           db.movies.aggregate([
+             {
+               "$search": {
+                 "index": "compound-query-custom-score-tutorial",
+                 "compound": {
+                   "must": [{
+                     "range": {
+                       "path": "year",
+                       "gte": 2013,
+                       "lte": 2015
+                     }
+                   }],
+                   "should": [{
+                     "text": {
+                       "query": "snow",
+                       "path": "title",
+                       "score": {
+                         "function": { 
+                           "add": [{
+                             "path": {
+                               "value": "imdb.rating",
+                               "undefined": 2
+                             }
+                           },
+                           {
+                             "score": "relevance"
+                           }]
+                         }
+                       }
+                     }
+                   }]
+                 }, 
+                 "highlight": {
+                   "path": "title"
+                 }
+               }
+             },
+             {
+               "$limit": 10
+             },
+             {
+               "$project": {
+                 "_id": 0,
+                 "title": 1,
+                 "year": 1,
+                 "score": { "$meta": "searchScore" },
+                 "highlights": { "$meta": "searchHighlights" }
+               }
+             }
+           ])
+
+        |fts| returns the following results for 
+        :ref:`scoring-function`: 
+
+        .. code-block:: json
+           :copyable: false 
+
+           [
+            {
+              title: 'The Snow White Murder Case',
+              year: 2014,
+              score: 10.454826354980469,
+              highlights: [
+                {
+                  score: 1.3525336980819702,
+                  path: 'title',
+                  texts: [
+                    { value: 'The ', type: 'text' },
+                    { value: 'Snow', type: 'hit' },
+                    { value: ' White Murder Case', type: 'text' }
+                  ]
+                }
+              ]
+            },
+            {
+              title: 'Snow on the Blades',
+              year: 2014,
+              score: 10.3317232131958,
+              highlights: [
+                {
+                  score: 1.3766303062438965,
+                  path: 'title',
+                  texts: [
+                    { value: 'Snow', type: 'hit' },
+                    { value: ' on the Blades', type: 'text' }
+                  ]
+                }
+              ]
+            },
+            {
+              title: 'Dead Snow 2: Red vs. Dead',
+              year: 2014,
+              score: 10.032526969909668,
+              highlights: [
+                {
+                  score: 1.3924485445022583,
+                  path: 'title',
+                  texts: [
+                    { value: 'Dead ', type: 'text' },
+                    { value: 'Snow', type: 'hit' },
+                    { value: ' 2: Red vs. ', type: 'text' }
+                  ]
+                }
+              ]
+            },
+            {
+              title: 'Snow in Paradise',
+              year: 2014,
+              score: 8.386146545410156,
+              highlights: [
+                {
+                  score: 1.382846713066101,
+                  path: 'title',
+                  texts: [
+                    { value: 'Snow', type: 'hit' },
+                    { value: ' in Paradise', type: 'text' }
+                  ]
+                }
+              ]
+            },
+            { year: 2013, title: 'The Secret Life of Walter Mitty', score: 1, highlights: [] },
+            { title: 'Jurassic World', year: 2015, score: 1, highlights: [] },
+            { title: 'Action Jackson', year: 2014, score: 1, highlights: [] },
+            { year: 2013, title: 'In Secret', score: 1, highlights: [] },
+            { title: 'The Stanford Prison Experiment', year: 2015, score: 1, highlights: [] },
+            { year: 2014, title: 'The Giver', score: 1, highlights: [] }
+          ]
+
+        .. include:: /includes/fts/extracts/fts-compound-function-score-desc.rst
+
+...

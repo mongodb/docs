@@ -2,7 +2,7 @@ a. When the sample data finishes loading, click :guilabel:`Create Search Index`.
 
 #. Make the following selections on the page and then click :guilabel:`Next`.
 
-   .. include:: /includes/nav/list-table-configure-index.rst
+   .. include:: /includes/search-shared/list-table-configure-index.rst
 
 #. Define the index.
 

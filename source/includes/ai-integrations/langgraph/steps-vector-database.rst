@@ -56,4 +56,4 @@
                   
             .. include:: /includes/ai-integrations/langgraph/steps-create-indexes-pymongo.rst
                
-      .. include:: /includes/fact-indexes-build-initial-sync.rst
+      .. include:: /includes/search-shared/fact-indexes-build-initial-sync.rst
