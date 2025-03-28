@@ -28,7 +28,8 @@ specific release of MongoDB.
             mongodb-org-server-{+release+} \
             mongodb-mongosh \
             mongodb-org-mongos-{+release+} \
-            mongodb-org-tools-{+release+}
+            mongodb-org-tools-{+release+} \
+            mongodb-org-database-tools-extra-{+release+}
 
       You can specify any available version of MongoDB. However,
       zypper upgrades the packages when a newer version becomes
@@ -37,13 +38,14 @@ specific release of MongoDB.
 
       .. code-block:: sh
 
-         sudo zypper addlock \\
-            mongodb-org-{+release+}
-            mongodb-org-database-{+release+}
-            mongodb-org-server-{+release+}
-            mongodb-mongosh
-            mongodb-org-mongos-{+release+}
-            mongodb-org-tools-{+release+}
+         sudo zypper addlock \
+            mongodb-org-{+release+} \
+            mongodb-org-database-{+release+} \
+            mongodb-org-server-{+release+} \
+            mongodb-mongosh \
+            mongodb-org-mongos-{+release+} \
+            mongodb-org-tools-{+release+} \
+            mongodb-org-database-tools-extra-{+release+}
 
       Previous versions of MongoDB packages use a different
       repository location. Refer to the version of the
