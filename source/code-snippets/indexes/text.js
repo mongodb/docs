@@ -17,8 +17,10 @@ async function run() {
     // Create a text index on the "title" and "body" fields
     const result = await myColl.createIndex(
       { title: "text", body: "text" },
-      { default_language: "english" },
-      { weights: { body: 10, title: 3 } }
+      {
+         default_language: "english",
+         weights: { body: 10, title: 3 }
+      }
     );
     // end-idx
     console.log(`Index created: ${result}`);
