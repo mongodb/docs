@@ -31,7 +31,7 @@
    .. wayfinding-option:: https://www.mongodb.com/docs/php-library/current/read/retrieve/#find-one-document
       :id: php
 
-   .. wayfinding-option:: https://www.mongodb.com/docs/languages/scala/scala-driver/current/get-started/quickstart/#query-the-collection
+   .. wayfinding-option:: https://www.mongodb.com/docs/languages/scala/scala-driver/current/read/retrieve/#find-one-document
       :id: scala
    
    .. wayfinding-option:: https://www.mongodb.com/docs/drivers/kotlin/coroutine/current/usage-examples/findOne/

@@ -25,7 +25,7 @@
    .. wayfinding-option:: https://www.mongodb.com/docs/languages/c/c-driver/current/libmongoc/tutorial/#counting-documents
       :id: c
 
-   .. wayfinding-option:: https://www.mongodb.com/docs/languages/scala/scala-driver/current/get-started/quickstart/#count-documents-in-a-collection
+   .. wayfinding-option:: https://www.mongodb.com/docs/languages/scala/scala-driver/current/read/count/
       :id: scala
    
    .. wayfinding-option:: https://www.mongodb.com/docs/drivers/kotlin/coroutine/current/usage-examples/count/
