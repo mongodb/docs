@@ -12,6 +12,11 @@
      - .5 GB
      - Shared
 
+   * - Flex
+     - 5 GB
+     - 5 GB
+     - Flex
+
    * - M2
      - 2 GB
      - 2GB

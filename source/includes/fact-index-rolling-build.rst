@@ -19,7 +19,7 @@
 .. note::
 
    the {+atlas-ui+} doesn't support building indexes with a rolling 
-   build for ``M0`` {+Free-clusters+} and ``M2/M5`` 
+   build for ``M0`` {+Free-clusters+}, {+Flex-clusters+}, and ``M2/M5`` 
    {+Shared-clusters+}. You can't build indexes with a rolling build 
    for {+Serverless-instances+}.
 

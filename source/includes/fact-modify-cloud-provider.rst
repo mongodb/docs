@@ -2,7 +2,7 @@
   You can modify the cloud provider and region only when
   you scale up your ``M0`` {+cluster+} to a larger {+cluster+}.
 
-``M2`` or larger Tier Clusters
+``M2``, {+Flex-cluster+}, or larger Tier Clusters
   You can modify the cloud provider and region when you
   modify your {+cluster+} or scale up to a larger {+cluster+}. 
 

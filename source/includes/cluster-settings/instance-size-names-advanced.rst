@@ -1,5 +1,5 @@
 |service| supports
-deploying **M0**, **M2** and **M5** tiers into a subset of available regions.
+deploying **M0**, **Flex**, **M2** and **M5** tiers into a subset of available regions.
 The documentation for
 **replicationSpecs[n].regionConfigs[m].<type>Specs.instanceSize**
 includes a list of these regions.
