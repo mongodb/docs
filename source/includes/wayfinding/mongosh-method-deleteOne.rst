@@ -28,7 +28,7 @@
    .. wayfinding-option:: https://www.mongodb.com/docs/php-library/current/reference/method/MongoDBCollection-deleteOne/
       :id: php
 
-   .. wayfinding-option:: https://www.mongodb.com/docs/languages/scala/scala-driver/current/get-started/quickstart/#delete-documents
+   .. wayfinding-option:: https://www.mongodb.com/docs/languages/scala/scala-driver/current/write/delete/#delete-one-document
       :id: scala
    
    .. wayfinding-option:: https://www.mongodb.com/docs/drivers/kotlin/coroutine/current/fundamentals/crud/write-operations/delete/#delete-documents

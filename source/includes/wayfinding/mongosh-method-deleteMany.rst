@@ -31,7 +31,7 @@
    .. wayfinding-option:: https://www.mongodb.com/docs/php-library/current/reference/method/MongoDBCollection-deleteMany/
       :id: php
 
-   .. wayfinding-option:: https://www.mongodb.com/docs/languages/scala/scala-driver/current/get-started/quickstart/#delete-all-documents-that-match-a-filter
+   .. wayfinding-option:: https://www.mongodb.com/docs/languages/scala/scala-driver/current/write/delete/#delete-multiple-documents
       :id: scala
    
    .. wayfinding-option:: https://www.mongodb.com/docs/drivers/kotlin/coroutine/current/fundamentals/crud/write-operations/delete/#delete-documents
