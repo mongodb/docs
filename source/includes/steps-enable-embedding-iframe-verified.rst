@@ -56,7 +56,7 @@
       Generating a verified signature to accompany data requests from 
       shared charts with authentication enabled requires server-side 
       code. The verified signature creates a payload by generating a
-      :wikipedia:`HMAC </HMAC>` from your embedding key, a timestamp, 
+      :wikipedia:`HMAC <HMAC>` from your embedding key, a timestamp, 
       and identifying data from your chart. The verified signature is 
       valid for a limited time period specified in your server-side 
       code.
