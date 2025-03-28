@@ -135,6 +135,8 @@ func main() {
 		}
 
 		log.Println("Successfully created vector search index.")
+	} else {
+		log.Println("Vector search index already exists.")
 	}
 	// end-search-index-example
 }
@@ -150,7 +152,7 @@ func isCollectionEmpty(coll *mongo.Collection) bool {
 // start-create-vector-search-index
 // Checks if the search index exists
 func SearchIndexExists(ctx context.Context, coll *mongo.Collection, idx string) (bool, error) {
-	log.Println("Checking if search index exists...")
+	log.Println("Checking if search index exists.")
 
 	view := coll.SearchIndexes()
 	siOpts := options.SearchIndexes().SetName(idx).SetType("vectorSearch")

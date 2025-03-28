@@ -25,6 +25,7 @@
          go get github.com/tmc/langchaingo/prompts
          go get github.com/tmc/langchaingo/vectorstores/mongovector
          go get go.mongodb.org/mongo-driver/v2/mongo
+         go mod tidy
 
    .. step:: Initialize your environment variables.
 
@@ -48,5 +49,4 @@
    .. step:: Create your main file.
 
       In your ``langchaingo-mongodb`` project directory, create a file named
-      ``main.go`` and then copy and paste the following code into the file. You
-      will add code to this file throughout the tutorial.
+      ``main.go``. You will add code to this file throughout the tutorial.

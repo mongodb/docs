@@ -60,6 +60,17 @@
       .. procedure::
          :style: normal
 
+         .. step:: Add the following dependency.
+
+            Add the following dependencies to your ``main.go`` file:
+
+            .. code-block:: go
+
+                  import (
+                        // Other imports... 
+                        "github.com/tmc/langchaingo/vectorstores"
+                  )
+
          .. step:: Add the following code to your main function and save the file. 
 
             The following code uses the ``SimilaritySearch()`` method to perform
@@ -75,18 +86,18 @@
             .. code-block:: go
 
                // Performs semantic search with metadata filter
-	            filter := map[string]interface{}{
-		            "metadata.type": "post",
-	            }
+               filter := map[string]interface{}{
+                  "metadata.type": "post",
+               }
 
-               docs, err = store.SimilaritySearch(context.Background(), "Tulip care", 1,
+               docs, err := store.SimilaritySearch(context.Background(), "Tulip care", 1,
                   vectorstores.WithScoreThreshold(0.60),
-		            vectorstores.WithFilters(filter))
+                  vectorstores.WithFilters(filter))
                if err != nil {
                   fmt.Println("Error performing search:", err)
                }
 
-	            fmt.Println("Filter Search Results:", docs)
+               fmt.Println("Filter Search Results:", docs)
 
          .. step:: Run the following command to execute the query.
 

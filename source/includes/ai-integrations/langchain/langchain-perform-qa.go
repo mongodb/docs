@@ -50,5 +50,5 @@ if !ok {
 	return
 }
 
-log.Print("Question:", question)
+log.Println("Question:", question)
 log.Println("Generated Answer:", responseText)
