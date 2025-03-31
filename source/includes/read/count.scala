@@ -45,9 +45,9 @@ object Count {
                   (e: Throwable) => println(s"There was an error: $e"))
     // end-count-estimate
 
-    // Estimates the number of documents in the collection and sets a time limit on the operation
+    // Estimates the number of documents in the collection and sets a comment
     // start-modify-estimate
-    val estimatedOptions = EstimatedDocumentCountOptions().maxTime(3, SECONDS)
+    val estimatedOptions = EstimatedDocumentCountOptions().comment("Count operation")
     collection.estimatedDocumentCount(estimatedOptions)
         .subscribe((count: Long) => println(s"Estimated number of documents: $count"),
                   (e: Throwable) => println(s"There was an error: $e"))
