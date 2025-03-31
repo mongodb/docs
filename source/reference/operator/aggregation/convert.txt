@@ -15,7 +15,7 @@ $convert (aggregation)
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 Definition
@@ -69,6 +69,11 @@ The :expression:`$convert` takes a document with the following fields:
        <aggregation-expressions>`. For more information on
        expressions, see :ref:`aggregation-expressions`.
 
+       .. include:: /includes/binData-numeric-input.rst
+       
+       MongoDB also supports these numeric types as input when converting a value
+       to ``binData``.
+
    * - ``to``
      - Required
      - Specifies the type to convert the ``input`` expression to. You
@@ -77,7 +82,7 @@ The :expression:`$convert` takes a document with the following fields:
        - A string or numeric identifier for the target type. See ``to.type``.
 
        - An object containing the fields ``to.type`` and ``to.subtype``.
-         Use this format to convert to binData and specify a binData
+         Use this format to convert to ``binData`` and specify a ``binData``
          subtype.
 
    * - ``to.type``
@@ -152,10 +157,14 @@ The :expression:`$convert` takes a document with the following fields:
 
        *Default:* 0 (Generic binary subtype)
 
+   * - ``byteOrder``
+     - Optional
+     - Specifies big or little endian byte ordering for conversions between ``binData``
+       and numeric types. If unspecified, the default is little endian byte ordering. 
+
    * - ``format``
-     - Required when converting to or from binData.
-     - Specifies the binData format of the input or output. Can be one
-       of these values:
+     - Required when converting to or from ``binData`` and string
+     - Specifies format of conversions between ``binData`` and string
 
        - ``base64``
        - ``base64url``
@@ -205,10 +214,155 @@ Behavior
 Convert to BinData
 ~~~~~~~~~~~~~~~~~~
 
-You can only convert strings to binData. All other input types result in
-an error.
+.. include:: /includes/binData-numeric-input.rst 
 
-See the following example conversions to binData:
+.. include:: /includes/convert-subtype.rst
+
+Convert from numeric types to ``binData``:
+``````````````````````````````````````````
+
+When converting a numeric type to ``binData``:
+
+- An ``int`` becomes a 4-byte ``binData``.
+- A ``long`` becomes an 8-byte ``binData``.
+- A ``double`` becomes an 8-byte ``binData``. 
+
+The ``byteOrder`` of the numeric output defaults to "little", or the placement of
+the least significant byte first. In contrast, "big" places the most significant
+byte first.
+
+Convert ``long`` to ``binData``:
+
+.. io-code-block::
+    :copyable: true
+
+    .. input::
+        :language: javascript
+
+        db.t.insertOne({a: Long(42)})
+
+        db.t.aggregate([
+            {
+              $project: {
+                convertedBD: {
+                  $convert: {
+                     input: Long(42),
+                     to: "binData", 
+                }
+              },
+            }
+          }
+        ])
+
+    .. output::
+        :language: javascript
+
+        { 
+          _id: ObjectId('67dda0195a99e592590143e8'), 
+          convertedBD: Binary.createFromBase64('KgAAAAAAAAA=', 0)
+        }
+
+Convert ``long`` to ``binData`` with big-endian byte ordering:
+
+.. io-code-block::
+    :copyable: true
+
+    .. input::
+        :language: javascript
+
+        db.t.insertOne({a: Long(42)})
+
+        db.t.aggregate([
+            {
+              $project: {
+                convertedBD: {
+                  $convert: {
+                     input: Long(42),
+                     to: "binData", 
+                     byteOrder: "big",
+                }
+              },
+            }
+          }
+        ])
+
+    .. output::
+        :language: javascript
+
+        { 
+          _id: ObjectId('67ddb27c5a99e592590143ec'), 
+          convertedBD: Binary.createFromBase64('AAAAAAAAACo=', 0),
+        }
+
+Convert ``double`` to ``binData``:
+
+.. io-code-block::
+    :copyable: true
+
+    .. input::
+        :language: javascript
+
+        db.t.insertOne({a: Double(42.0)})
+
+        db.t.aggregate([
+            {
+              $project: {
+                convertedBD: {
+                  $convert: {
+                     input: Double(42),
+                     to: "binData", 
+                }
+              },
+            }
+          }
+        ])
+
+    .. output::
+        :language: javascript
+
+        { 
+          _id: ObjectId('67ddb3cf5a99e592590143ee'), 
+          convertedBD: Binary.createFromBase64('AAAAAAAARUA=', 0)
+        }
+
+Convert ``int`` to ``binData``:
+
+.. io-code-block::
+    :copyable: true
+
+    .. input::
+        :language: javascript
+
+        db.t.insertOne({a: 42})
+
+        db.t.aggregate([
+            {
+              $project: {
+                convertedBD: {
+                  $convert: {
+                     input: 42,
+                     to: "binData", 
+                }
+              },
+            }
+          }
+        ])
+
+    .. output::
+        :language: javascript
+
+        { 
+          _id: ObjectId('67ddb43a5a99e592590143ef'), 
+          convertedBD: Binary.createFromBase64('KgAAAA==', 0)
+        }
+
+
+Convert from string to BinData
+``````````````````````````````
+
+MongoDB also supports conversions between ``binData`` and strings.
+
+The following examples demonstrate how to convert strings to binData. 
 
 .. list-table::
    :header-rows: 1
@@ -258,8 +412,7 @@ See the following example conversions to binData:
                 type: "binData",
                 subtype: 0
              },
-             format: "base64",
-             
+             format: "base64"
           }
 
      - .. code-block:: javascript
@@ -321,7 +474,7 @@ See the following example conversions to binData:
 
           Failed to parse BinData 'äöäöä' in $convert with no onError
           value: Input is not a valid UUID string.
-          
+
    * - .. code-block:: javascript
           :copyable: false
 
@@ -337,19 +490,6 @@ See the following example conversions to binData:
           Failed to parse BinData '867dee52-c331-484e-92d1-c56479b8e67e'
           in $convert with no onError value: Only the UUID subtype (4)
           is allowed with the 'uuid' format.
-
-   * - .. code-block:: javascript
-          :copyable: false
-
-          {
-             input: 123,
-             to: { type: "binData", subtype: 0 }
-          }
-
-     - .. code-block:: javascript
-          :copyable: false
-
-          Unsupported conversion from int to binData in $convert with no onError value
 
 .. note::
 
@@ -469,6 +609,17 @@ integer:
    * - Boolean
      - | Returns ``0`` for  ``false``.
        | Returns ``1`` for ``true``.
+
+   * - BinData
+     - Returns the ``binData`` value as an integer. ``binData`` is
+       interpreted as two's signed complement signed integer.
+       
+       The number of bytes in the ``binData`` value 
+       must be ``1``, ``2``, or ``4``.
+
+       If the ``input`` is of an unexpected length an error 
+       is generated. You can control this behavior by configuring
+       ``$convert.onError``.
 
    * - Double
      - Returns truncated value.
@@ -595,6 +746,39 @@ The following table lists some conversion to integer examples:
           { input: null, to: "int" }
 
      - null
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input: Binary(Buffer.from("00100000", "hex"), 0),
+             to: "int", 
+             byteOrder: "big",
+          }
+
+     - 1048576
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input: Binary(Buffer.from("FFFFE796", "hex"), 0),
+             to: "int", 
+          }
+
+     - -1763180545
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input: Binary(Buffer.from("001000000000000", "hex"), 0),
+             to: "int", 
+             byteOrder: "big",
+          }
+
+     - Error: Failed to convert BinData because of invalid 
+       length: 7
 
 .. seealso::
 
@@ -734,6 +918,18 @@ double:
      - | Returns NumberDouble(0) for  ``false``.
        | Returns NumberDouble(1) for ``true``.
 
+   * - BinData
+     - Returns the ``binData`` value as a double. ``binData`` is
+       interpreted as an IEEE 754 single-precision or double-precision 
+       floating point.
+       
+       The number of bytes in the ``binData`` value 
+       must be ``4`` or ``8``.
+
+       If the ``input`` is of an unexpected length an error 
+       is generated. You can control this behavior by configuring
+       ``$convert.onError``.
+
    * - Double
      - No-op. Returns the double.
 
@@ -837,6 +1033,29 @@ The following table lists some conversion to double examples:
 
      -  1522039108044
 
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input: Binary(Buffer.from("04CCCCCD", "hex"), 0),
+             to: "double",
+             byteOrder: "big",
+          }
+
+     - 4.814824932714571e-36
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input: Binary(Buffer.from("0000", "hex"), 0),
+             to: "double", 
+             byteOrder: "big",
+          }
+
+     - Error: Failed to convert binData because of invalid
+       length: 2
+
 .. seealso::
 
    :expression:`$toDouble`
@@ -861,6 +1080,16 @@ long:
      - | Returns ``0`` for  ``false``.
        | Returns ``1`` for ``true``.
 
+   * - BinData
+     - Returns the ``binData`` value as a long. ``binData`` is
+       interpreted as two's signed complement signed integer.
+       
+       The number of bytes in the ``binData`` value 
+       must be ``1``, ``2``, ``4`` or ``8``.
+
+       If the ``input`` is of an unexpected length an error 
+       is generated. You can control this behavior by configuring
+       ``$convert.onError``.
 
    * - Double
      - Returns truncated value.
@@ -990,6 +1219,17 @@ The following table lists some conversion to long examples:
           { input: null, to: "long" }
 
      - null
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input: Binary(Buffer.from("001000000", "hex"), 0),
+             to: "long", 
+             byteOrder: "big",
+          }
+
+     - Long("1048576")
 
 .. seealso::
 
