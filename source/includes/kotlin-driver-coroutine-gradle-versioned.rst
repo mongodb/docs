@@ -3,5 +3,5 @@
    :copyable: true
 
    dependencies {
-       implementation("org.mongodb:mongodb-driver-kotlin-coroutine:{+full-version+}")
+       implementation("org.mongodb:mongodb-driver-kotlin-coroutine")
    }
