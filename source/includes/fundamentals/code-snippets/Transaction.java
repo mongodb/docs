@@ -18,7 +18,7 @@ public class Transaction {
             MongoCollection<Document> collection = database.getCollection("books");
 
             // Sets transaction options
-            TransactionOptions txnOptions = TransactionOptions.builder()
+            TransactionOptions transactionOptions = TransactionOptions.builder()
                     .writeConcern(WriteConcern.MAJORITY)
                     .build();
 
@@ -32,7 +32,7 @@ public class Transaction {
                             new Document("title", "Song of Solomon").append("author", "Toni Morrison")
                     ));
                     return null; // Return value as expected by the lambda
-                }, txnOptions);
+                }, transactionOptions);
             }
         } catch (Exception e) {
             e.printStackTrace();
