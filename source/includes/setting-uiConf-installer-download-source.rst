@@ -18,8 +18,8 @@
    
           You can specify the remote source for downloading MongoDB 
           binaries with the :setting:`Base URL` field. If you don't, 
-          :guilabel:`Base URL` defaults to **mongodb.com** and 
-          **fastdl.mongodb.org**.
+          :guilabel:`Base URL` defaults to the remote URLs for downloading
+          MongoDB binaries as listed in the :ref:`Network Requirements <network-requirements>`.
    
       * - :guilabel:`hybrid`
         - Agents get MongoDB binaries from |onprem|, which fetches 
@@ -27,8 +27,8 @@
    
           You can specify the remote source for downloading MongoDB 
           binaries with the :setting:`Base URL` field. If you don't, 
-          :guilabel:`Base URL` defaults to **mongodb.com** and 
-          **fastdl.mongodb.org**.
+          :guilabel:`Base URL` defaults to the remote URLs for downloading
+          MongoDB binaries as listed in the :ref:`Network Requirements <network-requirements>`.
    
       * - :guilabel:`local`
         - Agents get MongoDB binaries from |onprem|, which has them 
