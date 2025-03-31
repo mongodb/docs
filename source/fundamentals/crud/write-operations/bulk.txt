@@ -15,26 +15,45 @@ Bulk Operations
 Overview
 --------
 
-In this guide, you can learn how to use **bulk operations**.
+In this guide, you can learn how to use the {+driver-long+} to
+perform **bulk operations**. Bulk operations reduce the number
+of calls to the server by performing multiple write operations
+in a single method.
 
-Bulk operations perform a large number of write operations. Instead of
-making a call for each operation to the database, bulk operations
-perform multiple operations with one call to the database.
+The ``Collection`` and ``Client`` classes both provide a ``BulkWrite()``
+method. You can use the ``Collection.BulkWrite()`` method to perform
+multiple write operations on a single collection. You can use the
+``Client.BulkWrite()`` method to perform bulk writes across
+multiple namespaces. In MongoDB, a namespace consists of a database name 
+and a collection name.
+
+.. important:: Client Bulk Write Server Requirement
+
+   To perform bulk operations on a ``Client`` instance,
+   ensure that your application connects to {+mdb-server+}
+   v8.0 or later
 
 Sample Data
 ~~~~~~~~~~~
 
-The examples in this guide use the following ``Book`` struct as a model for documents
-in the ``books`` collection:
+The examples in this guide use the following structs:
+
+- ``Book`` struct, which models documents in the ``db.books`` collection.
+  Each document contains a description of a book that includes the title,
+  author, and page length.
+
+- ``Poem`` struct, which models documents in the ``db.poems`` collection.
+  Each document contains a description of a poem that includes the title,
+  author, and publication year.
 
 .. literalinclude:: /includes/fundamentals/code-snippets/CRUD/bulkOps.go
-   :start-after: start-book-struct
-   :end-before: end-book-struct
+   :start-after: start-structs
+   :end-before: end-structs
    :language: go
    :dedent:
 
 To run the examples in this guide, load the sample data into the
-``db.books`` collection with the following snippet:
+``books`` and ``poems`` collection by using the following snippet:
 
 .. literalinclude:: /includes/fundamentals/code-snippets/CRUD/bulkOps.go
    :language: go
@@ -42,27 +61,197 @@ To run the examples in this guide, load the sample data into the
    :start-after: begin insertDocs
    :end-before: end insertDocs
 
-Each document contains a description of a book that
-includes the title, author, and page length corresponding to
-the ``title``, ``author``, and ``length`` fields in each document.
-
 .. include:: /includes/fundamentals/automatic-db-coll-creation.rst
 
-Bulk Write
-----------
+.. _golang-bulk-collection:
 
-To perform a bulk operation, pass an array of :ref:`WriteModel
-<golang-write-model>` documents to the ``BulkWrite()`` method.
+Collection Bulk Write
+---------------------
 
-Modify Behavior
-~~~~~~~~~~~~~~~
+To perform a bulk operation on a single namespace, call the ``BulkWrite()``
+method on a collection and pass an array of :ref:`WriteModel <golang-write-model-collection>`
+documents as a parameter.
 
-The ``BulkWrite()`` method optionally takes a ``BulkWriteOptions``
-type, which represents options you can use to modify its behavior. If
-you don't specify a ``BulkWriteOptions``, the driver uses the default
-values for each option.
+.. _golang-write-model-collection:
 
-The ``BulkWriteOptions`` type allows you to configure options with the
+Define Collection Bulk Write Models
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To define the write operations for your bulk operation on one
+namespace, create a ``WriteModel`` for each insert, replace,
+update, or delete.
+
+InsertOneModel
+``````````````
+
+To define an insert operation for a bulk write, create an
+``InsertOneModel`` specifying the document you want to insert. To 
+insert multiple documents, create an ``InsertOneModel`` for each
+document you want to insert.
+
+You can specify the behavior of the ``InsertOneModel`` by
+using the following method:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``SetDocument()`` 
+     - | The document to insert.
+
+The following example creates two ``InsertOneModel`` instances to
+insert two documents into the ``books`` collection:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/bulkOps.go
+   :language: go
+   :dedent:
+   :start-after: begin bulk insert model collection
+   :end-before: end bulk insert model collection
+
+ReplaceOneModel
+```````````````
+
+To define a replace operation for a bulk write, create 
+a ``ReplaceOneModel`` specifying the document you want
+replace and a replacement document. To replace multiple
+documents, create a ``ReplaceOneModel`` for each document
+you want to replace.
+
+You can specify the behavior of the ``ReplaceOneModel`` by
+using the following methods:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``SetCollation()`` 
+     - | The type of language collation to use when sorting results.
+
+   * - ``SetFilter()`` 
+     - | The :ref:`query filter <golang-query-filter-definition>` specifying which document to replace.
+
+   * - ``SetHint()`` 
+     - | The index to use to scan for documents.
+
+   * - ``SetReplacement()`` 
+     - | The document to replace the matched document with.
+
+   * - ``SetSort()`` 
+     - | The sort order for matching documents. The replace operation
+         replaces only the first document according to the sort criteria.
+
+   * - ``SetUpsert()`` 
+     - | Whether to insert a new document if the :ref:`query filter <golang-query-filter-definition>` doesn't match any documents.
+
+The following example creates a ``ReplaceOneModel`` to replace a
+document in the ``books`` collection in which the ``title`` value is ``"Lucy"``:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/bulkOps.go
+   :language: go
+   :dedent:
+   :start-after: begin bulk replace model collection
+   :end-before: end bulk replace model collection
+
+UpdateOneModel and UpdateManyModel
+``````````````````````````````````
+
+To define an update operation for a bulk write, create
+an ``UpdateOneModel`` specifying the document you want to update
+and an :ref:`update document <golang-update-document>`. To update
+multiple documents, use an ``UpdateManyModel``.
+
+You can specify the behavior of each of the update models
+by using the following methods:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``SetArrayFilters()`` 
+     - | The array elements the update applies to.
+
+   * - ``SetCollation()`` 
+     - | The type of language collation to use when sorting results.
+
+   * - ``SetFilter()`` 
+     - | The :ref:`query filter <golang-query-filter-definition>` specifying which document to update.
+
+   * - ``SetHint()`` 
+     - | The index to use to scan for documents.
+
+   * - ``SetSort()`` 
+     - | The criteria to use when ordering matching documents.
+         This method is only available for the ``UpdateOneModel``
+         class.
+
+   * - ``SetUpdate()`` 
+     - | The modifications to apply on the matched documents.
+
+   * - ``SetUpsert()`` 
+     - | Whether to insert a new document if the :ref:`query filter <golang-query-filter-definition>` doesn't match any documents.
+
+The following example creates an ``UpdateOneModel`` to update
+a document in the ``books`` collection, decrementing a
+document's ``length`` by ``15`` if the ``author`` is ``"Elena Ferrante"``:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/bulkOps.go
+   :language: go
+   :dedent:
+   :start-after: begin bulk update model collection
+   :end-before: end bulk update model collection
+
+DeleteOneModel and DeleteManyModel
+``````````````````````````````````
+
+To define a delete operation for a bulk write, create a
+``DeleteOneModel`` specifying the document you want to delete.
+To delete multiple documents, use the ``DeleteManyModel``. 
+
+You can specify the behavior of each of the delete models
+by using the following methods:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``SetCollation()`` 
+     - | The type of language collation to use when sorting results.
+
+   * - ``SetFilter()`` 
+     - | The :ref:`query filter <golang-query-filter-definition>` specifying which document to delete.
+
+   * - ``SetHint()`` 
+     - | The index to use to scan for documents.
+
+The following example creates a ``DeleteManyModel`` to delete
+documents in the ``books`` collection in which the ``length`` is
+greater than ``300``:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/bulkOps.go
+   :language: go
+   :dedent:
+   :start-after: begin bulk delete model collection
+   :end-before: end bulk delete model collection
+
+Modify Collection-Level Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To modify the behavior of your bulk write operation, pass a ``BulkWriteOptions``
+instance to the ``BulkWrite()`` method.
+
+The ``BulkWriteOptions`` type allows you to configure options by using the
 following methods:
 
 .. list-table::
@@ -73,19 +262,32 @@ following methods:
      - Description
 
    * - ``SetBypassDocumentValidation()`` 
-     - | Whether to allow the write to opt-out of document level validation.
+     - | Specifies whether the operation can opt-out of document level validation.
        | Default: ``false``
 
+   * - ``SetComment()``
+     - | Specifies a comment to attach to the operation. 
+       | Default: ``nil``
+
+   * - ``SetLet()``
+     - | Specifies a document with a list of values to improve operation readability. Values
+         must be constant or closed expressions that don't reference document fields. For more
+         information, see the ``let`` field for the :manual:`delete
+         </reference/command/delete/#std-label-delete-let-syntax>` and :manual:`update
+         </reference/command/update/#std-label-update-let-syntax>` commands in the {+mdb-server+} manual.
+       | Default: ``nil``
+
    * - ``SetOrdered()``
-     - | Whether to stop performing write operations after an error occurs. 
+     - | Specifies whether the driver stops performing write operations after an error occurs. 
        | Default: ``true``
 
-Return Values
-~~~~~~~~~~~~~
+Collection-Level Return Value
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``BulkWrite()`` method returns a ``BulkWriteResult`` type, which
-contains information about the bulk operation if it's successful. The
-``BulkWriteResult`` type contains the following properties:
+includes information about the bulk operation.
+
+The ``BulkWriteResult`` type contains the following properties:
 
 .. list-table::
    :widths: 30 70
@@ -112,22 +314,110 @@ contains information about the bulk operation if it's successful. The
    * - ``UpsertedIDs`` 
      - A map of an operation index to the ``_id`` of each :ref:`upserted <golang-upsert-definition>` document.
 
-.. _golang-write-model:
+   * - ``Acknowledged`` 
+     - A boolean value that indicates whether the write operation was acknowledged.
 
-Operations
-----------
+Collection-Level Execution Order
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A ``WriteModel`` represents an insert, replace, update, or delete operation.
+To specify whether the bulk write performs the operations
+in order, you can set the ``Ordered`` option
+to a boolean value. To set this option, specify the ``Ordered``
+field of a ``BulkWriteOptions`` instance.
 
-Insert
-~~~~~~
+Ordered
+```````
 
-To perform an insert operation, create an ``InsertOneModel`` specifying
-the document you want to insert. To insert multiple documents, create an
-``InsertOneModel`` for each document you want to insert.
+By default, the ``BulkWrite()`` method runs bulk operations in
+order you added them and stops if an error occurs.
 
-The ``InsertOneModel`` allows you to specify its behavior with the
-following method:
+.. tip::
+
+   This is equivalent to passing a value of ``true`` to the ``SetOrdered()``
+   method, as shown in the following code: 
+
+   .. code-block:: go
+     
+      opts := options.BulkWrite().SetOrdered(true)
+
+Unordered
+`````````
+
+To run bulk write operations in any order and continue if an error
+occurs, pass a value of ``false`` to the ``SetOrdered()`` method. The method
+reports errors after the operation completes.
+
+The following example performs the following actions in any order: 
+
+- Inserts two documents
+- Replaces a document where the ``title`` is "My Brilliant Friend" with a new document
+- Increments every document's ``length`` by ``10`` if the current
+  ``length`` value is less than ``200``
+- Deletes all documents where the ``author`` field value includes ``"Jam"``
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/CRUD/bulkOps.go
+      :start-after: begin unordered collection
+      :end-before: end unordered collection
+      :language: go
+      :dedent:
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Number of documents inserted: 2
+      Number of documents replaced or updated: 2
+      Number of documents deleted: 1
+
+The following documents are present in the ``books`` collection after
+the bulk operation:
+
+.. code-block:: none
+   :copyable: false
+
+   {"title":"Atonement","author":"Ian McEwan","length":351}
+   {"title":"Middlemarch","author":"George Eliot","length":904}
+   {"title":"Pale Fire","author":"Vladimir Nabokov","length":246}
+
+.. _golang-bulk-client:
+
+Client Bulk Write
+-----------------
+
+To perform a bulk operation across multiple namespaces, call the
+``BulkWrite()`` method on your client and pass an array of
+:ref:`ClientWriteModel <golang-write-model-client>` documents as a parameter.
+
+.. _golang-write-model-client:
+
+Define Client Bulk Write Models
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To specify the write operations for your bulk operation on multiple
+namespaces, create a ``ClientWriteModel`` for each insert,
+replace, update, or delete. Pass each write model to the
+``ClientBulkWrite`` struct and specify the target database and collection,
+as shown in the following code:
+
+.. code-block:: go
+
+   writes := []mongo.ClientBulkWrite{
+     {"<database name>", "<collection name>", <write model>},
+     ...
+   }
+
+ClientInsertOneModel
+````````````````````
+
+To define an insert operation for a bulk write, create a ``ClientInsertOneModel``
+specifying the document you want to insert. To insert multiple documents, create
+a ``ClientInsertOneModel`` for each document you want to insert.
+
+You can specify the behavior of the ``ClientInsertOneModel``
+by using the following method:
 
 .. list-table::
    :widths: 30 70
@@ -139,28 +429,27 @@ following method:
    * - ``SetDocument()`` 
      - | The document to insert.
 
-Example
-```````
-
-This following example creates two ``InsertOneModel`` instances to
-insert two documents:
+The following example creates two ``ClientInsertOneModel`` instances to
+insert one document into the ``books`` collection and one document into the
+``poems`` collection:
 
 .. literalinclude:: /includes/fundamentals/code-snippets/CRUD/bulkOps.go
    :language: go
    :dedent:
-   :start-after: begin bulk insert model
-   :end-before: end bulk insert model
+   :start-after: begin bulk insert model client
+   :end-before: end bulk insert model client
 
-Replace
-~~~~~~~
+ClientReplaceOneModel
+`````````````````````
 
-To perform a replace operation, create a ``ReplaceOneModel`` specifying
-the document you want to replace and a :ref:`replacement document
-<golang-replacement-document>`. To replace multiple documents, create a
-``ReplaceOneModel`` for each document you want to replace.
+To define a replace operation for a bulk write, create
+a ``ClientReplaceOneModel`` specifying the document
+you want to replace and a :ref:`replacement document <golang-replacement-document>`.
+To replace multiple documents, create a ``ClientReplaceOneModel`` for
+each document you want to replace.
 
-The ``ReplaceOneModel`` allows you to specify its behavior with the
-following methods:
+You can specify the behavior of the ``ClientReplaceOneModel`` by
+using the following methods:
 
 .. list-table::
    :widths: 30 70
@@ -181,31 +470,38 @@ following methods:
    * - ``SetReplacement()`` 
      - | The document to replace the matched document with.
 
+   * - ``SetSort()`` 
+     - | The sort order for matching documents. The replace operation
+         replaces only the first document according to the sort criteria.
+
    * - ``SetUpsert()`` 
      - | Whether to insert a new document if the :ref:`query filter <golang-query-filter-definition>` doesn't match any documents.
 
-Example
-```````
+This example creates ``ClientReplaceOneModel`` instances to define
+the following operations:
 
-The following example creates a ``ReplaceOneModel`` to replace a
-document where the ``title`` is "Lucy" with a new document:
+- Replace operation on the ``books`` collection to replace a 
+  document in which the ``title`` value is ``"Lucy"``
+
+- Replace operation on the ``poems`` collection to replace a 
+  document in which the ``title`` value is ``"Song of Myself"``
 
 .. literalinclude:: /includes/fundamentals/code-snippets/CRUD/bulkOps.go
    :language: go
    :dedent:
-   :start-after: begin bulk replace model
-   :end-before: end bulk replace model
+   :start-after: begin bulk replace model client
+   :end-before: end bulk replace model client
 
-Update
-~~~~~~
+ClientUpdateOneModel and ClientUpdateManyModel
+``````````````````````````````````````````````
 
-To perform an update operation, create an ``UpdateOneModel`` specifying
-the document you want to update and an :ref:`update document
-<golang-update-document>`. To update multiple documents, use the
-``UpdateManyModel``.
+To define an update operation for a bulk write, create
+a ``ClientUpdateOneModel`` specifying the document you
+want to update and an :ref:`update document <golang-update-document>`.
+To update multiple documents, use a ``ClientUpdateManyModel``.
 
-The ``UpdateOneModel`` and ``UpdateManyModel`` allow you to specify
-their behavior with the following methods:
+You can specify the behavior of each of the update models
+by using the following methods:
 
 .. list-table::
    :widths: 30 70
@@ -226,33 +522,48 @@ their behavior with the following methods:
    * - ``SetHint()`` 
      - | The index to use to scan for documents.
 
+   * - ``SetSort()`` 
+     - | The criteria to use when ordering matching documents.
+         This method is only available for the ``ClientUpdateOneModel`` class.
+
    * - ``SetUpdate()`` 
      - | The modifications to apply on the matched documents.
 
    * - ``SetUpsert()`` 
-     - | Whether to insert a new document if the :ref:`query filter <golang-query-filter-definition>` doesn't match any documents.
+     - | Whether to insert a new document if the :ref:`query filter <golang-query-filter-definition>`
+         doesn't match any documents.
 
-Example
-```````
+This example creates ``ClientUpdateOneModel`` instances to define
+the following operations:
 
-The following example creates an ``UpdateOneModel`` to decrement a
-document's ``length`` by ``15`` if the ``author`` is "Elena Ferrante":
+- Update operation on the ``books`` collection to update a 
+  document in which the ``author`` value is ``"Elena Ferrante"``
+
+- Update operation on the ``poems`` collection to update a 
+  document in which the ``author`` value is ``"Ada Limon"``
 
 .. literalinclude:: /includes/fundamentals/code-snippets/CRUD/bulkOps.go
    :language: go
    :dedent:
-   :start-after: begin bulk update model
-   :end-before: end bulk update model
+   :start-after: begin bulk update model client
+   :end-before: end bulk update model client
 
-Delete
-~~~~~~
+.. note::
 
-To perform a delete operation, create a ``DeleteOneModel`` specifying
-the document you want to delete. To delete multiple documents, use the
-``DeleteManyModel``. 
+   To update all documents that match the ``author`` field
+   query filters in the preceding example, use ``ClientUpdateManyModel``
+   instances.
 
-The ``DeleteOneModel`` and ``DeleteManyModel`` allow you to specify
-their behavior with the following methods:
+ClientDeleteOneModel and ClientDeleteManyModel
+``````````````````````````````````````````````
+
+To define a delete operation for a bulk write, create
+a ``ClientDeleteOneModel`` specifying the document you want
+to delete. To delete multiple documents, use the
+``ClientDeleteManyModel``. 
+
+You can specify the behavior of each of the delete models
+by using the following methods:
 
 .. list-table::
    :widths: 30 70
@@ -270,83 +581,158 @@ their behavior with the following methods:
    * - ``SetHint()`` 
      - | The index to use to scan for documents.
 
-Example
-```````
+This example creates ``ClientDeleteOneModel`` instances to define
+the following operations:
 
-The following example creates a ``DeleteManyModel`` to delete
-documents where the ``length`` is greater than ``300``:
+- Delete operation on the ``books`` collection to delete a 
+  document in which the ``length`` value is ``103``
+
+- Delete operation on the ``poems`` collection to delete a 
+  document in which the ``year`` value is ``1855``
 
 .. literalinclude:: /includes/fundamentals/code-snippets/CRUD/bulkOps.go
    :language: go
    :dedent:
-   :start-after: begin bulk delete model
-   :end-before: end bulk delete model
+   :start-after: begin bulk delete model client
+   :end-before: end bulk delete model client
 
-Execution Order
----------------
+Modify Client-Level Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``BulkWrite()`` method allows you to specify if you want to
-execute the bulk operations as ordered or unordered in its
-``BulkWriteOptions``. 
+To modify the behavior of your bulk write operation, pass a ``ClientBulkWriteOptions``
+instance to the ``BulkWrite()`` method.
+
+The ``ClientBulkWriteOptions`` type allows you to configure options by using the
+following methods:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``SetBypassDocumentValidation()`` 
+     - | Specifies whether the operation can opt-out of document level validation.
+       | Default: ``false``
+
+   * - ``SetOrdered()``
+     - | Specifies whether the driver stops performing write operations after an error occurs. 
+       | Default: ``true``
+
+   * - ``SetComment()``
+     - | Specifies a comment to attach to the operation.
+       | Default: ``nil``
+
+   * - ``SetLet()``
+     - | Specifies a document with a list of values to improve operation readability. Values
+         must be constant or closed expressions that don't reference document fields. For more
+         information, see the ``let`` field for the :manual:`delete
+         </reference/command/delete/#std-label-delete-let-syntax>` and :manual:`update
+         </reference/command/update/#std-label-update-let-syntax>` commands in the {+mdb-server+}
+         manual.
+       | Default: ``nil``
+
+   * - ``SetWriteConcern()``
+     - | Specifies the write concern for the operations. 
+       | Default: ``nil``
+
+   * - ``SetVerboseResults()``
+     - | Specifies whether detailed information about each successful operation is
+         included in the result.
+       | Default: ``false``
+
+Client-Level Return Value
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``BulkWrite()`` method returns a ``ClientBulkWriteResult`` type, which
+includes information about the bulk operation.
+
+The ``ClientBulkWriteResult`` type contains the following properties:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Property
+     - Description
+
+   * - ``InsertedCount``
+     - The number of documents inserted.
+
+   * - ``MatchedCount``
+     - The number of documents matched by the :ref:`query filter <golang-query-filter-definition>` in update and replace operations.
+
+   * - ``ModifiedCount``
+     - The number of documents modified by update and replace operations.
+
+   * - ``DeletedCount``
+     - The number of documents deleted.
+   
+   * - ``UpsertedCount`` 
+     - The number of documents :ref:`upserted <golang-upsert-definition>` by update and replace operations.
+
+   * - ``InsertResults`` 
+     - A map of an operation index to the ``_id`` value of each inserted document.
+
+   * - ``UpdateResults`` 
+     - A map of an operation index to the ``_id`` value of each updated document.
+
+   * - ``DeleteResults`` 
+     - A map of an operation index to the ``_id`` value of each deleted document.
+
+   * - ``Acknowledged`` 
+     - A boolean value that indicates whether the write operation was acknowledged.
+
+   * - ``HasVerboseResults`` 
+     - A boolean value that indicates whether the result contains detailed results.
+
+Client-Level Execution Order
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To specify whether the bulk write performs the operations
+in order, you can set the ``Ordered`` option
+to a boolean value. To set this option, specify the ``Ordered``
+field of a ``ClientBulkWriteOptions`` instance.
 
 Ordered
-~~~~~~~
+```````
 
 By default, the ``BulkWrite()`` method executes bulk operations in
 order you added them and stops if an error occurs.
 
 .. tip::
 
-   This is equivalent to specifying ``true`` in the ``SetOrdered()``
-   method: 
+   This is equivalent to passing a value of ``true`` to the ``SetOrdered()``
+   method, as shown in the following code: 
 
    .. code-block:: go
-
-      opts := options.BulkWrite().SetOrdered(true)
+      
+      opts := options.ClientBulkWrite().SetOrdered(true)
 
 Unordered
-~~~~~~~~~
+`````````
 
-To execute bulk write operations in any order and continue if an error
-occurs, specify ``false`` to the ``SetOrdered()`` method. The method
-reports the errors afterward.
-
-Example
-```````
+To run bulk write operations in any order and continue if an error
+occurs, pass a value of ``false`` to the ``SetOrdered()`` method. The method
+reports errors after the operation completes.
 
 The following example performs the following actions in any order: 
 
-- Inserts two documents.
-- Replaces a document where the ``title`` is "My Brilliant Friend" with a new document.
-- Increments every document's ``length`` by ``10`` if the current
-  ``length`` value is less than ``200``.
-- Deletes all documents where the ``author`` field value includes "Jam".
+- Inserts a new document into the ``books`` and ``poems`` collections
+- Updates a document in the ``poems`` collection that has a ``title``
+  value of ``"The Raincoat"``
+- Replaces a document in the ``books`` collection that has a ``title``
+  value of ``"My Brilliant Friend"``
 
 .. io-code-block::
    :copyable: true
 
-   .. input::
+   .. input:: /includes/fundamentals/code-snippets/CRUD/bulkOps.go
+      :start-after: begin unordered client
+      :end-before: end unordered client
       :language: go
-
-      models := []mongo.WriteModel{
-        mongo.NewInsertOneModel().SetDocument(Book{Title: "Middlemarch", Author: "George Eliot", Length: 904}),
-        mongo.NewInsertOneModel().SetDocument(Book{Title: "Pale Fire", Author: "Vladimir Nabokov", Length: 246}),
-        mongo.NewReplaceOneModel().SetFilter(bson.D{{"title", "My Brilliant Friend"}}).
-      	  SetReplacement(Book{Title: "Atonement", Author: "Ian McEwan", Length: 351}),
-        mongo.NewUpdateManyModel().SetFilter(bson.D{{"length", bson.D{{"$lt", 200}}}}).
-      	  SetUpdate(bson.D{{"$inc", bson.D{{"length", 10}}}}),
-        mongo.NewDeleteManyModel().SetFilter(bson.D{{"author", bson.D{{"$regex", "Jam"}}}}),
-      }
-      opts := options.BulkWrite().SetOrdered(false)
-      
-      results, err := coll.BulkWrite(context.TODO(), models, opts)
-      if err != nil {
-         panic(err)
-      }
-      
-      fmt.Printf("Number of documents inserted: %d\n", results.InsertedCount)
-      fmt.Printf("Number of documents replaced or updated: %d\n", results.ModifiedCount)
-      fmt.Printf("Number of documents deleted: %d\n", results.DeletedCount)
+      :dedent:
 
    .. output::
       :language: none
@@ -354,17 +740,6 @@ The following example performs the following actions in any order:
 
       Number of documents inserted: 2
       Number of documents replaced or updated: 2
-      Number of documents deleted: 1
-
-The following documents are present in the ``books`` collection after
-the bulk operation:
-
-.. code-block:: none
-   :copyable: false
-
-   {"title":"Atonement","author":"Ian McEwan","length":351}
-   {"title":"Middlemarch","author":"George Eliot","length":904}
-   {"title":"Pale Fire","author":"Vladimir Nabokov","length":246}
 
 Additional Information
 ----------------------
@@ -387,16 +762,28 @@ following guides:
 API Documentation
 ~~~~~~~~~~~~~~~~~
 
-To learn more about any of the methods or types discussed in this
-guide, see the following API Documentation:
+To learn more about the methods or types used for collection bulk
+writes, see the following API documentation:
 
-- `BulkWrite() <{+api+}/mongo#Collection.BulkWrite>`__
+- `Collection.BulkWrite() <{+api+}/mongo#Collection.BulkWrite>`__
 - `BulkWriteOptions <{+api+}/mongo/options#BulkWriteOptions>`__
 - `BulkWriteResult <{+api+}/mongo#BulkWriteResult>`__
-- `NewInsertOneModel() <{+api+}/mongo#NewUpdateOneModel>`__
-- `NewReplaceOneModel() <{+api+}/mongo#NewReplaceOneModel>`__
+- `NewInsertOneModel() <{+api+}/mongo#NewInsertOneModel>`__
 - `NewReplaceOneModel() <{+api+}/mongo#NewReplaceOneModel>`__
 - `NewUpdateOneModel() <{+api+}/mongo#NewUpdateOneModel>`__
-- `NewUpdateManyModel() <{+api+}/mongo#NewReplaceOneModel>`__
-- `NewDeleteOneModel() <{+api+}/mongo#NewReplaceOneModel>`__
-- `NewDeleteManyModel() <{+api+}/mongo#NewReplaceOneModel>`__
+- `NewUpdateManyModel() <{+api+}/mongo#NewUpdateManyModel>`__
+- `NewDeleteOneModel() <{+api+}/mongo#NewDeleteOneModel>`__
+- `NewDeleteManyModel() <{+api+}/mongo#NewDeleteManyModel>`__
+
+To learn more about the methods or types used for client bulk writes,
+see the following API documentation:
+
+- `Client.BulkWrite() <{+api+}/mongo#Client.BulkWrite>`__
+- `ClientBulkWriteOptions <{+api+}/mongo/options#ClientBulkWriteOptions>`__
+- `ClientBulkWriteResult <{+api+}/mongo#ClientBulkWriteResult>`__
+- `NewClientInsertOneModel() <{+api+}/mongo#NewClientInsertOneModel>`__
+- `NewClientReplaceOneModel() <{+api+}/mongo#NewClientReplaceOneModel>`__
+- `NewClientUpdateOneModel() <{+api+}/mongo#NewClientUpdateOneModel>`__
+- `NewClientUpdateManyModel() <{+api+}/mongo#NewClientUpdateManyModel>`__
+- `NewClientDeleteOneModel() <{+api+}/mongo#NewClientDeleteOneModel>`__
+- `NewClientDeleteManyModel() <{+api+}/mongo#NewClientDeleteManyModel>`__
