@@ -66,11 +66,10 @@ public class CompoundOperatorsIndividualExamples {
         // Creates an update document to set the value of "food" to "pizza"
         Bson update = Updates.set("food", "pizza");
 
-        // Defines options that specify projected fields, permit an upsert and limit execution time
-        FindOneAndUpdateOptions options = new FindOneAndUpdateOptions().
-                projection(projection).
-                upsert(true).
-                maxTime(5, TimeUnit.SECONDS);
+        // Defines options that specify projected fields and permit upserts
+        FindOneAndUpdateOptions options = new FindOneAndUpdateOptions()
+                .projection(projection)
+                .upsert(true);
         
         // Updates the first matching document with the content of the update document, applying the specified options
         Document result = collection.findOneAndUpdate(filter, update, options);
