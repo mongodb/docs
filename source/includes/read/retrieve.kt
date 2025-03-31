@@ -41,6 +41,5 @@ fun main() {
     val results = collection
         .find(eq(Restaurant::cuisine.name, "Spanish"))
         .limit(10)
-        .maxTime(10000)
     // end-modified-find
 }
