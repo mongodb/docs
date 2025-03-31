@@ -4,10 +4,9 @@ import com.mongodb.ClientSessionOptions
 import com.mongodb.ConnectionString
 import com.mongodb.MongoClientSettings
 import com.mongodb.TransactionOptions
-import com.mongodb.client.MongoClient
-import com.mongodb.client.MongoClients
 import com.mongodb.client.cursor.TimeoutMode
 import com.mongodb.client.model.Filters
+import com.mongodb.kotlin.client.MongoClient
 import org.bson.Document
 import java.util.concurrent.TimeUnit
 
@@ -19,14 +18,14 @@ class CsotExample {
             .timeout(200L, TimeUnit.MILLISECONDS)
             .build()
 
-        val client = MongoClients.create(settings)
+        val client = MongoClient.create(settings)
         // end-mongoclientsettings
     }
 
     private fun connectionString() {
         // start-string
         val uri = "<connection string>/?timeoutMS=200"
-        val client = MongoClients.create(uri)
+        val client = MongoClient.create(uri)
         // end-string
     }
 
@@ -37,9 +36,9 @@ class CsotExample {
             .timeout(200L, TimeUnit.MILLISECONDS)
             .build()
 
-        MongoClients.create(settings).use { mongoClient ->
+        MongoClient.create(settings).use { mongoClient ->
             val database = mongoClient.getDatabase("db")
-            val collection = database.getCollection("people")
+            val collection = database.getCollection<Document>("people")
             collection.insertOne(Document("name", "Francine Loews"))
         }
         // end-operation-timeout
@@ -52,10 +51,10 @@ class CsotExample {
             .timeout(200L, TimeUnit.MILLISECONDS)
             .build()
 
-        MongoClients.create(settings).use { mongoClient ->
+        MongoClient.create(settings).use { mongoClient ->
             val database = mongoClient.getDatabase("db")
             val collection = database
-                .getCollection("people")
+                .getCollection<Document>("people")
                 .withTimeout(300L, TimeUnit.MILLISECONDS)
         }
         // end-override
@@ -65,10 +64,10 @@ class CsotExample {
         val settings = MongoClientSettings.builder()
             .applyConnectionString(ConnectionString("<connection string>"))
             .build()
-        MongoClients.create(settings).use { mongoClient ->
+        MongoClient.create(settings).use { mongoClient ->
             val collection = mongoClient
                 .getDatabase("db")
-                .getCollection("people")
+                .getCollection<Document>("people")
 
             // start-session-timeout
             val opts = ClientSessionOptions.builder()
@@ -93,10 +92,10 @@ class CsotExample {
             .timeout(200L, TimeUnit.MILLISECONDS)
             .build()
 
-        MongoClients.create(settings).use { mongoClient ->
+        MongoClient.create(settings).use { mongoClient ->
             val collection = mongoClient
                 .getDatabase("db")
-                .getCollection("people")
+                .getCollection<Document>("people")
 
             // start-cursor-lifetime
             val cursorWithLifetimeTimeout = collection
