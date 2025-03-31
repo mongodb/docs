@@ -13,7 +13,7 @@ sampling:
    use social
    db.post.configureQueryAnalyzer( 
       {
-         mode: full,
+         mode: "full",
          samplesPerSecond: 5
       } 
    )
@@ -29,7 +29,7 @@ samples, the following code block uses the |analyzeShardKey| to sample
       { _id: 1 },
       {
          keyCharacteristics: true,
-         readWriteDistribution: false
+         readWriteDistribution: false,
          sampleSize: 10000
       }
    )
