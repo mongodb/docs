@@ -32,6 +32,20 @@
 
       #. Click :guilabel:`Next, generate endpoint ID`
 
+   .. step:: Approve the connection request within EventHub.
+
+      a. Log in to your |azure| account.
+
+      #. Go to your EventHub namespace.
+
+      #. Click :guilabel:`Settings`, :guilabel:`Networking`, :guilabel:`Private
+	 endpoint connections`.
+
+      #. Select and approve your incoming request.
+
+	 The request ID value appears in the :guilabel:`Private
+	 endpoint` column.
+	 
 You may now view your |azure| EventHub private endpoint in the
 :guilabel:`Network Access` interface under the
 :guilabel:`{+atlas-sp+}` tab by clicking the :guilabel:`View` button
