@@ -73,11 +73,11 @@ categorizes data in a searchable format.
 To learn how to create an Atlas Search Index see the
 :atlas:`Create an Atlas Search Index </atlas-search/create-index>` Atlas guide.
 
-Atlas Search Operators
-----------------------
+Atlas Search Operators and Collectors
+-------------------------------------
 
 The ``Search`` class contains methods you can use to perform ``$search``
-operations. For a full list of available ``$search`` operators, see the :atlas:`Operators and Collectors
+operations. For a full list of available ``$search`` operators and collectors, see the :atlas:`Operators and Collectors
 </atlas-search/operators-and-collectors>` Atlas guide.
 
 Autocomplete
@@ -241,6 +241,40 @@ The search returns the following documents:
 
 
 To learn more about the ``exists`` operator, see the :atlas:`exists </atlas-search/exists>` 
+Atlas guide.
+
+Facet
+~~~~~
+
+Use the ``Facet()`` method to group results by values or ranges in the specified faceted fields 
+and return the count for each of those groups.
+
+You can use the ``Facet()`` method with both the ``$search`` and ``$searchMeta`` stages. MongoDB recommends using 
+facet with the ``$searchMeta`` stage to retrieve metadata results only for the query. 
+To retrieve metadata results and query results using the ``$search`` stage, you must use the 
+``$$SEARCH_META`` aggregation variable. To learn more about this variable, see the :atlas:`SEARCH_META Aggregation Variable </atlas-search/facet/#std-label-fts-facet-aggregation-variable>` Atlas guide.
+
+The following limitations apply:
+
+- You can run facet queries on a single field only. You can't run facet queries on groups of fields.
+- You can run facet queries over sharded collections on clusters running MongoDB v6.0 only.
+
+The following example searches the ``guitars`` collection for any documents in
+which the value of the ``in_stock`` field is ``true``. The query uses the ``Facet()`` method to process the input documents, with a maximum number of ``100`` facet categories to return in the results. The query returns the total count of documents in which the value of ``in_stock`` is ``true``.
+
+.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
+   :start-after: // start-facet-search
+   :end-before: // end-facet-search
+   :language: csharp
+   :dedent:
+
+The search returns the following result:
+
+.. code-block:: none
+
+   4
+
+To learn more about the ``facet`` collector, see the :atlas:`facet </atlas-search/facet>` 
 Atlas guide.
 
 GeoShape
@@ -703,6 +737,60 @@ The search returns the following document:
 To learn more about the ``wildcard`` operator, see the :atlas:`wildcard </atlas-search/wildcard>` 
 Atlas guide.
 
+Search Multiple Fields
+----------------------
+
+The ``path`` parameter is used by the Atlas Search
+:atlas:`operators </atlas-search/query-syntax>` to specify the field or fields
+to be searched. To learn more about what the ``path`` parameter may contain, see the :atlas:`Construct a Query Path </atlas-search/path-construction>` guide.
+
+.. note::
+
+   Not all operators can use all the different types of paths. See the
+   documentation for each individual operator for details on what types 
+   of path it supports.
+
+To search multiple indexed fields, use the ``Multi()`` method and pass in your fields. Documents which match on any of the specified fields are included in the result set.
+
+The following example searches for the string ``classic`` in either the ``make`` or the ``description`` field.
+
+.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
+   :start-after: // start-multiple-field-search
+   :end-before: // end-multiple-field-search
+   :language: csharp
+   :dedent:
+
+The search returns the following documents:
+
+.. code-block:: json
+
+   { "_id" : 1, "make" : "Fender", "description" : "Classic guitars known for their versatility.", "establishedYear" : 1946, "in_stock" : true, "rating" : 9}
+   { "_id" : 2, "make" : "Gibson", "description" : "Classic guitars known for their rich, full tones.", "establishedYear" : 1902, "in_stock" : true, "rating" : 8}
+
+Score Documents
+---------------
+
+Every document returned by an Atlas Search query is assigned a score based on relevance, and the documents included in a result set are returned in order from highest score to lowest. To learn more about how scores are assigned, see the :atlas:`score </atlas-search/scoring>` Atlas guide. 
+
+The score assigned to a returned document is part of the document's metadata. You can include each returned document's score along with the result set by using a ``$project`` stage in your aggregation pipeline.
+
+The following example searches the ``guitars`` collection for documents in which the value of the ``make`` field contains exactly six letters and uses a ``$project`` stage to add a field named ``score`` to the returned documents.
+
+.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
+   :start-after: // start-score-search
+   :end-before: // end-score-search
+   :language: csharp
+   :dedent:
+
+The search returns the following documents:
+
+.. code-block:: json
+
+   { "_id" : 1, "make" : "Fender", "description" : "Classic guitars known for their versatility.", "establishedYear" : 0, "in_stock" : false, "rating" : null, "score" : 1.0 }
+   { "_id" : 4, "make" : "Kiesel", "description" : "Quality guitars made only for custom orders.", "establishedYear" : 0, "in_stock" : false, "rating" : null, "score" : 1.0 }
+   { "_id" : 5, "make" : "Ibanez", "description" : "Well-crafted guitars used by many professional guitarists.", "establishedYear" : 0, "in_stock" : false, "rating" : null, "score" : 1.0 }
+   { "_id" : 2, "make" : "Gibson", "description" : "Classic guitars known for their rich, full tones.", "establishedYear" : 0, "in_stock" : false, "rating" : null, "score" : 1.0 }
+
 Modify Atlas Search Behavior
 ----------------------------
 
@@ -814,4 +902,8 @@ The search returns the following document:
 .. tip::
 
    To learn more about Atlas Search pagination, see :atlas:`Paginate the Results </atlas-search/paginate-results/>` 
+<<<<<<< HEAD
    in the Atlas documentation.
+=======
+   in the Atlas documentation.
+>>>>>>> 38fabc7 (DOCSP-28393 C# new atlas search examples (#521))
