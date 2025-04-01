@@ -1,0 +1,417 @@
+.. _vertex-ai-extensions:
+
+=============================================================
+Use Vertex AI Extensions for Natural Language MongoDB Queries
+=============================================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :description: Use Vertex AI Extensions to perform real-time data querying and run natural language queries on MongoDB Atlas.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. note::
+
+   Vertex AI Extensions are in preview and subject to change.
+   Contact your |gcp| representative to learn how to access
+   this feature. 
+   
+In addition to using Vertex AI with {+avs+} to implement |rag|, you
+can use `Vertex AI Extensions 
+<https://cloud.google.com/vertex-ai/generative-ai/docs/extensions/overview>`__ 
+to further customize how you use Vertex AI models to interact with |service|.
+In this tutorial, you create a Vertex AI Extension that allows you to query your
+data in |service| in real-time by using natural language.
+
+.. figure:: /images/vertex-ai-extensions-diagram.png
+   :figwidth: 100%
+   :alt: Diagram of workflow with Vertex AI Extensions and MongoDB Atlas
+
+Background
+----------
+
+This tutorial uses the following components to enable 
+natural language querying with |service|:
+
+- **Google Cloud Vertex AI SDK** to 
+  manage AI models and enable custom extensions for Vertex AI. This 
+  tutorial uses the Gemini 1.5 Pro model.
+
+- **Google Cloud Run** to deploy a function that serves as an API
+  endpoint between Vertex AI and |service|.
+
+- **OpenAPI 3 Specification for MongoDB API** to
+  define how natural language queries map to MongoDB operations.
+  To learn more, see `OpenAPI Specification <https://swagger.io/specification/>`__.
+
+- **Vertex AI Extensions** to enable real-time interaction 
+  with |service| from Vertex AI and configure how natural 
+  language queries are processed.
+
+- **Google Cloud Secrets Manager** to 
+  store your MongoDB |api| keys.
+ 
+.. note::
+
+   For detailed code and set-up instructions, see the
+   :github:`GitHub repository </mongodb-partners/MongoDB-VertexAI-extensions/tree/main>`
+   for this example.
+
+Prerequisites
+-------------
+
+Before you start, you must have the following:
+
+- A |service-fullname| account. To sign up, use the
+  `Google Cloud Marketplace <https://console.cloud.google.com/marketplace/product/mongodb/mdb-atlas-self-service>`__
+  or :ref:`register a new account <atlas-register-account>`.
+- An {+service+} cluster with the :ref:`sample dataset <sample-data>` loaded. To learn more, see :ref:`create-new-cluster`.
+- A Google Cloud `project <https://cloud.google.com/resource-manager/docs/creating-managing-projects>`__.
+- A `Google Cloud Storage bucket <https://cloud.google.com/storage/docs/creating-buckets>`__
+  for storing the OpenAPI specification.
+- The following APIs `enabled <https://cloud.google.com/endpoints/docs/openapi/enable-api>`__ 
+  for your project:
+
+  - Cloud Build API
+  - Cloud Functions API
+  - Cloud Logging API
+  - Cloud Pub/Sub API
+
+- A `Colab Enterprise <https://cloud.google.com/colab/docs/introduction>`__ environment.
+
+Create a Google Cloud Run Function 
+----------------------------------
+
+In this section, you create a Google Cloud Run function that serves as an API 
+endpoint between Vertex AI Extension and your |service| {+cluster+}. The function 
+handles authentication, connects to your |service| {+cluster+}, and performs database 
+operations based on the requests from Vertex AI.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create a new function.
+
+      In the |gcp| console, open the 
+      `Cloud Run <https://console.cloud.google.com/functions>`__ page
+      and click :guilabel:`Write a function`.
+   
+   .. step:: Configure the function.
+
+      a. Specify a function name and |gcp| region where you want to deploy your function.
+      #. Select the latest :guilabel:`Python` version available as a :guilabel:`Runtime`.
+      #. In the :guilabel:`Authentication section`, select :guilabel:`Allow unauthenticated invocations`.
+      #. Use the default values for the remaining settings, and then click :guilabel:`Next`.
+
+      For detailed configuration steps, refer to the `Cloud Run documentation 
+      <https://cloud.google.com/run/docs/deploy-functions>`__. 
+
+   .. step:: Define the function code.
+
+      Paste the following code into their respective files:
+
+      .. collapsible::
+         :heading: main.py
+         :sub_heading: Copy and paste the following code into your main.py file.
+         :expanded: false
+
+         After pasting the following code, replace ``<connection-string>`` 
+         with your |service| connection string.
+
+         .. include:: /includes/fact-connection-string-format-drivers.rst
+
+         .. literalinclude:: /includes/ai-integrations/vertex-ai/main.py
+            :language: python
+            :copyable:
+         
+      .. collapsible::
+         :heading:  requirements.txt
+         :sub_heading: Copy and paste the following code into your requirements.txt file.
+         :expanded: false
+         
+         .. code-block::
+
+            functions-framework==3.*
+            pymongo
+            pymongo[srv]
+
+   .. step:: Deploy the function.
+
+      a. Rename the :guilabel:`Entry Point` as ``mongodb_crud``.
+      #. Click :guilabel:`Deploy` to deploy the function.
+      #. Copy and store the HTTPS Endpoint for triggering the Cloud Function locally.
+      #. Navigate to the :guilabel:`Details` page for the function and
+         copy and store the service account name used by the function.
+
+Create a Vertex AI Extension
+----------------------------
+
+In this section, you create a Vertex AI Extension that enables natural language querying 
+on your data in |service| by using the Gemini 1.5 Pro model. This extension uses 
+an OpenAPI specification and the Cloud Run function you created to map
+natural language to database operations and query your data in |service|.
+
+To implement this extension, you use an interactive Python notebook, which allows 
+you to run Python code snippets individually. For this tutorial, you create a 
+notebook named ``mongodb-vertex-ai-extension.ipynb`` in an `Colab Enterprise 
+<https://cloud.google.com/colab/docs/introduction>`__ environment.
+
+.. collapsible::
+   :heading: mongodb-vertex-ai-extension.ipynb
+   :sub_heading: Copy and paste the following code into your notebook.
+
+   .. procedure::
+      :style: normal
+
+      .. step:: Set up the environment.
+
+         a. Authenticate your Google Cloud account and set the project ID.
+
+            .. code-block:: python
+
+               from google.colab import auth
+               auth.authenticate_user("GCP project id")
+               !gcloud config set project {"GCP project id"}
+         
+         #. Install the required dependencies.
+
+            .. code-block:: python
+
+               !pip install --force-reinstall --quiet google_cloud_aiplatform
+               !pip install --force-reinstall --quiet langchain==0.0.298
+               !pip install --upgrade google-auth
+               !pip install bigframes==0.26.0
+
+         #. Restart the kernel.
+
+            .. code-block:: python
+
+               import IPython
+               app = IPython.Application.instance()
+               app.kernel.do_shutdown(True)
+               
+         #. Set the environment variables.
+
+            Replace the sample values with the correct values that correspond to your project.
+          
+            .. code-block:: python
+
+               import os
+               # These are sample values; replace them with the correct values that correspond to your project
+               os.environ['PROJECT_ID'] = 'gcp project id'  # GCP Project ID
+               os.environ['REGION'] = "us-central1" # Project Region
+               os.environ['STAGING_BUCKET'] = "gs://vertexai_extensions" # GCS Bucket location
+               os.environ['EXTENSION_DISPLAY_HOME'] = "MongoDb Vertex API Interpreter" # Extension Config Display Name
+               os.environ['EXTENSION_DESCRIPTION'] = "This extension makes api call to mongodb to do all crud operations" # Extension Config Description
+               os.environ['MANIFEST_NAME'] = "mdb_crud_interpreter" # OPEN API Spec Config Name
+               os.environ['MANIFEST_DESCRIPTION'] = "This extension makes api call to mongodb to do all crud operations" # OPEN API Spec Config Description
+               os.environ['OPENAPI_GCS_URI'] = "gs://vertexai_extensions/mongodbopenapispec.yaml" # OPEN API GCS URI
+               os.environ['API_SECRET_LOCATION'] = "projects/787220387490/secrets/mdbapikey/versions/1" # API KEY secret location
+               os.environ['LLM_MODEL'] = "gemini-1.5-pro" # LLM Config
+
+      .. step:: Download the Open API specification.
+
+         Download the Open API specification from GitHub and upload the YAML file to 
+         the Google Cloud Storage bucket.
+
+         .. code-block:: python
+
+            from google.cloud import aiplatform
+            from google.cloud.aiplatform.private_preview import llm_extension
+
+            PROJECT_ID = os.environ['PROJECT_ID']
+            REGION = os.environ['REGION']
+            STAGING_BUCKET = os.environ['STAGING_BUCKET']
+
+            aiplatform.init(
+              project=PROJECT_ID,
+              location=REGION,
+              staging_bucket=STAGING_BUCKET,
+            )
+
+      .. step:: Create the Vertex AI extension.
+
+         The following manifest is a structured JSON object that
+         configures key components for the extension. Replace ``<service-account>`` 
+         with the service account name used by your Cloud Run function.
+
+         .. code-block:: python
+
+            from google.cloud import aiplatform
+            from vertexai.preview import extensions
+
+            mdb_crud = extensions.Extension.create(
+               display_name = os.environ['EXTENSION_DISPLAY_HOME'],
+               # Optional.
+               description = os.environ['EXTENSION_DESCRIPTION'],
+               manifest = {
+                 "name": os.environ['MANIFEST_NAME'],
+                 "description": os.environ['MANIFEST_DESCRIPTION'],
+                 "api_spec": {
+                 "open_api_gcs_uri": (
+                   os.environ['OPENAPI_GCS_URI']
+                 ),
+                 },
+                 "authConfig": {
+                  "authType": "OAUTH",
+                  "oauthConfig": {"service_account": "<service-account>"}
+                },
+               },
+             )
+            mdb_crud
+
+      .. step:: Validate the extension.
+
+         Validate the extension and print the operation schema and parameters:
+
+         .. code-block:: python
+
+            print("Name:", mdb_crud.gca_resource.name)
+            print("Display Name:", mdb_crud.gca_resource.display_name)
+            print("Description:", mdb_crud.gca_resource.description)
+            import pprint
+            pprint.pprint(mdb_crud.operation_schemas())
+
+Run Natural Language Queries
+----------------------------
+
+In `Vertex AI <https://console.cloud.google.com/vertex-ai>`__,
+click :guilabel:`Extensions` in the left navigation menu.
+Your new extension named :guilabel:`MongoDB Vertex API Interpreter` 
+appears in the list of extensions.
+
+The following examples demonstrates two different natural
+language queries you can use to query your data in |service|:
+
+.. collapsible::
+   :heading: Find the Release Date of a Movie
+   :sub_heading: Run a natural language query to find the release date of a specific movie.
+   :expanded: false
+
+   In this example, you ask Vertex AI to find the release year of a specific movie
+   titled ``A Corner in Wheat``. You can run this natural language query by using
+   the Vertex AI platform or your Colab notebook:
+   
+   .. tabs::
+
+      .. tab:: Vertex AI
+         :tabid: vertex-ai
+
+         Select the extension named :guilabel:`MongoDB Vertex API Interpreter`
+         and enter the following natural language query:
+
+         .. code-block:: 
+
+            Find the release year of the movie 'A Corner in Wheat' from VertexAI-POC cluster, sample_mflix, movies 
+
+         .. figure:: /images/vertex-ai-extension-find-one.png
+            :figwidth: 70%
+            :alt: Screenshot of the Vertex AI response to the natural language query
+
+      .. tab:: Colab Notebook
+         :tabid: colab
+
+         Paste and run the following code in ``mongodb-vertex-ai-extension.ipynb``
+         to find the release date of a specific movie:
+
+         .. code-block:: python
+            
+            ## Please replace accordingly to your project
+            ## Operation Ids
+            os.environ['FIND_ONE_OP_ID'] = "findone_mdb"
+
+            ## NL Queries
+            os.environ['FIND_ONE_NL_QUERY'] = "Find the release year of the movie 'A Corner in Wheat' from VertexAI-POC cluster, sample_mflix, movies"
+
+            ## Mongodb Config
+            os.environ['DATA_SOURCE'] = "VertexAI-POC"
+            os.environ['DB_NAME'] = "sample_mflix"
+            os.environ['COLLECTION_NAME'] = "movies"
+
+            ### Test data setup
+            os.environ['TITLE_FILTER_CLAUSE'] = "A Corner in Wheat"
+
+            from vertexai.preview.generative_models import GenerativeModel, Tool
+
+            fc_chat = GenerativeModel(os.environ['LLM_MODEL']).start_chat()
+            findOneResponse = fc_chat.send_message(os.environ['FIND_ONE_NL_QUERY'],
+                tools=[Tool.from_dict({        "function_declarations": mdb_crud.operation_schemas()
+               })],
+            )
+            print(findOneResponse)
+
+         .. code-block:: python
+
+            response = mdb_crud.execute(
+              operation_id = findOneResponse.candidates[0].content.parts[0].function_call.name,
+              operation_params = findOneResponse.candidates[0].content.parts[0].function_call.args
+            )
+            print(response)
+
+.. collapsible::
+   :heading: Find All Movies Released in a Specific Year
+   :sub_heading: Run a natural language query to find the release date of a specific movie.
+   :expanded: false
+
+   In this example, you ask Vertex AI to find all movies released in the year ``1924``.
+   You can run this natural language query by using the Vertex AI platform or your Colab notebook:
+   
+   .. tabs::
+    
+      .. tab:: Vertex AI
+         :tabid: vertex-ai
+
+         Select the extension named :guilabel:`MongoDB Vertex API Interpreter`
+         and enter the following natural language query:
+
+         .. code-block:: 
+
+            give me movies released in year 1924 from VertexAI-POC cluster, sample_mflix, movies
+
+         .. figure:: /images/vertex-ai-extension-find-all.png
+            :figwidth: 70%
+            :alt: Screenshot of the Vertex AI response to the natural language query
+
+      .. tab:: Colab Notebook
+         :tabid: colab
+
+         Paste and run the following code in ``mongodb-vertex-ai-extension.ipynb``
+         to find all movies released in a specific year:
+
+         .. code-block:: python
+              
+            ## This is just a sample values please replace accordingly to your project
+            ## Operation Ids
+            os.environ['FIND_MANY_OP_ID'] = "findmany_mdb"
+
+            ## NL Queries
+            os.environ['FIND_MANY_NL_QUERY'] = "give me movies released in year 1924 from VertexAI-POC cluster, sample_mflix, movies"
+
+            ## Mongodb Config
+            os.environ['DATA_SOURCE'] = "VertexAI-POC"
+            os.environ['DB_NAME'] = "sample_mflix"
+            os.environ['COLLECTION_NAME'] = "movies"
+            os.environ['YEAR'] = 1924
+            fc_chat = GenerativeModel(os.environ['LLM_MODEL']).start_chat()
+            findmanyResponse = fc_chat.send_message(os.environ['FIND_MANY_NL_QUERY'],
+                tools=[Tool.from_dict({        "function_declarations": mdb_crud.operation_schemas()
+               })],
+            )
+            print(findmanyResponse)
+
+         .. code-block:: python
+
+            response = mdb_crud.execute(
+              operation_id = findmanyResponse.candidates[0].content.parts[0].function_call.name,
+              operation_params = findmanyResponse.candidates[0].content.parts[0].function_call.args
+            )
+            print(response)

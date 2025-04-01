@@ -1,0 +1,190 @@
+.. _google-vertex-ai:
+
+===========================================
+Integrate {+service+} with Google Vertex AI
+===========================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :description: Integrate Google Vertex AI with MongoDB Atlas to build and deploy AI applications.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can integrate Vertex AI with |service-fullname| to build
+and deploy AI applications. The Vertex AI platform includes 
+several tools and pre-trained models from Google that you can use with 
+|service| for |rag| and other uses cases such as 
+:ref:`natural language querying <vertex-ai-extensions>`.
+
+Overview
+--------
+
+Vertex AI enables a variety of use cases
+with |service-fullname|:
+
+- Use foundation models from Google with {+avs+} 
+  to build AI applications and implement |rag|. 
+  To learn more, see `Google models <https://cloud.google.com/vertex-ai/generative-ai/docs/learn/models>`__.
+
+- Use Vertex AI extensions to customize how Google models 
+  interact with |service|. To get started, see :ref:`vertex-ai-extensions`.
+
+- Use the Vertex AI Agent Engine with |service| 
+  as the knowledge base for your AI agents.
+  To learn more, see `Vertex AI Agent Engine overview <https://cloud.google.com/vertex-ai/generative-ai/docs/agent-engine/>`__.
+
+Get Started
+-----------
+
+The following sample application demonstrates how to use Vertex AI 
+with |service| for |rag|. The application includes an interface
+that allows you to upload PDF documents and answer questions on
+the PDF data by using {+avs+} and Vertex AI models.
+
+Prerequisites
+~~~~~~~~~~~~~
+
+Before starting this tutorial, you must have the following:
+
+- .. include:: /includes/avs/shared/avs-requirements-cluster.rst
+- Access to a Google Cloud project with Vertex AI API enabled. To learn more, see
+  `Google Cloud documentation
+  <https://cloud.google.com/vertex-ai/docs/start/cloud-environment>`__.
+
+Create a Google Cloud Compute Instance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Follow the steps in the `Google Cloud documentation
+<https://cloud.google.com/compute/docs/instances/create-start-instance#console>`__
+to create and start a virtual machine (VM) instance in your |gcp| console. 
+Configure the Google Cloud VM instance with the following settings and use 
+the default settings for the remaining options:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Option
+     - Configuration
+
+   * - Name
+     - ``vertexai-chatapp``
+
+   * - Region and Zone
+     - Any |gcp| region and zone near your physical location
+
+   * - Machine Configuration
+     - - :guilabel:`Series`: High Memory
+       - :guilabel:`Machine Type`: ``n1-standard-1``
+
+   * - Boot disk
+     - :guilabel:`Size`: 100 GB
+
+   * - Access
+     - Allow full access to all Cloud APIs
+
+   * - Firewall
+     - Select all
+     
+   * - Networking
+     - For the External IP range, specify 
+       :guilabel:`Reserve external static IP address`
+
+Deploy and Run the Application
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This section loads a sample application that you 
+can use to transform and store PDFs in |service| and query them 
+using {+avs+}. To deploy and run the application on your 
+Google Cloud VM instance, complete the following steps:
+
+.. procedure::
+ :style: normal
+
+ .. step:: Create an {+avs+} index.
+
+    You must create an {+avs+} index named ``vector_index`` 
+    on the ``vertexaiApp.chat-vec`` namespace 
+    in your |service| {+cluster+} to enable queries against
+    your vector embeddings. Use the default settings 
+    and specify ``768`` dimensions.
+
+    To learn more, see :ref:`avs-types-vector-search`. 
+    
+ .. step:: Get the sample application.
+
+  Connect to the VM instance by using `SSH <https://cloud.google.com/compute/docs/connect/standard-ssh>`__.
+  In the environment, clone the GitHub repository 
+  that contains the application code:
+
+  .. code-block:: bash
+
+     git clone https://github.com/mongodb-partners/MongoDB-VertexAI-Qwiklab.git
+   
+  .. note::
+
+     To learn more about the application, see the :github:`repository 
+     </mongodb-partners/MongoDB-VertexAI-Qwiklab>`.
+
+ .. step:: Install the dependencies from the cloned repository.
+
+    Run the following commands to install the dependencies:
+
+    .. code-block:: shell
+
+       sudo apt update
+       sudo apt install python3-pip
+       sudo apt install git
+       cd MongoDB-VertexAI-Qwiklab
+       pip3 install -r requirements.txt
+
+ .. step:: Run the application using Streamlit.
+
+    .. code-block:: bash
+
+       streamlit run app.py
+
+ .. step:: Access the application.
+  
+    Open the public IP address of your VM in a web browser with the port 
+    shown in the command output.
+
+ .. step:: Upload PDF documents by using the application's interface. 
+  
+    In the application, upload PDF data that you want to search.
+
+    The repository includes a sample PDF file that you can use.
+    The app chunks the data into batches, converts each chunk into 
+    vector embeddings by using an embedding model from Vertex AI,
+    and ingests this data into your |service| collection.
+
+    .. tip:: 
+
+       After uploading the file, you can
+       view your vector embeddings :ref:`in the {+atlas-ui+} <atlas-ui-view-collections>`
+       by navigating to the ``vertexaiApp.chat-vec`` collection in your {+cluster+}.
+
+ .. step:: Answer questions on your data.
+  
+    a. In the application, click the :guilabel:`Q&A` tab. 
+
+    #. Enter a question in the search bar, and then press :guilabel:`Enter`.
+
+       The application performs |rag| by running a vector search 
+       query on your collection to retrieve the most relevant documents, 
+       and then uses a chat model from Vertex AI to generate a context-aware 
+       response.
+
+.. toctree::
+   :maxdepth: 1
+
+   Vertex AI Extensions </atlas-vector-search/ai-integrations/google-vertex-ai/extensions>
