@@ -163,7 +163,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - RHEL/CentOS/Oracle Linux 7.0+ [#oracle-support]_
+   * - RHEL/Oracle Linux 7.0+ [#oracle-support]_
      - x86_64
      - Enterprise
      - 
@@ -172,7 +172,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - RHEL/CentOS/Oracle Linux 7.0+ [#oracle-support]_
+   * - RHEL/Oracle Linux 7.0+ [#oracle-support]_
      - x86_64
      - Community
      - 
@@ -181,7 +181,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - RHEL/CentOS/Oracle Linux 6.2+ [#oracle-support]_
+   * - RHEL/Oracle Linux 6.2+ [#oracle-support]_
      - x86_64
      - Enterprise
      - 
@@ -190,7 +190,7 @@
      -
      - |checkmark|
 
-   * - RHEL/CentOS/Oracle Linux 6.2+ [#oracle-support]_
+   * - RHEL/Oracle Linux 6.2+ [#oracle-support]_
      - x86_64
      - Community
      - 
