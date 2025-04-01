@@ -3,9 +3,8 @@
    *Type*: boolean
 
    *Default*: false
-
    
-   Indicator as to you want a user to validate themselves using
+   Requirement for users to validate themselves with
    reCaptcha validation when they log into |mms|.
    
    Set to ``true`` to require
