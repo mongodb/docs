@@ -263,6 +263,35 @@ public class AtlasSearchExamples
         return result;
     }
 
+    public static List<Guitar> SearchAfter()
+    {
+        // start-pagination-options
+        var projection = Builders<Guitar>.Projection
+            .Include(x => x.Make)
+            .MetaSearchSequenceToken(x => x.PaginationToken);
+
+        var searchDefinition = Builders<Guitar>.Search.Text(g => g.Description, "classic");
+        var searchOptions = new SearchOptions<Guitar>
+        { IndexName = "default", Sort = Builders<Guitar>.Sort.Ascending(g => g.Id) }
+
+        // Runs the base search operation
+        var baseSearchResults = guitarsCollection.Aggregate()
+            .Search(searchDefinition, searchOptions)
+            .Project<Guitar>(projection)
+            .ToList();
+        
+        // Sets the starting point for the next search
+        searchOptions.SearchAfter = baseSearchResults[0].PaginationToken;
+
+        var result = guitarsCollection.Aggregate()
+            .Search(searchDefinition, searchOptions)
+            .Project<Guitar>(projection)
+            .ToList();
+        // end-pagination-options
+
+        return result;
+    }
+
     private static void Setup()
     {
         // This allows automapping of the camelCase database fields to our models. 
@@ -281,6 +310,7 @@ public class GuitarSearch
     public string Description { get; set; }
 }
 
+// start-guitar-class
 public class Guitar
 {
     public int Id { get; set; }
@@ -292,7 +322,10 @@ public class Guitar
     [BsonElement("in_stock_location")]
     public Location InStockLocation { get; set; }
     public int? Rating { get; set; }
+    [BsonElement("paginationToken")]
+    public string PaginationToken { get; set; }
 }
+// end-guitar-class
 
 public class Location
 {

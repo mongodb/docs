@@ -48,18 +48,11 @@ The examples in this guide use the following documents in a collection called
 
 The following ``Guitar`` class models the documents in this collection.
 
-.. code-block:: csharp
-
-   public class Guitar
-   {
-       public int Id { get; set; }
-       public string Make { get; set; }
-       public List<string> Models { get; set; }
-       public int EstablishedYear { get; set; }
-       [BsonElement("in_stock")]
-       public bool InStock { get; set; }
-       public int? Rating { get; set; }
-   }
+.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
+   :start-after: // start-guitar-class
+   :end-before: // end-guitar-class
+   :language: csharp
+   :dedent:
 
 .. note::
 
@@ -683,3 +676,116 @@ The search returns the following document:
 
 To learn more about the ``wildcard`` operator, see the :atlas:`wildcard </atlas-search/wildcard>` 
 Atlas guide.
+
+Modify Atlas Search Behavior
+----------------------------
+
+You can modify the behavior of the ``Search()`` method by passing
+a ``SearchOptions`` object as a parameter.
+
+The ``SearchOptions`` class contains the following properties:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Property
+     - Description
+
+   * - ``CountOptions`` 
+     - | The options for counting the search results.
+
+       | **Data type**: `SearchCountOptions <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.Search.SearchCountOptions.html>`__
+       | **Default**: ``null``
+
+   * - ``Highlight`` 
+     - | The options for displaying search terms in their original context.
+
+       | **Data type**: `SearchHighlightOptions<TDocument> <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.Search.SearchHighlightOptions-1.html>`__
+       | **Default**: ``null``
+
+   * - ``IndexName`` 
+     - | The index to use for the search.
+
+       | **Data type**: {+string-data-type+}
+       | **Default**: ``null``
+
+   * - ``ReturnStoredSource`` 
+     - | A flag that specifies whether to perform a full document lookup on
+         the database or to return only stored source fields directly from
+         Atlas Search.
+
+       | **Data type**: {+bool-data-type+}
+       | **Default**: ``false``
+
+   * - ``ScoreDetails`` 
+     - | A flag that specifies whether to return detailed information about the
+         score for each document in the results.
+
+       | **Data type**: {+bool-data-type+}
+       | **Default**: ``false``
+
+   * - ``SearchAfter`` 
+     - | The starting point for pagination. When set, the search retrieves documents
+         starting immediately after the specified reference point.
+
+       | **Data type**: {+string-data-type+}
+       | **Default**: ``null``
+
+   * - ``SearchBefore`` 
+     - | The end point for pagination. When set, the search retrieves documents
+         starting immediately before the specified reference point.
+
+       | **Data type**: {+string-data-type+}
+       | **Default**: ``null``
+
+   * - ``Sort`` 
+     - | The sorting criteria to apply to the results.
+
+       | **Data type**: `SortDefinition<TDocument> <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.SortDefinition-1.html>`__
+       | **Default**: ``null``
+
+   * - ``Tracking`` 
+     - | The options for tracking search terms.
+
+       | **Data type**: `SearchTrackingOptions <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.Search.SearchTrackingOptions.html>`__
+       | **Default**: ``null``
+
+SearchAfter Example
+~~~~~~~~~~~~~~~~~~~
+
+The following example paginates the results of an Atlas Search
+operation by performing the following actions:
+
+- Defines a projection that uses the ``MetaSearchSequenceToken()``
+  builder method, which specifies a ``PaginationToken`` to contain
+  the point of reference
+
+- Creates a ``SearchOptions`` instance and sets the index and sort
+  criteria to use
+
+- Runs an initial search to find documents that have a ``description`` field value containing
+  the text ``"classic"``, applying the projection and options to the operation
+
+- Sets the ``SearchAfter`` property of the same ``SearchOptions`` instance to
+  instruct the next search to begin after the base search's first result
+
+- Runs another search operation that has the same matching criteria and applies
+  the search options to paginate the results
+
+.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
+   :start-after: // start-pagination-options
+   :end-before: // end-pagination-options
+   :language: csharp
+   :dedent:
+
+The search returns the following document:
+
+.. code-block:: json
+
+   { "_id": 2, "make": "Gibson", "description": "Classic guitars known for their rich, full tones.", "establishedYear": 1902, "in_stock": true, "rating": 8 }
+
+.. tip::
+
+   To learn more about Atlas Search pagination, see :atlas:`Paginate the Results </atlas-search/paginate-results/>` 
+   in the Atlas documentation.
