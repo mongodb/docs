@@ -59,8 +59,8 @@ The following example prevents modifications to the {+cluster+} with ID
 
 .. _restrict-region-ui: 
 
-Restrict Region
-~~~~~~~~~~~~~~~
+Restrict Cloud Provider Region
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following example prevents users from creating or editing a {+cluster+}
 in the region ``aws:us-east-1``:
@@ -160,10 +160,23 @@ and ``4.4.4.4/32``:
     ) 
     unless { [ip("1.2.3.4/32"), ip("8.8.8.8/32"), ip("4.4.4.4/32")].containsAll(context.project.ipAccessList) };
 
+The following example ensures that all traffic to the {+cluster+} is prohibited 
+over public networks by requiring the IP access list to be empty.
+
+.. code::
+    :copyable: true 
+
+    forbid (
+      principal,
+      action == ResourcePolicy::Action::"project.ipAccessList.modify",
+      resource 
+    )
+    unless { context.project.ipAccessList.isEmpty() };
+
 .. _restrict-cluster-tier-ui: 
 
-Restrict {+Cluster+} Tier
-~~~~~~~~~~~~~~~~~~~~~~~~~
+Restrict {+Cluster+} Tier Sizes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following example uses the ``when`` clause to restrict |service| from
 provisioning or scaling  {+clusters+} to less than ``M30`` or greater than ``M60``:
@@ -201,8 +214,8 @@ The following example requires that a project has a :ref:`maintenance window <co
 
 .. _prevent-peering-modifications-ui:
 
-Prevent Modifications to Peering
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Prevent Modifications to Network Peering
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following example prevents modifications to |vpc| peering connections across 
 different cloud providers (|aws|, |gcp|, |azure|).
@@ -271,3 +284,65 @@ following details for your cloud provider and replace them in the example:
       resource
     ) 
     when {context.project.privateEndpoints == ["aws:vpce-042d72ded1748f314", "azure:/subscriptions/fd01aafc-b3re-2193-8497-83lp3m83a1a5/resourceGroups/rg-name/providers/Microsoft.Network/privateEndpoints/pe-name:10.0.0.4", "gcp:inductive-cocoa-108200:default"]};
+
+.. _restrict-tls-ui:
+
+Restrict |tls| Protocol and Cipher Suites
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example restricts the minimum |tls| version that your {+cluster+}
+accepts for incoming connections to |tls| 1.2. 
+
+Possible values for ``minTLSVersion`` include:
+
+* **TLS 1.0**: ``ResourcePolicy::TLSVersion::"tls1_0"``
+* **TLS 1.1**: ``ResourcePolicy::TLSVersion::"tls1_1"``
+* **TLS 1.2**: ``ResourcePolicy::TLSVersion::"tls1_2"``
+
+.. code::
+    :copyable: true
+
+    forbid (
+      principal,
+      action == ResourcePolicy::Action::"cluster.modify",
+      resource
+    )
+    unless
+    { context.cluster.minTLSVersion == ResourcePolicy::TLSVersion::"tls1_2" };
+
+The following example requires that {+clusters+} use the custom |tls| cipher suite configuration 
+``TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384`` by setting ``ResourcePolicy::CipherConfigMode::"custom"``.
+
+Possible values for custom |tls| cipher suite configurations are:
+
+* ``ResourcePolicy::CipherSuite::"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"``
+* ``ResourcePolicy::CipherSuite::"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"``
+
+.. code::
+    :copyable: true
+
+    forbid (
+      principal,
+      action == ResourcePolicy::Action::"cluster.modify",
+      resource
+    )
+    unless
+    {
+      context.cluster.cipherConfigMode == ResourcePolicy::CipherConfigMode::"custom" &&
+      context.cluster.cipherSuites == [ResourcePolicy::CipherSuite::"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"]
+    };
+
+The following example requires that {+clusters+} use the default |tls| cipher suite configuration.
+
+.. code::
+    :copyable: true
+
+    forbid (
+      principal,
+      action == ResourcePolicy::Action::"cluster.modify",
+      resource
+    )
+    unless
+    {
+      context.cluster.cipherConfigMode == ResourcePolicy::CipherConfigMode::"default"
+    };

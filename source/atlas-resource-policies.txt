@@ -27,9 +27,12 @@ With resource policies, you can:
 * Limit cluster deployment to specific cloud platforms (|aws|, |gcp|, |azure|).
 * Restrict cluster deployment to designated regions within a cloud provider. For example, ``aws:us-east-1``.
 * Prohibit the use of the wildcard IP (``0.0.0.0/0``) to enforce stricter network controls.
+* Prohibit traffic through public networks by requiring that the IP access list remain empty 
+  or by preventing additions to an existing IP access list.
 * Prevent users from provisioning, updating, or :ref:`auto-scaling <cluster-autoscaling>` {+clusters+} to a tier above or below a specified threshold.
 * Require that a project has a :ref:`maintenance window <configure-maintenance-window>` configured.
 * Prevent modifications to |vpc| peering and private endpoint connections across cloud providers. 
+* Impose a minimum |tls| version or require a specific |tls| cipher suite configuration for {+cluster+} connections.
 
 You create {+arps+} at the organization level and they apply to all projects and clusters
 within that organization.
@@ -57,22 +60,25 @@ Prerequisites
 Limitations
 -----------
 
+* *We strongly recommend that you proactively monitor your list of non-compliant resources* 
+  using the :oas-atlas-op:`/orgs/{ORG-ID}/nonCompliantResources </getResourcesNonCompliant>` endpoint.
+  {+arps+} ensure compliance with defined goals but do not enforce intermediate 
+  or transitional states. For example, if a downstream component fails, the policy 
+  may temporarily enter a non-compliant intermediate state.  
+
+* Each {+arp+} must have a unique name. If you attempt to create an {+arp+} with 
+  an existing name, the server returns a ``400 (Bad Request)`` status code. 
+  
+* It's possible to create identical {+arps+} with different names. While this doesn't 
+  cause functional conflicts, it can lead to redundancy and confusion in policy management.
+
 * {+arps+} are allow-by-default. If no {+arps+} exist, users can perform all actions on |service| {+clusters+}
   that their :ref:`Atlas user role <user-roles>` allows.
-
-* {+arps+} ensure compliance with defined goals but do not enforce intermediate 
-  or transitional states. For example, if a downstream component fails, the policy 
-  may temporarily enter a non-compliant intermediate state. You should proactively 
-  monitor your list of non-compliant resources using the 
-  :oas-atlas-op:`/orgs/{ORG-ID}/nonCompliantResources </getResourcesNonCompliant>` endpoint. 
 
 * Our implemented version of {+cedar+} supports only one Cedar policy per ``.cedar`` file, but you 
   can list multiple Cedar policies (``.cedar`` files) in your {+arp+}. 
   Each ``.cedar`` file is identified in the :ref:`{+atlas-admin-api+} <atlas-admin-api>` 
   response as a unique 24-hexadecimal character string after ``policies.id``.
-
-* Each {+arp+} must have a unique name. If you attempt to create an {+arp+} with an existing name, the server responds 
-  with a ``400 (Bad Request)`` status code.
 
 * If the :ref:`auto-scaling <cluster-autoscaling>` limits on your existing {+cluster+}
   don't match the new {+arp+}, the {+cluster+} might exceed the policy's defined boundaries. 
@@ -203,6 +209,11 @@ Key Cedar Syntax Elements for |service|
      - Specifies exceptions to a policy. Actions are forbidden unless certain conditions are met.
      - Example: ``forbid (principal, action, resource) unless { condition };``
 
+   * - ``isEmpty``
+     - Checks whether a list is empty. For example, enforcing no access over public 
+       networks requires that the IP access list is empty.
+     - ``forbid (principal, action == ResourcePolicy::Action::"project.ipAccessList.modify", resource) unless { context.project.ipAccessList.isEmpty() };``
+
    * - Logical Operators (``&&``, ``||``)
      - Combine multiple conditions in a policy.
      - Available options:
@@ -216,12 +227,6 @@ Key Cedar Syntax Elements for |service|
 
        - ``ip("0.0.0.0/0")`` for wildcard IP.
        - ``ip("1.2.3.4/32")`` for specific IP addresses.
-
-..
-   * - ``isEmpty``
-     - Checks whether a list is empty. For example, enforcing no access over public 
-       networks requires that the IP access list is empty.
-     - ``forbid (principal, action == ResourcePolicy::Action::"project.ipAccessList.modify", resource) unless { context.project.ipAccessList.isEmpty() };``
 
 .. _procedure-create-atlas-resource-policy:
 
