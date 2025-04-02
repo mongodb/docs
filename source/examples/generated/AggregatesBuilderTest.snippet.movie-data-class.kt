@@ -5,7 +5,8 @@ data class Movie(
     val rated: String,
     val plot: String,
     val runtime: Int,
-    val imdb: IMDB
+    val imdb: IMDB,
+    val fullplot: String? = "No full plot",
 ){
     data class IMDB(
         val rating: Double

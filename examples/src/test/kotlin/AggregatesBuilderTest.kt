@@ -57,7 +57,8 @@ class AggregatesBuilderTest {
         val rated: String,
         val plot: String,
         val runtime: Int,
-        val imdb: IMDB
+        val imdb: IMDB,
+        val fullplot: String? = "No full plot",
     ){
         data class IMDB(
             val rating: Double
@@ -949,6 +950,40 @@ class AggregatesBuilderTest {
         val results = resultsFlow.toList()
         assertEquals(1, results.size)
         assertEquals("Back to the Future", results.first().title)
+    }
+
+    /* NOTE: Test is not run by default. FTS requires the creation of a text index on the collection before running
+    (see note at top of file for additional setup requirements for FTS).
+     */
+    @Ignore
+    fun atlasSearchOperatorTest() = runBlocking {
+
+        // :snippet-start: atlas-search-pipeline
+        data class Results(val title: String, val year: Int, val genres: List<String>)
+
+        val searchStage = Aggregates.search(
+            SearchOperator.compound()
+                .filter(
+                    listOf(
+                        SearchOperator.`in`(SearchPath.fieldPath(Movie::genres.name), listOf("Comedy")),
+                        SearchOperator.phrase(SearchPath.fieldPath(Movie::fullplot.name), "new york"),
+                        SearchOperator.numberRange(SearchPath.fieldPath(Movie::year.name)).gtLt(1950, 2000),
+                        SearchOperator.wildcard(SearchPath.fieldPath(Movie::title.name), "Love *")
+                    )
+                )
+        )
+
+        val projectStage = Aggregates.project(
+            Projections.include(Movie::title.name, Movie::year.name, Movie::genres.name))
+
+        val pipeline = listOf(searchStage, projectStage)
+        val resultsFlow = ftsCollection.aggregate<Results>(pipeline)
+
+        resultsFlow.collect { println(it) }
+        // :snippet-end:
+
+        val result = resultsFlow.toList()
+        assertEquals(2, result.size)
     }
 
     /* NOTE: Test is not run by default. FTS requires the creation of a text index on the collection before running

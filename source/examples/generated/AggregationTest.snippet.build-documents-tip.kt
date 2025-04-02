@@ -1,3 +1,3 @@
-Document("\$arrayElemAt", listOf("\$categories", 0))
+    Document("\$arrayElemAt", listOf("\$categories", 0))
 // is equivalent to
-Document.parse("{ \$arrayElemAt: ['\$categories', 0] }")
+    Document.parse("{ \$arrayElemAt: ['\$categories', 0] }")
