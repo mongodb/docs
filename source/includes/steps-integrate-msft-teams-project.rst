@@ -86,7 +86,8 @@
          the specified time elapses sends the alert.
          
       #. (Optional) In the :guilabel:`resend after` field, specify the 
-         minutes to elapse before the condition resends the alert.
+         minutes to elapse before the condition resends the alert. The
+         resend interval must be at least 5 minutes.
       
       #. Click :guilabel:`Add` and select :guilabel:`Microsoft Teams`
       
