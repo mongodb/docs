@@ -5,6 +5,8 @@ import com.mongodb.ExplainVerbosity
 import org.mongodb.scala.model.Projections
 import org.mongodb.scala.model.search._
 import org.mongodb.scala.model.search.SearchOptions.searchOptions
+import org.mongodb.scala.model.search.SearchPath.fieldPath
+import scala.jdk.CollectionConverters._
 
 object Aggregation {
 
@@ -49,6 +51,29 @@ object Aggregation {
               .subscribe((doc: Document) => println(doc.toJson()),
                         (e: Throwable) => println(s"There was an error: $e"))
     // end-atlas-search
+
+    // start-atlas-helper-methods
+    val searchStage = Aggregates.search(
+      SearchOperator.compound()
+        .must(
+          Iterable(
+            SearchOperator.in(fieldPath("genres"), List("Comedy")),
+            SearchOperator.phrase(fieldPath("fullplot"), "new york"),
+            SearchOperator.numberRange(fieldPath("year")).gtLt(1950, 2000),
+            SearchOperator.wildcard("Love *", fieldPath("title")),
+          ).asJava
+        )
+    )
+
+    val projectStage = Aggregates.project(
+      Projections.include("title", "year", "genres"))
+
+    val aggregatePipelineStages = Seq(searchStage, projectStage)
+
+    collection.aggregate(aggregatePipelineStages)
+      .subscribe((doc: Document) => println(doc.toJson()),
+        (e: Throwable) => println(s"There was an error: $e"))
+    // end-atlas-helper-methods
 
     Thread.sleep(1000)
     mongoClient.close()
