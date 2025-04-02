@@ -45,12 +45,12 @@ Description
         - document
 
         - *Optional*. Configuration parameters for enabling
-          :ref:`manual-csfle-feature`.
+          :ref:`security-in-use-encryption`.
 
           ``{+auto-encrypt-options+}`` overrides the
-          existing client-side field level encryption configuration of
+          existing in-use encryption configuration of
           the database connection. If omitted, :method:`Mongo()`
-          inherits the client-side field level encryption configuration
+          inherits the in-use encryption configuration
           of the current database connection.
 
           See :ref:`{+auto-encrypt-options+}` for usage and syntax 
@@ -84,10 +84,10 @@ This method is available in deployments hosted in the following environments:
 ----------------------
 
 The ``{+auto-encrypt-options+}`` document specifies
-configuration options for :ref:`manual-csfle-feature`.
-If the database connection has an existing client-side field level
-encryption configuration, specifying
-``{+auto-encrypt-options+}`` overrides that configuration.
+configuration options for :ref:`security-in-use-encryption`.
+If your database connection has an existing in-use encryption configuration,
+``{+auto-encrypt-options+}`` overrides that configuration. MongoDB provides two approaches
+to In-Use Encryption: :ref:`manual-csfle-feature` and :ref:`qe-manual-feature-qe`. 
 
 For example, starting :binary:`~bin.mongosh`
 with client-side field level encryption command-line options enables
@@ -96,7 +96,7 @@ created using :method:`Mongo()` inherit the encryption settings *unless*
 :method:`Mongo()` includes ``{+auto-encrypt-options+}``.
 
 The ``{+auto-encrypt-options+}`` document has the following
-syntax:
+syntax: 
 
 .. code-block:: none
 
@@ -105,7 +105,9 @@ syntax:
      "keyVaultNamespace" : "<string>",
      "kmsProviders" : <object>,
      "schemaMap" : <object>,
-     "bypassAutoEncryption" : <boolean>
+     "bypassAutoEncryption" : <boolean>,
+     "tlsOptions": <object>,
+     "encryptedFieldsMap": <object>
    }
 
 The ``{+auto-encrypt-options+}`` document takes the
@@ -113,7 +115,7 @@ following parameters:
 
 .. list-table::
    :header-rows: 1
-   :widths: 20 10 80
+   :widths: 25 15 80
 
    * - Parameter
 
@@ -250,7 +252,9 @@ following parameters:
 
      - *(Optional)* The automatic client-side field level encryption
        rules specified using the JSON schema Draft 4 standard syntax and
-       encryption-specific keywords.
+       encryption-specific keywords. This option is mutually exclusive
+       with ``explicitEncryptionOnly``. If a collection is present on both the
+       ``schemaMap`` and the ``encryptedFieldsMap``, ``libmongocrypt`` errors on initialization.
 
        For complete documentation, see
        :ref:`csfle-fundamentals-create-schema`.
@@ -271,6 +275,36 @@ following parameters:
        indexed fields without the ``crypt_shared`` library. For details,
        see :ref:`qe-reference-mongo-client`.
 
+   * - ``explicitEncryptionOnly``
+     - boolean 
+     - *(Optional)* Specify ``true`` to use neither automatic encryption
+       nor automatic decryption. You can use :method:`getKeyVault()` and
+       :method:`getClientEncryption()` to perform explicit
+       encryption. This option is mutually exclusive with ``schemaMap``.
+       If omitted, defaults to ``false``.
+
+   * - ``tlsOptions``
+     - object 
+     - *(Optional)* The path to the TLS client certificate and private key file in PEM format
+       (``tlsCertificateKeyFile``), TLS client certificate and private key file password
+       (``tlsCertificateKeyFilePassword``), or TLS certificate authority file
+       (``tlsCAFile``) to use to connect to the KMS in PEM format. To learn more 
+       about these options, see 
+       `TLS Options
+       <https://www.mongodb.com/docs/mongodb-shell/reference/options/#tls-options>`_. 
+       
+   * - ``encryptedFieldsMap``
+
+     - document
+
+     - *(Optional)* The map of collection namespaces to ``encryptedFields`` documents.
+       ``encryptedFields`` is a BSON document that describes the Queryable Encryption encrypted
+       fields. If a collection is present on both the
+       ``schemaMap`` and the ``encryptedFieldsMap``, ``libmongocrypt`` errors on
+       initialization.
+
+       To learn more about encrypted fields in Queryable Encryption, see
+       :ref:`qe-encryption-schema`.
 
 .. _mongo-api-options:
 
