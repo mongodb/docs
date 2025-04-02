@@ -6,7 +6,7 @@
 
    Mode of the idle session timeout feature.
 
-   Set to `"idle"` to allow |mms| to log out users after a period of
+   Set to ``"idle"`` to allow |mms| to log out users after a period of
    inactivity.
 
    The duration of this period of inactivity is determined by the
