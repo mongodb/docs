@@ -4,6 +4,9 @@ import com.mongodb.client.model.Accumulators
 import com.mongodb.client.model.Aggregates
 import com.mongodb.client.model.Filters
 import com.mongodb.kotlin.client.MongoClient
+import com.mongodb.client.model.Projections
+import com.mongodb.client.model.search.SearchOperator
+import com.mongodb.client.model.search.SearchPath.fieldPath
 import org.bson.Document
 
 // start-data-class
@@ -42,5 +45,27 @@ fun main() {
     // start-aggregation-explain
     print(collection.aggregate(pipeline).explain())
     // end-aggregation-explain
+
+    // start-atlas-searchoperator-helpers
+    val searchStage = Aggregates.search(
+        SearchOperator.compound()
+            .filter(
+                listOf(
+                    SearchOperator.`in`(fieldPath("genres"), listOf("Comedy")),
+                    SearchOperator.phrase(fieldPath("fullplot"), "new york"),
+                    SearchOperator.numberRange(fieldPath("year")).gtLt(1950, 2000),
+                    SearchOperator.wildcard(fieldPath("title"), "Love *")
+                )
+            )
+    )
+
+    val projectStage = Aggregates.project(
+        Projections.include("title", "year", "genres"))
+
+    val pipeline = listOf(searchStage, projectStage)
+    val results = collection.aggregate(pipeline)
+
+    results.forEach { result -> println(result) }
+    // end-atlas-searchoperator-helpers
 }
 
