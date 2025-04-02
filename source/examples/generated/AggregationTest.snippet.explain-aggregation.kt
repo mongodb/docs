@@ -1,4 +1,4 @@
-data class Results (val name: String, val count: Int)
+data class Results(val name: String, val count: Int)
 
 val explanation = collection.aggregate<Results>(
     listOf(
