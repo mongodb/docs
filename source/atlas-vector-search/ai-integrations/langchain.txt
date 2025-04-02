@@ -15,13 +15,13 @@ Integrate {+avs+} with LangChain
    :values: python
 
 .. meta::
-   :description: Integrate Atlas Vector Search with LangChain to build generative AI and RAG applications.
+   :description: Integrate Atlas Vector Search with LangChain to build generative AI and RAG applications with MongoDB.
    :keywords: RAG, retrieval, langchain, chatbot, vector database, vector search, semantic search, hybrid search, parent document, retrieval, AI, integration
 
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 You can integrate {+avs+} with LangChain to build generative AI 
@@ -49,12 +49,6 @@ the ``langchain-mongodb`` package:
 
    pip install langchain-mongodb
 
-Some components also require the following LangChain base packages:
-
-.. code-block::
-      
-   pip install langchain langchain_community
-
 .. _langchain-vector-store:
 
 Vector Store
@@ -71,25 +65,168 @@ This component requires an :ref:`{+avs+} Index <avs-types-vector-search>`.
 Usage
 ~~~~~
 
-.. code-block:: python
+.. tabs::
 
-   from langchain_mongodb.vectorstores import MongoDBAtlasVectorSearch
-   from pymongo import MongoClient
+   .. tab:: Preferred Usage
+      :tabid: uri
 
-   # Use some embedding model to generate embeddings
-   from tests.integration_tests.vectorstores.fake_embeddings import FakeEmbeddings
+      The quickest way to instantiate your vector store is to
+      use the connection string for your |service| {+cluster+} 
+      or local deployment:
 
-   # Connect to your Atlas cluster
-   client = MongoClient("<connection-string>")
-   collection = client["<database-name>"]["<collection-name>"]
+      .. code-block:: python
 
-   # Instantiate the vector store
-   vector_store = MongoDBAtlasVectorSearch(
-      collection = collection,        # Collection to store embeddings
-      embedding = FakeEmbeddings(),   # Embedding model to use
-      index_name = "vector_index",    # Name of the vector search index
-      relevance_score_fn = "cosine"   # Similarity score function, can also be "euclidean" or "dotProduct"
-   )
+         from langchain_mongodb.vectorstores import MongoDBAtlasVectorSearch
+         from langchain_voyageai import VoyageAIEmbeddings
+
+         # Instantiate the vector store using your MongoDB connection string
+         vector_store = MongoDBAtlasVectorSearch.from_connection_string(
+           connection_string = "<connection-string>",        # Atlas cluster or local deployment URI
+           namespace = "<database-name>.<collection-name>",  # Database and collection name
+           embedding = VoyageAIEmbeddings(),                 # Embedding model to use
+           index_name = "vector_index",                      # Name of the vector search index
+           # Other optional parameters...
+         )
+
+   .. tab:: Other Methods
+     :tabid: other
+
+     The integration also supports other methods of instantiating the vector store:
+
+     - Using the MongoDB client:
+
+       .. code-block:: python
+
+          from langchain_mongodb.vectorstores import MongoDBAtlasVectorSearch
+          from langchain_voyageai import VoyageAIEmbeddings
+          from pymongo import MongoClient
+
+          # Connect to your Atlas cluster or local deployment
+          client = MongoClient("<connection-string>")
+          collection = client["<database-name>"]["<collection-name>"]
+
+          # Instantiate the vector store
+          vector_store = MongoDBAtlasVectorSearch(
+            collection = collection,          # Collection to store embeddings
+            embedding = VoyageAIEmbeddings(), # Embedding model to use
+            index_name = "vector_index"      # Name of the vector search index
+            # Other optional parameters...
+          )
+
+     - From documents that you've created:
+
+       .. code-block:: python
+
+          from langchain_mongodb.vectorstores import MongoDBAtlasVectorSearch
+          from langchain_voyageai import VoyageAIEmbeddings
+          from langchain_core.documents import Document
+          from pymongo import MongoClient
+
+          # Some documents to embed
+          document_1 = Document(page_content="foo", metadata={"baz": "bar"})
+          document_2 = Document(page_content="thud", metadata={"bar": "baz"})
+          docs = [ document_1, document_2 ]
+
+          # Connect to your Atlas cluster or local deployment
+          client = MongoClient("<connection-string>")
+          collection = client["<database-name>"]["<collection-name>"]
+
+          # Create the vector store from documents
+          vector_store = MongoDBAtlasVectorSearch.from_documents(
+            documents = docs,                  # List of documents to embed
+            embedding = VoyageAIEmbeddings(),  # Embedding model to use
+            collection = collection,           # Collection to store embeddings
+            index_name = "vector_index"        # Name of the vector search index
+            # Other optional parameters...
+          )
+ 
+.. collapsible:: 
+   :heading: Options
+   :sub_heading: Use the following parameters to configure the vector store.
+   :expanded: false
+
+   .. list-table::
+      :widths: 25 15 60
+      :header-rows: 1
+
+      * - Parameter
+        - Necessity
+        - Description
+
+      * - ``connection_string``
+        - Required
+        - Specify the connection string for your |service| {+cluster+}
+          or local |service| deployment.
+
+          .. tabs::
+
+             .. tab:: {+service+} {+Cluster+}
+                :tabid: cloud
+
+                .. include:: /includes/fact-connection-string-format-drivers.rst
+             
+                .. note::
+
+                   Ensure that your connection string includes your database 
+                   user's credentials. To learn more about finding your connection string, 
+                   see :ref:`connect-via-driver`. 
+                
+             .. tab:: Local Deployment
+                :tabid: local
+
+                Your connection string should use the following format:
+
+                .. code-block::
+
+                   mongodb://localhost:<port-number>/?directConnection=true
+
+      * - ``namespace``
+        - Required
+        - Specify the MongoDB namespace for which to store 
+          vector embeddings.
+
+          For example, ``langchain_db.test``.
+
+      * - ``embedding``
+        - Required
+        - The embedding model to use. You can use any embedding model 
+          `supported in LangChain <https://python.langchain.com/docs/integrations/text_embedding/>`__.
+
+      * - ``index_name``
+        - Optional
+        - Name of the vector search index in |service|. Defaults to ``vector_index``.
+      
+      * - ``text_key``
+        - Optional
+        - Field name that contains the document text content. Defaults to ``text``.
+
+      * - ``embedding_key``
+        - Optional
+        - Field name that stores the embedding vector. Defaults to ``embedding``.
+
+      * - ``relevance_score_fn``
+        - Optional
+        - Similarity function to use. Accepted values are ``cosine``, ``euclidean``, or ``dotProduct``.
+          Defaults to ``cosine``.
+
+      * - ``dimensions``
+        - Optional
+        - Number of vector dimensions. If you set this value and you don't have a vector search index 
+          on the collection, |service| creates the index.
+
+      * - ``auto_create_index``
+        - Optional
+        - Flag that determines whether to automatically create the vector index 
+          if it doesn't exist. Defaults to ``False``.
+
+      * - ``auto_index_timeout``
+        - Optional
+        - Timeout in seconds to wait for an auto-created vector search index to be ready.
+
+      * - ``**kwargs``
+        - Optional
+        - Additional parameters to pass to the vector store such as
+          LangChain-specific parameters.
 
 .. note::
 
@@ -106,6 +243,43 @@ LangChain `retrievers <https://python.langchain.com/docs/concepts/#retrievers>`_
 are components that you use to get relevant documents from your 
 vector stores. You can use LangChain's built-in retrievers or the following MongoDB
 retrievers to query and retrieve data from |service|.
+
+Vector Search Retriever
+~~~~~~~~~~~~~~~~~~~~~~~
+
+After instantiating |service| as a :ref:`vector store <langchain-vector-store>`,
+you can use the vector store instance as a retriever to query your data 
+using :ref:`{+avs+} <avs-overview>`. 
+
+Usage
+`````
+
+.. code-block:: python
+   :emphasize-lines: 9
+
+   from langchain_mongodb.vectorstores import MongoDBAtlasVectorSearch
+   
+   # Instantiate the vector store
+   vector_store = MongoDBAtlasVectorSearch.from_connection_string(
+      # Vector store arguments...
+   )
+   
+   # Use the vector store as a retriever
+   retriever = vector_store.as_retriever()
+
+   # Define your query
+   query = "some search query"
+
+   # Print results
+   documents = retriever.invoke(query)
+   for doc in documents:
+      print(doc)
+
+.. note::
+
+   - :ref:`RAG Usage Example <langchain-rag>`
+   - :ref:`LangGraph Usage Example <langgraph-retrieval>`
+   - `API Reference <https://langchain-mongodb.readthedocs.io/en/latest/langchain_mongodb/vectorstores/langchain_mongodb.vectorstores.MongoDBAtlasVectorSearch.html#langchain_mongodb.vectorstores.MongoDBAtlasVectorSearch.as_retriever>`__
 
 .. _langchain-fts-retriever:
 
@@ -317,7 +491,7 @@ Document Loader
 `Document loaders <https://python.langchain.com/docs/how_to/#document-loaders>`__
 are tools that help you to load data for your LangChain applications. 
 
-``MongodbLoader`` is a document loader that returns a list of 
+``MongoDBLoader`` is a document loader that returns a list of 
 documents from a MongoDB database.
 
 Usage
@@ -325,22 +499,22 @@ Usage
 
 .. code-block:: python
 
-   from langchain_community.document_loaders.mongodb import MongodbLoader
+   from langchain_mongodb.loaders import MongoDBLoader
 
-   loader = MongodbLoader(
-      connection_string = "<connection-string>",  # Atlas cluster or local MongoDB instance URI
-      db_name = "<database-name>",                # Database that contains the collection
-      collection_name = "<collection-name>",      # Collection to load documents from
-      filter_criteria = { <filter-document> },    # Optional document to specify a filter
-      field_names = ["<field-name>", ... ]        # List of fields to return
+   loader = MongoDBLoader.from_connection_string(
+    connection_string = "<connection-string>",   # Atlas cluster or local deployment URI
+    db_name = "<database-name>",                 # Database that contains the collection
+    collection_name = "<collection-name>",       # Collection to load documents from
+    filter_criteria = { "field": "value" },      # Optional document to specify a filter
+    field_names = ["<field-name>", "..." ],      # Optional list of fields to include in document content
+    metadata_names = ["<metadata-field>", "..."] # Optional metadata fields to extract
    )
 
    docs = loader.load()
 
 .. note::
    
-   - `API Reference <https://python.langchain.com/api_reference/community/document_loaders/langchain_community.document_loaders.mongodb.MongodbLoader.html>`__
-   - `LangChain Documentation <https://python.langchain.com/docs/integrations/document_loaders/mongodb>`__
+   - `API Reference <https://langchain-mongodb.readthedocs.io/en/latest/langchain_mongodb/loaders/langchain_mongodb.loaders.MongoDBLoader.html>`__
 
 Chat History
 ------------
@@ -360,7 +534,7 @@ Usage
 
    chat_message_history = MongoDBChatMessageHistory(
       session_id = "<session-id>",               # Unique session identifier
-      connection_string = "<connection-string>", # Atlas cluster or local MongoDB instance URI
+      connection_string = "<connection-string>", # Atlas cluster or local deployment URI
       database_name = "<database-name>",         # Database to store the chat history
       collection_name = "<collection-name>"      # Collection to store the chat history
    )
@@ -406,7 +580,6 @@ Usage
 .. code-block:: python
 
    from pymongo import MongoClient
-   from langchain_core.documents import Document
    from langchain_mongodb.docstores import MongoDBDocStore
 
    # Replace with your MongoDB connection string and namespace
@@ -436,7 +609,7 @@ Usage
 
    # Instantiate the MongoDBByteStore
    mongodb_store = MongoDBByteStore(
-      connection_string = "<connection-string>",  # Atlas cluster or local MongoDB instance URI
+      connection_string = "<connection-string>",  # Atlas cluster or local deployment URI
       db_name = "<database-name>",                # Name of the database
       collection_name = "<collection-name>"       # Name of the collection
    )

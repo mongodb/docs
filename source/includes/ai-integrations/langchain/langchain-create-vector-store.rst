@@ -1,29 +1,6 @@
 .. procedure::
    :style: normal
 
-   .. step:: Connect to your |service| cluster.
-      
-      Run the following code to establish a connection 
-      to your |service| {+cluster+}. It specifies the following:
-
-      - ``langchain_db.test`` as the name of the collection for which to load the data.
-      - ``vector_index`` as the name of the {+avs+} index to use for querying the data.
-
-      ..
-         NOTE: If you edit this Python code, also update the Jupyter Notebook
-         at https://github.com/mongodb/docs-notebooks/blob/main/ai-integrations/langchain.ipynb
-
-      .. code-block:: python
-
-         # Connect to your Atlas cluster
-         client = MongoClient(ATLAS_CONNECTION_STRING)
-
-         # Define collection and index name
-         db_name = "langchain_db"
-         collection_name = "test"
-         atlas_collection = client[db_name][collection_name]
-         vector_search_index = "vector_index"
-
    .. step:: Load the sample data.
 
       For this tutorial, you use a publicly accessible 
@@ -71,16 +48,14 @@
    .. step:: Instantiate the vector store.
 
       Run the following code to create a vector store instance
-      named ``vector_store`` from the sample documents. 
-      This snippet uses the ``from_documents``
-      method to create the ``MongoDBAtlasVectorSearch`` vector store
-      and specifies the following parameters:
-      
-      - The sample documents to store in the vector database.
+      named ``vector_store`` from the sample documents.
+      This snippet specifies the following:
+
+      - The connection string to your |service| {+cluster+}.
+      - ``langchain_db.test`` as the |service| namespace to store the documents.
       - An OpenAI embedding model as the model used to convert text into 
         vector embeddings for the ``embedding`` field. By default, this
         model is ``text-embedding-ada-002``.
-      - ``langchain_db.test`` as the |service| collection to store the documents.
       - ``vector_index`` as the index to use for querying the vector store.
 
       ..
@@ -88,14 +63,17 @@
          at https://github.com/mongodb/docs-notebooks/blob/main/ai-integrations/langchain.ipynb
 
       .. code-block:: python
-       
-         # Create the vector store
-         vector_store = MongoDBAtlasVectorSearch.from_documents(
-             documents = docs,
-             embedding = OpenAIEmbeddings(disallowed_special=()),
-             collection = atlas_collection,
-             index_name = vector_search_index
+
+         # Instantiate the vector store using your MongoDB connection string
+         vector_store = MongoDBAtlasVectorSearch.from_connection_string(
+           connection_string = ATLAS_CONNECTION_STRING,
+           namespace = "langchain_db.test",
+           embedding =  OpenAIEmbeddings(disallowed_special=()),
+           index_name = "vector_index"
          )
+
+         # Add documents to the vector store
+         vector_store.add_documents(documents=docs)
 
       After running the sample code, you can
       view your vector embeddings :ref:`in the {+atlas-ui+} <atlas-ui-view-collections>`
@@ -104,4 +82,3 @@
       .. tip::
 
          `MongoDBAtlasVectorSearch API Reference <https://langchain-mongodb.readthedocs.io/en/latest/langchain_mongodb/vectorstores/langchain_mongodb.vectorstores.MongoDBAtlasVectorSearch.html>`__
-

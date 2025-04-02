@@ -30,7 +30,7 @@
          from pymongo import MongoClient
 
          # Connect to your cluster
-         client = MongoClient(ATLAS_CONNECTION_STRING)
+         client = MongoClient(MONGODB_URI)
 
          # Use helper method to create the search index
          create_fulltext_search_index( 

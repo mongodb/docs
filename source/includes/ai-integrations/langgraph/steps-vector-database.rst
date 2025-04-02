@@ -23,7 +23,7 @@
       that you can use to interact with |service| as a vector database. 
       It specifies the following:
 
-      - The ``sample_mflix.embedded_movies`` collection 
+      - The ``sample_mflix.embedded_movies`` namespace 
         as the data source that contains the vector embeddings and text data.
       - OpenAI's ``text-embedding-ada-002`` embedding model as the
         model used to convert text into embeddings during queries. 

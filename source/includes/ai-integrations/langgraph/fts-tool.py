@@ -6,7 +6,7 @@ def full_text_search(user_query: str) -> str:
     """
     Retrieve movie plot content based on the provided title.
     """
-    
+
     # Initialize the retriever
     retriever = MongoDBAtlasFullTextSearchRetriever(
        collection = collection,            # MongoDB Collection in Atlas
