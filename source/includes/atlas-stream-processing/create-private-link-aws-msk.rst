@@ -21,11 +21,13 @@
 	 {+aws-msk+} console. Ensure that ``multi-VPC connectivity`` is
 	 enabled on the cluster to which you want to connect.
 
-      #. Navigate to the |iam| console and select :guilabel:`Policies` from
-	 the navigation pane. Create or modify the target cluster
-	 policy. Use the Principal identity you retrieved earlier as
-	 the value of ``Statement.Principal.Aws.[]`` and ensure the
-	 policy takes the following form:
+      #. Click :guilabel:`Properties`, :guilabel:`Security Settings`,
+	 and :guilabel:`Edit cluster policy`.
+
+	 Provide the full ARN form of the Principal identity you
+	 retrieved earlier as the value of
+	 ``Statement.Principal.Aws.[]`` and ensure the policy takes
+	 the following form:
 
 	 .. code-block:: json
 
@@ -36,7 +38,7 @@
 			"Effect": "Allow",
 			"Principal": {
 			    "AWS": [
-				"123456789012"
+				"arn:aws:iam:123456789012:root"
 			    ]
 			},
 			"Action": [
