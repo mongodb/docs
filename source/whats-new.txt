@@ -26,6 +26,7 @@ and deprecations made in each version of the driver libraries.
 
 Learn what's new in:
 
+* :ref:`Version 2.0.0 <c-version-2.0.0>`
 * :ref:`Version 1.30.0 <c-version-1.30.0>`
 * :ref:`Version 1.29.0 <c-version-1.29.0>`
 * :ref:`Version 1.28.0 <c-version-1.28.0>`
@@ -41,6 +42,145 @@ Learn what's new in:
 * :ref:`Version 1.26.0 <c-version-1.26.0>`
 
 .. _c-upcoming-breaking-changes:
+
+.. _c-version-2.0.0:
+
+What's New in 2.0.0
+--------------------
+
+The following sections describe the changes in the 2.0.0 release of
+the {+driver-short+}.
+
+.. important:: Removals
+
+   The 2.0.0 driver release removes many deprecated types and methods. To view
+   a full list of removals, see the **Removals** sections of the
+   :github:`v2.0 release notes </mongodb/mongo-c-driver/releases/tag/2.0.0>`.
+
+{+libbson+}
+~~~~~~~
+
+The 2.0.0 release of ``{+libbson+}`` includes the following changes:
+
+New Features
+````````````
+
+- Adds support for the BSON Binary Vector subtype. To learn more, see
+  `BSON Binary Vector subtype <{+api-libbson+}/binary_vector.html>`__ in
+  the {+libbson+} API documentation.
+
+Changes
+```````
+
+- Reduces the value of the ``BSON_ERROR_BUFFER_SIZE`` macro from ``504``
+  to ``503`` to reserve the final byte for internal use.
+
+- Renames the following ``pkg-config`` files:
+
+  - ``libbson-1.0``: Renamed to ``bson2``
+  - ``libbson-static-1.0``: Renamed to ``bson2-static``
+
+- Removes the ``bson-1.0`` CMake package. Instead, use ``bson`` and
+  specify a version or version range to be imported, as shown in the
+  following example:
+
+  .. code-block:: c
+     
+     find_package(bson 1.30...2.0)
+
+- Renames the following imported targets:
+
+  - ``mongo::bson_static``: Renamed to ``bson::static``
+  - ``mongo::bson_shared``: Renamed to ``bson::shared``
+
+- Adds the ``bson::bson`` target, which points to either the static
+  library or shared library depending on the value of the
+  ``BSON_DEFAULT_IMPORTED_LIBRARY_TYPE`` CMake option. If you don't set this option and
+  both library types are available, ``bson::bson`` uses
+  the static library.
+
+{+libmongoc+}
+~~~~~~~~~
+
+The 2.0.0 release of ``{+libmongoc+}`` includes the following changes:
+
+New Features
+````````````
+
+- Supports aggregate operations that include ``$lookup`` stages for
+  In-Use Encryption. To learn more, see the following
+  references in the {+mdb-server+} manual:
+
+  - :upcoming:`$lookup and $graphLookup Behavior </core/csfle/reference/supported-operations/#-lookup-and--graphlookup-behavior>` for CSFLE
+  - :upcoming:`$lookup and $graphLookup Behavior </core/queryable-encryption/reference/supported-operations/#-lookup-and--graphlookup-behavior>` for QE
+
+Changes
+```````
+
+- If you pass the ``batchSize:0`` option to ``mongoc_client_watch``, ``mongoc_database_watch``,
+  or ``mongoc_collection_watch``, the ``aggregate`` command no longer ignores this option and
+  applies it.
+
+- Removes ``bson_oid_init_sequence``. Instead, use ``bson_oid_init``.
+
+- Changes the return type of ``mongoc_server_description_host`` from ``mongoc_host_list_t *``
+  to ``const mongoc_host_list_t *``.
+
+- Implements the following changes to URI authentication credentials validation, which
+  apply when creating a new ``mongoc_uri_t`` object from a connection string:
+
+  - Requires that usernames are non-empty for all authentication mechanisms.
+  - Validates username and password specification requirements and returns
+    a client error for the specified authentication mechanism.
+  - For the ``MONGODB-AWS`` authentication mechanism, the ``authSource`` value defaults to
+    ``$external``.
+  - Validates ``authMechanism`` values and returns a client error for invalid values.
+  - Validates ``authMechanismProperties`` values and returns a client error for invalid
+    properties for the specified authentication mechanism.
+  - Correctly parses colon (``:``) characters within ``authMechanismProperties`` values.
+    For example, setting ``authMechanismProperties=A:B,C:D:E,F:G`` caused the driver to
+    parse the value as ``{'A': 'B', 'C': 'D:E,F:G'}``. This is now parsed as
+    ``{'A': 'B': 'C': 'D:E', 'F': 'G'}``.
+
+- Generates an error if you call ``mongoc_bulk_operation_execute`` on the same 
+  ``mongoc_bulk_operation_t`` repeatedly.
+
+- Consistently applies the ``__cdecl`` calling convention to function declarations in
+  the public API.
+
+- ``mongoc_client_set_ssl_opts`` ignores a pooled ``mongoc_client_t`` and logs an error.
+  Before popping a client, use ``mongoc_client_pool_set_ssl_opts`` to set TLS options on
+  a ``mongoc_client_pool_t``.
+
+- ``mongoc_client_set_ssl_stream_initiator`` ignores a pooled ``mongoc_client_t`` and
+  logs an error.
+
+- Renames the following ``pkg-config`` files:
+
+  - ``libmongoc-1.0``: Renamed to ``mongoc2``
+  - ``libmongoc-static-1.0``: Renamed to ``mongoc2-static``
+
+- Removes the ``mongoc-1.0`` CMake package. Instead, use ``mongoc`` and
+  specify a version or version range to be imported, as shown in the
+  following example:
+
+  .. code-block:: c
+     
+     find_package(mongoc 1.30...2.0)
+
+- Renames the following imported targets:
+
+  - ``mongo::mongoc_static``: Renamed to ``mongoc::static``
+  - ``mongo::mongoc_shared``: Renamed to ``mongoc::shared``
+
+- Adds the ``mongoc::mongoc`` target, which points to either the static
+  library or shared library depending on the value of the
+  ``MONGOC_DEFAULT_IMPORTED_LIBRARY_TYPE`` CMake option. If you don't set this option and
+  both library types are available, ``mongoc::mongoc`` uses
+  the static library.
+
+For more information about this release, see the :github:`v2.0 release notes
+</mongodb/mongo-c-driver/releases/tag/2.0.0>`.
 
 .. _c-version-1.30.0:
 
