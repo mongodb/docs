@@ -28,8 +28,42 @@ library <https://www.mongodb.com/docs/drivers/motor/>`__. In this guide, you can
 identify the changes you must make to migrate an application from {+driver-short+} or
 Motor to the {+driver-async+} driver.
 
+Synchronous Versus Asynchronous
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To determine whether to migrate to the {+driver-async+} driver or to continue using
+Synchronous {+driver-short+}, consider the information in this section.
+
+Synchronous {+driver-short+} is preferable if the following criteria applies to your
+application or use case:
+
+- Your application is simple in execution, or you prefer to avoid using asynchronous calls
+  in your code
+  
+- Your application relies on serial workloads or workloads with very fast
+  response times
+
+- You prefer the simplicity of synchronous logic when debugging your application
+
+Consider migrating to the {+driver-async+} driver if the following criteria applies
+to your application or use case:
+
+- Your application implements large, highly concurrent workloads (on the order of
+  thousands of concurrent operations)
+
+- Your application relies on workloads that spend a long time waiting for responses or
+  writing data
+
+- Your application relies on other asynchronous libraries or frameworks, such as FastAPI
+
 Migrate From Motor
 ------------------
+
+.. warning:: Motor Deprecation
+
+   Motor will be deprecated one year after the production release of the {+driver-async+}
+   driver. We strongly recommend that Motor users migrate to the {+driver-async+} driver while
+   Motor is still supported.
 
 The {+driver-async+} driver functions similarly to the Motor library, but allows
 for improved latency and throughput due to directly using Python Asyncio instead
@@ -50,11 +84,16 @@ read and write operations in Motor compared to {+driver-async+}:
    from pymongo import AsyncMongoClient
 
 To see a list of the asynchronous methods available in the {+driver-async+}
-driver, see the :ref:`pymongo-async-methods` section in the {+driver-short+} to
-{+driver-async+} guide.
+driver, see the :ref:`pymongo-async-methods` section. To learn about the versions of Motor
+that correspond to {+driver-short+}, see the :ref:`pymongo-motor-compatibility` section of
+the Compatibility guide.
 
 The following section shows the method signature changes that you must implement
 in your application when migrating from Motor to the {+driver-async+} driver.
+
+.. warning::
+
+   The {+driver-async+} driver does not support Tornado.
 
 Method Signature Changes
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -70,6 +109,21 @@ The following Motor method signatures behave differently in the {+driver-async+}
   ``AsyncMongoClient`` is not thread safe and should only be used by a single
   event loop.
 
+.. warning::
+
+   Motor users may experience a degradation of performance when switching to the
+   {+driver-async+} driver. This is due to the {+driver-async+} driver using native
+   ``asyncio`` tasks instead of thread-based executors. Thread-based executors
+   have similar performance characteristics to the synchronous driver, but slower.
+   This means they perform better for workloads that do not fit the preceding criteria
+   for the {+driver-async+} driver.
+
+   If you are experiencing performance slowdown, identify whether the {+driver-async+} driver
+   is necessary for your usecase. If you determine your use case is better served by
+   synchronous {+driver-short+}, consider using the synchronous driver
+   with ``asyncio.loop.run_in_executor()`` for asynchronous compatibility. To learn more, see
+   the `Event Loop API documentation <https://docs.python.org/3/library/asyncio-eventloop.html#asyncio.loop.run_in_executor>`__.
+
 .. _pymongo-to-async-guide:
 
 Migrate from {+driver-short+}
@@ -82,291 +136,36 @@ in the following ways:
 
 - Replace all uses of ``MongoClient`` with ``AsyncMongoClient``.
 - Add the ``await`` keyword to all asynchronous method calls.
-- If you call an asynchronous method inside of a function, mark the function as ``async``.
+- If you call an asynchronous method inside a function, mark the function as ``async``.
 
-The following sections describe how to implement the asynchronous API.
+Keep the following points in mind when migrating from synchronous {+driver-short+}
+to the {+driver-async+} driver:
+
+- To convert an ``AsyncCursor`` to a list, you must use the asynchronous ``cursor.to_list()``
+  method.
+- The ``AsyncCollection.find()`` method in the {+driver-async+} driver is synchronous, but
+  returns an ``AsyncCursor``. To iterate through the cursor, you must use an ``async for``
+  loop.
+- The ``AsyncMongoClient`` object does not support the ``connect`` keyword argument.
+- You cannot share ``AsyncMongoClient`` objects across threads or event loops.
+- To access a property or method of a result returned by an asynchronous call, you must
+  properly wrap the call in parentheses, as shown in the following example:
+
+  .. code-block:: python
+     
+     id = (await posts.insert_one(doc)).inserted_id 
 
 .. _pymongo-async-methods:
 
 Asynchronous Methods
-~~~~~~~~~~~~~~~~~~~~
+--------------------
 
-The following tables list the asynchronous methods that are available in the
-{+driver-async+} driver. To call these methods, you must ``await`` them and call them
-inside an ``async`` function.
+For a complete list of asynchronous methods available in the {+driver-async+} driver,
+see the `API documentation <{+api-root+}pymongo/asynchronous/index.html>`__.
 
-Client Methods
-``````````````
+.. note::
 
-.. list-table::
-   :header-rows: 1
-   :widths: 20 80
-
-   * - Method
-     - Example
-
-   * - ``AsyncMongoClient()``
-     - .. code-block:: python
-
-          from pymongo import AsyncMongoClient
-
-          async with AsyncMongoClient(...)
-
-   * - ``watch()``
-     - .. code-block:: python
-
-          async with await client.watch(...) as stream:
-             ...
-
-   * - ``server_info()``
-     - .. code-block:: python
-
-          await client.server_info(...)
-
-   * - ``list_databases()``
-     - .. code-block:: python
-
-          await client.list_databases()
-
-   * - ``list_database_names()``
-     - .. code-block:: python
-
-          await client.list_database_names()
-
-   * - ``drop_database()``
-     - .. code-block:: python
-
-          await client.drop_database(...)
-
-Database Methods
-````````````````
-
-.. list-table::
-   :header-rows: 1
-   :widths: 20 80
-
-   * - Method
-     - Example
-
-   * - ``watch()``
-     - .. code-block:: python
-
-          async with await db.watch(...) as stream:
-             ...
-
-   * - ``create_collection()``
-     -   .. code-block:: python
-
-          await db.create_collection(...)
-
-   * - ``aggregate()``
-     - .. code-block:: python
-
-          async with await client.admin.aggregate(...) as cursor:
-             ...
-
-   * - ``command()``
-     - .. code-block:: python
-
-          await db.command(...)
-
-   * - ``cursor_command()``
-     - .. code-block:: python
-
-          await db.cursor_command(...)
-
-   * - ``list_collections()``
-     - .. code-block:: python
-
-          await db.list_collections()
-
-   * - ``list_collection_names()``
-     - .. code-block:: python
-
-          await db.list_collection_names()
-
-   * - ``drop_collection()``
-     - .. code-block:: python
-
-          await db.drop_collection(...)
-
-   * - ``validate_collection()``
-     - .. code-block:: python
-
-          await db.validate_collection(...)
-
-   * - ``dereference()``   
-     - .. code-block:: python
-
-          await db.dereference(...)
-
-Collection Methods
-``````````````````
-
-.. list-table::
-   :header-rows: 1
-   :widths: 20 80
-
-   * - Method
-     - Example
-
-   * - ``watch()``
-     - .. code-block:: python
-
-          async with await collection.watch(...) as stream:
-             ...
-   
-   * - ``insert_one()``
-     - .. code-block:: python
-
-          await collection.insert_one(...)
-   
-   * - ``insert_many()``
-     - .. code-block:: python
-
-          await collection.insert_many(...)
-
-   * - ``replace_one()``
-     - .. code-block:: python
-
-          await collection.replace_one(...)
-   
-   * - ``update_one()``
-     - .. code-block:: python
-
-          await collection.update_one(...)
-   
-   * - ``update_many()``
-     - .. code-block:: python
-
-          await collection.update_many(...)
-
-   * - ``drop()``
-     - .. code-block:: python
-
-          await collection.drop()
-   
-   * - ``delete_one()``
-     - .. code-block:: python
-
-          await collection.delete_one(...)
-   
-   * - ``delete_many()``
-     - .. code-block:: python
-
-          await collection.delete_many(...)
-   
-   * - ``find_one()``
-     - .. code-block:: python
-          
-          await collection.find_one(...)
-   
-   * - ``estimated_document_count()``
-     - .. code-block:: python
-
-          await collection.estimated_document_count()
-
-   * - ``count_documents()``
-     - .. code-block:: python
-
-          await collection.count_documents(...)
-
-   * - ``create_index()``
-     - .. code-block:: python
-          
-          await collection.create_index(...)
-
-   * - ``create_indexes()``
-     - .. code-block:: python
-          
-          await collection.create_indexes(...)
-
-   * - ``drop_index()``
-     - .. code-block:: python
-
-          await collection.drop_index(...)
-
-   * - ``drop_indexes()``
-     - .. code-block:: python
-
-          await collection.drop_indexes()
-
-   * - ``list_indexes()``
-     - .. code-block:: python
-
-          await collection.list_indexes()
-
-   * - ``index_information()``
-     - .. code-block:: python
-
-          await collection.index_information()
-
-   * - ``list_search_indexes()``
-     - .. code-block:: python
-
-          await collection.list_search_indexes()
-
-   * - ``create_search_index()``
-     - .. code-block:: python
-
-          await collection.create_search_index(...)
-
-   * - ``create_search_indexes()``
-     - .. code-block:: python
-
-          await collection.create_search_indexes(...)
-
-   * - ``drop_search_index()``
-     - .. code-block:: python
-
-          await collection.drop_search_index(...)
-
-   * - ``update_search_index()``
-     - .. code-block:: python
-
-          await collection.update_search_index(...)
-   
-   * - ``options()``
-     - .. code-block:: python
-
-          await collection.options()
-   
-   * - ``aggregate()``
-     - .. code-block:: python
-
-          async for doc in await collection.aggregate(...):
-             ...
-
-   * - ``aggregate_raw_batches()``
-     - .. code-block:: python
-
-          async for batch in await collection.aggregate_raw_batches(...):
-             ...
-
-   * - ``rename()``
-     - .. code-block:: python
-
-          await collection.rename(...)
-
-   * - ``distinct()``
-     - .. code-block:: python
-
-          await collection.distinct(...)
-
-   * - ``find_one_and_delete()``
-     - .. code-block:: python
-
-          await collection.find_one_and_delete(...)
-
-   * - ``find_one_and_replace()``
-     - .. code-block:: python
-
-          await collection.find_one_and_replace(...)
-
-   * - ``find_one_and_update()``
-     - .. code-block:: python
-
-          await collection.find_one_and_update(...)
+   Any methods not listed in the preceding API documentation are synchronous.
 
 Additional Information
 ----------------------
