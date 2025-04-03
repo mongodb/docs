@@ -17,11 +17,19 @@
 
    * - ``shards.numOrphanedDocs``
      - integer
-     - Number of orphaned documents in the shard.
+     - Number of orphaned documents in the shard. 
+     
+       For :ref:`time series collections
+       <manual-timeseries-collection>`, ``numOrphanedDocs`` contains the number of
+       orphaned measurement buckets in the shard.
 
    * - ``shards.numOwnedDocuments``
      - integer
-     - Number of documents owned by the shard.
+     - Number of documents owned by the shard. 
+
+       For :ref:`time series collections
+       <manual-timeseries-collection>`, ``numOwnedDocuments`` contains the number of measurement
+       buckets in the shard.
 
    * - ``shards.ownedSizeBytes``
      - integer
