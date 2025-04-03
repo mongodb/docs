@@ -5,6 +5,8 @@
 JIRA - <https://jira.mongodb.org/browse/DOCSP-NNNNN>
 Staging - <https://docs-mongodbcom-staging.corp.mongodb.com/drivers/docsworker-xlarge/NNNNN/>
 
+*** Content PR Link ***
+
 ## Self-Review Checklist
 
 - [ ] Is this free of any warnings or errors in the RST?
