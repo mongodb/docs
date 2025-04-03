@@ -1,0 +1,411 @@
+.. _csharp-bulk-write:
+
+=====================
+Bulk Write Operations
+=====================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: insert, update, replace, code example, multiple changes
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to perform
+**bulk write operations**. By using a bulk write operation, you can
+perform multiple write operations in fewer calls to the database.
+
+Consider a situation that requires you to insert documents, update
+documents, and delete documents for the same task. If you use
+the individual write methods to perform each type of operation, each write
+accesses the database separately. You can use a bulk write operation to
+optimize the number of calls your application makes to the server.
+
+You can use the ``IMongoCollection.BulkWrite()`` or
+``IMongoCollection.BulkWriteAsync()`` method to perform bulk write
+operations on a single collection. Each method takes a list of
+``WriteModel<TDocument>`` instances that describe the write operations
+to perform.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``sample_restaurants.restaurants`` collection
+from the :atlas:`Atlas sample datasets </sample-data>`. To learn how to create a
+free MongoDB Atlas cluster and load the sample datasets, see the
+:ref:`<csharp-quickstart>` tutorial.
+
+Define the Write Operations
+---------------------------
+
+For each write operation you want to perform, create an instance of one of
+the following ``WriteModel<TDocument>`` classes:
+
+- ``DeleteManyModel<TDocument>``
+- ``DeleteOneModel<TDocument>``
+- ``InsertOneModel<TDocument>``
+- ``ReplaceOneModel<TDocument>``
+- ``UpdateManyModel<TDocument>``
+- ``UpdateOneModel<TDocument>``
+
+The following sections show how to create and use instances of the preceding classes
+to perform the corresponding write operation in a bulk write operation.
+
+.. tip:: Bulk Write Operations with POCOs
+
+    The examples in this guide use the ``BsonDocument`` type for the ``TDocument`` type
+    in all generic classes. You can also use a Plain Old CLR Object (POCO) for these
+    classes. To do so, you must define a class that represents the documents in your
+    collection. The class must have properties that match the fields in your documents.
+    For more information, see :ref:`csharp-poco`.
+
+Insert Operations
+~~~~~~~~~~~~~~~~~
+
+To perform an insert operation, create an ``InsertOneModel<TDocument>``
+instance and specify the document you want to insert.
+
+The following example creates an instance of the
+``InsertOneModel<BsonDocument>`` class. This instance directs the driver to
+insert a document in which the ``"name"`` field is ``"Mongo's Deli"``
+into the ``restaurants`` collection.
+
+.. literalinclude:: /includes/fundamentals/code-examples/CollectionBulkWrite.cs
+   :start-after: start-insert-one
+   :end-before: end-insert-one
+   :language: csharp
+   :copyable:
+   :dedent:
+
+To insert multiple documents, create an instance of ``InsertOneModel<TDocument>``
+for each document.
+
+.. important:: Duplicate Key Error
+
+   When performing a bulk operation, the ``InsertOneModel<TDocument>`` cannot
+   insert a document with an ``_id`` that already exists in the
+   collection. In this situation, the driver throws a
+   ``MongoBulkWriteException``.
+
+Update Operations
+~~~~~~~~~~~~~~~~~
+
+To update a single document, create an instance of
+``UpdateOneModel<TDocument>`` and pass the following arguments:
+
+- **Query filter** that specifies the criteria used to match documents
+  in your collection. To learn more about specifying a query, see
+  :manual:`Query and Projection Operators
+  </reference/operator/query/>` in the {+mdb-server+} manual.
+
+- **Update document** that describes the update to perform. To learn
+  more about specifying an update, see :manual:`Update Operators
+  </reference/operator/update/>` in the {+mdb-server+} manual.
+
+An ``UpdateOneModel<TDocument>`` instance specifies an update for *the first*
+document that matches your query filter.
+
+In the following code example, the ``UpdateOneModel<BsonDocument>`` object
+represents an update operation on the ``restaurants`` collection.
+The operation matches the first document in the collection where the value of the ``name``
+field is ``"Mongo's Deli"``. It then updates the value of the ``cuisine`` field in the
+matched document to ``"Sandwiches and Salads"``.
+
+.. literalinclude:: /includes/fundamentals/code-examples/CollectionBulkWrite.cs
+   :start-after: start-update-one
+   :end-before: end-update-one
+   :language: csharp
+   :copyable:
+   :dedent:
+
+To update multiple documents, create an instance of ``UpdateManyModel<TDocument>`` and pass
+the same arguments as for ``UpdateOneModel<TDocument>``. The ``UpdateManyModel<TDocument>``
+class specifies updates for *all* documents that match your query
+filter.
+
+In the following code example, the ``UpdateManyModel<BsonDocument>`` object
+represents an update operation on the ``restaurants`` collection.
+The operation matches all documents in the collection where
+the value of the ``name`` field is ``"Mongo's Deli"``. It then updates
+the value of the ``cuisine`` field to ``"Sandwiches and Salads"``.
+
+.. literalinclude:: /includes/fundamentals/code-examples/CollectionBulkWrite.cs
+   :start-after: start-update-many
+   :end-before: end-update-many
+   :language: csharp
+   :copyable:
+   :dedent:
+
+Replace Operations
+~~~~~~~~~~~~~~~~~~
+
+A replace operation removes all fields and values of a specified document and
+replaces them with new fields and values that you specify. To perform a
+replace operation, create an instance of ``ReplaceOneModel<TDocument>`` and pass a
+query filter and the fields and values you want to replace the matching
+document with.
+
+In the following example, the ``ReplaceOneModel<BsonDocument>`` object
+represents a replace operation on the ``restaurants`` collection.
+The operation matches the document in the collection
+where the value of the ``restaurant_id`` field is ``"1234"``. It then
+removes all fields other than ``_id`` from this document, and sets new values in the
+``name``, ``cuisine``, ``borough``, and ``restaurant_id`` fields.
+
+.. literalinclude:: /includes/fundamentals/code-examples/CollectionBulkWrite.cs
+   :start-after: start-replace-one
+   :end-before: end-replace-one
+   :language: csharp
+   :copyable:
+   :dedent:
+
+To replace multiple documents, you must create an instance of
+``ReplaceOneModel<TDocument>`` for each document.
+
+Delete Operations
+~~~~~~~~~~~~~~~~~
+
+To delete a document, create an instance of ``DeleteOneModel<TDocument>`` and pass a
+query filter specifying the document you want to delete. A
+``DeleteOneModel<TDocument>`` instance provides instructions to delete
+only *the first* document that matches your query filter.
+
+In the following code example, the ``DeleteOneModel<BsonDocument>`` object
+represents a delete operation on the ``restaurants`` collection.
+The operation matches and deletes the first document
+where the value of the ``restaurant_id`` field is ``"5678"``.
+
+.. literalinclude:: /includes/fundamentals/code-examples/CollectionBulkWrite.cs
+   :start-after: start-delete-one
+   :end-before: end-delete-one
+   :language: csharp
+   :copyable:
+   :dedent:
+
+To delete multiple documents, create an instance of ``DeleteManyModel<TDocument>`` and pass a
+query filter specifying the documents you want to delete. An instance of
+``DeleteManyModel<TDocument>`` provides instructions to remove *all* documents that
+match your query filter.
+
+In the following code example, the ``DeleteManyModel<BsonDocument>`` object
+represents a delete operation on the ``restaurants`` collection.
+The operation matches and deletes all documents
+where the value of the ``name`` field is ``"Mongo's Deli"``.
+
+.. literalinclude:: /includes/fundamentals/code-examples/CollectionBulkWrite.cs
+   :start-after: start-delete-many
+   :end-before: end-delete-many
+   :language: csharp
+   :copyable:
+   :dedent:
+
+.. _csharp-bulkwrite-method:
+
+Perform the Bulk Operation
+--------------------------
+
+After you define a ``WriteModel`` instance for each operation that you want to perform,
+create an instance of a class that implements the ``IEnumerable`` interface. Add your
+``WriteModel`` objects to this ``IEnumerable``, then pass the ``IEnumerable``
+to the ``BulkWrite()`` or ``BulkWriteAsync()`` method. By default, these methods run
+the operations in the order they're defined in the list.
+
+.. tip:: IEnumerable
+
+   ``Array`` and ``List`` are two common classes that implement the
+   ``IEnumerable`` interface.
+
+Select from the following tabs to view how to use the synchronous ``BulkWrite()`` method
+and the asynchronous ``BulkWriteAsync()`` method to perform a bulk write
+operation on the ``restaurants`` collection:
+
+.. tabs::
+
+   .. tab:: Synchronous
+      :tabid: bulk-write-sync
+
+      .. literalinclude:: /includes/fundamentals/code-examples/CollectionBulkWrite.cs
+         :start-after: start-bulk-write-sync
+         :end-before: end-bulk-write-sync
+         :language: csharp
+         :copyable:
+         :dedent:
+
+   .. tab:: Asynchronous
+      :tabid: bulk-write-async
+
+      .. literalinclude:: /includes/fundamentals/code-examples/CollectionBulkWrite.cs
+         :start-after: start-bulk-write-async
+         :end-before: end-bulk-write-async
+         :language: csharp
+         :copyable:
+         :dedent:
+
+The preceding code examples produce the following output:
+
+.. code-block:: shell
+   :copyable: false
+
+   MongoDB.Driver.BulkWriteResult1+Acknowledged[MongoDB.Bson.BsonDocument]
+
+.. note::
+
+   When the driver runs a bulk operation, it uses the write concern of the
+   target collection. The driver reports all write concern errors after
+   attempting all operations, regardless of execution order.
+
+Customize Bulk Write Operations
+-------------------------------
+
+When you call the ``BulkWrite()`` or ``BulkWriteAsync()`` method, you can pass an
+instance of the ``BulkWriteOptions`` class. The ``BulkWriteOptions`` class
+contains the following properties, which represent options you can use to configure the
+bulk write operation:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Property
+     - Description
+
+   * - ``BypassDocumentValidation``
+     - | Specifies whether the operation bypasses document-level validation. For more
+         information, see :manual:`Schema
+         Validation </core/schema-validation/#schema-validation>` in the {+mdb-server+}
+         manual.
+       | Defaults to ``False``.
+
+   * - ``Comment``
+     - | A comment to attach to the operation, in the form of a ``BsonValue``. For
+         more information, see the :manual:`delete command
+         fields </reference/command/delete/#command-fields>` guide in the
+         {+mdb-server+} manual.
+
+   * - ``IsOrdered``
+     - | If ``True``, the driver performs the write operations in the order
+         provided. If an error occurs, the remaining operations are not
+         attempted. 
+       |
+       | If ``False``, the driver performs the operations in an
+         arbitrary order and attempts to perform all operations. If any of the write
+         operations in an unordered bulk write fail, the driver
+         reports the errors only after attempting all operations.
+       | Defaults to ``True``.
+
+   * - ``Let``
+     - | A map of parameter names and values, in the form of a ``BsonDocument``. Values
+         must be constant or closed
+         expressions that don't reference document fields. For more information,
+         see the :manual:`let statement
+         </reference/command/delete/#std-label-delete-let-syntax>` in the
+         {+mdb-server+} manual.
+
+The following code examples use a ``BulkWriteOptions`` object to perform
+an unordered bulk write operation:
+
+.. tabs::
+
+   .. tab:: Synchronous
+      :tabid: bulk-write-options-sync
+
+      .. literalinclude:: /includes/fundamentals/code-examples/CollectionBulkWrite.cs
+        :start-after: start-bulk-write-options-sync
+        :end-before: end-bulk-write-options-sync
+        :language: csharp
+        :copyable:
+        :dedent:
+
+   .. tab:: Asynchronous
+      :tabid: bulk-write-options-async
+
+      .. literalinclude:: /includes/fundamentals/code-examples/CollectionBulkWrite.cs
+         :start-after: start-bulk-write-options-async
+         :end-before: end-bulk-write-options-async
+         :language: csharp
+         :copyable:
+         :dedent:
+
+Return Value
+------------
+
+The ``BulkWrite()`` and ``BulkWriteAsync()`` methods return a
+``BulkWriteResult`` object that contains the following properties:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Property
+     - Description
+
+   * - ``IsAcknowledged``
+     - | Indicates whether the server acknowledged the bulk write operation. If the
+         value of this property is ``False`` and you try to access any other property
+         of the ``BulkWriteResult`` object, the driver throws an exception.
+   
+   * - ``DeletedCount``
+     - | The number of documents deleted, if any.
+   
+   * - ``InsertedCount``
+     - | The number of documents inserted, if any.
+
+   * - ``MatchedCount``
+     - | The number of documents matched for an update, if applicable.
+
+   * - ``ModifiedCount``
+     - | The number of documents modified, if any.
+
+   * - ``IsModifiedCountAvailable``
+     - | Indicates whether the modified count is available.
+
+   * - ``Upserts``
+     - | A list that contains information about each request that
+         resulted in an upsert operation.
+   
+   * - ``RequestCount``
+     - | The number of requests in the bulk operation.
+
+Handling Exceptions
+-------------------
+
+If any of the operations in a bulk write operation fail, the {+driver-short+} throws a
+``BulkWriteError`` and does not perform any further operations.
+
+A ``BulkWriteError`` object contains the ``Index`` property that
+describes the index of the request that resulted in an error.
+
+Additional Information
+----------------------
+
+To learn how to perform individual write operations, see the following guides:
+
+- :ref:`csharp-update-one`
+- :ref:`csharp-update-many`
+- :ref:`csharp-insert-guide`
+- :ref:`csharp-delete-guide`
+- :ref:`csharp-replace-operation`
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `BulkWrite() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.IMongoCollection-1.BulkWrite.html>`__
+- `BulkWriteAsync() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.IMongoCollection-1.BulkWriteAsync.html>`__
+- `BulkWriteOptions <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.BulkWriteOptions.-ctor.html>`__
+- `BulkWriteResult <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.BulkWriteResult.html>`__
+- `InsertOneModel <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.InsertOneModel-1.html>`__
+- `UpdateOneModel <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateOneModel-1.html>`__
+- `UpdateManyModel <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateManyModel-1.html>`__
+- `ReplaceOneModel <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.ReplaceOneModel-1.html>`__
+- `DeleteOneModel <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.DeleteOneModel-1.html>`__
+- `DeleteManyModel <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.DeleteManyModel-1.html>`__
+- `BulkWriteError <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.BulkWriteError.html>`__
