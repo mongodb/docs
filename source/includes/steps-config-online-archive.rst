@@ -246,14 +246,14 @@
       
    .. step:: Specify how many days you want to store data in the online archive and a time window when you want |service| to run the archiving job.
       
-      a. (Optional) Specify a :guilabel:`Deletion Age Limit`.
+      a. (Optional) Specify a :guilabel:`Data Retention Period`.
       
          By default, |service| doesn't delete archived data. However, if 
-         you specify the :guilabel:`Deletion Age Limit`, 
+         you specify the :guilabel:`Data Retention Period`, 
          you can specify between ``7`` to ``9125`` days (25 years) to keep 
          archived data. |service| deletes archived data after the number of 
          days you specify here. This data expiration rule takes effect 
-         ``24`` hours after you set the :guilabel:`Deletion Age Limit`. 
+         ``24`` hours after you set the :guilabel:`Data Retention Period`. 
       
          .. warning:: 
       
