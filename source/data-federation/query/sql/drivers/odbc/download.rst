@@ -10,7 +10,7 @@
       MongoDB release. Complete the following steps to verify the ODBC driver
       binary against its SHA256 key:
   
-      a. Download the ``.sha256`` file for Windows x64 from the `MongoDB ODBC Drivers Downloads page <https://translators-connectors-releases.s3.amazonaws.com/mongosql-odbc-driver/windows/1.4.0/release/mongoodbc.msi.sha256>`__. 
+      a. Download the ``.sha256`` file for Windows x64 from the `MongoDB ODBC Drivers Downloads page <https://translators-connectors-releases.s3.amazonaws.com/mongosql-odbc-driver/windows/{+sql-odbc-version+}/release/mongoodbc.msi.sha256>`__. 
   
       #. Compare the signature file to the MongoDB installer hash using the
          following Powershell script:
