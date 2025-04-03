@@ -133,14 +133,19 @@ Stream Processing Timing
 ------------------------
 
 In streaming data processing, documents are subject to two timing
-systems:
+systems, event time and processing time. See below to learn more.
 
-- Event Time - The time at which either the source stream generates a 
-  document, or the messaging system (e.g. {+kafka+}) receives the document.
-  This is ascertained by the timestamp of the document.
-- Processing Time - The time at which the stream processor consumes a
-  document. This is ascertained by the clock of the system hosting the
-  stream processor.
+{+atlas-sp+} offers various mechanisms which change window behavior to
+mitigate these issues.
+
+.. _atlas-sp-event-time:
+
+Event Time
+~~~~~~~~~~
+
+Event time is the time at which either the source stream generates a 
+document, or the messaging system (e.g. {+kafka+}) receives the document.
+This is ascertained by the timestamp of the document.
 
 Network latency, upstream processing, and other factors can not only
 cause discrepancies between these times for a given document, but can
@@ -150,23 +155,24 @@ them to capture. {+atlas-sp+} considers such documents
 **late-arriving**, and sends them to your :ref:`Dead Letter Queue
 <atlas-sp-dlq>` if you configure one.
 
-{+atlas-sp+} offers various mechanisms which change window behavior to
-mitigate these issues.
+**Event Time windows** is a configurable option for the 
+``boundary`` field supported in :ref:`Tumbling Windows <tumbling-windows>` 
+and :ref:`Hopping Windows <hopping-windows>`.
 
 .. _atlas-sp-watermark:
 
 Watermarks
-~~~~~~~~~~
+```````````
 
-A watermark supersedes processing time and updates only when the
-processor consumes a document with a later event time than any
-previously-consumed document. All stream processors apply watermarks
+A watermark supersedes :ref:`processing time <atlas-sp-processing-time>` and 
+updates only when the processor consumes a document with a later event time 
+than any previously-consumed document. All stream processors apply watermarks
 in {+atlas-sp+}.
 
 .. _atlas-sp-watermark-example:
 
 Example
-```````
+++++++++
 
 You configure a stream processor with 5-minute windows. You start the
 processor at ``12:00``, so that the first two windows will have
@@ -258,7 +264,7 @@ do not halt the progression of watermarks. To learn more, see :ref:`streams-agg-
 .. _atlas-sp-allowed-late:
 
 Allowed Lateness
-~~~~~~~~~~~~~~~~
+`````````````````
 
 If the differences between event time and processing time vary
 sufficiently, documents may arrive in a stream processor after the
@@ -273,7 +279,7 @@ would trigger a new window to open, Allowed Lateness keeps earlier
 windows open without preventing this.
 
 Example
-```````
+++++++++
 
 You configure a stream processor with 5-minute tumbling windows. You
 start the processor at ``12:00``, so that the first two windows will
@@ -352,7 +358,7 @@ from within the ``12:00-12:05`` window, it is effectively only
 .. _atlas-sp-idle-timeout:
 
 Idleness Timeout
-~~~~~~~~~~~~~~~~
+`````````````````
 
 Decoupling windowing behavior from processing time by default improves
 stream processing correctness in most cases. However, a streaming data
@@ -370,7 +376,7 @@ timeout, the window closes and the watermark advances independent of
 any document ingestion.
 
 Example
-```````
+++++++++
 
 You configure a tumbling window with a 3-minute interval and a
 1-minute idleness timeout. The following table illustrates the effects
@@ -446,22 +452,27 @@ When the source goes idle at ``12:06``, it remains idle through
 ``12:07``, triggering the idleness timeout and advancing the watermark
 to ``12:06``.
 
-.. _processing-windows:
+.. _atlas-sp-processing-time:
 
-Processing Time Windows
-------------------------
+Processing Time
+~~~~~~~~~~~~~~~
 
-**Processing Time windows** allow you to create a pipeline with a new 
-kind of window which accumulates data based on the wall clock time of the 
-server. As opposed to windows that work with event time, processing time 
-windows assign each event a timestamp based on the wall clock time of the server 
-at the time it arrives at the stream processor. **Processing Time windows** 
-support :ref:`Hopping Windows <hopping-windows>` 
-and :ref:`Tumbling Windows <tumbling-windows>`.
+Processing time is the time at which the stream processor consumes a 
+document. This is ascertained by the clock of the system hosting the 
+stream processor.
 
-Document timestamps and window boundary timestamps are in |utc|. You can't specify 
-``idleTimeout`` or ``allowedLateness`` options when configuring a ``processingTime`` 
-window.
+**Processing Time windows** is a configurable option for the 
+``boundary`` field supported in :ref:`Tumbling Windows <tumbling-windows>` 
+and :ref:`Hopping Windows <hopping-windows>`. It allows you to create a 
+pipeline with a kind of window which accumulates data based on the wall 
+clock time of the server. As opposed to windows that work with 
+:ref:`event time <atlas-sp-event-time>`, processing time windows assign 
+each event a timestamp based on the wall clock time of the server at 
+the time it arrives at the stream processor.
+
+Document timestamps and window boundary timestamps are in |utc|. 
+You can't specify ``idleTimeout`` or ``allowedLateness`` options 
+when configuring a ``processingTime`` window.
 
 .. example:: 
    
