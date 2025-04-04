@@ -5,7 +5,7 @@ class BulkWrite
     static void InsertOne()
     {
         // start-bulk-insert-one
-        var insertOneModel = new BulkWriteInsertOneModel<BsonDocument>(
+        var restaurantToInsert = new BulkWriteInsertOneModel<BsonDocument>(
             "sample_restaurants.restaurants",
             new BsonDocument{
                 { "name", "Mongo's Deli" },
@@ -14,16 +14,30 @@ class BulkWrite
                 { "restaurant_id", "1234" }
             }
         );
+
+        var movieToInsert = new BulkWriteInsertOneModel<BsonDocument>(
+            "sample_mflix.movies",
+            new BsonDocument{
+                { "title", "Silly Days" },
+                { "year", 2022 }
+            }
+        );
         // end-bulk-insert-one
     }
 
     static void UpdateOne()
     {
         // start-bulk-update-one
-        var updateOneModel = new BulkWriteUpdateOneModel<BsonDocument>(
+        var restaurantUpdate = new BulkWriteUpdateOneModel<BsonDocument>(
             "sample_restaurants.restaurants",
             Builders<BsonDocument>.Filter.Eq("name", "Mongo's Deli"),
             Builders<BsonDocument>.Update.Set("cuisine", "Sandwiches and Salads")
+        );
+
+        var movieUpdate = new BulkWriteUpdateOneModel<BsonDocument>(
+            "sample_mflix.movies",
+            Builders<BsonDocument>.Filter.Eq("title", "Carrie"),
+            Builders<BsonDocument>.Update.Set("seen", True)
         );
         // end-bulk-update-one
     }
@@ -33,8 +47,8 @@ class BulkWrite
         // start-bulk-update-many
         var updateManyModel = new BulkWriteUpdateManyModel<BsonDocument>(
             "sample_restaurants.restaurants",
-            Builders<BsonDocument>.Filter.Eq("name", "Mongo's Deli"),
-            Builders<BsonDocument>.Update.Set("cuisine", "Sandwiches and Salads")
+            Builders<BsonDocument>.Filter.Eq("name", "Starbucks"),
+            Builders<BsonDocument>.Update.Set("cuisine", "Coffee (Chain)")
         );
         // end-bulk-update-many
     }
@@ -42,7 +56,7 @@ class BulkWrite
     static void ReplaceOne()
     {
         // start-bulk-replace-one
-        var replaceOneModel = new BulkWriteReplaceOneModel<BsonDocument>(
+        var restaurantReplacement = new BulkWriteReplaceOneModel<BsonDocument>(
             "sample_restaurants.restaurants",
             Builders<BsonDocument>.Filter.Eq("restaurant_id", "1234"),
             new BsonDocument{
@@ -52,15 +66,29 @@ class BulkWrite
                 { "restaurant_id", "5678" }
             }
         );
+
+        var movieReplacement = new BulkWriteReplaceOneModel<BsonDocument>(
+            "sample_mflix.movies",
+            Builders<BsonDocument>.Filter.Eq("title", "Insomnia"),
+            new BsonDocument{
+                { "name", "Loving Sylvie" },
+                { "year", 1999 }
+            }
+        );
         // end-bulk-replace-one
     }
 
     static void DeleteOne()
     {
         // start-bulk-delete-one
-        var deleteOneModel = new BulkWriteDeleteOneModel<BsonDocument>(
+        var restaurantToDelete = new BulkWriteDeleteOneModel<BsonDocument>(
             "sample_restaurants.restaurants",
             Builders<BsonDocument>.Filter.Eq("restaurant_id", "5678")
+        );
+
+        var movieToDelete = new BulkWriteDeleteOneModel<BsonDocument>(
+            "sample_mflix.movies",
+            Builders<BsonDocument>.Filter.Eq("title", "Mr. Nobody")
         );
         // end-bulk-delete-one
     }
@@ -79,12 +107,13 @@ class BulkWrite
     {
         // start-bulk-write-sync
         var client = new MongoClient("mongodb://localhost:27017");
-        var collection = "sample_restaurants.restaurants";
+        var restaurantNamespace = "sample_restaurants.restaurants";
+        var movieNamespace = "sample_mflix.movies";
 
         var bulkWriteModels = new[]
         {
             new BulkWriteInsertOneModel<BsonDocument>(
-                collection,
+                restaurantNamespace,
                 new BsonDocument{
                     { "name", "Mongo's Deli" },
                     { "cuisine", "Sandwiches" },
@@ -93,39 +122,38 @@ class BulkWrite
                 }
             ),
             new BulkWriteInsertOneModel<BsonDocument>(
-                collection,
+                movieNamespace,
                 new BsonDocument{
-                    { "name", "Mongo's Deli" },
-                    { "cuisine", "Sandwiches" },
-                    { "borough", "Brooklyn" },
-                    { "restaurant_id", "5678" }
+                    { "name", "Sarah's Secret" },
+                    { "year", 1988 }
                 }
             ),
             new BulkWriteUpdateManyModel<BsonDocument>(
-                collection,
+                restaurantNamespace,
                 Builders<BsonDocument>.Filter.Eq("name", "Mongo's Deli"),
                 Builders<BsonDocument>.Update.Set("cuisine", "Sandwiches and Salads")
             ),
             new BulkWriteDeleteOneModel<BsonDocument>(
-                collection,
-                Builders<BsonDocument>.Filter.Eq("restaurant_id", "1234")
+                movieNamespace,
+                Builders<BsonDocument>.Filter.Eq("title", "House")
             )
         };
 
-        var results = client.BulkWrite(bulkWriteModels);
-        Console.WriteLine("Bulk write results: " + results);
+        var result = client.BulkWrite(bulkWriteModels);
+        Console.WriteLine(result);
         // end-bulk-write-sync
     }
     static async Task BulkWriteAsync()
     {
         // start-bulk-write-async
         var client = new MongoClient("mongodb://localhost:27017");
-        var collection = "sample_restaurants.restaurants";
+        var restaurantNamespace = "sample_restaurants.restaurants";
+        var movieNamespace = "sample_mflix.movies";
 
         var bulkWriteModels = new[]
         {
             new BulkWriteInsertOneModel<BsonDocument>(
-                collection,
+                restaurantNamespace,
                 new BsonDocument{
                     { "name", "Mongo's Deli" },
                     { "cuisine", "Sandwiches" },
@@ -134,27 +162,25 @@ class BulkWrite
                 }
             ),
             new BulkWriteInsertOneModel<BsonDocument>(
-                collection,
+                movieNamespace,
                 new BsonDocument{
-                    { "name", "Mongo's Deli" },
-                    { "cuisine", "Sandwiches" },
-                    { "borough", "Brooklyn" },
-                    { "restaurant_id", "5678" }
+                    { "name", "Sarah's Secret" },
+                    { "year", 1988 }
                 }
             ),
             new BulkWriteUpdateManyModel<BsonDocument>(
-                collection,
+                restaurantNamespace,
                 Builders<BsonDocument>.Filter.Eq("name", "Mongo's Deli"),
                 Builders<BsonDocument>.Update.Set("cuisine", "Sandwiches and Salads")
             ),
             new BulkWriteDeleteOneModel<BsonDocument>(
-                collection,
-                Builders<BsonDocument>.Filter.Eq("restaurant_id", "1234")
+                movieNamespace,
+                Builders<BsonDocument>.Filter.Eq("title", "House")
             )
         };
 
-        var results = await client.BulkWriteAsync(bulkWriteModels);
-        Console.WriteLine("Bulk write results: " + results);
+        var result = await client.BulkWriteAsync(bulkWriteModels);
+        Console.WriteLine(result);
         // end-bulk-write-async
     }
 
@@ -175,7 +201,7 @@ class BulkWrite
             VerboseResult = true
         };
 
-        var results = client.BulkWrite(deleteOneModel, clientBulkWriteOptions);
+        var result = client.BulkWrite(deleteOneModel, clientBulkWriteOptions);
         // end-bulk-write-options-sync
     }
     static async Task BulkWriteOptionsAsync()
@@ -195,7 +221,7 @@ class BulkWrite
             VerboseResult = true
         };
 
-        var results = await client.BulkWriteAsync(deleteOneModel, clientBulkWriteOptions);
+        var result = await client.BulkWriteAsync(deleteOneModel, clientBulkWriteOptions);
         // end-bulk-write-options-async
     }
 }
