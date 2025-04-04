@@ -12,14 +12,14 @@
         .. code-block:: none
            :copyable: false
 
-           mongodb+srv://cluster0-pl-0-k45tj.mongodb.net
+           mongodb+srv://cluster0-pl-0.k45tj.mongodb.net
 
       - Standard connection string
 
         .. code-block:: none
            :copyable: false
 
-           mongodb://pl-0-us-east-1-k45tj.mongodb.net:1024,pl-0-us-east-1-k45tj.mongodb.net:1025,pl-0-us-east-1-k45tj.mongodb.net:1026/?ssl=true&authSource=admin&replicaSet=Cluster0-shard-0-shard-0
+           mongodb://pl-0-us-east-1.k45tj.mongodb.net:1024,pl-0-us-east-1.k45tj.mongodb.net:1025,pl-0-us-east-1.k45tj.mongodb.net:1026/?ssl=true&authSource=admin&replicaSet=Cluster0-shard-0-shard-0
 
       .. include:: /includes/fact-pl-connection-strings.rst  
 
@@ -28,29 +28,29 @@
 
       The following example shows the SRV record for an {+aws-pl+}
       -enabled single-region {+cluster+}, showing three unique ports 
-      defined for ``pl-0-us-east-1-k45tj.mongodb.net``:
+      defined for ``pl-0-us-east-1.k45tj.mongodb.net``:
 
       .. code-block:: sh
          :copyable: false
          
-         $ nslookup -type=SRV _mongodb._tcp.cluster0-pl-0-k45tj.mongodb.net
+         $ nslookup -type=SRV _mongodb._tcp.cluster0-pl-0.k45tj.mongodb.net
 
          Server: 127.0.0.53
          Address: 127.0.0.53#53
 
          Non-authoritative answer:
-         _mongodb._tcp.cluster0-pl-0-k45tj.mongodb.net service = 0 0 1026 pl-0-us-east-1-k45tj.mongodb.net.
-         _mongodb._tcp.cluster0-pl-0-k45tj.mongodb.net service = 0 0 1024 pl-0-us-east-1-k45tj.mongodb.net.
-         _mongodb._tcp.cluster0-pl-0-k45tj.mongodb.net service = 0 0 1025 pl-0-us-east-1-k45tj.mongodb.net.
+         _mongodb._tcp.cluster0-pl-0.k45tj.mongodb.net service = 0 0 1026 pl-0-us-east-1.k45tj.mongodb.net.
+         _mongodb._tcp.cluster0-pl-0.k45tj.mongodb.net service = 0 0 1024 pl-0-us-east-1.k45tj.mongodb.net.
+         _mongodb._tcp.cluster0-pl-0.k45tj.mongodb.net service = 0 0 1025 pl-0-us-east-1.k45tj.mongodb.net.
 
       In the preceding example:
 
-      - ``_mongodb._tcp.cluster0-pl-0-k45tj.mongodb.net`` is the SRV
+      - ``_mongodb._tcp.cluster0-pl-0.k45tj.mongodb.net`` is the SRV
         record that the
-        ``mongodb+srv://cluster0-pl-0-k45tj.mongodb.net``
+        ``mongodb+srv://cluster0-pl-0.k45tj.mongodb.net``
         connection string references.
 
-      - ``pl-0-us-east-1-k45tj.mongodb.net`` is the hostname for each
+      - ``pl-0-us-east-1.k45tj.mongodb.net`` is the hostname for each
         node in one |service| {+cluster+} in one region for which 
         you have configured {+aws-pl+}.
 
@@ -80,12 +80,12 @@
       .. code-block:: sh
          :copyable: false
 
-         $ nslookup pl-0-us-east-1-k45tj.mongodb.net
+         $ nslookup pl-0-us-east-1.k45tj.mongodb.net
          Server: 127.0.0.53
          Address: 127.0.0.53#53
 
          Non-authoritative answer:
-         pl-0-us-east-1-k45tj.mongodb.net
+         pl-0-us-east-1.k45tj.mongodb.net
          canonical name = vpce-024f5b57108c8d3ed-ypwbxwll.vpce-svc-02863655456245e5c.us-east-1.vpce.amazonaws.com.
     
          Name: vpce-024f5b57108c8d3ed-ypwbxwll.vpce-svc-02863655456245e5c.us-east-1.vpce.amazonaws.com
@@ -104,7 +104,7 @@
       .. code-block:: none
          :copyable: false
 
-         mongodb+srv://serverlessinstance0-pl-0-k45tj.mongodb.net
+         mongodb+srv://serverlessinstance0-pl-0.k45tj.mongodb.net
 
       .. include:: /includes/fact-pl-connection-strings.rst
 
