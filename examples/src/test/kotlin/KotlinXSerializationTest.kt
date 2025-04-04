@@ -26,6 +26,7 @@ import org.bson.codecs.configuration.CodecRegistries
 import org.bson.codecs.kotlinx.BsonConfiguration
 import org.bson.codecs.kotlinx.BsonDecoder
 import org.bson.codecs.kotlinx.BsonEncoder
+import org.bson.codecs.kotlinx.BsonNamingStrategy
 import org.bson.codecs.kotlinx.KotlinSerializerCodec
 import org.bson.codecs.kotlinx.ObjectIdSerializer
 import org.bson.types.ObjectId
@@ -130,6 +131,34 @@ internal class KotlinXSerializationTest {
         assertEquals(paint.id, insertOneResult.insertedId?.asObjectId()?.value)
         val result = collection.withDocumentClass<Document>().find().first().toJson()
         assertFalse(result.contains("manufacturer"))
+        collection.drop()
+    }
+
+    @Test
+    fun snakeCaseNamingTest() = runBlocking {
+        @Serializable
+        data class PaintOrder(
+            val ManufacturerName: String,
+            val QuantityOfCans: Int,
+        )
+
+        val collection = database.getCollection<PaintOrder>("orders2")
+
+        // :snippet-start: snake-case-naming
+        val myCustomCodec = KotlinSerializerCodec.create<PaintOrder>(
+            bsonConfiguration = BsonConfiguration(bsonNamingStrategy = BsonNamingStrategy.SNAKE_CASE)
+        )
+
+        val registry = CodecRegistries.fromRegistries(
+            CodecRegistries.fromCodecs(myCustomCodec), collection.codecRegistry
+        )
+        // :snippet-end:
+
+        val paint = PaintOrder("Acme", 10)
+        collection.withCodecRegistry(registry).insertOne(paint)
+        val result = collection.withDocumentClass<Document>().find().first().toJson()
+        assertTrue(result.contains("quantity_of_cans"))
+        assertFalse(result.contains("ManufacturerName"))
         collection.drop()
     }
 
