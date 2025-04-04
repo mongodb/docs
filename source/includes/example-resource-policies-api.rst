@@ -342,7 +342,7 @@ following details for your cloud provider and replace them in the example:
     :emphasize-lines: 5
 
     {
-        "name": "Policy Preventing Modifications to Peering Across Providers",
+        "name": "Policy Preventing Modifications to Private Endpoints Across Providers",
         "policies": [
             {
                 "body": "forbid (principal, action == ResourcePolicy::Action::\"project.privateEndpoint.modify\", resource) when {context.project.privateEndpoints == [\"aws:vpce-042d72ded1748f314\", \"azure:/subscriptions/fd01aafc-b3re-2193-8497-83lp3m83a1a5/resourceGroups/rg-name/providers/Microsoft.Network/privateEndpoints/pe-name:10.0.0.4\", \"gcp:inductive-cocoa-108200:default\"]};"
