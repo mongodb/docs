@@ -3,7 +3,10 @@
 [PR Reviewing Guidelines](https://github.com/mongodb/docs-spark-connector/blob/master/REVIEWING.md)
 
 JIRA - <https://jira.mongodb.org/browse/DOCSP-NNNNN>
-Staging - <https://docs-mongodbcom-staging.corp.mongodb.com/drivers/docsworker-xlarge/NNNNN/>
+
+### Staging Links
+
+<!-- start insert-links --><!-- end insert-links -->
 
 ## Self-Review Checklist
 
@@ -11,3 +14,8 @@ Staging - <https://docs-mongodbcom-staging.corp.mongodb.com/drivers/docsworker-x
 - [ ] Did you run a spell-check?
 - [ ] Did you run a grammar-check?
 - [ ] Are all the links working?
+<<<<<<< HEAD
+=======
+- [ ] Are the [facets and meta keywords](https://wiki.corp.mongodb.com/display/DE/Docs+Taxonomy) accurate?
+- [ ] Are the page titles greater than 20 characters long and [SEO relevant](https://docs.google.com/spreadsheets/d/1Wkt0-5z04KmcMNscN5bjUKnzwWAtMq9VESp-Lz6r2o8/edit?usp=sharing)?
+>>>>>>> 854fb26 (DOCSP-48941 - Add title length check (#250))
