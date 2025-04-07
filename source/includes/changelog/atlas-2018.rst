@@ -9,7 +9,6 @@
 - Create and manage :doc:`custom roles </security-add-mongodb-roles>`
   for database users.
 - Can peer across regions.
-- Improved speed of backup restores for {+Old-Backup+}.
 
 .. _atlas-v20181113:
 

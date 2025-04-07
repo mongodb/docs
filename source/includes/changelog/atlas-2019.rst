@@ -224,9 +224,8 @@
   Existing |service| clusters are affected the next time you request a
   configuration change to a cluster.
 
-- |service| projects may now use either the {+Old-Backup+} or the
-   :doc:`{+Cloud-Backup+}s </backup/cloud-backup/overview>` backup
-   method. An |service| project supports multiple backup types among
+- |service| projects may now use the :doc:`{+Cloud-Backup+}s </backup/cloud-backup/overview>`
+   backup method. An |service| project supports multiple backup types among
    clusters within that project. You must terminate the existing
    backup method before switching between backup methods for an
    |service| cluster.

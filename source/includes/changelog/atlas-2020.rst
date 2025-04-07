@@ -224,7 +224,7 @@ Introduces easier authorization management for S3 access:
   - Restrict access by domain
   - Bypass single sign-on
 
-- Removes legacy {+Old-Backup+} as an option for new |gcp|\- and
+- Removes legacy Old Backups as an option for new |gcp|\- and
   |azure|\-backed clusters. New |gcp|\- and |azure|\-backed clusters
   use :doc:`{+Cloud-Backup+}s </backup/cloud-backup/overview>` for
   backup.
@@ -299,7 +299,7 @@ Introduces easier authorization management for S3 access:
   :ref:`Index Suggestions in Performance Advisor <pa-create-suggested-indexes>`.
 - Supports MongoDB 4.2 on |aws| using {+Cloud-Backup+}s with
   {+PIT-Restore+} restores.
-- Transitions customers with {+Old-Backup+}s automatically to {+Cloud-Backup+}s when upgrading from 4.0 to 4.2.
+- Transitions customers with Old Backups automatically to {+Cloud-Backup+}s when upgrading from 4.0 to 4.2.
 - Increases maximum storage to memory ratio:
 
   .. list-table::
@@ -360,7 +360,7 @@ Introduces easier authorization management for S3 access:
 28 January 2020 Release
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-- Removes {+Old-Backup+} as a backup option for new |aws|\-backed
+- Removes Old Backup as a backup option for new |aws|\-backed
   clusters. Newly deployed |aws|\-backed clusters use
   :ref:`{+Cloud-Backup+}s <backup-cloud-provider>` for backup.
 
