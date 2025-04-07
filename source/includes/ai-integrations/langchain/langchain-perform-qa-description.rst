@@ -14,12 +14,10 @@
     
   - The prompt template that you defined.
 
-  - An |llm| from OpenAI to generate a 
-    context-aware response. By default, this is the 
-    ``gpt-3.5-turbo`` model.
+  - The ``gpt-4o`` chat model from OpenAI to generate a 
+    context-aware response.
 
-- Prompts the chain with a sample query about |service| security 
-  recommendations.
+- Invokes the chain with a sample query.
 
 - Returns the |llm|'s response and the documents used as context. 
   The generated response might vary.

@@ -5,7 +5,7 @@
 
       The following query uses the ``similarity_search`` method 
       to perform a basic semantic search for 
-      the string ``MongoDB Atlas security``. It returns a 
+      the string ``MongoDB acquisition``. It returns a 
       list of documents ranked by relevance.
 
       ..
@@ -18,7 +18,7 @@
          .. input:: 
             :language: python
 
-            query = "MongoDB Atlas security"
+            query = "MongoDB acquisition"
             results = vector_store.similarity_search(query)
 
             pprint.pprint(results)
@@ -26,17 +26,17 @@
          .. output:: 
             :language: JSON
 
-            [Document(page_content='To ensure a secure system right out of the b ox,\nauthentication and I P Address whitelisting are\nautomatically enabled.\nReview the security section of the MongoD B Atlas', metadata={'_id': ObjectId('65c2e8f480f26794dedad8d5'), 'source': 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP', 'page': 17}),
-             Document(page_content='MongoD B Atlas team are also monitoring the underlying\ninfrastructure, ensuring that it is always in a healthy state.\nApplication L ogs And Database L ogs', metadata={'_id': ObjectId('65c2e8f480f26794dedad8a0'), 'source': 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP', 'page': 15}),
-             Document(page_content='MongoD B.\nMongoD B Atlas incorporates best practices to help keep\nmanaged databases healthy and optimized. T hey ensure\noperational continuity by converting comple x manual tasks', metadata={'_id': ObjectId('65c2e8f380f26794dedad883'), 'source': 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP', 'page': 13}),
-             Document(page_content='Atlas provides encryption of data at rest with encrypted\nstorage volumes.\nOptionally , Atlas users can configure an additional layer of\nencryption on their data at rest using the MongoD B', metadata={'_id': ObjectId('65c2e8f480f26794dedad8e3'), 'source': 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP', 'page': 18})]
-
+            [Document(id='67f0259b8bb2babc06924409', metadata={ ... }, page_content='SOURCE MongoDB, Inc.'),
+             Document(id='67f0259b8bb2babc0692432f', metadata={ ... }, page_content='MongoDB  platform. In fiscal year 2026 we expect to see stable consumption growth in Atlas, our main growth driver," said Dev Ittycheria, President\nand Chief Executive Officer of MongoDB .'),
+             Document(id='67f0259b8bb2babc06924355', metadata={ ... }, page_content='conjunction with the acquisition of Voyage, MongoDB  is announcing a stock buyback program of $200 million, to offset the\ndilutive impact of the acquisition consideration.'),
+             Document(id='67f0259b8bb2babc069243a6', metadata={ ... }, page_content="MongoDB's unified, intelligent data platform was built to power the next generation of applications, and MongoDB  is the most widely available, globally")]
+   
    .. tab:: Semantic Search with Score
       :tabid: semantic-search-score
 
       The following query uses the ``similarity_search_with_score`` 
       method to perform a semantic search for 
-      the string ``MongoDB Atlas security`` and specifies the
+      the string ``MongoDB acquisition`` and specifies the
       ``k`` parameter to limit the number of documents to return
       to ``3``.
 
@@ -60,7 +60,7 @@
          .. input:: 
             :language: python
 
-            query = "MongoDB Atlas security"
+            query = "MongoDB acquisition"
             results = vector_store.similarity_search_with_score(
                query = query, k = 3
             )
@@ -70,12 +70,12 @@
          .. output:: 
             :language: JSON
 
-            [(Document(page_content='To ensure a secure system right out of the b ox,\nauthentication and I P Address whitelisting are\nautomatically enabled.\nReview the security section of the MongoD B Atlas', metadata={'_id': ObjectId('65c2e8f480f26794dedad8d5'), 'source': 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP', 'page': 17}),
-              0.935082197189331),
-             (Document(page_content='MongoD B Atlas team are also monitoring the underlying\ninfrastructure, ensuring that it is always in a healthy state.\nApplication L ogs And Database L ogs', metadata={'_id': ObjectId('65c2e8f480f26794dedad8a0'), 'source': 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP', 'page': 15}),
-              0.9335962533950806),
-             (Document(page_content='MongoD B.\nMongoD B Atlas incorporates best practices to help keep\nmanaged databases healthy and optimized. T hey ensure\noperational continuity by converting comple x manual tasks', metadata={'_id': ObjectId('65c2e8f380f26794dedad883'), 'source': 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP', 'page': 13}),
-              0.9317940473556519)]
+            [(Document(id='67f0259b8bb2babc06924409', metadata={ ... }, page_content='SOURCE MongoDB, Inc.'),
+              0.8193451166152954),
+             (Document(id='67f0259b8bb2babc0692432f', metadata={ ... }, page_content='MongoDB  platform. In fiscal year 2026 we expect to see stable consumption growth in Atlas, our main growth driver," said Dev Ittycheria, President\nand Chief Executive Officer of MongoDB .'),
+              0.7815237045288086),
+             (Document(id='67f0259b8bb2babc06924355', metadata={ ... }, page_content='conjunction with the acquisition of Voyage, MongoDB  is announcing a stock buyback program of $200 million, to offset the\ndilutive impact of the acquisition consideration.'),
+              0.7788857221603394)]
 
    .. tab:: Semantic Search with Filtering
       :tabid: semantic-search-filter
@@ -89,20 +89,20 @@
       
       .. note:: 
 
-         You specified the ``page`` field as a filter 
+         You specified the ``page_label`` field as a filter 
          when you :ref:`created the index <langchain-create-index>`
          for this tutorial.
 
       The following query uses the ``similarity_search_with_score`` method 
       to perform a semantic search for 
-      the string ``MongoDB Atlas security``. It also specifies the following:
+      the string ``MongoDB acquisition``. It also specifies the following:
 
       - The ``k`` parameter to limit the number of documents to return
         to ``3``.
-      - A pre-filter on the ``page`` field that uses the :query:`$eq` operator
-        to match documents appearing on page 17 only.
+      - A pre-filter on the ``page_label`` field that uses the :query:`$eq` operator
+        to match documents appearing on page 2 only.
          
-      It returns the three most relevant documents from page 17
+      It returns the three most relevant documents from page 2
       and a :ref:`relevance score <scoring-ref>` between 
       ``0`` and ``1``.
 
@@ -116,12 +116,12 @@
          .. input:: 
             :language: python
 
-            query = "MongoDB Atlas security"
+            query = "MongoDB acquisition"
 
             results = vector_store.similarity_search_with_score(
                query = query, 
                k = 3, 
-               pre_filter = { "page": { "$eq": 17 } }
+               pre_filter = { "page_label": { "$eq": 2 } }
             )
 
             pprint.pprint(results)
@@ -129,9 +129,9 @@
          .. output:: 
             :language: JSON
 
-            [(Document(page_content='To ensure a secure system right out of the b ox,\nauthentication and I P Address whitelisting are\nautomatically enabled.\nReview the security section of the MongoD B Atlas', metadata={'_id': ObjectId('65c2e8f480f26794dedad8d5'), 'source': 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP', 'page': 17}),
-              0.935082197189331),
-             (Document(page_content='Security\nAs with all software, MongoD B administrators must\nconsider security and risk e xposure for a MongoD B\ndeployment. T here are no magic solutions for risk', metadata={'_id': ObjectId('65c2e8f480f26794dedad8d0'), 'source': 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP', 'page': 17}),
-              0.920635461807251),
-             (Document(page_content='number of diff erent methods for managing risk and\nreducing risk e xposure.\nMongoD B Atlas f eatures e xtensive capabilities to def end,\ndetect, and control access to MongoD B, off ering among', metadata={'_id': ObjectId('65c2e8f480f26794dedad8d2'), 'source': 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP', 'page': 17}),
-              0.9206267595291138)]
+            [(Document(id='67f0259b8bb2babc06924355', metadata={ ... 'page_label': '2'}, page_content='conjunction with the acquisition of Voyage, MongoDB  is announcing a stock buyback program of $200 million, to offset the\ndilutive impact of the acquisition consideration.'),
+              0.7788857221603394),
+             (Document(id='67f0259b8bb2babc06924351', metadata={ ... 'page_label': '2'}, page_content='Measures."\nFourth Quarter Fiscal 2025 and Recent Business Highlights\nMongoDB  acquired Voyage AI, a pioneer in state-of-the-art embedding and reranking models that power next-generation'),
+              0.7606035470962524),
+             (Document(id='67f0259b8bb2babc06924354', metadata={ ... 'page_label': '2'}, page_content='data.\nMongoDB  completed the redemption of 2026 Convertible Notes, eliminating all debt from the balance sheet. Additionally, in'),
+              0.7583936452865601)]

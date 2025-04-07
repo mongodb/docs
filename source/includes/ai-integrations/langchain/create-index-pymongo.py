@@ -5,12 +5,12 @@ search_index_model = SearchIndexModel(
          {
          "type": "vector",
          "path": "embedding",
-         "numDimensions": 1536,
+         "numDimensions": 3072,
          "similarity": "cosine"
          },
          {
          "type": "filter",
-         "path": "page"
+         "path": "page_label"
          }
       ]
    },

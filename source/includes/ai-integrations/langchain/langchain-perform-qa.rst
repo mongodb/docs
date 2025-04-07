@@ -35,7 +35,7 @@
                Question: {question}
             """
             prompt = PromptTemplate.from_template(template)
-            model = ChatOpenAI()
+            model = ChatOpenAI(model="gpt-4o")
 
             # Construct a chain to answer questions on your data
             chain = (
@@ -46,7 +46,7 @@
             )
 
             # Prompt the chain
-            question = "How can I secure my MongoDB Atlas cluster?"
+            question = "What was MongoDB's latest acquisition?"
             answer = chain.invoke(question)
 
             print("Question: " + question)
@@ -59,29 +59,21 @@
 
          .. output:: 
 
-            Question: How can I secure my MongoDB Atlas cluster?
-            Answer: To secure your MongoDB Atlas cluster, you can enable 
-            authentication and IP address whitelisting, review the security section 
-            in the MongoDB Atlas dashboard, encrypt data at rest with encrypted storage 
-            volumes, optionally configure an additional layer of encryption on your 
-            data, set up global clusters on Amazon Web Services, Microsoft Azure, 
-            and Google Cloud Platform, and ensure operational continuity by choosing 
-            appropriate instance size, storage size, and storage speed options. 
-            Additionally, consider setting up a larger number of replica nodes for 
-            increased protection against database downtime.
+            Question: What was MongoDB's latest acquisition?
+            Answer: MongoDB's latest acquisition was Voyage AI, a pioneer in state-of-the-art embedding and reranking models.
 
             Source documents:
-            [Document(page_content='To ensure a secure system right out of the b ox,\nauthentication and I P Address whitelisting are\nautomatically enabled.\nReview the security section of the MongoD B Atlas', metadata={'_id': ObjectId('65fb4f056979cf7cbbfe0436'), 'source': 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP', 'page': 17}),
-            Document(page_content='MongoD B Atlas team are also monitoring the underlying\ninfrastructure, ensuring that it is always in a healthy state.\nApplication L ogs And Database L ogs', metadata={'_id': ObjectId('65fb4f056979cf7cbbfe0401'), 'source': 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP', 'page': 15}),
-            Document(page_content='All the user needs to do in order for MongoD B Atlas to\nautomatically deploy the cluster is to select a handful of\noptions:\n•Instance size\n•Storage size (optional)\n•Storage speed (optional)', metadata={'_id': ObjectId('65fb4f046979cf7cbbfe03ef'), 'source': 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP', 'page': 14}),
-            Document(page_content='MongoD B.\nMongoD B Atlas incorporates best practices to help keep\nmanaged databases healthy and optimized. T hey ensure\noperational continuity by converting comple x manual tasks', metadata={'_id': ObjectId('65fb4f046979cf7cbbfe03e4'), 'source': 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP', 'page': 13}),
-            Document(page_content='You can set up global clusters — available on Amazon W eb\nServices, Microsoft Azure, and Google Cloud Platform —\nwith just a f ew clic ks in the MongoD B Atlas U I. MongoD B', metadata={'_id': ObjectId('65fb4f046979cf7cbbfe03bb'), 'source': 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP', 'page': 12}),
-            Document(page_content='Table of Contents\n1 Introduction\n2 Preparing for a MongoD B Deployment\n9 Scaling a MongoD B Atlas Cluster\n11 Continuous A vailability & Data Consistency\n12 Managing MongoD B\n16 Security', metadata={'_id': ObjectId('65fb4f026979cf7cbbfe02d6'), 'source': 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP', 'page': 1}),
-            Document(page_content='Atlas provides encryption of data at rest with encrypted\nstorage volumes.\nOptionally , Atlas users can configure an additional layer of\nencryption on their data at rest using the MongoD B', metadata={'_id': ObjectId('65fb4f056979cf7cbbfe0444'), 'source': 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP', 'page': 18}),
-            Document(page_content='Disaster Recovery\nCreated by the engineers who develop the database,\nMongoD B Atlas is the simplest way to run MongoD B,\nmaking it easy to deploy , monitor , backup, and scale\nMongoD B.', metadata={'_id': ObjectId('65fb4f046979cf7cbbfe03e3'), 'source': 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP', 'page': 13}),
-            Document(page_content='Security\nAs with all software, MongoD B administrators must\nconsider security and risk e xposure for a MongoD B\ndeployment. T here are no magic solutions for risk', metadata={'_id': ObjectId('65fb4f056979cf7cbbfe0431'), 'source': 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP', 'page': 17}),
-            Document(page_content='A larger number of replica nodes provides increased\nprotection against database downtime in case of multiple\nmachine failures.\nMongoD B Atlas replica sets have a minimum of 3 nodes', metadata={'_id': ObjectId('65fb4f046979cf7cbbfe03ca'), 'source': 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP', 'page': 12})]
-                  
+            [Document(id='67f0259b8bb2babc06924409', metadata={'_id': '67f0259b8bb2babc06924409', ... 'page_label': '9'}, page_content='SOURCE MongoDB, Inc.'),
+             Document(id='67f0259b8bb2babc06924351', metadata={'_id': '67f0259b8bb2babc06924351', ... 'page_label': '2'}, page_content='Measures."\nFourth Quarter Fiscal 2025 and Recent Business Highlights\nMongoDB  acquired Voyage AI, a pioneer in state-of-the-art embedding and reranking models that power next-generation'),
+             Document(id='67f0259b8bb2babc0692432f', metadata={'_id': '67f0259b8bb2babc0692432f', ... 'page_label': '1'}, page_content='MongoDB  platform. In fiscal year 2026 we expect to see stable consumption growth in Atlas, our main growth driver," said Dev Ittycheria, President\nand Chief Executive Officer of MongoDB .'),
+             Document(id='67f0259b8bb2babc06924355', metadata={'_id': '67f0259b8bb2babc06924355', ... 'page_label': '2'}, page_content='conjunction with the acquisition of Voyage, MongoDB  is announcing a stock buyback program of $200 million, to offset the\ndilutive impact of the acquisition consideration.'),
+             Document(id='67f0259b8bb2babc069243a6', metadata={'_id': '67f0259b8bb2babc069243a6', ... 'page_label': '4'}, page_content="MongoDB's unified, intelligent data platform was built to power the next generation of applications, and MongoDB  is the most widely available, globally"),
+             Document(id='67f0259b8bb2babc06924329', metadata={'_id': '67f0259b8bb2babc06924329', ... 'page_label': '1'}, page_content='MongoDB, Inc. Announces Fourth Quarter and Full Year Fiscal 2025 Financial Results\nMarch 5, 2025\nFourth Quarter Fiscal 2025 Total Revenue of $548.4 million, up 20% Year-over-Year'),
+             Document(id='67f0259b8bb2babc069243a7', metadata={'_id': '67f0259b8bb2babc069243a7', ... 'page_label': '4'}, page_content='distributed database on the market. With integrated capabilities for operational data, search, real-time analytics, and AI-powered retrieval, MongoDB'),
+             Document(id='67f0259b8bb2babc069243a5', metadata={'_id': '67f0259b8bb2babc069243a5', ... 'page_label': '4'}, page_content="Headquartered in New York, MongoDB's mission is to empower innovators to create, transform, and disrupt industries with software and data."),
+             Document(id='67f0259b8bb2babc06924354', metadata={'_id': '67f0259b8bb2babc06924354', ... 'page_label': '2'}, page_content='data.\nMongoDB  completed the redemption of 2026 Convertible Notes, eliminating all debt from the balance sheet. Additionally, in'),
+             Document(id='67f0259b8bb2babc069243a9', metadata={'_id': '67f0259b8bb2babc069243a9', ... 'page_label': '4'}, page_content='50,000 customers across almost every industry—including 70% of the Fortune 100—rely on MongoDB  for their most important applications. To learn\nmore, visit mongodb.com .\nInvestor Relations')]
+             
    .. tab:: RAG with Filtering
       :tabid: langchain-rag-filtering
 
@@ -102,7 +94,7 @@
              define a custom retriever that uses the ``similarity_search_with_score`` method 
              and filters by the |fts| score.
            
-        - ``pre_filter`` to filter on the ``page`` field for documents that appear on page 17 only.
+        - ``pre_filter`` to filter on the ``page_label`` field for documents that appear on page 2 only.
 
       .. include:: /includes/ai-integrations/langchain/langchain-perform-qa-description.rst
       
@@ -122,7 +114,7 @@
                search_kwargs = {
                   "k": 10,
                   "score_threshold": 0.75,
-                  "pre_filter": { "page": { "$eq": 17 } }
+                  "pre_filter": { "page_label": { "$eq": 2 } }
                }
             )
 
@@ -133,7 +125,7 @@
                Question: {question}
             """
             prompt = PromptTemplate.from_template(template)
-            model = ChatOpenAI()
+            model = ChatOpenAI(model="gpt-4o")
 
             # Construct a chain to answer questions on your data
             chain = (
@@ -144,7 +136,8 @@
             )
 
             # Prompt the chain
-            question = "How can I secure my MongoDB Atlas cluster?"
+            question = "What was MongoDB's latest acquisition?"
+
             answer = rag_chain.invoke(question)
 
             print("Question: " + question)
@@ -157,24 +150,17 @@
 
          .. output:: 
 
-            Question: How can I secure my MongoDB Atlas cluster?
-            Answer: To secure your MongoDB Atlas cluster, you can enable 
-            authentication and IP Address whitelisting, define permissions
-            for users and applications, use VPC Peering for secure connectivity, 
-            implement a Defense in Depth approach for securing deployments, and 
-            consider using LDAP integration for centralized authorization
-            management. It is important to regularly review the security section 
-            of MongoDB Atlas and continuously monitor and update security measures 
-            to mitigate risk and maintain a secure deployment.
+            Question: What was MongoDB's latest acquisition?
+            Answer: MongoDB's latest acquisition was Voyage AI, a pioneer in state-of-the-art embedding and reranking models.
 
             Source documents:
-            [Document(page_content='To ensure a secure system right out of the b ox,\nauthentication and I P Address whitelisting are\nautomatically enabled.\nReview the security section of the MongoD B Atlas', metadata={'_id': ObjectId('65fb4f056979cf7cbbfe0436'), 'source': 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP', 'page': 17}),
-            Document(page_content='Security\nAs with all software, MongoD B administrators must\nconsider security and risk e xposure for a MongoD B\ndeployment. T here are no magic solutions for risk', metadata={'_id': ObjectId('65fb4f056979cf7cbbfe0431'), 'source': 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP', 'page': 17}),
-            Document(page_content='number of diff erent methods for managing risk and\nreducing risk e xposure.\nMongoD B Atlas f eatures e xtensive capabilities to def end,\ndetect, and control access to MongoD B, off ering among', metadata={'_id': ObjectId('65fb4f056979cf7cbbfe0433'), 'source': 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP', 'page': 17}),
-            Document(page_content='permissions for a user or application, and what data it can\naccess when querying MongoD B. MongoD B Atlas provides\nthe ability to provision users with roles specific to a', metadata={'_id': ObjectId('65fb4f056979cf7cbbfe043b'), 'source': 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP', 'page': 17}),
-            Document(page_content='connectivity without using public I P addresses, and without\nneeding to whitelist every client in your MongoD B Atlas\ngroup.\nAuthorization\nMongoD B Atlas allows administrators to define', metadata={'_id': ObjectId('65fb4f056979cf7cbbfe043a'), 'source': 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP', 'page': 17}),
-            Document(page_content='mitigation, and maintaining a secure MongoD B deployment\nis an ongoing process.\nDefense in Depth\nA Def ense in Depth approac h is recommended for\nsecuring MongoD B deployments, and it addresses a', metadata={'_id': ObjectId('65fb4f056979cf7cbbfe0432'), 'source': 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP', 'page': 17}),
-            Document(page_content='optimization.\nIn addition, MongoD B Atlas provides pac kaged integration\nwith the New Relic platform. K ey metrics from MongoD B\nAtlas are accessible to the AP M for visualization, enabling', metadata={'_id': ObjectId('65fb4f056979cf7cbbfe042e'), 'source': 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP', 'page': 17}),
-            Document(page_content='their I P address (or a C IDR covering their I P address) has\nbeen added to the IP whitelist for your MongoD B Atlas\ngroup.\nVPC P eering\nVirtual P rivate Cloud (VPC) P eering allows users to create', metadata={'_id': ObjectId('65fb4f056979cf7cbbfe0438'), 'source': 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP', 'page': 17}),
-            Document(page_content='dedicated A tlas clusters using credentials that are verified\nby a centralized L DAP server . Authorization management is\nsimplified by allowing control at the L DAP group level.', metadata={'_id': ObjectId('65fb4f056979cf7cbbfe043d'), 'source': 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP', 'page': 17}),
-            Document(page_content='database, making it possible to realize a separation of\nduties between diff erent entities accessing and managing\nthe data.\nAtlas supports L DAP integration, allowing users to login to', metadata={'_id': ObjectId('65fb4f056979cf7cbbfe043c'), 'source': 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP', 'page': 17})]
+            [Document(id='67f0259b8bb2babc06924351', metadata={'_id': '67f0259b8bb2babc06924351', ... 'page_label': '2'}, page_content='Measures."\nFourth Quarter Fiscal 2025 and Recent Business Highlights\nMongoDB  acquired Voyage AI, a pioneer in state-of-the-art embedding and reranking models that power next-generation'),
+             Document(id='67f0259b8bb2babc06924355', metadata={'_id': '67f0259b8bb2babc06924355', ... 'page_label': '2'}, page_content='conjunction with the acquisition of Voyage, MongoDB  is announcing a stock buyback program of $200 million, to offset the\ndilutive impact of the acquisition consideration.'),
+             Document(id='67f0259b8bb2babc06924354', metadata={'_id': '67f0259b8bb2babc06924354', ... 'page_label': '2'}, page_content='data.\nMongoDB  completed the redemption of 2026 Convertible Notes, eliminating all debt from the balance sheet. Additionally, in'),
+             Document(id='67f0259b8bb2babc06924358', metadata={'_id': '67f0259b8bb2babc06924358', ... 'page_label': '2'}, page_content='Lombard Odier, a Swiss private bank, partnered with MongoDB  to migrate and modernize its legacy banking technology'),
+             Document(id='67f0259b8bb2babc06924352', metadata={'_id': '67f0259b8bb2babc06924352', ... 'page_label': '2'}, page_content="AI applications. Integrating Voyage AI's technology with MongoDB  will enable organizations to easily build trustworthy,"),
+             Document(id='67f0259b8bb2babc0692435a', metadata={'_id': '67f0259b8bb2babc0692435a', ... 'page_label': '2'}, page_content='applications from a legacy relational database to MongoDB  20 times faster than previous migrations.\nFirst Quarter and Full Year Fiscal 2026 Guidance'),
+             Document(id='67f0259b8bb2babc06924356', metadata={'_id': '67f0259b8bb2babc06924356', ... 'page_label': '2'}, page_content='For the third consecutive year, MongoDB  was named a Leader in the 2024 Gartner® Magic Quadrant™ for Cloud'),
+             Document(id='67f0259b8bb2babc0692434d', metadata={'_id': '67f0259b8bb2babc0692434d', ... 'page_label': '2'}, page_content='compared to $121.5 million of cash from operations in the year-ago period. MongoDB  used $29.6 million of cash in capital'),
+             Document(id='67f0259b8bb2babc0692434c', metadata={'_id': '67f0259b8bb2babc0692434c', ... 'page_label': '2'}, page_content='Cash Flow: During the year ended January 31, 2025, MongoDB  generated $150.2 million of cash from operations,'),
+             Document(id='67f0259b8bb2babc06924364', metadata={'_id': '67f0259b8bb2babc06924364', ... 'page_label': '2'}, page_content='MongoDB  will host a conference call today, March 5, 2025, at 5:00 p.m. (Eastern Time) to discuss its financial results and business outlook. A live')]
