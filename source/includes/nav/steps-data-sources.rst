@@ -1,5 +1,7 @@
 .. step:: Go to the :guilabel:`Data Sources` page.
 
+   .. include:: /includes/nav/fact-nav-preview.rst
+
    Click :guilabel:`Data sources` under the 
    :guilabel:`Deployments` heading in the sidebar.
 

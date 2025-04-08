@@ -1,5 +1,7 @@
 .. step:: Go to the :guilabel:`Organization Dashboards` page.
 
+   .. include:: /includes/nav/fact-nav-preview.rst
+
    If the :guilabel:`Organization Dashboards` page isn't 
    already displayed, click :guilabel:`Organization` under the 
    :guilabel:`Dashboards` heading in the sidebar.

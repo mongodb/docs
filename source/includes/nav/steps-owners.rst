@@ -1,5 +1,7 @@
 .. step:: Go to the :guilabel:`Owners` page for your project.
 
+   .. include:: /includes/nav/fact-nav-preview.rst
+
    If the :guilabel:`Owners` page isn't 
    already displayed, click :guilabel:`Owners` under the 
    :guilabel:`Dashboards` heading in the sidebar.

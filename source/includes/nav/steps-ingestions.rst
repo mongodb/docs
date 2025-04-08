@@ -1,5 +1,7 @@
 .. step:: Go to the :guilabel:`Ingestions` page.
 
+   .. include:: /includes/nav/fact-nav-preview.rst
+
    Click :guilabel:`Ingestions` under the 
    :guilabel:`Deployments` heading in the sidebar.
 

@@ -1,5 +1,7 @@
 .. step:: Go to the :guilabel:`Data Transfer` page.
 
+   .. include:: /includes/nav/fact-nav-preview.rst
+
    Click :guilabel:`Data transfer` under the 
    :guilabel:`Usage` heading in the sidebar.
    

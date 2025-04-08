@@ -1,5 +1,7 @@
 .. step:: Go to the :guilabel:`Dashboards` page for your project.
 
+   .. include:: /includes/nav/fact-nav-preview.rst
+
    If the :guilabel:`Dashboards` page for your project isn't already 
    displayed, click :guilabel:`Project` under the 
    :guilabel:`Dashboards` heading in the sidebar.

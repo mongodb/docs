@@ -1,5 +1,7 @@
 .. step:: Go to the :guilabel:`Embedding` page.
 
+   .. include:: /includes/nav/fact-nav-preview.rst
+
    Click :guilabel:`Embedding` under the 
    :guilabel:`Development` heading in the sidebar.
 
