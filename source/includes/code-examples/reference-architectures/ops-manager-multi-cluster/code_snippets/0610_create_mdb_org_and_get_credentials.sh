@@ -11,14 +11,16 @@ test -n "${om_url}" || (echo "Error getting OM's url from resource status"; exit
 om_ca_cert=$(kubectl --context "${K8S_CLUSTER_0_CONTEXT_NAME}" get configmap ca-issuer -n "${OM_NAMESPACE}" -o jsonpath="{.data['mms-ca\.crt']}")
 test -n "${om_ca_cert}" || (echo "Error getting OM's CA certificate"; exit 1;)
 
-# we're using kubectl port-forward to port 8443, hence we need to use --insecure
+# we're using the load balancer IP, hence we need to use --insecure
 # normally, OM should be accessed from inside the cluster or properly exposed externally
+
+om_ip_address=$(kubectl get --context "${K8S_CLUSTER_0_CONTEXT_NAME}" -n "${OM_NAMESPACE}" svc "om-svc-ext" -o=jsonpath="{.status.loadBalancer.ingress[0].ip}")
 
 mdb_org_id=$(curl -v --insecure --user "${om_creds}" --digest \
   --header 'Accept: application/json' \
   --header 'Content-Type: application/json' \
   --cacert <(echo -n "${om_ca_cert}") \
-  "https://localhost:8443/api/public/v1.0/orgs?name=mdb" | jq -r '.results[]? | select(.isDeleted==false) | .id')
+  "https://${om_ip_address}:8443/api/public/v1.0/orgs?name=mdb" | jq -r '.results[]? | select(.isDeleted==false) | .id')
 
 if [ -z "${mdb_org_id}" ]; then
   echo "creating new mdb org"
@@ -27,13 +29,13 @@ if [ -z "${mdb_org_id}" ]; then
     --header 'Content-Type: application/json' \
     --cacert <(echo -n "${om_ca_cert}")\
     --data '{ "name" : "mdb" }' \
-    "https://localhost:8443/api/public/v1.0/orgs"
+    "https://${om_ip_address}:8443/api/public/v1.0/orgs"
 
   mdb_org_id=$(curl -v --insecure --user "${om_creds}" --digest \
     --header 'Accept: application/json' \
     --header 'Content-Type: application/json' \
     --cacert <(echo -n "${om_ca_cert}") \
-    "https://localhost:8443/api/public/v1.0/orgs?name=mdb" | jq -r '.results[0].id')
+    "https://${om_ip_address}:8443/api/public/v1.0/orgs?name=mdb" | jq -r '.results[0].id')
   test -n "${mdb_org_id}" || (echo "Error getting org id"; exit 1;)
 fi
 
@@ -45,7 +47,7 @@ api_keys_response=$(curl -v --insecure --user "${om_creds}" --digest \
       "desc" : "API key to manage the org",
       "roles": ["ORG_OWNER"]
     }' \
-  "https://localhost:8443/api/public/v1.0/orgs/${mdb_org_id}/apiKeys")
+  "https://${om_ip_address}:8443/api/public/v1.0/orgs/${mdb_org_id}/apiKeys")
 
 mdb_org_api_key_id=$(jq -r '.id' <(echo "${api_keys_response}"))
 test -n "${mdb_org_api_key_id}" || (echo "Error getting mdb org key id"; exit 1;)
@@ -64,7 +66,7 @@ curl -v --insecure --user "${om_creds}" --digest \
     { "cidrBlock" : "127.0.0.1/24" }
   ]' \
   --request POST \
-  "https://localhost:8443/api/public/v1.0/orgs/${mdb_org_id}/apiKeys/${mdb_org_api_key_id}/accessList"
+  "https://${om_ip_address}:8443/api/public/v1.0/orgs/${mdb_org_id}/apiKeys/${mdb_org_api_key_id}/accessList"
 
 kubectl apply --context "${K8S_CLUSTER_0_CONTEXT_NAME}" -n "${MDB_NAMESPACE}" -f - <<EOF
 apiVersion: v1

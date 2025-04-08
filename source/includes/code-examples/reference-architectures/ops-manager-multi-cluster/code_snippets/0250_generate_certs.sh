@@ -5,7 +5,6 @@ metadata:
   name: om-cert
 spec:
   dnsNames:
-  - ${OPS_MANAGER_EXTERNAL_DOMAIN}
   - om-svc.${OM_NAMESPACE}.svc.cluster.local
   duration: 240h0m0s
   issuerRef:
@@ -24,7 +23,6 @@ metadata:
 spec:
   dnsNames:
   - "*.${OM_NAMESPACE}.svc.cluster.local"
-  - "*.om-db-svc.${OM_NAMESPACE}.svc.cluster.local"
   duration: 240h0m0s
   issuerRef:
     name: my-ca-issuer

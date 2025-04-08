@@ -26,16 +26,6 @@ spec:
       members: 0
       backup:
         members: 1
-  configuration: # to avoid configuration wizard on first login
-      mms.adminEmailAddr: email@example.com
-      mms.fromEmailAddr: email@example.com
-      mms.ignoreInitialUiSetup: "true"
-      mms.mail.hostname: smtp@example.com
-      mms.mail.port: "465"
-      mms.mail.ssl: "true"
-      mms.mail.transport: smtp
-      mms.minimumTLSVersion: TLSv1.2
-      mms.replyToEmailAddr: email@example.com
   applicationDatabase:
     version: "${APPDB_VERSION}"
     topology: MultiCluster

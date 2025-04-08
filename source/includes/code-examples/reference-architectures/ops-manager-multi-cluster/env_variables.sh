@@ -15,10 +15,5 @@ export S3_ENDPOINT="minio.tenant-tiny.svc.cluster.local"
 export S3_ACCESS_KEY="console"
 export S3_SECRET_KEY="console123"
 
-# (Optional) Change the following setting when using the external URL.
-# This env variable is used in OpenSSL configuration to generate
-# server certificates for Ops Manager Application.
-export OPS_MANAGER_EXTERNAL_DOMAIN="om-svc.${OM_NAMESPACE}.svc.cluster.local"
-
-export OPS_MANAGER_VERSION="8.0.4"
-export APPDB_VERSION="8.0.5"
+export OPS_MANAGER_VERSION="8.0.5"
+export APPDB_VERSION="8.0.5-ent"
