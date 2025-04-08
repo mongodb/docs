@@ -20,7 +20,8 @@
            - Value
 
          * - ``serviceEndpointId`` 
-           - Your EventHub namespace `endpoint <https://learn.microsoft.com/en-us/rest/api/eventhub/namespaces/get?view=rest-eventhub-2024-01-01&tabs=HTTP>`__
+           - Your EventHub namespace `endpoint. <https://learn.microsoft.com/en-us/rest/api/eventhub/namespaces/get?view=rest-eventhub-2024-01-01&tabs=HTTP>`__
+             Note that this value must be the Azure Resource Manager (ARM) ID of the Event Hub namespace, not the ARM ID of an individual Event Hub.
 
          * - ``dnsDomain``
            - Fully qualified domain name, with port number, of the
