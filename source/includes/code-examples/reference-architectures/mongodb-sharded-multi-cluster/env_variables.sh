@@ -6,5 +6,5 @@
 #  ${K8S_CLUSTER_2_CONTEXT_NAME}
 #  ${MDB_NAMESPACE}
 
-export RESOURCE_NAME=mdb-sh
-export MONGODB_VERSION=8.0.5
+export SC_RESOURCE_NAME=mdb-sh
+export MONGODB_VERSION="8.0.5-ent"

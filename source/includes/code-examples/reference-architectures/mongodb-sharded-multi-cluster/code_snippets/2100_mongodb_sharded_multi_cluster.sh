@@ -2,7 +2,7 @@ kubectl apply --context "${K8S_CLUSTER_0_CONTEXT_NAME}" -n "${MDB_NAMESPACE}" -f
 apiVersion: mongodb.com/v1
 kind: MongoDB
 metadata:
-  name: ${RESOURCE_NAME}
+  name: ${SC_RESOURCE_NAME}
 spec:
   shardCount: 3
   # we don't specify mongodsPerShardCount, mongosCount and configServerCount as they don't make sense for multi-cluster
@@ -14,6 +14,9 @@ spec:
       name: mdb-org-project-config
   credentials: mdb-org-owner-credentials
   persistent: true
+  backup:
+    mode: enabled
+  externalAccess: {}
   security:
     certsSecretPrefix: cert-prefix
     tls:

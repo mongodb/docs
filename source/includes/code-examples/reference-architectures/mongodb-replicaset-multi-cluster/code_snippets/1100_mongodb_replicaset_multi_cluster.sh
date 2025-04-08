@@ -2,7 +2,7 @@ kubectl apply --context "${K8S_CLUSTER_0_CONTEXT_NAME}" -n "${MDB_NAMESPACE}" -f
 apiVersion: mongodb.com/v1
 kind: MongoDBMultiCluster
 metadata:
-  name: ${RESOURCE_NAME}
+  name: ${RS_RESOURCE_NAME}
 spec:
   type: ReplicaSet
   version: ${MONGODB_VERSION}
@@ -12,6 +12,8 @@ spec:
   credentials: mdb-org-owner-credentials
   duplicateServiceObjects: false
   persistent: true
+  backup:
+    mode: enabled
   externalAccess: {}
   security:
     certsSecretPrefix: cert-prefix
