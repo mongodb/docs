@@ -1,0 +1,213 @@
+.. _langchain-graph-rag:
+
+===================================
+GraphRAG with MongoDB and LangChain
+===================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. facet::
+   :name: programming_language
+   :values: python
+
+.. meta::
+   :description: Learn how to implement GraphRAG using Atlas Vector Search and LangChain.
+   :keywords: GraphRAG, RAG, knowledge graph, MongoDB, LangChain, retrieval, OpenAI, ChatGPT, generative AI
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This tutorial demonstrates how to implement 
+GraphRAG by using |service-fullname| and LangChain. GraphRAG
+is an alternative approach to traditional RAG that structures 
+your data as a knowledge graph instead of as vector embeddings. 
+When combined with an |llm|, this approach enables relationship-aware 
+retrieval and multi-hop reasoning.
+
+.. cta-banner::
+   :url: https://github.com/mongodb/docs-notebooks/blob/main/ai-integrations/langchain-graphrag.ipynb?tck=docs
+   :icon: Code
+
+   Work with a runnable version of this tutorial as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/ai-integrations/langchain-graphrag.ipynb?tck=docs>`.
+
+Background
+----------
+
+.. include:: /includes/avs/shared/avs-fact-graphrag-langchain.rst
+
+Prerequisites
+-------------
+
+To complete this tutorial, you must have the following:
+
+- .. include:: /includes/avs/shared/avs-requirements-cluster.rst
+
+- .. include:: /includes/avs/shared/avs-requirements-openai-api-key.rst
+
+- An environment to run interactive Python notebooks
+  such as `VS Code <https://code.visualstudio.com/docs/datascience/jupyter-notebooks>`__
+  or `Colab <https://colab.research.google.com>`__.
+
+Set Up the Environment
+----------------------
+
+.. include:: /includes/avs/shared/set-up-python-notebook-environment.rst
+
+.. procedure::
+   :style: normal
+
+   .. step:: Install and import dependencies.
+   
+      Run the following command:
+
+      .. code-block:: python
+         
+         pip install --quiet --upgrade pymongo langchain_community wikipedia langchain_openai langchain_mongodb
+
+   .. step:: Define environment variables.
+   
+      Copy the following code example, replace the variables with your own values, 
+      then run the code:
+
+      .. list-table::
+         :widths: 30 70
+
+         * - ``<api-key>``
+           - Your OpenAI API key
+         * - ``<connection-string>``
+           - Your |service| {+cluster+}'s SRV connection string
+           
+      .. code-block:: python
+         
+         import os
+         
+         os.environ["OPENAI_API_KEY"] = "<api-key>"
+         ATLAS_CONNECTION_STRING = "<connection-string>"
+         ATLAS_DB_NAME = "langchain_db"    # MongoDB database to store the knowledge graph
+         ATLAS_COLLECTION = "wikipedia"    # MongoDB collection to store the knowledge graph
+        
+      .. note::
+      
+         .. include:: /includes/fact-connection-string-format-drivers.rst
+
+Use |service| as a Knowledge Graph
+----------------------------------
+
+This section demonstrates how to use |service| as a 
+knowledge graph for GraphRAG. Paste and run the following 
+code in your notebook:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Initialize the language model.
+   
+      Initialize the |llm| by using the ``init_chat_model`` method 
+      from LangChain:
+
+      .. code-block:: python
+
+         from langchain_openai import OpenAI
+         from langchain.chat_models import init_chat_model
+         
+         chat_model = init_chat_model("gpt-4o", model_provider="openai", temperature=0)
+   
+   .. step:: Load the sample data.
+   
+      For this tutorial, you use publicly accessible data from 
+      Wikipedia as the data source. To load the sample data, 
+      run the following code snippet. It performs the following steps:
+
+      - Retrieves a subset Wikipedia pages, filtered by the query ``Sherlock Holmes``.
+      - Uses a text splitter to split the data into smaller documents.
+      - Specifies chunk parameters, which determine the number of characters in each document 
+        and the number of characters that should overlap between two consecutive documents.
+
+      .. code-block:: python
+
+         from langchain_community.document_loaders import WikipediaLoader
+         from langchain.text_splitter import TokenTextSplitter
+         
+         wikipedia_pages = WikipediaLoader(query="Sherlock Holmes", load_max_docs=3).load()
+         
+         text_splitter = TokenTextSplitter(chunk_size=1024, chunk_overlap=0)
+         wikipedia_docs = text_splitter.split_documents(wikipedia_pages)
+
+   .. step:: Instantiate the graph store.
+   
+      Use the ``MongoDBGraphStore``
+      class to construct the knowledge graph and load it into your 
+      |service| {+cluster+}:
+
+      .. code-block:: python
+
+         from langchain_mongodb.graphrag.graph import MongoDBGraphStore
+         
+         graph_store = MongoDBGraphStore.from_connection_string(
+             connection_string = ATLAS_CONNECTION_STRING,
+             database_name = ATLAS_DB_NAME,
+             collection_name = ATLAS_COLLECTION,
+             entity_extraction_model = chat_model
+         )
+
+   .. step:: Add documents to the knowledge graph.
+   
+      Add documents to the collection by 
+      using the ``add_documents`` method. When you add 
+      new documents, this method finds existing 
+      entities and updates them or creates new ones if 
+      they do not exist.
+
+      This step might take a few minutes. You can ignore any
+      warnings that appear in the output.
+
+      .. code-block:: python
+
+         graph_store.add_documents(wikipedia_docs)
+
+      After you run the sample code, you can
+      view how your data is stored by
+      navigating to the ``documents.wikipedia`` collection 
+      :ref:`in the {+atlas-ui+} <atlas-ui-view-collections>`.
+
+   .. step:: (Optional) Visualize the knowledge graph.
+
+      You can visualize the graph structure using the ``networkx`` and ``pyvis`` 
+      libraries. For an example, see the  
+      :github:`notebook <mongodb/docs-notebooks/blob/main/ai-integrations/langchain-graphrag.ipynb?tck=docs>`.
+
+Answer Questions about Your Data
+--------------------------------
+
+Invoke the knowledge graph to answer questions. 
+Use the ``chat_response`` method to invoke the knowledge graph. 
+It retrieves relevant documents from |service|, and then 
+uses the chat model you specified to generate an answer 
+in natural language.
+
+Specifically, the chat model extracts entities from the query,
+|service| traverses the knowledge graph to find 
+connected entities by using the :pipeline:`$graphLookup` stage,
+and the closest entities and their relationships are sent 
+with the query back to the chat model to generate a response.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: python
+
+      query = "Who inspired Sherlock Holmes?"
+      answer = graph_store.chat_response(query)
+      print(answer.content)
+
+   .. output::
+
+      Sherlock Holmes was inspired by Dr. Joseph Bell, a physician known for his keen observation and deductive reasoning, as acknowledged by Sir Arthur Conan Doyle, Holmes' creator.

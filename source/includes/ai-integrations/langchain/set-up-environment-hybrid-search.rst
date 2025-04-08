@@ -17,8 +17,7 @@
 
       Run the following code to set the environment variables for this tutorial.
       Provide your OpenAI API Key and |service| {+cluster+}'s |srv| :manual:`connection string
-      </reference/connection-string/#find-your-mongodb-atlas-connection-string>`
-      when prompted.
+      </reference/connection-string/#find-your-mongodb-atlas-connection-string>`.
 
       ..
          NOTE: If you edit this Python code, also update the Jupyter Notebook
