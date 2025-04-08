@@ -1,3 +1,5 @@
+.. include:: /includes/nav/fact-nav-preview.rst
+
 1. If it's not already displayed, select the 
    organization that contains your project from the
    |ui-org-menu| in the navigation bar.

@@ -1,5 +1,7 @@
 In |service|, go to the :guilabel:`Project Settings` page.
 
+.. include:: /includes/nav/fact-nav-preview.rst
+
 a. If it's not already displayed, select the organization that
    contains your desired project from the |ui-org-menu| in the
    navigation bar.

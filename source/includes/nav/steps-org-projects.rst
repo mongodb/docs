@@ -1,5 +1,7 @@
 .. step:: In |service|, go to the :guilabel:`Projects` page for your organization.
 
+   .. include:: /includes/nav/fact-nav-preview.rst
+
    a. If it's not already displayed, select your desired organization
       from the :icon-mms:`office` :guilabel:`Organizations` menu in the
       navigation bar.

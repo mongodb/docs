@@ -1,4 +1,6 @@
 .. step:: In |service|, go to the :guilabel:`Project Access Manager` page.
+
+   .. include:: /includes/nav/fact-nav-preview.rst
       
    a. If it's not already displayed, select your desired organization
       from the :icon-mms:`office` :guilabel:`Organizations` menu in the

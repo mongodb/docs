@@ -1,5 +1,7 @@
 In |service|, go to the :guilabel:`Organization Settings` page.
 
+.. include:: /includes/nav/fact-nav-preview.rst
+
 i. If it's not already displayed, select your desired organization
    from the :icon-mms:`office` :guilabel:`Organizations` menu in the
    navigation bar.

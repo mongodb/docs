@@ -1,7 +1,7 @@
 .. step:: Go to the |fts| page for your {+cluster+}.
 
    You can go the |fts| page from the sidebar, the
-   :guilabel:`Data Explorer`, or your {+cluster+} details page. 
+   :guilabel:`Data Explorer`, or your {+cluster+} details page.
 
    .. tabs::
       
