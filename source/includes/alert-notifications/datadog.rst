@@ -1,5 +1,5 @@
-Sends the alert to a `Datadog <https://www.datadoghq.com/alerts/>`__
-account as a Datadog `event <https://docs.datadoghq.com/graphing/event_stream/>`__.
+Sends the `alert to a Datadog account <https://www.datadoghq.com/alerts/>`__
+as a `Datadog event <https://docs.datadoghq.com/service_management/events/>`__.
 
 When the alert first opens, |mms| sends the alert as an "error" event.
 Subsequent updates are sent as "info" events. When the alert closes,
