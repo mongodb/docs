@@ -1,3 +1,81 @@
+.. _opsmgr-server-8.0.6:
+
+|onprem| Server 8.0.6
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-04-03*
+
+- Updates the {+mdbagent+} to 108.0.6.8796-1.
+- Releases ``mongosh`` 2.4.0 to |mms|.
+- Adds support for |bic-full| 2.14.22.
+- Compatible with :dbtools:`MongoDB Database Tools 100.11.0
+  </release-notes/database-tools-changelog/#100.11.0-changelog>`.
+- Upgrades Jetty library to 11.0.25.
+- Reduces the maximum session length (:setting:`mms.session.maxHours`)
+  from two months to one week to improve security.
+- Adds a new ``mms.cookies.sameSite`` setting to configure cookie behavior:
+
+  - ``Lax`` allows top-level navigation cookies.
+  - ``Strict`` restricts cookies to same-site requests.
+  - ``None`` permits all cross-site cookies over HTTPS.
+
+  All cookies are now ``httpOnly`` and marked as secure when
+  using HTTPS.
+
+- Adds support for configuring multiple passwords in :setting:`security.ldap.bind.queryPassword`
+  so that users can ensure that MongoDB won't disconnect from LDAP after a restart when 
+  performing an LDAP credential rotation. To learn more, see :ref:`security-ldap`.
+
+- Improves handling of misconfigured core/max pool sizes.
+
+- Adds the ability for |mms| to recognize dashes (``-``) in deployment names.
+
+- Exports all stored telemetry data into the related files in the diagnostic logs.
+
+- Improves error handling to prevent ``mongodb-mms-stop`` from crashing 
+  with ``Mongodb-mms-backup-daemon`` errors when the pid file doesn't exist.
+
+- Fixes the following issues:
+
+  - Fixes possibly innacurate |fcv| change timestamp warnings.
+  - Fixes incorrect redirection to an |idp-full|\s entity ID for 
+    |idp-full|\s that don't have single logout (SLO) configured.
+
+    After logging out of |mms|, users are now reminded to also log out of the
+    |idp-full| to complete the logout process.
+
+  - Fixes possibly inaccurate restore job statuses when cancelled.
+
+  - Fixes an issue where the user interface passes incorrect values
+    for ``pemFilePwd`` for the ``verifyTLSCertificate`` job.
+
+  - Fixes an issue where the {+mdbagent+} ignores the Windows 
+    {+mdbagent+} Certificate File information and uses the Linux path instead.
+
+  - Fixes a broken documentation link for :guilabel:`Create API Key > Add Access List Entry`.
+
+  - Fixes saving custom parameter settings due to ``mms.mail.transport``.
+
+- Fixes the following |cve|\s:
+
+  - `CVE-2021-32050 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2021-32050>`__.
+  - `CVE-2023-26159 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2023-26159>`__.
+  - `CVE-2023-42282 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2023-42282>`__.
+  - `CVE-2024-11831 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-11831>`__.
+  - `CVE-2024-12905 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-12905>`__.
+  - `CVE-2024-21536 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-21536>`__.
+  - `CVE-2024-21538 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-21538>`__.
+  - `CVE-2024-28849 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-28849>`__.
+  - `CVE-2024-29180 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-29180>`__.
+  - `CVE-2024-37890 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-37890>`__.
+  - `CVE-2024-47535 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-47535>`__.
+  - `CVE-2025-22868 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-22868>`__.
+  - `CVE-2025-22869 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-22869>`__.
+  - `CVE-2025-22870 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-22870>`__.
+  - `CVE-2025-24970 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-24970>`__.
+  - `CVE-2025-27789 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-27789>`__.
+  - `CVE-2025-30204 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-30204>`__.
+
 .. _opsmgr-server-8.0.5:
 
 |onprem| Server 8.0.5
