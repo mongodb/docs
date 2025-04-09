@@ -1,5 +1,7 @@
 .. step:: Go to the :guilabel:`Atlas Search` page for your cluster.
 
+   .. include:: /includes/nav/fact-nav-preview.rst
+
    a. Click the cluster's name.
    
    #. Click the :guilabel:`Atlas Search` tab.

@@ -1,5 +1,7 @@
 .. step:: In Atlas, go to the :guilabel:`Clusters` page for your project.
 
+   .. include:: /includes/nav/fact-nav-preview.rst
+
    a. If it's not already displayed, select the organization that
       contains your desired project from the :icon-mms:`office` 
       :guilabel:`Organizations` menu in the
