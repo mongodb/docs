@@ -1,0 +1,529 @@
+.. _vertex-ai-agent-engine:
+
+===============================================================
+Build AI Agents with {+vertex-engine+} and {+service+} 
+===============================================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :description: Use the Google Vertex AI Agent Engine with MongoDB Atlas to build and deploy AI agents in production and implement agentic RAG.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+`{+vertex-engine+} <https://cloud.google.com/vertex-ai/generative-ai/docs/agent-engine/>`__
+is a |gcp| service that helps you build and scale AI agents in production. 
+You can use the {+vertex-engine-short+} with |service-fullname| and your 
+preferred :ref:`framework <ai-frameworks>` to build AI agents 
+for a variety of use cases, including agentic RAG.
+
+Get Started
+-----------
+
+The following tutorial demonstrates how you can use the
+{+vertex-engine-short+} with |service| to build a |rag| agent 
+that can answer questions about sample data. It uses 
+{+avs+} with :ref:`LangChain <langchain>` to implement 
+the retrieval tools for the agent.
+
+Prerequisites
+~~~~~~~~~~~~~
+
+Before you begin, ensure you have the following:
+
+- An |service| {+cluster+} in your preferred |gcp| region. To create a new cluster, 
+  see :ref:`create-new-cluster`. You can also get started with |service| through the 
+  `Google Cloud Marketplace <https://console.cloud.google.com/marketplace/product/mongodb/mdb-atlas-self-service>`__.
+
+- A |gcp| project with Vertex AI enabled. To set up a project, see 
+  `Set up a project and a development environment <https://cloud.google.com/vertex-ai/docs/start/cloud-environment>`__ in the |gcp| documentation.
+
+Set up your Environment
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Create an interactive Python notebook by saving a file 
+with the ``.ipynb`` extension in `Google Colab <https://colab.research.google.com/>`__.
+This notebook allows you to 
+run Python code snippets individually, and you'll use 
+it to run the code in this tutorial.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Install the required packages.
+
+      In your notebook environment, install the required packages:
+
+      .. code-block:: bash
+                  
+         !pip install --upgrade --quiet \
+             "google-cloud-aiplatform[langchain,agent_engines]" requests datasets pymongo langchain langchain-community langchain-mongodb langchain-google-vertexai google-cloud-aiplatform langchain_google_genai requests beautifulsoup4
+
+   .. step:: Create the {+avs+} indexes.
+
+      Run the following code in your notebook to create the 
+      MongoDB collections and {+avs+} indexes used to store and query
+      your data for this tutorial. Replace ``<connection-string>`` with your
+      {+cluster+}'s :manual:`connection string </reference/connection-string>`.
+
+      .. note::
+
+         .. include:: /includes/fact-connection-string-format-drivers.rst
+
+      .. code-block:: python
+
+         from pymongo import MongoClient
+         from pymongo.operations import SearchIndexModel
+
+         client = MongoClient("<connection-string>") # Replace with your connection string
+         db = client["AGENT-ENGINE"] 
+         stars_wars_collection = db["sample_starwars_embeddings"]
+         stars_trek_collection = db["sample_startrek_embeddings"]
+
+         # Create your index model, then create the search index
+         search_index_model = SearchIndexModel(
+            definition={
+               "fields": [
+                  {
+                  "type": "vector",
+                  "path": "embedding",
+                  "numDimensions": 768,
+                  "similarity": "cosine"
+                  }
+               ]
+            },
+            name="vector_index",
+            type="vectorSearch"
+         )
+
+         # Create the indexes
+         stars_wars_collection.create_search_index(model=search_index_model)
+         stars_trek_collection.create_search_index(model=search_index_model)
+
+      To learn more about creating an {+avs+} index, see
+      :ref:`avs-types-vector-search`.
+
+   .. step:: Initialize the Vertex AI SDK.
+
+      Run the following code in your notebook, replacing the 
+      placeholder values with your |gcp| project ID, region, and staging bucket:
+
+      .. code-block:: python
+
+         PROJECT_ID = "<your-project-id>"  # Replace with your project ID
+         LOCATION = "<gcp-region>"         # Replace with your preferred region, e.g. "us-central1"
+         STAGING_BUCKET = "gs://<your-bucket-name>"  # Replace with your bucket
+
+         import vertexai
+         vertexai.init(project=PROJECT_ID, location=LOCATION, staging_bucket=STAGING_BUCKET)
+
+Ingest Data into {+service+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Run the following code to scrape sample data from Wikipedia about 
+Star Wars and Star Trek, convert the text into vector embeddings
+using the ``text-embedding-005`` model, and then store this data in 
+the corresponding collections in |service|.
+
+.. code-block:: python
+
+   import requests
+   from bs4 import BeautifulSoup
+   from pymongo import MongoClient
+   import certifi
+   from vertexai.language_models import TextEmbeddingModel
+
+   # Scrape the website content
+   def scrape_website(url):
+       response = requests.get(url)
+       soup = BeautifulSoup(response.text, 'html.parser')
+       content = ' '.join([p.text for p in soup.find_all('p')])
+       return content
+
+   # Split the content into chunks of 1000 characters
+   def split_into_chunks(text, chunk_size=1000):
+       return [text[i:i+chunk_size] for i in range(0, len(text), chunk_size)]
+
+   def get_text_embeddings(chunks):
+       model = TextEmbeddingModel.from_pretrained("text-embedding-005")
+       embeddings = model.get_embeddings(chunks)
+       return [embedding.values for embedding in embeddings]
+
+   def write_to_mongoDB(embeddings, chunks, db_name, coll_name):
+       client = MongoClient("<connection-string>", tlsCAFile=certifi.where()) # Replace placeholder with your Atlas connection string
+       db = client[db_name]
+       collection = db[coll_name]
+
+       for i in range(len(chunks)):
+           collection.insert_one({
+               "chunk": chunks[i],
+               "embedding": embeddings[i]
+           })
+
+   # Process Star Wars data
+   content = scrape_website("https://en.wikipedia.org/wiki/Star_Wars")
+   chunks = split_into_chunks(content)
+   embeddings_starwars = get_text_embeddings(chunks)
+   write_to_mongoDB(embeddings_starwars, chunks, "AGENT-ENGINE", "sample_starwars_embeddings")
+
+   # Process Star Trek data
+   content = scrape_website("https://en.wikipedia.org/wiki/Star_Trek")
+   chunks = split_into_chunks(content)
+   embeddings_startrek = get_text_embeddings(chunks)
+   write_to_mongoDB(embeddings_startrek, chunks, "AGENT-ENGINE", "sample_startrek_embeddings")
+
+.. tip::
+
+   You can view your data in the :ref:`{+atlas-ui+} <atlas-ui>` 
+   by navigating to the ``AGENT-ENGINE`` database and selecting 
+   the ``sample_starwars_embeddings`` and ``sample_startrek_embeddings`` 
+   collections.
+
+Create the Agent
+~~~~~~~~~~~~~~~~
+
+In this section, you define tools that the agent can use to query
+your collections using {+avs+}, create a memory system to maintain 
+conversation context, and then initialize the agent using LangChain.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Define tools for the agent.
+
+      Create the following two tools:
+
+      .. tabs::
+
+         .. tab:: Star Wars Tool
+            :tabid: star-wars-tool
+
+            Run the following code to create a tool that 
+            uses {+avs+} to query the ``sample_starwars_embeddings`` 
+            collection:
+
+            .. code-block:: python
+
+               def star_wars_query_tool(
+                   query: str
+               ):
+                   """
+                   Retrieves vectors from a MongoDB database and uses them to answer a question related to Star wars.
+
+                   Args:
+                       query: The question to be answered about star wars.
+
+                   Returns:
+                       A dictionary containing the response to the question.
+                   """
+                   from langchain.chains import ConversationalRetrievalChain, RetrievalQA
+                   from langchain_mongodb import MongoDBAtlasVectorSearch
+                   from langchain_google_vertexai import VertexAIEmbeddings, ChatVertexAI
+                   from langchain.memory import ConversationBufferMemory, ConversationBufferWindowMemory
+                   from langchain.prompts import PromptTemplate
+
+                   prompt_template = """Use the following pieces of context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer. Do not return any answers from your own knowledge. Respond only in 2 or 3 sentences.
+
+                   {context}
+
+                   Question: {question}
+                   """
+                   PROMPT = PromptTemplate(
+                       template=prompt_template, input_variables=["context", "question"]
+                   )
+
+                   # Replace with your connection string to your Atlas cluster
+                   connection_string = "<connection-string>" 
+                   embeddings = VertexAIEmbeddings(model_name="text-embedding-005")
+
+                   vs = MongoDBAtlasVectorSearch.from_connection_string(
+                       connection_string=connection_string,
+                       namespace="AGENT-ENGINE.sample_starwars_embeddings",
+                       embedding=embeddings,
+                       index_name="vector_index",
+                       embedding_key="embedding",
+                       text_key="chunk",
+                   )
+
+                   llm = ChatVertexAI(
+                       model_name="gemini-pro",
+                       convert_system_message_to_human=True,
+                       max_output_tokens=1000,
+                   )
+                   retriever = vs.as_retriever(
+                       search_type="mmr", search_kwargs={"k": 10, "lambda_mult": 0.25}
+                   )
+                   memory = ConversationBufferWindowMemory(
+                       memory_key="chat_history", k=5, return_messages=True
+                   )
+                   conversation_chain = ConversationalRetrievalChain.from_llm(
+                       llm=llm,
+                       retriever=retriever,
+                       memory=memory,
+                       combine_docs_chain_kwargs={"prompt": PROMPT},
+                   )
+                   response = conversation_chain({"question": query})
+
+                   return response
+
+         .. tab:: Star Trek Tool
+            :tabid: star-trek-tool
+
+            Run the following code to create a tool that 
+            uses {+avs+} to query the ``sample_startrek_embeddings`` 
+            collection:
+
+            .. code-block:: python
+
+               def star_trek_query_tool(
+                   query: str
+               ):
+                   """
+                   Retrieves vectors from a MongoDB database and uses them to answer a question related to star trek.
+
+                   Args:
+                       query: The question to be answered about star trek.
+
+                   Returns:
+                       A dictionary containing the response to the question.
+                   """
+                   from langchain.chains import ConversationalRetrievalChain, RetrievalQA
+                   from langchain_mongodb import MongoDBAtlasVectorSearch
+                   from langchain_google_vertexai import VertexAIEmbeddings, ChatVertexAI
+                   from langchain.memory import ConversationBufferMemory, ConversationBufferWindowMemory
+                   from langchain.prompts import PromptTemplate
+
+                   prompt_template = """Use the following pieces of context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer. Do not return any answers from your own knowledge. Respond only in 2 or 3 sentences.
+
+                   {context}
+
+                   Question: {question}
+                   """
+                   PROMPT = PromptTemplate(
+                       template=prompt_template, input_variables=["context", "question"]
+                   )
+
+                   # Replace with your connection string to your Atlas cluster
+                   connection_string = "<connection-string>" 
+                   embeddings = VertexAIEmbeddings(model_name="text-embedding-005")
+
+                   vs = MongoDBAtlasVectorSearch.from_connection_string(
+                       connection_string=connection_string,
+                       namespace="AGENT-ENGINE.sample_startrek_embeddings",
+                       embedding=embeddings,
+                       index_name="vector_index",
+                       embedding_key="embedding",
+                       text_key="chunk",
+                   )
+
+                   llm = ChatVertexAI(
+                       model_name="gemini-pro",
+                       convert_system_message_to_human=True,
+                       max_output_tokens=1000,
+                   )
+                   retriever = vs.as_retriever(
+                       search_type="mmr", search_kwargs={"k": 10, "lambda_mult": 0.25}
+                   )
+                   memory = ConversationBufferWindowMemory(
+                       memory_key="chat_history", k=5, return_messages=True
+                   )
+                   conversation_chain = ConversationalRetrievalChain.from_llm(
+                       llm=llm,
+                       retriever=retriever,
+                       memory=memory,
+                       combine_docs_chain_kwargs={"prompt": PROMPT},
+                   )
+                   response = conversation_chain({"question": query})
+
+                   return response
+
+   .. step:: Create a memory system.
+
+      You can use LangChain to create memory for your 
+      agent so that it can maintain conversation 
+      context across multiple prompts:
+
+      .. code-block:: python
+       
+         from langchain.memory import ChatMessageHistory
+
+         # Initialize session history
+         store = {}
+
+         def get_session_history(session_id: str):
+           if session_id not in store:
+             store[session_id] = ChatMessageHistory()
+           return store[session_id]
+
+   .. step:: Initialize the agent.
+
+      Create the agent using LangChain. This
+      agent uses the tools and memory system
+      that you defined.
+
+      .. code-block:: python
+         
+         from vertexai.preview.reasoning_engines import LangchainAgent
+
+         # Specify the language model
+         model = "gemini-1.5-pro-001"
+         
+         # Initialize the agent with your tools
+         agent = LangchainAgent(
+           model=model,
+           chat_history=get_session_history,
+           model_kwargs={"temperature": 0},
+           tools=[star_wars_query_tool, star_trek_query_tool],
+           agent_executor_kwargs={"return_intermediate_steps": True},
+         )
+
+      To test the agent with a sample query:
+
+      .. io-code-block::
+         :copyable: true
+         
+         .. input::
+            :language: python
+            
+            # Test your agent
+            response = agent.query(
+                input="Who was the antagonist in Star wars and who played them? ",
+                config={"configurable": {"session_id": "demo"}},
+            )
+            
+            display(Markdown(response["output"]))
+         
+         .. output::
+         
+            The main antagonist in the Star Wars series is Darth Vader, a dark lord of the Sith. He was originally played by David Prowse in the original trilogy, and later voiced by James Earl Jones. In the prequel trilogy, he appears as Anakin Skywalker, and was played by Hayden Christensen.
+
+Deploy the Agent
+~~~~~~~~~~~~~~~~
+
+In this section, you deploy your agent to the {+vertex-engine+}
+as a managed service. This allows you to scale your agent and
+use it in production without managing the underlying infrastructure.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Deploy your agent.
+
+      Run the following code to configure and 
+      deploy the agent in the {+vertex-engine+}:
+
+      .. code-block:: python
+
+         from vertexai import agent_engines
+         
+         remote_agent = agent_engines.create(
+           agent,
+           requirements=[
+             "google-cloud-aiplatform[agent_engines,langchain]",
+             "cloudpickle==3.0.0",
+             "pydantic>=2.10",
+             "requests",
+             "langchain-mongodb",
+             "pymongo",
+             "langchain-google-vertexai",
+           ],
+         )
+
+   .. step:: Retrieve the project URL.
+
+      Run the following code to retrieve the project number 
+      associated with your project ID. This project number 
+      will be used to construct the complete resource name 
+      for your deployed agent:
+       
+      .. code-block:: python
+         
+         from googleapiclient import discovery
+         from IPython.display import display, Markdown
+
+         # Retrieve the project number associated with your project ID
+         service = discovery.build("cloudresourcemanager", "v1")
+         request = service.projects().get(projectId=PROJECT_ID)
+         response = request.execute()
+         project_number = response["projectNumber"]
+         print(f"Project Number: {project_number}")
+         # The deployment creates a unique ID for your agent that you can find in the output
+
+   .. step:: Test the agent.
+
+      Run the following code to use your agent. Replace 
+      the placeholder with your agent's full resource name:
+     
+      .. note::
+
+         After deployment, your agent will have a unique resource name in the following format:
+         
+         ``projects/<project-number>/locations/<gcp-region>/reasoningEngines/<unique-id>``
+
+      .. io-code-block::
+         :copyable: true
+         
+         .. input::
+            :language: python
+            
+            from vertexai.preview import reasoning_engines
+            
+            # Replace with your agent's full resource name from the previous step
+            REASONING_ENGINE_RESOURCE_NAME = "<resource-name>"
+            
+            remote_agent = reasoning_engines.ReasoningEngine(REASONING_ENGINE_RESOURCE_NAME)
+            
+            response = remote_agent.query(
+                input="tell me about episode 1 of star wars",
+                config={"configurable": {"session_id": "demo"}},
+            )
+            print(response["output"])
+            
+            response = remote_agent.query(
+                input="Who was the main character in this series",
+                config={"configurable": {"session_id": "demo"}},
+            )
+            print(response["output"])
+         
+         .. output::
+            
+            Star Wars: Episode I - The Phantom Menace was the first film installment released as part of the prequel trilogy. It was released on May 19, 1999. The main plot lines involve the return of Darth Sidious, the Jedi's discovery of young Anakin Skywalker, and the invasion of Naboo by the Trade Federation. 
+            
+            The main character in Star Wars is Luke Skywalker. He is a young farm boy who dreams of adventure and becomes a Jedi Knight. He fights against the evil Galactic Empire alongside his friends, Princess Leia and Han Solo. 
+      
+      You can also ask the agent about Star Trek using the same session:
+      
+      .. io-code-block::
+         :copyable: true
+         
+         .. input::
+            :language: python
+            
+            response = remote_agent.query(
+                input="what is episode 1 of star trek?",
+                config={"configurable": {"session_id": "demo"}},
+            )
+            print(response["output"])
+         
+         .. output::
+            
+            Episode 1 of Star Trek is called "The Man Trap". It was first aired on September 8, 1966. The story involves the Enterprise crew investigating the disappearance of a crew on a scientific outpost. It turns out that the crew members were killed by a creature that can take on someone else's form after it kills them.
+
+Next Steps
+----------
+
+You can also debug and optimize your agents by enabling 
+`tracing <https://cloud.google.com/vertex-ai/generative-ai/docs/agent-engine/manage/tracing>`__ 
+in the Agent Engine. Refer to the `Vertex AI Agent Engine documentation 
+<https://cloud.google.com/vertex-ai/generative-ai/docs/agent-engine/>`__
+for other features and examples.
+
+To learn more about the LangChain MongoDB integration, see :ref:`langchain`.
