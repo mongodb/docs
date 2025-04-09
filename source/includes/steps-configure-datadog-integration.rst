@@ -13,4 +13,8 @@
       
          .. include:: /includes/fact-datadog-supported-regions.rst
       
+      #. If you want to enable database metrics tracking, toggle the
+         :guilabel:`Send Database Metrics` switch. To enable collection latency
+         metrics tracking, toggle the :guilabel:`Send Collection Latency Metrics` switch.
+      
       #. Click :guilabel:`Save`. 
