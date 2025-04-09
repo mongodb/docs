@@ -32,6 +32,4 @@
 
        Corresponds to the ``numPartitions`` |json| setting.
 
-       .. include:: /includes/fts/facts/fact-numpartitions-preview.rst
-
      - Optional.
