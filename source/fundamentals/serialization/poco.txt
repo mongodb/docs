@@ -542,8 +542,6 @@ The previous code example sets the following serialization behavior:
 - Because ``1900`` is the default value for this property, the driver will ignore the
   property if it has this value.
 
-
-
 Customize DateTime Serialization
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -609,6 +607,59 @@ registering the class map:
 
    The ``DateTimeKind`` enum is part of the {+framework+}. For more information on
    its members, see the `Microsoft documentation for the DateTimeKind enum. <https://learn.microsoft.com/en-us/dotnet/api/system.datetimekind?view=net-8.0>`__
+
+.. _csharp-poco-dateonly-attr:
+
+Custom DateOnly Serialization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To customize how the {+driver-short+} serializes `DateOnly
+<https://learn.microsoft.com/en-us/dotnet/api/system.dateonly?view=net-8.0>`__
+properties, use the ``[BsonDateOnlyOptions()]`` attribute and specify
+the following settings:
+
+- ``Representation``: Set to a ``BsonType`` instance that specifies how
+  the ``DateOnly`` value is stored in MongoDB.
+
+- ``DocumentFormat``: This option applies only if you set the ``Representation``
+  property to ``BsonType.Document`` and is ignored otherwise. You can
+  set ``DocumentFormat`` to one of the following
+  ``DateOnlyDocumentFormat`` enum values:
+
+  - ``DateTimeTicks`` (default): Document contains ``DateTime``
+    (``BsonType.DateTime``) and ``Ticks`` (``BsonType.Int64``) fields
+
+  - ``YearMonthDay``: Document contains ``Year``, ``Month``, and
+    ``Day`` fields, which have ``BsonType.Int32`` values
+
+In the following code example, the ``PatientRecord`` class contains a
+``DateOfBirth`` property that has a ``DateOnly`` value. The
+attribute directs the driver to store the value as a nested document
+that contains fields for the given year, month, and day.
+
+.. code-block:: csharp
+   :copyable: true
+   :emphasize-lines: 5
+
+   public class PatientRecord
+   {
+       public Guid Id { get; set; }
+
+       [BsonDateOnlyOptions(BsonType.Document, DateOnlyDocumentFormat.YearMonthDay)]
+       public DateOnly DateOfBirth { get; set; }
+   }
+
+.. tip:: Use the DateOnlySerializer to Set Global Behavior
+
+   Instead of using the ``[BsonDateOnlyOptions()]`` attribute at the
+   property level, you can register a ``DateOnlySerializer`` object to
+   apply serialization behavior globally:
+
+   .. code-block:: csharp
+
+      BsonSerializer.RegisterSerializer(
+          new DateOnlySerializer(BsonType.Document, DateOnlyDocumentFormat.YearMonthDay)
+      );
 
 Customize Dictionary Serialization
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -752,4 +803,5 @@ guide, see the following API documentation:
 - `[BsonDateTimeOptions()] <{+new-api-root+}/MongoDB.Bson/MongoDB.Bson.Serialization.Attributes.BsonDateTimeOptionsAttribute.html>`__
 - `[BsonDictionaryOptions()] <{+new-api-root+}/MongoDB.Bson/MongoDB.Bson.Serialization.Attributes.BsonDictionaryOptionsAttribute.html>`__
 - `ConventionPack <{+new-api-root+}/MongoDB.Bson/MongoDB.Bson.Serialization.Conventions.ConventionPack.html>`__
-- `InsertOne() <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.IMongoCollection-1.InsertMany.html>`__
+- `InsertOne()
+  <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.IMongoCollection-1.InsertMany.html>`__
