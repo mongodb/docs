@@ -61,9 +61,10 @@
    .. tab:: Semantic Search with Filtering
       :tabid: semantic-search-filter
 
-      You can also pre-filter your data by using a match expression
-      that compares the indexed field with boolean, number, or 
-      string values. You must index any metadata fields that you want to 
+      You can pre-filter your data by using an
+      :abbr:`MQL (MongoDB Query Language)` match expression
+      that compares the indexed field with another value in 
+      your collection. You must index any metadata fields that you want to 
       filter by as the ``filter`` type. To learn more, see 
       :ref:`avs-types-vector-search`.
 

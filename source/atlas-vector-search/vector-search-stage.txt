@@ -53,6 +53,10 @@ most similar to the vector embedding in your query without scanning
 every vector. Therefore, |ann| search is ideal for querying large
 datasets without significant filtering.
 
+.. note:: 
+
+   .. include:: /includes/avs/facts/fact-avs-recall.rst
+
 .. _vectorSearch-enn:
 
 |enn| Search 
@@ -65,7 +69,7 @@ query. This is computationally intensive and might negatively impact
 query latency. Therefore, we recommend |enn| searches for the following
 use-cases:
 
-- You want to determine the recall and accuracy of your |ann| query
+- You want to determine the :term:`recall` and accuracy of your |ann| query
   using the ideal, exact results for the |enn| query.
 - You want to query less than 10000 documents without having to tune the 
   number of nearest neighbors to consider.
@@ -131,12 +135,11 @@ The ``$vectorSearch`` stage takes a document with the following fields:
    * - ``filter``
      - document
      - Optional
-     - Any :abbr:`MQL (MongoDB Query Language)` match expression that
-       compares an indexed field with a boolean, date, objectId, number 
-       (not decimals), string, or UUID to use as a pre-filter. 
-       To learn which :manual:`query
-       </reference/operator/query/>` and :manual:`aggregation 
-       pipeline </reference/operator/aggregation/>` operators {+avs+} supports
+     - :abbr:`MQL (MongoDB Query Language)` expression that
+       compares an indexed field to use as a pre-filter. 
+       You can filter on {+avs-filter-types+}.
+
+       To learn which MQL operators {+avs+} supports
        in your filter, see :ref:`vectorSearch-agg-pipeline-filter`.
 
    * - ``index`` 
@@ -163,13 +166,15 @@ The ``$vectorSearch`` stage takes a document with the following fields:
        be less than or equal to (``<=``) ``10000``. You can't specify a
        number less than the number of documents to return (``limit``).
        
-       We recommend that you specify a number higher than the number of
-       documents to return (``limit``) to increase accuracy although
-       this might impact latency. For example, we recommend a ratio of
-       ten to twenty nearest neighbors for a limit of only one document.
-       This overrequest pattern is the recommended way to trade off
-       latency and recall in your |ann| searches, and we recommend
-       tuning this on your specific dataset. 
+       We recommend that you specify a number at least 20 times higher than the 
+       number of documents to return (``limit``) to increase accuracy.
+       
+       This overrequest pattern is the recommended way to 
+       trade off latency and :term:`recall` in your |ann| searches, 
+       and we recommend tuning this parameter based on your specific dataset 
+       size and query requirements.
+
+       To learn more about other variables that might impact this parameter, see :ref:`avs-num-candidates`.
 
    * - ``path``
      - string 
@@ -201,6 +206,39 @@ The ``$vectorSearch`` stage takes a document with the following fields:
        ``binData`` vectors with subtype ``float32``. If you use any other
        subtype (``int8`` or ``int1``), {+avs+} doesn't return any results or errors.
 
+.. _vectorSearch-agg-pipeline-clients:
+
+Supported Clients
+-----------------
+
+You can run :pipeline:`$vectorSearch` queries by using the 
+{+atlas-ui+}, {+mongosh+}, and any :driver:`MongoDB driver </>`.
+
+You can also use {+avs+} with local |service| deployments that you
+create with the {+atlas-cli+}. To learn more, see :atlascli:`Create a
+Local Atlas Deployment </atlas-cli-deploy-local>`. 
+
+.. _vectorSearch-agg-pipeline-limitations:
+
+Limitations 
+~~~~~~~~~~~
+
+:pipeline:`$vectorSearch` is supported only on |service| {+clusters+}
+running the following MongoDB versions: 
+
+- v6.0.11
+- v7.0.2 and later (including :abbr:`RCs (Release Candidates)`). 
+
+:pipeline:`$vectorSearch` can't be used in 
+:manual:`view definition </core/views/>` and the following pipeline
+stages:  
+
+- :pipeline:`$lookup` sub-pipeline :icon-fa5:`star`
+- :pipeline:`$facet` pipeline stage
+
+:icon-fa5:`star` You can pass the results of :pipeline:`$vectorSearch`
+to this stage.
+
 .. _vectorSearch-agg-pipeline-behavior:
 
 Behavior 
@@ -221,9 +259,8 @@ definition. You can index the following types of fields in an {+avs+}
 
 - Fields that contain vector embeddings as :ref:`vector
   <avs-types-vector-search>` type.  
-- Fields that contain boolean, date, objectId, numeric, string, and UUID values as
-  :ref:`filter <avs-types-vector-search>` type to enable vector search
-  on pre-filtered data. 
+- Additional fields as the :ref:`filter <avs-types-vector-search>` 
+  type to enable vector search on pre-filtered data.
 
 To learn more about these 
 {+avs+} field types, see :ref:`avs-types-vector-search`. 
@@ -235,51 +272,70 @@ To learn more about these
 
 {+avs+} assigns a score, in a fixed range from ``0`` to ``1`` 
 (where ``0`` indicates low similarity and ``1`` indicates high
-similarity), to every document that it returns. For ``cosine`` and
-``dotProduct`` :ref:`similarities <avs-types-vector-search-options>`,
+similarity), to every document that it returns. 
+
+The score is calculated according to the similarity measure that
+you specify in the :ref:`index definition <avs-types-vector-search-options>`. 
+For ``cosine`` and ``dotProduct`` :ref:`similarities <avs-types-vector-search-options>`,
 {+avs+} normalizes the score to ensure that the score is not negative.
 
-For ``cosine``, {+avs+} uses the following algorithm to normalize the
-score: 
+.. tabs::
 
-.. code-block:: shell 
-   :copyable: false 
+   .. tab:: Cosine
+      :tabid: cosine
 
-   score = (1 + cosine(v1,v2)) / 2
+      For ``cosine``, {+avs+} uses the following algorithm to normalize the
+      score: 
 
-For ``dotProduct``, {+avs+} uses the following algorithm to normalize
-the score:  
+      .. code-block:: shell 
+         :copyable: false 
 
-.. code-block:: shell 
-   :copyable: false 
+         score = (1 + cosine(v1,v2)) / 2
 
-   score = (1 + dotProduct(v1,v2)) / 2
+      This algorithm normalizes the score by considering the similarity score of the 
+      document vector (``v1``) and the query vector (``v2``), which has the range 
+      [``-1``, ``1``]. {+avs+} adds ``1`` to the similarity score to normalize 
+      the score to a range [``0``, ``2``] and then divides by ``2`` to ensure a 
+      value between ``0`` and ``1``.
 
-These algorithms show that {+avs+} normalizes the score by considering
-the similarity score of the document vector (``v1``) and the query vector
-(``v2``), which has the range [``-1``, ``1``]. {+avs+} adds ``1`` to the
-similarity score to normalize the score to a range [``0``, ``2``] and
-then divides by ``2`` to ensure a value between ``0`` and ``1``.   
+   .. tab:: Dot Product
+      :tabid: dotProduct
+    
+      For ``dotProduct``, {+avs+} uses the following algorithm to normalize
+      the score:  
 
-For ``euclidean`` similarity, {+avs+} uses the following algorithm to
-normalize the score to ensure a value between ``0`` and ``1``: 
+      .. code-block:: shell 
+         :copyable: false 
 
-.. code-block:: shell 
-   :copyable: false 
+         score = (1 + dotProduct(v1,v2)) / 2
 
-   score = 1 / (1 + euclidean(v1,v2))
+      This algorithm normalizes the score by considering the similarity score of the 
+      document vector (``v1``) and the query vector (``v2``), which has the range 
+      [``-1``, ``1``]. {+avs+} adds ``1`` to the similarity score to normalize 
+      the score to a range [``0``, ``2``] and then divides by ``2`` to ensure a 
+      value between ``0`` and ``1``.
 
-The preceding algorithm shows that {+avs+} normalizes the score by
-calculating the euclidean distance, which is the distance between the 
-document vector (``v1``) and the query vector (``v2``), which has the range 
-[``0``, ``∞``]. {+avs+} then transforms the distance to a similarity
-score by adding ``1`` to the distance and then divides ``1`` by the
-similarity score to ensure a value between ``0`` and ``1``.
+   .. tab:: Euclidean 
+      :tabid: euclidean
+    
+      For ``euclidean`` similarity, {+avs+} uses the following algorithm to
+      normalize the score to ensure a value between ``0`` and ``1``: 
 
-The score assigned to a returned document is part of the document's
-metadata. To include each returned document's score along with the
+      .. code-block:: shell 
+         :copyable: false 
+
+         score = 1 / (1 + euclidean(v1,v2))
+
+      This algorithm normalizes the score by calculating the euclidean distance,
+      which is the distance between the document vector (``v1``) and the query 
+      vector (``v2``), which has the range [``0``, ``∞``]. {+avs+} then transforms 
+      the distance to a similarity score by adding ``1`` to the distance and then 
+      divides ``1`` by the result to ensure a value between ``0`` and ``1``.
+
+Each returned document includes the score as metadata. 
+To include each returned document's score along with the
 result set, use a :pipeline:`$project` stage in your aggregation
-pipeline. 
+pipeline.
 
 To retrieve the score of your {+avs+} query results, use
 ``vectorSearchScore`` as the value in the :manual:`$meta 
@@ -319,37 +375,37 @@ documents for the vector search.
 {+avs+} Pre-Filter
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The :pipeline:`$vectorSearch` ``filter`` option matches only |bson|
-boolean, date, objectId, numeric, string, and UUID values. You **must** index the fields
-that you want to filter your data by as the :ref:`filter
-<avs-types-vector-search>` type in a :ref:`vectorSearch
+The :pipeline:`$vectorSearch` ``filter`` option matches |bson|
+{+avs-filter-types+}.
+
+You **must** index the fields that you want to filter your data by as the 
+:ref:`filter <avs-types-vector-search>` type in a :ref:`vectorSearch
 <avs-types-vector-search>` type index definition. Filtering your data is 
 useful to narrow the scope of your semantic search and ensure that not
 all vectors are considered for comparison. 
 
 {+avs+} supports the :pipeline:`$vectorSearch` ``filter`` option
 for the following :abbr:`MQL (MongoDB Query Language)` 
-match expressions:
+:manual:`operators </reference/operator/query/>`:
 
-- :query:`$gt`
-- :query:`$lt`
-- :query:`$gte`
-- :query:`$lte`
-- :query:`$eq`
-- :query:`$ne`
-- :query:`$in`
-- :query:`$nin`
-- :query:`$nor`
-- :query:`$not`
-- :expression:`$and`
-- :expression:`$or`
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
 
-The :pipeline:`$vectorSearch` ``filter`` option supports only the following 
-:manual:`aggregation pipeline </reference/operator/aggregation/>`
-operators: 
+   * - Type
+     - :abbr:`MQL (MongoDB Query Language)` operator
 
-- :expression:`$and`
-- :expression:`$or`
+   * - Equals 
+     - :query:`$eq`, :query:`$ne`
+
+   * - Range 
+     - :query:`$gt`, :query:`$lt`, :query:`$gte`, :query:`$lte`
+
+   * - In set 
+     - :query:`$in`, :query:`$nin`
+
+   * - Logical 
+     - :query:`$not`, :query:`$nor`, :expression:`$and`, :expression:`$or`
 
 .. note:: 
 
@@ -357,8 +413,6 @@ operators:
    :manual:`query operators </reference/operator/query/>`,
    :manual:`aggregation pipeline operators </reference/operator/aggregation/>`,
    or :ref:`{+fts+} operators <operators-ref>`.
-
-.. _vectorSearch-agg-pipeline-limitations:
 
 Considerations
 ``````````````
@@ -402,38 +456,35 @@ by using the :expression:`$and` operator.
         ]
       }
 
+.. _avs-num-candidates:
 
-Limitations 
-~~~~~~~~~~~
+``numCandidates`` Selection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-:pipeline:`$vectorSearch` is supported only on |service| {+clusters+}
-running the following MongoDB versions: 
+For |ann| search, we recommend that you specify a ``numCandidates``  
+number at least 20 times higher than the number of documents to return 
+(``limit``) to increase accuracy. For example, if you set ``limit`` to 
+return ``5`` results, consider setting ``numCandidates`` to ``100`` as 
+a starting point.
 
-- v6.0.11
-- v7.0.2 and later (including :abbr:`RCs (Release Candidates)`). 
+This overrequest pattern is the recommended way to 
+trade off latency and :term:`recall` in your |ann| searches. 
+However, we recommend tuning this parameter based on your specific dataset 
+size and query requirements. To ensure that you get accurate results,
+consider the following variables:
 
-:pipeline:`$vectorSearch` can't be used in 
-:manual:`view definition </core/views/>` and the following pipeline
-stages:  
+- **Index Size**: Larger collections typically require higher ``numCandidates`` values 
+  to maintain recall. A collection with millions of vectors might need significantly 
+  more candidates than one with thousands of vectors.
 
-- :pipeline:`$lookup` sub-pipeline :icon-fa5:`star`
-- :pipeline:`$unionWith` sub-pipeline :icon-fa5:`star`
-- :pipeline:`$facet` pipeline stage
+- **Limit Value**: Because ``numCandidates`` is highly correlated with the index 
+  size, low ``limit`` values require proportionally 
+  higher ``numCandidates`` values to maintain recall.
 
-:icon-fa5:`star` You can pass the results of :pipeline:`$vectorSearch`
-to this stage.
-
-.. _vectorSearch-agg-pipeline-clients:
-
-Supported Clients
-~~~~~~~~~~~~~~~~~
-
-You can run :pipeline:`$vectorSearch` queries by using the 
-{+atlas-ui+}, {+mongosh+}, and any :driver:`MongoDB driver </>`.
-
-You can also use {+avs+} with local |service| deployments that you
-create with the {+atlas-cli+}. To learn more, see :atlascli:`Create a
-Local Atlas Deployment </atlas-cli-deploy-local>`. 
+- **Vector Quantization**: :ref:`Quantized vectors <avs-quantization>` 
+  reduce storage at the cost of accuracy. Using quantized 
+  vectors (``int8`` or ``int1`` subtypes) might require higher ``numCandidates`` 
+  values compared to full precision ``float32`` vectors to maintain similar recall.
 
 .. _vectorSearch-concurrent-queries:
 
