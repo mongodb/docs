@@ -44,7 +44,7 @@ The |sync-method| and |async-method| methods accept the following parameters:
    * - ``options``
      - *Optional.* An instance of the ``UpdateOptions`` class that specifies the
        configuration for the update operation. The default value is ``null``. For a list
-       of available options, see :ref:`csharp-update-options`.
+       of available options, see |options-ref-link|.
 
        **Data Type:** `UpdateOptions <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateOptions.html>`__
 
@@ -130,7 +130,7 @@ operation:
    :manual:`Updates with Aggregation Pipeline </tutorial/update-documents-with-aggregation-pipeline/>`
    in the {+mdb-server+} manual.
 
-.. _csharp-update-options:
+|options-ref|
 
 Configuration Options
 ---------------------
