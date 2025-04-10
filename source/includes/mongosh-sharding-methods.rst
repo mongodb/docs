@@ -111,6 +111,9 @@
    * - :method:`sh.moveCollection()`
      - Moves a single unsharded collection to a different shard.
 
+   * - :method:`sh.moveRange()`
+     - Move ranges between shards.
+
    * - :method:`sh.removeRangeFromZone()`
      - Removes an association between a range of shard keys and a zone. 
        Supports configuring :ref:`zones <zone-sharding>` in sharded clusters.
