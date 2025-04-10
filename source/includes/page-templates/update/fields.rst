@@ -39,6 +39,12 @@ method. This method accepts the following parameters:
 
        **Data Type:** ``TField``
 
+The following code example uses the ``Inc()`` method to increment the
+``Score`` value by ``2`` in the first ``GradeEntry`` object of the ``Grades``
+array in |matching-document-or-documents|:
+
+|inc-code-example-tabs|
+
 Multiply a Value
 ----------------
 
@@ -61,6 +67,12 @@ method. This method accepts the following parameters:
      - The amount to multiply the field by.
 
        **Data Type:** ``TField``
+
+The following code example uses the ``Mul()`` method to multiply the
+``Score`` value by ``1.25`` in the first ``GradeEntry`` object of the ``Grades``
+array in |matching-document-or-documents|:
+
+|mul-code-example-tabs|
 
 Rename a Field
 --------------
@@ -85,6 +97,17 @@ the following parameters:
 
        **Data Type:** ``string``
 
+The following code example uses the ``Rename()`` method to rename the
+``Address`` field to ``location`` in |matching-document-or-documents|:
+
+|rename-code-example-tabs|
+
+.. note::
+
+   The preceding code examples use the field name ``location`` because
+   this matches the naming scheme of the field names in MongoDB,
+   not the property names in the ``Restaurant`` class.
+
 Set a Value
 -----------
 
@@ -107,6 +130,17 @@ method. This method accepts the following parameters:
      - The value to set the field to.
 
        **Data Type:** ``TField``
+
+The following code example uses the ``Set()`` method to rename the
+``recommended`` field to ``true`` in |matching-document-or-documents|:
+
+|set-code-example-tabs|
+
+.. note::
+
+   The preceding code examples use the field name ``recommended`` because
+   this matches the naming scheme of the field names in MongoDB,
+   not the property names in the ``Restaurant`` class.
 
 Set by Comparison
 -----------------
@@ -153,6 +187,13 @@ method. This method accepts the following parameters:
 
        **Data Type:** ``TField``
 
+The following code example uses the ``Max()`` method to set the
+``Score`` field of the first ``GradeEntry`` object to
+the greater of ``20`` and the current value in
+|matching-document-or-documents|:
+
+|max-code-example-tabs|
+
 Set on Insert
 -------------
 
@@ -175,6 +216,20 @@ To set the value of a field only if the document was upserted by the same operat
      - The value to set the field to.
 
        **Data Type:** ``TField``
+
+The following code example uses the ``SetOnInsert()`` method to set the
+``recommended`` field to ``true`` in |matching-document-or-documents|:
+
+|setoninsert-code-example-tabs|
+
+.. note::
+
+   The preceding code examples use the field name ``recommended`` because
+   this matches the naming scheme of the field names in MongoDB,
+   not the property names in the ``Restaurant`` class.
+
+To learn more about upserting documents, see
+|options-ref-link|.
 
 Set the Current Date
 --------------------
@@ -200,6 +255,12 @@ To set the value of a field to the current date and time, call the
 
        **Data Type:** `UpdateDefinitionCurrentDateType? <{+new-api-root+}/MongoDB.Driver/MongoDB.Driver.UpdateDefinitionCurrentDateType.html>`__
 
+The following code example uses the ``CurrentDate()`` method to update the
+``Date`` field of the first ``GradeEntry`` object to the current date in
+|matching-document-or-documents|:
+
+|currentdate-code-example-tabs|
+
 Unset a Field
 -------------
 
@@ -217,6 +278,11 @@ method accepts the following parameter:
      - An expression that specifies the field to remove.
 
        **Data Type:** ``Expression<Func<TDocument, TField>>``
+
+The following code example uses the ``Unset()`` method to remove the
+``Cuisine`` field in |matching-document-or-documents|:
+
+|unset-code-example-tabs|
 
 API Documentation
 -----------------
