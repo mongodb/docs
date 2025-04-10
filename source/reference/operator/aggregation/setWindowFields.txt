@@ -835,6 +835,134 @@ In this example output, the array of ``orderDate`` values for ``CA`` and
      "state" : "WA", "price" : 14, "quantity" : 140,
      "recentOrders" : [ ISODate("2019-01-08T06:12:03Z"), ISODate("2020-02-08T13:13:23Z") ] }
 
+Comparison with Previous Values Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses ``$setWindowFields`` with the :group:`$shift` operator 
+and the :pipeline:`$set` stage to compare fields in a collection.
+
+.. code-block:: javascript
+
+  db.cakeSales.aggregate( [
+    {
+      $setWindowFields: {
+        partitionBy: "$type",
+        sortBy: { orderDate: 1 },
+        output: {
+          previousPrice: {
+            $shift: {
+              output: "$price",
+              by: -1
+            }
+          }
+        }
+      }
+    },
+    {
+      $set: {
+        priceComparison: {
+          $cond: [
+            { $eq: ["$price", "$previousPrice"] },
+            "same",
+            {
+              $cond: [
+                { $gt: ["$price", "$previousPrice"] },
+                "higher",
+                "lower"
+              ]
+            }
+          ]
+        }
+      }
+    },
+  ] )
+
+In the example:
+
+- ``partitionBy: "$type"`` :ref:`partitions
+  <setWindowFields-partitionBy>` the documents in the collection by
+  ``type`` so each type's calculations are kept separate.
+
+- ``sortBy: { orderDate: 1 }`` :ref:`sorts
+  <setWindowFields-sortBy>` the documents in each partition by
+  ``orderDate`` in ascending order (``1``).
+
+- ``output.previousPrice`` uses the :group:`$shift` operator to capture
+  the ``price`` from the immediately preceding order within the same year.
+
+- :pipeline:`$set` adds a new field called ``priceComparison``, 
+  and sets that field's value to ``higher``, ``lower``, or ``same``
+  based on the comparison to ``previousPrice``.
+
+In this example output, the comparison result is shown in the 
+``priceComparison`` field:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+     {
+       _id: 0,
+       type: 'chocolate',
+       orderDate: ISODate('2020-05-18T14:10:30.000Z'),
+       state: 'CA',
+       price: 13,
+       quantity: 120,
+       previousPrice: null,
+       priceComparison: 'higher'
+     },
+     {
+       _id: 1,
+       type: 'chocolate',
+       orderDate: ISODate('2021-03-20T11:30:05.000Z'),
+       state: 'WA',
+       price: 14,
+       quantity: 140,
+       previousPrice: 13,
+       priceComparison: 'higher'
+     },
+     {
+       _id: 5,
+       type: 'strawberry',
+       orderDate: ISODate('2019-01-08T06:12:03.000Z'),
+       state: 'WA',
+       price: 43,
+       quantity: 134,
+       previousPrice: null,
+       priceComparison: 'higher'
+     },
+     {
+       _id: 4,
+       type: 'strawberry',
+       orderDate: ISODate('2019-05-18T16:09:01.000Z'),
+       state: 'CA',
+       price: 41,
+       quantity: 162,
+       previousPrice: 43,
+       priceComparison: 'lower'
+     },
+     {
+       _id: 3,
+       type: 'vanilla',
+       orderDate: ISODate('2020-02-08T13:13:23.000Z'),
+       state: 'WA',
+       price: 13,
+       quantity: 104,
+       previousPrice: null,
+       priceComparison: 'higher'
+     },
+     {
+       _id: 2,
+       type: 'vanilla',
+       orderDate: ISODate('2021-01-11T06:31:15.000Z'),
+       state: 'CA',
+       price: 12,
+       quantity: 145,
+       previousPrice: 13,
+       priceComparison: 'lower'
+     }
+   ]
+
 .. seealso::
 
    .. include:: /includes/fact-timeseries-example-aggregation-book.rst
