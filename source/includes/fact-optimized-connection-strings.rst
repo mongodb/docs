@@ -52,6 +52,14 @@ To use an optimized connection string, you must meet all of the following criter
    have the :guilabel:`Legacy SRV Connection` option,
    :ref:`contact support <request-support>`.
 
+.. warning:: Converting to a Multi-Region Cluster
+
+   If you convert your single-region sharded cluster to a multi-region
+   cluster without enabling regionalized private endpoints, you cannot continue
+   to use the optimized connection string. Before converting your cluster, update
+   your connection string to the :guilabel:`Legacy SRV Connection` string
+   described in the preceding note.
+
 Use Optimized Connection Strings with a Driver
 ``````````````````````````````````````````````
 
