@@ -1,4 +1,4 @@
 .. tip::
 
-   MongoDB also provides the :method:`db.collection.bulkWrite()` method for 
+   MongoDB also provides the :method:`Mongo.bulkWrite()` method for 
    performing bulk write operations.
