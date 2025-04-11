@@ -52,7 +52,9 @@
 
             * - :guilabel:`Private Endpoint Name`
               - Unique alphanumeric string that identifies the private
-                endpoint within your |azure| resource group. The maximum length is 24 characters.
+                endpoint within your |azure| resource group. Any private endpoint name 
+                that exceeds 24 characters is automatically transformed into a unique 
+                identifier in your private endpoint |uri| :ref:`connection string <gst-connect-adf>`.
 
       #. Click :guilabel:`Next`.
 
