@@ -91,8 +91,8 @@ instances. Using this array, you can:
        - MongoDB 3.x and 4.x clusters default to **5**.
        - MongoDB 2.6 clusters default to  **3**.
 
-       To learn more, see :manual:`Upgrade to SCRAM-SHA-1 
-       </release-notes/3.0-scram/>` in the MongoDB 3.0 release notes.
+       To learn more, see :manual:`SCRAM 
+       </core/security-scram/>` in the database manual.
 
    * - processes[n].backupRestoreUrl
      - string
