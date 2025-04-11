@@ -13,7 +13,17 @@
      - MongoDB 4.0
      - MongoDB 3.6
 
-   * - ext + lib 1.20 to 1.21
+   * - ext + lib 1.21 to 2.0
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓ [#deprecation-note]_
+     -
+
+   * - ext + lib 1.20
      - ✓
      - ✓
      - ✓
@@ -42,3 +52,5 @@
      - ✓
      - ✓
      - ✓
+
+.. [#deprecation-note] Support for this MongoDB version is deprecated and will be removed in a future release.
