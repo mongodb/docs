@@ -1,0 +1,201 @@
+====================
+$match (aggregation)
+====================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: programming_language
+   :values: shell
+
+.. meta::
+   :description: Learn about the $match aggregation stage, which filters documents to pass only those that match specified conditions to the next pipeline stage.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Definition
+----------
+
+.. pipeline:: $match
+
+   Filters the documents to pass only the documents that match the
+   specified condition(s) to the next pipeline stage.
+
+Compatibility
+-------------
+
+.. |operator-method| replace:: ``$match``
+
+.. include:: /includes/fact-compatibility.rst
+
+Syntax
+------
+
+The :pipeline:`$match` stage has the following prototype form:
+
+.. code-block:: javascript
+
+   { $match: { <query> } }
+
+:pipeline:`$match` takes a document that specifies the query
+conditions. The query syntax is identical to the :ref:`read
+operation query <read-operations-query-argument>` syntax; i.e.
+:pipeline:`$match` does not accept :ref:`raw aggregation expressions
+<aggregation-expressions>`. Instead, use a :query:`$expr` query
+expression to include aggregation expression in :pipeline:`$match`.
+
+Behavior
+--------
+
+Pipeline Optimization
+~~~~~~~~~~~~~~~~~~~~~
+
+- Place the :pipeline:`$match` as early in the aggregation
+  :term:`pipeline` as possible. Because :pipeline:`$match` limits
+  the total number of documents in the aggregation pipeline,
+  earlier :pipeline:`$match` operations minimize the amount of
+  processing down the pipe.
+
+- If you place a :pipeline:`$match` at the very beginning of a
+  pipeline, the query can take advantage of :term:`indexes
+  <index>` like any other :method:`db.collection.find()`
+  or :method:`db.collection.findOne()`.
+
+Expressions in Query Predicates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To include :ref:`expressions <aggregation-expressions>` in a query
+predicate, use the :query:`$expr` operator.
+
+0, Null, False or Missing Values
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A ``$match`` stage filters out a document from pipeline results if one
+of the following conditions applies:
+
+- The ``$match`` query predicate returns a ``0``, ``null``, or ``false``
+  value on that document.
+- The ``$match`` query predicate uses a field that is missing from
+  that document.
+
+Restrictions
+~~~~~~~~~~~~
+
+- The :pipeline:`$match` query syntax is identical to the :ref:`read
+  operation query <read-operations-query-argument>` syntax; i.e.
+  :pipeline:`$match` does not accept :ref:`raw aggregation expressions
+  <aggregation-expressions>`. To include aggregation expression in
+  :pipeline:`$match`, use a :query:`$expr` query expression:
+  
+  .. code-block:: javascript
+
+     { $match: { $expr: { <aggregation expression> } } }
+
+- You cannot use :query:`$where` in :pipeline:`$match` queries as part
+  of the aggregation pipeline.
+
+- You cannot use :query:`$near` or :query:`$nearSphere` in
+  :pipeline:`$match` queries as part of the aggregation pipeline. As an
+  alternative, you can either:
+
+  - Use :pipeline:`$geoNear` stage instead of the :pipeline:`$match` stage.
+
+  - Use :query:`$geoWithin` query operator with :query:`$center` or
+    :query:`$centerSphere` in the :pipeline:`$match` stage.
+
+- To use :query:`$text` in the :pipeline:`$match` stage, the
+  :pipeline:`$match` stage has to be the first stage of the pipeline.
+
+  .. include:: /includes/extracts/views-unsupported-text-search.rst
+
+  .. include:: /includes/text-search-legacy-atlas-section.rst
+
+Filter Data on Atlas by Using Atlas Search 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For data stored in :atlas:`{+atlas+} </>`, 
+you can use the :atlas:`Atlas Search </atlas-search>` 
+:ref:`compound-ref` operator ``filter`` option to match or filter 
+documents when running :pipeline:`$search` queries. Running 
+:pipeline:`$match` after :pipeline:`$search` is less performant 
+than running :pipeline:`$search` with the :ref:`compound-ref` 
+operator ``filter`` option.
+
+To learn more about the ``filter`` option, see :ref:`compound-ref`
+in the Atlas documentation.
+
+Examples
+--------
+
+The examples use a collection named ``articles`` with the following
+documents:
+
+.. code-block:: javascript
+
+   { "_id" : ObjectId("512bc95fe835e68f199c8686"), "author" : "dave", "score" : 80, "views" : 100 }
+   { "_id" : ObjectId("512bc962e835e68f199c8687"), "author" : "dave", "score" : 85, "views" : 521 }
+   { "_id" : ObjectId("55f5a192d4bede9ac365b257"), "author" : "ahn", "score" : 60, "views" : 1000 }
+   { "_id" : ObjectId("55f5a192d4bede9ac365b258"), "author" : "li", "score" : 55, "views" : 5000 }
+   { "_id" : ObjectId("55f5a1d3d4bede9ac365b259"), "author" : "annT", "score" : 60, "views" : 50 }
+   { "_id" : ObjectId("55f5a1d3d4bede9ac365b25a"), "author" : "li", "score" : 94, "views" : 999 }
+   { "_id" : ObjectId("55f5a1d3d4bede9ac365b25b"), "author" : "ty", "score" : 95, "views" : 1000 }
+
+Equality Match
+~~~~~~~~~~~~~~
+
+The following operation uses :pipeline:`$match` to perform a
+simple equality match:
+
+.. code-block:: javascript
+
+   db.articles.aggregate(
+       [ { $match : { author : "dave" } } ]
+   );
+
+The :pipeline:`$match` selects the documents where the ``author``
+field equals ``dave``, and the aggregation returns the following:
+
+.. code-block:: javascript
+
+   { "_id" : ObjectId("512bc95fe835e68f199c8686"), "author" : "dave", "score" : 80, "views" : 100 }
+   { "_id" : ObjectId("512bc962e835e68f199c8687"), "author" : "dave", "score" : 85, "views" : 521 }
+
+.. _match-perform-a-count:
+
+Perform a Count
+~~~~~~~~~~~~~~~
+
+The following example selects documents to process using the
+:pipeline:`$match` pipeline operator and then pipes the results
+to the :pipeline:`$group` pipeline operator to compute a count of
+the documents:
+
+.. code-block:: javascript
+
+   db.articles.aggregate( [
+     { $match: { $or: [ { score: { $gt: 70, $lt: 90 } }, { views: { $gte: 1000 } } ] } },
+     { $group: { _id: null, count: { $sum: 1 } } }
+   ] );
+
+In the aggregation pipeline, :pipeline:`$match` selects the documents
+where either the ``score`` is greater than ``70`` and less than ``90``
+or the ``views`` is greater than or equal to ``1000``. These documents
+are then piped to the :pipeline:`$group` to perform a count. The
+aggregation returns the following:
+
+.. code-block:: javascript
+
+   { "_id" : null, "count" : 5 }
+
+Additional Information
+----------------------
+
+Refer to the following pages for more information and use cases on 
+aggregation.
+
+- :doc:`/tutorial/aggregation-zip-code-data-set`
+- :doc:`/tutorial/aggregation-with-user-preference-data`

@@ -1,0 +1,400 @@
+.. _agg-out:
+
+==================
+$out (aggregation)
+==================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. pipeline:: $out
+
+   Takes the documents returned by the aggregation pipeline and writes
+   them to a specified collection. You can specify the output database.
+
+   The :pipeline:`$out` stage must be *the last stage* in the
+   pipeline. The :pipeline:`$out` operator lets the aggregation
+   framework return result sets of any size.
+
+   .. warning::
+
+      :pipeline:`$out` replaces the specified collection if it exists.
+      See :ref:`replace-existing-collection` for details.
+
+Syntax
+------
+
+The :pipeline:`$out` stage has the following syntax:
+
+- ``$out`` can take a document to specify the output database as well as the 
+  output collection:
+
+  .. code-block:: javascript
+
+     { $out: { db: "<output-db>", coll: "<output-collection>" } }
+
+  .. list-table::
+    :header-rows: 1
+    :widths: 15 85
+
+    * - Field
+      - Description
+
+    * - :ref:`db <out-db>`
+      - ..  _out-db:
+
+        The output database name.
+      
+        - For a :ref:`replica set <replica-set>` or a standalone, if the
+          output database does not exist, :pipeline:`$out` also creates
+          the database.
+
+        - For a :ref:`sharded cluster <sharded-cluster>`, the specified
+          output database must already exist.
+
+    * - :ref:`coll <out-collection>`
+      - ..  _out-collection:
+
+        The output collection name.
+
+- :pipeline:`$out` can take a string to specify only the output
+  collection (i.e. output to a collection in the same database):
+
+  .. code-block:: javascript
+
+     { $out: "<output-collection>" } // Output collection is in the same database
+
+.. important::
+
+   - You cannot specify a sharded collection as the output
+     collection. The input collection for a pipeline can be sharded.
+     To output to a sharded collection, see :pipeline:`$merge`
+     (Available starting in MongoDB 4.2).
+   - The :pipeline:`$out` operator cannot write results to a
+     :doc:`capped collection </core/capped-collections>`.
+   - If you modify a collection with an :atlas:`Atlas Search
+     </atlas-search>` index, you must first delete and then re-create
+     the search index. Consider using :pipeline:`$merge` instead.
+
+
+.. _out-merge-comparison:
+   
+Comparison with ``$merge``
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+With the introduction of :pipeline:`$merge` in version 4.2, MongoDB
+provides two stages, :pipeline:`$merge` and :pipeline:`$out`, for
+writing the results of the aggregation pipeline to a collection. The
+following summarizes the capabilities of the two stages:
+
+.. list-table::
+   :header-rows: 1
+
+   * - :pipeline:`$out`
+     - :pipeline:`$merge`
+   * - - Can output to a collection in the same or different database.
+     - - Can output to a collection in the same or different database.
+   * - - Creates a new collection if the output collection does not
+         already exist.
+     - - Creates a new collection if the output collection does not
+         already exist.
+   * - - Replaces the output collection completely if it already exists.
+     - - Can incorporate results (insert new documents, merge
+         documents, replace documents, keep existing documents, fail
+         the operation, process documents with a custom update pipeline) into
+         an existing collection.
+
+         Can replace the content of the collection but only if the
+         aggregation results contain a match for all existing
+         documents in the collection.
+   * - - Cannot output to a sharded collection. Input collection,
+         however, can be sharded.
+     - - Can output to a sharded collection. Input collection can
+         also be sharded.
+   * - - Corresponds to the SQL statements:
+
+         - .. code-block:: sql
+              :copyable: false
+
+              INSERT INTO T2 SELECT * FROM T1
+
+         - .. code-block:: sql
+              :copyable: false
+
+              SELECT * INTO T2 FROM T1
+
+     - - Corresponds to the SQL statement:
+
+         -  .. code-block:: sql
+               :copyable: false
+
+               MERGE T2 AS TARGET
+               USING (SELECT * FROM T1) AS SOURCE
+               ON MATCH (T2.ID = SOURCE.ID)
+               WHEN MATCHED THEN
+                 UPDATE SET TARGET.FIELDX = SOURCE.FIELDY
+               WHEN NOT MATCHED THEN
+                 INSERT (FIELDX)
+                 VALUES (SOURCE.FIELDY)
+
+         - Create/Refresh Materialized Views
+
+Behaviors
+---------
+
+$out Read Operations Run on Secondary Replica Set Members
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 5.0, :pipeline:`$out` can run on 
+replica set secondary nodes if all the nodes in
+cluster have :ref:`featureCompatibilityVersion <view-fcv>` set 
+to ``5.0`` or higher and the :doc:`/core/read-preference` is set to 
+secondary.
+
+Read operations of the :pipeline:`$out` statement occur on the 
+secondary nodes, while the write operations occur only on the 
+primary nodes.
+
+Not all driver versions support targeting of :pipeline:`$out` 
+operations to replica set secondary nodes. Check your 
+:driver:`driver </>` documentation to see when your driver added
+support for :pipeline:`$out` running on a secondary.
+
+Create New Collection
+~~~~~~~~~~~~~~~~~~~~~
+
+The :pipeline:`$out` operation creates a new collection if one does not
+already exist.
+
+The collection is not visible until the aggregation completes. If the
+aggregation fails, MongoDB does not create the collection.
+
+.. _replace-existing-collection:
+
+Replace Existing Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the collection specified by the :pipeline:`$out` operation already
+exists, then upon completion of the aggregation, the :pipeline:`$out`
+stage atomically replaces the existing collection with the new results
+collection. Specifically, the :pipeline:`$out` operation:
+
+#. Creates a temp collection.
+#. Copies the indexes from the existing collection to the temp collection.
+#. Inserts the documents into the temp collection.
+#. Calls the :dbcommand:`renameCollection` command with ``dropTarget: true``
+   to rename the temp collection to the destination collection.
+
+The :pipeline:`$out` operation does not change any indexes that existed on the
+previous collection. If the aggregation fails, the :pipeline:`$out` operation
+makes no changes to the pre-existing collection.
+
+Schema Validation Errors
+````````````````````````
+
+If your ``coll`` collection uses :ref:`schema validation
+<schema-validation-overview>` and has ``validationAction`` set to 
+``error``, inserting an invalid document with ``$out`` throws an 
+error. The ``$out`` operation makes no changes to the pre-existing 
+collection and documents returned by the aggregation pipeline are not
+added to the ``coll`` collection.
+
+Index Constraints
+~~~~~~~~~~~~~~~~~
+
+The pipeline will fail to complete if the documents produced by the
+pipeline would violate any unique indexes, including the index on the
+``_id`` field of the original output collection.
+
+If the :pipeline:`$out` operation modifies a collection with an
+:atlas:`Atlas Search </atlas-search>` index, you must delete and
+re-create the search index. Consider using :pipeline:`$merge` instead.
+
+``majority`` Read Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-aggregate-readConcern.rst
+
+Interaction with ``mongodump``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A :binary:`~bin.mongodump` started with :option:`--oplog
+<mongodump.--oplog>` fails if a client issues an aggregation pipeline
+that includes :pipeline:`$out` during the dump process. See
+:option:`mongodump --oplog <mongodump.--oplog>` for more information.
+
+Restrictions
+~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Restrictions
+     - Description
+
+   * - :doc:`Transactions </core/transactions>`
+
+     - An aggregation pipeline cannot use :pipeline:`$out` inside
+       :doc:`transactions </core/transactions>`.
+
+   * - :doc:`Time Series Collections </core/timeseries-collections>`
+
+     - An aggregation pipeline cannot use :pipeline:`$out` to output to
+       a time series collection.
+
+   * - :doc:`View definition </core/views>`
+
+     - The :pipeline:`$out` stage is not allowed as part of a
+       :doc:`view definition </core/views>`. If the view definition
+       includes nested pipeline (e.g. the view definition includes
+       :pipeline:`$lookup` or :pipeline:`$facet` stage), this
+       :pipeline:`$out` stage restriction applies to the nested
+       pipelines as well.
+
+   * - :pipeline:`$lookup` stage
+
+     - Starting in 4.2, you cannot include the :pipeline:`$out` stage
+       in the :pipeline:`$lookup` stage's :ref:`nested pipeline
+       <lookup-syntax-let-pipeline>`.
+
+   * - :pipeline:`$facet` stage
+
+     - :pipeline:`$facet` stage's :ref:`nested pipeline
+       <lookup-syntax-let-pipeline>` cannot include the
+       :pipeline:`$out` stage.
+
+   * - :pipeline:`$unionWith` stage
+
+     - :pipeline:`$unionWith` stage's :ref:`nested pipeline
+       <unionWith-pipeline>` cannot include the :pipeline:`$out` stage.
+
+   * - :readconcern:`"linearizable"` read concern
+
+     - .. include:: /includes/extracts/4.2-changes-out-linearizable.rst
+
+Examples
+--------
+
+In the ``test`` database, create a collection ``books`` with the
+following documents:
+
+.. code-block:: javascript
+
+   db.getSiblingDB("test").books.insertMany([
+      { "_id" : 8751, "title" : "The Banquet", "author" : "Dante", "copies" : 2 },
+      { "_id" : 8752, "title" : "Divine Comedy", "author" : "Dante", "copies" : 1 },
+      { "_id" : 8645, "title" : "Eclogues", "author" : "Dante", "copies" : 2 },
+      { "_id" : 7000, "title" : "The Odyssey", "author" : "Homer", "copies" : 10 },
+      { "_id" : 7020, "title" : "Iliad", "author" : "Homer", "copies" : 10 }
+   ])
+
+If the ``test`` database does not already exist, the insert operation
+creates the database as well as the ``books`` collection.
+
+Output to Same Database
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following aggregation operation pivots the data in the ``books``
+collection in the ``test`` database to have titles grouped by authors and then writes
+the results to the ``authors`` collection, also in the ``test`` database.
+
+.. code-block:: javascript
+
+   db.getSiblingDB("test").books.aggregate( [
+       { $group : { _id : "$author", books: { $push: "$title" } } },
+       { $out : "authors" }
+   ] )
+
+First Stage (``$group``):
+   The :pipeline:`$group` stage groups by the ``authors`` and uses
+   :group:`$push` to add the titles to a ``books`` array field:
+   
+   .. code-block:: javascript
+      :copyable: false
+
+      { "_id" : "Dante", "books" : [ "The Banquet", "Divine Comedy", "Eclogues" ] }
+      { "_id" : "Homer", "books" : [ "The Odyssey", "Iliad" ] }
+
+Second Stage (``$out``):
+   The :pipeline:`$out` stage outputs the documents to the ``authors``
+   collection in the ``test`` database.
+
+To view the documents in the output collection, run the following
+operation:
+
+.. code-block:: javascript
+
+   db.getSiblingDB("test").authors.find()
+
+The collection contains the following documents:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : "Homer", "books" : [ "The Odyssey", "Iliad" ] }
+   { "_id" : "Dante", "books" : [ "The Banquet", "Divine Comedy", "Eclogues" ] }
+
+Output to a Different Database
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   For a :ref:`replica set <replica-set>` or a standalone, if the
+   output database does not exist, :pipeline:`$out` also creates
+   the database.
+
+   For a :ref:`sharded cluster <sharded-cluster>`, the specified
+   output database must already exist.
+
+``$out`` can output to a collection in a database different from where the 
+aggregation is run.
+
+The following aggregation operation pivots the data in the ``books``
+collection to have titles grouped by authors and then writes the
+results to the ``authors`` collection in the ``reporting`` database:
+
+.. code-block:: javascript
+
+   db.getSiblingDB("test").books.aggregate( [
+       { $group : { _id : "$author", books: { $push: "$title" } } },
+       { $out : { db: "reporting", coll: "authors" } }
+   ] )
+
+First Stage (``$group``):
+   The :pipeline:`$group` stage groups by the ``authors`` and uses
+   :group:`$push` to add the titles to a ``books`` array field:
+   
+   .. code-block:: javascript
+      :copyable: false
+
+      { "_id" : "Dante", "books" : [ "The Banquet", "Divine Comedy", "Eclogues" ] }
+      { "_id" : "Homer", "books" : [ "The Odyssey", "Iliad" ] }
+
+Second Stage (``$out``):
+   The :pipeline:`$out` stage outputs the documents to the ``authors``
+   collection in the ``reporting`` database.
+
+To view the documents in the output collection, run the following
+operation:
+
+.. code-block:: javascript
+
+   db.getSiblingDB("reporting").authors.find()
+
+The collection contains the following documents:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : "Homer", "books" : [ "The Odyssey", "Iliad" ] }
+   { "_id" : "Dante", "books" : [ "The Banquet", "Divine Comedy", "Eclogues" ] }
+

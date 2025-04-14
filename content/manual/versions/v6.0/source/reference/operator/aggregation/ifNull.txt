@@ -1,0 +1,133 @@
+=====================
+$ifNull (aggregation)
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $ifNull
+
+.. versionchanged:: 5.0
+
+The :expression:`$ifNull` expression evaluates input expressions for
+null values and returns:
+   
+- The first non-null input :ref:`expression <aggregation-expressions>`
+  value found.
+   
+- A replacement :ref:`expression <aggregation-expressions>` value if all
+  input expressions evaluate to null.
+     
+:expression:`$ifNull` treats undefined values and missing fields as
+null.
+   
+Compatibility
+-------------
+
+.. |operator-method| replace:: ``$ifNull``
+
+.. include:: /includes/fact-compatibility.rst
+
+Syntax
+------
+
+.. code-block:: none
+   :copyable: false
+
+   {
+      $ifNull: [
+         <input-expression-1>,
+         ...
+         <input-expression-n>,
+         <replacement-expression-if-null>
+      ]
+   }
+
+Examples
+--------
+
+This ``inventory`` collection is used in the examples:
+
+.. code-block:: javascript
+
+   db.inventory.insertMany( [
+      { "_id" : 1, "item" : "buggy", description: "toy car", "quantity" : 300 },
+      { "_id" : 2, "item" : "bicycle", description: null, "quantity" : 200 },
+      { "_id" : 3, "item" : "flag" }
+   ] )
+
+Single Input Expression
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses :expression:`$ifNull` to return:
+
+- ``description`` if it is non-null.
+
+- ``"Unspecified"`` string if ``description`` is null or missing.
+
+.. code-block:: javascript
+
+   db.inventory.aggregate(
+      [
+         {
+            $project: {
+               item: 1,
+               description: { $ifNull: [ "$description", "Unspecified" ] }
+            }
+         }
+      ]
+   )
+
+Output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 1, "item" : "buggy", "description" : "toy car" }
+   { "_id" : 2, "item" : "bicycle", "description" : "Unspecified" }
+   { "_id" : 3, "item" : "flag", "description" : "Unspecified" }
+
+Multiple Input Expressions
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 5.0
+
+The following example uses :expression:`$ifNull` to return:
+
+- ``description`` if it is non-null.
+
+- ``quantity`` if ``description`` is null or missing and ``quantity``
+  is non-null.
+
+- ``"Unspecified"`` string if ``description`` and ``quantity`` are both
+  null or missing.
+
+.. code-block:: javascript
+
+   db.inventory.aggregate(
+      [
+         {
+            $project: {
+               item: 1,
+               value: { $ifNull: [ "$description", "$quantity", "Unspecified" ] }
+            }
+         }
+      ]
+   )
+
+Output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 1, "item" : "buggy", "value" : "toy car" }
+   { "_id" : 2, "item" : "bicycle", "value" : 200 }
+   { "_id" : 3, "item" : "flag", "value" : "Unspecified" }

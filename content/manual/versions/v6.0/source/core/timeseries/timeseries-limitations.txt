@@ -1,0 +1,241 @@
+.. meta::
+   :keywords: IOT
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. _manual-timeseries-collection-limitations:
+
+==================================
+Time Series Collection Limitations
+==================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. meta::
+   :keywords: Time Series, IOT
+
+This page describes limitations on using :ref:`time series collections
+<manual-timeseries-collection>`.
+
+Unsupported Features
+~~~~~~~~~~~~~~~~~~~~~
+
+The following features are not supported for time series collections:
+
+* :atlas:`Atlas Search </atlas-search>`
+* :ref:`Change streams <changeStreams>`
+* :ref:`{+csfle+} <manual-csfle-feature>`
+* :appservices:`Database Triggers </triggers/database-triggers>`
+* :ref:`Schema validation rules <schema-validation-overview>`
+* :dbcommand:`reIndex`
+* :dbcommand:`renameCollection`
+
+:appservices:`Atlas Device Sync </sync>` support is limited to time
+series collections that use :appservices:`Atlas Data Ingest
+</sync/configure/sync-settings/#data-ingest>`.
+
+Aggregation $out and $merge
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You cannot use the :pipeline:`$out` or :pipeline:`$merge` aggregation
+pipeline stages to add data from another collection to a time series
+collection.
+
+.. _timeseries-limitation-distinct:
+
+distinct Command
+~~~~~~~~~~~~~~~~
+
+.. include:: /includes/time-series/timeseries-distinct-command.rst
+
+.. _timeseries-limitations-doc-size:
+
+Document Size
+~~~~~~~~~~~~~
+
+The maximum size for documents within a time series collection is 4 MB.
+
+.. _timeseries-limitations-updates-deletes:
+
+Updates and Deletes
+~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 5.1, you can perform some delete and update
+operations.
+
+Delete commands must meet the following requirements:
+
+- You can only match on :ref:`metaField <time-series-fields>` field
+  values.
+- Your delete command must not limit the number of documents to be
+  deleted. Set ``justOne: false`` or use the
+  :method:`~db.collection.deleteMany()` method.
+
+.. include:: /includes/time-series-ttl-deletes.rst
+
+For details on TTL deletes, see :ref:`ttl-collections`.
+
+Update commands must meet the following requirements:
+
+.. include:: /includes/time-series/fact-update-limitations.rst
+
+In MongoDB 5.0, time series collections only support insert operations
+and read queries. Updates and manual delete operations result in an
+error.
+
+To automatically delete old data, :ref:`set up automatic removal (TTL)
+<set-up-automatic-removal>`.
+
+To remove all documents from a collection, use the
+:method:`~db.collection.drop()` method to drop the collection.
+
+.. _timeseries-limitations-secondary-indexes:
+
+Time Series Secondary Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+There is improved support for secondary indexes in MongoDB 6.0.
+
+Time Series Secondary Indexes with MongoDB 6.0 and Later
+````````````````````````````````````````````````````````
+
+Starting in MongoDB 6.0, you can add a :term:`secondary index <secondary
+index>` to any field.
+
+These index types are not supported:
+
+- :ref:`Text indexes <index-feature-text>`
+- :ref:`Unique indexes <index-type-unique>`
+
+The :ref:`TTL <index-feature-ttl>` index property is not supported. For
+TTL deletion, use :ref:`expireAfterSeconds
+<db.createCollection.expireAfterSeconds>`.
+
+The following index types can only be created on the ``metaField``:
+
+- :ref:`2d indexes <2d-index>`
+- :ref:`Multikey indexes <index-type-multikey>`
+- :ref:`Sparse indexes <index-type-sparse>`
+
+For improvements to time series secondary indexes available starting in
+MongoDB 6.0, see :ref:`timeseries-add-secondary-index-mongodb-6.0`.
+
+.. include:: /includes/time-series-secondary-indexes-downgrade-FCV.rst
+
+Time Series Secondary Indexes with MongoDB 5.0 and Earlier
+``````````````````````````````````````````````````````````
+
+In MongoDB 5.0 and earlier:
+
+- The ``metaField`` can have secondary indexes.
+- The ``timeField``  can have secondary indexes.
+- If the ``metaField`` is a document, you can add secondary indexes on
+  fields inside the document.
+
+.. seealso::
+
+   :ref:`indexes`
+
+Capped Collections
+~~~~~~~~~~~~~~~~~~
+
+You cannot create a time series collection as a :ref:`capped collection
+<manual-capped-collection>`.
+
+Modification of Collection Type
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can only set the collection type when you create a collection:
+
+- An existing collection cannot be converted into a time series
+  collection.
+- A time series collection cannot be converted into a different
+  collection type.
+
+To move data from an existing collection to a time series collection,
+:ref:`migrate data into a time series collection
+<migrate-data-into-a-timeseries-collection>`.
+
+Modification of ``timeField`` and ``metaField``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can only set a collection's ``timeField`` and ``metaField``
+parameters when you create the collection. You cannot modify these
+parameters later.
+
+.. _timeseries-limitations-granularity:
+
+Modification of ``granularity``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After you set the ``granularity``, you can only increase it one level at
+a time. The ``granularity`` can change from ``"seconds"`` to
+``"minutes"`` or from ``"minutes"`` to ``"hours"``. Other changes are
+not allowed. 
+
+To change the ``granularity`` from ``"seconds"`` to ``"hours"``, first
+increase the ``granularity`` to ``"minutes"`` and then to ``"hours"``.
+
+.. _time-series-limitations-sharding:
+
+Sharding
+~~~~~~~~
+
+Starting in MongoDB 5.1 (and 5.0.6), you can create sharded time series
+collections.
+
+In versions earlier than MongoDB 5.0.6, you cannot shard time series
+collections.
+
+Sharding Administration Commands 
+````````````````````````````````
+
+You cannot run sharding administration commands on sharded time series 
+collections. 
+
+Shard Key Fields
+````````````````
+
+.. include:: /includes/time-series/fact-shard-key-limitations.rst
+
+Resharding
+``````````
+
+You cannot reshard a sharded time series collection. However, you can 
+:ref:`refine its shard key <shard-key-refine>`.
+
+Transactions
+~~~~~~~~~~~~
+
+You cannot write to time series collections in :ref:`transactions
+<transactions>`.
+
+.. note::
+
+  Reads from time series collections are supported in transactions.
+
+View Limitations
+~~~~~~~~~~~~~~~~
+
+.. include:: /includes/time-series/fact-view-limitation.rst
+
+- You cannot create a view from a time series bucket collection
+  namespace (namely, a collection prefixed with ``system.buckets``).
+
+Snapshot Isolation
+~~~~~~~~~~~~~~~~~~
+
+Read operations on time series collections with read concern
+``"snapshot"`` guarantee snapshot isolation only in the absence of
+concurrent drop or rename operations on collections in the read
+operation. Re-creating a time series collection on the same namespace
+with different granularity setting does not yield full snapshot
+isolation.

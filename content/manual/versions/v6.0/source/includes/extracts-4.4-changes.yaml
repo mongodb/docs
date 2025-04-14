@@ -1,0 +1,488 @@
+ref: 4.4-changes-certificate-expiry-warning
+content: |
+
+   :binary:`~bin.mongod` / :binary:`~bin.mongos` logs a warning on
+   connection if the presented X.509 certificate expires within ``30``
+   days of the ``mongod/mongos`` host system time.
+---
+ref: 4.4-changes-passwordPrompt
+content: |
+
+   If you use the ``db.auth(<username>, <password>)`` syntax and omit the 
+   password, the user is prompted to enter a password.
+---
+ref: 4.4-changes-removed-commands
+content: |
+   MongoDB removes the following command(s) and ``mongo`` shell
+   helper(s):
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 25 55
+   
+      * - Removed Command
+        - Removed Helper
+        - Alternatives
+     
+      * - ``cloneCollection``
+   
+        - ``db.cloneCollection()``
+
+        - - Use :binary:`~bin.mongoexport` and
+            :binary:`~bin.mongoimport`, or
+
+          - Use the aggregation pipeline :pipeline:`$out` or
+            :pipeline:`$merge` stages, or
+ 
+          - Write a script using the drivers.
+
+      * - ``planCacheListPlans``
+   
+        - ``PlanCache.getPlansByQuery()``
+
+        - - Use the aggregation pipeline stage :pipeline:`$planCacheStats` or
+
+          - Use the ``mongo`` shell helper method
+            :method:`PlanCache.list()`. (Available starting in version 4.4)
+
+          | See also :ref:`4.4-agg-planCachesStats-changes`.
+
+      * - ``planCacheListQueryShapes``
+
+        - ``PlanCache.listQueryShapes()``
+
+        - - Use the aggregation pipeline stage :pipeline:`$planCacheStats` or
+ 
+          - Use the ``mongo`` shell helper method
+            :method:`PlanCache.list()`. (Available starting in version 4.4)
+
+          | See also :ref:`4.4-agg-planCachesStats-changes`.
+
+---
+ref: 4.4-changes-removed-parameters
+content: |
+   MongoDB removes the following server parameter:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 25 75
+   
+      * - Removed Parameter
+        - Description
+     
+      * - ``failIndexKeyTooLong``
+   
+        - MongoDB 4.4 removes the ``failIndexKeyTooLong`` parameter.
+          This parameter was deprecated in 4.2 as MongoDB with
+          :ref:`featureCompatibilityVersion <view-fcv>` (FCV) version
+          4.2+ no longer imposes an index key size limit. 
+
+---
+ref: 4.4-changes-planCache-changes
+content: |
+
+   Starting in version 4.4, 
+   
+   - :pipeline:`$planCacheStats` stage can be run on
+     :binary:`~bin.mongos` instances as well as on
+     :binary:`~bin.mongod` instances. In 4.2,
+     :pipeline:`$planCacheStats` stage can only run on
+     :binary:`~bin.mongod` instances.
+
+   - :pipeline:`$planCacheStats` includes new fields: the :ref:`host
+     <plancachestats-host>` field and, when run against a
+     :binary:`~bin.mongos`, the :ref:`shard <plancachestats-shard>`
+     field.
+
+   - ``mongo`` shell provides the method
+     :method:`PlanCache.list()` as a wrapper for
+     :pipeline:`$planCacheStats` aggregation stage.
+
+   - MongoDB removes the following:
+
+     - ``planCacheListPlans`` and ``planCacheListQueryShapes``
+       commands, and
+
+     - ``PlanCache.getPlansByQuery()`` and
+       ``PlanCache.listQueryShapes()`` methods.
+
+     Use :pipeline:`$planCacheStats` or :method:`PlanCache.list()` instead.
+---
+ref: 4.4-changes-rollback-directory
+content: |
+   Starting in Mongo 4.4, the rollback directory for a collection is named
+   after the collection's UUID rather than the collection namespace; e.g.
+
+   .. code-block:: none
+      :copyable: false
+
+      <dbpath>/rollback/20f74796-d5ea-42f5-8c95-f79b39bad190/removed.2020-02-19T04-57-11.0.bson
+
+   For details, see :ref:`replica-set-rollback-data`.
+
+---
+ref: 4.4-changes-timestamp-format
+content: |
+
+   |timestampfmt| no longer supports ``ctime``. An example of ``ctime`` 
+   formatted date is: ``Wed Dec 31 18:17:54.811``.
+---
+ref: 4.4-changes-meta-convergence
+content: |
+
+   As of MongoDB 4.4, there is no distinction between
+   the :expression:`$meta` aggregation operator and the
+   :expression:`$meta` projection operator.
+      
+---
+ref: 4.4-changes-projection-sort-meta-list
+content: |
+
+   - You can specify the :expression:`{ $meta: "textScore" } <$meta>` 
+     expression in the :method:`~cursor.sort()` without also specifying the 
+     expression in the projection. For example:
+
+     .. code-block:: javascript 
+
+        db.articles.find( 
+           { $text: { $search: "cake" } } 
+        ).sort( { score: { $meta: "textScore" } } )
+
+     As a result, you can sort the resulting documents by their
+     relevance without projecting the ``textScore``.
+
+   - If you include the :expression:`{ $meta: "textScore" } <$meta>` expression 
+     in both the :ref:`projection <find-projection>` and 
+     :method:`~cursor.sort()`, the projection and sort documents can have 
+     different field names for the expression.
+
+     | For example, in the following operation, the projection uses a
+      field named  ``score`` for the expression and the
+      :method:`~cursor.sort()` uses the field named ``ignoredName``.
+
+     .. code-block:: javascript 
+
+        db.articles.find(
+           { $text: { $search: "cake" } } , 
+           { score: { $meta: "textScore" } }
+        ).sort( { ignoredName: { $meta: "textScore" } } )
+
+---
+ref: 4.4-changes-textscore-predicate
+content: |
+
+   Starting in MongoDB 4.4, you must specify the :query:`$text` operator
+   in the query predicate of the :method:`db.collection.find()` operations
+   to use :expression:`{ $meta: "textScore" } <$meta>` expression in the
+   projection or sort. For example:
+
+   .. code-block:: javascript
+
+      db.articles.find(
+         { $text: { $search: "cake" } },
+         { score: { $meta: "textScore" } }
+      );
+
+      db.articles.find(
+         { $text: { $search: "cake" } },
+         { score: { $meta: "textScore" } }
+      ).sort( { score: {  $meta: "textScore" } } );
+   
+
+   If you do not specify the ``$text`` operator in the query
+   predicate, the operation fails. For example, the following operations are
+   invalid starting in MongoDB 4.4:
+
+   .. code-block:: javascript
+      :copyable: false
+
+      db.articles.find(
+         { },
+         { score: { $meta: "textScore" } } 
+      )
+
+      db.articles.find(
+         { },
+         { score: { $meta: "textScore" } }
+      ).sort( { score: {  $meta: "textScore" } } );
+   
+---
+ref: 4.4-changes-natural-sort-views
+content: |
+
+   You can specify a :operator:`$natural` sort when running a :dbcommand:`find` 
+   operation against a :ref:`view <views-landing-page>`.
+---
+ref: 4.4-changes-drop-in-progress-indexes
+content: |
+
+   The :method:`db.collection.drop()` method and :dbcommand:`drop` command 
+   abort any in-progress index builds on the target collection before dropping 
+   the collection. 
+
+   .. include:: /includes/fact-abort-index-build-replica-sets.rst
+---
+ref: 4.4-changes-drop-database-in-progress-indexes
+content: |
+
+   The :method:`db.dropDatabase()` method and :dbcommand:`dropDatabase` command 
+   abort any in-progress index builds on collections in the target database 
+   before dropping the database. Aborting an index build has the same effect as 
+   dropping the built index. 
+
+---
+ref: 4.4-changes-minimum-oplog-retention-period
+content: |
+
+   You can specify the minimum number of hours to preserve an oplog entry 
+   where :binary:`~bin.mongod` only removes an oplog entry *if* both of the 
+   following criteria are met:
+
+   - The oplog has reached the :ref:`maximum configured size
+     <replica-set-oplog-sizing>`.
+
+   - The oplog entry is older than the configured number of hours based
+     on the host system clock.
+
+   By default MongoDB does not set a minimum oplog retention period and
+   automatically truncates the oplog starting with the oldest entries to
+   maintain the configured maximum oplog size.
+
+---
+ref: 4.4-changes-minimum-oplog-retention-period-nolinks
+content: |
+
+   Starting in MongoDB 4.4, you can specify the minimum number of hours
+   to preserve an oplog entry. The :binary:`~bin.mongod` only truncates
+   an oplog entry *if*:
+
+   - The oplog has reached the maximum configured size, *and* 
+
+   - The oplog entry is older than the configured number of hours
+     based on the host system clock.
+
+   By default MongoDB does not set a minimum oplog retention period and
+   automatically truncates the oplog starting with the oldest entries to
+   maintain the configured maximum oplog size.
+---
+ref: 4.4-changes-transactions-bulkWrite
+content: |
+
+   For :ref:`feature compatibility version (fcv) <view-fcv>` ``"4.4"``
+   and greater, if an insert operation or update operation with
+   ``upsert: true`` is run in a transaction against a non-existing
+   collection, the collection is implicitly created.
+
+   .. note::
+
+      .. include:: /includes/extracts/transactions-cross-shard-collection-restriction.rst
+
+---
+ref: 4.4-changes-transactions-save
+content: |
+
+   For :ref:`feature compatibility version (fcv) <view-fcv>` ``"4.4"``
+   and greater, if you save a document to a non-existing collection in a
+   transaction, the collection is implicitly created.
+
+   .. note::
+
+      .. include:: /includes/extracts/transactions-cross-shard-collection-restriction.rst
+
+   For fcv ``"4.2"`` or less, :method:`~db.collection.save()`
+   operations that would result in the creation of a new collection are
+   not allowed in a transaction.
+---
+ref: 4.4-changes-downgrade-floor
+content: |
+
+   .. warning:: Downgrade Floor
+
+
+      If you need to downgrade from version 4.4, downgrade to 4.2.6 or
+      a later version. You cannot downgrade to 4.2.5 or an earlier
+      version.
+---
+ref: 4.4-changes-geo-deprecation
+content: |
+   MongoDB 4.4 deprecates the :doc:`geoHaystack </core/geohaystack>` index and the
+   :dbcommand:`geoSearch` command.  Use a :doc:`2d index </core/2d>`
+   with :pipeline:`$geoNear` or :query:`$geoWithin` instead.
+---
+ref: 4.4-changes-index-builds-simultaneous-fcv
+content: |
+
+   .. note:: Requires ``featureCompatibilityVersion`` 4.4+
+   
+      Each :binary:`~bin.mongod` in the replica set or sharded cluster
+      *must* have :ref:`featureCompatibilityVersion <set-fcv>` set to at
+      least ``4.4`` to start index builds simultaneously across 
+      replica set members.
+
+---
+ref: 4.4-changes-index-builds-simultaneous
+content: |
+
+   Index builds on a replica set or sharded cluster build simultaneously across 
+   all data-bearing replica set members. For sharded clusters, the index build 
+   occurs only on shards containing data for the collection being indexed. 
+   The primary requires a minimum number of data-bearing :rsconf:`voting
+   <members[n].votes>` members (i.e commit quorum), including itself,
+   that must complete the build before marking the index as ready for
+   use. See :ref:`index-operations-replicated-build` for more
+   information.
+
+---
+ref: 4.4-changes-index-builds-simultaneous-nolink
+content: |
+   Index builds on a replica set or sharded cluster build simultaneously across 
+   all data-bearing replica set members. For sharded clusters, the index build 
+   occurs only on shards containing data for the collection being indexed. The 
+   primary requires a minimum number of data-bearing :rsconf:`voting
+   <members[n].votes>` members (i.e commit quorum), including itself,
+   that must complete the build before marking the index as ready for
+   use.
+---
+ref: 4.4-replSetGetConfiguration-commitmentStatus
+content: |
+   The :dbcommand:`replSetGetConfig` command
+   can specify a new option :ref:`commitmentStatus: true
+   <replSetGetConfig-commitmentStatus>` when run on the primary. When
+   run with the option, the command includes in the output a
+   :ref:`commitmentStatus <replSetGetConfig-output-commitmentStatus>`
+   field. This output field indicates whether the replica set's
+   previous reconfig has been committed, so that the replica set is
+   ready to be reconfigured again. |moreinfo|
+---
+ref: 4.4-validate-data-throughput
+content: |
+   
+   The :pipeline:`$currentOp` and the :dbcommand:`currentOp` command
+   include :data:`~$currentOp.dataThroughputAverage` and
+   :data:`~$currentOp.dataThroughputLastSecond` information for
+   validate operations in progress.
+
+   The log messages for validate operations include
+   ``dataThroughputAverage`` and ``dataThroughputLastSecond``
+   information.
+---
+ref: 4.4-replSetReconfig-majority
+content: |
+   
+   Starting in MongoDB 4.4, the :dbcommand:`replSetReconfig` command
+   waits until a majority of voting members install the replica
+   configuration before returning success. A voting member is *any*
+   replica member where :rsconf:`members[n].votes` is ``1``, including
+   arbiters. First, the operation waits until the *current*
+   configuration is committed before installing the *new* configuration
+   on the primary. The operation then waits until a majority of voting
+   members install the *new* configuration before returning
+   successfully. See
+   :ref:`replSetReconfig-cmd-majority-install` for more information.
+   
+   :dbcommand:`replSetReconfig` waits indefinitely for a majority of
+   voting members to install the configuration by default. MongoDB 4.4
+   also adds the optional :ref:`maxTimeMS
+   <replSetReconfig-cmd-maxTimeMS>` parameter to
+   :dbcommand:`replSetReconfig` for specifying the maximum amount of
+   time to wait for the operation to return successfully.
+---
+ref: 4.4-replSetReconfig-single-node-voting-change
+content: |
+
+   Starting in MongoDB 4.4, the :dbcommand:`replSetReconfig` command
+   allows adding or removing no more than ``1`` :rsconf:`voting
+   <members[n].votes>` member at a time. To add or remove multiple
+   voting members, issue a series of :dbcommand:`replSetReconfig` or
+   :method:`rs.reconfig()` operations to add or remove one member at a
+   time. See :ref:`replSetReconfig-cmd-single-node` for more
+   information.
+
+---
+ref: 4.4-replSetGetConfig-term-field
+content: |
+
+   MongoDB 4.4 adds the :rsconf:`term` field to the replica set
+   :ref:`configuration document <replica-set-configuration-document>`.
+   Replica set members use :rsconf:`term` and :rsconf:`version` to
+   achieve consensus on the "newest" replica configuration. Setting
+   :ref:`featureCompatibilityVersion (FCV) : "4.4" <set-fcv>`
+   implicitly performs a :dbcommand:`replSetReconfig` to add the
+   :rsconf:`term` field to the configuration document and blocks until
+   the new configuration propagates to a majority of replica set
+   members. Similarly, downgrading to ``FCV : "4.2"`` implicitly
+   performs a reconfiguration to remove the :rsconf:`term` field.
+
+---
+ref: 4.4-changes-migrate-jumbo-chunks
+content: |
+   For chunks that are :ref:`too large to migrate
+   <migration-chunk-size-limit>`, starting in MongoDB 4.4:
+
+   - A new balancer setting ``attemptToBalanceJumboChunks`` allows the
+     balancer to migrate chunks too large to move as long as the chunks
+     are not labeled :ref:`jumbo <jumbo-chunk>`. See
+     :ref:`balance-chunks-that-exceed-size-limit` for details.
+
+   - The :dbcommand:`moveChunk` command can specify a new option
+     :ref:`forceJumbo <movechunk-forceJumbo>` to allow for the
+     migration of chunks that are too large to move. The chunks may or
+     may not be labeled :ref:`jumbo <jumbo-chunk>`.
+---
+ref: 4.4-changes-repl-state-restrictions
+content: |
+
+   To run on a replica set member, the following operations require the member 
+   to be in :replstate:`PRIMARY` or :replstate:`SECONDARY` state.
+   
+   - :dbcommand:`listDatabases`
+   - :dbcommand:`listCollections`
+   - :dbcommand:`listIndexes`
+   - :dbcommand:`distinct`
+   - :dbcommand:`dbStats`
+   - :dbcommand:`collStats`
+
+   If the member is in another state, such as :replstate:`STARTUP2`,
+   the operation errors.
+
+---
+ref: 4.4-changes-repl-state-restrictions-operation
+content: |
+
+   To run on a replica set member, |operations| operations require the member 
+   to be in :replstate:`PRIMARY` or :replstate:`SECONDARY` state. If the member
+   is in another state, such as :replstate:`STARTUP2`, the
+   operation errors.
+
+---
+ref: 4.4-changes-mapreduce-ignore-verbose
+content: |
+
+  MongoDB ignores the :ref:`verbose <cmd-mapreduce-verbose>` option.
+---
+ref: 4.4-changes-getLastErrorDefaults-deprecation
+content: |
+
+  Starting in version 4.4, MongoDB deprecates specifying a
+  :rsconf:`settings.getLastErrorDefaults` value other than the default
+  of ``{ w: 1, wtimeout: 0 }``. MongoDB 4.4 honors any write concern
+  value that you specify, however future MongoDB versions might not
+  honor values other than the default. Instead, use the
+  :dbcommand:`setDefaultRWConcern` command to set the default read or
+  write concern configuration for a replica set or sharded cluster.
+---
+ref: 4.4-changes-tools
+content: |
+
+  The :doc:`Windows MSI installer
+  </tutorial/install-mongodb-enterprise-on-windows>` for both 
+  Community and Enterprise editions does not
+  include the :dbtools:`MongoDB Database Tools <>` (``mongoimport``,
+  ``mongoexport``, etc). To download and install
+  the MongoDB Database Tools on Windows, see
+  :dbtools:`Installing the MongoDB Database Tools </installation/installation>`.
+
+  If you were relying on the MongoDB 4.2 or previous MSI installer to
+  install the Database Tools along with the MongoDB Server, you must
+  now download the Database Tools separately.
+...

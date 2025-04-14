@@ -1,0 +1,534 @@
+==========================
+$bucket (aggregation)
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. pipeline:: $bucket
+
+   Categorizes incoming documents into groups, called buckets, based on
+   a specified expression and bucket boundaries and outputs a document
+   per each bucket. Each output document contains an ``_id`` field whose
+   value specifies the inclusive lower bound of the bucket. The
+   :ref:`output <bucket-output>` option specifies the fields included in
+   each output document.
+   
+   :pipeline:`$bucket` only produces output documents for buckets that
+   contain at least one input document.
+
+Considerations
+--------------
+
+.. _bucket-memory-limit:
+
+``$bucket`` and Memory Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :pipeline:`$bucket` stage has a limit of 100 megabytes of RAM. By
+default, if the stage exceeds this limit, :pipeline:`$bucket` returns an
+error. To allow more space for stage processing, use the
+:ref:`allowDiskUse <aggregate-cmd-allowDiskUse>` option to enable
+aggregation pipeline stages to write data to temporary files.
+
+.. seealso::
+
+   :doc:`/core/aggregation-pipeline-limits`
+
+Syntax
+------
+
+.. code-block:: javascript
+
+   { 
+     $bucket: {
+         groupBy: <expression>,
+         boundaries: [ <lowerbound1>, <lowerbound2>, ... ],
+         default: <literal>,
+         output: {
+            <output1>: { <$accumulator expression> },
+            ...
+            <outputN>: { <$accumulator expression> }
+         }
+      }
+   }
+
+The :pipeline:`$bucket` document contains the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Field
+
+     - Type
+
+     - Description
+
+   * - :ref:`groupBy <bucket-group-by>`
+
+     - expression
+
+     - .. _bucket-group-by:
+     
+       An :ref:`expression <aggregation-expressions>` to group
+       documents by. To specify a :ref:`field path
+       <agg-quick-ref-field-paths>`, prefix the field name with a
+       dollar sign ``$`` and enclose it in quotes.
+       
+       Unless :pipeline:`$bucket` includes a :ref:`default
+       <bucket-default>` specification, each input document must
+       resolve the ``groupBy`` field path or expression to a value
+       that falls within one of the ranges specified by the
+       :ref:`boundaries <bucket-boundaries>`.
+
+   * - :ref:`boundaries <bucket-boundaries>`
+
+     - array
+
+     - .. _bucket-boundaries:
+     
+       An array of values based on the :ref:`groupBy
+       <bucket-group-by>` expression that specify the boundaries for
+       each bucket. Each adjacent pair of values acts as the
+       inclusive lower boundary and the exclusive upper boundary for
+       the bucket. You must specify at least two boundaries.
+       
+       The specified values must be in ascending order and all of the
+       same :doc:`type </reference/bson-types>`. The exception is if
+       the values are of mixed numeric types, such as:
+       
+       ``[ 10, NumberLong(20), NumberInt(30) ]``
+       
+       For example, an array of ``[ 0, 5, 10 ]`` creates two buckets: 
+       
+       - [0, 5) with inclusive lower bound ``0`` and exclusive
+         upper bound ``5``. 
+         
+       - [5, 10) with inclusive lower bound ``5`` and exclusive
+         upper bound ``10``.
+       
+   * - :ref:`default <bucket-default>`
+
+     - literal
+
+     - .. _bucket-default:
+     
+       Optional. A literal that specifies the ``_id`` of an
+       additional bucket that contains all documents whose
+       :ref:`groupBy <bucket-group-by>` expression result does not fall into a bucket
+       specified by :ref:`boundaries <bucket-boundaries>`.
+       
+       If unspecified, each input document must resolve the
+       ``groupBy`` expression to a value within one of the bucket
+       ranges specified by ``boundaries`` or the operation throws an
+       error.
+       
+       The ``default`` value must be less than the lowest
+       ``boundaries`` value, or greater than or equal to the highest
+       ``boundaries`` value.
+       
+       The ``default`` value can be of a different
+       :doc:`type </reference/bson-types>` than the entries in
+       ``boundaries``.
+
+   * - :ref:`output <bucket-output>`
+
+     - document
+
+     - .. _bucket-output:
+     
+       Optional. A document that specifies the fields to include in
+       the output documents in addition to the ``_id`` field. To
+       specify the field to include, you must use :ref:`accumulator
+       expressions <agg-quick-reference-accumulators>`.
+       
+       .. code-block:: javascript
+       
+          <outputfield1>: { <accumulator>: <expression1> },
+          ...
+          <outputfieldN>: { <accumulator>: <expressionN> }
+
+       If you do not specify an ``output`` document, the operation
+       returns a ``count`` field containing the number of documents
+       in each bucket.
+
+       If you specify an ``output`` document, only the fields
+       specified in the document are returned; i.e. the ``count``
+       field is not returned unless it is explicitly included in the
+       ``output`` document.
+
+Behavior
+--------
+
+:pipeline:`$bucket` requires at least one of the following conditions to be met
+or the operation throws an error:
+
+- Each input document resolves the :ref:`groupBy <bucket-group-by>`
+  expression to a value within one of the bucket ranges specified by
+  :ref:`boundaries <bucket-boundaries>`, or
+   
+- A :ref:`default <bucket-default>` value is specified to bucket
+  documents whose ``groupBy``
+  values are outside of the ``boundaries`` or of a different
+  :doc:`BSON type </reference/bson-types>` than the values in
+  ``boundaries``.
+
+If the ``groupBy`` expression resolves to an array or a document,
+``$bucket`` arranges the input documents into buckets using the
+comparison logic from :pipeline:`$sort`.
+
+Examples
+--------
+
+Bucket by Year and Filter by Bucket Results
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In :binary:`~bin.mongosh`, create a sample collection named
+``artists`` with the following documents:
+
+.. code-block:: javascript
+
+   db.artists.insertMany([
+     { "_id" : 1, "last_name" : "Bernard", "first_name" : "Emil", "year_born" : 1868, "year_died" : 1941, "nationality" : "France" },
+     { "_id" : 2, "last_name" : "Rippl-Ronai", "first_name" : "Joszef", "year_born" : 1861, "year_died" : 1927, "nationality" : "Hungary" },
+     { "_id" : 3, "last_name" : "Ostroumova", "first_name" : "Anna", "year_born" : 1871, "year_died" : 1955, "nationality" : "Russia" },
+     { "_id" : 4, "last_name" : "Van Gogh", "first_name" : "Vincent", "year_born" : 1853, "year_died" : 1890, "nationality" : "Holland" },
+     { "_id" : 5, "last_name" : "Maurer", "first_name" : "Alfred", "year_born" : 1868, "year_died" : 1932, "nationality" : "USA" },
+     { "_id" : 6, "last_name" : "Munch", "first_name" : "Edvard", "year_born" : 1863, "year_died" : 1944, "nationality" : "Norway" },
+     { "_id" : 7, "last_name" : "Redon", "first_name" : "Odilon", "year_born" : 1840, "year_died" : 1916, "nationality" : "France" },
+     { "_id" : 8, "last_name" : "Diriks", "first_name" : "Edvard", "year_born" : 1855, "year_died" : 1930, "nationality" : "Norway" }
+   ])
+
+The following operation groups the documents into buckets
+according to the ``year_born`` field and filters based on the count
+of documents in the buckets:
+
+.. code-block:: javascript
+
+   db.artists.aggregate( [
+     // First Stage
+     {
+       $bucket: { 
+         groupBy: "$year_born",                        // Field to group by
+         boundaries: [ 1840, 1850, 1860, 1870, 1880 ], // Boundaries for the buckets
+         default: "Other",                             // Bucket ID for documents which do not fall into a bucket
+         output: {                                     // Output for each bucket
+           "count": { $sum: 1 },
+           "artists" : 
+             { 
+               $push: { 
+                 "name": { $concat: [ "$first_name", " ", "$last_name"] }, 
+                 "year_born": "$year_born"
+               } 
+             }
+         }
+       }
+     },
+     // Second Stage
+     {
+       $match: { count: {$gt: 3} }
+     }
+   ] )
+
+First Stage
+  The :pipeline:`$bucket` stage groups the documents into buckets by the
+  ``year_born`` field. The buckets have the following :ref:`boundaries
+  <bucket-boundaries>`:
+
+  - [1840, 1850) with inclusive lowerbound ``1840`` and exclusive upper bound 
+    ``1850``.  
+  - [1850, 1860) with inclusive lowerbound ``1850`` and exclusive upper
+    bound ``1860``. 
+  - [1860, 1870) with inclusive lowerbound ``1860`` and exclusive upper bound 
+    ``1870``.  
+  - [1870, 1880) with inclusive lowerbound ``1870`` and exclusive upper
+    bound ``1880``. 
+  - If a document did not contain the ``year_born`` field or its
+    ``year_born`` field was outside the ranges above, it would be placed
+    in the :ref:`default <bucket-default>` bucket with the ``_id`` value
+    ``"Other"``.
+
+  The stage includes the :ref:`output <bucket-output>` document to
+  determine the fields to return:
+
+  .. list-table::
+     :header-rows: 1
+     :widths: 20 60
+
+     * - Field
+       - Description
+
+     * - ``_id``
+       - Inclusive lower bound of the bucket.
+
+     * - ``count``
+       - Count of documents in the bucket.
+
+     * - ``artists``
+       - Array of documents containing information on each artist in the
+         bucket. Each document contains the artist's
+
+         - ``name``, which is a concatenation (i.e.
+           :expression:`$concat`) of the artist's ``first_name`` and
+           ``last_name``.
+
+         - ``year_born``
+
+  This stage passes the following documents to the next stage:
+
+  .. code-block:: javascript
+     :copyable: false
+
+     { "_id" : 1840, "count" : 1, "artists" : [ { "name" : "Odilon Redon", "year_born" : 1840 } ] }
+
+     { "_id" : 1850, "count" : 2, "artists" : [ { "name" : "Vincent Van Gogh", "year_born" : 1853 }, 
+                                                { "name" : "Edvard Diriks", "year_born" : 1855 } ] }
+
+     { "_id" : 1860, "count" : 4, "artists" : [ { "name" : "Emil Bernard", "year_born" : 1868 }, 
+                                                { "name" : "Joszef Rippl-Ronai", "year_born" : 1861 }, 
+                                                { "name" : "Alfred Maurer", "year_born" : 1868 }, 
+                                                { "name" : "Edvard Munch", "year_born" : 1863 } ] }
+
+     { "_id" : 1870, "count" : 1, "artists" : [ { "name" : "Anna Ostroumova", "year_born" : 1871 } ] }
+  
+Second Stage
+  The :pipeline:`$match` stage filters the output from the previous 
+  stage to only return buckets which contain more than 3 documents.
+
+  The operation returns the following document:
+
+  .. code-block:: javascript
+     :copyable: false
+
+     
+     { "_id" : 1860, "count" : 4, "artists" :
+       [ 
+         { "name" : "Emil Bernard", "year_born" : 1868 }, 
+         { "name" : "Joszef Rippl-Ronai", "year_born" : 1861 }, 
+         { "name" : "Alfred Maurer", "year_born" : 1868 }, 
+         { "name" : "Edvard Munch", "year_born" : 1863 } 
+       ]
+     }
+
+Use $bucket with $facet to Bucket by Multiple Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use the :pipeline:`$facet` stage to perform multiple
+:pipeline:`$bucket` aggregations in a single stage.
+
+In :binary:`~bin.mongosh`, create a sample collection named
+``artwork`` with the following documents:
+
+.. code-block:: javascript
+
+   db.artwork.insertMany([
+     { "_id" : 1, "title" : "The Pillars of Society", "artist" : "Grosz", "year" : 1926,
+         "price" : NumberDecimal("199.99") },
+     { "_id" : 2, "title" : "Melancholy III", "artist" : "Munch", "year" : 1902,
+         "price" : NumberDecimal("280.00") },
+     { "_id" : 3, "title" : "Dancer", "artist" : "Miro", "year" : 1925,
+         "price" : NumberDecimal("76.04") },
+     { "_id" : 4, "title" : "The Great Wave off Kanagawa", "artist" : "Hokusai",
+         "price" : NumberDecimal("167.30") },
+     { "_id" : 5, "title" : "The Persistence of Memory", "artist" : "Dali", "year" : 1931,
+         "price" : NumberDecimal("483.00") },
+     { "_id" : 6, "title" : "Composition VII", "artist" : "Kandinsky", "year" : 1913,
+         "price" : NumberDecimal("385.00") },
+     { "_id" : 7, "title" : "The Scream", "artist" : "Munch", "year" : 1893
+         /* No price*/ },
+     { "_id" : 8, "title" : "Blue Flower", "artist" : "O'Keefe", "year" : 1918,
+         "price" : NumberDecimal("118.42") }
+   ])
+
+The following operation uses two :pipeline:`$bucket` stages within a
+:pipeline:`$facet` stage to create two groupings, one by ``price`` and
+the other by ``year``:
+
+.. code-block:: javascript
+
+   db.artwork.aggregate( [
+     {
+       $facet: {                               // Top-level $facet stage
+         "price": [                            // Output field 1
+           {
+             $bucket: { 
+                 groupBy: "$price",            // Field to group by
+                 boundaries: [ 0, 200, 400 ],  // Boundaries for the buckets
+                 default: "Other",             // Bucket ID for documents which do not fall into a bucket
+                 output: {                     // Output for each bucket 
+                   "count": { $sum: 1 },
+                   "artwork" : { $push: { "title": "$title", "price": "$price" } },
+                   "averagePrice": { $avg: "$price" }
+                 }
+             }
+           }
+         ],
+         "year": [                                      // Output field 2
+           { 
+             $bucket: {
+               groupBy: "$year",                        // Field to group by
+               boundaries: [ 1890, 1910, 1920, 1940 ],  // Boundaries for the buckets
+               default: "Unknown",                      // Bucket ID for documents which do not fall into a bucket
+               output: {                                // Output for each bucket
+                 "count": { $sum: 1 },
+                 "artwork": { $push: { "title": "$title", "year": "$year" } }
+               }
+             }
+           }
+         ]
+       }
+     }
+   ] )
+
+First Facet
+  The first facet groups the input documents by ``price``. The
+  buckets have the following boundaries:
+
+  - [0, 200) with inclusive lowerbound ``0`` and exclusive upper bound 
+    ``200``.  
+  - [200, 400) with inclusive lowerbound ``200`` and exclusive upper
+    bound ``400``. 
+  - "Other", the ``default`` bucket containing documents without prices or
+    prices outside the ranges above.
+
+  The :pipeline:`$bucket` stage includes the :ref:`output
+  <bucket-output>` document to determine the fields to return:
+
+  .. list-table::
+     :header-rows: 1
+     :widths: 20 60
+
+     * - Field
+       - Description
+
+     * - ``_id``
+       - Inclusive lower bound of the bucket.
+
+     * - ``count``
+       - Count of documents in the bucket.
+
+     * - ``artwork``
+       - Array of documents containing information on each artwork
+         in the bucket.
+
+     * - ``averagePrice``
+       - Employs the :group:`$avg` operator to display the average price
+         of all artwork in the bucket. 
+
+Second Facet
+  The second facet groups the input documents by ``year``. The buckets
+  have the following boundaries:
+
+  - [1890, 1910) with inclusive lowerbound ``1890`` and exclusive upper
+    bound ``1910``.
+  - [1910, 1920) with inclusive lowerbound ``1910`` and exclusive upper
+    bound ``1920``.
+  - [1920, 1940) with inclusive lowerbound ``1910`` and exclusive upper
+    bound ``1940``.
+  - "Unknown", the ``default`` bucket containing documents without
+    years or years outside the ranges above.
+
+  The :pipeline:`$bucket` stage includes the :ref:`output
+  <bucket-output>` document to determine the fields to return:
+
+  .. list-table::
+     :header-rows: 1
+     :widths: 20 60
+
+     * - Field
+       - Description
+
+     * - ``count``
+       - Count of documents in the bucket.
+
+     * - ``artwork``
+       - Array of documents containing information on each artwork
+         in the bucket.
+
+Output
+  The operation returns the following document:
+
+  .. code-block:: javascript
+     
+     {
+       "price" : [ // Output of first facet
+         {
+           "_id" : 0,
+           "count" : 4,
+           "artwork" : [
+             { "title" : "The Pillars of Society", "price" : NumberDecimal("199.99") },
+             { "title" : "Dancer", "price" : NumberDecimal("76.04") },
+             { "title" : "The Great Wave off Kanagawa", "price" : NumberDecimal("167.30") },
+             { "title" : "Blue Flower", "price" : NumberDecimal("118.42") }
+           ],
+           "averagePrice" : NumberDecimal("140.4375")
+         },
+         {
+           "_id" : 200,
+           "count" : 2,
+           "artwork" : [
+             { "title" : "Melancholy III", "price" : NumberDecimal("280.00") },
+             { "title" : "Composition VII", "price" : NumberDecimal("385.00") }
+           ],
+           "averagePrice" : NumberDecimal("332.50")
+         },
+         {
+           // Includes documents without prices and prices greater than 400
+           "_id" : "Other",
+           "count" : 2,
+           "artwork" : [
+             { "title" : "The Persistence of Memory", "price" : NumberDecimal("483.00") },
+             { "title" : "The Scream" }
+           ],
+           "averagePrice" : NumberDecimal("483.00")
+         }
+       ],
+       "year" : [ // Output of second facet
+         {
+           "_id" : 1890,
+           "count" : 2,
+           "artwork" : [
+             { "title" : "Melancholy III", "year" : 1902 },
+             { "title" : "The Scream", "year" : 1893 }
+           ]
+         },
+         {
+           "_id" : 1910,
+           "count" : 2,
+           "artwork" : [
+             { "title" : "Composition VII", "year" : 1913 },
+             { "title" : "Blue Flower", "year" : 1918 }
+           ]
+         },
+         {
+           "_id" : 1920,
+           "count" : 3,
+           "artwork" : [
+             { "title" : "The Pillars of Society", "year" : 1926 },
+             { "title" : "Dancer", "year" : 1925 },
+             { "title" : "The Persistence of Memory", "year" : 1931 }
+           ]
+         },
+         {
+           // Includes documents without a year
+           "_id" : "Unknown",
+           "count" : 1,
+           "artwork" : [
+             { "title" : "The Great Wave off Kanagawa" }
+           ]
+         }
+       ]
+     }
+   
+.. seealso::
+
+   :pipeline:`$bucketAuto`

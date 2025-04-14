@@ -1,0 +1,123 @@
+===================
+Model Computed Data
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+Often, an application needs to derive a value from source data stored 
+in a database. Computing a new value may require significant CPU 
+resources, especially in the case of large data sets or in cases where 
+multiple documents must be examined.
+
+If a computed value is requested often, it can be more efficient to 
+save that value in the database ahead of time. This way, when the 
+application requests data, only one read operation is required.
+
+Computed Pattern
+----------------
+
+If your reads significantly outnumber your writes, the computed pattern 
+reduces the frequency of having to perform computations. Instead of 
+attaching the burden of computation to every read, the application 
+stores the computed value and recalculates it as needed. The
+application can either recompute the value with every write that 
+changes the computed value's source data, or as part of a periodic job.
+
+.. note::
+
+   With periodic updates, the computed value is not guaranteed to be 
+   exact in any given read. However, this approach may be worth the 
+   performance boost if exact accuracy isn't a requirement.
+
+Example
+-------
+
+An application displays movie viewer and revenue information.
+
+Consider the following ``screenings`` collection:
+
+.. code-block:: javascript
+   
+   db.screenings.insertMany( [
+      {
+         theater : "Alger Cinema",
+         location : "Lakeview, OR",
+         movie_title : "Reservoir Dogs",
+         num_viewers : 344,
+         revenue : 3440
+      },
+      {
+         theater : "City Cinema",
+         location : "New York, NY",
+         movie_title : "Reservoir Dogs",
+         num_viewers : 1496,
+         revenue : 22440
+      },
+      {
+         theater : "Overland Park Cinema",
+         location : "Boise, ID",
+         movie_title : "Reservoir Dogs",
+         num_viewers : 760,
+         revenue : 7600
+      }
+   ] )
+
+Users often want to know how many people saw a certain movie and how 
+much money that movie made. In this example, to total ``num_viewers`` 
+and ``revenue``, you must perform a read for theaters that screened a 
+movie with the title "Reservoir Dogs" and sum the values of those 
+fields. To avoid performing that computation every time the information 
+is requested, you can compute the total values and store them in a 
+``movies`` collection with the movie record itself:
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 4-5
+
+   db.movies.insertOne( [
+      {
+         title : "Reservoir Dogs",
+         total_viewers : 2600,
+         total_revenue : 33480,
+         ...
+      }
+   ] )
+
+In a low write environment, the computation could be done in 
+conjunction with any update of the ``screenings`` data.
+
+In an environment with more regular writes, the computations could be 
+done at defined intervals - every hour for example. The source data in 
+``screenings`` isn't affected by writes to the ``movies`` collection, 
+so you can run calculations at any time.
+
+This is a common design pattern that reduces CPU workload and increases 
+application performance. Whenever you are performing the same 
+calculations repeatedly and you have a high read to write ratio, 
+consider the Computed Pattern.
+
+Other Sample Use Cases
+~~~~~~~~~~~~~~~~~~~~~~
+
+In addition to cases where summing is requested frequently, such as 
+getting total revenue or viewers in the movie database example, the 
+computed pattern is a good fit wherever calculations need to be run 
+against data. For example:
+
+- A car company that runs massive aggregation queries on vehicle data, 
+  storing results to show for the next few hours until the data is 
+  recomputed.
+
+- A consumer reporting company that compiles data from several 
+  different sources to create rank-ordered lists like the "100 
+  Best-Reviewed Gadgets". The lists can be regenerated periodically 
+  while the underlying data is updated independently.

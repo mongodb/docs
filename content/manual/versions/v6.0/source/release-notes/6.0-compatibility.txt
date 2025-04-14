@@ -1,0 +1,605 @@
+.. _6.0-compatibility:
+
+====================================
+Compatibility Changes in MongoDB 6.0
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This page describes changes introduced in MongoDB 6.0 that can affect
+compatibility with older versions of MongoDB.
+
+MongoDB 6.0 is a |lts| Release, which means that it is supported for
+both MongoDB Atlas and on-premises deployments. MongoDB 6.0 includes
+changes introduced in MongoDB Rapid Releases 5.1, 5.2, and 5.3. This
+page describes compatibility changes introduced in those Rapid Releases
+and MongoDB 6.0.
+
+To learn more about the differences between |lts| and Rapid releases,
+see :ref:`release-version-numbers`.
+
+Aggregation
+-----------
+
+``allowDiskUse`` Changes
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-allowDiskUseByDefault.rst 
+
+``$$SEARCH_META`` Limitations 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 6.0, the Atlas Search ``$$SEARCH_META`` aggregation variable 
+can be used anywhere after a :pipeline:`$search` stage in any pipeline, but it 
+cannot be used after the :pipeline:`$lookup` or :pipeline:`$unionWith` stage in 
+any pipeline. The ``$$SEARCH_META`` aggregation variable cannot be used in any 
+subsequent stage after a :pipeline:`$searchMeta` stage.
+
+
+Change Streams
+--------------
+
+Orphan Documents
+~~~~~~~~~~~~~~~~
+
+.. include:: /includes/change-streams-and-orphans.rst
+
+Resume Tokens
+~~~~~~~~~~~~~
+
+Starting in MongoDB 6.0.9, resume tokens created by change stream
+pipelines with the new :pipeline:`$changeStreamSplitLargeEvent` stage
+are incompatible with MongoDB 5.0. For details about resume tokens, see
+:ref:`change-stream-resume-token`.
+
+Filters
+~~~~~~~
+
+.. include:: /includes/change-stream/new-filter-behavior.rst
+
+Indexes
+-------
+
+Last Remaining Shard Key Index Cannot be Dropped Inadvertently
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 6.0, passing ``"*"`` to :dbcommand:`dropIndexes` or
+:method:`db.collection.dropIndexes()` drops all indexes **except**
+for the ``_id`` index and the last remaining shard key index, if one 
+exists. Attempts to explicitly drop the last remaining shard key index 
+raise an error.
+
+Existing Indexes Can Be Dropped During an Index Build
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 5.2, you can use :dbcommand:`dropIndexes` or 
+:method:`db.collection.dropIndexes()` to drop existing indexes on the 
+same collection even if there is an index build in progress. In earlier 
+versions, attempting to drop a different index during an in-progress 
+index build results in a ``BackgroundOperationInProgressForNamespace``
+error.
+
+2dsphere Document Index Keys
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To prevent out of memory errors,
+:parameter:`indexMaxNumGeneratedKeysPerDocument` limits the maximum
+number of :ref:`2dsphere index keys <geo-2dsphere>` generated for a
+single document.
+
+See :parameter:`indexMaxNumGeneratedKeysPerDocument`.
+
+Index Key Format
+~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 6.0, a change to the :ref:`unique index
+<index-type-unique>` key format was introduced. If you create a unique
+index in MongoDB 6.0, the index won't work with MongoDB versions earlier
+than 5.3.2 or 5.0.7.
+
+Legacy ``mongo`` Shell Removed
+------------------------------
+
+The ``mongo`` shell is removed from MongoDB 6.0. The
+replacement is :binary:`~bin.mongosh`.
+
+Platform Support
+----------------
+
+Starting in MongoDB 5.1.2 the following platforms are no longer 
+supported:
+
+Community Edition
+~~~~~~~~~~~~~~~~~
+
+- :abbr:`RHEL (Red Hat Enterprise Linux)`-72-s390x
+
+Regular Expressions
+-------------------
+
+``$regex`` Find Queries No Longer Ignore Invalid Regex
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-5.1-regex-find-functionality.rst
+
+``$regex`` Schema Validation Error Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-5.1-regex-document-schema-validation.rst
+
+
+Removed Operators
+-----------------
+
+Starting in MongoDB 5.1, these legacy query operators are removed:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Removed Operator
+     - Alternative
+   * - $comment
+     - :method:`cursor.comment()`
+   * - $explain
+     - :method:`cursor.explain()`
+   * - $hint
+     - :method:`cursor.hint()`
+   * - $max
+     - :method:`cursor.max()`
+   * - $maxTimeMS
+     - :method:`cursor.maxTimeMS()`
+   * - $min
+     - :method:`cursor.min()`
+   * - $orderby
+     - :method:`cursor.sort()`
+   * - $query
+     - See :ref:`doc-cursor-methods`
+   * - $returnKey
+     - :method:`cursor.returnKey()`
+   * - $showDiskLoc
+     - :method:`cursor.showRecordId()`
+   * - ``db.getLastError()``
+     - See :ref:`legacy-op-codes-removed`
+   * - ``db.getLastErrorObj()``
+     - See :ref:`legacy-op-codes-removed`
+   * - ``getLastError``
+     - See :ref:`legacy-op-codes-removed`
+
+Removed Options
+---------------
+
+MongoDB 6.0 removes the ``--cpu`` :binary:`~bin.mongod` option.
+
+Removed Parameters
+------------------
+
+MongoDB 6.0 removes the following server parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Removed Parameter
+     - Description
+   
+   * - :option:`--tlsFIPSMode <mongod --tlsFIPSMode>`
+     - This option is removed from the MongoDB Community Edition. It
+       is available in MongoDB Enterprise edition.
+
+       FIPS was not a supported feature in MongoDB Community Edition.
+       If your installation made use of FIPS anyway, you will need to
+       :doc:`reconfigure your TLS/SSL connections </tutorial/configure-ssl>`
+       before upgrading.
+
+Renamed Parameters
+------------------
+
+Starting in MongoDB 6.0, the following parameters have been renamed:
+
+- ``wiredTigerConcurrentReadTransactions`` is now 
+  :parameter:`storageEngineConcurrentReadTransactions`
+
+- ``wiredTigerConcurrentWriteTransactions`` is now 
+  :parameter:`storageEngineConcurrentWriteTransactions`
+
+
+TTL ``expireAfterSeconds`` Behavior When Set to ``NaN``
+-------------------------------------------------------
+
+Setting :ref:`TTL <ttl-collections>` ``expireAfterSeconds`` to ``NaN`` 
+experiences a behavior change from MongoDB 4.4 to MongoDB 6.0 that 
+affects initial sync from MongoDB 4.4 and earlier and 
+:binary:`~bin.mongorestore` from MongoDB 4.4 and earlier. Performing 
+any of those actions causes an ``expireAfterSeconds`` of ``NaN`` to be 
+treated as an ``expireAfterSeconds`` of ``0``. Immediate document 
+expiration may occur as a result.
+
+Replica Sets
+------------
+
+Assert Cluster Wide Write Concern is Set When Starting or Adding Shard
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-5.1-fassert-shard-restart-add-CWWC.rst
+
+``rs.reconfig`` Cluster Wide Write Concern Validation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-5.1-reconfig-CWWC-validation.rst
+
+Security
+--------
+
+Intra-Cluster Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/intra-cluster-authentication.rst
+
+FIPS Mode Defaults SCRAM-SHA-1 Authentication to Off
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-5.1-scram-sha-1-fips-default.rst
+
+OCSP Must be Enabled 
+~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-ocsp-enabled.rst
+
+Time Series Collections
+-----------------------
+
+.. warning::
+
+  If you create a sharded :ref:`time series collection
+  <manual-timeseries-collection>` in MongoDB 5.1 or greater, downgrading
+  to a version older than MongoDB 5.0.4 will result in data loss.
+
+  Before downgrading to a version older than 5.0.4, drop all sharded
+  time series collections.
+
+Secondary Indexes on Time Series Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/time-series-secondary-indexes-downgrade-FCV.rst
+
+General Changes
+---------------
+
+Deprecations
+~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Deprecated
+
+     - Description
+
+   * - :method:`db.collection.reIndex()`
+
+     - The :method:`db.collection.reIndex()` method is deprecated in 
+       MongoDB v6.0. 
+
+   * - :dbcommand:`reIndex`
+
+     - The :dbcommand:`reIndex` command is deprecated in MongoDB v6.0.
+
+   * - Simple Network Management Protocol (SNMP)
+
+     - .. include:: /includes/SNMP-deprecated.rst
+
+``$mod`` Error Behavior
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 5.1 (and 5.0.4), the :query:`$mod`
+operator returns an error if the ``divisor`` or ``remainder`` values
+evaluate to certain values. See :ref:`$mod behavior <mod-behavior>`.
+
+.. _legacy-op-codes-removed:
+
+Legacy Opcodes Removed
+~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 6.0 removes support for the following legacy opcodes and
+database commands:
+
+- :ref:`OP_INSERT <wire-op-insert>`
+- :ref:`OP_DELETE <wire-op-delete>`
+- :ref:`OP_UPDATE <wire-op-update>`
+- :ref:`OP_KILL_CURSORS <wire-op-kill-cursors>`
+- :ref:`OP_GET_MORE <wire-op-get-more>`
+- :ref:`OP_QUERY <wire-op-query>`
+- ``getLastError``
+
+.. warning:: Upgrade Drivers
+
+   To avoid disruption due to the removal of these opcodes, **upgrade your
+   driver to the latest version**.
+
+   .. include:: /includes/fact-warning-unsupported-opcodes.rst
+
+If you attempt to connect to a MongoDB 3.4 or older :binary:`mongod`
+instance with a MongoDB 5.1 or newer ``mongo`` shell, you
+will receive an error message like the following:
+
+.. code-block:: none
+   :copyable: false
+
+   Connection handshake failed. Is your mongod 3.4 or older? 
+   :: caused by :: network error while attempting to run command
+   'isMaster' on host '127.0.0.1:27017'
+
+mongod Responses to Legacy Opcodes
+``````````````````````````````````
+
+Since MongoDB 3.6, MongoDB drivers have used :ref:`OP_MSG <wire-op-msg>`
+instead of :ref:`OP_QUERY <wire-op-query>` and the other legacy opcodes
+and commands.
+
+Starting in MongoDB 6.0:
+
+- :binary:`mongod` will close the connection and will not respond to:
+
+  - :ref:`OP_INSERT <wire-op-insert>`
+  - :ref:`OP_DELETE <wire-op-delete>`
+  - :ref:`OP_UPDATE <wire-op-update>`
+  - :ref:`OP_KILL_CURSORS <wire-op-kill-cursors>`
+
+- :binary:`mongod` will keep the connection open and return an error for:
+
+  - The ``getLastError`` database command
+  - :ref:`OP_GET_MORE <wire-op-get-more>` 
+  - :ref:`OP_QUERY <wire-op-query>` finds
+  - Most :ref:`OP_QUERY <wire-op-query>`
+    :abbr:`RPC (Remote Procedure Call)` command messages
+
+.. note:: OP_QUERY RPC Commands
+
+   The :ref:`OP_QUERY <wire-op-query>` :abbr:`RPC (Remote Procedure Call)`
+   protocol may be used with the following commands:
+
+   - ``_isSelf``
+   - ``authenticate``
+   - ``buildinfo``
+   - ``buildInfo``
+   - ``hello``
+   - ``ismaster``
+   - ``isMaster``
+   - ``saslContinue``
+   - ``saslStart``
+
+   All other commands will be rejected if issued as :ref:`OP_QUERY
+   <wire-op-query>`.
+
+.. _6.0-js-engine-change:
+
+Removed Deprecated Array and String Functions for Server-Side JavaScript
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-6.0-js-engine-change.rst
+
+For the complete list of removed array and string functions, see the
+next sections on this page.
+
+.. note:: Only Static Functions are Removed
+
+   Only *static* JavaScript functions are removed. *Prototype function*
+   equivalents of the removed functions can still be used.
+
+   For example:
+
+   - ``Array.concat(<array1>, <array2>)`` is a static function and no
+     longer works in MongoDB 6.0.
+   - ``<array1>.concat(<array2>)`` is a prototype function and still
+     works in MongoDB 6.0.
+
+   This behavior applies to both removed array and removed string
+   functions.
+
+Removed Array Functions
+```````````````````````
+
+Starting in MongoDB 6.0, the following array functions are removed and
+cannot be used in server-side JavaScript with ``$accumulator``,
+``$function``, and ``$where`` expressions:
+
+- ``Array.concat``
+- ``Array.every``
+- ``Array.filter``
+- ``Array.forEach``
+- ``Array.indexOf``
+- ``Array.join``
+- ``Array.lastIndexOf``
+- ``Array.map``
+- ``Array.pop``
+- ``Array.push``
+- ``Array.reduce``
+- ``Array.reduceRight``
+- ``Array.reverse``
+- ``Array.shift``
+- ``Array.slice``
+- ``Array.some``
+- ``Array.sort``
+- ``Array.splice``
+- ``Array.unshift``
+
+Removed String Functions
+````````````````````````
+
+Starting in MongoDB 6.0, the following array functions are removed and
+cannot be used in server-side JavaScript with ``$accumulator``,
+``$function``, and ``$where`` expressions:
+
+- ``String.charAt``
+- ``String.charCodeAt``
+- ``String.concat``
+- ``String.contains``
+- ``String.endsWith``
+- ``String.includes``
+- ``String.indexOf``
+- ``String.lastIndexOf``
+- ``String.localeCompare``
+- ``String.match``
+- ``String.normalize``
+- ``String.replace``
+- ``String.search``
+- ``String.slice``
+- ``String.split``
+- ``String.startsWith``
+- ``String.substr``
+- ``String.substring``
+- ``String.toLocaleLowerCase``
+- ``String.toLocaleUpperCase``
+- ``String.toLowerCase``
+- ``String.toUpperCase``
+- ``String.trim``
+- ``String.trimLeft``
+- ``String.trimRight``
+
+Default ``db.stats()`` Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 6.0, the :dbcommand:`dbStats` command and the
+:method:`db.stats()` method only report free space assigned to
+collections if the :ref:`freeStorage <dbStats-freeStorage>` parameter is
+set to 1.
+
+Index Filters and Collations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/index-filters-and-collations.rst
+
+Arrays in Collections and Views with ``distinct`` Command
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/distinct-arrays-in-collections-and-views.rst
+
+See :ref:`distinct-arrays-in-collections-and-views`.
+
+.. _6.0-downgrade-considerations:
+
+Downgrade Considerations
+------------------------
+
+.. |version| replace:: 6.0
+
+.. include:: /includes/downgrade-introduction.rst
+
+Clustered Collections
+~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/downgrade-for-clustered-collections.rst
+
+User Write Blocking
+~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/downgrade-for-user-write-blocking.rst
+
+See :ref:`setFeatureCompatibilityVersion-user-write-blocking`.
+
+Time Series Collections
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/downgrade-for-timeseries-collections.rst
+
+See :ref:`Time Series Collections <manual-timeseries-collection>`.
+
+Cluster Parameters
+~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/downgrade-for-set-cluster-parameter.rst
+
+SELinux Policy Data
+~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/downgrade-for-SELinux-policy.rst
+
+See:
+
+- :ref:`Configure SELinux Policy Data Directory
+  <install-selinux-data-directory>`
+- :ref:`Configure Enterprise SELinux Policy Data Directory
+  <install-enterprise-selinux-data-directory>`
+
+Key Management Interoperability Protocol (KMIP) Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 6.0, the default KMIP protocol version is 1.2. To use KMIP 
+version 1.0 or 1.1, use the :setting:`useLegacyProtocol 
+<security.kmip.useLegacyProtocol>` setting.
+
+Starting in MongoDB 5.3 Enterprise, if you are using the following KMIP
+settings, you must remove them from the configuration file before you
+can downgrade to an earlier MongoDB version:
+
+- :setting:`security.kmip.keyStatePollingSeconds`
+- :setting:`security.kmip.activateKeys`
+
+Time-based Retention of Change Streams Pre- and Post-Image Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 6.0, if you are using 
+``changeStreamOptions.preAndPostImages.expireAfterSeconds`` to control
+time-based retention of 
+:ref:`change streams pre- and post-image collections 
+<db.collection.watch-change-streams-pre-and-post-images-example>`, you 
+must ensure there are no active ``setClusterParameter`` operations when 
+downgrading.
+
+Audit Log Encryption Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 6.0 Enterprise, if you are using audit log
+encryption, you must remove the following settings from the
+configuration file before you can downgrade to an earlier MongoDB
+version:
+
+- :setting:`auditLog.auditEncryptionKeyIdentifier`
+- :setting:`auditLog.localAuditKeyFile`
+
+Existing encrypted audit logs remain encrypted, and you can keep any
+procedures you have developed for storage and processing of encrypted
+logs.
+
+See :ref:`security-encryption-at-rest-audit-log`.
+
+Change Streams with Document Pre- and Post-Images
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/downgrade-for-pre-and-post-images.rst
+
+Change Streams with Expanded Events
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your application uses change streams, ensure that it does not require the
+``showExpandedEvents`` option, which will not be available after downgrade.
+
+LDAP with ``srv:`` and ``srv_raw:`` 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your cluster's configuration is using the new ``"srv:"`` or 
+``"srv_raw:"`` URL types in its LDAP configuration, it will be unable 
+to restart after a downgrade. Remove the new URL types from your 
+cluster's configuration before downgrading.
+
+Collections with Encrypted Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You must drop collections that use encrypted fields before you
+can complete the FCV downgrade. The downgrade will not complete 
+if there are collections using ``encryptedFields``.
+
+Server Parameters
+-----------------
+
+Starting in MongoDB 6.0 and 5.0.10 the default value for
+:parameter:`coordinateCommitReturnImmediatelyAfterPersistingDecision` is
+``false``.
+

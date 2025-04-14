@@ -1,0 +1,160 @@
+.. _collection-drop-index:
+
+=========================
+db.collection.dropIndex()
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.collection.dropIndex(index)
+
+
+   .. |dbcommand| replace:: :dbcommand:`dropIndexes` command
+   .. include:: /includes/wayfinding/mongosh-method-dropIndex.rst
+
+
+   Drops or removes the specified index from a collection. 
+   
+   .. note::
+
+      - You cannot drop the default index on the ``_id`` field.
+      
+      - You cannot specify :method:`db.collection.dropIndex("*")
+        <db.collection.dropIndex>` to drop all non-``_id`` indexes. Use
+        :method:`db.collection.dropIndexes()` instead.
+
+   To get the index name or the index specification document for the
+   :method:`db.collection.dropIndex()` method, use the
+   :method:`db.collection.getIndexes()` method.
+
+   The :method:`db.collection.dropIndex()` method takes the following
+   parameter:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+
+      * - Parameter
+
+        - Type
+
+        - Description
+
+      * - ``index``
+
+        - string or document
+
+        - Optional. Specifies the index to drop. You can specify the
+          index either by the index name or by the index specification
+          document.
+
+          To drop a :doc:`text </core/index-text>` index, specify the
+          index name.
+
+          You cannot specify ``"*"`` to drop all non-``_id`` indexes. Use
+          :method:`db.collection.dropIndexes()` instead.
+
+          If an index specified to :method:`db.collection.dropIndex()` is still 
+          building, :method:`db.collection.dropIndex()` attempts to stop the
+          in-progress build. Stopping an index build has the same effect as 
+          dropping the built index. See :ref:`dropIndex-method-index-builds` 
+          for more complete documentation.
+
+Compatibility 
+-------------
+
+This method is available in deployments hosted in the following environments:
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. include:: /includes/fact-environments-atlas-support-all.rst
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
+Behavior
+--------
+
+.. |drop-index| replace:: :method:`db.collection.dropIndex()`
+
+.. include:: /includes/fact-drop-index-5.2.rst
+
+Resource Locking
+~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/dropIndex-method-resource-lock.rst
+
+.. _dropIndex-method-index-builds:
+
+Stop In-Progress Index Builds
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-stop-in-progress-index-builds.rst
+
+Hidden Indexes
+~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-hidden-indexes.rst
+
+Example
+-------
+
+Consider a ``pets`` collection. Calling the
+:method:`db.collection.getIndexes()` method on the ``pets`` collection
+returns the following indexes:
+
+.. code-block:: javascript
+
+   [
+      {
+         "v" : 2,
+         "key" : {
+            "_id" : 1
+         },
+         "name" : "_id_"
+      },
+      {
+         "v" : 2,
+         "key" : {
+            "cat" : -1
+         },
+         "name" : "catIdx"
+      },
+      {
+         "v" : 2,
+         "key" : {
+            "cat" : 1,
+            "dog" : -1
+         },
+         "name" : "cat_1_dog_-1"
+      }
+   ]
+   
+The single field index on the field ``cat`` has the user-specified name
+of ``catIdx`` [#index-name]_ and the index specification document of
+``{ "cat" : -1 }``.
+
+To drop the index ``catIdx``, you can use either the index name:
+
+.. code-block:: javascript
+
+   db.pets.dropIndex( "catIdx" )
+
+Or you can use the index specification document ``{ "cat" : -1 }``:
+
+.. code-block:: javascript
+
+   db.pets.dropIndex( { "cat" : -1 } )
+
+.. [#index-name] During index creation, if the user does **not**
+   specify an index name, the system generates the name by
+   concatenating the index key field and value with an underscore,
+   e.g. ``cat_1``.

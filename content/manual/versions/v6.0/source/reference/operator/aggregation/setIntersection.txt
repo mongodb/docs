@@ -1,0 +1,124 @@
+==============================
+$setIntersection (aggregation)
+==============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $setIntersection
+
+   Takes two or more arrays and returns an array that contains the
+   elements that appear in every input array.
+
+   :expression:`$setIntersection` has the following syntax:
+
+   .. code-block:: javascript
+
+      { $setIntersection: [ <array1>, <array2>, ... ] }
+
+   The arguments can be any valid :ref:`expression
+   <aggregation-expressions>` as long as they each resolve to an array.
+   For more information on expressions, see
+   :ref:`aggregation-expressions`.
+
+Behavior
+--------
+
+.. |set-operator-name| replace:: :expression:`$setIntersection`
+
+.. include:: /includes/important-set-operator-semantics.rst
+
+If no intersections are found (i.e. the input arrays contain no common
+elements), :expression:`$setIntersection` returns an empty array.
+
+.. include:: /includes/extracts/fact-agg-top-level-expressions-setIntersection.rst
+
+.. list-table::
+   :header-rows: 1
+   :widths: 75 25
+   :class: border-table
+
+   * - Example
+
+     - Result
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $setIntersection: [ [ "a", "b", "a" ], [ "b", "a" ] ] }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          [ "b", "a" ]
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $setIntersection: [ [ "a", "b" ], [ [ "a", "b" ] ] ] }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          [ ]
+
+Example
+-------
+
+This section contains examples that show the use of ``$setIntersection``
+with collections.
+
+Elements Array Example
+~~~~~~~~~~~~~~~~~~~~~~
+
+Consider an ``flowers`` collection with the following documents:
+
+.. code-block:: javascript
+
+   db.flowers.insertMany( [
+      { "_id" : 1, "flowerFieldA" : [ "rose", "orchid" ], "flowerFieldB" : [ "rose", "orchid" ] },
+      { "_id" : 2, "flowerFieldA" : [ "rose", "orchid" ], "flowerFieldB" : [ "orchid", "rose", "orchid" ] },
+      { "_id" : 3, "flowerFieldA" : [ "rose", "orchid" ], "flowerFieldB" : [ "rose", "orchid", "jasmine" ] },
+      { "_id" : 4, "flowerFieldA" : [ "rose", "orchid" ], "flowerFieldB" : [ "jasmine", "rose" ] },
+      { "_id" : 5, "flowerFieldA" : [ "rose", "orchid" ], "flowerFieldB" : [ ] },
+      { "_id" : 6, "flowerFieldA" : [ "rose", "orchid" ], "flowerFieldB" : [ [ "rose" ], [ "orchid" ] ] },
+      { "_id" : 7, "flowerFieldA" : [ "rose", "orchid" ], "flowerFieldB" : [ [ "rose", "orchid" ] ] },
+      { "_id" : 8, "flowerFieldA" : [ ], "flowerFieldB" : [ ] },
+      { "_id" : 9, "flowerFieldA" : [ ], "flowerFieldB" : [ "rose" ] }
+   ] )
+   
+
+The following operation uses the :expression:`$setIntersection`
+operator to return an array of elements common to both the ``flowerFieldA``
+array and the ``flowerFieldB`` array:
+
+.. code-block:: javascript
+
+   db.flowers.aggregate(
+      [
+        { $project: { flowerFieldA: 1, flowerFieldB: 1, commonToBoth: { $setIntersection: [ "$flowerFieldA", "$flowerFieldB" ] }, _id: 0 } }
+      ]
+   )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "flowerFieldA" : [ "rose", "orchid" ], "flowerFieldB" : [ "rose", "orchid" ], "commonToBoth" : [ "orchid", "rose" ] }
+   { "flowerFieldA" : [ "rose", "orchid" ], "flowerFieldB" : [ "orchid", "rose", "orchid" ], "commonToBoth" : [ "orchid", "rose" ] }
+   { "flowerFieldA" : [ "rose", "orchid" ], "flowerFieldB" : [ "rose", "orchid", "jasmine" ], "commonToBoth" : [ "orchid", "rose" ] }
+   { "flowerFieldA" : [ "rose", "orchid" ], "flowerFieldB" : [ "jasmine", "rose" ], "commonToBoth" : [ "rose" ] }
+   { "flowerFieldA" : [ "rose", "orchid" ], "flowerFieldB" : [ ], "commonToBoth" : [ ] }
+   { "flowerFieldA" : [ "rose", "orchid" ], "flowerFieldB" : [ [ "rose" ], [ "orchid" ] ], "commonToBoth" : [ ] }
+   { "flowerFieldA" : [ "rose", "orchid" ], "flowerFieldB" : [ [ "rose", "orchid" ] ], "commonToBoth" : [ ] }
+   { "flowerFieldA" : [ ], "flowerFieldB" : [ ], "commonToBoth" : [ ] }
+   { "flowerFieldA" : [ ], "flowerFieldB" : [ "rose" ], "commonToBoth" : [ ] }

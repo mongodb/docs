@@ -1,0 +1,196 @@
+.. _analyze-sharded-data-distribution:
+
+=================================
+Analyze Sharded Data Distribution
+=================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Use this procedure to analyze :ref:`sharded data distribution 
+<sharding-introduction>`. You can use this information to determine
+if there is going to be a large amount of :ref:`balancing 
+<sharding-balancing>` on your cluster. 
+
+About This Task
+---------------
+
+This procedure shows how you can:
+
+- Upgrade your cluster from 5.0 to 6.0.
+- Determine your sharded data's distribution across the cluster using 
+  the :pipeline:`$shardedDataDistribution` stage.
+- Update your balancer settings, if needed.
+
+Before You Begin
+----------------
+
+Keep the balancer off through the upgrade process and throughout 
+this procedure. Once you have an understanding of the evenness of 
+your collections under the new balancing policy, you can turn the
+balancer back on.
+
+Steps
+-----
+
+.. procedure::
+   :style: normal
+
+   .. step:: Upgrade your cluster from 5.0 to 6.0.
+
+      To upgrade your cluster from 5.0 to 6.0, see 
+      :ref:`<6.0-upgrade-sharded-cluster>`.
+
+   .. step:: Connect to mongos using mongosh.
+   
+      You can connect to any :binary:`mongos` in the cluster.
+
+   .. step:: Analyze the data distribution on your cluster.
+
+      To understand how the data distribution of your collections will 
+      impact balancing, use the 
+      :pipeline:`$shardedDataDistribution` aggregation stage.
+      
+      To return all sharded data distribution metrics, run the following:
+         
+      .. code-block:: javascript
+         
+         db.aggregate([
+            { $shardedDataDistribution: { } }
+         ])
+         
+      Example output:
+
+      .. include:: /includes/shardedDataDistribution-output-example.rst
+
+      If the difference between the shard with the greatest 
+      ``ownedSizeBytes`` and the shard with the fewest 
+      ``ownedSizeBytes`` is within the :ref:`migration threshold 
+      <sharding-migration-thresholds>`, the collection is considered 
+      balanced. When the balancer is enabled for these collections, it 
+      does not issue migrations.
+
+   .. step:: (*Optional*) Configure the balancer on 6.0.
+
+      If your collection is unbalanced and you wish to control the 
+      balancer behavior, you can use one or both of the following
+      methods:
+ 
+      - Configure the balancer to be only be active at certain times by 
+        :ref:`modifying the balancing window <modify-balancing-window>`.
+      - Restrict balancing operations to specific collections by 
+        :ref:`disabling the balancer on collections
+        <disable-balancing-only-on-certain-collections>`.
+
+      **Modify the Balancing Window**
+         
+      .. _modify-balancing-window:
+
+      1. Switch to the config database.
+
+         Issue the following command to switch to the ``config`` 
+         database.
+
+         .. code-block:: javascript
+
+            use config 
+
+      #. Set the balancing window start and end times.
+
+         To set the active window, use the :method:`~db.collection.updateOne()`
+         method:
+      
+         .. code-block:: javascript
+           
+            db.settings.updateOne(
+               { _id: "balancer" },
+               { $set: { activeWindow : { start : "<start-time>", stop : "<stop-time>" } } },
+               { upsert: true }
+            )
+            
+         Replace ``<start-time>`` and ``<end-time>`` with time values using
+         two-digit hour and minute values (that is, ``HH:MM``) that specify the
+         beginning and end boundaries of the balancing window.
+         
+         - For ``HH`` values, use hour values ranging from ``00`` - ``23``.
+         - For ``MM`` value, use minute values ranging from ``00`` - ``59``.
+               
+         For self-managed sharded clusters, MongoDB evaluates the start 
+         and stop times relative to the time zone of the primary member 
+         in the config server replica set.
+         
+         For Atlas clusters, MongoDB evaluates the start and stop times 
+         relative to the UTC timezone. 
+         
+         .. note::
+         
+            The balancer window must be sufficient to *complete* the
+            migration of all data inserted during the day.
+           
+            As data insert rates can change based on activity and usage
+            patterns, ensure that the balancing window you select will 
+            be sufficient to support the needs of your deployment.
+
+      #. (*Optional*) Ensure range deletion is synchronous.
+
+         Only use this step if you want to constrain range deletion to 
+         the balancing window. 
+
+         By default, the balancer does not wait for the in-progress 
+         migration's delete phase to complete before starting the 
+         next chunk migration. To have the delete phase **block** the 
+         start of the next chunk migration, you can set
+         ``_waitForDelete`` to true.
+
+         Update the ``_waitForDelete`` value in the ``settings`` 
+         collection of the ``config`` database. For example:
+         
+         .. code-block:: javascript
+
+            use config
+
+            db.settings.updateOne(
+               { "_id" : "balancer" },
+               { $set : { "_waitForDelete" : true } },
+               { upsert : true }
+            )
+
+      **Disable Balancing for Specific Collections**
+        
+      .. _disable-balancing-only-on-certain-collections:
+
+      By default, every collection has balancing enabled.
+      
+      To disable balancing for a specific collection, connect to a 
+      :binary:`mongos` with the :binary:`mongosh` shell and call the
+      :method:`sh.disableBalancing()` method.
+      
+      This example disables balancing on the ``students.grades``
+      collection:
+      
+      .. code-block:: javascript
+      
+         sh.disableBalancing("students.grades")
+      
+      The ``sh.disableBalancing()`` method accepts the full :term:`namespace`
+      of the collection as its parameter.
+    
+   .. step:: Re-enable the balancer on your cluster.
+
+       .. include:: /includes/enable-the-balancer.rst
+
+
+Learn More
+----------
+
+- :ref:`sharded-cluster-balancer`
+- :ref:`sharding-balancing-enable`
+- :ref:`sharding-balancing-disable-temporarily`
+- :ref:`sharding-schedule-balancing-window`
+- :pipeline:`$shardedDataDistribution`
+

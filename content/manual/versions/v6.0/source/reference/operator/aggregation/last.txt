@@ -1,0 +1,160 @@
+===============================
+$last (aggregation accumulator)
+===============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. group:: $last
+
+.. versionchanged:: 5.0
+
+Returns the value that results from applying an :ref:`expression
+<aggregation-expressions>` to the last document in a group of documents.
+Only meaningful when documents are in a defined order.
+
+.. include:: /includes/extracts/fact-aggregation-accumulator-last.rst
+
+.. note:: Disambiguation
+      
+   This page describes the :group:`$last` aggregation accumulator. For
+   the :expression:`$last` array operator, see :expression:`$last (array
+   operator) <$last>`.
+
+Syntax
+------
+
+:expression:`$last` syntax:
+
+.. code-block:: javascript
+
+   { $last: <expression> }
+
+For more information on expressions, see :ref:`aggregation-expressions`.
+
+Behavior
+--------
+
+.. |method| replace:: :group:`$last`
+
+.. include:: /includes/note-group-and-window-behavior.rst
+
+Examples
+--------
+
+.. _last-accumulator-group-example:
+
+Use in ``$group`` Stage
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider a ``sales`` collection with the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "abc", "date" : ISODate("2014-01-01T08:00:00Z"), "price" : 10, "quantity" : 2 }
+   { "_id" : 2, "item" : "jkl", "date" : ISODate("2014-02-03T09:00:00Z"), "price" : 20, "quantity" : 1 }
+   { "_id" : 3, "item" : "xyz", "date" : ISODate("2014-02-03T09:05:00Z"), "price" : 5, "quantity" : 5 }
+   { "_id" : 4, "item" : "abc", "date" : ISODate("2014-02-15T08:00:00Z"), "price" : 10, "quantity" : 10 }
+   { "_id" : 5, "item" : "xyz", "date" : ISODate("2014-02-15T09:05:00Z"), "price" : 5, "quantity" : 10 }
+   { "_id" : 6, "item" : "xyz", "date" : ISODate("2014-02-15T12:05:10Z"), "price" : 5, "quantity" : 5 }
+   { "_id" : 7, "item" : "xyz", "date" : ISODate("2014-02-15T14:12:12Z"), "price" : 5, "quantity" : 10 }
+
+The following operation first sorts the documents by ``item`` and
+``date``, and then in the following :pipeline:`$group` stage, groups
+the now sorted documents by the ``item`` field and uses the
+:group:`$last` accumulator to compute the last sales date for each item:
+
+.. code-block:: javascript
+
+   db.sales.aggregate(
+      [
+        { $sort: { item: 1, date: 1 } },
+        {
+          $group:
+            {
+              _id: "$item",
+              lastSalesDate: { $last: "$date" }
+            }
+        }
+      ]
+   )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "_id" : "xyz", "lastSalesDate" : ISODate("2014-02-15T14:12:12Z") }
+   { "_id" : "jkl", "lastSalesDate" : ISODate("2014-02-03T09:00:00Z") }
+   { "_id" : "abc", "lastSalesDate" : ISODate("2014-02-15T08:00:00Z") }
+
+.. _last-accumulator-window-example:
+
+Use in ``$setWindowFields`` Stage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 5.0
+
+.. include:: /includes/setWindowFields-example-collection.rst
+
+This example uses :group:`$last` in the :pipeline:`$setWindowFields`
+stage to output the last cake sales order ``type`` for each ``state``:
+
+.. code-block:: javascript
+
+   db.cakeSales.aggregate( [
+      {
+         $setWindowFields: {
+            partitionBy: "$state",
+            sortBy: { orderDate: 1 },
+            output: {
+               lastOrderTypeForState: {
+                  $last: "$type",
+                  window: {
+                     documents: [ "current", "unbounded" ]
+                  }         
+               }
+            }
+         }
+      }
+   ] )
+
+In the example:
+
+.. include:: /includes/setWindowFields-partition-sort-date.rst
+
+- ``output`` sets the ``lastOrderTypeForState`` field to the last
+  order ``type`` from the :ref:`documents <setWindowFields-documents>`
+  window.
+  
+  The :ref:`window <setWindowFields-window>` contains documents between
+  the ``current`` lower limit, which is the current document in the
+  output, and the ``unbounded`` upper limit. This means :group:`$last`
+  returns the last order ``type`` for the documents between the
+  current document and the end of the partition.
+
+In this output, the last order ``type`` value for ``CA`` and ``WA`` is
+shown in the ``lastOrderTypeForState`` field:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 4, "type" : "strawberry", "orderDate" : ISODate("2019-05-18T16:09:01Z"),
+     "state" : "CA", "price" : 41, "quantity" : 162, "lastOrderTypeForState" : "vanilla" }
+   { "_id" : 0, "type" : "chocolate", "orderDate" : ISODate("2020-05-18T14:10:30Z"),
+     "state" : "CA", "price" : 13, "quantity" : 120, "lastOrderTypeForState" : "vanilla" }
+   { "_id" : 2, "type" : "vanilla", "orderDate" : ISODate("2021-01-11T06:31:15Z"),
+     "state" : "CA", "price" : 12, "quantity" : 145, "lastOrderTypeForState" : "vanilla" }
+   { "_id" : 5, "type" : "strawberry", "orderDate" : ISODate("2019-01-08T06:12:03Z"),
+     "state" : "WA", "price" : 43, "quantity" : 134, "lastOrderTypeForState" : "chocolate" }
+   { "_id" : 3, "type" : "vanilla", "orderDate" : ISODate("2020-02-08T13:13:23Z"),
+     "state" : "WA", "price" : 13, "quantity" : 104, "lastOrderTypeForState" : "chocolate" }
+   { "_id" : 1, "type" : "chocolate", "orderDate" : ISODate("2021-03-20T11:30:05Z"),
+     "state" : "WA", "price" : 14, "quantity" : 140, "lastOrderTypeForState" : "chocolate" }

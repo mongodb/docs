@@ -1,0 +1,160 @@
+=========================================================================
+Specify the Default Language for a Text Index on Self-Managed Deployments
+=========================================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This tutorial describes how to :ref:`specify the default language
+associated with the text index <specify-default-language-text-index>`
+and also how to :ref:`create text indexes for collections that contain
+documents in different languages
+<select-from-multiple-languages-for-text-index>`.
+
+.. _specify-default-language-text-index:
+
+Specify the Default Language for a ``text`` Index
+-------------------------------------------------
+
+The default language associated with the indexed data determines the
+rules to parse word roots (i.e. stemming) and ignore stop words. The
+default language for the indexed data is ``english``.
+
+To specify a different language, use the ``default_language`` option
+when creating the ``text`` index. See :ref:`text-search-languages` for
+the languages available for ``default_language``.
+
+The following example creates for the ``quotes`` collection a ``text``
+index on the ``content`` field and sets the ``default_language`` to
+``spanish``:
+
+.. code-block:: javascript
+
+   db.quotes.createIndex(
+      { content : "text" },
+      { default_language: "spanish" }
+   )
+
+.. _select-from-multiple-languages-for-text-index:
+
+Create a ``text`` Index for a Collection in Multiple Languages
+--------------------------------------------------------------
+
+Specify the Index Language within the Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If a collection contains documents or embedded documents that are in
+different languages, include a field named ``language`` in the
+documents or embedded documents and specify as its value the language for
+that document or embedded document.
+
+MongoDB will use the specified language for that document or
+embedded document when building the ``text`` index:
+
+- The specified language in the document overrides the default language
+  for the ``text`` index.
+
+- The specified language in an embedded document override the language
+  specified in an enclosing document or the default language for the
+  index.
+
+See :ref:`text-search-languages` for a list of supported languages.
+
+For example, a collection ``quotes`` contains multi-language documents
+that include the ``language`` field in the document and/or the
+embedded document as needed:
+
+.. code-block:: javascript
+
+   {
+      _id: 1,
+      language: "portuguese",
+      original: "A sorte protege os audazes.",
+      translation:
+        [
+           {
+              language: "english",
+              quote: "Fortune favors the bold."
+           },
+           {
+              language: "spanish",
+              quote: "La suerte protege a los audaces."
+           }
+       ]
+   }
+   {
+      _id: 2,
+      language: "spanish",
+      original: "Nada hay más surrealista que la realidad.",
+      translation:
+         [
+           {
+             language: "english",
+             quote: "There is nothing more surreal than reality."
+           },
+           {
+             language: "french",
+             quote: "Il n'y a rien de plus surréaliste que la réalité."
+           }
+         ]
+   }
+   {
+      _id: 3,
+      original: "is this a dagger which I see before me.",
+      translation:
+      {
+         language: "spanish",
+         quote: "Es este un puñal que veo delante de mí."
+      }
+   }
+
+If you create a ``text`` index on the ``quote`` field with the default
+language of English.
+
+.. code-block:: javascript
+
+   db.quotes.createIndex( { original: "text", "translation.quote": "text" } )
+
+Then, for the documents and embedded documents that contain the ``language``
+field, the ``text`` index uses that language to parse word stems and
+other linguistic characteristics.
+
+For embedded documents that do not contain the ``language`` field,
+
+- If the enclosing document contains the ``language`` field, then the
+  index uses the document's language for the embedded document.
+
+- Otherwise, the index uses the default language for the embedded documents.
+
+For documents that do not contain the ``language`` field, the index
+uses the default language, which is English.
+
+.. _specify-language-field-text-index-example:
+
+Use any Field to Specify the Language for a Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To use a field with a name other than ``language``, include
+the ``language_override`` option when creating the index.
+
+For example, give the following command to use ``idioma`` as the field
+name instead of ``language``:
+
+.. code-block:: javascript
+
+   db.quotes.createIndex( { quote : "text" },
+                          { language_override: "idioma" } )
+
+The documents of the ``quotes`` collection may specify a language with
+the ``idioma`` field:
+
+.. code-block:: javascript
+
+   { _id: 1, idioma: "portuguese", quote: "A sorte protege os audazes" }
+   { _id: 2, idioma: "spanish", quote: "Nada hay más surrealista que la realidad." }
+   { _id: 3, idioma: "english", quote: "is this a dagger which I see before me" }

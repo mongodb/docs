@@ -1,0 +1,191 @@
+=======================
+$isNumber (aggregation)
+=======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $isNumber
+
+   ``$isNumber`` checks if the specified 
+   :ref:`expression <aggregation-expressions>` resolves to one of the
+   following numeric :term:`BSON types`:
+
+   - :bsontype:`Integer <Int32>`
+   - :bsontype:`Decimal <Decimal128>`
+   - :bsontype:`Double <Double>`
+   - :bsontype:`Long <Int64>`
+
+   ``$isNumber`` returns:
+
+   - ``true`` if the expression resolves to a number.
+
+   - ``false`` if the expression resolves to any other
+     :doc:`BSON type </reference/mongodb-extended-json>`, ``null``, or
+     a missing field.
+     
+   ``$isNumber`` has the following :ref:`operator expression syntax 
+   <agg-quick-ref-operator-expressions>`:
+
+   .. code-block:: javascript
+
+      { $isNumber: <expression> }
+
+   The argument can be any valid :ref:`expression
+   <aggregation-expressions>`.
+
+.. seealso::
+
+   - :expression:`$type (Aggregation) <$type>` - returns the BSON type of the argument.
+   - :query:`$type (Query) <$type>` - filters fields based on BSON type.
+
+Example
+-------
+
+Use $isNumber to Check if a Field is Numeric
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Issue the following operation against the ``examples.sensors``
+collection to populate test data:
+
+.. code-block:: javascript
+
+   db.getSiblingDB("examples").sensors.insertMany([
+     { "_id" : 1, "reading" : NumberDecimal(26.0) },
+     { "_id" : 2, "reading" : NumberLong(25.0) },
+     { "_id" : 3, "reading" : NumberInt(24) },
+     { "_id" : 4, "reading" : 24.0 },
+     { "_id" : 5, "reading" : "24" },
+     { "_id" : 6, "reading" : [ NumberDecimal(26) ]}
+   ])
+
+The following aggregation uses the :pipeline:`$addFields` aggregation 
+stage to add the following fields to each document:
+
+- ``isNumber`` -  Indicates whether the value of ``reading`` is an
+  integer, decimal, double, or long.
+
+- ``type`` - Indicates the BSON type of ``reading``.
+
+.. code-block:: javascript
+
+   db.sensors.aggregate([{ 
+     $addFields : {   
+       "isNumber" : { $isNumber : "$reading" },
+       "hasType" : {$type : "$reading"}   
+     } 
+   }])
+
+The aggregation operation returns the following results:
+
+.. code-block:: javascript
+   :copyable: false 
+
+   { "_id" : 1, "reading" : NumberDecimal("26.0000000000000"), "isNum " : true, "type" : "decimal" }
+   { "_id" : 2, "reading" : NumberLong(25), "isNum " : true, "type" : "long" }
+   { "_id" : 3, "reading" : 24, "isNum " : true, "type" : "int" }
+   { "_id" : 4, "reading" : 24, "isNum " : true, "type" : "double" }
+   { "_id" : 5, "reading" : "24", "isNum " : false, "type" : "string" }
+   { "_id" : 6, "reading" : [ NumberDecimal("26.0000000000000") ], "isNum " : false, "type" : "array" }
+
+Conditionally Modify Fields using $isNumber
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``grades`` collection contains data on student grades. The ``grade``
+field may either store a string letter grade *or* a numeric point value.
+
+.. code-block:: javascript
+
+   db.getSiblingDB("examples").grades.insertMany([
+     {
+       "student_id" : 457864153,
+       "class_id" : "01",
+       "class_desc" : "Algebra",
+       "grade" : "A"
+     },
+     {
+       "student_id" : 457864153,
+       "class_id" : "02",
+       "class_desc" : "Chemistry",
+       "grade" : 3.0
+     },
+     {
+       "student_id" : 978451637,
+       "class_id" : "03",
+       "class_desc" : "Physics",
+       "grade" : "C"
+     },
+     {
+       "student_id" : 978451637,
+       "class_id" : "04",
+       "class_desc" : "English",
+       "grade" : 4.0
+     }
+   ])
+
+The following aggregation uses the :pipeline:`$addFields` stage to add a
+``points`` field containing the numeric grade value for that course. The
+stage uses the :expression:`$cond` operator to set the value of
+``points`` based on the output of ``$isNumber``:
+
+- If ``true``, ``grades`` already contains the numeric point value. 
+  Set ``points`` equal to ``grades``.
+- If ``false``, ``grades`` contains a string letter value. Use
+  :expression:`$switch` to convert the letter grade to its equivalent
+  point value and assign to ``points``.
+
+The aggregation pipeline then uses the :pipeline:`$group` stage to
+group on the ``student_id`` and calculate the student's
+:group:`average <$avg>` GPA.
+
+.. code-block:: javascript
+
+   db.getSiblingDB("examples").grades.aggregate([
+     {
+       $addFields: {
+         "points" : {
+           $cond : {
+             if : { $isNumber : "$grade" },
+             then: "$grade" ,
+             else: {
+               $switch : {
+                 branches: [
+                   { case: {$eq : ["$grade" , "A"]}, then : 4.0 },
+                   { case: {$eq : ["$grade" , "B"]}, then : 3.0 },
+                   { case: {$eq : ["$grade" , "C"]}, then : 2.0 },
+                   { case: {$eq : ["$grade" , "D"]}, then : 1.0 },
+                   { case: {$eq : ["$grade" , "F"]}, then : 0.0 }
+                 ]
+               }
+             }
+           }
+         }
+       }
+     },
+     {
+       $group : {
+         _id : "$student_id",
+         GPA : {
+           $avg : "$points"
+         }
+       }
+     }
+  ])
+
+The aggregation pipeline outputs one document per unique ``student_id``
+with that student's ``GPA`` grade point average:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 457864153, "GPA" : 3.5 }
+   { "_id" : 978451637, "GPA" : 3 }
+

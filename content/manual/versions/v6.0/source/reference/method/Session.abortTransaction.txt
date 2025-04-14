@@ -1,0 +1,185 @@
+==========================
+Session.abortTransaction()
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: Session.abortTransaction()
+
+   Terminates the :doc:`multi-document transaction
+   </core/transactions>` and rolls back any data changes made by the
+   operations within the transaction. That is, the transaction ends
+   without saving any of the changes made by the operations in the
+   transaction.
+
+   .. |dbcommand| replace:: :dbcommand:`abortTransaction` command
+   .. include:: /includes/fact-mongosh-shell-method-alt
+
+   .. include:: /includes/transaction-support
+
+
+Behavior
+--------
+
+Atomicity
+~~~~~~~~~
+
+When a transaction aborts, all data changes made by the writes in the
+transaction are discarded without ever becoming visible and the
+transaction ends.
+
+Security
+~~~~~~~~
+
+If running with :doc:`auditing </core/auditing>`, operations in an
+aborted transaction are still audited.
+
+Retryable
+~~~~~~~~~
+
+If the abort operation encounters an error, MongoDB drivers retry the
+abort operation a single time regardless of whether
+:urioption:`retryWrites` is set to ``true``. For more information, see
+:ref:`transactions-retry`.
+
+Example
+-------
+
+Consider a scenario where as changes are made to an employee's record
+in the ``hr`` database, you want to ensure that the ``events``
+collection in the ``reporting`` database are in sync with the ``hr``
+changes and vice versa. That is, you want to ensure that these writes are done as a
+single transaction, such that either both operations succeed or fail.
+
+The ``employees`` collection in the ``hr`` database has the following
+documents:
+
+.. code-block:: javascript
+
+   { "_id" : ObjectId("5af0776263426f87dd69319a"), "employee" : 3, "name" : { "title" : "Mr.", "name" : "Iba Ochs" }, "status" : "Active", "department" : "ABC" }
+   { "_id" : ObjectId("5af0776263426f87dd693198"), "employee" : 1, "name" : { "title" : "Miss", "name" : "Ann Thrope" }, "status" : "Active", "department" : "ABC" }
+   { "_id" : ObjectId("5af0776263426f87dd693199"), "employee" : 2, "name" : { "title" : "Mrs.", "name" : "Eppie Delta" }, "status" : "Active", "department" : "XYZ" }
+
+The ``employees`` collection has a unique index on the ``employee`` field:
+
+.. code-block:: javascript
+
+   db.employees.createIndex( { employee: 1 }, { unique: true } )
+
+The ``events`` collection in the ``reporting`` database has the
+following documents:
+
+.. code-block:: javascript
+
+   { "_id" : ObjectId("5af07daa051d92f02462644a"), "employee" : 1, "status" : { "new" : "Active", "old" : null }, "department" : { "new" : "ABC", "old" : null } }
+   { "_id" : ObjectId("5af07daa051d92f02462644b"), "employee" : 2, "status" : { "new" : "Active", "old" : null }, "department" : { "new" : "XYZ", "old" : null } }
+   { "_id" : ObjectId("5af07daa051d92f02462644c"), "employee" : 3, "status" : { "new" : "Active", "old" : null }, "department" : { "new" : "ABC", "old" : null } }
+
+The following example opens a transaction, attempts to add a record to
+the ``events`` collection and add a document to the ``employees``
+collection. If the operation encounters an error in either operations
+or in committing the transaction, the session aborts the transaction.
+
+.. code-block:: javascript
+
+   // Runs the txnFunc and retries if TransientTransactionError encountered
+
+   function runTransactionWithRetry(txnFunc, session) {
+       while (true) {
+           try {
+               txnFunc(session);  // performs transaction
+               break;
+           } catch (error) {
+               // If transient error, retry the whole transaction
+               if (error?.errorLabels?.includes("TransientTransactionError")) {
+                   print("TransientTransactionError, retrying transaction ...");
+                   continue;
+               } else {
+                   throw error;
+               }
+           }
+       }   
+   }
+
+   // Retries commit if UnknownTransactionCommitResult encountered
+
+   function commitWithRetry(session) {
+       while (true) {
+           try {
+               session.commitTransaction(); // Uses write concern set at transaction start.
+               print("Transaction committed.");
+               break;
+           } catch (error) {
+               // Can retry commit
+               if (error?.errorLabels?.includes("UnknownTransactionCommitResult") ) {
+                   print("UnknownTransactionCommitResult, retrying commit operation ...");
+                   continue;
+               } else {
+                   print("Error during commit ...");
+                   throw error;
+               }
+          }
+       }
+   }
+
+   // Performs inserts and count in a transaction 
+   function updateEmployeeInfo(session) {
+      employeesCollection = session.getDatabase("hr").employees;
+      eventsCollection = session.getDatabase("reporting").events;
+
+      // Start a transaction for the session that uses:
+      // - read concern "snapshot" 
+      // - write concern "majority"
+
+      session.startTransaction( { readConcern: { level: "snapshot" }, writeConcern: { w: "majority" } } );
+
+      try{
+         eventsCollection.insertOne( 
+            { employee: 3, status: { new: "Active", old: null },  department: { new: "XYZ", old: null } }
+         );
+
+         // Count number of events for employee 3
+
+         var countDoc = eventsCollection.aggregate( [ { $match:  { employee: 3 } }, { $count: "eventCounts" } ] ).next();
+
+         print( "events count (in active transaction): " + countDoc.eventCounts );
+
+         // The following operations should fail as an employee ``3`` already exist in employees collection
+         employeesCollection.insertOne( 
+            { employee: 3, name: { title: "Miss", name: "Terri Bachs" }, status: "Active", department: "XYZ" }
+         ); 
+      } catch (error) {
+         print("Caught exception during transaction, aborting.");
+         session.abortTransaction();
+         throw error;
+      }
+
+      commitWithRetry(session);
+
+   } // End of updateEmployeeInfo function
+
+   // Start a session.
+   session = db.getMongo().startSession( { readPreference: { mode: "primary" } } );
+
+   try{
+      runTransactionWithRetry(updateEmployeeInfo, session);
+   } catch (error) {
+      // Do something with error
+   } finally {
+      session.endSession();
+   }
+
+
+.. seealso::
+
+   - :method:`Session.startTransaction()`
+   - :method:`Session.commitTransaction()`

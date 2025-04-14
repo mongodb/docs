@@ -1,0 +1,63 @@
+.. _tutorial-modifying-chunk-size:
+.. _tutorial-modifying-range-size:
+
+======================================
+Modify Range Size in a Sharded Cluster
+======================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The default range size for a sharded cluster is 128 megabytes. This
+default range size works well for most deployments; however, if you
+notice that automatic migrations use more I/O than your hardware can
+handle, you may want to reduce the range size. A small range size leads 
+to more rapid and frequent migrations. The allowed size is between 1 and 
+1024 megabytes, inclusive.
+
+To modify the range size, use the following procedure:
+
+#. Connect to any :binary:`~bin.mongos` in the cluster using
+   :binary:`~bin.mongosh`.
+
+#. Issue the following command to switch to the :ref:`config-database`:
+
+   .. code-block:: javascript
+
+      use config
+
+#. Issue the following command to store the global range size
+   configuration value:
+
+   .. code-block:: javascript
+
+      db.settings.updateOne(
+         { _id: "chunksize" },
+         { $set: { _id: "chunksize", value: <sizeInMB> } },  
+         { upsert: true }
+      )
+
+Modifying the chunk size has several limitations:
+
+- .. include:: /includes/autosplit-no-operation.rst
+
+  .. include:: /includes/autosplit-commands.rst
+
+- In MongoDB versions earlier than 6.0, automatic splitting only occurs
+  for insert or update operations.
+
+- If you lower the chunk size, it may take time for all chunks to split to
+  the new size.
+
+- Splits cannot be undone.
+
+- If you increase the chunk size, existing chunks grow only through
+  insertion or updates until they reach the new size.
+
+- The allowed range of the chunk size is between 1 and 1024 megabytes,
+  inclusive.

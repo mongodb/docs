@@ -1,0 +1,184 @@
+==============
+Bulk.execute()
+==============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/fact-bulkwrite.rst
+
+Description
+-----------
+
+.. method:: Bulk.execute()
+
+   Executes the list of operations built by the :method:`Bulk()`
+   operations builder.
+
+   :method:`Bulk.execute()` accepts the following parameter:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``writeConcern``
+   
+        - document
+   
+        - Optional. :doc:`Write concern </reference/write-concern>`
+          document for the bulk operation as a whole. Omit to use
+          default. For a standalone :binary:`~bin.mongod` server, the
+          write concern defaults to ``{ w: majority }``. With a replica
+          set, the default write concern is ``{ w: majority }`` unless
+          modified as part of the :ref:`replica set configuration
+          <repl-set-modify-default-write-concern>`, or potentially if
+          the replica set contains
+          :ref:`multiple arbiters <wc-default-behavior>`.
+          
+          See :ref:`bulk-execute-ex-write-concern` for an example.
+          
+          .. include:: /includes/extracts/transactions-operations-write-concern.rst
+          
+          
+   
+
+
+   :returns: A :method:`BulkWriteResult` object that contains the
+      status of the operation.
+
+   After execution, you cannot re-execute the :method:`Bulk()`
+   object without reinitializing. See
+   :method:`db.collection.initializeUnorderedBulkOp()` and
+   :method:`db.collection.initializeOrderedBulkOp()`.
+
+Compatibility
+-------------
+
+This command is available in deployments hosted in the following
+environments: 
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. include:: /includes/fact-environments-atlas-support-all.rst
+   
+.. _bulk-execute-behavior:
+
+Behavior
+--------
+
+Ordered Operations
+~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-bulk-operation-ordered-list.rst
+
+.. include:: /includes/fact-bulk-operation-batches.rst
+
+.. include:: /includes/fact-bulk-operation-sharded-cluster.rst
+
+Unordered Operations
+~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-bulk-operation-unordered-list.rst
+
+.. include:: /includes/fact-bulk-operation-batches.rst
+
+Transactions
+~~~~~~~~~~~~
+
+.. include:: /includes/extracts/transactions-supported-operation.rst
+
+For :method:`Bulk.insert()` operations, the collection must already exist.
+
+For :method:`Bulk.find.upsert()`, if the operation results in an
+upsert, the collection must already exist.
+
+.. include:: /includes/extracts/transactions-operations-write-concern.rst
+
+.. include:: /includes/extracts/transactions-usage.rst
+
+.. |operation| replace:: :method:`Bulk()`
+
+Examples
+--------
+
+Execute Bulk Operations
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following initializes a :method:`Bulk()` operations builder on the
+``items`` collection, adds a series of insert operations, and executes
+the operations:
+
+.. code-block:: javascript
+
+   var bulk = db.items.initializeUnorderedBulkOp();
+   bulk.insert( { item: "abc123", status: "A", defaultQty: 500, points: 5 } );
+   bulk.insert( { item: "ijk123", status: "A", defaultQty: 100, points: 10 } );
+   bulk.execute( );
+
+The operation returns the following :method:`BulkWriteResult()` object:
+
+.. code-block:: javascript
+
+   BulkWriteResult({
+      "writeErrors" : [ ],
+      "writeConcernErrors" : [ ],
+      "nInserted" : 2,
+      "nUpserted" : 0,
+      "nMatched" : 0,
+      "nModified" : 0,
+      "nRemoved" : 0,
+      "upserted" : [ ]
+   })
+
+For details on the return object, see :method:`BulkWriteResult()`. For
+details on the batches executed, see :method:`Bulk.getOperations()`.
+
+.. _bulk-execute-ex-write-concern:
+
+Override Default Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation to a replica set specifies a :doc:`write
+concern </reference/write-concern>` of ``"w: 1"`` with a
+``wtimeout`` of 5000 milliseconds such that the method returns after
+the writes propagate to a majority of the voting replica set members or
+the method times out after 5 seconds.
+
+.. code-block:: javascript
+
+   var bulk = db.items.initializeUnorderedBulkOp();
+   bulk.insert( { item: "efg123", status: "A", defaultQty: 100, points: 0 } );
+   bulk.insert( { item: "xyz123", status: "A", defaultQty: 100, points: 0 } );
+   bulk.execute( { w: 1, wtimeout: 5000 } );
+
+The operation returns the following :method:`BulkWriteResult()` object:
+
+.. code-block:: javascript
+
+   BulkWriteResult({
+      "writeErrors" : [ ],
+      "writeConcernErrors" : [ ],
+      "nInserted" : 2,
+      "nUpserted" : 0,
+      "nMatched" : 0,
+      "nModified" : 0,
+      "nRemoved" : 0,
+      "upserted" : [ ]
+   })
+
+.. see::
+
+   :method:`Bulk()` for a listing of methods available for bulk
+   operations.

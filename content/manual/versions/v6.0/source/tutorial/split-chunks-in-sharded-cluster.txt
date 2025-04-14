@@ -1,0 +1,62 @@
+=================================
+Split Chunks in a Sharded Cluster
+=================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+By default, MongoDB potentially splits a :term:`chunk` only when 
+migrating data belonging to it. However, you may want to split chunks 
+manually if you have a large amount of data in your cluster and very few
+:term:`chunks <chunk>`, as is the case after deploying a cluster using
+existing data.
+
+To split chunks manually, use the :dbcommand:`split` command with either
+fields ``middle`` or ``find``. :binary:`~bin.mongosh` provides the
+helper methods :method:`sh.splitFind()` and :method:`sh.splitAt()`.
+
+:method:`~sh.splitFind()` splits the chunk that contains the *first*
+document returned that matches this query into two equally sized chunks.
+You must specify the full namespace (i.e. "``<database>.<collection>``")
+of the sharded collection to :method:`~sh.splitFind()`. The query in
+:method:`~sh.splitFind()` does not need to use the shard key, though it
+nearly always makes sense to do so.
+
+.. example::
+
+   The following command splits the chunk that contains the value of
+   ``63109`` for the ``zipcode`` field in the ``people`` collection of
+   the ``records`` database:
+
+   .. code-block:: javascript
+
+      sh.splitFind( "records.people", { "zipcode": "63109" } )
+
+Use :method:`~sh.splitAt()` to split a chunk in two, using the queried
+document as the lower bound in the new chunk:
+
+.. example::
+
+   The following command splits the chunk that contains the value of
+   ``63109`` for the ``zipcode`` field in the ``people`` collection of
+   the ``records`` database.
+
+   .. code-block:: javascript
+
+      sh.splitAt( "records.people", { "zipcode": "63109" } )
+
+.. note::
+
+   :method:`~sh.splitAt()` does not necessarily split the chunk
+   into two equally sized chunks. The split occurs at the location of
+   the document matching the query, regardless of where that document is
+   in the chunk.
+
+.. seealso::
+
+   :ref:`initial-chunks-empty-collection`

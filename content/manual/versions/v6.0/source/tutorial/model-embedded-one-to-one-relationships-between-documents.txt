@@ -1,0 +1,219 @@
+.. _data-modeling-example-one-to-one:
+
+======================================================
+Model One-to-One Relationships with Embedded Documents
+======================================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: programming_language
+   :values: shell
+
+.. meta::
+   :description: Learn how to model one-to-one relationships between MongoDB documents using embedded documents. Embedding connected data in a single document can reduce the number of reads required to obtain data.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+This page describes a data model that uses :ref:`embedded
+<data-modeling-embedding>` documents to describe a one-to-one
+relationship between connected data. Embedding connected data
+in a single document can reduce the number of read operations required
+to obtain data. In general, you should structure your schema so
+your application receives all of its required information in a single
+read operation.
+
+.. _one-to-one-embedded-document-pattern:
+
+Embedded Document Pattern
+-------------------------
+
+Consider the following example that maps patron and address
+relationships. The example illustrates the advantage of embedding over
+referencing if you need to view one data entity in context of the
+other. In this one-to-one relationship between ``patron`` and
+``address`` data, the ``address`` belongs to the ``patron``.
+
+In the normalized data model, the ``address`` document contains a
+reference to the ``patron`` document.
+
+.. code-block:: javascript
+
+   // patron document
+   {
+      _id: "joe",
+      name: "Joe Bookreader"
+   }
+
+   // address document
+   {
+      patron_id: "joe", // reference to patron document
+      street: "123 Fake Street",
+      city: "Faketon",
+      state: "MA",
+      zip: "12345"
+   }
+
+If the ``address`` data is frequently retrieved with the ``name``
+information, then with referencing, your application needs to issue
+multiple queries to resolve the reference. The better data model would
+be to embed the ``address`` data in the ``patron`` data, as in the
+following document:
+
+.. code-block:: javascript
+
+   {
+      _id: "joe",
+      name: "Joe Bookreader",
+      address: {
+                 street: "123 Fake Street",
+                 city: "Faketon",
+                 state: "MA",
+                 zip: "12345"
+               }
+   }
+
+With the embedded data model, your application can retrieve the
+complete patron information with one query.
+
+.. _one-to-one-subset:
+
+Subset Pattern
+--------------
+
+A potential problem with the :ref:`embedded document pattern
+<one-to-many-embedded-document-pattern>` is that it can lead to large
+documents that contain fields that the application does not need. This
+unnecessary data can cause extra load on your server and slow down read
+operations. Instead, you can use the subset pattern to retrieve the
+subset of data which is accessed the most frequently in a single
+database call.
+
+Consider an application that shows information on movies. The
+database contains a ``movie`` collection with the following
+schema:
+
+.. code-block:: javascript
+
+   {
+     "_id": 1,
+     "title": "The Arrival of a Train",
+     "year": 1896,
+     "runtime": 1,
+     "released": ISODate("01-25-1896"),
+     "poster": "http://ia.media-imdb.com/images/M/MV5BMjEyNDk5MDYzOV5BMl5BanBnXkFtZTgwNjIxMTEwMzE@._V1_SX300.jpg",
+     "plot": "A group of people are standing in a straight line along the platform of a railway station, waiting for a train, which is seen coming at some distance. When the train stops at the platform, ...",
+     "fullplot": "A group of people are standing in a straight line along the platform of a railway station, waiting for a train, which is seen coming at some distance. When the train stops at the platform, the line dissolves. The doors of the railway-cars open, and people on the platform help passengers to get off.",
+     "lastupdated": ISODate("2015-08-15T10:06:53"),
+     "type": "movie",
+     "directors": [ "Auguste Lumière", "Louis Lumière" ],
+     "imdb": {
+       "rating": 7.3,
+       "votes": 5043,
+       "id": 12
+     },
+     "countries": [ "France" ],
+     "genres": [ "Documentary", "Short" ],
+     "tomatoes": {
+       "viewer": {
+         "rating": 3.7,
+         "numReviews": 59
+       },
+       "lastUpdated": ISODate("2020-01-09T00:02:53")
+     }
+   }
+
+Currently, the ``movie`` collection contains several fields that the
+application does not need to show a simple overview of a movie, such as
+``fullplot`` and rating information. Instead of storing all of the
+movie data in a single collection, you can split the collection into
+two collections:
+
+- The ``movie`` collection contains basic information on a movie. This
+  is the data that the application loads by default:
+
+  .. code-block:: javascript
+
+   // movie collection
+
+   {
+     "_id": 1,
+     "title": "The Arrival of a Train",
+     "year": 1896,
+     "runtime": 1,
+     "released": ISODate("1896-01-25"),
+     "type": "movie",
+     "directors": [ "Auguste Lumière", "Louis Lumière" ],
+     "countries": [ "France" ],
+     "genres": [ "Documentary", "Short" ],
+   }
+
+- The ``movie_details`` collection contains additional, less
+  frequently-accessed data for each movie: 
+
+  .. code-block:: javascript
+
+     // movie_details collection
+
+     {
+       "_id": 156,
+       "movie_id": 1, // reference to the movie collection
+       "poster": "http://ia.media-imdb.com/images/M/MV5BMjEyNDk5MDYzOV5BMl5BanBnXkFtZTgwNjIxMTEwMzE@._V1_SX300.jpg",
+       "plot": "A group of people are standing in a straight line along the platform of a railway station, waiting for a train, which is seen coming at some distance. When the train stops at the platform, ...",
+       "fullplot": "A group of people are standing in a straight line along the platform of a railway station, waiting for a train, which is seen coming at some distance. When the train stops at the platform, the line dissolves. The doors of the railway-cars open, and people on the platform help passengers to get off.",
+       "lastupdated": ISODate("2015-08-15T10:06:53"),
+       "imdb": {
+         "rating": 7.3,
+         "votes": 5043,
+         "id": 12
+       },
+       "tomatoes": {
+         "viewer": {
+           "rating": 3.7,
+           "numReviews": 59
+         },
+         "lastUpdated": ISODate("2020-01-29T00:02:53")
+       }
+     }
+
+This method improves read performance because it requires the
+application to read less data to fulfill its most common request. The
+application can make an additional database call to fetch the
+less-frequently accessed data if needed.
+
+.. tip::
+
+   When considering where to split your data, the most
+   frequently-accessed portion of the data should go in the collection
+   that the application loads first.
+
+.. seealso::
+
+   To learn how to use the subset pattern to model one-to-many
+   relationships between collections, see
+   :ref:`data-modeling-example-one-to-many`.
+
+Trade-Offs of the Subset Pattern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Using smaller documents containing more frequently-accessed data reduces
+the overall size of the working set. These smaller documents result in
+improved read performance and make more memory available for the
+application.
+
+However, it is important to understand your application and the way it
+loads data. If you split your data into multiple collections improperly,
+your application will often need to make multiple trips to the database
+and rely on ``JOIN`` operations to retrieve all of the data that it
+needs.
+
+In addition, splitting your data into many small collections may
+increase required database maintenance, as it may become difficult
+to track what data is stored in which collection.

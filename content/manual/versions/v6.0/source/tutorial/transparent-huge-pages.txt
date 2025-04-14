@@ -1,0 +1,85 @@
+====================================
+Disable Transparent Huge Pages (THP)
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Transparent Huge Pages (THP) is a Linux memory management system
+that reduces the overhead of Translation Lookaside Buffer (TLB) lookups
+on machines with large amounts of memory by using larger memory pages.
+
+However, database workloads often perform poorly with THP enabled,
+because they tend to have sparse rather than contiguous memory access
+patterns. When running MongoDB on Linux, THP should be disabled for
+best performance.
+
+To ensure that THP is disabled before :binary:`~bin.mongod` starts,
+you should create a service file for your platform's initialization
+system that disables THP at boot. Instructions are provided below for
+both the **systemd** and the **System V init** initialization systems.
+
+Additionally, for :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS
+systems that make use of ``ktune`` and ``tuned`` performance profiles,
+you must create a custom ``tuned`` profile as well.
+
+.. _configure-init-script:
+.. _create-service-file:
+
+Create a Service File
+---------------------
+
+To create a service file that disables THP, you will use the
+built-in initialization system for your platform. Recent versions
+of Linux tend to use **systemd** (which uses the ``systemctl`` command),
+while older versions of Linux tend to use **System V init** (which uses
+the ``service`` command). Refer to the documentation for your operating
+system for more information.
+
+Use the initialization system appropriate for your platform:
+
+.. tabs::
+
+   .. tab:: systemd (systemctl)
+      :tabid: systemd-systemctl
+
+      .. include:: /includes/steps-disable-thp-in-systemd.rst
+
+   .. tab:: System V Init (service)
+      :tabid: initd-service
+
+      .. include:: /includes/steps-disable-thp-in-initd.rst
+
+
+.. _configure-thp-tuned:
+
+Using ``tuned`` and ``ktune``
+-----------------------------
+
+.. important::
+
+   If using ``tuned`` or ``ktune``, you must also perform the steps in
+   this section after creating the service file above.
+
+``tuned`` and ``ktune`` are dynamic kernel tuning tools that can affect
+the transparent huge pages setting on your system. If you are using
+``tuned`` / ``ktune`` on your :abbr:`RHEL (Red Hat Enterprise Linux)`
+/ CentOS system while running ``mongod``, you must create a custom
+``tuned`` profile to ensure that THP remains disabled.
+
+Red Hat/CentOS 6
+~~~~~~~~~~~~~~~~
+
+.. include:: /includes/steps/disable-thp-in-tuned-rhel-6.rst
+
+Red Hat/CentOS 7 and 8
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/steps/disable-thp-in-tuned-rhel-7.rst
+
+
