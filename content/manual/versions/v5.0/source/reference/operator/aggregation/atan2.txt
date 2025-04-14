@@ -1,0 +1,192 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+====================
+$atan2 (aggregation)
+====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. expression:: $atan2 
+
+   Returns the inverse tangent (arc tangent) of ``y / x``,
+   where ``y`` and ``x`` are the first and second values passed to the
+   expression respectively.
+
+   :expression:`$atan2` has the following syntax:
+
+   .. code-block:: javascript
+
+      { $atan2: [ <expression 1>, <expression 2> ] }
+
+   :expression:`$atan2` takes any valid :ref:`expression
+   <aggregation-expressions>` that resolves to a number.
+
+   :expression:`$atan2` returns values in radians. Use
+   :expression:`$radiansToDegrees` operator to convert the output value
+   from radians to degrees.
+
+   By default :expression:`$atan2` returns values as a ``double``. 
+   :expression:`$atan2` can also return values as a
+   :ref:`128-bit decimal <shell-type-decimal>`
+   as long as the ``<expression>`` resolves to a 128-bit decimal value. 
+
+   For more information on expressions, see 
+   :ref:`aggregation-expressions`.
+
+Behavior
+--------
+
+``null`` and ``NaN``
+~~~~~~~~~~~~~~~~~~~~
+
+If either argument given to ``$atan2`` is ``null``, the expression returns
+``null``.  If either argument is ``NaN``, the expression returns ``NaN``.
+If one argument is ``null`` and the other is ``NaN``, the expression returns
+``null``.
+
+
+.. list-table::
+   :header-rows: 1
+   :widths: 85 15
+
+   * - Example
+     - Results
+
+   * - ``{ $atan2: [ NaN, <value> ] }``
+     - ``NaN``
+
+   * -  ``{ $atan2: [ <value>, NaN ] }``
+     - ``NaN``
+
+   * - ``{ $atan2: [ null, <value> ] }``
+     - ``null``
+
+   * - ``{ $atan2: [ <value>, null ] }``
+     - ``null``
+
+   * - ``{ $atan2: [ NaN, null ] }``
+     - ``null``
+
+   * - ``{ $atan2: [ null, NaN ] }``
+     - ``null``
+
+
+Example
+-------
+
+.. tabs::
+
+   tabs:
+
+     - id: degrees
+       name: Inverse Tangent of Value in Degrees
+       content: |
+
+         The ``trigonometry`` collection contains a document that
+         stores three sides of a right-angle triangle:
+
+         .. code-block:: bash
+
+            {
+              "_id" : ObjectId("5c50782193f833234ba90d85"),
+              "side_a" : NumberDecimal("3"),
+              "side_b" : NumberDecimal("4"),
+              "hypotenuse" : NumberDecimal("5")
+            }
+
+         The following aggregation operation uses the
+         :expression:`$atan2` expression to calculate the angle adjacent
+         to ``side_a`` and add it to the input document using the 
+         :pipeline:`$addFields` pipeline stage. 
+
+         .. code-block:: bash
+
+            db.trigonometry.aggregate([
+              { 
+                $addFields : {
+                  "angle_a" : {
+                    $radiansToDegrees : {
+                      $atan2 : [ "$side_b", "$side_a" ]
+                    }
+                  }
+                }
+              }
+            ])
+
+         The :expression:`$radiansToDegrees` expression converts the
+         radian value returned by :expression:`$atan2` to the equivalent
+         value in degrees.
+
+         The command returns the following output:
+
+         .. code-block:: bash
+            :copyable: false
+ 
+            {
+              "_id" : ObjectId("5c50782193f833234ba90d85"),
+              "side_a" : NumberDecimal("3"),
+              "side_b" : NumberDecimal("4"),
+              "hypotenuse" : NumberDecimal("5"),
+              "angle_a" : NumberDecimal("53.13010235415597870314438744090658")
+            }
+
+         Since ``side_b`` and ``side_a`` are stored as 
+         :ref:`128-bit decimals <shell-type-decimal>`, the output of 
+         :expression:`$atan2` is a 128-bit decimal. 
+
+     - id: radians
+       name: Inverse Tangent of Value in Radians
+       content: |
+
+         The ``trigonometry`` collection contains a document that
+         stores three sides of a right-angle triangle:
+
+         .. code-block:: bash
+
+            {
+              "_id" : ObjectId("5c50782193f833234ba90d85"),
+              "side_a" : NumberDecimal("3"),
+              "side_b" : NumberDecimal("4"),
+              "hypotenuse" : NumberDecimal("5")
+            }
+
+         The following aggregation operation uses the
+         :expression:`$atan2` expression to calculate the angle adjacent
+         to ``side_a`` and add it to the input document using the 
+         :pipeline:`$addFields` pipeline stage. 
+
+         .. code-block:: bash
+
+            db.trigonometry.aggregate([
+              { 
+                $addFields : {
+                  "angle_a" : {
+                    $atan2 : [ "$side_b", "$side_a" ]
+                  }
+                }
+              }
+            ])
+
+         The command returns the following output:
+
+         .. code-block:: bash
+            :copyable: false
+ 
+            {
+              "_id" : ObjectId("5c50782193f833234ba90d85"),
+              "side_a" : NumberDecimal("3"),
+              "side_b" : NumberDecimal("4"),
+              "hypotenuse" : NumberDecimal("5"),
+              "angle_a" : NumberDecimal("0.9272952180016122324285124629224287")
+            }
+
+         Since ``side_b`` and ``side_a`` are stored as 
+         :ref:`128-bit decimals <shell-type-decimal>`, the output of 
+         :expression:`$atan2` is a 128-bit decimal. 

@@ -1,0 +1,540 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+================
+PlanCache.list()
+================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: PlanCache.list(<pipeline>)
+
+   Returns an array of :doc:`plan cache </core/query-plans>` entries
+   for a collection.
+
+   The method is only available from the :method:`plan cache object
+   <db.collection.getPlanCache()>` of a specific collection; i.e.
+
+   .. code-block:: javascript
+
+      db.collection.getPlanCache().list(<pipeline>)
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 60
+      
+      * - Parameter
+        - Type
+        - Description
+        
+      * - :ref:`pipeline <plancache-list-pipeline>`
+
+        - Array
+
+        - .. _plancache-list-pipeline:
+
+          Optional. :ref:`Aggregation pipeline <agg-pipeline-stages>`
+          to filter/process the query shapes.
+
+   You can run this method from a :binary:`~bin.mongod` or
+   :binary:`~bin.mongos` instance. When run on a sharded cluster, the
+   method returns plan cache entry information from a single member in
+   each shard replica set. This member is identified with the
+   :ref:`shard <plancachestats-shard>` and :ref:`host
+   <plancachestats-host>` fields. See also
+   :ref:`plancache-list-read-pref`.
+
+   The method :method:`PlanCache.list()` wraps the
+   :pipeline:`$planCacheStats` aggregation pipeline. That is,
+
+   .. code-block:: javascript
+
+      db.collection.getPlanCache().list([<stage1>, <stage2>, ...] )
+
+   is equivalent to
+
+   .. code-block:: javascript
+
+      db.collection.aggregate([ <$planCacheStats stage>, <stage1>, <stage2>, ... ]).toArray();
+   
+   For details on the output, see :ref:`$planCacheStats output
+   <planCacheStats-output>`.
+      
+   Not all queries automatically place a query plan in the cache.
+   :method:`PlanCache.list()` returns an empty array if there are
+   currently no query shapes with cached query plans.
+
+   .. seealso::
+
+      - :pipeline:`$planCacheStats`
+      - :method:`db.collection.aggregate()`
+      - :method:`~cursor.toArray()`
+
+
+Compatibility
+-------------
+
+This method is available in deployments hosted in the following environments: 
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
+Considerations
+--------------
+
+Restrictions
+~~~~~~~~~~~~
+
+:method:`PlanCache.list()` is not allowed in :doc:`transactions
+</core/transactions>`.
+
+Query Hash and Query Shapes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.2-changes-query-shapes.rst
+
+.. include:: /includes/fact-query-optimizer-cache-behavior.rst
+
+Each entry in the plan cache is associated with a ``queryHash``.
+
+.. _plancache-list-read-pref:
+
+Read Preference
+~~~~~~~~~~~~~~~
+
+:method:`PlanCache.list()` observes the :doc:`read preference
+</core/read-preference>` in selecting the host(s) from which to return
+the plan cache information.
+
+Applications may target different members of a replica set. As such,
+each replica set member might receive different read commands and have
+plan cache information that differs from other members. Nevertheless,
+running :method:`PlanCache.list()` on a replica set or a sharded
+cluster obeys the normal read preference rules. That is, on a replica
+set, the operation gathers plan cache information from just one member
+of replica set, and on a sharded cluster, the operation gathers plan
+cache information from just one member of each shard replica set.
+
+Required Access
+---------------
+
+On systems running with :setting:`~security.authorization`, the user
+must have the :authaction:`planCacheRead` privilege for the collection.
+
+Examples
+--------
+
+.. note::
+
+   - Not all queries automatically place a query plan in the cache.
+     :method:`PlanCache.list()` returns an empty array if
+     there are currently no query shapes with cached query plans.
+
+   - For details on the output, see :ref:`$planCacheStats output
+     <planCacheStats-output>`.
+
+The examples in this section use the following ``orders`` collection:
+
+.. code-block:: javascript
+
+   db.orders.insertMany( [
+      { "_id" : 1, "item" : "abc", "price" : NumberDecimal("12"), "quantity" : 2, "type": "apparel" },
+      { "_id" : 2, "item" : "jkl", "price" : NumberDecimal("20"), "quantity" : 1, "type": "electronics" },
+      { "_id" : 3, "item" : "abc", "price" : NumberDecimal("10"), "quantity" : 5, "type": "apparel" },
+      { "_id" : 4, "item" : "abc", "price" : NumberDecimal("8"), "quantity" : 10, "type": "apparel" },
+      { "_id" : 5, "item" : "jkl", "price" : NumberDecimal("15"), "quantity" : 15, "type": "electronics" }
+   ] )
+
+Create the following indexes on the collection:
+
+.. code-block:: javascript
+
+   db.orders.createIndex( { item: 1 } );
+   db.orders.createIndex( { item: 1, quantity: 1 } );
+   db.orders.createIndex( { item: 1, price: 1 }, { partialFilterExpression: { price: { $gte: NumberDecimal("10")} } } );
+   db.orders.createIndex( { quantity: 1 } );
+   db.orders.createIndex( { quantity: 1, type: 1 } );
+
+.. note::
+
+   Index ``{ item: 1, price: 1 }`` is a :doc:`partial index
+   </core/index-partial>` and only indexes documents with ``price``
+   field greater than or equal to ``NumberDecimal("10")``.
+
+Run some queries against the collection:
+
+.. code-block:: javascript
+
+   db.orders.find( { item: "abc", price: { $gte: NumberDecimal("10") } } )
+   db.orders.find( { item: "abc", price: { $gte: NumberDecimal("5") } } )
+   db.orders.find( { quantity: { $gte: 20 } } )
+   db.orders.find( { quantity: { $gte: 5 }, type: "apparel" } )
+
+Return Information for All Entries in the Query Cache
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following returns the :term:`query shapes <query shape>` that have
+cached plans for the ``orders`` collection:
+
+.. code-block:: javascript
+
+   db.orders.getPlanCache().list()
+
+The method returns an array of the query shapes currently in the cache.
+In the example, the ``orders`` collection had cached query plans
+associated with the following shapes:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      {
+         "createdFromQuery" : {
+            "query" : { "quantity" : { "$gte" : 5 }, "type" : "apparel" },
+            "sort" : { },
+            "projection" : { }
+         },
+         "queryHash" : "4D151C4C",
+         "planCacheKey" : "DD67E353",
+         "isActive" : false,
+         "works" : NumberLong(4),
+         "cachedPlan" : {
+            "stage" : "FETCH",
+            "filter" : { "type" : { "$eq" : "apparel" } },
+            "inputStage" : {
+               "stage" : "IXSCAN",
+               "keyPattern" : { "quantity" : 1 },
+               "indexName" : "quantity_1",
+               "isMultiKey" : false,
+               "multiKeyPaths" : { "quantity" : [ ] },
+               "isUnique" : false,
+               "isSparse" : false,
+               "isPartial" : false,
+               "indexVersion" : 2,
+               "direction" : "forward",
+               "indexBounds" : { "quantity" : [ "[5.0, inf.0]" ] }
+            }
+         },
+         "timeOfCreation" : ISODate("2020-02-06T15:57:18.219Z"),
+         "creationExecStats" : [
+            {
+               "nReturned" : 2,
+               "executionTimeMillisEstimate" : 0,
+               "totalKeysExamined" : 3,
+               "totalDocsExamined" : 3,
+               "executionStages" : {
+                  "stage" : "FETCH",
+                  "filter" : { "type" : { "$eq" : "apparel" } },
+                  "nReturned" : 2,
+                  "executionTimeMillisEstimate" : 0,
+                  "works" : 4,
+                  ...
+               }
+            },
+            {
+               "nReturned" : 2,
+               "executionTimeMillisEstimate" : 0,
+               "totalKeysExamined" : 3,
+               "totalDocsExamined" : 2,
+               "executionStages" : {
+                  "stage" : "FETCH",
+                  "nReturned" : 2,
+                  "executionTimeMillisEstimate" : 0,
+                  "works" : 4,
+                  ...
+               }
+            }
+         ],
+         "candidatePlanScores" : [
+            1.5002,
+            1.5002
+         ],
+         "indexFilterSet" : false,
+         "estimatedSizeBytes" : NumberLong(3160),   // Available starting in MongoDB 5.0
+         "host" : "mongodb1.example.net:27018",
+         "shard" : "shardA"                         // Available if run on sharded cluster
+      },
+
+      {
+         "createdFromQuery" : {
+            "query" : { "quantity" : { "$gte" : 20 } },
+            "sort" : { },
+            "projection" : { }
+         },
+         "queryHash" : "23B19B75",
+         "planCacheKey" : "6F23F858",
+         "isActive" : false,
+         "works" : NumberLong(1),
+         ...
+      },
+      {
+         "createdFromQuery" : {
+            "query" : { "item" : "abc", "price" : { "$gte" : NumberDecimal("5") } },
+            "sort" : { },
+            "projection" : { }
+         },
+         "queryHash" : "117A6B10",
+         "planCacheKey" : "A1824628",
+         "isActive" : false,
+         "works" : NumberLong(4),
+         ...
+      },
+      {
+         "createdFromQuery" : {
+            "query" : { "item" : "abc", "price" : { "$gte" : NumberDecimal("10") } },
+            "sort" : { },
+            "projection" : { }
+         },
+         "queryHash" : "117A6B10",
+         "planCacheKey" : "2E6E536B",
+         "isActive" : false,
+         "works" : NumberLong(3),
+         ...
+      }
+   ]
+
+For details on the output, see :ref:`$planCacheStats output
+<planCacheStats-output>`.
+
+.. planCache-list-query-shapes:
+
+List Query Shapes
+~~~~~~~~~~~~~~~~~
+
+To obtain a list of all of the query shapes for which there is a cached plan, 
+you can use the :method:`PlanCache.list()`. For example, the following operation 
+passes in a pipeline with a :pipeline:`$project` stage to only output the 
+:ref:`createdFromQuery <plancachestats-createdFromQuery>` field and the 
+:ref:`queryHash <plancachestats-queryHash>` field.
+
+.. code-block:: javascript
+
+   db.orders.getPlanCache().list( [ { $project: {createdFromQuery: 1, queryHash: 1 } } ] )
+
+The operation returns the following query shapes:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      { "createdFromQuery" : { "query" : { "quantity" : { "$gte" : 5 }, "type" : "apparel" }, "sort" : { }, "projection" : { } }, "queryHash" : "4D151C4C" },
+      { "createdFromQuery" : { "query" : { "quantity" : { "$gte" : 20 } }, "sort" : { }, "projection" : { } }, "queryHash" : "23B19B75" },
+      { "createdFromQuery" : { "query" : { "item" : "abc", "price" : { "$gte" : NumberDecimal("5") } }, "sort" : { }, "projection" : { } }, "queryHash" : "117A6B10" },
+      { "createdFromQuery" : { "query" : { "item" : "abc", "price" : { "$gte" : NumberDecimal("10") } }, "sort" : { }, "projection" : { } }, "queryHash" : "117A6B10" }
+   ]
+
+For details on the output, see :ref:`$planCacheStats output
+<planCacheStats-output>`.
+
+.. _planCache-list-cache-entry-for-query-shape:
+
+Find Cache Entry Details for a Query Shape
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To return plan cache information for a particular query shape, pass in
+a pipeline with a :pipeline:`$match` on the :ref:`planCacheKey
+<plancachestats-planCacheKey>` field.
+
+
+.. code-block:: javascript
+
+   db.orders.getPlanCache().list([ { $match: { planCacheKey: "DD67E353"} } ] )
+
+The operation returns the following:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      {
+         "createdFromQuery" : {
+            "query" : {
+               "quantity" : {
+                  "$gte" : 5
+               },
+               "type" : "apparel"
+            },
+            "sort" : {
+            
+            },
+            "projection" : {
+            
+            }
+         },
+         "queryHash" : "4D151C4C",
+         "planCacheKey" : "DD67E353",
+         "isActive" : false,
+         "works" : NumberLong(4),
+         "cachedPlan" : {
+            "stage" : "FETCH",
+            "filter" : {
+               "type" : {
+                  "$eq" : "apparel"
+               }
+            },
+            "inputStage" : {
+               "stage" : "IXSCAN",
+               "keyPattern" : {
+                  "quantity" : 1
+               },
+               "indexName" : "quantity_1",
+               "isMultiKey" : false,
+               "multiKeyPaths" : {
+                  "quantity" : [ ]
+               },
+               "isUnique" : false,
+               "isSparse" : false,
+               "isPartial" : false,
+               "indexVersion" : 2,
+               "direction" : "forward",
+               "indexBounds" : {
+                  "quantity" : [
+                     "[5.0, inf.0]"
+                  ]
+               }
+            }
+         },
+         "timeOfCreation" : ISODate("2020-02-11T17:14:33.873Z"),
+         "creationExecStats" : [
+            {
+               "nReturned" : 2,
+               "executionTimeMillisEstimate" : 0,
+               "totalKeysExamined" : 3,
+               "totalDocsExamined" : 3,
+               "executionStages" : {
+                  "stage" : "FETCH",
+                  "filter" : {
+                     "type" : {
+                        "$eq" : "apparel"
+                     }
+                  },
+                  "nReturned" : 2,
+                  "executionTimeMillisEstimate" : 0,
+                  "works" : 4,
+                  "advanced" : 2,
+                  "needTime" : 1,
+                  "needYield" : 0,
+                  "saveState" : 0,
+                  "restoreState" : 0,
+                  "isEOF" : 1,
+                  "docsExamined" : 3,
+                  "alreadyHasObj" : 0,
+                  "inputStage" : {
+                     "stage" : "IXSCAN",
+                     "nReturned" : 3,
+                     "executionTimeMillisEstimate" : 0,
+                     "works" : 4,
+                     "advanced" : 3,
+                     "needTime" : 0,
+                     "needYield" : 0,
+                     "saveState" : 0,
+                     "restoreState" : 0,
+                     "isEOF" : 1,
+                     "keyPattern" : {
+                        "quantity" : 1
+                     },
+                     "indexName" : "quantity_1",
+                     "isMultiKey" : false,
+                     "multiKeyPaths" : {
+                        "quantity" : [ ]
+                     },
+                     "isUnique" : false,
+                     "isSparse" : false,
+                     "isPartial" : false,
+                     "indexVersion" : 2,
+                     "direction" : "forward",
+                     "indexBounds" : {
+                        "quantity" : [
+                           "[5.0, inf.0]"
+                        ]
+                     },
+                     "keysExamined" : 3,
+                     "seeks" : 1,
+                     "dupsTested" : 0,
+                     "dupsDropped" : 0
+                  }
+               }
+            },
+            {
+               "nReturned" : 2,
+               "executionTimeMillisEstimate" : 0,
+               "totalKeysExamined" : 3,
+               "totalDocsExamined" : 2,
+               "executionStages" : {
+                  "stage" : "FETCH",
+                  "nReturned" : 2,
+                  "executionTimeMillisEstimate" : 0,
+                  "works" : 4,
+                  "advanced" : 2,
+                  "needTime" : 1,
+                  "needYield" : 0,
+                  "saveState" : 0,
+                  "restoreState" : 0,
+                  "isEOF" : 1,
+                  "docsExamined" : 2,
+                  "alreadyHasObj" : 0,
+                  "inputStage" : {
+                     "stage" : "IXSCAN",
+                     "nReturned" : 2,
+                     "executionTimeMillisEstimate" : 0,
+                     "works" : 4,
+                     "advanced" : 2,
+                     "needTime" : 1,
+                     "needYield" : 0,
+                     "saveState" : 0,
+                     "restoreState" : 0,
+                     "isEOF" : 1,
+                     "keyPattern" : {
+                        "quantity" : 1,
+                        "type" : 1
+                     },
+                     "indexName" : "quantity_1_type_1",
+                     "isMultiKey" : false,
+                     "multiKeyPaths" : {
+                        "quantity" : [ ],
+                        "type" : [ ]
+                     },
+                     "isUnique" : false,
+                     "isSparse" : false,
+                     "isPartial" : false,
+                     "indexVersion" : 2,
+                     "direction" : "forward",
+                     "indexBounds" : {
+                        "quantity" : [
+                           "[5.0, inf.0]"
+                        ],
+                        "type" : [
+                           "[\"apparel\", \"apparel\"]"
+                        ]
+                     },
+                     "keysExamined" : 3,
+                     "seeks" : 2,
+                     "dupsTested" : 0,
+                     "dupsDropped" : 0
+                  }
+               }
+            }
+         ],
+         "candidatePlanScores" : [
+            1.5002,
+            1.5002
+         ],
+         "indexFilterSet" : false,
+         "estimatedSizeBytes" : NumberLong(3160),   // Available starting in MongoDB 5.0
+         "host" : "mongodb1.example.net:27018",
+         "shard" : "shardA"                         // Available if run on sharded cluster
+      }
+   ]
+
+For details on the output, see :ref:`$planCacheStats output
+<planCacheStats-output>`.

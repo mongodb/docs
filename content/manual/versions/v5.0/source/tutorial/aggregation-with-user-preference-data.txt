@@ -1,0 +1,319 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+=====================================
+Aggregation with User Preference Data
+=====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Data Model
+----------
+
+Consider a sports club database with a ``members`` collection that
+tracks members' names, join dates, and sport preferences:
+
+.. code-block:: javascript
+
+   db.members.insertMany( [
+      {
+         _id: "jane",
+         joined: ISODate("2011-03-02"),
+         likes: ["golf", "racquetball"]
+      },
+      {
+         _id: "joe",
+         joined: ISODate("2012-07-02"),
+         likes: ["tennis", "golf", "swimming"]
+      },
+      {
+         _id: "ruth",
+         joined: ISODate("2012-01-14"),
+         likes: ["golf", "racquetball"]
+      },
+      {
+         _id: "harold",
+         joined: ISODate("2012-01-21"),
+         likes: ["handball", "golf", "racquetball"]
+      },
+      {
+         _id: "kate",
+         joined: ISODate("2012-01-14"),
+         likes: ["swimming", "tennis"]
+      }
+   ] )
+
+
+Return a Single Field
+---------------------
+
+The following operation uses :pipeline:`$project` to return only the
+``_id`` field for all documents in the ``members`` collection:
+
+.. code-block:: javascript
+
+   db.members.aggregate(
+      [
+         { $project: { _id: 1 } }
+      ]
+   )
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      { _id: 'jane' },
+      { _id: 'joe' },
+      { _id: 'ruth' },
+      { _id: 'harold' },
+      { _id: 'kate' }
+   ]
+
+
+For basic query and projection operations, standard queries with the
+:method:`find() <db.collection.find()>` method have the best performance. 
+
+Normalize and Sort Documents
+----------------------------
+
+The following operation returns member names in upper case and in
+alphabetical order. You might do this to normalize member names for
+processing.
+
+.. code-block:: javascript
+
+   db.members.aggregate(
+     [
+       { $project: { name: { $toUpper: "$_id" }, _id: 0 } },
+       { $sort: { name: 1 } }
+     ]
+   )
+
+All documents from the ``members`` collection pass through the
+pipeline, which consists of the following operations:
+
+- The :pipeline:`$project` operator:
+
+  - creates a new field called ``name``.
+
+  - converts the value of the ``_id`` to upper case, with the
+    :expression:`$toUpper` operator. Then the
+    :pipeline:`$project` creates a new field, named ``name``
+    to hold this value.
+
+  - suppresses the ``id`` field. :pipeline:`$project` will pass
+    the ``_id`` field by default, unless explicitly suppressed.
+
+- The :pipeline:`$sort` operator orders the results by the
+  ``name`` field.
+
+The operation returns the following result:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      { name: 'HAROLD' },
+      { name: 'JANE' },
+      { name: 'JOE' },
+      { name: 'KATE' },
+      { name: 'RUTH' }
+   ]
+
+Return Usernames Ordered by Join Month
+--------------------------------------
+
+The following aggregation operation returns member names sorted by the
+month they joined. You might use this aggregation to help generate
+membership renewal notices.
+
+.. code-block:: javascript
+
+   db.members.aggregate( [
+       { 
+         $project: {
+            month_joined: { $month: "$joined" },
+            name: "$_id",
+            _id: 0
+          }
+       },
+       { $sort: { month_joined: 1 } }
+   ] )
+
+The pipeline passes all documents in the ``members`` collection through
+the following operations:
+
+- The :pipeline:`$project` operator:
+
+  - Creates two new fields: ``month_joined`` and ``name``.
+
+  - Suppresses the ``id`` from the results. The :method:`aggregate()
+    <db.collection.aggregate()>` method includes the ``_id``, unless
+    explicitly suppressed.
+
+- The :expression:`$month` operator converts the values of the
+  ``joined`` field to integer representations of the month. Then the
+  :pipeline:`$project` operator assigns those values to the
+  ``month_joined`` field.
+
+- The :pipeline:`$sort` operator sorts the results by the
+  ``month_joined`` field.
+
+The operation returns the following result: 
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      { month_joined: 1, name: 'ruth' },
+      { month_joined: 1, name: 'harold' },
+      { month_joined: 1, name: 'kate' },
+      { month_joined: 3, name: 'jane' },
+      { month_joined: 7, name: 'joe' }
+   ]
+
+Return Total Number of Joins per Month
+--------------------------------------
+
+The following operation shows how many people joined each month of the
+year. You might use this aggregated data for recruiting and marketing
+strategies.
+
+.. code-block:: javascript
+
+   db.members.aggregate( [
+      { $project: { month_joined: { $month: "$joined" } } } ,
+      { $group: { _id: { month_joined: "$month_joined" } , number: { $sum: 1 } } },
+      { $sort: { "_id.month_joined": 1 } }
+   ] )
+
+The pipeline passes all documents in the ``members`` collection through
+the following operations:
+
+- The :pipeline:`$project` operator creates a new field called
+  ``month_joined``.
+
+- The :expression:`$month` operator converts the values of the
+  ``joined`` field to integer representations of the month. Then the
+  :pipeline:`$project` operator assigns the values to the
+  ``month_joined`` field.
+
+- The :pipeline:`$group` operator collects all documents with a
+  given ``month_joined`` value and counts how many documents there are
+  for that value. Specifically, for each unique value,
+  :pipeline:`$group` creates a new "per-month" document with two
+  fields:
+
+  - ``_id``, which contains a nested document with the
+    ``month_joined`` field and its value.
+
+  - ``number``, which is a generated field. The :group:`$sum`
+    operator increments this field by 1 for every document containing
+    the given ``month_joined`` value.
+
+- The :pipeline:`$sort` operator sorts the documents created by
+  :pipeline:`$group` according to the contents of the
+  ``month_joined`` field.
+
+The aggregation operation returns the following documents:
+
+.. code-block:: javascript
+
+   [
+      { _id: { month_joined: 1 }, number: 3 },
+      { _id: { month_joined: 3 }, number: 1 },
+      { _id: { month_joined: 7 }, number: 1 }
+   ]
+
+Return the Five Most Common "Likes"
+-----------------------------------
+
+The following aggregation collects the top five most "liked" activities
+in the data set. This type of analysis could help inform planning and
+future development.
+
+.. code-block:: javascript
+
+   db.members.aggregate(
+     [
+       { $unwind: "$likes" },
+       { $group: { _id: "$likes" , number: { $sum: 1 } } },
+       { $sort: { number: -1 } },
+       { $limit: 5 }
+     ]
+   )
+
+The pipeline begins with all documents in the ``members`` collection,
+and passes these documents through the following operations:
+
+- The :pipeline:`$unwind` operator separates each value in the
+  ``likes`` array, and creates a new version of the source document
+  for every element in the array.
+
+  .. example::
+
+     Given the following document from the ``members`` collection:
+
+     .. code-block:: javascript
+        :copyable: false
+
+        {
+          _id: "jane",
+          joined: ISODate("2011-03-02"),
+          likes: ["golf", "racquetball"]
+        }
+
+     The :pipeline:`$unwind` operator outputs the following
+     documents:
+
+     .. code-block:: javascript
+        :copyable: false
+
+        {
+          _id: "jane",
+          joined: ISODate("2011-03-02"),
+          likes: "golf"
+        }
+        {
+          _id: "jane",
+          joined: ISODate("2011-03-02"),
+          likes: "racquetball"
+        }
+
+- The :pipeline:`$group` operator collects all documents with the same
+  value for the ``likes`` field and counts each grouping. With this
+  information, :pipeline:`$group` creates a new document with two
+  fields:
+
+  - ``_id``, which contains the ``likes`` value.
+
+  - ``number``, which is a generated field. The :group:`$sum`
+    operator increments this field by 1 for every document containing
+    the given ``likes`` value.
+
+- The :pipeline:`$sort` operator sorts these documents by the
+  ``number`` field in reverse order.
+
+- The :pipeline:`$limit` operator only includes the first 5 result
+  documents.
+
+The aggregation operation returns the following documents:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      { _id: 'golf', number: 4 },
+      { _id: 'racquetball', number: 3 },
+      { _id: 'tennis', number: 2 },
+      { _id: 'swimming', number: 2 },
+      { _id: 'handball', number: 1 }
+   ]

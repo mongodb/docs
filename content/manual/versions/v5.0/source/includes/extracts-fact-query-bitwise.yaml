@@ -1,0 +1,218 @@
+ref: _fact-query-bitwise-description
+content: |
+  .. list-table::
+
+     * - ``{ <field>: { {{op}}: <numeric bitmask> } }``
+
+     * - ``{ <field>: { {{op}}: <`` :doc:`BinData </reference/bson-types>` ``bitmask> } }``
+
+     * - ``{ <field>: { {{op}}: [ <position1>, <position2>, ... ] } }``
+
+  The ``field`` value must be either numeric or a
+  :doc:`BinData </reference/bson-types>` instance. Otherwise, :query:`{{op}}`
+  will not match the current document.
+
+  Numeric Bitmask
+    You can provide a numeric bitmask to be matched against the operand field.
+    The bitmask must be a non-negative 64-bit signed integer.
+    Otherwise, :query:`{{op}}` returns an error.
+
+  BinData Bitmask
+    You can also use an arbitrarily large :doc:`BinData </reference/bson-types>`
+    instance as a bitmask.
+
+  Position List
+    If querying a list of bit positions, each ``<position>`` must be a non-negative
+    integer. Bit positions start at ``0`` from the least significant bit. For
+    example, the decimal number ``254`` would have the following bit positions:
+
+  .. list-table::
+     :header-rows: 1
+
+     * - Bit Value
+
+       - 1
+
+       - 1
+
+       - 1
+
+       - 1
+
+       - 1
+
+       - 1
+
+       - 1
+
+       - 0
+
+     * - Position
+
+       - 7
+
+       - 6
+
+       - 5
+
+       - 4
+
+       - 3
+
+       - 2
+
+       - 1
+
+       - 0
+---
+ref: fact-query-bitsallset-description
+replacement:
+  op: "$bitsAllSet"
+inherit:
+  ref: _fact-query-bitwise-description
+  file: extracts-fact-query-bitwise.yaml
+---
+ref: fact-query-bitsanyset-description
+replacement:
+  op: "$bitsAnySet"
+inherit:
+  ref: _fact-query-bitwise-description
+  file: extracts-fact-query-bitwise.yaml
+---
+ref: fact-query-bitsallclear-description
+replacement:
+  op: "$bitsAllClear"
+inherit:
+  ref: _fact-query-bitwise-description
+  file: extracts-fact-query-bitwise.yaml
+---
+ref: fact-query-bitsanyclear-description
+replacement:
+  op: "$bitsAnyClear"
+inherit:
+  ref: _fact-query-bitwise-description
+  file: extracts-fact-query-bitwise.yaml
+---
+ref: _fact-query-bitwise-floating-point
+content: |
+  :query:`{{op}}` will not match numerical values that cannot be represented as
+  a signed 64-bit integer. This can be the case if a value is either too large
+  or too small to fit in a signed 64-bit integer, or if it has a fractional
+  component.
+---
+ref: fact-query-bitsallset-floating-point
+replacement:
+  op: "$bitsAllSet"
+inherit:
+  ref: _fact-query-bitwise-floating-point
+  file: extracts-fact-query-bitwise.yaml
+---
+ref: fact-query-bitsanyset-floating-point
+replacement:
+  op: "$bitsAnySet"
+inherit:
+  ref: _fact-query-bitwise-floating-point
+  file: extracts-fact-query-bitwise.yaml
+---
+ref: fact-query-bitsallclear-floating-point
+replacement:
+  op: "$bitsAllClear"
+inherit:
+  ref: _fact-query-bitwise-floating-point
+  file: extracts-fact-query-bitwise.yaml
+---
+ref: fact-query-bitsanyclear-floating-point
+replacement:
+  op: "$bitsAnyClear"
+inherit:
+  ref: _fact-query-bitwise-floating-point
+  file: extracts-fact-query-bitwise.yaml
+---
+ref: _fact-query-bitwise-sign-extension
+content: |
+  Numbers are sign extended. For example, :query:`{{op}}` considers bit position ``200``
+  to be set for the negative number ``-5``, but bit position ``200`` to be clear
+  for the positive number ``+5``.
+
+  In contrast, :doc:`BinData </reference/bson-types>` instances are zero-extended.
+  For example, given the following document:
+
+  .. code-block:: javascript
+
+     db.collection.save({ x: BinData(0, "ww=="), binaryValueofA: "11000011" })
+
+  :query:`{{op}}` will consider all bits outside of ``x`` to be clear.
+---
+ref: fact-query-bitsallset-sign-extension
+replacement:
+  op: "$bitsAllSet"
+inherit:
+  ref: _fact-query-bitwise-sign-extension
+  file: extracts-fact-query-bitwise.yaml
+---
+ref: fact-query-bitsanyset-sign-extension
+replacement:
+  op: "$bitsAnySet"
+inherit:
+  ref: _fact-query-bitwise-sign-extension
+  file: extracts-fact-query-bitwise.yaml
+---
+ref: fact-query-bitsallclear-sign-extension
+replacement:
+  op: "$bitsAllClear"
+inherit:
+  ref: _fact-query-bitwise-sign-extension
+  file: extracts-fact-query-bitwise.yaml
+---
+ref: fact-query-bitsanyclear-sign-extension
+replacement:
+  op: "$bitsAnyClear"
+inherit:
+  ref: _fact-query-bitwise-sign-extension
+  file: extracts-fact-query-bitwise.yaml
+---
+ref: fact-query-bitwise-example-collection
+content: |
+  The following examples will use a collection with the following documents:
+
+  .. code-block:: javascript
+
+     db.collection.save({ _id: 1, a: 54, binaryValueofA: "00110110" })
+     db.collection.save({ _id: 2, a: 20, binaryValueofA: "00010100" })
+     db.collection.save({ _id: 3, a: 20.0, binaryValueofA: "00010100" })
+     db.collection.save({ _id: 4, a: BinData(0, "Zg=="), binaryValueofA: "01100110" })
+---
+ref: _fact-query-bitwise-indexes
+content: |
+  Queries cannot use indexes for the :query:`{{op}}` portion of a
+  query, although the other portions of a query can use indexes, if
+  applicable.
+---
+ref: fact-query-bitwise-indexes-bitsAnySet
+replacement:
+  op: "$bitsAnySet"
+inherit:
+  ref: _fact-query-bitwise-indexes
+  file: extracts-fact-query-bitwise.yaml
+---
+ref: fact-query-bitwise-indexes-bitsAnyClear
+replacement:
+  op: "$bitsAnyClear"
+inherit:
+  ref: _fact-query-bitwise-indexes
+  file: extracts-fact-query-bitwise.yaml
+---
+ref: fact-query-bitwise-indexes-bitsAllSet
+replacement:
+  op: "$bitsAllSet"
+inherit:
+  ref: _fact-query-bitwise-indexes
+  file: extracts-fact-query-bitwise.yaml
+---
+ref: fact-query-bitwise-indexes-bitsAllClear
+replacement:
+  op: "$bitsAllClear"
+inherit:
+  ref: _fact-query-bitwise-indexes
+  file: extracts-fact-query-bitwise.yaml  
+...

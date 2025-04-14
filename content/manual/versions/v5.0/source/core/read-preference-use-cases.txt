@@ -1,0 +1,208 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+.. _read-preference-use-cases:
+
+=========================
+Read Preference Use Cases
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The following document explains common use cases for various
+:ref:`read preference <read-preference>` modes, as well as
+:ref:`counter-indications <read-preference-counter-indications>`
+outlining when you should not change the read preference from the
+default :readmode:`primary`.
+
+Read Preference Modes
+---------------------
+
+.. include:: /includes/read-preference-modes-table.rst
+
+Indications to Use Non-Primary Read Preference
+----------------------------------------------
+
+The following are common use cases for using non-:readmode:`primary`
+read preference modes:
+
+- Running systems operations that do not affect the front-end
+  application.
+
+  .. note::
+
+     Read preferences aren't relevant to direct connections to
+     a single :binary:`~bin.mongod` instance. However, in order to perform
+     read operations on a direct connection to a secondary member of a
+     replica set, you must set a read preference, such as
+     :term:`secondary`.
+
+- Providing local reads for geographically distributed applications.
+
+  If you have application servers in multiple data centers, you may
+  consider having a :ref:`geographically distributed replica set
+  <replica-set-geographical-distribution>` and using a non primary or 
+  :readmode:`nearest` read preference. This allows the client to read
+  from the lowest-latency members, rather than always reading from the
+  primary.
+
+- Maintaining availability during a failover.
+
+  Use :readmode:`primaryPreferred` if you want an application to
+  read from the primary under normal circumstances, but to
+  allow :term:`stale reads <stale read>` from secondaries when the primary is 
+  unavailable. 
+
+.. _read-preference-counter-indications:
+
+Counter-Indications for Non-Primary Read Preference
+---------------------------------------------------
+
+In general, do *not* use :readmode:`secondary` and
+:readmode:`secondaryPreferred` to provide extra capacity for
+reads, because:
+
+- All members of a replica have roughly equivalent write traffic; as a
+  result, secondaries will service reads at roughly the same rate as
+  the primary.
+
+- Replication is asynchronous and there is some amount of
+  delay between a successful write operation and its replication to
+  secondaries. Reading from a secondary can return stale data;
+  reading from different secondaries may result in non-monotonic reads.
+  
+  .. note::
+
+     Clients can use :ref:`sessions` to ensure monotonic reads.
+
+- Distributing read operations to secondaries can compromise availability
+  if *any* members of the set become unavailable because the remaining
+  members of the set will need to be able to handle all application
+  requests.
+
+:doc:`Sharding </sharding>` increases read and write capacity by
+distributing read and write operations across a group of machines,
+and is often a better strategy for adding capacity.
+
+See :doc:`/core/read-preference-mechanics` for more information
+about the internal application of read preferences.
+
+.. _maximize-consistency:
+
+Maximize Consistency
+--------------------
+
+To avoid *stale* reads, use :readmode:`primary` read preference and
+:readconcern:`"majority"` ``readConcern``. If the primary is
+unavailable, e.g. during elections or when a majority of the replica
+set is not accessible, read operations using :readmode:`primary` read
+preference produce an error or throw an exception.
+
+.. _edge-cases:
+
+In some circumstances, it may be possible for a replica set to
+temporarily have two primaries; however, only one primary will be
+capable of confirming writes with the :writeconcern:`"majority"` write
+concern.
+
+- A partial :term:`network partition` may segregate a primary (``P``\
+  :sub:`old`) into a partition with a minority of the nodes, while the
+  other side of the partition contains a majority of nodes. The
+  partition with the majority will elect a new primary (``P``\
+  :sub:`new`), but for a brief period, the old primary (``P``\
+  :sub:`old`) may still continue to serve reads and writes, as it has
+  not yet detected that it can only see a minority of nodes in the
+  replica set. During this period, if the old primary (``P``\
+  :sub:`old`) is still visible to clients as a primary, reads from this
+  primary may reflect stale data.
+
+- A primary (``P``\ :sub:`old`) may become unresponsive, which will
+  trigger an election and a new primary (``P``\ :sub:`new`) can be
+  elected, serving reads and writes. If the unresponsive primary
+  (``P``\ :sub:`old`) starts responding again, two primaries will be
+  visible for a brief period. The brief period will end when ``P``\
+  :sub:`old` steps down. However, during the brief period, clients
+  might read from the old primary ``P``\ :sub:`old`, which can provide
+  stale data.
+
+To increase consistency, you can disable automatic :term:`failover`;
+however, disabling automatic failover sacrifices availability.
+
+Maximize Availability
+---------------------
+
+To permit read operations when possible, use
+:readmode:`primaryPreferred`. When there's a primary you will get
+consistent reads [#edge-cases-2-primaries]_, but if there is no primary
+you can still query :term:`secondaries <secondary>`. However, when
+using this read mode, consider the situation described in
+:ref:`caveat-secondaryPreferred`.
+
+.. [#edge-cases-2-primaries]
+
+   .. include:: /includes/footnote-two-primaries-edge-cases.rst
+
+Minimize Latency
+----------------
+
+To always read from a low-latency node, use :readmode:`nearest`. The
+driver or :binary:`~bin.mongos` will read from the nearest member and
+those no more than 15 milliseconds [#secondary-acceptable-latency]_
+further away than the nearest member.
+
+:readmode:`nearest` does *not* guarantee consistency. If the nearest
+member to your application server is a secondary with some replication
+lag, queries could return stale data. :readmode:`nearest` only
+reflects network distance and does not reflect I/O or CPU load.
+
+.. [#secondary-acceptable-latency] This threshold is configurable. See
+   :setting:`localThresholdMs` for :binary:`~bin.mongos` or your driver
+   documentation for the appropriate setting.
+
+Query From Geographically Distributed Members
+---------------------------------------------
+
+If the members of a replica set are geographically distributed, you
+can create replica tags based that reflect the location of the instance and
+then configure your application to query the members nearby.
+
+For example, if members in "east" and "west" data centers are
+:ref:`tagged <replica-set-configuration-tag-sets>` ``{'dc': 'east'}`` and
+``{'dc': 'west'}``, your application servers in the east data center can read
+from nearby members with the following read preference:
+
+.. code-block:: javascript
+
+   db.collection.find().readPref('nearest', [ { 'dc': 'east' } ])
+
+Although :readmode:`nearest` already favors members with low network latency,
+including the tag makes the choice more predictable.
+
+.. _caveat-secondaryPreferred:
+
+``secondary`` vs ``secondaryPreferred``
+---------------------------------------
+
+For specific dedicated queries (e.g. ETL, reporting), you may shift the
+read load from the primary by using the :readmode:`secondary` read
+preference mode. For this use case, the :readmode:`secondary` mode is
+preferable to the :readmode:`secondaryPreferred` mode because
+:readmode:`secondaryPreferred` risks the following situation: if all
+secondaries are unavailable and your replica set has enough :term:`arbiters
+<arbiter>` [#arbiter-limit]_ to prevent the primary from stepping down,
+then the primary will receive all traffic from the clients. If the
+primary is unable to handle this load, the queries will compete with
+the writes. For this reason, use read preference :readmode:`secondary` to
+distribute these specific dedicated queries instead of
+:readmode:`secondaryPreferred`.
+
+.. [#arbiter-limit]
+   In general, avoid deploying arbiters in replica sets and use an
+   odd number of data-bearing nodes instead. If you must deploy
+   arbiters, avoid deploying more than one arbiter per replica set.

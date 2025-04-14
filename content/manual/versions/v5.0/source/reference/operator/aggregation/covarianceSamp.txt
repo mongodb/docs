@@ -1,0 +1,115 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+=============================
+$covarianceSamp (aggregation)
+=============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. versionadded:: 5.0
+
+.. group:: $covarianceSamp
+
+Returns the sample covariance of two numeric :ref:`expressions
+<aggregation-expressions>` that are evaluated using documents in the
+:pipeline:`$setWindowFields` stage :ref:`window
+<setWindowFields-window>`.
+
+:group:`$covarianceSamp` is only available in the
+:pipeline:`$setWindowFields` stage.
+
+:group:`$covarianceSamp` syntax:
+
+.. code-block:: none
+   :copyable: false
+
+   {
+      $covarianceSamp:
+      [
+         <numeric expression 1>,
+         <numeric expression 2>
+      ]
+   } 
+
+Behavior
+--------
+
+:group:`$covarianceSamp` behavior:
+
+.. |covariance-method| replace:: :group:`$covariancePop`
+.. |covariance-value| replace:: ``0``
+
+.. include:: /includes/covariance-behavior.rst
+
+Example
+-------
+
+.. include:: /includes/setWindowFields-example-collection.rst
+
+This example uses :group:`$covarianceSamp` in the
+:pipeline:`$setWindowFields` stage to output the sample covariance
+values for the cake sales ``orderDate`` year and ``quantity`` values:
+
+.. code-block:: javascript
+
+   db.cakeSales.aggregate( [
+      {
+         $setWindowFields: {
+            partitionBy: "$state",
+            sortBy: { orderDate: 1 },
+            output: {
+               covarianceSampForState: {
+                  $covarianceSamp: [ { $year: "$orderDate" }, "$quantity" ],
+                  window: {
+                     documents: [ "unbounded", "current" ]
+                  }
+               }
+            }
+         }
+      }
+   ] )
+
+In the example:
+
+.. include:: /includes/setWindowFields-partition-sort-date.rst
+
+- ``output`` sets the sample covariance values for the
+  ``orderDate`` year and ``quantity`` values using
+  :group:`$covarianceSamp` run in a :ref:`documents
+  <setWindowFields-documents>` window.
+
+  The :ref:`window <setWindowFields-window>` contains documents between
+  an ``unbounded`` lower limit and the ``current`` document in the
+  output. This means :group:`$covarianceSamp` sets the
+  ``covarianceSampForState`` field to the sample covariance values
+  for the documents between the beginning of the partition and the
+  current document.
+
+In this output, the sample covariance is shown in the
+``covarianceSampForState`` field:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 4, "type" : "strawberry", "orderDate" : ISODate("2019-05-18T16:09:01Z"),
+     "state" : "CA", "price" : 41, "quantity" : 162, "covarianceSampForState" : null }
+   { "_id" : 0, "type" : "chocolate", "orderDate" : ISODate("2020-05-18T14:10:30Z"),
+     "state" : "CA", "price" : 13, "quantity" : 120, "covarianceSampForState" : -21 }
+   { "_id" : 2, "type" : "vanilla", "orderDate" : ISODate("2021-01-11T06:31:15Z"),
+     "state" : "CA", "price" : 12, "quantity" : 145, "covarianceSampForState" : -8.500000000000007 }
+   { "_id" : 5, "type" : "strawberry", "orderDate" : ISODate("2019-01-08T06:12:03Z"),
+     "state" : "WA", "price" : 43, "quantity" : 134, "covarianceSampForState" : null }
+   { "_id" : 3, "type" : "vanilla", "orderDate" : ISODate("2020-02-08T13:13:23Z"),
+     "state" : "WA", "price" : 13, "quantity" : 104, "covarianceSampForState" : -15 }
+   { "_id" : 1, "type" : "chocolate", "orderDate" : ISODate("2021-03-20T11:30:05Z"),
+     "state" : "WA", "price" : 14, "quantity" : 140, "covarianceSampForState" : 3 }

@@ -1,0 +1,117 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+.. _drop-a-hashed-shard-key-index:
+
+=============================
+Drop a Hashed Shard Key Index
+=============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/drop-hashed-shard-key-index-main.rst
+
+About this Task
+---------------
+
+Dropping an `unnecessary index 
+<http://www.mongodb.com/developer/products/mongodb/schema-design-anti-pattern-unnecessary-indexes/>`_ 
+can speed up CRUD operations. Each CRUD operation has to update all the 
+indexes related to a document. Removing one index can increase the 
+speed of all CRUD operations.  
+
+When you drop a hashed shard key index, the server disables balancing 
+for that collection and excludes the collection from future balancing
+rounds. In order to include the collection in balancing rounds once
+again, you must recreate the shard key index. 
+
+.. important::
+
+   You should only drop a hashed shard key index from a collection 
+   if a supporting non-hashed index on the shard key exists. If a 
+   supporting non-hashed index does not exist on the shard key, queries 
+   filtering by the shard key perform a :term:`collection scan`.
+   To see what indexes exist on a collection, use 
+   :method:`db.collection.getIndexes()`.
+
+Steps
+-----
+
+.. procedure::
+   :style: normal
+
+   .. step:: Stop the balancer
+  
+      Run the following command to stop the balancer:
+
+      .. code-block:: javascript
+
+         sh.stopBalancer()
+
+      You can only run ``sh.stopBalancer()`` on ``mongos``. 
+      ``sh.stopBalancer()`` produces an error if run on ``mongod``.
+
+   .. step:: Confirm there are no orphaned documents in your collection
+
+      .. warning::
+
+         Skipping this step causes :pipeline:`$collStats` to report an 
+         incorrect orphaned document count and affects balancing operations 
+         if the index is re-added.
+
+      Run the following command on the primary :binary:`~bin.mongod` for every
+      shard on the cluster:
+
+      .. code-block:: javascript
+      
+         db.runCommand(
+            {
+              cleanupOrphaned: "<database>.<collection>"
+            }
+         )
+
+      ``cleanupOrphaned`` returns either ``1`` or ``0``.
+
+      A value of ``1`` indicates that either:
+
+      - No orphaned documents remain in the ``cleanupOrphaned`` namespace
+        on the shard
+      - The collection referenced in the ``cleanupOrphaned`` namespace is
+        not sharded
+
+      A value of ``0`` indicates that an error has occurred.
+  
+      Repeat this step on each primary :binary:`~bin.mongod` in the cluster.
+
+   .. step:: Drop the hashed shard key index 
+
+      Run the following command to drop the index:
+ 
+      .. code-block:: javascript
+
+         db.collection.dropIndex("<index name>")
+
+   .. step:: Restart the balancer
+
+      Run the following command to restart the balancer on the cluster:
+
+      .. code-block:: javascript
+
+         sh.startBalancer()
+
+
+Learn More
+----------
+
+- :ref:`sharding-hashed`
+- :ref:`sharding-balancing`
+- :method:`db.collection.dropIndex()`
+- :method:`sh.stopBalancer()`
+- :method:`sh.startBalancer()`
+- :method:`sh.getBalancerState()`

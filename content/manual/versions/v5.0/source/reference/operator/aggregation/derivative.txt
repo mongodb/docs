@@ -1,0 +1,191 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+=========================
+$derivative (aggregation)
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. versionadded:: 5.0
+
+.. group:: $derivative
+
+Returns the average rate of change within the specified :ref:`window
+<setWindowFields-window>`, which is calculated using the:
+
+- First and last documents in the :pipeline:`$setWindowFields` stage
+  :ref:`window <setWindowFields-window>`.
+
+- Numerator, which is set to the result of subtracting the numeric
+  :ref:`expression <aggregation-expressions>` value for the first
+  document from the :ref:`expression <aggregation-expressions>` value
+  for the last document.
+
+- Denominator, which is set to the result of subtracting the
+  :ref:`sortBy <setWindowFields-sortBy>` field value for the first
+  document from the :ref:`sortBy <setWindowFields-sortBy>` field value
+  for the last document.
+
+:group:`$derivative` is only available in the
+:pipeline:`$setWindowFields` stage. You must specify a :ref:`window
+<setWindowFields-window>` in the :pipeline:`$setWindowFields` stage when
+using :group:`$derivative`.
+
+:group:`$derivative` syntax:
+
+.. code-block:: none
+   :copyable: false
+
+   {
+      $derivative: {
+         input: <expression>,
+         unit: <time unit>
+      }
+   } 
+
+:group:`$derivative` takes a document with these fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 85
+
+   * - Field
+     - Description
+
+   * - :ref:`input <derivative-input>`
+
+     - .. _derivative-input:
+     
+       Specifies the :ref:`expression <aggregation-expressions>` to
+       evaluate. The expression must evaluate to a number.
+
+   * - :ref:`unit <derivative-unit>`
+
+     - .. _derivative-unit:
+       
+       .. include:: /includes/outputUnit-behavior.rst
+
+Behavior
+--------
+
+You must specify a :ref:`window <setWindowFields-window>` in the
+:pipeline:`$setWindowFields` stage when using :group:`$derivative`.
+
+Example
+-------
+
+Create a ``deliveryFleet`` collection that contains odometer
+readings for delivery trucks recorded at 30 second intervals:
+
+.. code-block:: javascript
+
+   db.deliveryFleet.insertMany( [
+      { truckID: "1", timeStamp: new Date( "2020-05-18T14:10:30Z" ), miles: 1295.1 },
+      { truckID: "1", timeStamp: new Date( "2020-05-18T14:11:00Z" ), miles: 1295.63 },
+      { truckID: "1", timeStamp: new Date( "2020-05-18T14:11:30Z" ), miles: 1296.25 },
+      { truckID: "1", timeStamp: new Date( "2020-05-18T14:12:00Z" ), miles: 1296.76 },
+      { truckID: "2", timeStamp: new Date( "2020-05-18T14:10:30Z" ), miles: 10234.1 },
+      { truckID: "2", timeStamp: new Date( "2020-05-18T14:11:00Z" ), miles: 10234.33 },
+      { truckID: "2", timeStamp: new Date( "2020-05-18T14:11:30Z" ), miles: 10234.73 },
+      { truckID: "2", timeStamp: new Date( "2020-05-18T14:12:00Z" ), miles: 10235.13 }
+   ] )
+
+This example uses :group:`$derivative` in the
+:pipeline:`$setWindowFields` stage to obtain the average speed in miles
+per hour for each truck, and the :pipeline:`$match` stage to filter the
+results to trucks whose speed exceeded 50 miles per hour:
+
+.. code-block:: javascript
+
+   db.deliveryFleet.aggregate( [
+      {
+         $setWindowFields: {
+            partitionBy: "$truckID",
+            sortBy: { timeStamp: 1 },
+            output: {
+               truckAverageSpeed: {
+                  $derivative: {
+                     input: "$miles",
+                     unit: "hour"
+                  },
+                  window: {
+                     range: [ -30, 0 ],
+                     unit: "second"
+                  }
+               }
+            }
+         }
+      },
+      {
+         $match: {
+            truckAverageSpeed: {
+               $gt: 50
+            }
+         }
+      }
+   ] )
+
+In the example:
+
+- The :pipeline:`$setWindowFields` stage obtains the average speed in
+  miles per hour for each truck:
+
+  - ``partitionBy: "$truckID"`` :ref:`partitions
+    <setWindowFields-partitionBy>` the documents in the collection by
+    ``truckID``.
+
+  - ``sortBy: { timeStamp: 1 }`` :ref:`sorts
+    <setWindowFields-sortBy>` the documents in each partition by
+    ``timeStamp`` in ascending order (``1``), so the earliest
+    odometer reading is first.
+
+  - ``output`` sets the ``miles`` derivative value in a new
+    field called ``truckAverageSpeed`` using :group:`$derivative` that
+    is run in a :ref:`range <setWindowFields-range>` window.
+
+    - The :ref:`input <derivative-input>` expression is set to
+      ``"$miles"``, which is used in the numerator for the derivative
+      calculation.
+
+    - The :group:`$derivative` :ref:`unit <derivative-unit>` is set to
+      ``"hour"`` for the ``timeStamp`` field, which is used in the
+      denominator for the derivative calculation.
+
+    - The :ref:`window <setWindowFields-window>` contains the
+      :ref:`range <setWindowFields-range>` between a lower limit of
+      ``-30`` seconds (the previous 30 seconds from the current
+      document in the output) and ``0`` seconds (matches the current
+      document's ``timeStamp`` value in the output). This means
+      :group:`$derivative` returns the average speed for each truck in
+      miles per hour in the 30 second window.
+
+- The :pipeline:`$match` stage uses the greater than operator
+  :expression:`$gt` to filter the results to trucks whose speed exceeded
+  50 miles per hour.
+
+In the following example output, the speed for truck 1 is shown in the
+``truckAverageSpeed`` field. The speed for truck 2 is not shown because
+truck 2 did not exceed 50 miles per hour.
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : ObjectId("60cb8a7e833dfeadc8e6285c"), "truckID" : "1",
+     "timeStamp" : ISODate("2020-05-18T14:11:00Z"), "miles" : 1295.63,
+     "truckAverageSpeed" : 63.60000000002401 }
+   { "_id" : ObjectId("60cb8a7e833dfeadc8e6285d"), "truckID" : "1",
+     "timeStamp" : ISODate("2020-05-18T14:11:30Z"), "miles" : 1296.25,
+     "truckAverageSpeed" : 74.3999999999869 }
+   { "_id" : ObjectId("60cb8a7e833dfeadc8e6285e"), "truckID" : "1",
+     "timeStamp" : ISODate("2020-05-18T14:12:00Z"), "miles" : 1296.76,
+     "truckAverageSpeed" : 61.199999999998916 }

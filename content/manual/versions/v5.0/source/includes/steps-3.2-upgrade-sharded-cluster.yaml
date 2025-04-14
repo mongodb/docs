@@ -1,0 +1,108 @@
+title: Disable the Balancer.
+level: 4
+ref: 3.2-upgrade-disable-balancer
+content: |
+  Disable the balancer as described in
+  :ref:`sharding-balancing-disable-temporarily`.
+---
+title: Upgrade the shards.
+level: 4
+ref: 3.2-upgrade-shards
+content: |
+   Upgrade the shards one at a time. If the shards are replica sets,
+   for each shard:
+
+   a. Upgrade the :ref:`secondary <replica-set-secondary-members>`
+      members of the replica set one at a time:
+
+      - Shut down the :binary:`~bin.mongod` instance and replace the 3.0
+        binary with the 3.2 binary.
+
+      - Restart the member and wait for the member to recover to
+        ``SECONDARY`` state before upgrading the next secondary member.
+        To check the member's state, issue :method:`rs.status()` in the
+        :binary:`~bin.mongo` shell.
+
+   #. Step down the replica set primary.
+
+      Connect a :binary:`~bin.mongo` shell to the primary and use
+      :method:`rs.stepDown()` to step down the primary and force an
+      election of a new primary:
+
+      .. code-block:: javascript
+
+         rs.stepDown()
+
+   #. When :method:`rs.status()`
+      shows that the primary has stepped down and another member
+      has assumed ``PRIMARY`` state, upgrade the stepped-down primary: 
+
+      - Shut down the stepped-down primary and replace the
+        :binary:`~bin.mongod` binary with the 3.2 binary.
+
+      - Restart.
+---
+title: "Upgrade the config servers."
+level: 4
+ref: 3.2-upgrade-upgrade-config-servers
+content: |  
+  Upgrade the config servers one at a time in reverse order of the
+  :setting:`~sharding.configDB` or :option:`--configdb <mongos --configdb>` setting for the
+  :binary:`~bin.mongos`. That is, if the :binary:`~bin.mongos` has the
+  following :option:`--configdb  <mongos --configdb>` listing:
+
+  .. code-block:: bash
+
+     mongos --configdb confserver1:port1,confserver2:port2,confserver3:port2
+
+  Upgrade first ``confserver3``, then ``confserver2``, and lastly
+  ``confserver1``.
+
+  Starting with the last config server listed in the
+  :setting:`~sharding.configDB` setting:
+
+  a. Stop the config server and replace with the 3.2 binary.
+
+  #. Start the 3.2 binary with both the ``--configsvr`` and
+     ``--port`` options:
+
+     .. code-block:: bash
+
+        mongod --configsvr --port <port> --dbpath <path>
+
+     If using a :doc:`configuration file
+     </reference/configuration-options>`, specify
+     :setting:`sharding.clusterRole: configsvr <sharding.clusterRole>`
+     and :setting:`net.port` in the file:
+
+     .. code-block:: yaml
+
+        sharding:
+           clusterRole: configsvr
+        net:
+           port: <port>
+        storage:
+           dbpath: <path>
+
+  Repeat for the config server listed *second* in the
+  :setting:`~sharding.configDB` setting, and finally the config server
+  listed *first* in the :setting:`~sharding.configDB` setting.
+---
+title: "Upgrade the ``mongos`` instances."
+level: 4
+ref: 3.2-upgrade-mongos-instances
+content: |
+  Replace each :binary:`~bin.mongos` instance with the 3.2 binary and
+  restart.
+
+  .. code-block:: bash
+
+     mongos --configdb <cfgsvr1:port1>,<cfgsvr2:port2>,<cfgsvr3:port3>
+---
+title: "Re-enable the balancer."
+level: 4
+ref: 3.2-reenable-balancer
+content: |
+  Re-enable the balancer as described in
+  :ref:`sharding-balancing-enable`.
+...

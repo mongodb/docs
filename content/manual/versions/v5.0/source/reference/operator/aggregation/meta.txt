@@ -1,0 +1,409 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+=====
+$meta
+=====
+
+.. default-domain:: mongodb
+
+
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $meta
+
+   Returns the metadata associated with a document, e.g.
+   ``"textScore"`` when performing text search.
+
+   .. |meta-object| replace:: :expression:`$meta`
+   .. |empty-value| replace:: null
+
+   .. include:: /includes/fact-meta-syntax.rst
+
+Behavior
+--------
+
+.. _project-meta-textscore-sort:
+
+Text Score Metadata ``$meta: "textScore"``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Requires $text Search
+`````````````````````
+
+- The ``{ $meta: "textScore" }`` expression must be used in
+  conjunction with :query:`$text`. For example:
+
+  - In aggregation, you must specify a :pipeline:`$match` stage
+    with a ``$text`` query in the pipeline to use the ``{
+    $meta: "textScore" }`` expression in later stage(s). If you
+    do not specify the ``$text`` query in the
+    :pipeline:`$match` stage, the operation fails.
+
+  - In find, you must specify the ``$text`` operator in the
+    query predicate to use ``{ $meta: "textScore" }``. If you do not specify 
+    the ``$text`` operator in the query predicate, the operation fails.
+
+  .. include:: /includes/text-search-legacy-atlas-section.rst
+     
+Availability
+````````````
+
+- In aggregation, the ``{ $meta: "textScore" }`` expression can
+  be included in various stages that accept aggregation
+  expressions, such as :pipeline:`$project`, :pipeline:`$group`
+  :pipeline:`$sort`, etc.
+
+- In find, the ``{ $meta: "textScore" }`` expression can be
+  included in :ref:`projection <find-projection>` and in
+  :method:`~cursor.sort()`.
+
+Usage In Projection
+```````````````````
+
+- The ``{ $meta: "textScore" }`` expression can be a part of the
+  :term:`projection` document to include the text score metadata.
+
+- The :expression:`$meta` expression can be present in either an
+  inclusion or an exclusion projection.
+
+- If you set the expression to a field name that already exists
+  in the document, the projected metadata value overwrites the
+  existing value.
+
+Filter on Text Score
+````````````````````
+
+- In aggregation, following a stage that outputs a field with
+  the text score value, you can specify a query condition or
+  operate on the field in subsequent stages. For example, see
+  :doc:`/tutorial/text-search-in-aggregation`.
+
+- In find, you cannot specify a query condition on the text
+  score. Use aggregation instead.
+
+Usage In Sort
+`````````````
+
+- The ``{ $meta: "textScore" }`` expression can be used as a
+  part of a sort operation to sort by the text score metadata;
+  i.e.,
+
+  - In aggregation, :pipeline:`$sort` stage.
+
+  - In find, :method:`~cursor.sort()` method.
+
+- The ``"textScore"`` metadata sorts in descending order.
+
+- To use in a sort operation, set the ``{ $meta: "textScore" }``
+  expression to an arbitrary field name. The field name is
+  disregarded by the query system.
+
+Sort without Projection
+```````````````````````
+
+- In aggregation, you can sort the resulting documents by ``{
+  $meta: "textScore" }`` without also having to project the
+  ``textScore``.
+  
+- In find, you can sort the resulting documents by ``{ $meta: "textScore" }`` 
+  without also having to project the ``textScore``.
+
+Sort with Projection
+````````````````````
+
+- In aggregation, if you include the :expression:`{ $meta: "textScore" }
+  <$meta>` expression in both the projection and sort, the
+  projection and sort can have different field names for the
+  expression. The field name in the sort is disregarded by the query
+  system.
+
+- In find, if you include the :expression:`{ $meta: "textScore" } <$meta>` 
+  expression in both the projection and sort, the projection and sort can have
+  different field names for the expression. The field name in the
+  sort is disregarded by the query system.
+
+Index Key Metadata $meta: "indexKey" (Aggregation and Find)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Usage
+`````
+
+- The ``{ $meta: "indexKey" }`` expression is for debugging purposes
+  only and not for application logic.
+
+- The ``{ $meta: "indexKey" }`` expression is preferred over
+  :method:`cursor.returnKey()`.
+
+Availability
+````````````
+
+- **In aggregation**, the ``{ $meta: "indexKey" }`` expression can
+  be included in various stages that accept aggregation
+  expressions, such as :pipeline:`$project`, :pipeline:`$group`
+  :pipeline:`$sortByCount`, etc., but not :pipeline:`$sort`.
+  However, with an aggregation pipeline, you can first project
+  the ``{ $meta: "indexKey" }`` expression (such as in a
+  :pipeline:`$project`, :pipeline:`$addFields`, etc. ) and then,
+  sort by that field in a subsequent :pipeline:`$sort` stage.
+
+- **In find**, the ``{ $meta: "indexKey" }`` expression is only
+  available as part of the :term:`projection` document.
+
+Return Value
+````````````
+
+- The value returned depends on how the database decides to
+  represent values in an index and may change across versions. The
+  represented value may not be the actual value for the field. 
+
+- The value returned depends on the execution plan chosen by the
+  system. For example, if there are two possible indexes which can
+  be used to answer the query, then the value of the "indexKey"
+  metadata depends on which index is selected.
+
+- If an index is :red:`not` used, the ``{ $meta: "indexKey" }``
+  expression does not return a value and the field is not included
+  as part of the output.
+
+Examples
+--------
+
+.. TODO when $meta returns other data that requires documentation,
+   subsection Examples section by keywords.
+
+``$meta: "textScore"``
+~~~~~~~~~~~~~~~~~~~~~~
+
+Create an ``articles`` collection with the following documents:
+
+.. code-block:: javascript
+
+   db.articles.insertMany([
+      { "_id" : 1, "title" : "cakes and ale" },
+      { "_id" : 2, "title" : "more cakes" },
+      { "_id" : 3, "title" : "bread" },
+      { "_id" : 4, "title" : "some cakes" },
+      { "_id" : 5, "title" : "two cakes to go" },
+      { "_id" : 6, "title" : "pie" }
+   ])
+
+Create a :ref:`text index <create-text-index>` on the ``title`` field:
+
+.. code-block:: javascript
+
+   db.articles.createIndex( { title: "text"} )
+
+.. tabs::
+
+   .. tab:: Aggregation
+      :tabid: aggregation
+
+      The following aggregation operation performs a text search and uses the
+      :expression:`$meta` operator to group by the text search score:
+
+      .. code-block:: javascript
+
+         db.articles.aggregate(
+            [
+              { $match: { $text: { $search: "cake" } } },
+              { $group: { _id: { $meta: "textScore" }, count: { $sum: 1 } } }
+            ]
+         )
+
+      The operation returns the following results:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         { "_id" : 0.75, "count" : 1 }
+         { "_id" : 0.6666666666666666, "count" : 1 }
+         { "_id" : 1, "count" : 2 }
+
+      For more examples, see :doc:`/tutorial/text-search-in-aggregation`.
+
+   .. tab:: Find and Project
+      :tabid: find
+
+      The following query performs a text search for the term ``cake`` and
+      uses the :expression:`$meta` operator in the projection document to
+      include the score assigned to each matching document:
+
+      .. code-block:: javascript
+
+         db.articles.find(
+            { $text: { $search: "cake" } },
+            { score: { $meta: "textScore" } }
+         )
+
+      The operation returns the following documents with the text score:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         { "_id" : 4, "title" : "some cakes", "score" : 1 }
+         { "_id" : 1, "title" : "cakes and ale", "score" : 0.75 }
+         { "_id" : 5, "title" : "two cakes to go", "score" : 0.6666666666666666 }
+         { "_id" : 2, "title" : "more cakes", "score" : 1 }
+
+      For additional examples of ``"textScore"`` projections and sorts,
+      see :ref:`ex-text-search-score`.
+
+``$meta: "indexKey"``
+~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   The ``{ $meta: "indexKey" }`` expression is for debugging
+   purposes only and not for application logic. MongoDB returns the
+   value associated with the index chosen by the query system. The
+   system can choose a different index upon subsequent execution.
+
+   For the selected index, the value returned depends on how the
+   database decides to represent values in an index and may change
+   across versions. The represented value may not be the actual
+   value for the field.
+
+
+Create an ``orders`` collection with the following documents:
+
+.. code-block:: javascript
+
+   db.orders.insertMany([
+      { "item" : "abc", "price" : NumberDecimal("12"), "quantity" : 2, "type": "apparel" },
+      { "item" : "jkl", "price" : NumberDecimal("20"), "quantity" : 1, "type": "electronics" },
+      { "item" : "abc", "price" : NumberDecimal("10"), "quantity" : 5, "type": "apparel" }
+   ])
+
+Create the following compound index on the ``type`` and ``item`` fields:
+
+.. code-block:: javascript
+
+   db.orders.createIndex( { type: 1, item: 1 } )
+
+.. tabs::
+
+   .. tab:: Aggregation
+      :tabid: aggregation
+
+      The following aggregation operation finds all documents with ``type``
+      equal to ``apparel`` and uses the :expression:`$meta` operator to
+      include the index key value for the matching document if an index was
+      used:
+
+      .. code-block:: javascript
+
+         db.orders.aggregate(
+            [
+              { $match: { type: "apparel" } },
+              { $addFields: { idxKey: { $meta: "indexKey" } } }
+            ]
+         )
+
+   .. tab:: Find and Project
+      :tabid: find
+
+      The following operation finds all documents with ``type``
+      equal to ``apparel`` and uses the :expression:`$meta` operator to
+      include the index key value for the matching document if an index was
+      used:
+
+      .. code-block:: javascript
+
+         db.orders.find( { type: "apparel" }, { idxKey: { $meta: "indexKey" } } )
+
+The operation returns the matching documents with their
+corresponding index key:
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 7,15
+
+   {
+      "_id" : ObjectId("5e98a33ceaf5e9dcf2b8dcde"),
+      "item" : "abc",
+      "price" : NumberDecimal("12"),
+      "quantity" : 2,
+      "type" : "apparel",        
+      "idxKey" : { "type" : "apparel", "item" : "abc" }
+   }
+   {
+      "_id" : ObjectId("5e98a33ceaf5e9dcf2b8dce0"),
+      "item" : "abc",
+      "price" : NumberDecimal("10"),
+      "quantity" : 5,
+      "type" : "apparel",
+      "idxKey" : { "type" : "apparel", "item" : "abc" }
+   }
+
+
+If :red:`no` index is used, the ``{ $meta: "indexKey" }`` does not
+return anything. 
+
+.. tabs::
+
+   .. tab:: Aggregation
+      :tabid: aggregation
+
+      For example, the following operation does not use
+      an index since no index exists on the ``price`` field to support the
+      match condition:
+
+      .. code-block:: javascript
+
+         db.orders.aggregate(
+            [
+              { $match: { price: { $gte: NumberDecimal("10") } } },
+              { $addFields: { idxKey: { $meta: "indexKey" } } }
+            ]
+         )
+
+   .. tab:: Find and Project
+      :tabid: find
+
+      For example, the following operation does not use an index
+      since no index exists on the ``price`` field to support the
+      match condition:
+
+      .. code-block:: javascript
+
+         db.orders.find( 
+            { price: { $gte: NumberDecimal("10") } }, 
+            { idxKey: { $meta: "indexKey" } }
+         )
+
+The operation returns the matching documents without the ``idxKey``
+field:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      "_id" : ObjectId("5e98a33ceaf5e9dcf2b8dcde"),
+      "item" : "abc",
+      "price" : NumberDecimal("12"),
+      "quantity" : 2,
+      "type" : "apparel"
+   }
+   {
+      "_id" : ObjectId("5e98a33ceaf5e9dcf2b8dcdf"),
+      "item" : "jkl",
+      "price" : NumberDecimal("20"),
+      "quantity" : 1,
+      "type" : "electronics"
+   }
+   {
+      "_id" : ObjectId("5e98a33ceaf5e9dcf2b8dce0"),
+      "item" : "abc",
+      "price" : NumberDecimal("10"),
+      "quantity" : 5,
+      "type" : "apparel"
+   }

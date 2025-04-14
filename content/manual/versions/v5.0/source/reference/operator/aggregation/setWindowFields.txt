@@ -1,0 +1,839 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+==============================
+$setWindowFields (aggregation)
+==============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. pipeline:: $setWindowFields
+
+.. versionadded:: 5.0
+
+Performs operations on a specified span of documents in a collection,
+known as a *window*, and returns the results based on the chosen
+:ref:`window operator <setWindowFields-window-operators>`.
+
+.. include:: /includes/setWindowFields-introduction-examples.rst
+
+.. _setWindowFields-syntax:
+
+Syntax
+------
+
+The :pipeline:`$setWindowFields` stage syntax:
+
+.. code-block:: none
+   :copyable: false
+
+   {
+      $setWindowFields: {
+         partitionBy: <expression>,
+         sortBy: {
+            <sort field 1>: <sort order>,
+            <sort field 2>: <sort order>,
+            ...,
+            <sort field n>: <sort order>
+         },
+         output: {
+            <output field 1>: {
+               <window operator>: <window operator parameters>,
+               window: {
+                  documents: [ <lower boundary>, <upper boundary> ],
+                  range: [ <lower boundary>, <upper boundary> ],
+                  unit: <time unit>
+               }
+            },
+            <output field 2>: { ... },
+            ...
+            <output field n>: { ... }
+         }
+      }
+   }
+
+The :pipeline:`$setWindowFields` stage takes a document with these
+fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 15 70
+
+   * - Field
+     - Necessity
+     - Description
+
+   * - :ref:`partitionBy <setWindowFields-partitionBy>`
+
+     - Optional
+
+     - .. _setWindowFields-partitionBy:
+     
+       Specifies an :ref:`expression <aggregation-expressions>` to group
+       the documents. In the :pipeline:`$setWindowFields` stage, the
+       group of documents is known as a *partition*. Default is one
+       partition for the entire collection.
+
+   * - :ref:`sortBy <setWindowFields-sortBy>`
+
+     - Required for some operators (see
+       :ref:`setWindowFields-restrictions`)
+
+     - .. _setWindowFields-sortBy:
+     
+       Specifies the field(s) to sort the documents by in the partition.
+       Uses the same syntax as the :pipeline:`$sort` stage. Default is
+       no sorting.
+
+   * - :ref:`output <setWindowFields-output>`
+
+     - Required
+
+     - .. _setWindowFields-output:
+     
+       Specifies the field(s) to append to the documents in the output
+       returned by the :pipeline:`$setWindowFields` stage. Each field is
+       set to the result returned by the :ref:`window operator
+       <setWindowFields-window-operators>`.
+       
+       A field can contain :ref:`dots <document-dot-notation>` to
+       specify embedded document fields and array fields. The semantics
+       for the embedded document dotted notation in the
+       :pipeline:`$setWindowFields` stage are the same as the
+       :pipeline:`$addFields` and :pipeline:`$set` stages. See
+       :ref:`embedded document $addFields example
+       <add-field-to-embedded>` and :ref:`embedded document $set example
+       <set-add-field-to-embedded>`.
+
+       - The ``window operator`` is the :ref:`window operator
+         <setWindowFields-window-operators>` name to use in the
+         :pipeline:`$setWindowFields` stage.
+
+       - The ``window operator parameters`` are the parameters to pass
+         to the :ref:`window operator
+         <setWindowFields-window-operators>`.
+
+   * - :ref:`window <setWindowFields-window>`
+
+     - Optional
+
+     - .. _setWindowFields-window:
+     
+       Specifies the window boundaries and parameters. Window boundaries
+       are inclusive. Default is an unbounded window, which includes all
+       documents in the partition.
+       
+       Specify either a :ref:`documents <setWindowFields-documents>` or
+       :ref:`range <setWindowFields-range>` window.
+
+   * - :ref:`documents <setWindowFields-documents>`
+
+     - Optional
+
+     - .. _setWindowFields-documents:
+     
+       A window where the lower and upper boundaries are specified
+       relative to the position of the current document read from the
+       collection.
+       
+       The window boundaries are specified using a two element array
+       containing a lower and upper limit string or integer. Use:
+       
+       - The ``"current"`` string for the current document position in
+         the output.
+       
+       - The ``"unbounded"`` string for the first or last document
+         position in the partition.
+       
+       - An integer for a position relative to the current document. Use
+         a negative integer for a position before the current
+         document. Use a positive integer for a position after the
+         current document. ``0`` is the current document position.
+
+       See :ref:`setWindowFields-documents-window-examples`.
+
+   * - :ref:`range <setWindowFields-range>`
+
+     - Optional
+
+     - .. _setWindowFields-range:
+
+       A window where the lower and upper boundaries are defined using
+       a range of values based on the :ref:`sortBy
+       <setWindowFields-sortBy>` field in the current document.
+       
+       The window boundaries are specified using a two element array
+       containing a lower and upper limit string or number. Use:
+       
+       - The ``"current"`` string for the current document position in
+         the output.
+       
+       - The ``"unbounded"`` string for the first or last document
+         position in the partition.
+       
+       - A number to add to the value of the :ref:`sortBy
+         <setWindowFields-sortBy>` field for the current document. A
+         document is in the window if the :ref:`sortBy
+         <setWindowFields-sortBy>` field value is inclusively within the
+         lower and upper boundaries.
+
+       See :ref:`setWindowFields-range-window-example`.
+
+   * - :ref:`unit <setWindowFields-unit>`
+
+     - Optional
+
+     - .. _setWindowFields-unit:
+
+       Specifies the units for time :ref:`range <setWindowFields-range>`
+       window boundaries. Can be set to one of these strings:
+       
+       - ``"year"``
+       
+       - ``"quarter"``
+
+       - ``"month"``
+
+       - ``"week"``
+       
+       - ``"day"``
+       
+       - ``"hour"``
+       
+       - ``"minute"``
+       
+       - ``"second"``
+       
+       - ``"millisecond"``
+       
+       If omitted, default numeric :ref:`range <setWindowFields-range>`
+       window boundaries are used.
+
+       See :ref:`setWindowFields-time-range-window-examples`.
+
+.. seealso::
+
+   :ref:`setWindowFields-examples`
+
+Behavior
+--------
+
+The :pipeline:`$setWindowFields` stage appends new fields to existing
+documents. You can include one or more :pipeline:`$setWindowFields`
+stages in an aggregation operation.
+
+The ``$setWindowFields`` stage doesn't guarantee the order of the
+returned documents.
+
+.. _setWindowFields-window-operators:
+
+Window Operators
+----------------
+
+.. include:: /includes/setWindowFields-operators.rst
+
+.. _setWindowFields-restrictions:
+
+Restrictions
+------------
+
+Restrictions for the :pipeline:`$setWindowFields` stage:
+
+- Prior to MongoDB 5.3, the :pipeline:`$setWindowFields` 
+  stage cannot be used:
+
+  - Within :doc:`transactions </core/transactions>`.
+  - With :readconcern:`"snapshot"` read concern.
+
+- :ref:`sortBy <setWindowFields-sortBy>` is required for:
+
+  - :ref:`Rank <setWindowFields-rank-operators>` and :ref:`order
+    <setWindowFields-order-operators>` window operators.
+  
+  - Bounded windows (either a :ref:`documents
+    <setWindowFields-documents>` window or a :ref:`range
+    <setWindowFields-range>` window).
+
+- :ref:`Range <setWindowFields-range>` windows require all :ref:`sortBy
+  <setWindowFields-sortBy>` values to be numbers.
+
+- :ref:`Time range <setWindowFields-unit>` windows require all
+  :ref:`sortBy <setWindowFields-sortBy>` values to be dates.
+
+- :ref:`Range <setWindowFields-range>` and :ref:`time range
+  <setWindowFields-unit>` windows can only contain one :ref:`sortBy
+  <setWindowFields-sortBy>` field and the sort must be ascending.
+
+- You cannot specify both a :ref:`documents <setWindowFields-documents>`
+  window and a :ref:`range <setWindowFields-range>` window.
+
+- These operators use an implicit window and return an error if you
+  specify a :ref:`window <setWindowFields-window>` option:
+  
+  - :ref:`Rank <setWindowFields-rank-operators>` operators.
+
+  - :group:`$shift` operator.
+
+- For :ref:`range <setWindowFields-range>` windows, only numbers in
+  the specified range are included in the window. Missing, undefined,
+  and ``null`` values are excluded.
+
+- For :ref:`time range <setWindowFields-unit>` windows:
+
+  - Only date and time types are included in the window.
+
+  - Numeric boundary values must be integers. For example, you can use 2
+    hours as a boundary but you cannot use 1.5 hours.
+
+- For empty windows or windows with incompatible values (for example,
+  using :group:`$sum` on strings), the returned value depends on the
+  operator:
+  
+  - For :group:`$count` and :group:`$sum`, the returned value is ``0``.
+  
+  - For :group:`$addToSet` and :group:`$push`, the returned value is an
+    empty array.
+  
+  - For all other operators, the returned value is ``null``.
+
+.. _setWindowFields-examples:
+
+Examples
+--------
+
+.. include:: /includes/setWindowFields-example-collection.rst
+
+The following examples use the ``cakeSales`` collection.
+
+.. _setWindowFields-documents-window-examples:
+
+Documents Window Examples
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use Documents Window to Obtain Cumulative Quantity for Each State
+`````````````````````````````````````````````````````````````````
+
+This example uses a :ref:`documents <setWindowFields-documents>` window
+in :pipeline:`$setWindowFields` to output the cumulative cake sales
+``quantity`` for each ``state``:
+
+.. code-block:: javascript
+
+   db.cakeSales.aggregate( [
+      {
+         $setWindowFields: {
+            partitionBy: "$state",
+            sortBy: { orderDate: 1 },
+            output: {
+               cumulativeQuantityForState: {
+                  $sum: "$quantity",
+                  window: {
+                     documents: [ "unbounded", "current" ]
+                  }
+               }
+            }
+         }
+      }
+   ] )
+
+In the example:
+
+.. include:: /includes/setWindowFields-partition-sort-date.rst
+
+- ``output``:
+
+  - Sets the ``cumulativeQuantityForState`` field to the cumulative
+    ``quantity`` for each ``state``, which increases by successive
+    additions to the previous value in the partition.
+
+  - Calculates the cumulative ``quantity`` using the :group:`$sum`
+    operator run in a :ref:`documents <setWindowFields-documents>`
+    window.
+
+    The :ref:`window <setWindowFields-window>` contains documents
+    between an ``unbounded`` lower limit and the ``current`` document.
+    This means :group:`$sum` returns the cumulative ``quantity`` for the
+    documents between the beginning of the partition and the current
+    document.
+
+In this example output, the cumulative ``quantity`` for ``CA`` and
+``WA`` is shown in the ``cumulativeQuantityForState`` field:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 4, "type" : "strawberry", "orderDate" : ISODate("2019-05-18T16:09:01Z"),
+     "state" : "CA", "price" : 41, "quantity" : 162, "cumulativeQuantityForState" : 162 }
+   { "_id" : 0, "type" : "chocolate", "orderDate" : ISODate("2020-05-18T14:10:30Z"),
+     "state" : "CA", "price" : 13, "quantity" : 120, "cumulativeQuantityForState" : 282 }
+   { "_id" : 2, "type" : "vanilla", "orderDate" : ISODate("2021-01-11T06:31:15Z"),
+     "state" : "CA", "price" : 12, "quantity" : 145, "cumulativeQuantityForState" : 427 }
+   { "_id" : 5, "type" : "strawberry", "orderDate" : ISODate("2019-01-08T06:12:03Z"),
+     "state" : "WA", "price" : 43, "quantity" : 134, "cumulativeQuantityForState" : 134 }
+   { "_id" : 3, "type" : "vanilla", "orderDate" : ISODate("2020-02-08T13:13:23Z"),
+     "state" : "WA", "price" : 13, "quantity" : 104, "cumulativeQuantityForState" : 238 }
+   { "_id" : 1, "type" : "chocolate", "orderDate" : ISODate("2021-03-20T11:30:05Z"),
+     "state" : "WA", "price" : 14, "quantity" : 140, "cumulativeQuantityForState" : 378 }
+
+Use Documents Window to Obtain Cumulative Quantity for Each Year
+````````````````````````````````````````````````````````````````
+
+This example uses a :ref:`documents <setWindowFields-documents>` window
+in :pipeline:`$setWindowFields` to output the cumulative cake sales
+``quantity`` for each :expression:`$year` in ``orderDate``:
+
+.. code-block:: javascript
+
+   db.cakeSales.aggregate( [
+      {
+         $setWindowFields: {
+            partitionBy: { $year: "$orderDate" },
+            sortBy: { orderDate: 1 },
+            output: {
+               cumulativeQuantityForYear: {
+                  $sum: "$quantity",
+                  window: {
+                     documents: [ "unbounded", "current" ]
+                  }
+               }
+            }
+         }
+      }
+   ] )
+
+In the example:
+
+- ``partitionBy: { $year: "$orderDate" }`` :ref:`partitions
+  <setWindowFields-partitionBy>` the documents in the collection by
+  :expression:`$year` in ``orderDate``. There are are partitions for
+  ``2019``, ``2020``, and ``2021``.
+
+- ``sortBy: { orderDate: 1 }`` :ref:`sorts
+  <setWindowFields-sortBy>` the documents in each partition by
+  ``orderDate`` in ascending order (``1``), so the earliest
+  ``orderDate`` is first.
+
+- ``output``:
+
+  - Sets the ``cumulativeQuantityForYear`` field to the cumulative
+    ``quantity`` for each year, which increases by successive
+    additions to the previous value in the partition.
+
+  - Calculates the cumulative ``quantity`` using the :group:`$sum`
+    operator run in a :ref:`documents <setWindowFields-documents>`
+    window.
+
+    The :ref:`window <setWindowFields-window>` contains documents
+    between an ``unbounded`` lower limit and the ``current`` document.
+    This means :group:`$sum` returns the cumulative ``quantity`` for the
+    documents between the beginning of the partition and the current
+    document.
+
+In this example output, the cumulative ``quantity`` for each year is
+shown in the ``cumulativeQuantityForYear`` field:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 5, "type" : "strawberry", "orderDate" : ISODate("2019-01-08T06:12:03Z"),
+     "state" : "WA", "price" : 43, "quantity" : 134, "cumulativeQuantityForYear" : 134 }
+   { "_id" : 4, "type" : "strawberry", "orderDate" : ISODate("2019-05-18T16:09:01Z"),
+     "state" : "CA", "price" : 41, "quantity" : 162, "cumulativeQuantityForYear" : 296 }
+   { "_id" : 3, "type" : "vanilla", "orderDate" : ISODate("2020-02-08T13:13:23Z"),
+     "state" : "WA", "price" : 13, "quantity" : 104, "cumulativeQuantityForYear" : 104 }
+   { "_id" : 0, "type" : "chocolate", "orderDate" : ISODate("2020-05-18T14:10:30Z"),
+     "state" : "CA", "price" : 13, "quantity" : 120, "cumulativeQuantityForYear" : 224 }
+   { "_id" : 2, "type" : "vanilla", "orderDate" : ISODate("2021-01-11T06:31:15Z"),
+     "state" : "CA", "price" : 12, "quantity" : 145, "cumulativeQuantityForYear" : 145 }
+   { "_id" : 1, "type" : "chocolate", "orderDate" : ISODate("2021-03-20T11:30:05Z"),
+     "state" : "WA", "price" : 14, "quantity" : 140, "cumulativeQuantityForYear" : 285 }
+
+Use Documents Window to Obtain Moving Average Quantity for Each Year
+````````````````````````````````````````````````````````````````````
+
+This example uses a :ref:`documents <setWindowFields-documents>` window
+in :pipeline:`$setWindowFields` to output the moving average
+for the cake sales ``quantity``:
+
+.. code-block:: javascript
+
+   db.cakeSales.aggregate( [
+      {
+         $setWindowFields: {
+            partitionBy: { $year: "$orderDate" },
+            sortBy: { orderDate: 1 },
+            output: {
+               averageQuantity: {
+                  $avg: "$quantity",
+                  window: {
+                     documents: [ -1, 0 ]
+                  }
+               }
+            }
+         }
+      }
+   ] )
+
+In the example:
+
+- ``partitionBy: "$orderDate"`` :ref:`partitions
+  <setWindowFields-partitionBy>` the documents in the collection by
+  :expression:`$year` in ``orderDate``. There are are partitions for
+  ``2019``, ``2020``, and ``2021``.
+
+- ``sortBy: { orderDate: 1 }`` :ref:`sorts
+  <setWindowFields-sortBy>` the documents in each partition by
+  ``orderDate`` in ascending order (``1``), so the earliest
+  ``orderDate`` is first.
+
+- ``output``:
+
+  - Sets the ``averageQuantity`` field to the moving average
+    ``quantity`` for each year.
+
+  - Calculates the moving average ``quantity`` using the :group:`$avg`
+    operator run in a :ref:`documents <setWindowFields-documents>`
+    window.
+
+    The :ref:`window <setWindowFields-window>` contains documents
+    between ``-1`` and ``0``. This means :group:`$avg` returns the
+    moving average ``quantity`` between the document before the current
+    document (``-1``) and the current document (``0``) in the partition.
+
+In this example output, the moving average ``quantity`` is shown in the
+``averageQuantity`` field:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 5, "type" : "strawberry", "orderDate" : ISODate("2019-01-08T06:12:03Z"),
+     "state" : "WA", "price" : 43, "quantity" : 134, "averageQuantity" : 134 }
+   { "_id" : 4, "type" : "strawberry", "orderDate" : ISODate("2019-05-18T16:09:01Z"),
+     "state" : "CA", "price" : 41, "quantity" : 162, "averageQuantity" : 148 }
+   { "_id" : 3, "type" : "vanilla", "orderDate" : ISODate("2020-02-08T13:13:23Z"),
+     "state" : "WA", "price" : 13, "quantity" : 104, "averageQuantity" : 104 }
+   { "_id" : 0, "type" : "chocolate", "orderDate" : ISODate("2020-05-18T14:10:30Z"),
+     "state" : "CA", "price" : 13, "quantity" : 120, "averageQuantity" : 112 }
+   { "_id" : 2, "type" : "vanilla", "orderDate" : ISODate("2021-01-11T06:31:15Z"),
+     "state" : "CA", "price" : 12, "quantity" : 145, "averageQuantity" : 145 }
+   { "_id" : 1, "type" : "chocolate", "orderDate" : ISODate("2021-03-20T11:30:05Z"),
+     "state" : "WA", "price" : 14, "quantity" : 140, "averageQuantity" : 142.5 }
+
+Use Documents Window to Obtain Cumulative and Maximum Quantity for Each Year
+````````````````````````````````````````````````````````````````````````````
+
+This example uses a :ref:`documents <setWindowFields-documents>` window
+in :pipeline:`$setWindowFields` to output the cumulative and maximum
+cake sales ``quantity`` values for each :expression:`$year` in
+``orderDate``:
+
+.. code-block:: javascript
+
+   db.cakeSales.aggregate( [
+      {
+         $setWindowFields: {
+            partitionBy: { $year: "$orderDate" },
+            sortBy: { orderDate: 1 },
+            output: {
+               cumulativeQuantityForYear: {
+                  $sum: "$quantity",
+                  window: {
+                     documents: [ "unbounded", "current" ]
+                  }
+               },
+               maximumQuantityForYear: {
+                  $max: "$quantity",
+                  window: {
+                     documents: [ "unbounded", "unbounded" ]
+                  }
+               }
+            }
+         }
+      }
+   ] )
+
+In the example:
+
+- ``partitionBy: "$orderDate"`` :ref:`partitions
+  <setWindowFields-partitionBy>` the documents in the collection by
+  :expression:`$year` in ``orderDate``. There are are partitions for
+  ``2019``, ``2020``, and ``2021``.
+
+- ``sortBy: { orderDate: 1 }`` :ref:`sorts
+  <setWindowFields-sortBy>` the documents in each partition by
+  ``orderDate`` in ascending order (``1``), so the earliest
+  ``orderDate`` is first.
+
+- ``output``:
+
+  - Sets the ``cumulativeQuantityForYear`` field to the cumulative
+    ``quantity`` for each year.
+
+  - Calculates the cumulative ``quantity`` using the :group:`$sum`
+    operator run in a :ref:`documents <setWindowFields-documents>`
+    window.
+
+    The :ref:`window <setWindowFields-window>` contains documents
+    between an ``unbounded`` lower limit and the ``current`` document.
+    This means :group:`$sum` returns the cumulative quantity for the
+    documents between the beginning of the partition and the current
+    document.
+
+  - Sets the ``maximumQuantityForYear`` field to the maximum
+    ``quantity`` for each year.
+
+  - Calculates the maximum ``quantity`` of all the documents using the
+    :group:`$max` operator run in a :ref:`documents
+    <setWindowFields-documents>` window.
+    
+    The :ref:`window <setWindowFields-window>` contains documents
+    between an ``unbounded`` lower and ``upper`` limit. This means
+    :group:`$max` returns the maximum quantity for the documents in the
+    partition.
+
+In this example output, the cumulative ``quantity`` is shown in the
+``cumulativeQuantityForYear`` field and the maximum ``quantity`` is
+shown in the ``maximumQuantityForYear`` field:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 5, "type" : "strawberry", "orderDate" : ISODate("2019-01-08T06:12:03Z"),
+     "state" : "WA", "price" : 43, "quantity" : 134,
+     "cumulativeQuantityForYear" : 134, "maximumQuantityForYear" : 162 }
+   { "_id" : 4, "type" : "strawberry", "orderDate" : ISODate("2019-05-18T16:09:01Z"),
+     "state" : "CA", "price" : 41, "quantity" : 162,
+     "cumulativeQuantityForYear" : 296, "maximumQuantityForYear" : 162 }
+   { "_id" : 3, "type" : "vanilla", "orderDate" : ISODate("2020-02-08T13:13:23Z"),
+     "state" : "WA", "price" : 13, "quantity" : 104,
+     "cumulativeQuantityForYear" : 104, "maximumQuantityForYear" : 120 }
+   { "_id" : 0, "type" : "chocolate", "orderDate" : ISODate("2020-05-18T14:10:30Z"),
+     "state" : "CA", "price" : 13, "quantity" : 120,
+      "cumulativeQuantityForYear" : 224, "maximumQuantityForYear" : 120 }
+   { "_id" : 2, "type" : "vanilla", "orderDate" : ISODate("2021-01-11T06:31:15Z"),
+     "state" : "CA", "price" : 12, "quantity" : 145,
+     "cumulativeQuantityForYear" : 145, "maximumQuantityForYear" : 145 }
+   { "_id" : 1, "type" : "chocolate", "orderDate" : ISODate("2021-03-20T11:30:05Z"),
+     "state" : "WA", "price" : 14, "quantity" : 140,
+     "cumulativeQuantityForYear" : 285, "maximumQuantityForYear" : 145 }
+
+.. _setWindowFields-range-window-example:
+
+Range Window Example
+~~~~~~~~~~~~~~~~~~~~
+
+This example uses a :ref:`range <setWindowFields-range>` window in
+:pipeline:`$setWindowFields` to return the sum of the ``quantity``
+values of cakes sold for orders within plus or minus 10 dollars of the
+current document's ``price`` value:
+
+.. code-block:: javascript
+
+   db.cakeSales.aggregate( [
+      {
+         $setWindowFields: {
+            partitionBy: "$state",
+            sortBy: { price: 1 },
+            output: {
+               quantityFromSimilarOrders: {
+                  $sum: "$quantity",
+                  window: {
+                     range: [ -10, 10 ]
+                  }
+               }
+            }
+         }
+      }
+   ] )
+
+In the example:
+
+- ``partitionBy: "$state"`` :ref:`partitions
+  <setWindowFields-partitionBy>` the documents in the collection by
+  ``state``. There are partitions for ``CA`` and ``WA``.
+
+- ``sortBy: { price: 1 }`` :ref:`sorts
+  <setWindowFields-sortBy>` the documents in each partition by
+  ``price`` in ascending order (``1``), so the lowest ``price``
+  is first.
+
+- ``output`` sets the ``quantityFromSimilarOrders`` field to the sum of
+  the ``quantity`` values from the documents in a :ref:`range
+  <setWindowFields-range>` window.
+
+  - The :ref:`window <setWindowFields-window>` contains documents
+    between a lower limit of ``-10`` and an upper limit of ``10``. The
+    range is inclusive.
+    
+  - :group:`$sum` returns the sum of ``quantity`` values contained in a
+    range of plus or minus 10 dollars of the current document's
+    ``price`` value.
+
+In this example output, the sum of the ``quantity`` values for documents
+in the window is shown in the ``quantityFromSimilarOrders`` field:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 2, "type" : "vanilla", "orderDate" : ISODate("2021-01-11T06:31:15Z"),
+     "state" : "CA", "price" : 12, "quantity" : 145, "quantityFromSimilarOrders" : 265 }
+   { "_id" : 0, "type" : "chocolate", "orderDate" : ISODate("2020-05-18T14:10:30Z"),
+     "state" : "CA", "price" : 13, "quantity" : 120, "quantityFromSimilarOrders" : 265 }
+   { "_id" : 4, "type" : "strawberry", "orderDate" : ISODate("2019-05-18T16:09:01Z"),
+     "state" : "CA", "price" : 41, "quantity" : 162, "quantityFromSimilarOrders" : 162 }
+   { "_id" : 3, "type" : "vanilla", "orderDate" : ISODate("2020-02-08T13:13:23Z"),
+     "state" : "WA", "price" : 13, "quantity" : 104, "quantityFromSimilarOrders" : 244 }
+   { "_id" : 1, "type" : "chocolate", "orderDate" : ISODate("2021-03-20T11:30:05Z"),
+     "state" : "WA", "price" : 14, "quantity" : 140, "quantityFromSimilarOrders" : 244 }
+   { "_id" : 5, "type" : "strawberry", "orderDate" : ISODate("2019-01-08T06:12:03Z"),
+     "state" : "WA", "price" : 43, "quantity" : 134, "quantityFromSimilarOrders" : 134 }
+
+.. _setWindowFields-time-range-window-examples:
+
+Time Range Window Examples
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use a Time Range Window with a Positive Upper Bound
+```````````````````````````````````````````````````
+
+The following example uses a :ref:`window <setWindowFields-window>` with
+a positive upper bound time range :ref:`unit <setWindowFields-unit>` in
+:pipeline:`$setWindowFields`. The pipeline outputs an array of
+``orderDate`` values for each ``state`` that match the specified time
+range.
+
+.. code-block:: javascript
+
+   db.cakeSales.aggregate( [
+      {
+         $setWindowFields: {
+            partitionBy: "$state",
+            sortBy: { orderDate: 1 },
+            output: {
+               recentOrders: {
+                  $push: "$orderDate",
+                  window: {
+                     range: [ "unbounded", 10 ],
+                     unit: "month"
+                  }
+               }
+            }
+         }
+      }
+   ] )
+
+.. include:: /includes/time-range-window-example.rst
+
+- The :ref:`window <setWindowFields-window>` contains documents
+  between an ``unbounded`` lower limit and an upper limit set to ``10``
+  (10 months after the current document's ``orderDate`` value) using a
+  time range :ref:`unit <setWindowFields-unit>`.
+    
+- :group:`$push` returns the array of ``orderDate`` values
+  for the documents between the beginning of the partition and the
+  documents with ``orderDate`` values inclusively in a range of the
+  current document's ``orderDate`` value plus ``10`` months.
+
+In this example output, the array of ``orderDate`` values for ``CA`` and
+``WA`` is shown in the ``recentOrders`` field:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 4, "type" : "strawberry", "orderDate" : ISODate("2019-05-18T16:09:01Z"),
+     "state" : "CA", "price" : 41, "quantity" : 162,
+     "recentOrders" : [ ISODate("2019-05-18T16:09:01Z") ] }
+   { "_id" : 0, "type" : "chocolate", "orderDate" : ISODate("2020-05-18T14:10:30Z"),
+     "state" : "CA", "price" : 13, "quantity" : 120,
+     "recentOrders" : [ ISODate("2019-05-18T16:09:01Z"), ISODate("2020-05-18T14:10:30Z"), ISODate("2021-01-11T06:31:15Z") ] }
+   { "_id" : 2, "type" : "vanilla", "orderDate" : ISODate("2021-01-11T06:31:15Z"),
+     "state" : "CA", "price" : 12, "quantity" : 145,
+     "recentOrders" : [ ISODate("2019-05-18T16:09:01Z"), ISODate("2020-05-18T14:10:30Z"), ISODate("2021-01-11T06:31:15Z") ] }
+   { "_id" : 5, "type" : "strawberry", "orderDate" : ISODate("2019-01-08T06:12:03Z"),
+     "state" : "WA", "price" : 43, "quantity" : 134,
+     "recentOrders" : [ ISODate("2019-01-08T06:12:03Z") ] }
+   { "_id" : 3, "type" : "vanilla", "orderDate" : ISODate("2020-02-08T13:13:23Z"),
+     "state" : "WA", "price" : 13, "quantity" : 104,
+     "recentOrders" : [ ISODate("2019-01-08T06:12:03Z"), ISODate("2020-02-08T13:13:23Z") ] }
+   { "_id" : 1, "type" : "chocolate", "orderDate" : ISODate("2021-03-20T11:30:05Z"),
+     "state" : "WA", "price" : 14, "quantity" : 140,
+     "recentOrders" : [ ISODate("2019-01-08T06:12:03Z"), ISODate("2020-02-08T13:13:23Z"), ISODate("2021-03-20T11:30:05Z") ] }
+
+Use a Time Range Window with a Negative Upper Bound
+```````````````````````````````````````````````````
+
+The following example uses a :ref:`window <setWindowFields-window>` with
+a negative upper bound time range :ref:`unit <setWindowFields-unit>` in
+:pipeline:`$setWindowFields`. The pipeline outputs an array of
+``orderDate`` values for each ``state`` that match the specified time
+range.
+
+.. code-block:: javascript
+
+   db.cakeSales.aggregate( [
+      {
+         $setWindowFields: {
+            partitionBy: "$state",
+            sortBy: { orderDate: 1 },
+            output: {
+               recentOrders: {
+                  $push: "$orderDate",
+                  window: {
+                     range: [ "unbounded", -10 ],
+                     unit: "month"
+                  }
+               }
+            }
+         }
+      }
+   ] )
+
+.. include:: /includes/time-range-window-example.rst
+
+- The :ref:`window <setWindowFields-window>` contains documents
+  between an ``unbounded`` lower limit and an upper limit set to
+  ``-10`` (10 months before the current document's ``orderDate``
+  value) using a time range :ref:`unit <setWindowFields-unit>`.
+    
+- :group:`$push` returns the array of ``orderDate`` values
+  for the documents between the beginning of the partition and the
+  documents with ``orderDate`` values inclusively in a range of the
+  current document's ``orderDate`` value minus ``10`` months.
+
+In this example output, the array of ``orderDate`` values for ``CA`` and
+``WA`` is shown in the ``recentOrders`` field:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 4, "type" : "strawberry", "orderDate" : ISODate("2019-05-18T16:09:01Z"),
+     "state" : "CA", "price" : 41, "quantity" : 162,
+     "recentOrders" : [ ] }
+   { "_id" : 0, "type" : "chocolate", "orderDate" : ISODate("2020-05-18T14:10:30Z"),
+     "state" : "CA", "price" : 13, "quantity" : 120,
+     "recentOrders" : [ ISODate("2019-05-18T16:09:01Z") ] }
+   { "_id" : 2, "type" : "vanilla", "orderDate" : ISODate("2021-01-11T06:31:15Z"),
+     "state" : "CA", "price" : 12, "quantity" : 145,
+     "recentOrders" : [ ISODate("2019-05-18T16:09:01Z") ] }
+   { "_id" : 5, "type" : "strawberry", "orderDate" : ISODate("2019-01-08T06:12:03Z"),
+     "state" : "WA", "price" : 43, "quantity" : 134,
+     "recentOrders" : [ ] }
+   { "_id" : 3, "type" : "vanilla", "orderDate" : ISODate("2020-02-08T13:13:23Z"),
+     "state" : "WA", "price" : 13, "quantity" : 104,
+     "recentOrders" : [ ISODate("2019-01-08T06:12:03Z") ] }
+   { "_id" : 1, "type" : "chocolate", "orderDate" : ISODate("2021-03-20T11:30:05Z"),
+     "state" : "WA", "price" : 14, "quantity" : 140,
+     "recentOrders" : [ ISODate("2019-01-08T06:12:03Z"), ISODate("2020-02-08T13:13:23Z") ] }
+
+.. seealso::
+
+   .. include:: /includes/fact-timeseries-example-aggregation-book.rst
