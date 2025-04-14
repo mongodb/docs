@@ -1,0 +1,104 @@
+======
+getLog
+======
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. dbcommand:: getLog
+
+   :dbcommand:`getLog` is an administrative command that returns the most
+   recent 1024 logged :binary:`~bin.mongod` events. :dbcommand:`getLog` *does not*
+   read log data from the :binary:`~bin.mongod` log file. It instead reads data
+   from a RAM cache of logged :binary:`~bin.mongod` events. To run
+   :dbcommand:`getLog`, use the :method:`db.runCommand( { command } )
+   <db.runCommand()>` method on the ``admin`` database.
+
+   The :dbcommand:`getLog` command has the following syntax:
+
+   .. code-block:: javascript
+
+      { getLog: <value> }
+
+   The possible values for :dbcommand:`getLog` are:
+
+   - ``global`` - returns the combined output of all recent log
+     entries.
+
+   - ``rs`` - if the :binary:`~bin.mongod` is part of a :term:`replica
+     set`, :dbcommand:`getLog` returns recent notices related to
+     replica set activity.
+
+   - ``startupWarnings`` - returns logs that *may* contain errors
+     or warnings from MongoDB's log from when the current process
+     started. If :binary:`~bin.mongod` started without warnings, this
+     filter may return an empty array.
+
+   :return:
+
+      A document that contains an array of log events as ``log`` and the number
+      of log events as ``totalLinesWritten``.
+
+Behavior
+--------
+
+Specify ``*`` to :dbcommand:`getLog` to return a list of available log filters
+for the :binary:`~bin.mongod`.
+
+:dbcommand:`getLog` truncates any event that contains more than 512
+characters. 
+
+Examples
+--------
+
+Retrieve Available Log Filters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation returns the available log filters for passing to
+:dbcommand:`getLog`
+
+.. code-block:: javascript
+
+   db.adminCommand( { getLog: "*" } )
+
+The operation returns the following document:
+
+.. code-block:: sh
+
+   { "names" : [ "global", "rs", "startupWarnings" ], "ok" : 1 }
+
+Retrieve Recent Events from Log
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation retrieves the most recent ``global`` events for the
+:binary:`~bin.mongod`
+
+.. code-block:: javascript
+
+   db.adminCommand( { getLog : "global" } )
+
+The operation returns a document similar to the following:
+
+.. code-block:: shell
+   :emphasize-lines: 7
+
+   {
+      "totalLinesWritten" : <int>,
+         "log" : [
+         "2017-07-11T12:24:46.094-0400 I CONTROL  [initandlisten] MongoDB starting : pid=67001 port=27017 dbpath=./ 64-bit host=<host>",
+         "2017-07-11T12:24:46.094-0400 I CONTROL  [initandlisten] db version v3.4.4",
+         "2017-07-11T12:24:46.096-0400 I -        [initandlisten] Detected data files in ./ created by the 'wiredTiger' storage engine, so setting the active storage engine to 'wiredTiger'.",
+         "2017-07-11T12:24:46.096-0400 I STORAGE  [initandlisten] wiredtiger_open config: create,cache_size=7680M,session_max=20000,eviction=(threads_min=4,threads_max=4),config_base=false,statistics=(fast),log=(enabled=true,archive=true,path=journal,compressor=snappy),file_manager=(close_idle_time=100000),checkpoint=(wait=60,log_size=2GB),statistics_log=(wait=0),",
+         "2017-07-11T12:24:47.099-0400 I NETWORK  [thread1] waiting for connections on port 27017",
+         "2017-07-11T12:57:42.517-0400 I NETWORK  [thread1] connection accepted from 127.0.0.1:55291 #1 (1 connection now open)",
+         "2017-07-11T12:57:42.518-0400 I NETWORK  [conn1] received client metadata from 127.0.0.1:55291 conn1: { driver: { name: \"PyMongo\", version: \"3.4.0\" }, os: { type: \"Darwin\", name: \"Darwin\", architecture: \"x86_64\", version: \"10.11.6\" }, platform: \"CPython 3.5.1.final.0\" }",
+      ],
+      "ok" : 1
+   }
+
+The highlighted line was truncated, as it exceeded 512 characters.

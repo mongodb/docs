@@ -1,0 +1,168 @@
+=======================
+db.collection.findOne()
+=======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.collection.findOne(query, projection)
+
+   Returns one document that satisfies the specified query criteria on
+   the collection or :doc:`view </core/views>`. If multiple documents
+   satisfy the query, this method returns the first document according
+   to the :term:`natural order` which reflects the order of documents
+   on the disk. In :term:`capped collections <capped collection>`,
+   natural order is the same as insertion order. If no document
+   satisfies the query, the method returns null.
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``query``
+   
+        - document
+   
+        - Optional. Specifies query selection criteria using :doc:`query operators </reference/operator>`.
+          
+          
+   
+      * - ``projection``
+   
+        - document
+   
+        - Optional. Specifies the fields to return using :doc:`projection operators </reference/operator/projection>`. Omit this parameter to return all fields in the matching document.
+          
+          
+   
+
+
+   The ``projection`` parameter takes a document of the following form:
+
+   .. code-block:: javascript
+
+      { field1: <boolean>, field2: <boolean> ... }
+
+   The ``<boolean>`` can be one of the following include or exclude values:
+
+   - ``1`` or ``true`` to include. The :method:`~db.collection.findOne()`
+     method always includes the :term:`_id` field even if the field is not
+     explicitly specified in the :term:`projection` parameter.
+
+   - ``0`` or ``false`` to exclude.
+
+   The projection argument cannot mix include and exclude
+   specifications, with the exception of excluding the ``_id`` field.
+
+   :returns:
+      One document that satisfies the criteria specified as the first
+      argument to this method. If you specify a ``projection``
+      parameter, :method:`~db.collection.findOne()` returns a document
+      that only contains the ``projection`` fields. The ``_id``
+      field is always included unless you explicitly exclude it.
+
+      Although similar to the :method:`~db.collection.find()` method,
+      the :method:`~db.collection.findOne()` method returns a document
+      rather than a cursor.
+
+Examples
+--------
+
+With Empty Query Specification
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation returns a single document from
+the :doc:`bios collection </reference/bios-example-collection>`:
+
+.. code-block:: javascript
+
+   db.bios.findOne()
+
+With a Query Specification
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation returns the first matching document from the
+:doc:`bios collection </reference/bios-example-collection>` where either
+the field ``first`` in the embedded document ``name`` starts with the letter
+``G`` **or** where the field ``birth`` is less than ``new
+Date('01/01/1945')``:
+
+.. code-block:: javascript
+
+   db.bios.findOne(
+      {
+        $or: [
+               { 'name.first' : /^G/ },
+               { birth: { $lt: new Date('01/01/1945') } }
+             ]
+      }
+   )
+
+With a Projection
+~~~~~~~~~~~~~~~~~
+
+The ``projection`` parameter specifies which fields to return. The
+parameter contains either include or exclude specifications, not both,
+unless the exclude is for the ``_id`` field.
+
+Specify the Fields to Return
+````````````````````````````
+
+The following operation finds a document in the :doc:`bios collection
+</reference/bios-example-collection>` and returns only the ``name``,
+``contribs`` and ``_id`` fields:
+
+.. code-block:: javascript
+
+   db.bios.findOne(
+       { },
+       { name: 1, contribs: 1 }
+   )
+
+Return All but the Excluded Fields
+``````````````````````````````````
+
+The following operation returns a document in the :doc:`bios collection
+</reference/bios-example-collection>` where the ``contribs`` field
+contains the element ``OOP`` and returns all fields *except* the ``_id``
+field, the ``first`` field in the ``name`` embedded document, and the
+``birth`` field:
+
+.. code-block:: javascript
+
+   db.bios.findOne(
+      { contribs: 'OOP' },
+      { _id: 0, 'name.first': 0, birth: 0 }
+   )
+
+The ``findOne`` Result Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You cannot apply cursor methods to the result of
+:method:`~db.collection.findOne()` because a single document is
+returned. You have access to the document directly:
+
+.. code-block:: javascript
+
+   var myDocument = db.bios.findOne();
+
+   if (myDocument) {
+      var myName = myDocument.name;
+
+      print (tojson(myName));
+   }

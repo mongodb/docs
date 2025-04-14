@@ -1,0 +1,231 @@
+=================================
+Merge Chunks in a Sharded Cluster
+=================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+.. versionchanged:: 3.0
+
+The :dbcommand:`mergeChunks` command allows you to combine continuous
+chunks on the same shard into a single chunk. This tutorial explains
+how to merge neighboring chunks in a sharded cluster.
+
+Procedure
+---------
+
+.. note::
+
+   Examples in this procedure use a ``members`` :term:`collection` in the
+   ``test`` :term:`database`, using the ``username`` field as the
+   :term:`shard key`.
+
+Identify Chunk Ranges
+~~~~~~~~~~~~~~~~~~~~~
+
+In the :binary:`~bin.mongo` shell, identify the :term:`chunk`
+ranges with the following operation:
+
+.. code-block:: javascript
+
+   sh.status()
+
+In the output, the chunk ranges appear after the chunk counts for each
+sharded collection, as in the following example:
+
+.. code-block:: none
+
+   --- Sharding Status ---
+     sharding version: {
+        "_id" : 1,
+        "minCompatibleVersion" : 5,
+        "currentVersion" : 6,
+        "clusterId" : ObjectId("5c114e68325aee6f60669228")
+     }
+     shards:
+           {  "_id" : "shardA",  "host" : "shardA/shardA-m1.example.net:27018,shardA-m2.example.net:27018,shardA-m3.example.net:27018",  "state" : 1 }
+           {  "_id" : "shardB",  "host" : "shardB/shardB-m1.example.net:27018,shardB-m2.example.net:27018,shardB-m3.example.net:27018",  "state" : 1 }
+     active mongoses:
+           "4.0.4" : 1
+     autosplit:
+           Currently enabled: yes
+     balancer:
+           Currently enabled:  yes
+           Currently running:  no
+           Failed balancer rounds in last 5 attempts:  0
+           Migration Results for the last 24 hours:
+                   8 : Success
+     databases:
+           {  "_id" : "config",  "primary" : "config",  "partitioned" : true }
+           {  "_id" : "test",  "primary" : "shardA",  "partitioned" : true,  "version" : {  "uuid" : UUID("2632036c-bd74-457f-a364-5def901fe5f6"),  "lastMod" : 1 } }
+                test.members
+                     shard key: { "username" : 1 }
+                     unique: false
+                     balancing: true
+                     chunks:
+                             shardA   7
+                             shardB   7
+                     { "username" : { "$minKey" : 1 } } -->> { "username" : "user16643" } on : shardB Timestamp(2, 0)
+                     { "username" : "user16643" } -->> { "username" : "user2329" } on : shardB Timestamp(3, 0)
+                     { "username" : "user2329" } -->> { "username" : "user29937" } on : shardB Timestamp(4, 0)
+                     { "username" : "user29937" } -->> { "username" : "user36583" } on : shardB Timestamp(5, 0)
+                     { "username" : "user36583" } -->> { "username" : "user43229" } on : shardB Timestamp(6, 0)
+                     { "username" : "user43229" } -->> { "username" : "user49877" } on : shardB Timestamp(7, 0)
+                     { "username" : "user49877" } -->> { "username" : "user56522" } on : shardB Timestamp(8, 0)
+                     { "username" : "user56522" } -->> { "username" : "user63169" } on : shardA Timestamp(8, 1)
+                     { "username" : "user63169" } -->> { "username" : "user69816" } on : shardA Timestamp(1, 17)
+                     { "username" : "user69816" } -->> { "username" : "user76462" } on : shardA Timestamp(1, 19)
+                     { "username" : "user76462" } -->> { "username" : "user83108" } on : shardA Timestamp(1, 21)
+                     { "username" : "user83108" } -->> { "username" : "user89756" } on : shardA Timestamp(1, 23)
+                     { "username" : "user89756" } -->> { "username" : "user96401" } on : shardA Timestamp(1, 25)
+                     { "username" : "user96401" } -->> { "username" : { "$maxKey" : 1 } } on : shardA Timestamp(1, 26)
+
+The chunk ranges appear after the chunk counts for each sharded
+collection. For example, the following are the chunk ranges for the
+``test.members`` collection:
+
+.. code-block:: none
+
+   { "username" : { "$minKey" : 1 } } -->> { "username" : "user16643" } on : shardB Timestamp(2, 0)
+   { "username" : "user16643" } -->> { "username" : "user2329" } on : shardB Timestamp(3, 0)
+   { "username" : "user2329" } -->> { "username" : "user29937" } on : shardB Timestamp(4, 0)
+   { "username" : "user29937" } -->> { "username" : "user36583" } on : shardB Timestamp(5, 0)
+   { "username" : "user36583" } -->> { "username" : "user43229" } on : shardB Timestamp(6, 0)
+   { "username" : "user43229" } -->> { "username" : "user49877" } on : shardB Timestamp(7, 0)
+   { "username" : "user49877" } -->> { "username" : "user56522" } on : shardB Timestamp(8, 0)
+   { "username" : "user56522" } -->> { "username" : "user63169" } on : shardA Timestamp(8, 1)
+   { "username" : "user63169" } -->> { "username" : "user69816" } on : shardA Timestamp(1, 17)
+   { "username" : "user69816" } -->> { "username" : "user76462" } on : shardA Timestamp(1, 19)
+   { "username" : "user76462" } -->> { "username" : "user83108" } on : shardA Timestamp(1, 21)
+   { "username" : "user83108" } -->> { "username" : "user89756" } on : shardA Timestamp(1, 23)
+   { "username" : "user89756" } -->> { "username" : "user96401" } on : shardA Timestamp(1, 25)
+   { "username" : "user96401" } -->> { "username" : { "$maxKey" : 1 } } on : shardA Timestamp(1, 26)
+
+Merge Chunks
+~~~~~~~~~~~~
+
+Merge contiguous :term:`chunks <chunk>` on the same shard.
+
+For example, consider the following chunk ranges on ``shardA``:
+
+.. note::
+
+   The chunks to be merged are highlighted.
+
+.. code-block:: javascript
+   :emphasize-lines: 3-6
+
+   { "username" : "user56522" } -->> { "username" : "user63169" } on : shardA Timestamp(8, 1)
+   { "username" : "user63169" } -->> { "username" : "user69816" } on : shardA Timestamp(1, 17)
+   { "username" : "user69816" } -->> { "username" : "user76462" } on : shardA Timestamp(1, 19)
+   { "username" : "user76462" } -->> { "username" : "user83108" } on : shardA Timestamp(1, 21)
+   { "username" : "user83108" } -->> { "username" : "user89756" } on : shardA Timestamp(1, 23)
+   { "username" : "user89756" } -->> { "username" : "user96401" } on : shardA Timestamp(1, 25)
+   { "username" : "user96401" } -->> { "username" : { "$maxKey" : 1 } } on : shardA Timestamp(1, 26)
+
+To merge the highlighted contiguous chunks, issue the
+:dbcommand:`mergeChunks` command against the ``admin`` database:
+
+.. code-block:: javascript
+
+   db.adminCommand( {
+      mergeChunks: "test.members",
+      bounds: [ { "username" : "user69816" },
+                { "username" : "user96401" } ]
+   } )
+
+On success, :dbcommand:`mergeChunks` produces the following output:
+
+.. code-block:: javascript
+
+   {
+      "ok" : 1,
+      "operationTime" : Timestamp(1544636362, 12),
+      "$clusterTime" : {
+         "clusterTime" : Timestamp(1544636362, 13),
+         "signature" : {
+            "hash" : BinData(0,"AAAAAAAAAAAAAAAAAAAAAAAAAAA="),
+            "keyId" : NumberLong(0)
+         }
+      }
+   }
+
+
+On any failure condition, :dbcommand:`mergeChunks` returns a document
+where the value of the ``ok`` field is ``0``.
+
+View Merged Chunks Ranges
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After merging the identified chunks, confirm the new chunk, as follows:
+
+.. code-block:: javascript
+
+   sh.status()
+
+The output of :method:`sh.status()` should resemble:
+
+.. code-block:: none
+   :emphasize-lines: 49
+
+   --- Sharding Status ---
+     sharding version: {
+        "_id" : 1,
+        "minCompatibleVersion" : 5,
+        "currentVersion" : 6,
+        "clusterId" : ObjectId("5c114e68325aee6f60669228")
+     }
+     shards:
+           {  "_id" : "shardA",  "host" : "shardA/shardA-m1.example.net:27018,shardA-m2.example.net:27018,shardA-m3.example.net:27018",  "state" : 1 }
+           {  "_id" : "shardB",  "host" : "shardB/shardB-m1.example.net:27018,shardB-m2.example.net:27018,shardB-m3.example.net:27018",  "state" : 1 }
+     active mongoses:
+           "4.0.4" : 1
+     autosplit:
+           Currently enabled: yes
+     balancer:
+           Currently enabled:  yes
+           Currently running:  yes
+           Collections with active migrations:
+                   test.members started at Wed Dec 12 2018 13:14:55 GMT-0500 (EST)
+           Failed balancer rounds in last 5 attempts:  0
+           Migration Results for the last 24 hours:
+                   8 : Success
+     databases:
+           {  "_id" : "config",  "primary" : "config",  "partitioned" : true }
+                config.system.sessions
+                     shard key: { "_id" : 1 }
+                     unique: false
+                     balancing: true
+                     chunks:
+                             shardA   1
+                     { "_id" : { "$minKey" : 1 } } -->> { "_id" : { "$maxKey" : 1 } } on : shardA Timestamp(1, 0)
+           {  "_id" : "test",  "primary" : "shardA",  "partitioned" : true,  "version" : {  "uuid" : UUID("2632036c-bd74-457f-a364-5def901fe5f6"),  "lastMod" : 1 } }
+                test.members
+                     shard key: { "username" : 1 }
+                     unique: false
+                     balancing: true
+                     chunks:
+                             shardA   4
+                             shardB   7
+                     { "username" : { "$minKey" : 1 } } -->> { "username" : "user16643" } on : shardB Timestamp(2, 0)
+                     { "username" : "user16643" } -->> { "username" : "user2329" } on : shardB Timestamp(3, 0)
+                     { "username" : "user2329" } -->> { "username" : "user29937" } on : shardB Timestamp(4, 0)
+                     { "username" : "user29937" } -->> { "username" : "user36583" } on : shardB Timestamp(5, 0)
+                     { "username" : "user36583" } -->> { "username" : "user43229" } on : shardB Timestamp(6, 0)
+                     { "username" : "user43229" } -->> { "username" : "user49877" } on : shardB Timestamp(7, 0)
+                     { "username" : "user49877" } -->> { "username" : "user56522" } on : shardB Timestamp(8, 0)
+                     { "username" : "user56522" } -->> { "username" : "user63169" } on : shardA Timestamp(8, 1)
+                     { "username" : "user63169" } -->> { "username" : "user69816" } on : shardA Timestamp(1, 17)
+                     { "username" : "user69816" } -->> { "username" : "user96401" } on : shardA Timestamp(8, 2)
+                     { "username" : "user96401" } -->> { "username" : { "$maxKey" : 1 } } on : shardA Timestamp(1, 26)
+
+After the merge, the :ref:`balancer <sharding-balancing>` may migrate
+chunks across shards to ensure a more even distribution of chunks.

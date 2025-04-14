@@ -1,0 +1,73 @@
+======================================
+Configure a Delayed Replica Set Member
+======================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. start-configuration
+
+To configure a delayed secondary member, set its
+:rsconf:`members[n].priority` value to ``0``, its
+:rsconf:`members[n].hidden` value to ``true``, and
+its :rsconf:`members[n].slaveDelay` value to the
+number of seconds to delay.
+
+.. important::
+
+   The length of the secondary
+   :rsconf:`members[n].slaveDelay` must
+   fit within the window of the oplog. If the oplog is shorter than
+   the :rsconf:`members[n].slaveDelay`
+   window, the delayed member cannot successfully replicate
+   operations.
+
+When you configure a delayed member, the delay
+applies both to replication and to the member's :term:`oplog`. For
+details on delayed members and their uses, see
+:doc:`/core/replica-set-delayed-member`.
+
+Example
+-------
+
+The following example sets a 1-hour delay on a secondary member
+currently at the index ``0`` in the
+:rsconf:`members` array. To set the delay, issue
+the following sequence of operations in a :binary:`~bin.mongo` shell
+connected to the primary:
+
+.. code-block:: javascript
+
+   cfg = rs.conf()
+   cfg.members[0].priority = 0
+   cfg.members[0].hidden = true
+   cfg.members[0].slaveDelay = 3600
+   rs.reconfig(cfg)
+
+After the replica set reconfigures, the delayed secondary member cannot
+become :term:`primary` and is hidden from applications. The
+:rsconf:`members[n].slaveDelay` value delays both
+replication and the member's :term:`oplog` by 3600 seconds (1 hour).
+
+.. include:: /includes/fact-rs-conf-array-index.rst
+
+.. include:: /includes/warning-rs-reconfig.rst
+
+Related Documents
+-----------------
+
+- :rsconf:`members[n].slaveDelay`
+
+- :ref:`Replica Set Reconfiguration
+  <replica-set-reconfiguration-usage>`
+
+- :ref:`replica-set-oplog-sizing`
+
+- :doc:`/tutorial/change-oplog-size` tutorial
+
+- :doc:`/core/replica-set-elections`

@@ -1,0 +1,309 @@
+===================================
+Operational Factors and Data Models
+===================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Modeling application data for MongoDB should consider various
+operational factors that impact the performance of MongoDB. For
+instance, different data models can allow for more efficent queries,
+increase the throughput of insert and update operations, or distribute
+activity to a sharded cluster more effectively.
+
+When developing a data model, analyze all of your application's
+:doc:`read and write operations </crud>` in conjunction with the
+following considerations.
+
+.. _data-model-atomicity:
+.. _data-modeling-atomicity:
+
+Atomicity
+---------
+
+In MongoDB, a write operation is atomic on the level of a single
+document, even if the operation modifies multiple embedded documents
+*within* a single document. When a single write operation modifies
+multiple documents (e.g. :method:`db.collection.updateMany()`), the
+modification of each document is atomic, but the operation as a whole
+is not atomic.
+
+Embedded Data Model
+~~~~~~~~~~~~~~~~~~~
+
+The embedded data model combines all related data in a single document
+instead of normalizing across multiple documents and collections. This
+data model facilitates atomic operations.
+
+See :ref:`data-modeling-atomic-operation` for an example data model
+that provides atomic updates for a single document.
+
+Multi-Document Transaction
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For data models that store references between related
+pieces of data, the application must issue separate read and write
+operations to retrieve and modify these related pieces of data.
+
+.. include:: /includes/extracts/transactions-intro.rst
+
+Sharding
+--------
+
+MongoDB uses :term:`sharding` to provide horizontal scaling. These
+clusters support deployments with large data sets and high-throughput
+operations. Sharding allows users to :term:`partition <data partition>` a
+:term:`collection` within a database to distribute the collection's
+documents across a number of :binary:`~bin.mongod` instances or
+:term:`shards <shard>`.
+
+To distribute data and application traffic in a sharded collection,
+MongoDB uses the :ref:`shard key <shard-key>`. Selecting the proper
+:ref:`shard key <shard-key>` has significant implications for
+performance, and can enable or prevent query isolation and increased
+write capacity. It is important to consider carefully the field or
+fields to use as the shard key.
+
+See :doc:`/sharding` and
+:doc:`/core/sharding-shard-key` for more information.
+
+.. _data-model-indexes:
+
+Indexes
+-------
+
+Use indexes to improve performance for common queries. Build indexes on
+fields that appear often in queries and for all operations that return
+sorted results. MongoDB automatically creates a unique index on the
+``_id`` field.
+
+As you create indexes, consider the following behaviors of indexes:
+
+- Each index requires at least 8 kB of data space.
+
+- Adding an index has some negative performance impact for write
+  operations. For collections with high write-to-read ratio, indexes
+  are expensive since each insert must also update any indexes.
+
+- Collections with high read-to-write ratio often benefit from
+  additional indexes. Indexes do not affect un-indexed read operations.
+
+- When active, each index consumes disk space and memory. This usage
+  can be significant and should be tracked for capacity planning,
+  especially for concerns over working set size.
+
+See :doc:`/applications/indexes` for more information on indexes as
+well as :doc:`/tutorial/analyze-query-plan/`. Additionally, the MongoDB
+:doc:`database profiler </tutorial/manage-the-database-profiler>` may
+help identify inefficient queries.
+
+.. _data-model-large-number-of-collections:
+
+Large Number of Collections
+---------------------------
+
+In certain situations, you might choose to store related information in
+several collections rather than in a single collection.
+
+Consider a sample collection ``logs`` that stores log documents for
+various environment and applications. The ``logs`` collection contains
+documents of the following form:
+
+.. code-block:: javascript
+
+   { log: "dev", ts: ..., info: ... }
+   { log: "debug", ts: ..., info: ...}
+
+If the total number of documents is low, you may group documents into
+collection by type. For logs, consider maintaining distinct log
+collections, such as ``logs_dev`` and ``logs_debug``. The ``logs_dev``
+collection would contain only the documents related to the dev
+environment.
+
+Generally, having a large number of collections has no significant
+performance penalty and results in very good performance. Distinct
+collections are very important for high-throughput batch processing.
+
+When using models that have a large number of collections, consider
+the following behaviors:
+
+- Each collection has a certain minimum overhead of a few kilobytes.
+
+- Each index, including the index on ``_id``, requires at least 8 kB of
+  data space.
+
+- For each :term:`database`, a single namespace file (i.e.
+  ``<database>.ns``) stores all meta-data for that database, and each
+  index and collection has its own entry in the namespace file. MongoDB
+  places :limit:`limits on the size of namespace files
+  <Size of Namespace File>`.
+
+- MongoDB using the ``mmapv1`` storage engine has :limit:`limits on
+  the number of namespaces <Number of Namespaces>`. You may wish to
+  know the current number of namespaces in order to determine how many
+  additional namespaces the database can support. To get the current
+  number of namespaces, run the following in the :binary:`~bin.mongo`
+  shell:
+
+  .. code-block:: javascript
+
+     db.system.namespaces.count()
+
+  The limit on the number of namespaces depend on the ``<database>.ns``
+  size. The namespace file defaults to 16 MB.
+
+  To change the size of the *new* namespace file, start the server with
+  the option :option:`--nssize \<new size MB\> <mongod --nssize>`. For
+  existing databases, after starting up the server with
+  :option:`--nssize <mongod --nssize>`, run the :method:`db.repairDatabase()` command
+  from the :binary:`~bin.mongo` shell. For impacts and considerations on
+  running :method:`db.repairDatabase()`, see
+  :dbcommand:`repairDatabase`.
+
+.. _faq-developers-embed-documents:
+
+Collection Contains Large Number of Small Documents
+---------------------------------------------------
+
+You should consider embedding for performance reasons if you have a
+collection with a large number of small documents. If you can group
+these small documents by some logical relationship *and* you frequently
+retrieve the documents by this grouping, you might consider
+"rolling-up" the small documents into larger documents that contain an
+array of embedded documents.
+
+"Rolling up" these small documents into logical groupings means that
+queries to retrieve a group of documents involve sequential reads and
+fewer random disk accesses. Additionally, "rolling up" documents and
+moving common fields to the larger document benefit the index on these
+fields. There would be fewer copies of the common fields *and* there
+would be fewer associated key entries in the corresponding index. See
+:doc:`/indexes` for more information on indexes.
+
+However, if you often only need to retrieve a subset of the documents
+within the group, then "rolling-up" the documents may not provide
+better performance. Furthermore, if small, separate documents represent
+the natural model for the data, you should maintain that model.
+
+.. _faq-small-documents:
+
+Storage Optimization for Small Documents
+----------------------------------------
+
+Each MongoDB document contains a certain amount of overhead. This
+overhead is normally insignificant but becomes significant if all
+documents are just a few bytes, as might be the case if the documents
+in your collection only have one or two fields.
+
+Consider the following suggestions and strategies for optimizing
+storage utilization for these collections:
+
+- Use the ``_id`` field explicitly.
+
+  MongoDB clients automatically add an ``_id`` field to each document
+  and generate a unique 12-byte :term:`ObjectId` for the ``_id``
+  field. Furthermore, MongoDB always indexes the ``_id`` field. For
+  smaller documents this may account for a significant amount of
+  space.
+
+  To optimize storage use, users can specify a value for the ``_id`` field
+  explicitly when inserting documents into the collection. This
+  strategy allows applications to store a value in the ``_id`` field
+  that would have occupied space in another portion of the document.
+
+  You can store any value in the ``_id`` field, but because this value
+  serves as a primary key for documents in the collection, it must
+  uniquely identify them. If the field's value is not unique, then it
+  cannot serve as a primary key as there would be collisions in the
+  collection.
+
+- Use shorter field names.
+
+  .. note::
+
+     Shortening field names reduces expressiveness and does not provide
+     considerable benefit for larger documents and where document
+     overhead is not of significant concern. Shorter field names do not
+     reduce the size of indexes, because indexes have a predefined
+     structure.
+
+     In general, it is not necessary to use short field names.
+
+  MongoDB stores all field names in every document. For most
+  documents, this represents a small fraction of the space used by a
+  document; however, for small documents the field names may represent
+  a proportionally large amount of space. Consider a collection of
+  small documents that resemble the following:
+
+  .. code-block:: javascript
+
+     { last_name : "Smith", best_score: 3.9 }
+
+  If you shorten the field named ``last_name`` to ``lname`` and the
+  field named ``best_score`` to ``score``, as follows, you could save 9
+  bytes per document.
+
+  .. code-block:: javascript
+
+     { lname : "Smith", score : 3.9 }
+
+- Embed documents.
+
+  In some cases you may want to embed documents in other documents and
+  save on the per-document overhead. See
+  :ref:`faq-developers-embed-documents`.
+
+Data Lifecycle Management
+-------------------------
+
+Data modeling decisions should take data lifecycle management into
+consideration.
+
+The :doc:`Time to Live or TTL feature </tutorial/expire-data>` of
+collections expires documents after a period of time. Consider using
+the TTL feature if your application requires some data to persist in
+the database for a limited period of time.
+
+Additionally, if your application only uses recently inserted
+documents, consider :doc:`/core/capped-collections`. Capped collections
+provide *first-in-first-out* (FIFO) management of inserted documents
+and efficiently support operations that insert and read documents based
+on insertion order.
+
+.. _data-model-document-growth:
+
+Document Growth and MMAPv1
+--------------------------
+
+.. versionchanged:: 3.0.0
+
+Some updates to documents can increase the size of documents. These
+updates include pushing elements to an array (i.e. :update:`$push`) and
+adding new fields to a document.
+
+When using the deprecated MMAPv1 storage engine, document growth can be
+a consideration for your data model. For MMAPv1, if the document size
+exceeds the allocated space for that document, MongoDB will relocate
+the document on disk. Starting with MongoDB 3.0, however, the default
+use of the :ref:`power-of-2-allocation` minimizes the occurrences of
+such re-allocations as well as allows for the effective reuse of the
+freed record space.
+
+When using MMAPv1, if your applications require updates that will
+frequently cause document growth to exceeds the current power of 2
+allocation, you may want to refactor your data model to use references
+between data in distinct documents rather than a denormalized data
+model.
+
+You may also use a *pre-allocation* strategy to explicitly avoid
+document growth. Refer to the :ecosystem:`Pre-Aggregated Reports Use
+Case </use-cases/pre-aggregated-reports>` for an example of the
+*pre-allocation* approach to handling document growth.
+
+See :doc:`/core/mmapv1` for more information on MMAPv1.
+

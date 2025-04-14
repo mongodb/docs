@@ -1,0 +1,140 @@
+ref: _maxStalenessSeconds
+content: |
+  When the {{mode}} read preference includes a :ref:`maxStalenessSeconds value
+  <replica-set-read-preference-max-staleness>`{{noPrimary}},
+  the client estimates how stale each
+  secondary is by comparing the secondary's last write
+  to that of the {{compare}}. The client then directs the read operation to a
+  secondary whose estimated lag is less than or equal to ``maxStalenessSeconds``.
+  {{readFromSecondary}}
+---
+ref: maxStaleness-primaryPreferred
+inherit:
+  file: extracts-read-preference-modes.yaml
+  ref: _maxStalenessSeconds
+replacement:
+  mode: ":readmode:`primaryPreferred`"
+  noPrimary: " and there is no primary from which to read"
+  compare: "secondary with the most recent write"
+  readFromSecondary: ""
+---
+ref: maxStaleness-secondary
+inherit:
+  file: extracts-read-preference-modes.yaml
+  ref: _maxStalenessSeconds
+replacement:
+  mode: ":readmode:`secondary`"
+  noPrimary: ""
+  compare: "primary"
+  readFromSecondary: |
+    If there is no primary, the client uses the secondary with the most
+    recent write for the comparison.
+---
+ref: maxStaleness-secondaryPreferred
+inherit:
+  file: extracts-read-preference-modes.yaml
+  ref: _maxStalenessSeconds
+replacement:
+  mode: ":readmode:`secondaryPreferred`"
+  noPrimary: ""
+  compare: "primary"
+  readFromSecondary: |
+    If there is no primary, the client uses the secondary with the most
+    recent write for the comparison. If there are no secondaries with
+    estimated lag less than or equal to ``maxStalenessSeconds``, the
+    client directs the read operation to the replica set's primary.
+---
+ref: _tagSets
+content: |
+  When the read preference includes a :ref:`tag set (i.e. a list of tag
+  specifications) <replica-set-read-preference-tag-sets>`{{noPrimary}},
+  the client attempts to find secondary members with matching tags
+  (trying the tag specifications in order until a match is found). If
+  matching secondaries are found, the client selects a
+  random secondary from the :ref:`nearest group
+  <replica-set-read-preference-behavior-nearest>` of matching
+  secondaries. If no secondaries have matching tags, {{behavior}}
+---
+ref: tagSets-primaryPreferred
+inherit:
+  file: extracts-read-preference-modes.yaml
+  ref: _tagSets
+replacement:
+  noPrimary: " and there is no primary from which to read"
+  behavior: "the read operation produces an error."
+---
+ref: tagSets-secondary
+inherit:
+  file: extracts-read-preference-modes.yaml
+  ref: _tagSets
+replacement:
+  noPrimary: ""
+  behavior: "the read operation produces an error."
+---
+ref: tagSets-secondaryPreferred
+inherit:
+  file: extracts-read-preference-modes.yaml
+  ref: _tagSets
+replacement:
+  noPrimary: ""
+  behavior: "the client ignores tags and reads from the primary."
+---
+ref: _maxStaleness-and-tagSets
+content: |
+  When the read preference includes a ``maxStalenessSeconds`` value
+  **and** a tag set, the client filters by staleness first and
+  then by the specified tags. {{nearestBehavior}}
+---
+ref: maxStaleness-and-tagSets-general
+inherit:
+  file: extracts-read-preference-modes.yaml
+  ref: _maxStaleness-and-tagSets
+replacement:
+  nearestBehavior: ""
+---
+ref: maxStaleness-and-tagSets-nearest
+inherit:
+  file: extracts-read-preference-modes.yaml
+  ref: _maxStaleness-and-tagSets
+replacement:
+  nearestBehavior: |
+    From the remaining :binary:`~bin.mongod` instances, the client then
+    randomly directs the read to an instance that falls within the
+    acceptable latency window. The read preference :ref:`member
+    selection <replica-set-read-preference-behavior-nearest>`
+    documentation describes the process in detail.
+---
+ref: _secondary-reads-stale-data
+content: |
+  Read operations using the {{mode}} mode may return stale data. Use the
+  ``maxStalenessSeconds`` option to avoid reading from secondaries
+  that the client estimates are overly stale.
+---
+ref: secondary-reads-stale-data-primaryPreferred
+inherit:
+  file: extracts-read-preference-modes.yaml
+  ref: _secondary-reads-stale-data
+replacement:
+  mode: ":readmode:`primaryPreferred`"
+---
+ref: secondary-reads-stale-data-secondary
+inherit:
+  file: extracts-read-preference-modes.yaml
+  ref: _secondary-reads-stale-data
+replacement:
+  mode: ":readmode:`secondary`"
+---
+ref: secondary-reads-stale-data-secondaryPreferred
+inherit:
+  file: extracts-read-preference-modes.yaml
+  ref: _secondary-reads-stale-data
+replacement:
+  mode: ":readmode:`secondaryPreferred`"
+---
+ref: secondary-reads-stale-data-nearest
+inherit:
+  file: extracts-read-preference-modes.yaml
+  ref: _secondary-reads-stale-data
+replacement:
+  mode: ":readmode:`nearest`"
+...

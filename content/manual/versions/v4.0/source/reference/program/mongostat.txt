@@ -1,0 +1,983 @@
+.. _mongostat:
+
+=============
+``mongostat``
+=============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+.. |tool-binary| replace:: mongostat
+
+.. include:: /includes/admonition-mac-osx-sierra-restriction.rst
+
+Synopsis
+--------
+
+The :binary:`~bin.mongostat` utility provides a quick overview of the
+status of a currently running :binary:`~bin.mongod`
+or :binary:`~bin.mongos`
+instance. :binary:`~bin.mongostat` is functionally similar to the
+UNIX/Linux file system utility ``vmstat``, but provides data regarding
+:binary:`~bin.mongod` and :binary:`~bin.mongos` instances.
+
+.. include:: /includes/extracts/require-cmd-line-mongostat.rst
+
+Required Access
+---------------
+
+In order to connect to a :binary:`~bin.mongod` that enforces authorization
+with the :option:`--auth <mongod --auth>` option, specify the
+:option:`--username <mongostat --username>` and :option:`--password
+<mongostat --password>` options, and the connecting user must have the
+:authaction:`serverStatus` privilege action on the cluster resources.
+
+The built-in role :authrole:`clusterMonitor` provides this privilege as
+well as other privileges. To create a role with just the privilege to
+run :binary:`~bin.mongostat`, see :ref:`create-role-for-mongostat`.
+
+Options
+-------
+
+.. binary:: mongostat
+
+.. program:: mongostat
+
+.. option:: --help
+
+   Returns information on the options and use of :program:`mongostat`.
+
+
+.. option:: --verbose, -v
+
+   Increases the amount of internal reporting returned on standard output
+   or in log files. Increase the verbosity with the ``-v`` form by
+   including the option multiple times, (e.g. ``-vvvvv``.)
+   
+
+
+.. option:: --version
+
+   Returns the :program:`mongostat` release number.
+
+
+.. option:: --uri <connectionString>
+
+   .. versionadded:: 3.4.6
+   
+   Specify a resolvable :doc:`URI connection string
+   </reference/connection-string/>` to connect to the MongoDB deployment.
+   
+   .. code-block:: none
+   
+      --uri "mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]"
+   
+   For more information on the components of the connection string, see
+   the :doc:`Connection String URI Format
+   </reference/connection-string/>` documentation.
+   
+
+   .. important::
+   
+      The following command-line options cannot be used in conjunction
+      with :option:`--uri` option:
+   
+      - :option:`--host`
+      - :option:`--port`
+      - :option:`--username`
+      - :option:`--password` (if the
+        :doc:`URI </reference/connection-string/>` connection string also includes the password)
+      - :option:`--authenticationDatabase`
+      - :option:`--authenticationMechanism`
+   
+      Instead, specify these options as part of your :option:`--uri` 
+      connection string.
+
+
+.. option:: --host <hostname><:port>, -h <hostname><:port>
+
+   *Default*: localhost:27017
+
+   Specifies a resolvable hostname for the :binary:`~bin.mongod` to which to
+   connect. By default, the :program:`mongostat` attempts to connect to a MongoDB
+   instance running on the localhost on port number ``27017``.
+   
+   To connect to a replica set, you can specify the set member or
+   members to report on, as in the following (see also the
+   ``--discover`` flag):
+   
+   .. code-block:: none
+   
+      --host <hostname1><:port>,<hostname2><:port>,<...>
+   
+   .. versionchanged:: 3.0.0
+      If you use IPv6 and use the ``<address>:<port>`` format, you must
+      enclose the portion of an address and port combination in
+      brackets (e.g. ``[<address>]``).
+      
+   .. note::
+   
+      You cannot specify both :option:`--host` and :option:`--uri`.
+
+
+.. option:: --port <port>
+
+   *Default*: 27017
+
+   Specifies the TCP port on which the MongoDB instance listens for
+   client connections.
+   
+   .. note::
+   
+      You cannot specify both :option:`--port` and :option:`--uri`.
+
+
+.. option:: --ipv6
+
+   *Removed in version 3.0.*
+   
+   Enables IPv6 support and allows :program:`mongostat` to connect to the
+   MongoDB instance using an IPv6 network. Prior to MongoDB 3.0, you
+   had to specify :option:`--ipv6` to use IPv6. In MongoDB 3.0 and later, IPv6
+   is always enabled.
+
+
+.. option:: --ssl
+
+   .. versionadded:: 2.6
+   
+   Enables connection to a :binary:`~bin.mongod` or :binary:`~bin.mongos` that has
+   TLS/SSL support enabled.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+   
+
+
+.. option:: --sslCAFile <filename>
+
+   .. versionadded:: 2.6
+   
+   Specifies the :file:`.pem` file that contains the root certificate chain
+   from the Certificate Authority. Specify the file name of the
+   :file:`.pem` file using relative or absolute paths.
+   
+   .. include:: /includes/extracts/ssl-facts-ca-file.rst
+   
+   .. warning::
+   
+      **Version 3.2 and earlier:** For TLS/SSL connections (``--ssl``) to
+      :binary:`~bin.mongod` and :binary:`~bin.mongos`, if the :program:`mongostat` runs without the
+      :option:`--sslCAFile`, :program:`mongostat` will not attempt
+      to validate the server certificates. This creates a vulnerability
+      to expired :binary:`~bin.mongod` and :binary:`~bin.mongos` certificates as
+      well as to foreign processes posing as valid :binary:`~bin.mongod` or
+      :binary:`~bin.mongos` instances. Ensure that you *always* specify the
+      CA file to validate the server certificates in cases where
+      intrusion is a possibility.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslPEMKeyFile <filename>
+
+   .. versionadded:: 2.6
+   
+   Specifies the :file:`.pem` file that contains both the TLS/SSL certificate
+   and key. Specify the file name of the :file:`.pem` file using relative
+   or absolute paths.
+   
+   This option is required when using the :option:`--ssl` option to connect
+   to a :binary:`~bin.mongod` or :binary:`~bin.mongos` that has
+   :setting:`~net.ssl.CAFile` enabled *without*
+   :setting:`~net.ssl.allowConnectionsWithoutCertificates`.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+   
+
+
+.. option:: --sslPEMKeyPassword <value>
+
+   .. versionadded:: 2.6
+   
+   Specifies the password to de-crypt the certificate-key file (i.e.
+   :option:`--sslPEMKeyFile`). Use the :option:`--sslPEMKeyPassword` option only if the
+   certificate-key file is encrypted. In all cases, the :program:`mongostat` will
+   redact the password from all logging and reporting output.
+   
+   If the private key in the PEM file is encrypted and you do not specify
+   the :option:`--sslPEMKeyPassword` option, the :program:`mongostat` will prompt for a passphrase. See
+   :ref:`ssl-certificate-password`.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslCRLFile <filename>
+
+   .. versionadded:: 2.6
+   
+   Specifies the :file:`.pem` file that contains the Certificate Revocation
+   List. Specify the file name of the :file:`.pem` file using relative or
+   absolute paths.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+   
+
+
+.. option:: --sslAllowInvalidCertificates
+
+   .. versionadded:: 2.6
+   
+   Bypasses the validation checks for server certificates and allows
+   the use of invalid certificates. When using the
+   :setting:`~net.ssl.allowInvalidCertificates` setting, MongoDB logs as a
+   warning the use of the invalid certificate.
+   
+   .. include:: /includes/extracts/ssl-facts-x509-invalid-certificate.rst
+   
+   .. include:: /includes/extracts/ssl-facts-invalid-cert-warning-clients.rst
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+   
+
+
+.. option:: --sslAllowInvalidHostnames
+
+   .. versionadded:: 3.0
+   
+   Disables the validation of the hostnames in TLS/SSL certificates. Allows
+   :program:`mongostat` to connect to MongoDB instances even if the hostname in their
+   certificates do not match the specified hostname.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslFIPSMode
+
+   .. versionadded:: 2.6
+   
+   Directs the :program:`mongostat` to use the FIPS mode of the TLS/SSL  
+   library. Your system must have a FIPS compliant library to use
+   the :option:`--sslFIPSMode` option.
+   
+   .. include:: /includes/note-fips-is-enterprise-only.rst
+
+
+.. option:: --username <username>, -u <username>
+
+   Specifies a username with which to authenticate to a MongoDB database
+   that uses authentication. Use in conjunction with the :option:`--password` and
+   :option:`--authenticationDatabase` options.
+   
+   .. note::
+   
+      You cannot specify both :option:`--username` and :option:`--uri`.
+
+
+.. option:: --password <password>, -p <password>
+
+   Specifies a password with which to authenticate to a MongoDB database
+   that uses authentication. Use in conjunction with the :option:`--username` and
+   :option:`--authenticationDatabase` options.
+   
+   .. versionchanged:: 3.0.2
+   
+      To prompt the user
+      for the password, pass the :option:`--username` option without
+      :option:`--password` or specify an empty string as the :option:`--password` value,
+      as in ``--password ""`` .
+   
+   .. note::
+   
+      You cannot specify both :option:`--password` and :option:`--uri`.
+
+
+.. option:: --authenticationDatabase <dbname>
+
+   Specifies the authentication database where the specified :option:`--username` has been created.
+   See :ref:`user-authentication-database`.
+   
+   .. note::
+   
+      You cannot specify both :option:`--authenticationDatabase` and :option:`--uri`.
+
+   :option:`--authenticationDatabase` is required for :binary:`~bin.mongod`
+   and :binary:`~bin.mongos` instances that use :ref:`authentication`.
+
+
+.. option:: --authenticationMechanism <name>
+
+   *Default*: SCRAM-SHA-1
+
+   Specifies the authentication mechanism the :program:`mongostat` instance uses to
+   authenticate to the :binary:`~bin.mongod` or :binary:`~bin.mongos`.
+   
+   .. versionchanged:: 4.0
+   
+      MongoDB removes support for the deprecated MongoDB
+      Challenge-Response (``MONGODB-CR``) authentication mechanism.
+   
+      MongoDB adds support for SCRAM mechanism using the SHA-256 hash
+      function (``SCRAM-SHA-256``).
+   
+   .. include:: /includes/list-table-auth-mechanisms.rst
+   
+   .. note::
+   
+      You cannot specify both :option:`--authenticationMechanism` and :option:`--uri`.
+
+
+.. option:: --gssapiServiceName
+
+   .. versionadded:: 2.6
+   
+   Specify the name of the service using :doc:`GSSAPI/Kerberos
+   </core/kerberos>`. Only required if the service does not use the
+   default name of ``mongodb``.
+   
+   This option is available only in MongoDB Enterprise.
+   
+
+
+.. option:: --gssapiHostName
+
+   .. versionadded:: 2.6
+   
+   Specify the hostname of a service using :doc:`GSSAPI/Kerberos
+   </core/kerberos>`. *Only* required if the hostname of a machine does
+   not match the hostname resolved by DNS.
+   
+   This option is available only in MongoDB Enterprise.
+   
+
+
+.. option:: --humanReadable boolean
+
+   *Default*: true
+
+   .. versionadded:: 3.4
+   
+
+   When ``true``, :program:`mongostat` formats dates and quantity values for
+   easier reading, as in the following sample output:
+   
+   .. code-block:: sh
+   
+      insert query update delete getmore command dirty used flushes vsize  res qrw arw net_in net_out conn                time
+         991    *0     *0     *0       0     2|0  3.4% 4.5%       0 2.90G 297M 0|0 0|0  12.9m   84.2k    2 Oct  6 09:45:37.478
+         989    *0     *0     *0       0     2|0  3.6% 4.7%       0 2.91G 310M 0|0 0|0  12.9m   84.1k    2 Oct  6 09:45:38.476
+         988    *0     *0     *0       0     1|0  3.7% 4.8%       0 2.92G 323M 0|0 0|0  12.8m   83.8k    2 Oct  6 09:45:39.481
+         976    *0     *0     *0       0     2|0  3.9% 5.0%       0 2.94G 335M 0|0 0|0  12.7m   83.7k    2 Oct  6 09:45:40.476
+   
+   When ``false``, :program:`mongostat` returns the raw data, as in the following
+   sample output:
+   
+   .. code-block:: sh
+   
+      insert query update delete getmore command dirty used flushes      vsize       res qrw arw   net_in net_out conn                      time
+         992    *0     *0     *0       0     2|0   1.3  2.4       0 2941255680 149946368 0|0 0|0 12913607   84271    2 2016-10-06T09:45:25-04:00
+         989    *0     *0     *0       0     1|0   1.5  2.6       0 2974810112 163577856 0|0 0|0 12873225   84087    2 2016-10-06T09:45:26-04:00
+         996    *0     *0     *0       0     1|0   1.6  2.8       0 2972712960 177209344 0|0 0|0 12955423   84345    2 2016-10-06T09:45:27-04:00
+         987    *0     *0     *0       0     1|0   1.8  2.9       0 2989490176 190840832 0|0 0|0 12861852   84008    2 2016-10-06T09:45:28-04:00
+
+
+.. option:: -o <field list>
+
+   .. versionadded:: 3.4
+   
+
+   When specified, :program:`mongostat` includes **only** the specified fields
+   in the :program:`mongostat` output.
+   
+   Use dot notation to specify
+   :dbcommand:`serverStatus fields <serverStatus>`, as in
+   :serverstatus:`metrics.document.inserted`.
+   
+   To specify a custom name for a field, use ``<field>=<customName>``,
+   as in:
+   
+   .. code-block:: sh
+   
+      mongostat -o 'host=H,time=T,version=MongoDB Version'
+   
+   :option:`-o` supports the following methods to modify the information
+   returned for a given serverStatus field:
+   
+   .. method:: .rate()
+   
+      Use :method:`.rate()` to view the rate per second at which a
+      serverStatus field is changing from :binary:`~bin.mongostat` call to
+      call.
+   
+      :ref:`ex-mongostat-rate` illustrates how to use
+      :binary:`~bin.mongostat` with :option:`-o` and the :method:`.rate()`
+      method.
+   
+   .. method:: .diff()
+   
+      Use :method:`.diff()` to view how much a serverStatus field has
+      changed since the previous :binary:`~bin.mongostat` call. The interval
+      between calls is specified by ``<sleeptime>``.
+   
+      :ref:`ex-mongostat-diff` illustrates how to use
+      :binary:`~bin.mongostat` with :option:`-o` and the :method:`.diff()`
+      method.
+
+   :program:`mongostat` supports specifying *either* :option:`-o` or :option:`-O`:
+   you cannot include both options.
+   
+   See :ref:`ex-mongostat-specify-columns` for an example of
+   :option:`-o`.
+
+
+.. option:: -O <field list>
+
+   .. versionadded:: 3.4
+   
+
+   When specified, :program:`mongostat` includes the specified
+   :dbcommand:`serverStatus` fields after the default :program:`mongostat` output.
+   
+   Use dot notation to specify
+   :dbcommand:`serverStatus fields <serverStatus>`, as in
+   :serverstatus:`metrics.document.inserted`.
+   
+   To specify a custom name for a field, use ``<field>=<customName>``,
+   as in:
+   
+   .. code-block:: sh
+   
+      mongostat -O host=H,time=T
+   
+   :program:`mongostat` supports specifying *either* :option:`-O` or :option:`-o`:
+   you cannot include both options.
+   
+   See :ref:`ex-mongostat-append-columns` for an example of
+   :option:`-O`.
+
+
+.. option:: --noheaders
+
+   Disables the output of column or field names.
+   
+
+
+.. option:: --rowcount <number>, -n <number>
+
+   Controls the number of rows to output. Use in conjunction with
+   the ``sleeptime`` argument to control the duration of a
+   :binary:`~bin.mongostat` operation.
+   
+   Unless :option:`--rowcount` is specified, :binary:`~bin.mongostat`
+   will return an infinite number of rows (e.g. value of ``0``.)
+
+
+.. option:: --discover
+
+   Discovers and reports on statistics from all members of a :term:`replica
+   set` or :term:`sharded cluster`. When connected to any member of a
+   replica set, :option:`--discover` all non-:term:`hidden members <hidden
+   member>` of the replica set. When connected to a :binary:`~bin.mongos`,
+   :binary:`~bin.mongostat` will return data from all :term:`shards <shard>` in
+   the cluster. If a replica set provides a shard in the sharded cluster,
+   :binary:`~bin.mongostat` will report on non-hidden members of that replica
+   set.
+   
+   The :option:`mongostat --host` option is not required but
+   potentially useful in this case.
+   
+   .. versionchanged:: 2.6
+      When running with :option:`--discover`, :binary:`~bin.mongostat` now
+      respects :option:`--rowcount`.
+
+
+.. option:: --http
+
+   Configures :binary:`~bin.mongostat` to collect data using the HTTP interface
+   rather than a raw database connection.
+   
+   .. include:: /includes/fact-deprecated-http-interface.rst
+   
+
+
+.. option:: --all
+
+   Configures :binary:`~bin.mongostat` to return all optional :ref:`fields
+   <mongostat-fields>`.
+   
+
+
+.. option:: --json
+
+   
+   .. versionadded:: 3.0.0
+   
+   Returns output for :program:`mongostat` in :term:`JSON` format.
+
+
+.. option:: --interactive
+
+   .. versionadded:: 3.4
+   
+
+   Display :program:`mongostat` output in an interactive non-scrolling interface
+   rather than the default scrolling output.
+   
+   :option:`--interactive` is not available with the :option:`--json <mongostat --json>`
+   option.
+
+   See: :ref:`example-mongostat-interactive` for an example of :option:`--interactive`.
+
+
+.. option:: <sleeptime>
+
+   *Default*: 1
+
+   The final :program:`mongostat` argument is the length of time, in seconds, that
+   :binary:`~bin.mongostat` waits in between calls. By default :binary:`~bin.mongostat`
+   returns one call every second.
+   
+   :binary:`~bin.mongostat` returns values that reflect the operations
+   over a 1 second period. For values of ``<sleeptime>`` greater
+   than 1, :binary:`~bin.mongostat` averages data to reflect average
+   operations per second.
+
+
+.. _mongostat-fields:
+
+Fields
+------
+
+:binary:`~bin.mongostat` returns values that reflect the operations over a
+1 second period. When :command:`mongostat <sleeptime>` has a value
+greater than 1, :binary:`~bin.mongostat` averages the statistics to reflect
+average operations per second.
+
+:binary:`~bin.mongostat` outputs the following fields:
+
+.. describe:: inserts
+
+   The number of objects inserted into the database per second. If
+   followed by an asterisk (e.g. ``*``), the datum refers to a
+   replicated operation.
+
+.. describe:: query
+
+   The number of query operations per second.
+
+.. describe:: update
+
+   The number of update operations per second.
+
+.. describe:: delete
+
+   The number of delete operations per second.
+
+.. describe:: getmore
+
+   The number of get more (i.e. cursor batch) operations per second.
+
+.. describe:: command
+
+   The number of commands per second. On 
+   :term:`secondary` systems, :binary:`~bin.mongostat` presents two values
+   separated by a pipe character (e.g. ``|``), in the form of
+   ``local|replicated`` commands.
+
+.. describe:: flushes
+
+   .. versionchanged:: 3.0
+
+   For the :ref:`storage-wiredtiger`, ``flushes`` refers to the number
+   of WiredTiger checkpoints triggered between each polling interval.
+
+   For the :ref:`storage-mmapv1`, ``flushes`` represents the number of
+   :term:`fsync` operations per second.
+
+.. describe:: dirty
+
+   .. versionadded:: 3.0
+
+   Only for :ref:`storage-wiredtiger`. The percentage of the WiredTiger
+   cache with dirty bytes, calculated by
+   :serverstatus:`wiredTiger.cache.tracked dirty bytes in the cache`
+   / :serverstatus:`wiredTiger.cache.maximum bytes configured`.
+
+.. describe:: used
+
+   .. versionadded:: 3.0
+
+   Only for :ref:`storage-wiredtiger`. The percentage of the WiredTiger
+   cache that is in use, calculated by
+   :serverstatus:`wiredTiger.cache.bytes currently in the cache` /
+   :serverstatus:`wiredTiger.cache.maximum bytes configured`.
+
+.. describe:: mapped
+
+   .. versionchanged:: 3.0
+
+   Only for :ref:`storage-mmapv1`. The total amount of data mapped in
+   megabytes. This is the total data size at the time of the last
+   :binary:`~bin.mongostat` call.
+
+.. describe:: vsize
+
+   The amount of virtual memory in megabytes used by the process at
+   the time of the last :binary:`~bin.mongostat` call.
+
+.. describe:: non-mapped
+
+   .. versionchanged:: 3.0
+
+   Only for :ref:`storage-mmapv1`.
+
+   *Optional*. The total amount of virtual memory excluding all mapped memory at
+   the time of the last :binary:`~bin.mongostat` call.
+
+   :binary:`~bin.mongostat` only returns this value when started with the
+   :option:`--all <mongostat --all>` option.
+
+.. describe:: res
+
+   The amount of resident memory in megabytes used by the process at
+   the time of the last :binary:`~bin.mongostat` call.
+
+.. describe:: faults
+
+   .. versionchanged:: 3.0
+
+   Only for :ref:`storage-mmapv1`. The number of page faults per second.
+
+   .. versionchanged:: 2.1
+      Before version 2.1, this value was only provided for MongoDB
+      instances running on Linux hosts.
+
+.. describe:: lr
+
+   .. versionadded:: 3.2
+
+   Only for :ref:`storage-mmapv1`. The percentage of read lock
+   acquisitions that had to wait. :binary:`~bin.mongostat` displays ``lr|lw``
+   if a lock acquisition waited.
+
+.. describe:: lw
+
+   .. versionadded:: 3.2
+
+   Only for :ref:`storage-mmapv1`. The percentage of write lock
+   acquisitions that had to wait. :binary:`~bin.mongostat` displays ``lr|lw``
+   if a lock acquisition waited.
+
+.. describe:: lrt
+
+   .. versionadded:: 3.2
+
+   Only for :ref:`storage-mmapv1`. The average acquire time, in
+   microseconds, of read lock acquisitions that waited.
+   :binary:`~bin.mongostat` displays ``lrt|lwt`` if a lock acquisition
+   waited.
+
+.. describe:: lwt
+
+   .. versionadded:: 3.2
+
+   Only for :ref:`storage-mmapv1`. The average acquire time, in
+   microseconds, of write lock acquisitions that waited.
+   :binary:`~bin.mongostat` displays ``lrt|lwt`` if a lock acquisition
+   waited.
+
+.. describe:: locked
+
+   .. versionchanged:: 3.0
+      Only appears when :binary:`~bin.mongostat` runs against pre-3.0
+      versions of MongoDB instances.
+
+   The percent of time in a global write lock.
+
+.. describe:: idx miss
+
+   .. versionchanged:: 3.0
+
+   Only for :ref:`storage-mmapv1`. The percent of index access attempts
+   that required a page fault to load a btree node. This is a sampled
+   value.
+
+.. describe:: qr
+
+   The length of the queue of clients waiting to read data from the
+   MongoDB instance.
+
+.. describe:: qw
+
+   The length of the queue of clients waiting to write data from the
+   MongoDB instance.
+
+.. describe:: ar
+
+   The number of active clients performing read operations.
+
+.. describe:: aw
+
+   The number of active clients performing write operations.
+
+.. describe:: netIn
+
+   The amount of network traffic, in *bytes*, received by the MongoDB instance.
+
+   This includes traffic from :binary:`~bin.mongostat` itself.
+
+.. describe:: netOut
+
+   The amount of network traffic, in *bytes*, sent by the MongoDB instance.
+
+   This includes traffic from :binary:`~bin.mongostat` itself.
+
+.. describe:: conn
+
+   The total number of open connections.
+
+.. describe:: set
+
+   The name, if applicable, of the replica set.
+
+.. describe:: repl
+
+   The replication status of the member.
+
+   =========  =========================
+   **Value**  **Replication Type**
+   ---------  -------------------------
+   M          master
+   SEC        :term:`secondary`
+   REC        recovering
+   UNK        unknown
+   RTR        mongos process ("router")
+   ARB        :term:`arbiter`
+   =========  =========================
+
+Examples
+--------
+
+Specify ``mongostat`` Collection Period and Frequency
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the first example, :binary:`~bin.mongostat` will return data every
+second for 20 seconds. :binary:`~bin.mongostat` collects data from the
+:binary:`~bin.mongod` instance running on the localhost interface on
+port 27017. All of the following invocations produce identical
+behavior:
+
+.. code-block:: sh
+
+   mongostat --rowcount 20 1
+   mongostat --rowcount 20
+   mongostat -n 20 1
+   mongostat -n 20
+
+In the next example, :binary:`~bin.mongostat` returns data every 5 minutes
+(or 300 seconds) for as long as the program runs. :binary:`~bin.mongostat`
+collects data from the :binary:`~bin.mongod` instance running on the
+localhost interface on port ``27017``. The following
+invocations produce identical behavior:
+
+.. code-block:: sh
+
+   mongostat --rowcount 0 300
+   mongostat -n 0 300
+   mongostat 300
+
+In the following example, :binary:`~bin.mongostat` returns data every 5
+minutes for an hour (12 times.) :binary:`~bin.mongostat` collects data
+from the :binary:`~bin.mongod` instance running on the localhost interface
+on port 27017. The following invocations produce identical
+behavior:
+
+.. code-block:: sh
+
+   mongostat --rowcount 12 300
+   mongostat -n 12 300
+
+.. _ex-mongostat-append-columns:
+
+Add Fields to :binary:`~bin.mongostat` Output
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.4
+
+:option:`-O <mongostat -O>` allows you to specify fields from
+:dbcommand:`serverStatus` output to add to the default
+:binary:`~bin.mongostat` output. The following example adds the :serverstatus:`host`
+and :serverstatus:`version` fields as well as the :serverstatus:`network.numRequests` field,
+which will display as "network requests", to the default
+:binary:`~bin.mongostat` output:
+
+.. code-block:: sh
+
+   mongostat -O 'host,version,network.numRequests=network requests'
+
+The :binary:`~bin.mongostat` output would then resemble:
+
+.. code-block:: sh
+
+   insert query update delete getmore command dirty used flushes vsize   res qrw arw net_in net_out conn                time            host version network requests
+       *0    *0     *0     *0       0     2|0  0.0% 0.0%       0 2.51G 19.0M 0|0 0|0   158b   39.4k    2 Oct 11 12:14:45.878 localhost:37017  3.3.14               91
+       *0    *0     *0     *0       0     1|0  0.0% 0.0%       0 2.51G 19.0M 0|0 0|0   157b   39.3k    2 Oct 11 12:14:46.879 localhost:37017  3.3.14               95
+       *0    *0     *0     *0       0     1|0  0.0% 0.0%       0 2.51G 19.0M 0|0 0|0   157b   39.2k    2 Oct 11 12:14:47.884 localhost:37017  3.3.14               99
+
+.. _ex-mongostat-specify-columns:
+
+Specify :binary:`~bin.mongostat` Output Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.4
+
+:option:`-o <mongostat -o>` specifies the columns :binary:`~bin.mongostat` includes in its
+output. You can specify any :dbcommand:`serverStatus` field as a
+:binary:`~bin.mongostat` output column. The following example specifies the
+:serverstatus:`host`, :serverstatus:`time <localTime>`, and  :serverstatus:`metrics.document.inserted` fields:
+
+.. code-block:: sh
+
+   mongostat -o 'host,time,metrics.document.inserted'
+
+The :binary:`~bin.mongostat` output would then resemble:
+
+.. code-block:: sh
+
+              host                time metrics.document.inserted
+   localhost:37017 Oct 11 12:21:17.370                         0
+   localhost:37017 Oct 11 12:21:18.371                         0
+   localhost:37017 Oct 11 12:21:19.371                         0
+   localhost:37017 Oct 11 12:21:20.368                         0
+
+.. _ex-mongostat-rate:
+
+View Rate of Change for a Field with :method:`.rate()`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.4
+
+:method:`.rate()` enables you to view the rate per second at which a
+numerical field has changed from one :binary:`~bin.mongostat` call to the
+next. For example, you can view the rate at which documents have been
+inserted during an insert operation. :method:`.rate()` can therefore
+help you view the performance of your :binary:`~bin.mongod` instance.
+
+The following example reports on the rate of change of the
+:serverstatus:`metrics.document.inserted` :dbcommand:`serverStatus` field. The
+invocation uses :option:`-o <mongostat -o>`'s ability to specify the name of an column
+to label ``metrics.document.inserted.rate()`` as "inserted rate" and
+``metrics.document.inserted`` as "inserted":
+
+.. code-block:: sh
+
+   mongostat -o 'host,mem,bits,metrics.document.inserted.rate()=inserted rate,metrics.document.inserted=inserted' --rowcount 5
+
+The output would then resemble:
+
+.. code-block:: sh
+
+              host mem.bits inserted rate inserted
+   localhost:37017       64           501     3455
+   localhost:37017       64           967    13128
+   localhost:37017       64           972    22851
+   localhost:37017       64           214    25000
+   localhost:37017       64             0    25000
+
+.. _ex-mongostat-diff:
+
+View Field Changes with :method:`.diff()`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.4
+
+:method:`.diff()` returns the difference between the current
+:dbcommand:`serverStatus` field value and the value from the previous
+:binary:`~bin.mongostat` call. The following example returns statistics on
+the number of documents being inserted into a collection: ``inserted
+diff`` is the difference in the
+:serverstatus:`metrics.document.inserted` field between subsequent
+calls, while ``inserted`` is the value of
+:serverstatus:`metrics.document.inserted`:
+
+.. code-block:: sh
+
+   mongostat -o 'host,mem.bits,metrics.document.inserted.diff()=inserted diff,metrics.document.inserted=inserted' --rowcount 5
+
+The output would then resemble:
+
+.. code-block:: sh
+
+              host mem.bits inserted diff inserted
+   localhost:27017       64             0    25359
+   localhost:27017       64            94    25453
+   localhost:27017       64           938    26391
+   localhost:27017       64           964    27355
+   localhost:27017       64           978    28333
+
+View Statistics for a Replica Set or Sharded Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In many cases, using the :option:`--discover <mongostat --discover>` option
+will help provide a more complete snapshot of the state of an entire
+group of machines. If a :binary:`~bin.mongos` process connected to a
+:term:`sharded cluster` is running on port ``27017`` of the local
+machine, you can use the following form to return statistics from all
+members of the cluster:
+
+.. code-block:: sh
+
+   mongostat --discover
+
+.. _example-mongostat-interactive:
+
+View Statistics in an Interactive Interface
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.4
+
+Use the :option:`--interactive <mongostat --interactive>` option to
+view statistics in a non-scrolling `ncurses <https://www.gnu.org/software/ncurses/>`_ -style
+interactive output. The :option:`--interactive` option lets you highlight specific
+hosts, columns, or fields to view. When combined with :option:`--discover`,
+:option:`--interactive` displays statistics for all members of a
+replica set or sharded cluster, as in the following example:
+
+.. code-block:: sh
+
+   mongostat --discover --interactive
+
+The output for a sharded cluster would then resemble:
+
+.. code-block:: sh
+
+                     host insert query update delete getmore command dirty used flushes mapped vsize   res faults qrw arw net_in net_out conn set repl                time
+   hostname.local:27018     *0    *0     *0     *0       0     1|0  0.0% 0.0%       0        3.25G 25.0M    n/a 0|0 1|0   157b   43.9k   19 tic  PRI Nov  2 11:44:46.439
+   hostname.local:27019     *0    *0     *0     *0       0     2|0  0.0% 0.0%       0        3.18G 26.0M    n/a 0|0 1|0   322b   44.4k   12 tic  SEC Nov  2 11:44:46.439
+   hostname.local:27020     *0    *0     *0     *0       0     2|0  0.0% 0.0%       0        3.18G 26.0M    n/a 0|0 1|0   322b   44.4k   12 tic  SEC Nov  2 11:44:46.439
+   hostname.local:27021   2017    *0     *0     *0     826  1029|0  0.0% 0.0%       0        3.25G 31.0M    n/a 0|0 1|0  1.74m   1.60m   20 tac  PRI Nov  2 11:44:46.439
+   hostname.local:27022  *2021    *0     *0     *0       0     2|0  0.0% 0.0%       0        3.19G 32.0M    n/a 0|0 1|0   322b   44.6k   12 tac  SEC Nov  2 11:44:46.438
+   hostname.local:27023  *2022    *0     *0     *0       0     3|0  0.0% 0.0%       0        3.19G 33.0M    n/a 0|0 1|0   323b   44.7k   12 tac  SEC Nov  2 11:44:46.438
+        localhost:27017   2071    *0     *0     *0       0  2073|0                  0     0B 2.43G 9.00M      0 0|0 0|0   249k    130k    4      RTR Nov  2 11:44:47.429
+   
+   Press '?' to toggle help
+
+Additional Information
+----------------------
+
+For more information about monitoring MongoDB, see
+:doc:`/administration/monitoring`.
+
+For more background on other MongoDB status outputs see:
+
+- :doc:`/reference/command/serverStatus`
+- :doc:`/reference/command/replSetGetStatus`
+- :doc:`/reference/command/dbStats`
+- :doc:`/reference/command/collStats`
+
+For an additional utility that provides MongoDB metrics see
+:doc:`mongotop </reference/program/mongotop>`.
+

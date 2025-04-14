@@ -1,0 +1,134 @@
+====
+$max
+====
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. operator:: $max
+
+   .. include:: /includes/extracts/mongo-shell-deprecated-meta-operator-max.rst
+
+   Specify a :operator:`$max` value to specify the *exclusive* upper
+   bound for a specific index in order to constrain the results of
+   :method:`~db.collection.find()`. The :operator:`$max` specifies the
+   upper bound for *all* keys of a specific index *in order*.
+
+   The :binary:`~bin.mongo` shell provides the :method:`~cursor.max()`
+   wrapper method:
+
+   .. code-block:: javascript
+
+      db.collection.find( { <query> } ).max( { field1: <max value>, ... fieldN: <max valueN> } )
+
+   You can also specify :operator:`$max` with either of the two forms:
+
+   .. code-block:: javascript
+
+      db.collection.find( { <query> } )._addSpecial( "$max", { field1: <max value1>, ... fieldN: <max valueN> } )
+      db.collection.find( { $query: { <query> }, $max: { field1: <max value1>, ... fieldN: <max valueN> } } )
+
+Behavior
+--------
+
+Interaction with Index Selection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Because :method:`~cursor.max()` requires an index on a field, and
+forces the query to use this index, you may prefer the
+:query:`$lt` operator for the query if possible. Consider the
+following example:
+
+.. code-block:: javascript
+
+   db.collection.find( { _id: 7 } ).max( { age: 25 } )
+
+The query uses the index on the ``age`` field, even if the
+index on ``_id`` may be better.
+
+Index Bounds
+~~~~~~~~~~~~
+
+If you use :operator:`$max` with :operator:`$min` to specify a range:
+
+- the index bounds specified in :operator:`$min` and :operator:`$max`
+  must both refer to the keys of the same index.
+
+- the bound specified by :operator:`$max` must be greater than
+  the bound specified by :operator:`$min`.
+
+  .. versionchanged:: 4.0
+
+``$max`` without ``$min``
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-query-min-max.rst
+
+Examples
+--------
+
+The following examples use the :binary:`~bin.mongo` shell wrappers.
+
+Specify Exclusive Upper Bound
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider the following operations on a collection named
+``collection`` that has an index ``{ age: 1 }``:
+
+.. code-block:: javascript
+
+   db.collection.find( { <query> } ).max( { age: 100 } )
+
+This operation limits the query to those documents where the
+field ``age`` is less than ``100`` and forces a query plan which scans the
+``{ age: 1 }`` index from :bsontype:`MinKey <data_minkey>` to 100.
+
+Index Selection
+~~~~~~~~~~~~~~~
+
+You can explicitly specify the corresponding index with
+:method:`~cursor.hint()`. Otherwise, MongoDB selects the index using
+the fields in the :operator:`$max` and :operator:`$min` bounds;
+however, if multiple indexes exist on same fields with different sort
+orders, the selection of the index may be ambiguous.
+
+Consider a collection named ``collection`` that has the following
+two indexes:
+
+.. code-block:: javascript
+
+   { age: 1, type: -1 }
+   { age: 1, type: 1 }
+
+Without explicitly using :method:`~cursor.hint()`, MongoDB may
+select either index for the following operation:
+
+.. code-block:: javascript
+
+   db.collection.find().max( { age: 50, type: 'B' } )
+
+Use with ``$min``
+~~~~~~~~~~~~~~~~~
+
+Use :operator:`$max` alone or in conjunction with :operator:`$min` to
+limit results to a specific range for the *same* index, as in the
+following example:
+
+.. note::
+
+   .. versionchanged:: 4.0
+   
+      The bound specified by :operator:`$max` must be greater than the
+      bound specified by :operator:`$min`.
+
+.. code-block:: javascript
+
+   db.collection.find().min( { age: 20 } ).max( { age: 25 } )

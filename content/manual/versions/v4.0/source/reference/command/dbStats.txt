@@ -1,0 +1,201 @@
+=======
+dbStats
+=======
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: dbStats
+
+   The :dbcommand:`dbStats` command returns storage statistics for a
+   given database. The command takes the following syntax:
+
+   .. _scale-argument:
+
+   .. code-block:: javascript
+
+      db.runCommand({ dbStats: 1, scale: 1 })
+
+   ``scale`` is optional and defaults to ``1``.
+
+   In the :binary:`~bin.mongo` shell, the :method:`db.stats()` function
+   provides a wrapper around :dbcommand:`dbStats`.
+
+Behavior
+--------
+
+The ``scale`` argument allows you to specify how to scale byte
+values. For example, a ``scale`` value of ``1024`` will display the
+results in kilobytes rather than in bytes:
+
+.. code-block:: javascript
+
+   db.runCommand({ dbStats: 1, scale: 1024 })
+
+.. note::
+
+   Scaling rounds values to whole numbers.
+
+
+The time required to run the command depends on the total size of the
+database. Because the command must touch all data files, the command
+may take several seconds to run.
+
+Accuracy after Unexpected Shutdown
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. |cmd| replace:: :dbcommand:`dbStats`
+.. |opt| replace:: count and size
+
+.. include:: /includes/fact-unexpected-shutdown-accuracy.rst
+
+.. _dbstats-output:
+
+Output
+------
+
+.. data:: dbStats.db
+
+   Contains the name of the database.
+
+.. data:: dbStats.collections
+
+   Contains a count of the number of collections in that database.
+
+.. data:: dbStats.objects
+
+   Contains a count of the number of objects (i.e. :term:`documents <document>`) in
+   the database across all collections.
+
+.. data:: dbStats.avgObjSize
+
+   The average size of each document in bytes. This is the
+   :data:`~dbStats.dataSize` divided by the number of documents. The
+   :ref:`scale argument <scale-argument>` does not affect the
+   ``avgObjSize`` value.
+
+.. data:: dbStats.dataSize
+
+   The total size of the uncompressed data held in this database.
+   The :data:`~dbStats.dataSize` decreases
+   when you remove :term:`documents <document>`.
+
+   For databases using the :doc:`MMAPv1 </core/mmapv1>` storage engine, ``dataSize`` includes
+   preallocated space and the :term:`padding factor`. The ``dataSize`` does not decrease when
+   documents shrink. 
+
+   For databases using the :ref:`WiredTiger <storage-wiredtiger-compression>` storage engine,
+   ``dataSize`` may be larger than ``storageSize`` if compression is enabled.  The ``dataSize``
+   decreases when documents shrink.
+
+   .. sum of all records not counting deleted records
+
+.. data:: dbStats.storageSize
+
+   The total amount of space allocated to collections in this database
+   for :term:`document` storage. The :data:`~dbStats.storageSize` does
+   not decrease as you remove or
+   shrink documents. This value may be smaller than ``dataSize`` for databases
+   using the WiredTiger storage engine with
+   :ref:`compression <storage-wiredtiger-compression>` enabled.
+
+   .. sum of all extents (no indexes or the $freelist)
+   .. include links to eventual documentation of storage management
+
+.. data:: dbStats.numExtents
+
+   Contains a count of the number of extents in the database across
+   all collections.
+
+.. data:: dbStats.indexes
+
+   Contains a count of the total number of indexes across all
+   collections in the database.
+
+.. data:: dbStats.indexSize
+
+   The total size of all indexes created on this database.
+
+   .. uses the dataSize member
+
+.. data:: dbStats.fileSize
+
+   The total size of the data files that hold the database. This value
+   includes preallocated space and the :term:`padding factor`. The
+   value of :data:`~dbStats.fileSize` only reflects the size of the data files
+   for the database and not the namespace file.
+
+   Only present when using the ``mmapv1`` storage engine.
+
+.. data:: dbStats.nsSizeMB
+
+   The total size of the :term:`namespace` files (i.e. that end with
+   ``.ns``) for this database. You cannot change the size of the
+   namespace file after creating a database, but you can change the
+   default size for all new namespace files with the
+   :setting:`~storage.nsSize` runtime option.
+
+   Only present when using
+   the ``mmapv1`` storage engine.
+
+   .. seealso:: The :setting:`~storage.nsSize` option, and :ref:`Maximum Namespace File Size <limit-size-of-namespace-file>`
+
+.. data:: dbStats.dataFileVersion
+
+   Document that contains information about the on-disk format of the data
+   files for the database. Only present when using the ``mmapv1`` storage engine.
+
+.. data:: dbStats.dataFileVersion.major
+
+   The major version number for the on-disk format of the data files for
+   the database. Only present when using the ``mmapv1`` storage engine.
+
+.. data:: dbStats.dataFileVersion.minor
+
+   The minor version number for the on-disk format of the data files
+   for the database. Only present when using the ``mmapv1`` storage engine.
+
+.. data:: dbStats.extentFreeList
+
+   .. versionadded:: 3.0.0
+
+.. data:: dbStats.extentFreeList.num
+
+   .. versionadded:: 3.0.0
+
+   Number of extents in the freelist. Only present when using the
+   ``mmapv1`` storage engine.
+
+.. data:: dbStats.extentFreeList.size
+
+   .. versionadded:: 3.0.0
+
+   Total size of the extents on the freelist.
+
+   Only present when using the ``mmapv1`` storage engine.
+
+.. data:: dbStats.fsUsedSize
+
+   .. versionadded:: 3.6
+
+   Total size of all disk space in use on the filesystem where MongoDB
+   stores data.
+
+   .. seealso::
+
+      :option:`--dbpath <mongod --dbpath>`
+
+.. data:: dbStats.fsTotalSize
+
+   .. versionadded:: 3.6
+
+   Total size of all disk capacity on the filesystem where MongoDB
+   stores data.

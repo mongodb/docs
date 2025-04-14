@@ -1,0 +1,259 @@
+=============
+Mongo.watch()
+=============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: Mongo.watch( pipeline, options )
+
+   .. versionadded:: 4.0
+
+      Requires ``featureCompatibilityVersion`` (fCV) set to
+      ``"4.0"`` or greater. For more information on fCV, see
+      :dbcommand:`setFeatureCompatibilityVersion`.
+
+   Opens a :ref:`change stream cursor <changeStreams>` for a replica
+   set or a sharded cluster to report on all its non-``system``
+   collections across its databases, with the exception of the
+   ``admin``, ``local``, and the ``config`` databases.
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``pipeline``
+   
+        - array
+   
+        - A sequence of one or more of the following aggregation stages:
+          
+          - :pipeline:`$match`
+          - :pipeline:`$project`
+          - :pipeline:`$addFields`
+          - :pipeline:`$replaceRoot`
+          - :pipeline:`$redact`
+          
+          See :doc:`/aggregation` for complete documentation on the aggregation
+          framework.
+          
+          
+   
+      * - ``options``
+   
+        - document
+   
+        - Optional. Additional options that modify the behavior of
+          :method:`Mongo.watch()`.
+          
+          You must pass an empty array ``[]`` to the ``pipeline`` parameter if
+          you are not specifying a pipeline but are passing the ``options``
+          document.
+          
+          
+   
+
+
+   The ``options`` document can contain the following fields and values:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``resumeAfter``
+   
+        - document
+   
+        - Optional. Directs :method:`Mongo.watch()` to attempt resuming
+          notifications starting after the operation specified in the resume
+          token. 
+          
+          Each change stream event document includes a resume token as the
+          ``_id`` field. Pass the *entire* ``_id`` field of the change event
+          document that represents the operation you want to resume after.
+          
+          ``resumeAfter`` is mutually exclusive with ``startAtOperationTime``.
+          
+          
+   
+      * - ``fullDocument``
+   
+        - string
+   
+        - Optional. By default, :method:`Mongo.watch()` returns the delta of
+          those fields modified by an update operation, instead of the entire
+          updated document.
+          
+          Set ``fullDocument`` to ``"updateLookup"`` to direct
+          :method:`Mongo.watch()` to look up the most current 
+          majority-committed version of the updated document.
+          :method:`Mongo.watch()` returns a ``fullDocument`` field with
+          the document lookup in addition to the ``updateDescription`` delta.
+          
+          
+   
+      * - ``batchSize``
+   
+        - int
+   
+        - Optional. Specifies the maximum number of change events to return in each
+          batch of the response from the MongoDB cluster. 
+          
+          Has the same functionality as :method:`cursor.batchSize()`.
+          
+          
+   
+      * - ``maxAwaitTimeMS``
+   
+        - int
+   
+        - Optional. The maximum amount of time in milliseconds the server waits for new
+          data changes to report to the change stream cursor before returning an
+          empty batch.
+          
+          Defaults to ``1000`` milliseconds.
+          
+          
+   
+      * - ``collation``
+   
+        - document
+   
+        - Optional. Pass a :ref:`collation document <collation-document-fields>`
+          to specify a :doc:`collation </reference/collation>` for the 
+          change stream cursor.
+          
+          
+   
+      * - ``startAtOperationTime``
+   
+        - Timestamp
+   
+        - Optional. The starting point for the change stream. If the specified starting
+          point is in the past, it must be in the time range of the oplog. To
+          check the time range of the oplog, see
+          :method:`rs.printReplicationInfo()`.
+          
+          ``startAtOperationTime`` is mutually exclusive with ``resumeAfter``.
+          
+          
+   
+
+
+   :returns:
+      A :term:`cursor` over the change event documents.
+      See :doc:`/reference/change-events` for examples of change
+      event documents.
+
+   .. seealso::  :method:`db.collection.watch()` and :method:`db.watch()`
+
+Behavior
+--------
+
+- :method:`Mongo.watch()` only notifies on data changes that have
+  persisted to a majority of data-bearing members.
+
+- .. include:: /includes/extracts/changestream-cursor-open.rst
+
+- :method:`Mongo.watch()` is available for replica sets and sharded
+  clusters:
+  
+  - For a replica set, you can issue :method:`Mongo.watch()` on any
+    data-bearing member.
+
+  - For a sharded cluster, you must issue :method:`Mongo.watch()` on a
+    :binary:`~bin.mongos` instance.
+
+- You can only use :method:`Mongo.watch()` with the :ref:`Wired Tiger
+  storage engine <storage-wiredtiger>`.
+
+Resumability
+~~~~~~~~~~~~
+
+.. include:: /includes/extracts/changestream-resume.rst
+
+.. |watchmethod| replace:: :method:`Mongo.watch()`
+
+.. topic:: Resume Token
+
+   .. include:: /includes/extracts/changestream-resume-token-versions-4.0.rst
+
+   .. include:: /includes/extracts/changestream-resume-token-hex-change.rst
+
+Full Document Lookup of Update Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/changestream-full-document-lookup.rst
+
+Availability
+~~~~~~~~~~~~
+
+Change stream is only available if :readconcern:`"majority"` read
+concern support is enabled (default).
+
+Access Control
+--------------
+
+When running with access control, the user must have the
+:authaction:`find` and :authaction:`changeStream` privilege actions on
+:ref:`all non-systems collections across all
+databases<resource-all-but-system-collections>`.. That is, a user must
+have a :ref:`role <roles>` that grants the following :ref:`privilege
+<privileges>`:
+
+.. code-block:: javascript
+
+   { resource: { db: "", collection: "" }, actions: [ "find", "changeStream" ] }
+
+The built-in :authrole:`read` role provides the appropriate
+privileges.
+
+Example
+-------
+
+The following operation in the :binary:`~bin.mongo` shell opens a
+change stream cursor on a replica set. The returned cursor reports on
+data changes to all the non-``system`` collections across all databases
+except for the ``admin``, ``local``, and the ``config`` databases.
+
+.. code-block:: javascript
+
+   watchCursor = db.getMongo().watch()
+
+Iterate the cursor to check for new events. Use the
+:method:`cursor.isExhausted()` method to ensure the loop only exits
+if the change stream cursor is closed *and* there are no objects
+remaining in the latest batch:
+
+.. code-block:: javascript
+
+   while (!watchCursor.isExhausted()){
+      if (watchCursor.hasNext()){
+         printjson(watchCursor.next());
+      }
+   }
+
+For complete documentation on change stream output, see
+:ref:`change-stream-output`.

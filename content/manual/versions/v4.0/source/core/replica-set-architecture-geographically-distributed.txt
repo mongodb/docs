@@ -1,0 +1,127 @@
+.. _replica-set-geographical-distribution:
+
+========================================================
+Replica Sets Distributed Across Two or More Data Centers
+========================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+While :term:`replica sets <replica set>` provide basic protection
+against single-instance failure, replica sets whose members are all
+located in a single data center are susceptible to data center
+failures. Power outages, network interruptions, and natural disasters
+are all issues that can affect replica sets whose members are located
+in a single facility.
+
+Distributing replica set members across geographically distinct data
+centers adds redundancy and provides fault tolerance if one of the data
+centers is unavailable.
+
+Distribution of the Members
+---------------------------
+
+To protect your data in case of a data center failure, keep at least
+one member in an alternate data center. If possible, use an odd number
+of data centers, and choose a distribution of members that maximizes
+the likelihood that even with a loss of a data center, the remaining
+replica set members can form a majority or at minimum, provide a copy
+of your data.
+
+Examples
+~~~~~~~~
+
+Three-member Replica Set
+````````````````````````
+
+For example, for a three-member replica set, some possible
+distributions of members include:
+
+- Two data centers: two members to Data Center 1 and one member to Data
+  Center 2. If one of the members of the replica set is an arbiter,
+  distribute the arbiter to Data Center 1 with a data-bearing member.
+
+  - If Data Center 1 goes down, the replica set becomes read-only.
+
+  - If Data Center 2 goes down, the replica set remains writable as
+    the members in Data Center 1 can hold an election.
+
+
+- Three data centers: one member to Data Center 1, one member to Data
+  Center 2, and one member to Data Center 3.
+
+  - If any Data Center goes down, the replica set remains writable as
+    the remaining members can hold an election.
+
+.. include:: /includes/note-csrs-distribution.rst
+
+Five-member Replica Set
+```````````````````````
+
+For a replica set with 5 members, some possible
+distributions of members include:
+
+- Two data centers: three members to Data Center 1 and two members to
+  Data Center 2.
+
+  - If Data Center 1 goes down, the replica set becomes read-only.
+
+  - If Data Center 2 goes down, the replica set remains writeable as
+    the members in Data Center 1 can create a majority.
+
+
+- Three data centers: two member to Data Center 1, two members to Data
+  Center 2, and one member to site Data Center 3.
+
+  - If any Data Center goes down, the replica set remains writeable as
+    the remaining members can hold an election.
+
+.. include:: /includes/note-csrs-distribution.rst
+
+For example, the following 5 member replica set distributes its members
+across three data centers.
+
+.. include:: /images/replica-set-three-data-centers.rst
+
+Electability of Members
+-----------------------
+
+Some members of the replica set, such as members that have networking
+restraint or limited resources, should not be able to become primary in
+a :term:`failover`. Configure members that should not become primary to
+have :ref:`priority 0 <replica-set-secondary-only-members>`. 
+
+In some cases, you may prefer that the members in one data center be
+elected primary before the members in the other data centers. You can
+modify the :rsconf:`~members[n].priority` of the members such that the
+members in the one data center has higher
+:rsconf:`~members[n].priority` than the members in the other data
+centers.
+
+In the following example, the replica set members in
+Data Center 1 have a higher priority than the members in Data Center 2
+and 3; the members in Data Center 2 have a higher priority than the
+member in Data Center 3:
+
+.. include:: /images/replica-set-three-data-centers-priority.rst
+
+Connectivity
+------------
+
+Verify that your network configuration allows communication among all
+members; i.e. each member must be able to connect to every other member.
+
+.. seealso::
+   :doc:`/tutorial/deploy-geographically-distributed-replica-set`,
+   :doc:`/tutorial/deploy-replica-set`,
+   :doc:`/tutorial/add-replica-set-arbiter`, and
+   :doc:`/tutorial/expand-replica-set`.
+

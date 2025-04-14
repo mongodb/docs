@@ -1,0 +1,130 @@
+.. index:: query optimizer
+.. _read-operations-query-optimization:
+.. _query-plans-query-optimization:
+
+===========
+Query Plans
+===========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. TODO Consider moving this to the mechanics of the index section
+
+The MongoDB query optimizer processes queries and chooses the most
+efficient query plan for a query given the available indexes. The query
+system then uses this query plan each time the query runs.
+
+.. include:: /includes/fact-query-optimizer-cache-behavior.rst
+
+For each query, the query planner searches the query plan cache for an entry
+that fits the :term:`query shape`. If there are no matching entries, the
+query planner generates candidate plans for evaluation over a trial period.
+The query planner chooses a winning plan, creates a cache entry containing
+the winning plan, and uses it to generate the result documents.
+
+If a matching entry exists, the query planner generates a plan based on that
+entry and evaluates its performance through a ``replanning`` mechanism. This
+mechanism makes a ``pass/fail`` decision based on the plan performance and
+either keeps or evicts the cache entry. On eviction, the query planner selects
+a new plan using the normal planning process and caches it. The query planner
+executes the plan and returns the result documents for the query.
+
+The following diagram illustrates the query planner logic:
+
+.. include:: /images/query-planner-diagram.rst
+
+See :ref:`query-plans-plan-cache-flushes` for additional scenarios that trigger
+changes to the plan cache.
+
+You can use the :method:`db.collection.explain()` or the
+:method:`cursor.explain()` method to view statistics about the query
+plan for a given query. This information can help as you develop
+:doc:`indexing strategies </applications/indexes>`.
+
+.. include:: /includes/fact-explain-collection-method.rst
+
+.. versionchanged:: 2.6
+
+   :method:`~db.collection.explain()` operations no longer read from or write
+   to the query planner cache.
+
+.. _query-plans-query-revision:
+
+.. _query-plans-plan-cache-flushes:
+
+Plan Cache Flushes
+------------------
+
+Catalog operations like index or collection drops flush the plan cache.
+
+The plan cache does not persist if a :binary:`~bin.mongod` restarts or shuts down.
+
+.. versionadded:: 2.6
+
+   MongoDB provides :doc:`/reference/method/js-plan-cache` to view and modify
+   the cached query plans. The :method:`PlanCache.clear()` method flushes the
+   entire plan cache. Users can also clear particular plan cache entries using
+   :method:`PlanCache.clearPlansByQuery()`.
+
+Plan Cache Debug Info Size Limit
+--------------------------------
+
+Starting in 4.0.23 (and 3.6.23), the
+:doc:`plan cache </core/query-plans>` will save full ``plan cache``
+entries only if the cumulative size of the ``plan caches`` for all
+collections is lower than 0.5 GB. When the cumulative size of the
+``plan caches`` for all collections exceeds this threshold, additional
+``plan cache`` entries are stored with stripped debug information.
+
+When ``plan cache`` entries are stored with stripped debug information,
+the :dbcommand:`planCacheListQueryShapes` command output displays an
+empty document in the ``shapes`` array for each each plan cache entry for
+which debug information was stripped. Similarly, detailed execution
+statistics for the candidate plans are omitted from the
+:dbcommand:`planCacheListPlans` command output when ``plan cache``
+entries are stored with stripped debug information. When debug info is
+present, you can find these detailed statistics in the ``plans.reason``
+field.
+
+The estimated size in bytes of a ``plan cache`` entry is available in
+the output of :dbcommand:`planCacheListPlans`.
+
+.. _index-filters:
+
+Index Filters
+-------------
+
+.. versionadded:: 2.6
+
+Index filters determine which indexes the optimizer evaluates for a
+:term:`query shape`. A query shape consists of a combination of query,
+sort, and projection specifications. If an index filter exists for a
+given query shape, the optimizer only considers those indexes
+specified in the filter.
+
+When an index filter exists for the query shape, MongoDB ignores the
+:method:`~cursor.hint()`. To see whether MongoDB applied an index
+filter for a query shape, check the :data:`~explain.queryPlanner.indexFilterSet`
+field of either the :method:`db.collection.explain()` or the
+:method:`cursor.explain()` method.
+
+Index filters only affects which indexes the optimizer evaluates; the
+optimizer may still select the collection scan as the winning plan for
+a given query shape.
+
+Index filters exist for the duration of the server process and do not
+persist after shutdown. MongoDB also provides a command to manually remove
+filters.
+
+Because index filters override the expected behavior of the optimizer
+as well as the :method:`~cursor.hint()` method, use index filters
+sparingly.
+
+See :dbcommand:`planCacheListFilters`,
+:dbcommand:`planCacheClearFilters`, and :dbcommand:`planCacheSetFilter`.

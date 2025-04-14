@@ -1,0 +1,236 @@
+=====
+fsync
+=====
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. meta::
+   :description: fsync, fsynclock, fsync lock, lock
+   :keywords: fsync, fsynclock, fsync lock, lock
+  
+Definition
+----------
+
+.. dbcommand:: fsync
+
+   Forces the :binary:`~bin.mongod` process to flush all pending writes
+   from the storage layer to disk and locks the *entire*
+   :binary:`~bin.mongod` instance to prevent additional writes until the
+   user releases the lock with a corresponding
+   :dbcommand:`fsyncUnlock`. Optionally, you can use :dbcommand:`fsync`
+   to lock the :binary:`~bin.mongod` instance and block write operations
+   for the purpose of capturing backups.
+
+   As applications write data, MongoDB records the data in the storage
+   layer and then writes the data to disk within the :setting:`~storage.syncPeriodSecs`
+   interval, which is 60 seconds by default. Run :dbcommand:`fsync` when
+   you want to flush writes to disk ahead of that interval.
+   
+
+   The :dbcommand:`fsync` command has the following syntax:
+
+   .. code-block:: javascript
+
+      { fsync: 1, async: <Boolean>, lock: <Boolean> }
+
+   The :dbcommand:`fsync` command has the following fields:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``fsync``
+   
+        - integer
+   
+        - Enter "1" to apply :dbcommand:`fsync`.
+          
+          
+   
+      * - ``async``
+   
+        - boolean
+   
+        - Optional. Runs :dbcommand:`fsync` asynchronously. By default, the
+          :dbcommand:`fsync` operation is synchronous.
+          
+          
+   
+      * - ``lock``
+   
+        - boolean
+   
+        - Optional. Takes a lock on the :binary:`~bin.mongod` instance and blocks all
+          write operations. Each :dbcommand:`fsync` with ``lock`` operation
+          takes a lock.
+          
+          
+   
+
+
+   To run the :dbcommand:`fsync` command, use the
+   :method:`db.adminCommand()` method:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { fsync: 1, ... } )
+
+Considerations
+--------------
+
+.. include:: /includes/extracts/wt-fsync-lock-compatibility-command.rst
+
+Impact on Larger Deployments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An :dbcommand:`fsync` lock is only possible on *individual*
+:binary:`~bin.mongod` instances of a
+sharded cluster, not on the entire cluster. To back up an entire sharded
+cluster, please see :doc:`/administration/backup-sharded-clusters` for
+more information.
+
+Alternatives with Journaling
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your :binary:`~bin.mongod` has :term:`journaling <journal>` enabled,
+please use :ref:`file system or volume/block level snapshot tool <backup-with-journaling>` to create a
+backup of the data set and the journal together as a single unit.
+
+
+``fsync`` with ``lock: true``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 3.4
+
+   The ``{ fsync: 1, lock: true }`` command now returns a ``lockCount``
+   in the return document.
+
+After ``{ fsync: 1, lock: true }`` runs on a :binary:`~bin.mongod`, all
+write operations will block. The :binary:`~bin.mongo` shell provides a
+helper method :method:`db.fsyncLock()`.
+
+
+.. note::
+
+   The ``{ fsync: 1, lock: true }`` operation maintain a lock count.
+   Each ``{ fsync: 1, lock: true }`` operation increments the lock
+   count.
+
+   To unlock a :binary:`~bin.mongod` instance for writes, the lock count
+   must be zero. That is, for a given number of ``{ fsync: 1, lock:
+   true }`` operation, you must issue a corresponding number of unlock
+   operations in order to unlock the instance for writes. To unlock,
+   see :method:`db.fsyncUnlock()`.
+
+Examples
+--------
+
+Run Asynchronously
+~~~~~~~~~~~~~~~~~~
+
+The :dbcommand:`fsync` operation is synchronous by default. To run
+:dbcommand:`fsync` asynchronously, use the ``async`` field set to
+``true``:
+
+.. code-block:: javascript
+
+   db.adminCommand( { fsync: 1, async: true } )
+
+The operation returns immediately. To view the status of the
+:dbcommand:`fsync` operation, check the output of
+:method:`db.currentOp()`.
+
+Lock ``mongod`` Instance
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   .. include:: /includes/extracts/wt-fsync-lock-compatibility-command.rst
+
+The primary use of :dbcommand:`fsync` is to lock the :binary:`~bin.mongod`
+instance in order to back up the files within :binary:`~bin.mongod`\ 's :setting:`~storage.dbPath`.
+The operation flushes all data to the storage layer and
+blocks all write operations until you unlock the :binary:`~bin.mongod` instance.
+
+To lock the database, use the ``lock`` field set to ``true``:
+
+.. code-block:: javascript
+
+   db.adminCommand( { fsync: 1, lock: true } )
+
+The operation returns a document that includes the status of the
+operation and the ``lockCount``:
+
+.. code-block:: javascript
+
+   {
+      "info" : "now locked against writes, use db.fsyncUnlock() to unlock",
+      "lockCount" : NumberLong(1),
+      "seeAlso" : "http://dochub.mongodb.org/core/fsynccommand",
+      "ok" : 1
+   }
+
+You may continue to perform read operations on a :binary:`~bin.mongod` instance that has a
+:dbcommand:`fsync` lock. However, after the first write operation all
+subsequent read operations wait until you unlock the :binary:`~bin.mongod` instance.
+
+.. important::
+
+   The ``{ fsync: 1, lock: true }`` operation maintain a lock count.
+
+   To unlock a :binary:`~bin.mongod` instance for writes, the lock count
+   must be zero. That is, for a given number of ``{ fsync: 1, lock:
+   true }`` operation, you must issue a corresponding number of unlock
+   operations in order to unlock the instance for writes.
+
+Unlock ``mongod`` Instance
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To unlock the :binary:`~bin.mongod`, use :method:`db.fsyncUnlock()`:
+
+.. code-block:: javascript
+
+   db.fsyncUnlock();
+
+Repeat the :method:`db.fsyncUnlock()` to reduce the lock count to zero
+to unlock the instance for writes.
+
+Check Lock Status
+~~~~~~~~~~~~~~~~~
+
+To check the state of the fsync lock, use :method:`db.currentOp()`. Use
+the following JavaScript function in the shell to test if :binary:`~bin.mongod` instance is
+currently locked:
+
+.. code-block:: javascript
+
+   serverIsLocked = function () {
+                        var co = db.currentOp();
+                        if (co && co.fsyncLock) {
+                            return true;
+                        }
+                        return false;
+                    }
+
+After loading this function into your :binary:`~bin.mongo` shell session
+call it, with the following syntax:
+
+.. code-block:: javascript
+
+   serverIsLocked()
+
+This function will return ``true`` if the :binary:`~bin.mongod` instance is
+currently locked and ``false`` if the :binary:`~bin.mongod` is not locked.

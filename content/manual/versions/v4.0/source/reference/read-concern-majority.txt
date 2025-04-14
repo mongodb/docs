@@ -1,0 +1,174 @@
+.. default-domain:: mongodb
+
+.. class:: hidden
+
+   .. readconcern:: "majority"
+
+===========================
+Read Concern ``"majority"``
+===========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+For read operations not associated with :doc:`multi-document
+transactions </core/transactions>`, read concern ``"majority"``
+guarantees that the data read has been acknowledged by a majority of
+the replica set members (i.e. the documents read are durable and
+guaranteed not to roll back).
+
+However, for operations in :doc:`multi-document transactions
+</core/transactions>`, read concern ``"majority"`` provides its
+guarantees only if the transaction commits with :ref:`write concern
+"majority" <transactions-write-concern>`. Otherwise, the
+:readconcern:`"majority"` read concern provides no guarantees about the
+data read in transactions.
+
+.. include:: /includes/fact-enable-majority-readConcern.rst
+
+.. include:: /includes/fact-readConcern-most-recent-data-in-node.rst
+
+Example
+-------
+
+.. include:: /includes/fact-read-concern-write-timeline.rst
+
+Then, the following tables summarizes the state of the data that a read
+operation with :readconcern:`"majority"` read concern would see at
+time ``T``.
+
+.. figure:: /images/read-concern-write-timeline.svg
+   :alt: Timeline of a write operation to a three member replica set.
+   :figwidth: 330px
+
+
+.. list-table::
+   :header-rows: 1
+
+   * - Read Target
+     - Time ``T``
+     - State of Data
+
+   * - Primary
+     - Before t\ :sub:`3`
+     - Data reflects Write\ :sub:`prev`
+
+   * - Primary
+     - After t\ :sub:`3`
+     - Data reflects Write\ :sub:`0`
+
+   * - Secondary\ :sub:`1`
+     - Before t\ :sub:`5`
+     - Data reflects Write\ :sub:`prev`
+
+   * - Secondary\ :sub:`1`
+     - After t\ :sub:`5`
+     - Data reflects Write\ :sub:`0`
+
+   * - Secondary\ :sub:`2`
+     - Before or at t\ :sub:`6`
+     - Data reflects Write\ :sub:`prev`
+
+   * - Secondary\ :sub:`2`
+     - After t\ :sub:`6`
+     - Data reflects Write\ :sub:`0`
+
+Storage Engine Support
+----------------------
+
+Read concern :readconcern:`"majority"` is available for the
+WiredTiger storage engine.
+
+.. tip::
+
+   The :dbcommand:`serverStatus` command returns the
+   :serverstatus:`storageEngine.supportsCommittedReads` field which
+   indicates whether the storage engine supports ``"majority"`` read
+   concern.
+
+Causally Consistent Sessions
+----------------------------
+
+Read concern :readconcern:`majority` is available for use with causally
+consistent sessions.
+
+.. _readconcern-majority-txn:
+
+Read Concern ``"majority"`` and Transactions
+--------------------------------------------
+
+You set the read concern at the transaction level, not at the
+individual operation level. To set the read concern for transactions,
+see :ref:`transaction-options`.
+
+For operations in :doc:`multi-document transactions
+</core/transactions>`, read concern ``"majority"`` provides its
+guarantees only if the transaction commits with :ref:`write concern
+"majority" <transactions-write-concern>`. Otherwise, the
+:readconcern:`"majority"` read concern provides no guarantees about the
+data read in transactions.
+
+
+Read Your Own Writes
+--------------------
+
+.. versionchanged:: 3.6
+
+.. include:: /includes/fact-read-own-writes.rst
+
+.. _4.0-disable-read-concern-majority:
+
+Disable Read Concern Majority
+-----------------------------
+
+*For 3-Member Primary-Secondary-Arbiter Architecture*
+
+For MongoDB 4.0.3+ (and 3.6.1+ [#]_), you can disable read concern
+:readconcern:`"majority"` if you have a three-member replica set with a
+primary-secondary-arbiter (PSA) architecture or a sharded cluster with
+a three-member PSA shards.
+
+.. note::
+ 
+   If you are using a deployment other than a 3-member PSA, you do not
+   need to disable read concern majority.
+
+With a three-member PSA architecture, the cache pressure will increase
+if any data bearing node is down. To prevent the storage cache pressure
+from immobilizing a deployment with a PSA architecture, you can disable
+read concern by setting either:
+
+- :option:`--enableMajorityReadConcern <mongod
+  --enableMajorityReadConcern>` command line option to ``false``.
+
+- :setting:`replication.enableMajorityReadConcern` configuration file
+  setting to ``false``.
+
+.. important::
+
+   In general, avoid disabling :readconcern:`"majority"` read concern
+   unless necessary. However, if you have a three-member replica set
+   with a primary-secondary-arbiter (PSA) architecture or a sharded
+   cluster with a three-member PSA shards, disable to prevent the
+   storage cache pressure from immobilizing the deployment.
+
+   Disabling :readconcern:`"majority"` read concern disables support
+   for :doc:`/changeStreams`.
+
+   Disabling :readconcern:`"majority"` does not affect
+   :doc:`multi-document transactions </core/transactions>`; i.e. you
+   can specify read concern :readconcern:`"majority"` for transactions
+   even if read concern :readconcern:`"majority"` is disabled.
+
+To check if read concern ``"majority"`` is disabled, you can run
+:method:`db.serverStatus()` and check the
+:serverstatus:`storageEngine.supportsCommittedReads` field. If false,
+read concern ``"majority"`` is disabled
+
+.. [#]
+
+   For MongoDB 3.6 discussion, see :v3.6:`Disable Read Concern Majority
+   </reference/read-concern-majority/#disable-read-concern-majority>`.

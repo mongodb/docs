@@ -1,0 +1,126 @@
+=================================================
+Convert a Shard Standalone to a Shard Replica Set
+=================================================
+
+.. default-domain:: mongodb
+
+
+Starting in MongoDB 3.6, all shards must be replica sets. Before you
+can upgrade your 3.4 sharded cluster to version 3.6, you must convert
+any shards that are running as standalone :binary:`~bin.mongod`
+instances to replica set shards.
+ 
+This tutorial describes the process for converting a shard standalone
+into a shard :term:`replica set`. The procedure is specific to a shard
+standalone. To convert just a standalone to a replica set (i.e. not a
+part of any sharded cluster), see
+:doc:`/tutorial/convert-standalone-to-replica-set` instead.
+
+Procedure
+---------
+
+.. important:: 
+
+   The following procedure converts a standalone shard to a
+   single-member replica set shard. The procedure assumes that the
+   single member runs on the same host and port as before.
+
+#. Shut down the shard :term:`standalone` :binary:`~bin.mongod` instance.
+
+#. Restart the shard instance with the :option:`--replSet <mongod
+   --replSet>` option to specify the name of the new replica set. Ensure
+   that the name is distinct (for instance, you could use the :data:`shard
+   name <sh.status.shards._id>` as the replica set name); in particular,
+   shard replica sets must not use the same name as the config server
+   replica set.
+
+   The other options can remain the same.
+
+   For example, the following command starts a standalone instance as a
+   member of a new replica set named ``shardA``. The other options
+   stay the same as before; e.g. :option:`--dbpath <mongod --dbpath>`
+   uses the standalone's existing database path of ``/srv/mongodb/db0``
+   and :option:`--port <mongod --port>` is the same as before:
+
+   .. code-block:: sh
+
+      mongod --port 27018 --dbpath /srv/mongodb/db0 --shardsvr --replSet shardA --bind_ip localhost,<ip address of the mongod host>
+
+   For more information on configuration options, see
+   :doc:`/reference/configuration-options` and the :binary:`~bin.mongod`
+   manual page.
+
+#. Connect a :binary:`~bin.mongo` shell to the shard :binary:`~bin.mongod` instance.
+
+#. Use :method:`rs.initiate()` to initiate the new replica set:
+
+   .. code-block:: javascript
+
+      rs.initiate()
+
+   The replica set is now operational. To view the replica set
+   configuration, use :method:`rs.conf()`. To check the status of the
+   replica set, use :method:`rs.status()`.
+
+#. Disconnect from the instance.
+
+#. Connect a :binary:`~bin.mongo` shell to one of the sharded cluster's
+   :binary:`~bin.mongos` instances and retrieve the shard information:
+
+   .. code-block:: javascript
+
+      var myShard = db.getSiblingDB("config").shards.findOne( { _id: "<name>"} )
+
+   Replace ``<name>`` with the name of the shard. The ``<name>`` of the
+   shard is separate from the shard replica set name (unless you are
+   using the shard name as the replica set name). To retrieve the name
+   of the shard, see the :data:`shards <sh.status.shards._id>` section
+   in the results from the :method:`sh.status()` method. For example,
+   if the result of :method:`sh.status()` includes the following shards
+   section, the name of the two shards are ``"shard0000"`` and
+   ``"shard0001"`` respectively:
+
+   .. code-block:: none
+
+      shards:
+            {  "_id" : "shard0000",  "host" : "mongodb1.example.net:27018",  "state" : 1 }
+            {  "_id" : "shard0001",  "host" : "mongodb2.example.net:27018",  "state" : 1 }
+
+
+#. Update the ``host`` information with the replica set information:
+
+   .. code-block:: javascript
+
+      myShard.host = "<replica-set>/<member>"
+
+   Replace ``<replica-set>`` with the name of the replica set. Replace
+   ``<member>`` with the replica set member. For example
+   ``shardA/mongodb1.example.net:27018``.
+
+#. Save the information.
+
+   .. code-block:: javascript
+
+      db.getSiblingDB("config").shards.save(myShard, { writeConcern: { w: "majority" } } )
+
+#. Repeat for the next standalone shard in the sharded cluster. Ensure
+   that you use a distinct name for each shard replica set.
+
+#. Once you have finished converting shard standalone instances to
+   shard replica sets, force the members of sharded cluster to update
+   their knowledge of other shards' connection strings by restarting all
+   members of the sharded cluster:
+
+   - config server replica sets
+   - :binary:`~bin.mongos` instances
+   - shard replica sets
+
+Additional Information
+----------------------
+
+To add members to this replica set, use the :method:`rs.add()` method.
+For more information on adding members to a replica set, see
+:doc:`/tutorial/expand-replica-set`.
+
+To convert a non-shard standalone to a non-shard replica set, see
+:doc:`/tutorial/convert-standalone-to-replica-set` instead.

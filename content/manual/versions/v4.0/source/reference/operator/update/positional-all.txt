@@ -1,0 +1,301 @@
+====
+\$[]
+====
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. update:: $[]
+
+   .. versionadded:: 3.6
+
+   The all positional operator ``$[]`` indicates that the update
+   operator should modify all elements in the specified array field.
+
+   The ``$[]`` operator has the following form:
+
+   .. code-block:: javascript
+
+      { <update operator>: { "<array>.$[]" : value } }
+
+   Use in update operations, e.g. :method:`db.collection.update()` and
+   :method:`db.collection.findAndModify()`, to modify all array
+   elements for the document or documents that match the query
+   condition. For example:
+
+   .. code-block:: javascript
+
+      db.collection.updateMany(
+         { <query conditions> },
+         { <update operator>: { "<array>.$[]" : value } }
+      )
+
+   For an example, see :ref:`positional-update-all`.
+
+Behavior
+--------
+
+``upsert``
+~~~~~~~~~~~
+
+If an :term:`upsert` operation results in an insert, the ``query`` must
+include an :ref:`exact equality match <array-match-exact>` on the array
+field in order to use the ``$[]`` positional operator in the update
+statement.
+
+For example, the following upsert operation, which uses ``$[]`` in the
+update document, specifies an exact equality match condition on the
+array field:
+
+.. cssclass:: copyable-code
+
+.. code-block:: javascript 
+
+   db.collection.update(
+      { myArray: [ 5, 8 ] },
+      { $set: { "myArray.$[]": 10 } },
+      { upsert: true }
+   )
+
+If no such document exists, the operation would result in an insertion
+of the following document:
+
+.. code-block:: javascript
+
+   { "_id" : ObjectId(...), "myArray" : [ 10, 10 ] }
+
+If the upsert operation did not include an exact equality match and no
+matching documents were found to update, the upsert operation would
+error. 
+
+For example, the following operations would error if no matching
+documents were found to update:
+
+.. code-block:: javascript 
+
+   db.collection.update(
+      { myArray: 5 },
+      { $set: { "myArray.$[]": 10 } },
+      { upsert: true }
+   )
+   
+   db.collection.update(
+      { },
+      { $set: { "myArray.$[]": 10 } },
+      { upsert: true }
+   )
+
+Nested Arrays
+~~~~~~~~~~~~~
+
+The ``$[]`` operator can be used for queries which
+traverse more than one array and nested arrays.
+
+For an example, see :ref:`position-nested-arrays`.
+
+Examples
+--------
+
+.. _positional-update-all:
+
+Update All Elements in an Array
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider a collection ``students`` with the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "grades" : [ 85, 82, 80 ] }
+   { "_id" : 2, "grades" : [ 88, 90, 92 ] }
+   { "_id" : 3, "grades" : [ 85, 100, 90 ] }
+
+To increment all elements in the ``grades`` array by ``10`` for all
+documents in the collection, use the all positional :update:`$[]`
+operator:
+
+.. cssclass:: copyable-code
+
+.. code-block:: javascript
+
+   db.students.update(
+      { },
+      { $inc: { "grades.$[]": 10 } },
+      { multi: true }
+   )
+
+The all positional :update:`$[]` operator acts as a
+placeholder for all elements in the array field.
+
+After the operation, the ``students`` collection contains the following
+documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "grades" : [ 95, 92, 90 ] }
+   { "_id" : 2, "grades" : [ 98, 100, 102 ] }
+   { "_id" : 3, "grades" : [ 95, 110, 100 ] }
+
+Update All Documents in an Array
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :update:`$[]` positional operator facilitates updates to arrays
+that contain embedded documents. To access the fields
+in the embedded documents, use the :ref:`dot notation
+<document-dot-notation>` on the :update:`$[]` operator.
+
+.. code-block:: javascript
+
+   db.collection.update(
+      { <query selector> },
+      { <update operator>: { "array.$[].field" : value } }
+   )
+
+
+Consider a collection ``students2`` with the following documents:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 1,
+      "grades" : [
+         { "grade" : 80, "mean" : 75, "std" : 8 },
+         { "grade" : 85, "mean" : 90, "std" : 6 },
+         { "grade" : 85, "mean" : 85, "std" : 8 }
+      ]
+   }
+   {
+      "_id" : 2,
+      "grades" : [
+         { "grade" : 90, "mean" : 75, "std" : 8 },
+         { "grade" : 87, "mean" : 90, "std" : 5 },
+         { "grade" : 85, "mean" : 85, "std" : 6 }
+      ]
+   }
+
+To modify the value of the ``std`` field for all elements in the
+``grades`` array, use the positional :update:`$[]` operator:
+
+.. cssclass:: copyable-code
+
+.. code-block:: javascript
+
+   db.students2.update(
+      { },
+      { $inc: { "grades.$[].std" : -2 } },
+      { multi: true }
+   )
+
+After the operation, the collection has the following documents:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 1,
+      "grades" : [
+         { "grade" : 80, "mean" : 75, "std" : 6 },
+         { "grade" : 85, "mean" : 90, "std" : 4 },
+         { "grade" : 85, "mean" : 85, "std" : 6 }
+      ]
+   }
+   {
+      "_id" : 2,
+      "grades" : [
+         { "grade" : 90, "mean" : 75, "std" : 6 },
+         { "grade" : 87, "mean" : 90, "std" : 3 },
+         { "grade" : 85, "mean" : 85, "std" : 4 }
+      ]
+   }
+
+Update Arrays Specified Using a Negation Query Operator
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider a collection ``results`` with the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "grades" : [ 85, 82, 80 ] }
+   { "_id" : 2, "grades" : [ 88, 90, 92 ] }
+   { "_id" : 3, "grades" : [ 85, 100, 90 ] }
+
+To increment all elements in the ``grades`` array by ``10`` for all
+documents **except** those with the value ``100`` in the ``grades``
+array, use the all positional :update:`$[]` operator:
+
+.. cssclass:: copyable-code
+
+.. code-block:: javascript
+
+   db.results.update(
+      { "grades" : { $ne: 100 } },
+      { $inc: { "grades.$[]": 10 } },
+      { multi: true }
+   )
+
+The all positional :update:`$[]` operator acts as a
+placeholder for all elements in the array field.
+
+After the operation, the ``students`` collection contains the following
+documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "grades" : [ 95, 92, 90 ] }
+   { "_id" : 2, "grades" : [ 98, 100, 102 ] }
+   { "_id" : 3, "grades" : [ 85, 100, 90 ] }
+
+.. _position-nested-arrays:
+
+Update Nested Arrays in Conjunction with ``$[<identifier>]``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``$[]`` positional operator, in conjunction with filter
+:update:`$[\<identifier\>]` positional operator can be used to update nested
+arrays.
+
+Create a collection ``students3`` with the following documents:
+
+.. cssclass:: copyable-code
+
+.. code-block:: javascript
+
+   db.students3.insert([
+      { "_id" : 1,
+         "grades" : [
+           { type: "quiz", questions: [ 10, 8, 5 ] },
+           { type: "quiz", questions: [ 8, 9, 6 ] },
+           { type: "hw", questions: [ 5, 4, 3 ] },
+           { type: "exam", questions: [ 25, 10, 23, 0 ] },
+         ]
+      }
+   ])
+
+To update all values that are greater than or equal to ``8`` in the
+nested ``grades.questions`` array, regardless of ``type``:
+
+.. code-block:: javascript
+
+   db.students3.update(
+      {},
+      { $inc: { "grades.$[].questions.$[score]": 2 } },
+      { arrayFilters: [  { "score": { $gte: 8 } } ], multi: true} 
+   )
+
+.. seealso:: 
+
+   - :update:`$[\<identifier\>]`,
+
+   - :method:`db.collection.update()`,
+
+   - :method:`db.collection.findAndModify()`,
+
+   - :query:`$elemMatch()`
+
+.. |arrow| unicode:: U+27A4

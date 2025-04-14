@@ -1,0 +1,328 @@
+=============
+listDatabases
+=============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: listDatabases
+
+   The :dbcommand:`listDatabases` command provides a list of all
+   existing databases along with basic statistics about them. The
+   :dbcommand:`listDatabases` must run against the ``admin`` database,
+   as in the following example:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { listDatabases: 1 } )
+
+   The value (e.g. ``1``) does not affect the output of the
+   command.
+
+   The :dbcommand:`listDatabases` command can take the following
+   optional fields:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``filter``
+   
+        - document
+   
+        - Optional. A query predicate that determines which databases are listed.
+          
+          You can specify a condition on any of the fields in the output of
+          :dbcommand:`listDatabases`:
+          
+          - ``name``
+          
+          - ``sizeOnDisk``
+          
+          - ``empty``
+          
+          - ``shards``
+          
+          .. versionadded:: 3.6
+          
+          
+   
+      * - ``nameOnly``
+   
+        - boolean
+   
+        - Optional. A flag to indicate whether the command should return just the
+          database names, or return both database names and size information.
+          
+          Returning size information requires locking each database one at a
+          time, while returning only names does not require locking any database.
+          
+          The default value is ``false``, so :dbcommand:`listDatabases` returns
+          the name and size information of each database.
+          
+          .. versionadded:: 3.6
+          
+          
+   
+      * - ``authorizedDatabases``
+   
+        - boolean
+   
+        - Optional. A flag that determines which databases are returned based on the
+          user privileges when access control is enabled.
+          
+          .. include:: /includes/extracts/listDatabases-auth-privileges.rst
+          
+          For more information, see :ref:`listDatabases-behavior`.
+          
+          .. versionadded:: 4.0.5
+          
+          
+   
+
+
+Output
+------
+
+:dbcommand:`listDatabases` returns a document that contains:
+
+- A field named ``databases`` whose value is an array of documents, one
+  document for each database. Each document contains:
+
+  - A ``name`` field with the database name.
+
+  - A ``sizeOnDisk`` field with the total size of the database files on
+    disk in bytes.
+
+  - An ``empty`` field specifying whether the database has any data.
+
+  - For sharded clusters, a ``shards`` field that includes the shard
+    and the size in bytes of the database on disk for each shard.
+
+- A field named ``totalSize`` whose value is the sum of all the
+  ``sizeOnDisk`` fields in bytes.
+
+.. _listDatabases-behavior:
+
+Behavior
+--------
+
+When :doc:`authentication </core/authentication>` is enabled:
+
+.. admonition:: show dbs
+   :class: note
+ 
+   For :binary:`~bin.mongo` shell version 4.0.6+ connected to earlier
+   versions of MongoDB deployment (e.g. 3.6.10), 
+   
+   - If the user has :authaction:`listDatabases` action on the cluster
+     resource, ``show dbs`` returns all databases.
+
+   - If the user does not have :authaction:`listDatabases` action on
+     the cluster resource, ``show dbs`` returns only the databases for
+     which the user has privileges (including those databases for which
+     the user has privileges on specific collections).
+
+.. tabs::
+
+   tabs:
+
+   - id: mongodb-4.0.6
+     name:  "MongoDB 4.0.6+"
+     content: |
+        For MongoDB 4.0.6+, the :dbcommand:`listDatabases` command
+        returns different values based on the privileges assigned to
+        the user who executes the command and the
+        ``authorizedDatabases`` command option:
+
+        .. include:: /includes/extracts/listDatabases-auth-privileges-4.0.6.rst
+
+   - id: mongodb-4.0.5
+     name:  "MongoDB 4.0.5"
+     content: |
+
+        For MongoDB 4.0.5, the :dbcommand:`listDatabases` command
+        returns different values based on the privileges assigned to
+        the user who executes the command and the
+        ``authorizedDatabases`` command option:
+
+        .. include:: /includes/extracts/listDatabases-auth-privileges-4.0.5.rst
+
+   - id: mongodb-4.0.4
+     name:  "MongoDB 4.0.0-4.0.4"
+     content: |
+
+        For MongoDB 4.0.0-4.0.4, the :dbcommand:`listDatabases` command
+        returns different values based on the privileges assigned to
+        the user who executes the command.
+
+        - If the user has the :authaction:`listDatabases` privilege
+          action on the cluster, the :dbcommand:`listDatabases` command
+          returns a list of all existing databases.
+
+        - If the user does not have the :authaction:`listDatabases`
+          privilege action on the cluster, the
+          :dbcommand:`listDatabases` command only returns a list of
+          databases for which the user has the :authaction:`find`
+          action.
+
+Examples
+--------
+
+List Database Names and Sizes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Run :dbcommand:`listDatabases` against the ``admin`` database:
+
+.. code-block:: javascript
+
+   db.adminCommand( { listDatabases: 1 } )
+
+The following is an example of a :dbcommand:`listDatabases` result:
+
+.. code-block:: json
+
+   {
+      "databases" : [
+         {
+            "name" : "admin",
+            "sizeOnDisk" : 83886080,
+            "empty" : false
+         },
+         {
+            "name" : "local",
+            "sizeOnDisk" : 83886080,
+            "empty" : false
+         },
+         {
+            "name" : "test",
+            "sizeOnDisk" : 83886080,
+            "empty" : false
+         }
+      ],
+      "totalSize" : 251658240,
+      "ok" : 1
+   }
+
+
+List Database Names Only
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.6
+
+Run :dbcommand:`listDatabases` against the ``admin`` database. Specify
+the ``nameOnly: true`` option:
+
+.. code-block:: javascript
+
+   db.adminCommand( { listDatabases: 1, nameOnly: true} )
+
+The following is an example of a :dbcommand:`listDatabases` results
+when run with the ``nameOnly: true`` option:
+
+.. code-block:: javascript
+
+   {
+      "databases" : [
+         {
+            "name" : "admin"
+         },
+         {
+            "name" : "local"
+         },
+         {
+            "name" : "test"
+         }
+      ],
+      "ok" : 1
+   }
+
+List Databases That Match the Filter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.6
+
+Run :dbcommand:`listDatabases` against the ``admin`` database. Specify
+the ``filter`` option to only list databases that match the specified filter criteria.
+
+For example, the following specifies a filter such that
+:dbcommand:`listDatabases` only returns information on databases whose
+name matches the specified :query:`regular expression <regex>`:
+
+.. code-block:: javascript
+
+   db.adminCommand( { listDatabases: 1, filter: { "name": /^rep/ } } )
+
+Sharded Clusters
+~~~~~~~~~~~~~~~~
+
+When executed against a :binary:`~bin.mongos` instance,
+:dbcommand:`listDatabases`:
+
+- adds a ``shards`` embedded document to each database's summary
+  document if ``nameOnly: false``, and
+- excludes the ``local`` database.
+
+Each element in the ``shards`` embedded document consists of a field
+whose key gives the name of a collection on that shard, and whose value
+represents the collection's size in bytes.
+
+The ``sizeOnDisk`` field represents the total size of all
+listed collections.
+
+For example:
+
+.. code-block:: javascript
+
+   {
+     "databases" : [
+       {
+         "name" : "admin",
+         "sizeOnDisk" : 16384,
+         "empty" : false,
+         "shards" : {
+           "config" : 16384
+         }
+       },
+       {
+         "name" : "config",
+         "sizeOnDisk" : 176128,
+         "empty" : false,
+         "shards" : {
+           "clients" : 28672,
+           "patients" : 8192,
+           "config" : 139264
+         }
+       },
+       {
+         "name" : "test",
+         "sizeOnDisk" : 12288,
+         "empty" : false,
+         "shards" : {
+           "clients" : 12288
+         }
+       }
+     ],
+     "totalSize" : 204800,
+     "totalSizeMb" : 0,
+     "ok" : 1
+   }
+
+.. seealso:: :doc:`/tutorial/use-database-commands`.
+
+.. |checkmark| unicode:: U+2713

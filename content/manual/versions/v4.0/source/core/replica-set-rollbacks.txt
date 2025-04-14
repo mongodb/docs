@@ -1,0 +1,166 @@
+.. index:: rollbacks
+   single: replica set; rollbacks
+   single: consistency; rollbacks
+
+.. _replica-set-rollbacks:
+.. _replica-set-rollback:
+
+=====================================
+Rollbacks During Replica Set Failover
+=====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+A rollback reverts write operations on a former :term:`primary` when the
+member rejoins its :term:`replica set` after a :term:`failover`.
+A rollback is necessary only if the primary had accepted write
+operations that the :term:`secondaries <secondary>` had **not**
+successfully replicated before the primary stepped down. When the
+primary rejoins the set as a secondary, it reverts, or "rolls back," its
+write operations to maintain database consistency with the other
+members.
+
+MongoDB attempts to avoid rollbacks, which should be rare. When a
+rollback does occur, it is often the result of a network
+partition. Secondaries that can not keep up with the throughput of
+operations on the former primary, increase the size and impact of the
+rollback.
+
+A rollback does *not* occur if the write operations replicate to another
+member of the replica set before the primary steps down *and* if that
+member remains available and accessible to a majority of the replica
+set.
+
+.. _rollback-data-files:
+
+Collect Rollback Data
+---------------------
+
+Configure Rollback Data
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in version 4.0, MongoDB adds the parameter
+:parameter:`createRollbackDataFiles` to control whether or not rollback
+files are created during rollbacks.
+
+Rollback Data
+~~~~~~~~~~~~~
+
+By default, when a rollback occurs, MongoDB writes the rollback data to
+:term:`BSON` files. For each collection whose data is rolled back, the
+rollback files are located in a ``<dbpath>/rollback/<db>.<collection>``
+directory and have filenames of the form: [#previous]_
+
+.. code-block:: none
+   :copyable: false
+
+   removed.<timestamp>.bson   
+
+For example, if data for the collection ``comments`` in the
+``reporting`` database rolled back:
+   
+.. code-block:: none
+   :copyable: false
+
+   <dbpath>/rollback/reporting.comments/removed.2019-01-31T02-57-40.0.bson
+
+where ``<dbpath>`` is the :binary:`~bin.mongod`'s :setting:`~storage.dbPath`.
+
+If the operation to roll back is a collection drop or a document
+deletion, the rollback of the collection drop or document deletion is
+not written to the rollback data directory.
+
+Read Rollback Data
+~~~~~~~~~~~~~~~~~~
+
+To read the contents of the rollback files, use :doc:`bsondump
+</reference/program/bsondump>`. Based on the content and the knowledge
+of their applications, administrators can decide the next course of
+action to take.
+
+.. [#previous]
+
+   In previous versions, rollback files are located directly under the
+   ``<dbpath>/rollback`` directory with the filenames of the form
+   ``<db>.<collection>.<timestamp>.bson``.
+
+.. _rollback-avoid:
+
+Avoid Replica Set Rollbacks
+---------------------------
+
+For replica sets, the default :doc:`write concern {w: 1}
+</reference/write-concern>` only provides acknowledgement of write
+operations on the primary. With the default write concern, data may be
+rolled back if the primary steps down before the write operations have
+replicated to any of the secondaries. This includes data written in
+:doc:`multi-document transactions </core/transactions>` that commit
+using :writeconcern:`"w: 1" <\<number\>>` write concern.
+
+To prevent rollbacks of data that have been acknowledged to the client,
+run all voting members with journaling enabled and use :ref:`w:
+majority write concern <wc-w>` to guarantee that the write operations
+propagate to a majority of the replica set nodes before returning with
+acknowledgement to the issuing client.
+
+
+.. include:: /includes/extracts/no-journaling-rollback.rst
+
+.. note::
+
+   .. include:: /includes/list-visibility-of-data.rst
+
+
+Rollback Considerations
+-----------------------
+
+Background Index Builds
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 4.0
+
+Starting in version 4.0, MongoDB waits for any in-progress
+:ref:`background index builds <index-creation-background>` to finish
+before starting a rollback.
+
+Size Limitations
+~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 4.0
+
+Starting in version 4.0, MongoDB has no limit on the amount of data
+that can be rolled back.
+
+In previous versions, a :binary:`~bin.mongod` instance will not
+roll back more than 300 megabytes of data and requires manual
+intervention if more than 300 megabytes of data need to be rolled back.
+
+.. _rollback-time-limit:
+
+Rollback Elapsed Time Limitations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in version 4.0, the rollback time limit defaults to 24 hours
+and is configurable using the parameter
+:parameter:`rollbackTimeLimitSecs`:
+
+- In MongoDB 4.0.13+, the rollback time limit is calculated
+  between the first operation after the common point and the last point
+  in the oplog for the member to roll back.
+
+- In MongoDB 4.0.0-4.0.12, the rollback time limit is calculated between the
+  common point and the last point in the oplog for the member to roll
+  back.
+
+In MongoDB 3.6 and earlier, the rollback time limit is not configurable.
+For these versions, rollback is limited by the amount of data, with a
+maximum of 300 megabytes.
+
+.. seealso:: :doc:`/core/replica-set-high-availability` and
+   :doc:`/core/replica-set-elections`.

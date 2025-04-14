@@ -1,0 +1,269 @@
+==========
+updateUser
+==========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: updateUser
+
+   .. Defines a |local-cmd-name| replacement:
+   .. |local-cmd-name| replace:: :dbcommand:`updateUser`
+
+   Updates the user's profile on the database on which you run the
+   command. An update to a field **completely replaces** the previous
+   field's values, including updates to the user's ``roles`` and
+   ``authenticationRestrictions`` arrays.
+
+   .. warning::
+
+      When you update the ``roles`` array, you completely replace the
+      previous array's values. To add or remove roles without replacing all
+      the user's existing roles, use the :dbcommand:`grantRolesToUser` or
+      :dbcommand:`revokeRolesFromUser` commands.
+
+   The :dbcommand:`updateUser` command uses the following syntax. To
+   update a user, you must specify the ``updateUser`` field and at least
+   one other field, other than ``writeConcern``:
+
+   .. code-block:: javascript
+
+      { 
+        updateUser: "<username>",
+        pwd: "<cleartext password>",
+        customData: { <any information> },
+        roles: [
+          { role: "<role>", db: "<database>" } | "<role>",
+          ...
+        ],
+        authenticationRestrictions: [
+           {
+             clientSource: ["<IP>" | "<CIDR range>", ...],
+             serverAddress: ["<IP>", | "<CIDR range>", ...]
+           },
+           ...
+        ],
+        mechanisms: [ "<scram-mechanism>", ... ],
+        digestPassword: <boolean>,
+        writeConcern: { <write concern> }
+      }
+
+   The command has the following fields:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``updateUser``
+   
+        - string
+   
+        - The name of the user to update.
+          
+          
+   
+      * - ``pwd``
+   
+        - string
+   
+        - Optional. The user's password.
+          
+          
+   
+      * - ``customData``
+   
+        - document
+   
+        - Optional. Any arbitrary information.
+          
+          
+   
+      * - ``roles``
+   
+        - array
+   
+        - Optional. The roles granted to the user. An update to the ``roles`` array
+          overrides the previous array's values.
+          
+          
+   
+      * - ``writeConcern``
+   
+        - document
+   
+        - Optional. The level of :doc:`write concern </reference/write-concern>` for the
+          update operation. The ``writeConcern`` document takes the same
+          fields as the :dbcommand:`getLastError` command.
+          
+          
+   
+      * - ``authenticationRestrictions``
+   
+        - array
+   
+        - Optional. The authentication restrictions the server enforces upon the user.
+          Specifies a list of IP addresses and
+          :abbr:`CIDR (Classless Inter-Domain Routing)` ranges from which the
+          user is allowed to connect to the server or from which the server can
+          accept users.
+          
+          .. versionadded:: 3.6
+          
+          
+   
+      * - ``mechanisms``
+   
+        - array
+   
+        - Optional. The specific SCRAM mechanism or mechanisms for the user credentials.
+          If :parameter:`authenticationMechanisms` is specified, you can only
+          specify a subset of the :parameter:`authenticationMechanisms`.
+          
+          If updating the mechanisms field without the password, you can only
+          specify a subset of the user's current mechanisms, and only the
+          existing user credentials for the specified mechanism or mechanisms
+          are retained.
+          
+          If updating the password along with the mechanisms, new set of
+          credentials are stored for the user.
+          
+          Valid values are:
+          
+          - ``"SCRAM-SHA-1"``
+          
+            - Uses the ``SHA-1`` hashing function.
+          
+          - ``"SCRAM-SHA-256"``
+          
+            - Uses the ``SHA-256`` hashing function.
+          
+            - Requires featureCompatibilityVersion set to ``4.0``.
+          
+            - Requires digestPassword to be ``true``.
+          
+          .. versionadded:: 4.0
+          
+          
+   
+      * - ``digestPassword``
+   
+        - boolean
+   
+        - Optional. Indicates whether the server or the client digests the password.
+          
+          If true, the server receives undigested password from the client and
+          digests the password.
+          
+          If false, the client digests the password and passes the digested
+          password to the server. Not compatible with ``SCRAM-SHA-256``
+          
+          .. versionchanged:: 4.0
+          
+             The default value is ``true``. In earlier versions, the default
+             value is ``false``.
+          
+          
+   
+
+
+Roles
+~~~~~
+
+.. include:: /includes/fact-roles-array-contents.rst
+
+Authentication Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-auth-restrictions-array-contents.rst
+
+Behavior
+--------
+
+.. |command| replace:: :dbcommand:`updateUser`
+
+.. include:: /includes/fact-cleartext-passwords-tls.rst
+
+Required Access
+---------------
+
+.. include:: /includes/access-update-user.rst
+
+.. include:: /includes/access-change-own-password-and-custom-data.rst
+
+Example
+-------
+
+Given a user ``appClient01`` in the ``products`` database with the following
+user info:
+
+.. code-block:: javascript
+
+   {
+      "_id" : "products.appClient01",
+      "userId" : UUID("c5d88855-3f1e-46cb-9c8b-269bef957986"), // Starting in MongoDB 4.0.9
+      "user" : "appClient01",
+      "db" : "products",
+      "customData" : { "empID" : "12345", "badge" : "9156" },
+      "roles" : [
+          { "role" : "readWrite",
+            "db" : "products"
+          },
+          { "role" : "read",
+            "db" : "inventory"
+          }
+      ],
+      "mechanisms" : [   // Starting in MongoDB 4.0
+         "SCRAM-SHA-1",
+         "SCRAM-SHA-256"
+      ]
+   }
+
+The following :dbcommand:`updateUser` command **completely** replaces the
+user's ``customData`` and ``roles`` data:
+
+.. code-block:: javascript
+
+   use products
+   db.runCommand( {
+      updateUser : "appClient01",
+      customData : { employeeId : "0x3039" },
+      roles : [ { role : "read", db : "assets" } ]
+   } )
+
+The user ``appClient01`` in the ``products`` database now has the following
+user information:
+
+.. code-block:: javascript
+
+   {
+      "_id" : "products.appClient01",
+      "userId" : UUID("c5d88855-3f1e-46cb-9c8b-269bef957986"), // Starting in MongoDB 4.0.9
+      "user" : "appClient01",
+      "db" : "products",
+      "customData" : { "employeeId" : "0x3039" },
+      "roles" : [
+          { "role" : "read",
+            "db" : "assets"
+          }
+      ],
+      "mechanisms" : [   // Starting in MongoDB 4.0
+         "SCRAM-SHA-1",
+         "SCRAM-SHA-256"
+      ]
+
+   }

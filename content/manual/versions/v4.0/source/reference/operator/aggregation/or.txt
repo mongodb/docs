@@ -1,0 +1,125 @@
+=================
+$or (aggregation)
+=================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $or
+
+   Evaluates one or more expressions and returns ``true`` if *any* of
+   the expressions are ``true``. Otherwise, :expression:`$or` returns
+   ``false``.
+
+   :expression:`$or` has the following syntax:
+
+   .. code-block:: javascript
+
+      { $or: [ <expression1>, <expression2>, ... ] }
+
+   For more information on expressions, see
+   :ref:`aggregation-expressions`.
+
+Behavior
+--------
+
+.. include:: /includes/extracts/fact-agg-boolean-or.rst
+
+.. list-table::
+   :header-rows: 1
+   :widths: 70, 15, 15
+
+   * - Example
+
+     -
+
+     - Result
+
+   * - ``{ $or: [ true, false ] }``
+
+     -
+
+     - ``true``
+
+   * - ``{ $or: [ [ false ], false ] }``
+
+     -
+
+     - ``true``
+
+   * - ``{ $or: [ null, 0, undefined ] }``
+
+     -
+
+     - ``false``
+
+   * - ``{ $or: [ ] }``
+
+     -
+
+     - ``false``
+
+Error Handling
+--------------
+
+.. |and-or| replace:: ``$or``
+.. |true-false| replace:: ``true``
+
+.. include:: /includes/and-or-behavior.rst
+
+.. code-block:: javascript
+
+   db.example.find( {
+      $or: [
+         { x: { $eq: 0 } },
+         { $expr: { $eq: [ { $divide: [ 1, "$x" ] }, 3 ] } }
+      ]
+   } )
+
+Example
+-------
+
+Consider an ``inventory`` collection with the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "abc1", description: "product 1", qty: 300 }
+   { "_id" : 2, "item" : "abc2", description: "product 2", qty: 200 }
+   { "_id" : 3, "item" : "xyz1", description: "product 3", qty: 250 }
+   { "_id" : 4, "item" : "VWZ1", description: "product 4", qty: 300 }
+   { "_id" : 5, "item" : "VWZ2", description: "product 5", qty: 180 }
+
+The following operation uses the :expression:`$or` operator to
+determine if ``qty`` is greater than 250 *or* less than ``200``:
+
+.. code-block:: javascript
+
+   db.inventory.aggregate(
+      [
+        {
+          $project:
+             {
+               item: 1,
+               result: { $or: [ { $gt: [ "$qty", 250 ] }, { $lt: [ "$qty", 200 ] } ] }
+             }
+        }
+      ]
+   )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "abc1", "result" : true }
+   { "_id" : 2, "item" : "abc2", "result" : false }
+   { "_id" : 3, "item" : "xyz1", "result" : false }
+   { "_id" : 4, "item" : "VWZ1", "result" : true }
+   { "_id" : 5, "item" : "VWZ2", "result" : true }

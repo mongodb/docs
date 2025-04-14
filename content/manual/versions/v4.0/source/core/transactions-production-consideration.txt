@@ -1,0 +1,149 @@
+=========================
+Production Considerations
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+Feature Compatibility
+---------------------
+
+The ``featureCompatibilityVersion`` of all members of the replica set
+must be ``4.0`` or greater.
+
+.. _transaction-limit:
+
+Runtime Limit
+-------------
+
+By default, a transaction must have a runtime of less than one minute.
+You can modify this limit using
+:parameter:`transactionLifetimeLimitSeconds`. Transactions that exceeds
+this limit are considered expired and will be aborted by a periodic
+cleanup process.
+
+Oplog Size Limit
+----------------
+
+When the transaction commits, a single :doc:`oplog (operations log)
+</core/replica-set-oplog>` entry is created if the transaction contains
+any write operations. That is, the individual operations in the
+transactions do not have a corresponding oplog entry. Instead, a single
+oplog entry contains all of the write operations within a transaction.
+The oplog entry for the transaction must be within the BSON document
+size limit of 16MB.
+
+WiredTiger Cache
+----------------
+
+To prevent storage cache pressure from negatively impacting the
+performance:
+
+- When you abandon a transaction, abort the transaction.
+
+- When you encounter an error during individual operation in the
+  transaction, abort the transaction and retry the transaction.
+
+The :parameter:`transactionLifetimeLimitSeconds` also ensures that
+expired transactions are aborted periodically to relieve storage cache
+pressure.
+
+.. note::
+
+   If you have an uncommitted transaction that exceeds 5% of the
+   :setting:`WiredTiger cache size
+   <storage.wiredTiger.engineConfig.cacheSizeGB>`, the transaction will
+   abort and return a :term:`write conflict` error.
+
+.. _txns-locks:
+
+Transactions and Locks
+----------------------
+
+By default, transactions waits up to ``5`` milliseconds to acquire locks
+required by the operations in the transaction. If the transaction
+cannot acquire its required locks within the ``5`` milliseconds, the
+transaction aborts.
+
+Transactions release all locks upon abort or commit.
+
+.. include:: /includes/extracts/transactions-operations-catalog-tip.rst
+
+Lock Request Timeout
+~~~~~~~~~~~~~~~~~~~~
+
+You can use the :parameter:`maxTransactionLockRequestTimeoutMillis`
+parameter to adjust how long transactions wait to acquire locks.
+Increasing :parameter:`maxTransactionLockRequestTimeoutMillis` allows
+operations in the transactions to wait the specified time to acquire
+the required locks. This can help obviate transaction aborts on
+momentary concurrent lock acquisitions, like fast-running metadata
+operations. However, this could possibly delay the abort of deadlocked
+transaction operations.
+
+You can also use operation-specific timeout by setting
+:parameter:`maxTransactionLockRequestTimeoutMillis` to ``-1``.
+
+.. _txn-prod-considerations-ddl:
+
+Pending DDL Operations and Transactions
+---------------------------------------
+
+If a multi-document transaction is in progress, new DDL operations that
+affect the same database(s) wait behind the transaction. While these
+pending DDL operations exist, new transactions that access the same
+database as the pending DDL operations cannot obtain the required locks
+and will abort after waiting
+:parameter:`maxTransactionLockRequestTimeoutMillis`. In addition, new
+non-transaction operations that access the same database will block
+until they reach their ``maxTimeMS`` limit.
+
+To illustrate, compare the following two situations:
+
+Consider a situation where an in-progress transaction performs various
+CRUD operations on the ``employees`` collection in the ``hr`` database.
+While that transaction is in progress, a separate transaction that
+accesses the ``foobar`` collection in the ``hr`` database can start and
+complete.
+
+However, consider a situation where an in-progress transaction performs
+various CRUD operations on the ``employees`` collection in the ``hr``
+database and a separate DDL operation is issued to create an index on
+the ``fluffy`` collection in the ``hr`` database. The DDL operation
+waits for the transaction to finish.
+
+While the DDL operation is pending, a new transaction attempts to
+access the ``foobar`` collection in the ``hr`` database. If the DDL
+operation remains pending for
+:parameter:`maxTransactionLockRequestTimeoutMillis`, the new
+transaction aborts.
+
+.. seealso:: 
+
+   - :ref:`transactions-write-conflicts`
+   
+   - :ref:`transactions-stale-reads`
+
+.. _transactions-write-conflicts:
+
+In-progress Transactions and Write Conflicts
+--------------------------------------------
+
+.. include:: /includes/extracts/transactions-write-conflict.rst
+
+.. seealso::
+
+   - :ref:`txns-locks`
+   - :ref:`txn-prod-considerations-ddl`
+
+.. _transactions-stale-reads:
+
+In-progress Transactions and Stale Reads
+----------------------------------------
+
+.. include:: /includes/extracts/transactions-stale-reads.rst

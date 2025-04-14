@@ -1,0 +1,53 @@
+title: Connect to the MongoDB instance.
+stepnum: 1
+ref: connect
+content: |
+  Connect and authenticate to the :binary:`~bin.mongod` instance for a
+  single deployment, the primary ``mongod`` for a replica set, or a
+  :binary:`~bin.mongos` for a sharded cluster as an ``admin`` database
+  user with the role :authrole:`userAdminAnyDatabase`.
+---
+title:
+  text: Upgrade authentication schema.
+ref: upgrade-auth-schema
+stepnum: 2
+pre: |
+  Use the ``authSchemaUpgrade`` command in the ``admin``
+  database to update the user data using the :binary:`~bin.mongo` shell.
+ 
+  .. note:: 
+
+     The command is available only in MongoDB versions 3.0 through 3.6.
+     Refer to the specific version of the manual for details on on the
+     command.
+     
+action:
+  - heading: Run ``authSchemaUpgrade`` command.
+    language: javascript
+    code: |
+      db.adminCommand({authSchemaUpgrade: 1});
+    post: |
+      In case of error, you may safely rerun the
+      :dbcommand:`authSchemaUpgrade` command.
+  - heading: Sharded cluster ``authSchemaUpgrade`` consideration.
+    pre: |
+      For a sharded cluster *without* :ref:`shard local users
+      <sharding-security>`, :dbcommand:`authSchemaUpgrade` will, by
+      default, upgrade the authorization data of the shards as well,
+      completing the upgrade.
+
+      You can, however, override this behavior by including
+      ``upgradeShards: false`` in the command, as in the following
+      example:
+    language: javascript
+    code: |
+      db.adminCommand(
+         {authSchemaUpgrade: 1, upgradeShards: false }
+      );
+    post: |
+      If you override the default behavior or your cluster has shard
+      local users, after running :dbcommand:`authSchemaUpgrade` on a
+      :binary:`~bin.mongos` instance, you will need to connect to the
+      primary for each shard and repeat the upgrade process after
+      upgrading on the :binary:`~bin.mongos`.
+...

@@ -1,0 +1,597 @@
+=======
+geoNear
+=======
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: geoNear
+
+   .. admonition:: Deprecated since version 4.0
+      :class: important
+
+      Starting in version 4.0, MongoDB deprecates the ``geoNear`` command.
+      Use one of the following operations instead.
+
+      - :pipeline:`$geoNear` aggregation stage.
+
+      - :query:`$near` query operator.
+
+      - :query:`$nearSphere` query operator.
+
+   Returns documents in order of proximity to a specified point, from
+   the nearest to farthest. :dbcommand:`geoNear` requires a geospatial
+   index.
+
+   The :dbcommand:`geoNear` command accepts a :term:`document` that
+   contains the following fields. Specify all distances in the same
+   units as the document coordinate system:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``geoNear``
+   
+        - string
+   
+        - The collection to query.
+          
+          
+   
+      * - ``near``
+   
+        - GeoJSON point or :term:`legacy coordinate pair <legacy coordinate pairs>`
+   
+        - The point for which to find the closest documents.
+          
+          If using a :doc:`2dsphere </core/2dsphere>` index, you can specify
+          the point as either a GeoJSON point or legacy coordinate pair.
+          
+          If using a :doc:`2d </core/2d>` index, specify the point as a legacy
+          coordinate pair.
+          
+          
+   
+      * - ``spherical``
+   
+        - boolean
+   
+        - Determines how MongoDB calculates the distance between two points: 
+          
+          - When ``true``, MongoDB uses :query:`$nearSphere` semantics and
+            calculates distances using spherical geometry.
+          
+          - When ``false``, MongoDB uses :query:`$near` semantics:
+            spherical geometry for :doc:`2dsphere </core/2dsphere>`
+            indexes and planar geometry for :doc:`2d </core/2d>` indexes.
+          
+          *Default: false.*
+          
+          
+   
+      * - ``limit``
+   
+        - number
+   
+        - Optional. The maximum number of documents to return. The default value is ``100``.
+          See also the ``num`` option.
+          
+          
+   
+      * - ``num``
+   
+        - number
+   
+        - Optional. The ``num`` option provides the same function as the ``limit`` option.
+          Both define the maximum number of documents to return. If both options
+          are included, the ``num`` value overrides the ``limit`` value.
+          
+          
+   
+      * - ``minDistance``
+   
+        - number
+   
+        - Optional. The minimum distance from the center point that the documents *must*
+          be. MongoDB filters the results to those documents that are *at
+          least* the specified distance from the center point.
+          
+          Specify the distance in meters if the specified point is
+          :term:`GeoJSON` and in radians if the specified point is
+          :term:`legacy coordinate pairs <legacy coordinate pairs>`.
+          
+          .. versionadded:: 2.6
+          
+          
+   
+      * - ``maxDistance``
+   
+        - number
+   
+        - Optional. The maximum distance from the center point that the documents *can*
+          be. MongoDB limits the results to those documents that fall within
+          the specified distance from the center point.
+          
+          Specify the distance in meters if the specified point is
+          :term:`GeoJSON` and in radians if the specified point is
+          :term:`legacy coordinate pairs <legacy coordinate pairs>`.
+          
+          
+   
+      * - ``query``
+   
+        - document
+   
+        - Optional. Limits the results to the documents that match the query. The query
+          syntax is the usual MongoDB :ref:`read operation query
+          <read-operations-query-argument>` syntax.
+          
+          .. include:: /includes/fact-geoNear-restrict-near-in-query.rst
+          
+          
+   
+      * - ``distanceMultiplier``
+   
+        - number
+   
+        - Optional. The factor to multiply all distances returned by the query. For
+          example, use the ``distanceMultiplier`` to convert radians, as
+          returned by a spherical query, to kilometers by multiplying by the
+          radius of the Earth.
+          
+          
+   
+      * - ``includeLocs``
+   
+        - boolean
+   
+        - Optional. If this is ``true``, the query
+          returns the location of the matching documents in the results. The
+          default is ``false``. This option is useful when a location field
+          contains multiple locations. To specify a field within an
+          embedded document, use :term:`dot notation`.
+          
+          
+   
+      * - ``uniqueDocs``
+   
+        - boolean
+   
+        - Optional. If this value is ``true``, the query returns a matching document once,
+          even if more than one of the document's location fields match the
+          query.
+          
+          .. include:: /includes/deprecation-uniqueDocs.rst
+          
+          
+   
+      * - ``readConcern``
+   
+        - document
+   
+        - Optional. Specifies the :term:`read concern`.
+          
+          .. include:: /includes/fact-readConcern-syntax.rst
+          
+          .. include:: /includes/fact-readConcern-option-description.rst
+          
+          
+   
+      * - ``key``
+   
+        - string
+   
+        - Optional. Specify the geospatial indexed field to use when calculating the distance.
+          
+          If your collection has multiple ``2d`` and/or multiple
+          ``2dsphere`` indexes, you **must** use the ``key`` option to specify
+          the indexed field path to use. :ref:`dbcommand-geoNear-key-param-example` provides a full example.
+          
+          If there is more than one ``2d`` index or more than one ``2dsphere``
+          index and you do not specify a ``key``, MongoDB will return an error.
+          
+          If you do not specify the ``key``, and you have at most only one
+          ``2d`` index and/or only one ``2dsphere`` index, MongoDB looks first
+          for a ``2d`` index to use. If a ``2d`` index does not exists, then
+          MongoDB looks for a ``2dsphere`` index to use.
+          
+          .. versionadded:: 4.0
+          
+          
+   
+
+
+Considerations
+--------------
+
+.. include:: /includes/extracts/geoNear-command-index-requirement.rst
+If you have more than one geospatial index on the collection, use the
+``keys`` parameter to specify which field to use in the calculation. If
+you have only one geospatial index, :dbcommand:`geoNear` implicitly uses
+the indexed field for the calculation.
+
+.. include:: /includes/extracts/views-unsupported-geoNear.rst
+
+.. |geoNear| replace:: :dbcommand:`geoNear` command
+.. include:: /includes/fact-geoNear-restrict-near-in-query.rst
+
+Command Syntax
+--------------
+
+``2dsphere`` Index
+~~~~~~~~~~~~~~~~~~
+
+If using a ``2dsphere`` index, you can specify either a ``GeoJSON``
+point or a legacy coordinate pair for the ``near`` value.
+
+If you specify a GeoJSON point, MongoDB uses
+meters as the unit of measurement:
+
+.. code-block:: javascript
+
+   db.runCommand( {
+      geoNear : <collection> ,
+      near : { type : "Point" , coordinates : [ <coordinates> ] } ,
+      spherical : true,
+      ...
+   } )
+
+If you specify a legacy coordinate pair, you *must* specify ``spherical : true``
+With ``spherical : true`` and a legacy coordinate pair, 
+MongoDB uses radians as the unit of measurement:
+
+.. code-block:: javascript
+
+   db.runCommand( {
+      geoNear : <collection> ,
+      near : [ <coordinates> ],
+      spherical : true,
+      ...
+   } )
+
+``2d`` Index
+~~~~~~~~~~~~
+
+To query a :doc:`2d </core/2d>` index, use the following syntax:
+
+.. code-block:: javascript
+
+   db.runCommand( {
+      geoNear : <collection>,
+      near : [ <coordinates> ],
+      ...
+   } )
+
+If you specify ``spherical : true``, MongoDB uses spherical geometry to
+calculate distances in radians. Otherwise, MongoDB uses planar geometry
+to calculate distances between points.
+
+Behavior
+--------
+
+.. |geo-operation| replace:: :dbcommand:`geoNear`
+
+.. include:: /includes/fact-geo-near-returns-sorted-results.rst
+
+Because :dbcommand:`geoNear` orders the documents from nearest to
+farthest, the ``minDistance`` field effectively skips over the first
+*n* documents where *n* is determined by the distance requirement.
+
+The :dbcommand:`geoNear` command provides an alternative to the
+:query:`$near` and :query:`$nearSphere` operators.
+In addition to the functionality of
+:query:`$near` and :query:`$nearSphere`, :dbcommand:`geoNear` returns diagnostic
+information.
+
+In a :term:`sharded cluster`, the :dbcommand:`geoNear` command may return
+:term:`orphaned documents <orphaned document>`. To avoid this, consider
+using the :pipeline:`$geoNear` aggregation stage as an alternative.
+
+Examples
+--------
+
+The following examples run the :dbcommand:`geoNear` command on the
+collection ``places`` that has a ``2dsphere`` index.
+
+Specify a Query Condition
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following :dbcommand:`geoNear` command queries for documents whose
+``category`` equals ``"public"`` and returns the matching documents in
+order of nearest to farthest to the specified point:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+        geoNear: "places",
+        near: { type: "Point", coordinates: [ -73.9667, 40.78 ] },
+        spherical: true,
+        query: { category: "public" }
+      }
+   )
+
+The operation returns the following output, the documents in the ``results``  from
+nearest to farthest:
+
+.. code-block:: javascript
+
+   {
+     "results" : [
+        {
+          "dis" : 0,
+          "obj" : {
+             "_id" : 2,
+             "location" : { "type" : "Point", "coordinates" : [ -73.9667, 40.78 ] },
+             "name" : "Central Park",
+             "category" : "public"
+          }
+        },
+        {
+          "dis" : 3245.988787957091,
+          "obj" : {
+             "_id" : 3,
+             "location" : { "type" : "Point", "coordinates" : [ -73.9836, 40.7538 ] },
+             "name" : "Bryant Park",
+             "category" : "public"
+          }
+        },
+        {
+          "dis" : 7106.506152782733,
+          "obj" : {
+             "_id" : 4,
+             "location" : { "type" : "Point", "coordinates" : [ -73.9928, 40.7193 ] },
+             "name" : "Sara D. Roosevelt Park",
+             "category" : "public"
+          }
+        },
+
+     ],
+     "stats" : {
+        "nscanned" : NumberLong(47),
+        "objectsLoaded" : NumberLong(47),
+        "avgDistance" : 3450.8316469132747,
+        "maxDistance" : 7106.506152782733,
+        "time" : 4
+     },
+     "ok" : 1
+   }
+
+Specify a ``minDistance`` and ``maxDistance``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example specifies a ``minDistance`` of ``3000`` meters
+and ``maxDistance`` of ``7000`` meters:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+        geoNear: "places",
+        near: { type: "Point", coordinates: [ -73.9667, 40.78 ] },
+        spherical: true,
+        query: { category: "public" },
+        minDistance: 3000,
+        maxDistance: 7000
+      }
+   )
+
+The operation returns the following output:
+
+.. code-block:: javascript
+
+   {
+     "results" : [
+        {
+          "dis" : 3245.988787957091,
+          "obj" : {
+             "_id" : 3,
+             "location" : { "type" : "Point", "coordinates" : [ -73.9836, 40.7538 ] },
+             "name" : "Bryant Park",
+             "category" : "public"
+          }
+        }
+     ],
+     "stats" : {
+         "nscanned" : NumberLong(11),
+         "objectsLoaded" : NumberLong(11),
+         "avgDistance" : 3245.988787957091,
+         "maxDistance" : 3245.988787957091,
+         "time" : 0
+     },
+     "ok" : 1
+   }
+
+.. _dbcommand-geoNear-key-param-example:
+
+Specify Which Geospatial Index to Use
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 4.0
+
+Consider a ``places`` collection that has a :doc:`2dsphere
+</core/2dsphere>` index on the ``location`` field **and** a
+:doc:`2d </core/2d>` index on the ``legacy`` field.
+
+A document in the ``places`` collection resembles the following:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 3,
+      "name" : "Polo Grounds",
+      "location": {
+         "type" : "Point",
+         "coordinates" : [ -73.9375, 40.8303 ]
+      },
+      "legacy" : [ -73.9375, 40.8303 ],
+      "category" : "Stadiums"
+   }
+
+The following example uses the ``keys`` parameter to specify that the
+operation should use the ``location`` field values for the
+:pipeline:`$geoNear` operation rather than the ``legacy`` field values.
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+        geoNear : "places",
+        near : { type : "Point", coordinates : [ -73.98142 , 40.71782 ] },
+        key : "location",
+        query : { "category" : "Parks" }
+      }
+   )
+
+The operation returns the following:
+
+.. code-block:: javascript
+
+   {
+      "results" : [
+         {
+            "dis" : 974.175764916902,
+            "obj" : {
+               "_id" : 2,
+               "name" : "Sara D. Roosevelt Park",
+               "location" : {
+                  "type" : "Point",
+                  "coordinates" : [
+                     -73.9928,
+                     40.7193
+                  ]
+               },
+               "category" : "Parks"
+            }
+         },
+         {
+            "dis" : 5887.92792958097,
+            "obj" : {
+               "_id" : 1,
+               "name" : "Central Park",
+               "location" : {
+                  "type" : "Point",
+                  "coordinates" : [
+                     -73.97,
+                     40.77
+                  ]
+               },
+               "legacy" : [
+                  -73.97,
+                  40.77
+               ],
+               "category" : "Parks"
+            }
+         }
+      ],
+      "stats" : {
+         "nscanned" : 19,
+         "objectsLoaded" : 6,
+         "avgDistance" : 3431.051847248936,
+         "maxDistance" : 5887.92792958097,
+         "time" : 2946
+      },
+      "ok" : 1
+
+
+Override Default Read Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To override the default read concern level of :readconcern:`"local"`,
+use the ``readConcern`` option.
+
+The following operation on a replica set specifies a
+:doc:`/reference/read-concern` of :readconcern:`"majority"` to read the
+most recent copy of the data confirmed as having been written to a
+majority of the nodes.
+
+.. note::
+
+   - .. include:: /includes/fact-enable-majority-readConcern.rst
+
+   - .. include:: /includes/fact-readConcern-most-recent-data-in-node.rst
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         geoNear: "places",
+         near: { type: "Point", coordinates: [ -73.9667, 40.78 ] },
+         spherical: true,
+         query: { category: "public" },
+         readConcern: { level: "majority" }
+      }
+   )
+
+.. include:: /includes/usage-read-concern-majority.rst
+
+Output
+------
+
+The :dbcommand:`geoNear` command returns a document with the
+following fields:
+
+.. data:: geoNear.results
+
+   An array with the results of the :dbcommand:`geoNear` command, sorted
+   by distance with the nearest result listed first and farthest last.
+
+.. data:: geoNear.results[n].dis
+
+   For each document in the results, the distance from the coordinates
+   defined in the :dbcommand:`geoNear` command.
+
+.. data:: geoNear.results[n].obj
+
+   The document from the collection.
+
+.. data:: geoNear.stats
+
+   An object with statistics about the query used to return the results of
+   the :dbcommand:`geoNear` search.
+
+.. data:: geoNear.stats.nscanned
+
+   The total number of index entries scanned during the database operation.
+
+.. data:: geoNear.stats.objectsLoaded
+
+   The total number of documents read from disk during the database operation.
+
+.. data:: geoNear.stats.avgDistance
+
+   The average distance between the coordinates defined in the
+   :dbcommand:`geoNear` command and coordinates of the documents returned
+   as results.
+
+.. data:: geoNear.stats.maxDistance
+
+   The maximum distance between the coordinates defined in the
+   :dbcommand:`geoNear` command and coordinates of the documents returned
+   as results.
+
+.. data:: geoNear.stats.time
+
+   The execution time of the database operation, in milliseconds.
+
+.. data:: geoNear.ok
+
+   A value of ``1`` indicates the :dbcommand:`geoNear` search succeeded. A
+   value of ``0`` indicates an error.
+

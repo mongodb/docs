@@ -1,0 +1,88 @@
+.. default-domain:: mongodb
+
+.. class:: hidden
+
+   .. readconcern:: "available"
+
+============================
+Read Concern ``"available"``
+============================
+
+.. meta::
+   :description: read concern, available read concern, read isolation
+   :keywords: read concern, available read concern, read isolation
+
+.. versionadded:: 3.6
+
+A query with read concern `"available"` returns data from the instance
+with no guarantee that the data has been written to a majority of the
+replica set members (i.e. may be rolled back).
+
+Read concern `"available"` is the default for reads against secondaries
+if the reads are not associated with :ref:`causally consistent sessions
+<sessions>`.
+
+For a sharded cluster, :readconcern:`"available"` read concern provides
+greater tolerance for partitions since it does not wait to ensure
+consistency guarantees. However, a query with
+:readconcern:`"available"` read concern may return :term:`orphaned
+documents <orphaned document>` if the shard is undergoing chunk
+migrations since the :readconcern:`"available"` read concern, unlike
+:readconcern:`"local"` read concern, does not contact the shard's
+primary nor the config servers for updated :doc:`metadata
+</core/sharded-cluster-config-servers>`.
+
+For unsharded collections (including collections in a standalone
+deployment or a replica set deployment), :readconcern:`"local"` and
+:readconcern:`"available"` read concerns behave identically.
+
+.. include:: /includes/fact-readConcern-most-recent-data-in-node.rst
+
+.. seealso:: :parameter:`orphanCleanupDelaySecs`
+
+Causally Consistent Sessions
+----------------------------
+
+Read concern :readconcern:`available` is unavailable for use with
+causally consistent sessions.
+       
+Example
+-------
+
+.. include:: /includes/fact-read-concern-write-timeline.rst
+
+Then, the following tables summarizes the state of the data that a read
+operation with :readconcern:`"available"` read concern would see at
+time ``T``.
+
+.. figure:: /images/read-concern-write-timeline.svg
+   :alt: Timeline of a write operation to a three member replica set.
+   :figwidth: 330px
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 30 30
+
+   * - Read Target
+     - Time ``T``
+     - State of Data
+
+   * - Primary
+     - After t\ :sub:`0`
+     - Data reflects Write\ :sub:`0`.
+
+   * - Secondary\ :sub:`1`
+     - Before t\ :sub:`1`
+     - Data reflects Write\ :sub:`prev`
+
+   * - Secondary\ :sub:`1`
+     - After t\ :sub:`1`
+     - Data reflects Write\ :sub:`0`
+
+   * - Secondary\ :sub:`2`
+     - Before t\ :sub:`2`
+     - Data reflects Write\ :sub:`prev`
+
+   * - Secondary\ :sub:`2`
+     - After t\ :sub:`2`
+     - Data reflects Write\ :sub:`0`

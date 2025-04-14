@@ -1,0 +1,251 @@
+======
+copydb
+======
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: copydb
+
+   .. deprecated:: 4.0
+      MongoDB deprecates :dbcommand:`copydb`
+      and its helper :method:`db.copyDatabase()`. For information on
+      alternatives, see :ref:`4.0-deprecate-copydb-clone-cmds`.
+
+   Copies a database either from one :binary:`~bin.mongod` instance to the
+   current :binary:`~bin.mongod` instance or within the current
+   :binary:`~bin.mongod`. Run :dbcommand:`copydb` in the ``admin`` database
+   of the destination server with the following syntax:
+
+   .. code-block:: javascript
+
+      { copydb: 1,
+        fromhost: <hostname>,
+        fromdb: <database>,
+        todb: <database>,
+        slaveOk: <bool>,
+        writeConcern: <document>,
+        bypassDocumentValidation: <boolean> }
+
+   :dbcommand:`copydb` accepts the following options:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``fromhost``
+   
+        - string
+   
+        - Optional. The hostname of the source :binary:`~bin.mongod` instance. Omit 
+          to copy databases within the same :binary:`~bin.mongod` instance.
+          
+          
+   
+      * - ``fromdb``
+   
+        - string
+   
+        - Name of the source database.
+          
+          
+   
+      * - ``todb``
+   
+        - string
+   
+        - Name of the target database.
+          
+          
+   
+      * - ``slaveOk``
+   
+        - boolean
+   
+        - Optional. Set ``slaveOK`` to ``true`` to allow :dbcommand:`copydb` to copy data from
+          secondary members as well as the primary. ``fromhost`` must also be
+          set.
+          
+          
+   
+      * - ``writeConcern``
+   
+        - document
+   
+        - Optional. A document that expresses the :doc:`write concern </reference/write-concern>`
+          for the operation. Omit to use the default write
+          concern.
+          
+          
+   
+      * - ``bypassDocumentValidation``
+   
+        - boolean
+   
+        - Optional. Enables :dbcommand:`copydb` to bypass document validation
+          during the operation. This lets you insert documents that do not
+          meet the validation requirements.
+          
+          .. versionadded:: 3.2
+
+   The :binary:`~bin.mongo` shell provides the :method:`db.copyDatabase()`
+   wrapper for the :dbcommand:`copydb` command.
+
+Behavior
+--------
+
+Feature Compatibility Version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/3.6-featureCompatibility-copy-data.rst
+
+
+Destination
+~~~~~~~~~~~
+
+.. include:: /includes/extracts/fact-copydb-cmd-behavior-destination.rst
+
+.. _copydb-access-control:
+
+Authentication to Source ``mongod`` Instance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To copy from another :binary:`~bin.mongod` instance (``fromhost``) that
+enforces :setting:`access control <security.authorization>`, then you
+must use the :binary:`~bin.mongo` shell method
+:method:`db.copyDatabase()`.
+
+Concurrency
+~~~~~~~~~~~
+
+.. include:: /includes/extracts/fact-copydb-cmd-behavior-concurrency.rst
+
+Indexes
+~~~~~~~
+
+.. include:: /includes/fact-copydb-cmd-behavior-indexes.rst
+
+.. |command| replace:: ``copydb``
+
+Replica Sets
+~~~~~~~~~~~~
+
+With :term:`read preference` configured to set the ``slaveOk`` option
+to ``true``, you may run :dbcommand:`copydb` on a :term:`secondary`
+member of a :term:`replica set`.
+
+Sharded Clusters
+~~~~~~~~~~~~~~~~
+
+- Do not use :dbcommand:`copydb` from a :binary:`~bin.mongos` instance.
+
+- Do not use :dbcommand:`copydb` to copy databases that contain sharded
+  collections.
+
+.. _copydb-required-access:
+
+Required Access
+---------------
+
+.. _copydb-fromdb-access:
+
+Source Database (``fromdb``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you are copying within the same :program:`mongod` instance that
+enforces access control, you must have the appropriate authorization.
+
+If you are copying from a different :program:`mongod` instance that
+enforces access control, see :method:`db.copyDatabase()`.
+
+Source is non-``admin`` Database
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. include:: /includes/extracts/access-copydb-source-not-admin.rst
+
+Source is ``admin`` Database
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. include:: /includes/extracts/access-copydb-source-admin.rst
+
+Target Database (``todb``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the :binary:`~bin.mongod` instance of the *target* database (``todb``)
+enforces :setting:`access control <security.authorization>`, you must
+have proper authorization for the *target* database.
+
+Copy from non-``admin`` Database
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. include:: /includes/extracts/access-copydb-target-non-admin-source.rst
+
+Copy from ``admin`` Database
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. include:: /includes/extracts/access-copydb-target-admin-source.rst
+
+Examples
+--------
+
+Copy from the Same ``mongod`` Instance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To copy from the same host, omit the ``fromhost`` field.
+
+The following command copies the ``test`` database to a new ``records``
+database on the current :binary:`~bin.mongod` instance:
+
+.. code-block:: javascript
+
+   db.adminCommand({
+      copydb: 1,
+      fromdb: "test",
+      todb: "records"
+   })
+
+Copy from a Remote Host to the Current Host
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To copy from a remote host, include the ``fromhost`` field.
+
+The following command copies the ``test`` database from the remote host
+``example.net`` to a new ``records`` database on the current
+:binary:`~bin.mongod` instance:
+
+.. code-block:: javascript
+
+   db.adminCommand({
+      copydb: 1,
+      fromdb: "test",
+      todb: "records",
+      fromhost: "example.net"
+   })
+
+To copy from another :binary:`~bin.mongod` instance (``fromhost``) that
+enforces :setting:`access control <security.authorization>`, then you
+must use the :binary:`~bin.mongo` shell method
+:method:`db.copyDatabase()`.
+
+.. seealso::
+
+   - :method:`db.copyDatabase()`
+
+   - :dbcommand:`clone` and :method:`db.cloneDatabase()`
+
+   - :doc:`/core/backups`

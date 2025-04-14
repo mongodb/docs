@@ -1,0 +1,451 @@
+=================================
+JavaScript Changes in MongoDB 2.4
+=================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Consider the following impacts of :ref:`2.4-release-javascript-change` in
+MongoDB 2.4:
+
+.. tip::
+
+   Use the new :js:func:`interpreterVersion()` method in the
+   :binary:`~bin.mongo` shell and the :data:`~buildInfo.javascriptEngine`
+   field in the output of :method:`db.serverBuildInfo()` to determine
+   which JavaScript engine a MongoDB binary uses.
+
+Improved Concurrency
+--------------------
+
+Previously, MongoDB operations that required the JavaScript interpreter
+had to acquire a lock, and a single :binary:`~bin.mongod` could only run a
+single JavaScript operation at a time. The switch to V8 improves
+concurrency by permitting multiple JavaScript operations to run at the
+same time.
+
+Modernized JavaScript Implementation (ES5)
+------------------------------------------
+
+The 5th edition of `ECMAscript
+<http://www.ecma-international.org/publications/standards/Ecma-262.htm>`_,
+abbreviated as ES5, adds many new language features, including:
+
+- standardized `JSON
+  <http://www.ecma-international.org/ecma-262/5.1/#sec-15.12.1>`_,
+
+- `strict mode
+  <http://www.ecma-international.org/ecma-262/5.1/#sec-4.2.2>`_,
+
+- `function.bind()
+  <http://www.ecma-international.org/ecma-262/5.1/#sec-15.3.4.5>`_,
+
+- `array extensions
+  <http://www.ecma-international.org/ecma-262/5.1/#sec-15.4.4.16>`_, and
+
+- getters and setters.
+
+With V8, MongoDB supports the ES5 implementation of Javascript with the
+following exceptions.
+
+.. note::
+
+   The following features do not work as expected on documents
+   **returned from MongoDB queries**:
+
+   - ``Object.seal()`` throws an exception on documents returned from
+     MongoDB queries.
+
+   - ``Object.freeze()`` throws an exception on documents returned from
+     MongoDB queries.
+
+   - ``Object.preventExtensions()`` incorrectly allows the addition of
+     new properties on documents returned from MongoDB queries.
+
+   - ``enumerable`` properties, when added to documents returned from
+     MongoDB queries, are not saved during write operations.
+
+   See :issue:`SERVER-8216`, :issue:`SERVER-8223`,
+   :issue:`SERVER-8215`, and :issue:`SERVER-8214` for more information.
+
+   For objects that have not been returned from MongoDB queries, the
+   features work as expected.
+
+Removed Non-Standard SpiderMonkey Features
+------------------------------------------
+
+V8 does **not** support the following *non-standard* `SpiderMonkey
+<https://developer.mozilla.org/en-US/docs/Mozilla/Projects/SpiderMonkey>`_ JavaScript
+extensions, previously supported by MongoDB's use of SpiderMonkey as
+its JavaScript engine.
+
+E4X Extensions
+~~~~~~~~~~~~~~
+
+V8 does not support the *non-standard* `E4X
+<https://developer.mozilla.org/en-US/docs/Archive/Web/E4X>`_ extensions. E4X
+provides a native `XML
+<https://developer.mozilla.org/en-US/docs/E4X/Processing_XML_with_E4X>`_
+object to the JavaScript language and adds the syntax for embedding
+literal XML documents in JavaScript code.
+
+You need to use alternative XML processing if you used any of the
+following constructors/methods:
+
+- ``XML()``
+
+- ``Namespace()``
+
+- ``QName()``
+
+- ``XMLList()``
+
+- ``isXMLName()``
+
+Destructuring Assignment
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+V8 does not support the non-standard destructuring assignments.
+Destructuring assignment "extract[s] data from arrays or objects using
+a syntax that mirrors the construction of array and object literals." -
+`Mozilla docs
+<https://developer.mozilla.org/en-US/docs/JavaScript/New_in_JavaScript/1.7#Destructuring_assignment_(Merge_into_own_page.2Fsection)>`_
+
+.. example::
+
+   The following destructuring assignment is **invalid** with V8 and
+   throws a ``SyntaxError``:
+
+   .. code-block:: javascript
+
+      original = [4, 8, 15];
+      var [b, ,c] = a;  // <== destructuring assignment
+      print(b) // 4
+      print(c) // 15
+
+``Iterator()``, ``StopIteration()``, and Generators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+V8 does not support `Iterator(), StopIteration(), and generators
+<https://developer.mozilla.org/en-US/docs/JavaScript/Guide/Iterators_and_Generators>`_.
+
+``InternalError()``
+~~~~~~~~~~~~~~~~~~~
+
+V8 does not support ``InternalError()``. Use ``Error()`` instead.
+
+``for each...in`` Construct
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+V8 does not support the use of `for each...in
+<https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Statements/for_each...in>`_
+construct. Use ``for (var x in y)`` construct
+instead.
+
+.. example::
+
+   The following ``for each (var x in y)`` construct is **invalid**
+   with V8:
+
+   .. code-block:: javascript
+
+      var o = { name: 'MongoDB', version: 2.4 };
+
+      for each (var value in o) {
+        print(value);
+      }
+
+   Instead, in version 2.4, you can use the ``for (var x in y)``
+   construct:
+
+   .. code-block:: javascript
+
+      var o = { name: 'MongoDB', version: 2.4 };
+
+      for (var prop in o) {
+        var value = o[prop];
+        print(value);
+      }
+
+   You can also use the array *instance* method ``forEach()`` with the
+   ES5 method ``Object.keys()``:
+
+   .. code-block:: javascript
+
+      Object.keys(o).forEach(function (key) {
+        var value = o[key];
+        print(value);
+      });
+
+Array Comprehension
+~~~~~~~~~~~~~~~~~~~
+
+V8 does not support `Array comprehensions
+<https://developer.mozilla.org/en-US/docs/JavaScript/Guide/Predefined_Core_Objects#Array_comprehensions>`_.
+
+Use other methods such as the ``Array`` instance methods ``map()``,
+``filter()``, or ``forEach()``.
+
+.. example::
+
+   With V8, the following array comprehension is **invalid**:
+
+   .. code-block:: javascript
+
+      var a = { w: 1, x: 2, y: 3, z: 4 }
+
+      var arr = [i * i for each (i in a) if (i > 2)]
+      printjson(arr)
+
+   Instead, you can implement using the ``Array`` *instance* method
+   ``forEach()`` and the ES5 method ``Object.keys()`` :
+
+   .. code-block:: javascript
+
+      var a = { w: 1, x: 2, y: 3, z: 4 }
+
+      var arr = [];
+      Object.keys(a).forEach(function (key) {
+        var val = a[key];
+        if (val > 2) arr.push(val * val);
+      })
+      printjson(arr)
+
+   .. note::
+
+      The new logic uses the ``Array`` *instance* method ``forEach()`` and
+      not the *generic* method ``Array.forEach()``; V8 does **not**
+      support ``Array`` *generic* methods. See :ref:`array-generics` for
+      more information.
+
+Multiple Catch Blocks
+~~~~~~~~~~~~~~~~~~~~~
+
+V8 does not support multiple ``catch`` blocks and will throw a
+``SyntaxError``.
+
+.. example::
+
+   The following multiple catch blocks is **invalid** with V8 and will
+   throw ``"SyntaxError: Unexpected token if"``:
+
+   .. code-block:: javascript
+
+      try {
+        something()
+      } catch (err if err instanceof SomeError) {
+        print('some error')
+      } catch (err) {
+        print('standard error')
+      }
+
+Conditional Function Definition
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+V8 will produce different outcomes than SpiderMonkey with `conditional
+function definitions
+<https://developer.mozilla.org/en-US/docs/JavaScript/Guide/Functions>`_.
+
+.. example::
+
+   The following conditional function definition produces different
+   outcomes in SpiderMonkey versus V8:
+
+   .. code-block:: javascript
+
+      function test () {
+         if (false) {
+            function go () {};
+         }
+         print(typeof go)
+      }
+
+   With SpiderMonkey, the conditional function outputs ``undefined``,
+   whereas with V8, the conditional function outputs ``function``.
+
+   If your code defines functions this way, it is highly recommended
+   that you refactor the code. The following example refactors the
+   conditional function definition to work in both SpiderMonkey and V8.
+
+   .. code-block:: javascript
+
+      function test () {
+        var go;
+        if (false) {
+          go = function () {}
+        }
+        print(typeof go)
+      }
+
+   The refactored code outputs ``undefined`` in both SpiderMonkey and V8.
+
+.. note::
+
+   ECMAscript prohibits conditional function definitions. To force V8
+   to throw an ``Error``, `enable strict mode
+   <http://www.nczonline.net/blog/2012/03/13/its-time-to-start-using-javascript-strict-mode/>`_.
+
+   .. code-block:: javascript
+
+      function test () {
+        'use strict';
+
+        if (false) {
+          function go () {}
+        }
+      }
+
+   The JavaScript code throws the following syntax error:
+
+   .. code-block:: none
+
+      SyntaxError: In strict mode code, functions can only be declared at top level or immediately within another function.
+
+String Generic Methods
+~~~~~~~~~~~~~~~~~~~~~~
+
+V8 does not support `String generics
+<https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/String#String_generic_methods>`_.
+String generics are a set of methods on the ``String`` class that
+mirror instance methods.
+
+.. example::
+
+   The following use of the generic method
+   ``String.toLowerCase()`` is **invalid** with V8:
+
+   .. code-block:: javascript
+
+      var name = 'MongoDB';
+
+      var lower = String.toLowerCase(name);
+
+   With V8, use the ``String`` instance method ``toLowerCase()`` available
+   through an *instance* of the ``String`` class instead:
+
+   .. code-block:: javascript
+
+      var name = 'MongoDB';
+
+      var lower = name.toLowerCase();
+      print(name + ' becomes ' + lower);
+
+With V8, use the ``String`` *instance* methods instead of following
+*generic* methods:
+
+.. list-table::
+
+   * - ``String.charAt()``
+     - ``String.quote()``
+     - ``String.toLocaleLowerCase()``
+
+   * - ``String.charCodeAt()``
+     - ``String.replace()``
+     - ``String.toLocaleUpperCase()``
+
+   * - ``String.concat()``
+     - ``String.search()``
+     - ``String.toLowerCase()``
+
+   * - ``String.endsWith()``
+     - ``String.slice()``
+     - ``String.toUpperCase()``
+
+   * - ``String.indexOf()``
+     - ``String.split()``
+     - ``String.trim()``
+
+   * - ``String.lastIndexOf()``
+     - ``String.startsWith()``
+     - ``String.trimLeft()``
+
+   * - ``String.localeCompare()``
+     - ``String.substr()``
+     - ``String.trimRight()``
+
+   * - ``String.match()``
+     - ``String.substring()``
+     -
+
+.. _array-generics:
+
+Array Generic Methods
+~~~~~~~~~~~~~~~~~~~~~
+
+V8 does not support `Array generic methods
+<https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array#Array_generic_methods>`_.
+Array generics are a set of methods on the ``Array`` class that mirror
+instance methods.
+
+.. example::
+
+   The following use of the generic method ``Array.every()`` is
+   **invalid** with V8:
+
+   .. code-block:: javascript
+
+      var arr = [4, 8, 15, 16, 23, 42];
+
+      function isEven (val) {
+         return 0 === val % 2;
+      }
+
+      var allEven = Array.every(arr, isEven);
+      print(allEven);
+
+   With V8, use the ``Array`` instance method ``every()`` available through
+   an *instance* of the ``Array`` class instead:
+
+   .. code-block:: javascript
+
+      var allEven = arr.every(isEven);
+      print(allEven);
+
+With V8, use the ``Array`` *instance* methods instead of the following
+*generic* methods:
+
+.. list-table::
+
+   * - ``Array.concat()``
+     - ``Array.lastIndexOf()``
+     - ``Array.slice()``
+
+   * - ``Array.every()``
+     - ``Array.map()``
+     - ``Array.some()``
+
+   * - ``Array.filter()``
+     - ``Array.pop()``
+     - ``Array.sort()``
+
+   * - ``Array.forEach()``
+     - ``Array.push()``
+     - ``Array.splice()``
+
+   * - ``Array.indexOf()``
+     - ``Array.reverse()``
+     - ``Array.unshift()``
+
+   * - ``Array.join()``
+     - ``Array.shift()``
+     -
+
+Array Instance Method ``toSource()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+V8 does not support the ``Array`` instance method `toSource()
+<https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/toSource>`_.
+Use the ``Array`` instance method ``toString()`` instead.
+
+``uneval()``
+~~~~~~~~~~~~
+
+V8 does not support the non-standard method ``uneval()``. Use the
+standardized `JSON.stringify()
+<https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/JSON/stringify>`_
+method instead.

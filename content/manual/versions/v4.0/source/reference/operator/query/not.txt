@@ -1,0 +1,95 @@
+====
+$not
+====
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. query:: $not
+
+   *Syntax*: ``{ field: { $not: { <operator-expression> } } }``
+
+   :query:`$not` performs a logical ``NOT`` operation on the
+   specified ``<operator-expression>`` and selects the documents that
+   do *not* match the ``<operator-expression>``. This includes
+   documents that do not contain the ``field``.
+
+   Consider the following query:
+
+   .. code-block:: javascript
+
+      db.inventory.find( { price: { $not: { $gt: 1.99 } } } )
+
+   This query will select all documents in the ``inventory`` collection where:
+
+   - the ``price`` field value is less than or equal to ``1.99`` **or**
+   - the ``price`` field does not exist
+
+   ``{ $not: { $gt: 1.99 } }`` is different from the :query:`$lte`
+   operator. ``{ $lte: 1.99 }`` returns *only* the documents where
+   ``price`` field exists and its value is less than or equal to
+   ``1.99``.
+
+   Remember that the :query:`$not` operator only affects *other
+   operators* and cannot check fields and documents independently. So,
+   use the :query:`$not` operator for logical disjunctions and the
+   :query:`$ne` operator to test the contents of fields directly.
+
+Behavior
+--------
+
+``$not`` and Data Types
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The operation of the :query:`$not` operator is consistent with the
+behavior of other operators but may yield unexpected results with some
+data types like arrays.
+
+``$not`` and Regular Expressions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:query:`$not` operator can perform logical ``NOT`` operation on:
+
+- regular expression objects (i.e. ``/pattern/``)
+
+  For example, the following query selects all documents in the
+  ``inventory`` collection where the ``item`` field value does *not*
+  start with the letter ``p``.
+
+  .. code-block:: javascript
+
+     db.inventory.find( { item: { $not: /^p.*/ } } )
+
+- :query:`$regex` operator  expression (Starting in MongoDB 4.0.7)
+
+  For example, the following query selects all documents in the
+  ``inventory`` collection where the ``item`` field value does *not*
+  start with the letter ``p``.
+
+  .. code-block:: javascript
+
+     db.inventory.find( { item: { $not: { $regex: "^p.*" } } } )
+     db.inventory.find( { item: { $not: { $regex: /^p.*/ } } } )
+
+- driver language's regular expression objects
+
+  For example, the following PyMongo query uses Python's
+  :py:meth:`re.compile()` method to compile a regular
+  expression:
+
+  .. code-block:: python
+
+     import re
+     for noMatch in db.inventory.find( { "item": { "$not": re.compile("^p.*") } } ):
+         print noMatch
+
+.. seealso::
+
+   :method:`~db.collection.find()`, :method:`~db.collection.update()`, :update:`$set`, :query:`$gt`,
+   :query:`$regex`, :api:`PyMongo <python/current>`,
+   :term:`driver`.

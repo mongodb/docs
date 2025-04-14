@@ -1,0 +1,601 @@
+=============================
+db.collection.findAndModify()
+=============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. EDITS to db.collection.findAndModify.txt must be carried over
+   (possibly w modifications) to the command findAndModify.txt and vice
+   versa
+
+Definition
+----------
+
+.. method:: db.collection.findAndModify(document)
+
+
+   Modifies and returns a single document. By default, the returned
+   document does not include the modifications made on the update. To
+   return the document with the modifications made on the update, use
+   the ``new`` option. The :method:`~db.collection.findAndModify()`
+   method is a shell helper around the :dbcommand:`findAndModify`
+   command.
+
+   The :method:`~db.collection.findAndModify()` method has the following
+   form:
+
+   .. versionchanged:: 3.6
+
+   .. code-block:: none
+
+      db.collection.findAndModify({
+          query: <document>,
+          sort: <document>,
+          remove: <boolean>,
+          update: <document>,
+          new: <boolean>,
+          fields: <document>,
+          upsert: <boolean>,
+          bypassDocumentValidation: <boolean>,
+          writeConcern: <document>,
+          collation: <document>,
+          arrayFilters: [ <filterdocument1>, ... ]
+      });
+
+   The :method:`db.collection.findAndModify()` method takes a document
+   parameter with the following embedded document fields:
+
+   .. |operation| replace:: :method:`db.collection.findAndModify()`
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``query``
+   
+        - document
+   
+        - Optional. The selection criteria for the modification. The ``query`` field
+          employs the same :ref:`query selectors <query-selectors>` as used in
+          the :method:`db.collection.find()` method. Although the query may
+          match multiple documents, |operation|
+          **will only select one document to modify**.
+          
+          If unspecified, defaults to an empty document.
+          
+          Starting in MongoDB 4.0.12+ (and 3.6.14+ and 3.4.23+), the operation errors if the query argument
+          is not a document.
+          
+          
+   
+      * - ``sort``
+   
+        - document
+   
+        - Optional. Determines which document the operation modifies if the query selects
+          multiple documents. |operation| modifies
+          the first document in the sort order specified by this argument.
+          
+          Starting in MongoDB 4.0.12+ (and 3.6.14+ and 3.4.23+), the operation errors if the sort argument is not
+          a document.
+          
+          
+   
+      * - ``remove``
+   
+        - boolean
+   
+        - Must specify either the ``remove`` or the ``update`` field. Removes
+          the document specified in the ``query`` field. Set this to ``true``
+          to remove the selected document . The default is ``false``.
+          
+          
+   
+      * - ``update``
+   
+        - document
+   
+        - Must specify either the ``remove`` or the ``update`` field. Performs
+          an update of the selected document. The ``update`` field employs the
+          same :ref:`update operators <update-operators>` or ``field: value``
+          specifications to modify the selected document.
+          
+          
+   
+      * - ``new``
+   
+        - boolean
+   
+        - Optional. When ``true``, returns the modified document rather than the original.
+          The |operation| method ignores the
+          ``new`` option for ``remove`` operations. The default is ``false``.
+          
+          
+   
+      * - ``fields``
+   
+        - document
+   
+        - Optional. A subset of fields to return. The ``fields`` document specifies an
+          inclusion of a field with ``1``, as in: ``fields: { <field1>: 1,
+          <field2>: 1, ... }``. See :ref:`projection <read-operations-projection>`.
+          
+          Starting in  MongoDB 4.0.12+ (and 3.6.14+ and 3.4.23+), the operation errors if the fields argument is not
+          a document.
+          
+          
+   
+      * - ``upsert``
+   
+        - boolean
+   
+        - .. include:: /includes/extracts/findAndModify-behavior-method.rst
+          
+          
+   
+      * - ``bypassDocumentValidation``
+   
+        - boolean
+   
+        - Optional. Enables :method:`db.collection.findAndModify` to bypass document validation
+          during the operation. This lets you update documents that do not
+          meet the validation requirements.
+          
+          .. versionadded:: 3.2
+          
+          
+   
+      * - ``writeConcern``
+   
+        - document
+   
+        - Optional. A document expressing the :doc:`write concern </reference/write-concern>`.
+          Omit to use the default write concern.
+          
+          .. include:: /includes/extracts/transactions-operations-write-concern.rst
+          
+          .. versionadded:: 3.2
+          
+          
+   
+      * - ``maxTimeMS``
+   
+        - integer
+   
+        - Optional. Specifies a time limit in milliseconds for processing the operation.
+          
+          
+   
+      * - ``collation``
+   
+        - document
+   
+        - Optional. 
+          
+          .. include:: /includes/extracts/collation-option.rst
+          
+          
+   
+      * - ``arrayFilters``
+   
+        - array
+   
+        - Optional. An array of filter documents that determines which array elements to
+          modify for an update operation on an array field.
+          
+          .. include::  /includes/extracts/arrayFilters-details.rst
+          
+          
+          For examples, see :ref:`findAndModify-arrayFilters`.
+          
+          .. versionadded:: 3.6
+          
+          
+          
+   
+
+
+Return Data
+-----------
+
+For remove operations, if the query matches a document,
+:method:`~db.collection.findAndModify()` returns the removed document.
+If the query does not match a document to remove,
+:method:`~db.collection.findAndModify()` returns ``null``.
+
+For update operations, :method:`~db.collection.findAndModify()` returns
+one of the following:
+
+.. include:: /includes/extracts/fact-findandmodify-method-return.rst
+
+Behavior
+--------
+
+.. _upsert-and-unique-index:
+
+Upsert and Unique Index
+~~~~~~~~~~~~~~~~~~~~~~~
+
+When :method:`~db.collection.findAndModify()` includes the ``upsert:
+true`` option **and** the query field(s) is not uniquely indexed, the
+method could insert a document multiple times in certain circumstances.
+
+In the following example, no document with the name ``Andy`` exists,
+and multiple clients issue the following command:
+
+.. code-block:: javascript
+
+   db.people.findAndModify({
+       query: { name: "Andy" },
+       sort: { rating: 1 },
+       update: { $inc: { score: 1 } },
+       upsert: true
+   })
+
+Then, if these clients' :method:`~db.collection.findAndModify()`
+methods finish the ``query`` phase before any command starts the
+``modify`` phase, **and** there is no unique index on the ``name``
+field, the commands may all perform an upsert, creating
+multiple duplicate documents.
+
+To prevent the creation of multiple duplicate documents with the same
+name, create a :ref:`unique index <index-type-unique>` on the ``name``
+field. With this unique index in place, the multiple methods will
+exhibit one of the following behaviors:
+
+- Exactly one :method:`~db.collection.findAndModify()`
+  successfully inserts a new document.
+
+- Zero or more :method:`~db.collection.findAndModify()` methods
+  update the newly inserted document.
+
+- Zero or more :method:`~db.collection.findAndModify()` methods fail
+  when they attempt to insert documents with the same name. If the
+  method fails due to the unique index constraint violation on the
+  ``name`` field, you can retry the method. Absent a delete of the
+  document, the retry should not fail.
+
+Sharded Collections
+~~~~~~~~~~~~~~~~~~~
+
+When using :dbcommand:`findAndModify` in a :term:`sharded <sharding>`
+environment, the ``query`` **must** contain the :term:`shard key` for
+all operations against the sharded cluster for the *sharded* collections.
+
+:dbcommand:`findAndModify` operations issued against :binary:`~bin.mongos`
+instances for *non-sharded* collections function normally.
+
+Document Validation
+~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/bypassDocumentValidation-db.collection.findAndModify.rst
+
+.. _findAndModify-method-and-update:
+
+Comparisons with the ``update`` Method
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. COMMENT |operation| is replaced above
+.. |return-object| replace:: the pre-modified version of the document
+
+.. include:: /includes/fact-findAndModify-update-comparison.rst
+
+Transactions
+~~~~~~~~~~~~
+
+.. include:: /includes/extracts/transactions-supported-operation.rst
+
+If the operation results in an upsert, the collection must already exist.
+
+.. include:: /includes/extracts/transactions-operations-write-concern.rst
+
+.. include:: /includes/extracts/transactions-usage.rst
+
+Examples
+--------
+
+Update and Return
+~~~~~~~~~~~~~~~~~
+
+The following method updates and returns an existing document in the
+people collection where the document matches the query criteria:
+
+.. code-block:: javascript
+
+   db.people.findAndModify({
+       query: { name: "Tom", state: "active", rating: { $gt: 10 } },
+       sort: { rating: 1 },
+       update: { $inc: { score: 1 } }
+   })
+
+This method performs the following actions:
+
+#. The ``query`` finds a document in the ``people`` collection
+   where the ``name`` field has the value ``Tom``, the ``state``
+   field has the value ``active`` and the ``rating`` field has a
+   value :operator:`greater than <$gt>` 10.
+
+#. The ``sort`` orders the results of the query in ascending order.
+   If multiple documents meet the ``query`` condition, the method
+   will select for modification the first document as ordered by
+   this ``sort``.
+
+#. The update :operator:`increments <$inc>` the value of the
+   ``score`` field by 1.
+
+#. The method returns the original (i.e. pre-modification) document
+   selected for this update:
+
+   .. code-block:: javascript
+
+      {
+        "_id" : ObjectId("50f1e2c99beb36a0f45c6453"),
+        "name" : "Tom",
+        "state" : "active",
+        "rating" : 100,
+        "score" : 5
+      }
+
+   To return the modified document, add the ``new:true`` option to
+   the method.
+
+   If no document matched the ``query`` condition, the method
+   returns ``null``.
+
+Upsert
+~~~~~~
+
+The following method includes the ``upsert: true`` option for the
+``update`` operation to either update a matching document or, if no
+matching document exists, create a new document:
+
+.. code-block:: javascript
+
+   db.people.findAndModify({
+       query: { name: "Gus", state: "active", rating: 100 },
+       sort: { rating: 1 },
+       update: { $inc: { score: 1 } },
+       upsert: true
+   })
+
+
+If the method finds a matching document, the method performs an update.
+
+If the method does **not** find a matching document, the method creates
+a new document. Because the method included the ``sort`` option, it
+returns an empty document ``{ }`` as the original (pre-modification)
+document:
+
+.. code-block:: javascript
+
+   { }
+
+If the method did **not** include a ``sort`` option, the method returns
+``null``.
+
+.. code-block:: javascript
+
+   null
+
+Return New Document
+~~~~~~~~~~~~~~~~~~~
+
+The following method includes both the ``upsert: true`` option and the
+``new:true`` option. The method either updates a matching document and
+returns the updated document or, if no matching document exists,
+inserts a document and returns the newly inserted document in the
+``value`` field.
+
+In the following example, no document in the ``people`` collection
+matches the ``query`` condition:
+
+.. code-block:: none
+
+   db.people.findAndModify({
+       query: { name: "Pascal", state: "active", rating: 25 },
+       sort: { rating: 1 },
+       update: { $inc: { score: 1 } },
+       upsert: true,
+       new: true
+   })
+
+The method returns the newly inserted document:
+
+.. code-block:: javascript
+
+   {
+      "_id" : ObjectId("50f49ad6444c11ac2448a5d6"),
+      "name" : "Pascal",
+      "rating" : 25,
+      "score" : 1,
+      "state" : "active"
+   }
+
+.. _findAndModify-wrapper-sorted-remove:
+
+Sort and Remove
+~~~~~~~~~~~~~~~
+
+By including a ``sort`` specification on the ``rating`` field, the
+following example removes from the ``people`` collection a single
+document with the ``state`` value of ``active`` and the lowest
+``rating`` among the matching documents:
+
+.. code-block:: javascript
+
+   db.people.findAndModify(
+      {
+        query: { state: "active" },
+        sort: { rating: 1 },
+        remove: true
+      }
+   )
+
+The method returns the deleted document:
+
+.. code-block:: javascript
+
+   {
+      "_id" : ObjectId("52fba867ab5fdca1299674ad"),
+      "name" : "XYZ123",
+      "score" : 1,
+      "state" : "active",
+      "rating" : 3
+   }
+
+Specify Collation
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/collation-versionadded.rst
+
+A collection ``myColl`` has the following documents:
+
+.. code-block:: javascript
+
+   { _id: 1, category: "café", status: "A" }
+   { _id: 2, category: "cafe", status: "a" }
+   { _id: 3, category: "cafE", status: "a" }
+
+The following operation includes the :ref:`collation <collation>`
+option:
+
+.. code-block:: javascript
+
+   db.myColl.findAndModify({
+       query: { category: "cafe", status: "a" },
+       sort: { category: 1 },
+       update: { $set: { status: "Updated" } },
+       collation: { locale: "fr", strength: 1 }
+   });
+
+The operation returns the following document:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "category" : "café", "status" : "A" }
+
+.. _findAndModify-arrayFilters:
+
+Specify ``arrayFilters`` for an Array Update Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/arrayFilters-blurb.rst
+
+Update Elements Match ``arrayFilters`` Criteria
+```````````````````````````````````````````````
+
+Create a collection ``students`` with the following documents:
+
+.. cssclass:: copyable-code
+
+.. code-block:: javascript
+
+   db.students.insert([
+      { "_id" : 1, "grades" : [ 95, 92, 90 ] },
+      { "_id" : 2, "grades" : [ 98, 100, 102 ] },
+      { "_id" : 3, "grades" : [ 95, 110, 100 ] }
+   ])
+
+To modify all elements that are greater than or equal to ``100`` in the
+``grades`` array, use the filtered positional operator
+:update:`$[\<identifier\>]` with the ``arrayFilters`` option in the
+:method:`db.collection.findAndModify` method:
+   
+.. cssclass:: copyable-code
+
+.. code-block:: javascript
+
+   db.students.findAndModify({
+      query: { grades: { $gte: 100 } },
+      update: { $set: { "grades.$[element]" : 100 } },
+      arrayFilters: [ { "element": { $gte: 100 } } ]
+   })
+
+The operation updates the ``grades`` field for a single document, and
+after the operation, the collection has the following documents:
+
+.. code-block:: javascript
+   :emphasize-lines: 2
+
+   { "_id" : 1, "grades" : [ 95, 92, 90 ] }
+   { "_id" : 2, "grades" : [ 98, 100, 100 ] }
+   { "_id" : 3, "grades" : [ 95, 110, 100 ] }
+
+Update Specific Elements of an Array of Documents
+`````````````````````````````````````````````````
+
+Create a collection ``students2`` with the following documents:
+
+.. code-block:: javascript
+
+   db.students2.insert([
+      {
+         "_id" : 1,
+         "grades" : [
+            { "grade" : 80, "mean" : 75, "std" : 6 },
+            { "grade" : 85, "mean" : 90, "std" : 4 },
+            { "grade" : 85, "mean" : 85, "std" : 6 }
+         ]
+      },
+      {
+         "_id" : 2,
+         "grades" : [
+            { "grade" : 90, "mean" : 75, "std" : 6 },
+            { "grade" : 87, "mean" : 90, "std" : 3 },
+            { "grade" : 85, "mean" : 85, "std" : 4 }
+         ]
+      }
+   ])
+
+To modify the value of the ``mean`` field for all elements in the
+``grades`` array where the grade is greater than or equal to ``85``,
+use the filtered positional operator :update:`$[\<identifier\>]` with
+the ``arrayFilters`` in the :method:`db.collection.findAndModify`
+method:
+
+.. code-block:: javascript
+
+   db.students2.findAndModify({
+      query: { },
+      update: { $set: { "grades.$[elem].mean" : 100 } },
+      arrayFilters: [ { "elem.grade": { $gte: 85 } } ] 
+   })
+
+The operation updates the ``grades`` field for a single document, and after the
+operation, the collection has the following documents:
+
+.. code-block:: javascript
+   :emphasize-lines: 5-6
+
+   {
+      "_id" : 1,
+      "grades" : [
+         { "grade" : 80, "mean" : 75, "std" : 6 },
+         { "grade" : 85, "mean" : 100, "std" : 4 },
+         { "grade" : 85, "mean" : 100, "std" : 6 } 
+       ]
+   }
+   {
+      "_id" : 2,
+      "grades" : [
+         { "grade" : 90, "mean" : 75, "std" : 6 },
+         { "grade" : 87, "mean" : 90, "std" : 3 },
+         { "grade" : 85, "mean" : 85, "std" : 4 }
+      ]
+   }
+
+
+.. seealso:: :ref:`perform-findAndModify-linearizable-reads`

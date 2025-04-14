@@ -1,0 +1,579 @@
+=========
+currentOp
+=========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: currentOp
+
+   .. |command| replace:: currentOp
+
+   Returns a :term:`document` that contains information on in-progress
+   operations for the :binary:`~bin.mongod` instance. 
+
+   :dbcommand:`currentOp` has the following form:
+   
+   .. code-block:: javascript
+
+      { currentOp: 1 }
+
+   The :binary:`~bin.mongo` shell provides the :method:`db.currentOp()`
+   wrapper for the :dbcommand:`currentOp` command.
+
+   .. note::
+
+      .. include:: /includes/fact-currentop.rst
+
+Behavior
+--------
+
+:dbcommand:`currentOp` must run against the ``admin`` database, and
+it can accept several optional fields.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 85
+   
+   * - Field
+     - Description
+
+   * - ``"$ownOps"``
+
+     - Boolean. If set to ``true``, returns information on the current user's
+       operations only.
+
+       On :binary:`~bin.mongod` instances, users are always authorized to run
+       :dbcommand:`currentOp` with ``"$ownOps": true`` to view their own
+       operations. See :ref:`access control <currentOp-access-control>`.
+
+       .. versionadded:: 3.2.9
+
+   * - ``"$all"``
+
+     - Boolean. If set to ``true``, returns information on all operations,
+       including operations on idle connections and system operations.
+
+       ``"$all": true`` overrides any output field filters.
+
+   * - <filter>
+
+     - Specify filter conditions on the :ref:`currentOp-output-fields`.
+       See :ref:`currentOp-examples`.
+
+:dbcommand:`currentOp` and the
+:doc:`database profiler</reference/database-profiler>` report the same
+basic diagnostic information for all CRUD operations, including the
+following:
+ 
+.. include:: /includes/fact-diagnostic-info.rst
+
+.. _currentOp-access-control:
+
+Access Control
+--------------
+
+On systems running with :setting:`~security.authorization`, the user
+must have access that includes the :authaction:`inprog` privilege
+action.
+
+Starting in 3.2.9, users can use
+``$ownOps`` on :binary:`~bin.mongod` instances to view their own
+operations without the :authaction:`inprog` privilege action.
+
+.. code-block:: javascript
+
+   db.adminCommand( { currentOp: 1, "$ownOps": 1 } )
+
+.. seealso::  :ref:`create-role-to-manage-ops`
+
+.. _currentOp-examples:
+
+Examples
+--------
+
+The following examples use the :dbcommand:`currentOp` command with
+various query documents to filter the output.
+
+Display All Current Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   db.adminCommand(
+      {
+        currentOp: true,
+        "$all": true
+      }
+   )
+
+.. NOTE TO WRITERS: If you're editing the following examples, make
+   sure that you also update the examples on db.currentOp (the equiv. 
+   method). Single sourcing is weird due to diffs in code block. - ARM
+
+Write Operations Waiting for a Lock
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example returns information on all write operations that
+are waiting for a lock:
+
+.. versionchanged:: 3.6
+
+.. code-block:: javascript
+
+   db.adminCommand(
+      {
+        currentOp: true,
+        "waitingForLock" : true,
+        $or: [
+           { "op" : { "$in" : [ "insert", "update", "remove" ] } },
+           { "command.findandmodify": { $exists: true } }
+       ]  
+      }
+   )
+
+Active Operations with no Yields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example returns information on all active running
+operations that have never yielded:
+
+.. code-block:: javascript
+
+   db.adminCommand(
+      {
+        currentOp: true,
+        "active" : true,
+        "numYields" : 0,
+        "waitingForLock" : false
+      }
+   )
+
+Active Operations on a Specific Database
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example returns information on all active operations for
+database ``db1`` that have been running longer than 3 seconds:
+
+.. code-block:: javascript
+
+   db.adminCommand(
+      {
+        currentOp: true,
+        "active" : true,
+        "secs_running" : { "$gt" : 3 },
+        "ns" : /^db1\./
+      }
+   )
+
+.. _currentOp-cmd-index-creation:
+
+Active Indexing Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 3.6
+
+The following example returns information on index creation operations:
+
+.. code-block:: javascript
+
+   db.adminCommand(
+       {
+         currentOp: true,
+         $or: [
+           { op: "command", "command.createIndexes": { $exists: true }  },
+           { op: "none", "msg" : /^Index Build/ }
+         ]
+       }
+   )
+
+
+
+Output Example
+--------------
+
+.. include:: /includes/currentOp-output-example.rst
+
+.. _currentOp-output-fields:
+
+Output Fields
+-------------
+
+.. data:: currentOp.host
+
+   The name of the host against which the operation is run.
+
+.. data:: currentOp.desc
+
+   A description of the client. This string includes the
+   :data:`~currentOp.connectionId`.
+
+.. data:: currentOp.connectionId
+
+   An identifier for the connection where the operation originated.
+
+.. data:: currentOp.client
+
+   A string with information about where the operation originated.
+   
+   For multi-document transactions, :data:`~currentOp.client` stores
+   information about the most recent client to run an operation inside
+   the transaction.
+
+.. data:: currentOp.appName
+
+   A string with information about the type of client which made the
+   request.
+
+.. data:: currentOp.clientMetadata
+
+   Additional information on the client.
+
+   For multi-document transactions, :data:`~currentOp.client` stores
+   information about the most recent client to run an operation inside
+   the transaction.
+
+.. data:: currentOp.currentOpTime
+
+   The start time of the operation.
+
+   .. versionadded:: 3.6
+
+.. data:: currentOp.lsid
+
+   The session identifier.
+
+   Only present if the operation is associated with a
+   session.
+
+   .. versionadded:: 3.6
+
+.. data:: currentOp.transaction
+
+   A document that contains multi-document transaction information.
+
+   Only present if the operation is part of a transaction.
+
+   .. versionadded:: 4.0
+
+   .. data:: currentOp.transaction.parameters
+
+      A document that contains information on multi-document
+      transaction.
+
+      Only present if the operation is part of a transaction.
+
+      .. versionadded:: 4.0
+
+      .. data:: currentOp.transaction.parameters.txnNumber
+
+         The transaction number.
+
+         Only present if the operation is part of a transaction.
+
+         .. versionadded:: 4.0
+
+      .. data:: currentOp.transaction.parameters.autocommit
+
+         A boolean flag that indicates if autocommit is on for the
+         transaction.
+
+         Only present if the operation is part of a transaction.
+
+         .. versionadded:: 4.0.2
+
+      .. data:: currentOp.transaction.parameters.readConcern
+
+         The :ref:`read concern <txn-read-concern>` for the
+         transaction.
+
+         Multi-document transactions support read concern
+         :readconcern:`"snapshot"`, :readconcern:`"local"`, and
+         :readconcern:`"majority"`.
+
+         Only present if the operation is part of a transaction.
+
+         .. versionadded:: 4.0.2
+
+      .. data:: currentOp.transaction.readTimestamp
+
+         The timestamp of the snapshot being read by the operations in
+         the transaction.
+
+         Only present if the operation is part of a transaction.
+
+         .. versionadded:: 4.0.2
+
+      .. data:: currentOp.transaction.startWallClockTime
+
+         The date and time (with time zone) of the transaction start.
+
+         Only present if the operation is part of a transaction.
+
+         .. versionadded:: 4.0.2
+
+      .. data:: currentOp.transaction.timeOpenMicros
+
+         The duration of the transaction in microseconds.
+
+         The :data:`~currentOp.transaction.parameters.timeActiveMicros`
+         value added to the
+         :data:`~currentOp.transaction.parameters.timeInactiveMicros`
+         should equal the
+         :data:`~currentOp.transaction.parameters.timeOpenMicros`.
+
+         Only present if the operation is part of a transaction.
+
+         .. versionadded:: 4.0.2
+
+      .. data:: currentOp.transaction.timeActiveMicros
+
+         The total amount of time that the transaction has been active;
+         i.e. when the transaction had operations running.
+
+         The
+         :data:`~currentOp.transaction.parameters.timeActiveMicros`
+         value added to the
+         :data:`~currentOp.transaction.parameters.timeInactiveMicros`
+         should equal the
+         :data:`~currentOp.transaction.parameters.timeOpenMicros`.
+
+         Only present if the operation is part of a transaction.
+
+         .. versionadded:: 4.0.2
+
+      .. data:: currentOp.transaction.timeInactiveMicros
+
+         The total amount of time that the transaction has been
+         inactive; i.e. when the transaction had no operations running.
+
+         The
+         :data:`~currentOp.transaction.parameters.timeInactiveMicros`
+         value added to the
+         :data:`~currentOp.transaction.parameters.timeActiveMicros`
+         should equal the
+         :data:`~currentOp.transaction.parameters.timeOpenMicros`.
+
+         Only present if the operation is part of a transaction.
+
+      .. data:: currentOp.transaction.expiryTime
+
+         The date and time (with time zone) when the transaction will
+         time out and abort.
+
+         The :data:`currentOp.transaction.expiryTime` equals the
+         :data:`currentOp.transaction.startWallClockTime` + the
+         :parameter:`transactionLifetimeLimitSeconds`.
+
+         For more information, seee :ref:`transaction-limit` for
+         transactions.
+
+         Only present if the operation is part of a transaction.
+
+         .. versionadded:: 4.0.2
+
+.. data:: currentOp.opid
+
+   The identifier for the operation. You can pass this value to
+   :method:`db.killOp()` in the :binary:`~bin.mongo` shell to terminate the
+   operation.
+
+   .. include:: /includes/extracts/warning-terminating-ops-method.rst
+
+.. data:: currentOp.active
+
+   A boolean value specifying whether the operation has started. Value
+   is ``true`` if the operation has started or ``false`` if the
+   operation is idle, such as an idle connection or an internal thread
+   that is currently idle. An operation can be active even if the
+   operation has yielded to another operation.
+
+   .. versionchanged:: 3.0
+
+      For some inactive background threads, such as an inactive
+      ``signalProcessingThread``, MongoDB suppresses various empty
+      fields.
+
+.. data:: currentOp.secs_running
+
+   The duration of the operation in seconds. MongoDB calculates this
+   value by subtracting the current time from the start time of the
+   operation.
+
+   Only appears if the operation is running; i.e. if
+   :data:`~currentOp.active` is ``true``.
+
+.. data:: currentOp.microsecs_running
+
+   The duration of the operation in microseconds. MongoDB calculates this
+   value by subtracting the current time from the start time of the
+   operation.
+
+   Only appears if the operation is running; i.e. if
+   :data:`~currentOp.active` is ``true``.
+
+.. data:: currentOp.op
+
+   A string that identifies the type of operation. The possible values
+   are:
+
+   - ``"none"``
+   - ``"update"``
+   - ``"insert"``
+   - ``"query"``
+   - ``"command"``
+   - ``"getmore"``
+   - ``"remove"``
+   - ``"killcursors"``
+
+   ``"query"`` operations include read operations.
+
+   ``"command"`` operations include most 
+   :doc:`commands </reference/command>` such as the
+   :dbcommand:`createIndexes` and :dbcommand:`findandmodify`.
+
+.. data:: currentOp.ns
+
+   The :term:`namespace` the operation targets. A namespace consists of
+   the :term:`database` name and the :term:`collection` name
+   concatenated with a dot (``.``); that is,
+   ``"<database>.<collection>"``.
+
+.. data:: currentOp.command
+
+   .. include:: /includes/extracts/command-field-currentOp.rst
+
+.. data:: currentOp.originatingCommand
+
+   .. include:: /includes/fact-originating-command-ref.rst
+
+.. data:: currentOp.planSummary
+
+   A string that contains the query plan to help debug slow queries.
+
+.. data:: currentOp.client
+
+   The IP address (or hostname) and the ephemeral port of the client
+   connection where the operation originates. If your ``inprog``
+   array has operations from many different clients, use this string
+   to relate operations to clients.
+
+.. data:: currentOp.appName
+
+   .. include:: /includes/fact-client-appname.rst
+
+.. data:: currentOp.locks
+
+   .. versionchanged:: 3.0
+
+   The :data:`~currentOp.locks` document reports the type and mode of
+   locks the operation currently holds. The possible lock types are as
+   follows:
+
+   .. include:: /includes/fact-lock-types.rst
+
+   The possible modes are as follows:
+
+   .. include:: /includes/fact-lock-modes.rst
+
+.. data:: currentOp.waitingForLock
+
+   Returns a boolean value. :data:`~currentOp.waitingForLock` is ``true`` if the
+   operation is waiting for a lock and ``false`` if the operation has
+   the required lock.
+
+.. data:: currentOp.msg
+
+   The :data:`~currentOp.msg` provides a message that describes the status and
+   progress of the operation. In the case of indexing or mapReduce
+   operations, the field reports the completion percentage.
+
+.. data:: currentOp.progress
+
+   Reports on the progress of mapReduce or indexing operations. The
+   :data:`~currentOp.progress` fields corresponds to the completion percentage in
+   the :data:`~currentOp.msg` field. The :data:`~currentOp.progress` specifies the following
+   information:
+
+   .. data:: currentOp.progress.done
+
+      Reports the number completed.
+
+   .. data:: currentOp.progress.total
+
+      Reports the total number.
+
+.. data:: currentOp.killPending
+
+   Returns ``true`` if the operation is currently flagged for
+   termination.  When the operation encounters its next safe termination point, the
+   operation will terminate.
+
+.. data:: currentOp.numYields
+
+   :data:`~currentOp.numYields` is a counter that reports the number of times the
+   operation has yielded to allow other operations to complete.
+
+   Typically, operations yield when they need access to data that
+   MongoDB has not yet fully read into memory. This allows
+   other operations that have data in memory to complete quickly
+   while MongoDB reads in data for the yielding operation.
+
+.. data:: currentOp.fsyncLock
+
+   Specifies if database is currently locked for :method:`fsync
+   write/snapshot <db.fsyncLock()>`.
+
+   Only appears if locked; i.e. if :data:`~currentOp.fsyncLock` is
+   ``true``.
+
+.. data:: currentOp.info
+
+   Information regarding how to unlock database from
+   :method:`db.fsyncLock()`. Only appears if
+   :data:`~currentOp.fsyncLock` is ``true``.
+
+.. data:: currentOp.lockStats
+
+   For each lock type and mode (see :data:`currentOp.locks` for
+   descriptions of lock types and modes), returns the following
+   information:
+
+   .. COMMENT
+      these definitions are for per operations and not for server,
+      as such, they differ from those in serverStatus.txt
+
+   .. data:: currentOp.lockStats.acquireCount
+
+      Number of times the operation acquired the lock in the specified
+      mode.
+
+   .. data:: currentOp.lockStats.acquireWaitCount
+
+      Number of times the operation had to wait for the
+      :data:`~currentOp.lockStats.acquireCount` lock acquisitions
+      because the locks were held in a conflicting mode.
+      :data:`~currentOp.lockStats.acquireWaitCount` is less than or
+      equal to :data:`~currentOp.lockStats.acquireCount`.
+
+   .. data:: currentOp.lockStats.timeAcquiringMicros
+
+      Cumulative time in microseconds that the operation had to wait to
+      acquire the locks.
+
+      :data:`~currentOp.lockStats.timeAcquiringMicros` divided by
+      :data:`~currentOp.lockStats.acquireWaitCount` gives an
+      approximate average wait time for the particular lock mode.
+
+   .. data:: currentOp.lockStats.deadlockCount
+
+      Number of times the operation encountered deadlocks while waiting
+      for lock acquisitions.

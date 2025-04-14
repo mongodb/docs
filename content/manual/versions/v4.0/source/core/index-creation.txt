@@ -1,0 +1,239 @@
+.. index:: index; options
+.. _index-creation-operations:
+.. _index-operations:
+
+================================================
+Index Build Operations on a Populated Collection
+================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+By default, creating an index on a populated collection blocks all
+other operations on a database. When building an index on a populated
+collection, the database that holds the collection is unavailable for
+read or write operations until the index build completes. Any operation
+that requires a read or write lock on all databases (e.g.
+:command:`listDatabases`) will wait for the foreground index build to
+complete.
+
+.. index:: index; background creation
+.. _index-creation-background:
+
+Background Construction
+-----------------------
+
+.. note::
+
+   The following section refers to building indexes on a standalone.
+   For a replica set or a sharded cluster, use a rolling index build.
+   See :doc:`/tutorial/build-indexes-on-replica-sets` for details.
+
+For potentially long running index building operations on standalone
+deployments, consider the ``background`` option so that the MongoDB
+database remains available during the index building operation.
+
+For example, to create an index in the background of the ``zipcode``
+field of the ``people`` collection, issue the following:
+
+.. code-block:: javascript
+
+   db.people.createIndex( { zipcode: 1 }, { background: true } )
+
+By default, ``background`` is ``false`` for building MongoDB indexes.
+
+You can combine the background option with other options, as in the
+following:
+
+.. code-block:: javascript
+
+   db.people.createIndex( { zipcode: 1 }, { background: true, sparse: true } )
+
+Behavior
+~~~~~~~~
+
+Background indexing operations run in the background so that other database
+operations can run while creating the index. However, the :binary:`~bin.mongo`
+shell session or connection where you are creating
+the index *will* block until the index build is complete. To continue
+issuing commands to the database, open another
+connection or :binary:`~bin.mongo` instance.
+
+Queries will not use partially-built indexes: the index will only be
+usable once the index build is complete.
+
+.. note::
+
+   If MongoDB is building an index in the background, you cannot
+   perform other administrative operations involving that collection,
+   including running :dbcommand:`repairDatabase`, dropping the
+   collection (i.e. :method:`db.collection.drop()`), and running
+   :dbcommand:`compact`. These operations will return an error during
+   background index builds.
+
+Performance
+~~~~~~~~~~~
+
+The background index operation uses an incremental approach that is
+slower than the normal "foreground" index builds. If the index is
+larger than the available RAM, then the incremental process can take
+*much* longer than the foreground build.
+
+Building an index can have a severe impact on the performance of the
+database. If possible, build indexes during designated maintenance
+windows.
+
+.. versionchanged:: 3.4
+
+   .. include:: /includes/fact-index-build-default-memory-limit.rst
+
+Interrupted Index Builds
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+If a background index build is in progress when a standalone (i.e. not
+a member of a replica set) :binary:`~bin.mongod` terminates, when the
+instance restarts the index build will restart as foreground index
+build. If the index build encounters any errors, such as a duplicate
+key error, the :binary:`~bin.mongod` will exit with an error.
+
+To start the :binary:`~bin.mongod` standalone (i.e. not a member of a
+replica set) after a failed index build, use the
+:setting:`storage.indexBuildRetry` or :option:`--noIndexBuildRetry
+<mongod --noIndexBuildRetry>` to skip the index build on start up.
+
+.. admonition:: MongoDB 4.0+
+   :class: note
+
+   You cannot specify :setting:`storage.indexBuildRetry` or
+   :option:`--noIndexBuildRetry <mongod --noIndexBuildRetry>` for a
+   :binary:`~bin.mongod` that is part of a replica set.
+
+Rollbacks and Background Index Builds
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in version 4.0, MongoDB waits for any in-progress
+:ref:`background index builds <index-creation-background>` to finish
+before starting a :doc:`rollback </core/replica-set-rollbacks>`.
+
+
+.. _index-operations-replicated-build:
+
+Build Indexes on Replica Sets and Sharded Clusters
+--------------------------------------------------
+
+To minimize the impact of building an index on:
+
+- Replica Sets, use a rolling index build procedure as described in
+  :doc:`/tutorial/build-indexes-on-replica-sets`.
+
+- Sharded Clusters with Shard Replica Sets, use a rolling index build
+  procedure as described in
+  :doc:`/tutorial/build-indexes-on-sharded-clusters`.
+
+If not using the rolling index build procedure:
+
+- A foreground index build on a :term:`primary` requires a DB
+  lock. It replicates as a foreground index build on :term:`replica
+  set` :term:`secondaries <secondary>`, and the replication worker
+  takes a global DB lock that queues reads and writes to all databases
+  on the indexing server.
+
+- A background index build on a primary replicates as background index
+  builds on secondaries. The replication worker does not take a global
+  DB lock, and secondary reads are not affected.
+
+- For both foreground and background index builds on the primary, the
+  index operations on replica set secondaries begin after the primary
+  finishes building the index.
+
+The amount of time required to build the index on a secondary must be
+within the window of the :term:`oplog`, so that the secondary can
+catch up with the primary.
+
+Dropping an Index during Index Replication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Avoid dropping an index on a collection while any index is being
+replicated on a secondary. If you attempt to drop an index from a
+collection on a :term:`primary` while the collection has a background
+index building on a :term:`secondary`, reads will be halted across all
+namespaces and replication will halt until the background index build
+completes.
+
+.. index:: index; name
+.. _index-names:
+
+Index Names
+-----------
+
+The default name for an index is the concatenation of the indexed keys
+and each key's direction in the index, 1 or -1.
+
+.. example:: Issue the following command to create an index on ``item``
+   and ``quantity``:
+
+   .. code-block:: javascript
+
+      db.products.createIndex( { item: 1, quantity: -1 } )
+
+   The resulting index is named: ``item_1_quantity_-1``.
+
+Optionally, you can specify a name for an index instead of using the
+default name.
+
+.. example:: Issue the following command to create an index on ``item``
+   and ``quantity`` and specify ``inventory`` as the index name:
+
+   .. code-block:: javascript
+
+      db.products.createIndex( { item: 1, quantity: -1 } , { name: "inventory" } )
+
+   The resulting index has the name ``inventory``.
+
+To view the name of an index, use the :method:`getIndexes()
+<db.collection.getIndexes()>` method.
+
+View Index Build Operations
+---------------------------
+
+To see the status of an index build operation, you can use the
+:method:`db.currentOp()` method in the :binary:`~bin.mongo` shell. To
+filter the current operations for index creation operations, see
+:ref:`currentOp-index-creation` for an example.
+
+The :data:`~currentOp.msg` field will include the percent of the build
+that is complete.
+
+Terminate Index Build Operation
+-------------------------------
+
+To terminate an ongoing index build, use the :method:`db.killOp()`
+method in the :binary:`~bin.mongo` shell. For index builds, the effects of
+:method:`db.killOp()` may not be immediate and may occur well after
+much of the index build operation has completed.
+
+You cannot terminate a *replicated* index build on secondary members of
+a replica set. 
+
+
+To minimize the impact of building an index on replica sets and sharded
+clusters with replica set shards, see:
+
+- :doc:`/tutorial/build-indexes-on-replica-sets`.
+
+- :doc:`/tutorial/build-indexes-on-sharded-clusters`.
+
+.. seealso::
+   :method:`db.currentOp()`, :method:`db.killOp()`
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   /tutorial/build-indexes-on-replica-sets
+   /tutorial/build-indexes-on-sharded-clusters

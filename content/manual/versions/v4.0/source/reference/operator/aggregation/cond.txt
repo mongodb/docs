@@ -1,0 +1,109 @@
+===================
+$cond (aggregation)
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $cond
+
+   Evaluates a boolean expression to return one of the two specified
+   return expressions.
+
+   The :expression:`$cond` expression has one of two syntaxes:
+
+   .. versionadded:: 2.6
+
+   .. code-block:: javascript
+
+      { $cond: { if: <boolean-expression>, then: <true-case>, else: <false-case> } }
+
+   Or:
+
+   .. code-block:: javascript
+
+      { $cond: [ <boolean-expression>, <true-case>, <false-case> ] }
+
+   :expression:`$cond` requires all three arguments (``if-then-else``)
+   for either syntax.
+
+   If the ``<boolean-expression>`` evaluates to ``true``, then
+   :expression:`$cond` evaluates and returns the value of the
+   ``<true-case>`` expression. Otherwise, :expression:`$cond` evaluates
+   and returns the value of the ``<false-case>`` expression.
+
+   The arguments can be any valid :ref:`expression
+   <aggregation-expressions>`. For more information on expressions, see
+   :ref:`aggregation-expressions`.
+
+.. seealso:: :expression:`$switch`
+
+Example
+-------
+
+The following example use a ``inventory`` collection with the following
+documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "abc1", qty: 300 }
+   { "_id" : 2, "item" : "abc2", qty: 200 }
+   { "_id" : 3, "item" : "xyz1", qty: 250 }
+
+The following aggregation operation uses the :expression:`$cond`
+expression to set the ``discount`` value to ``30`` if ``qty`` value is
+greater than or equal to 250 and to ``20`` if ``qty`` value is less
+than ``250``:
+
+.. code-block:: javascript
+
+   db.inventory.aggregate(
+      [
+         {
+            $project:
+              {
+                item: 1,
+                discount:
+                  {
+                    $cond: { if: { $gte: [ "$qty", 250 ] }, then: 30, else: 20 }
+                  }
+              }
+         }
+      ]
+   )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "abc1", "discount" : 30 }
+   { "_id" : 2, "item" : "abc2", "discount" : 20 }
+   { "_id" : 3, "item" : "xyz1", "discount" : 30 }
+
+The following operation uses the array syntax of the
+:expression:`$cond` expression and returns the same results:
+
+.. code-block:: javascript
+
+   db.inventory.aggregate(
+      [
+         {
+            $project:
+              {
+                item: 1,
+                discount:
+                  {
+                    $cond: [ { $gte: [ "$qty", 250 ] }, 30, 20 ]
+                  }
+              }
+         }
+      ]
+   )

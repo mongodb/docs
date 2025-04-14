@@ -1,0 +1,270 @@
+======================
+Upgrade MongoDB to 2.6
+======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+In the general case, the upgrade from MongoDB 2.4 to 2.6 is a
+binary-compatible "drop-in" upgrade: shut down the :binary:`~bin.mongod`
+instances and replace them with :binary:`~bin.mongod` instances running
+2.6. **However**, before you attempt any upgrade, familiarize yourself
+with the content of this document, particularly the
+:ref:`2.6-upgrade-considerations`, the procedure for :ref:`upgrading
+sharded clusters <2.6-upgrade-cluster>`, and the considerations for
+:ref:`reverting to 2.4 after running 2.6
+<2.6-downgrade-considerations>`.
+
+.. _2.6-upgrade-considerations:
+
+Upgrade Recommendations and Checklists
+--------------------------------------
+
+When upgrading, consider the following:
+
+Upgrade Requirements
+~~~~~~~~~~~~~~~~~~~~
+
+To upgrade an existing MongoDB deployment to 2.6, you must be running
+2.4. If you're running a version of MongoDB before 2.4, you *must*
+upgrade to 2.4 before upgrading to 2.6. See
+:doc:`/release-notes/2.4-upgrade` for the procedure to upgrade from
+2.2 to 2.4.
+
+If you use |mms-home| Backup, ensure that you're running *at least* version
+``v20131216.1`` of the Backup agent before upgrading. Version ``1.4.0`` of
+the backup agent followed ``v20131216.1``
+
+.. include:: /includes/replacement-mms.rst
+
+Preparedness
+~~~~~~~~~~~~
+
+Before upgrading MongoDB always test your application in a staging
+environment before deploying the upgrade to your production
+environment.
+
+To begin the upgrade procedure, connect a 2.6 :binary:`~bin.mongo` shell to
+your MongoDB 2.4 :binary:`~bin.mongos` or :binary:`~bin.mongod` and run the
+:v2.6:`db.upgradeCheckAllDBs()
+</reference/method/db.upgradeCheckAllDBs>` to check your data set for
+compatibility. This is a preliminary automated check. Assess and
+resolve all issues identified by :v2.6:`db.upgradeCheckAllDBs()
+</reference/method/db.upgradeCheckAllDBs>`.
+
+Some changes in MongoDB 2.6 require manual checks and
+intervention. See :doc:`/release-notes/2.6-compatibility` for an
+explanation of these changes. Resolve all incompatibilities in your
+deployment before continuing.
+
+For a deployment that uses authentication and authorization, be sure
+you have at least one user in the ``admin`` database with the role
+:authrole:`userAdminAnyDatabase` **before** upgrading the MongoDB
+binaries. For deployments currently using
+authentication and authorization, see the :ref:`consideration for
+deployments that use authentication and authorization
+<2.6-upgrade-auth-prereq>`.
+
+.. _2.6-upgrade-auth-prereq:
+
+Authentication
+~~~~~~~~~~~~~~
+
+MongoDB 2.6 includes significant changes to the authorization model,
+which requires changes to the way that MongoDB stores users'
+credentials. As a result, in addition to upgrading MongoDB processes,
+if your deployment uses authentication and authorization, after
+upgrading all MongoDB process to 2.6 you **must** also upgrade the
+authorization model.
+
+**Before** beginning the upgrade process for a deployment that uses
+authentication and authorization:
+
+- Ensure that at least one user exists in the ``admin`` database with
+  the role :authrole:`userAdminAnyDatabase`.
+
+- If your application performs CRUD operations on the
+  :data:`<database>.system.users` collection or uses a
+  :method:`db.addUser()`\ -like method, then you **must**
+  upgrade those drivers (i.e. client libraries) **before**
+  :binary:`~bin.mongod` or :binary:`~bin.mongos` instances.
+
+- You must fully complete the upgrade procedure for *all* MongoDB
+  processes before upgrading the authorization model.
+
+After you begin to upgrade a MongoDB deployment that uses
+authentication to 2.6, you *cannot* modify existing user data until
+you complete the :doc:`authorization user schema upgrade
+</release-notes/2.6-upgrade-authorization>`.
+
+See :ref:`2.6-upgrade-authorization-model` for a complete discussion
+of the upgrade procedure for the authorization model including
+additional requirements and procedures.
+
+Downgrade Limitations
+~~~~~~~~~~~~~~~~~~~~~
+
+Once upgraded to MongoDB 2.6, you **cannot** downgrade to **any** version
+earlier than MongoDB 2.4. If you created ``text`` or ``2dsphere``
+indexes while running 2.6, you can only downgrade to MongoDB 2.4.10 or
+later.
+
+Package Upgrades
+~~~~~~~~~~~~~~~~
+
+If you installed MongoDB from the MongoDB ``apt`` or ``yum`` repositories,
+upgrade to 2.6 using the package manager.
+
+For Debian, Ubuntu, and related operating systems, type these commands:
+
+.. code-block:: javascript
+
+   sudo apt-get update
+   sudo apt-get install mongodb-org
+
+For Red Hat Enterprise, CentOS, Fedora, or Amazon Linux:
+
+.. code-block:: javascript
+
+   sudo yum install mongodb-org
+
+If you did not install the ``mongodb-org`` package, and installed a subset
+of MongoDB components replace ``mongodb-org`` in the commands above with
+the appropriate package names.
+
+See installation instructions for :doc:`Ubuntu
+</tutorial/install-mongodb-on-ubuntu>`, :doc:`RHEL
+</tutorial/install-mongodb-on-red-hat>`,
+:doc:`Debian </tutorial/install-mongodb-on-debian>` for a list of the
+available packages and complete MongoDB installation instructions.
+
+
+Upgrade MongoDB Processes
+-------------------------
+
+.. _2.6-upgrade-standalone:
+
+Upgrade Standalone ``mongod`` Instance to MongoDB 2.6
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following steps outline the procedure to upgrade a standalone
+:binary:`~bin.mongod` from version 2.4 to 2.6. To upgrade from version
+2.2 to 2.6, :doc:`upgrade to version 2.4
+</release-notes/2.4-upgrade>` *first*, and then follow the procedure to
+upgrade from 2.4 to 2.6.
+
+#. Download binaries of the latest release in the 2.6 series from the
+   `MongoDB Download Page`_. See :doc:`/installation` for more
+   information.
+
+#. Shut down your :binary:`~bin.mongod` instance. Replace the existing
+   binary with the 2.6 :binary:`~bin.mongod` binary and restart :binary:`~bin.mongod`.
+
+.. _`MongoDB Download Page`: http://www.mongodb.org/downloads
+
+.. _2.6-upgrade-replica-set:
+
+Upgrade a Replica Set to 2.6
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following steps outline the procedure to upgrade a replica set from
+MongoDB 2.4 to MongoDB 2.6. To upgrade from MongoDB 2.2 to 2.6,
+:doc:`upgrade all members of the replica set to version 2.4
+</release-notes/2.4-upgrade>` *first*, and then follow the procedure to
+upgrade from MongoDB 2.4 to 2.6.
+
+You can upgrade from MongoDB 2.4 to 2.6 using a "rolling" upgrade to
+minimize downtime by upgrading the members individually while the other
+members are available:
+
+.. include:: /includes/steps/2.6-upgrade-replica-set.rst
+
+Replica set failover is not instant but will render the set
+unavailable accept writes until the failover process
+completes. Typically this takes 30 seconds or more: schedule the
+upgrade procedure during a scheduled maintenance window.
+
+.. _2.6-upgrade-cluster:
+
+Upgrade a Sharded Cluster to 2.6
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Only upgrade sharded clusters to 2.6 if **all** members of the
+cluster are currently running instances of 2.4. The only supported
+upgrade path for sharded clusters running 2.2 is via 2.4. The upgrade
+process checks all components of the cluster and will produce warnings
+if any component is running version 2.2.
+
+Considerations
+``````````````
+
+The upgrade process does not require any downtime. However, while you
+upgrade the sharded cluster, ensure that clients do not make changes
+to the collection meta-data. For example, during the upgrade, do **not**
+do any of the following:
+
+- :method:`sh.enableSharding()`
+
+- :method:`sh.shardCollection()`
+
+- :method:`sh.addShard()`
+
+- :method:`db.createCollection()`
+
+- :method:`db.collection.drop()`
+
+- :method:`db.dropDatabase()`
+
+- any operation that creates a database
+
+- any other operation that modifies the cluster metadata in any
+  way. See :doc:`/reference/sharding` for a complete list
+  of sharding commands. Note, however, that not all commands on
+  the :doc:`/reference/sharding` page modifies the
+  cluster meta-data.
+
+Upgrade Sharded Clusters
+````````````````````````
+
+*Optional but Recommended.* As a precaution, take a backup of the
+``config`` database *before* upgrading the sharded cluster.
+
+.. include:: /includes/steps/2.6-upgrade-sharded-cluster.rst
+
+.. _2.6-finalize-shard-cluster-upgrade:
+
+Complete Sharded Cluster Upgrade
+````````````````````````````````
+
+After you have successfully upgraded *all* :binary:`~bin.mongos` instances,
+you can upgrade the other instances in your MongoDB deployment.
+
+.. warning::
+
+   Do not upgrade :binary:`~bin.mongod` instances until after you have
+   upgraded *all* :binary:`~bin.mongos` instances.
+
+While the balancer is still disabled, upgrade the components of your
+sharded cluster in the following order:
+
+- Upgrade all 3 :binary:`~bin.mongod` config server instances, leaving
+  the *first* system in the :option:`mongos --configdb` argument to upgrade
+  *last*.
+
+- Upgrade each shard, one at a time, upgrading the :binary:`~bin.mongod`
+  secondaries before running :dbcommand:`replSetStepDown` and
+  upgrading the primary of each shard.
+
+When this process is complete, :ref:`re-enable the
+balancer <sharding-balancing-enable>`.
+
+.. |action| replace:: Upgrade
+.. |version-new| replace:: 2.6
+.. |version-stop| replace:: 2.4
+
+.. include:: /includes/2.4-2.6-upgrade-downgrade-procedure.rst

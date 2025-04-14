@@ -1,0 +1,192 @@
+======================
+parallelCollectionScan
+======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. dbcommand:: parallelCollectionScan
+
+   .. versionadded:: 2.6
+
+   Allows applications to use multiple parallel cursors when reading
+   all the documents from a collection, thereby increasing throughput.
+   The :dbcommand:`parallelCollectionScan` command returns a document
+   that contains an array of cursor information.
+
+   Each cursor provides access to the return of a partial set of documents
+   from a collection. Iterating each cursor returns every document in the
+   collection. Cursors do not contain the results of the database command.
+   The result of the database command identifies the cursors, but does not
+   contain or constitute the cursors.
+
+   .. important::
+
+      - The server may return fewer cursors than requested.
+
+      - This command will not return more than one cursor for the WiredTiger storage engine.
+
+   The command has the following syntax:
+
+   .. code-block:: javascript
+
+      {
+        parallelCollectionScan: "<collection>",
+        numCursors: <integer>,
+        readConcern: <document>,
+        maxTimeMS: <integer>
+      }
+
+   The :dbcommand:`parallelCollectionScan` command takes the following
+   fields:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``parallelCollectionScan``
+   
+        - string
+   
+        - The name of the collection.
+          
+          
+   
+      * - ``numCursors``
+   
+        - integer
+   
+        - The maximum number of cursors to return. Must be between 1 and 10000, inclusive.
+          
+          
+   
+      * - ``readConcern``
+   
+        - document
+   
+        - Optional. Specifies the :term:`read concern`.
+          
+          .. include:: /includes/fact-readConcern-syntax.rst
+          
+          .. include:: /includes/fact-readConcern-option-description.rst
+          
+          
+   
+      * - ``maxTimeMS``
+   
+        - non-negative integer
+   
+        - Optional. Specifies a time limit in milliseconds for processing
+          operations on a cursor. If you do not specify a value for maxTimeMS,
+          operations will not time out. A value of ``0`` explicitly
+          specifies the default unbounded behavior.
+          
+          MongoDB terminates operations that exceed their allotted time limit
+          using the same mechanism as :method:`db.killOp()`. MongoDB only
+          terminates an operation at one of its designated :term:`interrupt 
+          points <interrupt point>`.
+          
+          
+   
+
+
+   :dbcommand:`parallelCollectionScan` is only available for :binary:`~bin.mongod`,
+   and it cannot operate on a sharded cluster.
+
+Example
+-------
+
+Override Default Read Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To override the default read concern level of :readconcern:`"local"`,
+use the ``readConcern`` option.
+
+The following operation on a replica set specifies a
+:doc:`/reference/read-concern` of :readconcern:`"majority"` to read the
+most recent copy of the data confirmed as having been written to a
+majority of the nodes.
+
+.. note::
+
+   - .. include:: /includes/fact-enable-majority-readConcern.rst
+
+   - .. include:: /includes/fact-readConcern-most-recent-data-in-node.rst
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         parallelCollectionScan: "restaurants",
+         numCursors: 5,
+         readConcern: { level: "majority" } 
+      }
+   )
+
+.. include:: /includes/usage-read-concern-majority.rst
+
+Output
+------
+
+The :dbcommand:`parallelCollectionScan` command returns a document
+containing the array of cursor information:
+
+.. code-block:: javascript
+
+   {
+       "cursors" : [
+           {
+               "cursor" : {
+                   "firstBatch" : [ ],
+                   "ns" : "<database name>.<collection name>",
+                   "id" : NumberLong("155949257847")
+               },
+               "ok" : true
+           }
+       ],
+       "ok" : 1
+   }
+
+
+.. data:: parallelCollectionScan.cursors
+
+   An array with one or more cursors returned with the command.
+
+.. data:: parallelCollectionScan.cursors.cursor
+
+   For each cursor returned, a document with details about the cursor.
+
+.. data:: parallelCollectionScan.cursors.cursor.firstBatch
+
+   An empty first batch is useful for quickly returning a cursor or
+   failure message without doing significant server-side work. See
+   :ref:`cursor batches <cursor-batches>`.
+
+.. data:: parallelCollectionScan.cursors.cursor.ns
+
+   The namespace for each cursor.
+
+.. data:: parallelCollectionScan.cursors.cursor.id
+
+   The unique id for each cursor.
+
+.. data:: parallelCollectionScan.cursors.ok
+
+   The status of each cursor returned with the command.
+
+.. data:: parallelCollectionScan.ok
+
+   A value of ``1`` indicates the :dbcommand:`parallelCollectionScan`
+   command succeeded. A value of ``0`` indicates an error.

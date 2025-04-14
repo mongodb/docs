@@ -1,0 +1,212 @@
+==================
+Bulk.find.upsert()
+==================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/fact-bulkwrite.rst
+
+Description
+-----------
+
+.. method:: Bulk.find.upsert()
+
+   .. versionadded:: 2.6
+
+   Sets the :term:`upsert` option to true for an update or a
+   replacement operation and has the following syntax:
+
+   .. code-block:: javascript
+
+      Bulk.find(<query>).upsert().update(<update>);
+      Bulk.find(<query>).upsert().updateOne(<update>);
+      Bulk.find(<query>).upsert().replaceOne(<replacement>);
+
+   With the ``upsert`` option set to ``true``, if no matching documents
+   exist for the :method:`Bulk.find()` condition, then the update or
+   the replacement operation performs an insert. If a matching document
+   does exist, then the update or replacement operation performs the
+   specified update or replacement.
+
+   Use :method:`Bulk.find.upsert()` with the following write operations:
+
+   - :method:`Bulk.find.replaceOne()`
+
+   - :method:`Bulk.find.updateOne()`
+
+   - :method:`Bulk.find.update()`
+
+Behavior
+--------
+
+The following describe the insert behavior of various write operations
+when used in conjunction with :method:`Bulk.find.upsert()`.
+
+Insert for ``Bulk.find.replaceOne()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :method:`Bulk.find.replaceOne()` method accepts, as its parameter,
+a replacement document that only contains field and value pairs:
+
+.. code-block:: javascript
+
+   var bulk = db.items.initializeUnorderedBulkOp();
+   bulk.find( { item: "abc123" } ).upsert().replaceOne(
+      {
+        item: "abc123",
+        status: "P",
+        points: 100,
+      }
+   );
+   bulk.execute();
+
+If the replacement operation with the :method:`Bulk.find.upsert()`
+option performs an insert, the inserted document is the replacement
+document. If neither the replacement document nor the query document
+specifies an ``_id`` field, MongoDB adds the ``_id`` field:
+
+.. code-block:: javascript
+
+   {
+     "_id" : ObjectId("52ded3b398ca567f5c97ac9e"),
+     "item" : "abc123",
+     "status" : "P",
+     "points" : 100
+   }
+
+Insert for ``Bulk.find.updateOne()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :method:`Bulk.find.updateOne()` method accepts, as its parameter,
+an update document that contains only field and value pairs or
+only :ref:`update operator <update-operators>` expressions.
+
+Field and Value Pairs
+`````````````````````
+
+If the update document contains only field and value pairs:
+
+.. code-block:: javascript
+
+   var bulk = db.items.initializeUnorderedBulkOp();
+   bulk.find( { status: "P" } ).upsert().updateOne(
+      {
+        item: "TBD",
+        points: 0,
+        inStock: true,
+        status: "I"
+      }
+   );
+   bulk.execute();
+
+Then, if the update operation with the :method:`Bulk.find.upsert()`
+option performs an insert, the inserted document is the update
+document. If neither the update document nor the query document
+specifies an ``_id`` field, MongoDB adds the ``_id`` field:
+
+.. code-block:: javascript
+
+   {
+     "_id" : ObjectId("52ded5a898ca567f5c97ac9f"),
+     "item" : "TBD",
+     "points" : 0,
+     "inStock" : true,
+     "status" : "I"
+   }
+
+Update Operator Expressions
+```````````````````````````
+
+If the update document contains contains only :ref:`update
+operator <update-operators>` expressions:
+
+.. code-block:: javascript
+
+   var bulk = db.items.initializeUnorderedBulkOp();
+   bulk.find( { status: "P", item: null } ).upsert().updateOne(
+      {
+        $setOnInsert: { defaultQty: 0, inStock: true },
+        $currentDate: { lastModified: true },
+        $set: { points: "0" }
+      }
+   );
+   bulk.execute();
+
+Then, if the update operation with the :method:`Bulk.find.upsert()`
+option performs an insert, the update operation inserts a document with
+field and values from the query document of the
+:method:`Bulk.find()` method and then applies the specified update from
+the update document. If neither the update document nor the query document
+specifies an ``_id`` field, MongoDB adds the ``_id`` field:
+
+.. code-block:: javascript
+
+   {
+      "_id" : ObjectId("52ded68c98ca567f5c97aca0"),
+      "item" : null,
+      "status" : "P",
+      "defaultQty" : 0,
+      "inStock" : true,
+      "lastModified" : ISODate("2014-01-21T20:20:28.786Z"),
+      "points" : "0"
+   }
+
+Insert for ``Bulk.find.update()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When using :method:`~Bulk.find.upsert()` with the multiple document
+update method :method:`Bulk.find.update()`, if no documents match the
+query condition, the update operation inserts a *single* document.
+
+The :method:`Bulk.find.update()` method accepts, as its parameter, an
+update document that contains *only* :ref:`update operator
+<update-operators>` expressions:
+
+.. code-block:: javascript
+
+   var bulk = db.items.initializeUnorderedBulkOp();
+   bulk.find( { status: "P" } ).upsert().update(
+      {
+        $setOnInsert: { defaultQty: 0, inStock: true },
+        $currentDate: { lastModified: true },
+        $set: { status: "I", points: "0" }
+      }
+   );
+   bulk.execute();
+
+Then, if the update operation with the :method:`Bulk.find.upsert()`
+option performs an insert, the update operation inserts a single
+document with the fields and values from the query document of
+the :method:`Bulk.find()` method and then applies the specified update
+from the update document. If neither the update document
+nor the query document specifies an ``_id`` field, MongoDB adds
+the ``_id`` field:
+
+.. code-block:: javascript
+
+   {
+      "_id": ObjectId("52ded81a98ca567f5c97aca1"),
+      "status": "I",
+      "defaultQty": 0,
+      "inStock": true,
+      "lastModified": ISODate("2014-01-21T20:27:06.691Z"),
+      "points": "0"
+   }
+
+.. seealso::
+
+   - :method:`db.collection.initializeUnorderedBulkOp()`
+
+   - :method:`db.collection.initializeOrderedBulkOp()`
+
+   - :method:`Bulk.find()`
+
+   - :method:`Bulk.execute()`
+
+   - :ref:`All Bulk Methods <bulk-methods>`

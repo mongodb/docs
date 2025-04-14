@@ -1,0 +1,84 @@
+.. index:: replica set members; hidden
+.. _replica-set-hidden-configuration:
+.. _replica-set-hidden-members:
+
+==========================
+Hidden Replica Set Members
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+A hidden member maintains a copy of the :term:`primary's <primary>`
+data set but is **invisible** to client applications. Hidden members
+are good for workloads with different usage patterns from the other
+members in the :term:`replica set`. Hidden members must always be
+:ref:`priority 0 members <replica-set-secondary-only-members>` and
+so **cannot become primary**. The :method:`db.hello()` method does not
+display hidden members. Hidden members, however, **may vote** in
+:ref:`elections <replica-set-elections>`.
+
+In the following five-member replica set, all four secondary members
+have copies of the primary's data set, but one of the secondary members
+is hidden.
+
+.. include:: /images/replica-set-hidden-member.rst
+
+Behavior
+--------
+
+Read Operations
+~~~~~~~~~~~~~~~
+
+Clients will not distribute reads with the appropriate :doc:`read
+preference </core/read-preference>` to hidden members. As a result, these
+members receive no traffic other than basic replication. Use hidden
+members for dedicated tasks such as reporting and
+backups.
+
+.. include:: /includes/important-delayed-replica-set-members.rst
+
+
+In a sharded cluster, :binary:`~bin.mongos` do not interact with hidden
+members.
+
+Voting
+~~~~~~
+
+Hidden members *may* vote in replica set elections. If you stop a
+voting hidden member, ensure that the set has an active majority or the
+:term:`primary` will step down. 
+
+For the purposes of backups,
+
+- If using the MMAPv1 storage engine, you can avoid stopping a
+  hidden member with the :method:`db.fsyncLock()` and
+  :method:`db.fsyncUnlock()` operations to flush all writes and lock
+  the :binary:`~bin.mongod` instance for the duration of the backup
+  operation.
+
+- .. include:: /includes/extracts/wt-fsync-lock-compatibility.rst
+
+Write Concern
+~~~~~~~~~~~~~
+
+Hidden replica set members can acknowledge write operations issued
+with :writeconcern:`w: \<number\> <\<number\>>`. For write operations
+isued with :writeconcern:`w : "majority" <"majority">`, however,
+hidden members must also be voting members (i.e. :rsconf:`members[n].votes`
+greater than ``0``) to acknowledge the ``"majority"`` write operation.
+Non-voting replica set members (i.e. :rsconf:`members[n].votes` 
+is ``0``) cannot contribute to acknowledging write operations with 
+``majority`` write concern.
+
+Further Reading
+---------------
+
+For more information about backing up MongoDB databases,
+see :doc:`/core/backups`. To configure a hidden member, see
+:doc:`/tutorial/configure-a-hidden-replica-set-member`.

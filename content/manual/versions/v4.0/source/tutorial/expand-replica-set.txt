@@ -1,0 +1,196 @@
+============================
+Add Members to a Replica Set
+============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+This tutorial explains how to add an additional member to an existing
+:term:`replica set`. For background on replication deployment patterns,
+see the :doc:`/core/replica-set-architectures` document.
+
+Maximum Voting Members
+~~~~~~~~~~~~~~~~~~~~~~
+
+A replica set can have a maximum of seven :ref:`voting members
+<replica-set-election-internals>`. To add a member to a replica set
+that already has seven voting members, you must either add the member as a
+:ref:`non-voting member <replica-set-non-voting-members>` or remove a
+vote from an :data:`existing member
+<replSetGetConfig.members[n].votes>`.
+
+Init Scripts
+~~~~~~~~~~~~
+
+In production deployments you can configure a :term:`init script`
+to manage member processes.
+
+Existing Members
+~~~~~~~~~~~~~~~~
+
+You can use these procedures to add new members to an existing
+set. You can also use the same procedure to "re-add" a removed
+member. If the removed member's data is still relatively recent, it
+can recover and catch up easily.
+
+
+Data Files
+~~~~~~~~~~
+
+If you have a backup or snapshot of an existing member, you can move
+the data files (e.g.  the :setting:`~storage.dbPath` directory) to a new system
+and use them to quickly initiate a new member. The files must be:
+
+- A valid copy of the data files from a member of the same replica
+  set. See :doc:`/tutorial/backup-with-filesystem-snapshots`
+  document for more information.
+
+  .. important:: Always use filesystem snapshots to create a copy of a
+     member of the existing replica set. **Do not** use
+     :binary:`~bin.mongodump` and :binary:`~bin.mongorestore` to seed a new
+     replica set member.
+
+- More recent than the oldest operation in the :term:`primary's
+  <primary>` :term:`oplog`. The new member must be able to become
+  current by applying operations from the primary's oplog.
+
+IP Binding
+~~~~~~~~~~
+
+.. include:: /includes/fact-default-bind-ip.rst
+
+.. include:: /includes/tip-hostnames.rst
+
+Requirements
+------------
+
+#. An active replica set.
+
+#. A new MongoDB system capable of supporting your data set, accessible by
+   the active replica set through the network.
+
+Otherwise, use the MongoDB :ref:`installation tutorial
+<tutorials-installation>` and the :doc:`/tutorial/deploy-replica-set`
+tutorials.
+
+Procedures
+----------
+
+
+Prepare the Data Directory
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Before adding a new member to an existing :term:`replica set`, prepare
+the new member's :term:`data directory <dbpath>` using one of the
+following strategies:
+
+- Make sure the new member's data directory *does not* contain data. The
+  new member will copy the data from an existing member.
+
+  If the new member is in a :term:`recovering` state, it must exit and
+  become a :term:`secondary` before MongoDB
+  can copy all data as part of the replication process. This process
+  takes time but does not require administrator intervention.
+
+- Manually copy the data directory from an existing member. The new
+  member becomes a secondary member and will catch up to the current
+  state of the replica set. Copying the data over may shorten the
+  amount of time for the new member to become current.
+
+  Ensure that you can copy the data directory to the new member and
+  begin replication within the :ref:`window allowed by the oplog
+  <replica-set-oplog-sizing>`. Otherwise, the new instance will have
+  to perform an initial sync, which completely resynchronizes the
+  data, as described in :doc:`/tutorial/resync-replica-set-member`.
+
+  Use :method:`rs.printReplicationInfo()` to check the current state
+  of replica set members with regards to the oplog.
+
+For background on replication deployment patterns, see the
+:doc:`/core/replica-set-architectures` document.
+
+.. _replica-set-add-member:
+
+Add a Member to an Existing Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/tip-hostnames.rst
+
+1. Start the new :binary:`~bin.mongod` instance. Specify the data directory
+   and the replica set name. The following example specifies the
+   ``/srv/mongodb/db0`` data directory and the ``rs0`` replica set:
+
+   .. code-block:: sh
+
+      mongod --dbpath /srv/mongodb/db0 --replSet rs0  --bind_ip localhost,<hostname(s)|ip address(es)>
+
+   .. include:: /includes/warning-bind-ip-security-considerations.rst
+
+   For more information on configuration options, see the
+   :binary:`~bin.mongod` manual page.
+
+   .. optional::
+
+      You can specify the data directory, replica set name, and the ip
+      binding in the ``mongod.conf`` :doc:`configuration file
+      </reference/configuration-options>`, and start the
+      :binary:`~bin.mongod` with the following command:
+
+      .. code-block:: sh
+
+         mongod --config /etc/mongod.conf
+
+#. Connect to the replica set's primary.
+
+   You can only add members while connected to the primary. If you do
+   not know which member is the primary, log into any member of the
+   replica set and issue the :method:`db.hello()` command.
+
+#. Use :method:`rs.add()` to add the new member to the replica set. 
+   Pass the :rsconf:`member configuration document <members>` to the
+   method.  For example, to add a member at host
+   ``mongodb3.example.net``, issue the following command:
+
+   .. code-block:: javascript
+
+      rs.add( { host: "mongodb3.example.net:27017", priority: 0, votes: 0 } )
+
+   .. tip:: 
+
+      .. include:: /includes/tip-repl-set-add-members.rst
+
+#. Ensure that the new member has reached :replstate:`SECONDARY` state.
+   To check the state of the replica set members, run
+   :method:`rs.status()`:
+
+   .. cssclass:: copyable-code
+   .. code-block:: javascript
+
+      rs.status()
+
+#. Once the newly added member has transitioned into
+   :replstate:`SECONDARY` state, use :method:`rs.reconfig()` to update
+   the newly added member's :rsconf:`~members[n].priority` and
+   :rsconf:`~members[n].votes` if needed.
+
+   For example, if :method:`rs.conf()` returns the configuration
+   document for ``mongodb3.example.net:27017`` as the fifth element in
+   the :rsconf:`members` array, to update its priority and votes to
+   ``1``, use the following sequence of operations:
+
+   .. code-block:: javascript
+
+      var cfg = rs.conf();
+      cfg.members[4].priority = 1
+      cfg.members[4].votes = 1
+      rs.reconfig(cfg)
+
+.. include:: /includes/warning-rs-reconfig.rst

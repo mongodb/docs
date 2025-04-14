@@ -1,0 +1,101 @@
+============
+FAQ: Indexes
+============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This document addresses some common questions regarding MongoDB
+:doc:`indexes </indexes>`. For more information on indexes, see
+:doc:`/indexes`.
+
+How do I create an index?
+-------------------------
+
+To create an index on a collection, use the
+:method:`db.collection.createIndex()` method. Creating an index is an
+administrative operation. In general, applications should not call
+:method:`db.collection.createIndex()` on a regular basis.
+
+.. note:: 
+
+   Index builds can impact performance; see
+   :ref:`faq-index-performance`. Administrators should consider the
+   performance implications before building indexes.
+
+.. _faq-index-performance:
+
+How does an index build affect database performance?
+----------------------------------------------------
+
+When building an index on a collection, the database that holds the
+collection is unavailable for read or write operations until the index
+build completes. If you need to build a large index, consider building
+the index in the :ref:`background <index-creation-background>`. See
+:ref:`index-creation-operations` and
+:doc:`/tutorial/build-indexes-on-replica-sets`.
+
+To return information on currently running index creation operations,
+see :ref:`currentOp-index-creation`. To kill a running index creation
+operation, see :method:`db.killOp()`. The partially built index will be
+deleted.
+
+How do I see what indexes exist on a collection?
+------------------------------------------------
+
+To list a collection's indexes, use the
+:method:`db.collection.getIndexes()` method.
+
+How can I see if a query uses an index?
+---------------------------------------
+
+To inspect how MongoDB processes a query, use the
+:method:`~cursor.explain()` method.
+
+How do I determine which fields to index?
+-----------------------------------------
+
+A number of factors determine which fields to index, including
+:ref:`selectivity <index-selectivity>`, the support for multiple
+:term:`query shapes <query shape>`, and :doc:`size of the index
+</tutorial/ensure-indexes-fit-ram>`. For more information, see
+:ref:`Operational Considerations for Indexes <data-model-indexes>` and
+:doc:`/applications/indexes`.
+
+How can I see the size of an index?
+-----------------------------------
+
+The :method:`db.collection.stats()` includes an
+:data:`~collStats.indexSizes` document which provides size
+information for each index on the collection.
+
+Depending on its size, an index may not fit into RAM. An index fits
+into RAM when your server has enough RAM available for both the index
+and the rest of the :term:`working set`. When an index is too large to
+fit into RAM, MongoDB must read the index from disk, which is a much
+slower operation than reading from RAM.
+
+In certain cases, an index does not need to fit *entirely* into RAM.
+For details, see :ref:`indexing-right-handed`.
+
+How do write operations affect indexes?
+---------------------------------------
+
+Write operations may require updates to indexes:
+
+- If a write operation modifies an indexed field, MongoDB updates all
+  indexes that have the modified field as a key.
+
+- When running with the :doc:`MMAPv1 </core/mmapv1>` storage engine, if
+  an update to a document causes the document to grow past its
+  allocated record size, MongoDB moves the document to a new record and
+  updates all indexes that refer to the document, regardless of the
+  field modified.
+
+Therefore, if your application is write-heavy, indexes might affect
+performance.

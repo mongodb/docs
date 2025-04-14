@@ -1,0 +1,116 @@
+==============================
+$setIntersection (aggregation)
+==============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $setIntersection
+
+   .. versionadded:: 2.6
+
+   Takes two or more arrays and returns an array that contains the
+   elements that appear in every input array.
+
+   :expression:`$setIntersection` has the following syntax:
+
+   .. code-block:: javascript
+
+      { $setIntersection: [ <array1>, <array2>, ... ] }
+
+   The arguments can be any valid :ref:`expression
+   <aggregation-expressions>` as long as they each resolve to an array.
+   For more information on expressions, see
+   :ref:`aggregation-expressions`.
+
+Behavior
+--------
+
+.. |set-operator-name| replace:: :expression:`$setIntersection`
+
+.. include:: /includes/important-set-operator-semantics.rst
+
+If no intersections are found (i.e. the input arrays contain no common
+elements), :expression:`$setIntersection` returns an empty array.
+
+.. include:: /includes/extracts/fact-agg-top-level-expressions-setIntersection.rst
+
+.. list-table::
+   :header-rows: 1
+   :widths: 75 25
+   :class: border-table
+
+   * - Example
+
+     - Result
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $setIntersection: [ [ "a", "b", "a" ], [ "b", "a" ] ] }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          [ "b", "a" ]
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $setIntersection: [ [ "a", "b" ], [ [ "a", "b" ] ] ] }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          [ ]
+
+Example
+-------
+
+Consider an ``experiments`` collection with the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "A" : [ "red", "blue" ], "B" : [ "red", "blue" ] }
+   { "_id" : 2, "A" : [ "red", "blue" ], "B" : [ "blue", "red", "blue" ] }
+   { "_id" : 3, "A" : [ "red", "blue" ], "B" : [ "red", "blue", "green" ] }
+   { "_id" : 4, "A" : [ "red", "blue" ], "B" : [ "green", "red" ] }
+   { "_id" : 5, "A" : [ "red", "blue" ], "B" : [ ] }
+   { "_id" : 6, "A" : [ "red", "blue" ], "B" : [ [ "red" ], [ "blue" ] ] }
+   { "_id" : 7, "A" : [ "red", "blue" ], "B" : [ [ "red", "blue" ] ] }
+   { "_id" : 8, "A" : [ ], "B" : [ ] }
+   { "_id" : 9, "A" : [ ], "B" : [ "red" ] }
+
+The following operation uses the :expression:`$setIntersection`
+operator to return an array of elements common to both the ``A``
+array and the ``B`` array:
+
+.. code-block:: javascript
+
+   db.experiments.aggregate(
+      [
+        { $project: { A: 1, B: 1, commonToBoth: { $setIntersection: [ "$A", "$B" ] }, _id: 0 } }
+      ]
+   )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "A" : [ "red", "blue" ], "B" : [ "red", "blue" ], "commonToBoth" : [ "blue", "red" ] }
+   { "A" : [ "red", "blue" ], "B" : [ "blue", "red", "blue" ], "commonToBoth" : [ "blue", "red" ] }
+   { "A" : [ "red", "blue" ], "B" : [ "red", "blue", "green" ], "commonToBoth" : [ "blue", "red" ] }
+   { "A" : [ "red", "blue" ], "B" : [ "green", "red" ], "commonToBoth" : [ "red" ] }
+   { "A" : [ "red", "blue" ], "B" : [ ], "commonToBoth" : [ ] }
+   { "A" : [ "red", "blue" ], "B" : [ [ "red" ], [ "blue" ] ], "commonToBoth" : [ ] }
+   { "A" : [ "red", "blue" ], "B" : [ [ "red", "blue" ] ], "commonToBoth" : [ ] }
+   { "A" : [ ], "B" : [ ], "commonToBoth" : [ ] }
+   { "A" : [ ], "B" : [ "red" ], "commonToBoth" : [ ] }

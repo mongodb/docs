@@ -1,0 +1,799 @@
+=============
+findAndModify
+=============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. EDITS to findAndModify.txt must be carried over (possibly w
+   modifications) to the method db.collection.findAndModify.txt and
+   vice versa
+
+Definition
+----------
+
+.. dbcommand:: findAndModify
+
+   The :dbcommand:`findAndModify` command modifies and returns a single
+   document. By default, the returned document does not include the
+   modifications made on the update. To return the document with the
+   modifications made on the update, use the ``new`` option.
+
+   The command has the following syntax:
+
+   .. code-block:: none
+
+      {
+        findAndModify: <collection-name>,
+        query: <document>,
+        sort: <document>,
+        remove: <boolean>,
+        update: <document>,
+        new: <boolean>,
+        fields: <document>,
+        upsert: <boolean>,
+        bypassDocumentValidation: <boolean>,
+        writeConcern: <document>, 
+        collation: <document>,
+        arrayFilters: <array>
+      }
+
+   The :dbcommand:`findAndModify` command takes the following
+   fields:
+
+   .. |operation| replace:: :dbcommand:`findAndModify`
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``query``
+   
+        - document
+   
+        - Optional. The selection criteria for the modification. The ``query`` field
+          employs the same :ref:`query selectors <query-selectors>` as used in
+          the :method:`db.collection.find()` method. Although the query may
+          match multiple documents, |operation|
+          **will only select one document to modify**.
+          
+          If unspecified, defaults to an empty document.
+          
+          Starting in MongoDB 4.0.12+ (and 3.6.14+ and 3.4.23+), the operation errors if the query argument
+          is not a document.
+          
+          
+   
+      * - ``sort``
+   
+        - document
+   
+        - Optional. Determines which document the operation modifies if the query selects
+          multiple documents. |operation| modifies
+          the first document in the sort order specified by this argument.
+          
+          Starting in MongoDB 4.0.12+ (and 3.6.14+ and 3.4.23+), the operation errors if the sort argument is not
+          a document.
+          
+          
+   
+      * - ``remove``
+   
+        - boolean
+   
+        - Must specify either the ``remove`` or the ``update`` field. Removes
+          the document specified in the ``query`` field. Set this to ``true``
+          to remove the selected document . The default is ``false``.
+          
+          
+   
+      * - ``update``
+   
+        - document
+   
+        - Must specify either the ``remove`` or the ``update`` field. Performs
+          an update of the selected document. The ``update`` field employs the
+          same :ref:`update operators <update-operators>` or ``field: value``
+          specifications to modify the selected document.
+          
+          
+   
+      * - ``new``
+   
+        - boolean
+   
+        - Optional. When ``true``, returns the modified document rather than the original.
+          The |operation| method ignores the
+          ``new`` option for ``remove`` operations. The default is ``false``.
+          
+          
+   
+      * - ``fields``
+   
+        - document
+   
+        - Optional. A subset of fields to return. The ``fields`` document specifies an
+          inclusion of a field with ``1``, as in: ``fields: { <field1>: 1,
+          <field2>: 1, ... }``. See :ref:`projection <read-operations-projection>`.
+          
+          Starting in  MongoDB 4.0.12+ (and 3.6.14+ and 3.4.23+), the operation errors if the fields argument is not
+          a document.
+          
+          
+   
+      * - ``upsert``
+   
+        - boolean
+   
+        - .. include:: /includes/extracts/findAndModify-behavior-method.rst
+          
+          
+   
+      * - ``bypassDocumentValidation``
+   
+        - boolean
+   
+        - Optional. Enables :dbcommand:`findAndModify` to bypass document validation
+          during the operation. This lets you update documents that do not
+          meet the validation requirements.
+          
+          .. versionadded:: 3.2
+          
+          
+   
+      * - ``writeConcern``
+   
+        - document
+   
+        - Optional. A document expressing the :doc:`write concern </reference/write-concern>`.
+          Omit to use the default write concern.
+          
+          .. include:: /includes/extracts/transactions-operations-write-concern.rst
+          
+          .. versionadded:: 3.2
+          
+          
+   
+      * - ``maxTimeMS``
+   
+        - integer
+   
+        - Optional. Specifies a time limit in milliseconds for processing the operation.
+          
+          
+   
+      * - ``findAndModify``
+   
+        - string
+   
+        - The collection against which to run the command.
+          
+          
+   
+      * - ``collation``
+   
+        - document
+   
+        - Optional. 
+          
+          .. include:: /includes/extracts/collation-option.rst
+          
+          
+   
+      * - ``arrayFilters``
+   
+        - array
+   
+        - Optional. An array of filter documents that determines which array elements to
+          modify for an update operation on an array field.
+          
+          .. include::  /includes/extracts/arrayFilters-details.rst
+          
+          
+          For examples, see :ref:`findAndModify-command-arrayFilters`.
+          
+          .. versionadded:: 3.6
+          
+          
+          
+   
+
+
+Output
+------
+
+The :dbcommand:`findAndModify` command returns a document with the
+following fields:
+
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Field
+
+     - Type
+
+     - Description
+
+   * - ``value``
+
+     - document
+
+     - Contains the command's returned value. See :ref:`findandmodify-value-field`
+       for details.
+       
+       
+
+   * - ``lastErrorObject``
+
+     - document
+
+     - Contains information about updated documents. See
+       :ref:`findandmodify-lastErrorObject` for details.
+       
+       
+
+   * - ``ok``
+
+     - number
+
+     - Contains the command's execution status. ``1`` on success, or ``0`` if an
+       error occurred.
+       
+       
+
+
+
+.. _findandmodify-lastErrorObject:
+
+``lastErrorObject``
+~~~~~~~~~~~~~~~~~~~
+
+The ``lastErrorObject`` embedded document contains the following fields:
+
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Field
+
+     - Type
+
+     - Description
+
+   * - ``updatedExisting``
+
+     - boolean
+
+     - Contains ``true`` if an ``update`` operation:
+
+       - Modified an existing document.
+       - Found the document, but it was already in the
+         desired destination state so no update actually occurred.
+       
+       
+
+   * - ``upserted``
+
+     - document
+
+     - Contains the :ref:`objectid` of the inserted document if an ``update``
+       operation with ``upsert: true`` resulted in a new document.
+       
+       
+
+
+
+.. _findandmodify-value-field:
+
+``value``
+~~~~~~~~~
+
+For ``remove`` operations, ``value`` contains the removed document if
+the query matches a document. If the query does not match a document to
+remove, ``value`` contains ``null``.
+
+For ``update`` operations, the ``value`` embedded document contains the
+following:
+
+.. include:: /includes/extracts/fact-findandmodify-command-return.rst
+
+Behavior
+--------
+
+Upsert and Unique Index
+~~~~~~~~~~~~~~~~~~~~~~~
+
+When the :dbcommand:`findAndModify` command includes the ``upsert:
+true`` option **and** the query field(s) is not uniquely indexed, the
+command could insert a document multiple times in certain circumstances.
+
+Consider an example where no document with the name ``Andy`` exists and
+multiple clients issue the following command:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+        findAndModify: "people",
+        query: { name: "Andy" },
+        sort: { rating: 1 },
+        update: { $inc: { score: 1 } },
+        upsert: true
+      }
+    )
+
+If all the commands finish the ``query`` phase before any command
+starts the ``modify`` phase, **and** there is no unique index on the
+``name`` field, the commands may each perform an upsert, creating
+multiple duplicate documents.
+
+To prevent the creation of multiple duplicate documents,
+create a :ref:`unique index <index-type-unique>` on
+the ``name`` field. With the unique index in place, then the multiple
+:dbcommand:`findAndModify` commands will exhibit one of the
+following behaviors:
+
+- Exactly one :dbcommand:`findAndModify` successfully inserts a
+  new document.
+
+- Zero or more :dbcommand:`findAndModify` commands update the
+  newly inserted document.
+
+- Zero or more :dbcommand:`findAndModify` commands fail when
+  they attempt to insert a duplicate. If the command fails due to
+  a unique index constraint violation, you can retry the command.
+  Absent a delete of the document, the retry should not fail.
+
+Sharded Collections
+~~~~~~~~~~~~~~~~~~~
+
+When using :dbcommand:`findAndModify` in a :term:`sharded
+<sharding>` environment, the ``query`` must contain the
+:term:`shard key` for all operations against the shard
+cluster. :dbcommand:`findAndModify` operations issued against
+:binary:`~bin.mongos` instances for non-sharded collections function
+normally.
+
+Document Validation
+~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/bypassDocumentValidation-findAndModify.rst
+
+.. _findAndModify-command-and-update:
+
+Comparisons with the ``update`` Method
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. COMMENT |operation| is replaced above
+.. |return-object| replace:: an object that contains the pre-modified version of the
+   document, as well as the status of the operation
+
+.. include:: /includes/fact-findAndModify-update-comparison.rst
+
+Transactions
+~~~~~~~~~~~~
+
+.. include:: /includes/extracts/transactions-supported-operation.rst
+
+If the operation results in an upsert, the collection must already exist.
+
+.. include:: /includes/extracts/transactions-operations-write-concern.rst
+
+.. include:: /includes/extracts/transactions-usage.rst
+
+Examples
+--------
+
+Update and Return
+~~~~~~~~~~~~~~~~~
+
+The following command updates an existing document in the ``people``
+collection where the document matches the ``query`` criteria:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+        findAndModify: "people",
+        query: { name: "Tom", state: "active", rating: { $gt: 10 } },
+        sort: { rating: 1 },
+        update: { $inc: { score: 1 } }
+      }
+   )
+
+This command performs the following actions:
+
+#. The ``query`` finds a document in the ``people`` collection where the
+   ``name`` field has the value ``Tom``, the ``state`` field has
+   the value ``active`` and the ``rating`` field has a value
+   :operator:`greater than <$gt>` 10.
+
+#. The ``sort`` orders the results of the query in ascending order.
+   If multiple documents meet the ``query`` condition, the command will
+   select for modification the first document as ordered by this
+   ``sort``.
+
+#. The ``update`` :operator:`increments <$inc>` the value of the
+   ``score`` field by 1.
+
+#. The command returns a document with the following fields:
+
+   - The ``lastErrorObject`` field that contains the details of the
+     command, including the field ``updatedExisting`` which is
+     ``true``, and
+
+   - The ``value`` field that contains the original (i.e.
+     pre-modification) document selected for this update:
+
+     .. code-block:: javascript
+
+        {
+          "lastErrorObject" : {
+             "connectionId" : 1,
+             "updatedExisting" : true,
+             "n" : 1,
+             "syncMillis" : 0,
+             "writtenTo" : null,
+             "err" : null,
+             "ok" : 1
+          },
+          value" : {
+            "_id" : ObjectId("54f62d2885e4be1f982b9c9c"),
+            "name" : "Tom",
+            "state" : "active",
+            "rating" : 100,
+            "score" : 5
+          },
+          "ok" : 1
+        }
+
+To return the modified document in the ``value`` field, add the
+``new:true`` option to the command.
+
+If no document match the ``query`` condition, the command
+returns a document that contains ``null`` in the ``value``
+field:
+
+.. code-block:: javascript
+
+  { "value" : null, "ok" : 1 }
+
+The :binary:`~bin.mongo` shell and many :term:`drivers <driver>`
+provide a :method:`~db.collection.findAndModify()` helper method.
+Using the shell helper, this previous operation can take the
+following form:
+
+.. code-block:: javascript
+
+   db.people.findAndModify( {
+      query: { name: "Tom", state: "active", rating: { $gt: 10 } },
+      sort: { rating: 1 },
+      update: { $inc: { score: 1 } }
+   } );
+
+However, the :method:`~db.collection.findAndModify()` shell helper
+method returns only the unmodified document, or if ``new`` is
+``true``, the modified document.
+
+.. code-block:: javascript
+
+  {
+     "_id" : ObjectId("54f62d2885e4be1f982b9c9c"),
+     "name" : "Tom",
+     "state" : "active",
+     "rating" : 100,
+     "score" : 5
+  }
+
+``upsert: true``
+~~~~~~~~~~~~~~~~
+
+The following :dbcommand:`findAndModify` command includes the ``upsert:
+true`` option for the ``update`` operation to either update a matching
+document or, if no matching document exists, create a new document:
+
+.. code-block:: javascript
+
+   db.runCommand(
+                  {
+                    findAndModify: "people",
+                    query: { name: "Gus", state: "active", rating: 100 },
+                    sort: { rating: 1 },
+                    update: { $inc: { score: 1 } },
+                    upsert: true
+                  }
+                )
+
+If the command finds a matching document, the command performs an update.
+
+If the command does **not** find a matching document, the ``update``
+with :term:`upsert: true <upsert>` operation results in an insertion
+and returns a document with the following fields:
+
+- The ``lastErrorObject`` field that contains the details of the
+  command, including the field ``upserted`` that contains the
+  ``_id`` value of the newly inserted document, and
+
+- The ``value`` field containing ``null``.
+
+.. code-block:: sh
+
+   {
+     "value" : null,
+     "lastErrorObject" : {
+        "updatedExisting" : false,
+        "n" : 1,
+        "upserted" : ObjectId("54f62c8bc85d4472eadea26f")
+     },
+     "ok" : 1
+   }
+
+Return New Document
+~~~~~~~~~~~~~~~~~~~
+
+The following :dbcommand:`findAndModify` command includes both
+``upsert: true`` option and the ``new:true`` option. The command either
+updates a matching document and returns the updated document or, if no
+matching document exists, inserts a document and returns the newly
+inserted document in the ``value`` field.
+
+In the following example, no document in the ``people`` collection
+matches the ``query`` condition:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+        findAndModify: "people",
+        query: { name: "Pascal", state: "active", rating: 25 },
+        sort: { rating: 1 },
+        update: { $inc: { score: 1 } },
+        upsert: true,
+        new: true
+      }
+   )
+
+The command returns the newly inserted document in the ``value`` field:
+
+.. code-block:: sh
+
+   {
+     "lastErrorObject" : {
+        "connectionId" : 1,
+        "updatedExisting" : false,
+        "upserted" : ObjectId("54f62bbfc85d4472eadea26d"),
+        "n" : 1,
+        "syncMillis" : 0,
+        "writtenTo" : null,
+        "err" : null,
+        "ok" : 1
+     },
+     "value" : {
+        "_id" : ObjectId("54f62bbfc85d4472eadea26d"),
+        "name" : "Pascal",
+        "rating" : 25,
+        "state" : "active",
+        "score" : 1
+     },
+     "ok" : 1
+   }
+
+Sort and Remove
+~~~~~~~~~~~~~~~
+
+By including a ``sort`` specification on the ``rating`` field, the
+following example removes from the ``people`` collection a single
+document with the ``state`` value of ``active`` and the lowest
+``rating`` among the matching documents:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+        findAndModify: "people",
+        query: { state: "active" },
+        sort: { rating: 1 },
+        remove: true
+      }
+   )
+
+The command returns the deleted document:
+
+.. code-block:: sh
+
+   {
+     "lastErrorObject" : {
+        "connectionId" : 1,
+        "n" : 1,
+        "syncMillis" : 0,
+        "writtenTo" : null,
+        "err" : null,
+        "ok" : 1
+     },
+     "value" : {
+        "_id" : ObjectId("54f62a6785e4be1f982b9c9b"),
+        "name" : "XYZ123",
+        "score" : 1,
+        "state" : "active",
+        "rating" : 3
+     },
+     "ok" : 1
+   }
+
+Specify Collation
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/collation-versionadded.rst
+
+A collection ``myColl`` has the following documents:
+
+.. code-block:: javascript
+
+   { _id: 1, category: "café", status: "A" }
+   { _id: 2, category: "cafe", status: "a" }
+   { _id: 3, category: "cafE", status: "a" }
+
+The following operation includes the :ref:`collation <collation>`
+option:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+        findAndModify: "myColl",
+        query: { category: "cafe", status: "a" },
+        sort: { category: 1 },
+        update: { $set: { status: "Updated" } },
+        collation: { locale: "fr", strength: 1 }
+      }
+   )
+
+The operation returns the following document:
+
+.. code-block:: javascript
+
+   {
+      "lastErrorObject" : {
+         "updatedExisting" : true,
+         "n" : 1
+      },
+      "value" : {
+         "_id" : 1,
+         "category" : "café",
+         "status" : "A"
+      },
+      "ok" : 1
+   }
+
+.. _findAndModify-command-arrayFilters:
+
+Specify ``arrayFilters`` for an Array Update Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/arrayFilters-blurb.rst
+
+Update Elements Match ``arrayFilters`` Criteria
+```````````````````````````````````````````````
+
+Create a collection ``students`` with the following documents:
+
+.. cssclass:: copyable-code
+
+.. code-block:: javascript
+
+   db.students.insert([
+      { "_id" : 1, "grades" : [ 95, 92, 90 ] },
+      { "_id" : 2, "grades" : [ 98, 100, 102 ] },
+      { "_id" : 3, "grades" : [ 95, 110, 100 ] }
+   ])
+
+To modify all elements that are greater than or equal to ``100`` in the
+``grades`` array, use the positional :update:`$[\<identifier\>]`
+operator with the ``arrayFilters`` option:
+   
+.. cssclass:: copyable-code
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+        findAndModify: "students",
+        query: { grades: { $gte: 100 } },
+        update:  { $set: { "grades.$[element]" : 100 } },
+        arrayFilters: [ { "element": { $gte: 100 } } ]
+      }
+   )
+
+The operation updates the ``grades`` field for a single document, and
+after the operation, the collection has the following documents:
+
+.. code-block:: javascript
+   :emphasize-lines: 2
+
+   { "_id" : 1, "grades" : [ 95, 92, 90 ] }
+   { "_id" : 2, "grades" : [ 98, 100, 100 ] }
+   { "_id" : 3, "grades" : [ 95, 110, 100 ] }
+
+Update Specific Elements of an Array of Documents
+`````````````````````````````````````````````````
+
+Create a collection ``students2`` with the following documents:
+
+.. code-block:: javascript
+
+   db.students2.insert([
+      {
+         "_id" : 1,
+         "grades" : [
+            { "grade" : 80, "mean" : 75, "std" : 6 },
+            { "grade" : 85, "mean" : 90, "std" : 4 },
+            { "grade" : 85, "mean" : 85, "std" : 6 }
+         ]
+      },
+      {
+         "_id" : 2,
+         "grades" : [
+            { "grade" : 90, "mean" : 75, "std" : 6 },
+            { "grade" : 87, "mean" : 90, "std" : 3 },
+            { "grade" : 85, "mean" : 85, "std" : 4 }
+         ]
+      }
+   ])
+
+To modify the value of the ``mean`` field for all elements in the
+``grades`` array where the grade is greater than or equal to ``85``,
+use the positional :update:`$[\<identifier\>]` operator with the
+``arrayFilters``:
+
+.. cssclass:: copyable-code
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+        findAndModify: "students2",
+        query: { },
+        update: { $set: { "grades.$[elem].mean" : 100 } },
+        arrayFilters: [ { "elem.grade": { $gte: 85 } } ] 
+      }
+   )
+
+The operation updates the ``grades`` field for a single document, and after the
+operation, the collection has the following documents:
+
+.. code-block:: javascript
+   :emphasize-lines: 5-6
+
+   {
+      "_id" : 1,
+      "grades" : [
+         { "grade" : 80, "mean" : 75, "std" : 6 },
+         { "grade" : 85, "mean" : 100, "std" : 4 },
+         { "grade" : 85, "mean" : 100, "std" : 6 } 
+       ]
+   }
+   {
+      "_id" : 2,
+      "grades" : [
+         { "grade" : 90, "mean" : 75, "std" : 6 },
+         { "grade" : 87, "mean" : 90, "std" : 3 },
+         { "grade" : 85, "mean" : 85, "std" : 4 }
+      ]
+   }
+
+.. seealso:: :ref:`perform-findAndModify-linearizable-reads`

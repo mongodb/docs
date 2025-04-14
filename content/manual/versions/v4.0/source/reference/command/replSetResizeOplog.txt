@@ -1,0 +1,135 @@
+==================
+replSetResizeOplog
+==================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: replSetResizeOplog
+
+   .. versionadded:: 3.6
+
+   Use the :dbcommand:`replSetResizeOplog` administrative command to 
+   change the size of a replica set member's oplog. [#oplog]_
+   :dbcommand:`replSetResizeOplog` enables you to resize the oplog 
+   dynamically without restarting the :binary:`~bin.mongod` process. 
+
+   You must run this command against the ``admin`` database.
+
+   The command has the following form:
+
+   .. code-block:: javascript
+
+      { replSetResizeOplog: <boolean>, size: <num MB> }
+
+   .. note::
+
+      :dbcommand:`replSetResizeOplog` takes the size parameter in
+      megabytes while the oplog size is stored in bytes:
+
+      - The minimum size you can specify is 990 megabytes.
+
+      - The maximum size you can specify is 1 petabytes.
+
+Behavior
+--------
+
+You can only use :dbcommand:`replSetResizeOplog` on 
+:binary:`~bin.mongod` instances running with the 
+:ref:`Wired Tiger storage engine <storage-wiredtiger>`.
+
+In MongoDB versions 3.4 and earlier, the oplog was resized by dropping
+and recreating the ``local.oplog.rs`` collection. In MongoDB versions
+3.6 and later, use the :dbcommand:`replSetResizeOplog` command to resize
+the oplog as shown in the :ref:`tutorial-change-oplog-size` tutorial.
+Starting in MongoDB 4.0, MongoDB forbids dropping the ``local.oplog.rs``
+collection. For more information on this restriction, see
+:ref:`oplog-coll-behavior`.
+
+Changing the oplog size of a given replica set member with
+:dbcommand:`replSetResizeOplog` does not change the oplog size of any
+other member in the replica set. You must run
+:dbcommand:`replSetResizeOplog` on each replica set member in your
+cluster to change the oplog size for all members.
+
+Reducing the oplog size does *not* reclaim that disk space
+automatically. You must run :dbcommand:`compact` against the
+``oplog.rs`` collection in the ``local`` database. ``compact``
+blocks all operations on the database it runs against.
+Running ``compact`` against ``oplog.rs`` therefore prevents oplog 
+synchronization. For a procedure on resizing the oplog and compacting
+``oplog.rs``, see :doc:`/tutorial/change-oplog-size`.
+
+Resource Locking
+~~~~~~~~~~~~~~~~
+
+:dbcommand:`replSetResizeOplog` takes a global exclusive (W) lock and
+blocks all other operations until it finishes.
+
+For more information on locking in MongoDB, see :doc:`/faq/concurrency`.
+
+Example
+--------
+
+Use the :dbcommand:`stats` command to display the current oplog size,
+``maxSize``. For example:
+
+.. cssclass:: copyable-code
+         
+.. code-block:: javascript
+
+   use local
+   db.oplog.rs.stats().maxSize
+
+The above command will return the oplog size of this member:
+
+.. code-block:: javascript
+
+   "maxSize": NumberLong("9790804377")
+
+``maxSize`` is currently 9790804377 bytes, or 9337 megabytes.
+
+The following command changes the oplog size of this member to
+17179869184 bytes, or 16384 megabytes.
+
+To change the size, run the :dbcommand:`replSetResizeOplog`, passing
+the desired size in megabytes as a parameter.
+
+.. cssclass:: copyable-code
+
+.. code-block:: javascript
+
+   db.adminCommand({replSetResizeOplog:1, size: 16384})
+
+To verify the new oplog size, rerun the :dbcommand:`stats` command:
+
+.. cssclass:: copyable-code
+
+.. code-block:: javascript
+
+   use local
+   db.oplog.rs.stats().maxSize
+
+The above command returns:
+
+.. code-block:: javascript
+
+   "maxSize": NumberLong("17179869184")
+
+.. warning::
+
+   Reducing the size of the oplog in a node removes data from it. This
+   may cause replica members syncing with that node to become stale.
+   To resync those members, see :doc:`/tutorial/resync-replica-set-member`.
+
+.. [#oplog]
+
+   .. include:: /includes/fact-oplog-size.rst

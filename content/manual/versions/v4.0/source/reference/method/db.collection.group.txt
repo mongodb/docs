@@ -1,0 +1,311 @@
+=====================
+db.collection.group()
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.collection.group( { key, reduce, initial [, keyf] [, cond] [, finalize] } )
+
+   .. COMMENT these files are from extracts-group-alternative.yaml
+      TODO should rename the file and the refs.
+
+   .. include:: /includes/extracts/group-deprecation-method.rst
+
+   .. include:: /includes/extracts/admonition-group-method-alternative.rst
+
+   Groups documents in a
+   collection by the specified keys and performs simple aggregation
+   functions such as computing counts and sums. The method is
+   analogous to a ``SELECT <...> GROUP BY`` statement in SQL. The
+   :method:`~db.collection.group()` method returns an array.
+
+   The :method:`db.collection.group()` accepts a single :term:`document` that
+   contains the following:
+
+   .. |obj-name| replace:: :method:`db.collection.group()`
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``key``
+   
+        - document
+   
+        - The field or fields to group. Returns a "key object" for use as the
+          grouping key.
+          
+          
+   
+      * - ``reduce``
+   
+        - function
+   
+        - An aggregation function that operates on the documents during the
+          grouping operation. These functions may return a sum or a count. The
+          function takes two arguments: the current document and an aggregation
+          result document for that group.
+          
+          
+   
+      * - ``initial``
+   
+        - document
+   
+        - Initializes the aggregation result document.
+          
+          
+   
+      * - ``keyf``
+   
+        - function
+   
+        - Optional. Alternative to the ``key`` field. Specifies a function that creates a
+          "key object" for use as the grouping key. Use ``keyf`` instead of
+          ``key`` to group by calculated fields rather than existing document
+          fields.
+          
+          
+   
+      * - ``cond``
+   
+        - document
+   
+        - The selection criteria to determine which documents in the
+          collection to process. If you omit the ``cond`` field, |obj-name|
+          processes all the documents in the collection for the group
+          operation.
+          
+          
+   
+      * - ``finalize``
+   
+        - function
+   
+        - Optional. A function that runs each item in the result set before |obj-name|
+          returns the final value. This function can either modify the result
+          document or replace the result document as a whole.
+          
+          
+   
+      * - ``collation``
+   
+        - document
+   
+        - Optional. 
+          
+          .. include:: /includes/extracts/collation-option.rst
+          
+          
+   
+
+
+   The :method:`db.collection.group()` method is a shell wrapper for
+   the :dbcommand:`group` command. However, the
+   :method:`db.collection.group()` method takes the ``keyf`` field and
+   the ``reduce`` field whereas the :dbcommand:`group` command takes
+   the ``$keyf`` field and the ``$reduce`` field.
+
+Behavior
+--------
+
+Limits and Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The :method:`db.collection.group()` method does not work with
+:term:`sharded clusters <sharded cluster>`. Use the :term:`aggregation
+pipeline` or :term:`map-reduce` in :term:`sharded environments
+<sharding>`.
+
+The result set must fit within the :ref:`maximum BSON document size
+<limit-bson-document-size>`.
+
+In version 2.2, the returned array can contain at most 20,000 elements;
+i.e. at most 20,000 unique groupings. For group by operations that
+results in more than 20,000 unique groupings, use
+:dbcommand:`mapReduce`. Previous versions had a limit of 10,000
+elements.
+
+Prior to 2.4, the :method:`db.collection.group()` method took the
+:binary:`~bin.mongod` instance's JavaScript lock, which blocked all other
+JavaScript execution.
+
+``mongo`` Shell JavaScript Functions/Properties
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-group-map-reduce-where-limitations-in-24.rst
+
+Examples
+--------
+
+The following examples assume an ``orders`` collection with documents of
+the following prototype:
+
+.. code-block:: javascript
+
+   {
+     _id: ObjectId("5085a95c8fada716c89d0021"),
+     ord_dt: ISODate("2012-07-01T04:00:00Z"),
+     ship_dt: ISODate("2012-07-02T04:00:00Z"),
+     item: { sku: "abc123",
+             price: 1.99,
+             uom: "pcs",
+             qty: 25 }
+   }
+
+Group by Two Fields
+~~~~~~~~~~~~~~~~~~~
+
+The following example groups by the ``ord_dt`` and ``item.sku``
+fields those documents that have ``ord_dt`` greater than
+``01/01/2011``:
+
+.. code-block:: javascript
+
+   db.orders.group(
+      {
+        key: { ord_dt: 1, 'item.sku': 1 },
+        cond: { ord_dt: { $gt: new Date( '01/01/2012' ) } },
+        reduce: function ( curr, result ) { },
+        initial: { }
+      }
+   )
+
+The result is an array of documents that contain the group by fields:
+
+.. code-block:: javascript
+
+   [
+     { "ord_dt" : ISODate("2012-07-01T04:00:00Z"), "item.sku" : "abc123"},
+     { "ord_dt" : ISODate("2012-07-01T04:00:00Z"), "item.sku" : "abc456"},
+     { "ord_dt" : ISODate("2012-07-01T04:00:00Z"), "item.sku" : "bcd123"},
+     { "ord_dt" : ISODate("2012-07-01T04:00:00Z"), "item.sku" : "efg456"},
+     { "ord_dt" : ISODate("2012-06-01T04:00:00Z"), "item.sku" : "abc123"},
+     { "ord_dt" : ISODate("2012-06-01T04:00:00Z"), "item.sku" : "efg456"},
+     { "ord_dt" : ISODate("2012-06-01T04:00:00Z"), "item.sku" : "ijk123"},
+     { "ord_dt" : ISODate("2012-05-01T04:00:00Z"), "item.sku" : "abc123"},
+     { "ord_dt" : ISODate("2012-05-01T04:00:00Z"), "item.sku" : "abc456"},
+     { "ord_dt" : ISODate("2012-06-08T04:00:00Z"), "item.sku" : "abc123"},
+     { "ord_dt" : ISODate("2012-06-08T04:00:00Z"), "item.sku" : "abc456"}
+   ]
+
+The method call is analogous to the SQL statement:
+
+.. code-block:: sql
+
+   SELECT ord_dt, item_sku
+   FROM orders
+   WHERE ord_dt > '01/01/2012'
+   GROUP BY ord_dt, item_sku
+
+Calculate the Sum
+~~~~~~~~~~~~~~~~~
+
+The following example groups by the ``ord_dt`` and ``item.sku``
+fields, those documents that have ``ord_dt`` greater than
+``01/01/2011`` and calculates the sum of the ``qty`` field for each
+grouping:
+
+.. code-block:: javascript
+
+   db.orders.group(
+      {
+        key: { ord_dt: 1, 'item.sku': 1 },
+        cond: { ord_dt: { $gt: new Date( '01/01/2012' ) } },
+        reduce: function( curr, result ) {
+                    result.total += curr.item.qty;
+                },
+        initial: { total : 0 }
+      }
+   )
+
+The result is an array of documents that contain the group by fields
+and the calculated aggregation field:
+
+.. code-block:: javascript
+
+   [ { "ord_dt" : ISODate("2012-07-01T04:00:00Z"), "item.sku" : "abc123", "total" : 25 },
+     { "ord_dt" : ISODate("2012-07-01T04:00:00Z"), "item.sku" : "abc456", "total" : 25 },
+     { "ord_dt" : ISODate("2012-07-01T04:00:00Z"), "item.sku" : "bcd123", "total" : 10 },
+     { "ord_dt" : ISODate("2012-07-01T04:00:00Z"), "item.sku" : "efg456", "total" : 10 },
+     { "ord_dt" : ISODate("2012-06-01T04:00:00Z"), "item.sku" : "abc123", "total" : 25 },
+     { "ord_dt" : ISODate("2012-06-01T04:00:00Z"), "item.sku" : "efg456", "total" : 15 },
+     { "ord_dt" : ISODate("2012-06-01T04:00:00Z"), "item.sku" : "ijk123", "total" : 20 },
+     { "ord_dt" : ISODate("2012-05-01T04:00:00Z"), "item.sku" : "abc123", "total" : 45 },
+     { "ord_dt" : ISODate("2012-05-01T04:00:00Z"), "item.sku" : "abc456", "total" : 25 },
+     { "ord_dt" : ISODate("2012-06-08T04:00:00Z"), "item.sku" : "abc123", "total" : 25 },
+     { "ord_dt" : ISODate("2012-06-08T04:00:00Z"), "item.sku" : "abc456", "total" : 25 } ]
+
+The method call is analogous to the SQL statement:
+
+.. code-block:: sql
+
+   SELECT ord_dt, item_sku, SUM(item_qty) as total
+   FROM orders
+   WHERE ord_dt > '01/01/2012'
+   GROUP BY ord_dt, item_sku
+
+
+Calculate Sum, Count, and Average
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example groups by the calculated ``day_of_week`` field,
+those documents that have ``ord_dt`` greater than ``01/01/2011`` and
+calculates the sum, count, and average of the ``qty`` field for each
+grouping:
+
+.. code-block:: javascript
+
+   db.orders.group(
+      {
+        keyf: function(doc) {
+                  return { day_of_week: doc.ord_dt.getDay() };
+              },
+        cond: { ord_dt: { $gt: new Date( '01/01/2012' ) } },
+       reduce: function( curr, result ) {
+                   result.total += curr.item.qty;
+                   result.count++;
+               },
+       initial: { total : 0, count: 0 },
+       finalize: function(result) {
+                     var weekdays = [
+                          "Sunday", "Monday", "Tuesday",
+                          "Wednesday", "Thursday",
+                          "Friday", "Saturday"
+                         ];
+                     result.day_of_week = weekdays[result.day_of_week];
+                     result.avg = Math.round(result.total / result.count);
+                 }
+      }
+   )
+
+The result is an array of documents that contain the group by fields
+and the calculated aggregation field:
+
+.. code-block:: javascript
+
+   [
+     { "day_of_week" : "Sunday", "total" : 70, "count" : 4, "avg" : 18 },
+     { "day_of_week" : "Friday", "total" : 110, "count" : 6, "avg" : 18 },
+     { "day_of_week" : "Tuesday", "total" : 70, "count" : 3, "avg" : 23 }
+   ]
+
+.. seealso:: :doc:`/aggregation`
+
+.. STUB :doc:`/applications/simple-aggregation`

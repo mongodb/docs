@@ -1,0 +1,1559 @@
+.. _mongos:
+
+==========
+``mongos``
+==========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Synopsis
+--------
+
+:binary:`~bin.mongos` for "MongoDB Shard," is a routing service for
+MongoDB shard configurations that processes queries from the
+application layer, and determines the location of this data in the
+:term:`sharded cluster`, in order to complete these operations.
+From the perspective of the application, a
+:binary:`~bin.mongos` instance behaves identically to any other MongoDB
+instance.
+
+.. seealso:: :ref:`conf-file-command-line-mapping`
+
+.. note::
+
+   .. include:: /includes/fact-tls-1.0.rst
+
+.. |binary| replace:: MongoDB
+
+Considerations
+--------------
+
+Never change the name of the :binary:`~bin.mongos` binary.
+
+Options
+-------
+
+.. only:: (not man)
+
+   .. class:: hidden
+
+      .. binary:: mongos
+
+Core Options
+~~~~~~~~~~~~
+
+.. program:: mongos
+
+.. option:: --help, -h
+
+   Returns information on the options and use of :program:`mongos`.
+
+
+.. option:: --version
+
+   Returns the :program:`mongos` release number.
+
+
+.. option:: --config <filename>, -f <filename>
+
+   Specifies a configuration file for runtime configuration options. The
+   configuration file is the preferred method for runtime configuration of
+   :program:`mongos`. The options are equivalent to the command-line
+   configuration options. See :doc:`/reference/configuration-options` for
+   more information.
+   
+   Ensure the configuration file uses ASCII encoding. The :program:`mongos`
+   instance does not support configuration files with non-ASCII encoding,
+   including UTF-8.
+
+
+.. option:: --verbose, -v
+
+   Increases the amount of internal reporting returned on standard output
+   or in log files. Increase the verbosity with the ``-v`` form by
+   including the option multiple times, (e.g. ``-vvvvv``.)
+   
+
+
+.. option:: --quiet
+
+   Runs :program:`mongos` in a quiet mode that attempts to limit the amount
+   of output.
+
+   This option suppresses:
+   
+   - output from :term:`database commands <database command>`
+   
+   - replication activity
+   
+   - connection accepted events
+   
+   - connection closed events
+
+
+.. option:: --port <port>
+
+   *Default*: 27017
+
+   The TCP port on which the :binary:`~bin.mongos` instance listens for
+   client connections.  
+   
+
+
+.. option:: --bind_ip <hostnames|ipaddresses|Unix domain socket paths>
+
+   *Default*: localhost
+
+   
+   .. note::
+   
+      Starting in MongoDB 3.6, :program:`mongos` bind to localhost
+      by default. See :ref:`3.6-bind-to-localhost`.
+   
+   The hostnames and/or IP addresses and/or full Unix domain socket
+   paths on which :program:`mongos` should listen for client connections. You
+   may attach :program:`mongos` to any interface. To bind to multiple
+   addresses, enter a list of comma-separated values.
+   
+   .. example:: ``localhost,/tmp/mongod.sock``
+   
+   You can specify both IPv4 and IPv6 addresses, or hostnames that
+   resolve to an IPv4 or IPv6 address.
+   
+   .. example:: ``localhost, 2001:0DB8:e132:ba26:0d5c:2774:e7f9:d513``
+   
+   .. note::
+   
+      If specifying an IPv6 address *or* a hostname that resolves to an
+      IPv6 address to :option:`--bind_ip`, you must start :program:`mongos` with 
+      :option:`--ipv6` to enable IPv6 support. Specifying an IPv6 address
+      to :option:`--bind_ip` does not enable IPv6 support.
+   
+   If specifying a 
+   `link-local IPv6 address <https://en.wikipedia.org/w/index.php?title=Link-local_address&oldid=880793020#IPv6>`_ 
+   (``fe80::/10``), you must append the 
+   `zone index <https://en.wikipedia.org/w/index.php?title=IPv6_address&oldid=877601778#Scoped_literal_IPv6_addresses>`_
+   to that address (i.e. ``fe80::<address>%<adapter-name>``). 
+   
+   .. example:: ``localhost,fe80::a00:27ff:fee0:1fcf%enp0s3``
+   
+   .. include:: /includes/tip-hostnames.rst
+   
+   .. include:: /includes/warning-bind-ip-security-considerations.rst
+   
+   For more information about IP Binding, refer to the
+   :doc:`/core/security-mongodb-configuration` documentation.
+
+   To bind to all IPv4 addresses, enter ``0.0.0.0``.
+   
+   To bind to all IPv4 and IPv6 addresses, enter ``::,0.0.0.0``
+   or alternatively, use the :setting:`net.bindIpAll` setting.
+   
+   .. note::
+   
+      ``--bind_ip`` and ``--bind_ip_all`` are mutually exclusive.
+      Specifying both options causes :program:`mongos` to throw an error and
+      terminate.
+
+
+.. option:: --bind_ip_all
+
+   
+   .. versionadded:: 3.6
+   
+   If specified, the :program:`mongos` instance binds to all IPv4
+   addresses (i.e. ``0.0.0.0``). If :program:`mongos` starts with
+   :option:`--ipv6`, :option:`--bind_ip_all` also binds to all IPv6 addresses
+   (i.e. ``::``). 
+   
+   :program:`mongos` only supports IPv6 if started with :option:`--ipv6`. Specifying
+   :option:`--bind_ip_all` alone does not enable IPv6 support.
+   
+   .. include:: /includes/warning-bind-ip-security-considerations.rst
+   
+   For more information about IP Binding, refer to the
+   :doc:`/core/security-mongodb-configuration` documentation.
+
+   
+   Alternatively, you can set the ``--bind_ip`` option to
+   ``::,0.0.0.0`` to bind to all IP addresses.
+   
+   .. note::
+   
+      ``--bind_ip`` and ``--bind_ip_all`` are mutually exclusive. That
+      is, you can specify one or the other, but not both.
+   
+
+
+.. option:: --maxConns <number>
+
+   The maximum number of simultaneous connections that :program:`mongos` will
+   accept. This setting has no effect if it is higher than your operating
+   system's configured maximum connection tracking threshold.
+   
+   Do not assign too low of a value to this option, or you will
+   encounter errors during normal application operation.
+
+   .. include:: /includes/fact-maxconns-mongos.rst
+   
+   .. include:: /includes/note-max-conns-max.rst
+   
+
+
+.. option:: --syslog
+
+   Sends all logging output to the host's :term:`syslog` system rather
+   than to standard output or to a log file. , as with :option:`--logpath`.
+   
+   The :option:`--syslog` option is not supported on Windows.
+   
+   .. warning::
+   
+      The ``syslog`` daemon generates timestamps when it logs a message, not
+      when MongoDB issues the message. This can lead to misleading timestamps
+      for log entries, especially when the system is under heavy load. We
+      recommend using the :option:`--logpath` option for production systems to
+      ensure accurate timestamps.
+
+
+.. option:: --syslogFacility <string>
+
+   *Default*: user
+
+   Specifies the facility level used when logging messages to syslog.
+   The value you specify must be supported by your
+   operating system's implementation of syslog. To use this option, you
+   must  enable the :option:`--syslog` option.
+
+
+.. option:: --logpath <path>
+
+   Sends all diagnostic logging information to a log file instead of to
+   standard output or to the host's :term:`syslog` system. MongoDB creates
+   the log file at the path you specify.
+   
+   By default, MongoDB will move any existing log file rather than overwrite
+   it. To instead append to the log file, set the :option:`--logappend` option.
+   
+
+
+.. option:: --logappend
+
+   Appends new entries to the end of the existing log file when the :program:`mongos`
+   instance restarts. Without this option, :binary:`~bin.mongod` will back up the
+   existing log and create a new file.
+
+
+.. option:: --logRotate <string>
+
+   *Default*: rename
+
+   Determines the behavior for the :dbcommand:`logRotate` command.
+   Specify either ``rename`` or ``reopen``:
+   
+   - ``rename`` renames the log file.
+   
+   - ``reopen`` closes and reopens the log file following the typical
+     Linux/Unix log rotate behavior. Use ``reopen`` when using the
+     Linux/Unix logrotate utility to avoid log loss.
+   
+     If you specify ``reopen``, you must also use :option:`--logappend`.
+
+   If :doc:`auditing </core/auditing>` is enabled, the
+   :dbcommand:`logRotate` command also rotates the audit log according
+   to the above parameters. For example, if :option:`--logRotate` is set
+   to ``rename``, the audit log will also be renamed.
+
+.. option:: --redactClientLogData
+
+   .. versionadded:: 3.4 Available in MongoDB Enterprise only.
+   
+   A :program:`mongos` running with :option:`--redactClientLogData` redacts any message accompanying a given
+   log event before logging. This prevents the :program:`mongos` from writing
+   potentially sensitive data stored on the database to the diagnostic log.
+   Metadata such as error or operation codes, line numbers, and source file
+   names are still visible in the logs.
+   
+   Use :option:`--redactClientLogData` in conjunction with
+   :doc:`/core/security-encryption-at-rest` and
+   :doc:`/core/security-transport-encryption` to assist compliance with
+   regulatory requirements.
+   
+   For example, a MongoDB deployment might store Personally Identifiable
+   Information (PII) in one or more collections. The :program:`mongos` logs events
+   such as those related to CRUD operations, sharding metadata, etc. It is
+   possible that the :program:`mongos` may expose PII as a part of these logging
+   operations. A :program:`mongos` running with :option:`--redactClientLogData` removes any message
+   accompanying these events before being output to the log, effectively
+   removing the PII.
+   
+   Diagnostics on a :program:`mongos` running with :option:`--redactClientLogData` may be more difficult
+   due to the lack of data related to a log event. See the
+   :ref:`process logging <monitoring-log-redaction>` manual page for an
+   example of the effect of :option:`--redactClientLogData` on log output.
+   
+   On a running :program:`mongos`, use :dbcommand:`setParameter` with the
+   :parameter:`redactClientLogData` parameter to configure this setting.
+
+
+.. option:: --timeStampFormat <string>
+
+   *Default*: iso8601-local
+
+   The time format for timestamps in log messages. Specify one of the
+   following values:
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 40
+   
+      * - Value
+   
+        - Description
+   
+      * - ``ctime``
+   
+        - Displays timestamps as ``Wed Dec 31
+          18:17:54.811``.
+   
+      * - ``iso8601-utc``
+   
+        - Displays timestamps in Coordinated Universal Time (UTC) in the
+          ISO-8601 format. For example, for New York at the start of the
+          Epoch: ``1970-01-01T00:00:00.000Z``
+   
+      * - ``iso8601-local``
+   
+        - Displays timestamps in local time in the ISO-8601
+          format. For example, for New York at the start of the Epoch:
+          ``1969-12-31T19:00:00.000-0500``
+   
+
+
+.. option:: --pidfilepath <path>
+
+   Specifies a file location to store the process ID (PID) of the :program:`mongos`
+   process. The user running the ``mongod`` or ``mongos``
+   process must be able to write to this path. If the :option:`--pidfilepath` option is not
+   specified, the process does not create a PID file. This option is generally
+   only useful in combination with the :option:`--fork` option.
+   
+   .. admonition:: Linux
+      :class: note
+   
+      On Linux, PID file management is generally the responsibility of
+      your distro's init system: usually a service file in the ``/etc/init.d``
+      directory, or a systemd unit file registered with ``systemctl``. Only
+      use the :option:`--pidfilepath` option if you are not using one of these init
+      systems. For more information, please see the respective
+      :doc:`Installation Guide </installation>` for your operating system.
+   
+   .. admonition:: macOS
+      :class: note
+   
+      On macOS, PID file management is generally handled by ``brew``. Only use
+      the :option:`--pidfilepath` option if you are not using ``brew`` on your macOS system. 
+      For more information, please see the respective
+      :doc:`Installation Guide </installation>` for your operating system.
+
+
+.. option:: --keyFile <file>
+
+   Specifies the path to a key file that stores the shared secret
+   that MongoDB instances use to authenticate to each other in a
+   :term:`sharded cluster` or :term:`replica set`. :option:`--keyFile` implies
+   ``client authorization``. See :ref:`inter-process-auth` for more
+   information.
+
+
+.. option:: --setParameter <options>
+
+   Specifies one of the MongoDB parameters described in
+   :doc:`/reference/parameters`. You can specify multiple ``setParameter``
+   fields.
+   
+
+
+.. option:: --nounixsocket
+
+   Disables listening on the UNIX domain socket. :option:`--nounixsocket` applies only
+   to Unix-based systems.
+
+   The :program:`mongos` process
+   always listens on the UNIX socket unless one of the following is true:
+   
+   - :option:`--nounixsocket` is set
+   
+   - :setting:`net.bindIp` is not set
+   
+   - :setting:`net.bindIp` does not specify ``localhost`` or its associated IP address
+   
+   .. |mongodb-package| replace:: :program:`mongos`
+   
+   .. include:: /includes/note-deb-and-rpm-default-to-localhost.rst
+
+
+.. option:: --unixSocketPrefix <path>
+
+   *Default*: /tmp
+
+   The path for the UNIX socket. :option:`--unixSocketPrefix` applies only
+   to Unix-based systems.
+   
+   If this option has no value, the
+   :program:`mongos` process creates a socket with ``/tmp`` as a prefix. MongoDB
+   creates and listens on a UNIX socket unless one of the following is true:
+   
+   - :setting:`net.unixDomainSocket.enabled` is ``false``
+   
+   - :option:`--nounixsocket` is set
+   
+   - :setting:`net.bindIp` is not set
+   
+   - :setting:`net.bindIp` does not specify ``localhost`` or its associated IP address
+
+
+.. option:: --filePermissions <path>
+
+   *Default*: ``0700``
+
+   Sets the permission for the UNIX domain socket file.
+   
+   :option:`--filePermissions` applies only to Unix-based systems.
+
+
+.. option:: --fork
+
+   Enables a :term:`daemon` mode that runs the :program:`mongos` process in the
+   background. By default :program:`mongos` does not run as a daemon:
+   typically you will run :program:`mongos` as a daemon, either by using
+   :option:`--fork` or by using a controlling process that handles the
+   daemonization process (e.g. as with ``upstart`` and ``systemd``).
+
+   Using the :option:`--fork` option requires that you configure log
+   output for the :program:`mongos` with one of the following:
+
+   - :option:`--logpath`
+   - :option:`--syslog`
+
+   The :option:`--fork` option is not supported on Windows.
+
+
+.. option:: --transitionToAuth
+
+   .. versionadded:: 3.4
+   
+      Allows the :program:`mongos` to accept and create authenticated and
+      non-authenticated connections to and from other :binary:`~bin.mongod`
+      and :binary:`~bin.mongos` instances in the deployment. Used for
+      performing rolling transition of replica sets or sharded clusters
+      from a no-auth configuration to :ref:`internal authentication
+      <inter-process-auth>`. Requires specifying a :ref:`internal
+      authentication <inter-process-auth>` mechanism such as
+      :option:`--keyFile`.
+   
+   For example, if using :ref:`keyfiles <internal-auth-keyfile>` for
+   :ref:`internal authentication <inter-process-auth>`, the :program:`mongos` creates
+   an authenticated connection with any :binary:`~bin.mongod` or :binary:`~bin.mongos`
+   in the deployment using a matching keyfile. If the security mechanisms do
+   not match, the :program:`mongos` utilizes a non-authenticated connection instead.
+   
+   A :program:`mongos` running with :option:`--transitionToAuth` does not enforce :ref:`user access
+   controls <authorization>`. Users may connect to your deployment without any
+   access control checks and perform read, write, and administrative operations.
+   
+   .. note::
+   
+      A :program:`mongos` running with :ref:`internal authentication
+      <inter-process-auth>` and *without* :option:`--transitionToAuth` requires clients to connect
+      using :ref:`user access controls <authorization>`. Update clients to
+      connect to the :program:`mongos` using the appropriate :ref:`user <users>`
+      prior to restarting :program:`mongos` without :option:`--transitionToAuth`.
+
+
+.. option:: --networkMessageCompressors <string>
+
+   *Default*: snappy
+
+   
+   .. versionadded:: 3.4
+   
+   Specifies the default compressor(s) to use for
+   communication between this :program:`mongos` instance and:
+   
+   - other members of the sharded cluster
+   
+   - a :binary:`~bin.mongo` shell
+   
+   - drivers that support the ``OP_COMPRESSED`` message format.
+   
+   MongoDB supports the following compressors:
+   
+   - :term:`snappy`
+   
+   - :term:`zlib` (Available in MongoDB 3.6 or greater)
+   
+   **In versions 3.6 and 4.0**, :binary:`~bin.mongod` and
+   :binary:`~bin.mongos` enable network compression by default with
+   ``snappy`` as the compressor.
+   
+   To disable network compression, set the value to ``disabled``.
+   
+   .. include:: /includes/fact-networkMessageCompressors.rst
+
+
+.. option:: --serviceExecutor <string>
+
+   *Default*: synchronous
+
+   .. versionadded:: 3.6
+   
+   Determines the threading and execution model :program:`mongos` uses to
+   execute client requests. The ``--serviceExecutor`` option accepts one
+   of the following values:
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 40
+   
+      * - Value
+   
+        - Description
+   
+      * - ``synchronous``
+   
+        - The :program:`mongos` uses synchronous networking and manages its
+          networking thread pool on a per connection basis. Previous
+          versions of MongoDB managed threads in this way.
+   
+      * - ``adaptive``
+   
+        - The :program:`mongos` uses the new experimental asynchronous
+          networking mode with an adaptive thread pool which manages
+          threads on a per request basis. This mode should have more
+          consistent performance and use less resources when there are
+          more inactive connections than database requests.
+
+.. option:: --timeZoneInfo <path>
+
+   .. include:: /includes/fact-timeZoneInfo.rst
+   
+   .. code-block:: sh
+   
+      wget https://downloads.mongodb.org/olson_tz_db/timezonedb-latest.zip
+      unzip timezonedb-latest.zip
+      mongos --timeZoneInfo timezonedb-2017b/
+
+   .. include::  /includes/warning-timeZoneInfo.rst
+
+Sharded Cluster Options
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. option:: --configdb <replicasetName>/<config1>,<config2>...
+
+   
+   .. versionchanged:: 3.2
+   
+   Specifies the :ref:`configuration servers <sharding-config-server>` for the
+   :term:`sharded cluster`.
+   
+   .. include:: /includes/fact-mirrored-config-servers-deprecated.rst
+   
+   Specify the config server replica set name and the hostname and port of
+   at least one of the members of the config server replica set.
+   
+   .. code-block:: javascript
+   
+      sharding:
+        configDB: <configReplSetName>/cfg1.example.net:27019, cfg2.example.net:27019,...
+   
+   The :binary:`~bin.mongos` instances for the sharded cluster must specify
+   the same config server replica set name but can specify hostname and
+   port of different members of the replica set.
+
+
+.. option:: --localThreshold
+
+   *Default*: 15
+
+   Specifies the ping time, in milliseconds, that :binary:`~bin.mongos` uses
+   to determine which secondary replica set members to pass read
+   operations from clients. The default value of ``15`` corresponds to
+   the default value in all of the client :ecosystem:`drivers
+   </drivers>`.
+   
+   When :binary:`~bin.mongos` receives a request that permits reads to
+   :term:`secondary` members, the :binary:`~bin.mongos` will:
+   
+   - Find the member of the set with the lowest ping time.
+   
+   - Construct a list of replica set members that is within a ping time of
+     15 milliseconds of the nearest suitable member of the set.
+   
+     If you specify a value for the :option:`--localThreshold` option, :binary:`~bin.mongos` will
+     construct the list of replica members that are within the latency
+     allowed by this value.
+   
+   - Select a member to read from at random from this list.
+   
+   The ping time used for a member compared by the :option:`--localThreshold` setting is a
+   moving average of recent ping times, calculated at most every 10
+   seconds. As a result, some queries may reach members above the threshold
+   until the :binary:`~bin.mongos` recalculates the average.
+   
+   See the :ref:`replica-set-read-preference-behavior-member-selection`
+   section of the :doc:`read preference </core/read-preference>`
+   documentation for more information.
+
+
+TLS/SSL Options
+~~~~~~~~~~~~~~~
+
+.. see:: :doc:`/tutorial/configure-ssl` for full
+   documentation of MongoDB's support.
+
+.. option:: --sslOnNormalPorts
+
+   .. deprecated:: 2.6 Use :option:`--sslMode requireSSL <--sslMode>` instead.
+   
+   Enables TLS/SSL for :program:`mongos`.
+   
+   With :option:`--sslOnNormalPorts`, a :program:`mongos` requires TLS/SSL encryption for all
+   connections on the default MongoDB port, or the port specified by
+   :option:`--port`. By default, :option:`--sslOnNormalPorts` is
+   disabled.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslMode <mode>
+
+   .. versionadded:: 2.6
+   
+   Enables TLS/SSL or mixed TLS/SSL used for all network connections. The
+   argument to the :option:`--sslMode` option can be one of the following:
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 40
+   
+      * - Value
+   
+        - Description
+   
+      * - ``disabled``
+   
+        - The server does not use TLS/SSL.
+   
+      * - ``allowSSL``
+   
+        - Connections between servers do not use TLS/SSL. For incoming
+          connections, the server accepts both TLS/SSL and non-TLS/non-SSL.
+   
+      * - ``preferSSL``
+   
+        - Connections between servers use TLS/SSL. For incoming
+          connections, the server accepts both TLS/SSL and non-TLS/non-SSL.
+   
+      * - ``requireSSL``
+   
+        - The server uses and accepts only TLS/SSL encrypted connections.
+   
+   .. include:: /includes/extracts/ssl-facts-ca-file.rst
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslPEMKeyFile <filename>
+
+   
+   .. note::
+   
+    Starting in 4.0, on macOS or Windows, you can use a certificate from
+    the operating system's secure store instead of a PEM key file. See
+    :option:`--sslCertificateSelector`.
+   
+   Specifies the :file:`.pem` file that contains both the TLS/SSL certificate
+   and key.
+   
+   - On Linux/BSD, you must specify :option:`--sslPEMKeyFile` when TLS/SSL is enabled.
+   
+   - On Windows or macOS, you must specify either :option:`--sslPEMKeyFile` or
+     :option:`--sslCertificateSelector` when TLS/SSL is enabled.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslPEMKeyPassword <value>
+
+   Specifies the password to de-crypt the certificate-key file (i.e.
+   :option:`--sslPEMKeyFile`). Use the :option:`--sslPEMKeyPassword` option only if the
+   certificate-key file is encrypted. In all cases, the :program:`mongos` will
+   redact the password from all logging and reporting output.
+   
+   Starting in MongoDB 4.0:
+   
+   - On Linux/BSD, if the private key in the PEM file is encrypted and
+     you do not specify the :option:`--sslPEMKeyPassword` option, MongoDB will prompt for a
+     passphrase. See :ref:`ssl-certificate-password`.
+   
+   - On macOS or Windows, if the private key in the PEM file is
+     encrypted, you must explicitly specify the :option:`--sslPEMKeyPassword` option.
+     Alternatively, you can use a certificate from the secure system
+     store (see :option:`--sslCertificateSelector`) instead of a PEM key file or use an
+     unencrypted PEM file.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --clusterAuthMode <option>
+
+   *Default*: keyFile
+
+   .. versionadded:: 2.6
+   
+   The authentication mode used for cluster authentication. If you use
+   :ref:`internal x.509 authentication <x509-internal-authentication>`,
+   specify so here. This option can have one of the following values:
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 40
+   
+      * - Value
+   
+        - Description
+   
+      * - ``keyFile``
+   
+        - Use a keyfile for authentication.
+          Accept only keyfiles.
+   
+      * - ``sendKeyFile``
+   
+        - For rolling upgrade purposes. Send a keyfile for
+          authentication but can accept both keyfiles and x.509
+          certificates.
+   
+      * - ``sendX509``
+   
+        - For rolling upgrade purposes. Send the x.509 certificate for
+          authentication but can accept both keyfiles and x.509
+          certificates.
+   
+      * - ``x509``
+   
+        - Recommended. Send the x.509 certificate for authentication and
+          accept only x.509 certificates.
+   
+   .. include:: /includes/extracts/ssl-facts-ca-file.rst
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+   
+
+
+.. option:: --sslClusterFile <filename>
+
+   .. note::
+   
+      Starting in 4.0, on macOS or Windows, you can use a certificate
+      from the operating system's secure store instead of a PEM key
+      file. See :option:`--sslClusterCertificateSelector`.
+   
+   Specifies the :file:`.pem` file that contains the x.509 certificate-key
+   file for :ref:`membership authentication <x509-internal-authentication>`
+   for the cluster or replica set.
+   
+   
+   If :option:`--sslClusterFile` does not specify the ``.pem`` file for internal cluster
+   authentication or the alternative
+   :option:`--sslClusterCertificateSelector`, the cluster uses the
+   ``.pem`` file specified in the :option:`--sslPEMKeyFile` option or
+   the certificate returned by the :option:`--sslCertificateSelector`.
+   
+   .. include:: /includes/extracts/ssl-facts-x509-ca-file.rst
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslClusterPassword <value>
+
+   .. versionadded:: 2.6
+   
+   Specifies the password to de-crypt the x.509 certificate-key file
+   specified with ``--sslClusterFile``. Use the :option:`--sslClusterPassword` option only
+   if the certificate-key file is encrypted. In all cases, the :program:`mongos`
+   will redact the password from all logging and reporting output.
+   
+   Starting in MongoDB 4.0:
+   
+   - On Linux/BSD, if the private key in the x.509 file is encrypted and
+     you do not specify the :option:`--sslClusterPassword` option, MongoDB will prompt for a
+     passphrase. See :ref:`ssl-certificate-password`.
+   
+   - On macOS or Windows, if the private key in the x.509 file is
+     encrypted, you must explicitly specify the :option:`--sslClusterPassword` option.
+     Alternatively, you can either use a certificate from the secure
+     system store (see :option:`--sslClusterCertificateSelector`) instead of a cluster PEM file or
+     use an unencrypted PEM file.
+   
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslCAFile <filename>
+
+   
+   Specifies the :file:`.pem` file that contains the root certificate chain
+   from the Certificate Authority. Specify the file name of the
+   :file:`.pem` file using relative or absolute paths.
+   
+   Starting in 4.0, on macOS or Windows, you can use a certificate from
+   the operating system's secure store instead of a PEM key file. See
+   :option:`--sslCertificateSelector`. When using the secure store, you
+   do not need to, but can, also specify the :option:`--sslCAFile`.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslClusterCAFile <filename>
+
+   
+   .. versionadded:: 4.0.3
+   
+   Specifies the :file:`.pem` file that contains the root certificate chain
+   from the Certificate Authority used to validate the certificate
+   presented by a client establishing a connection. Specify the file
+   name of the :file:`.pem` file using relative or absolute paths.
+   
+   If :option:`--sslClusterCAFile` does not specify the :file:`.pem` file for validating the
+   certificate from a client establishing a connection, the cluster uses
+   the :file:`.pem` file specified in the :option:`--sslCAFile` option.
+   
+   :option:`--sslClusterCAFile` lets you use separate Certificate Authorities to verify the
+   client to server and server to client portions of the TLS handshake.
+   
+   Starting in 4.0, on macOS or Windows, you can use a certificate from
+   the operating system's secure store instead of a PEM key file. See
+   :option:`--sslClusterCertificateSelector`. When using the secure store, you
+   do not need to, but can, also specify the :option:`--sslClusterCAFile`.
+   
+   Requires that :option:`--sslCAFile` is set.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslCertificateSelector <parameter>=<value>
+
+   
+   .. versionadded:: 4.0
+   
+      Available on Windows and macOS as an alternative to :option:`--sslPEMKeyFile`.
+      
+      :option:`--sslPEMKeyFile` and :option:`--sslCertificateSelector` options are mutually exclusive. You can only
+      specify one.
+   
+   Specifies a certificate property in order to select a matching
+   certificate from the operating system's certificate store.
+   
+   :option:`--sslCertificateSelector` accepts an argument of the format ``<property>=<value>``
+   where the property can be one of the following:
+   
+   .. include:: /includes/extracts/ssl-facts-certificate-selector-properties.rst
+   
+   .. include:: /includes/extracts/ssl-facts-certificate-selector-revocation.rst  
+
+
+.. option:: --sslClusterCertificateSelector <parameter>=<value>
+
+   
+   .. versionadded:: 4.0
+   
+      Available on Windows and macOS as an alternative to
+      :option:`--sslClusterFile`.      
+      
+      :option:`--sslClusterFile` and :option:`--sslClusterCertificateSelector` options are mutually exclusive. You can only
+      specify one.
+   
+   
+   Specifies a certificate property in order to select a matching
+   certificate from the operating system's certificate store to use for
+   internal authentication.
+   
+   :option:`--sslClusterCertificateSelector` accepts an argument of the format ``<property>=<value>``
+   where the property can be one of the following:
+   
+   .. include:: /includes/extracts/ssl-facts-certificate-selector-properties.rst
+
+
+.. option:: --sslCRLFile <filename>
+
+   
+   Specifies the :file:`.pem` file that contains the Certificate Revocation
+   List. Specify the file name of the :file:`.pem` file using relative or
+   absolute paths.
+   
+   .. note::
+      
+      Starting in MongoDB 4.0, you cannot specify :option:`--sslCRLFile` on macOS.  Use :option:`--sslCertificateSelector` instead.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslAllowConnectionsWithoutCertificates
+
+   For clients that do not present certificates, :program:`mongos` bypasses
+   TLS/SSL certificate validation when establishing the connection.
+   
+   For clients that present a certificate, however, :program:`mongos` performs
+   certificate validation using the root certificate chain specified by
+   ``--sslCAFile`` and reject clients with invalid certificates.
+   
+   Use the :option:`--sslAllowConnectionsWithoutCertificates` option if you have a mixed deployment that includes
+   clients that do not or cannot present certificates to the :program:`mongos`.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslAllowInvalidCertificates
+
+   
+   Bypasses the validation checks for TLS/SSL certificates on other
+   servers in the cluster and allows the use of invalid certificates to
+   connect.
+   
+   .. note::
+   
+      .. include:: /includes/extracts/ssl-facts-x509-invalid-certificate.rst
+   
+   When using
+   the :option:`--sslAllowInvalidCertificates` setting, MongoDB
+   logs a warning regarding the use of the invalid certificate.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslAllowInvalidHostnames
+
+   .. versionadded:: 3.0
+   
+   Disables the validation of the hostnames in TLS/SSL certificates,
+   when connecting to other members of the replica set or sharded cluster
+   for inter-process authentication. This allows :program:`mongos` to connect
+   to other members if the hostnames in their certificates do not match
+   their configured hostname.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslDisabledProtocols <protocol(s)>
+
+   .. versionadded:: 3.0.7
+   
+   Prevents a MongoDB server running with TLS/SSL from accepting
+   incoming connections that use a specific protocol or protocols. To
+   specify multiple protocols, use a comma separated list of protocols.
+    
+   :option:`--sslDisabledProtocols` recognizes the following protocols: ``TLS1_0``, ``TLS1_1``,
+   ``TLS1_2``, and starting in version 4.0.4 (and 3.6.9), ``TLS1_3``.
+   
+   - On macOS, you cannot disable ``TLS1_1`` and leave both ``TLS1_0`` and
+     ``TLS1_2`` enabled. You must disable at least one of the other
+     two, for example, ``TLS1_0,TLS1_1``.
+   
+   - To list multiple protocols, specify as a comma separated list of
+     protocols. For example ``TLS1_0,TLS1_1``.
+   
+   - Specifying an unrecognized protocol will prevent the server from
+     starting.
+   
+   - The specified disabled protocols overrides any default disabled
+     protocols.
+   
+   Starting in version 4.0, MongoDB disables the use of TLS 1.0 if TLS
+   1.1+ is available on the system. To enable the disabled TLS 1.0,
+   specify ``none`` to :option:`--sslDisabledProtocols`. See :ref:`4.0-disable-tls`.
+   
+   Members of replica sets and sharded clusters must speak at least one
+   protocol in common.
+   
+   .. seealso:: :ref:`ssl-disallow-protocols`
+
+
+.. option:: --sslFIPSMode
+
+   Directs the :program:`mongos` to use the FIPS mode of the  TLS/SSL
+   library. Your system must have a FIPS
+   compliant library to use the :option:`--sslFIPSMode` option.
+   
+   .. include:: /includes/note-fips-is-enterprise-only.rst
+
+
+Audit Options
+~~~~~~~~~~~~~
+
+.. option:: --auditDestination
+
+   
+   Enables :doc:`auditing </core/auditing>` and specifies where
+   :program:`mongos` sends all audit events.
+
+   :option:`--auditDestination` can have one of the following values:
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 15 50
+   
+      * - Value
+   
+        - Description
+   
+      * - ``syslog``
+   
+        - Output the audit events to syslog in JSON format. Not available on
+          Windows. Audit messages have a syslog severity level of ``info``
+          and a facility level of ``user``.
+   
+          The syslog message limit can result in the truncation of
+          audit messages. The auditing system will neither detect the
+          truncation nor error upon its occurrence.
+   
+      * - ``console``
+   
+        - Output the audit events to ``stdout`` in JSON format.
+   
+      * - ``file``
+   
+        - Output the audit events to the file specified in
+          :option:`--auditPath` in the format specified in
+          :option:`--auditFormat`.
+   
+   .. include:: /includes/note-audit-in-enterprise-only.rst
+
+
+.. option:: --auditFormat
+
+   .. versionadded:: 2.6
+   
+   Specifies the format of the output file for :doc:`auditing
+   </core/auditing>` if :option:`--auditDestination` is ``file``. The
+   :option:`--auditFormat` option can have one of the following values:
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 15 50
+   
+      * - Value
+   
+        - Description
+   
+      * - ``JSON``
+   
+        - Output the audit events in JSON format to the file specified
+          in :option:`--auditPath`.
+   
+      * - ``BSON``
+   
+        - Output the audit events in BSON binary format to the file
+          specified in :option:`--auditPath`.
+   
+   Printing audit events to a file in JSON format degrades server
+   performance more than printing to a file in BSON format.
+   
+   .. include:: /includes/note-audit-in-enterprise-only.rst
+
+
+.. option:: --auditPath
+
+   .. versionadded:: 2.6
+   
+   Specifies the output file for :doc:`auditing </core/auditing>` if
+   :option:`--auditDestination` has value of ``file``. The :option:`--auditPath`
+   option can take either a full path name or a relative path name.
+   
+   .. include:: /includes/note-audit-in-enterprise-only.rst
+
+
+.. option:: --auditFilter
+
+   .. versionadded:: 2.6
+   
+   Specifies the filter to limit the :ref:`types of operations
+   <audit-action-details-results>` the :doc:`audit system
+   </core/auditing>` records. The option takes a string representation
+   of a query document of the form:
+   
+   .. code-block:: javascript
+   
+      { <field1>: <expression1>, ... }
+   
+   The ``<field>`` can be :doc:`any field in the audit message
+   </reference/audit-message>`, including fields returned in the
+   :ref:`param <audit-action-details-results>` document. The
+   ``<expression>`` is a :ref:`query condition expression
+   <query-selectors>`.
+   
+   .. include:: /includes/fact-audit-filter-single-quotes.rst
+   
+   .. include:: /includes/fact-audit-filter-yaml-configuration.rst
+   
+   .. include:: /includes/note-audit-in-enterprise-only.rst
+
+
+Profiler Options
+~~~~~~~~~~~~~~~~
+
+.. versionadded:: 4.0
+
+.. option:: --slowms <integer>
+
+   *Default*: 100
+
+   
+   The *slow* operation time threshold, in milliseconds. Operations
+   that run for longer than this threshold are considered *slow*.
+   
+   When :setting:`~param.logLevel` is set to ``0``, MongoDB records *slow*
+   operations to the diagnostic log at a rate determined by
+   :setting:`~operationProfiling.slowOpSampleRate`.
+   
+   At higher :setting:`~param.logLevel` settings, all operations appear
+   in the diagnostic log regardless of their latency.
+   
+   For :binary:`~bin.mongos` instances,  affects the diagnostic
+   log only and not the profiler since profiling is not available on
+   :binary:`~bin.mongos`.
+   
+   .. versionadded:: 4.0
+
+
+.. option:: --slowOpSampleRate <double>
+
+   *Default*: 1.0
+
+   The fraction of *slow* operations that should be logged.
+   :option:`--slowOpSampleRate` accepts values between 0 and 1, inclusive.
+
+   For :binary:`~bin.mongos` instances, :option:`--slowOpSampleRate` affects the diagnostic log
+   only and not the profiler since profiling is not available on
+   :binary:`~bin.mongos`.
+   
+   .. versionadded:: 4.0
+
+
+LDAP Authentication and Authorization Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. option:: --ldapServers <host1>:<port>,<host2>:<port>,...,<hostN>:<port>
+
+   .. versionadded:: 3.4 Available in MongoDB Enterprise only.
+   
+   The LDAP server against which the :program:`mongos` authenticates users or
+   determines what actions a user is authorized to perform on a given
+   database. If the LDAP server specified has any replicated instances,
+   you may specify the host and port of each replicated server in a
+   comma-delimited list.
+   
+   If your LDAP infrastructure partitions the LDAP directory over multiple LDAP
+   servers, specify *one* LDAP server or any of its replicated instances to
+   :option:`--ldapServers`. MongoDB supports following LDAP referrals as defined in `RFC 4511
+   4.1.10 <https://www.rfc-editor.org/rfc/rfc4511.txt>`_. Do not use :option:`--ldapServers`
+   for listing every LDAP server in your infrastructure.
+   
+   This setting can be configured on a running :program:`mongos` using
+   :dbcommand:`setParameter`.
+   
+   If unset, :program:`mongos` cannot use :doc:`LDAP authentication or authorization
+   </core/security-ldap>`.
+
+.. option:: --ldapValidateLDAPServerConfig <boolean>
+
+   *Available in MongoDB Enterprise*
+
+   A flag that determines if the :binary:`~bin.mongos` instance checks
+   the availability of the :option:`LDAP server(s)
+   <mongos --ldapServers>` as part of its startup:
+
+   - If ``true``, the :binary:`~bin.mongos` instance performs the
+     availability check and only continues to start up if the LDAP
+     server is available.
+
+   - If ``false``, the :binary:`~bin.mongos` instance skips the
+     availability check; i.e. the instance starts up even if the LDAP
+     server is unavailable.
+   
+.. option:: --ldapQueryUser <string>
+
+   .. versionadded:: 3.4 Available in MongoDB Enterprise only.
+   
+   The identity with which :program:`mongos` binds as, when connecting to or
+   performing queries on an LDAP server.
+   
+   Only required if any of the following are true:
+   
+   - Using :ref:`LDAP authorization <security-ldap-external>`.
+   - Using an LDAP query for :option:`username transformation <--ldapUserToDNMapping>`.
+   - The LDAP server disallows anonymous binds
+   
+   You must use :option:`--ldapQueryUser` with :option:`--ldapQueryPassword`.
+   
+   If unset, :program:`mongos` will not attempt to bind to the LDAP server.
+   
+   This setting can be configured on a running :program:`mongos` using
+   :dbcommand:`setParameter`.
+   
+   .. note::
+   
+      Windows MongoDB deployments can use :option:`--ldapBindWithOSDefaults`
+      instead of :option:`--ldapQueryUser` and :option:`--ldapQueryPassword`. You cannot specify
+      both :option:`--ldapQueryUser` and :option:`--ldapBindWithOSDefaults` at the same time.
+
+
+.. option:: --ldapQueryPassword <string>
+
+   .. versionadded:: 3.4 Available in MongoDB Enterprise only.
+   
+   The password used to bind to an LDAP server when using
+   :option:`--ldapQueryUser`. You must use :option:`--ldapQueryPassword` with
+   :option:`--ldapQueryUser`.
+   
+   If unset, :program:`mongos` will not attempt to bind to the LDAP server.
+   
+   This setting can be configured on a running :program:`mongos` using
+   :dbcommand:`setParameter`.
+   
+   .. note::
+   
+      Windows MongoDB deployments can use :option:`--ldapBindWithOSDefaults`
+      instead of :option:`--ldapQueryPassword` and :option:`--ldapQueryPassword`. You cannot specify
+      both :option:`--ldapQueryPassword` and :option:`--ldapBindWithOSDefaults` at the same time.
+
+
+.. option:: --ldapBindWithOSDefaults <bool>
+
+   *Default*: false
+
+   .. versionadded:: 3.4
+   
+      Available in MongoDB Enterprise for the Windows platform only.
+   
+   Allows :program:`mongos` to authenticate, or bind, using your Windows login
+   credentials when connecting to the LDAP server.
+   
+   Only required if:
+   
+   - Using :ref:`LDAP authorization <security-ldap-external>`.
+   - Using an LDAP query for :option:`username transformation <--ldapUserToDNMapping>`.
+   - The LDAP server disallows anonymous binds
+   
+   Use :option:`--ldapBindWithOSDefaults` to replace :option:`--ldapQueryUser` and
+   :option:`--ldapQueryPassword`.
+
+
+.. option:: --ldapBindMethod <string>
+
+   *Default*: simple
+
+   .. versionadded:: 3.4 Available in MongoDB Enterprise only.
+   
+   The method :program:`mongos` uses to authenticate to an LDAP server.
+   Use with :option:`--ldapQueryUser` and :option:`--ldapQueryPassword` to
+   connect to the LDAP server.
+   
+   :option:`--ldapBindMethod` supports the following values:
+   
+   * ``simple`` - :program:`mongos` uses simple authentication.
+   
+   * ``sasl`` - :program:`mongos` uses SASL protocol for authentication
+   
+   If you specify ``sasl``, you can configure the available SASL mechanisms
+   using :option:`--ldapBindSaslMechanisms`. :program:`mongos` defaults to
+   using ``DIGEST-MD5`` mechanism.
+
+
+.. option:: --ldapBindSaslMechanisms <string>
+
+   *Default*: DIGEST-MD5
+
+   .. versionadded:: 3.4 Available in MongoDB Enterprise only.
+   
+   A comma-separated list of SASL mechanisms :program:`mongos` can
+   use when authenticating to the LDAP server. The :program:`mongos` and the
+   LDAP server must agree on at least one mechanism. The :program:`mongos`
+   dynamically loads any SASL mechanism libraries installed on the host
+   machine at runtime.
+   
+   Install and configure the appropriate libraries for the selected
+   SASL mechanism(s) on both the :program:`mongos` host and the remote
+   LDAP server host. Your operating system may include certain SASL
+   libraries by default. Defer to the documentation associated with each
+   SASL mechanism for guidance on installation and configuration.
+   
+   If using the ``GSSAPI`` SASL mechanism for use with
+   :ref:`security-kerberos`, verify the following for the
+   :program:`mongos` host machine:
+   
+   ``Linux``
+     - The ``KRB5_CLIENT_KTNAME`` environment
+       variable resolves to the name of the client :ref:`keytab-files`
+       for the host machine. For more on Kerberos environment
+       variables, please defer to the
+       `Kerberos documentation <https://web.mit.edu/kerberos/krb5-1.13/doc/admin/env_variables.html>`__.
+     - The client keytab includes a
+       :ref:`kerberos-user-principal` for the :program:`mongos` to use when
+       connecting to the LDAP server and execute LDAP queries.
+   
+   ``Windows``
+     If connecting to an Active Directory server, the Windows
+     Kerberos configuration automatically generates a
+     `Ticket-Granting-Ticket <https://msdn.microsoft.com/en-us/library/windows/desktop/aa380510(v=vs.85).aspx>`__
+     when the user logs onto the system. Set :option:`--ldapBindWithOSDefaults` to
+     ``true`` to allow :program:`mongos` to use the generated credentials when
+     connecting to the Active Directory server and execute queries.
+   
+   Set :option:`--ldapBindMethod` to ``sasl`` to use this option.
+   
+   .. note::
+   
+      For a complete list of SASL mechanisms see the
+      `IANA listing
+      <http://www.iana.org/assignments/sasl-mechanisms/sasl-mechanisms.xhtml>`_.
+      Defer to the documentation for your LDAP or Active Directory
+      service for identifying the SASL mechanisms compatible with the
+      service.
+   
+      MongoDB is not a source of SASL mechanism libraries, nor
+      is the MongoDB documentation a definitive source for
+      installing or configuring any given SASL mechanism. For
+      documentation and support, defer to the SASL mechanism
+      library vendor or owner.
+   
+      For more information on SASL, defer to the following resources:
+   
+      - For Linux, please see the `Cyrus SASL documentation <https://www.cyrusimap.org/sasl/>`__.
+      - For Windows, please see the `Windows SASL documentation <https://msdn.microsoft.com/en-us/library/cc223500.aspx>`__.
+
+
+.. option:: --ldapTransportSecurity <string>
+
+   *Default*: tls
+
+   .. versionadded:: 3.4 Available in MongoDB Enterprise only.
+   
+   By default, :program:`mongos` creates a TLS/SSL secured connection to the LDAP
+   server.
+   
+   For Linux deployments, you must configure the appropriate TLS Options in
+   ``/etc/openldap/ldap.conf`` file. Your operating system's package manager
+   creates this file as part of the MongoDB Enterprise installation, via the
+   ``libldap`` dependency. See the documentation for ``TLS Options`` in the
+   `ldap.conf OpenLDAP documentation
+   <http://www.openldap.org/software/man.cgi?query=ldap.conf&manpath=OpenLDAP+2.4-Release>`_
+   for more complete instructions.
+   
+   For Windows deployment, you must add the LDAP server CA certificates to the
+   Windows certificate management tool. The exact name and functionality of the
+   tool may vary depending on operating system version. Please see the
+   documentation for your version of Windows for more information on
+   certificate management.
+   
+   Set :option:`--ldapTransportSecurity` to ``none`` to disable TLS/SSL between :program:`mongos` and the LDAP
+   server.
+   
+   .. warning::
+   
+      Setting :option:`--ldapTransportSecurity` to ``none`` transmits plaintext information and possibly
+      credentials between :program:`mongos` and the LDAP server.
+
+
+.. option:: --ldapTimeoutMS <long>
+
+   *Default*: 10000
+
+   .. versionadded:: 3.4 Available in MongoDB Enterprise only.
+   
+   The amount of time in milliseconds :program:`mongos` should wait for an LDAP server
+   to respond to a request.
+   
+   Increasing the value of :option:`--ldapTimeoutMS` may prevent connection failure between the
+   MongoDB server and the LDAP server, if the source of the failure is a
+   connection timeout. Decreasing the value of :option:`--ldapTimeoutMS` reduces the time
+   MongoDB waits for a response from the LDAP server.
+   
+   This setting can be configured on a running :program:`mongos` using
+   :dbcommand:`setParameter`.
+
+
+.. option:: --ldapUserToDNMapping <string>
+
+   .. versionadded:: 3.4 Available in MongoDB Enterprise only.
+   
+   Maps the username provided to :program:`mongos` for authentication to a LDAP
+   Distinguished Name (DN). You may need to use :option:`--ldapUserToDNMapping` to transform a
+   username into an LDAP DN in the following scenarios:
+   
+   - Performing LDAP authentication with simple LDAP binding, where users
+     authenticate to MongoDB with usernames that are not full LDAP DNs.
+   
+   - Using an :option:`LDAP authorization query template
+     <mongod --ldapAuthzQueryTemplate>` that requires a DN.
+   
+   - Transforming the usernames of clients authenticating to Mongo DB using
+     different authentication mechanisms (e.g. x.509, kerberos) to a full LDAP
+     DN for authorization.
+   
+   :option:`--ldapUserToDNMapping` expects a quote-enclosed JSON-string representing an ordered array
+   of documents. Each document contains a regular expression ``match`` and
+   either a ``substitution`` or ``ldapQuery`` template used for transforming the
+   incoming username.
+   
+   Each document in the array has the following form:
+   
+   .. code-block:: javascript
+   
+      {
+        match: "<regex>"
+        substitution: "<LDAP DN>" | ldapQuery: "<LDAP Query>"
+      }
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 10 70 20
+   
+      * - Field
+        - Description
+        - Example
+   
+      * - ``match``
+        - An ECMAScript-formatted regular expression (regex) to match against a
+          provided username. Each parenthesis-enclosed section represents a
+          regex capture group used by ``substitution`` or ``ldapQuery``.
+        - ``"(.+)ENGINEERING"``
+          ``"(.+)DBA"``
+   
+      * - ``substitution``
+   
+        - An LDAP distinguished name (DN) formatting template that converts the
+          authentication name matched by the ``match`` regex into a LDAP DN.
+          Each curly bracket-enclosed numeric value is replaced by the
+          corresponding `regex capture group
+          <http://www.regular-expressions.info/refcapture.html>`_ extracted
+          from the authentication username via the ``match`` regex.
+          
+          The result of the substitution must be an `RFC4514
+          <https://www.ietf.org/rfc/rfc4514.txt>`_ escaped string.
+   
+        - ``"cn={0},ou=engineering,
+          dc=example,dc=com"``
+   
+      * - ``ldapQuery``
+   
+        - A LDAP query formatting template that inserts the authentication
+          name matched by the ``match`` regex into an LDAP query URI encoded
+          respecting RFC4515 and RFC4516. Each curly bracket-enclosed numeric
+          value is replaced by the corresponding `regex capture group
+          <http://www.regular-expressions.info/refcapture.html>`_ extracted
+          from the authentication username via the ``match`` expression.
+          :program:`mongos` executes the query against the LDAP server to retrieve
+          the LDAP DN for the authenticated user. :program:`mongos` requires
+          exactly one returned result for the transformation to be
+          successful, or :program:`mongos` skips this transformation.
+   
+        - ``"ou=engineering,dc=example,
+          dc=com??one?(user={0})"``
+   
+   .. note::
+   
+      An explanation of  `RFC4514 <https://www.ietf.org/rfc/rfc4514.txt>`_,
+      `RFC4515 <https://tools.ietf.org/search/rfc4515>`_,
+      `RFC4516 <https://tools.ietf.org/html/rfc4516>`_, or LDAP queries is out
+      of scope for the MongoDB Documentation. Please review the RFC directly or
+      use your preferred LDAP resource.
+   
+   For each document in the array, you must use either ``substitution`` or
+   ``ldapQuery``. You *cannot* specify both in the same document.
+   
+   When performing authentication or authorization, :program:`mongos` steps through
+   each document in the array in the given order, checking the authentication
+   username against the ``match`` filter.  If a match is found,
+   :program:`mongos` applies the transformation and uses the output for
+   authenticating the user. :program:`mongos` does not check the remaining documents
+   in the array.
+   
+   If the given document does not match the provided authentication name, or
+   the transformation described by the document fails, :program:`mongos` continues
+   through the list of documents to find additional matches. If no matches are
+   found in any document, :program:`mongos` returns an error.
+   
+   .. example::
+   
+     The following shows two transformation documents. The first
+     document matches against any string ending in ``@ENGINEERING``, placing
+     anything preceeding the suffix into a regex capture group. The
+     second document matches against any string ending in ``@DBA``, placing
+     anything preceeding the suffix into a regex capture group.
+   
+     .. important::  You must pass the array to :option:`--ldapUserToDNMapping` as a string.
+   
+     .. code-block:: text
+   
+        "[
+           {
+              match: "(.+)@ENGINEERING.EXAMPLE.COM",
+              substitution: "cn={0},ou=engineering,dc=example,dc=com"
+           },
+           {
+              match: "(.+)@DBA.EXAMPLE.COM",
+              ldapQuery: "ou=dba,dc=example,dc=com??one?(user={0})"
+   
+           }
+   
+        ]"
+   
+     A user with username ``alice@ENGINEERING.EXAMPLE.COM`` matches the first
+     document. The regex capture group ``{0}`` corresponds to the string
+     ``alice``. The resulting output is the DN
+     ``"cn=alice,ou=engineering,dc=example,dc=com"``.
+   
+     A user with username ``bob@DBA.EXAMPLE.COM`` matches the second document.
+     The regex capture group ``{0}`` corresponds to the string ``bob``.  The
+     resulting output is the LDAP query
+     ``"ou=dba,dc=example,dc=com??one?(user=bob)"``. :program:`mongos` executes this
+     query against the LDAP server, returning the result
+     ``"cn=bob,ou=dba,dc=example,dc=com"``.
+   
+   If :option:`--ldapUserToDNMapping` is unset, :program:`mongos` applies no transformations to the username
+   when attempting to authenticate or authorize a user against the LDAP server.
+   
+   This setting can be configured on a running :program:`mongos` using the
+   :dbcommand:`setParameter` database command.
+
+
+
+Additional Options
+~~~~~~~~~~~~~~~~~~
+
+.. this section will move into the top following the resolution of
+   SERVER-12889
+
+.. option:: --ipv6
+
+   
+   Enables IPv6 support. :program:`mongos` disables IPv6 support by default.
+   
+   Setting :option:`--ipv6` does *not* direct the :program:`mongos` to listen on any
+   local IPv6 addresses or interfaces. To configure the :program:`mongos` to
+   listen on an IPv6 interface, you must either:
+   
+   - Configure :option:`--bind_ip` with one or more IPv6 addresses or
+     hostnames that resolve to IPv6 addresses, **or**
+   - Set :option:`--bind_ip_all` to ``true``.
+
+
+

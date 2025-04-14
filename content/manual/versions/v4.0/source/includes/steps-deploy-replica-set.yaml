@@ -1,0 +1,208 @@
+# This file ref'd in steps-convert-replica-set-shard-deploy-test-data.yaml
+# steps-deploy-geographically-distributed-replica-set-3member.yaml
+# This file is tweaked to work with the other step file, as well.
+#
+title: "Start each member of the replica set with the appropriate options."
+level: 4
+ref: start-mongod
+content: |
+
+   For each member, start a :binary:`~bin.mongod` instance with the
+   following settings:
+
+   - Set :setting:`replication.replSetName` option to the replica set 
+     name. If your application connects to more than one replica set, 
+     each set must have a distinct name.
+
+   - Set :setting:`net.bindIp` option to the hostname/ip or a comma-delimited
+     list of hostnames/ips.
+
+   - Set any other settings as appropriate for your deployment.
+
+   In this tutorial, the three :binary:`~bin.mongod` instances are
+   associated with the following hosts:
+
+   .. list-table::
+      :header-rows: 1
+
+      * - Replica Set Member
+        - Hostname
+
+      * - Member 0
+        - ``mongodb0.example.net``
+
+      * - Member 1
+        - ``mongodb1.example.net``
+
+      * - Member 2
+        - ``mongodb2.example.net``
+
+   The following example specifies the replica set name and the ip
+   binding through the :option:`--replSet <mongod --replSet>` and :option:`--bind_ip <mongod --bind_ip>`
+   command-line options:
+
+   .. include:: /includes/warning-bind-ip-security-considerations.rst
+
+   .. code-block:: sh
+
+      mongod --replSet "rs0" --bind_ip localhost,<hostname(s)|ip address(es)>
+
+   For ``<hostname(s)|ip address(es)>``, specify the hostname(s) and/or
+   ip address(es) for your :binary:`~bin.mongod` instance that remote
+   clients (including the other members of the replica set) can use to
+   connect to the instance.
+
+   Alternatively, you can also specify the :setting:`replica set name
+   <replication.replSetName>` and the :setting:`ip addresses
+   <net.bindIp>` in a :doc:`configuration file
+   </reference/configuration-options>`:
+
+   .. code-block:: yaml
+
+      replication:
+         replSetName: "rs0"
+      net:
+         bindIp: localhost,<hostname(s)|ip address(es)>
+
+   To start :binary:`~bin.mongod` with a configuration file, specify the
+   configuration file's path with the :option:`--config <mongod
+   --config>` option:
+         
+   .. code-block:: sh
+
+      mongod --config <path-to-config>
+
+   In production deployments, you can configure a :term:`init script`
+   to manage this process. Init scripts are beyond the scope of this
+   document.
+
+---
+title: "Connect a :binary:`~bin.mongo` shell to one of the ``mongod`` instances."
+level: 4
+ref: open-shell
+pre: |
+
+  From the same machine where one of the :binary:`~bin.mongod` is running
+  (in this tutorial, ``mongodb0.example.net``), start the :binary:`~bin.mongo`
+  shell. To connect to the :binary:`~bin.mongod` listening to localhost on
+  the default port of ``27017``, simply issue:
+action:
+  language: sh
+  code: |
+    mongo
+post: |
+
+  Depending on your path, you may need to specify the path to the
+  :binary:`~bin.mongo` binary.
+---
+title: "Initiate the replica set."
+level: 4
+ref: initiate-rs
+pre: |
+
+  From the :binary:`~bin.mongo` shell, run :method:`rs.initiate()` on
+  replica set member 0.
+
+  .. important::
+
+     .. include:: /includes/fact-rs-initiate-once-only.rst
+
+  .. include:: /includes/tip-hostnames.rst
+action:
+  language: javascript
+  code: |
+    rs.initiate( {
+       _id : "rs0",
+       members: [
+          { _id: 0, host: "mongodb0.example.net:27017" },
+          { _id: 1, host: "mongodb1.example.net:27017" },
+          { _id: 2, host: "mongodb2.example.net:27017" }
+       ]
+    })
+post: |
+  MongoDB initiates a replica set, using 
+  the default replica set configuration.
+---
+title: "View the replica set configuration."
+level: 4
+ref: verify-rsconf
+action:
+  - pre: |
+      Use :method:`rs.conf()` to display the :doc:`replica set configuration
+      object </reference/replica-configuration>`:
+    language: javascript
+    code: |
+      rs.conf()
+  - pre: |
+      The replica set configuration object resembles the following:
+    language: javascript
+    code: |
+      {
+         "_id" : "rs0",
+         "version" : 1,
+         "protocolVersion" : NumberLong(1),
+         "members" : [
+            {
+               "_id" : 0,
+               "host" : "mongodb0.example.net:27017",
+               "arbiterOnly" : false,
+               "buildIndexes" : true,
+               "hidden" : false,
+               "priority" : 1,
+               "tags" : {
+
+               },
+               "slaveDelay" : NumberLong(0),
+               "votes" : 1
+            },
+            {
+               "_id" : 1,
+               "host" : "mongodb1.example.net:27017",
+               "arbiterOnly" : false,
+               "buildIndexes" : true,
+               "hidden" : false,
+               "priority" : 1,
+               "tags" : {
+
+               },
+               "slaveDelay" : NumberLong(0),
+               "votes" : 1
+            },
+            {
+               "_id" : 2,
+               "host" : "mongodb2.example.net:27017",
+               "arbiterOnly" : false,
+               "buildIndexes" : true,
+               "hidden" : false,
+               "priority" : 1,
+               "tags" : {
+
+               },
+               "slaveDelay" : NumberLong(0),
+               "votes" : 1
+            }
+            
+         ],
+         "settings" : {
+            "chainingAllowed" : true,
+            "heartbeatIntervalMillis" : 2000,
+            "heartbeatTimeoutSecs" : 10,
+            "electionTimeoutMillis" : 10000,
+            "catchUpTimeoutMillis" : -1,
+            "getLastErrorModes" : {
+
+            },
+            "getLastErrorDefaults" : {
+               "w" : 1,
+               "wtimeout" : 0
+            },
+            "replicaSetId" : ObjectId("585ab9df685f726db2c6a840")
+         }
+      }
+---
+title: "Ensure that the replica set has a primary."
+level: 4
+ref: check-status
+pre: |
+  Use :method:`rs.status()` to identify the primary in the replica set.
+...

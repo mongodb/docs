@@ -1,0 +1,136 @@
+==================
+$elemMatch (query)
+==================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. seealso::
+
+   :doc:`/reference/operator/projection/elemMatch`
+
+Definition
+----------
+
+.. query:: $elemMatch
+
+   The :query:`$elemMatch` operator matches documents that
+   contain an array field with at least one element that matches all the
+   specified query criteria.
+
+   .. code-block:: javascript
+
+      { <field>: { $elemMatch: { <query1>, <query2>, ... } } }
+
+   If you specify only a single ``<query>`` condition in the
+   :query:`$elemMatch` expression, you do not need to use
+   :query:`$elemMatch`.
+
+Behavior
+--------
+
+- You cannot specify a :query:`$where` expression in an
+  :query:`$elemMatch`.
+
+- You cannot specify a :query:`$text` query expression in an
+  :query:`$elemMatch`.
+
+Examples
+--------
+
+Element Match
+~~~~~~~~~~~~~
+
+Given the following documents in the ``scores`` collection:
+
+.. code-block:: javascript
+
+   { _id: 1, results: [ 82, 85, 88 ] }
+   { _id: 2, results: [ 75, 88, 89 ] }
+
+The following query matches only those documents where the ``results``
+array contains at least one element that is both greater than or equal
+to ``80`` and is less than ``85``.
+
+.. code-block:: javascript
+
+   db.scores.find(
+      { results: { $elemMatch: { $gte: 80, $lt: 85 } } }
+   )
+
+The query returns the following document since the element ``82`` is
+both greater than or equal to ``80`` and is less than ``85``
+
+.. code-block:: javascript
+
+   { "_id" : 1, "results" : [ 82, 85, 88 ] }
+
+For more information on specifying multiple criteria on array
+elements, see :ref:`specify-multiple-criteria-for-array-elements`.
+
+Array of Embedded Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Given the following documents in the ``survey`` collection:
+
+.. code-block:: javascript
+
+   { _id: 1, results: [ { product: "abc", score: 10 }, { product: "xyz", score: 5 } ] }
+   { _id: 2, results: [ { product: "abc", score: 8 }, { product: "xyz", score: 7 } ] }
+   { _id: 3, results: [ { product: "abc", score: 7 }, { product: "xyz", score: 8 } ] }
+
+The following query matches only those documents where the ``results``
+array contains at least one element with both ``product`` equal to
+``"xyz"`` and ``score`` greater than or equal to ``8``.
+
+.. code-block:: javascript
+
+   db.survey.find(
+      { results: { $elemMatch: { product: "xyz", score: { $gte: 8 } } } }
+   )
+
+Specifically, the query matches the following document:
+
+.. code-block:: javascript
+
+   { "_id" : 3, "results" : [ { "product" : "abc", "score" : 7 }, { "product" : "xyz", "score" : 8 } ] }
+
+Single Query Condition
+~~~~~~~~~~~~~~~~~~~~~~
+
+If you specify a single query predicate in the :query:`$elemMatch`
+expression, :query:`$elemMatch` is not necessary.
+
+For example, consider the following example where :query:`$elemMatch`
+specifies only a single query predicate ``{ product: "xyz" }``:
+
+.. code-block:: javascript
+
+   db.survey.find(
+      { results: { $elemMatch: { product: "xyz" } } }
+   )
+
+Since the :query:`$elemMatch` only specifies a single condition, the
+:query:`$elemMatch` expression is not necessary, and instead you can
+use the following query:
+
+.. code-block:: javascript
+
+   db.survey.find(
+      { "results.product": "xyz" }
+   )
+
+Additional Examples
+-------------------
+
+.. include:: /includes/extracts/additional-examples-arrays.rst
+
+.. seealso::
+
+   :method:`db.collection.find()`
+

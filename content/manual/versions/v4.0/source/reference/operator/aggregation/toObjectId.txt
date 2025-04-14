@@ -1,0 +1,136 @@
+=========================
+$toObjectId (aggregation)
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. meta::
+   :description: type conversion, convert to ObjectId, ObjectId conversion, aggregation
+   :keywords: type conversion, convert to ObjectId, ObjectId conversion, aggregation
+
+Definition
+----------
+
+.. expression:: $toObjectId
+
+   .. versionadded:: 4.0
+
+   Converts a value to an :method:`ObjectId`. If the value cannot be
+   converted to an ObjectId, :expression:`$toObjectId` errors. If the
+   value is null or missing, :expression:`$toObjectId` returns null.
+
+   :expression:`$toObjectId` has the following syntax:
+
+   .. code-block:: javascript
+
+      {
+         $toObjectId: <expression>
+      }
+
+   The :expression:`$toObjectId` takes any valid :ref:`expression
+   <aggregation-expressions>`.
+
+   The :expression:`$toObjectId` is a shorthand for the following
+   :expression:`$convert` expression:
+
+   .. code-block:: javascript
+
+      { $convert: { input: <expression>, to: "objectId" } }
+
+   .. seealso:: :expression:`$convert`
+
+
+Behavior
+--------
+
+The following table lists the input types that can be converted to an
+ObjectId:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Input Type
+     - Behavior
+
+   * - String
+     - Returns an ObjectId for the hexadecimal string of length 24.
+
+       You cannot convert a string value that is not a hexadecimal
+       string of length 24.
+
+The following table lists some conversion to date examples:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 80 20
+
+   * - Example
+     - Results
+
+   * - ``{$toObjectId: "5ab9cbfa31c2ab715d42129e"}``
+     - ObjectId("5ab9cbfa31c2ab715d42129e")
+
+   * - ``{$toObjectId: "5ab9cbfa31c2ab715d42129"}``
+     - Error
+
+
+Example
+-------
+
+Create a collection ``orders`` with the following documents:
+
+.. code-block:: javascript
+
+   db.orders.insert( [
+      { _id: "5ab9cbe531c2ab715d42129a", item: "apple", qty: 10 },
+      { _id: ObjectId("5ab9d0b831c2ab715d4212a8"), item: "pie", qty: 5 },
+      { _id: ObjectId("5ab9d2d331c2ab715d4212b3"), item: "ice cream", qty: 20 },
+      { _id: "5ab9e16431c2ab715d4212b4", item: "almonds", qty: 50 },
+   ] )
+
+The following aggregation operation on the ``orders`` collection
+converts the ``_id`` to ObjectId before sorting by the value:
+
+.. code-block:: javascript
+
+   // Define stage to add convertedId field with converted _id value
+
+   idConversionStage = { 
+      $addFields: { 
+         convertedId: { $toObjectId: "$_id" }
+      }
+   };
+
+   // Define stage to sort documents by the converted qty values
+
+   sortStage = {
+      $sort: { "convertedId": -1 }
+   };
+
+
+   db.orders.aggregate( [
+      idConversionStage,
+      sortStage
+   ])
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : "5ab9e16431c2ab715d4212b4", "item" : "almonds", "qty" : 50, "convertedId" : ObjectId("5ab9e16431c2ab715d4212b4") }
+   { "_id" : ObjectId("5ab9d2d331c2ab715d4212b3"), "item" : "ice cream", "qty" : 20, "convertedId" : ObjectId("5ab9d2d331c2ab715d4212b3") }
+   { "_id" : ObjectId("5ab9d0b831c2ab715d4212a8"), "item" : "pie", "qty" : 5, "convertedId" : ObjectId("5ab9d0b831c2ab715d4212a8") }
+   { "_id" : "5ab9cbe531c2ab715d42129a", "item" : "apple", "qty" : 10, "convertedId" : ObjectId("5ab9cbe531c2ab715d42129a") }
+
+.. note::
+
+   If the conversion operation encounters an error, the aggregation
+   operation stops and throws an error. To override this behavior, use
+   :expression:`$convert` instead.

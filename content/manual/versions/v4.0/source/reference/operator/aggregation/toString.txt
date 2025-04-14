@@ -1,0 +1,167 @@
+========================
+$toString (aggregation)
+========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $toString
+
+   .. versionadded:: 4.0
+
+   Converts a value to a string. If the value cannot be converted
+   to a string, :expression:`$toString` errors. If the value is null or
+   missing, :expression:`$toString` returns null.
+
+   :expression:`$toString` has the following syntax:
+
+   .. code-block:: javascript
+
+      {
+         $toString: <expression>
+      }
+
+   The :expression:`$toString` takes any valid :ref:`expression
+   <aggregation-expressions>`.
+
+   The :expression:`$toString` is a shorthand for the following
+   :expression:`$convert` expression:
+
+   .. code-block:: javascript
+
+      { $convert: { input: <expression>, to: "string" } }
+
+   .. seealso:: :expression:`$convert` and :expression:`$dateToString`
+
+
+Behavior
+--------
+
+The following table lists the input types that can be converted to a
+string:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 55 50
+
+   * - Input Type
+     - Behavior
+
+   * - Boolean
+     - Returns the boolean value as a string.
+
+   * - Double
+     - Returns the double value as a string.
+
+   * - Decimal
+     - Returns the decimal value as a string.
+
+   * - Integer
+
+     - Returns the integer value as a string.
+
+   * - Long
+
+     - Returns the long value as a string.
+
+   * - ObjectId
+
+     - Returns the ObjectId value as a hexadecimal string..
+
+   * - String
+     - No-op. Returns the string value.
+
+   * - Date
+
+     - Returns the date as a string.
+
+The following table lists some conversion to string examples:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 80 20
+
+   * - Example
+     - Results
+
+   * - ``{$toString: true}``
+     - "true"
+
+   * - ``{$toString: false}``
+     - "false"
+
+   * - ``{$toString: 2.5}``
+     - "2.5"
+
+   * - ``{$toString: NumberInt(2)}``
+     - "2"
+
+   * - ``{$toString:  NumberLong(1000)}``
+     - "1000"
+
+   * - ``{$toString: ObjectId("5ab9c3da31c2ab715d421285")}``
+     - "5ab9c3da31c2ab715d421285"
+
+   * - ``{$toString:  ISODate("2018-03-27T16:58:51.538Z")}``
+     - "2018-03-27T16:58:51.538Z"
+
+Example
+-------
+
+Create a collection ``orders`` with the following documents:
+
+.. code-block:: javascript
+
+   db.orders.insert( [
+      { _id: 1, item: "apple",  qty: 5, zipcode: 12345 },
+      { _id: 2, item: "pie",  qty: 10, zipcode: 11111 },
+      { _id: 3, item: "ice cream",  zipcode: "12345" },
+      { _id: 4, item: "almonds", qty: 2, zipcode: "12345-0030" },
+   ])
+
+The following aggregation operation on the ``orders`` collection
+converts the ``zipcode`` to string before sorting by the string value:
+
+.. code-block:: javascript
+
+   // Define stage to add convertedZipCode field with the converted zipcode value
+
+   zipConversionStage = {
+      $addFields: {
+         convertedZipCode: { $toString: "$zipcode" }
+      }
+   };
+
+   // Define stage to sort documents by the converted zipcode
+
+   sortStage = {
+      $sort: { "convertedZipCode": 1 }
+   };
+
+   db.orders.aggregate( [
+     zipConversionStage,
+     sortStage
+   ])
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 2, "item" : "pie", "qty" : 10, "zipcode" : 11111, "convertedZipCode" : "11111" }
+   { "_id" : 1, "item" : "apple", "qty" : 5, "zipcode" : 12345, "convertedZipCode" : "12345" }
+   { "_id" : 3, "item" : "ice cream", "zipcode" : "12345", "convertedZipCode" : "12345" }
+   { "_id" : 4, "item" : "almonds", "qty" : 2, "zipcode" : "12345-0030", "convertedZipCode" : "12345-0030" }
+
+.. note::
+
+   If the conversion operation encounters an error, the aggregation
+   operation stops and throws an error. To override this behavior, use
+   :expression:`$convert` instead.

@@ -1,0 +1,550 @@
+======================
+Monitoring for MongoDB
+======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Monitoring is a critical component of all database administration. A
+firm grasp of MongoDB's reporting will allow you to assess the state
+of your database and maintain your deployment without crisis.
+Additionally, a sense of MongoDB's normal operational parameters will
+allow you to diagnose problems before they escalate to failures.
+
+This document presents an overview of the available monitoring utilities
+and the reporting statistics
+available in MongoDB. It also introduces diagnostic strategies
+and suggestions for monitoring replica sets and
+sharded clusters.
+
+.. include:: /includes/replacement-mms.rst
+
+Monitoring Strategies
+---------------------
+
+MongoDB provides various methods for collecting data about the state of
+a running MongoDB instance:
+
+- Starting in version 4.0, MongoDB offers :doc:`free Cloud monitoring
+  </administration/free-monitoring>` for standalones and replica sets.
+
+- MongoDB distributes a set of utilities that provides real-time
+  reporting of database activities.
+
+- MongoDB provides various :doc:`database commands
+  </reference/command>` that return statistics regarding the current
+  database state with greater fidelity.
+
+- `MongoDB Atlas <https://www.mongodb.com/cloud/atlas?jmp=docs>`_
+  is a cloud-hosted database-as-a-service for running, monitoring, and
+  maintaining MongoDB deployments. 
+  
+- |mms-home| is a hosted service that monitors running MongoDB
+  deployments to collect data and provide visualization and alerts
+  based on that data.
+  
+- MongoDB Ops Manager is :products:`an on-premise solution available in
+  MongoDB Enterprise Advanced </mongodb-enterprise-advanced?jmp=docs>`
+  that monitors running MongoDB deployments to collect data and provide
+  visualization and alerts based on that data.
+
+Each strategy can help answer different questions and is useful in
+different contexts. These methods are complementary.
+
+MongoDB Reporting Tools
+-----------------------
+
+This section provides an overview of the reporting methods distributed
+with MongoDB. It also offers examples of the kinds of questions that
+each method is best suited to help you address.
+
+Free Monitoring
+~~~~~~~~~~~~~~~
+
+.. versionadded:: 4.0
+
+MongoDB offers :doc:`free Cloud monitoring
+</administration/free-monitoring>` for standalones or replica sets.
+
+By default, you can enable/disable free monitoring during runtime using
+:method:`db.enableFreeMonitoring()` and :method:`db.disableFreeMonitoring()`.
+
+Free monitoring provides up to 24 hours of data. For more details, see
+:doc:`/administration/free-monitoring`.
+
+Utilities
+~~~~~~~~~
+
+The MongoDB distribution includes a number of utilities that quickly
+return statistics about instances' performance and activity. Typically,
+these are most useful for diagnosing issues and assessing normal
+operation.
+
+``mongostat``
+`````````````
+
+:binary:`~bin.mongostat` captures and returns the counts of database
+operations by type (e.g. insert, query, update, delete, etc.). These
+counts report on the load distribution on the server.
+
+Use :binary:`~bin.mongostat` to understand the distribution of operation types
+and to inform capacity planning. See the :doc:`mongostat manual
+</reference/program/mongostat>` for details.
+
+``mongotop``
+````````````
+
+:binary:`~bin.mongotop` tracks and reports the current read and write
+activity of a MongoDB instance, and reports these statistics on a per
+collection basis.
+
+Use :binary:`~bin.mongotop` to check if your database activity and use
+match your expectations. See the :doc:`mongotop manual
+</reference/program/mongotop>` for details.
+
+.. _http-console:
+
+HTTP Console
+````````````
+
+.. include:: /includes/fact-deprecated-http-interface.rst
+
+Commands
+~~~~~~~~
+
+MongoDB includes a number of commands that report on the state of the
+database.
+
+These data may provide a finer level of granularity than the utilities
+discussed above. Consider using their output in scripts and programs to
+develop custom alerts, or to modify the behavior of your application in
+response to the activity of your instance. The :method:`db.currentOp`
+method is another useful tool for identifying the database instance's
+in-progress operations.
+
+``serverStatus``
+````````````````
+
+The :dbcommand:`serverStatus` command, or :method:`db.serverStatus()`
+from the shell, returns a general overview of the status of the
+database, detailing disk usage, memory use, connection, journaling,
+and index access. The command returns quickly and does not impact
+MongoDB performance.
+
+:dbcommand:`serverStatus` outputs an account of the state of a MongoDB
+instance. This command is rarely run directly. In most cases, the data
+is more meaningful when aggregated, as one would see with monitoring
+tools including |mms-home| and :products:`Ops Manager
+</mongodb-enterprise-advanced?jmp=docs>`. Nevertheless, all
+administrators should be familiar with the data provided by
+:dbcommand:`serverStatus`.
+
+``dbStats``
+```````````
+
+The :dbcommand:`dbStats` command, or :method:`db.stats()` from the shell,
+returns a document that addresses storage use and data volumes. The
+:dbcommand:`dbStats` reflect the amount of
+storage used, the quantity of data contained in the database, and
+object, collection, and index counters.
+
+Use this data to monitor the state and storage capacity
+of a specific database. This output also allows you to compare
+use between databases and to determine the average
+:term:`document` size in a database.
+
+``collStats``
+`````````````
+
+The :dbcommand:`collStats` or :method:`db.collection.stats()` from the
+shell that provides statistics that resemble :dbcommand:`dbStats` on
+the collection level, including a count of the objects in the
+collection, the size of the collection, the amount of disk space used
+by the collection, and information about its indexes.
+
+``replSetGetStatus``
+````````````````````
+
+The :dbcommand:`replSetGetStatus` command (:method:`rs.status()` from
+the shell) returns an overview of your replica set's status. The :doc:`replSetGetStatus
+</reference/command/replSetGetStatus>` document details the
+state and configuration of the replica set and statistics about its members.
+
+Use this data to ensure that replication is properly configured,
+and to check the connections between the current host and the other members
+of the replica set.
+
+Hosted (SaaS) Monitoring Tools
+``````````````````````````````
+
+These are monitoring tools provided as a hosted service, usually through
+a paid subscription.
+
+.. list-table::
+   :header-rows: 1
+
+   * - **Name**
+
+     - **Notes**
+
+   * - |mms-home|
+
+     - |MMS| is a cloud-based suite of services for managing MongoDB
+       deployments. |MMS| provides monitoring, backup, and automation
+       functionality. For an on-premise solution, see also
+       :products:`Ops Manager, available in MongoDB Enterprise Advanced
+       </mongodb-enterprise-advanced?jmp=docs>`.
+
+   * - `VividCortex <https://www.vividcortex.com/>`_
+
+     - VividCortex provides deep insights into MongoDB `production
+       database workload and query performance
+       <https://www.vividcortex.com/product/how-it-works>`_ -- in
+       one-second resolution. Track latency, throughput, errors, and
+       more to ensure scalability and exceptional performance of your
+       application on MongoDB.
+
+   * - `Scout <http://scoutapp.com>`_
+
+     - Several plugins, including `MongoDB Monitoring
+       <https://scoutapp.com/plugin_urls/391-mongodb-monitoring>`_,
+       `MongoDB Slow Queries
+       <http://scoutapp.com/plugin_urls/291-mongodb-slow-queries>`_,
+       and `MongoDB Replica Set Monitoring
+       <http://scoutapp.com/plugin_urls/2251-mongodb-replica-set-monitoring>`_.
+
+   * - `Server Density <http://www.serverdensity.com>`_
+
+     - `Dashboard for MongoDB
+       <http://www.serverdensity.com/mongodb-monitoring/>`_, MongoDB
+       specific alerts, replication failover timeline and iPhone, iPad
+       and Android mobile apps.
+
+   * - `Application Performance Management <http://ibmserviceengage.com>`_
+
+     - IBM has an Application Performance Management SaaS offering that
+       includes monitor for MongoDB and other applications and middleware.
+
+   * - `New Relic <http://newrelic.com/>`_
+
+     - New Relic offers full support for application performance
+       management. In addition, New Relic Plugins and Insights enable you to view
+       monitoring metrics from Cloud Manager in New Relic.
+
+   * - `Datadog <https://www.datadoghq.com/>`_
+
+     - `Infrastructure monitoring
+       <http://docs.datadoghq.com/integrations/mongodb/>`_ to visualize
+       the performance of your MongoDB deployments.
+
+   * - `SPM Performance Monitoring <https://sematext.com/spm>`__
+
+     - `Monitoring, Anomaly Detection and Alerting
+       <https://sematext.com/spm/integrations/mongodb-monitoring/>`_ SPM monitors all key MongoDB metrics together with infrastructure incl. Docker and other application metrics, e.g. Node.js, Java, NGINX, Apache, HAProxy or Elasticsearch. SPM provides correlation of metrics and logs.
+
+.. _stdout:
+.. _standard-output:
+.. _monitoring-standard-loggging:
+
+Process Logging
+---------------
+
+During normal operation, :binary:`~bin.mongod` and :binary:`~bin.mongos`
+instances report a live account of all server activity and operations
+to either
+standard output or a log file. The following runtime settings
+control these options.
+
+- :setting:`~systemLog.quiet`. Limits the amount of information written to the
+  log or output.
+
+- :setting:`~systemLog.verbosity`. Increases the amount of information written to
+  the log or output. You can also modify the logging verbosity during
+  runtime with the :parameter:`logLevel` parameter or the
+  :method:`db.setLogLevel()` method in the shell.
+
+- :setting:`~systemLog.path`. Enables logging to a file, rather than the standard
+  output. You must specify the full path to the log file when adjusting
+  this setting.
+
+- :setting:`~systemLog.logAppend`. Adds information to a log
+  file instead of overwriting the file.
+
+.. note::
+
+   You can specify these configuration operations as the command line
+   arguments to :doc:`mongod </reference/program/mongod>` or :doc:`mongos
+   </reference/program/mongos>`
+
+   For example:
+
+   .. code-block:: javascript
+
+      mongod -v --logpath /var/log/mongodb/server1.log --logappend
+
+   Starts a :binary:`~bin.mongod` instance in :setting:`verbose
+   <systemLog.verbosity>` mode, appending data to the log file at
+   ``/var/log/mongodb/server1.log/``.
+
+The following :term:`database commands <database command>` also
+affect logging:
+
+- :dbcommand:`getLog`. Displays recent messages from the
+  :binary:`~bin.mongod` process log.
+
+- :dbcommand:`logRotate`. Rotates the log files for :binary:`~bin.mongod`
+  processes only. See :doc:`/tutorial/rotate-log-files`.
+
+.. _monitoring-log-redaction:
+
+Log Redaction
+~~~~~~~~~~~~~
+
+.. versionadded:: 3.4 Available in MongoDB Enterprise only
+
+A :binary:`~bin.mongod` running with :setting:`security.redactClientLogData`
+redacts :doc:`messages </reference/log-messages>` associated with any given
+log event before logging, leaving only metadata, source files, or line numbers
+related to the event. :setting:`security.redactClientLogData` prevents
+potentially sensitive information from entering the system log at the cost of
+diagnostic detail.
+
+For example, the following operation inserts a document into a
+:binary:`~bin.mongod` running without log redaction. The :binary:`~bin.mongod`
+has :setting:`systemLog.component.command.verbosity` set to ``1``:
+
+.. code-block:: javascript
+
+   db.clients.insertOne( { "name" : "Joe", "PII" : "Sensitive Information" } )
+
+This operation produces the following log event:
+
+.. code-block:: text
+
+   2017-06-09T13:35:23.446-0400 I COMMAND  [conn1] command internal.clients
+      appName: "MongoDB Shell"
+      command: insert {
+         insert: "clients",
+         documents: [ {
+               _id: ObjectId('593adc5b99001b7d119d0c97'),
+               name: "Joe",
+               PII: " Sensitive Information"
+            } ],
+         ordered: true
+      }
+      ...
+
+A :binary:`~bin.mongod` running with :setting:`security.redactClientLogData`
+performing the same insert operation produces the following log event:
+
+.. code-block:: text
+
+   2017-06-09T13:45:18.599-0400 I COMMAND  [conn1] command internal.clients
+      appName: "MongoDB Shell"
+      command: insert {
+         insert: "###", documents: [ {
+            _id: "###", name: "###", PII: "###"
+         } ],
+         ordered: "###"
+      }
+
+Use :setting:`~security.redactClientLogData` in conjunction with
+:doc:`/core/security-encryption-at-rest` and
+:doc:`/core/security-transport-encryption` to assist compliance with
+regulatory requirements.
+
+Diagnosing Performance Issues
+-----------------------------
+
+.. include:: /includes/intro-performance.rst
+
+.. _replica-set-monitoring:
+
+Replication and Monitoring
+--------------------------
+
+.. note::
+
+   .. include:: /includes/fact-slow-oplog-log-message-footnote.rst
+
+Beyond the basic monitoring requirements for any MongoDB instance, for
+replica sets, administrators must monitor *replication
+lag*. "Replication lag" refers to the amount of time that it takes to
+copy (i.e. replicate) a write operation on the :term:`primary` to a
+:term:`secondary`. Some small delay period may be acceptable, but two
+significant problems emerge as replication lag grows:
+
+- First, operations that occurred during the period of lag are not
+  replicated to one or more secondaries. If you're using replication
+  to ensure data persistence, exceptionally long delays may impact the
+  integrity of your data set.
+
+- Second, if the replication lag exceeds the length of the operation
+  log (:term:`oplog`) then MongoDB will have to perform an initial
+  sync on the secondary, copying all data from the :term:`primary` and
+  rebuilding all indexes. [#oplog]_ This is uncommon under normal circumstances,
+  but if you configure the oplog to be smaller than the default,
+  the issue can arise.
+
+  .. note::
+
+     The size of the oplog is only configurable during the first
+     run using the :option:`--oplogSize <mongod --oplogSize>` argument to
+     the :binary:`~bin.mongod` command, or preferably, the
+     :setting:`~replication.oplogSizeMB` setting
+     in the MongoDB configuration file. If you do not specify this on the
+     command line before running with the :option:`--replSet <mongod --replSet>`
+     option, :binary:`~bin.mongod` will create a default sized oplog.
+
+     By default, the oplog is 5 percent of total available disk space
+     on 64-bit systems. For more information about changing the oplog
+     size, see the :doc:`/tutorial/change-oplog-size`.
+
+For causes of replication lag, see :ref:`Replication Lag
+<replica-set-replication-lag>`.
+
+Replication issues are most often the result of network connectivity
+issues between members, or the result of a :term:`primary` that does not
+have the resources to support application and replication traffic. To
+check the status of a replica, use the :dbcommand:`replSetGetStatus` or
+the following helper in the shell:
+
+.. code-block:: javascript
+
+   rs.status()
+
+The :dbcommand:`replSetGetStatus` reference provides a more in-depth
+overview view of this output. In general, watch the value of
+:data:`~replSetGetStatus.members.optimeDate`, and pay particular attention
+to the time difference between the :term:`primary` and the
+:term:`secondary` members.
+
+.. [#oplog]
+
+   .. include:: /includes/fact-oplog-size.rst
+
+Sharding and Monitoring
+-----------------------
+
+In most cases, the components of :term:`sharded clusters <sharded cluster>`
+benefit from the same monitoring and analysis as all other MongoDB
+instances. In addition, clusters require further monitoring to ensure
+that data is effectively distributed among nodes and that sharding
+operations are functioning appropriately.
+
+.. seealso:: See the :doc:`/sharding` documentation for more
+   information.
+
+Config Servers
+~~~~~~~~~~~~~~
+
+The :term:`config database` maintains a map identifying which
+documents are on which shards. The cluster updates this map as
+:term:`chunks <chunk>` move between shards. When a configuration
+server becomes inaccessible, certain sharding operations become
+unavailable, such as moving chunks and starting :binary:`~bin.mongos`
+instances. However, clusters remain accessible from already-running
+:binary:`~bin.mongos` instances.
+
+Because inaccessible configuration servers can seriously impact
+the availability of a sharded cluster, you should monitor your
+configuration servers to ensure that the cluster remains well
+balanced and that :binary:`~bin.mongos` instances can restart.
+
+|mms-home| and :products:`Ops Manager
+</mongodb-enterprise-advanced?jmp=docs>` monitor config servers and can
+create notifications if a config server becomes inaccessible. See the
+|mms-docs| and :opsmgr:`Ops Manager documentation
+</application>` for more information.
+
+Balancing and Chunk Distribution
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The most effective :term:`sharded cluster` deployments evenly balance
+:term:`chunks <chunk>` among the shards. To facilitate this, MongoDB
+has a background :term:`balancer` process that distributes data to ensure that
+chunks are always optimally distributed among the :term:`shards <shard>`.
+
+Issue the :method:`db.printShardingStatus()` or :method:`sh.status()`
+command to the :binary:`~bin.mongos` by way of the :binary:`~bin.mongo`
+shell. This returns an overview of the entire cluster including the
+database name, and a list of the chunks.
+
+Stale Locks
+~~~~~~~~~~~
+
+To check the lock status of the database, connect to a
+:binary:`~bin.mongos` instance using the :binary:`~bin.mongo` shell. Issue the
+following command sequence to switch to the ``config`` database and
+display all outstanding locks on the shard database:
+
+.. code-block:: javascript
+
+   use config
+   db.locks.find()
+
+The balancing process takes a special "balancer" lock that prevents
+other balancing activity from transpiring. In the ``config`` database,
+use the following command to view the "balancer" lock.
+
+.. code-block:: javascript
+
+   db.locks.find( { _id : "balancer" } )
+
+.. versionchanged:: 3.4
+
+   Starting in 3.4, the primary of the CSRS config server holds the
+   "balancer" lock, using a process id named "ConfigServer". This lock
+   is never released. To determine if the balancer is running, see
+   :ref:`sharding-balancing-is-running`.
+
+.. _storage-node-watchdog:
+
+Storage Node Watchdog
+---------------------
+
+.. versionadded:: 3.6
+
+.. note:: Available only in MongoDB Enterprise. Not available on macOS.
+
+The Storage Node Watchdog monitors the
+filesystems used by MongoDB to detect unresponsive conditions.
+
+The Storage Node Watchdog can be enabled with
+the :parameter:`watchdogPeriodSeconds` parameter on a :binary:`~bin.mongod`.
+
+When enabled, the Storage Node Watchdog
+monitors the following directories:
+
+* The :option:`--dbpath <mongod --dbpath>` directory
+* The ``journal`` directory inside the :option:`--dbpath <mongod --dbpath>` directory if
+  :option:`journaling <mongod --journal>` is enabled
+* The directory of :option:`--logpath <mongod --logpath>` file
+* The directory of :option:`--auditPath <mongod --auditPath>` file
+
+If any of the filesystems containing these directories become unresponsive,
+the Storage Node Watchdog terminates the
+:binary:`~bin.mongod` and exits with a status code of 61. If the
+:binary:`~bin.mongod` is serving as the :term:`primary`, terminating initiates
+:term:`failover` allowing another member to become primary.
+
+Once a :binary:`~bin.mongod` has terminated, it may not be possible to cleanly
+restart it on the *same* machine.
+
+The maximum time the Storage Node Watchdog can
+take to detect an unresponsive filesystem and terminate is nearly *twice* the
+value of :parameter:`watchdogPeriodSeconds`.
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   /administration/free-monitoring
+   /tutorial/monitor-with-snmp
+   /tutorial/monitor-with-snmp-on-windows
+   /tutorial/troubleshoot-snmp

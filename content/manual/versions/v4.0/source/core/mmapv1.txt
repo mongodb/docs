@@ -1,0 +1,141 @@
+.. _storage-mmapv1:
+
+=====================
+MMAPv1 Storage Engine
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. admonition:: Deprecated
+   :class: warning
+
+   .. include:: /includes/fact-4.0-mmapv1-deprecated.rst
+
+MMAPv1 is MongoDB's original storage engine based on memory mapped
+files. It excels at workloads with high volume inserts, reads, and
+in-place updates.
+
+.. include:: /includes/fact-mmapv1-big-endian.rst
+
+
+Journal
+-------
+
+In order to ensure that all modifications to a MongoDB data set are
+durably written to disk, MongoDB, by default, records all modifications
+to an on-disk journal. MongoDB writes more frequently to the journal
+than it writes the data files.
+
+.. include:: /includes/fact-mmapv1-write-to-disk.rst
+
+The journal allows MongoDB to successfully recover data from data files
+after a :binary:`~bin.mongod` instance exits without flushing all changes.
+See :doc:`/core/journaling` for more information about the journal in
+MongoDB.
+
+Record Storage Characteristics
+------------------------------
+
+All records are contiguously located on disk, and when a document
+becomes larger than the allocated record, MongoDB must allocate a new
+record. New allocations require MongoDB to move a document and update
+all indexes that refer to the document, which takes more time than
+in-place updates and leads to storage
+fragmentation.
+
+.. versionchanged:: 3.0.0
+
+By default, MongoDB uses :ref:`power-of-2-allocation` so that every
+document in MongoDB is stored in a *record* which contains the document
+itself and extra space, or :term:`padding`. Padding allows the document
+to grow as the result of updates while minimizing the likelihood of
+reallocations.
+
+.. _record-allocation-strategies:
+
+Record Allocation Strategies
+----------------------------
+
+MongoDB supports multiple record allocation strategies that determine
+how :binary:`~bin.mongod` adds padding to a document when creating a
+record. Because documents in MongoDB may grow after insertion
+and all records are contiguous on disk, the padding can reduce the
+need to relocate documents on disk following updates. Relocations are
+less efficient than in-place updates and can lead to storage
+fragmentation. As a result, all padding strategies trade additional
+space for increased efficiency and decreased fragmentation.
+
+Different allocation strategies support different kinds of workloads:
+the :ref:`power of 2 allocations <power-of-2-allocation>` are more
+efficient for insert/update/delete workloads; while :ref:`exact fit
+allocations <exact-fit-allocation>` is ideal for collections *without*
+update and delete workloads.
+
+.. _power-of-2-allocation:
+
+Power of 2 Sized Allocations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 3.0.0
+
+MongoDB 3.0 uses the power of 2 sizes allocation as the default record
+allocation strategy for MMAPv1. With the power of 2 sizes allocation
+strategy, each record has a size in bytes that is a power of 2 (e.g.
+32, 64, 128, 256, 512 ... 2 MB). For documents larger than 2 MB, the
+allocation is rounded up to the nearest multiple of 2 MB.
+
+The power of 2 sizes allocation strategy has the following key
+properties:
+
+- Can efficiently reuse freed records to reduce fragmentation.
+  Quantizing record allocation sizes into a fixed set of sizes
+  increases the probability that an insert will fit into the free space
+  created by an earlier document deletion or relocation.
+
+- Can reduce moves. The added padding space gives a document room to
+  grow without requiring a move. In addition to saving the cost of
+  moving, this results in less updates to indexes. Although the power
+  of 2 sizes strategy can minimize moves, it does not eliminate them
+  entirely.
+
+.. _exact-fit-allocation:
+
+No Padding Allocation Strategy
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 3.0.0
+
+For collections whose workloads do not change the document sizes, such
+as workloads that consist of insert-only operations or update
+operations that do not increase document size (such as incrementing a
+counter), you can disable the :ref:`power of 2 allocation
+<power-of-2-allocation>` using the :dbcommand:`collMod` command with
+the :collflag:`noPadding` flag or the :method:`db.createCollection()`
+method with the ``noPadding`` option.
+
+Prior to version 3.0.0, MongoDB used an allocation strategy that
+included a dynamically calculated :data:`padding
+<collStats.paddingFactor>` as a factor of the document size.
+
+.. _mmapv1-RAM:
+
+Memory Use
+----------
+
+With MMAPv1, MongoDB automatically uses all free memory on the machine
+as its cache. System resource monitors show that MongoDB uses a lot of
+memory, but its usage is dynamic. If another process suddenly needs
+half the server's RAM, MongoDB will yield cached memory to the other
+process.
+
+Technically, the operating system's virtual memory subsystem manages
+MongoDB's memory. This means that MongoDB will use as much free memory
+as it can, swapping to disk as needed. Deployments with enough memory
+to fit the application's working data set in RAM will achieve the best
+performance.

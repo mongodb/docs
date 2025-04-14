@@ -1,0 +1,319 @@
+======================
+db.collection.remove()
+======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.collection.remove()
+
+   Removes documents from a collection.
+
+   The :method:`db.collection.remove()` method can have one of two
+   syntaxes. The :method:`~db.collection.remove()` method can take a
+   query document and an optional ``justOne`` boolean:
+
+   .. code-block:: javascript
+
+      db.collection.remove(
+         <query>,
+         <justOne>
+      )
+
+   Or the method can take a query document and an optional remove
+   options document:
+
+   .. versionadded:: 2.6
+
+   .. code-block:: javascript
+
+      db.collection.remove(
+         <query>,
+         {
+           justOne: <boolean>,
+           writeConcern: <document>,
+           collation: <document>
+         }
+      )
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``query``
+   
+        - document
+   
+        - Specifies deletion criteria using :doc:`query operators
+          </reference/operator>`. To delete all documents in a collection,
+          pass an empty document (``{}``).
+          
+          .. versionchanged:: 2.6
+             In previous versions, the method invoked with no query parameter
+             deleted all documents in a collection.
+          
+          
+   
+      * - ``justOne``
+   
+        - boolean
+   
+        - Optional. To limit the deletion to just one document, set to ``true``. Omit to
+          use the default value of ``false`` and delete all documents matching
+          the deletion criteria.
+          
+          
+   
+      * - ``writeConcern``
+   
+        - document
+   
+        - Optional. A document expressing the :doc:`write concern
+          </reference/write-concern>`. Omit to use the default write concern.
+          See :ref:`remove-wc`.
+          
+          .. include:: /includes/extracts/transactions-operations-write-concern.rst
+          
+          
+   
+      * - ``collation``
+   
+        - document
+   
+        - Optional. 
+          
+          .. include:: /includes/extracts/collation-option.rst
+          
+          
+   
+
+
+   .. versionchanged:: 2.6
+      The :method:`~db.collection.remove()` returns an object that
+      contains the status of the operation.
+
+   :returns: A :ref:`writeresults-remove` object that contains the
+      status of the operation.
+
+Behavior
+--------
+
+.. _remove-wc:
+
+Write Concern
+~~~~~~~~~~~~~
+
+.. versionchanged:: 2.6
+
+The :method:`~db.collection.remove()` method uses the
+:dbcommand:`delete` command, which uses the default :doc:`write concern
+</reference/write-concern>`. To specify a different write concern,
+include the write concern in the options parameter.
+
+Query Considerations
+~~~~~~~~~~~~~~~~~~~~
+
+By default, :method:`~db.collection.remove()` removes all documents
+that match the ``query`` expression. Specify the ``justOne`` option to
+limit the operation to removing a single document. To delete a single
+document sorted by a specified order, use the :ref:`findAndModify()
+<findAndModify-wrapper-sorted-remove>` method.
+
+When removing multiple documents, the remove operation may interleave
+with other read and/or write operations to the collection.
+
+Capped Collections
+~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-remove-capped-collection-restriction.rst
+
+Sharded Collections
+~~~~~~~~~~~~~~~~~~~
+
+.. |single-modification-operation-names| replace:: :method:`~db.collection.remove()`
+
+.. |single-modification-operation-option| replace:: ``justOne``
+
+.. include:: /includes/fact-single-modification-in-sharded-collections.rst
+
+Transactions
+~~~~~~~~~~~~
+
+.. include:: /includes/extracts/transactions-supported-operation.rst
+
+.. include:: /includes/extracts/transactions-operations-write-concern.rst
+
+.. include:: /includes/extracts/transactions-usage.rst
+
+.. |operation| replace:: :method:`db.collection.remove()`
+
+Examples
+--------
+
+The following are examples of the :method:`~db.collection.remove()` method.
+
+Remove All Documents from a Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To remove all documents in a collection, call the :method:`remove
+<db.collection.remove()>` method with an empty query document ``{}``.
+The following operation deletes all documents from the :doc:`bios
+collection </reference/bios-example-collection>`:
+
+.. code-block:: javascript
+
+   db.bios.remove( { } )
+
+This operation is not equivalent to the
+:method:`~db.collection.drop()` method.
+
+To remove all documents from a collection, it may be more efficient
+to use the :method:`~db.collection.drop()` method to drop the entire
+collection, including the indexes, and then recreate the collection
+and rebuild the indexes.
+
+Remove All Documents that Match a Condition
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To remove the documents that match a deletion criteria, call the
+:method:`~db.collection.remove()` method with the ``<query>``
+parameter:
+
+The following operation removes all the documents from the collection
+``products`` where ``qty`` is greater than ``20``:
+
+.. code-block:: javascript
+
+   db.products.remove( { qty: { $gt: 20 } } )
+
+Override Default Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation to a replica set removes all the documents from
+the collection ``products`` where ``qty`` is greater than ``20`` and
+specifies a :doc:`write concern </reference/write-concern>` of ``"w:
+majority"`` with a ``wtimeout`` of 5000 milliseconds such that the
+method returns after the write propagates to a majority of the voting
+replica set members or the method times out after 5 seconds.
+
+.. include:: /includes/fact-majority-write-concern-change.rst
+
+.. code-block:: javascript
+
+   db.products.remove(
+       { qty: { $gt: 20 } },
+       { writeConcern: { w: "majority", wtimeout: 5000 } }
+   )
+
+Remove a Single Document that Matches a Condition
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To remove the first document that match a deletion criteria, call the
+:method:`remove <db.collection.remove()>` method with the ``query``
+criteria and the ``justOne`` parameter set to ``true`` or ``1``.
+
+The following operation removes the first document from the collection
+``products`` where ``qty`` is greater than ``20``:
+
+.. code-block:: javascript
+
+   db.products.remove( { qty: { $gt: 20 } }, true )
+
+Specify Collation
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/collation-versionadded.rst
+
+A collection ``myColl`` has the following documents:
+
+.. code-block:: javascript
+
+   { _id: 1, category: "café", status: "A" }
+   { _id: 2, category: "cafe", status: "a" }
+   { _id: 3, category: "cafE", status: "a" }
+
+The following operation includes the :ref:`collation <collation>`
+option:
+
+.. code-block:: javascript
+
+   db.myColl.remove( 
+      { category: "cafe", status: "A" }, 
+      { collation: { locale: "fr", strength: 1 } }
+   )
+
+.. _writeresults-remove:
+
+WriteResult
+-----------
+
+.. versionchanged:: 2.6
+
+Successful Results
+~~~~~~~~~~~~~~~~~~
+
+The :method:`~db.collection.remove()` returns a :method:`WriteResult`
+object that contains the status of the operation. Upon success, the
+:method:`WriteResult` object contains information on the number of
+documents removed:
+
+.. code-block:: javascript
+
+   WriteResult({ "nRemoved" : 4 })
+
+.. seealso:: :data:`WriteResult.nRemoved`
+
+Write Concern Errors
+~~~~~~~~~~~~~~~~~~~~
+
+If the :method:`~db.collection.remove()` method encounters write
+concern errors, the results include the
+:data:`WriteResult.writeConcernError` field:
+
+.. code-block:: javascript
+
+   WriteResult({
+      "nRemoved" : 21,
+      "writeConcernError" : {
+         "code" : 64,
+         "errInfo" : {
+            "wtimeout" : true
+         },
+         "errmsg" : "waiting for replication timed out"
+      }
+   })
+
+.. seealso:: :method:`WriteResult.hasWriteConcernError()`
+
+Errors Unrelated to Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the :method:`~db.collection.remove()` method encounters a non-write
+concern error, the results include :data:`WriteResult.writeError` field:
+
+.. code-block:: javascript
+
+   WriteResult({
+      "nRemoved" : 0,
+      "writeError" : {
+         "code" : 2,
+         "errmsg" : "unknown top level operator: $invalidFieldName"
+      }
+   })
+
+.. seealso:: :method:`WriteResult.hasWriteError()`

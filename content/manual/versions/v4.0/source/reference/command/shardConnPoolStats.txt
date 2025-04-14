@@ -1,0 +1,161 @@
+==================
+shardConnPoolStats
+==================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. avail in 2.2.4 (backported), 2.4.2, and 2.5
+
+Definition
+----------
+
+.. dbcommand:: shardConnPoolStats
+
+   Returns information on the pooled and cached connections in the sharded
+   connection pool. The command also returns information on the per-thread
+   connection cache in the connection pool.
+
+   The :dbcommand:`shardConnPoolStats` command uses the following syntax:
+
+   .. code-block:: javascript
+
+      { shardConnPoolStats: 1 }
+
+   The sharded connection pool is specific to connections between members
+   in a sharded cluster. The :binary:`~bin.mongos` instances in a cluster use
+   the connection pool to execute client reads and writes. The
+   :binary:`~bin.mongod` instances in a cluster use the pool when issuing
+   :dbcommand:`mapReduce` to query temporary collections on other shards.
+
+   When the cluster requires a connection, MongoDB pulls a connection from
+   the sharded connection pool into the per-thread connection cache.
+   MongoDB returns the connection to the connection pool after every
+   operation.
+
+Output
+------
+
+.. data:: shardConnPoolStats.hosts
+
+   Displays connection status for each :term:`config server`,
+   :term:`replica set`, and :term:`standalone instance <standalone>` in
+   the cluster.
+
+   .. data:: shardConnPoolStats.hosts.<host>.available
+
+      The number of connections available for this host to connect to the
+      :binary:`~bin.mongos`.
+
+   .. data:: shardConnPoolStats.hosts.<host>.created
+
+      The number of connections the host has ever created to connect to
+      the :binary:`~bin.mongos`.
+
+.. data:: shardConnPoolStats.replicaSets
+
+   Displays information specific to replica sets.
+
+   .. data:: shardConnPoolStats.replicaSets.<name>.host
+
+      Holds an array of documents that report on each replica set member.
+      These values derive from the :doc:`replica set status
+      </reference/command/replSetGetStatus>` values.
+
+      .. data:: shardConnPoolStats.replicaSets.<name>.host[n].addr
+
+         The host address in the format ``[hostname]:[port]``.
+
+      .. data:: shardConnPoolStats.replicaSets.<name>.host[n].ok
+
+         This field is for internal use. Reports ``false`` when the
+         :binary:`~bin.mongos` either cannot connect to instance or received a
+         connection exception or error.
+
+      .. data:: shardConnPoolStats.replicaSets.<name>.host[n].ismaster
+
+         The host is the replica set's :term:`primary` if this is ``true``.
+
+      .. data:: shardConnPoolStats.replicaSets.<name>.host[n].hidden
+
+         The host is a :term:`hidden member` of the replica set if this is
+         ``true``.
+
+      .. data:: shardConnPoolStats.replicaSets.<name>.host[n].secondary
+
+         The host is a :term:`hidden member` of the replica set if this is
+         ``true``.
+
+         The host is a :term:`secondary` member of the replica set if this is
+         ``true``.
+
+      .. data:: shardConnPoolStats.replicaSets.<name>.host[n].pingTimeMillis
+
+         The latency, in milliseconds, from the :binary:`~bin.mongos` to this member.
+
+      .. data:: shardConnPoolStats.replicaSets.<name>.host[n].tags
+
+         .. include:: /includes/fact-tags-field.rst
+
+         .. seealso:: :rsconf:`members[n].tags`
+
+.. data:: shardConnPoolStats.createdByType
+
+   The number connections in the cluster's connection pool.
+
+   .. data:: shardConnPoolStats.createdByType.master
+
+      The number of connections to a shard.
+
+   .. data:: shardConnPoolStats.createdByType.set
+
+      The number of connections to a replica set.
+
+   .. data:: shardConnPoolStats.createdByType.sync
+
+      The number of connections to the config database.
+
+.. data:: shardConnPoolStats.totalAvailable
+
+   The number of connections available from the :binary:`~bin.mongos` to
+   the config servers, replica sets, and standalone :binary:`~bin.mongod`
+   instances in the cluster.
+
+.. data:: shardConnPoolStats.totalCreated
+
+   The number of connections the :binary:`~bin.mongos` has ever created to
+   other members of the cluster.
+
+.. data:: shardConnPoolStats.threads
+
+   Displays information on the per-thread connection cache.
+
+   .. data:: shardConnPoolStats.threads.hosts
+
+      Displays each incoming client connection. For a :binary:`~bin.mongos`,
+      this array field displays one document per incoming client thread.
+      For a :binary:`~bin.mongod`, the array displays one entry per incoming
+      sharded :dbcommand:`mapReduce` client thread.
+
+      .. data:: shardConnPoolStats.threads.hosts.host
+
+         The host using the connection. The host can be a :term:`config
+         server`, :term:`replica set`, or :term:`standalone instance
+         <standalone>`.
+
+      .. data:: shardConnPoolStats.threads.hosts.created
+
+         The number of times the host pulled a connection from the pool.
+
+      .. data:: shardConnPoolStats.threads.hosts.avail
+
+         The thread's availability.
+
+   .. data:: shardConnPoolStats.threads.seenNS
+
+      The namespaces used on this connection thus far.

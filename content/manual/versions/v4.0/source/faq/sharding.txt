@@ -1,0 +1,122 @@
+==========================
+FAQ: Sharding with MongoDB
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This document answers common questions about :doc:`/sharding`. See also
+the :doc:`/sharding` section in the manual, which provides an
+:doc:`overview of sharding </sharding>`, including details on:
+
+- :doc:`Shard Keys and Considerations for Shard Key Selection
+  </core/sharding-shard-key>`
+
+- :doc:`Query Routing </core/sharded-cluster-query-router/>`
+
+- :ref:`sharding-availability`
+
+- :doc:`/core/sharding-data-partitioning` and
+  :doc:`Chunk Migration Process </core/sharding-balancer-administration>`
+  
+- :doc:`/tutorial/troubleshoot-sharded-clusters`
+
+Is sharding appropriate for a new deployment?
+---------------------------------------------
+
+Sometimes. However, if your data set fits on a single server, you
+should begin with an unsharded deployment as sharding while your data
+set is small provides *little advantage* .
+
+.. _faq-change-shard-key:
+
+Can I change the shard key after sharding a collection?
+-------------------------------------------------------
+
+No.
+
+There is no automatic support in MongoDB for changing a shard key
+after sharding a collection. This reality underscores
+the importance of choosing a good :ref:`shard key <shard-key>`. If you
+*must* change a shard key after sharding a collection, the best option is to:
+
+- dump all data from MongoDB into an external format.
+
+- drop the original sharded collection.
+
+- configure sharding using a more ideal shard key.
+
+- :doc:`pre-split </tutorial/create-chunks-in-sharded-cluster>` the shard
+  key range to ensure initial even distribution.
+
+- restore the dumped data into MongoDB.
+
+.. seealso:: :doc:`/core/sharding-shard-key`
+
+Why are my documents not distributed across the shards?
+-------------------------------------------------------
+
+The balancer starts distributing data across the shards once the
+distribution of chunks has reached certain thresholds. See
+:ref:`sharding-migration-thresholds`.
+
+In addition, MongoDB cannot move a chunk if the number of documents in
+the chunk exceeds a certain number. See
+:ref:`migration-chunk-size-limit` and :ref:`jumbo-chunk`.
+
+How does ``mongos`` detect changes in the sharded cluster configuration?
+------------------------------------------------------------------------
+
+:binary:`~bin.mongos` instances maintain a cache of the :term:`config
+database` that holds the metadata for the :term:`sharded cluster`.
+
+:binary:`~bin.mongos` updates its cache lazily by issuing a request to a
+shard and discovering that its metadata is out of date. To force the
+:binary:`~bin.mongos` to reload its cache, you can run the
+:dbcommand:`flushRouterConfig` command against each :binary:`~bin.mongos`
+directly.
+
+.. _faq-writebacklisten:
+
+What does ``writebacklisten`` in the log mean?
+----------------------------------------------
+
+The writeback listener is a process that opens a long poll to relay
+writes back from a :binary:`~bin.mongod` or :binary:`~bin.mongos` after
+migrations to make sure they have not gone to the wrong server.  The
+writeback listener sends writes back to the correct server if
+necessary.
+
+These messages are a key part of the sharding infrastructure and should
+not cause concern.
+
+How does ``mongos`` use connections?
+------------------------------------
+
+Each :binary:`~bin.mongos` instance maintains a pool of connections to the
+members of the sharded cluster. Client requests use these connections
+one at a time; i.e. requests are not multiplexed or pipelined.
+
+When client requests complete, the :binary:`~bin.mongos` returns the
+connection to the pool. These pools do not shrink when the number of
+clients decreases. This can lead to an unused :binary:`~bin.mongos` with a
+large number of open connections. If the :binary:`~bin.mongos` is no longer
+in use, it is safe to restart the process to close existing connections.
+
+To return aggregated statistics related to all of the outgoing
+connection pools used by the :binary:`~bin.mongos`, connect a
+:binary:`~bin.mongo` shell to the :binary:`~bin.mongos` with , and run the
+:dbcommand:`connPoolStats` command:
+
+.. code-block:: sh
+
+   db.adminCommand("connPoolStats");
+
+See the :ref:`System Resource Utilization
+<system-resource-utilization>` section of the :doc:`/reference/ulimit`
+document.

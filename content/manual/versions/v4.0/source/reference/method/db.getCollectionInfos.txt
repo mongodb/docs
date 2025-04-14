@@ -1,0 +1,320 @@
+=======================
+db.getCollectionInfos()
+=======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.getCollectionInfos(filter, nameOnly, authorizedCollections)
+
+   .. versionadded:: 3.0
+
+   Returns an array of documents with collection or :doc:`view
+   </core/views>` information, such as  name and options, for
+   the current database. The results depend on the user's
+   privilege. For details, see :ref:`db.getCollectionInfo-access-control`.
+
+   The :method:`db.getCollectionInfos()` helper wraps the
+   :dbcommand:`listCollections` command.
+
+   The :method:`db.getCollectionInfos()` method has the following 
+   optional parameter:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``filter``
+   
+        - document
+   
+        - Optional. A query expression to filter the list of collections.
+          
+          You can specify a query expression on any of the :ref:`fields
+          returned <list-collection-output>` by :method:`db.getCollectionInfos`.
+          
+          
+   
+      * - ``nameOnly``
+   
+        - boolean
+   
+        - Optional. A flag to indicate whether the command should return just the
+          collection/view names and type or return both the name and other information.
+          
+          Returning just the name and type (``view`` or ``collection``) does
+          not take collection-level locks whereas returning full collection
+          information locks each collection in the database.
+          
+          The default value is ``false``.
+          
+          .. note::
+          
+             When ``nameOnly`` is ``true``, your ``filter`` expression can only
+             filter based on a collection's name and type. No other fields are
+             available.
+          
+          .. versionadded:: 4.0
+          
+          
+   
+      * - ``authorizedCollections``
+   
+        - boolean
+   
+        - Optional. A flag, when set to ``true`` and used with ``nameOnly: true``, that
+          allows a user without the required privilege (i.e.
+          :authaction:`listCollections` action on the database) to run the
+          command when access control is enforced.
+          
+          When both ``authorizedCollections`` and ``nameOnly`` options are set
+          to true, the command returns only those collections for which the user
+          has privileges. For example, if a user has :authaction:`find` action
+          on specific collections, the command returns only those collections; or,
+          if a user has :authaction:`find` or any other action, on the
+          database resource, the command lists all collections in the database.
+          
+          The default value is ``false``. That is, the user must have
+          :authaction:`listCollections` action on the database to run the
+          command.
+          
+          For a user who has :authaction:`listCollections` action on the
+          database, this option has no effect since the user has privileges to
+          list the collections in the database.
+          
+          When used without ``nameOnly: true``, this option has no effect.
+          That is, the user must have the required privileges to run the
+          command when access control is enforced. Otherwise, the user is
+          unauthorized to run the command.
+          
+          .. versionadded:: 4.0
+          
+          
+   
+
+
+   .. versionchanged:: 3.2
+   
+   MongoDB 3.2 added support for :doc:`document validation
+   </core/schema-validation>`. :method:`db.getCollectionInfos()`
+   includes document validation information in the ``options``
+   document. 
+      
+   :method:`db.getCollectionInfos()` does not return ``validationLevel``
+   and ``validationAction`` unless they are explicitly set.
+
+.. _db.getCollectionInfo-access-control:
+
+Required Access
+---------------
+
+Since :method:`db.getCollectionInfos()` is a wrapper around the
+:dbcommand:`listCollections`, users must have the same privileges as
+:dbcommand:`listCollections` when access control is enforced.
+
+.. include:: /includes/extracts/listCollections-auth-required-access.rst
+
+``show collections``
+~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/listCollections-auth-show-collections.rst
+
+Earlier MongoDB Versions
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/listCollections-auth-show-collections-earlier-versions.rst
+
+Example
+-------
+
+The following returns information for all collections in the
+``example`` database:
+
+.. code-block:: javascript
+
+   use example
+   db.getCollectionInfos()
+
+The method returns an array of documents that contain collection
+information:
+
+.. code-block:: javascript
+
+   [
+      {
+         "name" : "employees",
+         "type" : "collection",
+         "options" : {
+            "flags" : 1,
+            "validator" : {
+               "$or" : [
+                  {
+                     "phone" : {
+                        "$exists" : true
+                     }
+                  },
+                  {
+                     "email" : {
+                        "$exists" : true
+                     }
+                  }
+               ]
+            }
+         },
+         "info" : {
+            "readOnly" : false,
+            "uuid" : UUID("222e18ca-4a10-4a42-a8fe-c39255cc4c55")
+         },
+         "idIndex" : {
+            "v" : 2,
+            "key" : {
+               "_id" : 1
+            },
+            "name" : "_id_",
+            "ns" : "example.employees"
+         }
+      },
+      {
+         "name" : "products",
+         "type" : "collection",
+         "options" : {
+            "flags" : 1
+         },
+         "info" : {
+            "readOnly" : false,
+            "uuid" : UUID("1bc898b2-3b91-45e4-9d8b-0be462d5a157")
+         },
+         "idIndex" : {
+            "v" : 2,
+            "key" : {
+               "_id" : 1
+            },
+            "name" : "_id_",
+            "ns" : "example.products"
+         }
+      },
+      {
+         "name" : "mylogs",
+         "type" : "collection",
+         "options" : {
+            "capped" : true,
+            "size" : 256
+         },
+         "info" : {
+            "readOnly" : true,
+            "uuid" : UUID("8e62116d-b6a0-490a-808c-258ccb7ea947")
+         },
+         "idIndex" : {
+            "v" : 2,
+            "key" : {
+               "_id" : 1
+            },
+            "name" : "_id_",
+            "ns" : "example.mylogs"
+         }
+      }
+   ]
+
+To request collection information for a *specific* collection,
+specify the collection name when calling the method, as in the following:
+
+.. code-block:: javascript
+
+   use example
+   db.getCollectionInfos( { name: "employees" } )
+
+The method returns an array with a single document that details the
+collection information for the ``employees`` collection in the
+``example`` database.
+
+.. code-block:: javascript
+
+   [
+      {
+         "name" : "employees",
+         "type" : "collection",
+         "options" : {
+            "flags" : 1,
+            "validator" : {
+               "$or" : [
+                  {
+                     "phone" : {
+                        "$exists" : true
+                     }
+                  },
+                  {
+                     "email" : {
+                        "$exists" : true
+                     }
+                  }
+               ]
+            }
+         },
+         "info" : {
+            "readOnly" : false,
+            "uuid" : UUID("222e18ca-4a10-4a42-a8fe-c39255cc4c55")
+         },
+         "idIndex" : {
+            "v" : 2,
+            "key" : {
+               "_id" : 1
+            },
+            "name" : "_id_",
+            "ns" : "example.employees"
+         }
+      }
+   ]
+
+You can specify a filter on any of the fields returned by
+:dbcommand:`getCollectionInfos`.
+
+For example, the following command returns information for all
+collections in the ``example`` database where ``info.readOnly`` is
+``true``:
+
+.. code-block:: javascript
+
+   use example
+   db.getCollectionInfos( { "info.readOnly" : true } )
+
+The command returns the following:
+
+.. code-block:: javascript
+
+   [
+      {
+         "name" : "mylogs",
+         "type" : "collection",
+         "options" : {
+            "capped" : true,
+            "size" : 256
+         },
+         "info" : {
+            "readOnly" : true,
+            "uuid" : UUID("8e62116d-b6a0-490a-808c-258ccb7ea947")
+         },
+         "idIndex" : {
+            "v" : 2,
+            "key" : {
+               "_id" : 1
+            },
+            "name" : "_id_",
+            "ns" : "example.mylogs"
+         }
+      }
+   ]

@@ -1,0 +1,92 @@
+.. _convert-master-slave-to-replica-set:
+
+==================================================
+Convert a Master-Slave Deployment to a Replica Set
+==================================================
+
+.. default-domain:: mongodb
+
+.. admonition:: Removed
+   :class: warning
+
+   MongoDB 4.0 removes support for master-slave replication. Before you
+   can upgrade to MongoDB 4.0, if your deployment uses master-slave
+   replication, you must upgrade to a replica set.
+
+   To convert your master-slave replication, see
+   :ref:`convert-master-slave-to-replica-set`.
+
+
+Procedure
+---------
+
+To convert a master-slave deployment to a replica set, restart the
+current master as a one-member replica set.
+
+1. To confirm that the current instance is master, run:
+
+   .. code-block:: sh
+
+      db.isMaster()
+
+   This should return a document that resembles the following:
+
+   .. code-block:: sh
+
+      {
+         "ismaster" : true,
+         "msg" : "isdbgrid",
+         "maxBsonObjectSize" : 16777216,
+         "maxMessageSizeBytes" : 48000000,
+         "maxWriteBatchSize" : 100000,
+         "localTime" : ISODate("2017-11-15T17:50:05.775Z"),
+         "logicalSessionTimeoutMinutes" : 30,
+         "maxWireVersion" : 6,
+         "minWireVersion" : 0,
+         "ok" : 1,
+         "$clusterTime" : {
+            "clusterTime" : Timestamp(1510768200, 1),
+            "signature" : {
+               "hash" : BinData(0,"VKMQp+F/p+nDZldmWTUzBz7A8Kc="),
+               "keyId" : NumberLong("6488693018630029321")
+            }
+         },
+         "operationTime" : Timestamp(1510768200, 1)
+      }
+
+#. Shut down the :binary:`~bin.mongod` processes on the master and all
+   slave(s), using the following command while connected to each
+   instance:
+
+   .. code-block:: sh
+
+      db.adminCommand({shutdown : 1, force : true})
+
+#. Back up your ``/data/db`` directories, in case you need to revert
+   to the master-slave deployment.
+
+#. Start the former master with the :option:`--replSet <mongod --replSet>`
+   option, as in the following:
+
+   .. code-block:: sh
+
+      mongod --replSet <setname>
+
+#. Connect to the :binary:`~bin.mongod` with the :binary:`~bin.mongo` shell,
+   and initiate the replica set with the following command:
+
+   .. code-block:: sh
+
+      rs.initiate( { _id: "<setname>", members: [ { _id: 0, host: "<host:port>" } ] } )
+
+   When the command returns, you will have successfully deployed a
+   one-member replica set. You can check the status of your replica set
+   at any time by running the following command:
+
+   .. code-block:: sh
+
+      rs.status()
+
+To add the former slaves as secondaries to the replica set, remove the
+their data directories and add to the replica set. See
+:doc:`/tutorial/expand-replica-set` to add new members to a replica set.

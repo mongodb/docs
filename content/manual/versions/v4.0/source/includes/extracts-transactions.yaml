@@ -1,0 +1,193 @@
+ref: transactions-read-pref
+content: |
+
+   :doc:`Multi-document transactions </core/transactions>` that contain
+   read operations must use read preference :readmode:`primary`.
+
+   All operations in a given transaction must route to the same member.
+---
+ref: transactions-usage
+content: |
+   .. important::
+
+      In most cases, multi-document transaction incurs a greater
+      performance cost over single document writes, and the
+      availability of multi-document transaction should not be a
+      replacement for effective schema design. For many scenarios, the
+      :ref:`denormalized data model (embedded documents and arrays)
+      <data-modeling-embedding>` will continue to be optimal for your
+      data and use cases. That is, for many scenarios, modeling your data
+      appropriately will minimize the need for multi-document
+      transactions. For additional transactions usage considerations
+      (such as runtime limit and oplog size limit), see also
+      :doc:`/core/transactions-production-consideration`.
+
+---
+ref: transactions-intro
+content: |
+   .. include:: /includes/extracts/transactions-intro-blurb.rst
+
+   .. include:: /includes/extracts/transactions-usage.rst
+---
+ref: transactions-intro-blurb
+content: |
+   Starting in version 4.0, for situations that require atomicity for
+   updates to multiple documents or consistency between reads to multiple
+   documents, MongoDB provides :doc:`multi-document transactions
+   </core/transactions>` for replica sets.
+---
+ref: transactions-faq
+content: |
+   Because a single document can contain related data that would otherwise
+   be modeled across separate parent-child tables in a relational schema,
+   MongoDB's atomic single-document operations already provide transaction
+   semantics that meet the data integrity needs of the majority of
+   applications. One or more fields may be written in a single operation,
+   including updates to multiple sub-documents and elements of an array.
+   The guarantees provided by MongoDB ensure complete isolation as a
+   document is updated; any errors cause the operation to roll back so
+   that clients receive a consistent view of the document.
+
+   Starting in version 4.0, for situations that require atomicity for
+   updates to multiple documents or consistency between reads to multiple
+   documents, MongoDB provides :doc:`multi-document transactions
+   </core/transactions>` for replica sets, and transactions for sharded
+   clusters are scheduled for MongoDB 4.2.
+---
+ref: transactions-operations-restrictions
+content: |
+ 
+   The following operations are not allowed in multi-document
+   transactions:
+
+   - Operations that affect the database catalog, such as creating or
+     dropping a collection or an index. For example, a multi-document
+     transaction cannot include an insert operation that would result
+     in the creation of a new collection.
+
+     The :dbcommand:`listCollections` and :dbcommand:`listIndexes`
+     commands and their helper methods are also excluded.
+ 
+   - Non-CRUD and non-informational operations, such as
+     :dbcommand:`createUser`, :dbcommand:`getParameter`,
+     :dbcommand:`count`, etc. and their helpers.
+
+---
+ref: transactions-operations-restrictions-info
+content: |
+
+   Informational commands, such as :dbcommand:`hello`,
+   :dbcommand:`buildInfo`, :dbcommand:`connectionStatus` (and their
+   helper methods) are allowed in transactions; however, they cannot be
+   the first operation in the transaction.
+
+---
+ref: transactions-operations-retry
+content: |
+   The commit and abort transaction operations are :doc:`retryable write
+   operations </core/retryable-writes>`. If the commit operation or the
+   abort operation encounters an error, MongoDB drivers retry the
+   operation a single time regardless of whether :urioption:`retryWrites` is
+   set to ``true``.
+---
+ref: transactions-operations-crud
+content: |
+
+   - You can specify read/write (CRUD) operations on **existing**
+     collections. The collections can be in different databases. For a
+     list of CRUD operations, see :ref:`transactions-operations-crud`.
+
+   - You cannot read/write to collections in the ``config``, ``admin``,
+     or ``local`` databases.
+
+   - You cannot write to ``system.*`` collections.
+
+   - You cannot return the supported operation's query plan (i.e. ``explain``).
+
+   .. include:: /includes/extracts/transactions-operations-getMore.rst
+---
+ref: transactions-operations-catalog-tip
+content: |
+
+   .. tip:: 
+
+      When creating or dropping a collection immediately before
+      starting a transaction, if the collection is accessed within the
+      transaction, issue the create or drop operation with write
+      concern :writeconcern:`"majority"` to ensure that the transaction
+      can acquire the required locks.
+
+---
+ref: transactions-operations-getMore
+content: |
+
+   - For cursors created outside of transactions, you cannot call
+     :dbcommand:`getMore` inside a transaction.
+
+   - For cursors created in a transaction, you cannot call
+     :dbcommand:`getMore` outside the transaction.
+
+---
+ref: transactions-supported-operation
+content: |
+
+   |operation| supports :doc:`multi-document transactions
+   </core/transactions>`.
+
+---
+ref: transactions-operations-write-concern
+content: |
+
+   Do not explicitly set the write concern for the operation if run in
+   a transaction. To use write concern with transactions, see
+   :ref:`transaction-options`.
+
+---
+ref: transactions-write-conflict
+content: |
+
+   If a multi-document transaction is in progress and a write
+   outside the transaction modifies a document that an operation in the
+   transaction later tries to modify, the transaction aborts because of
+   a write conflict.
+   
+   If a multi-document transaction is in progress and has taken a lock
+   to modify a document, when a write outside the transaction tries to
+   modify the same document, the write waits until the transaction ends.
+
+---
+ref: transactions-stale-reads
+content: |
+
+   Read operations inside a transaction can return stale data. That is,
+   read operations inside a transaction are not guaranteed to see
+   writes performed by other committed transactions or
+   non-transactional writes. For example, consider the following
+   sequence: 1) a transaction is in-progress 2) a write outside the
+   transaction deletes a document 3) a read operation inside the
+   transaction is able to read the now-deleted document since the
+   operation is using a snapshot from before the write.
+
+   To avoid stale reads inside transactions for a single document, you
+   can use the :method:`db.collection.findOneAndUpdate()` method. For
+   example:
+
+   .. code-block:: javascript
+
+      session.startTransaction( { readConcern: { level: "snapshot" }, writeConcern: { w: "majority" } } );
+
+      employeesCollection = session.getDatabase("hr").employees;
+
+      employeeDoc = employeesCollection.findOneAndUpdate( 
+         { _id: 1, employee: 1, status: "Active" },
+         { $set: { employee: 1 } },
+         { returnNewDocument: true }
+      );
+
+   - If the employee document has changed outside the transaction, then
+     the transaction aborts.
+
+   - If the employee document has not changed, the transaction returns
+     the document and locks the document.
+
+...
