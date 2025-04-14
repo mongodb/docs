@@ -1,0 +1,220 @@
+===================
+createSearchIndexes
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: createSearchIndexes
+
+.. versionadded:: 6.0.7
+
+.. include:: /includes/atlas-search-commands/command-descriptions.rst/createSearchIndexes-description.rst
+
+.. include:: /includes/atlas-search-commands/atlas-only-db-command.rst
+
+Syntax
+------
+
+Command syntax:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         createSearchIndexes: "<collection name>",
+         indexes: [
+            {
+               name: "<index name>",
+               definition: {
+                  /* search index definition fields */
+               } 
+           },
+           ...
+         ]
+      }
+   )
+
+Command Fields
+--------------
+
+The ``createSearchIndexes`` command takes the following fields:
+
+.. list-table::
+  :header-rows: 1
+  :widths: 20 20 20 80
+
+  * - Field
+    - Type
+    - Necessity
+    - Description
+
+  * - ``createSearchIndexes``
+    - string
+    - Required
+    - Name of the collection on which to create the search index.
+
+  * - ``indexes``
+    - array
+    - Required
+    - Array of documents describing the indexes to create.
+
+  * - ``indexes.name``
+    - string
+    - Optional
+    - Name of the search index to create.
+    
+      You cannot create multiple indexes with the same name on a single
+      collection.
+      
+      If you do not specify a ``name``, the index is named ``default``.
+
+  * - ``indexes.definition``
+    - document
+    - Required
+    - Document describing the index to create. For details on
+      ``definition`` syntax, see :ref:`search-index-definition-create`.
+
+.. _search-index-definition-create:
+
+Search Index Definition Syntax
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/atlas-search-commands/search-index-definition-fields.rst
+
+Access Control
+--------------
+
+If your deployment enforces access control, the user running the
+``createSearchIndexes`` command must have the
+:authaction:`createSearchIndexes` privilege action on the database:
+
+.. code-block:: javascript
+
+   { resource: { database : true }, actions: [ "createSearchIndex" ] }
+
+The built-in :authrole:`readWrite` role provides the
+``createSearchIndex`` privilege. The following example grants
+``accountUser01`` the ``readWrite`` role on the ``products`` database:
+
+.. code-block:: javascript
+
+   db.grantRolesToUser(
+      "accountUser01",
+      [ { role: "readWrite", db: "products" } ]
+   )
+
+Examples
+--------
+
+Create a Search Index on All Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example creates a search index named ``searchIndex01`` on
+the ``contacts`` collection:
+
+.. code-block:: javascript
+
+   db.runCommand( {
+      createSearchIndexes: "contacts",
+      indexes: [
+         {
+            name: "searchIndex01",
+            definition: { mappings: { dynamic: true } }
+         }
+      ]
+   } )
+
+The index definition specifies ``mappings: { dynamic: true }``, which
+means that the index contains all fields in the collection that have
+:ref:`supported data types <bson-data-chart>`.
+
+Create a Search Index with a Language Analyzer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A language analyzer changes which words the index uses as stop-words,
+which are words that are not significant enough to be indexed.
+
+The following example creates a search index named ``frenchIndex01`` on
+the ``cars`` collection, and specifies the ``lucene.french`` analyzer on
+the ``fr`` field:
+
+.. code-block:: javascript
+
+   db.runCommand( {
+      createSearchIndexes: "cars",
+      indexes: [
+         {
+            name: "frenchIndex01",
+            definition: {
+               mappings: {
+                 fields: {
+                   subject: {
+                     fields: {
+                       fr: {
+                         analyzer: "lucene.french",
+                         type: "string"
+                       }
+                     },
+                     type: "document"
+                   }
+                 }
+               }
+             }
+         }
+      ]
+   } )
+
+To learn more about language analyzers, see
+:ref:`ref-language-analyzers`.
+
+Create Multiple Search Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following command creates two search indexes on the ``products``
+collection, ``searchIndex02`` and ``searchIndex03``:
+
+.. code-block:: javascript
+
+   db.runCommand( {
+      createSearchIndexes: "products",
+      indexes: [
+         {
+            name: "searchIndex02",
+            definition: {
+               mappings: {
+                  fields: {
+                     title: {
+                        type: "string",
+                        analyzer: "lucene.simple"
+                     }
+                  }
+               }
+            }
+         },
+         {
+            name: "searchIndex03",
+            definition:
+               {
+                  mappings: { dynamic: true }
+               }
+         }
+      ]
+   } )
+
+``searchIndex02`` uses a :ref:`simple analyzer <ref-simple-analyzer>` on
+the ``title`` field. The simple analyzer divides text into searchable
+terms based on non-letter characters, such as whitespace, punctuation,
+or digits.
+
+``searchIndex03`` uses a dynamic field mapping, meaning the index
+contains all fields in the collection that have :ref:`supported data
+types <bson-data-chart>`.

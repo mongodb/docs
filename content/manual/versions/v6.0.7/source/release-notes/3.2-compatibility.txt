@@ -1,0 +1,196 @@
+:orphan:
+
+====================================
+Compatibility Changes in MongoDB 3.2
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+The following 3.2 changes can affect the compatibility with older
+versions of MongoDB. See also :doc:`/release-notes/3.2` for the list of
+the 3.2 changes.
+
+.. _3.2-storage-engine-compatibility:
+
+Default Storage Engine Change
+-----------------------------
+
+Starting in 3.2, MongoDB uses the WiredTiger as the default storage
+engine. Previous versions used the MMAPv1 as the default storage engine.
+
+For existing deployments, if you do not specify the ``--storageEngine``
+or the :setting:`storage.engine` setting, MongoDB automatically
+determines the storage engine used to create the data files in the
+``--dbpath`` or :setting:`storage.dbPath`.
+
+For new deployments, to use MMAPv1, you must explicitly specify the
+storage engine setting either:
+
+- On the command line with the ``--storageEngine`` option:
+
+  .. code-block:: bash
+
+     mongod --storageEngine mmapv1
+
+- Or in a :doc:`configuration file </reference/configuration-options>`,
+  using the :setting:`storage.engine` setting:
+
+  .. code-block:: yaml
+
+     storage:
+        engine: mmapv1
+
+Index Changes
+-------------
+
+.. _3.2-version-0-indexes:
+
+Version 0 Indexes
+~~~~~~~~~~~~~~~~~
+
+MongoDB 3.2 disallows the creation of version 0 indexes (i.e. ``{v:
+0}``). If version 0 indexes exist, MongoDB 3.2 outputs a warning log
+message, specifying the collection and the index.
+
+Starting in MongoDB 2.0, MongoDB started automatically upgrading ``v:
+0`` indexes during :ref:`initial sync <replica-set-initial-sync>`,
+:binary:`~bin.mongorestore` or :dbcommand:`reIndex` operations.
+
+If a version 0 index exists, you can use any of the aforementioned
+operations as well as drop and recreate the index to upgrade to the
+``v: 1`` version.
+
+For example, if upon startup, a warning message indicated that an index
+``index { v: 0, key: { x: 1.0 }, name: "x_1", ns: "test.legacyOrders"
+}`` is a version 0 index, to upgrade to the appropriate version, you
+can drop and recreate the index:
+
+#. Drop the index either by name:
+
+   .. code-block:: javascript
+
+      use test
+      db.legacyOrders.dropIndex( "x_1" )
+
+   or by key:
+
+   .. code-block:: javascript
+
+      use test
+      db.legacyOrders.dropIndex( { x: 1 } )
+
+#. Recreate the index without the version option ``v``:
+
+   .. code-block:: none
+
+      db.legacyOrders.createIndex( { x: 1 } )
+
+.. comment Also, need to remove index version option in the createIndex page (+ any other places that seems to suggest you can manually set v:0) in 3.2 manual.
+
+.. _3.2-text-index-compatibility:
+
+Text Index Version 3 Compatibility
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:ref:`Text index (version 3) <3.2-relnotes-text-index-v3>` is
+incompatible with earlier versions of MongoDB. Earlier versions of
+MongoDB will not start if :doc:`text index (version 3)
+</core/index-text>` exists in the database.
+
+.. _3.2-2dsphere-index-compatibility:
+
+``2dsphere`` Index Version 3 Compatibility
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:ref:`2dsphere index (version 3) <3.2-relnotes-2dsphere-index>` is
+incompatible with earlier versions of MongoDB. Earlier versions of
+MongoDB will not start if ``2dsphere`` index (version 3) exists in the
+database.
+
+.. _3.2-agg-compatibility:
+
+Aggregation Compatibility Changes
+---------------------------------
+
+- :group:`$avg` accumulator returns null when run against a
+  non-existent field. Previous versions returned ``0``.
+
+- :expression:`$substr` errors when the result is an invalid UTF-8.
+  Previous versions output the invalid UTF-8 result.
+
+- Array elements are no longer treated as literals in the aggregation
+  pipeline. Instead, each element of an array is now parsed as an
+  expression. To treat the element as a literal instead of an
+  expression, use the :expression:`$literal` operator to create a
+  literal value.
+
+- :pipeline:`$unwind` no longer errors on non-array operands. If the operand
+  does not resolve to an array but is not missing, null, or an empty array,
+  :pipeline:`$unwind` treats the operand as a single element array.
+  Previously, if a value in the field specified by the field path was *not* an
+  array, :method:`db.collection.aggregate()` generated an error.
+
+
+.. _3.2-spidermonkey-compatibility:
+
+SpiderMonkey Compatibility Changes
+----------------------------------
+
+.. toctree::
+
+   /release-notes/3.2-javascript
+
+MongoDB 3.2 changes the JavaScript engine from V8 to SpiderMonkey. The change
+allows the use of more modern JavaScript language features, and comes along with
+minor ``mongo`` shell improvements and compatibility changes.
+
+See :doc:`/release-notes/3.2-javascript` for more information about
+this change.
+
+Replica Set Configuration Validation
+------------------------------------
+
+MongoDB 3.2 provides a stricter validation of :doc:`replica set
+configuration settings </reference/replica-configuration>`:
+
+- .. include:: /includes/fact-rs-non-voting-priority-restriction.rst
+
+- .. include:: /includes/fact-rs-nonzero-priority-vote-restriction.rst
+
+.. _3.2-driver-compatibility:
+
+Driver Compatibility Changes
+----------------------------
+
+A driver upgrade is necessary to support the :dbcommand:`find` and
+:dbcommand:`getMore` commands.
+
+General Compatibility Changes
+-----------------------------
+
+- In MongoDB 3.2, ``cursor.showDiskLoc()`` is deprecated in favor of
+  :method:`cursor.showRecordId()`, and both return a new document
+  format.
+
+- MongoDB 3.2 renamed the ``serverStatus.repl.slaves`` field to
+  :serverstatus:`repl.replicationProgress`. See: the
+  :command:`db.serverStatus()` :ref:`server-status-repl` reference for
+  more information.
+
+- The default changed from :option:`--moveParanoia <mongod --moveParanoia>` to
+  :option:`--noMoveParanoia <mongod --noMoveParanoia>`.
+
+- .. include:: /includes/fact-voting-node-sync-incompatibility.rst
+
+- ``mongooplog`` is deprecated starting in MongoDB 3.2.
+
+Additional Information
+----------------------
+
+See also :doc:`/release-notes/3.2`.

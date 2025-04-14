@@ -1,0 +1,143 @@
+==========================================
+Convert a Replica Set to a Sharded Cluster
+==========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+This tutorial converts a single three-member replica set to a sharded
+cluster with two shards. Each shard is an independent three-member
+replica set. This tutorial is specific to MongoDB {+latest-lts-version+}.
+For other versions of MongoDB, refer to the corresponding version of the
+MongoDB Manual.
+
+The procedure is as follows:
+
+#. Create the initial three-member replica set and insert data into a
+   collection. See :ref:`convert-setup-initial-set`.
+
+#. Start the config servers and a :binary:`~bin.mongos`. See
+   :ref:`convert-deploy-sharding-infrastructure`.
+
+#. Add the initial replica set as a shard. See
+   :ref:`convert-add-initial-shard`.
+
+#. Create a second shard and add to the cluster. See
+   :ref:`Add Second Shard <convert-add-second-shard>`.
+
+#. Shard the desired collection. See :ref:`convert-shard-collection`.
+
+
+Considerations
+--------------
+
+
+Individual steps in these procedures note when downtime will occur.
+
+.. important::
+
+   These procedures cause some downtime for your deployment.
+
+
+Prerequisites
+-------------
+
+This tutorial uses a total of ten servers: one server for the
+:binary:`~bin.mongos` and three servers each for the first :term:`replica
+set`, the second replica set, and the :doc:`config server replica set
+</core/sharded-cluster-config-servers>`. 
+
+Each server must have a resolvable domain, hostname, or IP address
+within your system.
+
+The tutorial uses the default data directories (e.g. ``/data/db`` and
+``/data/configdb``). Create the appropriate directories with
+appropriate permissions. To use different paths, see
+:doc:`/reference/configuration-options` .
+
+Procedures
+----------
+
+.. _convert-setup-initial-set:
+
+Set Up Initial Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This procedure creates the initial three-member replica set ``rs0``.
+The replica set members are on the following hosts:
+``mongodb0.example.net``, ``mongodb1.example.net``, and
+``mongodb2.example.net``.
+
+.. include:: /includes/steps/convert-replica-set-shard-deploy-test-data.rst
+
+For more information on deploying a replica set, see
+:doc:`/tutorial/deploy-replica-set`.
+
+.. _convert-deploy-sharding-infrastructure:
+
+Deploy Config Server Replica Set and ``mongos``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This procedure deploys the three-member replica set for the :doc:`config
+servers </core/sharded-cluster-config-servers>` and the
+:binary:`~bin.mongos`.
+
+- The config servers use the following hosts: ``mongodb7.example.net``,
+  ``mongodb8.example.net``, and ``mongodb9.example.net``.
+
+- The :binary:`~bin.mongos` uses ``mongodb6.example.net``.
+
+
+.. include:: /includes/steps/convert-replica-set-shard-deploy-infrastructure.rst
+
+Restart the Replica Set as a Shard
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-shardsvr-required.rst
+
+.. include:: /includes/steps/convert-replica-set-shard-aware.rst
+
+.. _convert-add-initial-shard:
+
+Add Initial Replica Set as a Shard
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following procedure adds the initial replica set ``rs0`` as a shard.
+
+.. include:: /includes/steps/convert-replica-set-add-shards.rst
+
+.. _convert-add-second-shard:
+
+.. warning:: 
+
+   Once the new shard is active, ``mongosh`` and other clients must
+   **always** connect to the ``mongos`` instance. Do not connect
+   directly to the ``mongod`` instances. If your clients connect to
+   shards directly, you may create data or metadata inconsistencies.
+
+Add Second Shard
+~~~~~~~~~~~~~~~~
+
+The following procedure deploys a new replica set ``rs1`` for the
+second shard and adds it to the cluster. The replica set members are on
+the following hosts: ``mongodb3.example.net``,
+``mongodb4.example.net``, and ``mongodb5.example.net``.
+
+.. include:: /includes/fact-shardsvr-required.rst
+
+.. include:: /includes/steps/convert-replica-set-add-new-shard.rst
+
+.. _convert-shard-collection:
+
+Shard a Collection
+~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/steps/convert-replica-set-enable-sharding.rst

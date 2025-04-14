@@ -1,0 +1,142 @@
+=================
+updateSearchIndex
+=================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: updateSearchIndex
+
+.. versionadded:: 6.0.7
+
+.. include:: /includes/atlas-search-commands/command-descriptions.rst/updateSearchIndex-description.rst
+
+.. include:: /includes/atlas-search-commands/atlas-only-db-command.rst
+
+Syntax
+------
+
+Command syntax:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         updateSearchIndex: "<collection name>",
+         id: "<index Id>",
+         name: "<index name>",
+         definition: {
+            /* search index definition fields */
+         }
+      }
+   )
+
+Command Fields
+--------------
+
+The ``updateSearchIndex`` command takes the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 20 80
+
+   * - Field
+     - Type
+     - Necessity
+     - Description
+
+   * - ``updateSearchIndex``
+     - string
+     - Required
+     - Name of the collection that contains the index to update.
+
+   * - ``id``
+     - string
+     - Conditional
+     - ``id`` of the index to update.
+       
+       You must specify **either** the ``id`` or ``name`` field.
+
+   * - ``name``
+     - string
+     - Conditional
+     - Name of the index to update.
+
+       You must specify **either** the ``id`` or ``name`` field.
+
+   * - ``definition``
+     - document
+     - Required
+     - Document describing the updated search index definition. The
+       specified definition replaces the prior definition in the search
+       index.
+       
+       For details on ``definition`` syntax, see
+       :ref:`search-index-definition-update`.
+
+.. _search-index-definition-update:
+
+Search Index Definition Syntax
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/atlas-search-commands/search-index-definition-fields.rst
+
+Behavior
+--------
+
+``updateSearchIndex`` triggers an index build with the new index
+definition.
+
+The old index definition can still support queries while the new index
+is being built. Once the new index finishes building, the old index is
+no longer usable.
+
+Access Control
+--------------
+
+If your deployment enforces access control, the user running the
+``updateSearchIndex`` command must have the
+:authaction:`updateSearchIndex` privilege action on the database:
+
+.. code-block:: javascript
+
+   { resource: { database : true }, actions: [ "updateSearchIndex" ] }
+
+The built-in :authrole:`dbAdmin` and :authrole:`restore` roles provide
+the ``updateSearchIndex`` privilege. The following example grants the
+``restore`` role on the ``admin`` database:
+
+.. code-block:: javascript
+
+   db.grantRolesToUser(
+      "<user>",
+      [ { role: "restore", db: "admin" } ]
+   )
+
+Example
+-------
+
+The following example updates a search index named ``searchIndex01`` on
+the ``contacts`` collection:
+
+.. code-block:: javascript
+
+   db.runCommand( {
+      updateSearchIndex: "contacts",
+      name: "searchIndex01",
+      definition:
+         {
+            mappings: { dynamic: true },
+            storedSource: {
+               exclude: [ "directors", "imdb.rating" ]
+            }
+         }
+   } )

@@ -1,0 +1,27 @@
+ref: initial-sync-semantics
+content: |
+  Starting in MongoDB 5.0, a newly added secondary does not count as a
+  voting member and cannot be elected until it has reached the
+  :replstate:`SECONDARY` state.
+
+  When a new voting node is added to a replica set,
+  :dbcommand:`replSetReconfig` will internally add a ``newlyAdded``
+  field to the node's configuration. Nodes with the ``newlyAdded`` field
+  do not count towards the current number of voting nodes. When initial
+  sync completes and the node reaches :replstate:`SECONDARY` state, the
+  ``newlyAdded`` field is automatically removed.
+
+  .. note::
+
+     - Configurations that attempt to add a field named ``newlyAdded``
+       will error even if run with ``{ force: true }``.
+
+     - If an existing node has a ``newlyAdded`` field, using
+       :method:`rs.reconfig()` to change the configuration will not
+       remove the ``newlyAdded`` field. The ``newlyAdded`` field will be
+       appended to the user provided configuration.
+
+     - :dbcommand:`replSetGetConfig` will remove any ``newlyAdded`` fields
+       from its output. If you would like to see any ``newlyAdded``
+       fields, you can query the :data:`local.system.replset` collection
+       directly.

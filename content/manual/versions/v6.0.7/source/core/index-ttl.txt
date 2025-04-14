@@ -1,0 +1,200 @@
+
+
+.. _index-feature-ttl:
+
+===========
+TTL Indexes
+===========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. note::
+
+   If you are removing documents to save on storage costs, consider
+   :atlas:`Online Archive </online-archive/manage-online-archive>` in
+   `MongoDB Atlas <https://www.mongodb.com/cloud?tck=docs_server>`__. Online
+   Archive automatically archives infrequently accessed data to
+   fully-managed S3 buckets for cost-effective data
+   tiering.
+
+TTL indexes are special single-field indexes that MongoDB can use to
+automatically remove documents from a collection after a certain amount
+of time or at a specific clock time. Data expiration is useful for certain types of information
+like machine generated event data, logs, and session information that
+only need to persist in a database for a finite amount of time.
+
+Create a TTL Index
+------------------
+
+To create a TTL index, use the :method:`~db.collection.createIndex()`
+method on a field whose value is either a :ref:`date
+<document-bson-type-date>` or an array that contains :ref:`date values
+<document-bson-type-date>`, and specify the ``expireAfterSeconds``
+option with the desired TTL value in seconds.
+
+For example, to create a TTL index on the ``lastModifiedDate`` field of
+the ``eventlog`` collection, with a TTL value of ``3600`` seconds, use
+the following operation in :binary:`~bin.mongosh`:
+
+.. code-block:: javascript
+
+   db.eventlog.createIndex( { "lastModifiedDate": 1 }, { expireAfterSeconds: 3600 } )
+
+.. _convert-non-ttl-single-field-index-into-ttl:
+
+Convert a non-TTL single-field Index into a TTL Index
+-----------------------------------------------------
+
+Starting in MongoDB 5.1, you can add the ``expireAfterSeconds`` option
+to an existing single-field index. To change a non-TTL single-field
+index to a TTL index, use the :dbcommand:`collMod` database command:
+
+.. code-block:: javascript
+
+   db.runCommand({
+     "collMod": <collName>,
+     "index": {
+       "keyPattern": <keyPattern>,
+       "expireAfterSeconds": <number>
+     }
+   })
+
+The following example converts a non-TTL single-field index with the
+pattern ``{ "lastModifiedDate": 1 }`` into a TTL index:
+
+.. code-block:: javascript
+
+   db.runCommand({
+     "collMod": "tickets",
+     "index": {
+       "keyPattern": { "lastModifiedDate": 1 },
+       "expireAfterSeconds": 100
+     }
+   })
+
+.. _change-ttl-expireafterseconds-value:
+
+Change the ``expireAfterSeconds`` value for a TTL Index
+-------------------------------------------------------
+
+To change the ``expireAfterSeconds`` value for a TTL Index, use the
+:dbcommand:`collMod` database command:
+
+.. code-block:: javascript
+
+   db.runCommand({
+     "collMod": <collName>,
+     "index": {
+       "keyPattern": <keyPattern>,
+       "expireAfterSeconds": <number>
+     }
+   })
+
+The following example changes the ``expireAfterSeconds`` value for an
+index with the pattern ``{ "lastModifiedDate": 1 }`` on the ``tickets``
+collection:
+
+.. code-block:: javascript
+
+   db.runCommand({
+     "collMod": "tickets",
+     "index": {
+       "keyPattern": { "lastModifiedDate": 1 },
+       "expireAfterSeconds": 100
+     }
+   })
+
+Behavior
+--------
+
+Expiration of Data
+~~~~~~~~~~~~~~~~~~
+
+TTL indexes expire documents after the specified number of seconds has
+passed since the indexed field value; i.e. the expiration threshold is
+the indexed field value plus the specified number of seconds.
+
+If the field is an array, and there are multiple date values in the
+index, MongoDB uses *lowest* (i.e. earliest) date value in the array to
+calculate the expiration threshold.
+
+If the indexed field in a document is not a
+:ref:`date <document-bson-type-date>` or an array that holds one or
+more date values, the document will not expire.
+
+If a document does not contain the indexed field, the document will not
+expire.
+
+Delete Operations
+~~~~~~~~~~~~~~~~~
+
+A background thread in :binary:`~bin.mongod` reads the values in the index
+and removes expired :term:`documents <document>` from the collection.
+
+When the TTL thread is active, you will see delete operations in the
+output of :method:`db.currentOp()` or in the data collected by the
+:ref:`database profiler <database-profiler>`.
+
+Timing of the Delete Operation
+``````````````````````````````
+
+MongoDB begins removing expired documents as soon as the index
+finishes building on the :term:`primary`. For more information on the
+index build process, see :ref:`index-operations`.
+
+.. include:: /includes/fact-ttl-collection-background-timing.rst
+
+Replica Sets
+````````````
+
+On :term:`replica set <replica set>` members, the TTL background thread *only*
+deletes documents when a member is in state :term:`primary`. The TTL background
+thread is idle when a member is in state :term:`secondary`. :term:`Secondary <secondary>` members replicate
+deletion operations from the primary.
+
+Support for Queries
+~~~~~~~~~~~~~~~~~~~
+
+A TTL index supports queries in the same way non-TTL indexes do.
+
+Restrictions
+------------
+
+- TTL indexes are single-field indexes. :ref:`Compound indexes
+  <index-type-compound>` do not support TTL and ignore the
+  ``expireAfterSeconds`` option.
+
+- The ``_id`` field does not support TTL indexes.
+
+- You cannot create a TTL index on a :ref:`capped collection
+  <manual-capped-collection>`.
+
+- You cannot create a TTL index on a :doc:`time series collection
+  </core/timeseries-collections>`. Similar functionality is provided
+  through :ref:`automatic removal on time series collections
+  <manual-timeseries-automatic-removal>` instead.
+
+- You cannot use :method:`~db.collection.createIndex()` to change the
+  value of ``expireAfterSeconds`` of an existing index. Instead use the
+  :dbcommand:`collMod` database command. See
+  :ref:`change-ttl-expireafterseconds-value`.
+
+- If a non-TTL single-field index already exists for a field, you
+  cannot create a TTL index on the same field since you cannot create
+  indexes that have the same key specification and differ only by the
+  options. To :ref:`change a non-TTL single-field index to a TTL index
+  <convert-non-ttl-single-field-index-into-ttl>`, use the
+  :dbcommand:`collMod` database command.
+
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   /tutorial/expire-data
