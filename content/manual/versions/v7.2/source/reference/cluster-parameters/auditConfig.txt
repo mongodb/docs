@@ -1,0 +1,182 @@
+.. _auditConfig:
+
+===========
+auditConfig
+===========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. |both| replace:: Available for both :binary:`~bin.mongod` and :binary:`~bin.mongos`.
+
+Definition 
+----------
+
+.. parameter:: auditConfig
+
+   .. versionadded:: 7.1
+
+   |both|
+
+   .. include:: /includes/fact-auditConfig.rst
+
+Syntax 
+------
+
+To set ``auditConfig`` for your deployment, run the following command on 
+the ``admin`` database:
+
+.. code-block:: javascript
+
+   db.adminCommand( { setClusterParameter: { auditConfig: <value> } } )
+
+To view current values for the ``auditConfig`` cluster parameter, run 
+the following command on the ``admin`` database: 
+
+.. code-block:: javascript
+
+   db.adminCommand( { getClusterParameter: "auditConfig" } )
+
+Parameter Fields
+----------------
+
+.. parameter:: auditConfig.auditAuthorizationSuccess
+
+   *Type*: boolean
+
+   *Default*: false
+
+   Enables the :ref:`auditing <auditing>` of authorization
+   successes for the :ref:`authCheck <audit-action-details-results>`
+   action.
+
+   To audit read and write operations, ``auditConfig.auditAuthorizationSuccess`` 
+   must be set to ``true``.
+
+   When ``auditConfig.auditAuthorizationSuccess`` is ``false``, the
+   audit system only logs the authorization failures for ``authCheck``. When 
+   :parameter:`auditAuthorizationSuccess` is ``false``, auditing has less 
+   performance impact because the audit system only logs authorization failures.
+
+.. parameter:: auditConfig.filter
+
+   *Type*: document
+
+   *Default*: none
+
+   Filter expression that controls which :ref:`types of operations 
+   <audit-action-details-results>` that the :ref:`audit system <auditing>` 
+   records. 
+
+   The document fields can be :ref:`any field in the audit message
+   <audit-message>`, including fields returned in the
+   :ref:`param <audit-action-details-results>` document. The field values are 
+   :ref:`query condition expressions <query-selectors>`.
+
+   To view a sample filter document, see the :ref:`Examples section 
+   <auditconfig-example>`. 
+
+Behavior
+--------
+
+Auditing must be enabled to use ``auditConfig``.
+
+Retrieving Audit Configurations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If :ref:`runtime audit configuration <configure-audit-filters-at-runtime>`
+is enabled, the ``auditAuthorizationSuccess`` parameter doesn't appear in the 
+``mongod`` or ``mongos`` configuration file. The server will fail to start if 
+the parameter is present.
+
+If you run ``getClusterParameter`` on ``auditConfig``, nodes that do not
+participate in a runtime audit configuration return their current configuration 
+file settings for ``auditLog.filter`` and 
+``setParameter.auditAuthorizationSuccess``.
+
+Setting Audit Configurations 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you set audit configurations with :dbcommand:`setClusterParameter`, changes 
+immediately take effect on all :ref:`config servers <sharding-config-server>` 
+and shards in a sharded cluster.
+
+Setting too wide of an audit filter or enabling 
+``auditConfig.auditAuthorizationSuccess`` can degrade performance.
+
+.. _auditconfig-example:
+
+Example 
+-------
+
+The following example uses the ``setClusterParameter`` command to enable 
+auditing when a collection is created or deleted. The audit messages have been 
+reformatted. They appear on a single line in the log file.
+
+.. code-block:: javascript
+
+   db.adminCommand( 
+      { 
+         setClusterParameter: { 
+            auditConfig: {
+               filter: { 
+                  atype: {
+                     $in: [ "createCollection", "dropCollection" ]
+                  }
+               }, 
+               auditAuthorizationSuccess: false
+            }
+         } 
+      } 
+   )
+
+After setting the ``auditConfig`` parameter, if you create an ``inventory`` 
+collection in the ``sales`` database, the audit system logs a message that 
+resembles the following:
+
+.. code-block:: javascript
+   .. copyable: false
+
+   {
+      "atype" : "createCollection",
+      "ts" : { "$date" : "2021-08-09T13:45:05.372+00:00" },
+      "uuid" : { "$binary" : "RKU/YLizS6K9se2GUU7ZVQ==", "$type" : "04" },
+      "local" : { "ip" : "127.0.0.1", "port" : 27502 },
+      "remote" : { "ip" : "127.0.0.1", "port" : 51918 },
+      "users" : [],
+      "roles" : [],
+      "param" : { "ns" : "sales.inventory" },
+      "result" : 0
+   }
+
+If the ``inventory`` collection is dropped from the ``sales`` database, the 
+audit system logs a message similar to the following:
+
+.. code-block:: javascript
+   .. copyable: false
+
+   {
+      "atype" : "dropCollection",
+      "ts" : { "$date" : "2021-08-09T13:45:00.661+00:00" },
+      "uuid" : { "$binary" : "0gle4/pSQli+LUcz43ykag==", "$type" : "04" },
+      "local" : { "ip" : "127.0.0.1", "port" : 27502 },
+      "remote" : { "ip" : "127.0.0.1", "port" : 51928 },
+      "users" : [],
+      "roles" : [],
+      "param" : { "ns" : "sales.inventory" },
+      "result" : 0
+   }
+
+Learn More 
+----------
+
+- :ref:`auditing`
+- :ref:`audit-action-details-results`
+- :ref:`cluster-parameters`
+- :ref:`configure-audit-filters-at-runtime`
+- :ref:`audit-message`

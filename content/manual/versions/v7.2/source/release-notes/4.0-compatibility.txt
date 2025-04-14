@@ -1,0 +1,367 @@
+.. This page is hidden from the TOC and search indexing. 
+ 
+:orphan: 
+ 
+.. meta:: 
+   :robots: noindex, nosnippet
+
+====================================
+Compatibility Changes in MongoDB 4.0
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The following 4.0 changes can affect the compatibility with older
+versions of MongoDB.
+
+.. _4.0-remove-mongodb-cr:
+
+Remove Support for ``MONGODB-CR``
+---------------------------------
+
+Starting in version 4.0, MongoDB removes support for the deprecated
+MongoDB Challenge-Response (``MONGODB-CR``) authentication mechanism.
+
+Since version 3.0, MongoDB has not supported the creation of
+``MONGODB-CR`` users unless the deployment had been upgraded from a 2.6
+or earlier deployment that already had ``MONGODB-CR`` users and had not
+upgraded the authentication schema.
+
+.. include:: /includes/extracts/4.0-upgrade-prereq-mongodb-cr.rst
+
+.. _4.0-remove-authschemaupgrade:
+
+Removal of ``authSchemaUpgrade`` Command
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 4.0 removes the ``authSchemaUpgrade`` command . The command,
+available in MongoDB 3.0 through MongoDB 3.6, supports the upgrade
+process for systems with ``MONGODB-CR`` users to ``SCRAM`` users.
+
+If your deployment has user credentials stored in ``MONGODB-CR``
+schema, you must upgrade to :ref:`Salted Challenge Response
+Authentication Mechanism (SCRAM) <authentication-scram>` **before** you
+upgrade to version 4.0. 
+
+.. _4.0-remove-mongodb-cr-copydb:
+
+Remove ``MONGODB-CR`` Support from ``db.copyDatabase()`` and ``copydb``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The method ``db.copyDatabase()`` cannot copy from a
+:binary:`~bin.mongod` instance that enforces ``MONGODB-CR``
+authentication.
+
+The command ``copydb`` cannot copy from a
+:binary:`~bin.mongod` instance that enforces ``MONGODB-CR``
+authentication. In conjunction with this change, MongoDB 4.0 removes
+the ``copydbgetnonce`` command.
+
+Deprecate MMAPv1
+----------------
+
+Starting in version 4.0, MongoDB deprecates the MMAPv1 storage engine.
+
+To change your MMAPv1 storage engine deployment to
+:doc:`/core/wiredtiger`, see:
+
+- :doc:`/tutorial/change-standalone-wiredtiger`
+
+- :doc:`/tutorial/change-replica-set-wiredtiger`
+
+- :doc:`/tutorial/change-sharded-cluster-wiredtiger`
+
+x.509 Authentication Certificate Restrictions
+---------------------------------------------
+
+.. include:: /includes/extracts/ssl-facts-x509-invalid-certificate.rst
+
+If you are using invalid certificates to perform x.509 authentication,
+update your certificates to valid certificates. For example, you may
+sign your existing certificates with a trusted CA, or if using a custom
+CA, specify that CA using :setting:`net.ssl.CAFile`.
+
+Replica Sets
+------------
+
+.. _4.0-compat-remove-pv0:
+
+Remove ``pv0`` for Replica Sets
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.0-upgrade-prereq-pv0.rst
+
+Remove Master-Slave Replication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.0-upgrade-prereq-master-slave.rst
+
+Journaling and Replica Sets
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/wiredtiger-node-nojournal.rst
+
+Index Builds and Replica Sets
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You cannot specify ``--noIndexBuildRetry`` or ``storage.indexBuildRetry`` with
+:option:`--replSet <mongod --replSet>` or
+:setting:`replication.replSetName`. That is, you cannot use
+``--noIndexBuildRetry`` or ``storage.indexBuildRetry`` for a
+:binary:`~bin.mongod` instance that is part of a replica set.
+
+Rollback Limit
+~~~~~~~~~~~~~~
+
+MongoDB 4.0 removes the limit on the amount of data that can be
+:doc:`rolled back </core/replica-set-rollbacks>`. In previous versions,
+a :binary:`~bin.mongod` instance will not roll back more than 300
+megabytes of data and requires manual intervention if more than 300
+megabytes of data need to be rolled back.
+
+Starting in MongoDB 4.0, the rollback time limit defaults to 1 day and
+is configurable using the new parameter
+:parameter:`rollbackTimeLimitSecs`. In earlier versions, the rollback
+time limit is not configurable and is set to 30 minutes.
+
+Sharded Clusters
+----------------
+
+.. include:: /includes/extracts/mongos-operations-wc.rst
+
+
+.. _4.0-compatibility-enabled:
+
+``4.0`` Feature Compatibility
+-----------------------------
+
+Some features in 4.0 require not just the 4.0 binaries but the
+``featureCompatibilityVersion`` set to ``4.0``.  These features include:
+
+- :ref:`SCRAM-SHA-256 <4.0-scram-sha-256>`
+
+- :ref:`New type conversion operators and enhancements<4.0-agg-type-conversion>`
+
+- :ref:`Multi-document transactions <4.0-txn>`
+
+- :ref:`$dateToString option changes <4.0-dateToString>`
+
+- :ref:`New change stream methods <4.0-change-stream-methods>`
+
+- :ref:`Change stream resume token data type change <4.0-resume-token>`
+
+.. _4.0-compatibility-general:
+
+General
+-------
+
+- The geospatial query operators :query:`$near` and
+  :query:`$nearSphere` now supports querying on sharded collections.
+
+- For the :dbcommand:`create` command (and the ``mongo``
+  shell :method:`db.createCollection()` method), you cannot set the
+  option ``autoIndexId`` to ``false`` when creating collections in
+  databases other than the ``local`` database.
+
+- When :ref:`authentication <authentication>` is enabled, running
+  the :dbcommand:`listDatabases` command without the
+  :authaction:`listDatabases` action privilege returns a list of all
+  databases on which the user running the command has the
+  :authaction:`find` action privilege. In previous versions, running
+  the command without the :authaction:`listDatabases` action resulted
+  in an ``Unauthorized`` response.
+
+- The default value of :parameter:`taskExecutorPoolSize` changed from
+  ``0`` to ``1``. On Linux, to restore the previous behavior for a 4.0 deployment, set
+  :parameter:`taskExecutorPoolSize` to ``0`` and
+  :v4.0:`AsyncRequestsSenderUseBaton </reference/parameters/#param.AsyncRequestsSenderUseBaton>` to ``false``.
+
+- MongoDB 4.0 removes the ability to set ``transportLayer`` and
+  ``net.transportLayer`` to ``legacy`` for :ref:`mongod <mongod>` and
+  :ref:`mongos <mongos>` instances. The ``transportLayer`` setting is
+  automatically set to ``asio`` and cannot be modified.
+
+- Starting in MongoDB 4.0, the :dbcommand:`reIndex` command and its
+  helper :method:`db.collection.reIndex()` take a :serverstatus:`Global
+  exclusive (W) lock <locks>` and will block other operations until it
+  finishes.
+
+- If the value specified for fields other than ``year``, ``isoYear``,
+  and ``timezone`` is outside the valid range,
+  :expression:`$dateFromParts` carries or subtracts the difference from
+  other date parts to calculate the date. In previous versions, values
+  that exceed the range result in an error.
+
+- Changed behavior of the :authaction:`killCursors` privilege action.
+  Prior to MongoDB 4.0, a user could kill any cursor if they knew that
+  cursor's ID. As of MongoDB 4.0, the :authaction:`killCursors`
+  privilege grants the user the ability to kill any cursor associated
+  with a currently authenticated user. If the user does not have
+  permission to kill a cursor, :dbcommand:`killCursors` returns an error.
+
+- MongoDB 4.0 adds a :authaction:`killAnyCursor` privilege action that
+  grants the user permission to kill any cursor for the specified
+  collection.
+
+- .. include:: /includes/fact-mongos-fcv.rst
+
+.. |newversion| replace:: 4.2
+
+.. |oldversion| replace:: 4.0
+
+- Starting in 4.0, MongoDB resolves ``localhost`` IP address as
+  configured instead of assuming ``127.0.0.1``.
+
+``cursor.min()`` and ``cursor.max()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you use :method:`~cursor.max()` with :method:`~cursor.min()` to
+specify a range, the bound specified by :method:`~cursor.max()` must be
+greater than the bound specified by :method:`~cursor.min()`.
+
+In previous versions, the bounds could be equal but would scan no index
+entries, always resulting in an empty result set.
+
+Disable TLS 1.0
+---------------
+
+MongoDB binaries (:binary:`~bin.mongod`, :binary:`~bin.mongos`, and
+``mongo``) disables support for TLS 1.0 encryption on
+systems where TLS 1.1+ is available.
+
+If you need to support TLS 1.0:
+
+- For :binary:`~bin.mongod` instances, you can specify ``none`` to
+  :setting:`net.ssl.disabledProtocols` or
+  :option:`--sslDisabledProtocols none <mongod --sslDisabledProtocols>`.
+
+- For :binary:`~bin.mongos` instances, you can specify ``none`` to
+  :setting:`net.ssl.disabledProtocols` or
+  :option:`--sslDisabledProtocols none <mongos --sslDisabledProtocols>`.
+
+- For the ``mongo`` shell, you can specify 
+  ``--sslDisabledProtocols none``.
+
+  The ``--sslDisabledProtocols`` option is available for the ``mongo`` 
+  shell in:
+
+  - MongoDB version 4.0+
+  - MongoDB version 3.6.5+
+  - MongoDB version 3.4.15+
+
+On macOS, to connect ``mongo`` shell version 3.6.4 or
+earlier to a MongoDB 4.0+ deployment requires explicit enabling of TLS
+1.0.
+
+AES-GCM
+-------
+
+.. include:: /includes/fact-aes.rst
+
+``mongo`` Shell
+---------------
+
+.. _4.0-compat-show-collections:
+
+``show collections``
+~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/listCollections-auth-show-collections.rst
+
+.. include:: /includes/extracts/listCollections-auth-show-collections-earlier-versions.rst
+
+``db.getCollectionNames()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/listCollections-auth-showCollectionNames.rst
+
+Removed Binary and Deprecated Fields/Commands
+---------------------------------------------
+
+``mongoperf``
+~~~~~~~~~~~~~
+
+MongoDB 4.0 removes the ``mongoperf`` binary.
+
+.. _4.0-deprecate-copydb-clone-cmds:
+
+``copydb`` and ``clone`` Commands
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 4.0 deprecates the :v4.0:`copydb </reference/command/copydb>`
+and the :v4.0:`clone </reference/command/clone>` commands and their
+:v4.0:`mongo </reference/program/mongo>` shell helpers
+:v4.0:`db.copyDatabase() </reference/method/db.copyDatabase>` and
+:v4.0:`db.cloneDatabase() </reference/method/db.cloneDatabase>`.
+
+As alternatives, users can use :binary:`~bin.mongodump` and
+:binary:`~bin.mongorestore` (with the ``mongorestore`` options
+:option:`--nsFrom <mongorestore.--nsFrom>` and :option:`--nsTo
+<mongorestore.--nsTo>`) or write a script using the drivers.
+
+.. include:: /includes/extracts/clone-copy-db-same-instance.rst
+
+Parameters
+~~~~~~~~~~
+
+- MongoDB removes the obsolete ``logUserIds`` parameter. Use
+  :doc:`/core/auditing` instead.
+
+
+.. _4.0-remove-isolated:
+
+``$isolated`` Operator
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.0-upgrade-prereq-isolated.rst
+
+Instead of the ``$isolated`` operator, use :doc:`transactions
+</core/transactions>` instead.
+
+``geoNear`` Command
+~~~~~~~~~~~~~~~~~~~
+
+MongoDB 4.0 deprecates the ``geoNear`` command. Use one of the
+following operations instead.
+
+- :pipeline:`$geoNear` aggregation stage.
+
+- :query:`$near` query operator.
+
+- :query:`$nearSphere` query operator.
+
+.. _4.0-deprecate-maxScan:
+
+``maxScan`` Option
+~~~~~~~~~~~~~~~~~~
+
+MongoDB deprecates the option ``maxScan`` for the :dbcommand:`find`
+command and the ``mongo`` shell helper
+``cursor.maxScan()``. Instead, use ``maxTimeMS`` option or the
+helper :method:`cursor.maxTimeMS()`.
+
+Output Field Changes
+~~~~~~~~~~~~~~~~~~~~
+
+- The following fields returned from :dbcommand:`replSetGetStatus` are
+  deprecated:
+
+  - ``replSetGetStatus.syncingTo``
+
+  - ``replSetGetStatus.members[n].syncingTo``
+
+  Use :data:`replSetGetStatus.syncSourceHost` and
+  :data:`replSetGetStatus.members[n].syncSourceHost` instead.
+
+- The :pipeline:`$currentOp` aggregation stage, the
+  :dbcommand:`currentOp` command, and :method:`db.currentOp()` helper
+  no longer return the ``threadId`` field in their outputs.
+
+- The :dbcommand:`serverStatus` command now always returns ``0`` for
+  the :serverstatus:`asserts.warning` field.

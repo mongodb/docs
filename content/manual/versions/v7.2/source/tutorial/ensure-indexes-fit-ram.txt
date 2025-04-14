@@ -1,0 +1,56 @@
+.. _indexes-ensure-indexes-fit-ram:
+
+=========================
+Ensure Indexes Fit in RAM
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+For the fastest processing, ensure that your indexes fit entirely in RAM so
+that the system can avoid reading the index from disk.
+
+To check the size of your indexes, use the
+:method:`db.collection.totalIndexSize()` helper, which returns data in
+bytes:
+
+.. code-block:: javascript
+
+   > db.collection.totalIndexSize()
+   4617080000
+
+The above example shows an index size of almost 4.3 gigabytes. To ensure
+this index fits in RAM, you must not only have more than that much RAM
+available but also must have RAM available for the rest of the
+:term:`working set`. Also remember:
+
+If you have and use multiple collections, you must consider the size
+of all indexes on all collections. The indexes and the working set must be able to
+fit in memory at the same time.
+
+There are some limited cases where indexes do not need
+to fit in memory. See :ref:`indexing-right-handed`.
+
+.. seealso::
+
+   - :dbcommand:`collStats` command
+   - :method:`db.collection.stats()` shell method
+
+
+.. _indexing-right-handed:
+
+Indexes that Hold Only Recent Values in RAM
+-------------------------------------------
+
+Indexes do not have to fit *entirely* into RAM in all cases. If the
+value of the indexed field increments with every insert, and most queries
+select recently added documents; then MongoDB only needs to keep the
+parts of the index that hold the most recent or "right-most" values in
+RAM. This allows for efficient index use for read and write
+operations and minimize the amount of RAM required to support the
+index.

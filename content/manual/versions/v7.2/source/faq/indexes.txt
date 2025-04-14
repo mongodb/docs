@@ -1,0 +1,125 @@
+.. _faq-indexes:
+
+============
+FAQ: Indexes
+============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This document addresses some common questions regarding MongoDB
+indexes. For more information on indexes, see
+:ref:`indexes <indexes>`.
+
+How do I create an index?
+-------------------------
+
+To create an index on a collection, use the
+:method:`db.collection.createIndex()` method. Creating an index is an
+administrative operation. In general, applications should not call
+:method:`db.collection.createIndex()` on a regular basis.
+
+.. note:: 
+
+   Index builds can impact performance; see
+   :ref:`faq-index-performance`. Administrators should consider the
+   performance implications before building indexes.
+
+.. _faq-index-performance:
+
+How does an index build affect database performance?
+----------------------------------------------------
+
+MongoDB index builds against a populated collection require an exclusive
+read-write lock against the collection. Operations that require a read
+or write lock on the collection must wait until the
+:binary:`~bin.mongod` releases the lock.
+
+.. include:: /includes/extracts/4.2-index-faq.rst
+
+Index builds on replica sets have specific performance considerations
+and risks. See :ref:`index-operations-replicated-build` for more
+information. To minimize the impact of building an index on replica
+sets, including shard replica sets, use a rolling index build procedure
+as described in :ref:`index-build-on-replica-sets`. 
+
+How do I monitor index build progress?
+------------------------------------------------------
+
+To return information on currently running index creation operations, see 
+:ref:`currentOp-index-creation`. 
+
+How do I terminate an index build?
+----------------------------------
+
+To terminate an in-progress index build, use the 
+:method:`db.collection.dropIndex()` or its shell helpers dropIndex() or 
+:dbcommand:`dropIndexes`. Do not use :method:`db.killOp()` to terminate 
+in-progress index builds in replica sets or sharded clusters.
+
+You cannot terminate a replicated index build on secondary members of a replica 
+set. You must first drop the index on the primary. The primary stops the index 
+build and creates an associated ``abortIndexBuild`` :term:`oplog` entry. 
+Secondaries that replicate the ``abortIndexBuild`` oplog 
+entry stop the in-progress index build and discard the build job.
+
+To learn more, see :ref:`dropIndexes-cmd-index-builds`. 
+
+How do I see what indexes exist on a collection?
+------------------------------------------------
+
+To list a collection's indexes, use the
+:method:`db.collection.getIndexes()` method.
+
+How can I see if a query uses an index?
+---------------------------------------
+
+To inspect how MongoDB processes a query, use the
+:method:`~cursor.explain()` method.
+
+How do I determine which fields to index?
+-----------------------------------------
+
+A number of factors determine which fields to index, including
+:ref:`selectivity <index-selectivity>`, the support for multiple
+:term:`query shapes <query shape>`, and :ref:`size of the index
+<indexes-ensure-indexes-fit-ram>`. For more information, see
+:ref:`Operational Considerations for Indexes <data-model-indexes>` and
+:ref:`indexing-strategies`.
+
+How can I see the size of an index?
+-----------------------------------
+
+The :method:`db.collection.stats()` includes an
+:data:`~collStats.indexSizes` document which provides size
+information for each index on the collection.
+
+Depending on its size, an index may not fit into RAM. An index fits
+into RAM when your server has enough RAM available for both the index
+and the rest of the :term:`working set`. When an index is too large to
+fit into RAM, MongoDB must read the index from disk, which is a much
+slower operation than reading from RAM.
+
+In certain cases, an index does not need to fit *entirely* into RAM.
+For details, see :ref:`indexing-right-handed`.
+
+How do write operations affect indexes?
+---------------------------------------
+
+Write operations may require updates to indexes:
+
+- If a write operation modifies an indexed field, MongoDB updates all
+  indexes that have the modified field as a key.
+
+Therefore, if your application is write-heavy, indexes might affect
+performance.
+
+How does random data impact index performance?
+----------------------------------------------
+
+.. include:: /includes/indexes/random-data-performance.rst

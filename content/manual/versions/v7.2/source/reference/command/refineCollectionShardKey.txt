@@ -1,0 +1,302 @@
+========================
+refineCollectionShardKey
+========================
+
+.. default-domain:: mongodb
+
+
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: refineCollectionShardKey
+
+   Modifies the collection's :ref:`shard key <shard-key>` by adding new
+   field(s) as a suffix to the existing key. Refining a collection's
+   shard key can address situations
+   where the existing key has led to :ref:`jumbo (i.e. indivisible)
+   chunks <jumbo-chunks>` due to insufficient cardinality.
+
+.. note:: Data Distribution
+
+   As part of refining the shard key, the
+   :dbcommand:`refineCollectionShardKey` command updates the
+   :doc:`chunk ranges </core/sharding-data-partitioning>` and
+   :ref:`zone ranges <zone-sharding>` to incorporate the new
+   fields without modifying the range values of the existing key
+   fields. That is, the refinement of the shard key does not
+   immediately affect the distribution of chunks across shards or
+   zones. Any future chunk splits or migration occur as part of the
+   routine sharding operations.
+
+Syntax
+------
+
+.. note::
+
+   To use the :dbcommand:`refineCollectionShardKey` command, the sharded
+   cluster must have :ref:`feature compatibility version (fcv) <view-fcv>`
+   of ``4.4``.
+
+The command has the following syntax:
+
+.. code-block:: javascript
+
+   db.adminCommand( 
+      { 
+        refineCollectionShardKey: "<database>.<collection>", 
+        key: { <existing key specification>, <suffix1>: <1|"hashed">, ... }
+      } 
+   )
+
+Command Fields
+--------------
+
+The command takes the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Field
+     - Type
+     - Description
+
+   * - :ref:`refineCollectionShardKey <refineCollectionShardKey-namespace>`
+     - string
+     - .. _refineCollectionShardKey-namespace:
+     
+       The :term:`namespace` of the sharded collection in the
+       form ``"<database>.<collection>"``.
+
+   * - :ref:`key <refineCollectionShardKey-key>`
+     - document
+     - .. _refineCollectionShardKey-key:
+     
+       The document that specifies the field or fields to use as the
+       new :ref:`shard key <sharding-shard-key>` for the
+       collection.
+
+       ``{ <existing key specification>, <suffix1>: <1|"hashed">, ... }``
+
+       .. important::
+
+          - The new key must start with the existing shard key.
+
+          - The new key must be supported by an index that must exist
+            :red:`before` you run the
+            :dbcommand:`refineCollectionShardKey` command. See
+            :ref:`refineCollectionShardKey-index-considerations` for
+            more information.
+
+       For the suffix fields, set the field values to either:
+
+       - ``1`` for :doc:`ranged based sharding </core/ranged-sharding>`
+
+       - ``"hashed"`` to specify a :ref:`hashed shard key
+         <hashed-shard-keys>` *if* no other field in the shard key has
+         a ``"hashed"`` specification and the current shard key is not
+         supported by a unique index since hashed indexes :ref:`do not
+         support uniqueness constraint <unique-index-restrictions>`.
+
+.. seealso::
+
+   :doc:`/core/sharding-shard-key`
+
+Access Control
+--------------
+
+When running with access control, the user must have the
+:authaction:`refineCollectionShardKey` privilege actions on :ref:`database
+and/or collection <resource-specific-db-and-or-collection>` to run the
+command. That is, a user must have a :ref:`role <roles>` that grants
+the following :ref:`privilege <privileges>`:
+
+.. code-block:: javascript
+
+  { resource: { db: <database>, collection: <collection> }, actions: [ "refineCollectionShardKey" ] }
+
+The built-in :authrole:`clusterManager` role provides the appropriate
+privileges.
+
+
+Considerations
+--------------
+
+.. _refineCollectionShardKey-index-considerations:
+
+Index Considerations
+~~~~~~~~~~~~~~~~~~~~
+
+- Index Existence
+      An index that supports the command's specified :ref:`key
+      <refineCollectionShardKey-key>` must exist :red:`prior` to
+      running the command.
+
+      A supporting index is an index that starts with the new shard key
+      specification; i.e. the :ref:`index prefix
+      <compound-index-prefix>` matches the new shard key specification.
+      That is, to change the shard key to ``{ x: 1, y: 1 }`` from ``{ x:
+      1 }``, and index that starts with ``{ x: 1, y: 1 }`` must exist; e.g.
+
+      - ``{ x: 1, y: 1 }``
+
+      - ``{ x: 1, y: 1, a: 1, b: 1}``
+
+      .. note::
+
+         - The supporting index cannot be a :doc:`partial index </core/index-partial>`.
+
+         - The supporting index cannot be a :ref:`sparse index <index-type-sparse>`.
+         
+         - If the collection uses a non-``simple`` collation, the supporting
+           index must specify ``{ locale: "simple" }`` collation.
+
+- Unique Index
+      If the current shard index has a :doc:`uniqueness constraint
+      </core/index-unique>`, the new shard key index must also have a
+      unique constraint.
+
+      | After creating the unique index to support the new shard key,
+        **drop** the old shard key index :red:`before` running
+        :dbcommand:`refineCollectionShardKey`.
+
+      | Also, if the current shard index has a :doc:`unique constraint
+        </core/index-unique>`, then the new shard key cannot specify
+        ``"hashed"`` for any of its fields.
+      
+      | See also :ref:`Sharded Collection and Unique Indexes
+        <sharding-shard-key-unique>`.
+   
+- Index Collation
+      If the sharded collection has a non-``simple`` default
+      :ref:`collation <collation>`, then the index *must* include a
+      collation document with ``{ locale : "simple" }``. At least one
+      of the indexes whose fields support the shard key pattern must
+      have the simple collation.
+
+.. include:: /includes/refine-shard-key-index-type.rst
+
+Examples
+--------
+
+To set up the example in the ``test`` database:
+
+#. Use following :dbcommand:`shardCollection` operation to shard the
+   ``orders`` collection in the ``test`` database. The operation
+   uses the ``customer_id`` field as the initial :ref:`shard key
+   <shard-key>`:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { shardCollection: "test.orders", key: { customer_id: 1 } } )
+
+To modify the shard key to be the ``customer_id`` field and the
+``order_id`` field ``{ customer_id: 1, order_id: 1 }``,
+
+#. :method:`Create the index <db.collection.createIndex()>` to
+   support the new shard key if the index does not already exist.
+
+   .. code-block:: javascript
+
+      db.getSiblingDB("test").orders.createIndex( { customer_id: 1, order_id: 1 } )
+
+#. Run :dbcommand:`refineCollectionShardKey` command to add the ``order_id``
+   field as a suffix:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { 
+         refineCollectionShardKey: "test.orders", 
+         key: { customer_id: 1, order_id: 1 }
+      } )
+
+Upon successful completion of the command, the shard key for the
+collection has changed to ``{ customer_id: 1, order_id: 1 }``. To verify,
+you can run :method:`sh.status()`.
+
+.. tip::
+
+   After you refine the shard key, it may be that not all documents in
+   the collection have the suffix field(s). To populate the missing
+   shard key field(s), see :ref:`shard-key-missing`.
+
+   Before refining the shard key, ensure that all or most documents in
+   the collection have the suffix fields, if possible, to avoid having
+   to populate the field afterwards.
+
+Collection with non-``simple`` Collation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To set up the example in the ``test`` database:
+
+#. Create the ``cafés`` collection in the ``test`` database,
+   specifying French ``fr`` as the default collation.
+
+   .. code-block:: javascript
+
+      db.getSiblingDB("test").createCollection( "cafés", { collation: { locale: "fr" } } );
+
+#. Shard the collection using ``customer_id`` field as the initial
+   :ref:`shard key <shard-key>`. Because the collection has a default ``fr``
+   collation and not a ``simple`` collation, the
+   :dbcommand:`shardCollection` command must include a ``collation:
+   { locale: "simple" }`` option:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { 
+         shardCollection: "test.cafés", 
+         key: { customer_id: 1 },
+         collation: { locale: "simple" } 
+      } )
+
+To modify the shard key to be both the ``customer_id`` field and the
+``order_id`` field ``{ customer_id: 1, order_id: 1 }``,
+
+#. :method:`Create the index <db.collection.createIndex()>` to
+   support the new shard key if the index does not already exist.
+   Because the collection uses a non-simple collation, the index
+   must include the ``collation: { locale: "simple" }`` option.
+
+   .. code-block:: javascript
+
+      db.getSiblingDB("test").cafés.createIndex( 
+         { customer_id: 1, order_id: 1 }, 
+         { collation: { locale: "simple" } } 
+      )
+
+#. Run :dbcommand:`refineCollectionShardKey` command to add the ``order_id``
+   field as a suffix:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { 
+         refineCollectionShardKey: "test.cafés",
+         key: { customer_id: 1, order_id: 1 } 
+      } )
+
+Upon successful completion of the command, the shard key for the
+collection has changed to ``{ customer_id: 1, order_id: 1 }``. To verify,
+you can run :method:`sh.status()`.
+
+.. tip::
+
+
+   After you refine the shard key, it may be that not all documents in
+   the collection have the suffix field(s). To populate the missing
+   shard key field(s), see :ref:`shard-key-missing`.
+
+   Before refining the shard key, ensure that all or most documents in
+   the collection have the suffix fields, if possible, to avoid having
+   to populate the field afterwards.
+
+.. seealso::
+
+   :doc:`/core/sharding-shard-key/`

@@ -1,0 +1,228 @@
+.. _enforce-consistency-transactions:
+
+==========================================
+Enforce Data Consistency with Transactions
+==========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can use :ref:`transactions <transactions>` to enforce consistency
+between collections that contain duplicated data. Transactions update
+multiple collections in a single atomic operation.
+
+Use transactions to enforce consistency if your application must always
+return up-to-date data and can tolerate potential negative performance
+impact during periods of heavy reads.
+
+Transactions might not be as performant as other methods of enforcing
+data consistency. Read performance might be negatively impacted while a
+transaction is open. However, transactions ensure that the data read by
+the client is always current.
+
+About this Task
+---------------
+
+To use transactions, you must connect to a replica set or sharded
+cluster. You cannot use transactions on standalone deployments.
+
+Before you Begin
+----------------
+
+.. |method| replace:: transactions are
+
+.. include:: /includes/data-modeling/data-consistency/before-you-begin.rst
+
+Steps
+-----
+
+The following example enforces data consistency in an e-commerce
+application. The example schema duplicates product information in the
+``products`` and ``sellers`` collections. This schema design optimizes
+queries for both products and sellers.
+
+When a product is updated, such as when its price changes, it is
+critical that the price is consistent in the ``products`` and
+``sellers`` collections. Therefore, transactions are a reasonable method
+to enforce data consistency in this application.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create the products collection
+
+      .. code-block:: javascript
+
+         use test
+         
+         db.products.insertMany(
+            [
+               {
+                  sellerId: 456,
+                  name: "sweater",
+                  price: 30,         
+                  rating: 4.9
+               },
+               {
+                  sellerId: 456,
+                  name: "t-shirt",
+                  price: 10,         
+                  rating: 4.2
+               },
+               {
+                  sellerId: 456,
+                  name: "vest",
+                  price: 20,         
+                  rating: 4.7
+               }
+            ]
+         )
+
+   .. step:: Create the sellers collection
+
+      .. code-block:: javascript
+
+          use test
+          
+          db.sellers.insertOne(
+             {
+                id: 456,
+                name: "Cool Clothes Co",
+                location: {
+                   address: "21643 Andreane Shores",
+                   state: "Ohio",
+                   country: "United States"
+                },
+                phone: "567-555-0105",
+                products: [
+                   {
+                      name: "sweater",
+                      price: 30
+                   },
+                   {
+                      name: "t-shirt",
+                      price: 10
+                   },
+                   {
+                      name: "vest",
+                      price: 20
+                   }
+                ]
+             }
+          )
+
+   .. step:: Configure a transaction to handle updates
+
+      .. note::
+
+         The following example uses a transaction in :binary:`mongosh`. To see
+         transaction examples for MongoDB drivers, see :ref:`transactions`.
+
+      The following example uses a transaction to update the price of
+      the ``vest`` in both the ``products`` and ``sellers`` collections:
+
+      .. code-block:: javascript
+
+         // Start a session
+         session = db.getMongo().startSession( { readPreference: { mode: "primary" } } );
+         productsCollection = session.getDatabase("test").products;
+         sellersCollection = session.getDatabase("test").sellers;
+
+         // Start a transaction
+         session.startTransaction( { readConcern: { level: "local" }, writeConcern: { w: "majority" } } );
+         
+         // Operations inside the transaction
+         try {
+            productsCollection.updateOne(
+               { sellerId: 456, name: "vest" },
+               { $set: { price: 25 } }
+            );
+            sellersCollection.updateOne(
+               { },
+               { $set: { "products.$[element].price": 25 } },
+               { arrayFilters: [ { "element.name": "vest" } ] }
+            );
+         } catch (error) {
+            // Cancel transaction on error
+            session.abortTransaction();
+            throw error;
+         }
+         // Commit the transaction using write concern set at transaction start
+         session.commitTransaction();
+         session.endSession();
+
+Results
+-------
+
+To confirm that the price was updated and that the data is consistent,
+query the ``products`` and ``sellers`` collections.
+
+Query the Products Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+   
+   db.products.find( { sellerId: 456, name: "vest" } )
+
+Output:
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 6
+
+   [
+      {
+        _id: ObjectId("64d506c3ddebf45734d06c58"),
+        sellerId: 456,
+        name: 'vest',
+        price: 25,
+        rating: 4.7
+      } 
+   ]
+
+Query the Sellers Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   db.sellers.find( { id: 456, "products.name": "vest" } )
+
+Output:
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 15
+
+   [
+      {
+        _id: ObjectId("64d516d9ddebf45734d06c5a"),
+        id: 456,
+        name: 'Cool Clothes Co',
+        location: {
+          address: '21643 Andreane Shores',
+          state: 'Ohio',
+          country: 'United States'
+        },
+        phone: '567-555-0105',
+        products: [
+          { name: 'sweater', price: 30 },
+          { name: 't-shirt', price: 10 },
+          { name: 'vest', price: 25 }
+        ]
+      }
+   ]
+
+Learn More
+----------
+
+To see other ways to enforce data consistency, see:
+
+- :atlas:`Atlas Database Triggers
+  </app-services/triggers/database-triggers/>`
+
+- :ref:`enforce-consistency-embedding`

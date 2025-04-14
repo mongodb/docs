@@ -1,0 +1,325 @@
+.. _field-level-encryption-data-key-manage:
+.. _csfle-fundamentals-manage-keys:
+
+=========================
+Encryption Key Management
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. tabs-selector:: drivers
+
+In this guide, you can learn how to manage your encryption keys with a
+{+kms-long+} ({+kms-abbr+}) in your {+csfle+} ({+csfle-abbrev+})-enabled
+application.
+
+Encryption Components
+---------------------
+
+MongoDB uses the following components to perform {+csfle+}:
+
+- {+dek-long+}s ({+dek-abbr+})s
+- {+cmk-long+}s ({+cmk-abbr+})s
+- {+key-vault-long+}s
+- {+kms-long+} ({+kms-abbr+})
+
+To learn more about keys and key vaults, see
+:ref:`csfle-reference-keys-key-vaults`.
+
+Supported Key Management Services
+---------------------------------
+
+{+csfle+} supports the following {+kms-long+} providers:
+
+- {+aws-long+} KMS
+- {+azure-kv+}
+- {+gcp-kms-abbr+}
+- Any KMIP Compliant {+kms-long+}
+- Local Key Provider (for testing only)
+
+.. include:: /includes/reference/fact-kmip-version.rst
+
+To learn more about these providers, including diagrams that show how
+your application uses them to perform {+csfle+}, see
+:ref:`csfle-reference-kms-providers`.
+
+.. _csfle-reasons-to-use-remote-kms:
+
+Reasons to Use a Remote Key Management System
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Using a remote {+kms-long+} to manage your {+cmk-long+}
+has the following advantages over using your local filesystem to host
+the {+cmk-abbr+}:
+
+- Secure storage of the key with access auditing
+- Reduced risk of access permission issues
+- Availability and distribution of the key to remote clients
+- Automated key backup and recovery
+- Centralized encryption key lifecycle management
+
+Additionally, for the following {+kms-abbr+} providers, your
+{+kms-abbr+} remotely encrypts and decrypts your {+dek-long+}, ensuring
+your {+cmk-long+} is never exposed to your {+csfle-abbrev+}-enabled
+application:
+
+- {+aws-long+} KMS
+- {+azure-kv+}
+- {+gcp-kms-abbr+}
+
+Manage a {+dek-long+}'s Alternate Name
+---------------------------------------------
+
+You can assign a {+dek-long+} alternate names to make the
+key easier to reference. Assigning alternate names allows you to perform
+the following actions:
+
+- Reference a {+dek-abbr+} by different means than the ``_id`` field.
+
+- Dynamically assign DEKs at runtime.
+
+Create a {+dek-long+} with an Alternate Name
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. important:: Prerequisite
+
+   Prior to adding a new key alternate name, you must create a partial
+   unique index on the ``keyAltNames`` field. This index should have a 
+   ``partialFilterExpression`` for documents where ``keyAltNames`` exists.
+   
+   {+csfle+} depends on server-enforced uniqueness of key alternate names.
+
+   To learn how to create a partial index, refer to :ref:`index-type-partial`.
+
+The following example creates a {+dek-long+} with an alternate name.
+Select the tab that corresponds to your driver language:
+
+.. TODO: Need tech review for all driver examples
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: python
+
+      .. literalinclude:: /includes/fundamentals/manage-keys/key-alt-names.py
+         :dedent:
+         :language: python
+
+   .. tab::
+      :tabid: java-sync
+
+      .. literalinclude:: /includes/fundamentals/manage-keys/key-alt-names.java
+         :dedent:
+         :language: java
+
+   .. tab::
+      :tabid: nodejs
+
+      .. literalinclude:: /includes/fundamentals/manage-keys/key-alt-names.js
+         :dedent:
+         :language: javascript
+      
+   .. tab::
+      :tabid: csharp
+
+      .. literalinclude:: /includes/fundamentals/manage-keys/key-alt-names.cs
+         :dedent:
+         :language: csharp
+
+   .. tab::
+      :tabid: go
+
+      .. literalinclude:: /includes/fundamentals/manage-keys/key-alt-names.go
+         :dedent:
+         :language: go
+
+   .. tab::
+      :tabid: shell
+
+      .. literalinclude:: /includes/fundamentals/manage-keys/key-alt-names-shell.js
+         :dedent:
+         :language: javascript
+
+To learn more about ``dataKeyOpts`` and ``kmsProviders`` objects, see
+:ref:`csfle-reference-kms-providers`.
+
+Use Key Alternate Names in an Automatic Encryption Schema
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Encryption schemas contain user-specified rules that identify which
+fields must be encrypted and how to encrypt those fields. In your
+encryption rules, you can specify alternate key names name for the
+{+dek-long+} which encrypts your field.
+
+You must refer to a key alternate name with a **JSON pointer**. A JSON
+pointer is a string prefixed with a ``"/"`` character that can be used
+to access a particular field value in the same or another document. Use
+JSON pointers to reference a field in your query or update document
+which contains the value of your key alternate name.
+
+.. important:: Cannot Use Alternate Name for Deterministically Encrypted Field
+
+   You cannot reference a {+dek-abbr+} by it's alternate name when
+   encrypting a field with the :ref:`deterministic encryption algorithm
+   <csfle-deterministic-encryption>`. To encrypt your field
+   deterministically, you must specify the ``_id`` of the key you would
+   like to use to encrypt your field.
+   
+.. _csfle-reference-key-alt-name-in-schema:
+
+Reference Key Alternate Name in an Encryption Schema
+````````````````````````````````````````````````````
+
+Consider the following encryption schema which encrypts the ``salary``
+field:
+
+.. code-block:: json
+   :emphasize-lines: 8
+
+   {
+     "<database>.<collection>": {
+       "bsonType": "object",
+       "properties": {
+         "salary": {
+           "encrypt": {
+             "bsonType": "int",
+             "keyId": "/fieldWithAltName",
+             "algorithm": "AEAD_AES_256_CBC_HMAC_SHA_512-Random"
+           }
+         }
+       }
+     }
+   }
+
+The schema's ``keyId`` field contains a JSON pointer to reference the
+``fieldWithAltName`` field within the documents being encrypted.
+
+The following document's ``fieldWithAltName`` value is ``my-alt-name``:
+
+.. code-block:: json
+
+   {
+     "name": "Jon Doe",
+     "salary": 45000,
+     "fieldWithAltName": "my-alt-name"
+   }
+
+The ``salary`` field is encrypted by the {+dek-abbr+} that has the
+alternate name ``my-alt-name``.
+
+.. _csfle-alt-names-dynamic-keys:
+
+Dynamically Assign Keys at Runtime
+``````````````````````````````````
+
+You can use alternate key names to dynamically set the {+dek-long+} for
+a field at runtime. Use this functionality to encrypt individual
+documents with different DEKs using the same encryption schema.
+
+For example, consider the following documents:
+
+.. code-block:: json
+   :emphasize-lines: 4,9
+
+   {
+       "name": "Jon Doe",
+       "salary": 45000,
+       "fieldWithAltName": "my-alt-name"
+   },
+   {
+       "name": "Jane Smith",
+       "salary": 70000,
+       "fieldWithAltName": "my-other-alt-name"
+   }
+
+You insert the preceding documents using a {+csfle-abbrev+}-enabled
+client configured with the encryption schema from the :ref:`previous
+example <csfle-reference-key-alt-name-in-schema>`.
+
+In the encryption schema, the ``salary.encrypt.keyId`` field contains a
+JSON pointer to the ``fieldWithAltName`` field of the inserted document.
+As a result, the ``salary`` fields in the two example documents are
+each encrypted using a {+dek-abbr+} specific to the individual
+document. The keys are assigned dynamically at runtime.
+
+.. _csfle_fundamentals_rotate_keys:
+.. _csfle-rotate-keys-mongo-shell:
+
+Procedure: Rotate Encryption Keys Using Mongo Shell
+---------------------------------------------------
+
+With version 1.5 and later of the Mongo Shell, you can rotate encryption keys 
+using the ``rewrapManyDataKey`` method. The ``rewrapManyDataKey`` method 
+automatically decrypts multiple data keys and re-encrypts them using a specified 
+{+cmk-long+}. It then updates the rotated keys in the key vault collection.
+This method allows you to rotate encryption keys based on two optional arguments:
+
+- A filter used to specify which keys to rotate. If no data key matches
+  the given filter, no keys are rotated. Omit the filter to rotate all keys 
+  in your key vault collection.
+
+- An object that represents a new {+cmk-abbr+}. Omit this object to rotate
+  the data keys using their current CMKs.
+
+The ``rewrapManyDataKey`` uses the following syntax:
+
+.. code-block:: json
+
+   keyVault = db.getKeyVault()
+
+   keyVault.rewrapManyDataKey(
+      { 
+         "<Your custom filter>" 
+      },
+      {
+         provider: "<KMS provider>",
+         masterKey: {
+            "<dataKeyOpts Key>" : "<dataKeyOpts Value>"
+         }
+      }
+   )
+
+To learn more about the ``dataKeyOpts`` object for your KMS provider, see 
+:ref:`csfle-reference-kms-providers-supported-kms`.
+
+.. _field-level-encryption-data-key-delete:
+
+Delete a {+dek-long+}
+----------------------------
+
+You can delete a {+dek-long+} from your {+key-vault-long+} using standard CRUD
+:ref:`delete operations <write-op-delete>`. If you delete a {+dek-abbr+}, all fields encrypted with that
+{+dek-abbr+} become permanently unreadable.
+
+.. tip:: MongoDB Shell Specific Feature
+   
+   The MongoDB shell allows you to delete a {+dek-abbr+} by ``UUID`` using
+   the ``keyVault.deleteKey()`` method as follows:
+
+   .. code-block:: none
+
+      keyVault = db.getKeyVault()
+      keyVault.deleteKey(UUID("<UUID String>"))
+
+To learn more about {+key-vault-long+}s see :ref:`csfle-reference-key-vault`.
+
+Learn More
+----------
+
+For tutorials detailing how to set up a {+csfle-abbrev+}-enabled
+application with each of the supported {+kms-abbr+} providers, see the
+following pages:
+
+- :ref:`csfle-tutorial-automatic-aws`
+- :ref:`csfle-tutorial-automatic-azure`
+- :ref:`csfle-tutorial-automatic-gcp`
+- :ref:`csfle-tutorial-automatic-kmip`
+
+To view additional examples of encryption schemas, see
+:ref:`csfle-reference-encryption-schemas`.

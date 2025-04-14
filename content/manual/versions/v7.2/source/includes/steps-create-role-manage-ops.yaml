@@ -1,0 +1,39 @@
+stepnum: 1
+source:
+  file: steps-connect-with-admin-privileges.yaml
+  ref: connect
+level: 4
+pre: |
+  Connect to :binary:`~bin.mongod` or :binary:`~bin.mongos` with the privileges
+  specified in the :ref:`define-roles-prereq` section.
+post: |
+  The ``myUserAdmin`` has privileges to create roles in the ``admin``
+  as well as other databases.
+---
+title: Create a new role to manage current operations.
+level: 4
+stepnum: 2
+ref: create-role
+pre: |
+  ``manageOpRole`` has privileges that act on multiple databases as well
+  as the :ref:`cluster resource <resource-cluster>`. As such, you must
+  create the role in the ``admin`` database.
+action:
+  language: javascript
+  code: |
+    use admin
+    db.createRole(
+       {
+         role: "manageOpRole", 
+         privileges: [
+           { resource: { cluster: true }, actions: [ "killop", "inprog" ] },
+           { resource: { db: "", collection: "" }, actions: [ "killCursors" ] }
+         ],
+         roles: []
+       }
+    )
+post: |
+  The new role grants permissions to kill any operations.
+
+  .. include:: /includes/extracts/warning-terminating-ops-method-or-command.rst
+...

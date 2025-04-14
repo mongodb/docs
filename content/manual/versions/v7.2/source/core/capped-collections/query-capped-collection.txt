@@ -1,0 +1,176 @@
+.. _capped-collections-query:
+
+=========================
+Query a Capped Collection
+=========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+When you query a capped collection without specifying a sort order,
+MongoDB returns results in the same order that they were inserted,
+meaning the oldest documents are returned first.
+
+.. include:: /includes/capped-collections/query-natural-order.rst
+
+About this Task
+---------------
+
+.. include:: /includes/capped-collections/use-ttl-index.rst
+
+Multiple Concurrent Writes
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/capped-collections/concurrent-writes.rst
+
+Before you Begin
+----------------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create a capped collection
+
+      .. code-block:: javascript
+
+         db.createCollection("log", { capped: true, size: 100000 } )
+
+   .. step:: Insert sample data
+
+      .. code-block:: javascript
+
+         db.log.insertMany( [ 
+            {
+               message: "system start",
+               type: "startup",
+               time: 1711403508
+            },
+            {
+               message: "user login attempt",
+               type: "info",
+               time: 1711403907
+            },
+            {
+               message: "user login fail",
+               type: "warning",
+               time: 1711404209
+            },
+            {
+               message: "user login success",
+               type: "info",
+               time: 1711404367
+            },
+            {
+               message: "user logout",
+               type: "info",
+               time: 1711404555
+            }
+         ] )
+
+Steps
+-----
+
+The following examples show you how to:
+
+- :ref:`query-capped-collection-insertion-order`
+- :ref:`query-capped-collection-recent`
+
+.. _query-capped-collection-insertion-order:
+
+Return Documents in Insertion Order
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Query the ``log`` collection for documents where ``type`` is ``info``,
+and use the default sort order:
+
+.. io-code-block::
+    :copyable: true
+
+    .. input::
+       :language: javascript
+
+       db.log.find( { type: "info" } )
+
+    .. output::
+       :language: javascript
+
+       [
+         {
+           _id: ObjectId("660204b74cabd75abebadbc2"),
+           message: 'user login attempt',
+           type: 'info',
+           time: 1711403907
+         },
+         {
+           _id: ObjectId("660204b74cabd75abebadbc4"),
+           message: 'user login success',
+           type: 'info',
+           time: 1711404367
+         },
+         {
+           _id: ObjectId("660204b74cabd75abebadbc5"),
+           message: 'user logout',
+           type: 'info',
+           time: 1711404555
+         }
+       ]
+
+Documents are returned in the order that they were inserted.
+
+.. _query-capped-collection-recent:
+
+Return Most Recent Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To return documents in reverse insertion order (meaning the most recent
+documents are first), specify the :method:`~cursor.sort()` method with
+the :operator:`$natural` parameter set to ``-1``.
+
+The following query returns the three most recent documents from the
+``log`` collection, starting with the most recent document:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: javascript
+
+      db.log.find().sort( { $natural: -1 } ).limit(3)
+
+   .. output::
+      :language: javascript
+
+       [
+          {
+             _id: ObjectId("6601f2484cabd75abebadbbb"),
+             message: 'user logout',
+             type: 'info',
+             time: 1711404555
+          },
+          {
+             _id: ObjectId("6601f2484cabd75abebadbba"),
+             message: 'user login success',
+             type: 'info',
+             time: 1711404367
+          },
+          {
+             _id: ObjectId("6601f2484cabd75abebadbb9"),
+             message: 'user login fail',
+             type: 'warning',
+             time: 1711404209
+          }
+       ]
+
+Learn More
+----------
+
+- :ref:`index-feature-ttl`
+- :ref:`read-operations-indexing`
+- :ref:`create-indexes-to-support-queries`

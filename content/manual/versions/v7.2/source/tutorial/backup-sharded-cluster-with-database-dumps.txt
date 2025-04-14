@@ -1,0 +1,250 @@
+.. _backup-sharded-dumps:
+
+============================================
+Back Up Sharded Clusters with Database Dumps
+============================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Starting in MongoDB 7.1, you can back up data on sharded clusters
+using :program:`mongodump`.
+
+About this Task
+---------------
+
+:program:`mongodump` is a utility that creates a binary export of database
+content. You can use the ``mongodump`` utility to take self-managed backups of
+a sharded cluster.
+
+To take a consistent backup of a sharded cluster with ``mongodump``, you must
+first stop the balancer, stop writes, and stop any schema transformation
+operations on the cluster. This ensures that the cluster remains in a
+consistent state for the duration of the backup.
+
+MongoDB provides backup and restore operations that can run with the balancer
+and running transactions through the following services:
+
+- `MongoDB Atlas <https://www.mongodb.com/atlas/database?tck=docs_server>`_
+
+- `MongoDB Cloud Manager <https://www.mongodb.com/cloud/cloud-manager?tck=docs_server>`_
+
+- `MongoDB Ops Manager <https://www.mongodb.com/products/ops-manager?tck=docs_server>`_
+
+Before you Begin
+----------------
+
+This task uses :program:`mongodump` to back up a sharded cluster. Ensure
+that you have a cluster running that contains data in sharded collections.
+
+Version Compatibility
+~~~~~~~~~~~~~~~~~~~~~
+
+This procedure requires a version of MongoDB that supports fsync
+locking from :program:`mongos`.
+
+.. |fsyncLockUnlock| replace:: the :dbcommand:`fsync` and
+   :dbcommand:`fsyncUnlock` commands
+.. include:: /includes/fsync-mongos
+
+Admin Privileges
+~~~~~~~~~~~~~~~~
+
+To perform these tasks, your user must have the :authaction:`fsync`
+authorization, which allows the user to run the :dbcommand:`fsync` and
+:dbcommand:`fsyncUnlock` commands.
+
+Steps
+-----
+
+To take a self-managed backup of a sharded cluster, complete the following
+steps:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Find a Backup Window
+
+      To find a good time to perform a backup, monitor your application
+      and database usage to find a time when chunk migrations, resharding,
+      and schema transformation operations are unlikely to occur, as these can cause an
+      inconsistent backup.
+
+      For more information, see :ref:`sharded-schedule-backup`.
+
+   .. step:: Stop the Balancer
+
+      To prevent chunk migrations from distruping the backup, connect to
+      :program:`mongos` and use the :method:`sh.stopBalancer` method to stop
+      the balancer:
+
+      .. code-block:: javascript
+
+         sh.stopBalancer()
+
+      If a balancing round is in progress, the operation waits for balancing to
+      complete.
+
+      To confirm that the balancer is stopped, use the
+      :method:`sh.getBalancerState` method:
+
+      .. io-code-block::
+
+         .. input::
+            :language: javascript
+
+            sh.getBalancerState()
+
+         .. output::
+            :language: javascript
+
+            false
+
+      The command returns ``false`` when the balancer is stopped.
+
+   .. step:: Lock the Cluster
+
+      The sharded cluster must remain locked during the backup process to protect
+      the database from writes, which may cause inconsistencies in the backup.
+
+      To lock a sharded cluster, connect to :program:`mongos` and use the
+      :method:`db.fsyncLock` method:
+
+      .. code-block:: javascript
+
+         db.getSiblingDB("admin").fsyncLock()
+
+      To confirm the lock, on :program:`mongos` and the primary
+      :program:`mongod` of the config servers, run the following
+      aggregation pipeline and ensure that all the shards are
+      locked:
+
+      .. io-code-block::
+
+         .. input::
+            :language: javascript
+
+            db.getSiblingDB("admin").aggregate( [
+               {  $currentOp: { } },
+               {  $facet: {
+                  "locked": [
+                     { $match: { $and: [
+                        { fsyncLock: { $exists: true } },
+                        { fsyncLock: true }
+                     ] } }],
+                   "unlocked": [
+                     { $match: { fsyncLock: { $exists: false } } }
+                   ]
+               } },
+               {  $project: {
+                  "fsyncLocked": { $gt: [ { $size: "$locked" }, 0 ] },
+                  "fsyncUnlocked": { $gt: [ { $size: "$unlocked" }, 0 ] }
+               } }
+             ] )
+
+         .. output::
+            :language: json
+
+            [ { fsyncLocked: true }, { fsyncUnlocked: false } ]
+
+   .. step:: Take Backup
+
+      To back up the sharded cluster, use ``mongodump`` to connect to
+      :program:`mongos` and perform the backup:
+
+      .. code-block:: bash
+
+         mongodump \
+            --host mongos.example.net \
+            --port 27017 \
+            --username user \
+            --password "passwd" \
+            --out /opt/backups/example-cluster-1
+
+   .. step:: Unlock the Cluster
+
+      After the backup completes, you can unlock the cluster to allow writes
+      to resume.
+
+      To unlock the cluster, use the :method:`db.fsyncUnlock` method:
+
+      .. code-block:: bash
+
+         db.getSibling("admin").fsyncUnlock()
+
+      To confirm the unlock, on :program:`mongos` and the primary
+      :program:`mongod` of the config servers, run the following
+      aggregation pipeline and ensure that all shards are unlocked:
+
+      .. io-code-block::
+
+         .. input::
+            :language: javascript
+
+            db.getSiblingDB("admin").aggregate( [
+               {  $currentOp: { } },
+               {  $facet: {
+                  "locked": [
+                     { $match: { $and: [
+                        { fsyncLock: { $exists: true } },
+                        { fsyncLock: true }
+                     ] } }],
+                   "unlocked": [
+                     { $match: { fsyncLock: { $exists: false } } }
+                   ]
+               } },
+               { $project: {
+                  "fsyncLocked": { $gt: [ { $size: "$locked" }, 0 ] },
+                  "fsyncUnlocked": { $gt: [ { $size: "$unlocked" }, 0 ] }
+               } }
+             ] )
+
+         .. output::
+            :language: json
+
+            [ { fsyncLocked: false }, { fsyncUnlocked: true } ]
+
+   .. step:: Restart the Balancer
+
+      To restart the balancer, use the :method:`sh.startBalancer` method:
+
+      .. code-block:: javascript
+
+         sh.startBalancer()
+
+      To confirm that the balancer is running, use the
+      :method:`sh.getBalancerState` method:
+
+      .. io-code-block::
+
+         .. input::
+            :language: javascript
+
+            sh.getBalancerState()
+
+         .. output::
+            :language: javascript
+
+            true
+
+      The command returns ``true`` when the balancer is running.
+
+Next Steps
+----------
+
+You can restore a database from a :program:`mongodump` backup using
+:program:`mongorestore`.
+
+- To restore a sharded cluster, execute ``mongorestore`` against
+  :program:`mongos`.
+
+- To migrate to a replica set or standalone server, execute ``mongorestore``
+  against :program:`mongod`.
+
+For more information, see :ref:`manual-tutorial-backup-and-restore`.
+

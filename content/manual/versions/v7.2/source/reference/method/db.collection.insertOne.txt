@@ -1,0 +1,270 @@
+=========================
+db.collection.insertOne()
+=========================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Insert a single document into a collection.
+
+.. facet::
+   :name: programming_language 
+   :values: shell
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.collection.insertOne()
+
+
+   .. |dbcommand| replace:: :dbcommand:`insert` command
+   .. include:: /includes/fact-mongosh-shell-method-alt.rst
+
+   Inserts a single document into a collection.
+
+   :returns:
+
+      A document containing:
+
+      - A boolean ``acknowledged`` as ``true`` if the operation ran with
+        :term:`write concern` or ``false`` if write concern was disabled.
+      - A field ``insertedId`` with the ``_id`` value of the
+        inserted document.
+
+Compatibility
+-------------
+
+.. |operator-method| replace:: ``db.collection.insertOne()``
+
+.. include:: /includes/fact-compatibility.rst
+
+Syntax
+------
+
+The :method:`~db.collection.insertOne()` method has the following
+form:
+
+.. code-block:: javascript
+
+   db.collection.insertOne(
+       <document>,
+       {
+         writeConcern: <document>
+       }
+   )
+
+The :method:`~db.collection.insertOne()` method takes the following
+parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Parameter
+     - Type
+     - Description
+
+   * - ``document``
+     - document
+     - A document to insert into the collection. 
+
+   * - ``writeConcern``
+     - document
+     - Optional. A document expressing the :doc:`write concern
+       </reference/write-concern>`. Omit to use the default write concern.
+       .. include:: /includes/extracts/transactions-operations-write-concern.rst
+
+Behaviors
+---------
+
+Collection Creation
+~~~~~~~~~~~~~~~~~~~
+
+If the collection does not exist, then the
+:method:`~db.collection.insertOne()` method creates the collection.
+
+``_id`` Field
+~~~~~~~~~~~~~
+
+If the document does not specify an :term:`_id` field, then :binary:`~bin.mongod`
+will add the ``_id`` field and assign a unique
+:method:`ObjectId` for the document before inserting. Most
+drivers create an ObjectId and insert the ``_id`` field, but the
+:binary:`~bin.mongod` will create and populate the ``_id`` if the driver or
+application does not.
+
+If the document contains an ``_id`` field, the ``_id`` value must be
+unique within the collection to avoid duplicate key error.
+
+Explainability
+~~~~~~~~~~~~~~
+
+:method:`~db.collection.insertOne()` is not compatible with
+:method:`db.collection.explain()`.
+
+Error Handling
+~~~~~~~~~~~~~~
+
+On error, :method:`db.collection.insertOne()` throws either a ``writeError``
+or ``writeConcernError`` exception.
+
+Transactions
+~~~~~~~~~~~~
+
+.. include:: /includes/extracts/transactions-supported-operation.rst
+
+.. include:: /includes/extracts/transactions-usage.rst
+
+Collection Creation in Transactions
+````````````````````````````````````
+
+.. include:: /includes/extracts/transactions-insert-implicit-collection-creation.rst
+
+Write Concerns and Transactions
+````````````````````````````````
+
+.. include:: /includes/extracts/transactions-operations-write-concern.rst
+
+.. |operation| replace:: :method:`db.collection.insertOne()`
+
+Oplog Entries 
+~~~~~~~~~~~~~
+
+If a ``db.collection.insertOne()`` operation successfully inserts a
+document, the operation adds an entry on the :term:`oplog` (operations
+log). If the operation fails, the operation does not add an entry on the
+oplog. 
+
+.. _insertOne-examples:
+
+Examples
+--------
+
+Insert a Document without Specifying an ``_id`` Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the following example, the document passed to the
+:method:`~db.collection.insertOne()` method does not contain the ``_id``
+field:
+
+.. code-block:: javascript
+
+   try {
+      db.products.insertOne( { item: "card", qty: 15 } );
+   } catch (e) {
+      print (e);
+   };
+
+The operation returns the following document:
+
+.. code-block:: javascript
+
+   {
+      "acknowledged" : true,
+      "insertedId" : ObjectId("56fc40f9d735c28df206d078")
+   }
+
+
+Because the documents did not include ``_id``,
+:binary:`~bin.mongod` creates and adds the ``_id`` field and
+assigns it a unique :method:`ObjectId` value.
+
+.. include:: /includes/fact-object-id-may-differ.rst
+
+Insert a Document Specifying an ``_id`` Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the following example, the document passed to the
+:method:`~db.collection.insertOne()` method includes the ``_id`` field.
+The value of ``_id`` must be unique within the collection to avoid
+duplicate key error.
+
+.. code-block:: javascript
+
+   try {
+      db.products.insertOne( { _id: 10, item: "box", qty: 20 } );
+   } catch (e) {
+      print (e);
+   }
+
+The operation returns the following:
+
+.. code-block:: javascript
+
+   { "acknowledged" : true, "insertedId" : 10 }
+
+Inserting an duplicate value for any key that is part of a :term:`unique
+index`, such as ``_id``, throws an exception. The following attempts to insert
+a document with a ``_id`` value that already exists:
+
+.. code-block:: javascript
+
+   try {
+      db.products.insertOne( { _id: 10, "item" : "packing peanuts", "qty" : 200 } );
+   } catch (e) {
+      print (e);
+   }
+
+Since ``_id: 10`` already exists, the following exception is thrown:
+
+.. code-block:: javascript
+
+   WriteError({
+      "index" : 0,
+      "code" : 11000,
+      "errmsg" : "E11000 duplicate key error collection: inventory.products index: _id_ dup key: { : 10.0 }",
+      "op" : {
+         "_id" : 10,
+         "item" : "packing peanuts",
+         "qty" : 200
+      }
+   })
+
+.. _insertOne-override-write-concern:
+
+Increase Write Concern
+~~~~~~~~~~~~~~~~~~~~~~
+
+Given a three member replica set, the following operation specifies a
+``w`` of ``majority``, ``wtimeout`` of ``100``:
+
+.. code-block:: javascript
+
+   try {
+      db.products.insertOne(
+          { "item": "envelopes", "qty": 100, type: "Self-Sealing" },
+          { writeConcern: { w : "majority", wtimeout : 100 } }
+      );
+   } catch (e) {
+      print (e);
+   }
+
+If the acknowledgment takes longer than the ``wtimeout`` limit, the following
+exception is thrown:
+
+.. code-block:: javascript
+
+   WriteConcernError({
+      "code" : 64,
+      "errmsg" : "waiting for replication timed out",
+      "errInfo" : {
+        "wtimeout" : true,
+        "writeConcern" : { 
+          "w" : "majority",
+          "wtimeout" : 100,
+          "provenance" : "getLastErrorDefaults"
+        }
+      }
+   })
+
+.. seealso::
+
+   - To insert multiple documents, see
+     :method:`db.collection.insertMany()`
+   - :data:`WriteResult.writeConcernError`
