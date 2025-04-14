@@ -1,0 +1,76 @@
+==================
+replSetMaintenance
+==================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: replSetMaintenance
+
+   The :dbcommand:`replSetMaintenance` admin command enables or disables the
+   maintenance mode for a :term:`secondary` member of a :term:`replica
+   set`.
+
+Compatibility
+-------------
+
+This command is available in deployments hosted in the following environments: 
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. include:: /includes/fact-environments-atlas-support-no-free-or-m10.rst
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
+Syntax
+------
+
+The command has the following syntax:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      { 
+        replSetMaintenance: <boolean> 
+      }
+   )
+
+Behavior
+--------
+
+Consider the following behavior when running the
+:dbcommand:`replSetMaintenance` command:
+
+- You cannot run the command on the Primary.
+
+- You must run the command against the ``admin`` database.
+
+- When enabled ``replSetMaintenance: true``, the member enters the
+  ``RECOVERING`` state. While the secondary is ``RECOVERING``:
+
+  - The member is not accessible for read operations.
+
+  - The member continues to sync its :term:`oplog` from the Primary.
+
+- When a node receives a ``replSetMaintenance: true`` request, it
+  adds a maintenance mode task to a queue of tasks. If the queue of
+  tasks was empty and now is not, the node will transition to
+  ``RECOVERING`` state and begin to reject read requests. When a node
+  receives a ``replSetMaintenance: false`` request, it removes a
+  maintenance mode task from the queue (even if that task was
+  initiated by a different client). If the request empties 
+  the maintenance mode task queue, the node will return to 
+  ``SECONDARY`` state.
+    
+- If you want to prevent a node from servicing reads, consider using
+  :doc:`/core/replica-set-hidden-member` instead.
+
+.. admin-only

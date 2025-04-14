@@ -1,0 +1,140 @@
+========================
+db.revokeRolesFromRole()
+========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.revokeRolesFromRole(rolename, roles, writeConcern)
+
+   Removes the specified inherited roles from a role.
+
+   .. |dbcommand| replace:: :dbcommand:`revokeRolesFromRole` command
+   .. include:: /includes/fact-mongosh-shell-method-alt.rst
+
+   The :method:`db.revokeRolesFromRole()` method uses the following syntax:
+
+   .. code-block:: javascript
+
+      db.revokeRolesFromRole( "<rolename>", [ <roles> ], { <writeConcern> } )
+
+   The :method:`db.revokeRolesFromRole()` method takes the following arguments:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+        - Type
+        - Description
+      * - ``rolename``
+        - string
+        - The name of the role from which to revoke roles.
+      * - ``roles``
+        - array
+        - The inherited roles to remove.
+      * - ``writeConcern``
+        - document
+        - .. include:: /includes/fact-write-concern-spec-link.rst
+
+   .. |local-cmd-name| replace:: :method:`db.revokeRolesFromRole()`
+   .. include:: /includes/fact-roles-array-contents.rst
+
+
+Compatibility
+-------------
+
+.. |command| replace:: method
+
+This method is available in deployments hosted in the following environments: 
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. include:: /includes/fact-environments-atlas-support-no-free.rst
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
+                
+Behavior
+--------
+
+Replica set
+~~~~~~~~~~~
+
+.. |command| replace:: :method:`db.revokeRolesFromRole()`
+
+.. include:: /includes/fact-management-methods-write-concern.rst
+
+Required Access
+---------------
+
+.. include:: /includes/access-revoke-roles.rst
+
+Example
+-------
+
+The ``purchaseAgents`` role in the ``emea`` database inherits privileges
+from several other roles, as listed in the ``roles`` array:
+
+.. code-block:: javascript
+
+   {
+      "_id" : "emea.purchaseAgents",
+      "role" : "purchaseAgents",
+      "db" : "emea",
+      "privileges" : [],
+      "roles" : [
+         {
+            "role" : "readOrdersCollection",
+            "db" : "emea"
+         },
+         {
+            "role" : "readAccountsCollection",
+            "db" : "emea"
+         },
+         {
+            "role" : "writeOrdersCollection",
+            "db" : "emea"
+         }
+      ]
+   }
+
+The following :method:`db.revokeRolesFromRole()` operation on the ``emea``
+database removes two roles from the ``purchaseAgents`` role:
+
+.. code-block:: javascript
+
+   use emea
+   db.revokeRolesFromRole( "purchaseAgents",
+                           [
+                             "writeOrdersCollection",
+                             "readOrdersCollection"
+                           ],
+                           { w: "majority" , wtimeout: 5000 }
+                         )
+
+The ``purchaseAgents`` role now contains just one role:
+
+.. code-block:: javascript
+
+   {
+      "_id" : "emea.purchaseAgents",
+      "role" : "purchaseAgents",
+      "db" : "emea",
+      "privileges" : [],
+      "roles" : [
+         {
+            "role" : "readAccountsCollection",
+            "db" : "emea"
+         }
+      ]
+   }

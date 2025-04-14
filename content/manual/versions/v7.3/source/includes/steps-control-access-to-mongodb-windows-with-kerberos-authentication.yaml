@@ -1,0 +1,124 @@
+title: Start ``mongod.exe`` without Kerberos.
+stepnum: 1
+ref: start-mongod-exe-without-kerberos-support
+pre: |
+   For the initial addition of Kerberos users, start
+   :binary:`mongod.exe` without Kerberos support.
+post: |
+   If a Kerberos user is already in MongoDB and has the
+   :ref:`privileges required to create a user
+   <createUser-required-access>`, you can start 
+   :binary:`mongod.exe` with Kerberos support.
+   
+   Include additional settings as appropriate to your deployment.
+
+   .. note::
+
+      .. include:: /includes/extracts/default-bind-ip-security.rst
+---
+title: Connect to ``mongod``.
+stepnum: 2
+ref: connect-to-mongod
+pre: |
+   Connect :binary:`~bin.mongosh` to the :binary:`mongod.exe`
+   instance. If :binary:`mongod.exe` has :option:`--auth <mongod --auth>` enabled, ensure
+   you connect with the :ref:`privileges required to create a user
+   <createUser-required-access>`.
+---
+title: Add Kerberos Principal(s) to MongoDB.
+stepnum: 3
+ref: add-kerberos-principals-windows
+pre: |
+   Add a Kerberos principal, ``<username>@<KERBEROS REALM>``, to
+   MongoDB in the ``$external`` database. Specify the Kerberos realm in
+   **ALL UPPERCASE**. The ``$external`` database allows
+   :binary:`mongod.exe` to consult an external source (e.g. Kerberos)
+   to authenticate. To specify the user's privileges, assign
+   :ref:`roles <authorization>` to the user.
+   
+   .. include:: /includes/extracts/sessions-external-username-limit.rst
+   
+action:
+   pre: |
+     The following example adds the Kerberos principal
+     ``reportingapp@EXAMPLE.NET`` with read-only access to the
+     ``records`` database:
+   language: javascript
+   code: |
+      use $external
+      db.createUser(
+         {
+           user: "reportingapp@EXAMPLE.NET",
+           roles: [ { role: "read", db: "records" } ]
+         }
+      )
+post: |
+   Add additional principals as needed. For every user you want to
+   authenticate using Kerberos, you must create a corresponding user in
+   MongoDB.
+   For more
+   information about creating and managing users, see
+   :doc:`/reference/command/nav-user-management`.
+---
+title: Start ``mongod.exe`` with Kerberos support.
+stepnum: 4
+ref: start-mongod-exe-with-kerberos-support
+pre: |
+   You must start :binary:`mongod.exe` as the :ref:`service principal
+   account <assign-service-principal-name>`.
+action:
+  - pre: |
+       To start :binary:`mongod.exe` with Kerberos support, set
+       the :binary:`mongod.exe` parameter
+       :parameter:`authenticationMechanisms` to ``GSSAPI``:
+    language: sh
+    code: |
+       mongod.exe --setParameter authenticationMechanisms=GSSAPI <additional mongod.exe options>
+
+    post: |
+
+       .. include:: /includes/extracts/default-bind-ip-security-additional-command-line.rst
+
+  - pre: |
+       For example, the following starts a standalone :binary:`mongod.exe`
+       instance with Kerberos support:
+    language: sh
+    code: |
+       mongod.exe --auth --setParameter authenticationMechanisms=GSSAPI --bind_ip localhost,<hostname(s)|ip address(es)>
+
+---
+title: Connect ``mongosh.exe`` shell to ``mongod.exe`` and authenticate.
+stepnum: 5
+ref: authenticate-a-user-within-mongo-shell
+pre: |
+   Connect the :binary:`~bin.mongosh` shell client as the Kerberos
+   principal ``application@EXAMPLE.NET``.
+action:
+  - pre: |
+       You can connect and authenticate from the command line.
+       
+       Using ``cmd.exe``:
+    language: sh
+    code: |
+       mongosh.exe --host hostname.example.net --authenticationMechanism=GSSAPI --authenticationDatabase=$external --username reportingapp@EXAMPLE.NET
+  - pre: |
+       Using ``Windows PowerShell``:
+    language: sh
+    code: |
+       mongosh.exe --host hostname.example.net --authenticationMechanism=GSSAPI --authenticationDatabase='$external' --username reportingapp@EXAMPLE.NET  
+    post: |
+       If you are connecting to a system whose hostname matches the
+       Kerberos name, ensure that you specify the fully qualified
+       domain name (FQDN) for the ``--host``
+       option, rather than an IP address or unqualified hostname.
+  - pre: |
+       If you are connecting to a system whose hostname does not match
+       the Kerberos name, first connect the :binary:`~bin.mongosh` shell
+       to :binary:`mongod.exe`, and then from the
+       :binary:`~bin.mongosh` shell, use the :method:`db.auth()` method
+       to authenticate in the ``$external`` database.
+    language: javascript
+    code: |
+       use $external
+       db.auth( { mechanism: "GSSAPI", user: "reportingapp@EXAMPLE.NET" } )
+...

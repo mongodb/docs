@@ -1,0 +1,94 @@
+title: Obtain backup MongoDB Database files.
+ref: obtain-backup-files
+content: |
+  The backup files may come from a :doc:`file system snapshot
+  </tutorial/backup-with-filesystem-snapshots>`. The |mms-home|
+  produces MongoDB database files for :mms-docs:`stored snapshots
+  </tutorial/restore-from-snapshot/>` and :mms-docs:`point in time
+  snapshots </tutorial/restore-from-point-in-time-snapshot/>`.
+  For :products:`Ops Manager, an on-premise solution available in
+  MongoDB Enterprise Advanced </mongodb-enterprise-advanced?tck=docs_server>`,
+  see also the :opsmgr:`Ops Manager Backup overview </core/backup-overview>`.
+  
+  Considerations for Encrypted Storage Engines
+     .. include:: /includes/fact-aes256-backups.rst
+---
+title: "Drop the ``local`` database if it exists in the backup."
+ref: drop-local
+pre: |
+   If you are restoring from a filesystem backup (or any backup with
+   the ``local`` database), drop the ``local`` database.
+action:
+   - heading: Start a standalone :binary:`~bin.mongod` using the data files from the backup as the data path. 
+     pre: |
+        You must also specify the same :ref:`startup options
+        <mongod-options>` that were used when the snapshot was created.
+     language: sh
+     code: |
+        mongod --dbpath /data/db <startup options>
+   - heading: Drop the ``local`` database.
+     pre: |
+        Connect :binary:`~bin.mongosh` to the :binary:`~bin.mongod`
+        instance and drop the ``local`` database.
+           
+     language: javascript
+     code: |
+        use local
+        db.dropDatabase()
+     post: |
+        Shut down the standalone.
+
+---
+title: "Start a new single-node replica set."
+ref: restart-as-repl
+pre: |
+  Start a :binary:`~bin.mongod` instance as a new single-node replica set.
+  Specify the path to the backup data files with ``--dbpath`` option
+  and the replica set name with the ``--replSet`` option. 
+  For :ref:`config server replica set (CSRS) <csrs>`,
+  include the :option:`--configsvr <mongod --configsvr>` option.
+  Include any other options as appropriate for your deployment.
+
+  You must also specify the same :ref:`startup options <mongod-options>`
+  that were used when the snapshot was created.
+  
+  .. note::
+
+     If your replica set members are run on
+     different hosts or if you wish remote clients to connect to your
+     instance, you must specify the :setting:`net.bindIp` setting (or
+     :option:`--bind_ip <mongod --bind_ip>`).
+
+  .. include:: /includes/warning-bind-ip-security-considerations.rst
+
+action:
+  language: sh
+  code: |
+    mongod --dbpath /data/db --replSet <replName> <startup options>
+post: |
+  .. include:: /includes/fact-uuid-restore-from-backup.rst
+
+---
+title: Connect :binary:`~bin.mongosh` to the ``mongod`` instance.
+stepnum: 4
+source:
+  file: steps-deploy-replica-set.yaml
+  ref: open-shell
+---
+stepnum: 5
+title: Initiate the new replica set.
+ref: initiate
+pre: |
+  Use :method:`rs.initiate()` on *one and only one* member of the replica set:
+action:
+  language: javascript
+  code: |
+    rs.initiate( {
+       _id : <replName>,
+       members: [ { _id : 0, host : <host:port> } ]
+    })
+post: |
+  MongoDB initiates a set that consists of the current member and that
+  uses the default replica set configuration.
+
+...

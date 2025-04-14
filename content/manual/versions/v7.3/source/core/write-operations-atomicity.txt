@@ -1,0 +1,80 @@
+.. _transactions-write-atomicity:
+
+==========================
+Atomicity and Transactions
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Atomicity
+---------
+
+In MongoDB, a write operation is :term:`atomic <atomic operation>` on
+the level of a single document, even if the operation modifies multiple
+embedded documents *within* a single document. 
+
+Multi-Document Transactions
+---------------------------
+
+.. include:: /includes/extracts/concurrent-operations-multi-document-writes.rst
+
+.. include:: /includes/extracts/transactions-usage.rst
+
+.. _concurrency-control:
+
+Concurrency Control
+-------------------
+
+Concurrency control allows multiple applications to run concurrently
+without causing data inconsistency or conflicts.
+
+A :dbcommand:`findAndModify` operation on a document is :term:`atomic
+<atomic operation>`: if the find condition matches a document, the
+update is performed on that document. Concurrent queries and additional
+updates on that document are not affected until the current update is
+complete.
+
+Consider the following example:
+
+- A collection with two documents:
+
+  .. code-block:: javascript
+
+     db.myCollection.insertMany( [
+        { _id: 0, a: 1, b: 1 },
+        { _id: 1, a: 1, b: 1 }
+     ] )
+
+- Two of the following :dbcommand:`findAndModify` operations run
+  concurrently:
+
+  .. code-block:: javascript
+
+     db.myCollection.findAndModify( {
+        query: { a: 1 },
+        update: { $inc: { b: 1 }, $set: { a: 2 } }
+     } )
+
+After the :dbcommand:`findAndModify` operations are complete, it is
+guaranteed that ``a`` and ``b`` in both documents are set to ``2``.
+
+.. seealso::
+
+   :ref:`findAndModify() Upsert Example <findAndModify-upsert-example>`
+
+You can also create a :ref:`unique index <index-type-unique>` on a field
+so that it can only have unique values. This prevents inserts and
+updates from creating duplicate data. You can create a unique index
+on multiple fields to ensure the combination of field values is unique.
+For an example, see :ref:`findAndModify() Upsert with Unique Index
+<upsert-and-unique-index>`.
+
+.. seealso::
+
+   :doc:`/core/read-isolation-consistency-recency`

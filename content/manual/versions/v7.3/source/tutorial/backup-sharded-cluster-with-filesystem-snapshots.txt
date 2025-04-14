@@ -1,0 +1,255 @@
+.. _backup-sharded-lvm:
+
+=================================================================
+Back Up a Self-Managed Sharded Cluster with File System Snapshots
+=================================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+This document describes a procedure for taking a backup of all
+components of a :term:`sharded cluster`. This procedure uses file system
+snapshots to capture a copy of the :binary:`~bin.mongod` instance.
+
+.. include:: /includes/note-shard-cluster-backup.rst
+
+For more information on backups in MongoDB and backups of sharded
+clusters in particular, see :doc:`/core/backups` and
+:doc:`/administration/backup-sharded-clusters`.
+
+Considerations
+--------------
+
+Transactions Across Shards
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/sharded-clusters-backup-restore-file-system-snapshot-restriction.rst
+
+Encrypted Storage Engine (MongoDB Enterprise Only)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-aes256-backups.rst
+
+Balancer
+~~~~~~~~
+
+It is *essential* that you stop the :ref:`balancer
+<sharding-internals-balancing>` before capturing a backup.
+
+If the balancer is active while you capture backups, the backup
+artifacts may be incomplete or have duplicate data, as :term:`chunks
+<chunk>` may migrate while recording backups.
+
+Precision
+~~~~~~~~~
+
+In this procedure, you will stop the cluster balancer and take a backup
+up of the :term:`config database`, and then take backups of each
+shard in the cluster using a file-system snapshot tool. If you need an
+exact moment-in-time snapshot of the system, you will need to stop all
+writes before taking the file system snapshots; otherwise the snapshot will
+only approximate a moment in time.
+
+Consistency
+~~~~~~~~~~~
+
+To back up a sharded cluster, you must use the :dbcommand:`fsync` command or
+:method:`db.fsyncLock` method to stop writes on the cluster. This helps 
+reduce the likelihood of inconsistencies in the backup. 
+
+.. note::
+
+   These steps can only produce a consistent backup if they are
+   followed exactly and no operations are in progress when you
+   begin.
+
+
+.. include:: /includes/fact-backup-snapshots-with-ebs-in-raid10.rst
+
+Version Compatibility
+~~~~~~~~~~~~~~~~~~~~~
+
+This procedure requires a version of MongoDB that supports fsync
+locking from :program:`mongos`.
+
+.. |fsyncLockUnlock| replace:: the :dbcommand:`fsync` and
+   :dbcommand:`fsyncUnlock` commands
+.. include:: /includes/fsync-mongos
+
+
+Steps
+-----
+
+To take a self-managed backup of a sharded cluster, complete the following
+steps:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Find a Backup Window
+
+      Chunk migrations, resharding, and schema migration operations can cause
+      inconsistencies in backups. To find a good time to perform a backup,
+      monitor your application and database usage and find a time when these
+      operations are unlikely to occur.
+
+      For more information, see :ref:`sharded-schedule-backup`.
+
+   .. step:: Stop the Balancer
+
+      To prevent chunk migrations from disrupting the backup, use
+      the :method:`sh.stopBalancer` method to stop the balancer:
+
+      .. code-block:: javascript
+
+         sh.stopBalancer()
+
+      If a balancing round is currently in progress, the operation waits for
+      balancing to complete.
+
+      To verify that the balancer is stopped, use the
+      :method:`sh.getBalancerState` method:
+
+      .. code-block:: javascript
+
+         use config
+         while( sh.isBalancerRunning().mode != "off" ) {
+            print("waiting...");
+            sleep(1000);
+         }
+
+   .. step:: Lock the Cluster
+
+      Writes to the database can cause backup inconsistencies. Lock your
+      sharded cluster to protect the database from writes.
+
+      To lock a sharded cluster,  use the :method:`db.fsyncLock` method:
+
+      .. code-block:: javascript
+
+         db.getSiblingDB("admin").fsyncLock()
+
+      Run the following aggregation pipeline on both :program:`mongos` and
+      the primary :program:`mongod` of the config servers. To confirm the
+      lock, ensure that the ``fysncLocked`` field returns ``true`` and
+      ``fsyncUnlocked`` field returns ``false``.
+
+      .. io-code-block::
+
+         .. input::
+            :language: javascript
+
+            db.getSiblingDB("admin").aggregate( [
+               {  $currentOp: { } },
+               {  $facet: {
+                  "locked": [
+                     { $match: { $and: [
+                        { fsyncLock: { $exists: true } }
+                     ] } }],
+                   "unlocked": [
+                     { $match: { fsyncLock: { $exists: false } } }
+                   ]
+               } },
+               {  $project: {
+                  "fsyncLocked": { $gt: [ { $size: "$locked" }, 0 ] },
+                  "fsyncUnlocked": { $gt: [ { $size: "$unlocked" }, 0 ] }
+               } }
+             ] )
+
+         .. output::
+            :language: json
+
+            [ { fsyncLocked: true }, { fsyncUnlocked: false } ]
+
+   .. step:: Back up the Primary Config Server
+
+      .. note::
+
+         Backing up a :ref:`config server <sharding-config-server>` backs
+         up the sharded cluster's metadata. You only need to back up one
+         config server, as they all hold the same data. Perform this step
+         against the CSRS primary member.
+
+      To create a filesystem snapshot of the config server, follow the
+      procedure in :ref:`lvm-backup-operation`.
+
+   .. step:: Back up the Primary Shards
+
+      Perform a filesystem snapshot against the primary member of each shard,
+      using the procedure found in :ref:`backup-restore-filesystem-snapshots`.
+
+   .. step:: Unlock the Cluster
+
+      After the backup completes, you must unlock the cluster to allow writes
+      to resume.
+
+      To unlock the cluster, use the :method:`db.fsyncUnlock` method:
+
+      .. code-block:: bash
+
+         db.getSibling("admin").fsyncUnlock()
+
+      Run the following aggregation pipeline on both :program:`mongos` and
+      the primary :program:`mongod` of the config servers. To confirm the
+      unlock, ensure that the ``fysncLocked`` field returns ``false`` and
+      ``fsyncUnlocked`` field returns ``true``.
+
+      .. io-code-block::
+
+         .. input::
+            :language: javascript
+
+            db.getSiblingDB("admin").aggregate( [
+               {  $currentOp: { } },
+               {  $facet: {
+                  "locked": [
+                     { $match: { $and: [
+                        { fsyncLock: { $exists: true } }
+                     ] } }],
+                   "unlocked": [
+                     { $match: { fsyncLock: { $exists: false } } }
+                   ]
+               } },
+               { $project: {
+                  "fsyncLocked": { $gt: [ { $size: "$locked" }, 0 ] },
+                  "fsyncUnlocked": { $gt: [ { $size: "$unlocked" }, 0 ] }
+               } }
+             ] )
+
+         .. output::
+            :language: json
+
+            [ { fsyncLocked: false }, { fsyncUnlocked: true } ]
+
+   .. step:: Restart the Balancer
+
+      To restart the balancer, use the :method:`sh.startBalancer` method:
+
+      .. code-block:: javascript
+
+         sh.startBalancer()
+
+      To confirm that the balancer is running, use the
+      :method:`sh.getBalancerState` method:
+
+      .. io-code-block::
+
+         .. input::
+            :language: javascript
+
+            sh.getBalancerState()
+
+         .. output::
+            :language: javascript
+
+            true
+
+      The command returns ``true`` when the balancer is running.

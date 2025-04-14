@@ -1,0 +1,173 @@
+.. _server-diagnose-queries:
+
+=========================
+Analyze Query Performance
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. |both| replace:: Atlas clusters and self-hosted deployments
+.. |m10-atlas| replace:: M10+ Atlas clusters
+
+MongoDB provides several ways to examine the performance of your
+workload, allowing you to understand query performance and identify
+long-running queries. Understanding query performance helps you build
+effective indexes and ensure your application runs critical queries
+efficiently.
+
+Identify Slow Queries
+---------------------
+
+Use the following methods to identify slow queries that occur on your
+deployment.
+
+Performance Overview
+~~~~~~~~~~~~~~~~~~~~
+
+The following methods provide overviews of your deployment's
+performance. Use these methods to determine if there are performance
+issues that need to be addressed:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 10 20
+
+   * - Method
+     - Availability
+     - Description
+
+   * - Use the Atlas Performance Advisor
+     - |m10-atlas|
+     - The Atlas Performance Advisor monitors slow queries and suggests
+       new indexes to improve performance. For more information, see
+       :ref:`performance-advisor`.
+   
+   * - Check ongoing operations in Atlas
+     - |m10-atlas|
+     - You can use the :ref:`Atlas Real-Time Performance Panel
+       <real-time-metrics-status-tab>` (RTPP) to see current network
+       traffic, database operations, and hardware statistics.
+   
+   * - Check ongoing operations locally
+     - |both|
+     - The :pipeline:`$currentOp` aggregation stage returns information
+       on active operations and cursors. Use ``$currentOp`` to identify
+       long-running or stuck operations that may be negatively impacting
+       performance.
+
+       You can also use the :dbcommand:`top` command to get additional
+       operation count and latency statistics..
+
+   * - Check server metrics
+     - |both|
+     - For Atlas clusters, you can :ref:`view cluster metrics
+       <monitor-cluster-metrics>` to identify performance issues.
+     
+       For self-hosted deployments, the :dbcommand:`serverStatus`
+       command provides metrics that can indicate poor performance and
+       anomalies for query execution.
+
+   * - View common query shapes
+     - |both|
+     - The :pipeline:`$queryStats` aggregation stage returns information
+       about common query shapes. ``$queryStats`` provides a holistic
+       view of the kinds of queries being run on your deployment.
+
+   * - View index statistics
+     - |both|
+     - The :pipeline:`$indexStats` aggregation stage returns information
+       about your collection's indexes and how often individual indexes
+       are used. Use ``$indexStats`` to identify unused indexes that can
+       be removed to improve write performance.
+
+Analyze a Slow Query
+~~~~~~~~~~~~~~~~~~~~
+
+Use these methods to analyze a slow query and determine the cause of
+poor performance:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 10 20
+
+   * - Method
+     - Availability
+     - Description
+
+   * - Use the Atlas Query Profiler
+     - |m10-atlas|
+     - The Atlas Query Profiler shows long-running operations and
+       performance statistics. For more information, see
+       :ref:`profile-database`.
+
+   * - Enable the Database Profiler
+     - |both|
+     - When enabled, the database profiler stores information about slow
+       queries in the :data:`system.profile <<database>.system.profile>`
+       collection.
+
+       For more information, see :ref:`database-profiler`.
+   
+   * - View slow queries in the diagnostic log
+     - |both|
+     - MongoDB logs queries that exceed the slow operation threshold
+       (default 100 milliseconds) in the :ref:`diagnostic logs
+       <log-messages-ref>`.
+
+       Check the diagnostic logs to identify problematic queries and see
+       which queries would benefit from indexes.
+
+   * - View explain results
+     - |both|
+     - Query explain results show information on the query plan and
+       execution statistics. You can use explain results to determine
+       the following information about a query:
+
+       - The amount of time a query took to execute
+       - Whether the query used an index
+       - The number of documents and index keys scanned to fulfill a
+         query
+
+       To view explain results, use the following methods:
+
+       - :method:`db.collection.explain()`
+       - :method:`~cursor.explain()` cursor method
+
+       To learn about explain results output, see :ref:`explain-results`
+       and :ref:`interpret-explain-plan`.
+
+Perform Advanced Query Analysis
+-------------------------------
+
+The following methods are suited for deeper investigation of problematic
+queries, and can provide fine-grained performance insights:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 10 20
+
+   * - Method
+     - Availability
+     - Description
+
+   * - View plan cache statistics
+     - |both|
+     - The :pipeline:`$planCacheStats` aggregation stage returns
+       information about a collection's :ref:`plan cache
+       <query-plans-query-optimization>`.
+
+       The plan cache contains query plans that the query planner uses
+       to efficiently complete queries. Generally, the plan cache should
+       contain entries for your most commonly-run queries.
+
+.. toctree::
+   :titlesonly:
+
+   Explain Results </reference/explain-results>
+   Database Profiler </tutorial/manage-the-database-profiler>

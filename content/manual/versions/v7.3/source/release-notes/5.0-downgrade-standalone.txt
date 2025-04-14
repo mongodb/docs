@@ -1,0 +1,141 @@
+.. _5.0-downgrade-standalone:
+
+=================================================
+Downgrade |newversion| Standalone to |oldversion|
+=================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/5.0-upgrade-replacements.rst
+
+Before you attempt any downgrade, familiarize yourself with the content
+of this document.
+
+Downgrade Path
+--------------
+
+.. include:: /includes/downgrade/latest-patch-release.rst
+
+.. include:: /includes/downgrade/single-version-support.rst
+
+.. |downgrading| replace:: downgrading
+
+Create Backup
+-------------
+
+*Optional but Recommended.*  Create a backup of your database.
+
+Access Control
+--------------
+
+If your deployment has access control enabled, your downgrade user
+privileges must include privileges to list and manage indexes across
+databases. A user with :authrole:`root` role has the required privileges.
+      
+Prerequisites
+-------------
+
+To downgrade from |newversion| to |oldversion|, you must remove
+incompatible features that are persisted and/or update incompatible
+configuration settings. These include:
+
+1. Cluster Default Read and Write Concerns
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 5.0 changed the default value for cluster-wide read and write
+concerns, and downgrading to MongoDB 4.4 might change those defaults
+back. Consider manually configuring your cluster's default read and
+write concern before downgrading:
+
+- To manually configure a default value for a cluster's read or write
+  concern, use the :dbcommand:`setDefaultRWConcern` command.
+
+- If your cluster includes an :doc:`arbiter
+  </core/replica-set-arbiter>`, and you had previously disabled
+  ``"Majority"`` read concern to prevent cache pressure in certain
+  situations, you may want to configure
+  :option:`--enableMajorityReadConcern false
+  <mongod --enableMajorityReadConcern>` or
+  :setting:`replication.enableMajorityReadConcern: false
+  <replication.enableMajorityReadConcern>` once you downgrade.
+
+2. Document Fields with ``.`` or ``$`` Characters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 5.0 adds support for including the ``.`` or ``$`` characters in
+document field names. You must delete any documents containing field
+names that include the ``.`` or ``$`` characters before downgrading
+to MongoDB 4.4.
+
+3. Slim-format Timezone Data Files
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 5.0 enables support for slim-format timezone data files. If
+using slim-format timezone data files in your deployment, as provided
+to MongoDB with the :option:`--timeZoneInfo <mongod --timeZoneInfo>`
+command line option or :setting:`processManagement.timeZoneInfo`
+configuration file setting, you must downgrade to MongoDB 4.4.7 or
+later, or else revert your timezone data files to use the previous
+non-slim-format data files.
+
+.. |target| replace:: :binary:`~bin.mongod` instance
+
+.. _5.0-downgrade-feature-compatibility-standalone:
+
+4. Downgrade Feature Compatibility Version (fCV)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To downgrade the ``featureCompatibilityVersion`` of your standalone:
+
+#. Connect a ``mongo`` shell to the |target|.
+
+#. .. include:: /includes/5.0-downgrade-fcv.rst
+
+5. Remove fCV |newversion| Persisted Features
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following steps are necessary only if fCV has ever been set to
+|newfcv|.
+
+Remove all persisted |newversion| |features| that are incompatible with
+|oldversion|. These include:
+
+Time-series Collections
+  Remove all :ref:`time series collections
+  <manual-timeseries-collection>`.
+
+Runtime Audit Filter Management
+  - Disable Runtime Audit Filter Management by setting  
+    ``auditLog.runtimeConfiguration`` to ``false`` in the node's
+    configuration file.
+
+  - Update the audit filters for this instance in the local
+    configuration file.
+
+.. |binary| replace:: the :binary:`~bin.mongod` instance
+
+6. Remove |newversion| Features
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Remove all persisted features that use |newversion| features. These
+include but are not limited to:
+
+- If any view definitions include 5.0 operators, such as
+  :expression:`$dateAdd` or :expression:`$sampleRate`, they must be
+  removed. See :ref:`5.0-rel-notes-new-agg-operators` for the full list.
+
+Procedure
+---------
+
+.. warning::
+
+   Before proceeding with the downgrade procedure, ensure that the
+   prerequisites have been completed.
+
+.. include:: /includes/steps/5.0-downgrade-mongod.rst

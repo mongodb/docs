@@ -1,0 +1,393 @@
+=============
+cursor.sort()
+=============
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: programming_language 
+   :values: shell
+
+.. meta:: 
+   :description: The MongoDB cursor sort method specifies the order of matching documents that a query returns.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: cursor.sort(sort)
+
+
+   .. include:: /includes/fact-mongosh-shell-method.rst
+
+
+   Specifies the order in which the query returns matching documents.
+   You must apply :method:`~cursor.sort()` to the cursor before
+   retrieving any documents from the database.
+
+Compatibility
+-------------
+
+.. |operator-method| replace:: ``cursor.sort(sort)``
+
+.. include:: /includes/fact-compatibility.rst
+
+Syntax
+------
+
+The :method:`~cursor.sort()` method has the following parameter:
+
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+   
+   * - Parameter
+   
+     - Type
+   
+     - Description
+   
+   * - ``sort``
+   
+     - document
+   
+     - A document that defines the sort order of the result set.
+          
+          
+The ``sort`` parameter contains field and value pairs, in the
+following form:
+
+.. code-block:: javascript
+
+   { field: value }
+
+The sort document can specify :ref:`ascending or descending sort on
+existing fields <sort-asc-desc>` or :ref:`sort on text score metadata
+<sort-metadata>`.
+
+Behavior
+--------
+
+Limits
+~~~~~~
+
+.. include:: /includes/sort-limits.rst
+
+.. _sort-cursor-consistent-sorting:
+
+Sort Consistency
+~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-sort-consistency.rst
+
+Consider the following ``restaurant`` collection:
+
+.. code-block:: js
+
+   db.restaurants.insertMany( [
+      { "_id" : 1, "name" : "Central Park Cafe", "borough" : "Manhattan"},
+      { "_id" : 2, "name" : "Rock A Feller Bar and Grill", "borough" : "Queens"},
+      { "_id" : 3, "name" : "Empire State Pub", "borough" : "Brooklyn"},
+      { "_id" : 4, "name" : "Stan's Pizzaria", "borough" : "Manhattan"},
+      { "_id" : 5, "name" : "Jane's Deli", "borough" : "Brooklyn"},
+   ] );
+
+The following command uses the :method:`~cursor.sort()` method to sort
+on the ``borough`` field:
+
+.. code-block:: js
+
+   db.restaurants.find().sort( { "borough": 1 } )
+
+In this example, sort order may be inconsistent, since the ``borough``
+field contains duplicate values for both ``Manhattan`` and ``Brooklyn``.
+Documents are returned in alphabetical order by ``borough``, but the
+order of those documents with duplicate values for ``borough`` might not
+be the same across multiple executions of the same sort. For example,
+here are the results from two different executions of the above command:
+
+.. code-block:: js
+   :copyable: false
+
+   { "_id" : 3, "name" : "Empire State Pub", "borough" : "Brooklyn" }
+   { "_id" : 5, "name" : "Jane's Deli", "borough" : "Brooklyn" }
+   { "_id" : 1, "name" : "Central Park Cafe", "borough" : "Manhattan" }
+   { "_id" : 4, "name" : "Stan's Pizzaria", "borough" : "Manhattan" }
+   { "_id" : 2, "name" : "Rock A Feller Bar and Grill", "borough" : "Queens" }
+
+   { "_id" : 5, "name" : "Jane's Deli", "borough" : "Brooklyn" }
+   { "_id" : 3, "name" : "Empire State Pub", "borough" : "Brooklyn" }
+   { "_id" : 4, "name" : "Stan's Pizzaria", "borough" : "Manhattan" }
+   { "_id" : 1, "name" : "Central Park Cafe", "borough" : "Manhattan" }
+   { "_id" : 2, "name" : "Rock A Feller Bar and Grill", "borough" : "Queens" }
+
+While the values for ``borough`` are still sorted in alphabetical order,
+the order of the documents containing duplicate values for ``borough``
+(i.e. ``Manhattan`` and ``Brooklyn``) is not the same.
+
+To achieve a *consistent sort*, add a field which contains exclusively
+unique values to the sort. The following command uses the
+:method:`~cursor.sort()` method to sort on both the ``borough`` field
+and the ``_id`` field:
+
+.. code-block:: js
+
+   db.restaurants.find().sort( { "borough": 1, "_id": 1 } )
+
+Since the ``_id`` field is always guaranteed to contain exclusively
+unique values, the returned sort order will always be the same across
+multiple executions of the same sort.
+
+.. _sort-asc-desc:
+
+Ascending/Descending Sort
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Specify in the sort parameter the field or fields to sort by and a
+value of ``1`` or ``-1`` to specify an ascending or descending sort
+respectively.
+
+The following operation sorts the documents first by the ``age`` field
+in descending order and then by the ``posts`` field in ascending order:
+
+.. code-block:: javascript
+
+   db.users.find({ }).sort( { age : -1, posts: 1 } )
+
+.. include:: /includes/fact-sort-order.rst
+
+For details on the comparison/sort order for specific types, see
+:ref:`bson-types-comparison-order`.
+
+.. _sort-metadata:
+
+Text Score Metadata Sort
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/text-search-legacy-atlas-section.rst
+
+If you use :query:`$text`, you can sort by descending relevance score
+using the :expression:`{ $meta: "textScore" } <$meta>` expression.
+
+The following sample document specifies a descending sort by the
+``"textScore"`` metadata:
+
+.. code-block:: javascript
+
+   db.users.find(
+      { $text: { $search: "operating" } },
+      { score: { $meta: "textScore" }}  
+   ).sort({ score: { $meta: "textScore" } })
+   
+The ``"textScore"`` metadata sorts in descending order.
+
+For more information, see :expression:`$meta` for details.
+
+.. _sort-by-array:
+
+Sort by an Array Field 
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/array-sort-example-setup.rst
+
+The following queries sort the documents by the ``sizes`` field in
+ascending and descending order:
+
+.. code-block:: javascript
+
+   // Ascending sort
+   db.shoes.find().sort( { sizes: 1 } )
+
+   // Descending sort
+   db.shoes.find().sort( { sizes: -1 } )
+
+.. include:: /includes/array-sort-example-explanation.rst
+
+The following query finds shoes with sizes greater than 10 and sorts
+the results by shoe size in ascending order:
+
+.. code-block:: javascript
+
+   db.shoes.find( { sizes: { $gte: 7 } } ).sort( { sizes: 1 } )
+
+This query returns document with ``_id: 'A'`` first even though the
+filter includes a condition on ``sizes`` greater than ``7`` because the
+query filter does not affect sort key selection.
+
+.. _sort-index-use:
+
+Sort and Index Use
+~~~~~~~~~~~~~~~~~~
+
+MongoDB can obtain the results of a sort operation from an index which
+includes the sort fields. MongoDB *may* use multiple indexes to support
+a sort operation *if* the sort uses the same indexes as the query
+predicate.
+
+If MongoDB cannot use an index or indexes to obtain the sort
+order, MongoDB must perform a blocking sort operation on the data.
+A blocking sort indicates that MongoDB must consume and process all 
+input documents to the sort before returning results. Blocking sorts do
+not block concurrent operations on the collection or database.
+
+Sort operations that use an index often have better performance than
+blocking sorts. For more information on creating indexes to support
+sort operations, see :ref:`sorting-with-indexes`.
+
+If MongoDB requires using more than 100 megabytes of system memory for
+the blocking sort operation, MongoDB returns an error *unless* the query
+specifies :method:`cursor.allowDiskUse()`.
+:method:`~cursor.allowDiskUse()` allows MongoDB to use temporary files
+on disk to store data exceeding the 100 megabyte system memory limit
+while processing a blocking sort operation.
+
+To check if MongoDB must perform a blocking sort, append
+:method:`cursor.explain()` to the query and check the 
+:ref:`explain results <explain-results>`. If the query plan 
+contains a ``SORT`` stage, then MongoDB must perform a
+blocking sort operation subject to the 100 megabyte memory limit.
+
+To prevent blocking sorts from consuming too much memory:
+
+- Create an index to support the sort operation. See
+  :doc:`/tutorial/sort-results-with-indexes` for more information and 
+  examples. 
+
+- Limit the amount of data to sort by using :method:`cursor.limit()`
+  with :method:`cursor.sort()`. See :ref:`sort-limit-results` for more
+  information and examples.
+
+.. seealso::
+
+   :limit:`Memory Limits on Sort Operations <Sort Operations>`
+
+.. _sort-limit-results:
+
+Limit Results
+~~~~~~~~~~~~~
+
+You can use :method:`~cursor.sort()` in conjunction with
+:method:`~cursor.limit()` to return the first (in terms of the sort
+order) ``k`` documents, where ``k`` is the specified limit.
+
+If MongoDB cannot obtain the sort order via an index scan, then MongoDB
+uses a top-k sort algorithm. This algorithm buffers the first ``k``
+results (or last, depending on the sort order) seen so far by the
+underlying index or collection access. If at any point the memory
+footprint of these ``k`` results exceeds 100 megabytes, the query will
+fail *unless* the query specifies :method:`cursor.allowDiskUse()`.
+
+.. seealso::
+
+   :limit:`Memory Limits on Sort Operations <Sort Operations>`
+
+.. _sort-with-projection:
+
+Interaction with Projection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When a set of results are both sorted *and*
+:term:`projected <projection>`, the MongoDB query engine will always
+apply the sorting **first**.
+
+Examples
+--------
+
+A collection ``orders`` contain the following documents:
+
+.. code-block:: javascript
+
+   { _id: 1, item: { category: "cake", type: "chiffon" }, amount: 10 }
+   { _id: 2, item: { category: "cookies", type: "chocolate chip" }, amount: 50 }
+   { _id: 3, item: { category: "cookies", type: "chocolate chip" }, amount: 15 }
+   { _id: 4, item: { category: "cake", type: "lemon" }, amount: 30 }
+   { _id: 5, item: { category: "cake", type: "carrot" }, amount: 20 }
+   { _id: 6, item: { category: "brownies", type: "blondie" }, amount: 10 }
+
+The following query, which returns all documents from the ``orders``
+collection, does not specify a sort order:
+
+.. code-block:: javascript
+
+   db.orders.find()
+
+The query returns the documents in indeterminate order:
+
+.. code-block:: none
+
+   { "_id" : 1, "item" : { "category" : "cake", "type" : "chiffon" }, "amount" : 10 }
+   { "_id" : 2, "item" : { "category" : "cookies", "type" : "chocolate chip" }, "amount" : 50 }
+   { "_id" : 3, "item" : { "category" : "cookies", "type" : "chocolate chip" }, "amount" : 15 }
+   { "_id" : 4, "item" : { "category" : "cake", "type" : "lemon" }, "amount" : 30 }
+   { "_id" : 5, "item" : { "category" : "cake", "type" : "carrot" }, "amount" : 20 }
+   { "_id" : 6, "item" : { "category" : "brownies", "type" : "blondie" }, "amount" : 10 }
+
+The following query specifies a sort on the ``amount`` field in
+descending order.
+
+.. code-block:: javascript
+
+   db.orders.find().sort( { amount: -1 } )
+
+The query returns the following documents, in descending order of
+``amount``:
+
+.. code-block:: javascript
+
+   { "_id" : 2, "item" : { "category" : "cookies", "type" : "chocolate chip" }, "amount" : 50 }
+   { "_id" : 4, "item" : { "category" : "cake", "type" : "lemon" }, "amount" : 30 }
+   { "_id" : 5, "item" : { "category" : "cake", "type" : "carrot" }, "amount" : 20 }
+   { "_id" : 3, "item" : { "category" : "cookies", "type" : "chocolate chip" }, "amount" : 15 }
+   { "_id" : 1, "item" : { "category" : "cake", "type" : "chiffon" }, "amount" : 10 }
+   { "_id" : 6, "item" : { "category" : "brownies", "type" : "blondie" }, "amount" : 10 }
+
+The following query specifies the sort order using the fields from an
+embedded document ``item``. The query sorts first by the ``category`` field
+in ascending order, and then within each ``category``, by the ``type``
+field in ascending order.
+
+.. code-block:: javascript
+
+   db.orders.find().sort( { "item.category": 1, "item.type": 1 } )
+
+The query returns the following documents, ordered first by the
+``category`` field, and within each category, by the ``type`` field:
+
+.. code-block:: javascript
+
+   { "_id" : 6, "item" : { "category" : "brownies", "type" : "blondie" }, "amount" : 10 }
+   { "_id" : 5, "item" : { "category" : "cake", "type" : "carrot" }, "amount" : 20 }
+   { "_id" : 1, "item" : { "category" : "cake", "type" : "chiffon" }, "amount" : 10 }
+   { "_id" : 4, "item" : { "category" : "cake", "type" : "lemon" }, "amount" : 30 }
+   { "_id" : 2, "item" : { "category" : "cookies", "type" : "chocolate chip" }, "amount" : 50 }
+   { "_id" : 3, "item" : { "category" : "cookies", "type" : "chocolate chip" }, "amount" : 15 }
+
+.. _return-storage-order:
+.. _return-natural-order:
+
+Return in Natural Order
+-----------------------
+
+The :operator:`$natural` parameter returns items according to their
+:term:`natural order` within the database. This ordering is an internal
+implementation feature, and you should not rely on any particular
+ordering of the documents.
+
+Index Use
+~~~~~~~~~
+
+Queries that include a sort by :operator:`$natural` order do **not**
+use indexes to fulfill the query predicate with the following
+exception: If the query predicate is an equality condition on the
+``_id`` field ``{ _id: <value> }``, then the query with the sort by
+:operator:`$natural` order can use the ``_id`` index.
+
+.. seealso::
+
+   :operator:`$natural`

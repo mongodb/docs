@@ -1,0 +1,191 @@
+==================
+$cos (aggregation)
+==================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $cos 
+
+   Returns the cosine of a value that is measured in radians.
+
+   :expression:`$cos` has the following syntax:
+
+   .. code-block:: javascript
+
+      { $cos: <expression> }
+
+   :expression:`$cos` takes any valid :ref:`expression
+   <aggregation-expressions>` that resolves to a number. If the
+   expression returns a value in degrees, use the
+   :expression:`$degreesToRadians` operator to convert the
+   result to radians.
+
+   By default :expression:`$cos` returns values as a ``double``. 
+   :expression:`$cos` can also return values as a
+   :ref:`128-bit decimal <shell-type-decimal>`
+   as long as the ``<expression>`` resolves to a 128-bit decimal value. 
+
+   For more information on expressions, see 
+   :ref:`aggregation-expressions`.
+
+Behavior
+--------
+
+``null``, ``NaN``, and ``+/- Infinity``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the argument resolves to a value of ``null`` or refers to a field
+that is missing, :expression:`$cos` returns ``null``. If the
+argument resolves to ``NaN``, :expression:`$cos` returns ``NaN``.
+If the argument resolves to negative or positive infinity, 
+:expression:`$cos` throws an error.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 85 15
+
+   * - Example
+     - Results
+
+   * - ``{ $cos: NaN }``
+     - ``NaN``
+
+   * - ``{ $cos: null }``
+     - ``null``
+
+   * - ``{ $cos : Infinity}`` 
+      
+       *or* 
+      
+       ``{ $cos : -Infinity }``
+     
+     - Throws an error message resembling the following formatted 
+       output:
+
+       .. code-block:: bash
+          :copyable: false
+
+          "errmsg" : 
+            "Failed to optimize pipeline :: caused by :: cannot 
+            apply $cos to -inf, value must in (-inf,inf)"
+
+Example
+-------
+
+.. tabs::
+
+   tabs:
+
+     - id: degrees
+       name: Cosine of Value in Degrees
+       content: |
+
+         The ``trigonometry`` collection contains a document that
+         stores the hypotenuse and one angle in a right-angle triangle:
+
+         .. code-block:: bash
+
+            {
+              "_id" : ObjectId("5c50782193f833234ba90d85"),
+              "angle_a" : NumberDecimal("53.13010235415597870314438744090659"),
+              "hypotenuse" : NumberDecimal("5")
+            }
+
+         The following aggregation operation uses the
+         :expression:`$cos` expression to calculate the side adjacent
+         to ``angle_a`` and add it to the input document using the 
+         :pipeline:`$addFields` pipeline stage. 
+
+         .. code-block:: bash
+
+            db.trigonometry.aggregate([
+              {
+                $addFields : {
+                  "side_a" : {
+                    $multiply : [
+                      { $cos : {$degreesToRadians : "$angle_a"} },
+                      "$hypotenuse"
+                    ]
+                  }
+                }
+              }
+            ])
+
+         The :expression:`$degreesToRadians` expression converts the 
+         degree value of ``angle_a`` to the equivalent value in radians.
+
+         The command returns the following output:
+
+         .. code-block:: bash
+            :copyable: false
+ 
+            {
+              "_id" : ObjectId("5c50782193f833234ba90d85"),
+              "angle_a" : NumberDecimal("53.13010235415597870314438744090659"),
+              "side_a" : NumberDecimal("2.999999999999999999999999999999999"),
+              "hypotenuse" : NumberDecimal("5"),
+            }
+
+         Since ``angle_a`` and ``hypotenuse`` are stored as 
+         :ref:`128-bit decimals <shell-type-decimal>`, the output of 
+         :expression:`$cos` is a 128-bit decimal. 
+
+     - id: radians
+       name: Cosine of Value in Radians
+       content: |
+
+         The ``trigonometry`` collection contains a document that
+         stores the hypotenuse and one angle in a right-angle triangle:
+
+         .. code-block:: bash
+
+            {
+              "_id" : ObjectId("5c50782193f833234ba90d85"),
+              "angle_a" : NumberDecimal("0.9272952180016122324285124629224288"),
+              "hypotenuse" : NumberDecimal("5")
+            }
+
+         The following aggregation operation uses the
+         :expression:`$cos` expression to calculate the side adjacent
+         to ``angle_a`` and add it to the input document using the 
+         :pipeline:`$addFields` pipeline stage. 
+
+         .. code-block:: bash
+
+            db.trigonometry.aggregate([
+              {
+                $addFields : {
+                  "side_b" : {
+                    $multiply : [
+                      { $cos : "$angle_a" },
+                      "$hypotenuse"
+                    ]
+                  }
+                }
+              }
+            ])
+
+         The command returns the following output:
+
+         .. code-block:: bash
+            :copyable: false
+ 
+            {
+              "_id" : ObjectId("5c50782193f833234ba90d85"),
+              "angle_a" : NumberDecimal("0.9272952180016122324285124629224288"),
+              "side_b" : NumberDecimal("3.000000000000000000000000000000000"),
+              "hypotenuse" : NumberDecimal("5"),
+            }
+
+         Since ``angle_a`` and ``hypotenuse`` are stored as 
+         :ref:`128-bit decimals <shell-type-decimal>`, the output of 
+         :expression:`$cos` is a 128-bit decimal.

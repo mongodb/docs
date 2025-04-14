@@ -1,0 +1,151 @@
+.. _text-index-specify-language-in-field:
+
+========================================================================
+Use Any Field to Specify Text Index Language on Self-Managed Deployments
+========================================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+A text index's language determines the rules used to parse stem words
+and ignore stop words when you run text search queries.
+
+By default, if a text index does not have a :ref:`default language
+<specify-text-index-language>`, the index uses the ``language``
+document field to determine the language it uses. As a result, text
+indexes are not limited to a single language because the value of the
+``language`` field can change between documents.
+
+You can change the field that the index uses to determine its language.
+This is useful if your field names are not in English, and your
+documents do not have a field called ``language``.
+
+To specify the text index language in a field other than ``language``,
+include the ``language_override`` option when you create the index:
+
+.. code-block:: javascript
+
+   db.<collection>.createIndex(
+      { <field> : "text" },
+      { language_override: "<field>" }
+   )
+
+The text index uses the field specified in the ``language_override``
+option to determine the language to use for the corresponding document.
+
+For documents that don't contain the field specified in
+``language_override``, the index uses English as its language.
+
+Before You Begin
+----------------
+
+Create the ``quotes`` collection:
+
+.. code-block:: javascript
+
+   db.quotes.insertMany(
+      [ 
+         {
+            _id: 1,
+            idioma: "portuguese",
+            quote: "A sorte protege os audazes"
+         },
+         {
+            _id: 2,
+            idioma: "spanish",
+            quote: "Nada hay más surrealista que la realidad."
+         },
+         {
+            _id: 3,
+            idioma: "english",
+            quote: "is this a dagger which I see before me"
+         }
+      ]
+   )
+
+The language for each quote is specified in the ``idioma`` field.
+
+Procedure
+---------
+
+Create a text index on the ``quote`` field. Specify the
+``language_override`` option to cause the text index to use the
+``idioma`` field for the language:
+
+.. code-block:: javascript
+
+   db.quotes.createIndex(
+      { quote : "text" },
+      { language_override: "idioma" }
+   )
+
+Results
+-------
+
+The index supports text search queries on the ``quote`` field and uses
+language rules based on the language specified in the ``idioma`` field.
+Each document specifies a different value in the ``idioma`` field, which
+means that each document is searched with different language rules.
+
+Consider the following examples:
+
+Search for a Valid Term
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following query searches for the string ``audazes``:
+
+.. code-block:: javascript
+
+   db.quotes.find(
+      {
+         $text: { $search: "audazes" }
+      }
+   )
+
+Output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+     { _id: 1, idioma: 'portuguese', quote: 'A sorte protege os audazes' }
+   ]
+
+The preceding query uses Portuguese as the language to fulfill the
+query.
+
+Search for a Stop Word
+~~~~~~~~~~~~~~~~~~~~~~
+
+The following query searches for the string ``hay``:
+
+.. code-block:: javascript
+
+   db.quotes.find(
+      {
+         $text: { $search: "hay" }
+      }
+   )
+
+The preceding query returns no results, even though the string ``hay``
+appears in the ``quote`` field of document ``_id: 2``.
+
+Document ``_id: 2`` specifies a language of Spanish. ``hay`` is
+considered a stop word in Spanish, and is therefore not incldued in the
+text index.
+
+Learn More
+----------
+
+- To see the languages available for text indexes, see
+  :ref:`text-search-languages`.
+
+- To learn how to specify a default language for an entire text index,
+  see :ref:`specify-text-index-language`.
+
+- To see text index restrictions, see :ref:`text-index-restrictions`.

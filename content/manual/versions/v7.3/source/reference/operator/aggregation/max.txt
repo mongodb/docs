@@ -1,0 +1,218 @@
+==================
+$max (aggregation)
+==================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. versionchanged:: 5.0
+
+.. group:: $max
+
+Returns the maximum value. :group:`$max` compares both value and
+type, using the :ref:`specified BSON comparison order
+<bson-types-comparison-order>` for values of different types.
+
+.. include:: /includes/extracts/fact-aggregation-accumulator-max.rst
+
+Syntax
+------
+
+When used in the :pipeline:`$bucket`, :pipeline:`$bucketAuto`,
+:pipeline:`$group`, and :pipeline:`$setWindowFields` stages,
+:group:`$max` has this syntax:
+
+.. code-block:: none
+   :copyable: false
+
+   { $max: <expression> }
+   
+When used in other supported stages, :group:`$max` has one of two
+syntaxes:
+
+- :group:`$max` has one specified expression as its operand:
+
+  .. code-block:: none
+     :copyable: false
+
+     { $max: <expression> }
+
+- :group:`$max` has a list of specified expressions as its
+  operand:
+
+  .. code-block:: none
+     :copyable: false
+
+     { $max: [ <expression1>, <expression2> ... ]  }
+
+For more information on expressions, see
+:ref:`aggregation-expressions`.
+
+Behavior
+--------
+
+Null or Missing Values
+~~~~~~~~~~~~~~~~~~~~~~
+
+If some, **but not all**, documents for the :group:`$max`
+operation have either a ``null`` value for the field or are
+missing the field, the :group:`$max` operator only considers the
+non-null and the non-missing values for the field.
+
+If **all** documents for the :group:`$max` operation have ``null``
+value for the field or are missing the field, the :group:`$max`
+operator returns ``null`` for the maximum value.
+
+Array Operand
+~~~~~~~~~~~~~
+
+In the :pipeline:`$group` and :pipeline:`$setWindowFields` stages, if
+the expression resolves to an array, :group:`$max` does not traverse the
+array and compares the array as a whole.
+
+.. include:: /includes/extracts/fact-agg-accumulator-array-operand-in-project-max.rst
+
+Examples
+--------
+
+Use in ``$group`` Stage
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider a ``sales`` collection with the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "abc", "price" : 10, "quantity" : 2, "date" : ISODate("2014-01-01T08:00:00Z") }
+   { "_id" : 2, "item" : "jkl", "price" : 20, "quantity" : 1, "date" : ISODate("2014-02-03T09:00:00Z") }
+   { "_id" : 3, "item" : "xyz", "price" : 5, "quantity" : 5, "date" : ISODate("2014-02-03T09:05:00Z") }
+   { "_id" : 4, "item" : "abc", "price" : 10, "quantity" : 10, "date" : ISODate("2014-02-15T08:00:00Z") }
+   { "_id" : 5, "item" : "xyz", "price" : 5, "quantity" : 10, "date" : ISODate("2014-02-15T09:05:00Z") }
+
+Grouping the documents by the ``item`` field, the following operation
+uses the :group:`$max` accumulator to compute the maximum total amount and
+maximum quantity for each group of documents.
+
+.. code-block:: javascript
+
+   db.sales.aggregate(
+      [
+        {
+          $group:
+            {
+              _id: "$item",
+              maxTotalAmount: { $max: { $multiply: [ "$price", "$quantity" ] } },
+              maxQuantity: { $max: "$quantity" }
+            }
+        }
+      ]
+   )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : "xyz", "maxTotalAmount" : 50, "maxQuantity" : 10 }
+   { "_id" : "jkl", "maxTotalAmount" : 20, "maxQuantity" : 1 }
+   { "_id" : "abc", "maxTotalAmount" : 100, "maxQuantity" : 10 }
+
+Use in ``$project`` Stage
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A collection ``students`` contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id": 1, "quizzes": [ 10, 6, 7 ], "labs": [ 5, 8 ], "final": 80, "midterm": 75 }
+   { "_id": 2, "quizzes": [ 9, 10 ], "labs": [ 8, 8 ], "final": 95, "midterm": 80 }
+   { "_id": 3, "quizzes": [ 4, 5, 5 ], "labs": [ 6, 5 ], "final": 78, "midterm": 70 }
+
+The following example uses the :group:`$max` in the
+:pipeline:`$project` stage to calculate the maximum quiz scores, the
+maximum lab scores, and the maximum of the final and the midterm:
+
+.. code-block:: javascript
+
+   db.students.aggregate([
+      { $project: { quizMax: { $max: "$quizzes"}, labMax: { $max: "$labs" }, examMax: { $max: [ "$final", "$midterm" ] } } }
+   ])
+
+The operation results in the following documents:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 1, "quizMax" : 10, "labMax" : 8, "examMax" : 80 }
+   { "_id" : 2, "quizMax" : 10, "labMax" : 8, "examMax" : 95 }
+   { "_id" : 3, "quizMax" : 5, "labMax" : 6, "examMax" : 78 }
+
+Use in ``$setWindowFields`` Stage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 5.0
+
+.. include:: /includes/setWindowFields-example-collection.rst
+
+This example uses :group:`$max` in the :pipeline:`$setWindowFields`
+stage to output the maximum ``quantity`` of cake sales for each
+``state``:
+
+.. code-block:: javascript
+
+   db.cakeSales.aggregate( [
+      {
+         $setWindowFields: {
+            partitionBy: "$state",
+            sortBy: { orderDate: 1 },
+            output: {
+               maximumQuantityForState: {
+                  $max: "$quantity",
+                  window: {
+                     documents: [ "unbounded", "current" ]
+                  }         
+               }
+            }
+         }
+      }
+   ] )
+
+In the example:
+
+.. include:: /includes/setWindowFields-partition-sort-date.rst
+
+- ``output`` sets the ``maximumQuantityForState`` field to the maximum
+  ``quantity`` value using :group:`$max` that is run in a
+  :ref:`documents <setWindowFields-documents>` window.
+  
+  The :ref:`window <setWindowFields-window>` contains documents between
+  an ``unbounded`` lower limit and the ``current`` document in the
+  output. This means :group:`$max` returns the maximum
+  ``quantity`` for the documents between the beginning of the partition
+  and the current document.
+
+In this output, the maximum ``quantity`` for ``CA`` and ``WA`` is shown
+in the ``maximumQuantityForState`` field:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 4, "type" : "strawberry", "orderDate" : ISODate("2019-05-18T16:09:01Z"),
+     "state" : "CA", "price" : 41, "quantity" : 162, "maximumQuantityForState" : 162 }
+   { "_id" : 0, "type" : "chocolate", "orderDate" : ISODate("2020-05-18T14:10:30Z"),
+     "state" : "CA", "price" : 13, "quantity" : 120, "maximumQuantityForState" : 162 }
+   { "_id" : 2, "type" : "vanilla", "orderDate" : ISODate("2021-01-11T06:31:15Z"),
+     "state" : "CA", "price" : 12, "quantity" : 145, "maximumQuantityForState" : 162 }
+   { "_id" : 5, "type" : "strawberry", "orderDate" : ISODate("2019-01-08T06:12:03Z"),
+     "state" : "WA", "price" : 43, "quantity" : 134, "maximumQuantityForState" : 134 }
+   { "_id" : 3, "type" : "vanilla", "orderDate" : ISODate("2020-02-08T13:13:23Z"),
+     "state" : "WA", "price" : 13, "quantity" : 104, "maximumQuantityForState" : 134 }
+   { "_id" : 1, "type" : "chocolate", "orderDate" : ISODate("2021-03-20T11:30:05Z"),
+     "state" : "WA", "price" : 14, "quantity" : 140, "maximumQuantityForState" : 140 }

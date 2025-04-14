@@ -1,0 +1,130 @@
+.. _7.0-upgrade-standalone:
+
+===========================
+Upgrade a Standalone to 7.0
+===========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/7.0-upgrade-replacements.rst
+
+.. include:: /includes/upgrade-intro.rst
+
+The following steps outline the procedure to upgrade a standalone
+:binary:`~bin.mongod` from version |oldversion| to |newversion|.
+
+.. include:: /includes/upgrade-guidance-checklists.rst
+
+Prerequisites
+-------------
+
+Feature Compatibility Version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The |oldversion| instance must have ``featureCompatibilityVersion`` set
+to |oldfcv|. To check ``featureCompatibilityVersion``:
+
+.. code-block:: javascript
+
+   db.adminCommand( { getParameter: 1, featureCompatibilityVersion: 1 } )
+
+The operation returns a document with the current feature compatibility 
+version:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { featureCompatibilityVersion : { version : "6.0" }, ok: 1}
+
+To set or update ``featureCompatibilityVersion`` to ``6.0``, run the 
+following command:
+
+.. code-block:: javascript
+
+   db.adminCommand( { setFeatureCompatibilityVersion: "6.0" } )
+
+For more information, see :dbcommand:`setFeatureCompatibilityVersion`.
+
+Consider Converting to Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Prior to upgrading, consider
+:ref:`converting your standalone deployment to a replica set
+<server-replica-set-deploy-convert>`. Replica sets are the
+recommended deployment configuration for MongoDB.
+
+Download |newversion| Binaries
+------------------------------
+
+Via Package Manager
+~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-upgrade-with-package-mgr.rst
+
+Manually
+~~~~~~~~
+
+If you have not installed MongoDB using a package manager, you can
+manually download the MongoDB binaries from the `MongoDB Download
+Center <https://www.mongodb.com/try/download?tck=docs_server>`_.
+
+See |installationdoc| for more information.
+
+Upgrade Procedure
+-----------------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Shut down the :binary:`~bin.mongod` instance.
+
+      To shut down the :binary:`~bin.mongod` process, use 
+      :binary:`~bin.mongosh` to connect to the instance and run the 
+      following command:
+
+      .. code-block:: javascript
+
+         db.adminCommand( { shutdown: 1 } )
+
+   .. step:: Replace the |oldversion| binaries with the |newversion| binaries.
+
+      Ensure that the |oldseries| binaries are in your System PATH. To 
+      confirm your binary version, run the following command:
+    
+      .. code-block:: bash
+ 
+         mongod --version
+
+      The command output indicates a |oldseries| release.
+
+   .. step:: Enable backwards-incompatible |newversion| features.
+   
+      .. include:: /includes/upgrade-enable-features.rst
+
+      .. tip::
+
+         .. include:: /includes/featureCompatibility-caveat.rst
+   
+      Run the :dbcommand:`setFeatureCompatibilityVersion` command 
+      against the ``admin`` database:
+
+      .. code-block:: javascript
+
+         db.adminCommand( { setFeatureCompatibilityVersion: "7.0" } ) 
+
+      This command must perform writes to an internal system 
+      collection. If for any reason the command does not complete          
+      successfully, you can safely retry the command as the operation
+      is idempotent.
+
+Additional Upgrade Procedures
+-----------------------------
+
+- To upgrade a replica set, see :ref:`7.0-upgrade-replica-set`.
+- To upgrade a sharded cluster, see :ref:`7.0-upgrade-sharded-cluster`.

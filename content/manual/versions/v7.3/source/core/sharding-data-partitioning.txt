@@ -1,0 +1,205 @@
+.. _sharding-data-partitioning:
+
+=============================
+Data Partitioning with Chunks
+=============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+MongoDB uses the :term:`shard key` associated to the collection to 
+partition the data into :term:`chunks<chunk>` owned by a specific shard. 
+A :term:`chunk` consists of a :term:`range` of sharded data. A range can
+be a portion of the chunk or the whole chunk. The balancer migrates
+data between shards. Each chunk has inclusive lower and exclusive upper 
+limits based on the :term:`shard key`.
+
+.. include:: /images/sharding-range-based.rst
+
+The smallest unit of data a chunk can represent is a single unique shard 
+key value. 
+
+.. _initial-chunks:
+.. _initial-ranges:
+
+Initial Chunks
+--------------
+
+Populated Collection
+~~~~~~~~~~~~~~~~~~~~
+
+- The sharding operation creates one large initial chunk to cover all 
+  of the shard key values.
+
+- After the initial chunk creation, the balancer moves ranges off of 
+  the initial chunk when it needs to start balancing data.
+
+.. _initial-chunks-empty-collection:
+.. _initial-ranges-empty-collection:
+
+Empty Collection
+~~~~~~~~~~~~~~~~
+
+- If you have :ref:`zones and zone ranges <zone-sharding>` defined
+  for an empty or non-existing collection.
+
+  - The sharding operation creates empty chunks for the defined zone
+    ranges as well as any additional chunks to cover the entire range
+    of the shard key values and performs an initial chunk distribution
+    based on the zone ranges. This initial creation and distribution of
+    chunks allows for faster setup of zoned sharding.
+
+  - After the initial distribution, the balancer manages the chunk
+    distribution going forward.
+
+
+- If you do not have zones and zone ranges defined
+  for an empty or non-existing collection:
+
+  - For hashed sharding:
+
+    - The sharding operation creates empty chunks to cover the
+      entire range of the shard key values and performs an initial
+      chunk distribution. By default, the
+      operation creates 2 chunks per shard and migrates across the
+      cluster. You can use ``numInitialChunks`` option to specify a
+      different number of initial chunks. This initial creation and
+      distribution of chunks allows for faster setup of
+      sharding.
+
+    - After the initial distribution, the balancer manages the chunk
+      distribution going forward.
+
+  - For ranged sharding:
+
+    - The sharding operation creates a single empty chunk to cover the
+      entire range of the shard key values.
+
+    - After the initial chunk creation, the balancer migrates the
+      initial chunk across the shards as appropriate as well as manages
+      the chunk distribution going forward.
+
+.. seealso::
+
+   :method:`sh.balancerCollectionStatus()`
+
+.. _sharding-chunk-size:
+.. _sharding-range-size:
+
+Range Size
+----------
+
+The default :term:`range` size in MongoDB is 128 megabytes. You can
+:ref:`increase or reduce the chunk size 
+<tutorial-modifying-range-size>`. Consider the implications of changing 
+the default chunk size:
+
+#. Small ranges lead to a more even distribution of data at the
+   expense of more frequent migrations. This creates expense at the
+   query routing (:binary:`~bin.mongos`) layer.
+
+#. Large ranges lead to fewer migrations. This is more efficient both
+   from the networking perspective *and* in terms of internal overhead at
+   the query routing layer. But, these efficiencies come at
+   the expense of a potentially uneven distribution of data.
+
+#. Range size affects the
+   :limit:`Maximum Number of Documents Per Range to Migrate`.
+
+For many deployments, it makes sense to avoid frequent and potentially
+spurious migrations at the expense of a slightly less evenly
+distributed data set.
+
+.. _sharding-chunk-migration:
+.. _sharding-range-migration:
+
+Range Migration
+---------------
+
+MongoDB migrates data ranges in a :term:`sharded cluster` to distribute 
+the data of a sharded collection evenly among shards. Migrations may be
+either:
+
+.. _sharding-chunk-migration-manual:
+.. _sharding-range-migration-manual:
+
+- Manual. Only use manual migration in limited cases, such as
+  to distribute data during bulk inserts. See :ref:`Migrating Chunks
+  Manually <migrate-chunks-sharded-cluster>` for more details.
+
+.. _sharding-chunk-migration-automatic:
+.. _sharding-range-migration-automatic:
+
+- Automatic. The :ref:`balancer <sharding-balancing>` process
+  automatically migrates data when there is an uneven distribution of
+  a sharded collection's data across the shards. See :ref:`Migration 
+  Thresholds <sharding-migration-thresholds>` for more details.
+
+For more information on the sharded cluster :term:`balancer`, see
+:ref:`sharding-balancing`.
+
+.. seealso::
+
+   :serverstatus:`shardingStatistics.countDonorMoveChunkLockTimeout`
+
+Balancing
+~~~~~~~~~
+
+The :ref:`balancer <sharding-balancing-internals>` is a background
+process that manages data migrations. If the difference in
+amount of data between the largest and smallest shard exceed the
+:ref:`migration thresholds<sharding-migration-thresholds>`, the balancer
+begins migrating data across the cluster to ensure an even distribution.
+
+.. include:: /images/sharding-migrating.rst
+
+You can :ref:`manage <sharded-cluster-balancer>` certain aspects of the 
+balancer. The balancer also respects any :term:`zones <zone>` created as 
+a part of configuring zones in a sharded cluster.
+
+See :ref:`sharding-balancing` for more information on the
+:term:`balancer`.
+
+.. _jumbo-chunks:
+.. _jumbo-chunk:
+
+Indivisible/Jumbo Chunks
+------------------------
+
+In some cases, chunks can grow beyond the :ref:`specified chunk size
+<sharding-chunk-size>` but cannot undergo a split. The most common 
+scenario is when a chunk represents a single shard key value. Since the 
+chunk cannot split, it continues to grow beyond the chunk size, becoming 
+a **jumbo** chunk. These **jumbo** chunks can become a performance 
+bottleneck as they continue to grow, especially if the shard key value 
+occurs with high :ref:`frequency<shard-key-frequency>`.
+
+Starting in MongoDB 5.0, you can :ref:`reshard a collection
+<sharding-resharding>` by changing a document's shard key.
+
+MongoDB provides the :dbcommand:`refineCollectionShardKey` command. 
+Refining a collection's shard key allows for a more fine-grained data 
+distribution and can address situations where the existing key insufficient 
+cardinality leads to jumbo chunks.
+
+To learn whether you should reshard your collection 
+or refine your shard key, see :ref:`change-a-shard-key`.
+
+For more information, see:
+
+- :ref:`<clear-jumbo-flag>`
+- :ref:`migration-chunk-size-limit`
+
+.. toctree::
+   :titlesonly: 
+   :hidden: 
+
+   Create Ranges </tutorial/create-chunks-in-sharded-cluster>
+   Split Chunks </tutorial/split-chunks-in-sharded-cluster>
+   Merge Chunks </tutorial/merge-chunks-in-sharded-cluster>
+   Modify Range Size </tutorial/modify-chunk-size-in-sharded-cluster>

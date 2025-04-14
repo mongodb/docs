@@ -1,0 +1,585 @@
+.. _read-concern:
+
+============
+Read Concern
+============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The ``readConcern`` option allows you to control the consistency and
+isolation properties of the data read from :ref:`replica sets <replication>` 
+and :ref:`sharded clusters <sharding-background>`.
+
+Through the effective use of :ref:`write concerns <write-concern>` 
+and read concerns, you can adjust the level
+of consistency and availability guarantees as appropriate, such as
+waiting for stronger consistency guarantees, or loosening consistency
+requirements to provide higher availability.
+
+Replica sets and sharded clusters support setting a global default read concern. 
+Operations which do not specify an explicit read concern inherit the global 
+default read concern settings. See :dbcommand:`setDefaultRWConcern` for 
+more information.
+
+.. _read-concern-levels:
+
+Read Concern Levels
+-------------------
+
+The following read concern levels are available:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 90
+
+   * - ``level``
+     - Description
+
+   * - :readconcern:`"local"`
+
+     - The query returns data from the instance with no guarantee that
+       the data has been written to a majority of the replica set
+       members (i.e. may be rolled back).
+
+       Default for reads against the primary and secondaries.
+
+       **Availability:** Read concern :readconcern:`"local"` is available
+       for use with or without causally consistent sessions and
+       transactions.
+
+       For more information, see the :readconcern:`"local"` reference
+       page.
+
+   * - :readconcern:`"available"`
+
+     - The query returns data from the instance with no guarantee
+       that the data has been written to a majority of the replica set
+       members (i.e. may be rolled back).
+
+       **Availability:** Read concern :readconcern:`"available"` is
+       :red:`unavailable for use` with causally consistent sessions and
+       transactions.
+
+       For sharded clusters, :readconcern:`"available"` read concern
+       provides the lowest latency reads possible among the various
+       read concerns. However, this comes at the expense of consistency
+       as :readconcern:`"available"` read concern can return
+       :term:`orphaned documents <orphaned document>` when reading from
+       a sharded collection. To avoid the risk of returning orphaned
+       documents when reading from sharded collections, use a different
+       read concern such as read concern
+       :readconcern:`"local"`. 
+
+       For more information, see the :readconcern:`"available"`
+       reference page.
+
+   * - :readconcern:`"majority"`
+
+     - The query returns the data that has been acknowledged by a
+       majority of the replica set members. The documents returned by
+       the read operation are durable, even in the event of failure.
+
+       To fulfill read concern "majority", the replica set member
+       returns data from its in-memory view of the data at the
+       majority-commit point. As such, read concern
+       :readconcern:`"majority"` is comparable in performance
+       cost to other read concerns.
+
+       **Availability:**
+
+       Read concern :readconcern:`"majority"` is available for use with 
+       or without causally consistent sessions and transactions.
+       
+       **Requirements:** To use :term:`read concern` level of
+       :readconcern:`"majority"`, replica sets must use
+       :ref:`WiredTiger storage engine <storage-wiredtiger>`.
+ 
+       For operations in :doc:`multi-document transactions
+       </core/transactions>`, read concern ``"majority"`` provides
+       its guarantees only if the transaction commits with
+       :ref:`write concern "majority" <transactions-write-concern>`.
+       Otherwise, the :readconcern:`"majority"` read concern
+       provides no guarantees about the data read in transactions.
+
+       For more information, see the :readconcern:`"majority"`
+       reference page.
+
+   * - :readconcern:`"linearizable"`
+
+     - The query returns data that reflects all successful 
+       majority-acknowledged writes that completed prior to the start
+       of the read operation. The query may wait for concurrently
+       executing writes to propagate to a majority of replica
+       set members before returning results.
+
+       If a majority of your replica set members crash and restart after
+       the read operation, documents returned by the read operation are
+       durable if :rsconf:`writeConcernMajorityJournalDefault` is set to
+       the default state of ``true``.
+
+       .. include:: /includes/extracts/no-journaling-rollback.rst
+
+
+       Availability:
+          - Read concern :readconcern:`"linearizable"` is
+            :red:`unavailable for use` with causally consistent
+            sessions and transactions.
+            
+          - You can specify linearizable read concern for read
+            operations on the :replstate:`primary <PRIMARY>` only.
+
+       .. include:: /includes/extracts/4.2-changes-linearizable-agg.rst
+
+       
+       **Requirements:** Linearizable read concern guarantees only
+       apply if read operations specify a query filter that uniquely
+       identifies a single document.
+
+       .. tip::
+
+          Always use ``maxTimeMS`` with linearizable read concern in
+          case a majority of data bearing members are unavailable.
+          ``maxTimeMS`` ensures that the operation does not block
+          indefinitely and instead ensures that the operation returns
+          an error if the read concern cannot be fulfilled.
+
+       Always use ``maxTimeMS`` with linearizable read concern in
+       case a majority of data bearing members are unavailable.
+       ``maxTimeMS`` ensures that the operation does not block
+       indefinitely and instead ensures that the operation returns
+       an error if the read concern cannot be fulfilled.
+
+       For more information, see the :readconcern:`"linearizable"`
+       reference page.
+
+   * - :readconcern:`"snapshot"`
+
+     - .. include:: /includes/fact-snapshot-read-concern.rst
+       
+       | If a transaction is not part of a :ref:`causally consistent
+         session <sessions>`, upon transaction commit with write
+         concern :writeconcern:`"majority"`, the transaction operations
+         are guaranteed to have read from a snapshot of
+         majority-committed data.
+     
+       | If a transaction is part of a :ref:`causally consistent
+         session <sessions>`, upon transaction commit with write
+         concern :writeconcern:`"majority"`, the transaction operations
+         are guaranteed to have read from a snapshot of
+         majority-committed data that provides causal consistency with
+         the operation immediately preceding the transaction start.
+
+       **Availability:**
+
+       Read concern :readconcern:`"snapshot"` is available for
+
+       - All read operations inside multi-document transactions with the
+         read concern set at the transaction level.
+       - The following methods outside of multi-document
+         transactions:
+
+         - :dbcommand:`find`
+         - :dbcommand:`aggregate`
+         - :dbcommand:`distinct` (on unsharded collections)
+
+         All other read operations prohibit
+         :readconcern:`"snapshot"`.
+
+.. include:: /includes/fact-readConcern-most-recent-data-in-node.rst
+
+For more information on each read concern level, see:
+
+- :doc:`/reference/read-concern-local`
+- :doc:`/reference/read-concern-available`
+- :doc:`/reference/read-concern-majority`
+- :doc:`/reference/read-concern-linearizable`
+- :doc:`/reference/read-concern-snapshot`
+- :doc:`/reference/mongodb-defaults`
+
+``readConcern`` Support
+-----------------------
+
+.. _read-concern-option:
+
+Read Concern Option
+~~~~~~~~~~~~~~~~~~~~
+
+For operations not in :doc:`multi-document transactions
+</core/transactions>`, you can specify a ``readConcern`` level as an
+option to commands and methods that support read concern:
+
+.. code-block:: javascript
+
+   readConcern: { level: <level> }
+
+To specify the read concern level for :binary:`~bin.mongosh`
+method :method:`db.collection.find()`, use the
+:method:`cursor.readConcern()` method:
+
+.. code-block:: javascript
+
+   db.collection.find().readConcern(<level>)
+
+Transactions and Available Read Concerns
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For :ref:`multi-document transactions <transactions>`, you set
+the read concern at the transaction level, not at the individual
+operation level. The operations in the transaction will use the
+transaction-level read concern. Any read concern set at the collection
+and database level is ignored inside the transaction. If the
+transaction-level read concern is explicitly specified, the client
+level read concern is also ignored inside the transaction.
+
+.. important::
+
+   Do not explicitly set the read concern for the individual
+   operations. To set the read concern for transactions, see
+   :ref:`transaction-options`.
+
+You can set the read concern at the transaction start:
+
+- For multi-document transaction, the following read concern levels are
+  available:
+
+  - :readconcern:`"local"`
+
+  - :readconcern:`"majority"`
+
+  - :readconcern:`"snapshot"`
+
+- Write commands that are part of a :doc:`multi-document transactions
+  </core/transactions>` can support the transaction-level read concern.
+
+- .. include:: /includes/extracts/transactions-create-collections-read-concern.rst
+
+If unspecified at the transaction start, transactions use the
+session-level read concern or, if that is unset, the client-level read
+concern.
+
+For more information, see :ref:`Transaction Read Concern
+<transactions-read-concern>`.
+
+Causally Consistent Sessions and Available Read Concerns
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For operations in a :ref:`causally consistent session
+<causal-consistency>`, :readconcern:`"local"`,
+:readconcern:`"majority"`, and :readconcern:`"snapshot"` levels are
+available. However, to guarantee causal consistency, you must use
+:readconcern:`"majority"`. For details, see :ref:`causal-consistency`.
+
+.. _read-concern-operations:
+
+Operations That Support Read Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operations support read concern:
+
+.. important::
+
+   To set read concern for operations in a transaction, you set the
+   read concern at the transaction level, not at the individual
+   operation level. Do not explicitly set the read concern for the
+   individual operations in a transaction. For more information, see
+   :ref:`transactions-read-concern`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 5 10 10 20 20
+
+   * - Command/Method
+     - :readconcern:`"local"`
+     - :readconcern:`"available"`
+     - :readconcern:`"majority"` 
+     - :readconcern:`"snapshot"` [#snapshot]_
+     - :readconcern:`"linearizable"`
+
+   * - :dbcommand:`count`
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - 
+     - |checkmark|
+
+   * - :dbcommand:`distinct`
+
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark| [#distinct]_
+     - |checkmark|
+
+
+   * - :dbcommand:`find`
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+
+   * - :method:`db.collection.find()` 
+       via
+       :method:`cursor.readConcern()`
+
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+
+   * - :dbcommand:`getMore`
+     - |checkmark|
+     - 
+     - 
+     - 
+     - |checkmark|
+
+   * - :dbcommand:`aggregate`
+       :method:`db.collection.aggregate()`
+
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|  [#]_
+
+   * - :method:`Session.startTransaction()`
+
+     - |checkmark|
+     - 
+     - |checkmark|
+     - |checkmark|
+     - 
+
+.. [#]
+
+   .. include:: /includes/extracts/4.2-changes-linearizable-agg.rst
+
+.. [#distinct]
+
+   Read concern :readconcern:`"snapshot"` is available only for
+   certain read operations and for multi-document transactions. In a
+   transaction, you cannot use the ``distinct`` command or its helpers
+   on a sharded collection.
+
+The following write operations can also accept a read concern if part
+of a multi-document transaction:
+
+.. important::
+
+   To set read concern for operations in a transaction, you set the
+   read concern at the transaction level, not at the individual
+   operation level.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 5 10 10 20 20
+
+   * - Command
+     - :readconcern:`"local"`
+     - :readconcern:`"available"`
+     - :readconcern:`"majority"`
+     - :readconcern:`"snapshot"` [#snapshot]_
+     - :readconcern:`"linearizable"`
+
+   * - | :dbcommand:`delete`
+       | :method:`db.collection.deleteOne()`
+       | :method:`db.collection.deleteMany()`
+       | :method:`db.collection.remove()`
+     - |checkmark|
+     - 
+     - 
+     - |checkmark|
+     - 
+
+   * - | :dbcommand:`findAndModify`
+       | :method:`db.collection.findAndModify()`
+       | :method:`db.collection.findOneAndDelete()`
+       | :method:`db.collection.findOneAndReplace()`
+       | :method:`db.collection.findOneAndUpdate()`
+
+     - |checkmark|
+     - 
+     - 
+     - |checkmark|
+     - 
+
+   * - | :dbcommand:`insert`
+       | :method:`db.collection.insertOne()`
+       | :method:`db.collection.insertMany()`
+
+     - |checkmark| 
+     - 
+     - 
+     - |checkmark|
+     - 
+
+   * - | :dbcommand:`update`
+       | :method:`db.collection.updateOne()`
+       | :method:`db.collection.updateMany()`
+       | :method:`db.collection.replaceOne()`
+
+     - |checkmark| 
+     - 
+     - 
+     - |checkmark|
+     - 
+
+   * - | :dbcommand:`create`
+       | :method:`db.createCollection()`
+       | (Requires :ref:`fCV <view-fcv>` 4.4 or greater)
+
+     - |checkmark|
+     -
+     -
+     -
+     -
+
+   * - | :dbcommand:`createIndexes`
+       | :method:`db.collection.createIndex()`
+       | :method:`db.collection.createIndexes()`
+       | (Requires :ref:`fCV <view-fcv>` 4.4 or greater)
+
+     - |checkmark|
+     -
+     -
+     -
+     -
+
+.. [#snapshot]
+
+   Read concern :readconcern:`"snapshot"` is available only for
+   certain read operations and multi-document transactions. For transactions, you
+   set the read concern at the transaction level. The transaction
+   operations that support :readconcern:`"snapshot"` correspond to the
+   CRUD operations available in transactions. For more information, see
+   :ref:`transactions-read-concern`.
+
+Read Concern not Supported on ``local`` Database
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :ref:`local database <replica-set-local-database>` does not support
+read concerns. MongoDB silently ignores any configured read
+concern for an operation on a collection in the local database.
+
+Considerations
+--------------
+
+Read Your Own Writes
+~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-read-own-writes.rst
+
+Real Time Order
+~~~~~~~~~~~~~~~
+
+Combined with :writeconcern:`"majority"` write concern,
+:readconcern:`"linearizable"` read concern enables multiple threads to
+perform reads and writes on a single document as if a single thread
+performed these operations in real time; that is, the corresponding
+schedule for these reads and writes is considered linearizable.
+
+Performance Comparisons
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Unlike :readconcern:`"majority"`, :readconcern:`"linearizable"` read
+concern confirms with secondary members that the read operation is
+reading from a primary that is capable of confirming writes with
+:writeconcern:`{ w: "majority" } <"majority">` write concern.
+[#edge-cases-2-primaries]_ As such, reads with linearizable read
+concern may be significantly slower than reads with
+:readconcern:`"majority"` or :readconcern:`"local"` read concerns.
+
+Always use ``maxTimeMS`` with linearizable read concern in case a
+majority of data bearing members are unavailable. ``maxTimeMS`` ensures
+that the operation does not block indefinitely and instead ensures that
+the operation returns an error if the read concern cannot be fulfilled.
+
+For example:
+
+.. code-block:: javascript
+
+   db.restaurants.find( { _id: 5 } ).readConcern("linearizable").maxTimeMS(10000)
+
+   db.runCommand( {
+        find: "restaurants",
+        filter: { _id: 5 },
+        readConcern: { level: "linearizable" },
+        maxTimeMS: 10000
+   } )
+
+.. [#edge-cases-2-primaries]
+
+   .. include:: /includes/footnote-two-primaries-edge-cases.rst
+
+.. _afterClusterTime:
+
+Read Operations and ``afterClusterTime``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB includes support for :ref:`causally consistent sessions
+<sessions>`. For read operations associated with causally consistent
+session, MongoDB supports the ``afterClusterTime`` read concern
+option to be set automatically by the drivers for operations associated
+with causally consistent sessions.
+
+.. important::
+
+   Do not manually set ``afterClusterTime`` for a read operation.
+   MongoDB drivers set this value automatically for operations
+   associated with causally consistent sessions. However, you can
+   advance the operation time and the cluster time for the session,
+   such as to be consistent with the operations of another client
+   session. For an example, see :ref:`causal-consistency-examples`.
+
+.. note::
+
+   It is not possible to specify :ref:`atClusterTime <atClusterTime>` in
+   conjunction with ``afterClusterTime``. To use :ref:`atClusterTime
+   <atClusterTime>` with read concern ``"snapshot"`` you have to disable
+   :ref:`causally consistent sessions <sessions>`.
+
+To satisfy a read request with an ``afterClusterTime`` value of ``T``,
+a :binary:`~bin.mongod` must perform the request after its oplog
+reaches time ``T``. If its oplog has not reached time ``T``, the
+:binary:`~bin.mongod` must wait to service the request.
+
+Read operations with a specified ``afterClusterTime`` return data that
+meet both the :ref:`read concern level <read-concern-levels>`
+requirement and the specified ``afterClusterTime`` requirement.
+
+For read operations not associated with causally consistent sessions,
+``afterClusterTime`` is unset.
+
+Read Concern Provenance
+~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB tracks read concern ``provenance``, which indicates the source of a 
+particular read concern. You may see ``provenance`` shown in the
+:serverstatus:`getLastError <metrics.getLastError>` metrics, read
+concern error objects, and MongoDB logs.
+
+The following table shows the possible read concern ``provenance``
+values and their significance:
+
+.. include:: /includes/fact-rc-provenance-table.rst
+
+.. include:: /includes/unicode-checkmark.rst
+
+   
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   "local" </reference/read-concern-local>
+   "available" </reference/read-concern-available>
+   "majority" </reference/read-concern-majority>
+   "linearizable" </reference/read-concern-linearizable>
+   "snapshot" </reference/read-concern-snapshot>
