@@ -1,0 +1,300 @@
+==========================
+Install MongoDB on Windows
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Synopsis
+--------
+
+This tutorial provides a method for installing and running the
+MongoDB server (i.e. ":binary:`~bin.mongod.exe`") on the Microsoft Windows
+platform through the :guilabel:`Command Prompt` and outlines the process
+for setting up MongoDB as a :guilabel:`Windows Service`.
+
+Operating MongoDB with Windows is similar to MongoDB on other
+platforms. Most components share the same operational patterns.
+
+Procedure
+---------
+
+.. important:: If you are running any edition of Windows Server 2008
+   R2 or Windows 7, please install `a hotfix to resolve an issue with
+   memory mapped files on Windows <http://support.microsoft.com/kb/2731284>`_.
+
+Download MongoDB for Windows
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Download the latest production release of MongoDB from the `MongoDB
+downloads page <http://www.mongodb.org/downloads>`_.
+
+There are three builds of MongoDB for Windows:
+
+- MongoDB for Windows Server 2008 R2 edition (i.e. 2008R2)
+  only runs on Windows Server 2008 R2, Windows 7 64-bit, and newer
+  versions of Windows. This build takes advantage of recent
+  enhancements to the Windows Platform and cannot operate on older
+  versions of Windows.
+
+- MongoDB for Windows 64-bit runs on any 64-bit version of Windows
+  newer than Windows XP, including Windows Server 2008 R2 and Windows
+  7 64-bit.
+
+- MongoDB for Windows 32-bit runs on any 32-bit version of Windows
+  newer than Windows XP. 32-bit versions of MongoDB are only intended
+  for older systems and for use in testing and development systems.
+
+.. versionchanged:: 2.2
+   MongoDB does not support Windows XP. Please use a more recent
+   version of Windows to use more recent releases of MongoDB.
+
+.. note::
+
+   Always download the correct version of MongoDB for your
+   Windows system. The 64-bit versions of MongoDB will not
+   work with 32-bit Windows.
+
+   32-bit versions of MongoDB are suitable only for testing and evaluation
+   purposes and only support databases smaller than 2GB.
+
+   You can find the architecture of your version of Windows
+   platform using the following command in the :guilabel:`Command
+   Prompt`:
+
+   .. code-block:: powershell
+
+      wmic os get osarchitecture
+
+In Windows Explorer, find the MongoDB download file, typically in the
+default Downloads directory. Extract the archive to ``C:\`` by right
+clicking on the archive and selecting :guilabel:`Extract All` and
+browsing to ``C:\``.
+
+.. note::
+
+   The folder name will be either:
+
+   .. code-block:: powershell
+
+      C:\mongodb-win32-i386-[version]
+
+   Or:
+
+   .. code-block:: powershell
+
+      C:\mongodb-win32-x86_64-[version]
+
+   In both examples, replace ``[version]`` with the version of MongoDB
+   downloaded.
+
+Set up the Environment
+~~~~~~~~~~~~~~~~~~~~~~
+
+Start the :guilabel:`Command Prompt` by selecting the :guilabel:`Start
+Menu`, then :guilabel:`All Programs`, then :guilabel:`Accessories`,
+then right click :guilabel:`Command Prompt`, and select :guilabel:`Run
+as Administrator` from the popup menu. In the :guilabel:`Command
+Prompt`, issue the following commands:
+
+.. code-block:: powershell
+
+   cd \
+   move C:\mongodb-win32-* C:\mongodb
+
+.. note::
+
+   MongoDB is self-contained and does not have any other system
+   dependencies. You can run MongoDB from any folder you choose. You
+   may install MongoDB in any directory (e.g. ``D:\test\mongodb``)
+
+MongoDB requires a :term:`data folder <dbpath>` to store its files. The default
+location for the MongoDB data directory is ``C:\data\db``. Create this
+folder using the :guilabel:`Command Prompt`. Issue the following
+command sequence:
+
+.. code-block:: powershell
+
+   md data
+   md data\db
+
+.. note::
+
+   You may specify an alternate path for ``\data\db`` with the
+   :setting:`dbpath` setting for :binary:`~bin.mongod.exe`, as in the
+   following example:
+
+   .. code-block:: powershell
+
+      C:\mongodb\bin\mongod.exe --dbpath d:\test\mongodb\data
+
+   If your path includes spaces, enclose the entire path in double
+   quotations, for example:
+
+   .. code-block:: powershell
+
+      C:\mongodb\bin\mongod.exe --dbpath "d:\test\mongo db data"
+
+
+Start MongoDB
+~~~~~~~~~~~~~
+
+To start MongoDB, execute from the :guilabel:`Command Prompt`:
+
+.. code-block:: powershell
+
+   C:\mongodb\bin\mongod.exe
+
+This will start the main MongoDB database process. The ``waiting for connections`` message in the console output
+indicates that the mongod.exe process is running successfully.
+
+.. note::
+
+   Depending on the security level of your system, Windows will issue
+   a :guilabel:`Security Alert` dialog box about blocking "some
+   features" of ``C:\\mongodb\bin\mongod.exe`` from communicating on
+   networks. All users should select ``Private Networks, such as my
+   home or work network`` and click ``Allow access``. For additional
+   information on security and MongoDB, please read the
+   :doc:`/administration/security` page.
+
+.. warning::
+
+   Do not allow :binary:`~bin.mongod.exe` to be accessible to public
+   networks without running in "Secure Mode" (i.e. :setting:`auth`.)
+   MongoDB is designed to be run in "trusted environments" and the
+   database does not enable authentication or "Secure Mode" by
+   default.
+
+Connect to MongoDB using the :binary:`~bin.mongo.exe <mongo>` shell. Open another
+:guilabel:`Command Prompt` and issue the following command:
+
+.. code-block:: powershell
+
+   C:\mongodb\bin\mongo.exe
+
+.. note::
+
+   Executing the command ``start C:\mongodb\bin\mongo.exe`` will
+   automatically start the :binary:`~bin.mongo.exe` shell in a separate
+   :guilabel:`Command Prompt` window.
+
+The :binary:`~bin.mongo.exe <mongo>` shell will connect to :binary:`~bin.mongod.exe` running on
+the localhost interface and port ``27017`` by default. At the
+:binary:`~bin.mongo.exe <mongo>` prompt, issue the following two commands to
+insert a record in the ``test`` :term:`collection` of the default
+``test`` database and then retrieve that record:
+
+.. code-block:: javascript
+
+   db.test.save( { a: 1 } )
+   db.test.find()
+
+.. seealso:: ":binary:`~bin.mongo`" and ":doc:`/reference/javascript`." If
+   you want to develop applications using .NET, see the documentation
+   of :ecosystem:`C# and MongoDB </drivers/csharp>` for more
+   information.
+
+.. _tutorial-mongod-as-windows-service:
+
+MongoDB as a Windows Service
+----------------------------
+
+.. versionadded:: 2.0
+
+Setup MongoDB as a :guilabel:`Windows Service`, so that the database
+will start automatically following each reboot cycle.
+
+.. note::
+
+   :binary:`~bin.mongod.exe` added support for running as a Windows
+   service in version 2.0, and :binary:`~bin.mongos.exe` added support for
+   running as a Windows Service in version 2.1.1.
+
+Configure the System
+~~~~~~~~~~~~~~~~~~~~
+
+You should specify two options when running MongoDB as a Windows
+Service: a path for the log output (i.e. :setting:`logpath`) and a
+:doc:`configuration file </reference/configuration-options>`.
+
+#. Create a specific directory for MongoDB log files:
+
+   .. code-block:: powershell
+
+      md C:\mongodb\log
+
+#. Create a configuration file for the :setting:`logpath` option for
+   MongoDB in the :guilabel:`Command Prompt` by issuing this command:
+
+   .. code-block:: powershell
+
+      echo logpath=C:\mongodb\log\mongo.log > C:\mongodb\mongod.cfg
+
+While these optional steps are optional, creating a specific location
+for log files and using the configuration file are good practice.
+
+.. note::
+
+   Consider setting the :setting:`logappend` option. If you do not,
+   :binary:`~bin.mongod.exe` will delete the contents of the existing log
+   file when starting.
+
+   .. versionchanged:: 2.2
+      The default :setting:`logpath` and :setting:`logappend` behavior
+      changed in the 2.2 release.
+
+Install and Run the MongoDB Service
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Run all of the following commands in :guilabel:`Command Prompt` with
+"Administrative Privileges:"
+
+#. To install the MongoDB service:
+
+   .. code-block:: powershell
+
+      C:\mongodb\bin\mongod.exe --config C:\mongodb\mongod.cfg --install
+
+   Modify the path to the ``mongod.cfg`` file as needed. For the
+   :option:`--install <mongod.exe --install>` option to succeed, you *must* specify a
+   :setting:`logpath` setting or the :option:`--logpath <mongod --logpath>`
+   run-time option.
+
+#. To run the MongoDB service:
+
+   .. code-block:: powershell
+
+      net start MongoDB
+
+.. note::
+
+   If you wish to use an alternate path for your :setting:`dbpath`
+   specify it in the config file (e.g. ``C:\mongodb\mongod.cfg``) on
+   that you specified in the :option:`--install <mongod.exe --install>`
+   operation. You may also specify :option:`--dbpath <mongod --dbpath>`
+   on the command line; however, always prefer the configuration file.
+
+   If the :setting:`dbpath` directory does not exist,
+   :binary:`~bin.mongod.exe` will not be able to start. The default value
+   for :setting:`dbpath` is ``\data\db``.
+
+Stop or Remove the MongoDB Service
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- To stop the MongoDB service:
+
+  .. code-block:: powershell
+
+     net stop MongoDB
+
+- To remove the MongoDB service:
+
+  .. code-block:: powershell
+
+     C:\mongodb\bin\mongod.exe --remove

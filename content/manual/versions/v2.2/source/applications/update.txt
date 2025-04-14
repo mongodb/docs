@@ -1,0 +1,424 @@
+======
+Update
+======
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Of the four basic database operations (i.e. CRUD), *update* operations
+are those that modify existing records or :term:`documents <document>`
+in a MongoDB :term:`collection`. For general information about write
+operations and the factors that affect their performance, see
+:doc:`/core/write-operations`; for documentation of other CRUD
+operations, see the :doc:`/crud` page.
+
+Overview
+--------
+
+Update operation modifies an existing :term:`document <document>` or
+documents in a :term:`collection`. MongoDB provides the following
+methods to perform update operations:
+
+- :ref:`update <crud-update-update>`
+
+- :ref:`save <crud-update-save>`
+
+.. note:: Consider the following behaviors of MongoDB's update
+   operations.
+
+   - .. include:: /includes/fact-update-field-order.rst
+
+   - .. include:: /includes/fact-write-concern.rst
+
+.. _crud-update-update:
+
+Update
+------
+
+The :method:`~db.collection.update()` method is the primary method used
+to modify documents in a MongoDB collection. By default, the
+:method:`~db.collection.update()` method updates a **single** document,
+but by using the ``multi`` option, :method:`~db.collection.update()`
+can update all documents that match the query criteria in the
+collection. The :method:`~db.collection.update()` method can either
+replace the existing document with the new document or update specific
+fields in the existing document.
+
+The :method:`~db.collection.update()` has the following syntax
+[#previous-version]_:
+
+.. code-block:: javascript
+
+   db.collection.update( <query>, <update>, <options> )
+
+.. admonition:: Corresponding operation in SQL
+
+   The :method:`~db.collection.update()` method corresponds to the
+   ``UPDATE`` operation in SQL, and:
+
+   - the ``<query>`` argument corresponds to the ``WHERE`` statement,
+     and
+
+   - the ``<update>`` corresponds to the ``SET ...`` statement.
+
+   The default behavior of the :method:`~db.collection.update()` method
+   updates a **single** document and would correspond to the SQL
+   ``UPDATE`` statement with the ``LIMIT 1``. With the ``multi``
+   option, :method:`~db.collection.update()` method would correspond to
+   the SQL ``UPDATE`` statement without the ``LIMIT`` clause.
+
+.. [#previous-version] This examples uses the interface added in
+   MongoDB 2.2 to specify the ``multi`` and the ``upsert`` options in
+   a document form.
+
+   .. include:: /includes/fact-upsert-multi-options.rst
+
+Modify with Update Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the ``<update>`` argument contains only :ref:`update operator
+<crud-update-operators>` expressions such as the :update:`$set`
+operator expression, the :method:`~db.collection.update()`
+method updates the corresponding fields in the document. To update
+fields in subdocuments, MongoDB uses :term:`dot notation`.
+
+Update a Field in a Document
+````````````````````````````
+
+Use :update:`$set` to update a value of a field.
+
+The following operation queries the ``bios`` collection for the first
+document that has an ``_id`` field equal to ``1`` and sets the value of
+the field ``middle``, in the subdocument ``name``, to ``Warner``:
+
+.. code-block:: javascript
+
+   db.bios.update(
+      { _id: 1 },
+      {
+        $set: { 'name.middle': 'Warner' },
+      }
+   )
+
+Add a New Field to a Document
+`````````````````````````````
+
+If the ``<update>`` argument contains fields not currently in the
+document, the :method:`~db.collection.update()` method adds
+the new fields to the document.
+
+The following operation queries the ``bios`` collection for the first
+document that has an ``_id`` field equal to ``3`` and adds to that
+document a new ``mbranch`` field and a new ``aka`` field in the
+subdocument ``name``:
+
+.. code-block:: javascript
+
+   db.bios.update(
+      { _id: 3 },
+      { $set: {
+                mbranch: 'Navy',
+                'name.aka': 'Amazing Grace'
+              }
+      }
+   )
+
+Remove a Field from a Document
+``````````````````````````````
+
+If the ``<update>`` argument contains :update:`$unset` operator, the
+:method:`~db.collection.update()` method removes the field
+from the document.
+
+The following operation queries the ``bios`` collection for the first
+document that has an ``_id`` field equal to ``3`` and removes the
+``birth`` field from the document:
+
+.. code-block:: javascript
+
+   db.bios.update(
+      { _id: 3 },
+      { $unset: { birth: 1 } }
+   )
+
+Update Arrays
+`````````````
+
+Update an Element by Specifying Its Position
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If the update operation requires an update of an element in an array
+field, the :method:`~db.collection.update()` method can
+perform the update using the position of the element and :term:`dot
+notation`. Arrays in MongoDB are zero-based.
+
+The following operation queries the ``bios`` collection for
+the first document with ``_id`` field equal to ``1`` and updates the
+second element in the ``contribs`` array:
+
+.. code-block:: javascript
+
+   db.bios.update(
+      { _id: 1 },
+      { $set: { 'contribs.1': 'ALGOL 58' } }
+   )
+
+Update an Element without Specifying Its Position
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The :method:`~db.collection.update()` method can perform the
+update using the :operator:`$` positional operator if the position is
+not known. The array field must appear in the ``query`` argument in
+order to determine which array element to update.
+
+The following operation queries the ``bios`` collection for the first
+document where the ``_id`` field equals ``3`` and the ``contribs``
+array contains an element equal to ``compiler``. If found, the
+:method:`~db.collection.update()` method updates the first
+matching element in the array to ``A compiler`` in the document:
+
+.. code-block:: javascript
+
+   db.bios.update(
+          { _id: 3, 'contribs': 'compiler' },
+          { $set: { 'contribs.$': 'A compiler' } }
+       )
+
+Update a Document Element without Specifying Its Position
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The :method:`~db.collection.update()` method can perform the
+update of an array that contains subdocuments by using the positional
+operator (i.e. :operator:`$`) and the :term:`dot notation`.
+
+The following operation queries the ``bios`` collection for the first
+document where the ``_id`` field equals ``6`` and the ``awards`` array
+contains a subdocument element with the ``by`` field equal to ``ACM``.
+If found, the :method:`~db.collection.update()` method
+updates the ``by`` field in the first matching subdocument:
+
+.. code-block:: javascript
+
+   db.bios.update(
+      { _id: 6, 'awards.by': 'ACM'  } ,
+      { $set: { 'awards.$.by': 'Association for Computing Machinery' } }
+   )
+
+Add an Element to an Array
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The following operation queries the ``bios`` collection for the first
+document that has an ``_id`` field equal to ``1`` and adds a new
+element to the ``awards`` field:
+
+.. code-block:: javascript
+
+   db.bios.update(
+      { _id: 1 },
+      {
+        $push: { awards: { award: 'IBM Fellow', year: 1963, by: 'IBM' } }
+      }
+   )
+
+Update Multiple Documents
+`````````````````````````
+
+If the ``<options>`` argument contains the ``multi`` option set to
+``true`` or ``1``, the :method:`~db.collection.update()` method updates
+all documents that match the query.
+
+The following operation queries the ``bios`` collection for all
+documents where the ``awards`` field contains a subdocument element
+with the ``award`` field equal to ``Turing`` and sets the ``turing``
+field to ``true`` in the matching documents [#previous-versions-multi]_:
+
+.. code-block:: javascript
+
+   db.bios.update(
+      { 'awards.award': 'Turing' },
+      { $set: { turing: true } },
+      { multi: true }
+   )
+
+.. [#previous-versions-multi]
+   .. include:: /includes/fact-upsert-multi-options.rst
+
+Replace Existing Document with New Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the ``<update>`` argument contains only field and value pairs, the
+:method:`~db.collection.update()` method *replaces* the
+existing document with the document in the ``<update>`` argument,
+except for the ``_id`` field.
+
+The following operation queries the ``bios`` collection for the first
+document that has a ``name`` field equal to ``{ first: 'John', last:
+'McCarthy' }`` and replaces all but the ``_id`` field in the document
+with the fields in the ``<update>`` argument:
+
+.. code-block:: javascript
+
+   db.bios.update(
+      { name: { first: 'John', last: 'McCarthy' } },
+      { name: { first: 'Ken', last: 'Iverson' },
+        born: new Date('Dec 17, 1941'),
+        died: new Date('Oct 19, 2004'),
+        contribs: [ 'APL', 'J' ],
+        awards: [
+                  { award: 'Turing Award',
+                    year: 1979,
+                    by: 'ACM' },
+                  { award: 'Harry H. Goode Memorial Award',
+                    year: 1975,
+                    by: 'IEEE Computer Society' },
+                  { award: 'IBM Fellow',
+                    year: 1970,
+                    by: 'IBM' }
+                ]
+      }
+   )
+
+``update()`` Operations  with the ``upsert`` Flag
+-------------------------------------------------
+
+If you set the ``upsert`` option in the ``<options>`` argument to
+``true`` or ``1`` and no existing document match the ``<query>``
+argument, the :method:`~db.collection.update()` method can
+insert a new document into the collection. [#previous-versions-upsert]_
+
+The following operation queries the ``bios`` collection for a document
+with the ``_id`` field equal to ``11`` and the ``name`` field equal to
+``{ first: 'James', last: 'Gosling'}``. If the query selects a
+document, the operation performs an update operation. If a document is
+not found, :method:`~db.collection.update()` inserts a new
+document containing the fields and values from ``<query>`` argument
+with the operations from the ``<update>`` argument applied.
+[#upsert-update-operators]_
+
+.. code-block:: javascript
+
+   db.bios.update(
+      { _id:11, name: { first: 'James', last: 'Gosling' } },
+      {
+        $set: {
+                born: new Date('May 19, 1955'),
+                contribs: [ 'Java' ],
+                awards: [
+                          {
+                            award: 'The Economist Innovation Award',
+                            year: 2002,
+                            by: 'The Economist'
+                          },
+                          {
+                            award: 'Officer of the Order of Canada',
+                            year: 2007,
+                            by: 'Canada'
+                          }
+                        ]
+              }
+      },
+      { upsert: true }
+   )
+
+See also :ref:`Update Operations with the Upsert Flag
+<crud-create-update>` in the :doc:`/applications/create` document.
+
+.. [#previous-versions-upsert]
+   .. include:: /includes/fact-upsert-multi-options.rst
+
+.. [#upsert-update-operators] If the ``<update>`` argument includes
+  only field and value pairs, the new document contains the fields and
+  values specified in the ``<update>`` argument. If the ``<update>``
+  argument includes only :ref:`update operators
+  <crud-update-operators>`, the new document contains the fields and
+  values from ``<query>`` argument with the operations from the
+  ``<update>`` argument applied.
+
+.. _crud-update-save:
+
+Save
+----
+
+The :method:`~db.collection.save()` method performs a special type of
+:method:`~db.collection.update()`, depending on the ``_id`` field of
+the specified document.
+
+
+The :method:`~db.collection.save()` method has the
+following syntax:
+
+.. code-block:: javascript
+
+   db.collection.save( <document> )
+
+Behavior
+~~~~~~~~
+
+If you specify a document with an ``_id`` field,
+:method:`~db.collection.save()` performs an
+:method:`~db.collection.update()` with the ``upsert`` option set: if
+an existing document in the collection has the same ``_id``,
+:method:`~db.collection.save()` updates that document, and inserts the
+document otherwise. If you do not specify a document with an ``_id``
+field to :method:`~db.collection.save()`, performs an
+:method:`~db.collection.insert()` operation.
+
+That is, :method:`~db.collection.save()` method is equivalent to the
+:method:`~db.collection.update()` method with the ``upsert`` option
+and a ``<query>`` argument with an ``_id`` field.
+
+.. example::
+
+   Consider the following psudocode explanation of
+   :method:`~db.collection.save()` as an illustration of its
+   behavior:
+
+   .. code-block:: javascript
+
+      function save( doc ) {
+        if( doc["_id"] ) {
+             update( {_id: doc["_id"] }, doc, { upsert: true } );
+          }
+        else {
+             insert(doc);
+        }
+      }
+
+Save Performs an Update
+~~~~~~~~~~~~~~~~~~~~~~~
+
+If the ``<document>`` argument contains the ``_id`` field that exists
+in the collection, the :method:`~db.collection.save()` method
+performs an update that replaces the existing document with the
+``<document>`` argument.
+
+The following operation queries the ``bios`` collection for a document
+where the ``_id`` equals ``ObjectId("507c4e138fada716c89d0014")`` and
+replaces the document with the ``<document>`` argument:
+
+.. code-block:: javascript
+
+   db.bios.save(
+      {
+        _id: ObjectId("507c4e138fada716c89d0014"),
+        name: { first: 'Martin', last: 'Odersky' },
+        contribs: [ 'Scala' ]
+      }
+   )
+
+.. seealso:: :ref:`crud-create-insert-save` and
+   :ref:`crud-create-save` in the :doc:`/applications/create` section.
+
+.. _crud-update-operators:
+
+Update Operators
+----------------
+
+.. include:: /reference/operators.txt
+   :start-after: include-in-update-crud-page-start
+   :end-before: include-in-update-crud-page-stop

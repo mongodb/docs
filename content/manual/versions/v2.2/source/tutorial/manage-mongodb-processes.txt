@@ -1,0 +1,212 @@
+===========================
+Manage ``mongod`` Processes
+===========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+MongoDB runs as a standard program. You can start MongoDB from a command
+line by issuing the :binary:`~bin.mongod` command and specifying options.
+For a list of options, see :doc:`/reference/mongod`. MongoDB can also run
+as a Windows service. For details, see
+:ref:`tutorial-mongod-as-windows-service`. To install MongoDB, see
+:doc:`/installation`.
+
+The following examples assume the directory containing the
+:binary:`~bin.mongod` process is in your system paths. The
+:binary:`~bin.mongod` process is the primary database process that runs on
+an individual server. :binary:`~bin.mongos` provides a coherent MongoDB
+interface equivalent to a :binary:`~bin.mongod` from the perspective of a
+client. The :binary:`~bin.mongo` binary provides the administrative
+shell.
+
+This document  page discusses the :binary:`~bin.mongod` process; however,
+some portions of this document may be applicable to :binary:`~bin.mongos`
+instances.
+
+.. seealso:: :doc:`/administration/configuration`,
+   :doc:`/reference/mongod`, :doc:`/reference/mongos`, and
+   :doc:`/reference/configuration-options`.
+
+Start ``mongod``
+----------------
+
+By default, MongoDB stores data in the ``/data/db`` directory. On
+Windows, MongoDB stores data in ``C:\data\db``. On all platforms,
+MongoDB listens for connections from clients on port ``27017``.
+
+To start MongoDB using all defaults, issue the following command at
+the system shell:
+
+.. code-block:: sh
+
+   mongod
+
+Specify a Data Directory
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you want :binary:`~bin.mongod` to store data files at a path *other
+than* ``/data/db`` you can specify a :setting:`dbpath`. The
+:setting:`dbpath` must exist before you start :binary:`~bin.mongod`. If it
+does not exist, create the directory and the permissions so that
+:binary:`~bin.mongod` can read and write data to this path. For more
+information on permissions, see the :ref:`security operations
+documentation <security-operations>`.
+
+To specify a :setting:`dbpath` for :binary:`~bin.mongod` to use as a data
+directory, use the :option:`--dbpath <mongod --dbpath>` option. The
+following invocation will start a :binary:`~bin.mongod` instance and store
+data in the ``/srv/mongodb`` path
+
+.. code-block:: sh
+
+   mongod --dbpath /srv/mongodb/
+
+Specify a TCP Port
+~~~~~~~~~~~~~~~~~~
+
+Only a single process can listen for connections on a network
+interface at a time. If you run multiple :binary:`~bin.mongod` processes
+on a single machine, or have other processes that must use this port,
+you must assign each a different port to listen on for client
+connections.
+
+To specify a port to :binary:`~bin.mongod`, use the :option:`--port
+<mongod --port>` option on the command line. The following command
+starts :binary:`~bin.mongod` listening on port ``12345``:
+
+.. code-block:: sh
+
+   mongod --port 12345
+
+Use the default port number when possible, to avoid confusion.
+
+Start ``mongod`` as a Daemon
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To run a :binary:`~bin.mongod` process as a daemon (i.e. :setting:`fork`,)
+*and* write its output to a log file, use the :option:`--fork
+<mongod --fork>` and :option:`--logpath <mongod --logpath>`
+options. You must create the log directory; however, :binary:`~bin.mongod`
+will create the log file if it does not exist.
+
+The following command starts :binary:`~bin.mongod` as a daemon and records log
+output to ``/var/log/mongodb.log``.
+
+.. code-block:: sh
+
+   mongod --fork --logpath /var/log/mongodb.log
+
+Additional Configuration Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For an overview of common configurations and common configuration deployments.
+configurations for common use cases, see
+:doc:`/administration/configuration`.
+
+Stop ``mongod``
+---------------
+
+To stop a :binary:`~bin.mongod` instance not running as a daemon,
+press ``Control+C``. MongoDB stops when all ongoing operations are
+complete and does a clean exit, flushing and closing all data files.
+
+To stop a :binary:`~bin.mongod` instance running in the background or
+foreground, issue the :method:`~db.shutdownServer()` helper in the
+:binary:`~bin.mongo` shell. Use the following sequence:
+
+1. To open the :binary:`~bin.mongo` shell for a :binary:`~bin.mongod` instance
+   running on the default port of ``27017``, issue the following command:
+
+   .. code-block:: sh
+
+      mongo
+
+#. To switch to the ``admin`` database and shutdown the :binary:`~bin.mongod`
+   instance, issue the following commands:
+
+   .. code-block:: javascript
+
+      use admin
+      db.shutdownServer()
+
+You may only use :method:`db.shutdownServer()` when connected to the
+:binary:`~bin.mongod` when authenticated to the ``admin`` database or on
+systems without authentication connected via the localhost interface.
+
+Alternately, you can shut down the :binary:`~bin.mongod` instance:
+
+- using the :option:`--shutdown <mongod --shutdown>` option
+
+- from a driver using the :dbcommand:`shutdown`. For details, see the
+  :doc:`drivers documentation </applications/drivers>` for your driver.
+
+``mongod`` Shutdown and Replica Sets
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the :binary:`~bin.mongod` is the :term:`primary` in a :term:`replica
+set`, the shutdown process for these :binary:`~bin.mongod` instances has
+the following steps:
+
+1. Check how up-to-date the :term:`secondaries <secondary>` are.
+
+#. If no secondary is within 10 seconds of the primary,
+   :binary:`~bin.mongod` will return a message that it will not shut down.
+   You can pass the :dbcommand:`shutdown` command a ``timeoutSecs``
+   argument to wait for a secondary to catch up.
+
+#. If there is a secondary within 10 seconds of the primary, the primary
+   will step down and wait for the secondary to catch up.
+
+#. After 60 seconds or once the secondary has caught up, the primary
+   will shut down.
+
+If there is no up-to-date secondary and you want the primary to shut
+down, issue the :dbcommand:`shutdown` command with the ``force``
+argument, as in the following :binary:`~bin.mongo` shell operation:
+
+.. code-block:: javascript
+
+   db.adminCommand({shutdown : 1, force : true})
+
+To keep checking the secondaries for a specified number of seconds if
+none are immediately up-to-date, issue :dbcommand:`shutdown` with the
+``timeoutSecs`` argument. MongoDB will keep checking the secondaries for
+the specified number of seconds if none are immediately up-to-date. If
+any of the secondaries catch up within the allotted time, the primary
+will shut down. If no secondaries catch up, it will not shut down.
+
+The following command issues :dbcommand:`shutdown` with ``timeoutSecs``
+set to ``5``:
+
+.. code-block:: javascript
+
+   db.adminCommand({shutdown : 1, timeoutSecs : 5})
+
+Alternately you can use the ``timeoutSecs`` argument with the
+:method:`shutdownServer() <db.shutdownServer()>` method:
+
+.. code-block:: javascript
+
+   db.shutdownServer({timeoutSecs : 5})
+
+Sending a UNIX INT or TERM Signal
+---------------------------------
+
+You can cleanly stop :binary:`~bin.mongod` using a ``SIGINT`` or ``SIGTERM``
+signal on UNIX-like systems. Either ``^C`` for a non-daemon
+:binary:`~bin.mongod` instance, ``kill -2 <pid>``, or ``kill -15 <pid>`` will
+cleanly terminate the :binary:`~bin.mongod` instance.
+
+Terminating a :binary:`~bin.mongod` instance that is **not** running with
+:term:`journaling <journal>` with ``kill -9 <pid>`` (i.e. ``SIGKILL``)
+will probably cause data corruption.
+
+To recover data in situations where :binary:`~bin.mongod` instances have
+not terminated cleanly *without* :term:`journaling <journal>` see
+:doc:`/tutorial/recover-data-following-unexpected-shutdown`.

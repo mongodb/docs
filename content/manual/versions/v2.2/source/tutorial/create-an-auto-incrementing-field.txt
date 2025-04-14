@@ -1,0 +1,266 @@
+==========================================
+Create an Auto-Incrementing Sequence Field
+==========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Synopsis
+--------
+
+MongoDB reserves the ``_id`` field in the top level of all documents
+as a primary key. ``_id`` must be unique, and always has an index with
+a :ref:`unique constraint <index-type-unique>`. However, except for
+the unique constraint you can use any value for the ``_id`` field in
+your collections. This tutorial describes two methods for creating an
+incrementing sequence number for the ``_id`` field using the
+following:
+
+- :ref:`auto-increment-counters-collection`
+
+- :ref:`auto-increment-optimistic-loop`
+
+.. warning::
+
+   Generally in MongoDB, you would not use an auto-increment pattern
+   for the ``_id`` field, or any field, because it does not scale for
+   databases with larger numbers of documents. Typically the default
+   value :term:`ObjectId <objectid>` is more ideal for the ``_id``.
+
+
+.. _auto-increment-counters-collection:
+
+A Counters Collection
+~~~~~~~~~~~~~~~~~~~~~
+
+Use a separate ``counters`` collection tracks the *last* number sequence
+used. The ``_id`` field contains the sequence name and the ``seq``
+contains the last value of the sequence.
+
+1. Insert into the ``counters`` collection, the initial value for the ``userid``:
+
+   .. code-block:: javascript
+
+      db.counters.insert(
+         {
+            _id: "userid",
+            seq: 0
+         }
+      )
+
+#. Create a ``getNextSequence`` function that accepts a ``name`` of
+   the sequence. The function uses the
+   :method:`~db.collection.findAndModify()` method to atomically
+   increment the ``seq`` value and return this new value:
+
+   .. code-block:: javascript
+
+      function getNextSequence(name) {
+         var ret = db.counters.findAndModify(
+                {
+                  query: { _id: name },
+                  update: { $inc: { seq: 1 } },
+                  new: true
+                }
+         );
+
+         return ret.seq;
+      }
+
+#. Use this ``getNextSequence()`` function during
+   :method:`insert() <db.collection.insert()>`.
+
+   .. code-block:: javascript
+
+      db.users.insert(
+         {
+           _id: getNextSequence("userid"),
+           name: "Sarah C."
+         }
+      )
+
+      db.users.insert(
+         {
+           _id: getNextSequence("userid"),
+           name: "Bob D."
+         }
+      )
+
+   You can verify the results with :method:`find() <db.collection.find()>`:
+
+   .. code-block:: javascript
+
+      db.users.find()
+
+   The ``_id`` fields contain incrementing sequence values:
+
+   .. code-block:: javascript
+
+      {
+        _id : 1,
+        name : "Sarah C."
+      }
+      {
+        _id : 2,
+        name : "Bob D."
+      }
+
+.. note::
+
+   When :method:`~db.collection.findAndModify()` includes the ``upsert:
+   true`` option **and** the query field(s) is not uniquely indexed, the
+   method could insert a document multiple times in certain
+   circumstances. For instance, if multiple clients each invoke the
+   method with the same query condition and these methods complete the
+   find phase before any of methods perform the modify phase, these
+   methods could insert the same document.
+
+   In the ``counters`` collection example, the query field is the
+   ``_id`` field, which always has a unique index. Consider that the
+   :method:`~db.collection.findAndModify()` includes the ``upsert:
+   true`` option, as in the following modified example:
+
+   .. code-block:: javascript
+      :emphasize-lines: 7
+
+      function getNextSequence(name) {
+         var ret = db.counters.findAndModify(
+                {
+                  query: { _id: name },
+                  update: { $inc: { seq: 1 } },
+                  new: true,
+                  upsert: true
+                }
+         );
+
+         return ret.seq;
+      }
+
+   If multiple clients were to invoke the ``getNextSequence()`` method
+   with the same ``name`` parameter, then the methods would observe one
+   of the following behaviors:
+
+   - Exactly one :method:`~db.collection.findAndModify()` would
+     successfully insert a new document.
+
+   - Zero or more :method:`~db.collection.findAndModify()` methods
+     would update the newly inserted document.
+
+   - Zero or more :method:`~db.collection.findAndModify()` methods
+     would fail when they attempted to insert a duplicate.
+
+   If the method fails due to a unique index constraint violation,
+   retry the method. Absent a delete of the document, the retry
+   should not fail.
+
+.. _auto-increment-optimistic-loop:
+
+Optimistic Loop
+~~~~~~~~~~~~~~~
+
+In this pattern, an *Optimistic Loop* calculates the incremented
+``_id`` value and attempts to insert a document with the calculated
+``_id`` value. If the insert is successful, the loop ends. Otherwise,
+the loop will iterate through possible ``_id`` values until the insert
+is successful.
+
+#. Create a function named ``insertDocument`` that performs the
+   "insert if not present" loop. The function wraps the
+   :method:`insert() <db.collection.insert()>` method and takes a
+   ``doc`` and a ``targetCollection`` arguments.
+
+   .. code-block:: javascript
+
+      function insertDocument(doc, targetCollection) {
+
+          while (1) {
+
+              var cursor = targetCollection.find( {}, { _id: 1 } ).sort( { _id: -1 } ).limit(1);
+
+              var seq = cursor.hasNext() ? cursor.next()._id + 1 : 1;
+
+              doc._id = seq;
+
+              targetCollection.insert(doc);
+
+              var err = db.getLastErrorObj();
+
+              if( err && err.code ) {
+                  if( err.code == 11000 /* dup key */ )
+                      continue;
+                  else
+                      print( "unexpected error inserting data: " + tojson( err ) );
+              }
+
+              break;
+          }
+      }
+
+   The ``while (1)`` loop performs the following actions:
+
+   - Queries the ``targetCollection`` for the document with the
+     maximum ``_id`` value.
+
+   - Determines the next sequence value for ``_id`` by:
+
+     - adding ``1`` to the returned ``_id`` value if the returned
+       cursor points to a document.
+
+     - otherwise: it sets the next sequence value to ``1`` if the
+       returned cursor points to no document.
+
+   - For the ``doc`` to insert, set its ``_id`` field to the
+     calculated sequence value ``seq``.
+
+   - Insert the ``doc`` into the ``targetCollection``.
+
+   - If the insert operation errors with duplicate key, repeat the
+     loop.  Otherwise, if the insert operation encounters some
+     other error or if the operation succeeds, break out of the loop.
+
+#. Use the ``insertDocument()`` function to perform an insert:
+
+   .. code-block:: javascript
+
+      var myCollection = db.users2;
+
+      insertDocument(
+         {
+           name: "Grace H."
+         },
+         myCollection
+      );
+
+      insertDocument(
+         {
+           name: "Ted R."
+         },
+         myCollection
+      )
+
+   You can verify the results with :method:`find() <db.collection.find()>`:
+
+   .. code-block:: javascript
+
+      db.users2.find()
+
+   The ``_id`` fields contain incrementing sequence values:
+
+   .. code-block:: javascript
+
+      {
+        _id: 1,
+        name: "Grace H."
+      }
+      {
+        _id : 2,
+        "name" : "Ted R."
+      }
+
+The ``while`` loop may iterate many times in collections with larger
+insert volumes.

@@ -1,0 +1,521 @@
+========================================
+Getting Started with MongoDB Development
+========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This tutorial provides an introduction to basic database operations
+using the :binary:`~bin.mongo` shell. :binary:`~bin.mongo` is a part of the
+standard MongoDB distribution and provides a full JavaScript
+environment with a complete access to the JavaScript language
+and all standard functions as well as a full database interface for
+MongoDB. See the :api:`mongo JavaScript API <js>` documentation and
+the :binary:`~bin.mongo` shell :doc:`JavaScript Method Reference </reference/javascript>`.
+
+The tutorial assumes that you're running MongoDB on a Linux or OS X
+operating system and that you have a running database server; MongoDB
+does support Windows and provides a Windows distribution with
+identical operation. For instructions on installing MongoDB and
+starting the database server see the appropriate :doc:`installation
+</installation>` document.
+
+.. contents:: This tutorial addresses the following aspects of MongoDB use:
+   :backlinks: none
+   :local:
+   :depth: 3
+
+Connect to a Database
+---------------------
+
+In this section you connect to the database server, which runs as
+:binary:`~bin.mongod`, and begin using the :binary:`~bin.mongo` shell to
+select a logical database within the database instance and access the
+help text in the :binary:`~bin.mongo` shell.
+
+Connect to a :binary:`~bin.mongod`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+From a system prompt, start :binary:`~bin.mongo` by issuing the
+:binary:`~bin.mongo` command, as follows:
+
+.. code-block:: sh
+
+   mongo
+
+By default, :binary:`~bin.mongo` looks for a database server listening on
+port ``27017`` on the ``localhost`` interface. To connect to a server
+on a different port or interface, use the
+:option:`--port <mongo --port>` and :option:`--host <mongo --host>`
+options.
+
+Select a Database
+~~~~~~~~~~~~~~~~~
+
+After starting the :binary:`~bin.mongo` shell your session will use the
+``test`` database for context, by default. At any time issue the
+following operation at the :binary:`~bin.mongo` to report the current
+database:
+
+.. code-block:: javascript
+
+   db
+
+``db`` returns the name of the current database.
+
+1. From the :binary:`~bin.mongo` shell, display the list of
+   databases with the following operation:
+
+   .. code-block:: javascript
+
+      show dbs
+
+#. Switch to a new database named ``mydb`` with the following
+   operation:
+
+   .. code-block:: javascript
+
+      use mydb
+
+#. Confirm that your session has the ``mydb`` database as context,
+   using the ``db`` operation, which returns the name of the current
+   database as follows:
+
+   .. code-block:: javascript
+
+      db
+
+At this point, if you issue the ``show dbs`` operation again, it will
+not include ``mydb``, because MongoDB will not create a database until
+you insert data into that database. The
+:ref:`getting-started-create-documents` section describes the process
+for inserting data.
+
+Display ``mongo`` Help
+~~~~~~~~~~~~~~~~~~~~~~
+
+At any point you can access help for the :binary:`~bin.mongo` shell using
+the following operation:
+
+.. code-block:: javascript
+
+   help
+
+Furthermore, you can append the ``.help()`` method to some JavaScript
+methods, any cursor object, as well as the ``db`` and
+``db.collection`` objects to return additional help information.
+
+.. _getting-started-create-documents:
+
+Create a Collection and Insert Documents
+----------------------------------------
+
+In this section, you insert documents into a new :term:`collection`
+named ``things`` within the new :term:`database` named
+``mydb``.
+
+MongoDB will create collections and databases implicitly upon their
+first use: you do not need to create the database or collection before
+inserting data. Furthermore, because MongoDB uses :ref:`dynamic
+schemas <faq-schema-free>`, you do not need to specify the structure
+of your documents before inserting them into the collection.
+
+Insert Individual Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1. From the :binary:`~bin.mongo` shell, confirm that the current context
+   is the ``mydb`` database with the following operation:
+
+   .. code-block:: javascript
+
+      db
+
+#. If :binary:`~bin.mongo` does not return ``mydb`` for the previous
+   operation, set the context to the ``mydb`` database with the
+   following operation:
+
+   .. code-block:: javascript
+
+      use mydb
+
+#. Create two documents, named ``j`` and ``k``, with the following
+   sequence of JavaScript operations:
+
+   .. code-block:: javascript
+
+      j = { name : "mongo" }
+      k = { x : 3 }
+
+#. Insert the ``j`` and ``k`` documents into the collection
+   ``things`` with the following sequence of operations:
+
+   .. code-block:: javascript
+
+      db.things.insert( j )
+      db.things.insert( k )
+
+   When you insert the first document, the :binary:`~bin.mongod` will
+   create both the ``mydb`` database and the ``things`` collection.
+
+#. Confirm that the collection named ``things`` exists using
+   the following operation:
+
+   .. code-block:: javascript
+
+      show collections
+
+   The :binary:`~bin.mongo` shell will return the list of the collections
+   in the current (i.e. ``mydb``) database. At this point, the only
+   collection is ``things``. All :binary:`~bin.mongod` databases also have
+   a :data:`system.indexes <<database>.system.indexes>` collection.
+
+#. Confirm that the documents exist in the collection ``things`` by
+   issuing query on the ``things`` collection. Using the
+   :method:`find() <db.collection.find()>` method in an operation that
+   resembles the following:
+
+   .. code-block:: javascript
+
+      db.things.find()
+
+   This operation returns the following results. The :doc:`ObjectId
+   </core/object-id>` values will be unique:
+
+   .. code-block:: javascript
+
+      { "_id" : ObjectId("4c2209f9f3924d31102bd84a"), "name" : "mongo" }
+      { "_id" : ObjectId("4c2209fef3924d31102bd84b"), "x" : 3 }
+
+   All MongoDB documents must have an ``_id`` field with a unique
+   value.  These operations do not explicitly specify a value for the
+   ``_id`` field, so :binary:`~bin.mongo` creates a unique :doc:`ObjectId
+   </core/object-id>` value for the field before inserting it into the
+   collection.
+
+Insert Multiple Documents Using a For Loop
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1. From the :binary:`~bin.mongo` shell, add more documents to the ``things``
+   collection using the following ``for`` loop:
+
+   .. code-block:: javascript
+
+      for (var i = 1; i <= 20; i++) db.things.insert( { x : 4 , j : i } )
+
+#. Query the collection by issuing the following command:
+
+   .. code-block:: javascript
+
+      db.things.find()
+
+   The :binary:`~bin.mongo` shell displays the first 20 documents in the
+   collection. Your :doc:`ObjectId </core/object-id>` values will be
+   different:
+
+   .. code-block:: javascript
+
+      { "_id" : ObjectId("4c2209f9f3924d31102bd84a"), "name" : "mongo" }
+      { "_id" : ObjectId("4c2209fef3924d31102bd84b"), "x" : 3 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd856"), "x" : 4, "j" : 1 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd857"), "x" : 4, "j" : 2 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd858"), "x" : 4, "j" : 3 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd859"), "x" : 4, "j" : 4 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd85a"), "x" : 4, "j" : 5 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd85b"), "x" : 4, "j" : 6 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd85c"), "x" : 4, "j" : 7 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd85d"), "x" : 4, "j" : 8 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd85e"), "x" : 4, "j" : 9 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd85f"), "x" : 4, "j" : 10 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd860"), "x" : 4, "j" : 11 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd861"), "x" : 4, "j" : 12 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd862"), "x" : 4, "j" : 13 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd863"), "x" : 4, "j" : 14 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd864"), "x" : 4, "j" : 15 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd865"), "x" : 4, "j" : 16 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd866"), "x" : 4, "j" : 17 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd867"), "x" : 4, "j" : 18 }
+
+.. _getting-started-cursor-exhaustion:
+
+#. The :method:`~db.collection.find()` returns a cursor. To iterate
+   the cursor and return more documents use the ``it`` operation in
+   the :binary:`~bin.mongo` shell. The :binary:`~bin.mongo` shell will exhaust
+   the cursor, and return the following documents:
+
+   .. code-block:: javascript
+
+      { "_id" : ObjectId("4c220a42f3924d31102bd868"), "x" : 4, "j" : 19 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd869"), "x" : 4, "j" : 20 }
+
+For more information on inserting new documents, see the
+:ref:`crud-create-insert` documentation.
+
+Working with the Cursor
+-----------------------
+
+When you query a :term:`collection`, MongoDB returns a "cursor" object
+that contains the results of the query. The :binary:`~bin.mongo` shell
+then iterates over the cursor to display the results. Rather than
+returning all results at once, the shell iterates over the cursor 20
+times to display the first 20 results and then waits for a request to
+iterate over the remaining results. This prevents :binary:`~bin.mongo`
+from displaying thousands or millions of results at once.
+
+The ``it`` operation allows you to iterate over the next 20 results in
+the shell. In the :ref:`previous procedure
+<getting-started-cursor-exhaustion>`, the cursor only contained two
+more documents, and so only two more documents displayed.
+
+The procedures in this section show other ways to work with a cursor.
+For comprehensive documentation on cursors, see
+:ref:`crud-read-cursor`.
+
+Iterate over the Cursor with a Loop
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1. In the MongoDB JavaScript shell, query the ``things`` collection
+   and assign the resulting cursor object to the ``c`` variable:
+
+   .. code-block:: javascript
+
+      var c = db.things.find()
+
+#. Print the full result set by using a ``while`` loop to iterate over
+   the ``c`` variable:
+
+   .. code-block:: javascript
+
+      while ( c.hasNext() ) printjson( c.next() )
+
+   The ``hasNext()`` function returns true if the cursor has documents.
+   The ``next()`` method returns the next document. The
+   ``printjson()`` method renders the document in a JSON-like format.
+
+   The result of this operation follows, although if the
+   :doc:`ObjectId </core/object-id>` values will be unique:
+
+   .. code-block:: javascript
+
+      { "_id" : ObjectId("4c2209f9f3924d31102bd84a"), "name" : "mongo" }
+      { "_id" : ObjectId("4c2209fef3924d31102bd84b"), "x" : 3 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd856"), "x" : 4, "j" : 1 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd857"), "x" : 4, "j" : 2 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd858"), "x" : 4, "j" : 3 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd859"), "x" : 4, "j" : 4 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd85a"), "x" : 4, "j" : 5 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd85b"), "x" : 4, "j" : 6 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd85c"), "x" : 4, "j" : 7 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd85d"), "x" : 4, "j" : 8 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd85e"), "x" : 4, "j" : 9 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd85f"), "x" : 4, "j" : 10 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd860"), "x" : 4, "j" : 11 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd861"), "x" : 4, "j" : 12 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd862"), "x" : 4, "j" : 13 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd863"), "x" : 4, "j" : 14 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd864"), "x" : 4, "j" : 15 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd865"), "x" : 4, "j" : 16 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd866"), "x" : 4, "j" : 17 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd867"), "x" : 4, "j" : 18 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd868"), "x" : 4, "j" : 19 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd869"), "x" : 4, "j" : 20 }
+
+Use Array Operations with the Cursor
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can manipulate a cursor object as if it were an array. Consider
+the following procedure:
+
+1. In the :binary:`~bin.mongo` shell, query the ``things`` collection
+   and assign the resulting cursor object to the ``c`` variable:
+
+   .. code-block:: javascript
+
+      var c = db.things.find()
+
+#. To find the document at the array index ``4``, use the following
+   operation:
+
+   .. code-block:: javascript
+
+      printjson( c [ 4 ] )
+
+   MongoDB returns the following:
+
+   .. code-block:: javascript
+
+      { "_id" : ObjectId("4c220a42f3924d31102bd858"), "x" : 4, "j" : 3 }
+
+   When you access documents in a cursor using the array index
+   notation, :binary:`~bin.mongo` first calls the ``cursor.toArray()``
+   method and loads into RAM all documents returned by the cursor. The
+   index is then applied to the resulting array. This operation
+   iterates the cursor completely and exhausts the cursor.
+
+   For very large result sets, :binary:`~bin.mongo` may run out of
+   available memory.
+
+For more information on the cursor, see :ref:`crud-read-cursor`.
+
+Query for Specific Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB has a rich query system that allows you to select and filter
+the documents in a collection along specific fields and values. See
+:ref:`read-operations-query-document` and :doc:`/applications/read`
+for a full account of queries in MongoDB.
+
+In this procedure, you query for specific documents in the ``things``
+:term:`collection` by passing a "query document" as a parameter to the
+:method:`find() <db.collection.find()>` method. A query document
+specifies the criteria the query must match to return a document.
+
+To query for specific documents, do the following:
+
+1. In the :binary:`~bin.mongo` shell, query for all documents where the
+   ``name`` field has a value of ``mongo`` by passing the ``{ name :
+   "mongo" }`` query document as a parameter to the :method:`find()
+   <db.collection.find()>` method:
+
+   .. code-block:: javascript
+
+      db.things.find( { name : "mongo" } )
+
+   MongoDB returns one document that fits this criteria. The
+   :doc:`ObjectId </core/object-id>` value will be different:
+
+   .. code-block:: javascript
+
+      { "_id" : ObjectId("4c2209f9f3924d31102bd84a"), "name" : "mongo" }
+
+#. Query for all documents where ``x`` has a value of ``4`` by passing
+   the ``{ x : 4 }`` query document as a parameter to :method:`find()
+   <db.collection.find()>`:
+
+   .. code-block:: javascript
+
+      db.things.find( { x : 4 } )
+
+   MongoDB returns the following result set:
+
+   .. code-block:: javascript
+
+      { "_id" : ObjectId("4c220a42f3924d31102bd856"), "x" : 4, "j" : 1 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd857"), "x" : 4, "j" : 2 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd858"), "x" : 4, "j" : 3 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd859"), "x" : 4, "j" : 4 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd85a"), "x" : 4, "j" : 5 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd85b"), "x" : 4, "j" : 6 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd85c"), "x" : 4, "j" : 7 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd85d"), "x" : 4, "j" : 8 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd85e"), "x" : 4, "j" : 9 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd85f"), "x" : 4, "j" : 10 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd860"), "x" : 4, "j" : 11 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd861"), "x" : 4, "j" : 12 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd862"), "x" : 4, "j" : 13 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd863"), "x" : 4, "j" : 14 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd864"), "x" : 4, "j" : 15 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd865"), "x" : 4, "j" : 16 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd866"), "x" : 4, "j" : 17 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd867"), "x" : 4, "j" : 18 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd868"), "x" : 4, "j" : 19 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd869"), "x" : 4, "j" : 20 }
+
+   :doc:`ObjectId </core/object-id>` values are always unique.
+
+
+#. Query for all documents where ``x`` has a value of ``4``, as in the
+   previous query, but only return only the value of ``j``.  MongoDB
+   will also return the ``_id`` field, unless explicitly excluded. To
+   do this, you add the ``{ j : 1 }`` document as the
+   :term:`projection` in the second parameter to :method:`find()
+   <db.collection.find()>`. This operation would resemble the
+   following:
+
+   .. code-block:: javascript
+
+      db.things.find( { x : 4 } , { j : 1 } )
+
+   MongoDB returns the following results:
+
+   .. code-block:: javascript
+
+      { "_id" : ObjectId("4c220a42f3924d31102bd856"), "j" : 1 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd857"), "j" : 2 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd858"), "j" : 3 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd859"), "j" : 4 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd85a"), "j" : 5 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd85b"), "j" : 6 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd85c"), "j" : 7 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd85d"), "j" : 8 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd85e"), "j" : 9 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd85f"), "j" : 10 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd860"), "j" : 11 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd861"), "j" : 12 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd862"), "j" : 13 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd863"), "j" : 14 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd864"), "j" : 15 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd865"), "j" : 16 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd866"), "j" : 17 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd867"), "j" : 18 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd868"), "j" : 19 }
+      { "_id" : ObjectId("4c220a42f3924d31102bd869"), "j" : 20 }
+
+Return a Single Document from a Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+With the :method:`db.collection.findOne()` method you can return a
+single *document* from a MongoDB collection. The :method:`findOne()
+<db.collection.findOne()>` method takes the same parameters as
+:method:`find() <db.collection.find()>`, but returns a document rather
+than a cursor.
+
+To retrieve one document from the ``things`` collection, issue the
+following command:
+
+.. code-block:: javascript
+
+   db.things.findOne()
+
+For more information on querying for documents, see the
+:doc:`/applications/read` and :doc:`/core/read-operations` documentation.
+
+Limit the Number of Documents in the Result Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can constrain the size of the result set to increase performance by
+limiting the amount of data your application must receive over the
+network.
+
+To specify the maximum number of documents in the result set, call the
+:method:`limit() <cursor.limit()>` method on a cursor, as in the
+following command:
+
+.. code-block:: javascript
+
+   db.things.find().limit(3)
+
+MongoDB will return the following result, with different
+:doc:`ObjectId </core/object-id>` values:
+
+.. code-block:: javascript
+
+   { "_id" : ObjectId("4c2209f9f3924d31102bd84a"), "name" : "mongo" }
+   { "_id" : ObjectId("4c2209fef3924d31102bd84b"), "x" : 3 }
+   { "_id" : ObjectId("4c220a42f3924d31102bd856"), "x" : 4, "j" : 1 }
+
+.. todo Add sections on Update and Remove
+
+Next Steps with MongoDB
+-------------------------
+
+For more information on manipulating the documents in a database as
+you continue to learn MongoDB, consider the following resources:
+
+- :ref:`crud-operations`
+- :doc:`/reference/sql-comparison`
+- :doc:`/applications/drivers`

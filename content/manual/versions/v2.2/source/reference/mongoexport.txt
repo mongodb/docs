@@ -1,0 +1,268 @@
+.. _mongoexport:
+
+===============
+``mongoexport``
+===============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. meta::
+   :canonical: https://www.mongodb.com/docs/database-tools/mongoexport/
+
+Synopsis
+--------
+
+:binary:`~bin.mongoexport` is a utility that produces a JSON or CSV export
+of data stored in a MongoDB instance. See the
+":doc:`/administration/import-export`" document for a more in depth
+usage overview, and the ":doc:`mongoimport`" document for more
+information regarding the :binary:`~bin.mongoimport` utility, which
+provides the inverse "importing" capability.
+
+.. note::
+
+   Do not use :binary:`~bin.mongoimport` and :binary:`~bin.mongoexport` for
+   full-scale backups because they may not reliably capture data type
+   information. Use :binary:`~bin.mongodump` and :binary:`~bin.mongorestore` as
+   described in ":doc:`/administration/backups`" for this kind of
+   functionality.
+
+Options
+-------
+
+.. binary:: mongoexport
+
+.. program:: mongoexport
+
+.. option:: --help
+
+   Returns a basic help and usage text.
+
+.. option:: --verbose, -v
+
+   Increases the amount of internal reporting returned on the command
+   line. Increase the verbosity with the ``-v`` form by including
+   the option multiple times, (e.g. ``-vvvvv``.)
+
+.. option:: --version
+
+   Returns the version of the :binary:`~bin.mongoexport` utility.
+
+.. option:: --host <hostname><:port>
+
+   Specifies a resolvable hostname for the :binary:`~bin.mongod` from which you
+   want to export data. By default :binary:`~bin.mongoexport` attempts to
+   connect to a MongoDB process ruining on the localhost port number
+   ``27017``.
+
+   Optionally, specify a port number to connect a MongoDB instance
+   running on a port other than ``27017``.
+
+   .. include:: /includes/fact-multiple-hosts.rst
+
+.. option:: --port <port>
+
+   Specifies the port number, if the MongoDB instance is not running on
+   the standard port. (i.e. ``27017``) You may also specify a port
+   number using the :option:`mongoexport --host` command.
+
+.. option:: --ipv6
+
+   Enables IPv6 support that allows :binary:`~bin.mongoexport` to connect
+   to the MongoDB instance using an IPv6 network. All MongoDB programs
+   and processes, including :binary:`~bin.mongoexport`, disable IPv6
+   support by default.
+
+.. option:: --username <username>, -u <username>
+
+   Specifies a username to authenticate to the MongoDB instance, if your
+   database requires authentication. Use in conjunction with the
+   :option:`mongoexport --password` option to supply a password.
+
+.. option:: --password <password>
+
+   Specifies a password to authenticate to the MongoDB instance. Use
+   in conjunction with the :option:`--username <mongoexport --username>`
+   option to supply a username.
+
+   If you specify a :option:`--username <mongoexport --username>`
+   without the :option:`--password` option, :binary:`~bin.mongoexport`
+   will prompt for a password interactively.
+
+.. option:: --dbpath <path>
+
+   Specifies the directory of the MongoDB data files. If used, the
+   ``--dbpath`` option enables :binary:`~bin.mongoexport` to attach
+   directly to local data files and insert the data without the
+   :binary:`~bin.mongod`. To run with ``--dbpath``, :binary:`~bin.mongoexport`
+   needs to lock access to the data directory: as a result, no
+   :binary:`~bin.mongod` can access the same path while the process runs.
+
+.. option:: --directoryperdb
+
+   Use the :option:`--directoryperdb` in conjunction with the
+   corresponding option to :binary:`~bin.mongod`, which allows
+   :binary:`~bin.mongoexport` to export data into MongoDB instances that
+   have every database's files saved in discrete directories on the
+   disk. This option is only relevant when specifying the
+   :option:`--dbpath` option.
+
+.. option:: --journal
+
+   Allows :binary:`~bin.mongoexport` operations to access the durability
+   :term:`journal` to ensure that the export is in a
+   consistent state. This option is only relevant when specifying the
+   :option:`--dbpath` option.
+
+.. option:: --db <db>, -d <db>
+
+   Use the :option:`--db` option to specify the name of the database
+   that contains the collection you want to export.
+
+.. option:: --collection <collection>, -c <collection>
+
+   Use the :option:`--collection` option to specify the collection
+   that you want :binary:`~bin.mongoexport` to export.
+
+.. option:: --fields <field1[,field2]>, -f <field1[,field2]>
+
+   Specify a field or fields to *include* in the export. Use a comma
+   separated list of fields to specify multiple fields.
+
+   For :option:`--csv <mongoexport --csv>` output formats,
+   :binary:`~bin.mongoexport` includes only the specified field(s), and the
+   specified field(s) can be a field within a sub-document.
+
+   For :term:`JSON` output formats, :binary:`~bin.mongoexport` includes
+   only the specified field(s) **and** the ``_id`` field, and if the
+   specified field(s) is a field within a sub-document, the
+   :binary:`~bin.mongoexport` includes the sub-document with all
+   its fields, not just the specified field within the document.
+
+.. option:: --fieldFile <file>
+
+   As an alternative to :option:`--fields <mongoexport --fields>`, the
+   :option:`--fieldFile <mongoexport --fields>` option allows you to
+   specify in a file the field or fields to *include* in the export and
+   is **only valid** with the :option:`--csv <mongoexport --csv>`
+   option. The file must have only one field per line, and the line(s)
+   must end with the LF character (``0x0A``).
+
+   :binary:`~bin.mongoexport` includes only the specified field(s). The
+   specified field(s) can be a field within a sub-document.
+
+.. option:: --query <JSON>
+
+   Provides a :term:`JSON document` as a query that optionally limits
+   the documents returned in the export.
+
+.. option:: --csv
+
+   Changes the export format to a comma separated values (CSV)
+   format. By default :binary:`~bin.mongoexport` writes data using one
+   :term:`JSON` document for every MongoDB document.
+
+   If you specify :option:`--csv`, then you must also use either
+   the :option:`--fields` or the :option:`--fieldFile` option to
+   declare the fields to export from the collection.
+
+.. option:: --jsonArray
+
+   Modifies the output of :binary:`~bin.mongoexport` to write the
+   entire contents of the export as a single :term:`JSON` array. By
+   default :binary:`~bin.mongoexport` writes data using one JSON document
+   for every MongoDB document.
+
+.. option:: --slaveOk, -k
+
+   Allows :binary:`~bin.mongoexport` to read data from secondary or slave
+   nodes when using :binary:`~bin.mongoexport` with a replica set. This
+   option is only available if connected to a :binary:`~bin.mongod` or
+   :binary:`~bin.mongos` and is not available when used with the
+   ":option:`mongoexport --dbpath`" option.
+
+   This is the default behavior.
+
+.. option:: --out <file>, -o <file>
+
+   Specify a file to write the export to. If you do not specify a file
+   name, the :binary:`~bin.mongoexport` writes data to standard output
+   (e.g. ``stdout``).
+
+.. option:: --forceTableScan
+
+   .. versionadded:: 2.2
+
+   Forces :binary:`~bin.mongoexport` to scan the data store directly:
+   typically, :binary:`~bin.mongoexport` saves entries as they appear in the
+   index of the ``_id`` field. Use :option:`--forceTableScan` to skip
+   the index and scan the data directly. Typically there are two cases
+   where this behavior is preferable to the default:
+
+   1. If you have key sizes over 800 bytes that would not be present
+      in the ``_id`` index.
+
+   2. Your database uses a custom ``_id`` field.
+
+   When you run with :option:`--forceTableScan`, :binary:`~bin.mongoexport`
+   does not use :operator:`$snapshot`. As a result, the export produced
+   by :binary:`~bin.mongoexport` can reflect the state of the database at
+   many different points in time.
+
+   .. warning:: Use :option:`--forceTableScan` with extreme caution
+      and consideration.
+
+Usage
+-----
+
+In the following example, :binary:`~bin.mongoexport` exports the
+collection ``contacts`` from the ``users`` database from the
+:binary:`~bin.mongod` instance running on the localhost port number
+``27017``. This command writes the export data in :term:`CSV` format
+into a file located at ``/opt/backups/contacts.csv``.  The
+``fields.txt`` file contains a line-separated list of fields to
+export.
+
+.. code-block:: sh
+
+   mongoexport --db users --collection contacts --csv --fieldFile fields.txt --out /opt/backups/contacts.csv
+
+The next example creates an export of the collection ``contacts``
+from the MongoDB instance running on the localhost port number ``27017``,
+with journaling explicitly enabled. This writes the export to the
+``contacts.json`` file in :term:`JSON` format.
+
+.. code-block:: sh
+
+   mongoexport --db sales --collection contacts --out contacts.json --journal
+
+The following example exports the collection ``contacts`` from the
+``sales`` database located in the MongoDB data files located at
+``/srv/mongodb/``. This operation writes the export to standard output
+in :term:`JSON` format.
+
+.. code-block:: sh
+
+   mongoexport --db sales --collection contacts --dbpath /srv/mongodb/
+
+.. warning::
+
+   The above example will only succeed if there is no :binary:`~bin.mongod`
+   connected to the data files located in the ``/srv/mongodb/``
+   directory.
+
+The final example exports the collection ``contacts`` from the
+database ``marketing`` . This data resides on the MongoDB instance
+located on the host ``mongodb1.example.net`` running on port
+``37017``, which requires the username ``user`` and the password
+``pass``.
+
+.. code-block:: sh
+
+   mongoexport --host mongodb1.example.net --port 37017 --username user --password pass --collection contacts --db marketing --out mdb1-examplenet.json

@@ -1,0 +1,105 @@
+=====
+fsync
+=====
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. dbcommand:: fsync
+
+   The :dbcommand:`fsync` command forces the :binary:`~bin.mongod` process
+   to flush all pending writes to the storage layer. :binary:`~bin.mongod`
+   is always writing data to the storage layer as applications write
+   more data to the database. MongoDB guarantees that it will write
+   all data to disk within the :setting:`syncdelay` interval, which is
+   60 seconds by default.
+
+   .. code-block:: javascript
+
+      { fsync: 1 }
+
+   The :dbcommand:`fsync` operation is synchronous by default, to run
+   :dbcommand:`fsync` asynchronously, use the following form:
+
+   .. code-block:: javascript
+
+      { fsync: 1, async: true }
+
+   The connection will return immediately. You can check the output of
+   :method:`db.currentOp()` for the status of the :dbcommand:`fsync`
+   operation.
+
+   The primary use of :dbcommand:`fsync` is to lock the database
+   during backup operations. This will flush all data to the data
+   storage layer and block all write operations until you unlock the
+   database. Consider the following command form:
+
+   .. code-block:: javascript
+
+      { fsync: 1, lock: true }
+
+   .. note::
+
+      You may continue to perform read operations on a database that
+      has a :dbcommand:`fsync` lock. However, following the first
+      write operation all subsequent read operations wait until
+      you unlock the database.
+
+   To check on the current state of the fsync lock, use
+   :method:`db.currentOp()`. Use the following JavaScript function in
+   the shell to test if the database is currently locked:
+
+   .. code-block:: javascript
+
+      serverIsLocked = function () {
+                           var co = db.currentOp();
+                           if (co && co.fsyncLock) {
+                               return true;
+                           }
+                           return false;
+                       }
+
+   After loading this function into your :binary:`~bin.mongo` shell
+   session you can call it as follows:
+
+   .. code-block:: javascript
+
+      serverIsLocked()
+
+   This function will return ``true`` if the database is currently
+   locked and ``false`` if the database is not locked. To unlock the
+   database, make a request for an unlock using the following command:
+
+   .. code-block:: javascript
+
+      db.getSiblingDB("admin").$cmd.sys.unlock.findOne();
+
+   .. versionadded:: 1.9.0
+      The :method:`db.fsyncLock()` and :method:`db.fsyncUnlock()`
+      helpers in the shell.
+
+   In the :binary:`~bin.mongo` shell, you may use the
+   :method:`db.fsyncLock()` and :method:`db.fsyncUnlock()` wrappers for
+   the :dbcommand:`fsync` lock and unlock process:
+
+   .. code-block:: javascript
+
+      db.fsyncLock();
+      db.fsyncUnlock();
+
+   .. note::
+
+      :dbcommand:`fsync` lock is only possible on individual shards of
+      a sharded cluster, not on the entire sharded cluster. To backup an
+      entire sharded cluster, please read :ref:`sharded-cluster-backups`.
+
+      If your :binary:`~bin.mongod` has :term:`journaling <journal>`
+      enabled, consider using :ref:`another method
+      <backup-with-journaling>` to back up your database.
+
+   .. include:: /includes/note-disable-profiling-fsynclock.rst

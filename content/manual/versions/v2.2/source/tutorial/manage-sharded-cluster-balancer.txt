@@ -1,0 +1,227 @@
+.. index:: balancing; operations
+
+===============================
+Manage Sharded Cluster Balancer
+===============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This page describes provides common administrative procedures related
+to balancing. For an introduction to balancing, see
+:ref:`sharding-balancing`. For lower level information on balancing, see
+:ref:`sharding-balancing-internals`.
+
+.. seealso:: :doc:`/tutorial/configure-sharded-cluster-balancer`
+
+.. _sharding-balancing-check-lock:
+
+Check the Balancer Lock
+-----------------------
+
+To see if the balancer process is active in your :term:`cluster
+<sharded cluster>`, do the following:
+
+#. Connect to any :binary:`~bin.mongos` in the cluster using the
+   :binary:`~bin.mongo` shell.
+
+#. Issue the following command to switch to the :ref:`config-database`:
+
+   .. code-block:: javascript
+
+      use config
+
+#. Use the following query to return the balancer lock:
+
+   .. code-block:: javascript
+
+      db.locks.find( { _id : "balancer" } ).pretty()
+
+When this command returns, you will see output like the following:
+
+.. code-block:: javascript
+
+   {   "_id" : "balancer",
+   "process" : "mongos0.example.net:1292810611:1804289383",
+     "state" : 2,
+        "ts" : ObjectId("4d0f872630c42d1978be8a2e"),
+      "when" : "Mon Dec 20 2010 11:41:10 GMT-0500 (EST)",
+       "who" : "mongos0.example.net:1292810611:1804289383:Balancer:846930886",
+       "why" : "doing balance round" }
+
+This output confirms that:
+
+- The balancer originates from the :binary:`~bin.mongos` running on the
+  system with the hostname ``mongos0.example.net``.
+
+- The value in the ``state`` field indicates that a :binary:`~bin.mongos`
+  has the lock. For version 2.0 and later, the value of an active lock
+  is ``2``; for earlier versions the value is ``1``.
+
+.. optional::
+
+   You can also use the following shell helper, which returns a
+   boolean to report if the balancer is active:
+
+   .. code-block:: javascript
+
+      sh.getBalancerState()
+
+.. _sharding-schedule-balancing-window:
+
+Schedule the Balancing Window
+-----------------------------
+
+In some situations, particularly when your data set grows slowly and a
+migration can impact performance, it's useful to be able to ensure
+that the balancer is active only at certain times.  Use the following
+procedure to specify a window during which the :term:`balancer` will
+be able to migrate chunks:
+
+#. Connect to any :binary:`~bin.mongos` in the cluster using the
+   :binary:`~bin.mongo` shell.
+
+#. Issue the following command to switch to the :ref:`config-database`:
+
+   .. code-block:: javascript
+
+      use config
+
+#. Use an operation modeled on the following example :method:`update()
+   <db.collection.update()>` operation to modify the balancer's
+   window:
+
+   .. code-block:: javascript
+
+      db.settings.update({ _id : "balancer" }, { $set : { activeWindow : { start : "<start-time>", stop : "<stop-time>" } } }, true )
+
+   Replace ``<start-time>`` and ``<end-time>`` with time values using
+   two digit hour and minute values (e.g ``HH:MM``) that describe the
+   beginning and end boundaries of the balancing window.
+   These times will be evaluated relative to the time zone of each individual
+   :binary:`~bin.mongos` instance in the sharded cluster.
+   If your :binary:`~bin.mongos` instances are physically located in different
+   time zones, use a common time zone (e.g. GMT) to ensure that the
+   balancer window is interpreted correctly.
+
+   For instance, running the following
+   will force the balancer to run between 11PM and 6AM local time only:
+
+   .. code-block:: javascript
+
+      db.settings.update({ _id : "balancer" }, { $set : { activeWindow : { start : "23:00", stop : "6:00" } } }, true )
+
+.. note::
+
+   The balancer window must be sufficient to *complete* the migration
+   of all data inserted during the day.
+
+   As data insert rates can change based on activity and usage
+   patterns, it is important to ensure that the balancing window you
+   select will be sufficient to support the needs of your deployment.
+
+.. _sharding-balancing-remove-window:
+
+Remove a Balancing Window Schedule
+----------------------------------
+
+If you have :ref:`set the balancing window
+<sharding-schedule-balancing-window>` and wish to remove the schedule
+so that the balancer is always running, issue the following sequence
+of operations:
+
+.. code-block:: javascript
+
+   use config
+   db.settings.update({ _id : "balancer" }, { $unset : { activeWindow : true } })
+
+.. _sharding-balancing-disable-temporally:
+.. _sharding-balancing-disable-temporarily:
+
+Disable the Balancer
+--------------------
+
+By default the balancer may run at any time and only moves chunks as
+needed. To disable the balancer for a short period of time and prevent
+all migration, use the following procedure:
+
+#. Connect to any :binary:`~bin.mongos` in the cluster using the
+   :binary:`~bin.mongo` shell.
+
+#. Issue *one* of the following operations to disable the balancer:
+
+   .. code-block:: javascript
+
+      sh.stopBalancer()
+
+#. Later, issue *one* the following operations to enable the balancer:
+
+   .. code-block:: javascript
+
+      sh.startBalancer()
+
+.. note::
+
+   If a migration is in progress, the system will complete
+   the in-progress migration. After disabling, you can use the
+   following operation in the :binary:`~bin.mongo` shell to determine if
+   there are no migrations in progress:
+
+   .. code-block:: javascript
+
+      use config
+      while( db.locks.findOne({_id: "balancer"}).state ) {
+             print("waiting..."); sleep(1000);
+      }
+
+The above process and the :method:`sh.setBalancerState()`,
+:method:`sh.startBalancer()`, and :method:`sh.stopBalancer()` helpers provide
+wrappers on the following process, which may be useful if you need to
+run this operation from a driver that does not have helper functions:
+
+#. Connect to any :binary:`~bin.mongos` in the cluster using the
+   :binary:`~bin.mongo` shell.
+
+#. Issue the following command to switch to the :ref:`config-database`:
+
+   .. code-block:: javascript
+
+      use config
+
+#. Issue the following update to disable the balancer:
+
+   .. code-block:: javascript
+
+      db.settings.update( { _id: "balancer" }, { $set : { stopped: true } } , true );
+
+#. To enable the balancer again, alter the value of "stopped" as follows:
+
+   .. code-block:: javascript
+
+      db.settings.update( { _id: "balancer" }, { $set : { stopped: false } } , true );
+
+Disable Balancing During Backups
+--------------------------------
+
+If MongoDB migrates a :term:`chunk` during a :doc:`backup
+</administration/backups>`, you can end with an inconsistent snapshot
+of your :term:`sharded cluster`. Never run a backup while the balancer is
+active. To ensure that the balancer is inactive during your backup
+operation:
+
+- Set the :ref:`balancing window <sharding-schedule-balancing-window>`
+  so that the balancer is inactive during the backup. Ensure that the
+  backup can complete while you have the balancer disabled.
+
+- :ref:`manually disable the balancer <sharding-balancing-disable-temporarily>`
+  for the duration of the backup procedure.
+
+Confirm that the balancer is not active using the
+:method:`sh.getBalancerState()` method before starting a backup
+operation. When the backup procedure is complete you can reactivate
+the balancer process.

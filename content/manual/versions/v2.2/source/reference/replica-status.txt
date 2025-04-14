@@ -1,0 +1,173 @@
+============================
+Replica Set Status Reference
+============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The :dbcommand:`replSetGetStatus` provides an overview of the
+current status of a :term:`replica set`. Issue the following command against
+the :term:`admin database`, in the :binary:`~bin.mongo` shell:
+
+.. code-block:: javascript
+
+   db.runCommand( { replSetGetStatus: 1 } )
+
+You can also use the following helper in the :binary:`~bin.mongo` shell to
+access this functionality
+
+.. code-block:: javascript
+
+   rs.status()
+
+The value specified (e.g ``1`` above,) does not impact the output of
+the command. Data provided by this command derives from data included
+in heartbeats sent to the current instance by other members of the
+replica set: because of the frequency of heartbeats, these data can be
+several seconds out of date.
+
+.. note::
+
+   The :binary:`~bin.mongod` must have replication enabled and be a member
+   of a replica set for the for :dbcommand:`replSetGetStatus` to
+   return successfully.
+
+.. seealso:: ":method:`rs.status()`" shell helper function,
+   ":doc:`/replication`".
+
+Fields
+------
+
+.. data:: replSetGetStatus.set
+
+   The ``set`` value is the name of the replica set, configured in the
+   :setting:`replSet` setting. This is the same value as
+   :data:`~local.system.replset._id` in :method:`rs.conf()`.
+
+.. data:: replSetGetStatus.date
+
+   The value of the ``date`` field is an :term:`ISODate` of the
+   current time, according to the current server. Compare this to the
+   value of the :data:`~replSetGetStatus.members.lastHeartbeat` to find the
+   operational lag between the current host and the other hosts in the
+   set.
+
+.. data:: replSetGetStatus.myState
+
+   The value of :data:`~replSetGetStatus.myState` reflects state of the current
+   replica set member. An integer between ``0`` and ``10`` represents
+   the state of the member. These integers map to states, as described
+   in the following table:
+
+   .. include:: /includes/replica-states.rst
+
+.. data:: replSetGetStatus.members
+
+   The ``members`` field holds an array that contains a document for
+   every member in the replica set. See the ":ref:`Member Statuses
+   <repl-set-member-statuses>`" for an overview of the values included
+   in these documents.
+
+.. data:: replSetGetStatus.syncingTo
+
+   The ``syncingTo`` field is only present on the output of
+   :method:`rs.status()` on :term:`secondary` and recovering members,
+   and holds the hostname of the member from which this instance is
+   syncing.
+
+.. _repl-set-member-statuses:
+
+Member Statuses
+---------------
+
+.. data:: replSetGetStatus.members.name
+
+   The ``name`` field holds the name of the server.
+
+.. data:: replSetGetStatus.members.self
+
+   The ``self`` field is only included in the document for the
+   current ``mongod`` instance in the members array. It's value is
+   ``true``.
+
+.. data:: replSetGetStatus.members.errmsg
+
+   This field contains the most recent error or status message received from
+   the member. This field may be empty (e.g. ``""``) in some cases.
+
+.. data:: replSetGetStatus.members.health
+
+   The ``health`` value is only present for the other members of the
+   replica set (i.e. not the member that returns
+   :method:`rs.status`.) This field conveys if the member is up
+   (i.e. ``1``) or down (i.e. ``0``.)
+
+.. data:: replSetGetStatus.members.state
+
+   The value of the :data:`~replSetGetStatus.members.state` reflects state of this
+   replica set member. An integer between ``0`` and ``10`` represents
+   the state of the member. These integers map to states, as described
+   in the following table:
+
+   .. include:: /includes/replica-states.rst
+
+.. data:: replSetGetStatus.members.stateStr
+
+   A string that describes :data:`~replSetGetStatus.members.state`.
+
+.. data:: replSetGetStatus.members.uptime
+
+   The :data:`~replSetGetStatus.members.uptime` field holds a value that reflects the number of
+   seconds that this member has been online.
+
+   This value does not appear for the member that returns the
+   :method:`rs.status()` data.
+
+.. data:: replSetGetStatus.members.optime
+
+   A document that contains information regarding the last operation
+   from the operation log that this member has applied.
+
+   .. data:: replSetGetStatus.members.optime.t
+
+      A 32-bit timestamp of the last operation applied to this member
+      of the replica set from the :term:`oplog`.
+
+   .. data:: replSetGetStatus.members.optime.i
+
+      An incremented field, which reflects the number of operations in
+      since the last time stamp. This value only increases if there
+      is more than one operation per second.
+
+.. data:: replSetGetStatus.members.optimeDate
+
+   An :term:`ISODate` formatted date string that reflects the last
+   entry from the :term:`oplog` that this member applied. If this
+   differs significantly from :data:`~replSetGetStatus.members.lastHeartbeat` this
+   member is either experiencing "replication lag" *or* there have not
+   been any new operations since the last update. Compare
+   ``members.optimeDate`` between all of the members of the set.
+
+.. data:: replSetGetStatus.members.lastHeartbeat
+
+   The ``lastHeartbeat`` value provides an :term:`ISODate` formatted
+   date of the last heartbeat received from this member. Compare this
+   value to the value of the :data:`~replSetGetStatus.date` field to track
+   latency between these members.
+
+   This value does not appear for the member that returns the
+   :method:`rs.status()` data.
+
+.. data:: replSetGetStatus.members.pingMS
+
+   The ``pingMS`` represents the number of milliseconds (ms) that a
+   round-trip packet takes to travel between the remote member and the
+   local instance.
+
+   This value does not appear for the member that returns the
+   :method:`rs.status()` data.

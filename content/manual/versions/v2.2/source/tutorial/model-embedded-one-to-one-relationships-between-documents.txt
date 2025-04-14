@@ -1,0 +1,75 @@
+.. _data-modeling-example-one-to-one:
+
+=========================================================
+Model Embedded One-to-One Relationships Between Documents
+=========================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+Data in MongoDB has a *flexible schema*. :term:`Collections
+<collection>` do not enforce :term:`document` structure. Decisions
+that affect how you model data can affect application performance and
+database capacity. See :doc:`/core/data-modeling` for a full high
+level overview of data modeling in MongoDB.
+
+This document describes a data model that uses :ref:`embedded
+<data-modeling-embedding>` documents to describe relationships between
+connected data.
+
+Pattern
+-------
+
+Consider the following example that maps patron and address
+relationships. The example illustrates the advantage of embedding over
+referencing if you need to view one data entity in context of the
+other. In this one-to-one relationship between ``patron`` and
+``address`` data, the ``address`` belongs to the ``patron``.
+
+In the normalized data model, the ``address`` contains a reference to
+the ``parent``.
+
+.. code-block:: javascript
+
+   {
+      _id: "joe",
+      name: "Joe Bookreader"
+   }
+
+   {
+      patron_id: "joe",
+      street: "123 Fake Street",
+      city: "Faketon",
+      state: "MA"
+      zip: 12345
+   }
+
+If the ``address`` data is frequently retrieved with the ``name``
+information, then with referencing, your application needs to issue
+multiple queries to resolve the reference. The better data model would
+be to embed the ``address`` data in the ``patron`` data, as in the
+following document:
+
+.. code-block:: javascript
+
+   {
+      _id: "joe",
+      name: "Joe Bookreader",
+      address: {
+                 street: "123 Fake Street",
+                 city: "Faketon",
+                 state: "MA"
+                 zip: 12345
+               }
+   }
+
+With the embedded data model, your application can retrieve the
+complete patron information with one query.

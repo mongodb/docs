@@ -1,0 +1,1174 @@
+=======================
+Server Status Reference
+=======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. When adding status fields to this document, make sure that the
+   ``docs/source/reference/server-status-index.txt`` document also
+   reflects those changes.
+
+The :dbcommand:`serverStatus` command returns a collection of information that
+reflects the database's status. These data are useful for diagnosing
+and assessing the performance of your MongoDB instance. This reference
+catalogs each datum included in the output of this command and
+provides context for using this data to more effectively administer
+your database.
+
+.. seealso:: Much of the output of :dbcommand:`serverStatus` is also
+   displayed dynamically by :binary:`~bin.mongostat`. See the
+   :doc:`/reference/mongostat` command for more information.
+
+   For examples of the :dbcommand:`serverStatus` output, see
+   :doc:`/reference/server-status-index`.
+
+.. _server-status-instance-information:
+
+Instance Information
+--------------------
+
+.. example:: :ref:`output of the instance information fields <server-status-example-instance-information>`.
+
+.. data:: serverStatus.host
+
+   The :data:`~serverStatus.host` field contains the system's hostname. In Unix/Linux
+   systems, this should be the same as the output of the ``hostname``
+   command.
+
+.. data:: serverStatus.version
+
+   The :data:`~serverStatus.version` field contains the version of MongoDB running on
+   the current :binary:`~bin.mongod` or :binary:`~bin.mongos` instance.
+
+.. data:: serverStatus.process
+
+   The :data:`~serverStatus.process` field identifies which kind of MongoDB instance is
+   running. Possible values are:
+
+   - :binary:`~bin.mongos`
+   - :binary:`~bin.mongod`
+
+.. data:: serverStatus.uptime
+
+   The value of the :data:`~serverStatus.uptime` field corresponds to the number of
+   seconds that the :binary:`~bin.mongos` or :binary:`~bin.mongod` process has
+   been active.
+
+.. data:: serverStatus.uptimeEstimate
+
+   :data:`~serverStatus.uptimeEstimate` provides the uptime as calculated from MongoDB's
+   internal course-grained time keeping system.
+
+.. data:: serverStatus.localTime
+
+   The :data:`~serverStatus.localTime` value is the current time, according to the
+   server, in UTC specified in an ISODate format.
+
+.. _locks:
+.. _server-status-locks:
+
+locks
+-----
+
+.. versionadded:: 2.1.2
+   All :data:`~serverStatus.locks` statuses first appeared in the 2.1.2
+   development release for the 2.2 series.
+
+.. example:: :ref:`output of the locks fields <server-status-example-locks>`.
+
+.. data:: serverStatus.locks
+
+   The :data:`~serverStatus.locks` document contains sub-documents that provides a
+   granular report on MongoDB database-level lock use. All values are
+   of the ``NumberLong()`` type.
+
+   Generally, fields named:
+
+   - ``R`` refer to the global read lock,
+   - ``W`` refer to the global write lock,
+   - ``r`` refer to the database specific read lock, and
+   - ``w`` refer to the database specific write lock.
+
+   If a document does not have any fields, it means that no locks have
+   existed with this context since the last time the :binary:`~bin.mongod`
+   started.
+
+.. data:: serverStatus.locks..
+
+   A field named ``.`` holds the first document in :data:`~serverStatus.locks`
+   that contains information about the global lock.
+
+.. data:: serverStatus.locks...timeLockedMicros
+
+   The :data:`~serverStatus.locks...timeLockedMicros` document reports the amount of
+   time in microseconds that a lock has existed in all databases in
+   this :binary:`~bin.mongod` instance.
+
+.. data:: serverStatus.locks...timeLockedMicros.R
+
+   The ``R`` field reports the amount of time in microseconds that any
+   database has held the global read lock.
+
+.. data:: serverStatus.locks...timeLockedMicros.W
+
+   The ``W`` field reports the amount of time in microseconds that any
+   database has held the global write lock.
+
+.. data:: serverStatus.locks...timeLockedMicros.r
+
+   The ``r`` field reports the amount of time in microseconds that any
+   database has held the local read lock.
+
+.. data:: serverStatus.locks...timeLockedMicros.w
+
+   The ``w`` field reports the amount of time in microseconds that any
+   database has held the local write lock.
+
+.. data:: serverStatus.locks...timeAcquiringMicros
+
+   The :data:`~serverStatus.locks...timeAcquiringMicros` document reports the amount of
+   time in microseconds that operations have spent waiting to acquire
+   a lock in all databases in this :binary:`~bin.mongod` instance.
+
+.. data:: serverStatus.locks...timeAcquiringMicros.R
+
+   The ``R`` field reports the amount of time in microseconds that any
+   database has spent waiting for the global read lock.
+
+.. data:: serverStatus.locks...timeAcquiringMicros.W
+
+   The ``W`` field reports the amount of time in microseconds that any
+   database has spent waiting for the global write lock.
+
+.. data:: serverStatus.locks.admin
+
+   The :data:`~serverStatus.locks.admin` document contains two sub-documents that
+   report data regarding lock use in the :term:`admin database`.
+
+.. data:: serverStatus.locks.admin.timeLockedMicros
+
+   The :data:`~serverStatus.locks.admin.timeLockedMicros` document reports the amount of
+   time in microseconds that locks have existed in the context of the
+   :term:`admin database`.
+
+.. data:: serverStatus.locks.admin.timeLockedMicros.r
+
+   The ``r`` field reports the amount of time in microseconds that the
+   :term:`admin database` has held the read lock.
+
+.. data:: serverStatus.locks.admin.timeLockedMicros.w
+
+   The ``w`` field reports the amount of time in microseconds that the
+   :term:`admin database` has held the write lock.
+
+.. data:: serverStatus.locks.admin.timeAcquiringMicros
+
+   The :data:`~serverStatus.locks.admin.timeAcquiringMicros` document reports on the
+   amount of field time in microseconds that operations have spent
+   waiting to acquire a lock for the :term:`admin database`.
+
+.. data:: serverStatus.locks.admin.timeAcquiringMicros.r
+
+   The ``r`` field reports the amount of time in microseconds that
+   operations have spent waiting to acquire a read lock on the
+   :term:`admin database`.
+
+.. data:: serverStatus.locks.admin.timeAcquiringMicros.w
+
+   The ``w`` field reports the amount of time in microseconds that
+   operations have spent waiting to acquire a write lock on the
+   :term:`admin database`.
+
+.. data:: serverStatus.locks.local
+
+   The :data:`~serverStatus.locks.local` document contains two sub-documents that
+   report data regarding lock use in the ``local`` database. The
+   local database contains a number of instance specific data,
+   including the :term:`oplog` for replication.
+
+.. data:: serverStatus.locks.local.timeLockedMicros
+
+   The :data:`~serverStatus.locks.local.timeLockedMicros` document reports on the amount
+   of time in microseconds that locks have existed in the context of
+   the ``local`` database.
+
+.. data:: serverStatus.locks.local.timeLockedMicros.r
+
+   The ``r`` field reports the amount of time in microseconds that the
+   ``local`` database has held the read lock.
+
+.. data:: serverStatus.locks.local.timeLockedMicros.w
+
+   The ``w`` field reports the amount of time in microseconds that the
+   ``local`` database has held the write lock.
+
+.. data:: serverStatus.locks.local.timeAcquiringMicros
+
+   The :data:`~serverStatus.locks.local.timeAcquiringMicros` document reports on the
+   amount of time in microseconds that operations have spent waiting
+   to acquire a lock for the ``local`` database.
+
+.. data:: serverStatus.locks.local.timeAcquiringMicros.r
+
+   The ``r`` field reports the amount of time in microseconds that
+   operations have spent waiting to acquire a read lock on the ``local``
+   database.
+
+.. data:: serverStatus.locks.local.timeAcquiringMicros.w
+
+   The ``w`` field reports the amount of time in microseconds that
+   operations have spent waiting to acquire a write lock on the ``local``
+   database.
+
+.. data:: serverStatus.locks.<database>
+
+   For each additional database :data:`~serverStatus.locks` includes a document
+   that reports on the lock use for this database. The names of these
+   documents reflect the database name itself.
+
+.. data:: serverStatus.locks.<database>.timeLockedMicros
+
+   The :data:`~serverStatus.locks.<database>.timeLockedMicros` document reports on the amount
+   of time in microseconds that locks have existed in the context of
+   the ``<database>`` database.
+
+.. data:: serverStatus.locks.<database>.timeLockedMicros.r
+
+   The ``r`` field reports the amount of time in microseconds that the
+   ``<database>`` database has held the read lock.
+
+.. data:: serverStatus.locks.<database>.timeLockedMicros.w
+
+   The ``w`` field reports the amount of time in microseconds that the
+   ``<database>`` database has held the write lock.
+
+.. data:: serverStatus.locks.<database>.timeAcquiringMicros
+
+   The :data:`~serverStatus.locks.<database>.timeAcquiringMicros` document reports on the
+   amount of time in microseconds that operations have spent waiting
+   to acquire a lock for the ``<database>`` database.
+
+.. data:: serverStatus.locks.<database>.timeAcquiringMicros.r
+
+   The ``r`` field reports the amount of time in microseconds that
+   operations have spent waiting to acquire a read lock on the ``<database>``
+   database.
+
+.. data:: serverStatus.locks.<database>.timeAcquiringMicros.w
+
+   The ``w`` field reports the amount of time in microseconds that
+   operations have spent waiting to acquire a write lock on the ``<database>``
+   database.
+
+.. _globallock:
+.. _global-lock:
+.. _server-status-globallock:
+.. _server-status-global-lock:
+
+globalLock
+----------
+
+.. example:: :ref:`output of the globalLock fields <server-status-example-globallock>`.
+
+.. data:: serverStatus.globalLock
+
+   The :data:`~serverStatus.globalLock` data structure contains information regarding
+   the database's current lock state, historical lock status, current
+   operation queue, and the number of active clients.
+
+.. data:: serverStatus.globalLock.totalTime
+
+   The value of :data:`~serverStatus.globalLock.totalTime` represents the time, in
+   microseconds, since the database last started and creation of the
+   :data:`~serverStatus.globalLock`. This is roughly equivalent to total server
+   uptime.
+
+.. data:: serverStatus.globalLock.lockTime
+
+   The value of :data:`~serverStatus.globalLock.lockTime` represents the time, in
+   microseconds, since the database last started, that the
+   :data:`~serverStatus.globalLock` has been *held*.
+
+   Consider this value in combination with the value of
+   :data:`~serverStatus.globalLock.totalTime`. MongoDB aggregates these values in
+   the :data:`~serverStatus.globalLock.ratio` value. If the
+   :data:`~serverStatus.globalLock.ratio` value is small but
+   :data:`~serverStatus.globalLock.totalTime` is high the :data:`~serverStatus.globalLock` has
+   typically been held frequently for shorter periods of time, which
+   may be indicative of a more normal use pattern. If the
+   :data:`~serverStatus.globalLock.lockTime` is higher and the
+   :data:`~serverStatus.globalLock.totalTime` is smaller (relatively,) then fewer
+   operations are responsible for a greater portion of server's use
+   (relatively.)
+
+.. data:: serverStatus.globalLock.ratio
+
+   .. versionchanged:: 2.2
+      :data:`~serverStatus.globalLock.ratio` was removed. See :data:`~serverStatus.locks`.
+
+   The value of :data:`~serverStatus.globalLock.ratio` displays the relationship between
+   :data:`~serverStatus.globalLock.lockTime` and :data:`~serverStatus.globalLock.totalTime`.
+
+   Low values indicate that operations have held the :data:`~serverStatus.globalLock`
+   frequently for shorter periods of time. High values indicate that
+   operations have held :data:`~serverStatus.globalLock` infrequently for longer periods of
+   time.
+
+.. _globallock-currentqueue:
+
+globalLock.currentQueue
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. data:: serverStatus.globalLock.currentQueue
+
+   The :data:`~serverStatus.globalLock.currentQueue` data structure value provides more
+   granular information concerning the number of operations queued
+   because of a lock.
+
+.. data:: serverStatus.globalLock.currentQueue.total
+
+   The value of :data:`~serverStatus.globalLock.currentQueue.total` provides a combined
+   total of operations queued waiting for the lock.
+
+   A consistently small queue, particularly of shorter operations
+   should cause no concern. Also, consider this value in light of the
+   size of queue waiting for the read lock
+   (e.g. :data:`~serverStatus.globalLock.currentQueue.readers`) and write-lock
+   (e.g. :data:`~serverStatus.globalLock.currentQueue.writers`) individually.
+
+.. data:: serverStatus.globalLock.currentQueue.readers
+
+   The value of :data:`~serverStatus.globalLock.currentQueue.readers` is the number of
+   operations that are currently queued and waiting for the
+   read-lock. A consistently small read-queue, particularly of
+   shorter operations should cause no concern.
+
+.. data:: serverStatus.globalLock.currentQueue.writers
+
+   The value of :data:`~serverStatus.globalLock.currentQueue.writers` is the number of
+   operations that are currently queued and waiting for the
+   write-lock. A consistently small write-queue, particularly of
+   shorter operations is no cause for concern.
+
+globalLock.activeClients
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. data:: serverStatus.globalLock.activeClients
+
+   The :data:`~serverStatus.globalLock.activeClients` data structure provides more
+   granular information about the number of connected clients and the
+   operation types (e.g. read or write) performed by these clients.
+
+   Use this data to provide context for the :ref:`currentQueue
+   <globallock-currentqueue>` data.
+
+.. data:: serverStatus.globalLock.activeClients.total
+
+   The value of :data:`~serverStatus.globalLock.activeClients.total` is the total number
+   of active client connections to the database. This combines clients
+   that are performing read operations
+   (e.g. :data:`~serverStatus.globalLock.activeClients.readers`) and clients that
+   are performing write operations (e.g. :data:`~serverStatus.globalLock.activeClients.writers`).
+
+.. data:: serverStatus.globalLock.activeClients.readers
+
+   The value of :data:`~serverStatus.globalLock.activeClients.readers` contains a count
+   of the active client connections performing read operations.
+
+.. data:: serverStatus.globalLock.activeClients.writers
+
+   The value of :data:`~serverStatus.globalLock.activeClients.writers` contains a count
+   of active client connections performing write operations.
+
+.. _memory-status:
+.. _server-status-memory:
+
+mem
+---
+
+.. example:: :ref:`output of the memory fields <server-status-example-memory>`.
+
+.. data:: serverStatus.mem
+
+   The :data:`~serverStatus.mem` data structure holds information regarding the target
+   system architecture of :binary:`~bin.mongod` and current memory use.
+
+.. data:: serverStatus.mem.bits
+
+   The value of :data:`~serverStatus.mem.bits` is either ``64`` or ``32``,
+   depending on which target architecture specified during the
+   :binary:`~bin.mongod` compilation process. In most instances this is
+   ``64``, and this value does not change over time.
+
+.. data:: serverStatus.mem.resident
+
+   The value of :data:`~serverStatus.mem.resident` is roughly equivalent to the amount
+   of RAM, in megabytes (MB), currently used by the database process. In normal
+   use this value tends to grow. In dedicated database servers this
+   number tends to approach the total amount of system memory.
+
+.. data:: serverStatus.mem.virtual
+
+   :data:`~serverStatus.mem.virtual` displays the quantity, in megabytes (MB), of virtual memory
+   used by the :binary:`~bin.mongod` process. In typical deployments this value
+   is slightly larger than :data:`~serverStatus.mem.mapped`. If this value is
+   significantly (i.e. gigabytes) larger than :data:`~serverStatus.mem.mapped`,
+   this could indicate a memory leak.
+
+   With :term:`journaling <journal>` enabled, the value of :data:`~serverStatus.mem.virtual`
+   is twice the value of :data:`~serverStatus.mem.mapped`.
+
+.. data:: serverStatus.mem.supported
+
+   :data:`~serverStatus.mem.supported` is true when the underlying system supports
+   extended memory information. If this value is false and the system
+   does not support extended memory information, then other
+   :data:`~serverStatus.mem` values may not be accessible to the database server.
+
+.. data:: serverStatus.mem.mapped
+
+   The value of :data:`~serverStatus.mem.mapped` provides the amount of mapped memory,
+   in megabytes (MB), by
+   the database. Because MongoDB uses memory-mapped files, this value
+   is likely to be to be roughly equivalent to the total size of your
+   database or databases.
+
+.. data:: serverStatus.mem.mappedWithJournal
+
+   :data:`~serverStatus.mem.mappedWithJournal` provides the amount of
+   mapped memory, in megabytes (MB), including the memory used for
+   journaling.
+   This value will always be twice the value of :data:`~serverStatus.mem.mapped`.
+   This field is only included if journaling is enabled.
+
+.. _server-status-connections:
+
+connections
+-----------
+
+.. example:: :ref:`output of the connections fields <server-status-example-connections>`.
+
+.. data:: serverStatus.connections
+
+   The :data:`~serverStatus.connections` sub document data regarding the
+   current connection status and availability of the database
+   server. Use these values to asses the current load and capacity
+   requirements of the server.
+
+.. data:: serverStatus.connections.current
+
+   The value of :data:`~serverStatus.connections.current` corresponds to the number of
+   connections to the database server from clients. This number
+   includes the current shell session. Consider the value of
+   :data:`~serverStatus.connections.available` to add more context to this
+   datum.
+
+   This figure will include the current shell connection as well as
+   any inter-node connections to support a :term:`replica set` or
+   :term:`sharded cluster`.
+
+.. data:: serverStatus.connections.available
+
+   :data:`~serverStatus.connections.available` provides a count of the number of unused
+   available connections that the database can provide. Consider this
+   value in combination with the value of
+   :data:`~serverStatus.connections.current` to understand the connection load on
+   the database, and the :doc:`/administration/ulimit` document for
+   more information about system thresholds on available connections.
+
+.. _server-status-extra-info:
+.. _server-status-extra_info:
+.. _server-status-extrainfo:
+
+extra_info
+----------
+
+.. example:: :ref:`output of the extra_info fields <server-status-example-extrainfo>`.
+
+.. data:: serverStatus.extra_info
+
+   The :data:`~serverStatus.extra_info` data structure holds data collected by the
+   :binary:`~bin.mongod` instance about the underlying system. Your system may
+   only report a subset of these fields.
+
+.. data:: serverStatus.extra_info.note
+
+   The field :data:`~serverStatus.extra_info.note` reports that the data in this
+   structure depend on the underlying platform, and has the text:
+   "fields vary by platform."
+
+.. data:: serverStatus.extra_info.heap_usage_bytes
+
+   The :data:`~serverStatus.extra_info.heap_usage_bytes` field is only available on
+   Unix/Linux systems, and reports the total size in bytes of heap space
+   used by the database process.
+
+.. data:: serverStatus.extra_info.page_faults
+
+   The :data:`~serverStatus.extra_info.page_faults` field reports the
+   total number of page faults that require disk operations. Page
+   faults refer to operations that require the database server to
+   access data which isn't available in active memory. The
+   :data:`~serverStatus.page_fault.extra_info.page_faults` counter may
+   increase dramatically during moments of poor performance and may
+   correlate with limited memory environments and larger data
+   sets. Limited and sporadic page faults do not necessarily indicate
+   an issue.
+
+.. _server-status-indexcounters:
+
+indexCounters
+-------------
+
+.. example:: :ref:`output of the indexCounters fields <server-status-example-indexcounters>`.
+
+.. data:: serverStatus.indexCounters
+
+   .. versionchanged:: 2.2
+      Previously, data in the :data:`~serverStatus.indexCounters` document
+      reported sampled data, and were only useful in relative
+      comparison to each other, because they could not reflect
+      absolute index use. In 2.2 and later, these data reflect actual
+      index use.
+
+   The :data:`~serverStatus.indexCounters` data structure reports information
+   regarding the state and use of indexes in MongoDB.
+
+.. data:: serverStatus.indexCounters.btree
+
+   The :data:`~serverStatus.indexCounters.btree` data structure contains data
+   regarding MongoDB's :term:`btree` indexes.
+
+.. data:: serverStatus.indexCounters.btree.accesses
+
+   :data:`~serverStatus.indexCounters.btree.accesses` reports the number of times
+   that operations have accessed indexes. This value is the
+   combination of the :data:`~serverStatus.indexCounters.btree.hits` and
+   :data:`~serverStatus.indexCounters.btree.misses`. Higher values indicate that
+   your database has indexes and that queries are taking advantage of
+   these indexes. If this number does not grow over time, this might
+   indicate that your indexes do not effectively support your use.
+
+.. data:: serverStatus.indexCounters.btree.hits
+
+   The :data:`~serverStatus.indexCounters.btree.hits` value reflects the number of
+   times that an index has been accessed and :binary:`~bin.mongod` is able
+   to return the index from memory.
+
+   A higher value indicates effective index
+   use. :data:`~serverStatus.indexCounters.btree.hits` values that represent a
+   greater proportion of the :data:`~serverStatus.indexCounters.btree.accesses`
+   value, tend to indicate more effective index configuration.
+
+.. data:: serverStatus.indexCounters.btree.misses
+
+   The :data:`~serverStatus.indexCounters.btree.misses` value represents the
+   number of times that an operation attempted to access an index that
+   was not in memory. These "misses," do not indicate a failed query
+   or operation, but rather an inefficient use of the index. Lower
+   values in this field indicate better index use and likely overall
+   performance as well.
+
+.. data:: serverStatus.indexCounters.btree.resets
+
+   The :data:`~serverStatus.indexCounters.btree.resets` value reflects the number
+   of times that the index counters have been reset since the database
+   last restarted. Typically this value is ``0``, but use this value
+   to provide context for the data specified by other
+   :data:`~serverStatus.indexCounters` values.
+
+.. data:: serverStatus.indexCounters.btree.missRatio
+
+   The :data:`~serverStatus.indexCounters.btree.missRatio` value is the ratio of
+   :data:`~serverStatus.indexCounters.btree.hits` to
+   :data:`~serverStatus.indexCounters.btree.misses` misses. This value is
+   typically ``0`` or approaching ``0``.
+
+.. _server-status-backgroundflushing:
+.. _server-status-background-flushing:
+
+backgroundFlushing
+------------------
+
+.. example:: :ref:`output of the backgroundFlushing fields <server-status-example-backgroundflushing>`.
+
+.. data:: serverStatus.backgroundFlushing
+
+   :binary:`~bin.mongod` periodically flushes writes to disk. In the default
+   configuration, this happens every 60 seconds. The
+   :data:`~serverStatus.backgroundFlushing` data structure contains data regarding
+   these operations. Consider these values if you have concerns about
+   write performance and :ref:`journaling <journaling-status>`.
+
+.. data:: serverStatus.backgroundFlushing.flushes
+
+   :data:`~serverStatus.backgroundFlushing.flushes` is a counter that collects the
+   number of times the database has flushed all writes to disk. This
+   value will grow as database runs for longer periods of time.
+
+.. data:: serverStatus.backgroundFlushing.total_ms
+
+   The :data:`~serverStatus.backgroundFlushing.total_ms` value provides the total number
+   of milliseconds (ms) that the :binary:`~bin.mongod` processes have spent
+   writing (i.e. flushing) data to disk. Because this is an absolute
+   value, consider the value of :data:`~serverStatus.backgroundFlushing.flushes`
+   and :data:`~serverStatus.backgroundFlushing.average_ms` to provide better
+   context for this datum.
+
+.. data:: serverStatus.backgroundFlushing.average_ms
+
+   The :data:`~serverStatus.backgroundFlushing.average_ms` value describes the
+   relationship between the number of flushes and the total amount of
+   time that the database has spent writing data to disk. The larger
+   :data:`~serverStatus.backgroundFlushing.flushes` is, the more likely this value
+   is likely to represent a "normal," time; however, abnormal data can
+   skew this value.
+
+   Use the :data:`~serverStatus.backgroundFlushing.last_ms` to ensure that a high
+   average is not skewed by transient historical issue or a
+   random write distribution.
+
+.. data:: serverStatus.backgroundFlushing.last_ms
+
+   The value of the :data:`~serverStatus.backgroundFlushing.last_ms` field is the amount
+   of time, in milliseconds, that the last flush operation took to
+   complete. Use this value to verify that the current performance of
+   the server and is in line with the historical data provided by
+   :data:`~serverStatus.backgroundFlushing.average_ms` and
+   :data:`~serverStatus.backgroundFlushing.total_ms`.
+
+.. data:: serverStatus.backgroundFlushing.last_finished
+
+   The :data:`~serverStatus.backgroundFlushing.last_finished` field provides a timestamp
+   of the last completed flush operation in the :term:`ISODate`
+   format. If this value is more than a few minutes old relative to
+   your server's current time and accounting for differences in time
+   zone, restarting the database may result in some data loss.
+
+   Also consider ongoing operations that might skew this value by
+   routinely block write operations.
+
+.. _server-status-cursors:
+
+cursors
+-------
+
+.. example:: :ref:`output of the cursors <server-status-example-cursors>` fields.
+
+.. data:: serverStatus.cursors
+
+   The :data:`~serverStatus.cursors` data structure contains data regarding cursor state
+   and use.
+
+.. data:: serverStatus.cursors.totalOpen
+
+   :data:`~serverStatus.cursors.totalOpen` provides the number of cursors that
+   MongoDB is maintaining for clients. Because MongoDB exhausts unused
+   cursors, typically this value small or zero. However, if there is a
+   queue, stale tailable cursors, or a large number of operations this
+   value may rise.
+
+.. data:: serverStatus.cursors.clientCursors_size
+
+   .. deprecated:: 1.x
+      See :data:`~serverStatus.cursors.totalOpen` for this datum.
+
+.. data:: serverStatus.cursors.timedOut
+
+   :data:`~serverStatus.cursors.timedOut` provides a counter of the total number
+   of cursors that have timed out since the server process started. If
+   this number is large or growing at a regular rate, this may
+   indicate an application error.
+
+.. _server-status-network:
+
+network
+-------
+
+.. example:: :ref:`output of the network fields <server-status-example-network>`.
+
+.. data:: serverStatus.network
+
+   The :data:`~serverStatus.network` data structure contains data regarding MongoDB's
+   network use.
+
+.. data:: serverStatus.network.bytesIn
+
+   The value of the :data:`~serverStatus.network.bytesIn` field reflects the
+   amount of network traffic, in bytes, received *by* this
+   database. Use this value to ensure that network traffic sent to the
+   :binary:`~bin.mongod` process is consistent with expectations and
+   overall inter-application traffic.
+
+.. data:: serverStatus.network.bytesOut
+
+   The value of the :data:`~serverStatus.network.bytesOut` field reflects the amount of
+   network traffic, in bytes, sent *from* this database. Use this
+   value to ensure that network traffic sent by the :binary:`~bin.mongod` process
+   is consistent with expectations and overall inter-application
+   traffic.
+
+.. data:: serverStatus.network.numRequests
+
+   The :data:`~serverStatus.network.numRequests` field is a counter of the total number
+   of distinct requests that the server has received. Use this value
+   to provide context for the :data:`~serverStatus.network.bytesIn` and
+   :data:`~serverStatus.network.bytesOut` values to ensure that MongoDB's network
+   utilization is consistent with expectations and application use.
+
+.. _server-status-repl:
+
+repl
+----
+
+.. example:: :ref:`output of the repl fields <server-status-example-repl>`.
+
+.. data:: serverStatus.repl
+
+   The :data:`~serverStatus.repl` data structure contains status information for
+   MongoDB's replication (i.e. "replica set") configuration. These
+   values only appear when the current host has replication enabled.
+
+   See :doc:`/core/replication` for more information on replication.
+
+.. data:: serverStatus.repl.setName
+
+   The :data:`~serverStatus.repl.setName` field contains a string with the name of the
+   current replica set. This value reflects the :option:`--replSet <mongod --replSet>`
+   command line argument, or :setting:`replSet` value in the
+   configuration file.
+
+   See :doc:`/core/replication` for more information on replication.
+
+.. data:: serverStatus.repl.ismaster
+
+   The value of the :data:`~serverStatus.repl.ismaster` field is either ``true`` or
+   ``false`` and reflects whether the current node is the master or
+   primary node in the replica set.
+
+   See :doc:`/core/replication` for more information on replication.
+
+.. data:: serverStatus.repl.secondary
+
+   The value of the :data:`~serverStatus.repl.secondary` field is either ``true`` or
+   ``false`` and reflects whether the current node is a secondary
+   node in the replica set.
+
+   See :doc:`/core/replication` for more information on replication.
+
+.. data:: serverStatus.repl.hosts
+
+   :data:`~serverStatus.repl.hosts` is an array that lists the other nodes in the
+   current replica set. Each member of the replica set appears in the
+   form of ``hostname:port``.
+
+   See :doc:`/core/replication` for more information on replication.
+
+.. _server-status-opcountersrepl:
+.. _server-status-opcounters-repl:
+
+opcountersRepl
+--------------
+
+.. example:: :ref:`output of the opcountersRepl fields <server-status-example-opcountersrepl>`.
+
+.. data:: serverStatus.opcountersRepl
+
+   The :data:`~serverStatus.opcountersRepl` data structure, similar to the
+   :data:`~serverStatus.opcounters` data structure, provides an overview of
+   database replication operations by type and makes it possible to
+   analyze the load on the replica in more granular manner.  These
+   values only appear when the current host has replication enabled.
+
+   These values will differ from the :data:`~serverStatus.opcounters` values
+   because of how MongoDB serializes operations during replication.
+   See :doc:`/core/replication` for more information on replication.
+
+   These numbers will grow over time in response to database
+   use. Analyze these values over time to track database utilization.
+
+.. data:: serverStatus.opcountersRepl.insert
+
+   :data:`~serverStatus.opcountersRepl.insert` provides a counter of the total number
+   of replicated insert operations since the :binary:`~bin.mongod` instance
+   last started.
+
+.. data:: serverStatus.opcountersRepl.query
+
+   :data:`~serverStatus.opcountersRepl.query` provides a counter of the total number
+   of replicated queries since the :binary:`~bin.mongod` instance last
+   started.
+
+.. data:: serverStatus.opcountersRepl.update
+
+   :data:`~serverStatus.opcountersRepl.update` provides a counter of the total number
+   of replicated update operations since the :binary:`~bin.mongod` instance
+   last started.
+
+.. data:: serverStatus.opcountersRepl.delete
+
+   :data:`~serverStatus.opcountersRepl.delete` provides a counter of the total number
+   of replicated delete operations since the :binary:`~bin.mongod` instance
+   last started.
+
+.. data:: serverStatus.opcountersRepl.getmore
+
+   :data:`~serverStatus.opcountersRepl.getmore` provides a counter of the total number
+   of "getmore" operations since the :binary:`~bin.mongod` instance last
+   started. This counter can be high even if the query count is low.
+   Secondary nodes send ``getMore`` operations as part of the replication
+   process.
+
+.. data:: serverStatus.opcountersRepl.command
+
+   :data:`~serverStatus.opcountersRepl.command` provides a counter of the total number
+   of replicated commands issued to the database since the
+   :binary:`~bin.mongod` instance last started.
+
+.. _server-status-replnetworkqueue:
+.. _server-status-repl-network-queue:
+
+replNetworkQueue
+----------------
+
+.. versionadded:: 2.1.2
+
+.. example:: :ref:`output of the replNetworkQueue fields <server-status-example-replnetworkqueue>`.
+
+.. data:: serverStatus.replNetworkQueue
+
+   The :data:`~serverStatus.replNetworkQueue` document reports on the network
+   replication buffer, which permits replication operations to happen
+   in the background. This feature is internal.
+
+   This document only appears on :term:`secondary` members of
+   :term:`replica sets <replica set>`.
+
+.. data:: serverStatus.replNetworkQueue.waitTimeMs
+
+   :data:`~serverStatus.replNetworkQueue.waitTimeMs` reports the amount of time that
+   a :term:`secondary` waits to add operations to network queue. This
+   value is cumulative.
+
+.. data:: serverStatus.replNetworkQueue.numElems
+
+   :data:`~serverStatus.replNetworkQueue.numElems` reports the number of operations
+   stored in the queue.
+
+.. data:: serverStatus.replNetworkQueue.numBytes
+
+   :data:`~serverStatus.replNetworkQueue.numBytes` reports the total size of the
+   network replication queue.
+
+.. _server-status-opcounters:
+
+opcounters
+----------
+
+.. example:: :ref:`output of the opcounters fields <server-status-example-opcounters>`.
+
+.. data:: serverStatus.opcounters
+
+   The :data:`~serverStatus.opcounters` data structure provides an overview of
+   database operations by type and makes it possible to analyze the
+   load on the database in more granular manner.
+
+   These numbers will grow over time and in response to database
+   use. Analyze these values over time to track database utilization.
+
+.. data:: serverStatus.opcounters.insert
+
+   :data:`~serverStatus.opcounters.insert` provides a counter of the total number
+   of insert operations since the :binary:`~bin.mongod` instance last
+   started.
+
+.. data:: serverStatus.opcounters.query
+
+   :data:`~serverStatus.opcounters.query` provides a counter of the total number
+   of queries since the :binary:`~bin.mongod` instance last started.
+
+.. data:: serverStatus.opcounters.update
+
+   :data:`~serverStatus.opcounters.update` provides a counter of the total number
+   of update operations since the :binary:`~bin.mongod` instance last
+   started.
+
+.. data:: serverStatus.opcounters.delete
+
+   :data:`~serverStatus.opcounters.delete` provides a counter of the total number
+   of delete operations since the :binary:`~bin.mongod` instance last
+   started.
+
+.. data:: serverStatus.opcounters.getmore
+
+   :data:`~serverStatus.opcounters.getmore` provides a counter of the total number
+   of "getmore" operations since the :binary:`~bin.mongod` instance last
+   started. This counter can be high even if the query count is low.
+   Secondary nodes send ``getMore`` operations as part of the replication
+   process.
+
+.. data:: serverStatus.opcounters.command
+
+   :data:`~serverStatus.opcounters.command` provides a counter of the total number
+   of commands issued to the database since the :binary:`~bin.mongod`
+   instance last started.
+
+.. _server-status-asserts:
+
+asserts
+-------
+
+.. example:: :ref:`output of the asserts fields <server-status-example-asserts>`.
+
+.. data:: serverStatus.asserts
+
+   The :data:`~serverStatus.asserts` document reports the number of asserts on the
+   database. While assert errors are typically uncommon, if there are
+   non-zero values for the :data:`~serverStatus.asserts`, you should check the log
+   file for the :binary:`~bin.mongod` process for more information. In
+   many cases these errors are trivial, but are worth investigating.
+
+.. data:: serverStatus.asserts.regular
+
+   The :data:`~serverStatus.asserts.regular` counter tracks the number of regular
+   assertions raised since the server process started. Check the log
+   file for more information about these messages.
+
+.. data:: serverStatus.asserts.warning
+
+   The :data:`~serverStatus.asserts.warning` counter tracks the number of warnings
+   raised since the server process started. Check the log file for
+   more information about these warnings.
+
+.. data:: serverStatus.asserts.msg
+
+   The :data:`~serverStatus.asserts.msg` counter tracks the number of message
+   assertions raised since the server process started. Check the log
+   file for more information about these messages.
+
+.. data:: serverStatus.asserts.user
+
+   The :data:`~serverStatus.asserts.user` counter reports the number of "user asserts"
+   that have occurred since the last time the server process
+   started. These are errors that user may generate, such as out of
+   disk space or duplicate key. You can prevent these assertions by
+   fixing a problem with your application or deployment. Check the
+   MongoDB log for more information.
+
+.. data:: serverStatus.asserts.rollovers
+
+   The :data:`~serverStatus.asserts.rollovers` counter displays the number of
+   times that the rollover counters have rolled over since the last
+   time the server process started. The counters will rollover to zero
+   after 2\ :superscript:`30` assertions. Use this value to provide
+   context to the other values in the :data:`~serverStatus.asserts` data structure.
+
+.. _server-status-writebacksqueued:
+.. _server-status-write-backs-queued:
+
+writeBacksQueued
+----------------
+
+.. example:: :ref:`output of the writeBacksQueued fields <server-status-example-writebacksqueued>`.
+
+.. data:: serverStatus.writeBacksQueued
+
+   The value of :data:`~serverStatus.writeBacksQueued` is ``true`` when there
+   are operations from a :binary:`~bin.mongos` instance queued for
+   retrying. Typically this option is false.
+
+   .. seealso:: :term:`writeBacks`
+
+.. _durability-status:
+.. _journaling-status:
+.. _server-status-journaling:
+
+dur
+---
+
+.. versionadded:: 1.8
+
+Journaling
+~~~~~~~~~~
+
+.. example:: :ref:`output of the journaling fields <server-status-example-journaling>`.
+
+.. data:: serverStatus.dur
+
+   The :data:`~serverStatus.dur` (for "durability") document contains data
+   regarding the :binary:`~bin.mongod`'s journaling-related operations and
+   performance. :binary:`~bin.mongod` must be running with journaling for
+   these data to appear in the output of ":dbcommand:`serverStatus`".
+
+   .. note::
+
+      The data values are **not** cumulative but are reset on a regular
+      basis as determined by the :ref:`journal group commit interval
+      <journaling-journal-commit-interval>`. This interval is ~100
+      milliseconds (ms) by default (or 30ms if the journal file is on
+      the same file system as your data files) and is cut by 1/3 when
+      there is a :dbcommand:`getLastError` command pending. The
+      interval is configurable using the ``--journalCommitInterval``
+      option.
+
+   .. seealso:: ":doc:`/administration/journaling`" for more information about journaling operations.
+
+.. STUB :doc:`/core/journaling`
+
+.. data:: serverStatus.dur.commits
+
+   The :data:`~serverStatus.dur.commits` provides the number of transactions
+   written to the :term:`journal` during the last :ref:`journal group
+   commit interval <journaling-journal-commit-interval>`.
+
+.. data:: serverStatus.dur.journaledMB
+
+   The :data:`~serverStatus.dur.journaledMB` provides the amount of data in
+   megabytes (MB) written to :term:`journal` during the last
+   :ref:`journal group commit interval
+   <journaling-record-write-operation>`.
+
+.. data:: serverStatus.dur.writeToDataFilesMB
+
+   The :data:`~serverStatus.dur.writeToDataFilesMB` provides the amount of data in
+   megabytes (MB) written from :term:`journal` to the data files during the
+   last :ref:`journal group commit interval <journaling-record-write-operation>`.
+
+.. data:: serverStatus.dur.compression
+
+   .. versionadded:: 2.0
+
+   The :data:`~serverStatus.dur.compression` represents the compression ratio of
+   the data written to the :term:`journal`:
+
+   .. code-block:: javascript
+
+      ( journaled_size_of_data / uncompressed_size_of_data )
+
+.. data:: serverStatus.dur.commitsInWriteLock
+
+   The :data:`~serverStatus.dur.commitsInWriteLock` provides a count of the commits
+   that occurred while a write lock was held. Commits in a write lock
+   indicate a MongoDB node under a heavy write load and call for
+   further diagnosis.
+
+.. data:: serverStatus.dur.earlyCommits
+
+   The :data:`~serverStatus.dur.earlyCommits` value reflects the number of times
+   MongoDB requested a commit before the scheduled :ref:`journal group
+   commit interval <journaling-record-write-operation>`. Use this
+   value to ensure that your :ref:`journal group commit interval
+   <journaling-journal-commit-interval>` is not too long for your
+   deployment.
+
+.. data:: serverStatus.dur.timeMS
+
+   The :data:`~serverStatus.dur.timeMS` document provides information about the
+   performance of the :binary:`~bin.mongod` instance during the various
+   phases of journaling in the last :ref:`journal group commit
+   interval <journaling-journal-commit-interval>`.
+
+.. data:: serverStatus.dur.timeMS.dt
+
+   The :data:`~serverStatus.dur.timeMS.dt` value provides, in milliseconds, the
+   amount of time over which MongoDB collected the :data:`~serverStatus.dur.timeMS`
+   data. Use this field to provide context to the other
+   :data:`~serverStatus.dur.timeMS` field values.
+
+.. data:: serverStatus.dur.timeMS.prepLogBuffer
+
+   The :data:`~serverStatus.dur.timeMS.prepLogBuffer` value provides, in milliseconds,
+   the amount of time spent preparing to write to the journal. Smaller
+   values indicate better journal performance.
+
+.. data:: serverStatus.dur.timeMS.writeToJournal
+
+   The :data:`~serverStatus.dur.timeMS.writeToJournal` value provides, in milliseconds,
+   the amount of time spent actually writing to the journal. File
+   system speeds and device interfaces can affect performance.
+
+.. data:: serverStatus.dur.timeMS.writeToDataFiles
+
+   The :data:`~serverStatus.dur.timeMS.writeToDataFiles` value provides, in
+   milliseconds, the amount of time spent writing to data files after
+   journaling. File system speeds and device interfaces can affect
+   performance.
+
+.. data:: serverStatus.dur.timeMS.remapPrivateView
+
+   The :data:`~serverStatus.dur.timeMS.remapPrivateView` value provides, in
+   milliseconds, the amount of time spent remapping copy-on-write memory
+   mapped views. Smaller values indicate better journal performance.
+
+.. _server-status-recordstats:
+.. _server-status-record-stats:
+
+recordStats
+-----------
+
+.. example:: :ref:`output of the recordStats <server-status-example-recordstats>` fields.
+
+.. versionadded::2.1.2
+   All :data:`~serverStatus.recordStats` statuses first appeared in the 2.1.2
+   development release for the 2.2 series.
+
+.. data:: serverStatus.recordStats
+
+   The :data:`~serverStatus.recordStats` document provides fine grained reporting
+   on page faults on a per database level.
+
+.. data:: serverStatus.recordStats.accessesNotInMemory
+
+   :data:`~serverStatus.recordStats.accessesNotInMemory` reflects the number of
+   times :binary:`~bin.mongod` needed to access a memory page that was
+   *not* resident in memory for *all* databases managed by this
+   :binary:`~bin.mongod` instance.
+
+.. data:: serverStatus.recordStats.pageFaultExceptionsThrown
+
+   :data:`~serverStatus.recordStats.pageFaultExceptionsThrown` reflects the
+   number of page fault exceptions thrown by :binary:`~bin.mongod` when
+   accessing data for *all* databases managed by this
+   :binary:`~bin.mongod` instance.
+
+.. data:: serverStatus.recordStats.local.accessesNotInMemory
+
+   :data:`~serverStatus.recordStats.local.accessesNotInMemory` reflects the number of
+   times :binary:`~bin.mongod` needed to access a memory page that was
+   *not* resident in memory for the ``local`` database.
+
+.. data:: serverStatus.recordStats.local.pageFaultExceptionsThrown
+
+   :data:`~serverStatus.recordStats.local.pageFaultExceptionsThrown` reflects the
+   number of page fault exceptions thrown by :binary:`~bin.mongod` when
+   accessing data for the ``local`` database.
+
+.. data:: serverStatus.recordStats.admin.accessesNotInMemory
+
+   :data:`~serverStatus.recordStats.admin.accessesNotInMemory` reflects the number of
+   times :binary:`~bin.mongod` needed to access a memory page that was
+   *not* resident in memory for the :term:`admin database`.
+
+.. data:: serverStatus.recordStats.admin.pageFaultExceptionsThrown
+
+   :data:`~serverStatus.recordStats.admin.pageFaultExceptionsThrown` reflects the
+   number of page fault exceptions thrown by :binary:`~bin.mongod` when
+   accessing data for the :term:`admin database`.
+
+.. data:: serverStatus.recordStats.<database>.accessesNotInMemory
+
+   :data:`~serverStatus.recordStats.<database>.accessesNotInMemory` reflects the number of
+   times :binary:`~bin.mongod` needed to access a memory page that was
+   *not* resident in memory for the ``<database>`` database.
+
+.. data:: serverStatus.recordStats.<database>.pageFaultExceptionsThrown
+
+   :data:`~serverStatus.recordStats.<database>.pageFaultExceptionsThrown` reflects the
+   number of page fault exceptions thrown by :binary:`~bin.mongod` when
+   accessing data for the ``<database>`` database.

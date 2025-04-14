@@ -1,0 +1,76 @@
+=========
+moveChunk
+=========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. dbcommand:: moveChunk
+
+   :dbcommand:`moveChunk` is an internal administrative command that
+   moves :term:`chunks <chunk>` between :term:`shards <shard>`.
+   You must issue the
+   :dbcommand:`moveChunk`
+   command against the :term:`admin database` in the form:
+
+   .. code-block:: javascript
+
+      db.runCommand( { moveChunk : <namespace> ,
+                       find : <query> ,
+                       to : <destination>,
+                       <options> } )
+
+   :param namespace moveChunk:
+
+      The name of the :term:`collection` where the :term:`chunk`
+      exists. Specify the collection's full namespace, including the
+      database name.
+
+   :param document find:
+
+      A document including the :term:`shard key`.
+
+   :param host to:
+
+      The identifier of the shard, that you want to migrate the chunk
+      to.
+
+   :param boolean _secondaryThrottle:
+
+      Optional. Set to ``false`` by default. If set to ``true``, the
+      balancer waits for replication to :term:`secondaries
+      <secondary>` while copying and deleting data during
+      migrations. For details, see
+      :ref:`sharded-cluster-config-secondary-throttle`.
+
+   Use the :method:`sh.moveChunk()` helper in the :binary:`~bin.mongo`
+   shell to migrate chunks manually.
+
+   The :ref:`chunk migration <sharding-chunk-migration>` section
+   describes how chunks move between shards on MongoDB.
+
+   :dbcommand:`moveChunk` will return the following if another cursor
+   is using the chunk you are moving:
+
+   .. code-block:: none
+
+      errmsg: "The collection's metadata lock is already taken."
+
+   These errors usually occur when there are too many open
+   :term:`cursors <cursor>` accessing the chunk you are migrating. You
+   can either wait until the cursors complete their operation or close
+   the cursors manually.
+
+   .. note::
+
+      Only use the :dbcommand:`moveChunk` in special circumstances
+      such as preparing your :term:`sharded cluster` for an initial
+      ingestion of data, or a large bulk import operation. See
+      :ref:`sharding-administration-create-chunks` for more information.
+
+   .. admin-only

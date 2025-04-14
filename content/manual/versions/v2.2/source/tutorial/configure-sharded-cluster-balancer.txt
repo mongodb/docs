@@ -1,0 +1,159 @@
+.. index:: balancing; configure
+
+==========================================================
+Configure Behavior of Balancer Process in Sharded Clusters
+==========================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The balancer is a process that runs on *one* of the :binary:`~bin.mongos`
+instances in a cluster and ensures that :term:`chunks <chunk>` are
+evenly distributed throughout a sharded cluster. In most deployments,
+the default balancer configuration is sufficient for normal
+operation. However, administrators might need to modify balancer
+behavior depending on application or operational requirements. If you
+encounter a situation where you need to modify the behavior of the
+balancer, use the procedures described in this document.
+
+For conceptual information about the balancer, see
+:ref:`sharding-balancing` and :ref:`sharding-balancing-internals`.
+
+.. _sharded-cluster-config-balancing-window:
+
+Schedule a Window of Time for Balancing to Occur
+------------------------------------------------
+
+You can schedule a window of time during which the balancer can
+migrate chunks, as described in the following procedures:
+
+- :ref:`sharding-schedule-balancing-window`
+
+- :ref:`sharding-balancing-remove-window`.
+
+The :binary:`~bin.mongos` instances user their own local timezones to when
+respecting balancer window.
+
+.. _sharded-cluster-config-default-chunk-size:
+
+Configure Default Chunk Size
+----------------------------
+
+The default chunk size for a sharded cluster is 64 megabytes. In most
+situations, the default size is appropriate for splitting and migrating
+chunks. For information on how chunk size affects deployments, see
+details, see :ref:`sharding-chunk-size`.
+
+Changing the default chunk size affects chunks that are processes during
+migrations and auto-splits but does not retroactively affect all chunks.
+
+To configure default chunk size, see :ref:`sharding-balancing-modify-chunk-size`.
+
+.. _sharded-cluster-config-max-shard-size:
+
+Change the Maximum Storage Size for a Given Shard
+-------------------------------------------------
+
+The ``maxSize`` field in the :data:`~config.shards` collection in the
+:ref:`config database <config-database>` sets the maximum size for a
+shard, allowing you to control whether the balancer will migrate chunks
+to a shard. If :data:`~dbStats.dataSize` is above a shard's
+``maxSize``, the balancer will not move chunks to the shard. Also, the
+balancer will not move chunks off an overloaded shard. This must happen
+manually. The ``maxSize`` value only affects the balancer's selection of
+destination shards.
+
+By default, ``maxSize`` is not specified, allowing shards to consume the
+total amount of available space on their machines if necessary.
+
+You can set ``maxSize`` both when adding a shard and once a shard is
+running.
+
+To set ``maxSize`` when adding a shard, set the :dbcommand:`addShard`
+command's ``maxSize`` parameter to the maximum size in megabytes. For
+example, the following command run in the :binary:`~bin.mongo` shell adds a
+shard with a maximum size of 125 megabytes:
+
+.. code-block:: javascript
+
+   db.runCommand( { addshard : "example.net:34008", maxSize : 125 } )
+
+To set ``maxSize`` on an existing shard, insert or update the
+``maxSize`` field in the :data:`~config.shards` collection in the
+:ref:`config database <config-database>`. Set the ``maxSize`` in
+megabytes.
+
+.. example::
+
+   Assume you have the following shard without a ``maxSize`` field:
+
+   .. code-block:: javascript
+
+      { "_id" : "shard0000", "host" : "example.net:34001" }
+
+   Run the following sequence of commands in the :binary:`~bin.mongo` shell
+   to insert a ``maxSize`` of 125 megabytes:
+
+   .. code-block:: javascript
+
+      use config
+      db.shards.update( { _id : "shard0000" }, { $set : { maxSize : 125 } } )
+
+   To later increase the ``maxSize`` setting to 250 megabytes, run the
+   following:
+
+   .. code-block:: javascript
+
+      use config
+      db.shards.update( { _id : "shard0000" }, { $set : { maxSize : 250 } } )
+
+.. index:: balancing; secondary throttle
+.. index:: secondary throttle
+.. _sharded-cluster-config-secondary-throttle:
+
+Require Replication before Chunk Migration (Secondary Throttle)
+---------------------------------------------------------------
+
+.. versionadded:: 2.2.1
+
+By default, the write operations required to migrate chunks between
+shards do not need to replicate to secondaries in order to
+succeed. However, you can configure the balancer to require migration
+related write operations to replicate to secondaries. This throttles
+or slows the migration process and in doing so reduces the potential
+impact of migrations on a sharded cluster.
+
+You can throttle migrations by enabling the balancer's
+``_secondaryThrottle`` parameter. When enabled, secondary throttle
+requires a ``{ w : 2 }`` write concern on delete and insertion
+operations, so that every operation propagates to at least one
+secondary before the balancer issues the next operation.
+
+.. BACKGROUND NOTES
+   Specifically, secondary throttle affects the first and fourth
+   phases (informal phases) of chunk migration. Migration can happen during
+   the second and third phases (the "steady state"):
+   1) copies the documents in the chunk from shardA to shardB
+   2) continues to copy over ongoing changes that occurred during the initial copy step,
+      as well as current changes to that chunk range
+   3) Stop writes, allow shardB to get final changes, commit migration to config server
+   4) cleanup now-inactive data on shardA in chunk range (once all cursors are done)
+
+You enable ``_secondaryThrottle`` directly in the
+:data:`~config.settings` collection in the :ref:`config database
+<config-database>` by running the following commands from the
+:binary:`~bin.mongo` shell:
+
+.. code-block:: javascript
+
+   use config
+   db.settings.update( { "_id" : "balancer" } , { $set : { "_secondaryThrottle" : true } , { upsert : true } } )
+
+You also can enable secondary throttle when issuing the
+:dbcommand:`moveChunk` command by setting ``_secondaryThrottle`` to
+``true``. For more information, see :dbcommand:`moveChunk`.

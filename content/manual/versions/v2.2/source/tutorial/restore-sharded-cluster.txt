@@ -1,0 +1,77 @@
+========================
+Restore Sharded Clusters
+========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+The procedure outlined in this document addresses how to restore an
+entire sharded cluster. For information on related backup procedures
+consider the following tutorials which describe backup procedures in
+greater detail:
+
+- :doc:`/tutorial/backup-sharded-cluster-with-filesystem-snapshots`
+- :doc:`/tutorial/backup-sharded-cluster-with-database-dumps`
+
+The exact procedure used to restore a database depends on the method
+used to capture the backup. See the :doc:`/administration/backups`
+document for an overview of backups with MongoDB, as well as
+:ref:`sharded-cluster-backups` which provides an overview of the high
+level concepts important for backing up sharded clusters.
+
+Procedure
+---------
+
+1. Stop all :binary:`~bin.mongod` and :binary:`~bin.mongos` processes.
+
+#. If shard hostnames have changed, you must manually update the
+   ``shards`` collection in the :ref:`config-database` to use the new
+   hostnames. Do the following:
+
+   a. Start the three :ref:`config servers <sharding-config-server>` by
+      issuing commands similar to the following, using values appropriate
+      to your configuration:
+
+      .. code-block:: sh
+
+         mongod --configsvr --dbpath /data/configdb --port 27019
+
+   #. Restore the :ref:`config-database` on each config server.
+
+   #. Start one :binary:`~bin.mongos` instance.
+
+   #. Update the :ref:`config-database` collection named ``shards`` to reflect the
+      new hostnames.
+
+#. Restore the following:
+
+   - Data files for each server in each :term:`shard`. Because replica
+     sets provide each production shard, restore all the members of
+     the replica set or use the other standard approaches for
+     restoring a replica set from backup. See the
+     :ref:`backup-restore-snapshot` and :ref:`backup-restore-dump`
+     sections for details on these procedures.
+
+   - Data files for each :ref:`config server <sharding-config-server>`,
+     if you have not already done so in the previous step.
+
+#. Restart all the :binary:`~bin.mongos` instances.
+
+#. Restart all the :binary:`~bin.mongod` instances.
+
+#. Connect to a :binary:`~bin.mongos` instance from a :binary:`~bin.mongo` shell
+   and use the :method:`db.printShardingStatus()` method to ensure
+   that the cluster is operational, as follows:
+
+   .. code-block:: javascript
+
+      db.printShardingStatus()
+      show collections

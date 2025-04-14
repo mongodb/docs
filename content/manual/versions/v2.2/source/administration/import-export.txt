@@ -1,0 +1,291 @@
+====================================
+Importing and Exporting MongoDB Data
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Full :doc:`database instance backups </administration/backups>` are
+useful for disaster recovery protection and routine database backup
+operation; however, some cases require additional import and export
+functionality.
+
+This document provides an overview of the import and export programs
+included in the MongoDB distribution. These tools are useful when you
+want to backup or export a portion of your data without capturing the
+state of the entire database, or for simple data ingestion cases. For
+more complex data migration tasks, you may want to write your own
+import and export scripts using a client :term:`driver` to interact
+with the database itself.
+
+.. warning::
+
+   Because these tools primarily operate by interacting with a running
+   :binary:`~bin.mongod` instance, they can impact the performance of your
+   running database.
+
+   Not only do these processes create traffic for a running
+   database instance, they also force the database to read all data
+   through memory. When MongoDB reads infrequently used data, it can
+   supplant more frequently accessed data, causing a deterioration in
+   performance for the database's regular workload.
+
+   :binary:`~bin.mongoimport` and :binary:`~bin.mongoexport` do not reliably
+   preserve all rich :term:`BSON` data types, because :term:`BSON` is
+   a superset of :term:`JSON`. Thus, :binary:`~bin.mongoimport` and
+   :binary:`~bin.mongoexport` cannot represent :term:`BSON` data
+   accurately in :term:`JSON`. As a result data exported or imported
+   with these tools may lose some measure of fidelity. See
+   :doc:`/reference/mongodb-extended-json` for more information about
+   MongoDB Extended JSON.
+
+.. seealso:: See the ":doc:`/administration/backups`" document for
+   more information on backing up MongoDB instances. Additionally,
+   consider the following references for commands addressed in this
+   document:
+
+   - :doc:`/reference/mongoexport`
+   - :doc:`/reference/mongorestore`
+   - :doc:`/reference/mongodump`
+
+   If you want to transform and process data once you've imported it
+   in MongoDB consider the topics in :doc:`/aggregation`, including:
+
+   - :doc:`/applications/map-reduce` and
+   - :doc:`/applications/aggregation`.
+
+.. _bson-json-type-conversion-fidelity:
+
+Data Type Fidelity
+------------------
+
+:term:`JSON` does not have the following data types that exist in
+:term:`BSON` documents: ``data_binary``, ``data_date``,
+``data_timestamp``, ``data_regex``, ``data_oid`` and ``data_ref``. As
+a result using any tool that decodes BSON :term:`documents <document>`
+into JSON will suffer some loss of fidelity.
+
+If maintaining type fidelity is important, consider writing a data
+import and export system that does not force BSON documents into JSON
+form as part of the process. The following list of types contain
+examples for how MongoDB will represent how BSON documents render in
+JSON.
+
+- ``data_binary``
+
+  .. code-block:: javascript
+
+     { "$binary" : "<bindata>", "$type" : "<t>" }
+
+  ``<bindata>`` is the base64 representation of a binary string. ``<t>``
+  is the hexadecimal representation of a single byte indicating the
+  data type.
+
+- ``data_date``
+
+  .. code-block:: javascript
+
+     Date( <date> )
+
+  ``<date>`` is the JSON representation of a 64-bit signed integer for
+  milliseconds since epoch.
+
+- ``data_timestamp``
+
+  .. code-block:: javascript
+
+     Timestamp( <t>, <i> )
+
+  ``<t>`` is the JSON representation of a 32-bit unsigned integer for
+  milliseconds since epoch. ``<i>`` is a 32-bit unsigned integer for
+  the increment.
+
+- ``data_regex``
+
+  .. code-block:: javascript
+
+     /<jRegex>/<jOptions>
+
+  ``<jRegex>`` is a string that may contain valid JSON characters and
+  unescaped double quote (i.e. ``"``) characters, but may not contain
+  unescaped forward slash (i.e. ``/``) characters. ``<jOptions>`` is a
+  string that may contain only the characters ``g``, ``i``,
+  ``m``, and ``s``.
+
+- ``data_oid``
+
+  .. code-block:: javascript
+
+     ObjectId( "<id>" )
+
+  ``<id>`` is a 24 character hexadecimal string. These representations
+  require that ``data_oid`` values have an associated field named
+  ":term:`_id`."
+
+- ``data_ref``
+
+  .. code-block:: javascript
+
+     DBRef( "<name>", "<id>" )
+
+  ``<name>`` is a string of valid JSON characters. ``<id>`` is a 24
+  character hexadecimal string.
+
+.. seealso:: :doc:`MongoDB Extended JSON </reference/mongodb-extended-json>`
+
+Data Import and Export and Backups Operations
+---------------------------------------------
+
+For resilient and non-disruptive backups,
+use a file system or block-level disk snapshot function, such as the
+methods described in the ":doc:`/administration/backups`" document. The
+tools and operations discussed provide functionality that's useful in
+the context of providing some kinds of backups.
+
+By contrast, use import and export tools to backup a small subset of
+your data or to move data to or from a 3rd party system. These backups may
+capture a small crucial set of data or a frequently modified section of
+data, for extra insurance, or for ease of access. No matter how you
+decide to import or export your data, consider the following guidelines:
+
+- Label files so that you can identify what point in time the
+  export or backup reflects.
+
+- Labeling should describe the contents of the backup, and reflect the
+  subset of the data corpus, captured in the backup or export.
+
+- Do not create or apply exports if the backup process itself will
+  have an adverse effect on a production system.
+
+- Make sure that they reflect a consistent data state. Export or backup
+  processes can impact data integrity (i.e. type fidelity) and
+  consistency if updates continue during the backup process.
+
+- Test backups and exports by restoring and importing to ensure that
+  the backups are useful.
+
+Human Intelligible Import/Export Formats
+----------------------------------------
+
+This section describes a process to import/export your database, or a
+portion thereof, to a file in a :term:`JSON` or :term:`CSV` format.
+
+.. seealso:: The :doc:`/reference/mongoimport` and
+   :doc:`/reference/mongoexport` documents contain complete
+   documentation of these tools. If you have questions about the
+   function and parameters of these tools not covered here, please
+   refer to these documents.
+
+   If you want to simply copy a database or collection from one
+   instance to another, consider using the :dbcommand:`copydb`,
+   :dbcommand:`clone`, or :dbcommand:`cloneCollection` commands, which
+   may be more suited to this task. The :binary:`~bin.mongo` shell
+   provides the :method:`db.copyDatabase()` method.
+
+These tools may also be useful for importing data into a MongoDB database
+from third party applications.
+
+Collection Export with :binary:`~bin.mongoexport`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+With the :binary:`~bin.mongoexport` utility you can create a backup
+file. In the most simple invocation, the command takes the following
+form:
+
+.. code-block:: sh
+
+   mongoexport --collection collection --out collection.json
+
+This will export all documents in the collection named
+``collection`` into the file ``collection.json``. Without the
+output specification (i.e. ":option:`--out collection.json
+<mongoexport --out>`",) :binary:`~bin.mongoexport` writes output to
+standard output (i.e. "stdout.") You can further narrow the results by
+supplying a query filter using the ":option:`--query <mongoexport --query>`"
+and limit results to a single database using the
+":option:`--db <mongoexport --db>`" option. For instance:
+
+.. code-block:: sh
+
+   mongoexport --db sales --collection contacts --query '{"field": 1}'
+
+This command returns all documents in the ``sales`` database's
+``contacts`` collection, with a field named ``field`` with a value
+of ``1``. Enclose the query in single quotes (e.g. ``'``) to ensure
+that it does not interact with your shell environment. The resulting
+documents will return on standard output.
+
+By default, :binary:`~bin.mongoexport` returns one :term:`JSON document`
+per MongoDB document. Specify the
+":option:`--jsonArray <mongoexport --jsonArray>`" argument to return
+the export as a single :term:`JSON` array. Use the ":option:`--csv
+<mongoexport --csv>`" file to return the result in CSV (comma
+separated values) format.
+
+If your :binary:`~bin.mongod` instance is not running, you can use the
+":option:`--dbpath <mongoexport --dbpath>`" option to specify the
+location to your MongoDB instance's database files. See the following
+example:
+
+.. code-block:: sh
+
+   mongoexport --db sales --collection contacts --dbpath /srv/MongoDB/
+
+This reads the data files directly. This locks the data directory to
+prevent conflicting writes. The :binary:`~bin.mongod` process must *not* be
+running or attached to these data files when you run :binary:`~bin.mongoexport`
+in this configuration.
+
+The ":option:`--host <mongoexport --host>`" and ":option:`--port
+<mongoexport --port>`" options allow you to specify a non-local host
+to connect to capture the export. Consider the following example:
+
+.. code-block:: sh
+
+   mongoexport --host mongodb1.example.net --port 37017 --username user --password pass --collection contacts --file mdb1-examplenet.json
+
+On any :binary:`~bin.mongoexport` command you may, as above specify username and
+password credentials as above.
+
+Collection Import with :binary:`~bin.mongoimport`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To restore a backup taken with :binary:`~bin.mongoexport`. Most of the
+arguments to :binary:`~bin.mongoexport` also exist for
+:binary:`~bin.mongoimport`. Consider the following command:
+
+.. code-block:: sh
+
+   mongoimport --collection collection --file collection.json
+
+This imports the contents of the file ``collection.json`` into the
+collection named ``collection``. If you do not specify a file with
+the ":option:`--file <mongoimport --file>`" option,
+:binary:`~bin.mongoimport` accepts input over standard input
+(e.g. "stdin.")
+
+If you specify the ":option:`--upsert <mongoimport --upsert>`" option,
+all of :binary:`~bin.mongoimport` operations will attempt to update
+existing documents in the database and insert other documents. This
+option will cause some performance impact depending on your
+configuration.
+
+You can specify the database option :option:`--db <mongoimport --db>`
+to import these documents to a particular database. If your
+MongoDB instance is not running, use the ":option:`--dbpath
+<mongoimport --dbpath>`" option to specify the location of your
+MongoDB instance's database files. Consider using the
+":option:`--journal <mongoimport --journal>`" option to ensure that
+:binary:`~bin.mongoimport` records its operations in the journal. The
+``mongod`` process must *not* be running or attached to these data
+files when you run :binary:`~bin.mongoimport` in this configuration.
+
+Use the ":option:`--ignoreBlanks <mongoimport --ignoreBlanks>`" option
+to ignore blank fields. For :term:`CSV` and :term:`TSV` imports, this
+option provides the desired functionality in most cases: it avoids
+inserting blank fields in MongoDB documents.

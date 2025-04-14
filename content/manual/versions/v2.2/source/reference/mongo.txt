@@ -1,0 +1,438 @@
+.. _mongo:
+
+=========
+``mongo``
+=========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. only:: html
+
+   .. meta::
+      :description: The mongo command man page.
+      :keywords: mongo, mongodb, man page, mongo process, mongo shell
+
+Description
+-----------
+
+.. only:: (not man)
+
+   .. binary:: mongo
+
+:binary:`~bin.mongo` is an interactive JavaScript shell interface to
+MongoDB, which provides a powerful interface for systems
+administrators as well as a way for developers to test queries and
+operations directly with the database. :binary:`~bin.mongo` also provides
+a fully functional JavaScript environment for use with a MongoDB. This
+document addresses the basic invocation of the :binary:`~bin.mongo` shell
+and an overview of its usage.
+
+.. only:: (not man)
+
+   .. seealso::
+
+      In addition to this page, consider :doc:`/mongo` section of
+      the manual.
+
+Synopsis
+--------
+
+.. describe:: mongo [--shell] [--nodb] [--norc] [--quiet] [--port <port>] [--host <host>] [--eval <JavaScript>] [-u <username>] [--username <username>] [-p <password>] [--password <password>] [--help] [-h] [--version] [--verbose] [--ipv6] [database] [file.js]
+
+Interface
+---------
+
+.. _mongo-shell-options:
+
+Options
+~~~~~~~
+
+.. program:: mongo
+
+.. option:: --shell
+
+   Enables the shell interface after evaluating a :term:`JavaScript` file.
+   If you invoke the :binary:`~bin.mongo` command and specify a JavaScript
+   file as an argument, or use :option:`--eval` to specify
+   JavaScript on the command line, the :option:`--shell` option
+   provides the user with a shell prompt after the file finishes
+   executing.
+
+.. option:: --nodb
+
+   Prevents the shell from connecting to any database instances. Later,
+   to connect to a database within the shell, see
+   :ref:`mongo-shell-new-connections`.
+
+.. option:: --norc
+
+   Prevents the shell from sourcing and evaluating
+   :file:`~/.mongorc.js` on start up.
+
+.. option:: --quiet
+
+   Silences output from the shell during the connection process.
+
+.. option:: --port <port>
+
+   Specifies the port where the :binary:`~bin.mongod` or :binary:`~bin.mongos`
+   instance is listening. Unless specified :binary:`~bin.mongo` connects
+   to :binary:`~bin.mongod` instances on port ``27017``, which is the default
+   :binary:`~bin.mongod` port.
+
+.. option:: --host <hostname>
+
+   specifies the host where the :binary:`~bin.mongod` or :binary:`~bin.mongos` is running to
+   connect to as ``<hostname>``. By default :binary:`~bin.mongo` will attempt
+   to connect to a MongoDB process running on the localhost.
+
+.. option:: --eval <javascript>
+
+   Evaluates a JavaScript expression specified as an argument to this
+   option. :binary:`~bin.mongo` does not load its own environment when evaluating
+   code: as a result many options of the shell environment are not
+   available.
+
+.. option:: --username <username>, -u <username>
+
+   Specifies a username to authenticate to the MongoDB instance.
+   Use in conjunction with the
+   :option:`--password` option to supply a password.
+   If you specify a username and password but the default database
+   or the specified database do not require authentication,
+   :binary:`~bin.mongo` will exit with an exception.
+
+.. option:: --password <password>, -p <password>
+
+   Specifies a password to authenticate to the MongoDB instance.
+   Use in conjunction with the
+   :option:`--username` option to supply a username. If you
+   specify a :option:`--username` without the
+   :option:`--password` option, :binary:`~bin.mongo` will prompt for a
+   password interactively, if the :binary:`~bin.mongod` or
+   :binary:`~bin.mongos` requires authentication.
+
+.. option:: --help,  -h
+
+   Returns a basic help and usage text.
+
+.. option:: --version
+
+   Returns the version of the shell.
+
+.. option:: --verbose
+
+   Increases the verbosity of the output of the shell during the
+   connection process.
+
+.. option:: --ipv6
+
+   Enables IPv6 support that allows :binary:`~bin.mongo` to connect
+   to the MongoDB instance using an IPv6 network. All MongoDB programs
+   and processes, including :binary:`~bin.mongo`, disable IPv6
+   support by default.
+
+.. option:: <db address>
+
+   Specifies the "database address" of the database to connect to. For
+   example:
+
+   .. code-block:: sh
+
+      mongo admin
+
+   The above command will connect the :binary:`~bin.mongo` shell to the
+   :term:`admin database` on the local machine. You may specify a
+   remote database instance, with the resolvable hostname or IP
+   address. Separate the database name from the hostname using a
+   ``/`` character. See the following examples:
+
+   .. code-block:: sh
+
+      mongo mongodb1.example.net
+      mongo mongodb1/admin
+      mongo 10.8.8.10/test
+
+.. _mongo-shell-file:
+.. option:: <file.js>
+
+   Specifies a JavaScript file to run and then exit.
+   Must be the last option specified.
+   Use the
+   :option:`--shell` option to return to a shell after the file
+   finishes running.
+
+Files
+~~~~~
+
+.. _mongo-dbshell-file:
+
+:file:`~/.dbshell`
+
+   :binary:`~bin.mongo` maintains a history of commands in the :file:`.dbshell`
+   file.
+
+   .. note::
+
+      :binary:`~bin.mongo` does not recorded interaction related to
+      authentication in the history file, including
+      :dbcommand:`authenticate` and :method:`db.addUser()`.
+
+   .. warning::
+
+      Versions of Windows :binary:`~bin.mongo.exe` earlier than 2.2.0 will
+      save the `.dbshell` file in the :binary:`~bin.mongo.exe` working
+      directory.
+
+.. _mongo-mongorc-file:
+
+:file:`~/.mongorc.js`
+
+   :binary:`~bin.mongo` will read the ``.mongorc.js`` file from the home
+   directory of the user invoking :binary:`~bin.mongo`. In the file, users
+   can define variables, customize the :binary:`~bin.mongo` shell prompt,
+   or update information that they would like updated every time they
+   launch a shell. If you use the shell to evaluate a JavaScript file
+   or expression either on the command line with :option:`--eval` or
+   by specifying :ref:`a .js file to mongo <mongo-shell-file>`,
+   :binary:`~bin.mongo` will read the ``.mongorc.js`` file *after* the
+   JavaScript has finished processing.
+
+   Specify the :option:`--norc` option to disable
+   reading ``.mongorc.js``.
+
+:file:`/tmp/mongo_edit{<time_t>}.js`
+
+   Created by :binary:`~bin.mongo` when editing a file.  If the file
+   exists :binary:`~bin.mongo` will append an integer from ``1`` to ``10`` to the
+   time value to attempt to create a unique file.
+
+:file:`%TEMP%\mongo_edit{<time_t>}.js`
+
+   Created by :binary:`~bin.mongo.exe` on Windows when editing a file.
+   If the file
+   exists :binary:`~bin.mongo` will append an integer from ``1`` to ``10`` to
+   the time value to attempt to create a unique file.
+
+Environment
+~~~~~~~~~~~
+
+.. envvar:: EDITOR
+
+   Specifies the path to an editor to use with the ``edit`` shell
+   command.  A JavaScript variable ``EDITOR`` will override the value of
+   :envvar:`EDITOR`.
+
+.. envvar:: HOME
+
+   Specifies the path to the home directory where :binary:`~bin.mongo` will
+   read the :file:`.mongorc.js` file and write the :file:`.dbshell`
+   file.
+
+.. envvar:: HOMEDRIVE
+
+   On Windows systems, :envvar:`HOMEDRIVE` specifies the path the
+   directory where :binary:`~bin.mongo` will read the :file:`.mongorc.js`
+   file and write the :file:`.dbshell` file.
+
+.. envvar:: HOMEPATH
+
+   Specifies the Windows path to the home directory where
+   :binary:`~bin.mongo` will read the :file:`.mongorc.js` file and write
+   the :file:`.dbshell` file.
+
+.. _mongo-keyboard-shortcuts:
+
+Keyboard Shortcuts
+------------------
+
+The :binary:`~bin.mongo` shell supports the following keyboard shortcuts:
+[#multiple-bindings]_
+
+.. list-table::
+   :header-rows: 1
+
+   * - **Keybinding**
+     - **Function**
+
+   * - Up arrow
+     - Retrieve previous command from history
+
+   * - Down-arrow
+     - Retrieve next command from history
+
+   * - Home
+     - Go to beginning of the line
+
+   * - End
+     - Go to end of the line
+
+   * - Tab
+     - Autocomplete method/command
+
+   * - Left-arrow
+     - Go backward one character
+
+   * - Right-arrow
+     - Go forward one character
+
+   * - Ctrl-left-arrow
+     - Go backward one word
+
+   * - Ctrl-right-arrow
+     - Go forward one word
+
+   * - Meta-left-arrow
+     - Go backward one word
+
+   * - Meta-right-arrow
+     - Go forward one word
+
+   * - Ctrl-A
+     - Go to the beginning of the line
+
+   * - Ctrl-B
+     - Go backward one character
+
+   * - Ctrl-C
+     - Exit the :binary:`~bin.mongo` shell
+
+   * - Ctrl-D
+     - Delete a char (or exit the :binary:`~bin.mongo` shell)
+
+   * - Ctrl-E
+     - Go to the end of the line
+
+   * - Ctrl-F
+     - Go forward one character
+
+   * - Ctrl-G
+     - Abort
+
+   * - Ctrl-J
+     - Accept/evaluate the line
+
+   * - Ctrl-K
+     - Kill/erase the line
+
+   * - Ctrl-L or type ``cls``
+     - Clear the screen
+
+   * - Ctrl-M
+     - Accept/evaluate the line
+
+   * - Ctrl-N
+     - Retrieve next command from history
+
+   * - Ctrl-P
+     - Retrieve previous command from history
+
+   * - Ctrl-R
+     - Reverse-search command history
+
+   * - Ctrl-S
+     - Forward-search command history
+
+   * - Ctrl-T
+     - Transpose characters
+
+   * - Ctrl-U
+     - Perform Unix line-discard
+
+   * - Ctrl-W
+     - Perform Unix word-rubout
+
+   * - Ctrl-Y
+     - Yank
+
+   * - Ctrl-Z
+     - Suspend (job control works in linux)
+
+   * - Ctrl-H
+     - Backward-delete a character
+
+   * - Ctrl-I
+     - Complete, same as Tab
+
+   * - Meta-B
+     - Go backward one word
+
+   * - Meta-C
+     - Capitalize word
+
+   * - Meta-D
+     - Kill word
+
+   * - Meta-F
+     - Go forward one word
+
+   * - Meta-L
+     - Change word to lowercase
+
+   * - Meta-U
+     - Change word to uppercase
+
+   * - Meta-Y
+     - Yank-pop
+
+   * - Meta-Backspace
+     - Backward-kill word
+
+   * - Meta-<
+     - Retrieve the first command in command history
+
+   * - Meta->
+     - Retrieve the last command in command history
+
+.. [#multiple-bindings] MongoDB accommodates multiple keybinding.
+   Since 2.0, :binary:`~bin.mongo` includes support for basic emacs
+   keybindings.
+
+.. _mongo-usage-examples:
+
+Use
+---
+
+Typically users invoke the shell with the :binary:`~bin.mongo` command at
+the system prompt. Consider the following examples for other
+scenarios.
+
+To connect to a database on a remote host using authentication and a
+non-standard port, use the following form:
+
+.. code-block:: sh
+
+   mongo --username <user> --password <pass> --host <host> --port 28015
+
+Alternatively, consider the following short form:
+
+.. code-block:: sh
+
+   mongo -u <user> -p <pass> --host <host> --port 28015
+
+Replace ``<user>``, ``<pass>``, and ``<host>`` with the appropriate
+values for your situation and substitute or omit the :option:`--port`
+as needed.
+
+To execute a JavaScript file without evaluating the :file:`~/.mongorc.js`
+file before starting a shell session, use the following form:
+
+.. code-block:: sh
+
+   mongo --shell --norc alternate-environment.js
+
+To print return a query as :term:`JSON`, from the system prompt using
+the :option:`--eval <mongo --eval>` option, use the following form:
+
+.. code-block:: sh
+
+   mongo --eval 'db.collection.find().forEach(printjson)'
+
+Use single quotes (e.g. ``'``) to enclose the JavaScript, as well as
+the additional JavaScript required to generate this output.

@@ -1,0 +1,529 @@
+================
+Write Operations
+================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+All operations that create or modify data in the MongoDB instance are
+write operations. MongoDB represents data as :term:`BSON documents
+<document>` stored in :term:`collections <collection>`. Write
+operations target one collection and are atomic on the level of a
+single document: no single write operation can atomically affect more
+than one document or more than one collection.
+
+This document introduces the write operators available in MongoDB as
+well as presents strategies to increase the efficiency of writes in
+applications.
+
+.. index:: write operators
+.. _write-operations-operators:
+
+Write Operators
+---------------
+
+For information on write operators and how to write data to a MongoDB
+database, see the following pages:
+
+- :doc:`/applications/create`
+- :doc:`/applications/update`
+- :doc:`/applications/delete`
+
+For information on specific methods used to perform write operations in the
+:binary:`~bin.mongo` shell, see the following:
+
+- :method:`db.collection.insert()`
+- :method:`db.collection.update()`
+- :method:`db.collection.save()`
+- :method:`db.collection.findAndModify()`
+- :method:`db.collection.remove()`
+
+For information on how to perform write operations from within an
+application, see the :doc:`/applications/drivers` documentation or the
+documentation for your client library.
+
+.. index:: write concern
+.. _write-operations-write-concern:
+.. _write-concern:
+
+Write Concern
+-------------
+
+.. note:: The :doc:`driver write concern </release-notes/drivers-write-concern>`
+   change created a new connection class in all of the MongoDB
+   drivers, called ``MongoClient`` with a different default write
+   concern. See the :doc:`release notes </release-notes/drivers-write-concern>`
+   for this change, and the release notes for the driver you're using
+   for more information about your driver's release.
+
+.. _write-concern-considerations:
+
+Operational Considerations and Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Clients issue write operations with some level of :term:`write
+concern`, which describes the level of concern or
+guarantee the server will provide in its response to a write operation.
+Consider the following levels of conceptual write concern:
+
+.. _write-concern-errors-ignored:
+
+- *errors ignored*: Write operations are not acknowledged by MongoDB, and may
+  not succeed in the case of connection errors that the client is not yet aware of, or
+  if the :binary:`~bin.mongod` produces an exception (e.g. a duplicate key
+  exception for :ref:`unique indexes <index-type-unique>`.) While this
+  operation is efficient because it does not require the database to
+  respond to every write operation, it also incurs a significant risk
+  with regards to the persistence and durability of the data.
+
+  .. warning::
+
+     Do not use this option in normal operation.
+
+.. _write-concern-unacknowledged:
+
+- *unacknowledged*: MongoDB does not acknowledge the receipt of write
+  operation as with a write concern level of *ignore*; however, the
+  driver will receive and handle network errors, as possible given
+  system networking configuration.
+
+  Before the releases outlined in :ref:`driver-write-concern-change`,
+  this was the default write concern.
+
+.. _write-concern-acknowledged:
+
+- receipt *acknowledged*: The :binary:`~bin.mongod` will confirm the
+  receipt of the write operation, allowing the client to catch
+  network, duplicate key, and other exceptions. After the releases
+  outlined in :ref:`driver-write-concern-change`, this is the default
+  write concern. [#default-write-concern]_
+
+.. _write-concern-replica-journaled:
+
+- *journaled*: The :binary:`~bin.mongod` will confirm the write
+  operation only after it has written the operation to the
+  :term:`journal`. This confirms that the write operation can survive a
+  :binary:`~bin.mongod` shutdown and ensures that the write operation is
+  durable.
+
+  While receipt *acknowledged* without *journaled* provides the
+  fundamental basis for write concern, there is a window between
+  journal commits where the write operation is not fully durable. See
+  :setting:`journalCommitInterval` for more information on this
+  window. Require *journaled* as part of the write concern to provide
+  this durability guarantee.
+
+.. _write-concern-replica-acknowledged:
+
+:term:`Replica sets <replica set>` present an additional layer of
+consideration for write concern. Basic write concern levels affect the
+write operation on only one :binary:`~bin.mongod` instance. The ``w``
+argument to :dbcommand:`getLastError` provides a *replica
+acknowledged* level of write concern. With *replica acknowledged* you
+can guarantee that the write operation has propagated to the members
+of a replica set. See the :ref:`Write Concern for Replica Sets
+<replica-set-write-concern>` document for more information.
+
+.. note::
+
+   Requiring *journaled* write concern in a replica set only requires
+   a journal commit of the write operation to the :term:`primary` of the
+   set regardless of the level of *replica acknowledged* write
+   concern.
+
+.. [#default-write-concern] The default write concern is to call
+   :dbcommand:`getLastError` with no arguments. For replica sets, you
+   can define the default write concern settings in the
+   :data:`~local.system.replset.settings.getLastErrorDefaults`
+   If :data:`~local.system.replset.settings.getLastErrorDefaults` does
+   not define a default write concern setting,
+   :dbcommand:`getLastError` defaults to basic receipt acknowledgment.
+
+.. _write-concern-operation:
+.. _write-concern-internals:
+
+Internal Operation of Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To provide write concern, :doc:`drivers </applications/drivers>` issue
+the :dbcommand:`getLastError` command after a write operation and
+receive a document with information about the last operation. This
+document's ``err`` field contains either:
+
+- ``null``, which indicates the write operations have completed
+  successfully, or
+
+- a description of the last error encountered.
+
+The definition of a "successful write" depends on the arguments
+specified to :dbcommand:`getLastError`, or in replica sets, the
+configuration of
+:data:`~local.system.replset.settings.getLastErrorDefaults`.
+When deciding the level of write
+concern for your application, become familiar with the
+:ref:`write-concern-considerations`.
+
+The :dbcommand:`getLastError` command has the following options to configure write
+concern requirements:
+
+- ``j`` or "journal" option
+
+  This option confirms that the :binary:`~bin.mongod` instance has written
+  the data to the on-disk journal and ensures data is not lost if the
+  :binary:`~bin.mongod` instance shuts down unexpectedly. Set to ``true`` to
+  enable, as shown in the following example:
+
+  .. code-block:: javascript
+
+     db.runCommand( { getLastError: 1, j: "true" } )
+
+  If you set :data:`journal` to true, and the :binary:`~bin.mongod` does
+  not have journaling enabled, as with :setting:`nojournal`, then
+  :dbcommand:`getLastError` will provide basic receipt acknowledgment,
+  and will include a ``jnote`` field in its return document.
+
+- ``w`` option
+
+  This option provides the ability to disable write concern entirely *as
+  well as* specifies the write concern operations for :term:`replica sets
+  <replica set>`. See :ref:`write-concern-considerations` for an
+  introduction to the fundamental concepts of write concern. By
+  default, the ``w`` option is set to ``1``, which provides basic
+  receipt acknowledgment on a single :binary:`~bin.mongod`
+  instance or on the :term:`primary` in a replica set.
+
+  The ``w`` option takes the following values:
+
+  - ``-1``:
+
+    Disables all acknowledgment of write operations, and suppresses
+    all including network and socket errors.
+
+  - ``0``:
+
+    Disables basic acknowledgment of write operations, but returns
+    information about socket excepts and networking errors to the
+    application.
+
+    .. note::
+
+       If you disable basic write operation acknowledgment but require
+       journal commit acknowledgment, the journal commit prevails, and
+       the driver will require that :binary:`~bin.mongod`  will
+       acknowledge the replica set.
+
+  - ``1``:
+
+    Provides acknowledgment of write operations on a standalone
+    :binary:`~bin.mongod` or the :term:`primary` in a replica set.
+
+  - *A number greater than 1*:
+
+    Guarantees that write operations have propagated successfully to
+    the specified number of replica set members including the primary.
+    If you set ``w`` to a number that is greater than the number of set
+    members that hold data, MongoDB waits for the non-existent members
+    to become available, which means MongoDB blocks indefinitely.
+
+  - ``majority``:
+
+    Confirms that write operations have propagated to the majority of
+    configured replica set: nodes must acknowledge the write operation
+    before it succeeds. This ensures that write operation will *never*
+    be subject to a rollback in the course of normal operation, and
+    furthermore allows you to prevent hard coding assumptions about the
+    size of your replica set into your application.
+
+  - *A tag set*:
+
+    By specifying a :ref:`tag set <replica-set-configuration-tag-sets>`
+    you can have fine-grained control over which replica
+    set members must acknowledge a write operation to satisfy the required
+    level of write concern.
+
+:dbcommand:`getLastError` also supports a ``wtimeout`` setting which
+allows clients to specify a timeout for the write concern: if you
+don't specify ``wtimeout`` and the :binary:`~bin.mongod` cannot fulfill
+the write concern the :dbcommand:`getLastError` will block,
+potentially forever.
+
+For more information on write concern and replica sets, see :ref:`Write
+Concern for Replica Sets <replica-set-write-concern>` for more information..
+
+In sharded clusters, :binary:`~bin.mongos` instances will pass write
+concern on to the shard :binary:`~bin.mongod` instances.
+
+.. _write-operations-bulk-insert:
+
+Bulk Inserts
+------------
+
+In some situations you may need to insert or ingest a large amount of
+data into a MongoDB database. These *bulk inserts* have some
+special considerations that are different from other write
+operations.
+
+The :method:`insert() <db.collection.insert()>` method, when passed an
+array of documents, will perform a bulk insert, and inserts each
+document atomically. :doc:`Drivers </applications/drivers>`
+provide their own interface for this kind of operation.
+
+.. versionadded:: 2.2
+   :method:`insert() <db.collection.insert()>` in the :binary:`~bin.mongo`
+   shell gained support for bulk inserts in version 2.2.
+
+Bulk insert can significantly increase performance by amortizing
+:ref:`write concern <write-operations-write-concern>` costs. In the
+drivers, you can configure write concern for batches rather than on a
+per-document level.
+
+Drivers also have a ``ContinueOnError`` option in their insert
+operation, so that the bulk operation will continue to insert
+remaining documents in a batch even if an insert fails.
+
+.. note::
+
+   .. versionadded::  2.0
+      Support for ``ContinueOnError`` depends on version 2.0 of the
+      core :binary:`~bin.mongod` and :binary:`~bin.mongos` components.
+
+If the bulk insert process generates more than one error in a batch
+job, the client will only receive the most recent error. All bulk
+operations to a :term:`sharded collection <sharded cluster>` run with
+``ContinueOnError``, which applications cannot disable. See
+:ref:`sharding-bulk-inserts` section for more information on
+consideration for bulk inserts in sharded clusters.
+
+For more information see your :doc:`driver documentation
+</applications/drivers>` for details on performing bulk inserts in
+your application. Also consider the following resources:
+:ref:`write-operations-sharded-clusters`,
+:ref:`sharding-bulk-inserts`, and
+:doc:`/administration/import-export`.
+
+.. _write-operations-indexing:
+
+Indexing
+--------
+
+After every insert, update, or delete operation, MongoDB must update
+*every* index associated with the collection in addition to the data
+itself. Therefore, every index on a collection adds some amount of
+overhead for the performance of write operations. [#exceptions]_
+
+In general, the performance gains that indexes provide for *read
+operations* are worth the insertion penalty; however, when optimizing
+write performance, be careful when creating new indexes and always
+evaluate the indexes on the collection and ensure that your queries are
+actually using these indexes.
+
+For more information on indexes in MongoDB consider :doc:`/indexes`
+and :doc:`/applications/indexes`.
+
+.. [#exceptions] The overhead for :ref:`sparse indexes
+   <index-type-sparse>` inserts and updates to un-indexed fields
+   is less than for non-sparse indexes. Also for non-sparse indexes,
+   updates that don't change the record size have less indexing
+   overhead.
+
+.. _write-operations-isolation:
+
+Isolation
+---------
+
+When a single write operation modifies multiple documents, the
+operation as a whole is not atomic, and other operations may
+interleave. The modification of a single document, or record, is always
+atomic, even if the write operation modifies multiple sub-document
+*within* the single record.
+
+No other operations are atomic; however, you can attempt to isolate a
+write operation that affects multiple documents using the
+:doc:`isolation operator </reference/operator/update/isolated>`.
+
+To isolate a sequence of write operations from other read and write
+operations, see :doc:`/tutorial/perform-two-phase-commits`.
+
+Updates
+-------
+
+Each document in a MongoDB collection has allocated *record* space
+which includes the entire document *and* a small amount of
+padding. This padding makes it possible for update operations to
+increase the size of a document slightly without causing the document
+to outgrow the allocated record size.
+
+Documents in MongoDB can grow up to the full maximum :limit:`BSON
+document size <BSON Document Size>`. However, when documents outgrow
+their allocated record size MongoDB must allocate a new record and
+move the document to the new record. Update operations that do not
+cause a document to grow, (i.e. *in-place* updates,) are significantly
+more efficient than those updates that cause document growth. Use
+:doc:`data models </core/data-modeling>` that minimize the need for
+document growth when possible.
+
+For complete examples of update operations, see
+:doc:`/applications/update`.
+
+.. _write-operations-padding-factor:
+
+Padding Factor
+--------------
+
+If an update operation does not cause the document to increase in
+size, MongoDB can apply the update in-place. Some updates
+change the size of the document, for example using the
+:update:`$push` operator to append a sub-document to an array can
+cause the top level document to grow beyond its allocated space.
+
+When documents grow, MongoDB relocates the document on disk with
+enough contiguous space to hold the document. These relocations
+take longer than in-place updates, particularly if the collection has
+indexes that MongoDB must update all index entries. If
+collection has many indexes, the move will impact write throughput.
+
+To minimize document movements, MongoDB employs padding. MongoDB
+adaptively learns if documents in a collection tend to grow, and if
+they do, adds a :data:`~collStats.paddingFactor` so that the documents have room
+to grow on subsequent writes. The :data:`~collStats.paddingFactor` indicates the
+padding for new inserts and moves.
+
+.. versionadded:: 2.2
+   You can use the :dbcommand:`collMod` command
+   with the :collflag:`usePowerOf2Sizes` flag so that MongoDB
+   allocates document space in sizes that are powers of 2. This helps
+   ensure that MongoDB can efficiently reuse the space freed as a
+   result of deletions or document relocations. As with all padding,
+   using document space allocations with power of 2 sizes minimizes,
+   but does not eliminate, document movements.
+
+To check the current :data:`~collStats.paddingFactor` on a collection, you can
+run the :method:`db.collection.stats()` operation in the
+:binary:`~bin.mongo` shell, as in the following example:
+
+.. code-block:: javascript
+
+   db.myCollection.stats()
+
+Since MongoDB writes each document at a different point in time, the
+padding for each document will not be the same. You can calculate the
+padding size by subtracting 1 from the :data:`~collStats.paddingFactor`, for
+example:
+
+.. code-block:: none
+
+   padding size = (paddingFactor - 1) * <document size>.
+
+For example, a :data:`~collStats.paddingFactor` of ``1.0`` specifies no padding
+whereas a paddingFactor of ``1.5`` specifies a padding size of ``0.5`` or 50
+percent (50%) of the document size.
+
+Because the :data:`~collStats.paddingFactor` is relative to the size of each
+document, you cannot calculate the exact amount of padding for a
+collection based on the average document size and padding factor.
+
+If an update operation causes the document to *decrease* in size, for
+instance if you perform an :update:`$unset` or a :update:`$pop`
+update, the document remains in place and effectively has more
+padding. If the document remains this size, the space is not reclaimed
+until you perform a :dbcommand:`compact` or a
+:dbcommand:`repairDatabase` operation.
+
+.. note::
+
+   The following operations remove padding:
+
+   - :dbcommand:`compact`,
+   - :dbcommand:`repairDatabase`, and
+   - initial replica sync operations.
+
+   However, with the :dbcommand:`compact` command, you can run the
+   command with a ``paddingFactor`` or a ``paddingBytes`` parameter.
+
+   Padding is also removed if you use :binary:`~bin.mongoexport` from a
+   collection. If you use :binary:`~bin.mongoimport` into a new
+   collection, :binary:`~bin.mongoimport` will not add padding.  If you
+   use :binary:`~bin.mongoimport` with an existing collection with
+   padding, :binary:`~bin.mongoimport` will not affect the existing
+   padding.
+
+   When a database operation removes padding, subsequent update that
+   require changes in record sizes will have reduced throughput until
+   the collection's padding factor grows. Padding does not affect
+   in-place, and after :dbcommand:`compact`,
+   :dbcommand:`repairDatabase`, and replica set initial sync
+   the collection will require less storage.
+
+.. COMMENT -- not sure if we really need this manual padding info or if
+   it belongs here, but ...
+
+.. seealso::
+
+   - :ref:`faq-developers-manual-padding`
+
+   - `Fast Updates with MongoDB with in-place Updates <http://blog.mongodb.org/post/248614779/fast-updates-with-mongodb-update-in-place>`_ (blog post)
+
+Architecture
+------------
+
+.. _write-operations-replica-sets:
+
+Replica Sets
+~~~~~~~~~~~~
+
+In :term:`replica sets <replica set>`, all write operations go to the
+set's :term:`primary`, which applies the write operation then records
+the operations on the primary's operation log or :term:`oplog`. The
+oplog is a reproducible sequence of operations to the data
+set. :term:`Secondary` members of the set are continuously replicating the
+oplog and applying the operations to themselves in an asynchronous
+process.
+
+Large volumes of write operations, particularly bulk operations, may
+create situations where the secondary members have difficulty applying
+the replicating operations from the primary at a sufficient rate: this
+can cause the secondary's state to fall behind that of the primary. Secondaries
+that are significantly behind the primary present problems for normal
+operation of the replica set, particularly :ref:`failover
+<replica-set-failover-administration>` in the form of :ref:`rollbacks
+<replica-set-rollback>` as well as general :ref:`read consistency
+<replica-set-consistency>`.
+
+To help avoid this issue, you can customize the :ref:`write concern
+<write-operations-write-concern>` to return confirmation of the write
+operation to another member [#write-concern-throttling]_ of the replica
+set every 100 or 1,000 operations. This provides an opportunity for
+secondaries to catch up with the primary. Write concern can slow the
+overall progress of write operations but ensure that the secondaries
+can maintain a largely current state with respect to the primary.
+
+For more information on replica sets and write operations, see
+:ref:`replica-set-write-concern`, :ref:`replica-set-oplog-sizing`,
+:ref:`replica-set-oplog`, and :ref:`replica-set-procedure-change-oplog-size`.
+
+.. [#write-concern-throttling] Calling :dbcommand:`getLastError`
+   intermittently with a ``w`` value of ``2`` or ``majority`` will
+   slow the throughput of write traffic; however, this practice will
+   allow the secondaries to remain current with the state of the
+   primary.
+
+.. _write-operations-sharded-clusters:
+
+Sharded Clusters
+~~~~~~~~~~~~~~~~
+
+In a :term:`sharded cluster`, MongoDB directs a given write operation to
+a :term:`shard` and then performs the write on a particular
+:term:`chunk` on that shard. Shards and chunks are range-based.
+:term:`Shard keys <shard key>` affect how MongoDB distributes documents
+among shards. Choosing the correct shard key can have a great impact on
+the performance, capability, and functioning of your database and
+cluster.
+
+For more information, see :doc:`/administration/sharded-clusters` and
+:ref:`write-operations-bulk-insert`.

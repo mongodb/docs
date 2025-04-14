@@ -1,0 +1,252 @@
+.. index:: config servers; operations
+.. _sharding-procedure-config-server:
+
+=========================
+Manage the Config Servers
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+:ref:`Config servers <sharding-config-server>` store all cluster metadata, most importantly,
+the mapping from :term:`chunks <chunk>` to :term:`shards <shard>`.
+This section provides an overview of the basic
+procedures to migrate, replace, and maintain these servers.
+
+This page includes the following:
+
+- :ref:`sharding-config-server-deploy-three`
+
+- :ref:`sharding-process-config-server-migrate-same-hostname`
+
+- :ref:`sharding-process-config-server-migrate-different-hostname`
+
+- :ref:`sharding-config-server-replace`
+
+- :ref:`sharding-config-server-backup`
+
+.. _sharding-config-server-deploy-three:
+
+Deploy Three Config Servers for Production Deployments
+------------------------------------------------------
+
+For redundancy, all production :term:`sharded clusters <sharded cluster>`
+should deploy three config servers processes on three different
+machines.
+
+Do not use only a single config server for production deployments.
+Only use a single config server deployments for testing.  You should
+upgrade to three config servers immediately if you are shifting to
+production.  The following process shows how to convert a test
+deployment with only one config server to production deployment with
+three config servers.
+
+#. Shut down all existing MongoDB processes in the cluster. This
+   includes:
+
+   - all :binary:`~bin.mongod` instances or :term:`replica sets <replica set>`
+     that provide your shards.
+
+   - all :binary:`~bin.mongos` instances in your cluster.
+
+#. Copy the entire :setting:`dbpath` file system tree from the
+   existing config server to the two machines that will provide the
+   additional config servers. These commands, issued on the system
+   with the existing :ref:`config-database`, ``mongo-config0.example.net`` may
+   resemble the following:
+
+   .. code-block:: sh
+
+      rsync -az /data/configdb mongo-config1.example.net:/data/configdb
+      rsync -az /data/configdb mongo-config2.example.net:/data/configdb
+
+#. Start all three config servers, using the same invocation that you
+   used for the single config server.
+
+   .. code-block:: sh
+
+      mongod --configsvr
+
+#. Restart all shard :binary:`~bin.mongod` and :binary:`~bin.mongos` processes.
+
+.. _sharding-process-config-server-migrate-same-hostname:
+
+Migrate Config Servers with the Same Hostname
+---------------------------------------------
+
+Use this process when you need to migrate a config server to a new
+system but the new system will be accessible using the same host
+name.
+
+#. Shut down the config server that you're moving.
+
+   This will render all config data for your cluster :ref:`read only
+   <sharding-config-server>`.
+
+#. Change the DNS entry that points to the system that provided the old
+   config server, so that the *same* hostname points to the new
+   system.
+
+   How you do this depends on how you organize your DNS and
+   hostname resolution services.
+
+#. Move the entire :setting:`dbpath` file system tree from the old
+   config server to the new config server. This command, issued on the
+   old config server system, may resemble the following:
+
+   .. code-block:: sh
+
+      rsync -az /data/configdb mongo-config0.example.net:/data/configdb
+
+#. Start the config instance on the new system. The default invocation
+   is:
+
+   .. code-block:: sh
+
+      mongod --configsvr
+
+When you start the third config server, your cluster will become
+writable and it will be able to create new splits and migrate chunks
+as needed.
+
+.. _sharding-process-config-server-migrate-different-hostname:
+
+Migrate Config Servers with Different Hostnames
+-----------------------------------------------
+
+Use this process when you need to migrate a :ref:`config-database` to a new
+server and it *will not* be accessible via the same hostname. If
+possible, avoid changing the hostname so that you can use the
+:ref:`previous procedure <sharding-process-config-server-migrate-same-hostname>`.
+
+#. Disable the cluster balancer process temporarily. See
+   :ref:`sharding-balancing-disable-temporarily` for more information.
+
+#. Shut down the :ref:`config server <sharding-config-server>` you're moving.
+
+   This will render all config data for your cluster "read only:"
+
+   .. code-block:: sh
+
+      rsync -az /data/configdb mongodb.config2.example.net:/data/configdb
+
+#. Start the config instance on the new system. The default invocation
+   is:
+
+   .. code-block:: sh
+
+      mongod --configsvr
+
+#. Shut down all existing MongoDB processes. This includes:
+
+   - all :binary:`~bin.mongod` instances or :term:`replica sets <replica set>`
+     that provide your shards.
+
+   - the :binary:`~bin.mongod` instances that provide your existing
+     :ref:`config databases <config-database>`.
+
+   - all :binary:`~bin.mongos` instances in your cluster.
+
+#. Restart all :binary:`~bin.mongod` processes that provide the shard
+   servers.
+
+#. Update the :option:`--configdb <mongos --configdb>` parameter (or
+   :setting:`configdb`) for all :binary:`~bin.mongos` instances and
+   restart all :binary:`~bin.mongos` instances.
+
+#. Re-enable the balancer to allow the cluster to resume normal
+   balancing operations. See the
+   :ref:`sharding-balancing-disable-temporarily` section for more
+   information on managing the balancer process.
+
+.. _sharding-config-server-replace:
+
+Replace a Config Server
+-----------------------
+
+Use this procedure only if you need to replace one of your config
+servers after it becomes inoperable (e.g. hardware failure.) This
+process assumes that the hostname of the instance will not change. If
+you must change the hostname of the instance, use the process for
+:ref:`migrating a config server to a different hostname
+<sharding-process-config-server-migrate-different-hostname>`.
+
+#. Disable the cluster balancer process temporarily. See
+   :ref:`sharding-balancing-disable-temporarily` for more information.
+
+#. Provision a new system, with the same hostname as the previous
+   host.
+
+   You will have to ensure that the new system has the same IP address
+   and hostname as the system it's replacing *or* you will need to
+   modify the DNS records and wait for them to propagate.
+
+#. Shut down *one* (and only one) of the existing config servers. Copy
+   all this host's :setting:`dbpath` file system tree from the current system
+   to the system that will provide the new config server. This
+   command, issued on the system with the data files, may resemble the
+   following:
+
+   .. code-block:: sh
+
+      rsync -az /data/configdb mongodb.config2.example.net:/data/configdb
+
+#. Restart the config server process that you used in the previous
+   step to copy the data files to the new config server instance.
+
+#. Start the new config server instance. The default invocation is:
+
+   .. code-block:: sh
+
+      mongod --configsvr
+
+#. Re-enable the balancer to allow the cluster to resume normal
+   balancing operations. See the
+   :ref:`sharding-balancing-disable-temporarily` section for more
+   information on managing the balancer process.
+
+.. note::
+
+   In the course of this procedure *never* remove a config server from
+   the :setting:`configdb` parameter on any of the :binary:`~bin.mongos`
+   instances. If you need to change the name of a config server,
+   always make sure that all :binary:`~bin.mongos` instances have three
+   config servers specified in the :setting:`configdb` setting at all
+   times.
+
+.. _sharding-config-server-backup:
+
+Backup Cluster Metadata
+-----------------------
+
+The cluster will remain operational [#read-only]_ without one
+of the config database's :binary:`~bin.mongod` instances, creating a backup
+of the cluster metadata from the config database is straight forward:
+
+#. Disable the cluster balancer process temporarily. See
+   :ref:`sharding-balancing-disable-temporarily` for more information.
+
+#. Shut down one of the :term:`config databases <config database>`.
+
+#. Create a full copy of the data files (i.e. the path specified by
+   the :setting:`dbpath` option for the config instance.)
+
+#. Restart the original configuration server.
+
+#. Re-enable the balancer to allow the cluster to resume normal
+   balancing operations. See the
+   :ref:`sharding-balancing-disable-temporarily` section for more
+   information on managing the balancer process.
+
+.. seealso:: :doc:`/administration/backups`.
+
+.. [#read-only] While one of the three config servers is unavailable,
+   the cluster cannot split any chunks nor can it migrate chunks
+   between shards. Your application will be able to write data to the
+   cluster. The :ref:`sharding-config-server` section of the
+   documentation provides more information on this topic.

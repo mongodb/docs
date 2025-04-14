@@ -1,0 +1,110 @@
+================
+Rotate Log Files
+================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+Log rotation archives the current log file and starts a new one.
+Specifically, log rotation renames the current log file by appending
+the filename with a timestamp, [#timestamp-format]_ opens a new log
+file, and finally closes the old log. MongoDB will only rotate logs,
+when you use the :dbcommand:`logRotate` command, or issue the process
+a ``SIGUSR1`` signal as described in this procedure.
+
+.. seealso:: For information on logging, see the
+   :ref:`monitoring-standard-loggging` section.
+
+Procedure
+---------
+
+The following steps create and rotate a log file:
+
+1. Start a :binary:`~bin.mongod` with verbose logging, with appending
+   enabled, and with the following log file:
+
+   .. code-block:: javascript
+
+      mongod -v --logpath /var/log/mongodb/server1.log --logappend
+
+#. In a separate terminal, list the matching files:
+
+   .. code-block:: javascript
+
+      ls /var/log/mongodb/server1.log*
+
+   For results, you get:
+
+   .. code-block:: javascript
+
+      server1.log
+
+#. Rotate the log file using *one* of the following methods.
+
+   - From the :binary:`~bin.mongo` shell, issue the :dbcommand:`logRotate`
+     command from the ``admin`` database:
+
+     .. code-block:: javascript
+
+        use admin
+        db.runCommand( { logRotate : 1 } )
+
+     This is the only available method to rotate log files on
+     Windows systems.
+
+   - From the UNIX shell, rotate logs for a single process by issuing
+     the following command:
+
+     .. code-block:: javascript
+
+        kill -SIGUSR1 <mongod process id>
+
+   - From the UNIX shell, rotate logs for all :binary:`~bin.mongod`
+     processes on a machine by issuing the following command:
+
+     .. code-block:: javascript
+
+        killall -SIGUSR1 mongod
+
+#. List the matching files again:
+
+   .. code-block:: javascript
+
+      ls /var/log/mongodb/server1.log*
+
+   For results you get something similar to the following. The
+   timestamps will be different.
+
+   .. code-block:: none
+
+      server1.log  server1.log.2011-11-24T23-30-00
+
+   The example results indicate a log rotation performed at exactly
+   ``11:30 pm`` on ``November 24th, 2011 UTC``, which is the local time
+   offset by the local time zone. The original log file is the one with
+   the timestamp. The new log is ``server1.log`` file.
+
+   If you issue a second :dbcommand:`logRotate` command an hour later,
+   then an additional file would appear when listing matching files,
+   as in the following example:
+
+   .. code-block:: none
+
+      server1.log  server1.log.2011-11-24T23-30-00  server1.log.2011-11-25T00-30-00
+
+   This operation does not modify the
+   ``server1.log.2011-11-24T23-30-00`` file created earlier, while
+   ``server1.log.2011-11-25T00-30-00`` is the previous ``server1.log``
+   file, renamed. ``server1.log`` is a new, empty file that receives
+   all new log output.
+
+.. [#timestamp-format] MongoDB renders this timestamp in UTC (GMT) and
+   formatted as :term:`ISODate`.

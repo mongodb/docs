@@ -1,0 +1,114 @@
+.. _sharding-manage-shards:
+
+==========================
+View Cluster Configuration
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. _sharding-procedure-list-databases:
+
+List Databases with Sharding Enabled
+------------------------------------
+
+To list the databases that have sharding enabled, query the
+``databases`` collection in the :ref:`config-database`.
+A database has sharding enabled if the value of the ``partitioned``
+field is ``true``. Connect to a :binary:`~bin.mongos` instance with a
+:binary:`~bin.mongo` shell, and run the following operation to get a full
+list of databases with sharding enabled:
+
+.. code-block:: javascript
+
+   use config
+   db.databases.find( { "partitioned": true } )
+
+.. example:: You can use the following sequence of commands when to
+   return a list of all databases in the cluster:
+
+   .. code-block:: javascript
+
+      use config
+      db.databases.find()
+
+   If this returns the following result set:
+
+   .. code-block:: javascript
+
+      { "_id" : "admin", "partitioned" : false, "primary" : "config" }
+      { "_id" : "animals", "partitioned" : true, "primary" : "m0.example.net:30001" }
+      { "_id" : "farms", "partitioned" : false, "primary" : "m1.example2.net:27017" }
+
+   Then sharding is only enabled for the ``animals`` database.
+
+.. _sharding-procedure-list-shards:
+
+List Shards
+-----------
+
+To list the current set of configured shards, use the :dbcommand:`listShards`
+command, as follows:
+
+.. code-block:: javascript
+
+   use admin
+   db.runCommand( { listShards : 1 } )
+
+.. _sharding-procedure-view-clusters:
+
+View Cluster Details
+--------------------
+
+To view cluster details, issue :method:`db.printShardingStatus()` or
+:method:`sh.status()`. Both methods return the same output.
+
+.. example:: In the following example output from :method:`sh.status()`
+
+   - ``sharding version`` displays the version number of the shard
+     metadata.
+
+   - ``shards`` displays a list of the :binary:`~bin.mongod` instances
+     used as shards in the cluster.
+
+   - ``databases`` displays all databases in the cluster,
+     including database that do not have sharding enabled.
+
+   - The ``chunks`` information for the ``foo`` database displays how
+     many chunks are on each shard and displays the range of each chunk.
+
+   .. code-block:: javascript
+
+      --- Sharding Status ---
+        sharding version: { "_id" : 1, "version" : 3 }
+        shards:
+          {  "_id" : "shard0000",  "host" : "m0.example.net:30001" }
+          {  "_id" : "shard0001",  "host" : "m3.example2.net:50000" }
+        databases:
+          {  "_id" : "admin",  "partitioned" : false,  "primary" : "config" }
+          {  "_id" : "animals",  "partitioned" : true,  "primary" : "shard0000" }
+              foo.big chunks:
+                      shard0001    1
+                      shard0000    6
+                  { "a" : { $minKey : 1 } } -->> { "a" : "elephant" } on : shard0001 Timestamp(2000, 1) jumbo
+                  { "a" : "elephant" } -->> { "a" : "giraffe" } on : shard0000 Timestamp(1000, 1) jumbo
+                  { "a" : "giraffe" } -->> { "a" : "hippopotamus" } on : shard0000 Timestamp(2000, 2) jumbo
+                  { "a" : "hippopotamus" } -->> { "a" : "lion" } on : shard0000 Timestamp(2000, 3) jumbo
+                  { "a" : "lion" } -->> { "a" : "rhinoceros" } on : shard0000 Timestamp(1000, 3) jumbo
+                  { "a" : "rhinoceros" } -->> { "a" : "springbok" } on : shard0000 Timestamp(1000, 4)
+                  { "a" : "springbok" } -->> { "a" : { $maxKey : 1 } } on : shard0000 Timestamp(1000, 5)
+              foo.large chunks:
+                      shard0001    1
+                      shard0000    5
+                  { "a" : { $minKey : 1 } } -->> { "a" : "hen" } on : shard0001 Timestamp(2000, 0)
+                  { "a" : "hen" } -->> { "a" : "horse" } on : shard0000 Timestamp(1000, 1) jumbo
+                  { "a" : "horse" } -->> { "a" : "owl" } on : shard0000 Timestamp(1000, 2) jumbo
+                  { "a" : "owl" } -->> { "a" : "rooster" } on : shard0000 Timestamp(1000, 3) jumbo
+                  { "a" : "rooster" } -->> { "a" : "sheep" } on : shard0000 Timestamp(1000, 4)
+                  { "a" : "sheep" } -->> { "a" : { $maxKey : 1 } } on : shard0000 Timestamp(1000, 5)
+          {  "_id" : "test",  "partitioned" : false,  "primary" : "shard0000" }

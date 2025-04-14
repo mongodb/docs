@@ -1,0 +1,314 @@
+================
+FAQ: Concurrency
+================
+
+.. versionchanged:: 2.2
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+MongoDB allows multiple clients to read and write a single corpus of
+data using a locking system to ensure that all clients receive the
+same view of the data *and* to prevent multiple applications
+from modifying the exact same pieces of data at the same time. Locks
+help guarantee that all writes to a single document occur either in
+full or not at all.
+
+.. seealso:: `Presentation on Concurrency and Internals in 2.2 <http://www.mongodb.com/presentations/concurrency-internals-mongodb-2-2>`_
+
+.. _faq-concurrency-locking:
+
+What type of locking does MongoDB use?
+--------------------------------------
+
+MongoDB uses a readers-writer [#multi-reader-lock-names]_ lock that
+allows concurrent reads access to a database but gives exclusive
+access to a single write operation.
+
+When a read lock exists, many read operations may use this lock. However, when
+a write lock exists, a single write operation holds the lock
+exclusively, and no other read *or* write operations may share the lock.
+
+Locks are "writer greedy," which means writes have preference over
+reads. When both a read and write are waiting for a lock, MongoDB
+grants the lock to the write.
+
+.. [#multi-reader-lock-names] You may be familiar with a
+   "readers-writer" lock as "multi-reader" or "shared exclusive"
+   lock. See the Wikipedia page on `Readers-Writer Locks
+   <http://en.wikipedia.org/wiki/Readers%E2%80%93writer_lock>`_ for
+   more information.
+
+How granular are locks in MongoDB?
+----------------------------------
+
+.. versionchanged:: 2.2
+
+Beginning with version 2.2, MongoDB implements locks on a per-database
+basis for most read and write operations. Some global operations,
+typically short lived operations involving multiple databases, still
+require a global "instance" wide lock. Before 2.2, there is only one
+"global" lock per :binary:`~bin.mongod` instance.
+
+For example, if you have six databases and one takes a write lock, the
+other five are still available for read and write.
+
+How do I see the status of locks on my :binary:`~bin.mongod` instances?
+-----------------------------------------------------------------------
+
+For reporting on lock utilization information on locks, use any of the
+following methods:
+
+- :method:`db.serverStatus()`,
+- :method:`db.currentOp()`,
+- :doc:`mongotop </reference/mongotop>`,
+- :doc:`mongostat </reference/mongostat>`, and/or
+- the `MongoDB Management Service (MMS) <http://mms.mongodb.com/>`_
+
+Specifically, the :data:`~serverStatus.locks` document in the :doc:`output of
+serverStatus </reference/server-status>`, or the :data:`~currentOp.locks` field
+in the :doc:`current operation reporting </reference/current-op>`
+provides insight into the type of locks and amount of lock
+contention in your :binary:`~bin.mongod` instance.
+
+To terminate an operation, use :method:`db.killOp()`.
+
+.. _faq-concurrency-yielding:
+
+Does a read or write operation ever yield the lock?
+---------------------------------------------------
+
+.. versionadded:: 2.0
+
+Read and write operations will yield their locks if the
+:binary:`~bin.mongod` receives a :term:`page fault` *or* fetches data that
+is unlikely to be in memory. Yielding allows other operations that
+only need to access documents that are already in memory to complete
+while :binary:`~bin.mongod` loads documents into memory.
+
+Additionally, write operations that affect multiple documents
+(i.e. :method:`~db.collection.update()` with the ``multi``
+parameter,) will yield periodically to allow read operations during
+these long write operations. Similarly, long running read locks will
+yield periodically to ensure that write operations have the
+opportunity to complete.
+
+.. versionchanged:: 2.2
+   The use of yielding expanded greatly in MongoDB 2.2. Including the
+   "yield for page fault." MongoDB tracks the contents of memory and
+   predicts whether data is available before performing a read. If
+   MongoDB predicts that the data is not in memory a read operation
+   yields its lock while MongoDB loads the data to memory. Once data
+   is available in memory, the read will reacquire the lock to
+   complete the operation.
+
+.. _faq-concurrency-operations-locks:
+
+Which operations lock the database?
+-----------------------------------
+
+.. versionchanged:: 2.2
+
+The following table lists common database operations and the types of
+locks they use:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Operation
+
+     - Lock Type
+
+   * - Issue a query
+
+     - Read lock
+
+   * - Get more data from a :term:`cursor`
+
+     - Read lock
+
+   * - Insert data
+
+     - Write lock
+
+   * - Remove data
+
+     - Write lock
+
+   * - Update data
+
+     - Write lock
+
+   * - :term:`Map-reduce <map-reduce>`
+
+     - Read lock and write lock, unless operations are specified as
+       non-atomic. Portions of map-reduce jobs can run concurrently.
+       
+
+   * - Create an index
+
+     - Building an index in the foreground, which is the default, locks
+       the database for extended periods of time.
+       
+
+   * - :method:`db.eval()`
+
+     - Write lock. :method:`db.eval()` blocks all other JavaScript
+       processes.
+       
+
+   * - :dbcommand:`eval`
+
+     - Write lock. If used with the ``nolock`` lock option, the
+       :dbcommand:`eval` option does not take a write lock and
+       cannot write data to the database.
+       
+
+   * - :method:`aggregate() <db.collection.aggregate()>`
+
+     - Read lock
+
+
+Which administrative commands lock the database?
+------------------------------------------------
+
+Certain administrative commands can exclusively lock the database for
+extended periods of time. In some deployments, for large databases,
+you may consider taking the :binary:`~bin.mongod` instance offline so that
+clients are not affected. For example, if a :binary:`~bin.mongod` is part
+of a :term:`replica set`, take the :binary:`~bin.mongod` offline and let
+other members of the set service load while maintenance is in progress.
+
+The following administrative operations require an exclusive
+(i.e. write) lock on the database for extended periods:
+
+- :method:`db.collection.ensureIndex()`, when issued
+  *without* setting ``background`` to ``true``,
+- :dbcommand:`reIndex`,
+- :dbcommand:`compact`,
+- :method:`db.repairDatabase()`,
+- :method:`db.createCollection()`, when creating a very large
+  (i.e. many gigabytes) capped collection,
+- :method:`db.collection.validate()`, and
+- :method:`db.copyDatabase()`. This operation may lock all
+  databases. See :ref:`faq-concurrency-lock-multiple-dbs`.
+
+The :method:`db.collection.group()` operation takes a read lock and does
+not allow any other threads to execute JavaScript while it is running.
+
+The following administrative commands lock the database but only hold
+the lock for a very short time:
+
+- :method:`db.collection.dropIndex()`,
+- :method:`db.getLastError()`,
+- :method:`db.isMaster()`,
+- :method:`rs.status()` (i.e. :dbcommand:`replSetGetStatus`,)
+- :method:`db.serverStatus()`,
+- :method:`db.auth()`, and
+- :method:`db.addUser()`.
+
+.. _faq-concurrency-lock-multiple-dbs:
+
+Does a MongoDB operation ever lock more than one database?
+----------------------------------------------------------
+
+The following MongoDB operations lock multiple databases:
+
+- :method:`db.copyDatabase()` must lock the entire :binary:`~bin.mongod`
+  instance at once.
+
+- :term:`Journaling <journal>`, which is an internal operation, locks
+  all databases for short intervals. All databases share a single
+  journal.
+
+- :ref:`User authentication <security-authentication>` locks the
+  ``admin`` database as well as the database the user is accessing.
+
+- All writes to a replica set's :term:`primary` lock both the database
+  receiving the writes and the ``local`` database. The lock for the
+  ``local`` database allows the :binary:`~bin.mongod` to write to the
+  primary's :term:`oplog`.
+
+How does sharding affect concurrency?
+-------------------------------------
+
+:term:`Sharding <sharding>` improves concurrency by distributing
+collections over multiple :binary:`~bin.mongod` instances, allowing shard
+servers (i.e. :binary:`~bin.mongos` processes) to perform any number of
+operations concurrently to the various downstream :binary:`~bin.mongod`
+instances.
+
+Each :binary:`~bin.mongod` instance is independent of the others in the
+shard cluster and uses the MongoDB :ref:`readers-writer lock
+<faq-concurrency-locking>`). The operations on one :binary:`~bin.mongod`
+instance do not block the operations on any others.
+
+.. _faq-concurrency-replication:
+
+How does concurrency affect a replica set primary?
+--------------------------------------------------
+
+In :term:`replication`, when MongoDB writes to a collection on the
+:term:`primary`, MongoDB also writes to the primary's :term:`oplog`,
+which is a special collection in the ``local`` database.  Therefore,
+MongoDB must lock both the collection's database and the ``local``
+database. The :binary:`~bin.mongod` must lock both databases at the same
+time keep both data consistent and ensure that write operations, even
+with replication, are "all-or-nothing" operations.
+
+How does concurrency affect secondaries?
+----------------------------------------
+
+In :term:`replication`, MongoDB does not apply writes serially to
+:term:`secondaries <secondary>`. Secondaries collect oplog entries in
+batches and then apply those batches in parallel. Secondaries do not
+allow reads while applying the write operations, and apply write
+operations in the order that they appear in the oplog.
+
+MongoDB can apply several writes in parallel on replica set
+secondaries, in two phases:
+
+1. During the first *prefer* phase, under a read lock, the
+   :binary:`~bin.mongod` ensures that all documents affected by the
+   operations are in memory. During this phase, other clients may
+   execute queries against this member.
+
+2. A thread pool using write locks applies all write operations in the
+   batch as part of a coordinated write phase.
+
+What kind of concurrency does MongoDB provide for JavaScript operations?
+------------------------------------------------------------------------
+
+A single :binary:`~bin.mongod` can only run a *single* JavaScript
+operation at once. Therefore, operations that rely on JavaScript cannot
+run concurrently; however, the :binary:`~bin.mongod` can often run other
+database operations concurrently with the JavaScript execution. This
+limitation with JavaScript affects the following operations:
+
+- :dbcommand:`mapReduce`
+
+  The JavaScript operations within a :dbcommand:`mapReduce` job are
+  short lived and yield many times during the operation. Portions of
+  the map-reduce operation take database locks for reading, writing
+  data to a temporary collection and writing the final output of the
+  write operation.
+
+- :dbcommand:`group`
+
+  The :dbcommand:`group` takes a read lock in addition to blocking all
+  other JavaScript execution.
+
+- :method:`db.eval()`
+
+  Unless you specify the ``nolock`` option, :method:`db.eval()` takes
+  a write lock in addition to blocking all JavaScript operations.
+
+- :query:`$where`
+
+  Only a single query that uses the :query:`$where` operation can
+  run at a time.

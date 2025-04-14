@@ -1,0 +1,517 @@
+================================
+Replica Set Fundamental Concepts
+================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+A MongoDB :term:`replica set` is a cluster of :binary:`~bin.mongod` instances that
+replicate amongst one another and ensure automated failover. Most replica
+sets consist of two or more :binary:`~bin.mongod` instances with at most one
+of these designated as the primary and the rest as secondary
+members. Clients direct all writes to the primary, while
+the secondary members replicate from the primary asynchronously.
+
+Database replication with MongoDB adds redundancy, helps to
+ensure high availability, simplifies certain administrative tasks
+such as backups, and may increase read capacity. Most production
+deployments use replication.
+
+If you're familiar with other database systems, you may think about
+replica sets as a more sophisticated form of traditional master-slave
+replication. [#master-slave]_ In master-slave replication, a
+:term:`master` node accepts writes while one or more :term:`slave`
+nodes replicate those write operations and thus maintain data sets
+identical to the master. For MongoDB deployments, the member that accepts write
+operations is the **primary**, and the replicating members are **secondaries**.
+
+MongoDB's replica sets provide automated failover. If a
+:term:`primary` fails, the remaining members will automatically
+try to elect a new primary.
+
+A replica set can have up to 12 members, but only 7 members can have
+votes. For information regarding non-voting members, see
+:ref:`non-voting members <replica-set-non-voting-members>`
+
+.. seealso:: The :doc:`/replication` index for a list of the documents in
+   this manual that describe the operation and use of replica sets.
+
+.. [#master-slave] MongoDB also provides conventional master/slave
+   replication. Master/slave replication operates by way of the same
+   mechanism as replica sets, but lacks the automatic failover
+   capabilities. While replica sets are the recommended solution for
+   production, a replica set can support only 12 members in total.
+   If your deployment requires more than 11 :term:`slave` members, you'll
+   need to use master/slave replication.
+
+.. index:: configuration; replica set members
+
+Member Configuration Properties
+-------------------------------
+
+You can configure replica set members in a variety of ways, as listed
+here. In most cases, members of a replica set have the default
+proprieties.
+
+- **Secondary-Only**: These members have data but cannot become
+  primary under any circumstance. See
+  :ref:`replica-set-secondary-only-members`.
+
+- **Hidden**: These members are invisible to client
+  applications. See :ref:`replica-set-hidden-members`.
+
+- **Delayed**: These members apply operations from the
+  primary's :term:`oplog` after a specified delay. You can think of a
+  delayed member as a form of "rolling backup."
+  See :ref:`replica-set-delayed-members`.
+
+- **Arbiters**: These members have no data and exist solely to
+  participate in :ref:`elections <replica-set-elections>`. See
+  :ref:`replica-set-arbiters`.
+
+- **Non-Voting**: These members do not vote in elections. Non-voting
+  members are only used for larger sets with more than 7 members. See
+  :ref:`replica-set-non-voting-members`.
+
+For more information about each member configuration, see the
+:ref:`replica-set-member-configurations` section in the
+:doc:`/administration/replica-sets` document.
+
+.. index:: pair: replica set; failover
+.. _replica-set-failover-administration:
+
+Failover
+--------
+
+Replica sets feature automated failover. If the :term:`primary`
+goes offline or becomes unresponsive and a majority of the original
+set members can still connect to each other, the set will elect a new
+primary.
+
+For a detailed explanation of failover, see the
+:ref:`replica-set-failover-administration` section in the
+:doc:`/administration/replica-sets` document.
+
+.. index:: replica set; elections
+.. index:: failover; elections
+.. _replica-set-elections:
+
+Elections
+~~~~~~~~~
+
+When any failover occurs, an election takes place to decide which
+member should become primary.
+
+Elections provide a mechanism for the members of a :term:`replica set`
+to autonomously select a new :term:`primary` without
+administrator intervention. The election allows replica sets to
+recover from failover situations very quickly and robustly.
+
+Whenever the primary becomes unreachable, the secondary members
+trigger an election. The first member to
+receive votes from a majority of the set will become primary. The most
+important feature of replica set elections is that a majority of the
+original number of members in the replica set must be present for
+election to succeed. If you have a three-member replica set, the set can
+elect a primary when two or three members can connect to each other. If
+two members in the replica go offline, then the remaining member will
+remain a secondary.
+
+.. note::
+
+   When the current :term:`primary` steps down and triggers an
+   election, the :binary:`~bin.mongod` instances will close all client
+   connections. This ensures that the clients maintain an accurate
+   view of the :term:`replica set` and helps prevent :term:`rollbacks
+   <rollback>`.
+
+For more information on elections and failover, see:
+
+- The :ref:`replica-set-failover-administration` section in the
+  :doc:`/administration/replica-sets` document.
+
+- The :ref:`replica-set-election-internals` section in the
+  :doc:`/core/replication-internals` document
+
+.. index:: replica set; priority
+.. _replica-set-node-priority:
+.. _replica-set-member-priority:
+
+Member Priority
+~~~~~~~~~~~~~~~
+
+In a replica set, every member has a "priority," that helps determine
+eligibility for :ref:`election <replica-set-elections>` to
+:term:`primary`. By default, all members have a priority of ``1``,
+unless you modify the :data:`~local.system.replset.members[n].priority` value. All members
+have a single vote in elections.
+
+.. warning::
+
+   Always configure the :data:`~local.system.replset.members[n].priority` value to control
+   which members will become primary. Do not configure
+   :data:`~local.system.replset.members[n].votes` except to permit more than 7 secondary
+   members.
+
+For more information on member priorities, see the
+:ref:`replica-set-node-priority-configuration` section in the
+:doc:`/administration/replica-sets` document.
+
+.. index:: pair: replica set; consistency
+.. _replica-set-consistency:
+
+Consistency
+-----------
+
+This section provides an overview of the concepts that underpin
+database consistency and the MongoDB mechanisms to ensure that users
+have access to consistent data.
+
+In MongoDB, all read operations issued to the primary of a
+replica set are :term:`consistent <strict consistency>` with the last
+write operation.
+
+If clients configure the :term:`read preference` to permit secondary reads,
+read operations cannot return from :term:`secondary` members that have not
+replicated more recent updates or operations. In these situations the
+query results may reflect a previous state.
+
+This behavior is sometimes characterized as :term:`eventual
+consistency` because the secondary member's state will *eventually*
+reflect the primary's state and MongoDB cannot guarantee :term:`strict
+consistency` for read operations from secondary members.
+
+There is no way to guarantee consistency for reads from *secondary
+members,* except by configuring the :term:`client` and :term:`driver` to
+ensure that write operations succeed on all members before completing
+successfully.
+
+.. index:: rollbacks
+   single: replica set; rollbacks
+   single: consistency; rollbacks
+
+.. _replica-set-rollbacks:
+.. _replica-set-rollback:
+
+Rollbacks
+~~~~~~~~~
+
+In some :term:`failover` situations :term:`primaries <primary>` will have
+accepted write operations that have *not* replicated to the
+:term:`secondaries <secondary>` after a failover occurs. This case is
+rare and typically occurs as a result of a network partition with
+replication lag. When this member (the former primary) rejoins the
+:term:`replica set` and attempts to continue replication as a
+secondary the former primary must revert these operations or "roll
+back" these operations to maintain database consistency across the
+replica set.
+
+MongoDB writes the rollback data to a :term:`BSON` file in the
+database's :setting:`dbpath` directory. Use :doc:`bsondump
+</reference/bsondump>` to read the contents of these rollback files
+and then manually apply the changes to the new primary. There is no
+way for MongoDB to appropriately and fairly handle rollback situations
+automatically. Therefore you must intervene manually to apply rollback
+data. Even after the member completes the rollback and returns to
+secondary status, administrators will need to apply or decide to
+ignore the rollback data. MongoDB writes rollback data to a
+``rollback/`` folder within the :setting:`dbpath` directory to files
+with filenames in the following form:
+
+.. code-block:: none
+
+   <database>.<collection>.<timestamp>.bson
+
+For example:
+
+.. code-block:: none
+
+   records.accounts.2011-05-09T18-10-04.0.bson
+
+The best strategy for avoiding all rollbacks is to ensure :ref:`write
+propagation <replica-set-write-concern>` to all or some of the
+members in the set. Using
+these kinds of policies prevents situations
+that might create rollbacks.
+
+.. warning::
+
+   A :binary:`~bin.mongod` instance will not rollback more than 300
+   megabytes of data. If your system needs to rollback more than 300
+   MB, you will need to manually intervene to recover this data. If
+   this is the case, you will find the following line in your
+   :binary:`~bin.mongod` log:
+
+   .. code-block:: none
+
+      [replica set sync] replSet syncThread: 13410 replSet too much data to roll back
+
+   In these situations you will need to manually intervene to either
+   save data or to force the member to perform an initial sync from a
+   "current" member of the set by deleting the content of the existing
+   :setting:`dbpath` directory.
+
+For more information on failover, see:
+
+- The :ref:`replica-set-failover` section in this document.
+
+- The :ref:`replica-set-failover-administration` section in the
+  :doc:`/administration/replica-sets` document.
+
+Application Concerns
+~~~~~~~~~~~~~~~~~~~~
+
+Client applications are indifferent to the configuration and operation
+of replica sets. While specific configuration depends to some extent
+on the client :doc:`drivers </applications/drivers>`, there is often
+minimal or no difference between applications using
+:term:`replica sets <replica set>` or standalone instances.
+
+There are two major concepts that *are* important to consider when
+working with replica sets:
+
+1. :ref:`Write Concern <write-concern>`.
+
+   Write concern sends a MongoDB client a response from the server to
+   confirm successful write operations. In replica sets you can
+   configure :ref:`replica acknowledged <write-concern-replica-acknowledged>`
+   write concern to ensure that secondary members of the set have
+   replicated operations before the write returns.
+
+2. :ref:`Read Preference <replica-set-read-preference>`
+
+   By default, read operations issued against a replica set return
+   results from the :term:`primary`. Users may
+   configure :term:`read preference` on a per-connection basis to
+   prefer that read operations return on the :term:`secondary`
+   members.
+
+:term:`Read preference` and :term:`write concern` have particular
+:ref:`consistency <replica-set-consistency>` implications.
+
+For a more detailed discussion of application concerns, see :doc:`/applications/replication`.
+
+Administration and Operations
+-----------------------------
+
+This section provides a brief overview of concerns relevant to
+administrators of :term:`replica set` deployments.
+
+For more information on replica set administration, operations, and
+architecture, see:
+
+- :doc:`/administration/replica-sets`
+
+- :doc:`/administration/replica-set-architectures`
+
+.. index:: replica set; oplog
+.. _replica-set-oplog-sizing:
+
+Oplog
+~~~~~
+..
+  Actual oplog sizing as of 2012-07-02:
+
+  32 bit systems = ~48 megabytes
+  64 bit = larger of 5% of disk or ~1 gigabyte
+  64 bit OS X = ~183 megabytes
+
+The :term:`oplog` (operations log) is a special :term:`capped
+collection` that keeps a rolling record of all operations that modify
+that data stored in your databases. MongoDB applies database operations
+on the :term:`primary` and then records the operations on the primary's
+oplog. The :term:`secondary` members then replicate this log and apply
+the operations to themselves in an asynchronous process. All replica set
+members contain a copy of the oplog, allowing them to maintain the
+current state of the database. Operations in the oplog are :term:`idempotent`.
+
+By default, the size of the oplog is as follows:
+
+- For 64-bit Linux, Solaris, FreeBSD, and Windows systems, MongoDB
+  will allocate 5% of the available free disk space to the oplog.
+
+  If this amount is smaller than a gigabyte, then MongoDB will
+  allocate 1 gigabyte of space.
+
+- For 64-bit OS X systems, MongoDB allocates 183 megabytes of space to
+  the oplog.
+
+- For 32-bit systems, MongoDB allocates about 48 megabytes of space to
+  the oplog.
+
+Before oplog creation, you can specify the size of your oplog with the
+:setting:`oplogSize` option. After you start a replica set member for
+the first time, you can only change the size of the oplog by using the
+:doc:`/tutorial/change-oplog-size` tutorial.
+
+In most cases, the default oplog size is sufficient. For example, if an
+oplog that is 5% of free disk space fills up in 24 hours of operations, then
+secondaries can stop copying entries from the oplog for up to 24 hours
+without becoming stale. However, most replica sets have much
+lower operation volumes, and their oplogs can hold a much larger
+number of operations.
+
+The following factors affect how MongoDB uses space in the oplog:
+
+- Update operations that affect multiple documents at once.
+
+  The oplog must translate multi-updates into individual operations,
+  in order to maintain :term:`idempotency <idempotent>`. This can use
+  a great deal of oplog space without a corresponding increase
+  in disk utilization.
+
+- If you delete roughly the same amount of data as you insert.
+
+  In this situation the database will not grow significantly in disk
+  utilization, but the size of the operation log can be quite large.
+
+- If a significant portion of your workload entails in-place updates.
+
+  In-place updates create a large number of operations but do not
+  change the quantity data on disk.
+
+If you can predict your replica set's workload to resemble one
+of the above patterns, then you may want to consider creating an oplog
+that is larger than the default. Conversely, if the predominance of
+activity of your MongoDB-based application are reads and you are
+writing a small amount of data, you may find that you need a much
+smaller oplog.
+
+To view oplog status, including the size and the time range of
+operations, issue the :method:`db.printReplicationInfo()` method. For
+more information on oplog status, see
+:ref:`replica-set-troubleshooting-check-oplog-size`.
+
+For additional information about oplog behavior, see
+:ref:`replica-set-oplog` and :ref:`replica-set-syncing`.
+
+Replica Set Deployment
+~~~~~~~~~~~~~~~~~~~~~~
+
+Without replication, a standalone MongoDB instance represents a single
+point of failure and any disruption of the MongoDB system will render
+the database unusable and potentially unrecoverable. Replication
+increase the reliability of the database instance, and replica sets
+are capable of distributing reads to :term:`secondary` members depending
+on :term:`read preference`. For database work loads dominated by read
+operations, (i.e. "read heavy") replica sets can greatly increase the
+capability of the database system.
+
+The minimum requirements for a replica set include two members with
+data, for a :term:`primary` and a secondary, and an :ref:`arbiter
+<replica-set-arbiters>`. In most circumstances, however, you will want
+to deploy three data members.
+
+For those deployments that rely heavily on distributing reads to
+secondary instances, add additional members to the set as load
+increases. As your deployment grows, consider adding or moving
+replica set members to secondary data centers or to geographically
+distinct locations for additional redundancy. While many architectures
+are possible, always ensure that the quorum of members required to elect
+a primary remains in your main facility.
+
+Depending on your operational requirements, you may consider adding
+members configured for a specific purpose including, a :term:`delayed
+member` to help provide protection against human errors and change
+control, a :term:`hidden member` to provide an isolated member for
+reporting and monitoring, and/or a :ref:`secondary only member
+<replica-set-secondary-only-members>` for dedicated backups.
+
+The process of establishing a new replica set member can be resource
+intensive on existing members. As a result, deploy new members to
+existing replica sets significantly before current demand saturates
+the existing members.
+
+.. note::
+
+   :term:`Journaling <journal>`, provides single-instance write
+   durability. The journaling greatly improves the reliability and
+   durability of a database. Unless MongoDB runs with journaling, when
+   a MongoDB instance terminates ungracefully, the database can end in
+   a corrupt and unrecoverable state.
+
+   You should assume that a database, running without journaling, that
+   suffers a crash or unclean shutdown is in corrupt or inconsistent
+   state.
+
+   **Use journaling**, however, do not forego proper replication
+   because of journaling.
+
+   64-bit versions of MongoDB after version 2.0 have journaling
+   enabled by default.
+
+.. index:: pair: replica set; security
+
+Security
+~~~~~~~~
+
+In most cases, :term:`replica set` administrators do not have to keep
+additional considerations in mind beyond the normal security
+precautions that all MongoDB administrators must take. However, ensure
+that:
+
+- Your network configuration will allow every member of the replica
+  set to contact every other member of the replica set.
+
+- If you use MongoDB's authentication system to limit access to your
+  infrastructure, ensure that you configure a
+  :setting:`keyFile` on all members to permit authentication.
+
+For more information, see the :ref:`replica-set-security` section in the
+:doc:`/administration/replica-sets` document.
+
+.. _replica-set-deployment-overview:
+.. _replica-set-architecture:
+
+Architectures
+~~~~~~~~~~~~~
+
+The architecture and design of the :term:`replica set` deployment can
+have a great impact on the set's capacity and capability. This section
+provides a general overview of the architectural possibilities for
+replica set deployments.  However, for most production deployments a
+conventional 3-member replica set with
+:data:`~local.system.replset.members[n].priority` values of ``1`` are
+sufficient.
+
+While the additional flexibility discussed is below helpful for
+managing a variety of operational complexities, it always makes sense
+to let those complex requirements dictate complex architectures,
+rather than add unnecessary complexity to your deployment.
+
+Consider the following factors when developing an architecture for
+your replica set:
+
+- Ensure that the members of the replica set will always be able to
+  elect a :term:`primary`. Run an odd number of members or run an :term:`arbiter`
+  on one of your application servers if you have an even number of
+  members.
+
+- With geographically distributed members, know where the "quorum" of
+  members will be in the case of any network partitions.  Attempt to
+  ensure that the set can elect a primary among the members in the
+  primary data center.
+
+- Consider including a :ref:`hidden <replica-set-hidden-members>`
+  or :ref:`delayed member <replica-set-delayed-members>` in your replica
+  set to support dedicated functionality, like backups, reporting, and
+  testing.
+
+- Consider keeping one or two members of the set in an off-site data
+  center, but make sure to configure the :ref:`priority
+  <replica-set-node-priority>` to prevent it from becoming primary.
+
+- Create custom write concerns with :ref:`replica set tags
+  <replica-set-configuration-tag-sets>` to ensure that applications
+  can control the threshold for a successful write operation. Use
+  these write concerns to ensure that operations propagate to specific
+  data centers or to machines of different functions before returning
+  successfully.
+
+For more information regarding replica set configuration and
+deployments see :doc:`/administration/replica-set-architectures`.

@@ -1,0 +1,182 @@
+======================
+Create Tailable Cursor
+======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+By default, MongoDB will automatically close a cursor when the client
+has exhausted all results in the cursor. However, for :doc:`capped
+collections </core/capped-collections>` you may use a *Tailable
+Cursor* that remains open after the client exhausts the results in the
+initial cursor. Tailable cursors are conceptually equivalent to the
+``tail`` Unix command with the ``-f`` option (i.e. with "follow"
+mode.) After clients insert new additional documents into a capped
+collection, the tailable cursor will continue to retrieve
+documents.
+
+Use tailable cursors on capped collections with high numbers of write
+operations for which an index would be too expensive. For instance,
+MongoDB :doc:`replication </core/replication>` uses tailable cursors to
+tail the primary's :term:`oplog`.
+
+.. note::
+
+   If your query is on an indexed field, do not use tailable cursors,
+   but instead, use a regular cursor. Keep track of the last value of
+   the indexed field returned by the query. To retrieve the newly
+   added documents, query the collection again using the last value of
+   the indexed field in the query criteria, as in the following
+   example:
+
+   .. code-block:: javascript
+
+      db.<collection>.find( { indexedField: { $gt: <lastvalue> } } )
+
+Consider the following behaviors related to tailable cursors:
+
+- Tailable cursors do not use indexes and return documents in
+  :term:`natural order`.
+
+- Because tailable cursors do not use indexes, the initial scan for the
+  query may be expensive; but, after initially exhausting the cursor,
+  subsequent retrievals of the newly added documents are inexpensive.
+
+- Tailable cursors may become *dead*, or invalid, if either:
+
+  - the query returns no match.
+
+  - the cursor returns the document at the "end" of the collection and
+    then the application deletes that document.
+
+  A *dead* cursor has an id of ``0``.
+
+See your :doc:`driver documentation </applications/drivers>` for the
+driver-specific method to specify the tailable cursor. For more
+information on the details of specifying a tailable cursor, see
+:meta-driver:`MongoDB wire protocol </legacy/mongodb-wire-protocol>`
+documentation.
+
+C++ Example
+-----------
+
+The ``tail`` function uses a tailable cursor to output the results from
+a query to a capped collection:
+
+- The function handles the case of the dead cursor by having the query
+  be inside a loop.
+
+- To periodically check for new data, the ``cursor->more()`` statement
+  is also inside a loop.
+
+.. code-block:: cpp
+
+   #include "client/dbclient.h"
+
+   using namespace mongo;
+
+   /*
+    * Example of a tailable cursor.
+    * The function "tails" the capped collection (ns) and output elements as they are added.
+    * The function also handles the possibility of a dead cursor by tracking the field 'insertDate'.
+    * New documents are added with increasing values of 'insertDate'.
+    */
+
+   void tail(DBClientBase& conn, const char *ns) {
+
+       BSONElement lastValue = minKey.firstElement();
+
+       Query query = Query().hint( BSON( "$natural" << 1 ) );
+
+       while ( 1 ) {
+           auto_ptr<DBClientCursor> c =
+               conn.query(ns, query, 0, 0, 0,
+                          QueryOption_CursorTailable | QueryOption_AwaitData );
+
+           while ( 1 ) {
+               if ( !c->more() ) {
+
+                   if ( c->isDead() ) {
+                       break;
+                   }
+
+                   continue;
+               }
+
+               BSONObj o = c->next();
+               lastValue = o["insertDate"];
+               cout << o.toString() << endl;
+           }
+
+           query = QUERY( "insertDate" << GT << lastValue ).hint( BSON( "$natural" << 1 ) );
+       }
+   }
+
+The ``tail`` function performs the following actions:
+
+- Initialize the ``lastValue`` variable, which tracks the last
+  accessed value. The function will use the ``lastValue`` if the
+  cursor becomes *invalid* and ``tail`` needs to restart the
+  query. Use :method:`~cursor.hint()` to ensure that the query uses
+  the :operator:`$natural` order.
+
+- In an outer ``while(1)`` loop,
+
+  - Query the capped collection and return a tailable cursor that
+    blocks for several seconds waiting for new documents
+
+    .. code-block:: cpp
+
+       auto_ptr<DBClientCursor> c =
+            conn.query(ns, query, 0, 0, 0,
+                       QueryOption_CursorTailable | QueryOption_AwaitData );
+
+    - Specify the capped collection using ``ns`` as an argument
+      to the function.
+
+    - Set the ``QueryOption_CursorTailable`` option to create a
+      tailable cursor.
+
+    - Set the ``QueryOption_AwaitData`` option so that the returned
+      cursor blocks for a few seconds to wait for data.
+
+  - In an inner ``while (1)`` loop, read the documents from the cursor:
+
+    - If the cursor has no more documents and is not invalid, loop the
+      inner ``while`` loop to recheck for more documents.
+
+    - If the cursor has no more documents and is dead, break the inner
+      ``while`` loop.
+
+    - If the cursor has documents:
+
+      - output the document,
+
+      - update the ``lastValue`` value,
+
+      - and loop the inner ``while (1)`` loop to recheck for more
+        documents.
+
+  - If the logic breaks out of the inner ``while (1)`` loop and the
+    cursor is invalid:
+
+    - Use the ``lastValue`` value to create a new query condition that
+      matches documents added after the ``lastValue``. Explicitly
+      ensure ``$natural`` order with the ``hint()`` method:
+
+      .. code-block:: cpp
+
+         query = QUERY( "insertDate" << GT << lastValue ).hint( BSON( "$natural" << 1 ) );
+
+    - Loop through the outer ``while (1)`` loop to re-query with the new query
+      condition and repeat.
+
+.. seealso:: `Detailed blog post on tailable cursor <http://shtylman.com/post/the-tail-of-mongodb>`_

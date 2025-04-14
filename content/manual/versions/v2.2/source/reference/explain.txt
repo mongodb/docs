@@ -1,0 +1,327 @@
+==============
+Explain Output
+==============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This document explains the output of the :operator:`$explain` operator
+and the :binary:`~bin.mongo` shell method :method:`~cursor.explain()`.
+
+Explain Output
+--------------
+
+The :ref:`explain-output-fields-core` fields display information for
+queries on non-sharded collections. For queries on sharded collections,
+:method:`~cursor.explain()` returns this information for each
+shard the query accesses.
+
+.. code-block:: javascript
+
+   {
+     "cursor" : "<Cursor Type and Index>",
+     "isMultiKey" : <boolean>,
+     "n" : <num>,
+     "nscannedObjects" : <num>,
+     "nscanned" : <num>,
+     "nscannedObjectsAllPlans" : <num>,
+     "nscannedAllPlans" : <num>,
+     "scanAndOrder" : <boolean>,
+     "indexOnly" : <boolean>,
+     "nYields" : <num>,
+     "nChunkSkips" : <num>,
+     "millis" : <num>,
+     "indexBounds" : { <index bounds> },
+     "allPlans" : [
+                    { "cursor" : "<Cursor Type and Index>",
+                      "n" : <num>,
+                      "nscannedObjects" : <num>,
+                      "nscanned" : <num>,
+                      "indexBounds" : { <index bounds> }
+                    },
+                     ...
+                  ],
+     "oldPlan" : {
+                   "cursor" : "<Cursor Type and Index>",
+                   "indexBounds" : { <index bounds> }
+                 }
+     "server" : "<host:port>",
+   }
+
+``$or`` Queries
+---------------
+
+Queries with :query:`$or` operator execute each clause of the
+:query:`$or` expression in parallel and can use separate indexes on
+the individual clauses. If the query uses indexes on any or all of the
+query's clause, :method:`explain() <cursor.explain()>` contains
+:ref:`output <explain-output-fields-core>` for each clause as well as
+the cumulative data for the entire query:
+
+.. code-block:: javascript
+
+   {
+      "clauses" : [
+                     {
+                        <core explain output>
+                     },
+                     {
+                        <core explain output>
+                     },
+                     ...
+                  ],
+      "n" : <num>,
+      "nscannedObjects" : <num>,
+      "nscanned" : <num>,
+      "nscannedObjectsAllPlans" : <num>,
+      "nscannedAllPlans" : <num>,
+      "millis" : <num>,
+      "server" : "<host:port>"
+   }
+
+Sharded Collections
+-------------------
+
+For queries on a sharded collection, the output contains the
+:ref:`explain-output-fields-core` for each accessed shard and
+:ref:`cumulative shard information <explain-output-fields-sharded-collection>`:
+
+.. code-block:: javascript
+
+   {
+      "clusteredType" : "<Shard Access Type>",
+      "shards" : {
+
+                   "<shard1>" : [
+                                  {
+                                    <core explain output>
+                                  }
+                                ],
+                   "<shard2>" : [
+                                  {
+                                   <core explain output>
+                                  }
+                                ],
+                   ...
+                 },
+      "millisShardTotal" : <num>,
+      "millisShardAvg" : <num>,
+      "numQueries" : <num>,
+      "numShards" : <num>,
+      "cursor" : "<Cursor Type and Index>",
+      "n" : <num>,
+      "nChunkSkips" : <num>,
+      "nYields" : <num>,
+      "nscanned" : <num>,
+      "nscannedAllPlans" : <num>,
+      "nscannedObjects" : <num>,
+      "nscannedObjectsAllPlans" : <num>,
+      "millis" : <num>
+   }
+
+Fields
+------
+
+.. _explain-output-fields-core:
+
+Core Explain Output
+~~~~~~~~~~~~~~~~~~~
+
+.. data:: explain.cursor
+
+   :data:`~explain.cursor` is a string that reports the type of cursor
+   used by the query operation:
+
+   - ``BasicCursor`` indicates a full collection scan.
+
+   - ``BtreeCursor`` indicates that the query used an index. The
+     cursor includes name of the index. When a query uses an index,
+     the output of :method:`explain() <cursor.explain()>` includes
+     :data:`~explain.indexBounds` details.
+
+   - ``GeoSearchCursor`` indicates that the query used a geospatial
+     index.
+
+.. data:: explain.isMultiKey
+
+   :data:`~explain.isMultiKey` is a boolean. When ``true``, the query uses a
+   :ref:`multikey index <index-type-multikey>`, where one of the
+   fields in the index holds an array.
+
+.. data:: explain.n
+
+   :data:`~explain.n` is a number that reflects the number of documents
+   that match the query selection criteria.
+
+.. data:: explain.nscannedObjects
+
+   Specifies the total number of documents scanned during the query.
+   The :data:`~explain.nscannedObjects` may be lower than
+   :data:`~explain.nscanned`, such as if the index :ref:`covers
+   <indexes-covered-queries>` a query. See
+   :data:`~explain.indexOnly`. Additionally, the
+   :data:`~explain.nscannedObjects` may be lower than
+   :data:`~explain.nscanned` in the case of multikey index on an array
+   field with duplicate documents.
+
+.. data:: explain.nscanned
+
+   Specifies the total number of documents or index entries scanned
+   during the database operation. You want :data:`~explain.n` and
+   :data:`~explain.nscanned` to be close in value as possible. The
+   :data:`~explain.nscanned` value may be higher than the
+   :data:`~explain.nscannedObjects` value, such as if the index :ref:`covers
+   <indexes-covered-queries>` a query. See :data:`~explain.indexOnly`.
+
+.. data:: explain.nscannedObjectsAllPlans
+
+   .. versionadded:: 2.2
+
+   :data:`~explain.nscannedObjectsAllPlans` is a number that reflects the
+   total number of documents scanned for all query plans during the
+   database operation.
+
+.. data:: explain.nscannedAllPlans
+
+   .. versionadded:: 2.2
+
+   :data:`~explain.nscannedAllPlans` is a number that reflects the total
+   number of documents or index entries scanned for all query plans
+   during the database operation.
+
+.. data:: explain.scanAndOrder
+
+   :data:`~explain.scanAndOrder` is a boolean that is ``true`` when
+   the query **cannot** use the index for returning sorted results.
+
+   When ``true``, MongoDB must sort the documents after it retrieves
+   them from either an index cursor or a cursor that scans the entire
+   collection.
+
+.. data:: explain.indexOnly
+
+   :data:`~explain.indexOnly` is a boolean value that returns ``true``
+   when the the query is :ref:`covered <indexes-covered-queries>` by
+   the index indicated in the :data:`~explain.cursor` field. When an
+   index covers a query, MongoDB can both match the :ref:`query
+   conditions <read-operations-query-document>` **and** return the
+   results using only the index because:
+
+   - all the fields in the :ref:`query
+     <read-operations-query-document>` are part of that index, **and**
+
+   - all the fields returned in the results set are in the same index.
+
+.. data:: explain.nYields
+
+   :data:`~explain.nYields` is a number that reflects the number of times
+   this query yielded the read lock to allow waiting writes execute.
+
+.. data:: explain.nChunkSkips
+
+   :data:`~explain.nChunkSkips` is a number that reflects the number of
+   documents skipped because of active chunk migrations in a sharded
+   system. Typically this will be zero. A number greater than zero is
+   ok, but indicates a little bit of inefficiency.
+
+.. data:: explain.millis
+
+   :data:`~explain.millis` is a number that reflects the time in
+   milliseconds to complete the query.
+
+.. data:: explain.indexBounds
+
+   :data:`~explain.indexBounds` is a document that contains the lower and upper
+   index key bounds. This field resembles one of the following:
+
+   .. code-block:: javascript
+
+      "indexBounds" : {
+                          "start" : { <index key1> : <value>, ...  },
+                          "end" : { <index key1> : <value>, ... }
+                      },
+
+   .. code-block:: javascript
+
+      "indexBounds" : { "<field>" : [ [ <lower bound>, <upper bound> ] ],
+                        ...
+                      }
+
+.. data:: explain.allPlans
+
+   :data:`~explain.allPlans` is an array that holds the list of plans
+   the query optimizer runs in order to select the index for the query.
+   Displays only when the ``<verbose>`` parameter to :method:`explain()
+   <cursor.explain()>` is ``true`` or ``1``.
+
+.. data:: explain.oldPlan
+
+   .. versionadded:: 2.2
+
+   :data:`~explain.oldPlan` is a document value that contains the previous plan
+   selected by the query optimizer for the query. Displays only when
+   the ``<verbose>`` parameter to :method:`explain()
+   <cursor.explain()>` is ``true`` or ``1``.
+
+.. data:: explain.server
+
+   .. versionadded:: 2.2
+
+   :data:`~explain.server` is a string that reports the MongoDB server.
+
+.. _explain-output-field-or-clauses:
+
+``$or`` Query Output
+~~~~~~~~~~~~~~~~~~~~
+
+.. data:: explain.clauses
+
+   :data:`~explain.clauses` is an array that holds the
+   :ref:`explain-output-fields-core` information for each clause of the
+   :query:`$or` expression. :data:`~explain.clauses` is only included when
+   the clauses in the :query:`$or` expression use indexes.
+
+.. _explain-output-fields-sharded-collection:
+
+Sharded Collections Output
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. data:: explain.clusteredType
+
+   :data:`~explain.clusteredType` is a string that reports the access
+   pattern for shards. The value is:
+
+   - ``ParallelSort``, if the :binary:`~bin.mongos` queries shards in parallel.
+
+   - ``SerialServer``, if the :binary:`~bin.mongos` queries shards sequentially.
+
+.. data:: explain.shards
+
+   :data:`~explain.shards` is a document value that contains the shards accessed
+   during the query and individual :ref:`explain-output-fields-core`
+   for each shard.
+
+.. data:: explain.millisShardTotal
+
+   :data:`~explain.millisShardTotal` is a number that reports the total
+   time in milliseconds for the query to run on the shards.
+
+.. data:: explain.millisShardAvg
+
+   :data:`~explain.millisShardAvg` is a number that reports the average
+   time in millisecond for the query to run on each shard.
+
+.. data:: explain.numQueries
+
+   :data:`~explain.numQueries` is a number that reports the total number
+   of queries executed.
+
+.. data:: explain.numShards
+
+   :data:`~explain.numShards` is a number that reports the total number of
+   shards queried.

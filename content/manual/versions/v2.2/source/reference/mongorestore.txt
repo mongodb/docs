@@ -1,0 +1,290 @@
+.. _mongorestore:
+
+================
+``mongorestore``
+================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Synopsis
+--------
+
+The :binary:`~bin.mongorestore` program writes data from a binary database
+dump created by :binary:`~bin.mongodump` to a MongoDB
+instance. :binary:`~bin.mongorestore` can create a new database or add
+data to an existing database.
+
+:binary:`~bin.mongorestore` can write data to either `mongod` or :binary:`~bin.mongos`
+instances, in addition to writing directly to MongoDB data files
+without an active :binary:`~bin.mongod`.
+
+If you restore to an existing database, :binary:`~bin.mongorestore` will
+only insert into the existing database, and does not perform updates
+of any kind. If existing documents have the same value ``_id`` field
+in the target database and collection,
+:binary:`~bin.mongorestore` will *not* overwrite those documents.
+
+Remember the following properties of :binary:`~bin.mongorestore` behavior:
+
+- :binary:`~bin.mongorestore` recreates indexes recorded by
+  :binary:`~bin.mongodump`.
+
+- all operations are inserts, not updates.
+
+- :binary:`~bin.mongorestore` does not wait for a response from a
+  :binary:`~bin.mongod` to ensure that the MongoDB process has received or
+  recorded the operation.
+
+  The :binary:`~bin.mongod` will record any errors to its log that occur
+  during a restore operation, but :binary:`~bin.mongorestore` will not
+  receive errors.
+
+.. include:: /includes/note-mongodump-compatibility-2.2.rst
+
+Options
+-------
+
+.. binary:: mongorestore
+
+.. program:: mongorestore
+
+.. option:: --help
+
+   Returns a basic help and usage text.
+
+.. option:: --verbose, -v
+
+   Increases the amount of internal reporting returned on the command
+   line. Increase the verbosity with the ``-v`` form by including
+   the option multiple times (e.g. ``-vvvvv``).
+
+.. option:: --version
+
+   Returns the version of the :binary:`~bin.mongorestore` tool.
+
+.. option:: --host <hostname><:port>
+
+   Specifies a resolvable hostname for the :binary:`~bin.mongod` to which
+   you want to restore the database. By default
+   :binary:`~bin.mongorestore` will attempt to connect to a MongoDB
+   process running on the localhost port number ``27017``. For an
+   example of :option:`--host`, see :ref:`backup-restore-dump`.
+
+   Optionally, specify a port number to connect a MongoDB instance
+   running on a port other than ``27017``.
+
+   .. include:: /includes/fact-multiple-hosts.rst
+
+.. option:: --port <port>
+
+   Specifies the port number, if the MongoDB instance is not running
+   on the standard port (i.e. ``27017``). You may also specify a port
+   number using the :option:`--host` command. For
+   an example of :option:`--port`, see :ref:`backup-restore-dump`.
+
+.. option:: --ipv6
+
+   Enables IPv6 support that allows :binary:`~bin.mongorestore` to connect
+   to the MongoDB instance using an IPv6 network. All MongoDB programs
+   and processes, including :binary:`~bin.mongorestore`, disable IPv6
+   support by default.
+
+.. option:: --username <username>, -u <username>
+
+   Specifies a username to authenticate to the MongoDB instance, if
+   your database requires authentication. Use in conjunction with the
+   :option:`--password` option to supply a
+   password. For an example of :option:`--username`, see
+   :ref:`backup-restore-dump`.
+
+.. option:: --password <password>
+
+   Specifies a password to authenticate to the MongoDB instance. Use
+   in conjunction with the :option:`--username` option to
+   supply a username. For an example of :option:`--password`, see
+   :ref:`backup-restore-dump`.
+
+   If you specify a :option:`--username`
+   without the :option:`--password` option, :binary:`~bin.mongorestore`
+   will prompt for a password interactively.
+
+.. option:: --dbpath <path>
+
+   Specifies the directory of the MongoDB data files. If used, the
+   :option:`--dbpath` option enables :binary:`~bin.mongorestore` to attach
+   directly to local data files and insert the data without the
+   :binary:`~bin.mongod`. To run with :option:`--dbpath`,
+   :binary:`~bin.mongorestore` needs to lock access to the data directory:
+   as a result, no :binary:`~bin.mongod` can access the same path while the
+   process runs. For an example of :option:`--dbpath`, see
+   :ref:`backup-restore-dbpath`.
+
+.. option:: --directoryperdb
+
+   Use the :option:`--directoryperdb` in conjunction with the
+   corresponding option to :binary:`~bin.mongod`, which allows
+   :binary:`~bin.mongorestore` to import data into MongoDB instances that
+   have every database's files saved in discrete directories on the
+   disk. This option is only relevant when specifying the
+   :option:`--dbpath` option.
+
+.. option:: --journal
+
+   Allows :binary:`~bin.mongorestore` write to the durability
+   :term:`journal` to ensure that the data files will remain in a
+   consistent state during the write process. This option is only
+   relevant when specifying the :option:`--dbpath` option. For an
+   example of :option:`--journal`, see :ref:`backup-restore-dbpath`.
+
+.. option:: --db <db>, -d <db>
+
+   Use the :option:`--db` option to specify a database for
+   :binary:`~bin.mongorestore` to restore data *into*. If the database
+   doesn't exist, :binary:`~bin.mongorestore` will create the specified
+   database.  If you do not specify a ``<db>``,
+   :binary:`~bin.mongorestore` creates new databases that correspond to
+   the databases where data originated and data may be
+   overwritten. Use this option to restore data into a MongoDB
+   instance that already has data.
+
+   :option:`--db` does *not* control which :term:`BSON` files
+   :binary:`~bin.mongorestore` restores. You must use the
+   :binary:`~bin.mongorestore` :ref:`path option
+   <mongorestore-path-option>` to limit that restored data.
+
+.. option:: --collection <collection>, -c <collection>
+
+   Use the :option:`--collection` option to specify a collection for
+   :binary:`~bin.mongorestore` to restore. If you do not specify a
+   ``<collection>``, :binary:`~bin.mongorestore` imports all collections
+   created. Existing data may be overwritten. Use this option to
+   restore data into a MongoDB instance that already has data, or to
+   restore only some data in the specified imported data set.
+
+.. option:: --objcheck
+
+   Verifies each object as a valid :term:`BSON` object before inserting
+   it into the target database. If the object is not a valid
+   :term:`BSON` object, :binary:`~bin.mongorestore` will not insert the
+   object into the target database and stop processing remaining
+   documents for import. This option has some performance impact.
+
+.. option:: --filter '<JSON>'
+
+   Limits the documents that :binary:`~bin.mongorestore` imports to only
+   those documents that match the JSON document specified as
+   ``'<JSON>'``. Be sure to include the document in single quotes to
+   avoid interaction with your system's shell environment. For an
+   example of :option:`--filter`, see :ref:`backup-restore-filter`.
+
+.. option:: --drop
+
+   Modifies the restoration procedure to drop every collection from
+   the target database before restoring the collection from the dumped
+   backup.
+
+.. option:: --oplogReplay
+
+   Replays the :term:`oplog` after restoring the dump to ensure that the current
+   state of the database reflects the point-in-time backup captured with
+   the ":option:`mongodump --oplog`" command. For an example of
+   :option:`--oplogReplay`, see :ref:`backup-restore-oplogreplay`.
+
+.. option:: --keepIndexVersion
+
+   Prevents :binary:`~bin.mongorestore` from upgrading the index to the latest
+   version during the restoration process.
+
+.. option:: --w <number of replicas per write>
+
+   .. versionadded:: 2.2
+
+   Specifies the :term:`write concern` for each write operation that
+   :binary:`~bin.mongorestore` writes to the target database. By default,
+   :binary:`~bin.mongorestore` does not wait for a response for
+   :ref:`write acknowledgment <write-concern-acknowledged>`.
+
+.. option:: --noOptionsRestore
+
+   .. versionadded:: 2.2
+
+   Prevents :binary:`~bin.mongorestore` from setting the collection
+   options, such as those specified by the :dbcommand:`collMod`
+   :term:`database command`, on restored collections.
+
+.. option:: --noIndexRestore
+
+   .. versionadded:: 2.2
+
+   Prevents :binary:`~bin.mongorestore` from restoring and building
+   indexes as specified in the corresponding :binary:`~bin.mongodump`
+   output.
+
+.. option:: --oplogLimit <timestamp>
+
+   .. versionadded:: 2.2
+
+   Prevents :binary:`~bin.mongorestore` from applying :term:`oplog` entries newer
+   than the ``<timestamp>``. Specify ``<timestamp>`` values in the
+   form of ``<time_t>:<ordinal>``, where ``<time_t>`` is the seconds
+   since the UNIX epoch, and ``<ordinal>`` represents a counter of
+   operations in the oplog that occurred in the specified second.
+
+   You must use :option:`--oplogLimit` in conjunction with the
+   :option:`--oplogReplay` option.
+
+.. _mongorestore-path-option:
+
+.. option::  <path>
+
+   The final argument of the :binary:`~bin.mongorestore` command is a
+   directory path. This argument specifies the location of the
+   database dump from which to restore.
+
+Usage
+-----
+
+See :doc:`/tutorial/backup-databases-with-binary-database-dumps`
+for a larger overview of :binary:`~bin.mongorestore`
+usage. Also see the ":doc:`mongodump`" document for an overview of the
+:binary:`~bin.mongodump`, which provides the related inverse
+functionality.
+
+Consider the following example:
+
+.. code-block:: sh
+
+   mongorestore --collection people --db accounts dump/accounts/
+
+Here, :binary:`~bin.mongorestore` reads the database dump in the ``dump/``
+sub-directory of the current directory, and restores *only* the
+documents in the collection named ``people`` from the database named
+``accounts``. :binary:`~bin.mongorestore` restores data to the instance
+running on the localhost interface on port ``27017``.
+
+In the next example, :binary:`~bin.mongorestore` restores a backup of the
+database instance located in ``dump`` to a database instance stored
+in the ``/srv/mongodb`` on the local machine. This requires that there
+are no active :binary:`~bin.mongod` instances attached to ``/srv/mongodb``
+data directory.
+
+.. code-block:: sh
+
+   mongorestore --dbpath /srv/mongodb
+
+In the final example, :binary:`~bin.mongorestore` restores a database
+dump located at ``/opt/backup/mongodump-2011-10-24``, from a database
+running on port ``37017`` on the host
+``mongodb1.example.net``. :binary:`~bin.mongorestore` authenticates to
+the MongoDB instance using the username ``user`` and the
+password ``pass``, as follows:
+
+.. code-block:: sh
+
+   mongorestore --host mongodb1.example.net --port 37017 --username user --password pass /opt/backup/mongodump-2011-10-24

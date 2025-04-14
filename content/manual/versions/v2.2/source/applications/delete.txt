@@ -1,0 +1,134 @@
+======
+Delete
+======
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Of the four basic database operations (i.e. CRUD), *delete* operations
+are those that remove documents from a :term:`collection` in MongoDB.
+
+For general information about write operations and the factors that affect
+their performance, see :doc:`/core/write-operations`; for documentation
+of other CRUD operations, see the :doc:`/crud` page.
+
+.. _crud-delete-remove:
+
+Overview
+--------
+
+The :ref:`remove() <crud-delete-remove>` method in the :binary:`~bin.mongo`
+shell provides this operation, as do corresponding methods in the
+:doc:`drivers </applications/drivers>`.
+
+.. note::
+
+   .. include:: /includes/fact-write-concern.rst
+
+Use the :method:`~db.collection.remove()` method to delete documents
+from a collection. The :method:`~db.collection.remove()` method has
+the following syntax:
+
+.. code-block:: javascript
+
+   db.collection.remove( <query>, <justOne> )
+
+.. admonition:: Corresponding operation in SQL
+
+   The :method:`~db.collection.remove()` method is analogous to
+   the ``DELETE`` statement, and:
+
+   - the ``<query>`` argument corresponds to the ``WHERE`` statement, and
+
+   - the ``<justOne>`` argument takes a Boolean and has the same
+     effect as ``LIMIT 1``.
+
+:method:`~db.collection.remove()` deletes documents from the
+collection. If you do not specify a query,
+:method:`~db.collection.remove()` removes all documents from a
+collection, but does not remove the indexes. [#drop]_
+
+.. note::
+
+   For large deletion operations, it may be more efficient to copy the
+   documents that you want to keep to a new collection and then use
+   :method:`~db.collection.drop()` on the original collection.
+
+Remove All Documents that Match a Condition
+-------------------------------------------
+
+If there is a ``<query>`` argument, the
+:method:`~db.collection.remove()` method deletes from the collection
+all documents that match the argument.
+
+The following operation deletes all documents from the ``bios``
+collection where the subdocument ``name`` contains a field ``first``
+whose value starts with ``G``:
+
+.. code-block:: javascript
+
+   db.bios.remove( { 'name.first' : /^G/ } )
+
+Remove a Single Document that Matches a Condition
+-------------------------------------------------
+
+If there is a ``<query>`` argument and you specify the ``<justOne>``
+argument as ``true`` or ``1``, :method:`~db.collection.remove()` only
+deletes a single document from the collection that matches the query.
+
+The following operation deletes a single document from the ``bios``
+collection where the ``turing`` field equals ``true``:
+
+.. code-block:: javascript
+
+   db.bios.remove( { turing: true }, 1 )
+
+Remove All Documents from a Collection
+--------------------------------------
+
+If there is no ``<query>`` argument, the
+:method:`~db.collection.remove()` method deletes all documents from a
+collection. The following operation deletes all documents from the
+``bios`` collection:
+
+.. code-block:: javascript
+
+   db.bios.remove()
+
+.. note::
+
+   This operation is not equivalent to the
+   :method:`~db.collection.drop()` method.
+
+.. [#drop] To remove all documents from a collection, it may be more
+   efficient to use the :method:`~db.collection.drop()` method
+   to drop the entire collection, including the indexes, and then
+   recreate the collection and rebuild the indexes.
+
+.. _crud-delete-remove-isolation:
+
+Capped Collection
+-----------------
+
+.. include:: /includes/fact-remove-capped-collection-restriction.rst
+
+Isolation
+---------
+
+If the ``<query>`` argument to the :method:`~db.collection.remove()`
+method matches multiple documents in the collection, the delete
+operation may interleave with other write operations to that
+collection. For an unsharded collection, you have the option to
+override this behavior with the :update:`$isolated` isolation
+operator, effectively isolating the delete operation from other write
+operations. To isolate the operation, include ``$isolated: 1`` in the
+``<query>`` parameter as in the following example:
+
+.. code-block:: javascript
+
+   db.bios.remove( { turing: true, $isolated: 1 } )

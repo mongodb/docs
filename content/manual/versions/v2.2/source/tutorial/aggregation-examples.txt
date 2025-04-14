@@ -1,0 +1,705 @@
+==============================
+Aggregation Framework Examples
+==============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+MongoDB provides flexible data aggregation functionality with the
+:dbcommand:`aggregate` command. For additional information about
+aggregation consider the following resources:
+
+- :doc:`/applications/aggregation`
+- :doc:`/reference/aggregation`
+- :doc:`/reference/sql-aggregation-comparison`
+
+This document provides a number of practical examples that display the
+capabilities of the aggregation framework. All examples use a publicly
+available data set of all zipcodes and populations in the United
+States.
+
+Requirements
+------------
+
+:binary:`~bin.mongod` and :binary:`~bin.mongo`, version 2.2 or later.
+
+Aggregations using the Zip Code Data Set
+----------------------------------------
+
+To run you will need the zipcode data set. These data are available at:
+`media.mongodb.org/zips.json <http://media.mongodb.org/zips.json>`_.
+Use :binary:`~bin.mongoimport` to load this data set into your
+:binary:`~bin.mongod` instance.
+
+Data Model
+~~~~~~~~~~
+
+Each document in this collection has the following form:
+
+.. code-block:: javascript
+
+   {
+     "_id": "10280",
+     "city": "NEW YORK",
+     "state": "NY",
+     "pop": 5574,
+     "loc": [
+       -74.016323,
+       40.710537
+     ]
+   }
+
+In these documents:
+
+- The ``_id`` field holds the zipcode as a string.
+
+- The ``city`` field holds the city.
+
+- The ``state`` field holds the two letter state abbreviation.
+
+- The ``pop`` field holds the population.
+
+- The ``loc`` field holds the location as a latitude longitude pair.
+
+All of the following examples use the :method:`aggregate()
+<db.collection.aggregate()>` helper in the :binary:`~bin.mongo`
+shell. :method:`aggregate() <db.collection.aggregate()>` provides a
+wrapper around the :dbcommand:`aggregate` database command. See the
+documentation for your :doc:`driver </applications/drivers>` for a
+more idiomatic interface for data aggregation operations.
+
+States with Populations Over 10 Million
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To return all states with a population greater than 10 million, use
+the following aggregation operation:
+
+.. code-block:: javascript
+
+   db.zipcodes.aggregate( { $group :
+                            { _id : "$state",
+                              totalPop : { $sum : "$pop" } } },
+                          { $match : {totalPop : { $gte : 10*1000*1000 } } } )
+
+Aggregations operations using the :method:`aggregate()
+<db.collection.aggregate()>` helper, process all documents on the
+``zipcodes`` collection. :method:`aggregate()
+<db.collection.aggregate()>` connects a number of :ref:`pipeline
+<aggregation-pipelines>` operators, which define the aggregation
+process.
+
+In the above example, the pipeline passes all documents in the
+``zipcodes`` collection through the following steps:
+
+- the :pipeline:`$group` operator collects all documents and
+  creates documents for each state.
+
+  These new per-state documents have one field in addition the
+  ``_id`` field: ``totalPop`` which is a generated field using the
+  :group:`$sum` operation to calculate the total value of all
+  ``pop`` fields in the source documents.
+
+  After the :pipeline:`$group` operation the documents in the
+  pipeline resemble the following:
+
+  .. code-block:: javascript
+
+     {
+       "_id" : "AK",
+       "totalPop" : 550043
+     }
+
+- the :pipeline:`$match` operation filters these documents so that
+  the only documents that remain are those where the value of
+  ``totalPop`` is greater than or equal to 10 million.
+
+  The :pipeline:`$match` operation does not alter the documents,
+  which have the same format as the documents output by
+  :pipeline:`$group`.
+
+The equivalent :term:`SQL` for this operation is:
+
+.. code-block:: sql
+
+   SELECT state, SUM(pop) AS pop
+          FROM zips
+          GROUP BY state
+          HAVING pop > (10*1000*1000)
+
+Average City Population by State
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To return the average populations for cities in each state, use the
+following aggregation operation:
+
+.. code-block:: javascript
+
+   db.zipcodes.aggregate( { $group :
+                            { _id : { state : "$state", city : "$city" },
+                              pop : { $sum : "$pop" } } },
+                          { $group :
+                          { _id : "$_id.state",
+                            avgCityPop : { $avg : "$pop" } } } )
+
+Aggregations operations using the :method:`aggregate()
+<db.collection.aggregate()>` helper, process all documents on the
+``zipcodes`` collection. :method:`aggregate()
+<db.collection.aggregate()>` a number of :ref:`pipeline
+<aggregation-pipelines>` operators that define the aggregation
+process.
+
+In the above example, the pipeline passes all documents in the
+``zipcodes`` collection through the following steps:
+
+- the :pipeline:`$group` operator collects all documents and
+  creates new documents for every combination of the ``city`` and
+  ``state`` fields in the source document.
+
+  After this stage in the pipeline, the documents resemble the
+  following:
+
+  .. code-block:: javascript
+
+     {
+       "_id" : {
+         "state" : "CO",
+         "city" : "EDGEWATER"
+       },
+       "pop" : 13154
+     }
+
+- the second :pipeline:`$group` operator collects documents by the
+  ``state`` field and use the :group:`$avg` expression to
+  compute a value for the ``avgCityPop`` field.
+
+The final output of this aggregation operation is:
+
+.. code-block:: javascript
+
+   {
+     "_id" : "MN",
+     "avgCityPop" : 5335
+   },
+
+.. Will uncomment this section when we get the SQL
+   The equivalent :term:`SQL` for this operation is:
+
+   .. code-block:: sql
+
+Largest and Smallest Cities by State
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To return the smallest and largest cities by population for each
+state, use the following aggregation operation:
+
+.. code-block:: javascript
+
+   db.zipcodes.aggregate( { $group:
+                            { _id: { state: "$state", city: "$city" },
+                              pop: { $sum: "$pop" } } },
+                          { $sort: { pop: 1 } },
+                          { $group:
+                            { _id : "$_id.state",
+                              biggestCity:  { $last: "$_id.city" },
+                              biggestPop:   { $last: "$pop" },
+                              smallestCity: { $first: "$_id.city" },
+                              smallestPop:  { $first: "$pop" } } },
+
+                          // the following $project is optional, and
+                          // modifies the output format.
+
+                          { $project:
+                            { _id: 0,
+                              state: "$_id",
+                              biggestCity:  { name: "$biggestCity",  pop: "$biggestPop" },
+                              smallestCity: { name: "$smallestCity", pop: "$smallestPop" } } } )
+
+Aggregations operations using the :method:`aggregate()
+<db.collection.aggregate()>` helper, process all documents on the
+``zipcodes`` collection. :method:`aggregate()
+<db.collection.aggregate()>` a number of :ref:`pipeline
+<aggregation-pipelines>` operators that define the aggregation
+process.
+
+All documents from the ``zipcodes`` collection pass into the pipeline,
+which consists of the following steps:
+
+- the :pipeline:`$group` operator collects all documents and
+  creates new documents for every combination of the ``city`` and
+  ``state`` fields in the source documents.
+
+  By specifying the value of ``_id`` as a sub-document that contains
+  both fields, the operation preserves the ``state`` field for use
+  later in the pipeline. The documents produced by this stage of the
+  pipeline have a second field, ``pop``, which uses the
+  :group:`$sum` operator to provide the total of the ``pop``
+  fields in the source document.
+
+  At this stage in the pipeline, the documents resemble the following:
+
+  .. code-block:: javascript
+
+     {
+       "_id" : {
+         "state" : "CO",
+         "city" : "EDGEWATER"
+       },
+       "pop" : 13154
+     }
+
+- :pipeline:`$sort` operator orders the documents in the pipeline
+  based on the value of the ``pop`` field from smallest to
+  largest. This operation does not alter the documents.
+
+- the second :pipeline:`$group` operator collects the documents in
+  the pipeline by the ``state`` field, which is a field inside the
+  nested ``_id`` document.
+
+  Within each per-state document this :pipeline:`$group` operator
+  specifies four fields: Using the :group:`$last` expression,
+  the :pipeline:`$group` operator creates the ``biggestcity`` and
+  ``biggestpop`` fields that store the city with the largest
+  population and that population. Using the :group:`$first`
+  expression, the :pipeline:`$group` operator creates the
+  ``smallestcity`` and ``smallestpop`` fields that store the city with
+  the smallest population and that population.
+
+  The documents, at this stage in the pipeline resemble the following:
+
+  .. code-block:: javascript
+
+     {
+       "_id" : "WA",
+       "biggestCity" : "SEATTLE",
+       "biggestPop" : 520096,
+       "smallestCity" : "BENGE",
+       "smallestPop" : 2
+     }
+
+- The final operation is :pipeline:`$project`, which renames the
+  ``_id`` field to ``state`` and moves the ``biggestCity``,
+  ``biggestPop``, ``smallestCity``, and ``smallestPop`` into
+  ``biggestCity`` and ``smallestCity`` sub-documents.
+
+The final output of this aggregation operation is:
+
+.. code-block:: javascript
+
+   {
+     "state" : "RI",
+     "biggestCity" : {
+       "name" : "CRANSTON",
+       "pop" : 176404
+     },
+     "smallestCity" : {
+       "name" : "CLAYVILLE",
+       "pop" : 45
+     }
+   }
+
+.. will uncomment this block when we get the SQL
+
+   The equivalent :term:`SQL` for this operation is:
+
+   .. code-block:: sql
+
+Aggregation with User Preference Data
+-------------------------------------
+
+Data Model
+~~~~~~~~~~
+
+Consider a hypothetical sports club with a database that contains a
+``user`` collection that tracks user's join dates, sport preferences,
+and stores these data in documents that resemble the following:
+
+.. code-block:: javascript
+
+   {
+     _id : "jane",
+     joined : ISODate("2011-03-02"),
+     likes : ["golf", "racquetball"]
+   }
+   {
+     _id : "joe",
+     joined : ISODate("2012-07-02"),
+     likes : ["tennis", "golf", "swimming"]
+   }
+
+.. redacting following section, upon request of Mathias.
+
+   Return a Single Field
+   ~~~~~~~~~~~~~~~~~~~~~
+
+   The following operation uses :pipeline:`$project` to return only the
+   ``_id`` field and to return it for all documents in the ``users``
+   collection:
+
+   .. code-block:: javascript
+
+      db.users.aggregate(
+        [
+          { $project : { _id:1 } }
+        ]
+      )
+
+   The operation returns results that resemble the following:
+
+   .. code-block:: javascript
+
+      {
+        "_id" : "joe"
+      },
+      {
+        "_id" : "jane"
+      },
+      {
+        "_id" : "jill"
+      }
+
+   For basic query and projection operations, standard queries with the
+   :method:`find() <db.collection.find()>` method are preferable. This
+   operation appears as an hypothetical example only.
+
+.. end-redaction
+
+Normalize and Sort Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation returns user names in upper case and in
+alphabetical order. The aggregation includes user names for all documents in
+the ``users`` collection. You might do this to normalize user names for
+processing.
+
+.. code-block:: javascript
+
+   db.users.aggregate(
+     [
+       { $project : { name:{$toUpper:"$_id"} , _id:0 } },
+       { $sort : { name : 1 } }
+     ]
+   )
+
+All documents from the ``users`` collection passes through the
+pipeline, which consists of the following operations:
+
+- The :pipeline:`$project` operator:
+
+  - creates a new field called ``name``.
+
+  - converts the value of the ``_id`` to upper case, with the
+    :expression:`$toUpper` operator. Then the
+    :pipeline:`$project` creates a new field, named ``name``
+    to hold this value.
+
+  - suppresses the ``id`` field. :pipeline:`$project` will pass
+    the ``_id`` field by default, unless explicitly suppressed.
+
+- The :pipeline:`$sort` operator orders the results by the
+  ``name`` field.
+
+The results of the aggregation would resemble the following:
+
+.. code-block:: javascript
+
+   {
+     "name" : "JANE"
+   },
+   {
+     "name" : "JILL"
+   },
+   {
+     "name" : "JOE"
+   }
+
+.. todo:: resolve the following commented block:
+
+.. removed the following block until we can get it corrected. It would
+   be ok to delete eventually.
+
+   <bg> I think this example needs reworking. I don't think it returns
+        the top 4 months that people tend to join the club, just the
+        first four in the calendar year. For example, if people joined
+        as follows: Jan 1 person, Feb 2, Mar 2, Apr 1, June 100, the
+        query would still return Jan, Feb, Mar, Apr.
+
+   <tycho> Agreed, it would need to group by month joined, and then
+           sort those documents.
+
+   Determine Most Common Join Month in Collection
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   .. code-block:: javascript
+
+      db.users.aggregate(
+        [
+          { $project : { month_joined : { $month : "$joined" } } },
+          { $sort : { month_joined : 1 } },
+          { $limit : 4 }
+        ]
+      )
+
+   The pipeline passes all documents in the ``users`` collection through
+   the following operations:
+
+   - The :pipeline:`$project` operator creates a new field called ``month_joined``.
+
+   - The :expression:`$month` operator converts the ``joined`` field to
+     integer representations of the month. Then the :pipeline:`$project` operator
+     assigns the values to the ``month_joined`` field.
+
+   - The :pipeline:`$sort` operator sorts the results by the ``month_joined`` field.
+
+   - The :pipeline:`$limit` operator limits the results to the first 4 result documents.
+
+   The operation returns results that resemble the following:
+
+   .. code-block:: javascript
+
+      {
+        "_id" : "ruth",
+        "month_joined" : 1
+      },
+      {
+        "_id" : "harold",
+        "month_joined" : 1
+      },
+      {
+        "_id" : "kate",
+        "month_joined" : 1
+      },
+      {
+        "_id" : "jill",
+        "month_joined" : 2
+      }
+
+.. end-comment
+
+Return Usernames Ordered by Join Month
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following aggregation operation returns user names sorted by the
+month they joined. This kind of aggregation could help generate
+membership renewal notices.
+
+.. code-block:: javascript
+
+   db.users.aggregate(
+     [
+       { $project : { month_joined : {
+                                       $month : "$joined"
+                                     },
+                      name : "$_id",
+                      _id : 0
+                    },
+       { $sort : { month_joined : 1 } }
+     ]
+   )
+
+The pipeline passes all documents in the ``users`` collection through
+the following operations:
+
+- The :pipeline:`$project` operator:
+
+  - Creates two new fields: ``month_joined`` and ``name``.
+
+  - Suppresses the ``id`` from the results. The :method:`aggregate()
+    <db.collection.aggregate()>` method includes the ``_id``, unless
+    explicitly suppressed.
+
+- The :expression:`$month` operator converts the values of the
+  ``joined`` field to integer representations of the month. Then the
+  :pipeline:`$project` operator assigns those values to the
+  ``month_joined`` field.
+
+- The :pipeline:`$sort` operator sorts the results by the
+  ``month_joined`` field.
+
+The operation returns results that resemble the following:
+
+.. code-block:: javascript
+
+   {
+     "month_joined" : 1,
+     "name" : "ruth"
+   },
+   {
+     "month_joined" : 1,
+     "name" : "harold"
+   },
+   {
+     "month_joined" : 1,
+     "name" : "kate"
+   }
+   {
+     "month_joined" : 2,
+     "name" : "jill"
+   }
+
+Return Total Number of Joins per Month
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation shows how many people joined each month of the
+year. You might use this aggregated data for such information for recruiting and marketing
+strategies.
+
+.. code-block:: javascript
+
+   db.users.aggregate(
+     [
+       { $project : { month_joined : { $month : "$joined" } } } ,
+       { $group : { _id : {month_joined:"$month_joined"} , number : { $sum : 1 } } },
+       { $sort : { "_id.month_joined" : 1 } }
+     ]
+   )
+
+The pipeline passes all documents in the ``users`` collection through
+the following operations:
+
+- The :pipeline:`$project` operator creates a new field called
+  ``month_joined``.
+
+- The :expression:`$month` operator converts the values of the
+  ``joined`` field to integer representations of the month. Then the
+  :pipeline:`$project` operator assigns the values to the
+  ``month_joined`` field.
+
+- The :pipeline:`$group` operator collects all documents with a
+  given ``month_joined`` value and counts how many documents there are
+  for that value. Specifically, for each unique value,
+  :pipeline:`$group` creates a new "per-month" document with two
+  fields:
+
+  - ``_id``, which contains a nested document with the
+    ``month_joined`` field and its value.
+
+  - ``number``, which is a generated field. The :group:`$sum`
+    operator increments this field by 1 for every document containing
+    the given ``month_joined`` value.
+
+- The :pipeline:`$sort` operator sorts the documents created by
+  :pipeline:`$group` according to the contents of the
+  ``month_joined`` field.
+
+The result of this aggregation operation would resemble the following:
+
+.. code-block:: javascript
+
+   {
+     "_id" : {
+       "month_joined" : 1
+     },
+     "number" : 3
+   },
+   {
+     "_id" : {
+       "month_joined" : 2
+     },
+     "number" : 9
+   },
+   {
+     "_id" : {
+       "month_joined" : 3
+     },
+     "number" : 5
+   }
+
+Return the Five Most Common "Likes"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following aggregation collects top five most "liked" activities in
+the data set. In this data set, you might use an analysis of this to
+help inform planning and future development.
+
+.. code-block:: javascript
+
+   db.users.aggregate(
+     [
+       { $unwind : "$likes" },
+       { $group : { _id : "$likes" , number : { $sum : 1 } } },
+       { $sort : { number : -1 } },
+       { $limit : 5 }
+     ]
+   )
+
+The pipeline begins with all documents in the ``users`` collection,
+and passes these documents through the following operations:
+
+- The :pipeline:`$unwind` operator separates each value in the
+  ``likes`` array, and creates a new version of the source document
+  for every element in the array.
+
+  .. example::
+
+     Given the following document from the ``users`` collection:
+
+     .. code-block:: javascript
+
+        {
+          _id : "jane",
+          joined : ISODate("2011-03-02"),
+          likes : ["golf", "racquetball"]
+        }
+
+     The :pipeline:`$unwind` operator would create the following
+     documents:
+
+     .. code-block:: javascript
+
+        {
+          _id : "jane",
+          joined : ISODate("2011-03-02"),
+          likes : "golf"
+        }
+        {
+          _id : "jane",
+          joined : ISODate("2011-03-02"),
+          likes : "racquetball"
+        }
+
+- The :pipeline:`$group` operator collects all documents the same
+  value for the ``likes`` field and counts each grouping. With this
+  information, :pipeline:`$group` creates a new document with two
+  fields:
+
+  - ``_id``, which contains the ``likes`` value.
+
+  - ``number``, which is a generated field. The :group:`$sum`
+    operator increments this field by 1 for every document containing
+    the given ``likes`` value.
+
+- The :pipeline:`$sort` operator sorts these documents by the
+  ``number`` field in reverse order.
+
+- The :pipeline:`$limit` operator only includes the first 5 result
+  documents.
+
+The results of aggregation would resemble the following:
+
+.. code-block:: javascript
+
+   {
+     "_id" : "golf",
+     "number" : 33
+   },
+   {
+     "_id" : "racquetball",
+     "number" : 31
+   },
+   {
+     "_id" : "swimming",
+     "number" : 24
+   },
+   {
+     "_id" : "handball",
+     "number" : 19
+   },
+   {
+     "_id" : "tennis",
+     "number" : 18
+   }

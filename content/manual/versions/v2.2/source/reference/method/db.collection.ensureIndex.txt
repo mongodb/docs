@@ -1,0 +1,162 @@
+===========================
+db.collection.ensureIndex()
+===========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. method:: db.collection.ensureIndex(keys, options)
+
+   Creates an index on the field specified, if that index does not
+   already exist.
+
+   :param document keys: A :term:`document` that contains
+                         pairs with the name of the field or
+                         fields to index and order of the index. A
+                         ``1`` specifies ascending and a ``-1``
+                         specifies descending.
+
+   :param document options: A :term:`document` that controls the creation
+                            of the index. This argument is optional.
+
+   .. warning:: Index names, including their full namespace
+      (i.e. ``database.collection``) can be no longer than 128
+      characters. See the :method:`db.collection.getIndexes()` field
+      ":data:`~system.indexes.name`" for the names of existing indexes.
+
+   Consider the following prototype:
+
+   .. code-block:: javascript
+
+      db.collection.ensureIndex({ <key>: 1})
+
+   This command creates an index, in ascending order, on the field
+   ``[key]``.
+
+   If the ``keys`` document specifies more than one field, than
+   :method:`db.collection.ensureIndex()` creates a :term:`compound
+   index`.  To specify a compound index use the following form:
+
+   .. code-block:: javascript
+
+      db.collection.ensureIndex({ <key>: 1, <key1>: -1 })
+
+   This command creates a compound index on the ``key`` field
+   (in ascending order) and ``key1`` field (in descending order.)
+
+   .. note::
+
+      The order of an index is important for supporting
+      :method:`cursor.sort()` operations using the index.
+
+   The :doc:`/indexes` section of this manual for full documentation
+   of indexes and indexing in MongoDB.
+
+   :method:`~db.collection.ensureIndex()` provides the following
+    options
+
+   .. list-table::
+      :header-rows: 1
+
+      * - **Option**
+        - **Value**
+        - **Default**
+
+      * - background
+        - ``true`` or ``false``
+        - ``false``
+      * - unique
+        - ``true`` or ``false``
+        - ``false``
+      * - name
+        - string
+        - none
+      * - dropDups
+        - ``true`` or ``false``
+        - ``false``
+      * - sparse
+        - ``true`` or ``false``
+        - ``false``
+      * - expireAfterSeconds
+        - integer
+        - none
+      * - v
+        - index version
+        - 1
+
+   :option boolean background: Specify ``true`` to build the index
+                               in the background so that building an
+                               index will *not* block other database
+                               activities.
+
+   :option boolean unique: Specify ``true`` to create a unique index
+                           so that the collection will not accept
+                           insertion of documents where the index key
+                           or keys matches an existing value in the
+                           index.
+
+   :option string name: Specify the name of the index. If unspecified,
+                        MongoDB will generate an index name by concatenating
+                        the names of the indexed fields and the sort order.
+
+   :option boolean dropDups: Specify ``true`` when creating a unique
+                             index, on a field that *may* have
+                             duplicate to index only the first
+                             occurrence of a key, and **remove** all
+                             documents from the collection that
+                             contain subsequent occurrences of that
+                             key.
+
+   :option boolean sparse: If ``true``, the index only references
+                           documents with the specified field. These
+                           indexes use less space, but behave
+                           differently in some situations
+                           (particularly sorts.)
+
+   :option integer expireAfterSeconds: Specify a value, in seconds, as
+                                       a :term:`TTL` to control how
+                                       long MongoDB will retain
+                                       documents in this collection.
+                                       See ":doc:`/tutorial/expire-data`"
+                                       for more information on this
+                                       functionality.
+
+   :option v: Only specify a different index version in unusual
+              situations. The latest index version (version 1) provides a smaller
+              and faster index format.
+
+   Please be aware of the following behaviors of
+   :method:`ensureIndex() <db.collection.ensureIndex()>`:
+
+   - To add or change index options you must drop the index using the
+     :method:`~db.collection.dropIndex()` method and issue another
+     :method:`~db.collection.ensureIndex()` operation
+     with the new options.
+
+     If you create an index with one set of options, and then issue
+     the :method:`~db.collection.ensureIndex()` method
+     with the same index fields and different options without
+     first dropping the index,
+     :method:`~db.collection.ensureIndex()` will *not* rebuild the existing
+     index with the new options.
+
+   - If you call multiple :method:`ensureIndex() <db.collection.ensureIndex()>`
+     methods with the same index specification at the same time, only
+     the first operation will succeed, all other operations will have
+     no effect.
+
+   - Non-background indexing operations will block all other
+     operations on a database.
+
+   - You cannot stop a foreground index build once it's begun. See the
+     :ref:`indexes-admin-stop-in-progress-build` for more
+     information.
+
+   .. [#] The default index version depends on the version of
+      :binary:`~bin.mongod` running when creating the index. Before version
+      2.0, the this value was 0; versions 2.0 and later use version 1.

@@ -1,0 +1,71 @@
+=======================
+Build Old Style Indexes
+=======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. important::
+
+   Use this procedure *only* if you **must** have indexes that are compatible
+   with a version of MongoDB earlier than 2.0.
+
+MongoDB version 2.0 introduced the ``{v:1}`` index format. MongoDB
+versions 2.0 and later support both the ``{v:1}`` format and the
+earlier ``{v:0}`` format.
+
+MongoDB versions prior to 2.0, however, support only the ``{v:0}``
+format. If you need to roll back MongoDB to a version prior to 2.0,
+you must *drop* and *re-create* your indexes.
+
+To build pre-2.0 indexes, use the :method:`dropIndexes()
+<db.collection.dropIndexes()>` and :method:`ensureIndex()
+<db.collection.ensureIndex()>` methods. You *cannot* simply reindex
+the collection. When you reindex on versions that only support
+``{v:0}`` indexes, the ``v`` fields in the index definition still hold
+values of ``1``, even though the indexes would now use the ``{v:0}``
+format. If you were to upgrade again to version 2.0 or later, these
+indexes would not work.
+
+.. For reference only, the source material:
+
+   Versions >= 1.8.3 are aware of the index version field, but version
+   <= 1.8.2 are not. So if you rollback a [v:1} index to 1.8.2 and
+   re-index it its version will still be marked {v: 1} although it
+   actual version is {v: 0}. Then if you upgrade again to 2.0 this
+   index won't work even though they are marked as {v: 1} in
+   db.system.indexes. So if you have to rollback to a version <=
+   1.8.2, you must delete the index then create it again (instead of
+   simply re-indexing).
+
+.. example::
+
+   Suppose you rolled back from MongoDB 2.0 to MongoDB 1.8, and suppose
+   you had the following index on the ``items`` collection:
+
+   .. code-block:: javascript
+
+      { "v" : 1, "key" : { "name" : 1 }, "ns" : "mydb.items", "name" : "name_1" }
+
+   The ``v`` field tells you the index is a ``{v:1}`` index, which
+   is incompatible with version 1.8.
+
+   To drop the index, issue the following command:
+
+   .. code-block:: javascript
+
+      db.items.dropIndex( { name : 1 } )
+
+   To recreate the index as a ``{v:0}`` index, issue the following
+   command:
+
+   .. code-block:: javascript
+
+      db.foo.ensureIndex( { name : 1 } , { v : 0 } )
+
+.. seealso:: :ref:`2.0-new-index-format`.

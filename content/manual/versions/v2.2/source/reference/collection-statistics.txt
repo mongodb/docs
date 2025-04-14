@@ -1,0 +1,183 @@
+===============================
+Collection Statistics Reference
+===============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+.. highlight:: javascript
+
+Synopsis
+--------
+
+To fetch collection statistics, call the :method:`db.collection.stats()` method on
+a collection object in the :binary:`~bin.mongo` shell:
+
+.. code-block:: javascript
+
+   db.collection.stats()
+
+You may also use the literal command format:
+
+.. code-block:: javascript
+
+   db.runCommand( { collStats: "collection" } )
+
+Replace ``collection`` in both examples with the name of the
+collection you want statistics for. By default, the return values will
+appear in terms of bytes. You can, however, enter a ``scale``
+argument. For example, you can convert the return values to kilobytes
+like so:
+
+.. code-block:: javascript
+
+   db.collection.stats(1024)
+
+Or:
+
+.. code-block:: javascript
+
+   db.runCommand( { collStats: "collection", scale: 1024 } )
+
+.. note::
+
+   The ``scale`` argument rounds values to whole numbers. This can
+   produce unpredictable and unexpected results in some situations.
+
+.. seealso:: The documentation of the ":dbcommand:`collStats`" command
+   and the ":method:`db.collection.stats()`," method in the :binary:`~bin.mongo` shell.
+
+Example Document
+----------------
+
+The output of :method:`db.collection.stats()` resembles the following:
+
+.. code-block:: javascript
+
+   {
+        "ns" : "<database>.<collection>",
+        "count" : <number>,
+        "size" : <number>,
+        "avgObjSize" : <number>,
+        "storageSize" : <number>,
+        "numExtents" : <number>,
+        "nindexes" : <number>,
+        "lastExtentSize" : <number>,
+        "paddingFactor" : <number>,
+        "systemFlags" : <bit>,
+        "userFlags" : <bit>,
+        "totalIndexSize" : <number>,
+        "indexSizes" : {
+                "_id_" : <number>,
+                "a_1" : <number>
+        },
+        "ok" : 1
+   }
+
+Fields
+------
+
+.. data:: collStats.ns
+
+   The namespace of the current collection, which follows the format
+   ``[database].[collection]``.
+
+.. data:: collStats.count
+
+   The number of objects or documents in this collection.
+
+.. data:: collStats.size
+
+   The size of the data stored in this collection. This value does not
+   include the size of any indexes associated with the collection,
+   which the :data:`~collStats.totalIndexSize` field reports.
+
+   The ``scale`` argument affects this value.
+
+.. data:: collStats.avgObjSize
+
+   The average size of an object in the collection. The ``scale``
+   argument affects this value.
+
+.. data:: collStats.storageSize
+
+   The total amount of storage allocated to this collection for
+   :term:`document` storage.  The ``scale`` argument affects this
+   value. The :data:`~collStats.storageSize` does not decrease as you remove or
+   shrink documents.
+
+   .. sum of all extents (no indexes or the $freelist)
+   .. include links to eventual documentation of storage management
+
+.. data:: collStats.numExtents
+
+   The total number of contiguously allocated data file regions.
+
+.. data:: collStats.nindexes
+
+   The number of indexes on the collection. All collections have at
+   least one index on the :term:`_id` field.
+
+   .. versionchanged:: 2.2
+      Before 2.2, capped collections did not necessarily have an
+      index on the ``_id`` field, and some capped collections created
+      with pre-2.2 versions of :binary:`~bin.mongod` may not have an
+      ``_id`` index.
+
+
+.. data:: collStats.lastExtentSize
+
+   The size of the last extent allocated. The ``scale`` argument
+   affects this value.
+
+.. data:: collStats.paddingFactor
+
+   The amount of space added to the end of each document at insert
+   time. The document padding provides a small amount of extra space
+   on disk to allow a document to grow slightly without needing to
+   move the document. :binary:`~bin.mongod` automatically calculates this
+   padding factor
+
+.. data:: collStats.flags
+
+   .. versionchanged:: 2.2
+      Removed in version 2.2 and replaced with the :data:`~collStats.userFlags`
+      and :data:`~collStats.systemFlags` fields.
+
+   Indicates the number of flags on the current collection. In version
+   2.0, the only flag notes the existence of an :term:`index` on the
+   :term:`_id` field.
+
+.. data:: collStats.systemFlags
+
+   .. versionadded:: 2.2
+
+   Reports the flags on this collection that reflect internal server
+   options. Typically this value is ``1`` and reflects the existence
+   of an :term:`index` on the ``_id`` field.
+
+.. data:: collStats.userFlags
+
+   .. versionadded:: 2.2
+
+   Reports the flags on this collection set by the user. In version
+   2.2 the only user flag is :collflag:`usePowerOf2Sizes`.
+   If :collflag:`usePowerOf2Sizes` is enabled, :data:`~collStats.userFlags` will
+   be set to ``1``, otherwise :data:`~collStats.userFlags` will be ``0``.
+
+   See the :dbcommand:`collMod` command for more information on setting user
+   flags and :collflag:`usePowerOf2Sizes`.
+
+.. data:: collStats.totalIndexSize
+
+   The total size of all indexes. The ``scale`` argument affects this
+   value.
+
+.. data:: collStats.indexSizes
+
+   This field specifies the key and size of every existing index on
+   the collection. The ``scale`` argument affects this value.

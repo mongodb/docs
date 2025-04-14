@@ -1,0 +1,360 @@
+.. _configuration-file:
+
+===============================
+Run-time Database Configuration
+===============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+The :doc:`command line </reference/mongod>` and :doc:`configuration
+file </reference/configuration-options>` interfaces provide MongoDB
+administrators with a large number of options and settings for
+controlling the operation of the database system. This document
+provides an overview of common configurations and examples of
+best-practice configurations for common use cases.
+
+While both interfaces provide access to the same collection of options
+and settings, this document primarily uses the configuration file
+interface. If you run MongoDB using a control script or installed from
+a package for your operating system, you likely already have a
+configuration file located at ``/etc/mongodb.conf``. Confirm this by
+checking the content of the ``/etc/init.d/mongod`` or
+``/etc/rc.d/mongod`` script to insure that the :term:`control scripts
+<control script>` start the :binary:`~bin.mongod` with the appropriate
+configuration file (see below.)
+
+To start MongoDB instance using this configuration issue a command in
+the following form:
+
+.. code-block:: sh
+
+   mongod --config /etc/mongodb.conf
+   mongod -f /etc/mongodb.conf
+
+Modify the values in the ``/etc/mongodb.conf`` file on your system to
+control the configuration of your database instance.
+
+.. _base-config:
+
+Starting, Stopping, and Running the Database
+--------------------------------------------
+
+Consider the following basic configuration:
+
+.. code-block:: cfg
+
+   fork = true
+   bind_ip = 127.0.0.1
+   port = 27017
+   quiet = true
+   dbpath = /srv/mongodb
+   logpath = /var/log/mongodb/mongod.log
+   logappend = true
+   journal = true
+
+For most standalone servers, this is a sufficient base
+configuration. It makes several assumptions, but consider the
+following explanation:
+
+- :setting:`fork` is ``true``, which enables a
+  :term:`daemon` mode for :binary:`~bin.mongod`, which detaches (i.e. "forks")
+  the MongoDB from the current session and allows you to run the
+  database as a conventional server.
+
+- :setting:`bind_ip` is ``127.0.0.1``, which forces the
+  server to only listen for requests on the localhost IP. Only bind to
+  secure interfaces that the application-level systems can access with
+  access control provided by system network filtering
+  (i.e. ":term:`firewall`").
+
+- :setting:`port` is ``27017``, which is the default
+  MongoDB port for database instances. MongoDB can bind to any
+  port. You can also filter access based on port using network
+  filtering tools.
+
+  .. note::
+
+     UNIX-like systems require superuser privileges to attach processes
+     to ports lower than 1024.
+
+- :setting:`quiet` is ``true``. This disables all but
+  the most critical entries in output/log file. In normal operation
+  this is the preferable operation to avoid log noise. In diagnostic
+  or testing situations, set this value to ``false``. Use
+  :dbcommand:`setParameter` to modify this setting during
+  run time.
+
+- :setting:`dbpath` is ``/srv/mongodb``, which
+  specifies where MongoDB will store its data files. ``/srv/mongodb``
+  and ``/var/lib/mongodb`` are popular locations. The user account
+  that :binary:`~bin.mongod` runs under will need read and write access to this
+  directory.
+
+- :setting:`logpath` is ``/var/log/mongodb/mongod.log``
+  which is where :binary:`~bin.mongod` will write its output. If you do not set
+  this value, :binary:`~bin.mongod` writes all output to standard output
+  (e.g. ``stdout``.)
+
+- :setting:`logappend` is ``true``, which ensures that
+  :binary:`~bin.mongod` does not overwrite an existing log file
+  following the server start operation.
+
+- :setting:`journal` is ``true``, which enables :term:`journaling <journal>`.
+  Journaling ensures single instance write-durability. 64-bit builds
+  of :binary:`~bin.mongod` enable journaling by default. Thus, this
+  setting may be redundant.
+
+Given the default configuration, some of these values may be
+redundant. However, in many situations explicitly stating the
+configuration increases overall system intelligibility.
+
+.. _configuration-security:
+
+Security Considerations
+-----------------------
+
+The following collection of configuration options are useful for
+limiting access to a :binary:`~bin.mongod` instance. Consider the
+following:
+
+.. code-block:: cfg
+
+   bind_ip = 127.0.0.1,10.8.0.10,192.168.4.24
+   nounixsocket = true
+   auth = true
+
+Consider the following explanation for these configuration decisions:
+
+- ":setting:`bind_ip`" has three values: ``127.0.0.1``, the localhost
+  interface; ``10.8.0.10``, a private IP address typically used for
+  local networks and VPN interfaces; and ``192.168.4.24``, a private
+  network interface typically used for local networks.
+
+  Because production MongoDB instances need to be accessible from
+  multiple database servers, it is important to bind MongoDB to
+  multiple interfaces that are accessible from your application
+  servers. At the same time it's important to limit these interfaces
+  to interfaces controlled and protected at the network layer.
+
+- ":setting:`nounixsocket`" to ``true`` disables the
+  UNIX Socket, which is otherwise enabled by default. This limits
+  access on the local system. This is desirable when running MongoDB
+  on systems with shared access, but in most situations has minimal impact.
+
+- ":setting:`auth`" is ``true`` enables the authentication
+  system within MongoDB. If enabled you will need to log in by
+  connecting over the ``localhost`` interface for the first time to
+  create user credentials.
+
+.. seealso:: :doc:`/administration/security`
+
+Replication and Sharding Configuration
+--------------------------------------
+
+Replication Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:term:`Replica set` configuration is straightforward, and only
+requires that the :setting:`replSet` have a value that is consistent
+among all members of the set. Consider the following:
+
+.. code-block:: cfg
+
+   replSet = set0
+
+Use descriptive names for sets. Once configured use the
+:binary:`~bin.mongo` shell to add hosts to the replica set.
+
+.. seealso:: :ref:`Replica set reconfiguration <replica-set-reconfiguration-usage>`.
+
+To enable authentication for the :term:`replica set`, add the
+following option:
+
+.. code-block:: cfg
+
+   keyFile = /srv/mongodb/keyfile
+
+.. versionadded:: 1.8 for replica sets, and 1.9.1 for sharded replica sets.
+
+   Setting :setting:`keyFile` enables authentication and specifies a key
+   file for the replica set member use to when authenticating to each
+   other. The content of the key file is arbitrary, but must be the same
+   on all members of the :term:`replica set` and :binary:`~bin.mongos`
+   instances that connect to the set. The keyfile must be less than one
+   kilobyte in size and may only contain characters in the base64 set and
+   the file must not have group or "world" permissions on UNIX systems.
+
+.. seealso:: The ":ref:`Replica set Reconfiguration
+   <replica-set-reconfiguration-usage>`" section for information regarding
+   the process for changing replica set during operation.
+
+   Additionally, consider the ":ref:`Replica Set Security <replica-set-security>`"
+   section for information on configuring authentication with replica
+   sets.
+
+   Finally, see the ":doc:`/replication`" index and the
+   ":doc:`/core/replication`" document for more information on
+   replication in MongoDB and replica set configuration in general.
+
+Sharding Configuration
+~~~~~~~~~~~~~~~~~~~~~~
+
+Sharding requires a number of :binary:`~bin.mongod` instances with
+different configurations. The config servers store the cluster's
+metadata, while the cluster distributes data among one or more shard
+servers.
+
+.. note::
+
+   :term:`Config servers <config database>` are not :term:`replica
+   sets <replica set>`.
+
+To set up one or three "config server" instances as :ref:`normal
+<base-config>` :binary:`~bin.mongod` instances, and then add the following
+configuration option:
+
+.. code-block:: cfg
+
+   configsvr = true
+
+   bind_ip = 10.8.0.12
+   port = 27001
+
+This creates a config server running on the private IP address
+``10.8.0.12`` on port ``27001``. Make sure that there are no port
+conflicts, and that your config server is accessible from all of your
+":binary:`~bin.mongos`" and ":binary:`~bin.mongod`" instances.
+
+To set up shards, configure two or more :binary:`~bin.mongod` instance
+using your :ref:`base configuration <base-config>`, adding the
+:setting:`shardsvr` setting:
+
+.. code-block:: cfg
+
+   shardsvr = true
+
+Finally, to establish the cluster, configure at least one
+:binary:`~bin.mongos` process with the following settings:
+
+.. code-block:: cfg
+
+   configdb = 10.8.0.12:27001
+   chunkSize = 64
+
+You can specify multiple :setting:`configdb` instances by
+specifying hostnames and ports in the form of a comma separated
+list. In general, avoid modifying the :setting:`chunkSize` from
+the default value of 64, [#chunksize]_ and *should* ensure this setting is consistent
+among all :binary:`~bin.mongos` instances.
+
+.. [#chunksize] :term:`Chunk` size is 64 megabytes by default, which
+   provides the ideal balance between the most even distribution of
+   data, for which smaller chunk sizes are best, and minimizing chunk
+   migration, for which larger chunk sizes are optimal.
+
+.. seealso:: The ":doc:`/sharding`" section of the manual for more
+   information on sharding and cluster configuration.
+
+Running Multiple Database Instances on the Same System
+------------------------------------------------------
+
+In many cases running multiple instances of :binary:`~bin.mongod` on a
+single system is not recommended. On some types of deployments
+[#multimongod]_ and for testing purposes you may need to run more than
+one :binary:`~bin.mongod` on a single system.
+
+In these cases, use a :ref:`base configuration <base-config>` for each
+instance, but consider the following configuration values:
+
+.. code-block:: cfg
+
+   dbpath = /srv/mongodb/db0/
+   pidfilepath = /srv/mongodb/db0.pid
+
+The :setting:`dbpath` value controls the location of the
+:binary:`~bin.mongod` instance's data directory. Ensure that each database
+has a distinct and well labeled data directory. The
+:setting:`pidfilepath` controls where :binary:`~bin.mongod` process
+places it's :term:`process id <pid>` file. As this tracks the specific
+:binary:`~bin.mongod` file, it is crucial that file be unique and well
+labeled to make it easy to start and stop these processes.
+
+Create additional :term:`control scripts <control script>` and/or
+adjust your existing MongoDB configuration and control script as
+needed to control these processes.
+
+.. [#multimongod] Single-tenant systems with :term:`SSD` or other high
+   performance disks may provide acceptable performance levels for
+   multiple :binary:`~bin.mongod` instances. Additionally, you may find that
+   multiple databases with small working sets may function acceptably
+   on a single system.
+
+Diagnostic Configurations
+-------------------------
+
+The following configuration options control various :binary:`~bin.mongod`
+behaviors for diagnostic purposes. The following settings have default
+values that tuned for general production purposes:
+
+.. code-block:: cfg
+
+   slowms = 50
+   profile = 3
+   verbose = true
+   diaglog = 3
+   objcheck = true
+   cpu = true
+
+Use the :ref:`base configuration <base-config>` and add these options
+if you are experiencing some unknown issue or performance problem as
+needed:
+
+- :setting:`slowms` configures the threshold for the :term:`database
+  profiler` to consider a query "slow." The default value is 100
+  milliseconds. Set a lower value if the database profiler does not
+  return useful results. See :doc:`/applications/optimization`
+  for more information on optimizing operations in MongoDB.
+
+- :setting:`profile` sets the :term:`database profiler`
+  level. The profiler is not active by default because of the possible
+  impact on the profiler itself on performance. Unless this setting
+  has a value, queries are not profiled.
+
+- :setting:`verbose` enables a verbose logging mode that
+  modifies :binary:`~bin.mongod` output and increases logging to include a
+  greater number of events. Only use this option if you are
+  experiencing an issue that is not reflected in the normal logging
+  level. If you require additional verbosity, consider the following
+  options:
+
+  .. code-block:: cfg
+
+     v = true
+     vv = true
+     vvv = true
+     vvvv = true
+     vvvvv = true
+
+  Each additional level ``v`` adds additional verbosity to the
+  logging. The ``verbose`` option  is equal to ``v = true``.
+
+- :setting:`diaglog` enables :term:`diagnostic logging <diagnostic log>`. Level ``3``
+  logs all read and write options.
+
+- :setting:`objcheck` forces :binary:`~bin.mongod` to validate all
+  requests from clients upon receipt. Use this option to ensure that
+  invalid requests are not causing errors, particularly when running a
+  database with untrusted clients. This option may affect database
+  performance.
+
+- :setting:`cpu` forces :binary:`~bin.mongod` to report the percentage of
+  the last interval spent in :term:`write-lock`. The interval is
+  typically 4 seconds, and each output line in the log includes both
+  the actual interval since the last report and the percentage of
+  time spent in write lock.

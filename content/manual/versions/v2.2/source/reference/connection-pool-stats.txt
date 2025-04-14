@@ -1,0 +1,180 @@
+====================================
+Connection Pool Statistics Reference
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Synopsis
+--------
+
+:binary:`~bin.mongos` instances maintain a pool of connections for
+interacting with constituent members of the :term:`sharded cluster`.
+Additionally, :binary:`~bin.mongod` instances maintain
+connection with other shards in the cluster for migrations. The
+:dbcommand:`connPoolStats` command returns statistics regarding these
+connections between the :binary:`~bin.mongos` and :binary:`~bin.mongod`
+instances or between the :binary:`~bin.mongod` instances in a shard
+cluster.
+
+.. include:: /includes/note-conn-pool-stats.rst
+
+Output
+------
+
+.. data:: connPoolStats.hosts
+
+   The sub-documents of the :data:`~connPoolStats.hosts` :term:`document` report connections
+   between the :binary:`~bin.mongos` or :binary:`~bin.mongod` instance and each component
+   :binary:`~bin.mongod` of the :term:`sharded cluster`.
+
+   .. data:: connPoolStats.hosts.[host].available
+
+      :data:`~connPoolStats.hosts.[host].available` reports the total number of
+      connections that the :binary:`~bin.mongos` or :binary:`~bin.mongod`
+      could use to connect to this :binary:`~bin.mongod`.
+
+   .. data:: connPoolStats.hosts.[host].created
+
+      :data:`~connPoolStats.hosts.[host].created` reports the number of connections
+      that this :binary:`~bin.mongos` or :binary:`~bin.mongod` has ever created for this host.
+
+.. data:: connPoolStats.replicaSets
+
+   :data:`~connPoolStats.replicaSets` is a :term:`document` that contains
+   :term:`replica set` information for the :term:`sharded cluster`.
+
+   .. data:: connPoolStats.replicaSets.shard
+
+      The :data:`~connPoolStats.replicaSets.shard` :term:`document` reports
+      on each :term:`shard` within the :term:`sharded cluster`
+
+   .. data:: connPoolStats.replicaSets.[shard].host
+
+      The :data:`~connPoolStats.replicaSets.[shard].host` field holds an array of
+      :term:`document` that reports on each host within the
+      :term:`shard` in the :term:`replica set`.
+
+      These values derive from the :doc:`replica set status
+      </reference/replica-status>` values.
+
+      .. data:: connPoolStats.replicaSets.[shard].host[n].addr
+
+         :data:`~connPoolStats.replicaSets.[shard].host[n].addr` reports the address
+         for the host in the :term:`sharded cluster` in the format of
+         "``[hostname]:[port]``".
+
+      .. data:: connPoolStats.replicaSets.[shard].host[n].ok
+
+         :data:`~connPoolStats.replicaSets.[shard].host[n].ok` reports ``false``
+         when:
+
+         - the :binary:`~bin.mongos` or :binary:`~bin.mongod` cannot connect
+           to instance.
+
+         - the :binary:`~bin.mongos` or :binary:`~bin.mongod` received a
+           connection exception or error.
+
+         This field is for internal use.
+
+      .. data:: connPoolStats.replicaSets.[shard].host[n].ismaster
+
+         :data:`~connPoolStats.replicaSets.[shard].host[n].ismaster` reports ``true``
+         if this :data:`~connPoolStats.replicaSets.[shard].host` is the
+         :term:`primary` member of the :term:`replica set`.
+
+      .. data:: connPoolStats.replicaSets.[shard].host[n].hidden
+
+         :data:`~connPoolStats.replicaSets.[shard].host[n].hidden` reports ``true``
+         if this :data:`~connPoolStats.replicaSets.[shard].host` is a :term:`hidden
+         member` of the :term:`replica set`.
+
+      .. data:: connPoolStats.replicaSets.[shard].host[n].secondary
+
+         :data:`~connPoolStats.replicaSets.[shard].host[n].secondary` reports
+         ``true`` if this :data:`~connPoolStats.replicaSets.[shard].host` is a
+         :term:`secondary` member of the :term:`replica set`.
+
+      .. data:: connPoolStats.replicaSets.[shard].host[n].pingTimeMillis
+
+         :data:`~connPoolStats.replicaSets.[shard].host[n].pingTimeMillis` reports
+         the ping time in milliseconds from the :binary:`~bin.mongos` or
+         :binary:`~bin.mongod` to this :data:`~connPoolStats.replicaSets.[shard].host`.
+
+      .. data:: connPoolStats.replicaSets.[shard].host[n].tags
+
+         .. versionadded:: 2.2
+
+         :data:`~connPoolStats.replicaSets.[shard].host[n].tags` reports the
+         :data:`~local.system.replset.members[n].tags`, if this member of the set has tags
+         configured.
+
+   .. data:: connPoolStats.replicaSets.[shard].master
+
+      :data:`~connPoolStats.replicaSets.[shard].master` reports the ordinal identifier
+      of the host in the :data:`~connPoolStats.replicaSets.[shard].host` array that is
+      the :term:`primary` of the :term:`replica set`.
+
+   .. data:: connPoolStats.replicaSets.[shard].nextSlave
+
+      .. deprecated:: 2.2
+
+      :data:`~connPoolStats.replicaSets.[shard].nextSlave` reports the
+      :term:`secondary` member that the :binary:`~bin.mongos` will use to
+      service the next request for this :term:`replica set`.
+
+.. data:: connPoolStats.createdByType
+
+   :data:`~connPoolStats.createdByType` :term:`document` reports the number of each
+   type of connection that :binary:`~bin.mongos` or :binary:`~bin.mongod` has created in all
+   connection pools.
+
+   :binary:`~bin.mongos` connect to :binary:`~bin.mongod` instances using one
+   of three types of connections. The following sub-document reports
+   the total number of connections by type.
+
+   .. data:: connPoolStats.createdByType.master
+
+      :data:`~connPoolStats.createdByType.master` reports the total number of
+      connections to the :term:`primary` member in each :term:`cluster`.
+
+   .. data:: connPoolStats.createdByType.set
+
+      :data:`~connPoolStats.createdByType.set` reports the total number of
+      connections to a :term:`replica set` member.
+
+   .. data:: connPoolStats.createdByType.sync
+
+      :data:`~connPoolStats.createdByType.sync` reports the total number of
+      :term:`config database` connections.
+
+.. data:: connPoolStats.totalAvailable
+
+   :data:`~connPoolStats.totalAvailable` reports the running total of connections
+   from the :binary:`~bin.mongos` or :binary:`~bin.mongod` to all :binary:`~bin.mongod` instances in
+   the :term:`sharded cluster` available for use.
+
+.. data:: connPoolStats.totalCreated
+
+   :data:`~connPoolStats.totalCreated` reports the total number of connections ever
+   created from the :binary:`~bin.mongos` or :binary:`~bin.mongod` to all :binary:`~bin.mongod`
+   instances in the :term:`sharded cluster`.
+
+.. data:: connPoolStats.numDBClientConnection
+
+   :data:`~connPoolStats.numDBClientConnection` reports the total number of
+   connections from the :binary:`~bin.mongos` or :binary:`~bin.mongod` to all of the :binary:`~bin.mongod`
+   instances in the :term:`sharded cluster`.
+
+.. data:: connPoolStats.numAScopedConnection
+
+   :data:`~connPoolStats.numAScopedConnection` reports the number of exception safe
+   connections created from :binary:`~bin.mongos` or :binary:`~bin.mongod` to all :binary:`~bin.mongod`
+   in the :term:`sharded cluster`. The :binary:`~bin.mongos` or :binary:`~bin.mongod` releases these
+   connections after receiving a socket exception from the
+   :binary:`~bin.mongod`.

@@ -1,0 +1,1250 @@
+====================================
+Replica Set Operation and Management
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+:term:`Replica sets <replica set>` automate most administrative tasks
+associated with database replication.  Nevertheless, several
+operations related to deployment and systems management require
+administrator intervention remain. This document provides an overview
+of those tasks, in addition to a collection of troubleshooting
+suggestions for administers of replica sets.
+
+.. seealso::
+
+   - :method:`rs.status()` and :method:`db.isMaster()`
+   - :ref:`Replica Set Reconfiguration Process <replica-set-reconfiguration-usage>`
+   - :method:`rs.conf()` and :method:`rs.reconfig()`
+   - :doc:`/reference/replica-configuration`
+
+   The following tutorials provide task-oriented instructions for
+   specific administrative tasks related to replica set operation.
+
+   .. Updates to this tutorial list should also be made in
+      source/replication.txt
+
+   - :doc:`/tutorial/deploy-replica-set`
+   - :doc:`/tutorial/convert-standalone-to-replica-set`
+   - :doc:`/tutorial/expand-replica-set`
+   - :doc:`/tutorial/deploy-geographically-distributed-replica-set`
+   - :doc:`/tutorial/change-oplog-size`
+   - :doc:`/tutorial/force-member-to-be-primary`
+   - :doc:`/tutorial/change-hostnames-in-a-replica-set`
+   - :doc:`/tutorial/convert-secondary-into-arbiter`
+   - :doc:`/tutorial/reconfigure-replica-set-with-unavailable-members`
+   - :doc:`/tutorial/recover-data-following-unexpected-shutdown`
+
+.. _replica-set-node-configurations:
+.. _replica-set-member-configurations:
+
+Member Configurations
+---------------------
+
+All :term:`replica sets <replica set>` have a single :term:`primary` and one or more
+:term:`secondaries <secondary>`. Replica sets allow you to configure
+secondary members in a variety of ways. This section describes these
+configurations.
+
+.. note::
+
+   A replica set can have up to 12 members, but only 7 members can have
+   votes. For configuration information regarding non-voting members, see
+   :ref:`replica-set-non-voting-members`.
+
+.. warning::
+
+   The :method:`rs.reconfig()` shell method can force the current
+   primary to step down, which causes an :ref:`election <replica-set-elections>`.
+   When the primary steps down, the :binary:`~bin.mongod` closes all client
+   connections. While this typically takes 10-20 seconds, attempt to
+   make these changes during scheduled maintenance periods. To
+   successfully reconfigure a replica set, a majority of the members
+   must be accessible.
+
+.. include:: /includes/seealso-elections.rst
+
+.. index:: replica set members; secondary only
+.. _replica-set-secondary-only-members:
+.. _replica-set-secondary-only-configuration:
+
+Secondary-Only Members
+~~~~~~~~~~~~~~~~~~~~~~
+
+The secondary-only configuration prevents a :term:`secondary` member in a
+:term:`replica set` from ever becoming a :term:`primary` in a
+:term:`failover`. You can set secondary-only mode for any member of
+the set except the current primary.
+
+For example, you may want to configure all members of a replica sets
+located outside of the main data centers as secondary-only to prevent
+these members from ever becoming primary.
+
+To configure a member as secondary-only, set its
+:data:`~local.system.replset.members[n].priority` value to ``0``. Any member with a
+:data:`~local.system.replset.members[n].priority` equal to ``0`` will never seek
+:ref:`election <replica-set-elections>` and cannot become primary in any
+situation. For more information on priority levels, see
+:ref:`replica-set-node-priority`.
+
+.. include:: /includes/note-rs-conf-array-index.rst
+
+As an example of modifying member priorities, assume a four-member
+replica set. Use the following sequence of operations in the
+:binary:`~bin.mongo` shell to modify member priorities:
+
+.. code-block:: javascript
+
+   cfg = rs.conf()
+   cfg.members[0].priority = 2
+   cfg.members[1].priority = 1
+   cfg.members[2].priority = 0.5
+   cfg.members[3].priority = 0
+   rs.reconfig(cfg)
+
+This reconfigures the set, with the following priority settings:
+
+- Member ``0`` to a priority of ``2`` so that it becomes primary, under
+  most circumstances.
+
+- Member ``1`` to a priority of ``1``, which is the default value.
+  Member ``1`` becomes primary if no member with a *higher* priority is
+  eligible.
+
+- Member ``2`` to a priority of ``0.5``, which makes it less likely to
+  become primary than other members but doesn't prohibit the
+  possibility.
+
+- Member ``3`` to a priority of ``0``.
+  Member ``3`` cannot become the :term:`primary` member under any
+  circumstances.
+
+.. note::
+
+   If your replica set has an even number of members, add an
+   :ref:`arbiter <replica-set-arbiters>` to ensure that
+   members can quickly obtain a majority of votes in an
+   election for primary.
+
+.. note::
+
+   MongoDB does not permit the current :term:`primary` to have a
+   :data:`~local.system.replset.members[n].priority` of ``0``.  If you
+   want to prevent the current primary from becoming primary, first
+   use :method:`rs.stepDown()` to step down the current primary, and
+   then :ref:`reconfigure the replica set
+   <replica-set-reconfiguration-usage>` with :method:`rs.conf()` and
+   :method:`rs.reconfig()`.
+
+.. seealso:: :data:`~local.system.replset.members[n].priority` and
+   :ref:`Replica Set Reconfiguration <replica-set-reconfiguration-usage>`.
+
+.. index:: replica set members; hidden
+.. _replica-set-hidden-members:
+.. _replica-set-hidden-configuration:
+
+Hidden Members
+~~~~~~~~~~~~~~
+
+Hidden members are part of a replica set but cannot become
+primary and are invisible to client applications. *However,*
+hidden members **do** vote in :ref:`elections <replica-set-elections>`.
+
+Hidden members are ideal for instances that will have significantly
+different usage patterns than the other members and require separation
+from normal traffic. Typically, hidden members provide reporting,
+dedicated backups, and dedicated read-only testing and integration
+support.
+
+Hidden members have :data:`~local.system.replset.members[n].priority` set
+``0`` and have :data:`~local.system.replset.members[n].hidden` set to ``true``.
+
+To configure a :term:`hidden member`, use the following sequence of
+operations in the :binary:`~bin.mongo` shell:
+
+.. code-block:: javascript
+
+   cfg = rs.conf()
+   cfg.members[0].priority = 0
+   cfg.members[0].hidden = true
+   rs.reconfig(cfg)
+
+After re-configuring the set, the first member of the set in the
+:data:`~local.system.replset.members` array will have a priority of ``0``
+so that it cannot become primary. The other members in the set will
+not advertise the hidden member in the :dbcommand:`isMaster` or
+:method:`db.isMaster()` output.
+
+.. note::
+
+   You must send the :method:`rs.reconfig()` command to a set member
+   that *can* become :term:`primary`. In the above example, if you
+   issue the :method:`rs.reconfig()` operation to a member with a
+   :data:`~local.system.replset.members[n].priority` of ``0`` the operation will
+   fail.
+
+.. note::
+
+   .. versionchanged:: 2.0
+
+   For :term:`sharded clusters <sharded cluster>` running with replica sets before 2.0 if
+   you reconfigured a member as hidden, you *had* to restart
+   :binary:`~bin.mongos` to prevent queries from reaching the hidden
+   member.
+
+.. seealso:: :ref:`Replica Set Read Preference <replica-set-read-preference>`
+   and :ref:`Replica Set Reconfiguration <replica-set-reconfiguration-usage>`.
+
+.. index:: replica set members; delayed
+.. _replica-set-delayed-members:
+.. _replica-set-delayed-configuration:
+
+Delayed Members
+~~~~~~~~~~~~~~~
+
+Delayed members copy and apply operations from the primary's :term:`oplog` with
+a specified delay. If a member has a delay of one hour, then
+the latest entry in this member's oplog will not be more recent than
+one hour old, and the state of data for the member will reflect the state of the
+set an hour earlier.
+
+.. example:: If the current time is 09:52 and the secondary is a
+   delayed by an hour, no operation will be more recent than 08:52.
+
+Delayed members may help recover from various kinds of human error. Such
+errors may include inadvertently deleted databases or botched
+application upgrades. Consider the following factors when determining
+the amount of slave delay to apply:
+
+- Ensure that the length of the delay is equal to or greater than your
+  maintenance windows.
+
+- The size of the oplog is sufficient to capture *more than* the
+  number of operations that typically occur in that period of
+  time. For more information on oplog size, see the
+  :ref:`replica-set-oplog-sizing` topic in the :doc:`/core/replication` document.
+
+Delayed members must have a :term:`priority` set to ``0`` to prevent
+them from becoming primary in their replica sets. Also these members
+should be :ref:`hidden <replica-set-hidden-members>` to prevent your
+application from seeing or querying this member.
+
+To configure a :term:`replica set` member with a one hour delay, use the
+following sequence of operations in the :binary:`~bin.mongo` shell:
+
+.. code-block:: javascript
+
+   cfg = rs.conf()
+   cfg.members[0].priority = 0
+   cfg.members[0].slaveDelay = 3600
+   rs.reconfig(cfg)
+
+After the replica set reconfigures, the first member of the set in the
+:data:`~local.system.replset.members` array will have a priority
+of ``0`` and cannot become :term:`primary`. The
+:data:`slaveDelay <local.system.replset.members[n].slaveDelay>` value
+delays both replication and the member's :term:`oplog` by 3600 seconds (1
+hour). Setting :data:`~local.system.replset.members[n].slaveDelay` to a
+non-zero value also sets :data:`~local.system.replset.members[n].hidden` to
+``true`` for this replica set so that it does not receive application
+queries in normal operations.
+
+.. warning::
+
+   The length of the secondary
+   :data:`~local.system.replset.members[n].slaveDelay` must
+   fit within the window of the oplog. If the oplog is shorter than
+   the :data:`~local.system.replset.members[n].slaveDelay`
+   window, the delayed member cannot successfully replicate
+   operations.
+
+.. seealso:: :data:`~local.system.replset.members[n].slaveDelay`, :ref:`Replica Set Reconfiguration
+   <replica-set-reconfiguration-usage>`, :ref:`replica-set-oplog-sizing`,
+   :ref:`replica-set-procedure-change-oplog-size` in this document,
+   and the :doc:`/tutorial/change-oplog-size` tutorial.
+
+.. index:: replica set members; arbiters
+.. _replica-set-arbiters:
+.. _replica-set-arbiter-configuration:
+
+Arbiters
+~~~~~~~~
+
+Arbiters are special :binary:`~bin.mongod` instances that do not hold a
+copy of the data and thus cannot become primary. Arbiters exist solely
+to participate in :ref:`elections <replica-set-elections>`.
+
+.. note::
+
+   Because of their minimal system requirements, you may safely deploy an
+   arbiter on a system with another workload, such as an application
+   server or monitoring member.
+
+.. warning::
+
+   Do not run arbiter processes on a system that is an active
+   :term:`primary` or :term:`secondary` of its :term:`replica set`.
+
+Arbiters never receive the contents of any collection but do have the
+following interactions with the rest of the replica set:
+
+- Credential exchanges that authenticate the arbiter with
+  the replica set. All MongoDB processes within a replica set use
+  keyfiles. These exchanges are encrypted.
+
+  MongoDB only transmits the authentication credentials in a
+  cryptographically secure exchange, and encrypts no other
+  exchange.
+
+- Exchanges of replica set configuration data and of votes. These are
+  not encrypted.
+
+If your MongoDB deployment uses SSL, then all communications between
+arbiters and the other members of the replica set are secure. See the
+documentation for :doc:`/administration/ssl` for more information.
+As with all MongoDB components, run arbiters on secure networks.
+
+To add an arbiter, see :ref:`replica-set-procedure-add-arbiter`.
+
+.. index:: replica set members; non-voting
+.. _replica-set-non-voting-configuration:
+.. _replica-set-non-voting-members:
+
+Non-Voting Members
+~~~~~~~~~~~~~~~~~~
+
+You may choose to change the number of votes that each member has in
+:ref:`elections <replica-set-elections>` for :term:`primary`. In general, all
+members should have only 1 vote to prevent intermittent ties, deadlock,
+or the wrong members from becoming :term:`primary`. Use :ref:`replica
+set priorities <replica-set-node-priority>` to control which members
+are more likely to become primary.
+
+To disable a member's ability to vote in elections, use the following
+command sequence in the :binary:`~bin.mongo` shell.
+
+.. code-block:: javascript
+
+   cfg = rs.conf()
+   cfg.members[3].votes = 0
+   cfg.members[4].votes = 0
+   cfg.members[5].votes = 0
+   rs.reconfig(cfg)
+
+This sequence gives ``0`` votes to the fourth, fifth, and sixth
+members of the set according to the order of the
+:data:`~local.system.replset.members` array in the output of
+:method:`rs.conf()`.  This setting allows the set to elect these
+members as :term:`primary` but does not allow them to vote in
+elections. If you have three non-voting members, you can add three
+additional voting members to your set. Place voting members so that
+your designated primary or primaries can reach a majority of votes in
+the event of a network partition.
+
+.. note::
+
+   In general and when possible, all members should have only 1 vote. This
+   prevents intermittent ties, deadlocks, or the wrong members from
+   becoming primary. Use :ref:`Replica Set Priorities
+   <replica-set-node-priority>` to control which members are more
+   likely to become primary.
+
+.. seealso:: :data:`~local.system.replset.members[n].votes` and :ref:`Replica Set
+   Reconfiguration <replica-set-reconfiguration-usage>`.
+
+.. _replica-set-chained-replication:
+
+Chained Replication
+~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 2.0
+
+Chained replication occurs when a :term:`secondary` member replicates
+from another secondary member instead of from the :term:`primary`. This
+might be the case, for example, if a secondary selects its replication
+target based on ping time and if the closest member is another secondary.
+
+Chained replication can reduce load on the primary. But chained
+replication can also result in increased replication lag, depending on
+the topology of the network.
+
+Beginning with version 2.2.4, you can use the
+:data:`~local.system.replset.settings.chainingAllowed` setting in
+:doc:`/reference/replica-configuration` to disable chained replication
+for situations where chained replication is causing lag. For details,
+see :ref:`replica-set-chained-replication`.
+
+Procedures
+----------
+
+This section gives overview information on a number of replica set
+administration procedures. You can find documentation of additional
+procedures in the :ref:`replica set tutorials
+<replica-set-tutorials-list>` section.
+
+.. _replica-set-admin-procedure-add-member:
+
+Adding Members
+~~~~~~~~~~~~~~
+
+Before adding a new member to an existing :term:`replica set`, do one of
+the following to prepare the new member's :term:`data directory <dbpath>`:
+
+- Make sure the new member's data directory *does not* contain data. The
+  new member will copy the data from an existing member.
+
+  If the new member is in a :term:`recovering` state, it must exit and
+  become a :term:`secondary` before MongoDB
+  can copy all data as part of the replication process. This process
+  takes time but does not require administrator intervention.
+
+- Manually copy the data directory from an existing member. The new
+  member becomes a secondary member and will catch up to the current
+  state of the replica set after a short interval. Copying the data over
+  manually shortens the amount of time for the new member to become
+  current.
+
+  Ensure that you can copy the data directory to the new member and
+  begin replication within the :ref:`window allowed by the oplog <replica-set-oplog-sizing>`. If the
+  difference in the amount of time between the most recent operation and
+  the most recent operation to the database exceeds the length of the
+  :term:`oplog` on the existing members, then the new instance will have
+  to perform an initial sync, which completely resynchronizes the data, as described in
+  :ref:`replica-set-resync-stale-member`.
+
+   Use :method:`db.printReplicationInfo()` to check the current state of
+   replica set members with regards to the oplog.
+
+For the procedure to add a member to a replica set, see
+:doc:`/tutorial/expand-replica-set`.
+
+.. _replica-set-admin-procedure-remove-members:
+
+Removing Members
+~~~~~~~~~~~~~~~~
+
+You may remove a member of a replica set at any time; *however*, for best
+results always *shut down* the :binary:`~bin.mongod` instance before
+removing it from a  replica set.
+
+.. versionchanged:: 2.2
+   Before 2.2, you *had* to shut down the :binary:`~bin.mongod` instance
+   before removing it. While 2.2 removes this  requirement, it remains
+   good practice.
+
+To remove a member, use the
+:method:`rs.remove()` method in the :binary:`~bin.mongo` shell while
+connected to the current :term:`primary`. Issue the
+:method:`db.isMaster()` command when connected to *any* member of the
+set to determine the current primary. Use a command in either
+of the following forms to remove the member:
+
+.. code-block:: javascript
+
+   rs.remove("mongo2.example.net:27017")
+   rs.remove("mongo3.example.net")
+
+This operation disconnects the shell briefly and forces a
+re-connection as the :term:`replica set` renegotiates which member
+will be primary. The shell displays an error even if this
+command succeeds.
+
+You can re-add a removed member to a replica set at any time using the
+:ref:`procedure for adding replica set members <replica-set-admin-procedure-add-member>`.
+Additionally, consider using the :ref:`replica set reconfiguration procedure
+<replica-set-reconfiguration-usage>` to change the
+:data:`~local.system.replset.members[n].host` value to rename a member in a replica set
+directly.
+
+.. _replica-set-admin-procedure-replace-member:
+
+Replacing a Member
+~~~~~~~~~~~~~~~~~~
+
+Use this procedure to replace a member of a replica set when the hostname
+has changed. This procedure preserves all existing configuration
+for a member, except its hostname/location.
+
+You may need to replace a replica set member if you want to replace an
+existing system and only need to change the hostname rather than
+completely replace all configured options related to the previous
+member.
+
+Use :method:`rs.reconfig()` to change the value of the
+:data:`~local.system.replset.members[n].host` field to reflect the new hostname or port
+number. :method:`rs.reconfig()` will not change the value of
+:data:`~local.system.replset.members[n]._id`.
+
+.. code-block:: javascript
+
+   cfg = rs.conf()
+   cfg.members[0].host = "mongo2.example.net:27019"
+   rs.reconfig(cfg)
+
+.. warning::
+
+   Any replica set configuration change can trigger the current
+   :term:`primary` to step down, which forces an :ref:`election <replica-set-elections>`. This
+   causes the current shell session, and clients connected to this replica set,
+   to produce an error even when the operation succeeds.
+
+.. _replica-set-node-priority-configuration:
+.. _replica-set-member-priority-configuration:
+
+Adjusting Priority
+~~~~~~~~~~~~~~~~~~
+
+To change the value of the :data:`~local.system.replset.members[n].priority` in the
+replica set configuration, use the following sequence of commands in
+the :binary:`~bin.mongo` shell:
+
+.. code-block:: javascript
+
+   cfg = rs.conf()
+   cfg.members[0].priority = 0.5
+   cfg.members[1].priority = 2
+   cfg.members[2].priority = 2
+   rs.reconfig(cfg)
+
+The first operation uses :method:`rs.conf()` to set the local variable
+``cfg`` to the contents of the current replica set configuration, which
+is a :term:`document`. The next three operations change the
+:data:`~local.system.replset.members[n].priority` value in the ``cfg`` document for the
+first three members configured in the :data:`members
+<local.system.replset.members>` array. The final operation
+calls :method:`rs.reconfig()` with the argument of ``cfg`` to initialize
+the new configuration.
+
+.. include:: /includes/note-rs-conf-array-index.rst
+
+If a member has :data:`~local.system.replset.members[n].priority` set to ``0``, it is
+ineligible to become :term:`primary` and will not seek
+election. :ref:`Hidden members <replica-set-hidden-members>`,
+:ref:`delayed members <replica-set-delayed-members>`, and
+:ref:`arbiters <replica-set-arbiters>` all have :data:`~local.system.replset.members[n].priority`
+set to ``0``.
+
+All members have a :data:`~local.system.replset.members[n].priority` equal to ``1`` by default.
+
+The value of :data:`~local.system.replset.members[n].priority` can be any floating point
+(i.e. decimal) number between ``0`` and ``1000``. Priorities
+are only used to determine the preference in election. The priority
+value is used only in relation to other members. With the exception of
+members with a priority of ``0``, the absolute value of the
+:data:`~local.system.replset.members[n].priority` value is irrelevant.
+
+Replica sets will preferentially elect and maintain the primary status
+of the member with the highest :data:`~local.system.replset.members[n].priority` setting.
+
+.. warning::
+
+   Replica set reconfiguration can force the current primary to step
+   down, leading to an election for primary in the replica
+   set. Elections cause the current primary to close all open
+   :term:`client` connections.
+
+   Perform routine replica set reconfiguration during scheduled
+   maintenance windows.
+
+.. seealso:: The :ref:`Replica Reconfiguration Usage
+   <replica-set-reconfiguration-usage>` example revolves around
+   changing the priorities of the :data:`~local.system.replset.members` of a replica set.
+
+.. _replica-set-procedure-add-arbiter:
+
+Adding an Arbiter
+~~~~~~~~~~~~~~~~~
+
+For a description of :term:`arbiters <arbiter>` and their purpose in
+:term:`replica sets <replica set>`, see :ref:`replica-set-arbiters`.
+
+To prevent tied :term:`elections <election>`, do not add an arbiter to a
+set if the set already has an odd number of voting members.
+
+Because arbiters do not hold a copies of collection data, they have minimal
+resource requirements and do not require dedicated hardware.
+
+1. Create a data directory for the arbiter. The :binary:`~bin.mongod` uses
+   this directory for
+   configuration information. It *will not* hold database collection data.
+   The following example creates the ``/data/arb`` data directory:
+
+   .. code-block:: sh
+
+      mkdir /data/arb
+
+#. Start the arbiter, making sure to specify the replica set name and
+   the data directory. Consider the following example:
+
+   .. code-block:: sh
+
+      mongod --port 30000 --dbpath /data/arb --replSet rs
+
+#. In a :binary:`~bin.mongo` shell connected to the :term:`primary`, add the
+   arbiter to the replica set by issuing the :method:`rs.addArb()`
+   method, which uses the following syntax:
+
+   .. code-block:: javascript
+
+      rs.addArb("<hostname><:port>")
+
+   For example, if the arbiter runs on ``m1.example.net:30000``, you
+   would issue this command:
+
+   .. code-block:: javascript
+
+      rs.addArb("m1.example.net:30000")
+
+.. _replica-set-configure-sync-target:
+
+Manually Configure a Secondary's Sync Target
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To override the default sync target selection logic, you may manually
+configure a :term:`secondary` member's sync target for pulling
+:term:`oplog` entries temporarily. The following operations provide
+access to this functionality:
+
+- :dbcommand:`replSetSyncFrom` command, or
+
+- :method:`rs.syncFrom()` helper in the :binary:`~bin.mongo` shell
+
+Only modify the default sync logic as needed, and always exercise
+caution.  :method:`rs.syncFrom()` will not affect an in-progress
+initial sync operation. To affect the sync target for the initial sync, run
+:method:`rs.syncFrom()` operation *before* initial sync.
+
+If you run :method:`rs.syncFrom()` during initial sync, MongoDB
+produces no error messages, but the sync target will not change until
+after the initial sync operation.
+
+.. note::
+
+   .. include:: /includes/fact-replica-set-sync-from-is-temporary.rst
+
+.. _replica-set-config-chained-replication:
+
+Manage Chained Replication
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 2.2.4
+
+MongoDB enables :ref:`chained replication
+<replica-set-chained-replication>` by default. This procedure
+describes how to disable it and how to re-enable it.
+
+To disable chained replication, set the
+:data:`~local.system.replset.settings.chainingAllowed`
+field in :doc:`/reference/replica-configuration` to ``false``.
+
+You can use the following sequence of commands to set
+:data:`~local.system.replset.settings.chainingAllowed` to
+``false``:
+
+1. Copy the configuration settings into the ``cfg`` object:
+
+   .. code-block:: javascript
+
+      cfg = rs.config()
+
+#. Take note of whether the current configuration settings contain the
+   ``settings`` sub-document. If they do, skip this step.
+
+   .. warning:: To avoid data loss, skip this step if the configuration
+      settings contain the ``settings`` sub-document.
+
+   If the current configuration settings **do not** contain the
+   ``settings`` sub-document, create the sub-document by issuing the
+   following command:
+
+   .. code-block:: javascript
+
+      cfg.settings = { }
+
+#. Issue the following sequence of commands to set
+   :data:`~local.system.replset.settings.chainingAllowed` to
+   ``false``:
+
+   .. code-block:: javascript
+
+      cfg.settings.chainingAllowed = false
+      rs.reconfig(cfg)
+
+To re-enable chained replication, set
+:data:`~local.system.replset.settings.chainingAllowed` to ``true``.
+You can use the following sequence of commands:
+
+.. code-block:: javascript
+
+   cfg = rs.config()
+   cfg.settings.chainingAllowed = true
+   rs.reconfig(cfg)
+
+.. note::
+
+   If chained replication is disabled, you still can use
+   :dbcommand:`replSetSyncFrom` to specify that a secondary replicates
+   from another secondary. But that configuration will last only until the
+   secondary recalculates which member to sync from.
+
+.. _replica-set-procedure-change-oplog-size:
+
+Changing Oplog Size
+~~~~~~~~~~~~~~~~~~~
+
+The following is an overview of the procedure for changing the size of
+the oplog. For a detailed procedure, see
+:doc:`/tutorial/change-oplog-size`.
+
+.. include:: /includes/procedure-change-oplog-size.rst
+
+.. _replica-set-resync-stale-member:
+
+Resyncing a Member of a Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When a secondary's replication process falls behind so far that
+:term:`primary` overwrites oplog entries that the secondary has not
+yet replicated, that secondary cannot catch up and becomes "stale."
+When that occurs, you must completely resynchronize the member by removing its data and
+performing an initial sync.
+
+To do so, use one of the following approaches:
+
+- Restart the :binary:`~bin.mongod` with an empty data directory and let
+  MongoDB's normal initial syncing feature restore the data. This
+  is the more simple option, but may take longer to replace the data.
+
+  See :ref:`replica-set-auto-resync-stale-member`.
+
+- Restart the machine with a copy of a recent data directory from
+  another member in the :term:`replica set`. This procedure can replace
+  the data more quickly but requires more manual steps.
+
+  See :ref:`replica-set-resync-by-copying`.
+
+.. index:: replica set; resync
+.. _replica-set-auto-resync-stale-member:
+
+Automatically Resync a Stale Member
+```````````````````````````````````
+
+This procedure relies on MongoDB's regular process for initial
+sync. This will restore the data on the stale member to reflect the
+current state of the set. For an overview of MongoDB initial sync
+process, see the :ref:`replica-set-syncing` section.
+
+To resync the stale member:
+
+1. Stop the stale member's :binary:`~bin.mongod` instance. On Linux
+   systems you can use :option:`mongod --shutdown` Set
+   :option:`--dbpath <mongod --dbpath>` to the member's data
+   directory, as in the following:
+
+   .. code-block:: sh
+
+      mongod --dbpath /data/db/ --shutdown
+
+#. Delete all data and sub-directories from the member's data
+   directory.  By removing the data :setting:`dbpath`, MongoDB will
+   perform a complete resync. Consider making a backup first.
+
+#. Restart the :binary:`~bin.mongod` instance on the member.  For example:
+
+   .. code-block:: sh
+
+      mongod --dbpath /data/db/ --replSet rsProduction
+
+   At this point, the :binary:`~bin.mongod` will perform an initial
+   sync. The length of the initial sync may process depends on the
+   size of the database and network connection between members of the
+   replica set.
+
+   Initial sync operations can impact the other members of the set and
+   create additional traffic to the primary, and can only occur if
+   another member of the set is accessible and up to date.
+
+.. index:: replica set; resync
+.. _replica-set-resync-by-copying:
+
+Resync by Copying All Datafiles from Another Member
+```````````````````````````````````````````````````
+
+This approach uses a copy of the data files from an existing member of
+the replica set, or a back of the data files to "seed" the stale member.
+
+The copy or backup of the data files **must** be sufficiently recent
+to allow the new member to catch up with the :term:`oplog`, otherwise
+the member would need to perform an initial sync.
+
+.. note::
+
+   In most cases you cannot copy data files from a running
+   :binary:`~bin.mongod` instance to another, because the data files will
+   change during the file copy operation. Consider the
+   :doc:`/administration/backups` documentation for several methods
+   that you can use to capture a consistent snapshot of a running
+   :binary:`~bin.mongod` instance.
+
+After you have copied the data files from the "seed" source, start the
+:binary:`~bin.mongod` instance and allow it to apply all operations from
+the oplog until it reflects the current state of the replica set.
+
+.. _replica-set-security:
+
+Security Considerations for Replica Sets
+----------------------------------------
+
+In most cases, the most effective ways to control access and to secure
+the connection between members of a :term:`replica set` depend on
+network-level access control. Use your environment's firewall and
+network routing to ensure that traffic *only* from clients and other
+replica set members can reach your :binary:`~bin.mongod` instances. If needed,
+use virtual private networks (VPNs) to ensure secure connections
+over wide area networks (WANs.)
+
+Additionally, MongoDB provides an authentication mechanism for
+:binary:`~bin.mongod` and :binary:`~bin.mongos` instances connecting to
+replica sets. These instances enable authentication but specify a
+shared key file that serves as a shared password.
+
+.. versionadded:: 1.8
+   Added support authentication in replica set deployments.
+
+.. versionchanged:: 1.9.1
+   Added support authentication in sharded replica set deployments.
+
+
+To enable authentication add the following option to your configuration file:
+
+.. code-block:: cfg
+
+   keyFile = /srv/mongodb/keyfile
+
+.. note::
+
+   You may chose to set these run-time configuration options using the
+   :option:`--keyFile <mongod --keyFile>` (or :option:`mongos --keyFile`)
+   options on the command line.
+
+Setting :setting:`keyFile` enables authentication and specifies a key
+file for the replica set members to use when authenticating to each
+other. The content of the key file is arbitrary but must be the same
+on all members of the replica set and on all :binary:`~bin.mongos`
+instances that connect to the set.
+
+The key file must be less one kilobyte in size and may only contain
+characters in the base64 set. The key file must not have group or "world"
+permissions on UNIX systems. Use the following command to use the
+OpenSSL package to generate "random" content for use in a key file:
+
+.. code-block:: bash
+
+   openssl rand -base64 753
+
+.. note::
+
+   Key file permissions are not checked on Windows systems.
+
+.. _replica-set-troubleshooting:
+
+Troubleshooting Replica Sets
+----------------------------
+
+This section describes common strategies for troubleshooting
+:term:`replica sets <replica set>`.
+
+.. seealso:: :doc:`/administration/monitoring`.
+
+.. _replica-set-troubleshooting-check-replication-status:
+
+Check Replica Set Status
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To display the current state of the replica set and current state of
+each member, run the :method:`rs.status()` method in a :binary:`~bin.mongo`
+shell connected to the replica set's :term:`primary`. For descriptions
+of the information displayed by :method:`rs.status()`, see
+:doc:`/reference/replica-status`.
+
+.. note::
+
+   The :method:`rs.status()` method is a wrapper that runs the
+   :dbcommand:`replSetGetStatus` database command.
+
+.. _replica-set-replication-lag:
+
+Check the Replication Lag
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Replication lag is a delay between an operation on the :term:`primary`
+and the application of that operation from the :term:`oplog` to the
+:term:`secondary`. Replication lag can be a significant issue and can
+seriously affect MongoDB :term:`replica set` deployments. Excessive
+replication lag makes "lagged" members ineligible to quickly become
+primary and increases the possibility that distributed
+read operations will be inconsistent.
+
+To check the current length of replication lag:
+
+- In a :binary:`~bin.mongo` shell connected to the primary, call the
+  :method:`db.printSlaveReplicationInfo()` method.
+
+  The returned document displays the ``syncedTo`` value for each member,
+  which shows you when each member last read from the oplog, as shown in the following
+  example:
+
+  .. code-block:: javascript
+
+     source:   m1.example.net:30001
+         syncedTo: Tue Oct 02 2012 11:33:40 GMT-0400 (EDT)
+             = 7475 secs ago (2.08hrs)
+     source:   m2.example.net:30002
+         syncedTo: Tue Oct 02 2012 11:33:40 GMT-0400 (EDT)
+             = 7475 secs ago (2.08hrs)
+
+  .. note::
+
+     The :method:`rs.status()` method is a wrapper around the
+     :dbcommand:`replSetGetStatus` database command.
+
+- Monitor the rate of replication by watching the oplog time in the
+  "replica" graph in the `MongoDB Monitoring Service`_. For more
+  information see the `documentation for MMS`_.
+
+.. _`MongoDB Monitoring Service`: http://mms.mongodb.com/
+.. _`documentation for MMS`: http://mms.mongodb.com/help/
+
+Possible causes of replication lag include:
+
+- **Network Latency**
+
+  Check the network routes between the members of your set to ensure
+  that there is no packet loss or network routing issue.
+
+  Use tools including ``ping`` to test latency between set
+  members and ``traceroute`` to expose the routing of packets
+  network endpoints.
+
+- **Disk Throughput**
+
+  If the file system and disk device on the secondary is
+  unable to flush data to disk as quickly as the primary, then
+  the secondary will have difficulty keeping state. Disk-related
+  issues are incredibly prevalent on multi-tenant systems, including
+  vitalized instances, and can be transient if the system accesses
+  disk devices over an IP network (as is the case with Amazon's
+  EBS system.)
+
+  Use system-level tools to assess disk status, including
+  ``iostat`` or ``vmstat``.
+
+- **Concurrency**
+
+  In some cases, long-running operations on the primary can block
+  replication on secondaries. For best results, configure :ref:`write concern <write-concern>`
+  to require confirmation of replication to secondaries, as described in :ref:`replica-set-write-concern`.
+  This prevents write operations from returning if replication cannot keep up
+  with the write load.
+
+  Use the :term:`database profiler` to see if there are slow queries
+  or long-running operations that correspond to the incidences of lag.
+
+- **Appropriate Write Concern**
+
+  If you are performing a large data ingestion or bulk load operation
+  that requires a large number of writes to the primary, particularly
+  with :ref:`unacknowledged write concern <write-concern-considerations>`, the
+  secondaries will not be able to read the oplog fast enough to keep
+  up with changes.
+
+  To prevent this, require :ref:`write acknowledgment or journaled
+  write concern <write-concern-considerations>` after every 100,
+  1,000, or an another interval to provide an opportunity for
+  secondaries to catch up with the primary.
+
+  For more information see:
+
+  - :ref:`replica-set-write-concern`
+  - :ref:`replica-set-oplog-sizing`
+
+.. _replica-set-troubleshooting-check-connection:
+
+Test Connections Between all Members
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+All members of a :term:`replica set` must be able to connect to every
+other member of the set to support replication. Always verify
+connections in both "directions."  Networking topologies and firewall
+configurations prevent normal and required connectivity, which can
+block replication.
+
+Consider the following example of a bidirectional test of networking:
+
+.. example:: Given a replica set with three members running on three separate
+   hosts:
+
+   - ``m1.example.net``
+   - ``m2.example.net``
+   - ``m3.example.net``
+
+   1. Test the connection from ``m1.example.net`` to the other hosts
+      with the following operation set ``m1.example.net``:
+
+      .. code-block:: sh
+
+         mongo --host m2.example.net --port 27017
+
+         mongo --host m3.example.net --port 27017
+
+   #. Test the connection from ``m2.example.net`` to the other two
+      hosts with the following operation set from ``m2.example.net``,
+      as in:
+
+      .. code-block:: sh
+
+         mongo --host m1.example.net --port 27017
+
+         mongo --host m3.example.net --port 27017
+
+      You have now tested the connection between
+      ``m2.example.net`` and ``m1.example.net`` in both directions.
+
+   #. Test the connection from ``m3.example.net`` to the other two
+      hosts with the following operation set from the
+      ``m3.example.net`` host, as in:
+
+      .. code-block:: sh
+
+         mongo --host m1.example.net --port 27017
+
+         mongo --host m2.example.net --port 27017
+
+   If any connection, in any direction fails, check your networking
+   and firewall configuration and reconfigure your environment to
+   allow these connections.
+
+.. _replica-set-troubleshooting-check-oplog-size:
+
+Check the Size of the Oplog
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A larger :term:`oplog` can give a replica set a greater tolerance for
+lag, and make the set more resilient.
+
+To check the size of the oplog for a given :term:`replica set` member,
+connect to the member in a :binary:`~bin.mongo` shell and run the
+:method:`db.printReplicationInfo()` method.
+
+The output displays the size of the oplog and the date ranges of the
+operations contained in the oplog. In the following example, the oplog
+is about 10MB and is able to fit about 26 hours (94400 seconds) of
+operations:
+
+.. code-block:: javascript
+
+   configured oplog size:   10.10546875MB
+   log length start to end: 94400 (26.22hrs)
+   oplog first event time:  Mon Mar 19 2012 13:50:38 GMT-0400 (EDT)
+   oplog last event time:   Wed Oct 03 2012 14:59:10 GMT-0400 (EDT)
+   now:                     Wed Oct 03 2012 15:00:21 GMT-0400 (EDT)
+
+The oplog should be long enough to hold all transactions for the
+longest downtime you expect on a secondary. At a minimum, an oplog
+should be able to hold minimum 24 hours of operations; however, many
+users prefer to have 72 hours or even a week's work of operations.
+
+For more information on how oplog size affects operations, see:
+
+- The :ref:`replica-set-oplog-sizing` topic in the :doc:`/core/replication` document.
+- The :ref:`replica-set-delayed-members` topic in this document.
+- The :ref:`replica-set-replication-lag` topic in this document.
+
+.. note:: You normally want the oplog to be the same size on all
+   members. If you resize the oplog, resize it on all members.
+
+To change oplog size, see :ref:`replica-set-procedure-change-oplog-size`
+in this document or see the :doc:`/tutorial/change-oplog-size` tutorial.
+
+.. index:: pair: replica set; failover
+.. _replica-set-failover:
+.. _failover:
+
+Failover and Recovery
+~~~~~~~~~~~~~~~~~~~~~
+
+.. TODO Revisit whether this belongs in troubleshooting. Perhaps this
+   should be an H2 before troubleshooting.
+
+Replica sets feature automated failover. If the :term:`primary`
+goes offline or becomes unresponsive and a majority of the original
+set members can still connect to each other, the set will elect a new
+primary.
+
+While :term:`failover` is automatic, :term:`replica set`
+administrators should still understand exactly how this process
+works. This section below describe failover in detail.
+
+In most cases, failover occurs without administrator intervention
+seconds after the :term:`primary` either steps down, becomes inaccessible,
+or becomes otherwise ineligible to act as primary. If your MongoDB deployment
+does not failover according to expectations, consider the following
+operational errors:
+
+- No remaining member is able to form a majority. This can happen as a
+  result of network partitions that render some members
+  inaccessible. Design your deployment to ensure that a majority of
+  set members can elect a primary in the same facility as core
+  application systems.
+
+- No member is eligible to become primary. Members must have a
+  :data:`~local.system.replset.settings.members[n].priority` setting greater than ``0``, have a state
+  that is less than ten seconds behind the last operation to the
+  :term:`replica set`, and generally be *more* up to date than the
+  voting members.
+
+In many senses, :ref:`rollbacks <replica-set-rollbacks>` represent a
+graceful recovery from an impossible failover and recovery situation.
+
+Rollbacks occur when
+a primary accepts writes that other members of
+the set do not successfully replicate before the primary steps
+down. When the former primary begins replicating again it performs a
+"rollback." Rollbacks remove those operations from the instance that
+were never replicated to the set so that the data set is in a
+consistent state. The :binary:`~bin.mongod` program writes rolled back
+data to a :term:`BSON` file that you can view using
+:binary:`~bin.bsondump`, applied manually using :binary:`~bin.mongorestore`.
+
+You can prevent rollbacks using a :ref:`replica acknowledged
+<write-concern-replica-acknowledged>` write concern. These write
+operations require not only the :term:`primary` to acknowledge the
+write operation, sometimes even the majority of the set to confirm the
+write operation before returning.
+
+ enabling :term:`write concern`.
+
+.. include:: /includes/seealso-elections.rst
+
+Oplog Entry Timestamp Error
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. todo:: link this topic to assertion 13290 once assertion guide exists.
+
+Consider the following error in :binary:`~bin.mongod` output and logs:
+
+.. code-block:: javascript
+
+   replSet error fatal couldn't query the local local.oplog.rs collection.  Terminating mongod after 30 seconds.
+   <timestamp> [rsStart] bad replSet oplog entry?
+
+Often, an incorrectly typed value in the ``ts`` field in the last
+:term:`oplog` entry causes this error. The correct data type is
+Timestamp.
+
+Check the type of the ``ts`` value using the following two queries
+against the oplog collection:
+
+.. code-block:: javascript
+
+   db = db.getSiblingDB("local")
+   db.oplog.rs.find().sort({$natural:-1}).limit(1)
+   db.oplog.rs.find({ts:{$type:17}}).sort({$natural:-1}).limit(1)
+
+The first query returns the last document in the oplog, while the
+second returns the last document in the oplog where the ``ts`` value
+is a Timestamp. The :query:`$type` operator allows you to select
+:term:`BSON type <BSON types>` 17, is the Timestamp data type.
+
+If the queries don't return the same document, then the last document in
+the oplog has the wrong data type in the ``ts`` field.
+
+.. example::
+
+   If the first query returns this as the last oplog entry:
+
+   .. code-block:: javascript
+
+      { "ts" : {t: 1347982456000, i: 1},
+        "h" : NumberLong("8191276672478122996"),
+        "op" : "n",
+        "ns" : "",
+        "o" : { "msg" : "Reconfig set", "version" : 4 } }
+
+   And the second query returns this as the last entry where ``ts``
+   has the ``Timestamp`` type:
+
+   .. code-block:: javascript
+
+      { "ts" : Timestamp(1347982454000, 1),
+        "h" : NumberLong("6188469075153256465"),
+        "op" : "n",
+        "ns" : "",
+        "o" : { "msg" : "Reconfig set", "version" : 3 } }
+
+   Then the value for the ``ts`` field in the last oplog entry is of the
+   wrong data type.
+
+To set the proper type for this value and resolve this issue,
+use an update operation that resembles the following:
+
+.. code-block:: javascript
+
+   db.oplog.rs.update( { ts: { t:1347982456000, i:1 } },
+                       { $set: { ts: new Timestamp(1347982456000, 1)}})
+
+Modify the timestamp values as needed based on your oplog entry. This
+operation may take some period to complete because the update must
+scan and pull the entire oplog into memory.
+
+Duplicate Key Error on ``local.slaves``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The *duplicate key on local.slaves* error, occurs when a
+:term:`secondary` or :term:`slave` changes its hostname and the
+:term:`primary` or :term:`master` tries to update its ``local.slaves``
+collection with the new name. The update fails because it contains the
+same ``_id`` value as the document containing the previous hostname. The
+error itself will resemble the following.
+
+.. code-block:: none
+
+   exception 11000 E11000 duplicate key error index: local.slaves.$_id_  dup key: { : ObjectId('<object ID>') } 0ms
+
+This is a benign error and does not affect replication operations on
+the :term:`secondary` or :term:`slave`.
+
+To prevent the error from appearing, drop the ``local.slaves``
+collection from the :term:`primary` or :term:`master`, with the
+following sequence of operations in the :binary:`~bin.mongo` shell:
+
+.. code-block:: javascript
+
+   use local
+   db.slaves.drop()
+
+The next time a :term:`secondary` or :term:`slave` polls the
+:term:`primary` or :term:`master`, the :term:`primary` or :term:`master`
+recreates the ``local.slaves`` collection.
+
+.. index:: replica set; network partitions
+.. index:: replica set; elections
+.. _replica-set-elections-and-network-partitions:
+
+Elections and Network Partitions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Members on either side of a network partition cannot see each other when
+determining whether a majority is available to hold an election.
+
+That means that if a primary steps down and neither side of the
+partition has a majority on its own, the set will not elect a new
+primary and the set will become read only.
+
+.. see:: :ref:`replica-set-election-internals`.

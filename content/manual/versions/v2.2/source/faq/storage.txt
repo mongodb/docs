@@ -1,0 +1,344 @@
+====================
+FAQ: MongoDB Storage
+====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+This document addresses common questions regarding MongoDB's storage
+system.
+
+If you don't find the answer you're looking for, check
+the :doc:`complete list of FAQs </faq>` or post your question to the
+`MongoDB User Mailing List <https://groups.google.com/forum/?fromgroups#!forum/mongodb-user>`_.
+
+.. contents:: Frequently Asked Questions:
+   :backlinks: none
+   :local:
+
+.. _faq-storage-memory-mapped-files:
+
+What are memory mapped files?
+-----------------------------
+
+A memory-mapped file is a file with data that the operating system
+places in memory by way of the ``mmap()`` system call. ``mmap()`` thus
+*maps* the file to a region of virtual memory. Memory-mapped files are
+the critical piece of the storage engine in MongoDB. By using memory
+mapped files MongoDB can treat the contents of its data files as if
+they were in memory. This provides MongoDB with an extremely fast and
+simple method for accessing and manipulating data.
+
+How do memory mapped files work?
+--------------------------------
+
+Memory mapping assigns files to a block of virtual memory with a
+direct byte-for-byte correlation. Once mapped, the relationship
+between file and memory allows MongoDB to interact with the data in
+the file as if it were memory.
+
+How does MongoDB work with memory mapped files?
+-----------------------------------------------
+
+MongoDB uses memory mapped files for managing and interacting with all
+data. MongoDB memory maps data files to memory as it accesses
+documents. Data that isn't accessed is *not* mapped to memory.
+
+.. _faq-storage-page-faults:
+
+What are page faults?
+---------------------
+
+Page faults will occur if you're attempting to access part of a
+memory-mapped file that *isn't* in memory.
+
+If there is free memory, then the operating system can find the page
+on disk and load it to memory directly. However, if there is no free
+memory, the operating system must:
+
+- find a page in memory that is stale or no longer needed, and write
+  the page to disk.
+
+- read the requested page from disk and load it into memory.
+
+This process, particularly on an active system can take a long time,
+particularly in comparison to reading a page that is already in
+memory.
+
+What is the difference between soft and hard page faults?
+---------------------------------------------------------
+
+:term:`Page faults <page fault>` occur when MongoDB needs access to
+data that isn't currently in active memory. A "hard" page fault
+refers to situations when MongoDB must access a disk to access the
+data. A "soft" page fault, by contrast, merely moves memory pages from
+one list to another, such as from an operating system file
+cache. In production, MongoDB will rarely encounter soft page faults.
+
+What tools can I use to investigate storage use in MongoDB?
+-----------------------------------------------------------
+
+The :method:`db.stats()` method in the :binary:`~bin.mongo` shell,
+returns the current state of the "active" database. The
+:doc:`/reference/database-statistics` document describes
+the fields in the :method:`db.stats()` output.
+
+What is the working set?
+------------------------
+
+Working set represents the total body of data that the application
+uses in the course of normal operation. Often this is a subset of the
+total data size, but the specific size of the working set depends on
+actual moment-to-moment use of the database.
+
+If you run a query that requires MongoDB to scan every document in a
+collection, the working set will expand to include every
+document. Depending on physical memory size, this may cause documents
+in the working set to "page out," or to be removed from physical memory by
+the operating system. The next time MongoDB needs to access these
+documents, MongoDB may incur a hard page fault.
+
+If you run a query that requires MongoDB to scan every
+:term:`document` in a collection, the working set includes every
+active document in memory.
+
+For best performance, the majority of your *active* set should fit in
+RAM.
+
+.. _faq-disk-size:
+
+Why are the files in my data directory larger than the data in my database?
+---------------------------------------------------------------------------
+
+The data files in your data directory, which is the :file:`/data/db`
+directory in default configurations, might be larger than the data set
+inserted into the database. Consider the following possible causes:
+
+- Preallocated data files.
+
+  In the data directory, MongoDB preallocates data files to a
+  particular size, in part to prevent file system
+  fragmentation. MongoDB names the first data file ``<databasename>.0``,
+  the next ``<databasename>.1``, etc. The first file :binary:`~bin.mongod`
+  allocates is 64 megabytes, the next 128 megabytes, and so on, up to
+  2 gigabytes, at which point all subsequent files are 2
+  gigabytes. The data files include files with allocated space but
+  that hold no data. :binary:`~bin.mongod` may allocate a 1 gigabyte data
+  file that may be 90% empty. For most larger databases, unused
+  allocated space is small compared to the database.
+
+  On Unix-like systems, :binary:`~bin.mongod` preallocates an additional data file and
+  initializes the disk space to ``0``.  Preallocating data files in
+  the background prevents significant delays when a new database file
+  is next allocated.
+
+  You can disable preallocation with the :setting:`noprealloc` run time
+  option. However :setting:`noprealloc` is **not** intended for use in
+  production environments: only use :setting:`noprealloc` for testing
+  and with small data sets where you frequently drop databases.
+
+  On Linux systems you can use ``hdparm`` to get an idea of how costly
+  allocation might be:
+
+  .. code-block:: sh
+
+     time hdparm --fallocate $((1024*1024)) testfile
+
+- The :term:`oplog`.
+
+  If this :binary:`~bin.mongod` is a member of a replica set, the data
+  directory includes the :term:`oplog.rs <oplog>` file, which is a
+  preallocated :term:`capped collection` in the ``local``
+  database. The default allocation is approximately 5% of disk space
+  on 64-bit installations, see :ref:`Oplog Sizing
+  <replica-set-oplog-sizing>` for more information. In most cases, you
+  should not need to resize the oplog. However, if you do, see
+  :doc:`/tutorial/change-oplog-size`.
+
+- The :term:`journal`.
+
+  The data directory contains the journal files, which store write
+  operations on disk prior to MongoDB applying them to databases. See
+  :doc:`/administration/journaling`.
+
+- Empty records.
+
+  MongoDB maintains lists of empty records in data files when
+  deleting documents and collections. MongoDB can reuse this space,
+  but will never return this space to the operating system.
+
+  To de-fragment allocated storage, use :dbcommand:`compact`, which
+  de-fragments allocated space. By de-fragmenting storage, MongoDB
+  can effectively use the allocated space. :dbcommand:`compact`
+  requires up to 2 gigabytes of extra disk space to run. Do not
+  use :dbcommand:`compact` if you are critically low on disk space.
+
+  .. important:: :dbcommand:`compact` only removes fragmentation
+     from MongoDB data files and does not return any disk space to
+     the operating system.
+
+  To reclaim deleted space, use :dbcommand:`repairDatabase`, which
+  rebuilds the database which de-fragments the storage and may release
+  space to the operating systme. :dbcommand:`repairDatabase` requires
+  up to 2 gigabytes of extra disk space to run. Do not use
+  :dbcommand:`repairDatabase` if you are critically low on disk space.
+
+  .. warning::
+     :dbcommand:`repairDatabase` requires enough free disk space to
+     hold both the old and new database files while the repair is
+     running. Be aware that :dbcommand:`repairDatabase` will block
+     all other operations and may take a long time to complete.
+
+How can I check the size of a collection?
+-----------------------------------------
+
+To view the size of a collection and other information, use the
+:method:`stats() <db.collection.stats()>` method from the
+:binary:`~bin.mongo` shell. The following example issues :method:`stats()
+<db.collection.stats()>` for the ``orders`` collection:
+
+.. code-block:: javascript
+
+   db.orders.stats();
+
+To view specific measures of size, use these methods:
+
+- :method:`db.collection.dataSize()`: data size for the collection.
+- :method:`db.collection.storageSize()`: allocation size, including unused space.
+- :method:`db.collection.totalSize()`: the data size plus the index size.
+- :method:`db.collection.totalIndexSize()`: the index size.
+
+Also, the following scripts print the statistics for each database and
+collection:
+
+.. code-block:: javascript
+
+   db._adminCommand("listDatabases").databases.forEach(function (d) {mdb = db.getSiblingDB(d.name); printjson(mdb.stats())})
+
+.. code-block:: javascript
+
+   db._adminCommand("listDatabases").databases.forEach(function (d) {mdb = db.getSiblingDB(d.name); mdb.getCollectionNames().forEach(function(c) {s = mdb[c].stats(); printjson(s)})})
+
+How can I check the size of indexes?
+------------------------------------
+
+To view the size of the data allocated for an index, use one of the
+following procedures in the :binary:`~bin.mongo` shell:
+
+- Use the :method:`stats() <db.collection.stats()>` method using the
+  index namespace. To retrieve a list of namespaces, issue the
+  following command:
+
+  .. code-block:: javascript
+
+     db.system.namespaces.find()
+
+- Check the value of :data:`~collStats.indexSizes` in the output of the
+  :method:`db.collection.stats()` command.
+
+.. example:: Issue the following command to retrieve index namespaces:
+
+   .. code-block:: javascript
+
+      db.system.namespaces.find()
+
+   The command returns a list similar to the following:
+
+   .. code-block:: javascript
+
+      {"name" : "test.orders"}
+      {"name" : "test.system.indexes"}
+      {"name" : "test.orders.$_id_"}
+
+   View the size of the data allocated for the ``orders.$_id_`` index
+   with the following sequence of operations:
+
+   .. code-block:: javascript
+
+      use test
+      db.orders.$_id_.stats().indexSizes
+
+How do I know when the server runs out of disk space?
+-----------------------------------------------------
+
+If your server runs out of disk space for data files, you will see
+something like this in the log:
+
+.. code-block:: none
+
+   Thu Aug 11 13:06:09 [FileAllocator] allocating new data file dbms/test.13, filling with zeroes...
+   Thu Aug 11 13:06:09 [FileAllocator] error failed to allocate new file: dbms/test.13 size: 2146435072 errno:28 No space left on device
+   Thu Aug 11 13:06:09 [FileAllocator]     will try again in 10 seconds
+   Thu Aug 11 13:06:19 [FileAllocator] allocating new data file dbms/test.13, filling with zeroes...
+   Thu Aug 11 13:06:19 [FileAllocator] error failed to allocate new file: dbms/test.13 size: 2146435072 errno:28 No space left on device
+   Thu Aug 11 13:06:19 [FileAllocator]     will try again in 10 seconds
+
+The server remains in this state forever, blocking all writes including
+deletes. However, reads still work. To delete some data and compact,
+using the :dbcommand:`compact` command, you must restart the server
+first.
+
+If your server runs out of disk space for journal files, the server
+process will exit. By default, :binary:`~bin.mongod` creates journal files
+in a sub-directory of :setting:`dbpath` named ``journal``. You may
+elect to put the journal files on another storage device using a
+filesystem mount or a symlink.
+
+.. note::
+
+   If you place the journal files on a separate storage device you
+   will not be able to use a file system snapshot tool to capture a
+   consistent snapshot of your data files and journal files.
+
+.. todo the following "journal FAQ" content is from the wiki. Must add
+   this content to the manual, perhaps on this page.
+
+   If I am using replication, can some members use journaling and others not?
+   --------------------------------------------------------------------------
+
+   Yes. It is OK to use journaling on some replica set members and not
+   others.
+
+   Can I use the journaling feature to perform safe hot backups?
+   -------------------------------------------------------------
+
+   Yes, see :doc:`/administration/backups`.
+
+   32 bit nuances?
+   ---------------
+
+   There is extra memory mapped file activity with journaling. This will
+   further constrain the limited db size of 32 bit builds. Thus, for now
+   journaling by default is disabled on 32 bit systems.
+
+   When did the --journal option change from --dur?
+   ------------------------------------------------
+
+   In 1.8 the option was renamed to --journal, but the old name is still
+   accepted for backwards compatibility; please change to --journal if
+   you are using the old option.
+
+   Will the journal replay have problems if entries are incomplete (like the failure happened in the middle of one)?
+   -----------------------------------------------------------------------------------------------------------------
+
+   Each journal (group) write is consistent and won't be replayed during
+   recovery unless it is complete.
+
+   How many times is data written to disk when replication and journaling are both on?
+   -----------------------------------------------------------------------------------
+
+   In v1.8, for an insert, four times. The object is written to the main
+   collection and also the oplog collection. Both of those writes are
+   also journaled as a single mini-transaction in the journal files in
+   /data/db/journal.
+
+   The above applies to collection data and inserts which is the worst
+   case scenario. Index updates are written to the index and the
+   journal, but not the oplog, so they should be 2X today not 4X.
+   Likewise updates with things like $set, $addToSet, $inc, etc. are
+   compactly logged all around so those are generally small.

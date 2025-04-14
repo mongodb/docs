@@ -1,0 +1,316 @@
+==========
+Journaling
+==========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+MongoDB uses *write ahead logging* to an on-disk :term:`journal` to
+guarantee :doc:`write operation </core/write-operations>` durability
+and to provide crash resiliency. Before applying a change to the data
+files, MongoDB writes the change operation to the journal. If MongoDB
+should terminate or encounter an error before it can write the changes
+from the journal to the data files, MongoDB can re-apply the write
+operation and maintain a consistent state.
+
+*Without* a journal, if :binary:`~bin.mongod` exits unexpectedly, you must assume
+your data is in an inconsistent state, and you must run either
+:doc:`repair </tutorial/recover-data-following-unexpected-shutdown>`
+or, preferably, :ref:`resync <replica-set-resync-stale-member>` from a
+clean member of the replica set.
+
+With journaling enabled, if :binary:`~bin.mongod` stops unexpectedly,
+the program can recover everything written to the journal, and the
+data remains in a consistent state. By default, the greatest extent of lost
+writes, i.e., those not made to the journal, are those made in the last
+100 milliseconds. See :setting:`journalCommitInterval` for more
+information on the default.
+
+With journaling, if you want a data set to reside entirely in RAM, you
+need enough RAM to hold the dataset plus the "write working set." The
+"write working set" is the amount of unique data you expect to see
+written between re-mappings of the private view. For information on
+views, see :ref:`journaling-storage-views`.
+
+.. important::
+
+   .. versionchanged:: 2.0
+      For 64-bit builds of :binary:`~bin.mongod`, journaling is enabled by default.
+      For other platforms, see :setting:`journal`.
+
+Procedures
+----------
+
+Enable Journaling
+~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 2.0
+   For 64-bit builds of :binary:`~bin.mongod`, journaling is enabled by default.
+
+To enable journaling, start :binary:`~bin.mongod` with the
+:option:`--journal <mongod --journal>` command line option.
+
+If no journal files exist, when :binary:`~bin.mongod` starts, it must
+preallocate new journal files. During this operation, the
+:binary:`~bin.mongod` is not listening for connections until preallocation
+completes: for some systems this may take a several minutes. During
+this period your applications and the :binary:`~bin.mongo` shell are not
+available.
+
+Disable Journaling
+~~~~~~~~~~~~~~~~~~
+
+.. warning::
+
+   Do not disable journaling on production systems. If your
+   :binary:`~bin.mongod` instance stops without shutting down cleanly
+   unexpectedly for any reason, (e.g. power failure) and you are
+   not running with journaling, then you must recover from an
+   unaffected :term:`replica set` member or backup, as described in
+   :doc:`repair  </tutorial/recover-data-following-unexpected-shutdown>`.
+
+To disable journaling, start :binary:`~bin.mongod` with the
+:option:`--nojournal <mongod --nojournal>` command line option.
+
+Get Commit Acknowledgment
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can get commit acknowledgment with the
+:dbcommand:`getLastError` command and the ``j`` option. For details, see
+:ref:`write-concern-operation`.
+
+.. _journaling-avoid-preallocation-lag:
+
+Avoid Preallocation Lag
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To avoid :ref:`preallocation lag <journaling-journal-files>`, you can
+preallocate files in the journal directory by copying them from another
+instance of :binary:`~bin.mongod`.
+
+Preallocated files do not contain data. It is safe to later remove them.
+But if you restart :binary:`~bin.mongod` with journaling, :binary:`~bin.mongod`
+will create them again.
+
+.. example:: The following sequence preallocates journal files for an
+   instance of :binary:`~bin.mongod` running on port ``27017`` with a database
+   path of ``/data/db``.
+
+   For demonstration purposes, the sequence starts by creating a set of
+   journal files in the usual way.
+
+   1. Create a temporary directory into which to create a set of journal
+      files:
+
+      .. code-block:: sh
+
+         mkdir ~/tmpDbpath
+
+   #. Create a set of journal files by staring a :binary:`~bin.mongod`
+      instance that uses the temporary directory:
+
+      .. code-block:: sh
+
+         mongod --port 10000 --dbpath ~/tmpDbpath --journal
+
+   #. When you see the following log output, indicating :binary:`~bin.mongod` has the files,
+      press CONTROL+C to stop the :binary:`~bin.mongod` instance:
+
+      .. code-block:: sh
+
+         web admin interface listening on port 11000
+
+   #. Preallocate journal files for the new instance of
+      :binary:`~bin.mongod` by moving the journal files from the data directory
+      of the existing instance to the data directory of the new instance:
+
+      .. code-block:: sh
+
+         mv ~/tmpDbpath/journal /data/db/
+
+   #. Start the new :binary:`~bin.mongod` instance:
+
+      .. code-block:: sh
+
+         mongod --port 27017 --dbpath /data/db --journal
+
+Monitor Journal Status
+~~~~~~~~~~~~~~~~~~~~~~
+
+Use the following commands and methods to monitor journal status:
+
+- :dbcommand:`serverStatus`
+
+  The :dbcommand:`serverStatus` command returns database status
+  information that is useful for assessing performance.
+
+- :dbcommand:`journalLatencyTest`
+
+  Use :dbcommand:`journalLatencyTest` to measure how long it takes on
+  your volume to write to the disk in an append-only fashion. You can
+  run this command on an idle system to get a baseline sync time for
+  journaling. You can also run this command on a busy system to see the
+  sync time on a busy system, which may be higher if the journal
+  directory is on the same volume as the data files.
+
+  The :dbcommand:`journalLatencyTest` command also provides a way to
+  check if your disk drive is buffering writes in its local cache. If
+  the number is very low (i.e., less than 2 milliseconds) and the drive
+  is non-SSD, the drive is probably buffering writes. In that case,
+  enable cache write-through for the device in your operating system,
+  unless you have a disk controller card with battery backed RAM.
+
+.. _journaling-journal-commit-interval:
+
+Change the Group Commit Interval
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 2.0
+
+You can set the group commit interval using the
+:option:`--journalCommitInterval <mongod --journalCommitInterval>`
+command line option. The allowed range is ``2`` to ``300`` milliseconds.
+
+Lower values increase the durability of the journal at the expense of
+disk performance.
+
+Recover Data After Unexpected Shutdown
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+On a restart after a crash, MongoDB replays all journal files in the
+journal directory before the server becomes available. If MongoDB must
+replay journal files, :binary:`~bin.mongod` notes these events in the log
+output.
+
+There is no reason to run :dbcommand:`repairDatabase` in these situations.
+
+.. _journaling-internals:
+
+Journaling Internals
+--------------------
+
+When running with journaling, MongoDB stores and applies :doc:`write
+operations </core/write-operations>` in memory and in the journal before
+the changes are in the data files.
+
+.. _journaling-journal-files:
+
+Journal Files
+~~~~~~~~~~~~~
+
+With journaling enabled, MongoDB creates a journal directory within
+the directory defined by :setting:`dbpath`, which is :file:`/data/db`
+by default. The journal directory holds journal files, which contain
+write-ahead redo logs. The directory also holds a last-sequence-number
+file. A clean shutdown removes all the files in the journal directory.
+
+Journal files are append-only files and have file names prefixed with
+``j._``. When a journal file holds 1 gigabyte of data, MongoDB creates
+a new journal file. Once MongoDB applies all the write operations in
+the journal files, it deletes these files. Unless you
+write *many* bytes of data per-second, the journal directory should
+contain only two or three journal files.
+
+To limit the size of each journal file to 128 megabytes, use the
+:setting:`smallfiles` run time option when starting :binary:`~bin.mongod`.
+
+To speed the frequent sequential writes that occur to the current
+journal file, you can ensure that the journal directory is on a
+different system.
+
+.. important::
+
+   If you place the journal on a different filesystem from your data
+   files you *cannot* use a filesystem snapshot to capture consistent
+   backups of a :setting:`dbpath` directory.
+
+.. note::
+
+   Depending on your file system, you might experience a preallocation
+   lag the first time you start a :binary:`~bin.mongod` instance with
+   journaling enabled. MongoDB preallocates journal files if it is
+   faster on your file system to create files of a
+   pre-defined. The amount of time required to pre-allocate
+   lag might last several minutes, during which you will not be able
+   to connect to the database.  This is a one-time preallocation and
+   does not occur with future invocations.
+
+To avoid preallocation lag, see :ref:`journaling-avoid-preallocation-lag`.
+
+.. _journaling-storage-views:
+
+Storage Views used in Journaling
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Journaling adds three storage views to MongoDB.
+
+The ``shared view`` stores modified data for upload to the MongoDB
+data files. The ``shared view`` is the only view with direct access
+to the MongoDB data files. When running with journaling, :binary:`~bin.mongod`
+asks the operating system to map your existing on-disk data files to the
+``shared view`` memory view. The operating system maps the files but
+does not load them. MongoDB later loads data files to ``shared view`` as
+needed.
+
+The ``private view`` stores data for use in :doc:`read operations
+</core/read-operations>`. MongoDB maps ``private view`` to the ``shared view``
+and is the first place MongoDB applies new :doc:`write operations
+</core/write-operations>`.
+
+The journal is an on-disk view that stores new write operations
+after MongoDB applies the operation to the ``private cache`` but
+before applying them to the data files. The journal provides durability.
+If the :binary:`~bin.mongod` instance were to crash without having applied
+the writes to the data files, the journal could replay the writes to
+the ``shared view`` for eventual upload to the data files.
+
+.. _journaling-record-write-operation:
+
+How Journaling Records Write Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB copies the write operations to the journal in batches called
+group commits. See :setting:`journalCommitInterval` for more
+information on the default commit interval. These "group commits" help
+minimize the performance impact of journaling.
+
+Journaling stores raw operations that allow MongoDB to reconstruct the
+following:
+
+- document insertion/updates
+- index modifications
+- changes to the namespace files
+
+As :doc:`write operations </core/write-operations>` occur, MongoDB
+writes the data to the ``private view`` in RAM and then copies the write
+operations in batches to the journal. The journal stores the operations
+on disk to ensure durability. MongoDB adds the operations as entries on
+the journal's forward pointer. Each entry describes which bytes the
+write operation changed in the data files.
+
+MongoDB next applies the journal's write operations to the ``shared
+view``. At this point, the ``shared view`` becomes inconsistent with the
+data files.
+
+At default intervals of 60 seconds, MongoDB asks the operating system to
+flush the ``shared view`` to disk. This brings the data files up-to-date
+with the latest write operations.
+
+When MongoDB flushes write operations to the data files, MongoDB removes the
+write operations from the journal's behind pointer. The behind pointer
+is always far back from advanced pointer.
+
+As part of journaling, MongoDB routinely asks the operating system to
+remap the ``shared view`` to the ``private view``, for consistency.
+
+.. note::
+
+   The interaction between the ``shared view`` and the on-disk
+   data files is similar to how MongoDB works *without*
+   journaling, which is that MongoDB asks the operating system to flush
+   in-memory changes back to the data files every 60 seconds.

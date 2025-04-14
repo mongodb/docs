@@ -1,0 +1,222 @@
+.. index:: DBRef
+.. index:: database references
+.. index:: references
+.. _database-references:
+
+===================
+Database References
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+MongoDB does not support joins. In MongoDB some data is
+*denormalized*, or stored with related data in :term:`documents
+<document>` to remove the need for joins. However, in some cases it
+makes sense to store related information in separate documents,
+typically in different collections or databases.
+
+MongoDB applications use one of two methods for relating documents:
+
+#. :ref:`Manual references <document-references>` where you save the
+   ``_id`` field of one document in another document as a reference.
+   Then your application can run a second query to return the embedded
+   data. These references are simple and sufficient for most use
+   cases.
+
+#. :ref:`DBRefs <dbref>` are references from one document to another
+   using the value of the first document's ``_id`` field collection,
+   and optional database name. To resolve DBRefs, your application
+   must perform additional queries to return the referenced
+   documents. Many :doc:`drivers </applications/drivers>` have helper
+   methods that form the query for the DBRef automatically. The
+   drivers [#official-driver]_ do not *automatically* resolve DBRefs
+   into documents.
+
+   Use a DBRef when you need to embed documents from multiple
+   collections in documents from one collection. DBRefs also provide a
+   common format and type to represent these relationships among
+   documents. The DBRef format provides common semantics for representing
+   links between documents if your database must interact with
+   multiple frameworks and tools.
+
+Unless you have a compelling reason for using a DBRef, use manual
+references.
+
+.. [#official-driver] Some community supported drivers may have
+   alternate behavior and may resolve a DBRef into a document
+   automatically.
+
+.. _document-references:
+
+Manual References
+-----------------
+
+Background
+~~~~~~~~~~
+
+Manual references refers to the practice of including one
+:term:`document's <document>` ``_id`` field in another document. The
+application can then issue a second query to resolve the referenced
+fields as needed.
+
+Process
+~~~~~~~
+
+Consider the following operation to insert two documents, using the
+``_id`` field of the first document as a reference in the second
+document:
+
+.. code-block:: javascript
+
+   original_id = ObjectId()
+
+   db.places.insert({
+       "_id": original_id,
+       "name": "Broadway Center",
+       "url": "bc.example.net"
+   })
+
+   db.people.insert({
+       "name": "Erin",
+       "places_id": original_id,
+       "url":  "bc.example.net/Erin"
+   })
+
+Then, when a query returns the document from the ``people`` collection
+you can, if needed, make a second query for the document referenced by
+the ``places_id`` field in the ``places`` collection.
+
+Use
+~~~
+
+For nearly every case where you want to store a relationship between
+two documents, use :ref:`manual references <document-references>`. The
+references are simple to create and your application can resolve
+references as needed.
+
+The only limitation of manual linking is that these references do not
+convey the database and collection name. If you have documents in a
+single collection that relate to documents in more than one
+collection, you may need to consider using :ref:`DBRefs <dbref>`.
+
+.. _dbref:
+
+DBRefs
+------
+
+Background
+~~~~~~~~~~
+
+DBRefs are a convention for representing a :term:`document`, rather
+than a specific reference "type." They include the name of the
+collection, and in some cases the database, in addition to the
+value from the ``_id`` field.
+
+Format
+~~~~~~
+
+DBRefs have the following fields:
+
+.. describe:: $ref
+
+   The ``$ref`` field holds the name of the collection where the
+   referenced document resides.
+
+.. describe:: $id
+
+   The ``$id`` field contains the value of the ``_id`` field in the
+   referenced document.
+
+.. describe:: $db
+
+   *Optional.*
+
+   Contains the name of the database where the referenced document
+   resides.
+
+   Only some drivers support ``$db`` references.
+
+.. example::
+
+   DBRef document would resemble the following:
+
+   .. code-block:: javascript
+
+      { "$ref" : <value>, "$id" : <value>, "$db" : <value> }
+
+   Consider a document from a collection that stored a DBRef in a
+   ``creator`` field:
+
+   .. code-block:: javascript
+
+      {
+        "_id" : ObjectId("5126bbf64aed4daf9e2ab771"),
+        // .. application fields
+        "creator" : {
+                        "$ref" : "creators",
+                        "$id" : ObjectId("5126bc054aed4daf9e2ab772"),
+                        "$db" : "users"
+                     }
+      }
+
+   The DBRef in this example, points to a document in the ``creators``
+   collection of the ``users`` database that has
+   ``ObjectId("5126bc054aed4daf9e2ab772")`` in its ``_id`` field.
+
+.. note::
+
+   The order of fields in the DBRef matters, and you must use the above
+   sequence when using a DBRef.
+
+Support
+~~~~~~~
+
+**C++**
+   The C++ driver contains no support for DBRefs. You can transverse
+   references manually.
+
+**C#**
+   The C# driver provides access to DBRef objects with the
+   :api:`MongoDBRef Class <csharp/current/html/46c356d3-ed06-a6f8-42fa-e0909ab64ce2.htm>`
+   and supplies the :api:`FetchDBRef Method <csharp/current/html/1b0b8f48-ba98-1367-0a7d-6e01c8df436f.htm>`
+   for accessing these objects.
+
+**Java**
+   The :api:`DBRef <java/current/com/mongodb/DBRef.html>` class
+   provides supports for DBRefs from Java.
+
+**JavaScript**
+   The :binary:`~bin.mongo` shell's :doc:`JavaScript </reference/javascript>`
+   interface provides a DBRef.
+
+**Perl**
+   The Perl driver contains no support for DBRefs.  You can transverse
+   references manually or use the `MongoDBx::AutoDeref
+   <http://search.cpan.org/dist/MongoDBx-AutoDeref/>`_ CPAN module.
+
+**PHP**
+   The PHP driver does support DBRefs, including the optional ``$db`` reference, through
+   `The MongoDBRef class <http://www.php.net/manual/en/class.mongodbref.php/>`_.
+
+**Python**
+   The Python driver provides the :api:`DBRef class <python/current/api/bson/dbref.html>`,
+   and the :api:`dereference method </python/current/api/pymongo/database.html#pymongo.database.Database.dereference>`
+   for interacting with DBRefs.
+
+**Ruby**
+   The Ruby Driver supports DBRefs using the :api:`DBRef class </ruby/current/BSON/DBRef.html>`
+   and the :api:`deference method </ruby/current/Mongo/DB.html#dereference>`.
+
+Use
+~~~
+
+In most cases you should use the :ref:`manual reference
+<document-references>` method for connecting two or more related
+documents. However, if you need to reference documents from multiple
+collections, consider a DBRef.

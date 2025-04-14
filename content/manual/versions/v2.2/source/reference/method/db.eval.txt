@@ -1,0 +1,125 @@
+=========
+db.eval()
+=========
+
+.. Edits to this page should be carried over to the command eval.txt
+   file.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. method:: db.eval(function, arguments)
+
+   The :method:`db.eval()` provides the ability to run JavaScript code
+   on the MongoDB server. It is a :binary:`~bin.mongo` shell wrapper around
+   the :dbcommand:`eval` command. However, unlike the :dbcommand:`eval`
+   command, the :method:`db.eval()` method does not support the
+   ``nolock`` option.
+
+   The method accepts the following parameters:
+
+   :param JavaScript function:
+
+      A JavaScript function.
+
+      The function need not take any arguments, as in the first
+      example, or may optionally take arguments as in the second:
+
+      .. code-block:: javascript
+
+         function () {
+           // ...
+         }
+
+      .. code-block:: javascript
+
+         function (arg1, arg2) {
+            // ...
+         }
+
+   :param arguments:
+
+      A list of arguments to pass to the JavaScript ``function`` if
+      the function accepts arguments. Omit if the ``function`` does
+      not take arguments.
+
+   Consider the following example of the :method:`db.eval()` method:
+
+   .. code-block:: javascript
+
+      db.eval( function(name, incAmount) {
+                  var doc = db.myCollection.findOne( { name : name } );
+
+                  doc = doc || { name : name , num : 0 , total : 0 , avg : 0 };
+
+                  doc.num++;
+                  doc.total += incAmount;
+                  doc.avg = doc.total / doc.num;
+
+                  db.myCollection.save( doc );
+                  return doc;
+               },
+               "<name>", 5 );
+
+   - The ``db`` in the function refers to the current database.
+
+   - ``"<name>"`` is the argument passed to the function, and
+     corresponds to the ``name`` argument.
+
+   - ``5`` is an argument to the function and corresponds to the
+     ``incAmount`` field.
+
+   If you want to use the server's interpreter, you must run
+   :method:`db.eval()`. Otherwise, the :binary:`~bin.mongo` shell's
+   JavaScript interpreter evaluates functions entered directly into the
+   shell.
+
+   If an error occurs, :method:`db.eval()` throws an exception. Consider
+   the following invalid function that uses the variable ``x`` without
+   declaring it as an argument:
+
+   .. code-block:: javascript
+
+      db.eval( function() { return x + x; }, 3 );
+
+   The statement will result in the following exception:
+
+   .. code-block:: javascript
+
+      {
+         "errno" : -3,
+         "errmsg" : "invoke failed: JS Error: ReferenceError: x is not defined nofile_b:1",
+         "ok" : 0
+      }
+
+   .. warning::
+
+      .. |object| replace:: :method:`db.eval()`
+
+      .. |nolockobject| replace:: :dbcommand:`eval` *command*
+
+      - .. include:: /includes/fact-eval-lock.rst
+
+      - :method:`db.eval()` also takes a JavaScript lock.
+
+      - Do not use :method:`db.eval()` for long running operations, as
+        :method:`db.eval()` blocks all other operations. Consider using
+        :doc:`other server side code execution options
+        </applications/server-side-javascript>`.
+
+      - You can not use :method:`db.eval()` with :term:`sharded
+        <sharding>` data. In general, you should avoid using
+        :method:`db.eval()` in :term:`sharded cluster`; nevertheless,
+        it is possible to use :method:`db.eval()` with non-sharded
+        collections and databases stored in :term:`sharded cluster`.
+
+      - .. include:: /includes/fact-eval-authentication.rst
+
+   .. seealso::
+
+      :doc:`/applications/server-side-javascript`

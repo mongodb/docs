@@ -1,0 +1,661 @@
+.. _mongod:
+
+==========
+``mongod``
+==========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. meta::
+   :canonical: https://www.mongodb.com/docs/manual/reference/program/mongod/
+
+Synopsis
+--------
+
+:binary:`~bin.mongod` is the primary daemon process for the MongoDB
+system. It handles data requests, manages data format, and performs
+background management operations.
+
+This document provides a complete overview of all command line options
+for :binary:`~bin.mongod`. These options are primarily useful for testing
+purposes. In common operation, use the :doc:`configuration file
+options </reference/configuration-options>` to control the behavior of
+your database, which is fully capable of all operations described
+below.
+
+Options
+-------
+
+.. only:: (not man)
+
+   .. class:: hidden
+
+      .. binary:: mongod
+
+Core Options
+~~~~~~~~~~~~
+
+.. program:: mongod
+
+.. option:: --help, -h
+
+   Returns a basic help and usage text.
+
+.. option:: --version
+
+   Returns the version of the :binary:`~bin.mongod` daemon.
+
+.. option:: --config <filename>, -f <filename>
+
+   Specifies a configuration file, that you can use to specify
+   runtime-configurations. While the options are equivalent and
+   accessible via the other command line arguments, the configuration
+   file is the preferred method for runtime configuration of
+   mongod. See the ":doc:`/reference/configuration-options`" document
+   for more information about these options.
+
+.. option:: --verbose, -v
+
+   Increases the amount of internal reporting returned on standard
+   output or in the log file specified by :option:`--logpath`. Use the
+   ``-v`` form to control the level of verbosity by including the
+   option multiple times, (e.g. ``-vvvvv``.)
+
+.. option:: --quiet
+
+   Runs the :binary:`~bin.mongod` instance in a quiet mode that attempts to limit
+   the amount of output. This option suppresses:
+
+   - output from :term:`database commands <database command>`,
+     including :dbcommand:`drop`, :dbcommand:`dropIndexes`,
+     :dbcommand:`diagLogging`, :dbcommand:`validate`, and
+     :dbcommand:`clean`.
+
+   - replication activity.
+
+   - connection accepted events.
+
+   - connection closed events.
+
+.. option:: --port <port>
+
+   Specifies a TCP port for the :binary:`~bin.mongod` to listen for client
+   connections. By default :binary:`~bin.mongod` listens for connections on
+   port 27017.
+
+   UNIX-like systems require root privileges to use ports with numbers
+   lower than 1024.
+
+.. option:: --bind_ip <ip address>
+
+   The IP address that the :binary:`~bin.mongod` process will bind to and
+   listen for connections. By default :binary:`~bin.mongod` listens for
+   connections all interfaces. You may attach :binary:`~bin.mongod` to any
+   interface; however, when attaching :binary:`~bin.mongod` to a publicly
+   accessible interface ensure that you have implemented proper
+   authentication and/or firewall restrictions to protect the
+   integrity of your database.
+
+.. option:: --maxConns <number>
+
+   Specifies the maximum number of simultaneous connections that
+   :binary:`~bin.mongod` will accept. This setting will have no effect if
+   it is higher than your operating system's configured maximum
+   connection tracking threshold.
+
+   .. include:: /includes/note-max-conns-max.rst
+
+.. option:: --objcheck
+
+   Forces the :binary:`~bin.mongod` to validate all requests from clients
+   upon receipt to ensure that invalid objects are never inserted into
+   the database. Enabling this option will produce some performance
+   impact, and is not enabled by default.
+
+.. option:: --logpath <path>
+
+   Specify a path for the log file that will hold all diagnostic
+   logging information.
+
+   Unless specified, :binary:`~bin.mongod` will output all log information
+   to the standard output. Additionally, unless you also specify
+   :option:`--logappend`, the logfile will be overwritten when the
+   process restarts.
+
+   .. note::
+
+      The behavior of the logging system may change in the near
+      future in response to the :issue:`SERVER-4499` case.
+
+.. option:: --logappend
+
+   When specified, this option ensures that :binary:`~bin.mongod` appends
+   new entries to the end of the logfile rather than overwriting the
+   content of the log when the process restarts.
+
+.. option:: --syslog
+
+   .. versionadded:: 2.1.0
+
+   Sends all logging output to the host's :term:`syslog` system rather
+   than to standard output or a log file as with :option:`--logpath`.
+
+   .. warning:: You cannot use :option:`--syslog` with :option:`--logpath`.
+
+.. option:: --pidfilepath <path>
+
+   Specify a file location to hold the ":term:`PID`" or process ID of
+   the :binary:`~bin.mongod` process. Useful for tracking the
+   :binary:`~bin.mongod` process in combination with the :option:`mongod --fork`
+   option.
+
+   Without a specified :option:`--pidfilepath` option,
+   :binary:`~bin.mongos` creates no PID file.
+
+.. option:: --keyFile <file>
+
+   Specify the path to a key file to store authentication
+   information. This option is only useful for the connection between
+   replica set members.
+
+   .. seealso:: ":ref:`Replica Set Security <replica-set-security>`"
+      and ":doc:`/administration/replica-sets`."
+
+.. option:: --nounixsocket
+
+   Disables listening on the UNIX socket. :binary:`~bin.mongos` always
+   listens on the UNIX socket, unless :option:`--nounixsocket` is set,
+   :option:`--bind_ip` is *not* set, or :option:`--bind_ip` specifies
+   ``127.0.0.1``.
+
+.. option:: --unixSocketPrefix <path>
+
+   Specifies a path for the UNIX socket. Unless this option has a
+   value :binary:`~bin.mongod` creates a socket with ``/tmp`` as a
+   prefix.
+
+   MongoDB will *always* create and listen on a UNIX socket, unless
+   :option:`--nounixsocket` is set, :option:`--bind_ip` is *not* set,
+   or :option:`--bind_ip` specifies ``127.0.0.1``.
+
+.. option:: --fork
+
+   Enables a :term:`daemon` mode for :binary:`~bin.mongod` that runs the
+   process to the background. This is the normal mode of operation, in
+   production and production-like environments, but may *not* be
+   desirable for testing.
+
+.. option:: --auth
+
+   Enables database authentication for users connecting from remote
+   hosts. Configure users via the :doc:`mongo shell
+   </reference/mongo>`. If no users exist, the localhost interface
+   will continue to have access to the database until the you create
+   the first user.
+
+   See the :doc:`Security and Authentication </administration/security>`
+   page for more information regarding this functionality.
+
+.. option:: --cpu
+
+   Forces :binary:`~bin.mongod` to report the percentage of CPU time in
+   write lock. :binary:`~bin.mongod` generates output every four
+   seconds. MongoDB writes this data to standard output or the logfile
+   if using the :setting:`logpath` option.
+
+.. option:: --dbpath <path>
+
+   Specify a directory for the :binary:`~bin.mongod` instance to store its
+   data. Typical locations include: ``/srv/mongodb``,
+   ``/var/lib/mongodb`` or ``/opt/mongodb``
+
+   Unless specified, :binary:`~bin.mongod` will look for data files in the
+   default ``/data/db`` directory. (Windows systems use the
+   ``\data\db`` directory.) If you installed using a package
+   management system. Check the ``/etc/mongodb.conf`` file provided by
+   your packages to see the configuration of the :setting:`dbpath`.
+
+.. option:: --diaglog <value>
+
+   Creates a very verbose, :term:`diagnostic log` for troubleshooting
+   and recording various errors. MongoDB writes these log files in the
+   :setting:`dbpath` directory in a series of files that begin with
+   the string ``diaglog`` and end with the initiation time of the
+   logging as a hex string.
+
+   The specified value configures the level of verbosity. Possible
+   values, and their impact are as follows.
+
+   =========  ===================================
+   **Value**  **Setting**
+   ---------  -----------------------------------
+      0       off. No logging.
+      1       Log write operations.
+      2       Log read operations.
+      3       Log both read and write operations.
+      7       Log write and some read operations.
+   =========  ===================================
+
+   You can use the :binary:`~bin.mongosniff` tool to replay this output
+   for investigation. Given a typical diaglog file, located at
+   ``/data/db/diaglog.4f76a58c``, you might use a command in the
+   following form to read these files:
+
+   .. code-block:: sh
+
+      mongosniff --source DIAGLOG /data/db/diaglog.4f76a58c
+
+   :option:`--diaglog` is for internal use and not intended for most
+   users.
+
+   .. include:: /includes/warning-diaglogging-off.rst
+
+.. option:: --directoryperdb
+
+   Alters the storage pattern of the data directory to store each
+   database's files in a distinct folder. This option will create
+   directories within the :option:`--dbpath` named for each directory.
+
+   Use this option in conjunction with your file system and device
+   configuration so that MongoDB will store data on a number of
+   distinct disk devices to increase write throughput or disk
+   capacity.
+
+   .. warning::
+
+      .. |directoryperdb-option-name| replace:: :option:`--directoryperdb`
+      .. include:: /includes/fact-directory-per-db-requires-migration.rst
+
+.. option:: --journal
+
+   Enables operation journaling to ensure write durability and data
+   consistency. :binary:`~bin.mongod` enables journaling by default on
+   64-bit builds of versions after 2.0.
+
+.. option:: --journalOptions <arguments>
+
+   Provides functionality for testing. Not for general use, and may
+   affect database integrity.
+
+.. option:: --journalCommitInterval <value>
+
+   Specifies the maximum amount of time for :binary:`~bin.mongod` to allow
+   between journal operations. Possible values are between 2 and 300
+   milliseconds. Lower values increase the durability of the journal,
+   at the expense of disk performance.
+
+   .. include:: /includes/fact-journal-commit-interval-length.rst
+   .. include:: /includes/fact-journal-commit-interval-with-gle.rst
+
+.. option:: --ipv6
+
+   Specify this option to enable IPv6 support. This will allow clients
+   to connect to :binary:`~bin.mongod` using IPv6
+   networks. :binary:`~bin.mongod` disables IPv6 support by default in
+   :binary:`~bin.mongod` and all utilities.
+
+.. option:: --jsonp
+
+   Permits :term:`JSONP` access via an HTTP interface. Consider the
+   security implications of allowing this activity before enabling
+   this option.
+
+.. option:: --noauth
+
+   Disable authentication. Currently the default. Exists for future
+   compatibility and clarity.
+
+.. option:: --nohttpinterface
+
+   Disables the HTTP interface.
+
+.. option:: --nojournal
+
+   Disables the durability journaling. By default, :binary:`~bin.mongod`
+   enables journaling in 64-bit versions after v2.0.
+
+.. option:: --noprealloc
+
+   Disables the preallocation of data files. This will shorten the
+   start up time in some cases, but can cause significant performance
+   penalties during normal operations.
+
+.. option:: --noscripting
+
+   Disables the scripting engine.
+
+.. option:: --notablescan
+
+   Forbids operations that require a table scan.
+
+.. option:: --nssize <value>
+
+   Specifies the default size for namespace files (i.e ``.ns``). This
+   option has no impact on the size of existing namespace files. The
+   maximum size is 2047 megabytes.
+
+   The default value is 16 megabytes; this provides for approximately
+   24,000 namespaces. Each collection, as well as each index, counts as
+   a namespace.
+
+.. option:: --profile <level>
+
+   Changes the level of database profiling, which inserts information
+   about operation performance into output of :binary:`~bin.mongod` or the log
+   file. The following levels are available:
+
+   =========  ==================================
+   **Level**  **Setting**
+   ---------  ----------------------------------
+      0       Off. No profiling.
+      1       On. Only includes slow operations.
+      2       On. Includes all operations.
+   =========  ==================================
+
+   Profiling is off by default. Database profiling can impact database
+   performance. Enable this option only after careful consideration.
+
+.. option:: --quota
+
+   Enables a maximum limit for the number data files each database can
+   have. When running with :option:`--quota`, there are a maximum of
+   8 data files per database. Adjust the quota with the
+   :option:`--quotaFiles` option.
+
+.. option:: --quotaFiles <number>
+
+   Modify limit on the number of data files per database. This option
+   requires the :option:`--quota` setting. The default value for
+   :option:`--quotaFiles` is 8.
+
+.. option:: --rest
+
+   Enables the simple :term:`REST` API.
+
+.. option:: --repair
+
+   Runs a repair routine on all databases. This is equivalent
+   to shutting down and running the :dbcommand:`repairDatabase` database
+   command on all databases.
+
+   .. include:: /includes/warning-repair.rst
+
+   .. include:: /includes/note-repair.rst
+
+   .. versionchanged:: 2.1.2
+
+   If you run the repair option *and* have data in a journal file,
+   :binary:`~bin.mongod` will refuse to start. In these cases you should
+   start :binary:`~bin.mongod` without the :option:`--repair` option to
+   allow :binary:`~bin.mongod` to recover data from the journal. This will
+   complete more quickly and will result in a more consistent and
+   complete data set.
+
+   To continue the repair operation despite the journal files, shut down
+   :binary:`~bin.mongod` cleanly and restart with the :option:`--repair`
+   option.
+
+   .. note::
+
+      :option:`--repair` copies data from the source data files into
+      new data files in the :setting:`repairpath`, and then replaces
+      the original data files with the repaired data files. *If*
+      :setting:`repairpath` is on the same device as
+      :setting:`dbpath`, you *may* interrupt a :binary:`~bin.mongod`
+      running :option:`--repair` without affecting the integrity of
+      the data set.
+
+.. option:: --repairpath <path>
+
+   Specifies the root directory containing MongoDB data files, to use
+   for the :option:`--repair` operation. Defaults to a ``_tmp``
+   directory within the :setting:`dbpath`.
+
+.. option:: --slowms <value>
+
+   Defines the value of "slow," for the :option:`--profile`
+   option. The database logs all slow queries to the log, even when
+   the profiler is not turned on. When the database profiler is on,
+   :binary:`~bin.mongod` the profiler writes to the ``system.profile``
+   collection. See the :dbcommand:`profile` command for more information on the
+   database profiler.
+
+.. option:: --smallfiles
+
+   Enables a mode where MongoDB uses a smaller default file
+   size.  Specifically, :option:`--smallfiles` reduces the initial
+   size for data files and limits them to 512
+   megabytes. :option:`--smallfiles` also reduces the size of each
+   :term:`journal` files from 1 gigabyte to 128 megabytes.
+
+   Use :option:`--smallfiles` if you have a large number of databases
+   that each holds a small quantity of data. :option:`--smallfiles` can
+   lead your :binary:`~bin.mongod` to create a large number of files,
+   which may affect performance for larger databases.
+
+.. option:: --shutdown
+
+   Used in :term:`control scripts <control script>`, the
+   :option:`--shutdown` will cleanly and safely terminate the
+   :binary:`~bin.mongod` process. When invoking :binary:`~bin.mongod` with this
+   option you must set the :option:`--dbpath` option either directly
+   or by way of the :doc:`configuration file
+   </reference/configuration-options>` and the :option:`--config`
+   option.
+
+   :option:`--shutdown` is only available on Linux systems.
+
+.. option:: --syncdelay <value>
+
+   :binary:`~bin.mongod` writes data very quickly to the journal, and
+   lazily to the data files. :option:`--syncdelay` controls how much
+   time can pass before MongoDB flushes data to the *database files*
+   via an :term:`fsync` operation. The default setting is 60 seconds.
+   In almost every situation you should not set this value and use the
+   default setting.
+
+   The :dbcommand:`serverStatus` command reports the background flush
+   thread's status via the :data:`~serverStatus.backgroundFlushing`
+   field.
+
+   :setting:`syncdelay` has no effect on the :setting:`journal`
+   files or :doc:`journaling </administration/journaling>`.
+
+   .. warning::
+
+      If you set :option:`--syncdelay` to ``0``, MongoDB will not
+      sync the memory mapped files to disk. Do not set this value on
+      production systems.
+
+.. option:: --sysinfo
+
+   Returns diagnostic system information and then exits. The
+   information provides the page size, the number of physical pages,
+   and the number of available physical pages.
+
+.. option:: --upgrade
+
+   Upgrades the on-disk data format of the files specified by the
+   :option:`--dbpath` to the latest version, if needed.
+
+   This option only affects the operation of :binary:`~bin.mongod` if the
+   data files are in an old format.
+
+   .. note::
+
+      .. todo:: change link to release notes here
+
+      In most cases you should **not** set this value, so you can
+      exercise the most control over your upgrade process. See the MongoDB
+      `release notes <http://www.mongodb.org/downloads>`_ (on the
+      download page) for more information about the upgrade process.
+
+.. option:: --traceExceptions
+
+   For internal diagnostic use only.
+
+   .. see SERVER-6667a
+
+Replication Options
+~~~~~~~~~~~~~~~~~~~
+
+.. option:: --replSet <setname>
+
+   Use this option to configure replication with replica sets. Specify
+   a setname as an argument to this set. All hosts must have the same
+   set name.
+
+   .. seealso:: ":doc:`/replication`,"
+      ":doc:`/administration/replica-sets`," and
+      ":doc:`/reference/replica-configuration`"
+
+.. option:: --oplogSize <value>
+
+   Specifies a maximum size in megabytes for the replication operation
+   log (e.g. :term:`oplog`.) By :binary:`~bin.mongod` creates an
+   :term:`oplog` based on the maximum amount of space available. For
+   64-bit systems, the op log is typically 5% of available disk space.
+
+   Once the :binary:`~bin.mongod` has created the oplog for the first
+   time, changing :option:`--oplogSize` will not affect the size of
+   the oplog.
+
+.. option:: --fastsync
+
+   In the context of :term:`replica set` replication, set this option
+   if you have seeded this member with a snapshot of the
+   :term:`dbpath` of another member of the set. Otherwise the
+   :binary:`~bin.mongod` will attempt to perform an initial sync,
+   as though the member were a new member.
+
+   .. warning::
+
+      If the data is not perfectly synchronized *and*
+      :binary:`~bin.mongod` starts with :setting:`fastsync`, then the
+      secondary or slave will be permanently out of sync with the
+      primary, which may cause significant consistency problems.
+
+.. option:: --replIndexPrefetch
+
+   .. versionadded:: 2.2
+
+   You must use :option:`--replIndexPrefetch` in conjunction with
+   :setting:`replSet`. The default value is ``all`` and available
+   options are:
+
+   - ``none``
+   - ``all``
+   - ``_id_only``
+
+   By default :term:`secondary` members of a :term:`replica set` will
+   load all indexes related to an operation into memory before
+   applying operations from the oplog. You can modify this behavior so
+   that the secondaries will only load the ``_id`` index. Specify
+   ``_id_only`` or ``none`` to prevent the :binary:`~bin.mongod` from
+   loading *any* index into memory.
+
+.. _cli-mongod-master-slave:
+
+Master-Slave Replication
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+These options provide access to conventional master-slave database
+replication. While this functionality remains accessible in MongoDB,
+replica sets are the preferred configuration for database replication.
+
+.. option:: --master
+
+   Configures :binary:`~bin.mongod` to run as a replication
+   :term:`master`.
+
+.. option:: --slave
+
+   Configures :binary:`~bin.mongod` to run as a replication
+   :term:`slave`.
+
+.. option:: --source <host><:port>
+
+   For use with the :option:`--slave` option, the ``--source`` option
+   designates the server that this instance will replicate.
+
+.. option:: --only <arg>
+
+   For use with the :option:`--slave` option, the ``--only`` option
+   specifies only a single :term:`database` to replicate.
+
+.. option:: --slavedelay <value>
+
+   For use with the :option:`--slave` option, the ``--slavedelay``
+   option configures a "delay" in seconds, for this slave to wait to
+   apply operations from the :term:`master` node.
+
+.. option:: --autoresync
+
+   For use with the :option:`--slave` option. When set,
+   :option:`--autoresync` option allows this slave to automatically
+   resync if it is more than 10 seconds behind the master. This
+   setting may be problematic if the :option:`--oplogSize` specifies
+   a too small oplog.
+   If the :term:`oplog` is not large enough to store the difference in
+   changes between the master's current state and the state of the
+   slave, this instance will forcibly resync itself
+   unnecessarily. When you set the :setting:`autoresync` option to
+   ``false``, the slave will not attempt an automatic resync more than
+   once in a ten minute period.
+
+Sharding Cluster Options
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. option:: --configsvr
+
+   Declares that this :binary:`~bin.mongod` instance serves as the
+   :term:`config database` of a sharded cluster. When running with
+   this option, clients will not be able to write data to any database
+   other than ``config`` and ``admin``. The default port for a
+   :binary:`~bin.mongod` with this option is ``27019`` and the default
+   :option:`--dbpath` directory is ``/data/configdb``, unless
+   specified.
+
+   .. versionchanged:: 2.2
+      :option:`--configsvr` also sets :option:`--smallfiles`.
+
+   Do not use :option:`--configsvr` with :option:`--replSet` or
+   :option:`--shardsvr`. Config servers cannot be a shard
+   server or part of a :term:`replica set`.
+
+.. option:: --shardsvr
+
+   Configures this :binary:`~bin.mongod` instance as a shard in a
+   partitioned cluster. The default port for these instances is
+   ``27018``.  The only effect of :option:`--shardsvr` is to change
+   the port number.
+
+.. option:: --noMoveParanoia
+
+   Disables a "paranoid mode" for data writes for chunk migration
+   operation. See the
+   :ref:`chunk migration <sharding-chunk-migration>`
+   and :dbcommand:`moveChunk` command documentation for more information.
+
+   By default :binary:`~bin.mongod` will save copies of migrated chunks on
+   the "from" server during migrations as "paranoid mode." Setting
+   this option disables this paranoia.
+
+Usage
+-----
+
+In common usage, the invocation of :binary:`~bin.mongod` will resemble the
+following in the context of an initialization or control script:
+
+.. code-block:: sh
+
+   mongod --config /etc/mongodb.conf
+
+See the ":doc:`/reference/configuration-options`" for more information
+on how to configure :binary:`~bin.mongod` using the configuration file.

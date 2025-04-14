@@ -1,0 +1,210 @@
+============================
+Add Members to a Replica Set
+============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+This tutorial explains how to add an additional member to an
+existing replica set.
+
+Before adding a new member, see the
+:ref:`replica-set-admin-procedure-add-member`
+topic in the :doc:`/administration/replica-sets` document.
+
+For background on replication deployment patterns, see the
+:doc:`/administration/replica-set-architectures` document.
+
+Requirements
+------------
+
+#. An active replica set.
+
+#. A new MongoDB system capable of supporting your dataset, accessible by
+   the active replica set through the network.
+
+If neither of these conditions are satisfied, please use the MongoDB
+:ref:`installation tutorial <tutorials-installation>` and the
+:doc:`/tutorial/deploy-replica-set` tutorial instead.
+
+Procedures
+----------
+
+.. _procedure-assumption-add-member-rs:
+
+The examples in this procedure use the following
+configuration:
+
+- The active replica set is ``rs0``.
+
+- The new member to be added is ``mongodb3.example.net``.
+
+- The :binary:`~bin.mongod` instance default port is ``27017``.
+
+- The ``mongodb.conf`` configuration file exists in the ``/etc``
+  directory and contains the following replica set information:
+
+.. code-block:: cfg
+
+   port = 27017
+
+   bind_ip = 10.8.0.10
+
+   dbpath = /srv/mongodb/db0
+
+   logpath = /var/log/mongodb.log
+
+   fork = true
+
+   replSet = rs0
+
+For more information on configuration options, see
+:doc:`/reference/configuration-options`.
+
+.. _replica-set-add-member:
+
+Add a Member to an Existing Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This procedure uses the above :ref:`example configuration <procedure-assumption-add-member-rs>`.
+
+1. Deploy a new :binary:`~bin.mongod` instance, specifying the name of the
+   replica set. You can do this one of two ways:
+
+   - Using the ``mongodb.conf`` file. On the :term:`primary`, issue a
+     command that resembles the following:
+
+     .. code-block:: sh
+
+        mongod --config /etc/mongodb.conf
+
+   - Using command line arguments. On the :term:`primary`, issue command
+     that resembles the following:
+
+     .. code-block:: sh
+
+        mongod --dbpath /srv/mongodb/db0 --replSet rs0
+
+   Replace ``/srv/mongodb/db0`` with the path of your
+   :setting:`dbpath`.
+
+   Take note of the host name and port information for the new
+   :binary:`~bin.mongod` instance.
+
+#. Open a :binary:`~bin.mongo` shell connected to the replica set's primary:
+
+   .. code-block:: sh
+
+      mongo
+
+   .. note::
+
+      The primary is the only member that can add or remove members from
+      the replica set. If you do not know which member is the primary,
+      log into any member of the replica set using :binary:`~bin.mongo` and
+      issue the :method:`db.isMaster()` command to determine which
+      member is in the :data:`isMaster.primary` field. For example, on
+      the system shell:
+
+      .. code-block:: sh
+
+         mongo mongodb0.example.net
+
+      Then in the :binary:`~bin.mongo` shell:
+
+      .. code-block:: javascript
+
+         db.isMaster()
+
+      If you are not connected to the primary, disconnect from the
+      current client and reconnect to the primary.
+
+#. In the :binary:`~bin.mongo` shell, issue the following command to add
+   the new member to the replica set.
+
+   .. code-block:: javascript
+
+      rs.add("mongodb3.example.net")
+
+   .. note::
+
+      You can also include the port number, depending on your setup:
+
+      .. code-block:: javascript
+
+         rs.add("mongodb3.example.net:27017")
+
+#. Verify that the member is now part of the replica set by
+   calling the :method:`rs.conf()` method,
+   which displays the :doc:`replica set configuration </reference/replica-configuration>`:
+
+   .. code-block:: javascript
+
+      rs.conf()
+
+   You can use the :method:`rs.status()` function to provide an
+   overview of :doc:`replica set status </reference/replica-status>`.
+
+.. _replica-set-add-member-alternate-procedure:
+
+Add a Member to an Existing Replica Set (Alternate Procedure)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Alternately, you can add a member to a replica set by specifying an
+entire configuration document with some or all of the fields in a
+:data:`~local.system.replset.members` sub-documents. For example:
+
+.. code-block:: javascript
+
+   rs.add({_id: 1, host: "mongodb3.example.net:27017", priority: 0, hidden: true})
+
+This configures a :term:`hidden member` that is accessible at
+``mongodb3.example.net:27017``. See :data:`host
+<local.system.replset.members[n].host>`, :data:`priority
+<local.system.replset.members[n].priority>`, and :data:`hidden
+<local.system.replset.members[n].hidden>` for more information about
+these settings. When you specify a full configuration object with
+:method:`rs.add()`, you must declare the ``_id`` field, which is not
+automatically populated in this case.
+
+Production Notes
+----------------
+
+- In production deployments you likely want to use and configure a
+  :term:`control script` to manage this process based on this command.
+
+- A member can be removed from a set and re-added later. If the
+  removed member's data is still relatively fresh, it can recover and
+  catch up from its old data set. See the :method:`rs.add()` and
+  :method:`rs.remove()` helpers.
+
+- If you have a backup or snapshot of an existing member, you can move
+  the data files (i.e. ``/data/db`` or :setting:`dbpath`) to a new
+  system and use them to quickly initiate a new member. These files
+  must be:
+
+  - clean: the existing dataset must be from a consistent copy of the
+    database from a member of the same replica set. See the
+    :doc:`/administration/backups` document for more information.
+
+  - recent: the copy must more recent than the oldest operation in the
+    :term:`primary` member's :term:`oplog`. The new secondary must be
+    able to become current using operations from the primary's oplog.
+
+- There is a maximum of seven :ref:`voting members
+  <replica-set-election-internals>` in any replica set. When adding
+  more members to a replica set that already has seven votes, you must
+  either:
+
+  - add the new member as a :ref:`non-voting members
+    <replica-set-non-voting-members>` or,
+
+  - remove votes from an :data:`existing member <local.system.replset.members[n].votes>`.

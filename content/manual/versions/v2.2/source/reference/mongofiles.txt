@@ -1,0 +1,274 @@
+==============
+``mongofiles``
+==============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. |tool-binary| replace:: mongofiles
+
+.. only:: (not man)
+
+   .. binary:: mongofiles
+
+Synopsis
+--------
+
+The :binary:`~bin.mongofiles` utility makes it possible to manipulate files
+stored in your MongoDB instance in :term:`GridFS` objects from the
+command line. It is particularly useful as it provides an interface
+between objects stored in your file system and GridFS.
+
+All :binary:`~bin.mongofiles` commands have the following form:
+
+.. code-block:: sh
+
+   mongofiles <options> <commands> <filename>
+
+The components of the :binary:`~bin.mongofiles` command are:
+
+1. :ref:`Options <mongofiles-options>`. You may use one or more of
+   these options to control the behavior of :binary:`~bin.mongofiles`.
+
+2. :ref:`Commands <mongofiles-commands>`. Use one of these commands to
+   determine the action of :binary:`~bin.mongofiles`.
+
+3. A filename which is either: the name of a file on your local's file
+   system, or a GridFS object.
+
+:binary:`~bin.mongofiles`, like :binary:`~bin.mongodump`, :binary:`~bin.mongoexport`,
+:binary:`~bin.mongoimport`, and :binary:`~bin.mongorestore`, can access data
+stored in a MongoDB data directory without requiring a running
+:binary:`~bin.mongod` instance, if no other :binary:`~bin.mongod` is running.
+
+.. important:: For :term:`replica sets <replica set>`,
+   :binary:`~bin.mongofiles` can only read from the set's
+   ':term:`primary`.
+
+.. _mongofiles-options:
+
+Options
+-------
+
+.. program:: mongofiles
+
+.. option:: --help
+
+   Returns a basic help and usage text.
+
+.. option:: --verbose, -v
+
+   Increases the amount of internal reporting returned on the command
+   line. Increase the verbosity with the ``-v`` form by including
+   the option multiple times, (e.g. ``-vvvvv``.)
+
+.. option:: --version
+
+   Returns the version of the :binary:`~bin.mongofiles` utility.
+
+.. option:: --host <hostname><:port>
+
+   Specifies a resolvable hostname for the :binary:`~bin.mongod` that
+   holds your GridFS system. By default :binary:`~bin.mongofiles` attempts
+   to connect to a MongoDB process ruining on the localhost port
+   number ``27017``.
+
+   Optionally, specify a port number to connect a MongoDB instance
+   running on a port other than 27017.
+
+.. option:: --port <port>
+
+   Specifies the port number, if the MongoDB instance is not running on
+   the standard port. (i.e. ``27017``) You may also specify a port
+   number using the :option:`mongofiles --host` command.
+
+.. option:: --ipv6
+
+   Enables IPv6 support that allows :binary:`~bin.mongofiles` to connect
+   to the MongoDB instance using an IPv6 network. All MongoDB programs
+   and processes, including :binary:`~bin.mongofiles`, disable IPv6
+   support by default.
+
+.. option:: --username <username>, -u <username>
+
+   Specifies a username to authenticate to the MongoDB instance, if your
+   database requires authentication. Use in conjunction with the
+   :option:`mongofiles --password` option to supply a password.
+
+.. option:: --password <password>
+
+   Specifies a password to authenticate to the MongoDB instance. Use
+   in conjunction with the :option:`mongofiles --username` option to
+   supply a username.
+
+   If you specify a :option:`--username <mongofiles --username>`
+   without the :option:`--password` option, :binary:`~bin.mongofiles`
+   will prompt for a password interactively.
+
+.. option:: --dbpath <path>
+
+   Specifies the directory of the MongoDB data files. If used, the
+   :option:`--dbpath` option enables :binary:`~bin.mongofiles` to attach directly to
+   local data files interact with the GridFS data without the
+   :binary:`~bin.mongod`. To run with :option:`--dbpath`, :binary:`~bin.mongofiles` needs to lock
+   access to the data directory: as a result, no :binary:`~bin.mongod` can access
+   the same path while the process runs.
+
+.. option:: --directoryperdb
+
+   Use the :option:`--directoryperdb` in conjunction with the corresponding
+   option to :binary:`~bin.mongod`, which allows :binary:`~bin.mongofiles` when
+   running with the :option:`--dbpath` option and MongoDB uses an
+   on-disk format where every database has a distinct
+   directory. This option is only relevant when specifying the
+   :option:`--dbpath` option.
+
+.. option:: --journal
+
+   Allows :binary:`~bin.mongofiles` operations to use the durability
+   :term:`journal` when running with :option:`--dbpath`
+   to ensure that the database maintains a recoverable state. This
+   forces :binary:`~bin.mongofiles` to record all data on disk regularly.
+
+.. option:: --db <db>, -d <db>
+
+   Use the :option:`--db` option to specify the MongoDB database that stores
+   or will store the GridFS files.
+
+.. option:: --collection <collection>, -c <collection>
+
+   This option has no use in this context and a future release may
+   remove it. See :issue:`SERVER-4931` for more information.
+
+.. option:: --local <filename>, -l <filename>
+
+   Specifies the local filesystem name of a file for get and put
+   operations.
+
+   In the :command:`mongofiles put` and :command:`mongofiles get`
+   commands the required ``<filename>`` modifier refers to the name
+   the object will have in GridFS. :binary:`~bin.mongofiles` assumes that
+   this reflects the file's name on the local file
+   system. This setting overrides this default.
+
+.. option:: --type <MIME>, t <MIME>
+
+   Provides the ability to specify a :term:`MIME` type to describe the
+   file inserted into GridFS storage. :binary:`~bin.mongofiles` omits this
+   option in the default operation.
+
+   Use only with :command:`mongofiles put` operations.
+
+.. option:: --replace, -r
+
+   Alters the behavior of :command:`mongofiles put` to replace
+   existing GridFS objects with the specified local file, rather than
+   adding an additional object with the same name.
+
+   In the default operation, files will not be overwritten by a
+   :command:`mongofiles put` option.
+
+.. _mongofiles-commands:
+
+Commands
+--------
+
+.. describe:: list <prefix>
+
+   Lists the files in the GridFS store. The characters specified after
+   ``list`` (e.g. ``<prefix>``) optionally limit the list of
+   returned items to files that begin with that string of characters.
+
+.. describe:: search <string>
+
+   Lists the files in the GridFS store with names that match any
+   portion of ``<string>``.
+
+.. describe:: put <filename>
+
+   Copy the specified file from the local file system into GridFS
+   storage.
+
+   Here, ``<filename>`` refers to the name the object will have in
+   GridFS, and :binary:`~bin.mongofiles` assumes that this reflects the name the
+   file has on the local file system. If the local filename is
+   different use the :option:`mongofiles --local` option.
+
+.. describe:: get <filename>
+
+   Copy the specified file from GridFS storage to the local file
+   system.
+
+   Here, ``<filename>`` refers to the name the object will have in
+   GridFS, and :binary:`~bin.mongofiles` assumes that this reflects the name the
+   file has on the local file system. If the local filename is
+   different use the :option:`mongofiles --local` option.
+
+.. describe:: delete <filename>
+
+   Delete the specified file from GridFS storage.
+
+Examples
+--------
+
+To return a list of all files in a :term:`GridFS` collection in the
+``records`` database, use the following invocation at the system shell:
+
+.. code-block:: sh
+
+   mongofiles -d records list
+
+This :binary:`~bin.mongofiles` instance will connect to the
+:binary:`~bin.mongod` instance running on the ``27017`` localhost
+interface to specify the same operation on a different port or
+hostname, and issue a command that resembles one of the following:
+
+.. code-block:: sh
+
+   mongofiles --port 37017 -d records list
+   mongofiles --hostname db1.example.net -d records list
+   mongofiles --hostname db1.example.net --port 37017 -d records list
+
+Modify any of the following commands as needed if you're connecting
+the :binary:`~bin.mongod` instances on different ports or hosts.
+
+To upload a file named ``32-corinth.lp`` to the GridFS collection in
+the ``records`` database, you can use the following command:
+
+.. code-block:: sh
+
+   mongofiles -d records put 32-corinth.lp
+
+To delete the ``32-corinth.lp`` file from this GridFS collection in
+the ``records`` database, you can use the following command:
+
+.. code-block:: sh
+
+   mongofiles -d records delete 32-corinth.lp
+
+To search for files in the GridFS collection in the ``records``
+database that have the string ``corinth`` in their names, you can use
+following command:
+
+.. code-block:: sh
+
+   mongofiles -d records search corinth
+
+To list all files in the GridFS collection in the ``records`` database
+that begin with the string ``32``, you can use the following command:
+
+.. code-block:: sh
+
+   mongofiles -d records list 32
+
+To fetch the file from the GridFS collection in the ``records``
+database named ``32-corinth.lp``, you can use the following command:
+
+.. code-block:: sh
+
+   mongofiles -d records get 32-corinth.lp

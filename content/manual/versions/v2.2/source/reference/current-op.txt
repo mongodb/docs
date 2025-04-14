@@ -1,0 +1,326 @@
+===========================
+Current Operation Reporting
+===========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. versionchanged:: 2.2
+
+Example Output
+--------------
+
+The :method:`db.currentOp()` helper in the :binary:`~bin.mongo` shell
+reports on the current operations running on the :binary:`~bin.mongod`
+instance. The operation returns the ``inprog`` array, which contains a
+document for each in progress operation. Consider the following
+example output:
+
+.. code-block:: javascript
+
+   {
+     "inprog": [
+                {
+                        "opid" : 3434473,
+                        "active" : <boolean>,
+                        "secs_running" : 0,
+                        "op" : "<operation>",
+                        "ns" : "<database>.<collection>",
+                        "query" : {
+                        },
+                        "client" : "<host>:<outgoing>",
+                        "desc" : "conn57683",
+                        "threadId" : "0x7f04a637b700",
+                        "connectionId" : 57683,
+                        "locks" : {
+                                "^" : "w",
+                                "^local" : "W",
+                                "^<database>" : "W"
+                        },
+                        "waitingForLock" : false,
+                        "msg": "<string>"
+                        "numYields" : 0,
+                        "progress" : {
+                                "done" : <number>,
+                                "total" : <number>
+                        }
+                        "lockStats" : {
+                                "timeLockedMicros" : {
+                                        "R" : NumberLong(),
+                                        "W" : NumberLong(),
+                                        "r" : NumberLong(),
+                                        "w" : NumberLong()
+                                },
+                                "timeAcquiringMicros" : {
+                                        "R" : NumberLong(),
+                                        "W" : NumberLong(),
+                                        "r" : NumberLong(),
+                                        "w" : NumberLong()
+                                }
+                        }
+                },
+               ]
+   }
+
+.. optional::
+
+   You may specify the ``true`` argument to :method:`db.currentOp()`
+   to return a more verbose output including idle connections and
+   system operations. For example:
+
+   .. code-block:: javascript
+
+      db.currentOp(true)
+
+   Furthermore, active operations (i.e. where :data:`~currentOp.active` is
+   ``true``) will return additional fields.
+
+Operations
+----------
+
+You can use the :method:`db.killOp()` in conjunction with the
+:data:`~currentOp.opid` field to terminate a currently running
+operation.
+
+.. include:: /includes/note-foreground-index-kill-limitation.rst
+
+The following JavaScript operations for the
+:binary:`~bin.mongo` shell filter the output of
+specific types of operations:
+
+.. include:: /includes/example-filter-current-op.rst
+
+Output Reference
+----------------
+
+Some fields may not appear in all current operation documents,
+depending on the kind of operation and its state.
+
+.. data:: currentOp.opid
+
+   Holds an identifier for the operation. You can pass this value to
+   :method:`db.killOp()` in the :binary:`~bin.mongo` shell to terminate the
+   operation.
+
+   .. include:: /includes/note-foreground-index-kill-limitation.rst
+
+.. data:: currentOp.active
+
+   A boolean value, that is ``true`` if the operation has started
+   or ``false`` if the operation is queued and waiting for a lock to run.
+   :data:`~currentOp.active` may be ``true`` even if the operation has
+   yielded to another operation.
+
+.. data:: currentOp.secs_running
+
+   The duration of the operation in seconds. MongoDB calculates this
+   value by subtracting the current time from the start time of the
+   operation.
+
+   If the operation is not running, (i.e. if :data:`~currentOp.active` is
+   ``false``,) this field may not appear in the output of
+   :method:`db.currentOp()`.
+
+.. data:: currentOp.op
+
+   A string that identifies the type of operation. The possible values
+   are:
+
+   - ``insert``
+   - ``query``
+   - ``update``
+   - ``remove``
+   - ``getmore``
+   - ``command``
+
+.. data:: currentOp.ns
+
+   The :term:`namespace` the operation targets. MongoDB forms
+   namespaces using the name of the :term:`database` and the name of
+   the :term:`collection`.
+
+.. data:: currentOp.query
+
+   A document containing the current operation's query. The document
+   is empty for operations that do not have queries: ``getmore``,
+   ``insert``, and ``command``.
+
+.. data:: currentOp.client
+
+   The IP address (or hostname) and the ephemeral port of the client
+   connection where the operation originates. If your ``inprog``
+   array has operations from many different clients, use this string
+   to relate operations to clients.
+
+   For some commands, including :dbcommand:`findAndModify` and
+   :method:`db.eval()`, the client will be ``0.0.0.0:0``, rather than
+   an actual client.
+
+.. data:: currentOp.desc
+
+   A description of the client. This string includes the
+   :data:`~currentOp.connectionId`.
+
+.. data:: currentOp.threadId
+
+   An identifier for the thread that services the operation and its
+   connection.
+
+.. data:: currentOp.connectionId
+
+   An identifier for the connection where the operation originated.
+
+.. data:: currentOp.locks
+
+   .. versionadded:: 2.2
+
+   The :data:`~currentOp.locks` document reports on the kinds of locks the
+   operation currently holds. The following kinds of locks are possible:
+
+   .. data:: currentOp.locks.^
+
+      :data:`~currentOp.locks.^` reports on the use of the global lock
+      :for the program:`mongod` instance. All operations must hold the
+      :global lock for some phases of operation.
+
+   .. data:: currentOp.locks.^local
+
+      :data:`~currentOp.locks.^local` reports on the lock for the ``local``
+      database. MongoDB uses the ``local`` database for a number of
+      operations, but the most frequent use of the ``local`` database
+      is for the :term:`oplog` used in replication.
+
+   .. data:: currentOp.locks.^<database>
+
+      :data:`locks.^\<database\> <currentOp.locks.^<database>>` reports on the lock state for the
+      database that this operation targets.
+
+   :data:`~currentOp.locks` replaces ``lockType`` in earlier versions.
+
+.. data:: currentOp.lockType
+
+   .. versionchanged:: 2.2
+      The :data:`~currentOp.locks` replaced the :data:`~currentOp.lockType` field in 2.2.
+
+   Identifies the type of lock the operation currently holds. The
+   possible values are:
+
+   - ``read``
+   - ``write``
+
+.. data:: currentOp.waitingForLock
+
+   Returns a boolean value. :data:`~currentOp.waitingForLock` is ``true`` if the
+   operation is waiting for a lock and ``false`` if the operation has
+   the required lock.
+
+.. data:: currentOp.msg
+
+   The :data:`~currentOp.msg` provides a message that describes the status and
+   progress of the operation. In the case of indexing or mapReduce
+   operations, the field reports the completion percentage.
+
+.. data:: currentOp.progress
+
+   Reports on the progress of mapReduce or indexing operations. The
+   :data:`~currentOp.progress` fields corresponds to the completion percentage in
+   the :data:`~currentOp.msg` field. The :data:`~currentOp.progress` specifies the following
+   information:
+
+   .. data:: currentOp.progress.done
+
+      Reports the number completed.
+
+   .. data:: currentOp.progress.total
+
+      Reports the total number.
+
+.. data:: currentOp.killed
+
+   Returns ``true`` if :binary:`~bin.mongod` instance is in the process of
+   killing the operation.
+
+.. data:: currentOp.numYields
+
+   :data:`~currentOp.numYields` is a counter that reports the number of times the
+   operation has yielded to allow other operations to complete.
+
+   Typically, operations yield when they need access to data that
+   MongoDB has not yet fully read into memory. This allows
+   other operations that have data in memory to complete quickly
+   while MongoDB reads in data for the yielding operation.
+
+.. data:: currentOp.lockStats
+
+   .. versionadded:: 2.2
+
+   The :data:`~currentOp.lockStats` document reflects the amount of time the
+   operation has spent both acquiring and holding
+   locks. :data:`~currentOp.lockStats` reports data on a per-lock type, with the
+   following possible lock types:
+
+   - ``R`` represents the global read lock,
+   - ``W`` represents the global write lock,
+   - ``r`` represents the database specific read lock, and
+   - ``w`` represents the database specific write lock.
+
+    .. data:: currentOp.timeLockedMicros
+
+       The :data:`~currentOp.timeLockedMicros` document reports the amount of
+       time the operation has spent holding a specific lock.
+
+       For operations that require more than one lock, like those that
+       lock the ``local`` database to update the :term:`oplog`, then
+       the values in this document can be longer than this value may
+       be longer than the total length of the operation
+       (i.e. :data:`~currentOp.secs_running`.)
+
+       .. data:: currentOp.timeLockedMicros.R
+
+          Reports the amount of time in microseconds the operation has held the
+          global read lock.
+
+       .. data:: currentOp.timeLockedMicros.W
+
+          Reports the amount of time in microseconds the operation has held the
+          global write lock.
+
+       .. data:: currentOp.timeLockedMicros.r
+
+          Reports the amount of time in microseconds the operation has held the
+          database specific read lock.
+
+       .. data:: currentOp.timeLockedMicros.w
+
+          Reports the amount of time in microseconds the operation has held the
+          database specific write lock.
+
+   .. data:: currentOp.timeAcquiringMicros
+
+      The :data:`~currentOp.timeAcquiringMicros` document reports the amount of time
+      the operation has spent *waiting* to acquire a specific lock.
+
+      .. data:: currentOp.timeAcquiringMicros.R
+
+         Reports the mount of time in microseconds the operation has waited for the
+         global read lock.
+
+      .. data:: currentOp.timeAcquiringMicros.W
+
+         Reports the mount of time in microseconds the operation has waited for the
+         global write lock.
+
+      .. data:: currentOp.timeAcquiringMicros.r
+
+         Reports the mount of time in microseconds the operation has waited for the
+         database specific read lock.
+
+      .. data:: currentOp.timeAcquiringMicros.w
+
+         Reports the mount of time in microseconds the operation has waited for the
+         database specific write lock.

@@ -1,0 +1,458 @@
+==========================
+FAQ: Sharding with MongoDB
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+This document answers common questions about horizontal scaling
+using MongoDB's :term:`sharding`.
+
+If you don't find the answer you're looking for, check
+the :doc:`complete list of FAQs </faq>` or post your question to the
+`MongoDB User Mailing List <https://groups.google.com/forum/?fromgroups#!forum/mongodb-user>`_.
+
+.. contents:: Frequently Asked Questions:
+   :backlinks: none
+   :local:
+
+Is sharding appropriate for a new deployment?
+---------------------------------------------
+
+Sometimes.
+
+If your data set fits on a single server, you should begin
+with an unsharded deployment.
+
+Converting an unsharded database to a :term:`sharded cluster` is easy
+and seamless, so there is *little advantage* in configuring sharding
+while your data set is small.
+
+Still, all production deployments should use :term:`replica sets
+<replication>` to provide high availability and disaster recovery.
+
+How does sharding work with replication?
+----------------------------------------
+
+To use replication with sharding, deploy each :term:`shard` as a
+:term:`replica set`.
+
+.. _faq-change-shard-key:
+
+Can I change the shard key after sharding a collection?
+-------------------------------------------------------
+
+No.
+
+There is no automatic support in MongoDB for changing a shard key
+after sharding a collection. This reality underscores
+the important of choosing a good :ref:`shard key <shard-key>`. If you
+*must* change a shard key after sharding a collection, the best option
+is to:
+
+- dump all data from MongoDB into an external format.
+
+- drop the original sharded collection.
+
+- configure sharding using a more ideal shard key.
+
+- :ref:`pre-split <sharding-administration-pre-splitting>` the shard
+  key range to ensure initial even distribution.
+
+- restore the dumped data into MongoDB.
+
+See :dbcommand:`shardCollection`, :method:`sh.shardCollection()`,
+:doc:`/administration/sharded-clusters`, the :ref:`Shard Key
+<sharding-internals-shard-keys>` section in the
+:doc:`/core/sharded-cluster-internals` document,
+:doc:`/tutorial/deploy-shard-cluster`, and :issue:`SERVER-4000` for
+more information.
+
+What happens to unsharded collections in sharded databases?
+-----------------------------------------------------------
+
+In the current implementation, all databases in a :term:`sharded
+cluster` have a "primary :term:`shard`." All unsharded
+collection within that database will reside on the same shard.
+
+How does MongoDB distribute data across shards?
+-----------------------------------------------
+
+Sharding must be specifically enabled on a collection. After enabling
+sharding on the collection, MongoDB will assign various ranges of
+collection data to the different shards in the cluster. The cluster
+automatically corrects imbalances between shards by migrating ranges
+of data from one shard to another.
+
+What happens if a client updates a document in a chunk during a migration?
+--------------------------------------------------------------------------
+
+The :binary:`~bin.mongos` routes the operation to the "old" shard, where
+it will succeed immediately. Then the :term:`shard` :binary:`~bin.mongod`
+instances will replicate the modification to the "new" shard before
+the :term:`sharded cluster` updates that chunk's "ownership," which
+effectively finalizes the migration process.
+
+What happens to queries if a shard is inaccessible or slow?
+-----------------------------------------------------------
+
+If a :term:`shard` is inaccessible or unavailable, queries will return
+with an error.
+
+However, a client may set the ``partial`` query bit, which will then
+return results from all available shards, regardless of whether a
+given shard is unavailable.
+
+If a shard is responding slowly, :binary:`~bin.mongos` will merely wait
+for the shard to return results.
+
+How does MongoDB distribute queries among shards?
+-------------------------------------------------
+
+.. versionchanged:: 2.0
+
+The exact method for distributing queries to :term:`shards <shard>` in a
+:term:`cluster <sharded cluster>` depends on the nature of the query and the configuration of
+the sharded cluster. Consider a sharded collection, using the
+:term:`shard key` ``user_id``, that has ``last_login`` and
+``email`` attributes:
+
+- For a query that selects one or more values for the ``user_id``
+  key:
+
+  :binary:`~bin.mongos` determines which shard or shards contains the
+  relevant data, based on the cluster metadata, and directs a query to
+  the required shard or shards, and returns those results to the
+  client.
+
+- For a query that selects ``user_id`` and also performs a sort:
+
+  :binary:`~bin.mongos` can make a straightforward translation of this
+  operation into a number of queries against the relevant shards,
+  ordered by ``user_id``. When the sorted queries return from all
+  shards, the :binary:`~bin.mongos` merges the sorted results and returns
+  the complete result to the client.
+
+- For queries that select on ``last_login``:
+
+  These queries must run on all shards: :binary:`~bin.mongos` must
+  parallelize the query over the shards and perform a merge-sort on
+  the ``email`` of the documents found.
+
+How does MongoDB sort queries in sharded environments?
+------------------------------------------------------
+
+If you call the :method:`cursor.sort()` method on a query in a sharded
+environment, the :binary:`~bin.mongod` for each shard will sort its
+results, and the :binary:`~bin.mongos` merges each shard's results before returning
+them to the client.
+
+How does MongoDB ensure unique ``_id`` field values when using a shard key *other* than ``_id``?
+------------------------------------------------------------------------------------------------
+
+If you do not use ``_id`` as the shard key, then your
+application/client layer must be responsible for keeping the ``_id``
+field unique. It is problematic for collections to have duplicate
+``_id`` values.
+
+If you're not sharding your collection by the ``_id`` field, then you
+should be sure to store a globally unique identifier in that
+field. The default :doc:`BSON ObjectId </core/object-id>` works well in
+this case.
+
+I've enabled sharding and added a second shard, but all the data is still on one server. Why?
+---------------------------------------------------------------------------------------------
+
+First, ensure that you've declared a :term:`shard key` for your
+collection. Until you have configured the shard key, MongoDB will not
+create :term:`chunks <chunk>`, and :term:`sharding` will not occur.
+
+Next, keep in mind that the default chunk size is 64 MB. As a result,
+in most situations, the collection needs to have at least 64 MB of data before a
+migration will occur.
+
+Additionally, the system which balances chunks among the servers
+attempts to avoid superfluous migrations. Depending on the number of
+shards, your shard key, and the amount of data, systems often require
+at least 10 chunks of data to trigger migrations.
+
+You can run :method:`db.printShardingStatus()` to see all the chunks
+present in your cluster.
+
+Is it safe to remove old files in the ``moveChunk`` directory?
+--------------------------------------------------------------
+
+Yes. :binary:`~bin.mongod` creates these files as backups during normal
+:term:`shard` balancing operations.
+
+Once these migrations are complete, you may delete these files.
+
+You can set :setting:`noMoveParanoia` to ``true`` to disable this
+behavior.
+
+How does ``mongos`` use connections?
+------------------------------------
+
+Each client maintains a connection to a :binary:`~bin.mongos` instance.
+Each :binary:`~bin.mongos` instance maintains a pool of connections to the
+members of a replica set supporting the sharded cluster.  Clients use
+connections between :binary:`~bin.mongos` and :binary:`~bin.mongod` instances
+one at a time. Requests are not multiplexed or pipelined. When client
+requests complete, the :binary:`~bin.mongos` returns the connection to the
+pool.
+
+See the :ref:`System Resource Utilization
+<system-resource-utilization>` section of the
+:doc:`/administration/ulimit` document.
+
+Why does ``mongos`` hold connections open?
+------------------------------------------
+
+:binary:`~bin.mongos` uses a set of connection pools to communicate with
+each :term:`shard`.  These pools do not shrink when the number of
+clients decreases.
+
+This can lead to an unused :binary:`~bin.mongos` with a large number
+of open connections. If the :binary:`~bin.mongos` is no longer in use,
+it is safe to restart the process to close existing connections.
+
+Where does MongoDB report on connections used by ``mongos``?
+------------------------------------------------------------
+
+Connect to the :binary:`~bin.mongos` with the :binary:`~bin.mongo` shell, and
+run the following command:
+
+.. code-block:: sh
+
+   db._adminCommand("connPoolStats");
+
+What does ``writebacklisten`` in the log mean?
+----------------------------------------------
+
+The writeback listener is a process that opens a long poll to relay
+writes back from a :binary:`~bin.mongod` or :binary:`~bin.mongos` after
+migrations to make sure they have not gone to the wrong server.  The
+writeback listener sends writes back to the correct server if
+necessary.
+
+These messages are a key part of the sharding infrastructure and should
+not cause concern.
+
+How should administrators deal with failed migrations?
+------------------------------------------------------
+
+Failed migrations require no administrative intervention. Chunk moves are
+consistent and deterministic.
+
+If a migration fails to complete for some reason, the :term:`cluster`
+will retry the operation. When the migration completes successfully,
+the data will reside only on the new shard.
+
+What is the process for moving, renaming, or changing the number of config servers?
+-----------------------------------------------------------------------------------
+
+.. see:: :ref:`sharding-procedure-config-server` which describes this process.
+
+When do the ``mongos`` servers detect config server changes?
+------------------------------------------------------------
+
+:binary:`~bin.mongos` instances maintain a cache of the :term:`config
+database` that holds the metadata for the :term:`sharded cluster`. This
+metadata includes the mapping of :term:`chunks <chunk>` to
+:term:`shards <shard>`.
+
+:binary:`~bin.mongos` updates its cache lazily by issuing a request to a
+shard and discovering that its metadata is out of date.  There is no
+way to control this behavior from the client, but you can run the
+:dbcommand:`flushRouterConfig` command against any :binary:`~bin.mongos`
+to force it to refresh its cache.
+
+Is it possible to quickly update ``mongos`` servers after updating a replica set configuration?
+-----------------------------------------------------------------------------------------------
+
+The :binary:`~bin.mongos` instances will detect these changes without
+intervention over time. However, if you want to force the
+:binary:`~bin.mongos` to reload its configuration, run the
+:dbcommand:`flushRouterConfig` command against to each
+:binary:`~bin.mongos` directly.
+
+What does the ``maxConns`` setting on ``mongos`` do?
+----------------------------------------------------
+
+The :setting:`maxConns` option limits the number of connections
+accepted by :binary:`~bin.mongos`.
+
+If your client driver or application creates a large number of
+connections but allows them to time out rather than closing them
+explicitly, then it might make sense to limit the number of
+connections at the :binary:`~bin.mongos` layer.
+
+Set :setting:`maxConns` to a value slightly higher than the
+maximum number of connections that the client creates, or the maximum
+size of the connection pool. This setting prevents the
+:binary:`~bin.mongos` from causing connection spikes on the individual
+:term:`shards <shard>`. Spikes like these may disrupt the operation
+and memory allocation of the :term:`sharded cluster`.
+
+How do indexes impact queries in sharded systems?
+-------------------------------------------------
+
+If the query does not include the :term:`shard key`, the
+:binary:`~bin.mongos` must send the query to all shards as a
+"scatter/gather" operation. Each shard will, in turn, use *either* the
+shard key index or another more efficient index to fulfill the query.
+
+If the query includes multiple sub-expressions that reference the
+fields indexed by the shard key *and* the secondary index, the
+:binary:`~bin.mongos` can route the queries to a specific shard and the
+shard will use the index that will allow it to fulfill most
+efficiently. See `this presentation <http://www.slideshare.net/mongodb/how-queries-work-with-sharding>`_
+for more information.
+
+Can shard keys be randomly generated?
+-------------------------------------
+
+:term:`Shard keys <shard key>` can be random. Random keys ensure
+optimal distribution of data across the cluster.
+
+:term:`Sharded clusters <sharded cluster>`, attempt to route queries to
+*specific* shards when queries include the shard key as a parameter,
+because these directed queries are more efficient. In many cases,
+random keys can make it difficult to direct queries to specific
+shards.
+
+.. STUB :wiki:`Sharding`
+
+Can shard keys have a non-uniform distribution of values?
+---------------------------------------------------------
+
+Yes. There is no requirement that documents be evenly distributed by
+the shard key.
+
+However, documents that have the same shard key *must* reside in the same
+*chunk* and therefore on the same server. If your sharded data set has
+too many documents with the exact same shard key you will not be able
+to distribute *those* documents across your sharded cluster.
+
+.. STUB link to shard key granularity.
+
+Can you shard on the ``_id`` field?
+-----------------------------------
+
+You can use any field for the shard key. The ``_id`` field is a common
+shard key.
+
+Be aware that ``ObjectId()`` values, which are the default value of
+the ``_id`` field, increment as a timestamp. As a result, when used as
+a shard key, all new documents inserted into the collection will
+initially belong to the same chunk on a single shard. Although the
+system will eventually divide this chunk and migrate its contents to
+distribute data more evenly, at any moment the cluster can only direct
+insert operations at a single shard. This can limit the throughput of
+inserts. If most of your write operations are updates or read
+operations rather than inserts, this limitation should not impact
+your performance. However, if you have a high insert volume, this may
+be a limitation.
+
+Can shard key be in ascending order, like dates or timestamps?
+--------------------------------------------------------------
+
+If you insert documents with monotonically increasing shard keys, all
+inserts will initially belong to the same :term:`chunk` on a single
+:term:`shard`. Although the system will eventually divide this chunk
+and migrate its contents to distribute data more evenly, at any moment
+the cluster can only direct insert operations at a single shard. This
+can limit the throughput of inserts.
+
+If most of your write operations are updates or read operations
+rather than inserts, this limitation should not impact your
+performance. However, if you have a high insert volume, a
+monotonically increasing shard key may be a limitation.
+
+To address this issue, you can use a field with a value that stores
+the hash of a key with an ascending value. While you can compute a
+hashed value in your application and include this value in your
+documents for use as a shard key, the :issue:`SERVER-2001` issue will
+implement this capability within MongoDB.
+
+What do ``moveChunk commit failed`` errors mean?
+------------------------------------------------
+
+Consider the following error message:
+
+.. code-block:: none
+
+
+   ERROR: moveChunk commit failed: version is at <n>|<nn> instead of <N>|<NN>" and "ERROR: TERMINATING"
+
+:binary:`~bin.mongod` issues this message if, during a :ref:`chunk
+migration <sharding-chunk-migration>`, the :term:`shard` could not
+connect to the :term:`config database` to update chunk information at
+the end of the migration process. If
+the shard cannot update the config database after
+:dbcommand:`moveChunk`, the cluster will have an inconsistent
+view of all chunks. In these situations, the :term:`primary` member of
+the shard will terminate
+itself to prevent data inconsistency. If the :term:`secondary` member
+can access the config database, the shard's data will be
+accessible after an election. Administrators will need to resolve the
+chunk migration failure independently.
+
+If you encounter this issue, contact the `MongoDB User Group
+<http://groups.google.com/group/mongodb-user>`_ or MongoDB support to
+address this issue.
+
+How does draining a shard affect the balancing of uneven chunk distribution?
+----------------------------------------------------------------------------
+
+The sharded cluster balancing process controls both migrating chunks
+from decommissioned shards (i.e. draining,) and normal cluster
+balancing activities. Consider the following behaviors for different
+versions of MongoDB in situations where you remove a shard in a
+cluster with an uneven chunk distribution:
+
+- After MongoDB 2.2, the balancer first removes the chunks from the
+  draining shard and then balances the remaining uneven chunk
+  distribution.
+
+- Before MongoDB 2.2, the balancer handles the uneven chunk
+  distribution and *then* removes the chunks from the draining shard.
+
+.. COMMENT: This is probably a knowledge base article, but doesn't belong in
+            the documentation here.
+
+   Although this balancer prioritization is **not** configurable, you can,
+   however, achieve the desired behavior with one of the following manual
+
+   - Option 1
+
+     #. Stop the balancer.
+
+     #. Use the :dbcommand:`moveChunk` command to move chunks off of the
+        draining shard.
+
+     #. Restart the balancer.
+
+   - Option 2
+
+   #. Set the ``maxSize`` on the new shards to some low value so that
+      they cannot accept more chunks. This should stop the balancing
+      operation and allow the draining to continue with chunks moved
+      to the full shards.
+
+   #. Restore the original ``maxSize`` on the new shards.
+
+      .. note::
+
+         When changing the ``maxSize`` in the :term:`config database`:
+
+         - in versions 2.0+, run the :dbcommand:`flushRouterConfig` command
+           to refresh the :binary:`~bin.mongos`.
+
+         - in versions pre-2.0, you need to restart :binary:`~bin.mongos`.
+           solutions:

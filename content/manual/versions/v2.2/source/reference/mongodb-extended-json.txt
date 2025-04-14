@@ -1,0 +1,307 @@
+=====================
+MongoDB Extended JSON
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+MongoDB :doc:`import and export utilities
+</administration/import-export>` (i.e. :binary:`~bin.mongoimport` and
+:binary:`~bin.mongoexport`) and MongoDB :ecosystem:`REST Interfaces
+</tools/http-interfaces>` render an approximation of MongoDB :term:`BSON`
+documents in JSON format.
+
+The REST interface supports three different modes for document output:
+
+- *Strict* mode that produces output that conforms to the `JSON RFC
+  specifications <http://www.json.org>`_.
+
+- *JavaScript* mode that produces output that most JavaScript
+  interpreters can process (via the ``--jsonp`` option)
+
+- :binary:`~bin.mongo` *Shell* mode produces output that the
+  :binary:`~bin.mongo` shell can process. This is "extended" JavaScript
+  format.
+
+MongoDB can process of these representations in REST input.
+
+Special representations of :term:`BSON data <BSON types>` in JSON
+format make it possible to render information that have no obvious
+corresponding JSON. In some cases MongoDB supports multiple equivalent
+representations of the same type information. Consider the following
+table:
+
+.. list-table::
+   :header-rows: 1
+
+   * - BSON Data Type
+
+     - Strict Mode
+
+     - JavaScript Mode (via JSONP)
+
+     - mongo Shell Mode
+
+     - Notes
+
+   * - .. bsontype:: data_binary
+
+     - .. code-block:: javascript
+       
+          {
+            "$binary": "<bindata>",
+            "$type": "<t>"
+          }
+       
+
+     - .. code-block:: javascript
+       
+          {
+            "$binary": "<bindata>",
+            "$type": "<t>"
+          }
+       
+
+     - .. code-block:: javascript
+       
+          BinData ( <t>, <bindata> )
+       
+
+     - ``<bindata>`` is the base64 representation of a binary
+       string.
+       
+       ``<t>`` is the hexadecimal representation of a single byte
+       that indicates the data type.
+       
+
+   * - .. bsontype:: data_date
+
+     - .. code-block:: javascript
+       
+          {
+            "$date": <date>
+          }
+       
+
+     - .. code-block:: javascript
+       
+          new Date( <date> )
+       
+
+     - .. code-block:: javascript
+       
+          new Date ( <date> )
+       
+
+     - ``<date>`` is the JSON representation of a 64-bit signed
+       integer for milliseconds since epoch UTC (unsigned before
+       version 1.9.1).
+       
+
+   * - .. bsontype:: data_timestamp
+
+     - .. code-block:: javascript
+       
+          {
+            "$timestamp":
+                 {
+                   "t": <t>,
+                   "i": <i>
+                 }
+          }
+       
+
+     - .. code-block:: javascript
+       
+          {
+            "$timestamp":
+                 {
+                   "t": <t>,
+                   "i": <i>
+                 }
+          }
+       
+
+     - .. code-block:: javascript
+       
+          Timestamp( <t>, <i> )
+       
+
+     - ``<t>`` is the JSON representation
+       of a 32-bit unsigned integer
+       for seconds since epoch.
+       
+       ``<i>`` is a 32-bit unsigned
+       integer for the increment.
+       
+
+   * - .. bsontype:: data_regex
+
+     - .. code-block:: javascript
+       
+          {
+            "$regex": "<sRegex>",
+            "$options": "<sOptions>"
+          }
+       
+
+     - .. code-block:: javascript
+       
+          /<jRegex>/<jOptions>
+       
+
+     - .. code-block:: javascript
+       
+          /<jRegex>/<jOptions>
+       
+
+     - ``<sRegex>`` is a string of valid JSON characters.
+       
+       ``<jRegex>`` is a string that may contain valid JSON
+       characters and unescaped double quote (``"``) characters, but may not
+       contain unescaped forward slash (``/``) characters.
+       
+       ``<sOptions>`` is a string containing the regex options
+       represented by the letters of the alphabet.
+       
+       ``<jOptions>`` is a string that may contain only the
+       characters 'g', 'i', 'm' and 's' (added in v1.9). Because
+       the ``JavaScript`` and ``mongo Shell`` representations
+       support a limited range of options, any nonconforming
+       options will be dropped when converting to this
+       representation.
+       
+
+   * - .. bsontype:: data_oid
+
+     - .. code-block:: javascript
+       
+          {
+            "$oid": "<id>"
+          }
+       
+
+     - .. code-block:: javascript
+       
+          {
+            "$oid": "<id>"
+          }
+       
+
+     - .. code-block:: javascript
+       
+          ObjectId( "<id>" )
+       
+
+     - ``<id>`` is a 24-character hexadecimal string.
+       
+
+   * - .. bsontype:: data_ref
+
+     - .. code-block:: javascript
+       
+          {
+            "$ref": "<name>",
+            "$id": "<id>"
+          }
+       
+
+     - .. code-block:: javascript
+       
+          {
+            "$ref" : "<name>",
+            "$id" : "<id>"
+          }
+       
+
+     - .. code-block:: javascript
+       
+          DBRef("<name>", "<id>")
+       
+
+     - ``<name>`` is a string of valid JSON characters.
+       
+       ``<id>`` is any valid extended JSON type.
+       
+
+   * - .. bsontype:: data_undefined
+
+     - .. code-block:: javascript
+       
+          {
+            "$undefined": true
+          }
+       
+
+     - .. code-block:: javascript
+       
+          undefined
+       
+
+     - .. code-block:: javascript
+       
+          undefined
+       
+
+     - The representation for the JavaScript/BSON undefined type.
+       
+
+   * - .. bsontype:: data_minkey
+
+     - .. code-block:: javascript
+       
+          {
+            "$minKey": 1
+          }
+       
+
+     - .. code-block:: javascript
+       
+          {
+            "$minKey": 1
+          }
+       
+
+     - .. code-block:: javascript
+       
+          MinKey
+       
+
+     - The representation of the MinKey BSON data type that
+       compares lower than all other types. See
+       :ref:`faq-dev-compare-order-for-BSON-types` for more
+       information on comparison order for BSON types.
+       
+
+   * - .. bsontype:: data_maxkey
+
+     - .. code-block:: javascript
+       
+          {
+            "$maxKey": 1
+          }
+       
+
+     - .. code-block:: javascript
+       
+          {
+            "$maxKey": 1
+          }
+       
+
+     - .. code-block:: javascript
+       
+          MaxKey
+       
+
+     - The representation of the MaxKey BSON data type that
+       compares higher than all other types. See
+       :ref:`faq-dev-compare-order-for-BSON-types` for more
+       information on comparison order for BSON types.
+       
+

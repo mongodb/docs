@@ -1,0 +1,237 @@
+==========================
+Collection Validation Data
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Synopsis
+--------
+
+The collection validation command checks all of the structures within
+a name space for correctness and returns a :term:`document` containing
+information regarding the on-disk representation of the collection.
+
+.. warning::
+
+   The :dbcommand:`validate` process may consume significant system
+   resources and impede application performance because it must scan
+   all data in the collection.
+
+Run the validation command in the :binary:`~bin.mongo` shell using the
+following form to validate a collection named ``people``:
+
+.. code-block:: javascript
+
+   db.people.validate()
+
+Alternatively you can use the command prototype and the
+:method:`db.runCommand()` shell helper in the following form:
+
+.. code-block:: javascript
+
+   db.runCommand( { validate: "people", full: true } )
+   db.people.validate(true)
+
+.. seealso:: :dbcommand:`validate` and :method:`~db.collection.validate()`.
+
+Values
+------
+
+.. data:: validate.ns
+
+   The full namespace name of the collection. Namespaces include the
+   database name and the collection name in the form
+   ``database.collection``.
+
+.. data:: validate.firstExtent
+
+   The disk location of the first extent in the collection. The value
+   of this field also includes the namespace.
+
+.. data:: validate.lastExtent
+
+   The disk location of the last extent in the collection. The value
+   of this field also includes the namespace.
+
+.. data:: validate.extentCount
+
+   The number of extents in the collection.
+
+.. data:: validate.extents
+
+   :dbcommand:`validate` returns one instance of this document for
+   every extent in the collection. This sub-document is only returned
+   when you specify the ``full`` option to the command.
+
+   .. data:: validate.extents.loc
+
+      The disk location for the beginning of this extent.
+
+   .. data:: validate.extents.xnext
+
+      The disk location for the extent following this one. "null" if
+      this is the end of the linked list of extents.
+
+   .. data:: validate.extents.xprev
+
+      The disk location for the extent preceding this one. "null" if
+      this is the head of the linked list of extents.
+
+   .. data:: validate.extents.nsdiag
+
+      The namespace this extent belongs to (should be the same as the
+      namespace shown at the beginning of the validate listing).
+
+   .. data:: validate.extents.size
+
+      The number of bytes in this extent.
+
+   .. data:: validate.extents.firstRecord
+
+      The disk location of the first record in this extent.
+
+   .. data:: validate.extents.lastRecord
+
+      The disk location of the last record in this extent.
+
+.. data:: validate.datasize
+
+   The number of bytes in all data records.  This value does not
+   include deleted records, nor does it include extent headers, nor
+   record headers, nor space in a file unallocated to any
+   extent. :data:`~validate.datasize` includes record :term:`padding`.
+
+.. data:: validate.nrecords
+
+   The number of :term:`documents <document>` in the collection.
+
+.. data:: validate.lastExtentSize
+
+   The size of the last new extent created in this collection. This
+   value determines the size of the *next* extent created.
+
+.. data:: validate.padding
+
+   A floating point value between 1 and 2.
+
+   When MongoDB creates a new record it uses the :term:`padding
+   factor` to determine how much additional space to add to the
+   record. The padding factor is automatically adjusted by mongo when
+   it notices that update operations are triggering record moves.
+
+.. data:: validate.firstExtentDetails
+
+   The size of the first extent created in this collection. This data
+   is similar to the data provided by the :data:`~validate.extents`
+   sub-document; however, the data reflects only the first extent in
+   the collection and is always returned.
+
+   .. data:: validate.firstExtentDetails.loc
+
+      The disk location for the beginning of this extent.
+
+   .. data:: validate.firstExtentDetails.xnext
+
+      The disk location for the extent following this one. "null" if
+      this is the end of the linked list of extents, which should only
+      be the case if there is only one extent.
+
+   .. data:: validate.firstExtentDetails.xprev
+
+      The disk location for the extent preceding this one. This should
+      always be "null."
+
+   .. data:: validate.firstExtentDetails.nsdiag
+
+      The namespace this extent belongs to (should be the same as the
+      namespace shown at the beginning of the validate listing).
+
+   .. data:: validate.firstExtentDetails.size
+
+      The number of bytes in this extent.
+
+   .. data:: validate.firstExtentDetails.firstRecord
+
+      The disk location of the first record in this extent.
+
+   .. data:: validate.firstExtentDetails.lastRecord
+
+      The disk location of the last record in this extent.
+
+.. data:: validate.objectsFound
+
+   The number of records actually encountered in a scan of the
+   collection. This field should have the same value as the
+   :data:`~validate.nrecords` field.
+
+.. data:: validate.invalidObjects
+
+   The number of records containing BSON documents that do not pass a
+   validation check.
+
+   .. note::
+
+      This field is only included in the validation output when you
+      specify the ``full`` option.
+
+.. data:: validate.bytesWithHeaders
+
+   This is similar to datasize, except that :data:`~validate.bytesWithHeaders`
+   includes the record headers. In version 2.0, record headers are 16
+   bytes per document.
+
+   .. note::
+
+      This field is only included in the validation output when you
+      specify the ``full`` option.
+
+.. data:: validate.bytesWithoutHeaders
+
+   :data:`~validate.bytesWithoutHeaders` returns data collected from a scan of
+   all records. The value should be the same as :data:`~validate.datasize`.
+
+   .. note::
+
+      This field is only included in the validation output when you
+      specify the ``full`` option.
+
+.. data:: validate.deletedCount
+
+   The number of deleted or "free" records in the collection.
+
+.. data:: validate.deletedSize
+
+   The size of all deleted or "free" records in the collection.
+
+.. data:: validate.nIndexes
+
+   The number of indexes on the data in the collection.
+
+.. data:: validate.keysPerIndex
+
+   A document containing a field for each index, named after the
+   index's name, that contains the number of keys, or documents
+   referenced, included in the index.
+
+.. data:: validate.valid
+
+   Boolean. ``true``, unless :dbcommand:`validate` determines that an
+   aspect of the collection is not valid. When ``false``, see the
+   :data:`~validate.errors` field for more information.
+
+.. data:: validate.errors
+
+   Typically empty; however, if the collection is not valid (i.e
+   :data:`~validate.valid` is false,) this field will contain a message
+   describing the validation error.
+
+.. data:: validate.ok
+
+   Set to ``1`` when the command succeeds. If the command fails
+   the :data:`~validate.ok` field has a value of ``0``.

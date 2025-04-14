@@ -1,0 +1,110 @@
+=====================================
+Convert a Standalone to a Replica Set
+=====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This tutorial describes the process for converting a
+:term:`standalone` :binary:`~bin.mongod` instance into a three-member
+:term:`replica set`.  Use standalone instances for testing and
+development, but always use replica sets in production. To install a
+standalone instance, see the :ref:`installation tutorials
+<tutorials-installation>`.
+
+To deploy a replica set without using a pre-existing :binary:`~bin.mongod`
+instance, see :doc:`/tutorial/deploy-replica-set`.
+
+For more information on :doc:`replica sets, their use, and
+administration </replication>`, see:
+
+- :doc:`/core/replication`,
+- :doc:`/administration/replica-set-architectures`,
+- :doc:`/administration/replica-sets`, and
+- :doc:`/applications/replication`.
+
+.. note::
+
+   If you're converting a standalone instance into a replica set that
+   is a :term:`shard` in a :term:`sharded cluster` you must change the
+   shard host information in the :term:`config database`. While
+   connected to a :binary:`~bin.mongos` instance with a :binary:`~bin.mongo`
+   shell, issue a command in the following form:
+
+   .. code-block:: javascript
+
+      db.getSiblingDB("config").shards.save( {_id: "<name>", host: "<replica-set>/<member,><member,><...>" } )
+
+   Replace ``<name>`` with the name of the shard, replace
+   ``<replica-set>`` with the name of the replica set, and replace
+   ``<member,><member,><>`` with the list of the members of the
+   replica set.
+
+   After completing this operation you must restart all
+   :binary:`~bin.mongos` instances. When possible you should restart all
+   components of the replica sets (i.e. all :binary:`~bin.mongos` and all
+   shard :binary:`~bin.mongod` instances.)
+
+Procedure
+---------
+
+This procedure assumes you have a :term:`standalone` instance of MongoDB
+installed. If you have not already installed MongoDB, see the
+:ref:`installation tutorials <tutorials-installation>`.
+
+1. Shut down the your MongoDB instance and then restart using
+   the :option:`--replSet <mongod --replSet>` option and the name of the
+   :term:`replica set`, which is ``rs0`` in the example below.
+
+   Use a command similar to the following:
+
+   .. code-block:: sh
+
+      mongod --port 27017 --dbpath /srv/mongodb/db0 --replSet rs0
+
+   Replace ``/srv/mongodb/db0`` with the path of your
+   :setting:`dbpath`.
+
+   This starts the instance as a member of a replica set named ``rs0``.
+   For more information on configuration options, see
+   :doc:`/reference/configuration-options` and the :doc:`/reference/mongod`.
+
+#. Open a :binary:`~bin.mongo` shell and connect to the :binary:`~bin.mongod`
+   instance. In a new system shell session, use the following command
+   to start a :binary:`~bin.mongo` shell:
+
+   .. code-block:: sh
+
+      mongo
+
+#. Use :method:`rs.initiate()` to initiate the replica set:
+
+   .. code-block:: javascript
+
+      rs.initiate()
+
+   The set is now operational. To return the replica set
+   configuration, call the :method:`rs.conf()` method. To check the
+   status of the replica set, use :method:`rs.status()`.
+
+#. Now add additional replica set members. On two distinct systems,
+   start two new standalone :binary:`~bin.mongod` instances. Then, in the
+   :binary:`~bin.mongo` shell instance connected to the first
+   :binary:`~bin.mongod` instance, issue a command in the following form:
+
+   .. code-block:: javascript
+
+      rs.add("<hostname><:port>")
+
+   Replace ``<hostname>`` and ``<port>`` with the resolvable hostname
+   and port of the :binary:`~bin.mongod` instance you want to add to the
+   set. Repeat this operation for each :binary:`~bin.mongod` that you want
+   to add to the set.
+
+   For more information on adding hosts to a replica set, see the
+   :doc:`/tutorial/expand-replica-set` document.

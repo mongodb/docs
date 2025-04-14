@@ -1,0 +1,74 @@
+======
+copydb
+======
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. dbcommand:: copydb
+
+   The :dbcommand:`copydb` command copies a database from a remote
+   host to the current host. The command has the following syntax:
+
+   .. code-block:: javascript
+
+      { copydb: 1:
+        fromhost: <hostname>,
+        fromdb: <db>,
+        todb: <db>,
+        slaveOk: <bool>,
+        username: <username>,
+        nonce: <nonce>,
+        key: <key> }
+
+   All of the following arguments are optional:
+
+   - slaveOk
+   - username
+   - nonce
+   - key
+
+   You can omit the ``fromhost`` argument, to copy one database to
+   another database within a single MongoDB instance.
+
+   You must run this command on the destination, or the ``todb``
+   server.
+
+   Be aware of the following behaviors:
+
+   - :dbcommand:`copydb` can run against a :term:`slave` or a
+     non-:term:`primary` member of a :term:`replica set`. In this case,
+     you must set the ``slaveOk`` option to ``true``.
+
+   - :dbcommand:`copydb` does not snapshot the database. If the state
+     of the database changes at any point during the operation, the
+     resulting database may be inconsistent.
+
+   - You must run :dbcommand:`copydb` on the **destination server**.
+
+   - The destination server is not locked for the duration of the
+     :dbcommand:`copydb` operation. This means that
+     :dbcommand:`copydb` will occasionally yield to allow other
+     operations to complete.
+
+   - If the remote server has authentication enabled, then you must
+     include a username, nonce, and a key. The nonce is a one-time
+     password that you request from the remote server using the
+     :dbcommand:`copydbgetnonce` command. The ``key`` is a hash
+     generated as follows:
+
+     .. code-block:: javascript
+
+        hex_md5(nonce + username + hex_md5(username + ":mongo:" + pass))
+
+     If you need to copy a database and authenticate, it's easiest to use the
+     shell helper:
+
+     .. code-block:: javascript
+
+         db.copyDatabase(<remote_db_name>, <local_db_name>, <from_host_name>, <username>, <password>)

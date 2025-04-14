@@ -1,0 +1,432 @@
+=============================
+Release Notes for MongoDB 2.0
+=============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+Upgrading
+---------
+
+Although the major version number has changed, MongoDB 2.0 is a
+standard, incremental production release and works as a drop-in
+replacement for MongoDB 1.8.
+
+Preparation
+~~~~~~~~~~~
+
+Read through all release notes before upgrading, and ensure that no
+changes will affect your deployment.
+
+If you create new indexes in 2.0, then downgrading to 1.8 is possible
+but you must reindex the new collections.
+
+:binary:`~bin.mongoimport` and :binary:`~bin.mongoexport` now correctly adhere to the CSV spec
+for handling CSV input/output. This may break existing import/export
+workflows that relied on the previous behavior. For more information see
+:issue:`SERVER-1097`.
+
+:doc:`Journaling </administration/journaling/>` is **enabled by default** in 2.0 for 64-bit builds.
+If you still prefer to run without journaling, start :binary:`~bin.mongod`
+with the :option:`--nojournal <mongod --nojournal>` run-time option.
+Otherwise, MongoDB creates journal files during startup. The first time you start :binary:`~bin.mongod` with
+journaling, you will see a delay as :binary:`~bin.mongod` creates new files.
+In addition, you may see reduced write throughput.
+
+2.0 :binary:`~bin.mongod` instances are interoperable with 1.8
+:binary:`~bin.mongod` instances; however, for best results, upgrade your
+deployments using the following procedures:
+
+.. _2.0-upgrade-standalone:
+
+Upgrading a Standalone ``mongod``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1. Download the v2.0.x binaries from the `MongoDB Download Page`_.
+
+#. Shutdown your :binary:`~bin.mongod` instance. Replace the existing
+   binary with the 2.0.x :binary:`~bin.mongod` binary and restart MongoDB.
+
+.. _`MongoDB Download Page`: http://downloads.mongodb.org/
+
+.. _2.0-upgrade-replica-set:
+
+Upgrading a Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~
+
+1. Upgrade the :term:`secondary` members of the set one at a time by
+   shutting down the :binary:`~bin.mongod` and replacing the 1.8 binary
+   with the 2.0.x binary from the `MongoDB Download Page`_.
+
+#. To avoid losing the last few updates on failover you can
+   temporarily halt your application (failover should take less than 10
+   seconds), or you can set :ref:`write concern <write-concern>` in your application
+   code to confirm that each update reaches multiple servers.
+
+#. Use the :method:`rs.stepDown()` to step down the primary to allow
+   the normal :ref:`failover <replica-set-failover>` procedure.
+
+   :method:`rs.stepDown()` and :dbcommand:`replSetStepDown` provide for
+   shorter and more consistent failover procedures than simply
+   shutting down the primary directly.
+
+   When the primary has stepped down, shut down its instance and
+   upgrade by replacing the :binary:`~bin.mongod` binary with the 2.0.x
+   binary.
+
+.. _2.0-upgrade-shard-cluster:
+.. _2.0-upgrade-sharded-cluster:
+
+Upgrading a Sharded Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1. Upgrade all :term:`config server <config database>` instances
+   *first*, in any order. Since config servers use two-phase commit,
+   :term:`shard` configuration metadata updates will halt until all are
+   up and running.
+
+#. Upgrade :binary:`~bin.mongos` routers in any order.
+
+Changes
+-------
+
+Compact Command
+~~~~~~~~~~~~~~~
+
+A :dbcommand:`compact` command is now available for compacting a single
+collection and its indexes. Previously, the only way to compact was to
+repair the entire database.
+
+Concurrency Improvements
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+When going to disk, the server will yield the write lock when writing
+data that is not likely to be in memory. The initial
+implementation of this feature now exists:
+
+See :issue:`SERVER-2563` for more information.
+
+The specific operations yield in 2.0 are:
+
+- Updates by ``_id``
+
+- Removes
+
+- Long cursor iterations
+
+Default Stack Size
+~~~~~~~~~~~~~~~~~~
+
+MongoDB 2.0 reduces the default stack size. This change can reduce total memory
+usage when there are many (e.g., 1000+) client connections, as there is
+a thread per connection. While portions of a thread's stack can be
+swapped out if unused, some operating systems do this slowly enough that
+it might be an issue. The default stack size is lesser of the
+system setting or 1MB.
+
+.. _2.0-new-index-format:
+
+Index Performance Enhancements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+v2.0 includes significant improvements to the
+:doc:`index </tutorial/roll-back-to-v1.8-index>`.
+Indexes are often 25% smaller and 25% faster (depends on the use case).
+When upgrading from previous versions, the benefits of the new index
+type are realized only if you create a new index or re-index an old one.
+
+Dates are now signed, and the max index key size has increased slightly
+from 819 to 1024 bytes.
+
+All operations that create a new index will result in a 2.0 index by
+default. For example:
+
+- Reindexing results on an older-version index results in a 2.0 index.
+  However, reindexing on a secondary does *not* work in versions prior
+  to 2.0. Do not reindex on a secondary. For a workaround, see
+  :issue:`SERVER-3866`.
+
+- The :setting:`repairDatabase` command converts indexes to a 2.0
+  indexes.
+
+To convert all indexes for a given collection to the :ref:`2.0 type
+<2.0-new-index-format>`, invoke the :dbcommand:`compact` command.
+
+Once you create new indexes, downgrading to 1.8.x will require a
+re-index of any indexes created using 2.0. See
+:doc:`/tutorial/roll-back-to-v1.8-index`.
+
+Sharding Authentication
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Applications can now use authentication with :term:`sharded clusters <sharded cluster>`.
+
+Replica Sets
+~~~~~~~~~~~~
+
+Hidden Nodes in Sharded Clusters
+````````````````````````````````
+
+In 2.0, :binary:`~bin.mongos` instances can now determine when a member of
+a replica set becomes "hidden" without requiring a restart. In 1.8,
+:binary:`~bin.mongos` if you reconfigured a
+member as hidden, you *had* to restart :binary:`~bin.mongos` to prevent
+queries from reaching the hidden member.
+
+Priorities
+``````````
+
+Each :term:`replica set` member can now have a priority value consisting
+of a floating-point from 0 to 1000, inclusive. Priorities let you
+control which member of the set you prefer to have as :term:`primary`
+the member with the highest priority that can see a majority of the set
+will be elected primary.
+
+For example, suppose you have a replica set with three members, ``A``, ``B``, and
+``C``, and suppose that their priorities are set as follows:
+
+- ``A``'s priority is ``2``.
+
+- ``B``'s priority is ``3``.
+
+- ``C``'s priority is ``1``.
+
+During normal operation, the set will always chose ``B`` as
+primary. If ``B`` becomes unavailable, the set will elect ``A`` as primary.
+
+For more information, see the :ref:`Member Priority <replica-set-member-priority>` documentation.
+
+Data-Center Awareness
+``````````````````````
+
+You can now "tag" :term:`replica set` members to indicate their
+location. You can use these tags to design custom :ref:`write rules <write-concern>`
+across data centers, racks, specific servers, or any other architecture
+choice.
+
+For example, an administrator can define rules such as "very important write" or
+``customerData`` or "audit-trail" to replicate to certain servers,
+racks, data centers, etc. Then in the application code, the developer
+would say:
+
+.. code-block:: javascript
+
+   db.foo.insert(doc, {w : "very important write"})
+
+which would succeed if it fulfilled the conditions the DBA defined for
+"very important write".
+
+For more information, see
+:doc:`Tagging </administration/tag-aware-sharding>`.
+
+Drivers may also support tag-aware reads. Instead of
+specifying ``slaveOk``, you specify ``slaveOk`` with tags indicating
+which data-centers to read from. For details, see the
+:doc:`/applications/drivers` documentation.
+
+``w`` : ``majority``
+````````````````````
+
+You can also set ``w`` to ``majority`` to ensure that the write
+propagates to a majority of nodes, effectively committing it. The
+value for "majority" will automatically adjust as you add or
+remove nodes from the set.
+
+For more information, see :ref:`replica-set-write-concern`.
+
+Reconfiguration with a Minority Up
+``````````````````````````````````
+
+If the majority of servers in a set has been permanently lost, you can
+now force a reconfiguration of the set to bring it back online.
+
+For more information see :doc:`/tutorial/reconfigure-replica-set-with-unavailable-members`.
+
+Primary Checks for a Caught up Secondary before Stepping Down
+`````````````````````````````````````````````````````````````
+
+To minimize time without a :term:`primary`, the :method:`rs.stepDown()`
+method will now fail if the primary does not see a :term:`secondary`
+within 10 seconds of its latest optime. You can force the primary to
+step down anyway, but by default it will return an error message.
+
+See also :doc:`/tutorial/force-member-to-be-primary`.
+
+Extended Shutdown on the Primary to Minimize Interruption
+`````````````````````````````````````````````````````````
+
+When you call the :dbcommand:`shutdown` command, the :term:`primary`
+will refuse to shut down unless there is a :term:`secondary` whose
+optime is within 10 seconds of the primary. If such a secondary isn't
+available, the primary will step down and wait up to a minute for the
+secondary to be fully caught up before shutting down.
+
+Note that to get this behavior, you must issue the :dbcommand:`shutdown`
+command explicitly; sending a signal to the process will not trigger
+this behavior.
+
+You can also force the primary to shut down, even without an up-to-date
+secondary available.
+
+Maintenance Mode
+````````````````
+
+When :dbcommand:`repair` or :dbcommand:`compact` runs on a :term:`secondary`, the
+secondary will automatically drop into "recovering" mode until the
+operation finishes. This prevents clients from trying to read from it
+while it's busy.
+
+Geospatial Features
+~~~~~~~~~~~~~~~~~~~
+
+Multi-Location Documents
+````````````````````````
+
+Indexing is now supported on documents which have multiple location
+objects, embedded either inline or in nested sub-documents. Additional
+command options are also supported, allowing results to return with
+not only distance but the location used to generate the distance.
+
+For more information, see :doc:`Multi-location Documents </applications/geospatial-indexes>`.
+
+Polygon searches
+````````````````
+
+Polygonal :query:`$within` queries are also now supported for simple polygon
+shapes. For details, see the :query:`$within` operator documentation.
+
+Journaling Enhancements
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Journaling is now enabled by default for 64-bit platforms. Use the
+  ``--nojournal`` command line option to disable it.
+
+- The journal is now compressed for faster commits to disk.
+
+- A new :option:`--journalCommitInterval <mongod --journalCommitInterval>` run-time option exists for
+  specifying your own group commit interval. The default settings do
+  not change.
+
+- A new :dbcommand:`{ getLastError: { j: true } } <getLastError>` option is
+  available to wait for the group commit. The group commit will happen
+  sooner when a client is waiting on ``{j: true}``. If journaling is
+  disabled, ``{j: true}`` is a no-op.
+
+New ``ContinueOnError`` Option for Bulk Insert
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Set the ``continueOnError`` option for bulk inserts, in the
+:doc:`driver </applications/drivers>`, so that bulk insert will
+continue to insert any remaining documents even if an insert fails, as
+is the case with  duplicate key exceptions or network interruptions. The :dbcommand:`getLastError`
+command will report whether any inserts have failed, not just the
+last one. If multiple errors occur, the client will only receive the
+most recent :dbcommand:`getLastError` results.
+
+See :wiki:`OP_INSERT <Mongo+Wire+Protocol#MongoWireProtocol-OPINSERT>`.
+
+.. include:: /includes/note-bulk-inserts-on-sharded-clusters.rst
+
+Map Reduce
+~~~~~~~~~~
+
+Output to a Sharded Collection
+``````````````````````````````
+
+Using the new ``sharded`` flag, it is possible to send the result of a
+map/reduce to a sharded collection. Combined with the ``reduce`` or
+``merge`` flags, it is possible to keep adding data to very large
+collections from map/reduce jobs.
+
+For more information, see :wiki:`MapReduce Output Options <MapReduce#MapReduce-Outputoptions>`
+and :doc:`/reference/command/mapReduce`.
+
+Performance Improvements
+````````````````````````
+
+Map/reduce performance will benefit from the following:
+
+- Larger in-memory buffer sizes, reducing the amount of disk I/O needed
+  during a job
+
+- Larger javascript heap size, allowing for larger objects
+  and less GC
+
+- Supports pure JavaScript execution with the ``jsMode`` flag. See :doc:`/reference/command/mapReduce`.
+
+New Querying Features
+~~~~~~~~~~~~~~~~~~~~~
+
+Additional regex options: ``s``
+```````````````````````````````
+
+Allows the dot (``.``) to match all characters including new lines. This is
+in addition to the currently supported ``i``, ``m`` and ``x``. See
+:wiki:`Regular Expressions <Advanced+Queries#AdvancedQueries-RegularExpressions>` and :query:`$regex`.
+
+$and
+````
+
+A special boolean :query:`$and` query operator is now available.
+
+Command Output Changes
+~~~~~~~~~~~~~~~~~~~~~~
+
+The output of the :dbcommand:`validate` command and the documents in the
+``system.profile`` collection have both been enhanced to return
+information as BSON objects with keys for each value rather than as
+free-form strings.
+
+Shell Features
+~~~~~~~~~~~~~~
+
+Custom Prompt
+`````````````
+
+You can define a custom prompt for the :binary:`~bin.mongo` shell. You can
+change the prompt at any time by setting the prompt variable to a string
+or a custom JavaScript function returning a string. For examples, see
+:wiki:`Custom Prompt <Overview+-+The+MongoDB+Interactive+Shell#Overview-TheMongoDBInteractiveShell-CustomPrompt>`.
+
+Default Shell Init Script
+`````````````````````````
+
+On startup, the shell will check for a ``.mongorc.js`` file in the
+user's home directory. The shell will execute this file after connecting
+to the database and before displaying the prompt.
+
+If you would like the shell not to run the ``.mongorc.js`` file
+automatically, start the shell with :option:`--norc <mongo --norc>`.
+
+For more information, see :doc:`/reference/mongo`.
+
+Most Commands Require Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In 2.0, when running with authentication (e.g. :setting:`auth`) *all*
+database commands require authentication, *except* the following
+commands.
+
+- :dbcommand:`isMaster`
+
+- :dbcommand:`authenticate`
+
+- :dbcommand:`getnonce`
+
+- :dbcommand:`buildInfo`
+
+- :dbcommand:`ping`
+
+- :dbcommand:`isdbgrid`
+
+Resources
+---------
+
+- `MongoDB Downloads <http://mongodb.org/downloads>`_
+- `All JIRA Issues resolved in 2.0 <https://jira.mongodb.org/secure/IssueNavigator.jspa?mode=hide&requestId=11002>`_
+- `All Backward Incompatible Changes <https://jira.mongodb.org/secure/IssueNavigator.jspa?requestId=11023>`_

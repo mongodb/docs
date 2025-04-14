@@ -1,0 +1,207 @@
+.. _mongoperf:
+
+=============
+``mongoperf``
+=============
+
+.. http://www.mongodb.org/display/DOCS/mongoperf
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Synopsis
+--------
+
+:binary:`~bin.mongoperf` is a utility to check disk I/O performance
+independently of MongoDB.
+
+It times tests of random disk I/O and presents the results. You can
+use :binary:`~bin.mongoperf` for any case apart from MongoDB. The
+:setting:`~mongoperf.mmf` ``true`` mode is completely generic. In
+that mode it is somewhat analogous to tools such as `bonnie++
+<http://sourceforge.net/projects/bonnie/>`_ (albeit mongoperf is
+simpler).
+
+Specify options to :binary:`~bin.mongoperf` using a JavaScript document.
+
+.. seealso::
+
+   - `bonnie <http://www.textuality.com/bonnie/>`_
+   - `bonnie++ <http://sourceforge.net/projects/bonnie/>`_
+   - `Output from an example run <https://gist.github.com/1694664>`_
+   - `Checking Disk Performance with the mongoperf Utility <http://blog.mongodb.org/post/40769806981/checking-disk-performance-with-the-mongoperf-utility>`_
+
+.. _mongoperf-options:
+
+Options
+-------
+
+.. binary:: mongoperf
+
+.. program:: mongoperf
+
+.. option:: --help
+
+   Displays the options to :binary:`~bin.mongoperf`.  Specify options to
+   :binary:`~bin.mongoperf` with a JSON document described in the
+   :ref:`mongoperf-fields` section.
+
+.. option:: <jsonconfig>
+
+   :binary:`~bin.mongoperf` accepts configuration options in the form of a
+   file that holds a :term:`JSON` document. You must stream the
+   content of this file into :binary:`~bin.mongoperf`, as in the following
+   operation:
+
+   .. code-block:: sh
+
+      mongoperf < config
+
+   In this example ``config`` is the name of a file that holds a JSON
+   document that resembles the following example:
+
+   .. code-block:: javascript
+
+     {
+       nThreads:<n>,
+       fileSizeMB:<n>,
+       sleepMicros:<n>,
+       mmf:<bool>,
+       r:<bool>,
+       w:<bool>,
+       recSizeKB:<n>,
+       syncDelay:<n>
+     }
+
+   See the :ref:`mongoperf-fields` section for documentation of each
+   of these fields.
+
+.. _mongoperf-fields:
+
+Configuration Fields
+--------------------
+
+.. setting:: mongoperf.nThreads
+
+   *Type:* Integer.
+
+   *Default:* 1
+
+   Defines the number of threads :binary:`~bin.mongoperf` will use in the
+   test. To saturate your system's storage system you will need
+   multiple threads. Consider setting :setting:`~mongoperf.nThreads` to ``16``.
+
+.. setting:: mongoperf.fileSizeMB
+
+   *Type:* Integer.
+
+   *Default:* 1 megabyte (i.e. 1024\ :sup:`2` bytes)
+
+   Test file size.
+
+.. setting:: mongoperf.sleepMicros
+
+   *Type:* Integer.
+
+   *Default:* 0
+
+   :binary:`~bin.mongoperf` will pause for the number of specified
+   :setting:`~mongoperf.sleepMicros` divided by the
+   :setting:`~mongoperf.nThreads` between each operation.
+
+.. setting:: mongoperf.mmf
+
+   *Type:* Boolean.
+
+   *Default:* ``false``
+
+   Set :setting:`~mongoperf.mmf` to ``true`` to use memory mapped
+   files for the tests.
+
+   Generally:
+
+   - when :setting:`~mongoperf.mmf` is ``false``, :binary:`~bin.mongoperf`
+     tests direct, physical, I/O, without caching. Use a large file
+     size to test heavy random I/O load and to avoid I/O coalescing.
+
+   - when :setting:`mongoperf.mmf` is ``true``, :binary:`~bin.mongoperf`
+     runs tests of the caching system, and can use normal file system
+     cache. Use :binary:`~bin.mmf` in this mode to test file system cache
+     behavior with memory mapped files.
+
+.. setting:: mongoperf.r
+
+   *Type:* Boolean.
+
+   *Default:* ``false``
+
+   Set :setting:`~mongoperf.r` to ``true`` to perform reads as part of
+   the tests.
+
+   Either :setting:`~mongoperf.r` or :setting:`~mongoperf.w` must be ``true``.
+
+.. setting:: mongoperf.w
+
+   *Type:* Boolean.
+
+   *Default:* ``false``
+
+   Set :setting:`~mongoperf.w` to ``true`` to perform writes as part of
+   the tests.
+
+   Either :setting:`~mongoperf.r` or :setting:`~mongoperf.w` must be ``true``.
+
+.. setting:: mongoperf.syncDelay
+
+   *Type:* Integer.
+
+   *Default:* 0
+
+   Seconds between disk flushes. :setting:`mongoperf.syncDelay` is
+   similar to :option:`--syncdelay <mongod --syncdelay>` for :binary:`~bin.mongod`.
+
+   The :setting:`~mongoperf.syncDelay` controls how frequently
+   :binary:`~bin.mongoperf` performs an asynchronous disk flush of the memory
+   mapped file used for testing. By default, :binary:`~bin.mongod`
+   performs this operation every 60 seconds. Use
+   :setting:`~mongoperf.syncDelay` to test basic system performance of
+   this type of operation.
+
+   Only use :setting:`~mongoperf.syncDelay` in conjunction with
+   :setting:`~mongoperf.mmf` set to ``true``.
+
+   The default value of ``0`` disables this.
+
+Use
+---
+
+.. code-block:: javascript
+
+   mongoperf < jsonconfigfile
+
+Replace ``jsonconfigfile`` with the path to the :binary:`~bin.mongoperf`
+configuration. You may also invoke :binary:`~bin.mongoperf` in the
+following form:
+
+.. code-block:: sh
+
+   echo "{nThreads:16,fileSizeMB:1000,r:true}" | ./mongoperf
+
+In this operation:
+
+- :binary:`~bin.mongoperf` tests direct physical random read io's, using
+  16 concurrent reader threads.
+
+- :binary:`~bin.mongoperf`  uses a 1 gigabyte test file.
+
+Consider using ``iostat``, as invoked in the following example to
+monitor I/O performance during the test.
+
+.. code-block:: sh
+
+   iostat -xm 2

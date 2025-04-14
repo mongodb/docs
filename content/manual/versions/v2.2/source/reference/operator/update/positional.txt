@@ -1,0 +1,96 @@
+===========
+\$ (update)
+===========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. operator:: $
+
+   *Syntax*: ``{ "<array>.$" : value }``
+
+   The positional :operator:`$` operator identifies an element in an
+   ``array`` field to update without explicitly specifying the
+   position of the element in the array. To project, or return, an
+   array element from a read operation, see the :projection:`$`
+   projection operator.
+
+   When used with the :method:`update() <db.collection.update()>`
+   method,
+
+   - the positional :operator:`$` operator acts as a placeholder for
+     the **first** element that matches the :ref:`query document
+     <mongodb-query-document>`, and
+
+   - the ``array`` field **must** appear as part of the ``query
+     document``.
+
+   .. code-block:: javascript
+
+      db.collection.update( { <array>: value ... }, { <update operator>: { "<array>.$" : value } } )
+
+   Consider a collection ``students`` with the following documents:
+
+   .. code-block:: javascript
+
+      { "_id" : 1, "grades" : [ 80, 85, 90 ] }
+      { "_id" : 2, "grades" : [ 88, 90, 92 ] }
+      { "_id" : 3, "grades" : [ 85, 100, 90 ] }
+
+   To update ``80`` to ``82`` in the ``grades`` array in the
+   first document, use the positional :operator:`$` operator if
+   you do not know the position of the element in the array:
+
+   .. code-block:: javascript
+
+      db.students.update( { _id: 1, grades: 80 }, { $set: { "grades.$" : 82 } } )
+
+   Remember that the positional :operator:`$` operator acts as a
+   placeholder for the **first match** of the update :ref:`query
+   document <mongodb-query-document>`.
+
+   The positional :operator:`$` operator facilitates updates to arrays
+   that contain embedded documents. Use the positional :operator:`$`
+   operator to access the fields in the embedded documents with the
+   :ref:`dot notation <document-dot-notation>` on the
+   :operator:`$` operator.
+
+   .. code-block:: javascript
+
+      db.collection.update( { <query selector> }, { <update operator>: { "array.$.field" : value } } )
+
+   Consider the following document in the ``students`` collection whose
+   ``grades`` field value is an array of embedded documents:
+
+   .. code-block:: javascript
+
+      { "_id" : 4, "grades" : [ { grade: 80, mean: 75, std: 8 },
+                                { grade: 85, mean: 90, std: 5 },
+                                { grade: 90, mean: 85, std: 3 } ] }
+
+   Use the positional :operator:`$` operator to update the value of the
+   ``std`` field in the embedded document with the ``grade`` of ``85``:
+
+   .. code-block:: javascript
+
+      db.students.update( { _id: 4, "grades.grade": 85 }, { $set: { "grades.$.std" : 6 } } )
+
+   .. note::
+
+      - Do not use the positional operator :operator:`$` with
+        :term:`upsert` operations because inserts will use the ``$`` as
+        a field name in the inserted document.
+
+      - When used with the :update:`$unset` operator, the positional
+        :operator:`$` operator does not remove the matching element
+        from the array but rather sets it to ``null``.
+
+   .. seealso::
+
+      :method:`update() <db.collection.update()>`, :update:`$set` and
+      :update:`$unset`

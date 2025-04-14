@@ -1,0 +1,197 @@
+==================================================
+Recover MongoDB Data following Unexpected Shutdown
+==================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+If MongoDB does not shutdown cleanly [#clean-shutdown]_ the on-disk
+representation of the data files will likely reflect an inconsistent
+state which could lead to data corruption. [#validation]_
+
+To prevent data inconsistency and corruption, always shut down the
+database cleanly and use the :ref:`durability journaling
+<setting-journal>`. MongoDB writes data to the journal, by default,
+every 100 milliseconds, such that MongoDB can always recover to a
+consistent state even in the case of an unclean shutdown due to power
+loss or other system failure.
+
+If you are *not* running as part of a :term:`replica set` **and** do
+*not* have journaling enabled, use the following procedure to recover
+data that may be in an inconsistent state. If you are running as part
+of a replica set, you should *always* restore from a backup or restart
+the :binary:`~bin.mongod` instance with an empty :setting:`dbpath` and
+allow MongoDB to perform an initial sync to restore the data.
+
+.. seealso:: The :doc:`/administration` documents, including
+   :ref:`Replica Set Syncing <replica-set-syncing>`, and the
+   documentation on the :setting:`repair`, :setting:`repairpath`, and
+   :setting:`journal` settings.
+
+.. [#clean-shutdown] To ensure a clean shut down, use the
+   :option:`mongod --shutdown` option, your control script,
+   "Control-C" (when running :binary:`~bin.mongod` in interactive mode,)
+   or ``kill $(pidof mongod)`` or ``kill -2 $(pidof mongod)``.
+
+.. [#validation] You can also use the :method:`db.collection.validate()`
+   method to test the integrity of a single collection. However, this
+   process is time consuming, and without journaling you can safely
+   assume that the data is in an invalid state and you should either
+   run the repair operation or resync from an intact member of the
+   replica set.
+
+Process
+-------
+
+Indications
+~~~~~~~~~~~
+
+When you are aware of a :binary:`~bin.mongod` instance running without
+journaling that stops unexpectedly **and** you're not running with
+replication, you should always run the repair operation before
+starting MongoDB again. If you're using replication, then restore from
+a backup and allow replication to perform an initial :ref:`sync <replica-set-syncing>` to restore data.
+
+If the ``mongod.lock`` file in the data directory specified by
+:setting:`dbpath`, ``/data/db`` by default, is *not* a zero-byte file,
+then :binary:`~bin.mongod` will refuse to start, and you will find a
+message that contains the following line in your MongoDB log our
+output:
+
+.. code-block:: none
+
+   Unclean shutdown detected.
+
+This indicates that you need to remove the lockfile and run repair. If
+you run repair when the ``mongodb.lock`` file exists without the
+:option:`mongod --repairpath` option, you will see a message that
+contains the following line:
+
+.. code-block:: none
+
+   old lock file: /data/db/mongod.lock. probably means unclean shutdown
+
+You must remove the lockfile **and** run the repair operation before
+starting the database normally using the following procedure:
+
+Overview
+~~~~~~~~
+
+.. warning:: Recovering a member of a replica set.
+
+   Do not use this procedure to recover a member of a :term:`replica set`.
+   Instead you should either restore from a :doc:`backup </administration/backups>`
+   or perform an initial sync using data from an intact member of the set, as described in :ref:`replica-set-resync-stale-member`.
+
+There are two processes to repair data files that result from an
+unexpected shutdown:
+
+#. Use the :option:`--repair <mongod --repair>` option in
+   conjunction with the :option:`--repairpath <mongod --repairpath>`
+   option. :binary:`~bin.mongod` will read the existing data files, and
+   write the existing data to new data files. This does not modify or
+   alter the existing data files.
+
+   You do not need to remove the ``mongod.lock`` file before using
+   this procedure.
+
+#. Use the :option:`--repair <mongod --repair>` option.
+   :binary:`~bin.mongod` will read the existing data files, write the
+   existing data to new files and replace the existing, possibly
+   corrupt, files with new files.
+
+   You must remove the ``mongod.lock`` file before using this
+   procedure.
+
+.. note::
+
+   :option:`--repair <mongod --repair>` functionality is also
+   available in the shell with the :method:`db.repairDatabase()`
+   helper for the :dbcommand:`repairDatabase` command.
+
+.. _tutorial-repair-procedures:
+
+Procedures
+~~~~~~~~~~
+
+To repair your data files using the :option:`--repairpath <mongod --repairpath>`
+option to preserve the original data files unmodified:
+
+#. Start :binary:`~bin.mongod` using :option:`--repair <mongod --repair>`
+   to read the existing data files.
+
+   .. code-block:: sh
+
+      mongod --dbpath /data/db --repair --repairpath /data/db0
+
+   When this completes, the new repaired data files will be in the
+   ``/data/db0`` directory.
+
+#. Start :binary:`~bin.mongod` using the following invocation to point the
+   :setting:`dbpath` at ``/data/db0``:
+
+   .. code-block:: sh
+
+      mongod --dbpath /data/db0
+
+   Once you confirm that the data files are operational you may delete
+   or archive the data files in the ``/data/db`` directory.
+
+To repair your data files without preserving the original files, do
+not use the :option:`--repairpath <mongod --repairpath>` option, as in
+the following procedure:
+
+#. Remove the stale lock file:
+
+   .. code-block:: sh
+
+      rm /data/db/mongod.lock
+
+   Replace ``/data/db`` with your :setting:`dbpath` where your MongoDB
+   instance's data files reside.
+
+   .. warning::
+
+      After you remove the ``mongod.lock`` file you *must* run the
+      :option:`--repair <mongod --repair>` process before using your
+      database.
+
+#. Start :binary:`~bin.mongod` using :option:`--repair <mongod --repair>`
+   to read the existing data files.
+
+   .. code-block:: sh
+
+      mongod --dbpath /data/db --repair
+
+   When this completes, the repaired data files will replace the
+   original data files in the ``/data/db`` directory.
+
+#. Start :binary:`~bin.mongod` using the following invocation to point the
+   :setting:`dbpath` at ``/data/db``:
+
+   .. code-block:: sh
+
+      mongod --dbpath /data/db
+
+``mongod.lock``
+---------------
+
+In normal operation, you should **never** remove the ``mongod.lock``
+file and start :binary:`~bin.mongod`. Instead consider the one of the above methods
+to recover the database and remove the lock files. In dire
+situations you can remove the lockfile, and start the database using the
+possibly corrupt files, and attempt to recover data from the database;
+however, it's impossible to predict the state of the database in these
+situations.
+
+If you are not running with journaling, and your database shuts down
+unexpectedly for *any* reason, you should always proceed *as if* your database
+is in an inconsistent and likely corrupt state. If at all possible restore
+from :doc:`backup </administration/backups>` or, if running as a :term:`replica
+set`, restore by performing an initial sync using data from an intact
+member of the set, as described in :ref:`replica-set-resync-stale-member`.

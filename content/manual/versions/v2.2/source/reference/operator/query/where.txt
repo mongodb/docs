@@ -1,0 +1,77 @@
+======
+$where
+======
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. query:: $where
+
+   Use the :query:`$where` operator to pass either a string
+   containing a JavaScript expression or a full JavaScript function to
+   the query system. The :query:`$where` provides greater
+   flexibility, but requires that the database processes the
+   JavaScript expression or function for *each* document in the
+   collection. Reference the document in the JavaScript expression or
+   function using either ``this`` or ``obj`` .
+
+   .. warning::
+
+      - Do not write to the database within the :query:`$where`
+        JavaScript function.
+
+      - :query:`$where` evaluates JavaScript and cannot take
+        advantage of indexes. Therefore, query performance improves
+        when you express your query using the standard MongoDB
+        operators (e.g., :query:`$gt`, :query:`$in`).
+
+      - In general, you should use :query:`$where` only when you
+        can't express your query using another operator. If you must
+        use :query:`$where`, try to include at least one other
+        standard query operator to filter the result set. Using
+        :query:`$where` alone requires a table scan.
+
+   Consider the following examples:
+
+   .. code-block:: javascript
+
+      db.myCollection.find( { $where: "this.credits == this.debits" } );
+      db.myCollection.find( { $where: "obj.credits == obj.debits" } );
+
+      db.myCollection.find( { $where: function() { return (this.credits == this.debits) } } );
+      db.myCollection.find( { $where: function() { return obj.credits == obj.debits; } } );
+
+   Additionally, if the query consists only of the :query:`$where`
+   operator, you can pass in just the JavaScript expression or
+   JavaScript functions, as in the following examples:
+
+   .. code-block:: javascript
+
+      db.myCollection.find( "this.credits == this.debits || this.credits > this.debits" );
+
+      db.myCollection.find( function() { return (this.credits == this.debits || this.credits > this.debits ) } );
+
+   You can include both the standard MongoDB operators and the
+   :query:`$where` operator in your query, as in the following
+   examples:
+
+   .. code-block:: javascript
+
+      db.myCollection.find( { active: true, $where: "this.credits - this.debits < 0" } );
+      db.myCollection.find( { active: true, $where: function() { return obj.credits - obj.debits < 0; } } );
+
+   Using normal non\-:query:`$where` query statements provides the
+   following performance advantages:
+
+   - MongoDB will evaluate non\-:query:`$where` components of query
+     before :query:`$where` statements. If the
+     non\-:query:`$where` statements match no documents, MongoDB
+     will not perform any query evaluation using :query:`$where`.
+
+   - The non\-:query:`$where` query statements may use an
+     :term:`index`.

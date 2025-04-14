@@ -1,0 +1,678 @@
+====
+Read
+====
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Of the four basic database operations (i.e. CRUD), read operations are
+those that retrieve records or :term:`documents <document>` from a
+:term:`collection` in MongoDB. For general information about read
+operations and the factors that affect their performance, see
+:doc:`/core/read-operations`; for documentation of the other CRUD
+operations, see the :doc:`/crud` page.
+
+Overview
+--------
+
+You can retrieve documents from MongoDB using either of the following
+methods:
+
+- :ref:`find <crud-read-find>`
+
+- :ref:`findOne <crud-read-findOne>`
+
+.. _crud-read-find:
+
+``find()``
+----------
+
+The :method:`~db.collection.find()` method is the primary method to
+select documents from a collection. The :method:`~db.collection.find()`
+method returns a cursor that contains a number of documents. Most
+:doc:`drivers </applications/drivers>` provide application developers
+with a native iterable interface for handling cursors and accessing
+documents. The :method:`~db.collection.find()` method has the following
+syntax:
+
+.. code-block:: javascript
+
+   db.collection.find( <query>, <projection> )
+
+.. admonition:: Corresponding Operation in SQL
+
+   The :method:`~db.collection.find()` method is analogous to
+   the ``SELECT`` statement, while:
+
+   - the ``<query>`` argument corresponds to the ``WHERE`` statement,
+     and
+
+   - the ``<projection>`` argument corresponds to the list of fields
+     to select from the result set.
+
+.. pull-quote:: The examples refer to a collection named ``bios``
+   that contains documents with the following prototype:
+
+   .. code-block:: javascript
+
+      {
+        "_id" : 1,
+        "name" : {
+                   "first" : "John",
+                   "last" :"Backus"
+                 },
+        "birth" : ISODate("1924-12-03T05:00:00Z"),
+        "death" : ISODate("2007-03-17T04:00:00Z"),
+        "contribs" : [ "Fortran", "ALGOL", "Backus-Naur Form", "FP" ],
+        "awards" : [
+                    {
+                      "award" : "W.W. McDowellAward",
+                      "year" : 1967,
+                      "by" : "IEEE Computer Society"
+                    },
+                    {
+                      "award" : "National Medal of Science",
+                      "year" : 1975,
+                      "by" : "National Science Foundation"
+                    },
+                    {
+                      "award" : "Turing Award",
+                      "year" : 1977,
+                      "by" : "ACM"
+                    },
+                    {
+                      "award" : "Draper Prize",
+                      "year" : 1993,
+                      "by" : "National Academy of Engineering"
+                    }
+        ]
+      }
+
+.. note::
+
+   In the :binary:`~bin.mongo` shell, you can format the output by adding
+   ``.pretty()`` to the :method:`~db.collection.find()` method call.
+
+Return All Documents in a Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If there is no ``<query>`` argument, the :method:`
+~db.collection.find()` method selects all documents from a collection.
+
+The following operation returns all documents (or more precisely, a
+cursor to all documents) in the ``bios`` collection:
+
+.. code-block:: javascript
+
+   db.bios.find()
+
+Return Documents that Match Query Conditions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If there is a ``<query>`` argument, the :method:`~db.collection.find()`
+method selects all documents from a collection that satisfies the query
+specification.
+
+Equality Matches
+````````````````
+
+The following operation returns a cursor to documents in the ``bios``
+collection where the field ``_id`` equals ``5``:
+
+.. code-block:: javascript
+
+   db.bios.find(
+      {
+         _id: 5
+      }
+   )
+
+Using Operators
+```````````````
+
+The following operation returns a cursor to all documents in the
+``bios`` collection where the field ``_id`` equals ``5`` or
+``ObjectId("507c35dd8fada716c89d0013")``:
+
+.. code-block:: javascript
+
+   db.bios.find(
+      {
+         _id: { $in: [ 5,  ObjectId("507c35dd8fada716c89d0013") ] }
+      }
+   )
+
+On Arrays
+`````````
+
+Query an Element
+^^^^^^^^^^^^^^^^
+
+The following operation returns a cursor to all documents in the
+``bios`` collection where the array field ``contribs`` contains the
+element ``'UNIX'``:
+
+.. code-block:: javascript
+
+   db.bios.find(
+      {
+        contribs: 'UNIX'
+      }
+   )
+
+Query Multiple Fields on an Array of Documents
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The following operation returns a cursor to all documents in the
+``bios`` collection where ``awards`` array contains a subdocument
+element that contains the ``award`` field equal to ``'Turing Award'``
+and the ``year`` field greater than 1980:
+
+.. code-block:: javascript
+
+   db.bios.find(
+      {
+         awards: {
+                   $elemMatch: {
+                        award: 'Turing Award',
+                        year: { $gt: 1980 }
+                   }
+         }
+      }
+   )
+
+On Subdocuments
+```````````````
+
+Exact Matches
+^^^^^^^^^^^^^
+
+The following operation returns a cursor to all documents in the
+``bios`` collection where the subdocument ``name`` is *exactly* ``{
+first: 'Yukihiro', last: 'Matsumoto' }``, including the order:
+
+.. code-block:: javascript
+
+   db.bios.find(
+       {
+         name: {
+                 first: 'Yukihiro',
+                 last: 'Matsumoto'
+               }
+       }
+   )
+
+The ``name`` field must match the sub-document exactly, including
+order. For instance, the query would **not** match documents with
+``name`` fields that held either of the following values:
+
+.. code-block:: javascript
+
+   {
+      first: 'Yukihiro',
+      aka: 'Matz',
+      last: 'Matsumoto'
+   }
+
+   {
+      last: 'Matsumoto',
+      first: 'Yukihiro'
+   }
+
+Fields of a Subdocument
+^^^^^^^^^^^^^^^^^^^^^^^
+
+The following operation returns a cursor to all documents in the
+``bios`` collection where the subdocument ``name`` contains a field
+``first`` with the value ``'Yukihiro'`` and a field ``last`` with the
+value ``'Matsumoto'``; the query uses :term:`dot notation` to access
+fields in a subdocument:
+
+.. code-block:: javascript
+
+   db.bios.find(
+      {
+        'name.first': 'Yukihiro',
+        'name.last': 'Matsumoto'
+      }
+   )
+
+The query matches the document where the ``name`` field contains a
+subdocument with the field ``first`` with the value ``'Yukihiro'`` and
+a field ``last`` with the value ``'Matsumoto'``. For instance, the
+query would match documents with ``name`` fields that held either of
+the following values:
+
+.. code-block:: javascript
+
+   {
+     first: 'Yukihiro',
+     aka: 'Matz',
+     last: 'Matsumoto'
+   }
+
+   {
+     last: 'Matsumoto',
+     first: 'Yukihiro'
+   }
+
+Logical Operators
+`````````````````
+
+``OR`` Disjunctions
+^^^^^^^^^^^^^^^^^^^
+
+The following operation returns a cursor to all documents in the
+``bios`` collection where either the field ``first`` in the
+sub-document ``name`` starts with the letter ``G`` **or** where the
+field ``birth`` is less than ``new Date('01/01/1945')``:
+
+.. code-block:: javascript
+
+   db.bios.find(
+      { $or: [
+               { 'name.first' : /^G/ },
+               { birth: { $lt: new Date('01/01/1945') } }
+             ]
+      }
+   )
+
+``AND`` Conjunctions
+^^^^^^^^^^^^^^^^^^^^
+
+The following operation returns a cursor to all documents in the
+``bios`` collection where the field ``first`` in the subdocument
+``name`` starts with the letter ``K`` **and** the array field
+``contribs`` contains the element ``UNIX``:
+
+.. code-block:: javascript
+
+   db.bios.find(
+      {
+         'name.first': /^K/,
+         contribs: 'UNIX'
+      }
+   )
+
+In this query, the parameters (i.e. the selections of both fields)
+combine using an implicit logical AND for criteria on different fields
+``contribs`` and ``name.first``. For multiple ``AND`` criteria on the
+same field, use the :query:`$and` operator.
+
+With a Projection
+~~~~~~~~~~~~~~~~~
+
+If there is a ``<projection>`` argument, the
+:method:`~db.collection.find()` method returns only those fields as
+specified in the ``<projection>`` argument to include or exclude:
+
+.. note:: The ``_id`` field is implicitly included in the
+   ``<projection>`` argument. In projections that explicitly include
+   fields, ``_id`` is the only field that you can explicitly exclude.
+   Otherwise, you cannot mix include field and exclude field
+   specifications.
+
+Specify the Fields to Return
+````````````````````````````
+
+The following operation finds all documents in the ``bios`` collection
+and returns only the ``name`` field, the ``contribs`` field, and the
+``_id`` field:
+
+.. code-block:: javascript
+
+   db.bios.find(
+       { },
+       { name: 1, contribs: 1 }
+    )
+
+Explicitly Exclude the ``_id`` Field
+````````````````````````````````````
+
+The following operation finds all documents in the ``bios`` collection
+and returns only the ``name`` field and the ``contribs`` field:
+
+.. code-block:: javascript
+
+   db.bios.find(
+      { },
+      { name: 1, contribs: 1, _id: 0 }
+   )
+
+Return All but the Excluded Fields
+``````````````````````````````````
+
+The following operation finds the documents in the ``bios`` collection
+where the ``contribs`` field contains the element ``'OOP'`` and returns
+all fields *except* the ``_id`` field, the ``first`` field in the
+``name`` subdocument, and the ``birth`` field from the matching
+documents:
+
+.. code-block:: javascript
+
+   db.bios.find(
+      { contribs: 'OOP' },
+      { _id: 0, 'name.first': 0, birth: 0 }
+   )
+
+On Arrays and Subdocuments
+``````````````````````````
+
+The following operation finds all documents in the ``bios`` collection
+and returns the the ``last`` field in the ``name`` subdocument and the
+first two elements in the ``contribs`` array:
+
+.. code-block:: javascript
+
+   db.bios.find(
+      { },
+      {
+        _id: 0,
+        'name.last': 1,
+        contribs: { $slice: 2 }
+      }
+   )
+
+.. seealso::
+
+   - :term:`dot notation` for information on "reaching into" embedded
+     sub-documents.
+
+   - :ref:`read-operations-arrays` for more examples on accessing arrays.
+
+   - :ref:`read-operations-subdocuments` for more examples on accessing
+     subdocuments.
+
+   - :method:`~op.$elemMatch` query operator for more information on
+     matching array elements.
+
+   - :projection:`~prj.$elemMatch` projection operator for additional
+     information on restricting array elements to return.
+
+.. _crud-read-cursor:
+
+Iterate the Returned Cursor
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :method:`~db.collection.find()` method returns a :term:`cursor` to
+the results; however, in the :binary:`~bin.mongo` shell, if the returned
+cursor is not assigned to a variable, then the cursor is automatically
+iterated up to 20 times [#setShellBatchSize]_ to print up to the first
+20 documents that match the query, as in the following example:
+
+.. code-block:: javascript
+
+   db.bios.find( { _id: 1 } );
+
+With Variable Name
+``````````````````
+
+When you assign the :method:`~db.collection.find()` to a variable, you
+can type the name of the cursor variable to iterate up to 20 times
+[#setShellBatchSize]_ and print the matching documents, as in the
+following example:
+
+.. code-block:: javascript
+
+   var myCursor = db.bios.find( { _id: 1 } );
+
+   myCursor
+
+With ``next()`` Method
+``````````````````````
+
+You can use the cursor method :method:`~cursor.next()` to
+access the documents, as in the following example:
+
+.. code-block:: javascript
+
+   var myCursor = db.bios.find( { _id: 1 } );
+
+   var myDocument = myCursor.hasNext() ? myCursor.next() : null;
+
+   if (myDocument) {
+       var myName = myDocument.name;
+       print (tojson(myName));
+   }
+
+To print, you can also use the ``printjson()`` method instead of
+``print(tojson())``:
+
+.. code-block:: javascript
+
+   if (myDocument) {
+      var myName = myDocument.name;
+      printjson(myName);
+   }
+
+With ``forEach()`` Method
+`````````````````````````
+
+You can use the cursor method :method:`~cursor.forEach()` to iterate
+the cursor and access the documents, as in the following example:
+
+.. code-block:: javascript
+
+   var myCursor = db.bios.find( { _id: 1 } );
+
+   myCursor.forEach(printjson);
+
+For more information on cursor handling, see:
+
+- :method:`cursor.hasNext()`
+
+- :method:`cursor.next()`
+
+- :method:`cursor.forEach()`
+
+- :ref:`cursors <read-operations-cursors>`
+
+- :ref:`JavaScript cursor methods<js-query-cursor-methods>`
+
+.. [#setShellBatchSize] You can use the ``DBQuery.shellBatchSize`` to
+   change the number of iteration from the default value ``20``. See
+   :ref:`cursor-flags` and :ref:`cursor-behaviors` for more information.
+
+Modify the Cursor Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In addition to the ``<query>`` and the ``<projection>`` arguments, the
+:binary:`~bin.mongo` shell and the :doc:`drivers </applications/drivers>`
+provide several cursor methods that you can call on the *cursor*
+returned by :method:`~db.collection.find()` method to modify
+its behavior, such as:
+
+Order Documents in the Result Set
+`````````````````````````````````
+
+The :method:`~cursor.sort()` method orders the documents in the
+result set.
+
+The following operation returns all documents (or more precisely, a
+cursor to all documents) in the ``bios`` collection ordered by the
+``name`` field ascending:
+
+.. code-block:: javascript
+
+   db.bios.find().sort( { name: 1 } )
+
+:method:`~cursor.sort()` corresponds to the ``ORDER BY``
+statement in SQL.
+
+Limit the Number of Documents to Return
+```````````````````````````````````````
+
+The :method:`~cursor.limit()` method limits the number of
+documents in the result set.
+
+The following operation returns at most ``5`` documents (or more
+precisely, a cursor to at most 5 documents) in the ``bios`` collection:
+
+.. code-block:: javascript
+
+   db.bios.find().limit( 5 )
+
+:method:`~cursor.limit()` corresponds to the ``LIMIT``
+statement in SQL.
+
+Set the Starting Point of the Result Set
+````````````````````````````````````````
+
+The :method:`~cursor.skip()` method controls the starting point
+of the results set.
+
+The following operation returns all documents, skipping the first ``5``
+documents in the ``bios`` collection:
+
+.. code-block:: javascript
+
+   db.bios.find().skip( 5 )
+
+Combine Cursor Methods
+``````````````````````
+
+You can chain these cursor methods, as in the following examples
+[#dbquery-server]_:
+
+.. code-block:: javascript
+
+   db.bios.find().sort( { name: 1 } ).limit( 5 )
+   db.bios.find().limit( 5 ).sort( { name: 1 } )
+
+See the :ref:`JavaScript cursor methods <js-query-cursor-methods>`
+reference and your :doc:`driver </applications/drivers>` documentation
+for additional references. See :ref:`read-operations-cursors` for
+more information regarding cursors.
+
+.. [#dbquery-server] Regardless of the order you chain the
+   :method:`~cursor.limit()` and the :method:`~cursor.sort()`, the
+   request to the server has the structure that treats the
+   query and the :method:` ~cursor.sort()` modifier as a single object.
+   Therefore, the :method:`~cursor.limit()` operation method is always
+   applied after the :method:`~cursor.sort()` regardless of the
+   specified order of the operations in the chain. See the :doc:`meta
+   query operators </reference/meta-query-operators>` for more
+   information.
+
+.. _crud-read-findOne:
+.. _crud-read-find-one:
+
+``findOne()``
+-------------
+
+The :method:`~db.collection.findOne()` method selects a single
+document from a collection and returns that document.
+:method:`~db.collection.findOne()` does *not* return a cursor.
+
+The :method:`~db.collection.findOne()` method has the following
+syntax:
+
+.. code-block:: javascript
+
+   db.collection.findOne( <query>, <projection> )
+
+Except for the return value, :method:`~db.collection.findOne()` method
+is quite similar to the :method:`~db.collection.find()` method; in
+fact, internally, the :method:`~db.collection.findOne()` method is the
+:method:`~db.collection.find()` method with a limit of 1.
+
+
+With Empty Query Specification
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If there is no ``<query>`` argument, the
+:method:`~db.collection.findOne()` method selects just one document
+from a collection.
+
+The following operation returns a single document from the ``bios``
+collection:
+
+.. code-block:: javascript
+
+   db.bios.findOne()
+
+With a Query Specification
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If there is a ``<query>`` argument, the
+:method:`~db.collection.findOne()` method selects the first document
+from a collection that meets the ``<query>`` argument:
+
+The following operation returns the first matching document from the
+``bios`` collection where either the field ``first`` in the subdocument
+``name`` starts with the letter ``G`` **or** where the field ``birth``
+is less than ``new Date('01/01/1945')``:
+
+.. code-block:: javascript
+
+   db.bios.findOne(
+      {
+        $or: [
+               { 'name.first' : /^G/ },
+               { birth: { $lt: new Date('01/01/1945') } }
+             ]
+      }
+   )
+
+With a Projection
+~~~~~~~~~~~~~~~~~
+
+You can pass a ``<projection>`` argument to
+:method:`~db.collection.findOne()` to control the fields included in
+the result set.
+
+Specify the Fields to Return
+````````````````````````````
+
+The following operation finds a document in the ``bios`` collection and
+returns only the ``name`` field, the ``contribs`` field, and the
+``_id`` field:
+
+.. code-block:: javascript
+
+   db.bios.findOne(
+       { },
+       { name: 1, contribs: 1 }
+   )
+
+Return All but the Excluded Fields
+``````````````````````````````````
+
+The following operation returns a document in the ``bios`` collection
+where the ``contribs`` field contains the element ``OOP`` and returns
+all fields *except* the ``_id`` field, the ``first`` field in the
+``name`` subdocument, and the ``birth`` field from the matching
+documents:
+
+.. code-block:: javascript
+
+   db.bios.findOne(
+      { contribs: 'OOP' },
+      { _id: 0, 'name.first': 0, birth: 0 }
+   )
+
+Access the ``findOne`` Result
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Although similar to the :method:`~db.collection.find()` method, because
+the :method:`~db.collection.findOne()` method returns a document rather
+than a cursor, you cannot apply the cursor methods such as
+:method:`~cursor.limit()`, :method:`~cursor.sort()`, and
+:method:`~cursor.skip()` to the result of the
+:method:`~db.collection.findOne()` method. However, you can
+access the document directly, as in the example:
+
+.. code-block:: javascript
+
+   var myDocument = db.bios.findOne();
+
+   if (myDocument) {
+      var myName = myDocument.name;
+
+      print (tojson(myName));
+   }

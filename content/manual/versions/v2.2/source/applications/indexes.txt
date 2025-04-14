@@ -1,0 +1,449 @@
+===================
+Indexing Strategies
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This document provides strategies for indexing in MongoDB. For
+fundamentals of MongoDB indexing, see :doc:`/core/indexes`. For
+operational guidelines and procedures, see
+:doc:`/administration/indexes`.
+
+Strategies
+----------
+
+The best indexes for your application are based on a number of factors,
+including the kinds of queries you expect, the ratio of reads to writes,
+and the amount of free memory on your system.
+
+When developing your indexing strategy you should have a deep
+understanding of:
+
+- The application's queries.
+
+- The relative frequency of each query in the application.
+
+- The current indexes created for your collections.
+
+- Which indexes the most common queries use.
+
+The best overall strategy for designing indexes is to profile a variety
+of index configurations with data sets similar to the ones you'll be
+running in production to see which configurations perform best.
+
+MongoDB can only use *one* index to support any given
+operation. However, each clause of an :query:`$or` query may use
+a different index.
+
+.. _indexes-create-to-match-queries:
+
+Create Indexes to Support Your Queries
+--------------------------------------
+
+If you only ever query on a single key in a given collection, then you need
+to create just one single-key index for that collection. For example, you
+might create an index on ``category`` in the ``product`` collection:
+
+.. code-block:: javascript
+
+   db.products.ensureIndex( { "category": 1 } )
+
+However, if you sometimes query on only one key and at other times
+query on that key combined with a second key, then creating a
+:ref:`compound index <index-type-compound>` is more efficient. MongoDB
+will use the compound index for both queries. For example, you might
+create an index on both ``category`` and ``item``.
+
+.. code-block:: javascript
+
+   db.products.ensureIndex( { "category": 1, "item": 1 } )
+
+This allows you both options. You can query on just ``category``, and
+you also can query on ``category`` combined with ``item``.
+(To query on multiple keys and sort the results, see :ref:`index-sort`.)
+
+With the exception of queries that use the :query:`$or` operator, a
+query does not use multiple indexes. A query uses only one index.
+
+.. _compound-key-indexes:
+.. _indexes-compound-key-indexes:
+
+Use Compound Indexes to Support Several Different Queries
+---------------------------------------------------------
+
+A single :ref:`compound index <index-type-compound>` on multiple fields
+can support all the queries that search a "prefix" subset of those fields.
+
+.. example::
+
+   The following index on a collection:
+
+   .. code-block:: javascript
+
+      { x: 1, y: 1, z: 1 }
+
+   Can support queries that the following indexes support:
+
+   .. code-block:: javascript
+
+      { x: 1 }
+      { x: 1, y: 1 }
+
+   There are some situations where the prefix indexes may offer better
+   query performance: for example if ``z`` is a large array.
+
+   The ``{ x: 1, y: 1, z: 1 }`` index can also support many of the same
+   queries as the following index:
+
+   .. code-block:: javascript
+
+      { x: 1, z: 1 }
+
+   Also, ``{ x: 1, z: 1 }`` has an additional use. Given the following
+   query:
+
+   .. code-block:: javascript
+
+      db.collection.find( { x: 5 } ).sort( { z: 1} )
+
+   The ``{ x: 1, z: 1 }`` index supports both the query and the sort
+   operation, while the ``{ x: 1, y: 1, z: 1 }`` index only supports
+   the query. For more information on sorting, see
+   :ref:`sorting-with-indexes`.
+
+.. _covered-queries:
+.. _indexes-covered-queries:
+
+Create Indexes that Support Covered Queries
+-------------------------------------------
+
+A covered query is a query in which:
+
+- all the fields in the :ref:`query <read-operations-query-document>`
+  are part of an index, **and**
+
+- all the fields returned in the results are in the same index.
+
+Because the index "covers" the query, MongoDB can both match the
+:ref:`query conditions <read-operations-query-document>` **and** return
+the results using only the index; MongoDB does not need to look at
+the documents, only the index, to fulfill the query.
+
+Querying *only* the index can be much faster than querying documents
+outside of the index. Index keys are typically smaller than the
+documents they catalog, and indexes are typically available in RAM or
+located sequentially on disk.
+
+MongoDB automatically uses an index that covers a query when possible.
+To ensure that an index can *cover* a query, create an index that
+includes all the fields listed in the :ref:`query document
+<read-operations-query-document>` and in the query result. You can
+specify the fields to return in the query results with a
+:ref:`projection <projection>` document. By default, MongoDB includes
+the ``_id`` field in the query result. So, if the index does **not**
+include the ``_id`` field, then you must exclude the ``_id`` field
+(i.e. ``_id: 0``) from the query results.
+
+Consider the following example where the collection ``user`` has
+an index on the fields ``user`` and ``status``:
+
+.. code-block:: javascript
+
+   { status: 1, user: 1 }
+
+Then, the following query which queries on the ``status`` field and
+returns only the ``user`` field is covered:
+
+.. code-block:: javascript
+
+   db.users.find( { status: "A" }, { user: 1, _id: 0 } )
+
+However, the following query that uses the index to match documents is
+**not** covered by the index because it returns both the ``user`` field
+**and** the ``_id`` field:
+
+.. code-block:: javascript
+
+   db.users.find( { status: "A" }, { user: 1 } )
+
+An index **cannot** cover a query if:
+
+- any of the indexed fields in any of the documents in the collection
+  includes an array. If an indexed field is an array, the index becomes
+  a :ref:`multi-key index <index-type-multikey>` index and cannot
+  support a covered query.
+
+- any of the indexed fields are fields in subdocuments. To index fields
+  in subdocuments, use :term:`dot notation`. For example, consider
+  a collection ``users`` with documents of the following form:
+
+  .. code-block:: javascript
+
+     { _id: 1, user: { login: "tester" } }
+
+  The collection has the following indexes:
+
+  .. code-block:: none
+
+     { user: 1 }
+
+     { "user.login": 1 }
+
+  The ``{ user: 1 }`` index covers the following query:
+
+  .. code-block:: none
+
+     db.users.find( { user: { login: "tester" } }, { user: 1, _id: 0 } )
+
+  However, the ``{ "user.login": 1 }`` index does **not** cover the
+  following query:
+
+  .. code-block:: none
+
+     db.users.find( { "user.login": "tester" }, { "user.login": 1, _id: 0 } )
+
+  The query, however, does use the ``{ "user.login": 1 }`` index to
+  find matching documents.
+
+To determine whether a query is a covered query, use the
+:method:`~cursor.explain()` method. If the :method:`~cursor.explain()`
+output displays ``true`` for the :data:`~explain.indexOnly` field, the query is
+covered by an index, and MongoDB queries only that index to match the
+query **and** return the results.
+
+For more information see :ref:`indexes-measuring-use`.
+
+.. _index-sort:
+.. _sorting-with-indexes:
+
+Use Indexes to Sort Query Results
+---------------------------------
+
+For the fastest performance when sorting query results by a given field,
+create a sorted index on that field.
+
+To sort query results on multiple fields, create a :ref:`compound
+index <index-type-compound>`. MongoDB sorts results based on the field
+order in the index. For queries that include a sort that uses a
+compound index, ensure that all fields before the first sorted field
+are equality matches.
+
+.. example::
+
+   If you create the following index:
+
+   .. code-block:: javascript
+
+      { a: 1, b: 1, c: 1, d: 1 }
+
+   The following query and sort operations can use the index:
+
+   .. code-block:: javascript
+
+      db.collection.find().sort( { a:1 } )
+      db.collection.find().sort( { a:1, b:1 } )
+
+      db.collection.find( { a:4 } ).sort( { a:1, b:1 } )
+      db.collection.find( { b:5 } ).sort( { a:1, b:1 } )
+
+      db.collection.find( { a:5 } ).sort( { b:1, c:1 } )
+
+      db.collection.find( { a:5, c:4, b:3 } ).sort( { d:1 } )
+
+      db.collection.find( { a: { $gt:4 } } ).sort( { a:1, b:1 } )
+      db.collection.find( { a: { $gt:5 } } ).sort( { a:1, b:1 } )
+
+      db.collection.find( { a:5, b:3, d:{ $gt:4 } } ).sort( { c:1 } )
+      db.collection.find( { a:5, b:3, c:{ $lt:2 }, d:{ $gt:4 } } ).sort( { c:1 } )
+
+   However, the following queries cannot sort the results using the
+   index:
+
+   .. code-block:: javascript
+
+      db.collection.find().sort( { b:1 } )
+      db.collection.find( { b:5 } ).sort( { b:1 } )
+
+.. note::
+
+   For in-memory sorts that do not use an index, the :method:`sort()
+   <cursor.sort()>` operation is significantly slower. The
+   :method:`~cursor.sort()` operation will abort when it uses 32
+   megabytes of memory.
+
+.. _indexes-ensure-indexes-fit-ram:
+
+Ensure Indexes Fit RAM
+----------------------
+
+For the fastest processing, ensure that your indexes fit entirely in RAM so
+that the system can avoid reading the index from disk.
+
+To check the size of your indexes, use the
+:method:`db.collection.totalIndexSize()` helper, which returns data in
+bytes:
+
+.. code-block:: javascript
+
+   > db.collection.totalIndexSize()
+   4294976499
+
+The above example shows an index size of almost 4.3 gigabytes. To ensure
+this index fits in RAM, you must not only have more than that much RAM
+available but also must have RAM available for the rest of the
+:term:`working set`. Also remember:
+
+If you have and use multiple collections, you must consider the size
+of all indexes on all collections. The indexes and the working set must be able to
+fit in memory at the same time.
+
+There are some limited cases where indexes do not need
+to fit in memory. See :ref:`indexing-right-handed`.
+
+.. seealso:: For additional :doc:`collection statistics
+   </reference/collection-statistics>`, use :dbcommand:`collStats` or
+   :method:`db.collection.stats()`.
+
+.. _indexing-right-handed:
+
+Indexes that Hold Only Recent Values in RAM
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Indexes do not have to fit *entirely* into RAM in all cases. If the
+value of the indexed field increments with every insert, and most queries
+select recently added documents; then MongoDB only needs to keep the
+parts of the index that hold the most recent or "right-most" values in
+RAM. This allows for efficient index use for read and write
+operations and minimize the amount of RAM required to support the
+index.
+
+.. _index-selectivity:
+
+Create Queries that Ensure Selectivity
+--------------------------------------
+
+Selectivity is the ability of a query to narrow results using the index.
+Effective indexes are more selective and allow MongoDB to use the index
+for a larger portion of the work associated with fulfilling the query.
+
+To ensure selectivity,
+write queries that limit the number of possible documents with the
+indexed field. Write queries that are appropriately selective relative
+to your indexed data.
+
+.. example::
+
+   Suppose you have a field called ``status`` where the possible values
+   are ``new`` and ``processed``. If you add an index on ``status``
+   you've created a low-selectivity index. The index will
+   be of little help in locating records.
+
+   A better strategy, depending on your queries, would be to create a
+   :ref:`compound index <index-type-compound>` that includes the
+   low-selectivity field and another field. For example, you could
+   create a compound index on ``status`` and ``created_at.``
+
+   Another option, again depending on your use case, might be to use
+   separate collections, one for each status.
+
+.. example::
+
+   Consider an index ``{ a : 1 }`` (i.e. an index on the key ``a``
+   sorted in ascending order) on a collection where ``a`` has three
+   values evenly distributed across the collection:
+
+   .. code-block:: javascript
+
+      { _id: ObjectId(), a: 1, b: "ab" }
+      { _id: ObjectId(), a: 1, b: "cd" }
+      { _id: ObjectId(), a: 1, b: "ef" }
+      { _id: ObjectId(), a: 2, b: "jk" }
+      { _id: ObjectId(), a: 2, b: "lm" }
+      { _id: ObjectId(), a: 2, b: "no" }
+      { _id: ObjectId(), a: 3, b: "pq" }
+      { _id: ObjectId(), a: 3, b: "rs" }
+      { _id: ObjectId(), a: 3, b: "tv" }
+
+   If you query for ``{ a: 2, b: "no" }`` MongoDB must scan 3
+   :term:`documents <document>` in the collection to return the one
+   matching result. Similarly, a query for ``{ a: { $gt: 1}, b: "tv" }``
+   must scan 6 documents, also to return one result.
+
+   Consider the same index on a collection where ``a`` has *nine* values
+   evenly distributed across the collection:
+
+   .. code-block:: javascript
+
+      { _id: ObjectId(), a: 1, b: "ab" }
+      { _id: ObjectId(), a: 2, b: "cd" }
+      { _id: ObjectId(), a: 3, b: "ef" }
+      { _id: ObjectId(), a: 4, b: "jk" }
+      { _id: ObjectId(), a: 5, b: "lm" }
+      { _id: ObjectId(), a: 6, b: "no" }
+      { _id: ObjectId(), a: 7, b: "pq" }
+      { _id: ObjectId(), a: 8, b: "rs" }
+      { _id: ObjectId(), a: 9, b: "tv" }
+
+   If you query for ``{ a: 2, b: "cd" }``, MongoDB must scan only one
+   document to fulfill the query. The index and query are more selective
+   because the values of ``a`` are evenly distributed *and* the query
+   can select a specific document using the index.
+
+   However, although the index on ``a`` is more selective, a query such
+   as ``{ a: { $gt: 5 }, b: "tv" }`` would still need to scan 4
+   documents.
+
+   .. todo:: is there an answer to that last "However" paragraph?
+
+If overall selectivity is low, and if MongoDB must read a number of
+documents to return results, then some queries may perform faster
+without indexes. To determine performance, see
+:ref:`indexes-measuring-use`.
+
+Consider Performance when Creating Indexes for Write-heavy Applications
+-----------------------------------------------------------------------
+
+If your application is write-heavy, then be careful when creating new
+indexes, since each additional index with impose a
+write-performance penalty. In general, don't be careless about adding
+indexes. Add indexes to complement your queries. Always have
+a good reason for adding a new index, and be sure to benchmark
+alternative strategies.
+
+Consider Insert Throughput
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. todo:: insert link to /source/core/write-operations when that page is complete.
+   Do we want to link to write concern? -bg
+
+MongoDB must update *all* indexes associated with a collection after
+every insert, update, or delete operation. For update operations, if
+the updated document does not move to a new location, then MongoDB only
+modifies the updated fields in the index. Therefore, every index on a
+collection adds some amount of overhead to these write operations. In
+almost every case, the performance gains that indexes realize for read
+operations are worth the insertion penalty. However, in some cases:
+
+- An index to support an infrequent query might incur more
+  insert-related costs than savings in read-time.
+
+  .. todo:: How do you determine if the above is the case?
+     Empirically.
+
+- If you have many indexes on a collection with a high insert throughput
+  and a number of related indexes, you may find better overall
+  performance with a smaller number of indexes, even if some queries
+  are less optimally supported by an index.
+
+  .. todo:: The above is unclear. -bg
+
+- If your indexes and queries are not sufficiently :ref:`selective
+  <index-selectivity>`, the speed improvements for query operations
+  may not offset the costs of maintaining an index. For more
+  information see :ref:`index-selectivity`.

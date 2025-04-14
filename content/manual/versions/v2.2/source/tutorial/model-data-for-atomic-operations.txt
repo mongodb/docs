@@ -1,0 +1,58 @@
+.. _data-modeling-atomic-operation:
+
+================================
+Model Data for Atomic Operations
+================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Pattern
+-------
+
+Consider the following example that keeps a library book and its
+checkout information. The example illustrates how embedding fields
+related to an atomic update within the same document ensures that the
+fields are in sync.
+
+Consider the following ``book`` document that stores the number of
+available copies for checkout and the current checkout information:
+
+.. code-block:: javascript
+   :emphasize-lines: 9
+
+   book = {
+             _id: 123456789,
+             title: "MongoDB: The Definitive Guide",
+             author: [ "Kristina Chodorow", "Mike Dirolf" ],
+             published_date: ISODate("2010-09-24"),
+             pages: 216,
+             language: "English",
+             publisher_id: "oreilly",
+             available: 3,
+             checkout: [ { by: "joe", date: ISODate("2012-10-15") } ]
+           }
+
+You can use the :method:`db.collection.findAndModify()` method to
+atomically determine if a book is available for checkout and update
+with the new checkout information. Embedding the ``available`` field
+and the ``checkout`` field within the same document ensures that the
+updates to these fields are in sync:
+
+.. code-block:: javascript
+
+   db.books.findAndModify ( {
+      query: {
+               _id: 123456789,
+               available: { $gt: 0 }
+             },
+      update: {
+                $inc: { available: -1 },
+                $push: { checkout: { by: "abc", date: new Date() } }
+              }
+   } )

@@ -1,0 +1,242 @@
+============================================
+FAQ: Replica Sets and Replication in MongoDB
+============================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+This document answers common questions about database replication
+in MongoDB.
+
+If you don't find the answer you're looking for, check
+the :doc:`complete list of FAQs </faq>` or post your question to the
+`MongoDB User Mailing List <https://groups.google.com/forum/?fromgroups#!forum/mongodb-user>`_.
+
+.. contents:: Frequently Asked Questions:
+   :backlinks: none
+   :local:
+
+What kinds of replication does MongoDB support?
+-----------------------------------------------
+
+MongoDB supports master-slave replication and a variation
+on master-slave replication known as replica sets. Replica
+sets are the recommended replication topology.
+
+What do the terms "primary" and "master" mean?
+----------------------------------------------
+
+:term:`Primary` and :term:`master` nodes are the nodes
+that can accept writes. MongoDB's replication is
+"single-master:" only one node can accept write operations at a time.
+
+In a replica set, if the current "primary" node fails or becomes
+inaccessible, the other members can autonomously :term:`elect
+<election>` one of the other members of the set to be the new "primary".
+
+By default, clients send all reads to the primary;
+however, :term:`read preference` is configurable at the
+client level on a per-connection basis, which makes it possible to
+send reads to secondary nodes instead.
+
+What do the terms "secondary" and "slave" mean?
+-----------------------------------------------
+
+:term:`Secondary` and :term:`slave` nodes are read-only nodes
+that replicate from the :term:`primary`.
+
+Replication operates by way of an :term:`oplog`, from which secondary/slave
+members apply new operations to themselves. This replication process
+is asynchronous, so secondary/slave nodes may not always reflect the
+latest writes to the primary. But usually, the gap between the primary and
+secondary nodes is just few milliseconds on a local network connection.
+
+How long does replica set failover take?
+----------------------------------------
+
+It varies, but a replica set will select a new primary within a minute.
+
+It may take 10-30 seconds for the members of a :term:`replica
+set` to declare a :term:`primary` inaccessible. This
+triggers an :term:`election`. During the election, the cluster
+is unavailable for writes.
+
+The election itself may take another 10-30 seconds.
+
+.. note::
+
+   :term:`Eventually consistent <eventual consistency>` reads, like the ones that will return
+   from a replica set are only possible with a :term:`write concern`
+   that permits reads from :term:`secondary` members.
+
+
+Does replication work over the Internet and WAN connections?
+------------------------------------------------------------
+
+Yes.
+
+For example, a deployment may maintain a :term:`primary` and :term:`secondary`
+in an East-coast data center along with a :term:`secondary` member for disaster
+recovery in a West-coast data center.
+
+.. seealso:: :doc:`/tutorial/deploy-geographically-distributed-replica-set`
+
+Can MongoDB replicate over a "noisy" connection?
+------------------------------------------------
+
+Yes, but not without connection failures and the obvious latency.
+
+Members of the set will attempt to reconnect to the other members of
+the set in response to networking flaps. This does not require
+administrator intervention. However, if the network connections
+among the nodes in the replica set are very slow, it might not be
+possible for the members of the node to keep up with the replication.
+
+If the TCP connection between the secondaries and the :term:`primary`
+instance breaks, a :term:`replica set` will automatically
+elect one of the :term:`secondary` members of the set as primary.
+
+What is the preferred replication method: master/slave or replica sets?
+-----------------------------------------------------------------------
+
+.. versionadded:: 1.8
+
+:term:`Replica sets <replica set>` are the preferred
+:term:`replication` mechanism in MongoDB. However, if your deployment
+requires more than 12 nodes, you must use master/slave replication.
+
+What is the preferred replication method: replica sets or replica pairs?
+------------------------------------------------------------------------
+
+.. deprecated:: 1.6
+
+:term:`Replica sets <replica set>` replaced :term:`replica pairs` in
+version 1.6. :term:`Replica sets <replica set>` are the preferred
+:term:`replication` mechanism in MongoDB.
+
+Why use journaling if replication already provides data redundancy?
+-------------------------------------------------------------------
+
+:term:`Journaling <journal>` facilitates faster crash recovery.
+Prior to journaling, crashes often required :dbcommand:`database repairs <repairDatabase>`
+or full data resync. Both were slow, and the first was unreliable.
+
+Journaling is particularly useful for protection
+against power failures, especially if your replica set resides in a single data
+center or power circuit.
+
+When a :term:`replica set` runs with journaling, :binary:`~bin.mongod`
+instances can safely restart without any administrator intervention.
+
+.. note::
+
+   Journaling requires some resource overhead for write
+   operations. Journaling has no effect on read performance, however.
+
+   Journaling is enabled by default on all 64-bit
+   builds of MongoDB v2.0 and greater.
+
+Are write operations durable if write concern does not acknowledge writes?
+--------------------------------------------------------------------------
+
+Yes.
+
+However, if you want confirmation that a given write has arrived at
+the server, use :ref:`write concern <write-concern>`. The
+:dbcommand:`getLastError` command provides the facility for write
+concern. However, after the :ref:`default write concern change
+<driver-write-concern-change>`, the default write concern acknowledges
+all write operations, and unacknowledged writes must be explicitly
+configured. See the :doc:`/applications/drivers` documentation for
+your driver for more information.
+
+How many arbiters do replica sets need?
+---------------------------------------
+
+Some configurations do not require any :term:`arbiter`
+instances. Arbiters vote in :term:`elections <election>`
+for :term:`primary` but do not replicate the data like
+:term:`secondary` members.
+
+:term:`Replica sets <replica set>` require a majority of the
+remaining nodes present to elect a primary. Arbiters allow you
+to construct this majority without the overhead of adding replicating
+nodes to the system.
+
+There are many possible replica set :doc:`architectures
+</administration/replica-set-architectures>`.
+
+If you have a three node replica set, you don't need an arbiter.
+
+But a common configuration consists of two replicating nodes, one of which is
+:term:`primary` and the other is :term:`secondary`, as well as an
+arbiter for the third node. This configuration makes it possible for
+the set to elect a primary in the event of a failure without requiring
+three replicating nodes.
+
+You may also consider adding an arbiter to a set if it has an equal
+number of nodes in two facilities and network partitions between the
+facilities are possible. In these cases, the arbiter will break
+the tie between the two facilities and allow the set to elect a new
+primary.
+
+.. seealso:: :doc:`/administration/replica-set-architectures`
+
+What information do arbiters exchange with the rest of the replica set?
+-----------------------------------------------------------------------
+
+Arbiters never receive the contents of a collection but do exchange the
+following data with the rest of the replica set:
+
+- Credentials used to authenticate the arbiter with the replica set. All
+  MongoDB processes within a replica set use keyfiles. These exchanges
+  are encrypted.
+
+- Replica set configuration data and voting data. This information is
+  not encrypted. Only credential exchanges are encrypted.
+
+If your MongoDB deployment uses SSL, then all communications between
+arbiters and the other members of the replica set are secure. See the
+documentation for :doc:`/administration/ssl` for more information. Run
+all arbiters on secure networks, as with all MongoDB components.
+
+.. see:: The overview of :ref:`Arbiter Members of Replica Sets
+   <replica-set-arbiters>`.
+
+Which members of a replica set vote in elections?
+-------------------------------------------------
+
+All members of a replica set, unless the value of :data:`votes
+<~local.system.replset.members[n].votes>` is equal to ``0``, vote in elections. This includes
+all :ref:`delayed <replica-set-delayed-members>`, :ref:`hidden
+<replica-set-hidden-members>` and :ref:`secondary-only
+<replica-set-secondary-only-members>` members, as well as the
+:ref:`arbiters <replica-set-arbiters>`.
+
+.. seealso:: :ref:`replica-set-elections`
+
+Do hidden members vote in replica set elections?
+------------------------------------------------
+
+:ref:`Hidden members <replica-set-hidden-members>` of :term:`replica
+sets <replica set>` *do* vote in elections. To exclude a member from
+voting in an :term:`election`, change the value of the member's
+:data:`~local.system.replset.members[n].votes` configuration to ``0``.
+
+.. seealso:: :ref:`replica-set-elections`
+
+Is it normal for replica set members to use different amounts of disk space?
+----------------------------------------------------------------------------
+
+Yes.
+
+Factors including: different oplog sizes, different levels of storage
+fragmentation, and MongoDB's data file pre-allocation can lead to some
+variation in storage utilization between nodes. Storage use
+disparities will be most pronounced when you add members at different
+times.

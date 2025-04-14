@@ -1,0 +1,132 @@
+======================
+$project (aggregation)
+======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. pipeline:: $project
+
+   Reshapes a document stream by renaming, adding, or removing
+   fields. Also use :pipeline:`$project` to create computed values or
+   sub-documents. Use :pipeline:`$project` to:
+
+   - Include fields from the original document.
+   - Insert computed fields.
+   - Rename fields.
+   - Create and populate fields that hold sub-documents.
+
+   Use :pipeline:`$project` to quickly select the fields that you
+   want to include or exclude from the response. Consider the
+   following aggregation framework operation.
+
+   .. code-block:: javascript
+
+      db.article.aggregate(
+          { $project : {
+              title : 1 ,
+              author : 1 ,
+          }}
+       );
+
+   This operation includes the ``title`` field and the ``author``
+   field in the document that returns from the aggregation
+   :term:`pipeline`.
+
+   .. note::
+
+      The ``_id`` field is always included by default. You may
+      explicitly exclude ``_id`` as follows:
+
+      .. code-block:: javascript
+
+         db.article.aggregate(
+             { $project : {
+                 _id : 0 ,
+                 title : 1 ,
+                 author : 1
+             }}
+         );
+
+      Here, the projection excludes the ``_id`` field but includes the
+      ``title`` and ``author`` fields.
+
+   Projections can also add computed fields to the document stream
+   passing through the pipeline. A computed field can use any of the
+   :ref:`expression operators <aggregation-expression-operators>`.
+   Consider the following example:
+
+   .. code-block:: javascript
+
+      db.article.aggregate(
+          { $project : {
+              title : 1,
+              doctoredPageViews : { $add:["$pageViews", 10] }
+          }}
+      );
+
+   Here, the field ``doctoredPageViews`` represents the value of the
+   ``pageViews`` field after adding 10 to the original field using the
+   :expression:`$add`.
+
+   .. note::
+
+      You must enclose the expression that defines the computed field
+      in braces, so that the expression is a valid object.
+
+   You may also use :pipeline:`$project` to rename fields. Consider
+   the following example:
+
+   .. code-block:: javascript
+
+      db.article.aggregate(
+          { $project : {
+              title : 1 ,
+              page_views : "$pageViews" ,
+              bar : "$other.foo"
+          }}
+      );
+
+   This operation renames the ``pageViews`` field to ``page_views``,
+   and renames the ``foo`` field in the ``other`` sub-document as
+   the top-level field ``bar``. The field references used for
+   renaming fields are direct expressions and do not use an operator
+   or surrounding braces. All aggregation field references can use
+   dotted paths to refer to fields in nested documents.
+
+   Finally, you can use the :pipeline:`$project` to create and
+   populate new sub-documents. Consider the following example that
+   creates a new object-valued field named ``stats`` that holds a number
+   of values:
+
+   .. code-block:: javascript
+
+      db.article.aggregate(
+          { $project : {
+              title : 1 ,
+              stats : {
+                  pv : "$pageViews",
+                  foo : "$other.foo",
+                  dpv : { $add:["$pageViews", 10] }
+              }
+          }}
+      );
+
+   This projection includes the ``title`` field and places
+   :pipeline:`$project` into "inclusive" mode. Then, it creates the
+   ``stats`` documents with the following fields:
+
+   - ``pv`` which includes and renames the ``pageViews`` from the
+     top level of the original documents.
+
+   - ``foo`` which includes the value of ``other.foo`` from the
+     original documents.
+
+   - ``dpv`` which is a computed field that adds 10 to the value of
+     the ``pageViews`` field in the original document using the
+     :expression:`$add` aggregation expression.

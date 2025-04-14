@@ -1,0 +1,107 @@
+===
+$or
+===
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. query:: $or
+
+   .. versionadded:: 1.6
+
+   .. versionchanged:: 2.0
+      You may nest :query:`$or` operations; however, these
+      expressions are not as efficiently optimized as top-level.
+
+   *Syntax*: ``{ $or: [ { <expression1> }, { <expression2> }, ... , { <expressionN> } ] }``
+
+   The :query:`$or` operator performs a logical ``OR`` operation on an array of
+   *two or more* ``<expressions>`` and selects the documents that satisfy
+   *at least* one of the ``<expressions>``.
+
+   Consider the following query:
+
+   .. code-block:: javascript
+
+      db.inventory.find( { price:1.99, $or: [ { qty: { $lt: 20 } }, { sale: true } ] } )
+
+   This query will select all documents in the ``inventory`` collection
+   where:
+
+   - the ``price`` field value equals ``1.99`` *and*
+   - either the ``qty`` field value is less than ``20`` **or** the
+     ``sale`` field value is ``true``.
+
+   Consider the following example which uses the :query:`$or` operator to select
+   fields from embedded documents:
+
+   .. code-block:: javascript
+
+      db.inventory.update( { $or: [ { price:10.99 }, { "carrier.state": "NY"} ] }, { $set: { sale: true } } )
+
+   This :method:`update() <db.collection.update()>` operation will set
+   the value of the ``sale`` field in the documents in the
+   ``inventory`` collection where:
+
+   - the ``price`` field value equals ``10.99`` **or**
+   - the ``carrier`` embedded document contains a field ``state`` whose
+     value equals ``NY``.
+
+   When using :query:`$or` with ``<expressions>`` that are equality
+   checks for the value of the same field, choose the :query:`$in`
+   operator over the :query:`$or` operator.
+
+   Consider the query to select all documents in the ``inventory``
+   collection where:
+
+   - either ``price`` field value equals ``1.99`` *or* the ``sale``
+     field value equals ``true``, **and**
+   - either ``qty`` field value equals ``20`` *or* ``qty`` field value
+     equals ``50``,
+
+   The most effective query would be:
+
+   .. code-block:: javascript
+
+      db.inventory.find ( { $or: [ { price: 1.99 }, { sale: true } ], qty: { $in: [20, 50] } } )
+
+   Consider the following behaviors when using the :query:`$or`
+   operator:
+
+   - When using indexes with :query:`$or` queries, remember that
+     each clause of an :query:`$or` query will execute in parallel.
+     These clauses can each use their own index. Consider the following
+     query:
+
+     .. code-block:: javascript
+
+        db.inventory.find ( { $or: [ { price: 1.99 }, { sale: true } ] } )
+
+     For this query, you would create one index on ``price`` (
+     ``db.inventory.ensureIndex( { price: 1 } )`` ) and another index
+     on ``sale`` ( ``db.inventory.ensureIndex( { sale: 1 } )`` ) rather
+     than a compound index.
+
+   - Also, when using the :query:`$or` operator with the
+     :method:`sort() <cursor.sort()>` method in a query, the query will
+     **not** use the indexes on the :query:`$or` fields. Consider the following
+     query which adds a :method:`sort() <cursor.sort()>` method to the above query:
+
+     .. code-block:: javascript
+
+        db.inventory.find ( { $or: [ { price: 1.99 }, { sale: true } ] } ).sort({item:1})
+
+     This modified query will not use the index on ``price`` nor the
+     index on ``sale``.
+
+   - You cannot use the :query:`$or` with ``2d`` :doc:`geospatial
+     queries </core/geospatial-indexes>`.
+
+   .. seealso:: :method:`find() <db.collection.find()>`,
+      :method:`update() <db.collection.update()>`, :update:`$set`,
+      :query:`$and`, :method:`sort() <cursor.sort()>`.

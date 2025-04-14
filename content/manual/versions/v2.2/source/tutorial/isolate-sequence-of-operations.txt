@@ -1,0 +1,124 @@
+==============================
+Isolate Sequence of Operations
+==============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+Write operations are atomic on the level of a single document: no
+single write operation can atomically affect more than one document or
+more than one collection.
+
+When a single write operation modifies multiple documents, the
+operation as a whole is not atomic, and other operations may
+interleave. The modification of a single document, or record, is always
+atomic, even if the write operation modifies multiple sub-document
+*within* the single record.
+
+No other operations are atomic; however, you can *isolate* a
+single write operation that affects multiple documents using the
+:doc:`isolation operator </reference/operator/update/isolated>`.
+
+This document describes one method of updating documents *only* if the
+local copy of the document reflects the current state of the document
+in the database. In addition the following methods provide a way to
+manage isolated sequences of operations:
+
+- the :method:`~db.collection.findAndModify()`
+  provides an isolated query and modify operation.
+
+- :doc:`/tutorial/perform-two-phase-commits`
+
+- Create a :ref:`unique index <index-type-unique>`, to ensure that a
+  key doesn't exist when you insert it.
+
+.. _tutorial-atomic-update-if-current:
+
+Update if Current
+-----------------
+
+In this pattern, you will:
+
+- query for a document,
+
+- modify the fields in that document
+
+- and update the fields of a document *only if* the fields have not
+  changed in the collection since the query.
+
+Consider the following example in JavaScript which attempts to update
+the ``qty`` field of a document in the ``products`` collection:
+
+.. code-block:: javascript
+   :linenos:
+
+   var myCollection = db.products;
+   var myDocument = myCollection.findOne( { sku: 'abc123' } );
+
+   if (myDocument) {
+
+      var oldQty = myDocument.qty;
+
+      if (myDocument.qty < 10) {
+          myDocument.qty *= 4;
+      } else if ( myDocument.qty < 20 ) {
+          myDocument.qty *= 3;
+      } else {
+          myDocument.qty *= 2;
+      }
+
+      myCollection.update(
+         {
+           _id: myDocument._id,
+           qty: oldQty
+         },
+         {
+           $set: { qty: myDocument.qty }
+         }
+      )
+
+      var err = db.getLastErrorObj();
+
+      if ( err && err.code ) {
+          print("unexpected error updating document: " + tojson( err ));
+      } else if ( err.n == 0 ) {
+          print("No update: no matching document for { _id: " + myDocument._id + ", qty: " + oldQty + " }")
+      }
+
+   }
+
+Your application may require some modifications of this pattern, such
+as:
+
+- Use the entire document as the query in lines 18 and 19, to
+  generalize the operation and guarantee that the original document
+  was not modified, rather than ensuring that as single field was not
+  changed.
+
+- Add a version variable to the document that applications increment
+  upon each update operation to the documents. Use this version
+  variable in the query expression. You must be able to ensure that
+  *all* clients that connect to your database obey this constraint.
+
+- Use :update:`$set` in the update expression to modify only your
+  fields and prevent overriding other fields.
+
+- Use one of the methods described in :doc:`/tutorial/create-an-auto-incrementing-field`.
+
+.. Maybe incorporate the blurb: "MongoDB does not
+   support traditional locking and complex transactions for a number of
+   reasons: First, in sharded environments, distributed locks could be
+   expensive and slow. MongoDB's goal is to be lightweight and fast. We
+   dislike the concept of deadlocks. We want the system to be simple and
+   predictable without these sort of surprises. We want Mongo DB to work
+   well for realtime problems. If an operation may execute which locks
+   large amounts of data, it might stop some small light queries for an
+   extended period of time."

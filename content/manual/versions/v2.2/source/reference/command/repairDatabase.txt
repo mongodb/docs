@@ -1,0 +1,78 @@
+==============
+repairDatabase
+==============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. dbcommand:: repairDatabase
+
+   .. include:: /includes/warning-repair.rst
+
+   .. include:: /includes/note-repair.rst
+
+   The :dbcommand:`repairDatabase` command checks and repairs errors and
+   inconsistencies with the data storage. The command is analogous to
+   a ``fsck`` command for file systems.
+
+   If your :binary:`~bin.mongod` instance is not running with journaling
+   the system experiences an unexpected system restart or crash, and
+   you have *no* other intact replica set members with this data, you
+   should run the :dbcommand:`repairDatabase` command to ensure that
+   there are no errors in the data storage.
+
+   As a side effect, the :dbcommand:`repairDatabase` command will
+   compact the database, as the :dbcommand:`compact` command, and also
+   reduces the total size of the data files on disk. The
+   :dbcommand:`repairDatabase` command will also recreate all indexes
+   in the database.
+
+   Use the following syntax:
+
+   .. code-block:: javascript
+
+        { repairDatabase: 1 }
+
+   Be aware that this command can take a long time to run if your
+   database is large. In addition, it requires a quantity of free disk
+   space equal to the size of your database. If you lack sufficient
+   free space on the same volume, you can mount a separate volume and
+   use that for the repair. In this case, you must run the command
+   line and use the :option:`--repairpath <mongod --repairpath>`
+   switch to specify the folder in which to store the temporary repair
+   files.
+
+   .. include:: /includes/warning-blocking-global.rst
+
+   This command is accessible via a number of different avenues. You
+   may:
+
+   - Use the shell to run the above command, as above.
+
+   - Use the :method:`db.repairDatabase()` in the :binary:`~bin.mongo`
+     shell.
+
+   - Run :binary:`~bin.mongod` directly from your system's shell. Make sure
+     that :binary:`~bin.mongod` isn't already running, and that you issue
+     this command as a user that has access to MongoDB's data
+     files. Run as: ::
+
+           $ mongod --repair
+
+     To add a repair path: ::
+
+           $ mongod --repair --repairpath /opt/vol2/data
+
+     .. note::
+
+        This command will fail if your database is not a master or
+        primary. In most cases, you should recover a corrupt secondary
+        using the data from an existing intact node. If you must
+        repair a secondary or slave node, first restart the node as a
+        standalone mongod by omitting the :option:`--replSet <mongod --replSet>`
+        or :option:`--slave <mongod --slave>` options, as necessary.

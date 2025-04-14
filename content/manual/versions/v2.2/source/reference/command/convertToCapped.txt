@@ -1,0 +1,68 @@
+===============
+convertToCapped
+===============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. dbcommand:: convertToCapped
+
+   The :dbcommand:`convertToCapped` command converts an existing,
+   non-capped collection to a :term:`capped collection` within the same
+   database.
+
+   The command has the following syntax:
+
+   .. code-block:: javascript
+
+      {convertToCapped: <collection>, size: <capped size> }
+
+   :dbcommand:`convertToCapped` takes an existing collection
+   (``<collection>``) and transforms it into a capped collection with
+   a maximum size in bytes, specified to the ``size`` argument
+   (``<capped size>``).
+
+   During the conversion process, the :dbcommand:`convertToCapped`
+   command exhibit the following behavior:
+
+   - MongoDB transverses the documents in the original collection in
+     :term:`natural order` and loads the documents into a new
+     capped collection.
+
+   - If the ``capped size`` specified for the capped collection is
+     smaller than the size of the original uncapped collection, then
+     MongoDB will overwrite documents in the capped collection based
+     on insertion order, or *first in, first out* order.
+
+   - Internally, to convert the collection, MongoDB uses the following
+     procedure
+
+     - :dbcommand:`cloneCollectionAsCapped` command creates the capped
+       collection and imports the data.
+
+     - MongoDB drops the original collection.
+
+     - :dbcommand:`renameCollection` renames the new capped collection
+       to the name of the original collection.
+
+   .. note::
+
+      MongoDB does not support the :dbcommand:`convertToCapped`
+      command in a sharded cluster.
+
+   .. warning::
+
+      The :dbcommand:`convertToCapped` will not recreate indexes from
+      the original collection on the new collection, other than the
+      index on the ``_id`` field. If you need indexes on this
+      collection you will need to create these indexes after the
+      conversion is complete.
+
+   .. seealso:: :dbcommand:`create`
+
+   .. include:: /includes/warning-blocking-global.rst

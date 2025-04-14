@@ -1,0 +1,503 @@
+=========================
+Perform Two Phase Commits
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Synopsis
+--------
+
+This document provides a pattern for doing multi-document updates or
+"transactions" using a two-phase commit approach for writing data to
+multiple documents. Additionally, you can extend this process to
+provide a :ref:`rollback <2-phase-commits-rollback>` like
+functionality.
+
+Background
+----------
+
+Operations on a single :term:`document` are always atomic with MongoDB
+databases; however, operations that involve multiple documents, which
+are often referred to as "transactions," are not atomic. Since
+documents can be fairly complex and contain multiple "nested"
+documents, single-document atomicity provides necessary support for
+many practical use cases.
+
+Thus, without precautions, success or failure of the database
+operation cannot be "all or nothing," and without support for
+multi-document transactions it's possible for an operation to succeed
+for some operations and fail with others. When executing a transaction
+composed of several sequential operations the following issues arise:
+
+- Atomicity: if one operation fails, the previous operation within the
+  transaction must "rollback" to the previous state (i.e. the
+  "nothing," in "all or nothing.")
+
+- Isolation: operations that run concurrently with the transaction
+  operation set must "see" a consistent view of the data throughout
+  the transaction process.
+
+- Consistency: if a major failure (i.e. network, hardware) interrupts
+  the transaction, the database must be able to recover a consistent
+  state.
+
+Despite the power of single-document atomic operations, there are
+cases that require multi-document transactions. For these situations,
+you can use a two-phase commit, to provide support for these kinds of
+multi-document updates.
+
+Because documents can represent both pending data and states, you can
+use a two-phase commit to ensure that data is consistent, and that in
+the case of an error, the state that preceded the transaction is
+:ref:`recoverable <2-phase-commits-rollback>`.
+
+.. note::
+
+   Because only single-document operations are atomic with MongoDB,
+   two-phase commits can only offer transaction-*like* semantics. It's
+   possible for applications to return intermediate data at
+   intermediate points during the two-phase commit or rollback.
+
+Pattern
+-------
+
+Overview
+~~~~~~~~
+
+The most common example of transaction is to transfer funds from
+account A to B in a reliable way, and this pattern uses this operation
+as an example. In a relational database system, this operation would
+encapsulate subtracting funds from the source (``A``) account and
+adding them to the destination (``B``) within a single atomic
+transaction. For MongoDB, you can use a two-phase commit in these
+situations to achieve a compatible response.
+
+All of the examples in this document use the :binary:`~bin.mongo` shell to
+interact with the database, and assume that you have two collections:
+First, a collection named ``accounts`` that will store data about
+accounts with one account per document, and a collection named
+``transactions`` which will store the transactions themselves.
+
+Begin by creating two accounts named ``A`` and ``B``, with the
+following command:
+
+.. code-block:: javascript
+
+   db.accounts.save({name: "A", balance: 1000, pendingTransactions: []})
+   db.accounts.save({name: "B", balance: 1000, pendingTransactions: []})
+
+To verify that these operations succeeded, use :method:`find()
+<db.collection.find()>`:
+
+.. code-block:: javascript
+
+   db.accounts.find()
+
+:binary:`~bin.mongo` will return two :term:`documents <document>` that
+resemble the following:
+
+.. code-block:: javascript
+
+   { "_id" : ObjectId("4d7bc66cb8a04f512696151f"), "name" : "A", "balance" : 1000, "pendingTransactions" : [ ] }
+   { "_id" : ObjectId("4d7bc67bb8a04f5126961520"), "name" : "B", "balance" : 1000, "pendingTransactions" : [ ] }
+
+Transaction Description
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _2-phase-commits-step-1:
+
+Set Transaction State to Initial
+````````````````````````````````
+
+Create the ``transaction`` collection by inserting the following
+document. The transaction document holds the ``source`` and
+``destination``, which refer to the ``name`` fields of the
+``accounts`` collection, as well as the ``value`` field that
+represents the amount of data change to the ``balance``
+field. Finally, the ``state`` field reflects the current state of the
+transaction.
+
+.. code-block:: javascript
+
+   db.transactions.save({source: "A", destination: "B", value: 100, state: "initial"})
+
+To verify that these operations succeeded, use :method:`find()
+<db.collection.find()>`:
+
+.. code-block:: javascript
+
+   db.transactions.find()
+
+This will return a document similar to the following:
+
+.. code-block:: javascript
+
+   { "_id" : ObjectId("4d7bc7a8b8a04f5126961522"), "source" : "A", "destination" : "B", "value" : 100, "state" : "initial" }
+
+.. _2-phase-commits-step-2:
+
+Switch Transaction State to Pending
+```````````````````````````````````
+
+Before modifying either records in the ``accounts`` collection, set
+the transaction state to ``pending`` from ``initial``.
+
+Set the local variable ``t`` in your shell session, to the transaction
+document using :method:`findOne() <db.collection.findOne()>`:
+
+.. code-block:: javascript
+
+   t = db.transactions.findOne({state: "initial"})
+
+After assigning this variable ``t``, the shell will return the value
+of ``t``, you will see the following output:
+
+.. code-block:: javascript
+
+   {
+        "_id" : ObjectId("4d7bc7a8b8a04f5126961522"),
+        "source" : "A",
+        "destination" : "B",
+        "value" : 100,
+        "state" : "initial"
+   }
+
+Use :method:`update() <db.collection.update()>` to change the value of
+``state`` to ``pending``:
+
+.. code-block:: javascript
+
+   db.transactions.update({_id: t._id}, {$set: {state: "pending"}})
+   db.transactions.find()
+
+The :method:`find() <db.collection.find()>` operation will return the
+contents of the ``transactions`` collection, which should resemble the
+following:
+
+.. code-block:: javascript
+
+   { "_id" : ObjectId("4d7bc7a8b8a04f5126961522"), "source" : "A", "destination" : "B", "value" : 100, "state" : "pending" }
+
+.. _2-phase-commits-step-3:
+
+Apply Transaction to Both Accounts
+``````````````````````````````````
+
+Continue by applying the transaction to both accounts. The
+:method:`update() <db.collection.update()>` query will prevent you from
+applying the transaction *if* the transaction is *not* already
+pending. Use the following :method:`update() <db.collection.update()>`
+operation:
+
+.. code-block:: javascript
+
+   db.accounts.update({name: t.source, pendingTransactions: {$ne: t._id}}, {$inc: {balance: -t.value}, $push: {pendingTransactions: t._id}})
+   db.accounts.update({name: t.destination, pendingTransactions: {$ne: t._id}}, {$inc: {balance: t.value}, $push: {pendingTransactions: t._id}})
+   db.accounts.find()
+
+The :method:`find() <db.collection.find()>` operation will return the
+contents of the ``accounts`` collection, which should now resemble the
+following:
+
+.. code-block:: javascript
+
+   { "_id" : ObjectId("4d7bc97fb8a04f5126961523"), "balance" : 900, "name" : "A", "pendingTransactions" : [ ObjectId("4d7bc7a8b8a04f5126961522") ] }
+   { "_id" : ObjectId("4d7bc984b8a04f5126961524"), "balance" : 1100, "name" : "B", "pendingTransactions" : [ ObjectId("4d7bc7a8b8a04f5126961522") ] }
+
+.. _2-phase-commits-step-4:
+
+Set Transaction State to Committed
+``````````````````````````````````
+
+Use the following :method:`update() <db.collection.update()>` operation
+to set the transaction's state to ``committed``:
+
+.. code-block:: javascript
+
+   db.transactions.update({_id: t._id}, {$set: {state: "committed"}})
+   db.transactions.find()
+
+The :method:`find() <db.collection.find()>` operation will return the
+contents of the ``transactions`` collection, which should now resemble
+the following:
+
+.. code-block:: javascript
+
+   { "_id" : ObjectId("4d7bc7a8b8a04f5126961522"), "destination" : "B", "source" : "A", "state" : "committed", "value" : 100 }
+
+.. _2-phase-commits-step-5:
+
+Remove Pending Transaction
+``````````````````````````
+
+Use the following :method:`update() <db.collection.update()>` operation
+to set remove the pending transaction from the :term:`documents
+<document>` in the ``accounts`` collection:
+
+.. code-block:: javascript
+
+   db.accounts.update({name: t.source}, {$pull: {pendingTransactions: t._id}})
+   db.accounts.update({name: t.destination}, {$pull: {pendingTransactions: t._id}})
+   db.accounts.find()
+
+The :method:`find() <db.collection.find()>` operation will return the
+contents of the ``accounts`` collection, which should now resemble
+the following:
+
+.. code-block:: javascript
+
+   { "_id" : ObjectId("4d7bc97fb8a04f5126961523"), "balance" : 900, "name" : "A", "pendingTransactions" : [ ] }
+   { "_id" : ObjectId("4d7bc984b8a04f5126961524"), "balance" : 1100, "name" : "B", "pendingTransactions" : [ ] }
+
+.. _2-phase-commits-step-6:
+
+Set Transaction State to Done
+`````````````````````````````
+
+Complete the transaction by setting the ``state`` of the transaction
+:term:`document` to ``done``:
+
+.. code-block:: javascript
+
+   db.transactions.update({_id: t._id}, {$set: {state: "done"}})
+   db.transactions.find()
+
+The :method:`find() <db.collection.find()>` operation will return the
+contents of the ``transactions`` collection, which should now resemble
+the following:
+
+.. code-block:: javascript
+
+   { "_id" : ObjectId("4d7bc7a8b8a04f5126961522"), "destination" : "B", "source" : "A", "state" : "done", "value" : 100 }
+
+.. _2-phase-commits-recovery:
+
+Recovering from Failure Scenarios
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The most important part of the transaction procedure is not, the
+prototypical example above, but rather the possibility for recovering
+from the various failure scenarios when transactions do not complete
+as intended. This section will provide an overview of possible
+failures and provide methods to recover from these kinds of events.
+
+There are two classes of failures:
+
+- all failures that occur after the first step (i.e. ":ref:`setting
+  the transaction set to initial <2-phase-commits-step-1>`") but
+  before the third step (i.e. ":ref:`applying the transaction to both
+  accounts <2-phase-commits-step-3>`.")
+
+  To recover, applications should get a list of transactions in the
+  ``pending`` state and resume from the second step
+  (i.e. ":ref:`switching the transaction state to pending
+  <2-phase-commits-step-2>`.")
+
+- all failures that occur after the third step (i.e. ":ref:`applying
+  the transaction to both accounts <2-phase-commits-step-3>`") but
+  before the fifth step (i.e. ":ref:`setting the transaction state to
+  done <2-phase-commits-step-5>`.")
+
+  To recover, application should get a list of transactions in the
+  ``committed`` state and resume from the fourth step
+  (i.e. ":ref:`remove the pending transaction
+  <2-phase-commits-step-5>`.")
+
+Thus, the application will always be able to resume the transaction
+and eventually arrive at a consistent state. Run the following
+recovery operations every time the application starts to catch any
+unfinished transactions. You may also wish run the recovery operation
+at regular intervals to ensure that your data remains consistent.
+
+The time required to reach a consistent state depends, on how long the
+application needs to recover each transaction.
+
+.. _2-phase-commits-rollback:
+
+Rollback
+````````
+
+In some cases you may need to "rollback" or undo a transaction when
+the application needs to "cancel" the transaction, or because it can
+never recover as in cases where one of the accounts doesn't exist, or
+stops existing during the transaction.
+
+There are two possible rollback operations:
+
+#. After you :ref:`apply the transaction <2-phase-commits-step-3>`
+   (i.e. the third step,) you have fully committed the transaction and
+   you should not roll back the transaction. Instead, create a new
+   transaction and switch the values in the source and destination
+   fields.
+
+#. After you :ref:`create the transaction <2-phase-commits-step-1>`
+   (i.e. the first step,) but before you :ref:`apply the transaction
+   <2-phase-commits-step-3>` (i.e the third step,) use the following
+   process:
+
+.. _2-phase-commits-rollback-step-1:
+
+Set Transaction State to Canceling
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Begin by setting the transaction's state to ``canceling`` using the
+following :method:`update() <db.collection.update()>` operation:
+
+.. code-block:: javascript
+
+   db.transactions.update({_id: t._id}, {$set: {state: "canceling"}})
+
+.. _2-phase-commits-rollback-step-2:
+
+Undo the Transaction
+^^^^^^^^^^^^^^^^^^^^
+
+Use the following sequence of operations to undo the transaction
+operation from both accounts:
+
+.. code-block:: javascript
+
+   db.accounts.update({name: t.source, pendingTransactions: t._id}, {$inc: {balance: t.value}, $pull: {pendingTransactions: t._id}})
+   db.accounts.update({name: t.destination, pendingTransactions: t._id}, {$inc: {balance: -t.value}, $pull: {pendingTransactions: t._id}})
+   db.accounts.find()
+
+The :method:`find() <db.collection.find()>` operation will return the
+contents of the ``accounts`` collection, which should resemble the
+following:
+
+.. code-block:: javascript
+
+   { "_id" : ObjectId("4d7bc97fb8a04f5126961523"), "balance" : 1000, "name" : "A", "pendingTransactions" : [ ] }
+   { "_id" : ObjectId("4d7bc984b8a04f5126961524"), "balance" : 1000, "name" : "B", "pendingTransactions" : [ ] }
+
+.. _2-phase-commits-rollback-step-3:
+
+Set Transaction State to Canceled
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Finally, use the following :method:`update()
+<db.collection.update()>` operation to set the transaction's state to
+``canceled``:
+
+**Step 3:** set the transaction's state to "canceled":
+
+.. code-block:: javascript
+
+   db.transactions.update({_id: t._id}, {$set: {state: "canceled"}})
+
+.. _2-phase-commits-concurrency:
+
+Multiple Applications
+`````````````````````
+
+Transactions exist, in part, so that several applications can create
+and run operations concurrently without causing data inconsistency or
+conflicts. As a result, it is crucial that only one 1 application can
+handle a given transaction at any point in time.
+
+Consider the following example, with a single transaction
+(i.e. ``T1``) and two applications (i.e. ``A1`` and ``A2``). If both
+applications begin processing the transaction which is still in the
+``initial`` state (i.e. :ref:`step 1 <2-phase-commits-step-1>`), then:
+
+- ``A1`` can apply the entire whole transaction before ``A2`` starts.
+
+- ``A2`` will then apply ``T1`` for the second time, because the
+  transaction does not appear as pending in the ``accounts``
+  documents.
+
+To handle multiple applications, create a marker in the transaction
+document itself to identify the application that is handling the
+transaction. Use :method:`~db.collection.findAndModify()`
+method to modify the transaction:
+
+.. code-block:: javascript
+
+   t = db.transactions.findAndModify({query: {state: "initial", application: {$exists: 0}},
+                                      update: {$set: {state: "pending", application: "A1"}},
+                                      new: true})
+
+When you modify and reassign the local shell variable ``t``, the
+:binary:`~bin.mongo` shell will return the ``t`` object, which should
+resemble the following:
+
+.. code-block:: javascript
+
+   {
+        "_id" : ObjectId("4d7be8af2c10315c0847fc85"),
+        "application" : "A1",
+        "destination" : "B",
+        "source" : "A",
+        "state" : "pending",
+        "value" : 150
+   }
+
+Amend the transaction operations to ensure that only applications
+that match the identifier in the value of the ``application`` field
+before applying the transaction.
+
+If the application ``A1`` fails during transaction execution, you can
+use the :ref:`recovery procedures <2-phase-commits-recovery>`, but
+applications should ensure that they "owns" the transaction before
+applying the transaction. For example to resume pending jobs, use a
+query that resembles the following:
+
+.. code-block:: javascript
+
+   db.transactions.find({application: "A1", state: "pending"})
+
+This will (or may) return a document from the ``transactions``
+document that resembles the following:
+
+.. code-block:: javascript
+
+   { "_id" : ObjectId("4d7be8af2c10315c0847fc85"), "application" : "A1", "destination" : "B", "source" : "A", "state" : "pending", "value" : 150 }
+
+.. _2-phase-commits-in-production:
+
+Using Two-Phase Commits in Production Applications
+--------------------------------------------------
+
+The example transaction above is intentionally simple. For example, it
+assumes that:
+
+- it is always possible roll back operations an account.
+
+- account balances can hold negative values.
+
+Production implementations would likely be more complex. Typically
+accounts need to information about current balance, pending credits,
+pending debits. Then:
+
+- when your application :ref:`switches the transaction state to
+  pending <2-phase-commits-step-2>` (i.e. step 2) it would also make
+  sure that the accounts has sufficient funds for the
+  transaction. During this update operation, the application would
+  also modify the values of the credits and debits as well as adding
+  the transaction as pending.
+
+- when your application :ref:`removes the pending transaction
+  <2-phase-commits-step-4>` (i.e. step 4) the application would apply
+  the transaction on balance, modify the credits and debits as well as
+  removing the transaction from the ``pending`` field., all in one update.
+
+Because all of the changes in the above two operations occur within a
+single :method:`update() <db.collection.update()>` operation, these
+changes are all atomic.
+
+Additionally, for most important transactions, ensure that:
+
+- the database interface (i.e. client library or :term:`driver`) has a
+  reasonable :term:`write concern` configured to ensure that
+  operations return a response on the success or failure of a write
+  operation.
+
+- your :binary:`~bin.mongod` instance has :term:`journaling <journal>`
+  enabled to ensure that your data is always in a recoverable state,
+  in the event of an unclean :binary:`~bin.mongod` shutdown.

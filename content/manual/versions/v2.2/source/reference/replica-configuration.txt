@@ -1,0 +1,689 @@
+=========================
+Replica Set Configuration
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Synopsis
+--------
+
+This reference provides an overview of all possible replica set
+configuration options and settings.
+
+Use :method:`rs.conf()` in the :binary:`~bin.mongo` shell to retrieve this
+configuration. Note that default values are not explicitly displayed.
+
+.. _replica-set-configuration-variables:
+
+Configuration Variables
+-----------------------
+
+.. data:: local.system.replset._id
+
+   **Type**: string
+
+   **Value**: <setname>
+
+   An ``_id`` field holding the name of the replica set. This reflects
+   the set name configured with :setting:`replSet` or
+   :option:`mongod --replSet`.
+
+.. data:: local.system.replset.members
+
+   **Type**: array
+
+   Contains an array holding an embedded :term:`document` for each
+   member of the replica set. The ``members`` document contains a
+   number of fields that describe the configuration of each member of
+   the replica set.
+
+   The :data:`~local.system.replset.members` field in the replica set
+   configuration document is a zero-indexed array.
+
+.. data:: local.system.replset.members[n]._id
+
+   **Type**: ordinal
+
+   Provides the zero-indexed identifier of every member in the replica
+   set.
+
+   .. include:: /includes/note-rs-conf-array-index.rst
+
+.. data:: local.system.replset.members[n].host
+
+   **Type**: <hostname><:port>
+
+   Identifies the host name of the set member with a hostname and port
+   number. This name must be resolvable for every host in the replica
+   set.
+
+   .. warning::
+
+      :data:`~local.system.replset.members[n].host` cannot hold a value that resolves to
+      ``localhost`` or the local interface unless *all* members of the
+      set are on hosts that resolve to localhost.
+
+.. data:: local.system.replset.members[n].arbiterOnly
+
+   *Optional*.
+
+   **Type**: boolean
+
+   **Default**: false
+
+   Identifies an arbiter. For arbiters, this value is ``true``, and
+   is automatically configured by :method:`rs.addArb()`".
+
+.. data:: local.system.replset.members[n].buildIndexes
+
+   *Optional*.
+
+   **Type**: boolean
+
+   **Default**: true
+
+   Determines whether the :binary:`~bin.mongod` builds :term:`indexes
+   <index>` on this member. Do not set to ``false`` if a replica set
+   *can* become a primary, or if any clients ever issue queries against
+   this instance.
+
+   Omitting index creation, and thus this setting, may be useful,
+   **if**:
+
+   - You are only using this instance to perform backups using
+     :binary:`~bin.mongodump`,
+
+   - this instance will receive no queries, *and*
+
+   - index creation and maintenance overburdens the host
+     system.
+
+   If set to ``false``, secondaries configured with this option *do*
+   build indexes on the ``_id`` field, to facilitate operations
+   required for replication.
+
+   .. warning::
+
+      You may only set this value when adding a member to a replica
+      set. You may not reconfigure a replica set to change the value
+      of the :data:`~local.system.replset.members[n].buildIndexes` field after adding the
+      member to the set.
+
+      Other secondaries cannot replicate from
+      a members where :data:`~local.system.replset.members[n].buildIndexes` is false.
+
+.. data:: local.system.replset.members[n].hidden
+
+   *Optional*.
+
+   **Type**: boolean
+
+   **Default**: false
+
+   When this value is ``true``, the replica set hides this instance,
+   and does not include the member in the output of
+   :method:`db.isMaster()` or :dbcommand:`isMaster`. This
+   prevents read operations (i.e. queries) from ever reaching this
+   host by way of secondary :term:`read preference`.
+
+   .. seealso:: ":ref:`Hidden Replica Set Members <replica-set-hidden-members>`"
+
+.. data:: local.system.replset.members[n].priority
+
+   *Optional*.
+
+   **Type**: Number, between 0 and 100.0 including decimals.
+
+   **Default**: 1
+
+   Specify higher values to make a member *more* eligible to become
+   :term:`primary`, and lower values to make the member *less* eligible
+   to become primary. Priorities are only used in comparison to each
+   other, members of the set will veto elections from members when
+   another eligible member has a higher absolute priority
+   value. Changing the balance of priority in a replica set will cause
+   an election.
+
+   A :data:`~local.system.replset.members[n].priority` of ``0`` makes it impossible for a
+   member to become primary.
+
+   .. seealso:: ":ref:`Replica Set Member Priority
+      <replica-set-node-priority>`" and ":ref:`Replica Set Elections
+      <replica-set-elections>`."
+
+.. data:: local.system.replset.members[n].tags
+
+   *Optional*.
+
+   **Type**: :term:`MongoDB Document <document>`
+
+   **Default**: none
+
+   Used to represent arbitrary values for describing or tagging members
+   for the purposes of extending :term:`write concern`
+   to allow configurable data center
+   awareness.
+
+   Use in conjunction with :data:`~local.system.replset.settings.getLastErrorModes` and
+   :data:`~local.system.replset.settings.getLastErrorDefaults` and
+   :method:`db.getLastError()`
+   (i.e. :dbcommand:`getLastError`.)
+
+.. data:: local.system.replset.members[n].slaveDelay
+
+   *Optional*.
+
+   **Type**: Integer. (seconds.)
+
+   **Default**: 0
+
+   Describes the number of seconds "behind" the master that this
+   replica set member should "lag." Use this option to create
+   :ref:`delayed members <replica-set-delayed-members>`, that
+   maintain a copy of the data that reflects the state of the data set
+   some amount of time (specified in seconds.) Typically these members
+   help protect against human error, and provide some measure
+   of insurance against the unforeseen consequences of changes and
+   updates.
+
+.. data:: local.system.replset.members[n].votes
+
+   *Optional*.
+
+   **Type**: Integer
+
+   **Default**: 1
+
+   Controls the number of votes a server has in a :ref:`replica set
+   election <replica-set-elections>`. The number of votes each member
+   has can be any non-negative integer, but it is highly recommended
+   each member has 1 or 0 votes.
+
+   If you need more than 7 members, use this setting to add additional
+   non-voting members with a :data:`~local.system.replset.members[n].votes` value of ``0``.
+
+   For most deployments and most members, use the default value,
+   ``1``, for :data:`~local.system.replset.members[n].votes`.
+
+.. data:: local.system.replset.settings
+
+   *Optional*.
+
+   **Type**: :term:`MongoDB Document <document>`
+
+   The ``settings`` document configures options that apply to the whole
+   replica set.
+
+.. data:: local.system.replset.settings.chainingAllowed
+
+   *Optional*.
+
+   **Type**: boolean
+
+   **Default**: true
+
+   .. versionadded:: 2.2.2
+
+   When :data:`~local.system.replset.settings.chainingAllowed` is
+   ``true``, the replica set allows :term:`secondary` members to
+   replicate from other secondary members. When
+   :data:`~local.system.replset.settings.chainingAllowed` is
+   ``false``, secondaries can replicate only from the :term:`primary`.
+
+   When you run :method:`rs.config()` to view a replica set's
+   configuration, the
+   :data:`~local.system.replset.settings.chainingAllowed` field
+   appears only when set to ``false``. If not set,
+   :data:`~local.system.replset.settings.chainingAllowed` is ``true``.
+
+   .. seealso:: :ref:`replica-set-chained-replication`
+
+.. data:: local.system.replset.settings.getLastErrorDefaults
+
+   *Optional*.
+
+   **Type**: :term:`MongoDB Document <document>`
+
+   Specify arguments to the :dbcommand:`getLastError` that
+   members of this replica set will use when no arguments to
+   :dbcommand:`getLastError` has no arguments. If you specify *any*
+   arguments, :dbcommand:`getLastError` , ignores these defaults.
+
+.. data:: local.system.replset.settings.getLastErrorModes
+
+   *Optional*.
+
+   **Type**: :term:`MongoDB Document <document>`
+
+   Defines the names and combination of
+   :data:`~local.system.replset.members` for use by the application layer
+   to guarantee :term:`write concern` to database using the
+   :dbcommand:`getLastError` command to provide :term:`data-center
+   awareness`.
+
+.. _replica-set-configuration-document:
+
+Example Document
+----------------
+
+The following document provides a representation of a replica set
+configuration document. Angle brackets (e.g. ``<`` and ``>``) enclose
+all optional fields.
+
+.. code-block:: javascript
+
+   {
+     _id : <setname>,
+     version: <int>,
+     members: [
+       {
+         _id : <ordinal>,
+         host : hostname<:port>,
+         <arbiterOnly : <boolean>,>
+         <buildIndexes : <boolean>,>
+         <hidden : <boolean>,>
+         <priority: <priority>,>
+         <tags: { <document> },>
+         <slaveDelay : <number>,>
+         <votes : <number>>
+       }
+       , ...
+     ],
+     <settings: {
+       <getLastErrorDefaults : <lasterrdefaults>,>
+       <chainingAllowed : <boolean>,>
+       <getLastErrorModes : <modes>>
+     }>
+   }
+
+.. _replica-set-reconfiguration-usage:
+
+Example Reconfiguration Operations
+----------------------------------
+
+Most modifications of :term:`replica set` configuration use the
+:binary:`~bin.mongo` shell. Consider the following reconfiguration
+operation:
+
+.. example::
+
+   Given the following replica set configuration:
+
+   .. code-block:: javascript
+
+      {
+          "_id" : "rs0",
+          "version" : 1,
+          "members" : [
+                   {
+                           "_id" : 0,
+                           "host" : "mongodb0.example.net:27017"
+                   },
+                   {
+                           "_id" : 1,
+                           "host" : "mongodb1.example.net:27017"
+                   },
+                   {
+                           "_id" : 2,
+                           "host" : "mongodb2.example.net:27017"
+                   }
+           ]
+      }
+
+   And the following reconfiguration operation:
+
+   .. code-block:: javascript
+
+      cfg = rs.conf()
+      cfg.members[0].priority = 0.5
+      cfg.members[1].priority = 2
+      cfg.members[2].priority = 2
+      rs.reconfig(cfg)
+
+   This operation begins by saving the current replica set
+   configuration to the local variable ``cfg`` using the
+   :method:`rs.conf()` method. Then it adds priority values to the
+   ``cfg`` :term:`document` where for the first three sub-documents in
+   the :data:`~local.system.replset.members` array. Finally, it calls the
+   :method:`rs.reconfig()` method with the argument of ``cfg`` to
+   initialize this new configuration. The replica set configuration
+   after this operation will resemble the following:
+
+   .. code-block:: javascript
+
+      {
+          "_id" : "rs0",
+          "version" : 1,
+          "members" : [
+                   {
+                           "_id" : 0,
+                           "host" : "mongodb0.example.net:27017",
+                           "priority" : 0.5
+                   },
+                   {
+                           "_id" : 1,
+                           "host" : "mongodb1.example.net:27017",
+                           "priority" : 2
+                   },
+                   {
+                           "_id" : 2,
+                           "host" : "mongodb2.example.net:27017",
+                           "priority" : 1
+                   }
+           ]
+      }
+
+
+Using the "dot notation" demonstrated in the above example, you can
+modify any existing setting or specify any of optional :ref:`replica
+set configuration variables
+<replica-set-configuration-variables>`. Until you run
+``rs.reconfig(cfg)`` at the shell, no changes will take effect. You
+can issue ``cfg = rs.conf()`` at any time before using
+:method:`rs.reconfig()` to undo your changes and start from the current
+configuration. If you issue ``cfg`` as an operation at any point, the
+:binary:`~bin.mongo` shell at any point will output the complete
+:term:`document` with modifications for your review.
+
+The :method:`rs.reconfig()` operation has a "force" option, to make it
+possible to reconfigure a replica set if a majority of the replica set
+is not visible, and there is no :term:`primary` member of the set.
+use the following form:
+
+.. code-block:: javascript
+
+   rs.reconfig(cfg, { force: true } )
+
+.. warning::
+
+   Forcing a :method:`rs.reconfig()` can lead to :term:`rollback`
+   situations and other difficult to recover from situations. Exercise
+   caution when using this option.
+
+.. note::
+
+   The :method:`rs.reconfig()` shell method can force the current
+   primary to step down and causes an election in some
+   situations. When the primary steps down, all clients will
+   disconnect. This is by design. While this typically takes 10-20
+   seconds, attempt to make these changes during scheduled maintenance
+   periods.
+
+.. index:: replica set; tag sets
+.. index:: read preference; tag sets
+.. index:: tag sets; configuration
+.. _replica-set-configuration-tag-sets:
+
+Tag Sets
+--------
+
+Tag sets provide custom and configurable :term:`write concern`
+and :term:`read preferences <read preference>`
+for a :term:`replica set`. This section outlines the process
+for specifying tags for a replica set, for more information see the
+full documentation of the behavior of :ref:`tags sets for write concern
+<replica-set-write-concern>` and :ref:`tag sets for read preference
+<replica-set-read-preference-tag-sets>`.
+
+.. important::
+
+   Custom read preferences and write concerns evaluate tags sets in
+   different ways.
+
+   Read preferences consider the value of a tag when selecting a member
+   to read from.
+
+   Write concerns do not utilize the value of a tag to select a
+   member except to consider whether or not the value is unique.
+
+Configure tag sets by adding fields and values to the document stored
+in the :data:`~local.system.replset.members[n].tags`. Consider the
+following examples:
+
+Configure Tag Sets
+~~~~~~~~~~~~~~~~~~
+
+Given the following replica set configuration:
+
+.. code-block:: javascript
+
+   {
+       "_id" : "rs0",
+       "version" : 1,
+       "members" : [
+                {
+                        "_id" : 0,
+                        "host" : "mongodb0.example.net:27017"
+                },
+                {
+                        "_id" : 1,
+                        "host" : "mongodb1.example.net:27017"
+                },
+                {
+                        "_id" : 2,
+                        "host" : "mongodb2.example.net:27017"
+                }
+        ]
+   }
+
+You could add the tag sets, to the members of this replica set,
+with the following command sequence in the :binary:`~bin.mongo` shell:
+
+.. code-block:: javascript
+
+   conf = rs.conf()
+   conf.members[0].tags = { "dc": "east", "use": "production"  }
+   conf.members[1].tags = { "dc": "east", "use": "reporting"  }
+   conf.members[2].tags = { "use": "production"  }
+   rs.reconfig(conf)
+
+After this operation the output of :method:`rs.conf()`, would
+resemble the following:
+
+.. code-block:: javascript
+
+    {
+        "_id" : "rs0",
+        "version" : 2,
+        "members" : [
+                 {
+                         "_id" : 0,
+                         "host" : "mongodb0.example.net:27017",
+                         "tags" : {
+                                 "dc": "east",
+                                 "use": "production"
+                         }
+                 },
+                 {
+                         "_id" : 1,
+                         "host" : "mongodb1.example.net:27017",
+                         "tags" : {
+                                 "dc": "east",
+                                 "use": "reporting"
+                         }
+                 },
+                 {
+                         "_id" : 2,
+                         "host" : "mongodb2.example.net:27017",
+                         "tags" : {
+                                 "use": "production"
+                         }
+                 }
+         ]
+    }
+
+
+Configure Tag Sets for Custom Multi-Data Center Write Concern Mode
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Given a five member replica set with members in two data centers:
+
+1. a facility ``VA``  tagged ``dc.va``
+
+2. a facility ``GTO`` tagged ``dc.gto``
+
+Create a custom write concern to require confirmation from two
+data centers using replica set tags, using the following sequence
+of operations in the :binary:`~bin.mongo` shell:
+
+#. Create the replica set configuration object ``conf``:
+
+   .. code-block:: javascript
+
+      conf = rs.conf()
+
+#. Add tags to the replica set members reflecting their locations:
+
+   .. code-block:: javascript
+
+      conf.members[0].tags = { "dc.va": "rack1"}
+      conf.members[1].tags = { "dc.va": "rack2"}
+      conf.members[2].tags = { "dc.gto": "rack1"}
+      conf.members[3].tags = { "dc.gto": "rack2"}
+      conf.members[4].tags = { "dc.va": "rack1"}
+      rs.reconfig(conf)
+
+#. Create a custom
+   :data:`~local.system.replset.settings.getLastErrorModes` setting to
+   ensure that the write operation will propagate to at least one member
+   of each facility:
+
+   .. code-block:: javascript
+
+      conf.settings = { getLastErrorModes: { MultipleDC : { "dc.va": 1, "dc.gto": 1}}
+
+#. Reconfigure the replica set using the new ``conf`` configuration
+   object:
+
+   .. code-block:: javascript
+
+      rs.reconfig(conf)
+
+To ensure that a write operation propagators to at least one member of
+the set in both facilities, then use the ``MultipleDC`` write concern
+mode, as follows:
+
+.. code-block:: javascript
+
+   db.runCommand( { getLastError: 1, w: "MultipleDC" } )
+
+Alternatively, if you want to ensure that each write operation
+propagates to at least 2 racks in each facility, reconfigure the
+replica set as follows in the :binary:`~bin.mongo` shell:
+
+#. Create the replica set configuration object ``conf``:
+
+   .. code-block:: javascript
+
+      conf = rs.conf()
+
+#. Redefine the
+   :data:`~local.system.replset.settings.getLastErrorModes` value to
+   require two different values of both ``dc.va`` and ``dc.gto``:
+
+   .. code-block:: javascript
+
+      conf.settings = { getLastErrorModes: { MultipleDC : { "dc.va": 2, "dc.gto": 2}}
+
+#. Reconfigure the replica set using the new ``conf`` configuration
+   object:
+
+   .. code-block:: javascript
+
+      rs.reconfig(conf)
+
+Now, the following write concern operation will only return after the
+write operation propagates to at least two different racks in the
+each facility:
+
+.. code-block:: javascript
+
+   db.runCommand( { getLastError: 1, w: "MultipleDC" } )
+
+Configure Tag Sets for Functional Segregation of Read and Write Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Given a replica set with tag sets that reflect:
+
+- data center facility,
+
+- physical rack location of instance, and
+
+- storage system (i.e. disk) type.
+
+Where each member of the set has a tag set that resembles one of the
+following: [#read-and-write-tags]_
+
+.. code-block:: javascript
+
+   {"dc.va": "rack1", disk:"ssd", ssd: "installed" }
+   {"dc.va": "rack2", disk:"raid"}
+   {"dc.gto": "rack1", disk:"ssd", ssd: "installed" }
+   {"dc.gto": "rack2", disk:"raid"}
+   {"dc.va": "rack1", disk:"ssd", ssd: "installed" }
+
+To target a read operation to a member of the replica set with an
+disk type of ``ssd``, you could use the following tag set:
+
+.. code-block:: javascript
+
+   { disk: "ssd" }
+
+However, to create comparable write concern modes, you would specify a
+different set of
+:data:`~local.system.replset.settings.getLastErrorModes`
+configuration. Consider the the following sequence of operations in
+the :binary:`~bin.mongo` shell:
+
+#. Create the replica set configuration object ``conf``:
+
+   .. code-block:: javascript
+
+      conf = rs.conf()
+
+#. Redefine the
+   :data:`~local.system.replset.settings.getLastErrorModes` value to
+   configure two write concern modes:
+
+   .. code-block:: javascript
+
+      conf.settings = {
+                       "getLastErrorModes" : {
+                               "ssd" : {
+                                          "ssd" : 1
+                               },
+                               "MultipleDC" : {
+                                       "dc.va" : 1,
+                                      "dc.gto" : 1
+                               }
+                       }
+                     }
+
+#. Reconfigure the replica set using the new ``conf`` configuration
+   object:
+
+   .. code-block:: javascript
+
+      rs.reconfig(conf)
+
+Now, you can specify the ``MultipleDC`` write concern mode, as in the
+following operation, to ensure that a write operation propagates to
+each data center.
+
+.. code-block:: javascript
+
+   db.runCommand( { getLastError: 1, w: "MultipleDC" } )
+
+Additionally, you can specify the ``ssd`` write concern mode, as in
+the following operation, to ensure that a write operation propagates
+to at least one instance with an SSD.
+
+.. [#read-and-write-tags] Since read preferences and write concerns
+   use the value of fields in tag sets differently, larger
+   deployments will have some redundancy.

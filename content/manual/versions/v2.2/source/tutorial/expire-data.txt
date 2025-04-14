@@ -1,0 +1,91 @@
+.. _ttl-collections:
+
+===========================================
+Expire Data from Collections by Setting TTL
+===========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. versionadded:: 2.2
+
+This document provides an introduction to MongoDB's "*time to live*"
+or ":term:`TTL`" collection feature. Implemented as a special index
+type, TTL collections make it possible to store data in MongoDB and
+have the :binary:`~bin.mongod` automatically remove data after a specified
+period of time. This is ideal for some types of information like
+machine generated event data, logs, and session information that only
+need to persist in a database for a limited period of time.
+
+Background
+----------
+
+Collections expire by way of a special index of a field with date
+values in conjunction with a background thread in :binary:`~bin.mongod`
+that regularly removes expired :term:`documents <document>` from the
+collection. You can use this feature to expire data from
+:term:`replica sets <replica set>` and :term:`sharded clusters
+<sharded cluster>`.
+
+Use the ``expireAfterSeconds`` option to the :method:`ensureIndex
+<db.collection.ensureIndex()>` method in conjunction with a TTL value
+in seconds to create an expiring collection. TTL collections set the
+:collflag:`usePowerOf2Sizes` collection flag, which means MongoDB must
+allocate more disk space relative to data size. This approach helps
+mitigate the possibility of storage fragmentation caused by frequent
+delete operations and leads to more predictable storage use patterns.
+
+.. note::
+
+   When the TTL thread is active, you will see a :doc:`delete
+   </applications/delete>` operation in the output of
+   :method:`db.currentOp()` or in the data collected by the
+   :ref:`database profiler <database-profiler>`.
+
+Constraints
+-----------
+
+Consider the following limitations:
+
+- the indexed field must be a date :term:`BSON type <BSON types>`. If
+  the field does not have a date type, the data will not expire.
+
+- you cannot create this index on the ``_id`` field, or a field that
+  already has an index.
+
+- the TTL index may not be compound (may not have multiple fields).
+
+- if the field holds an array, and there are multiple date-typed
+  data in the index, the document will expire when the *lowest*
+  (i.e. earliest) matches the expiration threshold.
+
+- you cannot use a TTL index on a capped collection, because MongoDB
+  cannot remove documents from a capped collection.
+
+.. include:: /includes/note-ttl-collection-background-timing.rst
+
+Enabling a TTL for a Collection
+-------------------------------
+
+To set a TTL on the collection "``log.events``" for one hour use the
+following command at the :binary:`~bin.mongo` shell:
+
+.. code-block:: javascript
+
+   db.log.events.ensureIndex( { "status": 1 }, { expireAfterSeconds: 3600 } )
+
+The ``status`` field *must* hold date/time information. MongoDB will
+automatically delete documents from this collection once the value of
+``status`` is one or more hours old.
+
+Replication
+-----------
+
+The TTL background thread *only* runs on :term:`primary` members of
+:term:`replica sets <replica set>`. :term:`Secondaries <secondary>`
+members will replicate deletion operations from the primaries.

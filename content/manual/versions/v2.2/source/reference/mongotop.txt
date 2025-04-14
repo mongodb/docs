@@ -1,0 +1,226 @@
+.. _mongotop:
+
+============
+``mongotop``
+============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Synopsis
+--------
+
+:binary:`~bin.mongotop` provides a method to track the amount of time a
+MongoDB instance spends reading and writing data. :binary:`~bin.mongotop`
+provides statistics on a per-collection level. By default,
+:binary:`~bin.mongotop` returns values every second.
+
+.. seealso::
+
+   For more information about monitoring MongoDB, see
+   :doc:`/administration/monitoring`.
+
+   For additional background on various other MongoDB status outputs
+   see:
+
+   - :doc:`/reference/server-status`
+   - :doc:`/reference/replica-status`
+   - :doc:`/reference/database-statistics`
+   - :doc:`/reference/collection-statistics`
+
+   For an additional utility that provides MongoDB metrics
+   see ":doc:`mongostat </reference/mongostat>`."
+
+.. _mongotop-options:
+
+Options
+-------
+
+.. binary:: mongotop
+
+.. program:: mongotop
+
+.. option:: --help
+
+   Returns a basic help and usage text.
+
+.. option:: --verbose, -v
+
+   Increases the amount of internal reporting returned on the command
+   line. Increase the verbosity with the ``-v`` form by including the
+   option multiple times, (e.g. ``-vvvvv``.)
+
+.. option:: --version
+
+   Print the version of the :binary:`~bin.mongotop` utility and exit.
+
+.. option:: --host <hostname><:port>
+
+   Specifies a resolvable hostname for the ``mongod`` from which you
+   want to export data. By default :binary:`~bin.mongotop` attempts to
+   connect to a MongoDB process running on the localhost port number
+   ``27017``.
+
+   Optionally, specify a port number to connect a MongoDB instance
+   running on a port other than ``27017``.
+
+   .. include:: /includes/fact-multiple-hosts.rst
+
+.. option:: --port <port>
+
+   Specifies the port number, if the MongoDB instance is not running on
+   the standard port. (i.e. ``27017``) You may also specify a port
+   number using the :option:`mongotop --host` command.
+
+.. option:: --ipv6
+
+   Enables IPv6 support that allows :binary:`~bin.mongotop` to connect
+   to the MongoDB instance using an IPv6 network. All MongoDB programs
+   and processes, including :binary:`~bin.mongotop`, disable IPv6
+   support by default.
+
+.. option:: --username <username>, -u <username>
+
+   Specifies a username to authenticate to the MongoDB instance, if
+   your database requires authentication. Use in conjunction with the
+   :option:`mongotop <mongotop --password>` option to supply a
+   password.
+
+.. option:: --password <password>
+
+   Specifies a password to authenticate to the MongoDB instance. Use
+   in conjunction with the :option:`--username <mongotop --username>`
+   option to supply a username.
+
+   If you specify a :option:`--username <mongotop --username>` without
+   the :option:`--password` option, :binary:`~bin.mongotop` will prompt
+   for a password interactively.
+
+.. option:: --locks
+
+   .. versionadded:: 2.2
+
+   Toggles the mode of :binary:`~bin.mongotop` to report on use of
+   per-database :ref:`locks <locks>`. These data are useful for
+   measuring concurrent operations and lock percentage.
+
+.. option:: <sleeptime>
+
+   The final argument is the length of time, in seconds, that
+   :binary:`~bin.mongotop` waits in between calls. By default
+   :binary:`~bin.mongotop` returns data every second.
+
+.. _mongotop-fields:
+
+Fields
+------
+
+:binary:`~bin.mongotop` returns time values specified in milliseconds
+(ms.)
+
+:binary:`~bin.mongotop` only reports active namespaces or databases,
+depending on the :option:`--locks` option. If you don't see a database
+or collection, it has received no recent activity. You can issue a
+simple operation in the :binary:`~bin.mongo` shell to generate activity to
+affect the output of :binary:`~bin.mongotop`.
+
+.. data:: mongotop.ns
+
+   Contains the database namespace, which combines the database name
+   and collection.
+
+   .. versionchanged:: 2.2
+      If you use the :option:`--locks`, the :data:`~mongotop.ns` field does not
+      appear in the :binary:`~bin.mongotop` output.
+
+.. data:: mongotop.db
+
+   .. versionadded:: 2.2
+
+   Contains the name of the database. The database named ``.`` refers
+   to the global lock, rather than a specific database.
+
+   This field does not appear unless you have invoked
+   :binary:`~bin.mongotop` with the :option:`--locks` option.
+
+.. data:: mongotop.total
+
+   Provides the total amount of time that this :binary:`~bin.mongod` spent
+   operating on this namespace.
+
+.. data:: mongotop.read
+
+   Provides the amount of time that this :binary:`~bin.mongod` spent
+   performing read operations on this namespace.
+
+.. data:: mongotop.write
+
+   Provides the amount of time that this :binary:`~bin.mongod` spent
+   performing write operations on this namespace.
+
+.. data:: mongotop.<timestamp>
+
+   Provides a time stamp for the returned data.
+
+Use
+---
+
+By default :binary:`~bin.mongotop` connects to the MongoDB instance
+running on the localhost port ``27017``. However, :binary:`~bin.mongotop` can optionally
+connect to remote :binary:`~bin.mongod`
+instances. See the :ref:`mongotop options <mongotop-options>` for more
+information.
+
+To force :binary:`~bin.mongotop` to return less frequently specify a number, in
+seconds at the end of the command. In this example, :binary:`~bin.mongotop` will
+return every 15 seconds.
+
+.. code-block:: sh
+
+   mongotop 15
+
+This command produces the following output:
+
+.. code-block:: sh
+
+   connected to: 127.0.0.1
+
+                       ns       total        read       write           2012-08-13T15:45:40
+   test.system.namespaces         0ms         0ms         0ms
+     local.system.replset         0ms         0ms         0ms
+     local.system.indexes         0ms         0ms         0ms
+     admin.system.indexes         0ms         0ms         0ms
+                   admin.         0ms         0ms         0ms
+
+                       ns       total        read       write           2012-08-13T15:45:55
+   test.system.namespaces         0ms         0ms         0ms
+     local.system.replset         0ms         0ms         0ms
+     local.system.indexes         0ms         0ms         0ms
+     admin.system.indexes         0ms         0ms         0ms
+                   admin.         0ms         0ms         0ms
+
+
+To return a :binary:`~bin.mongotop` report every 5 minutes, use the
+following command:
+
+.. code-block:: sh
+
+   mongotop 300
+
+To report the use of per-database locks, use :option:`mongotop --locks`,
+which produces the following output:
+
+.. code-block:: sh
+
+   $ mongotop --locks
+   connected to: 127.0.0.1
+
+                     db       total        read       write          2012-08-13T16:33:34
+                  local         0ms         0ms         0ms
+                  admin         0ms         0ms         0ms
+                      .         0ms         0ms         0ms

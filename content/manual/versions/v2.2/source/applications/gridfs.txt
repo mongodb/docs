@@ -1,0 +1,243 @@
+.. index:: GridFS
+
+======
+GridFS
+======
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+:term:`GridFS` is a specification for storing and retrieving files
+that exceed the :term:`BSON`\-document :ref:`size limit
+<limit-bson-document-size>` of 16MB.
+
+Instead of storing a file in a single document, GridFS divides a file
+into parts, or chunks, [#chunk-disambiguation]_ and stores each of
+those chunks as a separate document. By default GridFS limits chunk
+size to 256k. GridFS uses two collections to store files. One
+collection stores the file chunks, and the other stores file metadata.
+
+When you query a GridFS store for a file, the driver or client will
+reassemble the chunks as needed. You can perform range queries on
+files stored through GridFS.  You also can access information from
+arbitrary sections of files, which allows you to "skip" into the
+middle of a video or audio file.
+
+GridFS is useful not only for storing files that exceed 16MB but also
+for storing any files for which you want access without having to load
+the entire file into memory. For more information on the indications
+of GridFS, see :ref:`faq-developers-when-to-use-gridfs`.
+
+.. [#chunk-disambiguation] The use of the term *chunks* in the context
+   of GridFS is not related to the use of the term *chunks* in
+   the context of sharding.
+
+.. index:: GridFS; initialize
+.. _gridfs-implement:
+
+Implement GridFS
+----------------
+
+To store and retrieve files using :term:`GridFS`, use either of the following:
+
+- A MongoDB driver. See the :doc:`drivers</applications/drivers>`
+  documentation for information on using GridFS with your driver.
+
+- The :binary:`~bin.mongofiles` command-line tool in the :binary:`~bin.mongo`
+  shell. See :doc:`/reference/mongofiles`.
+
+.. index:: GridFS; collections
+.. _gridfs-collections:
+
+GridFS Collections
+------------------
+
+:term:`GridFS` stores files in two collections:
+
+- ``chunks`` stores the binary chunks. For details, see
+  :ref:`gridfs-chunks-collection`.
+
+- ``files`` stores the file's metadata. For details, see
+  :ref:`gridfs-files-collection`.
+
+GridFS places the collections in a common bucket by prefixing each
+with the bucket name. By default, GridFS uses two collections with
+names prefixed by ``fs`` bucket:
+
+- ``fs.files``
+- ``fs.chunks``
+
+You can choose a different bucket name than ``fs``, and create
+multiple buckets in a single database.
+
+.. index:: GridFS; chunks collection
+.. _gridfs-chunks-collection:
+
+The ``chunks`` Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Each document in the ``chunks`` collection represents a distinct chunk
+of a file as represented in the :term:`GridFS` store. The following is a
+prototype document from the ``chunks`` collection.:
+
+.. code-block:: javascript
+
+   {
+     "_id" : <string>,
+     "files_id" : <string>,
+     "n" : <num>,
+     "data" : <binary>
+   }
+
+A document from the ``chunks`` collection contains the following fields:
+
+.. data:: chunks._id
+
+   The unique :term:`ObjectId` of the chunk.
+
+.. data:: chunks.files_id
+
+   The ``_id`` of the "parent" document, as specified in the ``files``
+   collection.
+
+.. data:: chunks.n
+
+   The sequence number of the chunk. GridFS numbers all chunks,
+   starting with 0.
+
+.. data:: chunks.data
+
+   The chunk's payload as a :term:`BSON` binary type.
+
+The ``chunks`` collection uses a :term:`compound index` on
+``files_id`` and ``n``, as described in :ref:`gridfs-index`.
+
+.. index:: GridFS; files collection
+.. _gridfs-files-collection:
+
+The ``files`` Collection
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Each document in the ``files`` collection represents a file in the
+:term:`GridFS` store. Consider the following prototype of a document in
+the ``files`` collection:
+
+.. code-block:: javascript
+
+   {
+     "_id" : <ObjectId>,
+     "length" : <num>,
+     "chunkSize" : <num>
+     "uploadDate" : <timestamp>
+     "md5" : <hash>
+
+     "filename" : <string>,
+     "contentType" : <string>,
+     "aliases" : <string array>,
+     "metadata" : <dataObject>,
+   }
+
+Documents in the ``files`` collection contain some or all of the
+following fields. Applications may create additional arbitrary fields:
+
+.. data:: files._id
+
+   The unique ID for this document. The ``_id`` is of the data type you
+   chose for the original document. The default type for MongoDB
+   documents is :term:`BSON` :term:`ObjectId`.
+
+.. data:: files.length
+
+   The size of the document in bytes.
+
+.. data:: files.chunkSize
+
+   The size of each chunk. GridFS divides the document into chunks of
+   the size specified here. The default size is 256 kilobytes.
+
+.. data:: files.uploadDate
+
+   The date the document was first stored by GridFS. This value has the
+   ``Date`` type.
+
+.. data:: files.md5
+
+   An MD5 hash returned from the filemd5 API. This value has the ``String``
+   type.
+
+.. data:: files.filename
+
+   Optional. A human-readable name for the document.
+
+.. data:: files.contentType
+
+   Optional. A valid MIME type for the document.
+
+.. data:: files.aliases
+
+   Optional. An array of alias strings.
+
+.. data:: files.metadata
+
+   Optional. Any additional information you want to store.
+
+.. index:: GridFS; index
+.. _gridfs-index:
+
+GridFS Index
+------------
+
+:term:`GridFS` uses a :term:`unique <unique index>`, :term:`compound
+<compound index>` index on the ``chunks`` collection for ``files_id``
+and ``n``. The index allows efficient retrieval of chunks using the
+``files_id`` and ``n`` values, as shown in the following example:
+
+.. code-block:: javascript
+
+   cursor = db.fs.chunks.find({files_id: myFileID}).sort({n:1});
+
+See the relevant :doc:`driver </applications/drivers>` documentation
+for the specific behavior of your GridFS application. If your driver
+does not create this index, issue the following operation using the
+:binary:`~bin.mongo` shell:
+
+.. code-block:: javascript
+
+   db.fs.chunks.ensureIndex( { files_id: 1, n: 1 }, { unique: true } );
+
+Example Interface
+-----------------
+
+The following is an example of the GridFS interface in Java. The example
+is for demonstration purposes only. For API specifics, see the relevant
+:doc:`driver </applications/drivers>` documentation.
+
+By default, the interface must support the default GridFS bucket, named
+``fs``, as in the following:
+
+.. code-block:: java
+
+   // returns default GridFS bucket (i.e. "fs" collection)
+   GridFS myFS = new GridFS(myDatabase);
+
+   // saves the file to "fs" GridFS bucket
+   myFS.createFile(new File("/tmp/largething.mpg"));
+
+Optionally, interfaces may support other additional GridFS buckets as
+in the following example:
+
+.. code-block:: java
+
+   // returns GridFS bucket named "contracts"
+   GridFS myContracts = new GridFS(myDatabase, "contracts");
+
+   // retrieve GridFS object "smithco"
+   GridFSDBFile file = myContracts.findOne("smithco");
+
+   // saves the GridFS file to the file system
+   file.writeTo(new File("/tmp/smithco.pdf"));

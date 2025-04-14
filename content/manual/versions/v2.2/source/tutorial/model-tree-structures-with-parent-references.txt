@@ -1,0 +1,70 @@
+============================================
+Model Tree Structures with Parent References
+============================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+Data in MongoDB has a *flexible schema*. :term:`Collections
+<collection>` do not enforce :term:`document` structure. Decisions
+that affect how you model data can affect application performance and
+database capacity. See :doc:`/core/data-modeling` for a full high
+level overview of data modeling in MongoDB.
+
+This document describes a data model that describes a tree-like
+structure in MongoDB documents by storing
+:ref:`references <data-modeling-referencing>` to "parent" nodes in
+children nodes.
+
+Pattern
+-------
+
+.. start-model-tree-structures-include-here
+
+The *Parent References* pattern stores each tree node in a document; in
+addition to the tree node, the document stores the id of the node's
+parent.
+
+Consider the following example that models a tree of categories using
+*Parent References*:
+
+.. code-block:: javascript
+
+   db.categories.insert( { _id: "MongoDB", parent: "Databases" } )
+   db.categories.insert( { _id: "Postgres", parent: "Databases" } )
+   db.categories.insert( { _id: "Databases", parent: "Programming" } )
+   db.categories.insert( { _id: "Languages", parent: "Programming" } )
+   db.categories.insert( { _id: "Programming", parent: "Books" } )
+   db.categories.insert( { _id: "Books", parent: null } )
+
+- The query to retrieve the parent of a node is fast and
+  straightforward:
+
+  .. code-block:: javascript
+
+     db.categories.findOne( { _id: "MongoDB" } ).parent
+
+- You can create an index on the field ``parent`` to enable fast search
+  by the parent node:
+
+  .. code-block:: javascript
+
+     db.categories.ensureIndex( { parent: 1 } )
+
+- You can query by the ``parent`` field to find its immediate children
+  nodes:
+
+  .. code-block:: javascript
+
+     db.categories.find( { parent: "Databases" } )
+
+The *Parent Links* pattern provides a simple solution to tree storage,
+but requires multiple queries to retrieve subtrees.

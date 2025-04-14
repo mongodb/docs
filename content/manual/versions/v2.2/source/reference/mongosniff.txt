@@ -1,0 +1,142 @@
+.. _mongosniff:
+
+==============
+``mongosniff``
+==============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Synopsis
+--------
+
+:binary:`~bin.mongosniff` provides a low-level operation tracing/sniffing view
+into database activity in real time. Think of :binary:`~bin.mongosniff` as a
+MongoDB-specific analogue of ``tcpdump`` for TCP/IP network
+traffic. Typically, :binary:`~bin.mongosniff` is most frequently used in driver
+development.
+
+.. _mongosniff-libcap:
+
+.. note::
+
+   :binary:`~bin.mongosniff` requires ``libpcap`` and is only available for
+   Unix-like systems. Furthermore, the version distributed with the
+   MongoDB binaries is dynamically linked against aversion 0.9 of
+   ``libpcap``. If your system has a different version of ``libpcap``, you
+   will need to compile :binary:`~bin.mongosniff` yourself or create a
+   symbolic link pointing to ``libpcap.so.0.9`` to your local version
+   of ``libpcap``. Use an operation that resembles the following:
+
+   .. code-block:: sh
+
+      ln -s /usr/lib/libpcap.so.1.1.1 /usr/lib/libpcap.so.0.9
+
+   Change the path's and name of the shared library as needed.
+
+As an alternative to :binary:`~bin.mongosniff`, Wireshark, a popular
+network sniffing tool is capable of inspecting and parsing the MongoDB
+wire protocol.
+
+Options
+-------
+
+.. binary:: mongosniff
+
+.. program:: mongosniff
+
+.. option:: --help
+
+   Returns a basic help and usage text.
+
+.. option:: --forward <host><:port>
+
+   Declares a host to forward all parsed requests that the
+   :binary:`~bin.mongosniff` intercepts to another :binary:`~bin.mongod`
+   instance and issue those operations on that database instance.
+
+   Specify the target host name and port in the ``<host><:port>``
+   format.
+
+   .. include:: /includes/fact-multiple-hosts.rst
+
+.. option:: --source <NET [interface]>, <FILE [filename]>, <DIAGLOG [filename]>
+
+   Specifies source material to inspect. Use ``--source NET
+   [interface]`` to inspect traffic from a network interface
+   (e.g. ``eth0`` or ``lo``.) Use ``--source FILE [filename]`` to
+   read captured packets in :term:`pcap` format.
+
+   You may use the ``--source DIAGLOG [filename]`` option to read
+   the output files produced by the :option:`--diaglog <mongod --diaglog>`
+   option.
+
+.. option::  --objcheck
+
+   Modifies the behavior to *only* display invalid BSON objects and
+   nothing else. Use this option for troubleshooting driver
+   development. This option has some performance impact on the
+   performance of :binary:`~bin.mongosniff`.
+
+.. option:: <port>
+
+   Specifies alternate ports to sniff for traffic. By default,
+   :binary:`~bin.mongosniff` watches for MongoDB traffic on port 27017. Append
+   multiple port numbers to the end of :binary:`~bin.mongosniff` to monitor
+   traffic on multiple ports.
+
+Usage
+-----
+
+Use the following command to connect to a :binary:`~bin.mongod` or
+:binary:`~bin.mongos` running on port 27017 *and* 27018 on the localhost
+interface:
+
+.. code-block:: sh
+
+   mongosniff --source NET lo 27017 27018
+
+Use the following command to only log invalid :term:`BSON` objects for
+the :binary:`~bin.mongod` or :binary:`~bin.mongos` running on the localhost
+interface and port 27018, for driver development and troubleshooting:
+
+.. code-block:: sh
+
+   mongosniff --objcheck --source NET lo 27018
+
+Build ``mongosniff``
+--------------------
+
+To build ``mongosniff`` yourself, Linux users can use the following
+procedure:
+
+1. Obtain prerequisites using your operating
+   systems package management software. Dependencies include:
+
+   - ``libpcap`` - to capture network packets.
+   - ``git`` - to download the MongoDB source code.
+   - ``scons`` and a C++ compiler - to build :binary:`~bin.mongosniff`.
+
+2. Download a copy of the MongoDB source code using ``git``:
+
+   .. code-block:: sh
+
+      git clone git://github.com/mongodb/mongo.git
+
+3. Issue the following sequence of commands to change to the
+   ``mongo/`` directory and build :binary:`~bin.mongosniff`:
+
+   .. code-block:: sh
+
+      cd mongo
+      scons mongosniff
+
+.. note::
+
+   If you run ``scons mongosniff`` before installing ``libpcap`` you
+   must run ``scons clean`` before you can build :binary:`~bin.mongosniff`.

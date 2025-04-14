@@ -1,0 +1,220 @@
+======================
+db.collection.update()
+======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. method:: db.collection.update(query, update, [options])
+
+   The :method:`~db.collection.update()` method modifies an
+   existing document or documents in a collection. By default the
+   :method:`~db.collection.update()` method updates a single
+   document. To update all documents in the collection that match the
+   update query criteria, specify the ``multi`` option. To insert a
+   document if no document matches the update query criteria, specify
+   the ``upsert`` option.
+
+   .. versionchanged:: 2.2
+      The :binary:`~bin.mongo` shell provides an updated interface that
+      accepts the options parameter in a document format to specify
+      ``multi`` and ``upsert`` options.
+
+   Prior to version 2.2, in the :binary:`~bin.mongo` shell, ``upsert`` and
+   ``multi`` were positional boolean options:
+
+   .. code-block:: javascript
+
+      db.collection.update(query, update, <upsert>, <multi>)
+
+   The :method:`~db.collection.update()` method takes the following
+   parameters:
+
+   :param document query:
+
+          Specifies the selection criteria for the
+          update. The ``query`` parameter employs the same :ref:`query
+          selectors <query-selectors>` as used in the
+          :method:`db.collection.find()` method.
+
+   :param document update:
+
+          Specifies the modifications to apply.
+
+          **If** the ``update`` parameter contains any :ref:`update
+          operators <update-operators>` expressions such as the
+          :update:`$set` operator expression, then:
+
+          - the ``update`` parameter must contain only ``update
+            operators`` expressions.
+
+          - the :method:`~db.collection.update()` method updates only
+            the corresponding fields in the document.
+
+          **If** the ``update`` parameter consists only of ``field:
+          value`` expressions, then:
+
+          - the :method:`~db.collection.update()` method
+            *replaces* the document with the ``updates`` document. If
+            the ``updates`` document is missing the :term:`_id` field,
+            MongoDB will add the ``_id`` field and assign to it a
+            unique :term:`objectid` .
+
+          - the :method:`~db.collection.update()` method updates cannot
+            update multiple documents.
+
+   :param document options:
+
+          .. versionadded:: 2.2
+
+          Optional. Specifies whether to perform an :term:`upsert`
+          and/or a multiple update. Use the ``options`` parameter
+          instead of the individual ``upsert`` and ``multi``
+          parameters.
+
+   :param boolean upsert:
+
+          Optional. Specifies an :term:`upsert` operation
+
+          The default value is ``false``. When ``true``, the
+          :method:`~db.collection.update()` method will
+          update an existing document that matches the ``query``
+          selection criteria **or** if no document matches the
+          criteria, insert a new document with the fields and values of
+          the ``update`` parameter and if the ``update`` included only
+          ``update operators``, the ``query`` parameter as well .
+
+          In version 2.2 of the :binary:`~bin.mongo` shell, you may also
+          specify ``upsert`` in the ``options`` parameter.
+
+          .. note::
+
+             With ``upsert`` :method:`~db.collection.update()` inserts
+             a *single*  document.
+
+   :param boolean multi:
+
+          Optional. Specifies whether to update multiple
+          documents that meet the query criteria.
+
+          When not specified, the default value is ``false`` and the
+          :method:`~db.collection.update()` method updates a single
+          document that meet the ``query`` criteria.
+
+          When ``true``, the :method:`~db.collection.update()` method
+          updates all documents that meet the ``query`` criteria.
+
+          In version 2.2 of the :binary:`~bin.mongo` shell, you may also
+          specify ``multi`` in the ``options`` parameter.
+
+          .. note::
+
+             The ``multi`` update operation may interleave with other
+             write operations. For unsharded collections, you can
+             override this behavior with the :update:`$isolated`
+             operator, which isolates the update operation and
+             disallows yielding during the operation. This isolates the
+             update so that no client can see the updated documents
+             until they are all processed, or an error stops the update
+             operation. See :update:`$isolated`.
+
+   Although the update operation may apply mostly to updating the
+   values of the fields, the :method:`update()
+   <db.collection.update()>` method can also modify the name of the
+   ``field`` in a document using the :update:`$rename` operator.
+
+   .. examples-begin
+
+   Consider the following examples of the :method:`update()
+   <db.collection.update()>` method. These examples all use the 2.2
+   interface to specify options in the document form.
+
+   - To update specific fields in a document, call the
+     :method:`~db.collection.update()` method with an
+     ``update`` parameter using ``field: value`` pairs and expressions
+     using :ref:`update operators <update-operators>` as in the
+     following:
+
+     .. code-block:: javascript
+
+        db.products.update( { item: "book", qty: { $gt: 5 } }, { $set: { x: 6 }, $inc: { y: 5} } )
+
+     This operation updates a document in the ``products``
+     collection that matches the query criteria and sets the value of
+     the field ``x`` to ``6``, and increment the value of the field
+     ``y`` by ``5``. All other fields of the document remain the same.
+
+   - To replace all the fields in a document with the document as
+     specified in the ``update`` parameter, call the :method:`update()
+     <db.collection.update()>` method with an ``update`` parameter
+     that consists of *only* ``key: value`` expressions, as in the following:
+
+     .. code-block:: javascript
+
+        db.products.update( { item: "book", qty: { $gt: 5 } }, { x: 6, y: 15 } )
+
+     This operation selects a document from the ``products``
+     collection that matches the query criteria sets the value of the
+     field ``x`` to ``6`` and the value of the field ``y`` to
+     ``15``. All other fields of the matched document are *removed*,
+     except the :term:`_id` field.
+
+   - To update multiple documents, call the :method:`update()
+     <db.collection.update()>` method and specify the ``multi`` option
+     in the ``options`` argument, as in the following:
+
+     .. code-block:: javascript
+
+        db.products.update( { item: "book", qty: { $gt: 5 } }, { $set: { x: 6, y: 15 } }, { multi: true } )
+
+     This operation updates *all* documents in the ``products``
+     collection that match the query criteria by setting the value of
+     the field ``x`` to ``6`` and the value of the field ``y`` to
+     ``15``. This operation does not affect any other fields in
+     documents in the ``products`` collection.
+
+     You can perform the same operation by calling the
+     :method:`~db.collection.update()` method with the ``multi``
+     parameter:
+
+     .. code-block:: javascript
+
+        db.products.update( { item: "book", qty: { $gt: 5 } }, { $set: { x: 6, y: 15 } }, false, true )
+
+   - To update a document or to insert a new document if no
+     document matches the query criteria, call the
+     :method:`~db.collection.update()` and specify the
+     ``upsert`` option in the ``options`` argument, as in the
+     following:
+
+     .. code-block:: javascript
+
+        db.products.update( { item: "magazine", qty: { $gt: 5 } }, { $set: { x: 25, y: 50 } }, { upsert: true } )
+
+     This operation will:
+
+     - update a single document in the ``products`` collection that
+       matches the query criteria, setting the value of the field
+       ``x`` to ``25`` and the value of the field ``y`` to ``50``, *or*
+
+     - if no matching document exists, insert a document in the
+       ``products`` collection, with the field ``item`` set to
+       ``magazine``, the field ``x`` set to ``25``, and the field ``y``
+       set to ``50``.
+
+     .. Commented out to encourage people to use the above form.
+     ..
+     .. You can also perform the same update by calling the
+     .. :method:`~db.collection.update()` method with the ``upsert``
+     .. parameter:
+
+     .. .. code-block:: javascript
+
+     ..    db.products.update( { item: "magazine", qty: { $gt: 5 } }, { $set: { x: 25, y: 50 } }, true )
+
+   .. examples-end

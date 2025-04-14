@@ -1,0 +1,134 @@
+============
+cursor.max()
+============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. method:: cursor.max()
+
+   The :method:`max() <cursor.max()>` method specifies the *exclusive*
+   upper bound for a specific index in order to constrain the results
+   of :method:`find() <db.collection.find()>`. :method:`max()
+   <cursor.max()>` provides a way to specify an upper bound on compound
+   key indexes.
+
+   :method:`max() <cursor.max()>` takes the following parameter:
+
+   :param document indexBounds:
+
+          Specifies the exclusive upper bound for the index keys. The
+          ``indexBounds`` parameter has the following prototype form:
+
+          .. code-block:: javascript
+
+             { field1: <max value>, field2: <max value2> ... fieldN:<max valueN>}
+
+          The fields correspond to *all* the keys of a particular index
+          *in order*. You can explicitly specify the particular index
+          with the :method:`hint() <cursor.hint()>` method. Otherwise,
+          :binary:`~bin.mongod` selects the index using the fields in the
+          ``indexBounds``; however, if multiple indexes exist on same
+          fields with different sort orders, the selection of the index
+          may be ambiguous.
+
+   .. seealso:: :method:`min() <cursor.min()>`.
+
+   Consider the following example of :method:`max() <cursor.max()>`,
+   which assumes a collection named ``products`` that holds the
+   following documents:
+
+   .. code-block:: javascript
+
+      { "_id" : 6, "item" : "apple", "type" : "cortland", "price" : 1.29 }
+      { "_id" : 2, "item" : "apple", "type" : "fuji", "price" : 1.99 }
+      { "_id" : 1, "item" : "apple", "type" : "honey crisp", "price" : 1.99 }
+      { "_id" : 3, "item" : "apple", "type" : "jonagold", "price" : 1.29 }
+      { "_id" : 4, "item" : "apple", "type" : "jonathan", "price" : 1.29 }
+      { "_id" : 5, "item" : "apple", "type" : "mcintosh", "price" : 1.29 }
+      { "_id" : 7, "item" : "orange", "type" : "cara cara", "price" : 2.99 }
+      { "_id" : 10, "item" : "orange", "type" : "navel", "price" : 1.39 }
+      { "_id" : 9, "item" : "orange", "type" : "satsuma", "price" : 1.99 }
+      { "_id" : 8, "item" : "orange", "type" : "valencia", "price" : 0.99 }
+
+   The collection has the following indexes:
+
+   .. code-block:: javascript
+
+      { "_id" : 1 }
+      { "item" : 1, "type" : 1 }
+      { "item" : 1, "type" : -1 }
+      { "price" : 1 }
+
+   - Using the ordering of ``{ item: 1, type: 1 }`` index,
+     :method:`max() <cursor.max()>` limits the query to the documents
+     that are below the bound of ``item`` equal to ``apple`` and
+     ``type`` equal to ``jonagold``:
+
+     .. code-block:: javascript
+
+        db.products.find().max( { item: 'apple', type: 'jonagold' } ).hint( { item: 1, type: 1 } )
+
+     The query returns the following documents:
+
+     .. code-block:: javascript
+
+        { "_id" : 6, "item" : "apple", "type" : "cortland", "price" : 1.29 }
+        { "_id" : 2, "item" : "apple", "type" : "fuji", "price" : 1.99 }
+        { "_id" : 1, "item" : "apple", "type" : "honey crisp", "price" : 1.99 }
+
+     If the query did not explicitly specify the index with the
+     :method:`hint() <cursor.hint()>` method, it is ambiguous as to
+     whether :binary:`~bin.mongod` would select the ``{ item: 1, type: 1
+     }`` index ordering or the ``{ item: 1, type: -1 }`` index ordering.
+
+   - Using the ordering of the index ``{ price: 1 }``, :method:`max()
+     <cursor.max()>` limits the query to the documents that are below
+     the index key bound of ``price`` equal to ``1.99`` and
+     :method:`min() <cursor.min()>` limits the query to the documents
+     that are at or above the index key bound of ``price`` equal to
+     ``1.39``:
+
+     .. code-block:: javascript
+
+         db.products.find().min( { price: 1.39 } ).max( { price: 1.99 } ).hint( { price: 1 } )
+
+     The query returns the following documents:
+
+     .. code-block:: javascript
+
+        { "_id" : 6, "item" : "apple", "type" : "cortland", "price" : 1.29 }
+        { "_id" : 4, "item" : "apple", "type" : "jonathan", "price" : 1.29 }
+        { "_id" : 5, "item" : "apple", "type" : "mcintosh", "price" : 1.29 }
+        { "_id" : 3, "item" : "apple", "type" : "jonagold", "price" : 1.29 }
+        { "_id" : 10, "item" : "orange", "type" : "navel", "price" : 1.39 }
+
+   .. note::
+
+      - Because :method:`max() <cursor.max()>` requires an index on a
+        field, and forces the query to use this index, you may prefer
+        the :query:`$lt` operator for the query if
+        possible. Consider the following example:
+
+        .. code-block:: javascript
+
+           db.products.find( { _id: 7 } ).max( { price: 1.39 } )
+
+        The query will use the index on the ``price`` field, even if
+        the index on ``_id`` may be better.
+
+      - :method:`max() <cursor.max()>` exists primarily to support the
+        :binary:`~bin.mongos` (sharding) process.
+
+      - If you use :method:`max() <cursor.max()>` with :method:`min()
+        <cursor.min()>` to specify a range, the index bounds specified
+        in :method:`min() <cursor.min()>` and :method:`max()
+        <cursor.max()>` must both refer to the keys of the same index.
+
+      - :method:`max() <cursor.max()>` is a shell wrapper around the
+        special operator :operator:`$max`.

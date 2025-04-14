@@ -1,0 +1,115 @@
+======================================================
+Create Backup of a Sharded Cluster with Database Dumps
+======================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+This document describes a procedure for taking a backup of all
+components of a sharded cluster. This procedure
+uses :binary:`~bin.mongodump` to create dumps of the :binary:`~bin.mongod`
+instance. An alternate procedure uses file system snapshots to capture
+the backup data, and may be more efficient in some situations if your
+system configuration allows file system backups. See
+:doc:`/tutorial/backup-sharded-cluster-with-filesystem-snapshots`.
+
+See :ref:`sharded-cluster-backups` for a full higher level overview
+of backing up a sharded cluster as well as links to other tutorials that
+provide alternate procedures.
+
+.. include:: /includes/note-shard-cluster-backup.rst
+
+Procedure
+---------
+
+In this procedure, you will stop the cluster balancer and take a backup
+up of the :term:`config database`, and then take backups of each
+shard in the cluster using :binary:`~bin.mongodump` to capture the backup
+data. If you need an exact moment-in-time snapshot of the system, you will
+need to stop all application writes before taking the filesystem
+snapshots; otherwise the snapshot will only approximate a moment of
+time.
+
+For approximate point-in-time snapshots, you can improve the quality
+of the backup while minimizing impact on the cluster by taking the
+backup from a secondary member of the replica set that provides each
+shard.
+
+1. Disable the :term:`balancer` process that equalizes the
+   distribution of data among the :term:`shards <shard>`. To disable
+   the balancer, use the :method:`sh.stopBalancer()` method in the
+   :binary:`~bin.mongo` shell, and see the
+   :ref:`sharding-balancing-disable-temporarily` procedure.
+
+   .. warning::
+
+      It is essential that you stop the balancer before creating
+      backups. If the balancer remains active, your resulting backups
+      could have duplicate data or miss some data, as :term:`chunks
+      <chunk>` migrate while recording backups.
+
+#. Lock one member of each replica set in each shard so that your
+   backups reflect the state of your database at the nearest possible
+   approximation of a single moment in time. Lock these
+   :binary:`~bin.mongod` instances in as short of an interval as possible.
+
+   To lock or freeze a sharded cluster, you must:
+
+   - Shutdown one member of each replica set.
+
+     Ensure that the :term:`oplog` has sufficient capacity to allow
+     these secondaries to catch up to the state of the primaries after
+     finishing the backup procedure. See
+     :ref:`replica-set-oplog-sizing` for more information.
+
+   - Shutdown one of the :ref:`config servers <sharding-config-server>`, to
+     prevent all metadata changes during the backup process.
+
+#. Use :binary:`~bin.mongodump` to backup one of the :ref:`config servers
+   <sharding-config-server>`. This backs up the cluster's
+   metadata. You only need to back up one config server, as they all
+   hold the same data.
+
+   Issue this command against one of the config :binary:`~bin.mongod`
+   instances or via the :binary:`~bin.mongos`:
+
+   .. code-block:: sh
+
+      mongodump --journal --db config
+
+#. Back up the replica set members of the shards that shut down using
+   :binary:`~bin.mongodump` and specifying the :option:`--dbpath <mongodump --dbpath>`
+   option. You may back up the shards in parallel. Consider the
+   following invocation:
+
+   .. code-block:: sh
+
+      mongodump --journal --dbpath /data/db/ --out /data/backup/
+
+   You must run this command on the system where the :binary:`~bin.mongod`
+   ran. This operation will use journaling and create a dump of the
+   entire :binary:`~bin.mongod` instance with data files stored in
+   ``/data/db/``. :binary:`~bin.mongodump` will write the output of this
+   dump to the ``/data/backup/`` directory.
+
+#. Restart all stopped replica set members of each shard as normal and
+   allow them to catch up with the state of the primary.
+
+#. Re-enable the balancer with the :method:`sh.setBalancerState()`
+   method.
+
+   Use the following command sequence when connected to the
+   :binary:`~bin.mongos` with the :binary:`~bin.mongo` shell:
+
+   .. code-block:: javascript
+
+      use config
+      sh.setBalancerState(true)

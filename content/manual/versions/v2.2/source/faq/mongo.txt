@@ -1,0 +1,177 @@
+========================
+FAQ: The ``mongo`` Shell
+========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+.. _mongo-shell-tips:
+
+How can I enter multi-line operations in the ``mongo`` shell?
+-------------------------------------------------------------
+
+If you end a line with an open parenthesis (``'('``), an open brace
+(``'{'``), or an open bracket (``'['``), then the subsequent lines start
+with ellipsis (``"..."``) until you enter the corresponding closing
+parenthesis (``')'``), the closing brace (``'}'``) or the closing
+bracket (``']'``). The :binary:`~bin.mongo` shell waits for the closing
+parenthesis, closing brace, or the closing bracket before evaluating
+the code, as in the following example:
+
+.. code-block:: javascript
+
+   > if ( x > 0 ) {
+   ... count++;
+   ... print (x);
+   ... }
+
+You can exit the line continuation mode if you enter two blank
+lines, as in the following example:
+
+.. code-block:: javascript
+
+   > if (x > 0
+   ...
+   ...
+   >
+
+.. _mongo-shell-getSiblingDB:
+
+How can I access different databases temporarily?
+-------------------------------------------------
+
+You can use :method:`db.getSiblingDB()` method to access another
+database without switching databases, as in the following example which
+first switches to the ``test`` database and then accesses the
+``sampleDB`` database from the ``test`` database:
+
+.. code-block:: javascript
+
+   use test
+
+   db.getSiblingDB('sampleDB').getCollectionNames();
+
+.. _mongo-shell-keyboard-shortcuts:
+
+Does the ``mongo`` shell support tab completion and other keyboard shortcuts?
+-----------------------------------------------------------------------------
+
+The :binary:`~bin.mongo` shell supports keyboard shortcuts. For example,
+
+- Use the up/down arrow keys to scroll through command history. See
+  :ref:`.dbshell <mongo-dbshell-file>` documentation for more
+  information on the ``.dbshell`` file.
+
+- Use ``<Tab>`` to autocomplete or to list the completion
+  possibilities, as in the following example which uses ``<Tab>`` to
+  complete the method name starting with the letter ``'c'``:
+
+  .. code-block:: javascript
+
+     db.myCollection.c<Tab>
+
+  Because there are many collection methods starting with the letter
+  ``'c'``, the ``<Tab>`` will list the various methods that start with
+  ``'c'``.
+
+For a full list of the shortcuts, see :ref:`Shell Keyboard Shortcuts <mongo-keyboard-shortcuts>`
+
+How can I customize the ``mongo`` shell prompt?
+-----------------------------------------------
+
+.. versionadded:: 1.9
+
+You can change the :binary:`~bin.mongo` shell prompt by setting the
+``prompt`` variable. This makes it possible to display additional
+information in the prompt.
+
+Set ``prompt`` to any string or arbitrary JavaScript code that returns
+a string, consider the following examples:
+
+- Set the shell prompt to display the hostname and the database issued:
+
+  .. code-block:: javascript
+
+     var host = db.serverStatus().host;
+     var prompt = function() { return db+"@"+host+"> "; }
+
+  The :binary:`~bin.mongo` shell prompt should now reflect the new prompt:
+
+  .. code-block:: none
+
+     test@my-machine.local>
+
+- Set the shell prompt to display the database statistics:
+
+  .. code-block:: javascript
+
+     var prompt = function() {
+                     return "Uptime:"+db.serverStatus().uptime+" Documents:"+db.stats().objects+" > ";
+                  }
+
+  The :binary:`~bin.mongo` shell prompt should now reflect the new prompt:
+
+  .. code-block:: none
+
+     Uptime:1052 Documents:25024787 >
+
+You can add the logic for the prompt in the :ref:`.mongorc.js
+<mongo-mongorc-file>` file to set the prompt each time you start up the
+:binary:`~bin.mongo` shell.
+
+Can I edit long shell operations with an external text editor?
+--------------------------------------------------------------
+
+.. versionadded: 2.1
+
+You can use your own editor in the :binary:`~bin.mongo` shell by setting
+the :envvar:`EDITOR` environment variable before starting the
+:binary:`~bin.mongo` shell. Once in the :binary:`~bin.mongo` shell, you can
+edit with the specified editor by typing ``edit <variable>`` or ``edit
+<function>``, as in the following example:
+
+#. Set the :envvar:`EDITOR` variable from the command line prompt:
+
+   .. code-block:: sh
+
+      EDITOR=vim
+
+#. Start the :binary:`~bin.mongo` shell:
+
+   .. code-block:: sh
+
+      mongo
+
+#. Define a function ``myFunction``:
+
+   .. code-block:: javascript
+
+      function myFunction () { }
+
+#. Edit the function using your editor:
+
+   .. code-block:: javascript
+
+      edit myFunction
+
+   The command should open the ``vim`` edit session. Remember to save
+   your changes.
+
+#. Type ``myFunction`` to see the function definition:
+
+   .. code-block:: javascript
+
+      myFunction
+
+   The result should be the changes from your saved edit:
+
+   .. code-block:: javascript
+
+      function myFunction() {
+          print("This was edited");
+      }

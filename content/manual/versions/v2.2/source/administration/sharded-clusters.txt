@@ -1,0 +1,421 @@
+.. index:: sharded clusters
+.. _sharding-sharded-cluster:
+
+==============================
+Sharded Cluster Administration
+==============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Sharding occurs within a :term:`sharded cluster`. A sharded cluster
+consists of the following components:
+
+- :ref:`Shards <sharding-shards>`. Each shard is a separate
+  :binary:`~bin.mongod` instance or :term:`replica set` that holds a portion
+  of the database collections.
+
+- :ref:`Config servers <sharding-config-server>`. Each config server is
+  a :binary:`~bin.mongod` instance that holds metadata about the cluster.
+  The metadata maps :term:`chunks <chunk>` to shards.
+
+- :ref:`mongos instances <sharding-mongos>`. The :binary:`~bin.mongos`
+  instances route the reads and writes to the shards.
+
+.. seealso::
+
+   - For specific configurations, see :ref:`sharding-architecture`.
+
+   - To set up sharded clusters, see :ref:`sharding-procedure-setup`.
+
+.. index:: sharding; shards
+.. index:: shards
+.. _sharding-shards:
+
+Shards
+------
+
+A shard is a container that holds a subset of a collection’s data. Each
+shard is either a single :binary:`~bin.mongod` instance or a :term:`replica
+set`. In production, all shards should be replica sets.
+
+Applications do not access the shards directly. Instead, the
+:ref:`mongos instances <sharding-mongos>` routes reads and writes from
+applications to the shards.
+
+.. index:: sharding; config servers
+.. index:: config servers
+.. _sharding-config-server:
+
+Config Servers
+--------------
+
+Config servers maintain the shard metadata in a config database. The
+:term:`config database` stores the relationship between :term:`chunks
+<chunk>` and where they reside within a :term:`sharded cluster`. Without
+a config database, the :binary:`~bin.mongos` instances would be unable to
+route queries or write operations within the cluster.
+
+Config servers *do not* run as replica sets. Instead, a :term:`cluster
+<sharded cluster>` operates with a group of *three* config servers that use a
+two-phase commit process that ensures immediate consistency and
+reliability.
+
+For testing purposes you may deploy a cluster with a single
+config server, but this is not recommended for production.
+
+.. warning::
+
+   If your cluster has a single config server, this
+   :binary:`~bin.mongod` is a single point of failure.  If the instance is
+   inaccessible the cluster is not accessible. If you cannot recover
+   the data on a config server, the cluster will be inoperable.
+
+   **Always** use three config servers for production deployments.
+
+The actual load on configuration servers is small because each
+:binary:`~bin.mongos` instance maintains a cached copy of the configuration
+database. MongoDB only writes data to the config server to:
+
+- create splits in existing chunks, which happens as data in
+  existing chunks exceeds the maximum chunk size.
+
+- migrate a chunk between shards.
+
+Additionally, all config servers must be available on initial setup
+of a sharded cluster, each :binary:`~bin.mongos` instance must be able
+to write to the ``config.version`` collection.
+
+If one or two configuration instances become unavailable, the
+cluster's metadata becomes *read only*. It is still possible to read
+and write data from the shards, but no chunk migrations or splits will
+occur until all three servers are accessible. At the same time, config
+server data is only read in the following situations:
+
+- A new :binary:`~bin.mongos` starts for the first time, or an existing
+  :binary:`~bin.mongos` restarts.
+
+- After a chunk migration, the :binary:`~bin.mongos` instances update
+  themselves with the new cluster metadata.
+
+If all three config servers are inaccessible, you can continue to use
+the cluster as long as you don't restart the :binary:`~bin.mongos`
+instances until after config servers are accessible again. If you
+restart the :binary:`~bin.mongos` instances and there are no accessible
+config servers, the :binary:`~bin.mongos` would be unable to direct
+queries or write operations to the cluster.
+
+Because the configuration data is small relative to the amount of data
+stored in a cluster, the amount of activity is relatively low, and 100%
+up time is not required for a functioning sharded cluster. As a result,
+backing up the config servers is not difficult. Backups of config
+servers are critical as clusters become totally inoperable when
+you lose all configuration instances and data. Precautions to ensure
+that the config servers remain available and intact are critical.
+
+.. note::
+
+   Configuration servers store metadata for a single sharded cluster.
+   You must have a separate configuration server or servers for each
+   cluster you administer.
+
+.. index:: mongos
+.. _sharding-mongos:
+.. _sharding-read-operations:
+
+Sharded Cluster Operations and ``mongos`` Instances
+---------------------------------------------------
+
+The :binary:`~bin.mongos` program provides a single unified interface to a sharded
+cluster for applications using MongoDB. Except for the selection of a
+:term:`shard key`, application developers and administrators need not
+consider any of the :ref:`internal details of sharding <sharding-internals>`.
+
+:binary:`~bin.mongos` caches data from the :ref:`config server
+<sharding-config-server>`, and uses this to route operations from
+applications and clients to the :binary:`~bin.mongod` instances.
+:binary:`~bin.mongos` have no *persistent* state and consume
+minimal system resources.
+
+The most common practice is to run :binary:`~bin.mongos` instances on the
+same systems as your application servers, but you can maintain
+:binary:`~bin.mongos` instances on the shards or on other dedicated
+resources.
+
+.. note::
+
+   .. versionchanged:: 2.1
+
+   Some aggregation operations using the :dbcommand:`aggregate`
+   command (i.e. :method:`db.collection.aggregate()`,) will cause
+   :binary:`~bin.mongos` instances to require more CPU resources than in
+   previous versions. This modified performance profile may dictate
+   alternate architecture decisions if you use the :term:`aggregation
+   framework` extensively in a sharded environment.
+
+.. _sharding-query-routing:
+
+Automatic Operation and Query Routing with ``mongos``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:binary:`~bin.mongos` uses information from :ref:`config servers
+<sharding-config-server>` to route operations to the cluster as
+efficiently as possible. In general, operations in a sharded
+environment are either:
+
+1. Targeted at a single shard or a limited group of shards based on
+   the shard key.
+
+2. Broadcast to all shards in the cluster that hold documents in a
+   collection.
+
+When possible you should design your operations to be as targeted as
+possible. Operations have the following targeting characteristics:
+
+- Query operations broadcast to all shards [#namespace-exception]_
+  **unless** the :binary:`~bin.mongos` can determine which shard or shard
+  stores this data.
+
+  For queries that include the shard key, :binary:`~bin.mongos` can target
+  the query at a specific shard or set of shards, if the portion
+  of the shard key included in the query is a *prefix* of the shard
+  key. For example, if the shard key is:
+
+  .. code-block:: javascript
+
+     { a: 1, b: 1, c: 1 }
+
+  The :binary:`~bin.mongos` program *can* route queries that include the full
+  shard key or either of the following shard key prefixes at a
+  specific shard or set of shards:
+
+  .. code-block:: javascript
+
+     { a: 1 }
+     { a: 1, b: 1 }
+
+  Depending on the distribution of data in the cluster and the
+  selectivity of the query, :binary:`~bin.mongos` may still have to
+  contact multiple shards [#possible-all]_ to fulfill these queries.
+
+- All :method:`insert() <db.collection.insert()>` operations target to
+  one shard.
+
+- All single :method:`update() <db.collection.update()>` operations
+  target to one shard. This includes :term:`upsert` operations.
+
+- The :binary:`~bin.mongos` broadcasts multi-update operations to every
+  shard.
+
+- The :binary:`~bin.mongos` broadcasts :method:`remove()
+  <db.collection.remove()>` operations to every shard unless the
+  operation specifies the shard key in full.
+
+While some operations must broadcast to all shards, you can improve
+performance by using as many targeted operations as possible by
+ensuring that your operations include the shard key.
+
+.. [#namespace-exception] If a shard does not store chunks from a
+   given collection, queries for documents in that collection are not
+   broadcast to that shard.
+
+.. [#a/c-as-a-case-of-a] In this example, a :binary:`~bin.mongos` could
+   route a query that included ``{ a: 1, c: 1 }`` fields at a specific
+   subset of shards using the ``{ a: 1 }`` prefix. A :binary:`~bin.mongos`
+   cannot route any of the following queries to specific shards
+   in the cluster:
+
+   .. code-block:: javascript
+
+      { b: 1 }
+      { c: 1 }
+      { b: 1, c: 1 }
+
+.. [#possible-all] :binary:`~bin.mongos` will route some queries, even
+   some that include the shard key, to all shards, if needed.
+
+Sharded Query Response Process
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To route a query to a :term:`cluster <sharded cluster>`,
+:binary:`~bin.mongos` uses the following process:
+
+#. Determine the list of :term:`shards <shard>` that must receive the query.
+
+   In some cases, when the :term:`shard key` or a prefix of the shard
+   key is a part of the query, the :binary:`~bin.mongos` can route the
+   query to a subset of the shards. Otherwise, the :binary:`~bin.mongos`
+   must direct the query to *all* shards that hold documents for that
+   collection.
+
+   .. example::
+
+      Given the following shard key:
+
+      .. code-block:: javascript
+
+         { zipcode: 1, u_id: 1, c_date: 1 }
+
+      Depending on the distribution of chunks in the cluster, the
+      :binary:`~bin.mongos` may be able to target the query at a subset of
+      shards, if the query contains the following fields:
+
+      .. code-block:: javascript
+
+         { zipcode: 1 }
+         { zipcode: 1, u_id: 1 }
+         { zipcode: 1, u_id: 1, c_date: 1 }
+
+#. Establish a cursor on all targeted shards.
+
+   When the first batch of results returns from the cursors:
+
+   a. For query with sorted results (i.e. using
+      :method:`cursor.sort()`) the :binary:`~bin.mongos` instance performs a merge
+      sort of all queries.
+
+   b. For a query with unsorted results, the :binary:`~bin.mongos` instance returns
+      a result cursor that "round robins" results from all cursors on
+      the shards.
+
+      .. versionchanged:: 2.0.5
+         Before 2.0.5, the :binary:`~bin.mongos` exhausted each cursor,
+         one by one.
+
+.. _sharding-security:
+
+Sharded Cluster Security Considerations
+---------------------------------------
+
+MongoDB controls access to :term:`sharded clusters <sharded cluster>`
+with key files that store authentication credentials. The components
+of sharded clusters use the secret stored in the key files when
+authenticating to each other. Create key files and then point your
+:binary:`~bin.mongos` and :binary:`~bin.mongod` instances to the files, as
+described later in this section.
+
+Beyond the :setting:`auth` mechanisms described in this section,
+always run your sharded clusters in trusted networking environments
+that limit access to the cluster with network rules. Your networking
+environments should enforce restrictions that ensure only known
+traffic reaches your :binary:`~bin.mongos` and :binary:`~bin.mongod`
+instances.
+
+This section describes authentication specific to sharded
+clusters. For information on authentication across MongoDB, see
+:ref:`security-authentication`.
+
+Access Control Privileges in Sharded Clusters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In sharded clusters, MongoDB provides separate administrative
+privileges for the sharded cluster and for each shard. Beyond these
+administration privileges, privileges for sharded cluster deployments
+are functionally the same as any other MongoDB deployment. See,
+:ref:`security-authentication` for more information.
+
+For sharded clusters, MongoDB provides these separate administrative
+privileges:
+
+- Administrative privileges for the sharded cluster. These privileges
+  provide read-and-write access to the config servers' ':term:`admin
+  <admin database>`. These users can run all administrative commands.
+  Administrative privileges also give the user read-and-write access
+  to all the cluster's databases.
+
+  The credentials for administrative privileges on the cluster reside on
+  the config servers. To receive admin access to the cluster, you must
+  authenticate a session while connected to a :binary:`~bin.mongos` instance
+  using the admin database.
+
+- Administrative privileges for the :binary:`~bin.mongod` instance, or
+  :term:`replica set`, that provides each individual shard. Each shard
+  has its own admin database that stores administrative credentials
+  and access for that shard only. These credentials are *completely*
+  distinct from the cluster-wide administrative credentials.
+
+  As with all :binary:`~bin.mongod` instances, MongoDB provides two types
+  of administrative privileges for a shard:
+
+  - Normal administrative privileges, which provide read-and-write
+    access to the admin database and access to all administrative
+    commands, and which provide read-and-write access to all other
+    databases on that shard.
+
+  - Read-only administrative privileges, which provide read-only access
+    to the admin database and to all other databases on that shard.
+
+Also, as with all :binary:`~bin.mongod` instances, a MongoDB sharded cluster
+provides the following non-administrative user privileges:
+
+- Normal privileges, which provide read-and-write access to a specific
+  database. Users with normal privilege can add users to the database.
+
+- Read-only privileges, which provide read-only access to a specific
+  database.
+
+For more information on privileges, see :ref:`security-authentication`.
+
+Enable Authentication in a Sharded Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 2.0
+   Support for authentication with sharded clusters.
+
+To control access to a sharded cluster, create key files and then set
+the :setting:`keyFile` option on *all* components of the sharded
+cluster, including all :binary:`~bin.mongos` instances, all config server
+:binary:`~bin.mongod` instances, and all shard :binary:`~bin.mongod`
+instances. The content of the key file is arbitrary but must be the
+same on all cluster members.
+
+To enable authentication, do the following:
+
+1. Generate a key file to store authentication information, as described
+   in the :ref:`generate-key-file` section.
+
+#. On each component in the sharded cluster, enable authentication by
+   doing one of the following:
+
+   - In the configuration file, set the :setting:`keyFile` option to the
+     key file's path and then start the component, as in the following
+     example:
+
+     .. code-block:: cfg
+
+        keyFile = /srv/mongodb/keyfile
+
+   - When starting the component, set :option:`--keyFile <mongos --keyFile>` option,
+     which is an option for both :binary:`~bin.mongos` instances and
+     :binary:`~bin.mongod` instances. Set the :option:`--keyFile <mongos --keyFile>`
+     to the key file's path.
+
+   .. note::
+
+      The :setting:`keyFile` setting implies :setting:`auth`, which
+      means in most cases you do not need to set :setting:`auth`
+      explicitly.
+
+#. Add the first administrative user and then add subsequent users. See
+   :ref:`control-access-add-users`.
+
+Access a Sharded Cluster with Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To access a sharded cluster as an authenticated admin user, see
+:ref:`control-access-admin-access`.
+
+To access a sharded cluster as an authenticated, non-admin user, see
+either of the following:
+
+- :dbcommand:`authenticate`
+
+- :method:`db.auth()`
+
+To terminate an authenticated session, see the :dbcommand:`logout`
+command.

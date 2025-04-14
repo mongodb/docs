@@ -1,0 +1,526 @@
+======
+Create
+======
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Of the four basic database operations (i.e. CRUD), *create* operations
+are those that add new records or :term:`documents <document>` to a
+:term:`collection` in MongoDB. For general information about write
+operations and the factors that affect their performance, see
+:doc:`/core/write-operations`; for documentation of the other CRUD
+operations, see the :doc:`/crud` page.
+
+Overview
+--------
+
+You can create documents in a MongoDB collection using any of the
+following basic operations:
+
+- :ref:`insert <crud-create-insert>`
+
+- :ref:`updates with the upsert option <crud-create-update>`
+
+All insert operations in MongoDB exhibit the following properties:
+
+- If you attempt to insert a document without the :term:`_id` field,
+  the client library *or* the :binary:`~bin.mongod` instance will add an
+  ``_id`` field and populate the field with a unique :term:`ObjectId
+  <objectid>`.
+
+- For operations with :ref:`write concern <write-concern>`, if you
+  specify an ``_id`` field, the ``_id`` field must be unique within
+  the collection; otherwise the :binary:`~bin.mongod` will return a
+  duplicate key exception.
+
+- .. include:: /includes/fact-document-max-size.rst
+
+- .. include:: /includes/fact-document-field-name-restrictions.rst
+
+.. note::
+
+   .. include:: /includes/fact-write-concern.rst
+
+.. _crud-create-insert:
+
+``insert()``
+------------
+
+The :method:`~db.collection.insert()` is the primary method
+to insert a document or documents into a MongoDB collection, and has
+the following syntax:
+
+.. code-block:: javascript
+
+   db.collection.insert( <document> )
+
+.. admonition:: Corresponding Operation in SQL
+
+   The :method:`~db.collection.insert()` method is analogous
+   to the ``INSERT`` statement.
+
+Insert the First Document in a Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the collection does not exist [#show-collection]_, then the
+:method:`~db.collection.insert()` method creates the
+collection during the first insert. Specifically in the example, if the
+collection ``bios`` does not exist , then the insert operation will
+create this collection:
+
+.. code-block:: javascript
+
+   db.bios.insert(
+      {
+        _id: 1,
+        name: { first: 'John', last: 'Backus' },
+        birth: new Date('Dec 03, 1924'),
+        death: new Date('Mar 17, 2007'),
+        contribs: [ 'Fortran', 'ALGOL', 'Backus-Naur Form', 'FP' ],
+        awards: [
+                  {
+                    award: 'W.W. McDowell Award',
+                    year: 1967,
+                    by: 'IEEE Computer Society'
+                  },
+                  {
+                    award: 'National Medal of Science',
+                    year: 1975,
+                    by: 'National Science Foundation'
+                  },
+                  {
+                    award: 'Turing Award',
+                    year: 1977,
+                    by: 'ACM'
+                  },
+                  {
+                    award: 'Draper Prize',
+                    year: 1993,
+                    by: 'National Academy of Engineering'
+                  }
+                ]
+      }
+   )
+
+You can confirm the insert by :doc:`querying </applications/read>`
+the ``bios`` collection:
+
+.. code-block:: javascript
+
+   db.bios.find()
+
+This operation returns the following document from the ``bios``
+collection:
+
+.. code-block:: javascript
+
+   {
+     "_id" : 1,
+     "name" : { "first" : "John", "last" : "Backus" },
+     "birth" : ISODate("1924-12-03T05:00:00Z"),
+     "death" : ISODate("2007-03-17T04:00:00Z"),
+     "contribs" : [ "Fortran", "ALGOL", "Backus-Naur Form", "FP" ],
+     "awards" : [
+                  {
+                    "award" : "W.W. McDowell Award",
+                    "year" : 1967,
+                    "by" : "IEEE Computer Society"
+                  },
+                  {
+                    "award" : "National Medal of Science",
+                    "year" : 1975,
+                    "by" : "National Science Foundation"
+                  },
+                  {
+                    "award" : "Turing Award",
+                    "year" : 1977,
+                    "by" : "ACM"
+                  },
+                  { "award" : "Draper Prize",
+                    "year" : 1993,
+                    "by" : "National Academy of Engineering"
+                  }
+                ]
+   }
+
+Insert a Document without Specifying an ``_id`` Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the new document does not contain an ``_id`` field, then the
+:method:`~db.collection.insert()` method adds the ``_id``
+field to the document and generates a unique ``ObjectId`` for the value:
+
+.. code-block:: javascript
+
+   db.bios.insert(
+      {
+        name: { first: 'John', last: 'McCarthy' },
+        birth: new Date('Sep 04, 1927'),
+        death: new Date('Dec 24, 2011'),
+        contribs: [ 'Lisp', 'Artificial Intelligence', 'ALGOL' ],
+        awards: [
+                  {
+                    award: 'Turing Award',
+                    year: 1971,
+                    by: 'ACM'
+                  },
+                  {
+                    award: 'Kyoto Prize',
+                    year: 1988,
+                    by: 'Inamori Foundation'
+                  },
+                  {
+                    award: 'National Medal of Science',
+                    year: 1990,
+                    by: 'National Science Foundation'
+                  }
+                ]
+      }
+   )
+
+You can verify the inserted document by the querying the ``bios``
+collection:
+
+.. code-block:: javascript
+
+   db.bios.find( { name: { first: 'John', last: 'McCarthy' } } )
+
+The returned document contains an ``_id`` field with the generated
+``ObjectId`` value:
+
+.. code-block:: javascript
+
+   {
+     "_id" : ObjectId("50a1880488d113a4ae94a94a"),
+     "name" : { "first" : "John", "last" : "McCarthy" },
+     "birth" : ISODate("1927-09-04T04:00:00Z"),
+     "death" : ISODate("2011-12-24T05:00:00Z"),
+     "contribs" : [ "Lisp", "Artificial Intelligence", "ALGOL" ],
+     "awards" : [
+                  {
+                    "award" : "Turing Award",
+                    "year" : 1971,
+                    "by" : "ACM"
+                  },
+                  {
+                    "award" : "Kyoto Prize",
+                    "year" :1988,
+                    "by" : "Inamori Foundation"
+                  },
+                  {
+                    "award" : "National Medal of Science",
+                    "year" : 1990,
+                    "by" : "National Science Foundation"
+                  }
+                ]
+   }
+
+Bulk Insert Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you pass an array of documents to the
+:method:`~db.collection.insert()` method, the
+:method:`~db.collection.insert()` performs a bulk insert into a
+collection.
+
+The following operation inserts three documents into the ``bios``
+collection. The operation also illustrates the *dynamic schema*
+characteristic of MongoDB. Although the document with ``_id: 3``
+contains a field ``title`` which does not appear in the other
+documents, MongoDB does not require the other documents to contain this
+field:
+
+.. code-block:: javascript
+
+   db.bios.insert(
+      [
+        {
+          _id: 3,
+          name: { first: 'Grace', last: 'Hopper' },
+          title: 'Rear Admiral',
+          birth: new Date('Dec 09, 1906'),
+          death: new Date('Jan 01, 1992'),
+          contribs: [ 'UNIVAC', 'compiler', 'FLOW-MATIC', 'COBOL' ],
+          awards: [
+                    {
+                      award: 'Computer Sciences Man of the Year',
+                      year: 1969,
+                      by: 'Data Processing Management Association'
+                    },
+                    {
+                      award: 'Distinguished Fellow',
+                      year: 1973,
+                      by: ' British Computer Society'
+                    },
+                    {
+                      award: 'W. W. McDowell Award',
+                      year: 1976,
+                      by: 'IEEE Computer Society'
+                    },
+                    {
+                      award: 'National Medal of Technology',
+                      year: 1991,
+                      by: 'United States'
+                    }
+                  ]
+        },
+        {
+          _id: 4,
+          name: { first: 'Kristen', last: 'Nygaard' },
+          birth: new Date('Aug 27, 1926'),
+          death: new Date('Aug 10, 2002'),
+          contribs: [ 'OOP', 'Simula' ],
+          awards: [
+                    {
+                      award: 'Rosing Prize',
+                      year: 1999,
+                      by: 'Norwegian Data Association'
+                    },
+                    {
+                      award: 'Turing Award',
+                      year: 2001,
+                      by: 'ACM'
+                    },
+                    {
+                      award: 'IEEE John von Neumann Medal',
+                      year: 2001,
+                      by: 'IEEE'
+                    }
+                  ]
+        },
+        {
+          _id: 5,
+          name: { first: 'Ole-Johan', last: 'Dahl' },
+          birth: new Date('Oct 12, 1931'),
+          death: new Date('Jun 29, 2002'),
+          contribs: [ 'OOP', 'Simula' ],
+          awards: [
+                    {
+                      award: 'Rosing Prize',
+                      year: 1999,
+                      by: 'Norwegian Data Association'
+                    },
+                    {
+                      award: 'Turing Award',
+                      year: 2001,
+                      by: 'ACM'
+                    },
+                    {
+                      award: 'IEEE John von Neumann Medal',
+                      year: 2001,
+                      by: 'IEEE'
+                    }
+                  ]
+        }
+      ]
+   )
+
+.. _crud-create-insert-save:
+
+Insert a Document with ``save()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :method:`~db.collection.save()` method performs an insert
+if the document to save does not contain the ``_id`` field.
+
+The following :method:`~db.collection.save()` operation performs an
+insert into the ``bios`` collection since the document does not contain
+the ``_id`` field:
+
+.. code-block:: javascript
+
+   db.bios.save(
+      {
+           name: { first: 'Guido', last: 'van Rossum'},
+           birth: new Date('Jan 31, 1956'),
+           contribs: [ 'Python' ],
+           awards: [
+                     {
+                       award: 'Award for the Advancement of Free Software',
+                       year: 2001,
+                       by: 'Free Software Foundation'
+                     },
+                     {
+                       award: 'NLUUG Award',
+                       year: 2003,
+                       by: 'NLUUG'
+                     }
+                   ]
+      }
+   )
+
+.. [#show-collection] You can also view a list of the existing
+   collections in the database using the ``show collections``
+   operation in the :binary:`~bin.mongo` shell.
+
+.. _crud-create-update:
+
+``update()`` Operations with the ``upsert`` Flag
+------------------------------------------------
+
+The :method:`~db.collection.update()` operation in MongoDB accepts an
+"``upsert``" flag that modifies the behavior of
+:method:`~db.collection.update()`  from :doc:`updating existing documents
+</applications/update>`, to inserting data.
+
+These :method:`~db.collection.update()` operations with the upsert
+flag eliminate the need to perform an additional operation to check
+for existence of a record before performing either an update or an
+insert operation. These update operations have the use ``<query>``
+argument to determine the write operation:
+
+- If the query matches an existing document(s), the operation is an
+  :doc:`update </applications/update>`.
+
+- If the query matches no document in the collection, the operation is
+  an :doc:`insert </applications/create>`.
+
+An upsert operation has the following syntax [#previous-versions-upsert]_:
+
+.. code-block:: javascript
+
+   db.collection.update( <query>,
+                         <update>,
+                         { upsert: true } )
+
+.. [#previous-versions-upsert]
+   .. include:: /includes/fact-upsert-multi-options.rst
+
+Insert a Document that Contains ``field`` and ``value`` Pairs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If no document matches the ``<query>`` argument, the ``upsert``
+performs an insert. If the ``<update>`` argument includes only field
+and value pairs, the new document contains the fields and values
+specified in the ``<update>`` argument. If query does not include an
+``_id`` field, the operation adds the ``_id`` field and generates a
+unique ``ObjectId`` for its value.
+
+The following update inserts a new document into the
+``bios`` collection [#previous-versions-upsert]_:
+
+.. code-block:: javascript
+
+   db.bios.update(
+      { name: { first: 'Dennis', last: 'Ritchie'} },
+      {
+        name: { first: 'Dennis', last: 'Ritchie'},
+        birth: new Date('Sep 09, 1941'),
+        death: new Date('Oct 12, 2011'),
+        contribs: [ 'UNIX', 'C' ],
+        awards: [
+                  {
+                    award: 'Turing Award',
+                    year: 1983,
+                    by: 'ACM'
+                  },
+                  {
+                    award: 'National Medal of Technology',
+                    year: 1998,
+                    by: 'United States'
+                  },
+                  {
+                    award: 'Japan Prize',
+                    year: 2011,
+                    by: 'The Japan Prize Foundation'
+                  }
+                ]
+      },
+      { upsert: true }
+   )
+
+Insert a Document that Contains Update Operator Expressions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If no document matches the ``<query>`` argument, the update operation
+inserts a new document. If the ``<update>`` argument includes only
+:ref:`update operators <update-operators>`, the new document contains
+the fields and values from ``<query>`` argument with the operations
+from the ``<update>`` argument applied.
+
+The following operation inserts a new document into the ``bios``
+collection [#previous-versions-upsert]_:
+
+.. code-block:: javascript
+
+   db.bios.update(
+      {
+        _id: 7,
+        name: { first: 'Ken', last: 'Thompson' }
+      },
+      {
+        $set: {
+                birth: new Date('Feb 04, 1943'),
+                contribs: [ 'UNIX', 'C', 'B', 'UTF-8' ],
+                awards: [
+                          {
+                            award: 'Turing Award',
+                            year: 1983,
+                            by: 'ACM'
+                          },
+                          {
+                            award: 'IEEE Richard W. Hamming Medal',
+                            year: 1990,
+                            by: 'IEEE'
+                          },
+                          {
+                            award: 'National Medal of Technology',
+                            year: 1998,
+                            by: 'United States'
+                          },
+                          {
+                            award: 'Tsutomu Kanai Award',
+                            year: 1999,
+                            by: 'IEEE'
+                          },
+                          {
+                            award: 'Japan Prize',
+                            year: 2011,
+                            by: 'The Japan Prize Foundation'
+                          }
+                        ]
+              }
+      },
+      { upsert: true }
+   )
+
+.. _crud-create-save:
+
+Update operations with ``save()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :method:`~db.collection.save()` method is identical to an :ref:`update
+operation with the upsert flag <crud-create-update>`
+
+performs an upsert if the document to save contains the ``_id``
+field. To determine whether to perform an insert or an update,
+:method:`~db.collection.save()` method queries documents on the
+``_id`` field.
+
+The following operation performs an upsert that inserts a document into
+the ``bios`` collection since no documents in the collection contains
+an ``_id`` field with the value ``10``:
+
+.. code-block:: javascript
+
+   db.bios.save(
+      {
+        _id: 10,
+        name: { first: 'Yukihiro', aka: 'Matz', last: 'Matsumoto'},
+        birth: new Date('Apr 14, 1965'),
+        contribs: [ 'Ruby' ],
+        awards: [
+                  {
+                    award: 'Award for the Advancement of Free Software',
+                    year: '2011',
+                    by: 'Free Software Foundation'
+                  }
+                ]
+      }
+   )

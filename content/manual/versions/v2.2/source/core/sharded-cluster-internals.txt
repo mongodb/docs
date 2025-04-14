@@ -1,0 +1,631 @@
+.. index:: internals; sharding
+.. _sharding-internals:
+
+=======================================
+Sharded Cluster Internals and Behaviors
+=======================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+This document introduces lower level sharding concepts for users who are
+familiar with :term:`sharding` generally and want to learn more about
+the internals. This document provides a more detailed understanding of
+your cluster's behavior. For higher level sharding concepts, see
+:doc:`/core/sharded-clusters`. For complete documentation of sharded clusters see the
+:doc:`/sharding` section of this manual.
+
+.. index:: shard key; internals
+.. _sharding-internals-shard-keys:
+
+Shard Keys
+----------
+
+Shard keys are the field in a collection that MongoDB uses to
+distribute :term:`documents <document>` within a sharded cluster. See the
+:ref:`overview of shard keys <sharding-shard-key>` for an
+introduction to these topics.
+
+.. index:: shard key; cardinality
+.. _sharding-shard-key-cardinality:
+
+Cardinality
+~~~~~~~~~~~
+
+Cardinality in the context of MongoDB, refers to the ability of the
+system to :term:`partition` data into :term:`chunks <chunk>`. For
+example, consider a collection of data such as an "address book" that
+stores address records:
+
+- Consider the use of a ``state`` field as a shard key:
+
+  The state key's value holds the US state for a given address document.
+  This field has a *low cardinality* as all documents that have the
+  same value in the ``state`` field *must* reside on the same shard,
+  even if a particular state's chunk exceeds the maximum chunk size.
+
+  Since there are a limited number of possible values for the ``state``
+  field, MongoDB may distribute data unevenly among a small
+  number of fixed chunks. This may have a number of effects:
+
+  - If MongoDB cannot split a chunk because all of its documents
+    have the same shard key, migrations involving these un-splittable
+    chunks will take longer than other migrations, and it will be more
+    difficult for your data to stay balanced.
+
+  - If you have a fixed maximum number of chunks, you will never be
+    able to use more than that number of shards for this collection.
+
+- Consider the use of a ``zipcode`` field as a shard key:
+
+  While this field has a large number of possible values, and thus has
+  potentially higher cardinality, it's possible that a large number of users
+  could have the same value for the shard key, which would make this
+  chunk of users un-splittable.
+
+  In these cases, cardinality depends on the data. If your address book
+  stores records for a geographically distributed contact list
+  (e.g. "Dry cleaning businesses in America,") then a value like
+  zipcode would be sufficient. However, if your address book is
+  more geographically concentrated (e.g "ice cream stores in Boston
+  Massachusetts,") then you may have a much lower cardinality.
+
+- Consider the use of a ``phone-number`` field as a shard key:
+
+  Phone number has a *high cardinality,* because users will generally
+  have a unique value for this field, MongoDB will be able to split as
+  many chunks as needed.
+
+While "high cardinality," is necessary for ensuring an even
+distribution of data, having a high cardinality does not guarantee
+sufficient :ref:`query isolation <sharding-shard-key-query-isolation>`
+or appropriate :ref:`write scaling <sharding-shard-key-write-scaling>`.
+Please continue reading for more information on these topics.
+
+.. index:: shard key; write scaling
+.. _sharding-shard-key-write-scaling:
+
+Write Scaling
+~~~~~~~~~~~~~
+
+Some possible shard keys will allow your application to take advantage of
+the increased write capacity that the cluster can provide, while
+others do not. Consider the following example where you shard by the
+values of the default :term:`_id` field, which is :term:`ObjectId`.
+
+``ObjectId`` is computed upon document creation, that is a
+unique identifier for the object. However, the most significant bits of data
+in this value represent a time stamp, which means that they increment
+in a regular and predictable pattern. Even though this value has
+:ref:`high cardinality <sharding-shard-key-cardinality>`, when using
+this, *any date, or other monotonically increasing number* as the shard
+key, all insert operations will be storing data into a single chunk, and
+therefore, a single shard. As a result, the write capacity of this shard
+will define the effective write capacity of the cluster.
+
+A shard key that increases monotonically will not hinder performance
+if you have a very low insert rate, or if most of your write
+operations are :method:`update() <db.collection.update()>` operations
+distributed through your entire data set. Generally, choose shard keys
+that have *both* high cardinality and will distribute write operations
+across the *entire cluster*.
+
+Typically, a computed shard key that has some amount of "randomness,"
+such as ones that include a cryptographic hash (i.e. MD5 or SHA1) of
+other content in the document, will allow the cluster to scale write
+operations. However, random shard keys do not typically provide
+:ref:`query isolation <sharding-shard-key-query-isolation>`, which is
+another important characteristic of shard keys.
+
+.. _sharding-internals-querying:
+
+Querying
+~~~~~~~~
+
+The :binary:`~bin.mongos` provides an interface for applications to
+interact with sharded clusters that hides the complexity of :term:`data
+partitioning <partition>`. A :binary:`~bin.mongos` receives queries from
+applications, and uses metadata from the :ref:`config server
+<sharding-config-server>`, to route queries to the :binary:`~bin.mongod`
+instances with the appropriate data. While the :binary:`~bin.mongos`
+succeeds in making all querying operational in sharded environments,
+the :term:`shard key` you select can have a profound affect on query
+performance.
+
+.. seealso:: The :ref:`mongos and Sharding <sharding-mongos>` and
+   :ref:`config server <sharding-config-server>` sections for a more
+   general overview of querying in sharded environments.
+
+.. index:: shard key; query isolation
+.. _sharding-shard-key-query-isolation:
+
+Query Isolation
+```````````````
+
+The fastest queries in a sharded environment are those that
+:binary:`~bin.mongos` will route to a single shard, using the
+:term:`shard key` and the cluster meta data from the :ref:`config server
+<sharding-config-server>`. For queries that don't include the shard
+key, :binary:`~bin.mongos` must query all shards, wait for their response
+and then return the result to the application. These "scatter/gather"
+queries can be long running operations.
+
+If your query includes the first component of a compound shard
+key [#shard-key-index]_, the :binary:`~bin.mongos` can route the
+query directly to a single shard, or a small number of shards, which
+provides better performance. Even if you query values of the shard
+key reside in different chunks, the :binary:`~bin.mongos` will route
+queries directly to specific shards.
+
+To select a shard key for a collection:
+
+- determine the most commonly included fields in queries for a
+  given application
+
+- find which of these operations are most performance dependent.
+
+.. todo:: - link to document produced by DOCS-235
+
+If this field has low cardinality (i.e not sufficiently
+selective) you should add a second field to the shard key making a
+compound shard key. The data may become more splittable with a
+compound shard key.
+
+.. see:: :ref:`sharding-mongos` for more information on query
+   operations in the context of sharded clusters. Specifically the
+   :ref:`sharding-query-routing` sub-section outlines the procedure
+   that :binary:`~bin.mongos` uses to route read operations to the shards.
+
+.. [#shard-key-index] In many ways, you can think of the shard key a
+   cluster-wide unique index. However, be aware that sharded systems
+   cannot enforce cluster-wide unique indexes *unless* the unique
+   field is in the shard key. Consider the :doc:`/core/indexes` page
+   for more information on indexes and compound indexes.
+
+Sorting
+```````
+
+In sharded systems, the :binary:`~bin.mongos` performs a merge-sort of all
+sorted query results from the shards. See the :ref:`sharded query
+routing <sharding-query-routing>` and :ref:`index-sort` sections for
+more information.
+
+.. _sharding-internals-operations-and-reliability:
+
+Operations and Reliability
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The most important consideration when choosing a :term:`shard key`
+are:
+
+- to ensure that MongoDB will be able to distribute data evenly among
+  shards, and
+
+- to scale writes across the cluster, and
+
+- to ensure that :binary:`~bin.mongos` can isolate most queries to a specific
+  :binary:`~bin.mongod`.
+
+Furthermore:
+
+- Each shard should be a :term:`replica set`, if a specific
+  :binary:`~bin.mongod` instance fails, the replica set members will elect
+  another to be :term:`primary` and continue operation. However, if an
+  entire shard is unreachable or fails for some reason, that data will
+  be unavailable.
+
+- If the shard key allows the :binary:`~bin.mongos` to isolate most
+  operations to a single shard, then the failure of a single shard
+  will only render *some* data unavailable.
+
+- If your shard key distributes data required for every operation
+  throughout the cluster, then the failure of the entire shard will
+  render the entire cluster unavailable.
+
+In essence, this concern for reliability simply underscores the
+importance of choosing a shard key that isolates query operations to a
+single shard.
+
+.. _sharding-internals-choose-shard-key:
+
+Choosing a Shard Key
+~~~~~~~~~~~~~~~~~~~~
+
+It is unlikely that any single, naturally occurring key in your
+collection will satisfy all requirements of a good shard key. There
+are three options:
+
+#. Compute a more ideal shard key in your application layer,
+   and store this in all of your documents, potentially in the
+   ``_id`` field.
+
+#. Use a compound shard key, that uses two or three values from all
+   documents that provide the right mix of cardinality with scalable
+   write operations and query isolation.
+
+#. Determine that the impact of using a less than ideal shard key,
+   is insignificant in your use case given:
+
+   - limited write volume,
+   - expected data size, or
+   - query patterns and demands.
+
+From a decision making stand point, begin by finding the field
+that will provide the required :ref:`query isolation
+<sharding-shard-key-query-isolation>`, ensure that :ref:`writes will
+scale across the cluster <sharding-shard-key-query-isolation>`, and
+then add an additional field to provide additional :ref:`cardinality
+<sharding-shard-key-cardinality>` if your primary key does not have
+sufficient split-ability.
+
+.. index:: sharding; shard key indexes
+.. _sharding-internals-shard-key-indexes:
+.. _sharding-shard-key-indexes:
+
+Shard Key Indexes
+~~~~~~~~~~~~~~~~~
+
+All sharded collections **must** have an index that starts with the
+:term:`shard key`. If you shard a collection that does not yet contain
+documents and *without* such an index, the :dbcommand:`shardCollection`
+command will create an index on the shard key. If the collection already
+contains documents, you must create an appropriate index before using
+:dbcommand:`shardCollection`.
+
+.. todo:: replace the link
+
+.. versionchanged:: 2.2
+   The index on the shard key no longer needs to be identical to the
+   shard key. This index can be an index of the shard key itself as before,
+   or a :term:`compound index` where the
+   shard key is the prefix of the index. This index *cannot* be a
+   multikey index.
+
+If you have a collection named ``people``, sharded using the field ``{ zipcode: 1 }``,
+and you want to replace this with an index on the field ``{ zipcode:
+1, username: 1 }``, then:
+
+#. Create an index on ``{ zipcode: 1, username: 1 }``:
+
+   .. code-block:: javascript
+
+      db.people.ensureIndex( { zipcode: 1, username: 1 } );
+
+#. When MongoDB finishes building the index, you can safely drop
+   existing index on ``{ zipcode: 1 }``:
+
+   .. code-block:: javascript
+
+      db.people.dropIndex( { zipcode: 1 } );
+
+.. warning::
+
+   The index on the shard key **cannot** be a multikey index.
+
+   As above, an index on ``{ zipcode: 1, username: 1 }`` can only
+   replace an index on ``zipcode`` if there are no array values for
+   the ``username`` field.
+
+   If you drop the last appropriate index for the shard key, recover
+   by recreating an index on just the shard key.
+
+.. index:: balancing; internals
+.. _sharding-balancing-internals:
+
+Cluster Balancer
+----------------
+
+The :ref:`balancer <sharding-balancing>` sub-process is responsible
+for redistributing chunks evenly among the shards and ensuring that
+each member of the cluster is responsible for the same volume of
+data. This section contains complete documentation of the balancer
+process and operations. For a higher level introduction see the
+:ref:`sharding-balancing` section.
+
+.. _sharding-internals-balancing:
+
+Balancing Internals
+~~~~~~~~~~~~~~~~~~~
+
+A balancing round originates from an arbitrary :binary:`~bin.mongos`
+instance from one of the cluster's
+:binary:`~bin.mongos` instances. When a balancer process is active, the
+responsible :binary:`~bin.mongos` acquires a "lock" by modifying a
+document in the ``lock`` collection in the :ref:`config-database`.
+
+By default, the balancer process is always running. When the number of
+chunks in a collection is unevenly distributed among the shards, the
+balancer begins migrating :term:`chunks <chunk>` from shards with more
+chunks to shards with a fewer number of chunks. The balancer will
+continue migrating chunks, one at a time, until the data is evenly
+distributed among the shards.
+
+While these automatic chunk migrations are crucial for distributing
+data, they carry some overhead in terms of bandwidth and workload,
+both of which can impact database performance. As a result, MongoDB
+attempts to minimize the effect of balancing by only migrating chunks
+when the distribution of chunks passes the :ref:`migration thresholds
+<sharding-migration-thresholds>`.
+
+.. index:: balancing; migration
+
+The migration process ensures consistency and maximizes availability
+of chunks during balancing: when MongoDB begins migrating a chunk, the
+database begins copying the data to the new server and tracks incoming
+write operations. After migrating chunks, the "from" :binary:`~bin.mongod`
+sends all new writes to the "receiving" server. Finally,
+:binary:`~bin.mongos` updates the chunk record in the :term:`config
+database` to reflect the new location of the chunk.
+
+.. note::
+
+   .. versionchanged:: 2.0
+      Before MongoDB version 2.0, large differences in timekeeping
+      (i.e. clock skew) between :binary:`~bin.mongos` instances could lead
+      to failed distributed locks, which carries the possibility of
+      data loss, particularly with skews larger than 5 minutes.
+      Always use the network time protocol (NTP) by running ``ntpd``
+      on your servers to minimize clock skew.
+
+.. _sharding-migration-thresholds:
+
+Migration Thresholds
+~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 2.2
+   The following thresholds appear first in 2.2; prior to this
+   release, balancing would only commence if the shard with the most
+   chunks had 8 more chunks than the shard with the least number of
+   chunks.
+
+In order to minimize the impact of balancing on the cluster, the
+:term:`balancer` will not begin balancing until the distribution of
+chunks has reached certain thresholds. These thresholds apply to the
+difference in number of :term:`chunks <chunk>` between the shard with
+the greatest number of chunks and the shard with the least number of
+chunks. The balancer has the following thresholds:
+
+================  ===================
+Number of Chunks  Migration Threshold
+----------------  -------------------
+Less than 20       2
+20-79              4
+80 and greater     8
+================  ===================
+
+Once a balancing round starts, the balancer will not stop until the
+difference between the number of chunks on any two shards is *less
+than two* or a chunk migration fails.
+
+.. note::
+
+   You can restrict the balancer so that it only operates between specific
+   start and end times. See :ref:`Schedule the Balancing Window
+   <sharding-schedule-balancing-window>` for more information.
+
+   The specification of the balancing window is relative to the local
+   time zone of all individual :binary:`~bin.mongos` instances in the
+   sharded cluster.
+
+.. index:: sharding; chunk size
+.. _sharding-chunk-size:
+
+Chunk Size
+~~~~~~~~~~
+
+.. todo:: link this section to <glossary:chunk size>
+
+The default :term:`chunk` size in MongoDB is 64 megabytes.
+
+When chunks grow beyond the :ref:`specified chunk size
+<sharding-chunk-size>` a :binary:`~bin.mongos` instance will split the
+chunk in half. This will eventually lead to migrations, when chunks
+become unevenly distributed among the cluster. The :binary:`~bin.mongos`
+instances will initiate a round of migrations to redistribute data in
+the cluster.
+
+Chunk size is arbitrary and must account for the following:
+
+#. Small chunks lead to a more even distribution of data at the
+   expense of more frequent migrations, which creates expense at the
+   query routing (:binary:`~bin.mongos`) layer.
+
+#. Large chunks lead to fewer migrations, which is more efficient both
+   from the networking perspective *and* in terms internal overhead at
+   the query routing layer. Large chunks produce these efficiencies at
+   the expense of a potentially more uneven distribution of data.
+
+For many deployments it makes sense to avoid frequent and potentially
+spurious migrations at the expense of a slightly less evenly
+distributed data set, but this value is :ref:`configurable
+<sharding-balancing-modify-chunk-size>`. Be aware of the following limitations
+when modifying chunk size:
+
+- Automatic splitting only occurs when inserting :term:`documents
+  <document>` or updating existing documents; if you lower the chunk
+  size it may take time for all chunks to split to the new size.
+
+- Splits cannot be "undone:" if you increase the chunk size, existing
+  chunks must grow through insertion or updates until they reach the
+  new size.
+
+.. note::
+
+   Chunk ranges are inclusive of the lower boundary and exclusive of
+   the upper boundary.
+
+.. _sharding-shard-size:
+
+Shard Size
+~~~~~~~~~~
+
+By default, MongoDB will attempt to fill all available disk space with
+data on every shard as the data set grows. Monitor disk utilization in
+addition to other performance metrics, to ensure that the cluster
+always has capacity to accommodate additional data.
+
+You can also configure a "maximum size" for any shard when you add the
+shard using the ``maxSize`` parameter of the :dbcommand:`addShard`
+command. This will prevent the :term:`balancer` from migrating chunks
+to the shard when the value of :data:`~serverStatus.mem.mapped`
+exceeds the ``maxSize`` setting.
+
+.. seealso:: :ref:`sharded-cluster-config-max-shard-size` and
+   :doc:`/administration/monitoring`.
+
+.. _sharding-chunk-migration:
+
+Chunk Migration
+~~~~~~~~~~~~~~~
+
+MongoDB migrates chunks in a :term:`sharded cluster` to distribute data
+evenly among shards. Migrations may be either:
+
+- Manual. In these migrations you must specify the chunk that you want
+  to migrate and the destination shard. Only migrate chunks manually
+  after initiating sharding, to distribute data during bulk inserts,
+  or if the cluster becomes uneven. See :ref:`Migrating Chunks
+  <sharding-balancing-manual-migration>` for more details.
+
+- Automatic. The balancer process handles most migrations when
+  distribution of chunks between shards becomes uneven. See
+  :ref:`Migration Thresholds <sharding-migration-thresholds>` for more
+  details.
+
+All chunk migrations use the following procedure:
+
+#. The balancer process sends the :dbcommand:`moveChunk` command to
+   the source shard for the chunk. In this operation the balancer
+   passes the name of the destination shard to the source shard.
+
+#. The source initiates the move with an internal
+   :dbcommand:`moveChunk` command with the destination shard.
+
+#. The destination shard begins requesting documents in the chunk, and
+   begins receiving these chunks.
+
+#. After receiving the final document in the chunk, the destination
+   shard initiates a synchronization process to ensure that all
+   changes to the documents in the chunk on the source shard during
+   the migration process exist on the destination shard.
+
+   When fully synchronized, the destination shard connects to the
+   :term:`config database` and updates the chunk location in the
+   cluster metadata. After completing this operation, once there are
+   no open cursors on the chunk, the source shard starts deleting
+   its copy of documents from the migrated chunk.
+
+If enabled, the ``_secondaryThrottle`` setting causes the balancer to
+wait for replication to secondaries. For more information, see
+:ref:`sharded-cluster-config-secondary-throttle`.
+
+Detect Connections to :binary:`~bin.mongos` Instances
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your application must detect if the MongoDB instance its connected
+to is :binary:`~bin.mongos`, use the :dbcommand:`isMaster` command. When a
+client connects to a :binary:`~bin.mongos`, :dbcommand:`isMaster` returns
+a document with a ``msg`` field that holds the string
+``isdbgrid``. For example:
+
+.. code-block:: javascript
+
+   {
+      "ismaster" : true,
+      "msg" : "isdbgrid",
+      "maxBsonObjectSize" : 16777216,
+      "ok" : 1
+   }
+
+If the application is instead connected to a :binary:`~bin.mongod`, the
+returned document does not include the ``isdbgrid`` string.
+
+.. index:: config database
+.. index:: database, config
+.. _sharding-internals-config-database:
+
+Config Database
+---------------
+
+The ``config`` database contains information about your sharding
+configuration and stores the information in a set of collections
+used by sharding.
+
+.. important:: Back up the ``config`` database before performing
+   any maintenance on the config server.
+
+To access the ``config`` database, issue the following command from the
+:binary:`~bin.mongo` shell:
+
+.. code-block:: javascript
+
+   use config
+
+In general, you should *never* manipulate the content of the config
+database directly. The ``config`` database contains the following
+collections:
+
+- :data:`~config.changelog`
+- :data:`~config.chunks`
+- :data:`~config.collections`
+- :data:`~config.databases`
+- :data:`~config.lockpings`
+- :data:`~config.locks`
+- :data:`~config.mongos`
+- :data:`~config.settings`
+- :data:`~config.shards`
+- :data:`~config.version`
+
+See :doc:`/reference/config-database` for full documentation of these
+collections and their role in sharded clusters.
+
+Sharding GridFS Stores
+----------------------
+
+When sharding a :term:`GridFS` store, consider the following:
+
+- Most deployments will not need to shard the ``files``
+  collection. The ``files`` collection is typically small, and only
+  contains metadata. None of the required keys for GridFS lend
+  themselves to an even distribution in a sharded situation. If you
+  *must* shard the ``files`` collection, use the ``_id`` field
+  possibly in combination with an application field
+
+  Leaving ``files`` unsharded means that all the file metadata
+  documents live on one shard. For production GridFS stores you *must*
+  store the ``files`` collection on a replica set.
+
+- To shard the ``chunks`` collection by ``{ files_id : 1 , n : 1 }``,
+  issue commands similar to the following:
+
+  .. code-block:: javascript
+
+     db.fs.chunks.ensureIndex( { files_id : 1 , n : 1 } )
+
+     db.runCommand( { shardCollection : "test.fs.chunks" , key : { files_id : 1 , n : 1 } } )
+
+  You may also want shard using just the ``file_id`` field, as in the
+  following operation:
+
+  .. code-block:: javascript
+
+     db.runCommand( { shardCollection : "test.fs.chunks" , key : {  files_id : 1 } } )
+
+  .. note::
+
+     .. versionchanged:: 2.2
+
+     Before 2.2, you had to create an additional index on ``files_id``
+     to shard using *only* this field.
+
+  The default ``files_id`` value is an :term:`ObjectId`, as a result
+  the values of ``files_id`` are always ascending, and applications
+  will insert all new GridFS data to a single chunk and shard.  If
+  your write load is too high for a single server to handle, consider
+  a different shard key or use a different value for different value
+  for ``_id`` in the ``files`` collection.

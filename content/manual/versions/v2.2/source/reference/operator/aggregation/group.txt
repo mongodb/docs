@@ -1,0 +1,80 @@
+====================
+$group (aggregation)
+====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. pipeline:: $group
+
+   Groups documents together for the purpose of calculating aggregate
+   values based on a collection of documents. Practically, group often
+   supports tasks such as average page views for each page in a
+   website on a daily basis.
+
+   The output of :pipeline:`$group` depends on how you define
+   groups. Begin by specifying an identifier (i.e. a ``_id`` field)
+   for the group you're creating with this pipeline. You can specify a
+   single field from the documents in the pipeline, a previously
+   computed value, or an aggregate key made up from several incoming
+   fields. Aggregate keys may resemble the following document:
+
+   .. code-block:: javascript
+
+      { _id : { author: '$author', pageViews: '$pageViews', posted: '$posted' } }
+
+   With the exception of the ``_id`` field, :pipeline:`$group` cannot
+   output nested documents.
+
+   .. important:: The output of :pipeline:`$group` is not ordered.
+
+   Every group expression must specify an ``_id`` field.
+   You may specify the ``_id`` field as a dotted
+   field path reference, a document with multiple fields enclosed in
+   braces (i.e. ``{`` and ``}``), or a constant value.
+
+   .. note::
+
+      Use :pipeline:`$project` as needed to rename the grouped field
+      after an :pipeline:`$group` operation, if necessary.
+
+   Consider the following example:
+
+   .. code-block:: javascript
+
+      db.article.aggregate(
+          { $group : {
+              _id : "$author",
+              docsPerAuthor : { $sum : 1 },
+              viewsPerAuthor : { $sum : "$pageViews" }
+          }}
+      );
+
+   This groups by the ``author`` field and computes two fields, the
+   first ``docsPerAuthor`` is a counter field that adds one for
+   each document with a given author field using the :group:`$sum`
+   function. The ``viewsPerAuthor`` field is the sum of
+   all of the ``pageViews`` fields in the documents for each group.
+
+   Each field defined for the :pipeline:`$group` must use one of the group
+   aggregation function listed below to generate its composite value:
+
+   - :group:`$addToSet`
+   - :group:`$first`
+   - :group:`$last`
+   - :group:`$max`
+   - :group:`$min`
+   - :group:`$avg`
+   - :group:`$push`
+   - :group:`$sum`
+
+   .. warning::
+
+      The aggregation system currently stores :pipeline:`$group` operations in
+      memory, which may cause problems when processing a larger number
+      of groups.

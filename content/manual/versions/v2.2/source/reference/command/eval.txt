@@ -1,0 +1,165 @@
+====
+eval
+====
+
+.. Edits to this page should be carried over to the method db.eval.txt
+   file.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. dbcommand:: eval
+
+   The :dbcommand:`eval` command evaluates JavaScript functions on the
+   database server and has the following form:
+
+   .. code-block:: none
+
+      {
+        eval: <function>,
+        args: [ <arg1>, <arg2> ... ],
+        nolock: <boolean>
+      }
+
+   The command contains the following fields:
+
+   :field JavaScript function:
+
+      A JavaScript function.
+
+      The function may accept no arguments, as in the following
+      example:
+
+      .. code-block:: javascript
+
+         function () {
+           // ...
+         }
+
+      The function can also accept arguments, as in the following example:
+
+      .. code-block:: javascript
+
+         function (arg1, arg2) {
+            // ...
+         }
+
+   :field arguments:
+
+      A list of arguments to pass to the JavaScript ``function`` if
+      the function accepts arguments. Omit if the ``function`` does
+      not take arguments.
+
+   :field array args:
+
+      An array of corresponding arguments to the ``function``. Omit
+      ``args`` if the ``function`` does not take arguments.
+
+   :field boolean nolock: Optional.
+
+      .. |object| replace:: :dbcommand:`eval`
+      .. |nolockobject| replace:: :dbcommand:`eval` command
+      .. include:: /includes/fact-eval-lock.rst
+
+   Consider the following example which uses :dbcommand:`eval` to
+   perform an increment and calculate the average on the server:
+
+   .. code-block:: javascript
+
+      db.runCommand( {
+            eval: function(name, incAmount) {
+                     var doc = db.myCollection.findOne( { name : name } );
+
+                     doc = doc || { name : name , num : 0 , total : 0 , avg : 0 };
+
+                     doc.num++;
+                     doc.total += incAmount;
+                     doc.avg = doc.total / doc.num;
+
+                     db.myCollection.save( doc );
+                     return doc;
+                  },
+            args: [ "eliot", 5 ]
+         }
+      );
+
+   The ``db`` in the function refers to the current database.
+
+   The shell also provides a helper method :method:`db.eval()`, so you
+   can express the above as follows:
+
+   .. code-block:: javascript
+
+      db.eval( function(name, incAmount) {
+                  var doc = db.myCollection.findOne( { name : name } );
+
+                  doc = doc || { name : name , num : 0 , total : 0 , avg : 0 };
+
+                  doc.num++;
+                  doc.total += incAmount;
+                  doc.avg = doc.total / doc.num;
+
+                  db.myCollection.save( doc );
+                  return doc;
+               },
+               "eliot", 5 );
+
+   The :method:`db.eval()` method does not support the ``nolock``
+   option.
+
+   If you want to use the server's interpreter, you must run
+   :dbcommand:`eval`. Otherwise, the :binary:`~bin.mongo` shell's
+   JavaScript interpreter evaluates functions entered directly into the
+   shell.
+
+   If an error occurs, :dbcommand:`eval` throws an exception. Consider
+   the following invalid function that uses the variable ``x`` without
+   declaring it as an argument:
+
+   .. code-block:: javascript
+
+      db.runCommand(
+                     {
+                       eval: function() { return x + x; },
+                       args: [3]
+                     }
+                   )
+
+   The statement will result in the following exception:
+
+   .. code-block:: javascript
+
+      {
+         "errno" : -3,
+         "errmsg" : "invoke failed: JS Error: ReferenceError: x is not defined nofile_b:1",
+         "ok" : 0
+      }
+
+   .. warning::
+
+      .. \|object| defined above ..
+      .. \|nolockobject| defined above ..
+
+      - .. include:: /includes/fact-eval-lock.rst
+
+      - :dbcommand:`eval` also takes a JavaScript lock.
+
+      - Do not use :dbcommand:`eval` for long running operations as
+        :dbcommand:`eval` blocks all other operations. Consider using
+        :doc:`other server side code execution options
+        </applications/server-side-javascript>`.
+
+      - You can not use :dbcommand:`eval` with :term:`sharded
+        <sharding>` data. In general, you should avoid using
+        :dbcommand:`eval` in :term:`sharded cluster`; nevertheless, it
+        is possible to use :dbcommand:`eval` with non-sharded
+        collections and databases stored in a :term:`sharded cluster`.
+
+      - .. include:: /includes/fact-eval-authentication.rst
+
+   .. seealso:: :doc:`/applications/server-side-javascript`

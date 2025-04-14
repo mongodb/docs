@@ -1,0 +1,225 @@
+=============================
+MongoDB Limits and Thresholds
+=============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Synopsis
+--------
+
+This document provides a collection of hard and soft limitations of
+the MongoDB system.
+
+Limits
+------
+
+BSON Documents
+~~~~~~~~~~~~~~
+
+.. _limit-bson-document-size:
+.. limit:: BSON Document Size
+
+   .. include:: /includes/fact-document-max-size.rst
+
+.. _limit-nested-depth:
+.. limit:: Nested Depth for BSON Documents
+
+   .. versionchanged:: 2.2
+
+   MongoDB supports no more than 100 levels of nesting for :term:`BSON
+   documents <document>`.
+
+Namespaces
+~~~~~~~~~~
+
+.. _limit-namespace-length:
+.. limit:: Namespace Length
+
+   Each namespace, including database and collection name, must be
+   shorter than 123 bytes.
+
+   .. fix when we know what the actual limit is.
+
+.. _limit-number-of-namespaces:
+.. limit:: Number of Namespaces
+
+   The limitation on the number of namespaces is the size of the
+   namespace file divided by 628.
+
+   A 16 megabyte namespace file can support approximately 24,000
+   namespaces. Each index also counts as a namespace.
+
+.. _limit-size-of-namespace-file:
+.. limit:: Size of Namespace File
+
+   Namespace files can be no larger than 2047 megabytes.
+
+   By default namespace files are 16 megabytes. You can configure the
+   size using the :setting:`nssize` option.
+
+Indexes
+~~~~~~~
+
+.. _limit-index-size:
+.. limit:: Index Size
+
+   The total size of an indexed value must be *less than* 1024
+   bytes. MongoDB will not add that value to an index if it is longer
+   than 1024 bytes.
+
+.. _limit-number-of-indexes-per-collection:
+.. limit:: Number of Indexes per Collection
+
+   A single collection can have *no more* than 64 indexes.
+
+.. _limit-index-name-length:
+.. limit:: Index Name Length
+
+   The names of indexes, including their namespace (i.e database and
+   collection name) cannot be longer than 128 characters. The default
+   index name is the concatenation of the field names and index
+   directions.
+
+   You can explicitly specify an index name to the
+   :method:`~db.collection.ensureIndex()` helper if the default index
+   name is too long.
+
+.. _limit-sharding-unique-indexes:
+.. limit:: Unique Indexes in Sharded Collections
+
+   MongoDB does not support unique indexes across shards, except when
+   the unique index contains the full shard key as a prefix of the
+   index. In these situations MongoDB will enforce uniqueness across
+   the full key, not a single field.
+
+   .. see:: :doc:`/tutorial/enforce-unique-keys-for-sharded-collections`
+      for an alternate approach.
+
+.. limit:: Number of Indexed Fields in a Compound Index
+
+   There can be no more than 31 fields in a compound index.
+
+Capped Collections
+~~~~~~~~~~~~~~~~~~
+
+.. limit:: Maximum Number of Documents in a Capped Collection
+
+   Capped collections can hold no more than 2\ :sup:`32` documents.
+
+Replica Sets
+~~~~~~~~~~~~
+
+.. limit:: Number of Members of a Replica Set
+
+   Replica sets can have no more than 12 members.
+
+.. limit:: Number of Voting Members of a Replica Set
+
+   Only 7 members of a replica set can have votes at any given
+   time. See can vote :ref:`replica-set-non-voting-members` for more information
+
+Sharded Clusters
+~~~~~~~~~~~~~~~~
+
+.. _limit-sharding-limitations:
+.. limit:: Operations Unavailable in Sharded Environments
+
+   The :dbcommand:`group` does not work with sharding. Use
+   :dbcommand:`mapReduce` or :dbcommand:`aggregate` instead.
+
+   :method:`db.eval()` is incompatible with sharded collections. You may
+   use :method:`db.eval()` with un-sharded collections in a shard
+   cluster.
+
+   :query:`$where` does not permit references to the ``db`` object
+   from the :query:`$where` function. This is uncommon in
+   un-sharded collections.
+
+   The :update:`$isolated` update modifier does not work in sharded
+   environments.
+
+   :operator:`$snapshot` queries do not work in sharded environments.
+
+.. limit:: Sharding Existing Collection Data Size
+
+   MongoDB only allows sharding an existing collection that holds
+   fewer than 256 gigabytes of data.
+
+   .. note::
+
+      This limitation *only* applies to sharding collections that have
+      existing data sets, and is *not* a limit on the size of a
+      sharded collection.
+
+.. seealso:: :limit:`Unique Indexes in Sharded Collections`
+
+Operations
+~~~~~~~~~~
+
+.. _limit-sort:
+.. limit:: Sorted Documents
+
+   MongoDB will only return sorted results on fields without an index
+   *if* the sort operation uses less than 32 megabytes of memory.
+
+.. limit:: 2d Geospatial queries cannot use the $or operator
+
+   .. see:: :query:`$or` and :doc:`/core/geospatial-indexes`.
+
+.. _cannot-kill-foreground:
+.. limit:: Cannot Kill Foreground Index Build
+
+   You cannot use :method:`db.killOp()` to kill a foreground index
+   build.
+
+Naming Restrictions
+~~~~~~~~~~~~~~~~~~~
+
+.. limit:: Restrictions on Database Names
+
+   The dot (i.e. ``.``) character is not permissible in database
+   names.
+
+   Database names are case sensitive even if the underlying file
+   system is case insensitive.
+
+   .. versionchanged:: 2.2
+      For MongoDB instances running on Windows.
+
+      In 2.2 the following characters are not permissible in database names:
+
+      .. code-block:: none
+
+         /\. "*<>:|?
+
+      See :ref:`rn-2.2-database-name-restriction-windows` for more
+      information on this change
+
+.. limit:: Restriction on Collection Names
+
+   .. versionadded:: 2.2
+
+   Collection names should begin with an underscore or a letter
+   character, and *cannot*:
+
+   - contain the ``$``.
+
+   - be an empty string (e.g. ``""``).
+
+   - contain the null character.
+
+   - begin with the ``system.`` prefix. (Reserved for internal use.)
+
+.. _limit-restrictions-on-field-names:
+
+.. limit:: Restrictions on Field Names
+
+   Field names cannot contain dots (i.e. ``.``), dollar signs
+   (i.e. ``$``), or null characters. See
+   :ref:`faq-dollar-sign-escaping` for an alternate approach.

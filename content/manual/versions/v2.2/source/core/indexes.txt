@@ -1,0 +1,824 @@
+=================
+Indexing Overview
+=================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+This document provides an overview of indexes in MongoDB, including
+index types and creation options. For operational guidelines and
+procedures, see the :doc:`/administration/indexes` document. For
+strategies and practical approaches, see the
+:doc:`/applications/indexes` document.
+
+.. index:: index; overview
+.. _index-overview-synopsis:
+
+Synopsis
+--------
+
+An index is a data structure that allows you to quickly locate documents
+based on the values stored in certain specified fields. Fundamentally,
+indexes in MongoDB are similar to indexes in other database systems.
+MongoDB supports indexes on any field or sub-field contained in
+documents within a MongoDB collection.
+
+MongoDB indexes have the following core features:
+
+- MongoDB defines indexes on a per-:term:`collection` level.
+
+- You can create indexes on a single field or on multiple fields using
+  a :ref:`compound index <index-type-compound>`.
+
+- Indexes enhance query performance, often dramatically.
+  However, each index also incurs some overhead for every write
+  operation.
+  Consider the queries, the frequency of these queries, the size of
+  your working set, the insert load, and your application's
+  requirements as you create indexes in your MongoDB environment.
+
+- All MongoDB indexes use a B-tree data structure. MongoDB can use
+  these representation of the data to optimize query responses.
+
+- Every query, including update operations, use one and only one
+  index. The :ref:`query optimizer <read-operations-query-optimization>`
+  selects the index empirically by
+  occasionally running alternate query plans and by selecting the plan
+  with the best response time for each query type. You can override
+  the query optimizer using the :method:`cursor.hint()` method.
+
+- An index "covers" a query if:
+
+  - all the fields in the :ref:`query <read-operations-query-document>`
+    are part of that index, **and**
+
+  - all the fields returned in the documents that match the query are
+    in the same index.
+
+  When an index covers a query, the server can both match the
+  :ref:`query conditions <read-operations-query-document>` **and**
+  return the results using only the index; MongoDB does not need to
+  look at the documents, only the index, to fulfill the query.
+  Querying the index can be faster than querying the documents outside
+  of the index.
+
+  See :ref:`indexes-covered-queries` for more information.
+
+- Using queries with good index coverage reduces the number of full
+  documents that MongoDB needs to store in memory, thus maximizing database
+  performance and throughput.
+
+- If an update does not change the size of a document or cause the
+  document to outgrow its allocated area, then MongoDB will update an
+  index *only if* the indexed fields have changed. This improves
+  performance. Note that if the document has grown and must move, all
+  index keys must then update.
+
+.. index:: index types
+.. _index-types:
+
+Index Types
+-----------
+
+This section enumerates the types of indexes available in MongoDB.
+For all collections, MongoDB creates the default :ref:`_id index
+<index-type-id>`. You can create additional indexes with the
+:method:`ensureIndex() <db.collection.ensureIndex()>` method on any
+single field or :ref:`sequence of fields <index-type-compound>` within
+any document or :ref:`sub-document <index-sub-document>`. MongoDB also
+supports indexes of arrays, called :ref:`multi-key indexes
+<index-type-multi-key>`.
+
+.. index:: _id index
+.. index:: _id
+.. index:: index; _id
+.. index:: index types; primary key
+.. _index-type-id:
+
+_id Index
+~~~~~~~~~
+
+The ``_id`` index is a :ref:`unique index <index-type-unique>`
+[#unique-index-report]_ on the ``_id`` field, and MongoDB creates this
+index by default on all collections. [#capped-collections]_
+You cannot delete the index on ``_id``.
+
+The ``_id`` field is the :term:`primary key` for the collection, and
+every document *must* have a unique ``_id`` field. You may store any
+unique value in the ``_id`` field. The default value of ``_id`` is
+:term:`ObjectId` on every insert() <db.collection.insert()` operation. An :term:`ObjectId`
+is a 12-byte unique identifiers suitable for use as the value of an
+``_id`` field.
+
+.. note::
+
+   In :term:`sharded clusters <sharded cluster>`, if you do *not* use
+   the ``_id`` field as the :term:`shard key`, then your application
+   **must** ensure the uniqueness of the values in the ``_id`` field
+   to prevent errors.  This is most-often done by using a standard
+   auto-generated :term:`ObjectId`.
+
+.. [#unique-index-report] Although the index on ``_id`` *is* unique,
+   the :method:`getIndexes() <db.collection.getIndexes()>` method will
+   *not* print ``unique: true`` in the :binary:`~bin.mongo` shell.
+
+.. [#capped-collections] Before version 2.2 capped collections did not
+   have an ``_id`` field. In 2.2, all capped collections
+   have an ``_id`` field, except those in the ``local`` :term:`database`.
+   See the :ref:`release notes <2.2-id-indexes-capped-collections>`
+   for more information.
+
+.. todo:: fix the above when a full capped-collection page exists.
+   2012.11.08>note: The capped-collection page is now created and in the draft folder.
+
+Secondary Indexes
+~~~~~~~~~~~~~~~~~
+
+All indexes in MongoDB are :term:`secondary indexes <secondary
+index>`. You can create indexes on any field within any document or
+sub-document. Additionally, you can create compound indexes with
+multiple fields, so that a single query can match multiple components
+using the index while scanning fewer whole documents.
+
+In general, you should create indexes that support your primary, common,
+and user-facing queries. Doing so requires MongoDB to scan the fewest
+number of documents possible.
+
+In the :binary:`~bin.mongo` shell, you can create an index by calling the
+:method:`ensureIndex() <db.collection.ensureIndex()>` method.
+Arguments to :method:`ensureIndex() <db.collection.ensureIndex()>`
+resemble the following:
+
+.. code-block:: javascript
+
+   { "field": 1 }
+   { "product.quantity": 1 }
+   { "product": 1, "quantity": 1 }
+
+For each field in the index specify either ``1`` for an
+ascending order or ``-1`` for a descending order, which represents the
+order of the keys in the index. For indexes with more than one key (i.e.
+:ref:`compound indexes <index-type-compound>`) the sequence of fields is
+important.
+
+.. index:: index; subdocuments
+.. _index-subdocuments:
+.. _index-sub-documents:
+.. _index-subdocument:
+.. _index-sub-document:
+
+Indexes on Sub-documents
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can create indexes on fields that hold sub-documents as in the
+following example:
+
+.. example::
+
+   Given the following document in the ``factories`` collection:
+
+   .. code-block:: javascript
+
+      { "_id": ObjectId(...), metro: { city: "New York", state: "NY" } } )
+
+   You can create an index on the ``metro`` key. The following queries would
+   then use that index, and both would return the above document:
+
+   .. code-block:: javascript
+
+      db.factories.find( { metro: { city: "New York", state: "NY" } } );
+
+      db.factories.find( { metro: { $gte : { city: "New York" } } } );
+
+   The second query returns the document because ``{ city: "New York"
+   }`` is less than ``{ city: "New York", state: "NY" }`` The order of
+   comparison is in ascending key order in the order the keys occur in
+   the :term:`BSON` document.
+
+.. index:: index; embedded fields
+.. _index-embedded-fields:
+
+Indexes on Embedded Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can create indexes on fields in sub-documents, just as you can
+index top-level fields in documents. [#sub-document-indexes]_ These
+indexes allow you to use a "dot notation," to introspect into
+sub-documents.
+
+Consider a collection named ``people`` that holds documents that resemble
+the following example document:
+
+.. code-block:: javascript
+
+   {"_id": ObjectId(...)
+    "name": "John Doe"
+    "address": {
+           "street": "Main"
+           "zipcode": 53511
+           "state": "WI"
+           }
+   }
+
+You can create an index on the ``address.zipcode`` field, using the
+following specification:
+
+.. code-block:: javascript
+
+   db.people.ensureIndex( { "address.zipcode": 1 } )
+
+.. [#sub-document-indexes] :ref:`index-sub-documents`, by contrast
+   allow you to index fields that hold documents, including the full
+   content, up to the maximum :limit:`Index Size` of the sub-document
+   in the index.
+
+.. index:: index; compound
+.. index:: compound index
+.. _index-type-compound:
+
+Compound Indexes
+~~~~~~~~~~~~~~~~
+
+MongoDB supports "compound indexes," where a single index structure
+holds references to multiple fields within a collection's
+documents. Consider a collection named ``products`` that holds documents
+that resemble the following document:
+
+.. code-block:: javascript
+
+   {
+    "_id": ObjectId(...)
+    "item": "Banana"
+    "category": ["food", "produce", "grocery"]
+    "location": "4th Street Store"
+    "stock": 4
+    "type": cases
+    "arrival": Date(...)
+   }
+
+If most applications queries include the ``item`` field and a
+significant number of queries will also check the ``stock`` field, you
+can specify a single compound index to support both of these queries:
+
+.. code-block:: javascript
+
+   db.products.ensureIndex( { "item": 1, "location": 1, "stock": 1 } )
+
+Compound indexes support queries on any prefix of the fields in the
+index. [#prefix]_ For example, MongoDB can use the above index to
+support queries that select the ``item`` field and to support queries
+that select the ``item`` field **and** the ``location`` field. The
+index, however, would not support queries that select the following:
+
+- only the ``location`` field
+- only the ``stock`` field
+- only the ``location`` and ``stock`` fields
+- only the ``item`` and ``stock`` fields
+
+When creating an index, the number associated with a key specifies the
+direction of the index. The options are ``1`` (ascending) and ``-1``
+(descending). Direction doesn't matter for single key indexes or for
+random access retrieval but is important if you are doing sort
+queries on compound indexes.
+
+The order of fields in a compound index is very important. In the
+previous example, the index will contain references to documents
+sorted first by the values of the ``item`` field and, within each
+value of the ``item`` field, sorted by the values of ``location``, and
+then sorted by values of the ``stock`` field.
+
+.. [#prefix] Index prefixes are the beginning subset of fields. For
+   example, given the index ``{ a: 1, b: 1, c: 1 }`` both ``{ a: 1 }``
+   and ``{ a: 1, b: 1 }`` are prefixes of the index.
+
+.. index:: index; sort order
+.. _index-ascending-and-descending:
+
+Indexes with Ascending and Descending Keys
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Indexes store references to fields in either ascending or descending
+order. For single-field indexes, the order of keys doesn't matter,
+because MongoDB can traverse the index in either direction. However,
+for :ref:`compound indexes <index-type-compound>`, if you need to order results against two fields,
+sometimes you need the index fields running in opposite order relative
+to each other.
+
+To specify an index with a descending order, use the following form:
+
+.. code-block:: javascript
+
+   db.products.ensureIndex( { "field": -1 } )
+
+More typically in the context of a :ref:`compound
+index<index-type-compound>`, the specification would resemble the
+following prototype:
+
+.. code-block:: javascript
+
+   db.products.ensureIndex( { "fieldA": 1, "fieldB": -1 } )
+
+Consider a collection of event data that includes both usernames and a
+timestamp. If you want to return a list of events sorted by username
+and then with the most recent events first. To create this index, use
+the following command:
+
+.. code-block:: javascript
+
+   db.events.ensureIndex( { "username" : 1, "timestamp" : -1 } )
+
+.. index:: index; multikey
+.. _index-type-multi-key:
+.. _index-type-multikey:
+
+Multikey Indexes
+~~~~~~~~~~~~~~~~
+
+If you index a field that contains an array, MongoDB indexes each
+value in the array separately, in a "multikey index."
+
+.. example::
+
+   Given the following document:
+
+   .. code-block:: javascript
+
+      { "_id" : ObjectId("..."),
+        "name" : "Warm Weather",
+        "author" : "Steve",
+        "tags" : [ "weather", "hot", "record", "april" ] }
+
+   Then an index on the ``tags`` field would be a multikey index and
+   would include these separate entries:
+
+   .. code-block:: javascript
+
+      { tags: "weather" }
+      { tags: "hot" }
+      { tags: "record" }
+      { tags: "april" }
+
+   Queries could use the multikey index to return queries for any of
+   the above values.
+
+You can use multikey indexes to index fields within objects embedded in
+arrays, as in the following example:
+
+.. example::
+
+   Consider a ``feedback`` collection with documents in the following
+   form:
+
+   .. code-block:: javascript
+
+      {
+       "_id": ObjectId(...)
+       "title": "Grocery Quality"
+       "comments": [
+          { author_id: ObjectId(...)
+            date: Date(...)
+            text: "Please expand the cheddar selection." },
+          { author_id: ObjectId(...)
+            date: Date(...)
+            text: "Please expand the mustard selection." },
+          { author_id: ObjectId(...)
+            date: Date(...)
+            text: "Please expand the olive selection." }
+       ]
+      }
+
+   An index on the ``comments.text`` field would be a multikey index
+   and would add items to the index for all of the sub-documents in
+   the array.
+
+   With an index, such as ``{ comments.text: 1 }``, consider the
+   following query:
+
+   .. code-block:: javascript
+
+      db.feedback.find( { "comments.text": "Please expand the olive selection." } )
+
+   This would select the document, that contains the following
+   document in the ``comments.text`` array:
+
+   .. code-block:: javascript
+
+      { author_id: ObjectId(...)
+        date: Date(...)
+        text: "Please expand the olive selection." }
+
+.. admonition:: Compound Multikey Indexes May Only Include One Array Field
+
+   While you can create multikey :ref:`compound indexes
+   <index-type-compound>`, at most one field in a compound index may hold
+   an array. For example, given an index on ``{ a: 1, b: 1 }``, the
+   following documents are permissible:
+
+   .. code-block:: javascript
+
+      {a: [1, 2], b: 1}
+
+      {a: 1, b: [1, 2]}
+
+   However, the following document is impermissible, and MongoDB
+   cannot insert such a document into a collection with the ``{a: 1,
+   b: 1 }`` index:
+
+   .. code-block:: javascript
+
+      {a: [1, 2], b: [1, 2]}
+
+   If you attempt to insert a such a document, MongoDB will reject the
+   insertion, and produce an error that says ``cannot index parallel
+   arrays``. MongoDB does not index parallel arrays because they
+   require the index to include each value in the Cartesian product of
+   the compound keys, which could quickly result in incredibly large
+   and difficult to maintain indexes.
+
+.. index:: index; unique
+.. _index-type-unique:
+
+Unique Indexes
+~~~~~~~~~~~~~~
+
+A unique index causes MongoDB to reject all documents that
+contain a duplicate value for the indexed field. To create a unique index
+on the ``user_id`` field of the ``members`` collection, use the
+following operation in the :binary:`~bin.mongo` shell:
+
+.. code-block:: javascript
+
+   db.addresses.ensureIndex( { "user_id": 1 }, { unique: true } )
+
+By default, ``unique`` is ``false`` on MongoDB indexes.
+
+If you use the unique constraint on a :ref:`compound index
+<index-type-compound>` then MongoDB will enforce uniqueness on the
+*combination* of values, rather than the individual value for any or all
+values of the key.
+
+If a document does not have a value for the indexed field in a unique
+index, the index will store a null value for this document. MongoDB
+will only permit one document without a unique value in the collection
+because of this unique constraint. You can combine with the
+:ref:`sparse index <index-type-sparse>` to filter these null values
+from the unique index.
+
+.. index:: index; sparse
+.. _index-type-sparse:
+
+Sparse Indexes
+~~~~~~~~~~~~~~
+
+Sparse indexes only contain entries for documents that have the
+indexed field. [#null-values-are-indexed-in-sparse-indexes]_ Any
+document that is missing the field is not indexed. The index is
+"sparse" because of the missing documents when values are missing.
+
+By contrast, non-sparse indexes contain all documents
+in a collection, and store null values for documents that do not
+contain the indexed field. Create a sparse index on the ``xmpp_id``
+field, of the ``members`` collection, using the following operation in
+the :binary:`~bin.mongo` shell:
+
+.. code-block:: javascript
+
+   db.addresses.ensureIndex( { "xmpp_id": 1 }, { sparse: true } )
+
+By default, ``sparse`` is ``false`` on MongoDB indexes.
+
+.. warning::
+
+   Using these indexes will sometimes result in incomplete results
+   when filtering or sorting results, because sparse indexes are not
+   complete for all documents in a collection.
+
+.. note::
+
+   Do not confuse sparse indexes in MongoDB with `block-level`_
+   indexes in other databases. Think of them as dense indexes with a
+   specific filter.
+
+   You can combine the sparse index option with the :ref:`unique
+   indexes <index-type-unique>` option so that :binary:`~bin.mongod` will
+   reject documents that have duplicate values for a field, but that
+   ignore documents that do not have the key.
+
+   .. _`block-level`: http://en.wikipedia.org/wiki/Database_index#Sparse_index
+
+.. [#null-values-are-indexed-in-sparse-indexes] All documents that
+   have the indexed field *are* indexed in a sparse index, even if
+   that field stores a null value in some documents.
+
+.. index:: index; options
+.. _index-creation-operations:
+.. _index-operations:
+
+Index Creation Options
+----------------------
+
+You specify index creation options in the second argument in
+:method:`ensureIndex() <db.collection.ensureIndex()>`.
+
+The options :ref:`sparse <index-type-sparse>`, :ref:`unique
+<index-type-unique>`, and :ref:`TTL <index-feature-ttl>` affect the
+kind of index that MongoDB creates. This section addresses,
+:ref:`background construction <index-creation-background>` and
+:ref:`duplicate dropping <index-creation-duplicate-dropping>`, which
+affect how MongoDB builds the indexes.
+
+.. index:: index; background creation
+.. _index-creation-background:
+
+Background Construction
+~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, creating an index is a blocking operation. Building an
+index on a large collection of data can take a long
+time to complete. To resolve this issue, the background option can
+allow you to continue to use your :binary:`~bin.mongod` instance during
+the index build.
+
+For example, to create an index in the background of the ``zipcode``
+field of the ``people`` collection you would issue the following:
+
+.. code-block:: javascript
+
+   db.people.ensureIndex( { zipcode: 1}, {background: true} )
+
+By default, ``background`` is ``false`` for building MongoDB indexes.
+
+You can combine the background option with other options, as in the
+following:
+
+.. code-block:: javascript
+
+   db.people.ensureIndex( { zipcode: 1}, {background: true, sparse: true } )
+
+Be aware of the following behaviors with background index
+construction:
+
+- A :binary:`~bin.mongod` instance can only build one background index per
+  database, at a time.
+
+  .. versionchanged:: 2.2
+     Before 2.2, a single :binary:`~bin.mongod` instance could only build
+     one index at a time.
+
+- The indexing operation runs in the background so that other database
+  operations can run while creating the index. However, the
+  :binary:`~bin.mongo` shell session or connection where you are creating
+  the index will block until the index build is complete. Open another
+  connection or :binary:`~bin.mongo` instance to continue using commands
+  to the database.
+
+- The background index operation use an incremental approach that is
+  slower than the normal "foreground" index builds. If the index is
+  larger than the available RAM, then the incremental process
+  can take *much* longer than the foreground build.
+
+- If your application includes :method:`ensureIndex()
+  <db.collection.ensureIndex()>` operations, and an index *doesn't*
+  exist for other operational concerns, building the index can have a
+  severe impact on the performance of the database.
+
+  Make sure that your application checks for the indexes at start up
+  using the :method:`getIndexes() <db.collection.getIndexes()>` method
+  or the :api:`equivalent method for your driver <>` and terminates if
+  the proper indexes do not exist. Always build indexes in production
+  instances using separate application code, during designated
+  maintenance windows.
+
+.. admonition:: Building Indexes on Secondaries
+
+   Background index operations on a :term:`replica set`
+   :term:`primary` become foreground indexing operations on secondary
+   members of the set. All indexing operations on secondaries block
+   replication.
+
+   To build large indexes on secondaries the best approach is to
+   restart one secondary at a time in :term:`standalone` mode and build the
+   index. After building the index, restart as a member of the
+   replica set, allow it to catch up with the other members of the
+   set, and then build the index on the next secondary. When all the
+   secondaries have the new index, step down the primary, restart it
+   as a standalone, and build the index on the former primary.
+
+   Remember, the amount of time required to build the index on a
+   secondary node must be within the window of the :term:`oplog`, so
+   that the secondary can catch up with the primary.
+
+   See :ref:`index-building-replica-sets` for more information on
+   this process.
+
+   Indexes on secondary members in "recovering" mode are always built in
+   the foreground to allow them to catch up as soon as possible.
+
+   See :ref:`index-building-replica-sets` for a complete procedure for
+   rebuilding indexes on secondaries.
+
+.. note::
+
+   If MongoDB is building an index in the background, you cannot
+   perform other administrative operations involving that collection,
+   including :dbcommand:`repairDatabase`, drop that collection
+   (i.e. :method:`db.collection.drop()`,) and
+   :dbcommand:`compact`. These operations will return an error during
+   background index builds.
+
+Queries will not use these indexes until the index build is complete.
+
+.. index:: index; duplicates
+.. index:: index; drop duplicates
+.. _index-creation-duplicate-dropping:
+
+Drop Duplicates
+~~~~~~~~~~~~~~~
+
+MongoDB cannot create a :ref:`unique index <index-type-unique>` on a
+field that has duplicate values. To force the creation of a unique
+index, you can specify the ``dropDups`` option, which will only index
+the first occurrence of a value for the key, and delete all subsequent
+values.
+
+.. warning::
+
+   As in all unique indexes, if a document does not have the indexed
+   field, MongoDB will include it in the index with a "null" value.
+
+   If subsequent fields *do not* have the indexed field, and you have
+   set ``{dropDups: true}``, MongoDB will remove these documents from
+   the collection when creating the index. If you combine ``dropDups``
+   with the :ref:`sparse <index-type-sparse>` option, this index will
+   only include documents in the index that have the value, and the
+   documents without the field will remain in the database.
+
+To create a unique index that drops duplicates on the ``username``
+field of the ``accounts`` collection, use a command in the following form:
+
+.. code-block:: javascript
+
+   db.accounts.ensureIndex( { username: 1 }, { unique: true, dropDups: true } )
+
+.. warning::
+
+   Specifying ``{ dropDups: true }`` will delete data from your
+   database. Use with extreme caution.
+
+By default, ``dropDups`` is ``false``.
+
+.. _index-features:
+.. _index-feature:
+
+Index Features
+--------------
+
+.. index:: index; TTL index
+.. index:: TTL index
+.. _index-feature-ttl:
+
+TTL Indexes
+~~~~~~~~~~~
+
+TTL indexes are special indexes that MongoDB can use to automatically
+remove documents from a collection after a certain amount of
+time. This is ideal for some types of information like machine
+generated event data, logs, and session information that only need to
+persist in a database for a limited amount of time.
+
+These indexes have the following limitations:
+
+- :ref:`Compound indexes <index-type-compound>` are *not* supported.
+
+- The indexed field **must** be a date :term:`type <bson types>`.
+
+- If the field holds an array, and there are multiple date-typed data
+  in the index, the document will expire when the *lowest*
+  (i.e. earliest) matches the expiration threshold.
+
+.. include:: /includes/note-ttl-collection-background-timing.rst
+
+In all other respects, TTL indexes are normal indexes,
+and if appropriate, MongoDB can use these
+indexes to fulfill arbitrary queries.
+
+.. see:: :doc:`/tutorial/expire-data`
+
+.. index:: index; geospatial
+.. index:: geospatial index
+.. _index-feature-geospatial:
+
+Geospatial Indexes
+~~~~~~~~~~~~~~~~~~
+
+MongoDB provides "geospatial indexes" to support location-based and
+other similar queries in a two dimensional coordinate systems. For
+example, use geospatial indexes when you need to take a collection of
+documents that have coordinates, and return a number of options that
+are "near" a given coordinate pair.
+
+To create a geospatial index, your :term:`documents <document>` must
+have a coordinate pair. For maximum compatibility, these coordinate
+pairs should be in the form of a two element array, such as ``[ x , y
+]``. Given the field of ``loc``, that held a coordinate pair, in the
+collection ``places``, you would create a geospatial index as follows:
+
+.. code-block:: javascript
+
+   db.places.ensureIndex( { loc : "2d" } )
+
+MongoDB will reject documents that have values in the ``loc`` field
+beyond the minimum and maximum values.
+
+.. note::
+
+   MongoDB permits only one geospatial index per collection. Although,
+   MongoDB will allow clients to create multiple geospatial indexes, a
+   single query can use only one index.
+
+See the :query:`$near`, and the database command
+:dbcommand:`geoNear` for more information on accessing geospatial
+data.
+
+.. todo:: insert link to special /core/geospatial.txt documentation
+   on this topic. once that document exists.
+
+.. index:: index; geohaystack index
+.. index:: geohaystack index
+.. _index-geohaystack-index:
+
+Geohaystack Indexes
+~~~~~~~~~~~~~~~~~~~
+
+.. todo:: update links in the following session as needed:
+
+In addition to conventional :ref:`geospatial indexes
+<index-feature-geospatial>`, MongoDB also provides a bucket-based
+geospatial index, called "geospatial haystack indexes." These indexes
+support high performance queries for locations within a small area,
+when the query must filter along another dimension.
+
+.. example::
+
+   If you need to return all documents that have coordinates within 25
+   miles of a given point *and* have a type field value of "museum," a
+   haystack index would be provide the best support for these queries.
+
+Haystack indexes allow you to tune your bucket size to the
+distribution of your data, so that in general you search only very
+small regions of 2d space for a particular kind of document. These
+indexes are not suited for finding the closest documents to a
+particular location, when the closest documents are far away compared
+to bucket size.
+
+.. index:: index; limitations
+.. _index-limitations:
+
+Index Behaviors and Limitations
+-------------------------------
+
+Be aware of the following behaviors and limitations:
+
+..
+  - MongoDB indexes are case-sensitive.
+
+- A collection may have no more than :ref:`64 indexes <limit-number-of-indexes-per-collection>`.
+
+- Index keys can be no larger than :ref:`1024 bytes <limit-index-size>`.
+
+  ..
+
+    Documents with fields that have values greater than
+    this size cannot be indexed.
+
+    To query for documents that were too large to index, you can use a
+    command similar to the following:
+
+    .. code-block:: javascript
+
+       db.myCollection.find({<key>: <value too large to index>}).hint({$natural: 1})
+
+- The name of an index, including the :term:`namespace` must be
+  shorter than :ref:`128 characters <limit-index-name-length>`.
+
+- Indexes have storage requirements, and impacts insert/update speed
+  to some degree.
+
+- Create indexes to support queries and other operations, but do not
+  maintain indexes that your MongoDB instance cannot or will not use.
+
+- For queries with the :query:`$or` operator,
+  each clause of an :query:`$or` query executes in parallel, and
+  can each use a different index.
+
+- For queries that use the :method:`sort() <cursor.sort()>` method and
+  use the :query:`$or` operator, the query **cannot** use the
+  indexes on the :query:`$or` fields.
+
+- ``2d`` :doc:`geospatial queries </core/geospatial-indexes>` do not
+  support queries that use the :query:`$or` operator.

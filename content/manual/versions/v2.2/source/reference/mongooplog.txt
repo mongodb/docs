@@ -1,0 +1,237 @@
+.. _mongooplog:
+
+==============
+``mongooplog``
+==============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. versionadded:: 2.2
+
+Synopsis
+--------
+
+:binary:`~bin.mongooplog` is a simple tool that polls operations from
+the :term:`replication` :term:`oplog` of a remote server, and applies
+them to the local server. This capability supports certain classes of
+real-time migrations that require that the source server remain online
+and in operation throughout the migration process.
+
+Typically this command will take the following form:
+
+.. code-block:: sh
+
+   mongooplog  --from mongodb0.example.net --host mongodb1.example.net
+
+This command copies oplog entries from the :binary:`~bin.mongod` instance
+running on the host ``mongodb0.example.net`` and duplicates
+operations to the host ``mongodb1.example.net``. If you do not need
+to keep the :option:`--from <mongooplog --from>` host running during
+the migration, consider using :binary:`~bin.mongodump` and
+:binary:`~bin.mongorestore` or another :doc:`backup
+</administration/backups>` operation, which may be better suited to
+your operation.
+
+.. note::
+
+   If the :binary:`~bin.mongod` instance specified by the :option:`--from <mongooplog --from>`
+   argument is running with :setting:`authentication <auth>`, then
+   :binary:`~bin.mongooplog` will not be able to copy oplog entries.
+
+.. seealso:: :binary:`~bin.mongodump`, :binary:`~bin.mongorestore`,
+   ":doc:`/administration/backups`", ":ref:`Oplog Internals Overview
+   <replica-set-oplog>`", and ":ref:`Replica Set Oplog Sizing
+   <replica-set-oplog-sizing>`".
+
+Options
+-------
+
+.. binary:: mongooplog
+
+.. program:: mongooplog
+
+.. option:: --help
+
+   Returns a basic help and usage text.
+
+.. option:: --verbose, -v
+
+   Increases the amount of internal reporting returned on the command
+   line. Increase the verbosity with the ``-v`` form by including the
+   option multiple times, (e.g. ``-vvvvv``.)
+
+.. option:: --version
+
+   Returns the version of the :binary:`~bin.mongooplog` utility.
+
+.. option:: --host <hostname><:port>, -h
+
+   Specifies a resolvable hostname for the :binary:`~bin.mongod` instance
+   to which :binary:`~bin.mongooplog` will apply :term:`oplog` operations
+   retrieved from the serve specified by the :option:`--from <mongooplog --from>`
+   option.
+
+   :binary:`~bin.mongooplog` assumes that all target  :binary:`~bin.mongod`
+   instances are accessible by way of port ``27017``. You may,
+   optionally, declare an alternate port number as part of the
+   hostname argument.
+
+   You can always connect directly to a single :binary:`~bin.mongod`
+   instance by specifying the host and port number directly.
+
+   .. include:: /includes/fact-multiple-hosts.rst
+
+.. option:: --port
+
+   Specifies the port number of the :binary:`~bin.mongod` instance where
+   :binary:`~bin.mongooplog` will apply :term:`oplog` entries. Only
+   specify this option if the MongoDB instance that you wish to
+   connect to is not running on the standard port. (i.e. ``27017``)
+   You may also specify a port number using the :option:`--host
+   <mongooplog --host>` command.
+
+.. option:: --ipv6
+
+   Enables IPv6 support that allows :binary:`~bin.mongooplog` to connect
+   to the MongoDB instance using an IPv6 network. All MongoDB programs
+   and processes, including :binary:`~bin.mongooplog`, disable IPv6
+   support by default.
+
+.. option:: --username <username>, -u <username>
+
+   Specifies a username to authenticate to the MongoDB instance, if
+   your database requires authentication. Use in conjunction with the
+   :option:`--password <mongooplog --password>` option to supply a
+   password.
+
+.. option:: --password <password>, -p <password>
+
+   Specifies a password to authenticate to the MongoDB instance. Use
+   in conjunction with the :option:`--username <mongooplog --username>`
+   option to supply a username.
+
+   If you specify a :option:`--username <mongooplog --username>`
+   without the :option:`--password` option, :binary:`~bin.mongooplog` will
+   prompt for a password interactively.
+
+.. option:: --dbpath <path>
+
+   Specifies a directory, containing MongoDB data files, to which
+   :binary:`~bin.mongooplog` will apply operations from the :term:`oplog`
+   of the database specified with the :option:`--from <mongooplog --from>`
+   option.  When used, the :option:`--dbpath` option enables
+   :binary:`~bin.mongo` to attach directly to local data files and write
+   data without a running :binary:`~bin.mongod` instance. To run with
+   :option:`--dbpath`, :binary:`~bin.mongooplog` needs to restrict access
+   to the data directory: as a result, no :binary:`~bin.mongod` can be
+   access the same path while the process runs.
+
+.. option:: --directoryperdb
+
+   Use the :option:`--directoryperdb` in conjunction with the
+   corresponding option to :binary:`~bin.mongod`. This option allows
+   :binary:`~bin.mongooplog` to write to data files organized with each
+   database located in a distinct directory. This option is only
+   relevant when specifying the :option:`--dbpath` option.
+
+.. option:: --journal
+
+   Allows :binary:`~bin.mongooplog` operations to use the durability
+   :term:`journal` to ensure that the data files will
+   remain in a consistent state during the writing process. This
+   option is only relevant when specifying the :option:`--dbpath`
+   option.
+
+.. option:: --fields [field1[,field2]], -f [field1[,field2]]
+
+   Specify a field or number fields to constrain which data
+   :binary:`~bin.mongooplog` will migrate. All other fields will be
+   *excluded* from the migration. Comma separate a list of fields to
+   limit the applied fields.
+
+.. option:: --fieldFile <file>
+
+   As an alternative to ":option:`--fields <mongooplog --fields>`" the
+   :option:`--fieldFile` option allows you to specify a file
+   (e.g. ``<file>``) that holds a list of field names to *include* in
+   the migration. All other fields will be *excluded* from the
+   migration. Place one field per line.
+
+.. option:: --seconds <number>, -s <number>
+
+   Specify a number of seconds of operations for :binary:`~bin.mongooplog`
+   to pull from the :option:`remote host <mongooplog --from>`. Unless
+   specified the default value is ``86400`` seconds, or 24 hours.
+
+.. option:: --from <host[:port]>
+
+   Specify the host for :binary:`~bin.mongooplog` to retrieve :term:`oplog`
+   operations from. :binary:`~bin.mongooplog` *requires* this
+   option.
+
+   Unless you specify the :option:`--host <mongooplog --host>` option,
+   :binary:`~bin.mongooplog` will apply the operations collected with this
+   option to the oplog of the :binary:`~bin.mongod` instance running on
+   the localhost interface connected to port ``27017``.
+
+.. option:: --oplogns <namespace>
+
+   Specify a namespace in the :option:`--from <mongooplog --from>`
+   host where the oplog resides. The default value is
+   ``local.oplog.rs``, which is the where :term:`replica set` members
+   store their operation log. However, if you've copied :term:`oplog`
+   entries into another database or collection, use this option to
+   copy oplog entries stored in another location.
+
+   :term:`Namespaces <namespace>` take the form of
+   ``[database].[collection]``.
+
+Usage
+~~~~~
+
+Consider the following prototype :binary:`~bin.mongooplog` command:
+
+.. code-block:: sh
+
+   mongooplog  --from mongodb0.example.net --host mongodb1.example.net
+
+Here, entries from the :term:`oplog` of the :binary:`~bin.mongod` running
+on port ``27017``. This only pull entries from the last 24 hours.
+
+Use the :option:`--seconds <mongooplog --seconds>` argument to capture
+a greater or smaller amount of time. Consider the following example:
+
+.. code-block:: sh
+
+   mongooplog  --from mongodb0.example.net --seconds 172800
+
+In this operation, :binary:`~bin.mongooplog` captures 2 full days of
+operations. To migrate 12 hours of :term:`oplog` entries, use the
+following form:
+
+.. code-block:: sh
+
+   mongooplog  --from mongodb0.example.net --seconds 43200
+
+For the previous two examples, :binary:`~bin.mongooplog` migrates entries
+to the :binary:`~bin.mongod` process running on the localhost interface
+connected to the ``27017`` port. :binary:`~bin.mongooplog` can also
+operate directly on MongoDB's data files if no :binary:`~bin.mongod` is
+running on the *target* host. Consider the following example:
+
+.. code-block:: sh
+
+   mongooplog  --from mongodb0.example.net --dbpath /srv/mongodb --journal
+
+Here, :binary:`~bin.mongooplog` imports :term:`oplog` operations from the
+:binary:`~bin.mongod` host connected to port ``27017``. This migrates
+operations to the MongoDB data files stored in the ``/srv/mongodb``
+directory. Additionally :binary:`~bin.mongooplog` will use the durability
+:term:`journal` to ensure that the data files remain in a consistent
+state.

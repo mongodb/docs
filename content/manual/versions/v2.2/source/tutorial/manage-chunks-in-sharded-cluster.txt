@@ -1,0 +1,387 @@
+==================================
+Manage Chunks in a Sharded Cluster
+==================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This page describes various operations on :term:`chunks <chunk>` in
+:term:`sharded clusters <sharded cluster>`. MongoDB automates most
+chunk management operations. However, these chunk management
+operations are accessible to administrators for use in some
+situations, typically surrounding initial setup, deployment, and data
+ingestion.
+
+.. _sharding-procedure-create-split:
+
+Split Chunks
+------------
+
+Normally, MongoDB splits a :term:`chunk` following inserts when a
+chunk exceeds the :ref:`chunk size <sharding-chunk-size>`. The
+:term:`balancer` may migrate recently split chunks to a new shard
+immediately if :binary:`~bin.mongos` predicts future insertions will
+benefit from the move.
+
+MongoDB treats all chunks the same, whether split manually or
+automatically by the system.
+
+.. warning::
+
+   You cannot merge or combine chunks once you have split them.
+
+You may want to split chunks manually if:
+
+- you have a large amount of data in your cluster and very few
+  :term:`chunks <chunk>`,
+  as is the case after deploying a cluster using existing data.
+
+- you expect to add a large amount of data that would
+  initially reside in a single chunk or shard.
+
+.. example::
+
+   You plan to insert a large amount of data with :term:`shard key`
+   values between ``300`` and ``400``, *but* all values of your shard
+   keys are between ``250`` and ``500`` are in a single chunk.
+
+.. include:: /includes/warning-splitting-chunks.rst
+
+Use :method:`sh.status()` to determine the current chunks ranges across
+the cluster.
+
+To split chunks manually, use the :dbcommand:`split` command with
+operators: ``middle`` and ``find``. The equivalent shell helpers are
+:method:`sh.splitAt()` or :method:`sh.splitFind()`.
+
+.. example::
+
+   The following command will split the chunk that contains
+   the value of ``63109`` for the ``zipcode`` field in the ``people``
+   collection of the ``records`` database:
+
+   .. code-block:: javascript
+
+      sh.splitFind( "records.people", { "zipcode": 63109 } )
+
+:method:`sh.splitFind()` will split the chunk that contains the
+*first* document returned that matches this query into two equally
+sized chunks. You must specify the full namespace
+(i.e. "``<database>.<collection>``") of the sharded collection to
+:method:`sh.splitFind()`. The query in :method:`sh.splitFind()` need
+not contain the shard key, though it almost always makes sense to
+query for the shard key in this case, and including the shard key will
+expedite the operation.
+
+Use :method:`sh.splitAt()` to split a chunk in two using the queried
+document as the partition point:
+
+.. code-block:: javascript
+
+   sh.splitAt( "records.people", { "zipcode": 63109 } )
+
+However, the location of the document that this query finds with
+respect to the other documents in the chunk does not affect how the
+chunk splits.
+
+.. _sharding-administration-pre-splitting:
+.. _sharding-administration-create-chunks:
+
+Create Chunks (Pre-Splitting)
+-----------------------------
+
+Pre-splitting the chunk ranges in an empty sharded collection, allows
+clients to insert data into an already-partitioned collection. In most
+situations a :term:`sharded cluster` will create and distribute chunks
+automatically without user intervention. However, in a limited number
+of use profiles, MongoDB cannot create enough chunks or distribute
+data fast enough to support required throughput.  For example, if:
+
+- you must partition an existing data collection that resides on a
+  single shard.
+
+- you must ingest a large volume of data into a cluster that
+  isn't balanced, or where the ingestion of data will lead to an
+  imbalance of data.
+
+  This can arise in an initial data loading, or in a case where you
+  must insert a large volume of data into a single chunk, as is the
+  case when you must insert at the beginning or end of the chunk
+  range, as is the case for monotonically increasing or decreasing
+  shard keys.
+
+Preemptively splitting chunks increases cluster throughput for these
+operations, by reducing the overhead of migrating chunks that hold
+data during the write operation. MongoDB only creates splits after an
+insert operation and can migrate only a single chunk at a time. Chunk
+migrations are resource intensive and further complicated by large
+write volume to the migrating chunk.
+
+.. warning::
+
+   You can only pre-split an empty collection.  When you enable
+   sharding for a collection that contains data MongoDB automatically
+   creates splits. Subsequent attempts to create splits manually, can
+   lead to unpredictable chunk ranges and sizes as well as inefficient
+   or ineffective balancing behavior.
+
+To create and migrate chunks manually, use the following procedure:
+
+#. Split empty chunks in your collection by manually performing
+   :dbcommand:`split` command on chunks.
+
+   .. example::
+
+      To create chunks for documents in the ``myapp.users``
+      collection, using the ``email`` field as the :term:`shard key`,
+      use the following operation in the :binary:`~bin.mongo` shell:
+
+        .. code-block:: javascript
+
+           for ( var x=97; x<97+26; x++ ){
+             for( var y=97; y<97+26; y+=6 ) {
+               var prefix = String.fromCharCode(x) + String.fromCharCode(y);
+               db.runCommand( { split : "myapp.users" , middle : { email : prefix } } );
+             }
+           }
+
+      This assumes a collection size of 100 million documents.
+
+#. Migrate chunks manually using the :dbcommand:`moveChunk` command:
+
+   .. example::
+
+      To migrate all of the manually created user profiles evenly,
+      putting each prefix chunk on the next shard from the other, run
+      the following commands in the mongo shell:
+
+        .. code-block:: javascript
+
+           var shServer = [ "sh0.example.net", "sh1.example.net", "sh2.example.net", "sh3.example.net", "sh4.example.net" ];
+           for ( var x=97; x<97+26; x++ ){
+             for( var y=97; y<97+26; y+=6 ) {
+               var prefix = String.fromCharCode(x) + String.fromCharCode(y);
+               db.adminCommand({moveChunk : "myapp.users", find : {email : prefix}, to : shServer[(y-97)/6]})
+             }
+           }
+
+   You can also let the balancer automatically distribute the new
+   chunks. For an introduction to balancing, see
+   :ref:`sharding-balancing`. For lower level information on balancing,
+   see :ref:`sharding-balancing-internals`.
+
+.. _sharding-balancing-modify-chunk-size:
+
+Modify Chunk Size
+-----------------
+
+When you initialize a sharded cluster, [#mongos-initialization]_ the
+default chunk size is 64 megabytes. This default chunk size works well
+for most deployments; however, if you notice that automatic migrations
+are incurring a level of I/O that your hardware cannot handle, you may
+want to reduce the chunk size. For the automatic splits and
+migrations, a small chunk size leads to more rapid and frequent
+migrations.
+
+to modify the chunk size, use the following procedure:
+
+#. connect to any :binary:`~bin.mongos` in the cluster using the
+   :binary:`~bin.mongo` shell.
+
+#. issue the following command to switch to the :ref:`config-database`:
+
+   .. code-block:: javascript
+
+      use config
+
+#. Issue the following :method:`save() <db.collection.save()>`
+   operation:
+
+   .. code-block:: javascript
+
+      db.settings.save( { _id:"chunksize", value: <size> } )
+
+   Where the value of ``<size>`` reflects the new chunk size in
+   megabytes. Here, you're essentially writing a document whose values
+   store the global chunk size configuration value.
+
+.. note::
+
+   The :setting:`chunkSize` and
+   :option:`--chunkSize <mongos --chunkSize>`
+   options, passed at runtime to the :binary:`~bin.mongos`
+   **do not** affect the chunk size after you have initialized the
+   cluster. [#mongos-initialization]_
+
+   To eliminate confusion you should *always* set chunk size using the
+   above procedure and never use the runtime options.
+
+Modifying the chunk size has several limitations:
+
+- Automatic splitting only occurs when inserting :term:`documents
+  <document>` or updating existing documents.
+
+- If you lower the chunk size it may take time for all chunks to split to
+  the new size.
+
+- Splits cannot be "undone."
+
+If you increase the chunk size, existing chunks must grow through
+insertion or updates until they reach the new size.
+
+.. [#mongos-initialization] The first :binary:`~bin.mongos` that connects
+   to a set of :term:`config servers <config database>` initializes
+   the sharded cluster.
+
+.. _sharding-balancing-manual-migration:
+
+Migrate Chunks
+--------------
+
+In most circumstances, you should let the automatic balancer
+migrate :term:`chunks <chunk>` between :term:`shards <shard>`.
+However, you may want to migrate chunks manually in a few cases:
+
+- If you create chunks by :term:`pre-splitting` the data in your
+  collection, you will have to migrate chunks manually to distribute
+  chunks evenly across the shards. Use pre-splitting in limited
+  situations, to support bulk data ingestion.
+
+- If the balancer in an active cluster cannot distribute chunks within
+  the balancing window, then you will have to migrate chunks manually.
+
+For more information on how chunks move between shards, see
+:ref:`sharding-balancing-internals`, in particular the section
+:ref:`sharding-chunk-migration`.
+
+To migrate chunks, use the :dbcommand:`moveChunk` command.
+
+.. note::
+
+   To return a list of shards, use the :dbcommand:`listShards`
+   command.
+
+   Specify shard names using the :dbcommand:`addShard` command
+   using the ``name`` argument. If you do not specify a name in the
+   :dbcommand:`addShard` command, MongoDB will assign a name
+   automatically.
+
+The following example assumes that the field ``username`` is the
+:term:`shard key` for a collection named ``users`` in the ``myapp``
+database, and that the value ``smith`` exists within the :term:`chunk`
+you want to migrate.
+
+To move this chunk, you would issue the following command from a :binary:`~bin.mongo`
+shell connected to any :binary:`~bin.mongos` instance.
+
+.. code-block:: javascript
+
+   db.adminCommand( { moveChunk : "myapp.users",
+                      find : {username : "smith"},
+                      to : "mongodb-shard3.example.net" } )
+
+This command moves the chunk that includes the shard key value "smith" to the
+:term:`shard` named ``mongodb-shard3.example.net``. The command will
+block until the migration is complete.
+
+See :ref:`sharding-administration-create-chunks` for an introduction
+to pre-splitting.
+
+.. versionadded:: 2.2
+   :dbcommand:`moveChunk` command has the: ``_secondaryThrottle``
+   parameter. When set to ``true``, MongoDB ensures that changes to
+   shards as part of chunk migrations replicate to :term:`secondaries
+   <secondary>` throughout the migration operation. For more
+   information, see :ref:`sharded-cluster-config-secondary-throttle`.
+
+.. warning::
+
+   The :dbcommand:`moveChunk` command may produce the following error
+   message:
+
+   .. code-block:: none
+
+      The collection's metadata lock is already taken.
+
+   These errors occur when clients have too many open :term:`cursors
+   <cursor>` that access the chunk you are migrating. You can either
+   wait until the cursors complete their operation or close the
+   cursors manually.
+
+   .. todo:: insert link to killing a cursor.
+
+.. index:: bulk insert
+.. _sharding-bulk-inserts:
+
+Strategies for Bulk Inserts in Sharded Clusters
+-----------------------------------------------
+
+.. todo:: Consider moving to the administrative guide as it's of an
+   applied nature, or create an applications document for sharding
+
+.. todo:: link the words "bulk insert" to the bulk insert topic when
+   it's published
+
+Large bulk insert operations, including initial data ingestion or
+routine data import, can have a significant impact on a :term:`sharded
+cluster`. For bulk insert operations, consider the following strategies:
+
+- If the collection does not have data, then there is only one
+  :term:`chunk`, which must reside on a single shard. MongoDB must
+  receive data, create splits, and distribute chunks to the available
+  shards. To avoid this performance cost, you can pre-split the
+  collection, as described in :ref:`sharding-administration-pre-splitting`.
+
+- You can parallelize import processes by sending insert operations to
+  more than one :binary:`~bin.mongos` instance. If the collection is
+  empty, pre-split first, as described in
+  :ref:`sharding-administration-pre-splitting`.
+
+- If your shard key increases monotonically during an insert then all
+  the inserts will go to the last chunk in the collection, which will
+  always end up on a single shard. Therefore, the insert capacity of the
+  cluster will never exceed the insert capacity of a single shard.
+
+  If your insert volume is never larger than what a single shard can
+  process, then there is no problem; however, if the insert volume
+  exceeds that range, and you cannot avoid a monotonically
+  increasing shard key, then consider the following modifications to
+  your application:
+
+  - Reverse all the bits of the shard key to preserve the information
+    while avoiding the correlation of insertion order and increasing
+    sequence of values.
+
+  - Swap the first and last 16-bit words to "shuffle" the inserts.
+
+  .. example:: The following example, in C++, swaps the leading and
+     trailing 16-bit word of :term:`BSON` :term:`ObjectIds <ObjectId>`
+     generated so that they are no longer monotonically increasing.
+
+     .. code-block:: cpp
+
+        using namespace mongo;
+        OID make_an_id() {
+          OID x = OID::gen();
+          const unsigned char *p = x.getData();
+          swap( (unsigned short&) p[0], (unsigned short&) p[10] );
+          return x;
+        }
+
+        void foo() {
+          // create an object
+          BSONObj o = BSON( "_id" << make_an_id() << "x" << 3 << "name" << "jane" );
+          // now we might insert o into a sharded collection...
+        }
+
+  For information on choosing a shard key, see :ref:`sharding-shard-key`
+  and see :ref:`Shard Key Internals <sharding-internals-shard-keys>` (in
+  particular, :ref:`sharding-internals-operations-and-reliability` and
+  :ref:`sharding-internals-choose-shard-key`).
+
+.. include:: /includes/note-bulk-inserts-on-sharded-clusters.rst

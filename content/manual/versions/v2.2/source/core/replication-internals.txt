@@ -1,0 +1,328 @@
+===================================
+Replica Set Internals and Behaviors
+===================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+This document provides a more in-depth explanation of the internals and
+operation of :term:`replica set` features. This material is not necessary for
+normal operation or application development but may be useful for
+troubleshooting and for further understanding MongoDB's behavior and approach.
+
+For additional information about the internals of replication replica
+sets see the following resources in the MongoDB Manual:
+
+- :doc:`/reference/local-database`
+- :doc:`/reference/replica-commands`
+- :doc:`/reference/replication-info`
+- :doc:`/reference/replica-configuration`
+
+.. index:: replica set; oplog
+.. _replica-set-oplog:
+.. _replica-set-internals-oplog:
+
+Oplog Internals
+---------------
+
+For an explanation of the oplog, see :ref:`replica-set-oplog-sizing`.
+
+Under various exceptional
+situations, updates to a :term:`secondary's <secondary>` oplog might
+lag behind the desired performance time. See
+:ref:`Replication Lag <replica-set-replication-lag>` for details.
+
+All members of a :term:`replica set` send heartbeats (pings) to all
+other members in the set and can import operations to the local oplog
+from any other member in the set.
+
+Replica set oplog operations are :term:`idempotent`. The following
+operations require idempotency:
+
+- initial sync
+- post-rollback catch-up
+- sharding chunk migrations
+
+.. todo:: Verify that "sharding chunk migrations" (above) requires
+   idempotency. The wiki was unclear on the subject.
+
+.. In 2.0, replicas would import entries from the member lowest
+.. "ping," This wasn't true in 1.8 and will likely change in 2.2.
+
+.. _replica-set-data-integrity:
+.. _replica-set-implementation:
+
+Read Preference Internals
+-------------------------
+
+.. index:: replica set; read preferences
+
+
+MongoDB uses :term:`single-master replication` to ensure that the
+database remains consistent. However, clients may modify the
+:ref:`read preferences <replica-set-read-preference>` on a
+per-connection basis in order to distribute read operations to the
+:term:`secondary` members of a :term:`replica set`. Read-heavy deployments may achieve
+greater query throughput by distributing reads to secondary members. But
+keep in mind that replication is asynchronous; therefore, reads from
+secondaries may not always reflect the latest writes to the
+:term:`primary`.
+
+.. seealso:: :ref:`replica-set-consistency`
+
+.. note::
+
+   Use :method:`db.getReplicationInfo()` from a secondary member
+   and the :doc:`replication status </reference/replication-info>`
+   output to asses the current state of replication and determine if
+   there is any unintended replication delay.
+
+.. index:: replica set; configurations
+.. _replica-set-member-configurations-internals:
+
+Member Configurations
+---------------------
+
+Replica sets can include members with the following four special
+configurations that affect membership behavior:
+
+- :ref:`Secondary-only <replica-set-secondary-only-members>` members
+  have their :data:`~local.system.replset.members[n].priority` values
+  set to ``0`` and thus are not eligible for election as primaries.
+
+- :ref:`Hidden <replica-set-hidden-members>` members do not appear in the
+  output of :method:`db.isMaster()`. This prevents clients
+  from discovering and potentially querying the member in question.
+
+- :ref:`Delayed <replica-set-delayed-members>` members lag a fixed period
+  of time behind the primary. These members are typically used
+  for disaster recovery scenarios. For example, if an administrator
+  mistakenly truncates a collection, and you discover the mistake within
+  the lag window, then you can manually fail over to the delayed member.
+
+- :ref:`Arbiters <replica-set-arbiters>` exist solely to participate
+  in elections. They do not replicate data from the primary.
+
+In almost every case, replica sets simplify the process of
+administering database replication. However, replica sets still have a
+unique set of administrative requirements and concerns. Choosing the
+right :doc:`system architecture </administration/replica-set-architectures>`
+for your data set is crucial.
+
+.. seealso:: The :ref:`replica-set-member-configurations` topic in the
+   :doc:`/administration/replica-sets` document.
+
+.. index:: replica set; security
+
+Security Internals
+------------------
+
+Administrators of replica sets also have unique :ref:`monitoring
+<replica-set-monitoring>` and :ref:`security <replica-set-security>`
+concerns. The :ref:`replica set functions <replica-set-functions>` in
+the :binary:`~bin.mongo` shell, provide the tools necessary for replica set
+administration. In particular use the :method:`rs.conf()` to return a
+:term:`document` that holds the :doc:`replica set configuration
+</reference/replica-configuration>` and use :method:`rs.reconfig()` to
+modify the configuration of an existing replica set.
+
+.. index:: replica set; elections
+.. index:: replica set; failover
+.. _replica-set-election-internals:
+
+Election Internals
+------------------
+
+Elections are the process :term:`replica set` members use to select which member should
+become :term:`primary`. A primary is the only member in the replica
+set that can accept write operations, including :method:`insert()
+<db.collection.insert()>`, :method:`update() <db.collection.update()>`,
+and :method:`remove() <db.collection.remove()>`.
+
+The following events can trigger an election:
+
+- You initialize a replica set for the first time.
+
+- A primary steps down. A primary will step down in response to the
+  :dbcommand:`replSetStepDown` command or if it sees that one of the
+  current secondaries is eligible for election *and* has a higher
+  priority. A primary also will step down when it cannot contact a
+  majority of the members of the replica set. When the current primary
+  steps down, it closes all open client connections to prevent clients
+  from unknowingly writing data to a non-primary member.
+
+- A :term:`secondary` member loses contact with a primary. A secondary
+  will call for an election if it cannot establish a connection to a
+  primary.
+
+- A :term:`failover` occurs.
+
+In an election, all members have one vote,
+including :ref:`hidden <replica-set-hidden-members>` members, :ref:`arbiters
+<replica-set-arbiters>`, and even recovering members.
+Any :binary:`~bin.mongod` can veto an election.
+
+In the default configuration, all members have an equal chance of
+becoming primary; however, it's possible to set :data:`~local.system.replset.members[n].priority>` values that weight the election. In some
+architectures, there may be operational reasons for increasing the
+likelihood of a specific replica set member becoming primary. For
+instance, a member located in a remote data center should *not* become
+primary. See: :ref:`replica-set-node-priority` for more
+information.
+
+Any member of a replica set can veto an election, even if the
+member is a :ref:`non-voting member <replica-set-non-voting-members>`.
+
+A member of the set will veto an election under the following
+conditions:
+
+- If the member seeking an election is not a member of the voter's set.
+
+- If the member seeking an election is not up-to-date with the most
+  recent operation accessible in the replica set.
+
+- If the member seeking an election has a lower priority than another member
+  in the set that is also eligible for election.
+
+- If a :ref:`secondary only member <replica-set-secondary-only-members>` [#imply-secondary-only]_ is the
+  most current member at the time of the election, another eligible
+  member of the set will catch up to the state of this secondary
+  member and then attempt to become primary.
+
+- If the current primary member has more recent operations
+  (i.e. a higher "optime") than the member seeking election, from the
+  perspective of the voting member.
+
+- The current primary will veto an election if it has the same or
+  more recent operations (i.e. a "higher or equal optime") than the
+  member seeking election.
+
+The first member to receive votes from a majority of members in a set
+becomes the next primary until the next election. Be
+aware of the following conditions and possible situations:
+
+- Replica set members send heartbeats (pings) to each other every 2
+  seconds. If a heartbeat does not return for more than 10 seconds,
+  the other members mark the delinquent member as inaccessible.
+
+- Replica set members compare priorities only with other members of
+  the set. The absolute value of priorities does not have any impact on
+  the outcome of replica set elections, with the exception of the value ``0``,
+  which indicates the member cannot become primary and cannot seek election.
+  For details, see :ref:`replica-set-node-priority-configuration`.
+
+- A replica set member cannot become primary *unless* it has the
+  highest "optime" of any visible member in the set.
+
+- If the member of the set with the highest priority is within 10
+  seconds of the latest :term:`oplog` entry, then the set will *not* elect a
+  primary until the member with the highest priority catches up
+  to the latest operation.
+
+.. seealso:: :ref:`Non-voting members in a replica
+   set <replica-set-non-voting-members>`,
+   :ref:`replica-set-node-priority-configuration`, and
+   :data:`replica configuration <~local.system.replset.members[n].votes>`.
+
+.. [#imply-secondary-only] Remember that :ref:`hidden
+   <replica-set-hidden-members>` and :ref:`delayed
+   <replica-set-delayed-members>` imply :ref:`secondary-only
+   <replica-set-secondary-only-members>` configuration.
+
+.. index:: replica set; sync
+
+.. _replica-set-syncing:
+
+Syncing
+-------
+
+In order to remain up-to-date with the current state of the
+:term:`replica set`, set members :term:`sync`, or copy, :term:`oplog`
+entries from other members. Members sync data at two different points:
+
+- *Initial sync* occurs when MongoDB creates new databases on a new or
+  restored member, populating the member with the replica set's
+  data. When a new or restored member joins or rejoins a set, the member
+  waits to receive heartbeats from other members. By default, the member
+  syncs from the *closest* member of the set that is either the
+  primary or another secondary with more recent oplog entries. This
+  prevents two secondaries from syncing from each other.
+
+- *Replication* occurs continually after initial sync and keeps the
+  member updated with changes to the replica set's data.
+
+In MongoDB 2.0, secondaries only change sync targets if the connection
+to the sync target drops [#connection-drop]_ or produces an error.
+
+For example:
+
+#. If you have two secondary members in one data center and a primary in
+   a second facility, and if you start all three instances at roughly
+   the same time (i.e. with no existing data sets or oplog), both
+   secondaries will likely sync from the primary, as neither secondary
+   has more recent oplog entries.
+
+   If you restart one of the secondaries, then when it rejoins the set it
+   will likely begin syncing from the other secondary, because of proximity.
+
+#. If you have a primary in one facility and a secondary in an
+   alternate facility, and if you add another secondary to the alternate
+   facility, the new secondary will likely sync from the existing
+   secondary because it is closer than the primary.
+
+In MongoDB 2.2, secondaries also use the following additional sync
+behaviors:
+
+- Secondaries will sync from :ref:`delayed members
+  <replica-set-delayed-members>` *only* if no other member is available.
+
+- Secondaries will *not* sync from :ref:`hidden members
+  <replica-set-hidden-members>`.
+
+- Secondaries will *not* start syncing from a member in a
+  :term:`recovering` state.
+
+- For one member to sync from another, both members must have the same
+  value, either ``true`` or ``false``, for the
+  :data:`~local.system.replset.members[n].buildIndexes` field.
+
+.. [#connection-drop] Secondaries will stop syncing from a member if
+   the connection used to poll oplog entries is unresponsive for 30
+   seconds. If a connection times out, the member may select a new
+   member to sync from. Before version 2.2, secondaries would way 10
+   minutes to select a new member to sync from.
+
+Multithreaded Replication
+-------------------------
+
+MongoDB applies write operations in batches using a multithreaded
+approach. The replication process divides each batch among a group of
+threads which apply many operations with greater concurrency.
+
+Even though threads may apply operations out of order, a client
+reading data from a secondary will never return documents that reflect
+an in-between state that never existed on the primary. To ensure this
+consistency, MongoDB blocks all read operations while applying the
+batch of operations.
+
+To help improve the performance of operation application, MongoDB
+fetches all the memory pages that hold data and indexes that the
+operations in the batch will affect. The prefetch stage minimizes the
+amount of time MongoDB must hold the write lock to apply
+operations. See the :setting:`replIndexPrefetch` setting to modify the
+index fetching behavior.
+
+Pre-Fetching Indexes to Improve Replication Throughput
+------------------------------------------------------
+
+By default, secondaries will in most cases pre-fetch :ref:`indexes`
+associated with the affected document to improve replication throughput.
+
+You can limit this feature to pre-fetch only the index on the ``_id``
+field, or you can disable this feature entirely. For more information,
+see :setting:`replIndexPrefetch`.

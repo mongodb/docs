@@ -1,0 +1,256 @@
+=================================================
+Replica Set Architectures and Deployment Patterns
+=================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+There is no single ideal :term:`replica set` architecture for
+every deployment or environment. Indeed the flexibility of replica sets
+might be their greatest strength. This document describes the most
+commonly used deployment patterns for replica sets. The descriptions
+are necessarily not mutually exclusive, and you can combine features
+of each architecture in your own deployment.
+
+For an overview of operational practices and background information,
+see the :ref:`replica-set-architecture` topic in the :doc:`/core/replication`
+document.
+
+.. _replica-set-three-members:
+
+Three Member Sets
+-----------------
+
+The minimum *recommended* architecture for a replica set consists of:
+
+- One :term:`primary <primary>` and
+
+- Two :term:`secondary <secondary>` members, either of which can become
+  the primary at any time.
+
+  This makes :ref:`failover <replica-set-failover>` possible and ensures
+  there exists two full and independent copies of the data set at all
+  times. If the primary fails, the replica set elects another member as
+  primary and continues replication until the primary recovers.
+
+.. note::
+
+   While not *recommended*, the minimum *supported* configuration for
+   replica sets includes one :term:`primary`, one :term:`secondary`, and
+   one :ref:`arbiter <replica-set-arbiters>`. The arbiter requires fewer
+   resources and lowers costs but sacrifices operational flexibility and
+   redundancy.
+
+.. seealso:: :doc:`/tutorial/deploy-replica-set`.
+
+Sets with Four or More Members
+------------------------------
+
+To increase redundancy or to provide additional resources for
+distributing secondary read operations, you can add additional members
+to a replica set.
+
+When adding additional members, ensure the following architectural
+conditions are true:
+
+- The set has an odd number of voting members.
+
+  If you have an *even* number of voting members, deploy an :ref:`arbiter
+  <replica-set-arbiters>` to create an odd number.
+
+- The set has no more than 7 voting members at a time.
+
+- Members that cannot function as primaries in a :term:`failover` have
+  their :data:`~local.system.replset.members[n].priority` values set to
+  ``0``.
+
+  If a member cannot function as a primary because of resource or
+  network latency constraints a
+  :data:`~local.system.replset.members[n].priority` value of ``0``
+  prevents it from being a primary. Any member with a ``priority``
+  value greater than ``0`` is available to be a primary.
+
+.. seealso:: :doc:`/tutorial/expand-replica-set`.
+
+.. _replica-set-geographical-distribution:
+
+Geographically Distributed Sets
+-------------------------------
+
+A geographically distributed replica set provides data recovery should
+one data center fail. These sets include at least one member in a
+secondary data center.
+
+In many circumstances, these deployments consist of the following:
+
+- One :term:`primary <primary>` in the first (i.e., primary) data
+  center.
+
+- One :term:`secondary <secondary>` member in the primary data center.
+  This member can become the primary member at any time.
+
+- One secondary member in a secondary data center.
+
+If the primary is unavailable, the replica set will elect a new primary
+from the primary data center.
+
+If the *connection* between the primary and secondary data centers fails,
+the member in the secondary center cannot independently become the
+primary.
+
+If the primary data center fails, you can manually recover the data
+set from the secondary data center.
+
+When you add a secondary data center, make sure to keep an odd number of
+members overall to prevent ties during elections for primary by
+deploying an :ref:`arbiter <replica-set-arbiters>` in your
+primary data center. For example, if you have three members in the
+primary data center and add a member in a secondary center, you create
+an even number. To create an odd number and prevent ties, deploy an
+:ref:`arbiter <replica-set-arbiters>` in your primary data center.
+
+.. seealso::
+   :doc:`/tutorial/deploy-geographically-distributed-replica-set`
+
+Non-Production Members
+----------------------
+
+In some cases it may be useful to maintain a member that has an always
+up-to-date copy of the entire data set but that cannot become primary.
+You might create such a member to provide backups, to support reporting
+operations, or to act as a cold standby. Such members fall into one or
+more of the following categories:
+
+- **Low-Priority**: These members
+  have :data:`local.system.replset.members[n].priority` settings such
+  that they are either unable to become :term:`primary` or *very*
+  unlikely to become primary. In all other respects these low-priority
+  members are identical to other replica set member. (See:
+  :ref:`replica-set-secondary-only-members`.)
+
+- **Hidden**: These members cannot become primary *and* the set excludes
+  them from the output of :method:`db.isMaster()` and from the output of
+  the database command :dbcommand:`isMaster`. Excluding hidden members
+  from such outputs prevents clients and drivers from using hidden
+  members for secondary reads. (See: :ref:`replica-set-hidden-members`.)
+
+- **Voting**: This changes the number of votes that a member of the
+  replica set has in elections. In general, use priority to control the
+  outcome of elections, as weighting votes introduces operational
+  complexities and risks. Only modify the number of votes when you need
+  to have more than 7 members in a replica set. (See:
+  :ref:`replica-set-non-voting-members`.)
+
+.. note::
+
+   All members of a replica set vote in elections *except* for
+   :ref:`non-voting <replica-set-non-voting-members>` members. Priority,
+   hidden, or delayed status does not affect a member's ability to vote
+   in an election.
+
+Backups
+~~~~~~~
+
+For some deployments, keeping a replica set member for dedicated backup
+purposes is operationally advantageous. Ensure this member is close,
+from a networking perspective, to the primary or likely primary. Ensure
+that the :term:`replication lag` is minimal or non-existent. To create a
+dedicated :ref:`hidden member <replica-set-hidden-members>` for the
+purpose of creating backups.
+
+If this member runs with journaling enabled, you can safely use standard
+:doc:`block level backup methods </tutorial/backup-databases-with-filesystem-snapshots>` to create a
+backup of this member. Otherwise, if your underlying system does not
+support snapshots, you can connect :binary:`~bin.mongodump` to create a
+backup directly from the secondary member. In these cases, use the
+:option:`--oplog <mongodump --oplog>` option to ensure a consistent
+point-in-time dump of the database state.
+
+.. seealso:: :doc:`/administration/backups`.
+
+.. _replica-set-delayed-replication:
+
+Delayed Replication
+~~~~~~~~~~~~~~~~~~~
+
+:term:`Delayed members <delayed member>` are special :binary:`~bin.mongod`
+instances in a :term:`replica set` that
+apply operations from the :term:`oplog` on a delay to
+provide a running "historical" snapshot of the data set, or a rolling
+backup. Typically these members provide protection against human error,
+such as unintentionally deleted databases and collections or failed
+application upgrades or migrations.
+
+Otherwise, delayed member function identically to
+:term:`secondary` members, with the following operational differences:
+they are not eligible for election to primary and do not receive
+secondary queries. Delayed members *do* vote in :term:`elections
+<election>` for primary.
+
+See :ref:`Replica Set Delayed Nodes <replica-set-delayed-members>` for
+more information about configuring delayed replica set members.
+
+Reporting
+~~~~~~~~~
+
+Typically :term:`hidden members <hidden member>` provide a substrate for
+reporting purposes, because the replica set segregates these instances
+from the cluster. Since no secondary reads reach hidden members, they
+receive no traffic beyond what replication requires. While hidden members
+are not electable as primary, they are still able to *vote* in elections
+for primary. If your operational parameters requires this kind of
+reporting functionality, see :ref:`Hidden Replica Set Nodes
+<replica-set-hidden-members>` and :data:`local.system.replset.members[n].hidden` for more
+information regarding this functionality.
+
+Cold Standbys
+~~~~~~~~~~~~~
+
+For some sets, it may not be possible to initialize a new member in a
+reasonable amount of time. In these situations, it may be useful to
+maintain a secondary member with an up-to-date copy for the purpose of
+replacing another member in the replica set. In most cases, these
+members can be ordinary members of the replica set, but in large sets,
+with varied hardware availability, or given some patterns of
+:ref:`geographical distribution <replica-set-geographical-distribution>`,
+you may want to use a member with a different :term:`priority`,
+:term:`hidden <hidden member>`, or voting status.
+
+Cold standbys may be valuable when your :term:`primary` and "hot
+standby" :term:`secondaries <secondary>` members have a different
+hardware specification or connect via a different network than the main
+set. In these cases, deploy members with :term:`priority` equal to ``0``
+to ensure that they will never become primary. These members will vote in
+elections for primary but will never be eligible for election to
+primary. Consider likely failover scenarios, such as inter-site network
+partitions, and ensure there will be members eligible for election as
+primary.
+
+.. note::
+
+   If your set already has ``7`` members, set the
+   :data:`local.system.replset.members[n].votes` value to ``0`` for these members, so that
+   they won't vote in elections.
+
+.. seealso:: :ref:`Secondary Only <replica-set-secondary-only-members>`,
+   and :ref:`Hidden Nodes <replica-set-hidden-members>`.
+
+.. _replica-set-arbiter-nodes:
+
+Arbiters
+--------
+
+Deploy an :term:`arbiter` to ensure that a replica set will have
+a sufficient number of members to elect a :term:`primary`. While having
+replica sets with 2 members is not recommended for production
+environments, if you have just two members, deploy an arbiter.
+Also, for *any replica set with an even
+number of members*, deploy an arbiter.
+
+To deploy an arbiter, see the :ref:`replica-set-arbiters` topic in the
+:doc:`/administration/replica-sets` document.

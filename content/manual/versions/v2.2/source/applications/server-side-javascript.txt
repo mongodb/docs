@@ -1,0 +1,170 @@
+======================
+Server-side JavaScript
+======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+MongoDB supports server-side execution of JavaScript code within the
+database process.
+
+.. note::
+
+   The JavaScript code execution takes a JavaScript lock: each
+   :binary:`~bin.mongod` can only execute a single JavaScript operation at
+   a time.
+
+.. include:: /includes/fact-disable-javascript-with-noscript.rst
+
+.. _server-side-map-reduce:
+
+Map-Reduce
+----------
+
+MongoDB performs the execution of JavaScript functions for
+:doc:`/applications/map-reduce` operations on the server. Within these
+JavaScript functions, you must not access the database for any reason,
+including to perform reads.
+
+See the :method:`db.collection.mapReduce()` and the
+:doc:`/applications/map-reduce` documentation for more information,
+including examples of map-reduce. See :ref:`map-reduce concurrency
+<map-reduce-concurrency>` section for concurrency information for
+map-reduce.
+
+.. _server-side-eval:
+
+``eval`` Command
+----------------
+
+The :dbcommand:`eval` command, and the corresponding :binary:`~bin.mongo`
+shell method :method:`db.eval()`, evaluates JavaScript functions on the
+database server. This command may be useful if you need to touch a lot
+of data lightly since the network transfer of the data could become a
+bottleneck if performing these operations on the client-side.
+
+.. warning::
+
+   By default, :dbcommand:`eval` command requires a write lock. As
+   such :dbcommand:`eval` will block all other read and write
+   operations while it runs. Because only a single JavaScript process
+   can run at a time, *do not* run :dbcommand:`mapReduce`,
+   :dbcommand:`group`, queries with the :query:`$where` or any
+   other operation that requires JavaScript execution within
+   :dbcommand:`eval` operations.
+
+See :dbcommand:`eval` command and :method:`db.eval()` documentation for
+more information, including examples.
+
+.. _running-js-scripts-in-mongo-on-mongod-host:
+
+Running ``.js`` files via a ``mongo`` shell Instance on the Server
+------------------------------------------------------------------
+
+Running a JavaScript (``.js``) file using a :binary:`~bin.mongo` shell
+instance on the server is a good technique for performing batch
+administrative work. When you run :binary:`~bin.mongo` shell on the
+server, connecting via the localhost interface, the connection is fast
+with low latency.  Additionally, this technique has the advantage over
+the :dbcommand:`eval` command since the command :dbcommand:`eval`
+blocks all other operations.
+
+.. _server-side-where:
+
+``$where`` Operator
+-------------------
+
+To perform :doc:`/core/read-operations`, in addition to the standard
+operators (e.g. :query:`$gt`, :query:`$lt`), with the
+:query:`$where` operator, you can also express the query condition
+either as a string or a full JavaScript function that specifies a
+SQL-like ``WHERE`` clause. However, use the standard operators whenever
+possible since :query:`$where` operations have significantly slower
+performance.
+
+.. warning::
+
+   Do not write to the database within the :query:`$where`
+   JavaScript function.
+
+See :query:`$where` documentation for more information, including
+examples.
+
+.. _storing-server-side-javascript:
+
+Storing Functions Server-side
+-----------------------------
+
+.. note::
+
+   We do **not** recommend using server-side stored functions if
+   possible.
+
+There is a special system collection named ``system.js`` that can store
+JavaScript functions for reuse.
+
+To store a function, you can use the :method:`db.collection.save()`, as
+in the following example:
+
+.. code-block:: javascript
+
+   db.system.js.save(
+      {
+        _id : "myAddFunction" ,
+        value : function (x, y){ return x + y; }
+      }
+   );
+
+- The ``_id`` field holds the name of the function and is unique per
+  database.
+
+- The ``value`` field holds the function definition
+
+Once you save a function in the ``system.js`` collection, you can use
+the function from any JavaScript context (e.g. :ref:`eval
+<server-side-eval>`, :ref:`$where <server-side-where>`,
+:ref:`map-reduce <server-side-map-reduce>`).
+
+Consider the following example from the :binary:`~bin.mongo` shell that
+first saves a function named ``echoFunction`` to the ``system.js``
+collection and calls the function using :ref:`db.eval()
+<server-side-eval>`:
+
+.. code-block:: javascript
+
+   db.system.js.save(
+                      { _id: "echoFunction",
+                        value : function(x) { return x; }
+                      }
+                    )
+
+   db.eval( "echoFunction( 'test' )" )
+
+See `<http://github.com/mongodb/mongo/tree/master/jstests/storefunc.js>`_ for a full example.
+
+.. versionadded:: 2.1
+   In the :binary:`~bin.mongo` shell, you can use
+   :method:`db.loadServerScripts()` to load all the scripts saved in
+   the ``system.js`` collection for the current db. Once loaded, you
+   can invoke the functions directly in the shell, as in the following
+   example:
+
+.. code-block:: javascript
+
+   db.loadServerScripts();
+
+   echoFunction(3);
+
+   myAddFunction(3, 5);
+
+Concurrency
+-----------
+
+Refer to the individual method or operator documentation for any
+concurrency information. See also the :ref:`concurrency table
+<faq-concurrency-operations-locks>`.

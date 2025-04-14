@@ -1,0 +1,129 @@
+=====
+$type
+=====
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. query:: $type
+
+   *Syntax*: ``{ field: { $type: <BSON type> } }``
+
+   :query:`$type` selects the documents where the *value* of the
+   ``field`` is the specified :term:`BSON` type.
+
+   Consider the following example:
+
+   .. code-block:: javascript
+
+      db.inventory.find( { price: { $type : 1 } } )
+
+   This query will select all documents in the ``inventory`` collection
+   where the ``price`` field value is a Double.
+
+   If the ``field`` holds an array, the :query:`$type` operator
+   performs the type check against the array elements and **not** the
+   ``field``.
+
+   Consider the following example where the ``tags`` field holds an array:
+
+   .. code-block:: javascript
+
+      db.inventory.find( { tags: { $type : 4 } } )
+
+   This query will select all documents in the ``inventory`` collection
+   where the ``tags`` array contains an element that is itself an array.
+
+   If instead you want to determine whether the ``tags`` field is an
+   array type, use the :query:`$where` operator:
+
+   .. code-block:: javascript
+
+      db.inventory.find( { $where : "Array.isArray(this.tags)" } )
+
+   See the :issue:`SERVER-1475` for more information about the
+   array type.
+
+   Refer to the following table for the available :term:`BSON` types
+   and their corresponding numbers.
+
+   =======================  ==========
+   **Type**                 **Number**
+   -----------------------  ----------
+   Double                       1
+   String                       2
+   Object                       3
+   Array                        4
+   Binary data                  5
+   Object id                    7
+   Boolean                      8
+   Date                         9
+   Null                        10
+   Regular Expression          11
+   JavaScript                  13
+   Symbol                      14
+   JavaScript (with scope)     15
+   32-bit integer              16
+   Timestamp                   17
+   64-bit integer              18
+   Min key                    255
+   Max key                    127
+   =======================  ==========
+
+   ``MinKey`` and ``MaxKey`` compare less than and greater than all
+   other possible :term:`BSON` element values, respectively, and exist
+   primarily for internal use.
+
+   .. note::
+
+      To query if a field value is a ``MinKey``, you must use the :query:`$type` with
+      ``-1`` as in the following example:
+
+      .. code-block:: javascript
+
+         db.collection.find( { field: { $type: -1 } } )
+
+   .. example::
+
+      Consider the following example operation sequence that
+      demonstrates both type comparison *and* the special ``MinKey``
+      and ``MaxKey`` values:
+
+      .. code-block:: javascript
+
+         db.test.insert( {x : 3});
+         db.test.insert( {x : 2.9} );
+         db.test.insert( {x : new Date()} );
+         db.test.insert( {x : true } );
+         db.test.insert( {x : MaxKey } )
+         db.test.insert( {x : MinKey } )
+
+         db.test.find().sort({x:1})
+         { "_id" : ObjectId("4b04094b7c65b846e2090112"), "x" : { $minKey : 1 } }
+         { "_id" : ObjectId("4b03155dce8de6586fb002c7"), "x" : 2.9 }
+         { "_id" : ObjectId("4b03154cce8de6586fb002c6"), "x" : 3 }
+         { "_id" : ObjectId("4b031566ce8de6586fb002c9"), "x" : true }
+         { "_id" : ObjectId("4b031563ce8de6586fb002c8"), "x" : "Tue Jul 25 2012 18:42:03 GMT-0500 (EST)" }
+         { "_id" : ObjectId("4b0409487c65b846e2090111"), "x" : { $maxKey : 1 } }
+
+      To query for the minimum value of a :term:`shard key` of a
+      :term:`sharded cluster`, use the following operation when
+      connected to the :binary:`~bin.mongos`:
+
+      .. code-block:: javascript
+
+         use config
+         db.chunks.find( { "min.shardKey": { $type: -1 } } )
+
+   .. include:: /includes/warning-mixing-types.rst
+
+   .. seealso::
+
+      :method:`find() <db.collection.find()>`, :method:`insert()
+      <db.collection.insert()>`, :query:`$where`, :term:`BSON`,
+      :term:`shard key`, :term:`sharded cluster` .

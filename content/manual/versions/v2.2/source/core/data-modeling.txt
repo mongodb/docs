@@ -1,0 +1,356 @@
+=====================================================
+Data Modeling Considerations for MongoDB Applications
+=====================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+Overview
+--------
+
+Data in MongoDB has a *flexible schema*. :term:`Collections
+<collection>` do not enforce :term:`document` structure. This means
+that:
+
+- documents in the same collection do not need to have the same set of
+  fields or structure, and
+
+- common fields in a collection's documents may hold different types
+  of data.
+
+Each document only needs to contain relevant fields to the entity or
+object that the document represents. In practice, *most* documents in a
+collection share a similar structure. Schema flexibility means that
+you can model your documents in MongoDB so that they can closely
+resemble and reflect application-level objects.
+
+As in all data modeling, when developing data models (i.e. *schema
+designs,*) for MongoDB you must consider the inherent properties and
+requirements of the application objects and the relationships between
+application objects. MongoDB data models must also reflect:
+
+- how data will grow and change over time, and
+
+- the kinds of queries your application will perform.
+
+These considerations and requirements force developers to make a
+number of multi-factored decisions when modeling data, including:
+
+- normalization and de-normalization.
+
+  These decisions reflect degree to which the data model should store
+  related pieces of data in a single document **or** should the data
+  model describe relationships using :doc:`references
+  </applications/database-references>` between documents.
+
+- :doc:`indexing strategy </applications/indexes>`.
+
+- representation of data in arrays in :term:`BSON`.
+
+Although a number of data models may be functionally equivalent for a
+given application; however, different data models may have significant
+impacts on MongoDB and applications performance.
+
+This document provides a high level overview of these data modeling
+decisions and factors. In addition, consider, the
+:ref:`data-modeling-examples` section which provides more concrete
+examples of all the discussed patterns.
+
+.. _data-modeling-decisions:
+
+Data Modeling Decisions
+-----------------------
+
+Data modeling decisions involve determining how to structure the
+documents to model the data effectively. The primary decision is
+whether to :ref:`embed <data-modeling-embedding>` or to :ref:`use
+references <data-modeling-referencing>`.
+
+.. _data-modeling-embedding:
+
+Embedding
+~~~~~~~~~
+
+To de-normalize data, store two related pieces of data in a single
+:term:`document`.
+
+Operations within a document are less expensive for the server than
+operations that involve multiple documents.
+
+In general, use embedded data models when:
+
+- you have "contains" relationships between entities. See
+  :ref:`data-modeling-example-one-to-one`.
+
+- you have one-to-many relationships where the "many" objects always
+  appear with or are viewed in the context of their parent documents.
+  See :ref:`data-modeling-example-one-to-many`.
+
+Embedding provides the following benefits:
+
+- generally better performance for read operations.
+
+- the ability to request and retrieve related data in a single
+  database operation.
+
+Embedding related data in documents, can lead to situations where
+documents grow after creation. Document growth can impact write
+performance and lead to data fragmentation. Furthermore, documents in
+MongoDB must be smaller than the :limit:`maximum BSON document size
+<BSON Document Size>`. For larger documents, consider using
+:doc:`GridFS </applications/gridfs>`.
+
+.. seealso::
+
+   - :term:`dot notation` for information on "reaching into" embedded
+     sub-documents.
+
+   - :ref:`read-operations-arrays` for more examples on accessing arrays.
+
+   - :ref:`read-operations-subdocuments` for more examples on accessing
+     subdocuments.
+
+.. _data-modeling-referencing:
+
+Referencing
+~~~~~~~~~~~
+
+To normalize data, store :doc:`references
+</applications/database-references>` between two documents to indicate
+a relationship between the data represented in each document.
+
+In general, use normalized data models:
+
+- when embedding would result in duplication of data but would not
+  provide sufficient read performance advantages to outweigh the
+  implications of the duplication.
+
+- to represent more complex many-to-many relationships.
+
+- to model large hierarchical data sets. See :ref:`data-modeling-trees`.
+
+Referencing provides more flexibility than embedding; however, to
+resolve the references, client-side applications must issue follow-up
+queries. In other words, using references requires more roundtrips to
+the server.
+
+See :ref:`data-modeling-publisher-and-books` for an example of
+referencing.
+
+.. _data-modeling-atomicity:
+
+Atomicity
+~~~~~~~~~
+
+MongoDB only provides atomic operations on the level of a single
+document. [#record-atomicity]_ As a result needs for atomic operations influence decisions
+to use embedded or referenced relationships when modeling data for
+MongoDB.
+
+Embed fields that need to be modified together atomically in the same
+document. See :ref:`data-modeling-atomic-operation` for an example of
+atomic updates within a single document.
+
+.. [#record-atomicity] Document-level atomic operations include all
+   operations within a single MongoDB document record: operations that
+   affect multiple sub-documents within that single record are still
+   atomic.
+
+Operational Considerations
+--------------------------
+
+In addition to normalization and normalization concerns, a number of
+other operational factors help shape data modeling decisions in
+MongoDB. These factors include:
+
+- data lifecycle management,
+- number of collections and
+- indexing requirements,
+- sharding, and
+- managing document growth.
+
+These factors implications for database and application performance
+as well as future maintenance and development costs.
+
+Data Lifecycle Management
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Data modeling decisions should also take data lifecycle management into
+consideration.
+
+The :doc:`Time to Live or TTL feature </tutorial/expire-data>` of
+collections expires documents after a period of time. Consider using
+the TTL feature if your application requires some data to persist in
+the database for a limited period of time.
+
+Additionally, if your application only uses recently inserted
+documents consider :doc:`/core/capped-collections`.  Capped
+collections provide *first-in-first-out* (FIFO) management of inserted
+documents and optimized to support operations that insert and read
+documents based on insertion order.
+
+.. _data-model-large-number-of-collections:
+
+Large Number of Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In certain situations, you might choose to store information in several
+collections rather than in a single collection.
+
+Consider a sample collection ``logs`` that stores log documents for
+various environment and applications. The ``logs`` collection contains
+documents of the following form:
+
+.. code-block:: javascript
+
+   { log: "dev", ts: ..., info: ... }
+   { log: "debug", ts: ..., info: ...}
+
+If the total number of documents is low you may group documents into
+collection by type. For logs, consider maintaining distinct log
+collections, such as ``logs.dev`` and ``logs.debug``. The ``logs.dev``
+collection would contain only the documents related to the dev
+environment.
+
+Generally, having large number of collections has no significant
+performance penalty and results in very good performance. Distinct
+collections are very important for high-throughput batch processing.
+
+When using models that have a large number of collections, consider
+the following behaviors:
+
+- Each collection has a certain minimum overhead of a few kilobytes.
+
+- Each index, including the index on ``_id``, requires at least 8KB of
+  data space.
+
+A single ``<database>.ns`` file stores all meta-data for each
+:term:`database`. Each index and collection has its own entry in the
+namespace file, MongoDB places :limit:`limits on the size of namespace
+files <Size of Namespace File>`.
+
+Because of :limit:`limits on namespaces <Number of Namespaces>`, you
+may wish to know the current number of namespaces in order to determine
+how many additional namespaces the database can support, as in the
+following example:
+
+.. code-block:: javascript
+
+   db.system.namespaces.count()
+
+The ``<database>.ns`` file defaults to 16 MB. To change
+the size of the ``<database>.ns`` file, pass a new size to
+:option:`--nssize option \<new size MB\> <mongod --nssize>` on server
+start.
+
+.. todo make a tutorial called "how to change size of namespace file"
+
+The :option:`--nssize <mongod --nssize>` sets the size for *new*
+``<database>.ns`` files. For existing databases, after starting up the
+server with :option:`--nssize <mongod --nssize>`, run the
+:method:`db.repairDatabase()` command from the :binary:`~bin.mongo`
+shell.
+
+Indexes
+~~~~~~~
+
+Create indexes to support common queries. Generally, indexes and index
+use in MongoDB correspond to indexes and index use in relational
+database: build indexes on fields that appear often in queries and for
+all operations that return sorted results. MongoDB automatically
+creates a unique index on the ``_id`` field.
+
+As you create indexes, consider the following behaviors of indexes:
+
+- Each index requires at least 8KB of data space.
+
+- Adding an index has some negative performance impact for write
+  operations. For collections with high write-to-read ratio, indexes
+  are expensive as each insert must add keys to each index.
+
+- Collections with high proportion of read operations to write
+  operations often benefit from additional indexes. Indexes do not
+  affect un-indexed read operations.
+
+See :doc:`/applications/indexes` for more information on determining
+indexes. Additionally, the MongoDB :doc:`database profiler
+</tutorial/manage-the-database-profiler>` may help identify
+inefficient queries.
+
+Sharding
+~~~~~~~~
+
+:term:`Sharding` allows users to :term:`partition` a
+:term:`collection` within a database to distribute the collection's
+documents across a number of :binary:`~bin.mongod` instances or
+:term:`shards <shard>`.
+
+The shard key determines how MongoDB distributes data among shards in
+a sharded collection. Selecting the proper :ref:`shard key
+<shard-key>` has significant implications for performance.
+
+See :doc:`/core/sharded-clusters` for more information on sharding and
+the selection of the :ref:`shard key <shard-key>`.
+
+Document Growth
+~~~~~~~~~~~~~~~
+
+Certain updates to documents can increase the document size, such as
+pushing elements to an array and adding new fields. If the document
+size exceeds the allocated space for that document, MongoDB relocates
+the document on disk. This internal relocation can be both time and
+resource consuming.
+
+Although MongoDB automatically provides padding to minimize the
+occurrence of relocations, you may still need to manually handle
+document growth. Refer to :ecosystem:`Pre-Aggregated Reports Use Case
+Study </use-cases/pre-aggregated-reports>` for an example of the
+*Pre-allocation* approach to handle document growth.
+
+.. TODO add link to padding factor page once migrated
+
+.. _data-modeling-examples:
+
+Data Modeling Patterns and Examples
+-----------------------------------
+
+.. /tutorial/model-tree-structures.txt is just a composite page that
+   includes all the tree structure pages for easy overview.
+
+The following documents provide overviews of various data modeling
+patterns and common schema design considerations:
+
+- :doc:`/tutorial/model-embedded-one-to-one-relationships-between-documents`
+- :doc:`/tutorial/model-embedded-one-to-many-relationships-between-documents`
+- :doc:`/tutorial/model-referenced-one-to-many-relationships-between-documents`
+- :doc:`/tutorial/model-data-for-atomic-operations`
+- :doc:`/tutorial/model-tree-structures-with-parent-references`
+- :doc:`/tutorial/model-tree-structures-with-child-references`
+- :doc:`/tutorial/model-tree-structures-with-materialized-paths`
+- :doc:`/tutorial/model-tree-structures-with-nested-sets`
+
+For more information and examples of real-world data modeling,
+consider the following external resources:
+
+- `Schema Design by Example
+  <http://www.mongodb.com/presentations/mongodb-melbourne-2012/schema-design-example>`_
+
+- `Walkthrough MongoDB Data Modeling <http://blog.fiesta.cc/post/11319522700/walkthrough-mongodb-data-modeling>`_
+
+- `Document Design for MongoDB <http://oreilly.com/catalog/0636920018391>`_
+
+- `Dynamic Schema Blog Post <http://dmerr.tumblr.com/post/6633338010/schemaless>`_
+
+- :ecosystem:`MongoDB Data Modeling and Rails </tutorial/model-data-for-ruby-on-rails/>`
+
+- `Ruby Example of Materialized Paths
+  <http://github.com/banker/newsmonger/blob/master/app/models/comment.rb>`_
+
+- `Sean Cribs Blog Post
+  <http://seancribbs.com/tech/2009/09/28/modeling-a-tree-in-a-document-database>`_
+  which was the source for much of the :ref:`data-modeling-trees` content.

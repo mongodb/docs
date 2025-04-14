@@ -1,0 +1,216 @@
+=================================
+Data Types in the ``mongo`` Shell
+=================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+MongoDB :term:`BSON` provide support for additional data types than
+:term:`JSON`. :doc:`Drivers </applications/drivers>` provide native
+support for these data types in host languages and the
+:binary:`~bin.mongo` shell also provides several helper classes to support
+the use of these data types in the :binary:`~bin.mongo` JavaScript
+shell. See :doc:`/reference/mongodb-extended-json` for additional
+information.
+
+.. _mongo-shell-data-type:
+
+Date
+----
+
+The :binary:`~bin.mongo` shell provides various options to return the date,
+either as a string or as an object:
+
+- ``Date()`` method which returns the current date as a string.
+
+- ``Date()`` constructor which returns an ``ISODate`` object when used
+  with the ``new`` operator.
+
+- ``ISODate()`` constructor which returns an ``ISODate`` object when
+  used with *or* without the ``new`` operator.
+
+Consider the following examples:
+
+- To return the date as a string, use the ``Date()`` method, as in the
+  following example:
+
+  .. code-block:: javascript
+
+     var myDateString = Date();
+
+  - To print the value of the variable, type the variable name in the
+    shell, as in the following:
+
+    .. code-block:: javascript
+
+       myDateString
+
+    The result is the value of ``myDateString``:
+
+    .. code-block:: javascript
+
+       Wed Dec 19 2012 01:03:25 GMT-0500 (EST)
+
+  - To verify the type, use the ``typeof`` operator, as in the
+    following:
+
+    .. code-block:: javascript
+
+       typeof myDateString
+
+    The operation returns ``string``.
+
+- To get the date as an ``ISODate`` object, instantiate a new instance
+  using the ``Date()`` constructor with the ``new`` operator, as in the
+  following example:
+
+  .. code-block:: javascript
+
+     var myDateObject = new Date();
+
+  - To print the value of the variable, type the variable name in the
+    shell, as in the following:
+
+    .. code-block:: javascript
+
+       myDateObject
+
+    The result is the value of ``myDateObject``:
+
+    .. code-block:: javascript
+
+       ISODate("2012-12-19T06:01:17.171Z")
+
+  - To verify the type, use the ``typeof`` operator, as in the
+    following:
+
+    .. code-block:: javascript
+
+       typeof myDateObject
+
+    The operation returns ``object``.
+
+- To get the date as an ``ISODate`` object, instantiate a new instance
+  using the ``ISODate()`` constructor *without* the ``new`` operator,
+  as in the following example:
+
+  .. code-block:: javascript
+
+     var myDateObject2 = ISODate();
+
+  You can use the ``new`` operator with the ``ISODate()`` constructor
+  as well.
+
+  - To print the value of the variable, type the variable name in the
+    shell, as in the following:
+
+    .. code-block:: javascript
+
+       myDateObject2
+
+    The result is the value of ``myDateObject2``:
+
+    .. code-block:: javascript
+
+       ISODate("2012-12-19T06:15:33.035Z")
+
+  - To verify the type, use the ``typeof`` operator, as in the
+    following:
+
+    .. code-block:: javascript
+
+       typeof myDateObject2
+
+    The operation returns ``object``.
+
+ObjectId
+--------
+
+The :binary:`~bin.mongo` shell provides the ``ObjectId()`` wrapper class
+around :term:`ObjectId` data types. To generate a new ObjectId, use
+the following operation in the :binary:`~bin.mongo` shell:
+
+.. code-block:: javascript
+
+   new ObjectId
+
+.. see:: :doc:`/core/object-id` for full documentation of ObjectIds in
+   MongoDB.
+
+.. _shell-type-long:
+
+NumberLong
+----------
+
+By default, the :binary:`~bin.mongo` shell treats all numbers as
+floating-point values. The :binary:`~bin.mongo` shell provides the
+``NumberLong()`` class to handle 64-bit integers.
+
+The ``NumberLong()`` constructor accepts the long as a string:
+
+.. code-block:: javascript
+
+   NumberLong("2090845886852")
+
+The following examples use the ``NumberLong()`` class to write to the
+collection:
+
+.. code-block:: javascript
+
+   db.collection.insert( { _id: 10, calc: NumberLong("2090845886852") } )
+   db.collection.update( { _id: 10 },
+                         { $set:  { calc: NumberLong("2555555000000") } } )
+   db.collection.update( { _id: 10 },
+                         { $inc: { calc: NumberLong(5) } } )
+
+Retrieve the document to verify:
+
+.. code-block:: javascript
+
+   db.collection.findOne( { _id: 10 } )
+
+In the returned document, the ``calc`` field contains a
+``NumberLong`` object:
+
+.. code-block:: sh
+
+   { "_id" : 10, "calc" : NumberLong("2555555000005") }
+
+If you use the :update:`$inc` to increment the value of a field that
+contains a ``NumberLong`` object by a **float**, the data type changes
+to a floating point value, as in the following example:
+
+#. Use :update:`$inc` to increment the ``calc`` field by ``5``, which the
+   :binary:`~bin.mongo` shell treats as a float:
+
+   .. code-block:: javascript
+
+      db.collection.update( { _id: 10 },
+                            { $inc: { calc: 5 } } )
+
+#. Retrieve the updated document:
+
+   .. code-block:: javascript
+
+      db.collection.findOne( { _id: 10 } )
+
+   In the updated document, the ``calc`` field contains a floating
+   point value:
+
+   .. code-block:: sh
+
+      { "_id" : 10, "calc" : 2555555000010 }
+
+.. _shell-type-int:
+
+NumberInt
+----------
+
+By default, the :binary:`~bin.mongo` shell treats all numbers as
+floating-point values. The :binary:`~bin.mongo` shell provides the
+``NumberInt()`` constructor to explicitly specify 32-bit integers.

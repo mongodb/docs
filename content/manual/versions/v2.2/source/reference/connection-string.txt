@@ -1,0 +1,452 @@
+.. index:: connections
+
+============================
+Connection String URI Format
+============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This document describes the URI format for defining connections between
+applications and MongoDB instances in the official MongoDB :doc:`drivers
+</applications/drivers>`.
+
+.. index:: connections; connection string format
+.. _connections-standard-connection-string-format:
+
+Standard Connection String Format
+---------------------------------
+
+This section describes the standard format of the MongoDB connection URI
+used to connect to a MongoDB database server. The format is the same for
+all official MongoDB drivers. For a list of drivers and links to driver
+documentation, see :doc:`/applications/drivers`.
+
+The following is the standard URI connection scheme:
+
+.. code-block:: none
+
+   mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]
+
+The components of this string are:
+
+#. ``mongodb://``
+
+   A required prefix to identify that this is a string in the standard
+   connection format.
+
+#. ``username:password@``
+
+   Optional. If specified, the client will attempt to log in to the
+   specific database using these credentials after connecting to the
+   :binary:`~bin.mongod` instance.
+
+#. ``host1``
+
+   This the only required part of the URI. It identifies a server
+   address to connect to. It identifies either a hostname, IP address,
+   or UNIX domain socket.
+
+#. ``:port1``
+
+   Optional. The default value is ``:27017`` if not specified.
+
+#. ``hostX``
+
+   Optional. You can specify as many hosts as necessary. You would
+   specify multiple hosts, for example, for connections to replica
+   sets.
+
+#. ``:portX``
+
+   Optional. The default value is ``:27017`` if not specified.
+
+#. ``/database``
+
+   Optional. The name of the database to authenticate if the
+   connection string includes authentication credentials in the form
+   of ``username:password@``. If ``/database`` is not specified and
+   the connection string includes credentials, the driver will
+   authenticate to the ``admin`` database.
+
+#. ``?options``
+
+   Connection specific options. See
+   :ref:`connections-connection-options` for a full description of
+   these options.
+
+   If the connection string does not specify a database/ you must
+   specify a slash (i.e.  ``/``) between the last ``hostN`` and the
+   question mark that begins the string of options.
+
+.. example:: To describe a connection to a replica set named ``test``,
+   with the following :binary:`~bin.mongod` hosts:
+
+   - ``db1.example.net`` on port ``27017`` and
+   - ``db2.example.net`` on port ``2500``.
+
+   You would use a connection string that resembles the following:
+
+   .. code-block:: none
+
+      mongodb://db1.example.net,db2.example.net:2500/?replicaSet=test
+
+.. index:: connections; options
+.. _connections-connection-options:
+
+Connection String Options
+-------------------------
+
+This section lists all connection options used in the
+:ref:`connections-standard-connection-string-format`.The options are
+not case-sensitive.
+
+Connection options are pairs in the following form:
+``name=value``. Separate options with the ampersand (i.e. ``&``)
+character. In the following example, a connection uses the
+``replicaSet`` and ``connectTimeoutMS`` options:
+
+.. code-block:: none
+
+   mongodb://db1.example.net,db2.example.net:2500/?replicaSet=test&connectTimeoutMS=300000
+
+.. admonition:: Semi-colon separator for connection string arguments
+
+   To provide backwards compatibility, drivers currently accept
+   semi-colons (i.e. ``;``) as option separators.
+
+.. _replica-set-options:
+.. _replica-set-option:
+
+Replica Set Option
+~~~~~~~~~~~~~~~~~~
+
+.. data:: uri.replicaSet
+
+   Specifies the name of the :term:`replica set`, if the
+   :binary:`~bin.mongod` is a member of a replica set.
+
+   When connecting to a replica set it is important to give a seed
+   list of at least two :binary:`~bin.mongod` instances. If you only
+   provide the connection point of a single :binary:`~bin.mongod`
+   instance, and omit the :data:`~uri.replicaSet`, the client will create a
+   :term:`standalone` connection.
+
+Connection Options
+~~~~~~~~~~~~~~~~~~
+
+.. data:: uri.ssl
+
+   ``true``: Initiate the connection with SSL.
+
+   ``false``: Initiate the connection without SSL.
+
+   .. todo Determine whether ``prefer`` option exists. Check with server
+      team whether it's possible to do rolling restarts of a cluster to
+      turn on SSL. Here is the option
+      ``prefer``: Initiate the connection with SSL, but if that fails initiate without SSL.
+
+   The default value is ``false``.
+
+   .. note:: The :data:`~uri.ssl` option is not supported by all
+      drivers. See your :doc:`driver </applications/drivers>`
+      documentation and the :doc:`/administration/ssl` document.
+
+.. data:: uri.connectTimeoutMS
+
+   The time in milliseconds to attempt a connection before timing out.
+   The default is never to timeout, though different drivers might
+   vary.  See the :doc:`driver </applications/drivers>` documentation.
+
+.. data:: uri.socketTimeoutMS
+
+   The time in milliseconds to attempt a send or receive on a socket
+   before the attempt times out. The default is never to timeout,
+   though different drivers might vary. See the :doc:`driver
+   </applications/drivers>` documentation.
+
+Connection Pool Options
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Most drivers implement some kind of connection pooling handle this for
+you behind the scenes. Some drivers do not support connection
+pools. See your :doc:`driver </applications/drivers>` documentation
+for more information on the connection pooling implementation. These
+options allow applications to configure the connection pool when
+connecting to the MongoDB deployment.
+
+.. data:: uri.maxPoolSize
+
+   The maximum number of connections in the connection pool. The default
+   value is ``100``.
+
+.. data:: uri.minPoolSize
+
+   The minimum number of connections in the connection pool. The default
+   value is ``0``.
+
+   .. note:: The :data:`~uri.minPoolSize` option is not supported by all
+      drivers. For information on your driver, see the :doc:`drivers
+      </applications/drivers>` documentation.
+
+.. data:: uri.maxIdleTimeMS
+
+   The maximum number of milliseconds that a connection can remain
+   idle in the pool before being removed and closed.
+
+   This option is not supported by all drivers.
+
+.. data:: uri.waitQueueMultiple
+
+   A number that the driver multiples the :data:`~uri.maxPoolSize` value
+   to, to provide the maximum number of threads allowed to wait for a
+   connection to become available from the pool. For default values,
+   see the :doc:`/applications/drivers` documentation.
+
+.. data:: uri.waitQueueTimeoutMS
+
+   The maximum time in milliseconds that a thread can wait for a
+   connection to become available. For default values, see the
+   :doc:`/applications/drivers` documentation.
+
+.. _connections-write-concern:
+
+Write Concern Options
+~~~~~~~~~~~~~~~~~~~~~
+
+:ref:`Write concern <write-concern>` describes the kind of assurances
+that the program:`mongod` and the driver provide to the application
+regarding the success and durability of the write operation. For a
+full explanation of write concern and write operations in general see
+the: :doc:`/core/write-operations`:
+
+.. data:: uri.w
+
+   Defines the level and kind of write concern, that the driver uses
+   when calling :dbcommand:`getLastError`. This option can take either
+   a number or a string as a value.
+
+   :option -1:
+
+      The driver will *not* acknowledge write operations and will
+      suppress all network or socket errors.
+
+   :option 0:
+
+      The driver will *not* acknowledge write operations, but will
+      pass or handle any network and socket errors that it receives to
+      the client.
+
+      If you disable write concern but enable the
+      :dbcommand:`getLastError` command's ``journal`` option,
+      ``journal`` overrides this ``w`` option.
+
+   :option 1:
+
+      Provides basic acknowledgment of write operations.
+
+      By specifying ``1``, you require that a standalone
+      :binary:`~bin.mongod` instance, or the primary for :term:`replica
+      sets <replica set>`, acknowledge all write operations. For drivers released
+      after the :doc:`default write concern change
+      </release-notes/drivers-write-concern>`, this is the default
+      write concern setting.
+
+   :option string majority:
+
+      For replica sets, if you specify the special ``majority`` value
+      to :data:`~uri.w` option, write operations will only return
+      successfully after a majority of the configured replica set
+      members have acknowledged the write operation.
+
+   :option number n:
+
+      For replica sets, if you specify a number greater than 1,
+      operations with this write concern will only return after this
+      many members of the set have acknowledged the write.
+
+      If you set ``w`` to a number that is greater than the number of
+      available set members, or members that hold data, MongoDB will
+      wait, potentially indefinitely, for these members to become
+      available.
+
+   :option string tags:
+
+      For replica sets, you can specify a :ref:`tag set <replica-set-configuration-tag-sets>` to require
+      that all members of the set that have these tags configured
+      return confirmation of the write operation.
+
+      See :ref:`Replica Set Tag Set Configuration
+      <replica-set-configuration-tag-sets>` for more information.
+
+.. data:: uri.wtimeoutMS
+
+   The time in milliseconds to wait for replication to succeed, as
+   specified in the :data:`~uri.w` option, before timing out.
+
+.. data:: uri.journal
+
+   Controls whether write operations will wait till the
+   :binary:`~bin.mongod` acknowledges the write operations and commits the
+   data to the on disk :term:`journal`.
+
+   :option boolean true:
+
+      Enables journal commit acknowledgment write concern. Equivalent
+      to specifying the :dbcommand:`getLastError` command with the
+      ``j`` option enabled.
+
+   :option boolean false:
+
+      Does not require that :binary:`~bin.mongod` commit write operations
+      to the journal before acknowledging the write operation. This
+      is the *default* option for the :data:`~uri.journal` parameter.
+
+    If you set :data:`~uri.journal` to ``true``, and specify a :data:`~uri.w`
+    value less than 1, :data:`~uri.journal` prevails.
+
+    If you set :data:`~uri.journal` to true, and the :binary:`~bin.mongod` does
+    not have journaling enabled, as with :setting:`nojournal`, then
+    :dbcommand:`getLastError` will provide basic receipt
+    acknowledgment (i.e. ``w:1``), and will include a ``jnote`` field
+    in its return document.
+
+Read Preference Options
+~~~~~~~~~~~~~~~~~~~~~~~
+
+:ref:`Read preferences <replica-set-read-preference>` describe the
+behavior of read operations with regards to :term:`replica sets
+<replica set>`. These parameters allow you to specify read preferences
+on a per-connection basis in the connection string:
+
+.. data:: uri.readPreference
+
+   Specifies the :term:`replica set` read preference for this
+   connection. This setting overrides any ``slaveOk`` value. The read
+   preference values are the following:
+
+   - :readmode:`primary`
+   - :readmode:`primaryPreferred`
+   - :readmode:`secondary`
+   - :readmode:`secondaryPreferred`
+   - :readmode:`nearest`
+
+   For descriptions of each value, see
+   :ref:`replica-set-read-preference-modes`.
+
+   The default value is :readmode:`primary`, which sends all read
+   operations to the replica set's :term:`primary`.
+
+.. data:: uri.readPreferenceTags
+
+   Specifies a tag set as a comma-separated list of
+   colon-separated key-value pairs. For example:
+
+   .. code-block:: none
+
+      dc:ny,rack:1
+
+   To specify a *list* of tag sets, use multiple ``readPreferenceTags``.
+   The following specifies two tag sets and an empty tag set:
+
+   .. code-block:: none
+
+      readPreferenceTags=dc:ny,rack:1&readPreferenceTags=dc:ny&readPreferenceTags=
+
+   Order matters when using multiple ``readPreferenceTags``.
+
+Miscellaneous Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. data:: uri.uuidRepresentation
+
+   :param standard:
+          The standard binary representation.
+
+   :param csharpLegacy:
+          The default representation for the C# driver.
+
+   :param javaLegacy:
+          The default representation for the Java driver.
+
+   :param pythonLegacy:
+          The default representation for the Python driver.
+
+   For the default, see the :doc:`drivers </applications/drivers>`
+   documentation for your driver.
+
+   .. note:: Not all drivers support the :data:`~uri.uuidRepresentation`
+      option. For information on your driver, see the :doc:`drivers
+      </applications/drivers>` documentation.
+
+.. _connections-connection-examples:
+
+Examples
+--------
+
+Consider the following example MongoDB URI strings, that specify
+common connections:
+
+- Connect to a database server running locally on the default port:
+
+  .. code-block:: none
+
+     mongodb://localhost
+
+- Connect and log in to the ``admin`` database as user ``sysop`` with
+  the password ``moon``:
+
+  .. code-block:: none
+
+     mongodb://sysop:moon@localhost
+
+- Connect and log in to the ``records`` database as user ``sysop`` with
+  the password ``moon``:
+
+  .. code-block:: none
+
+     mongodb://sysop:moon@localhost/records
+
+- Connect to a UNIX domain socket:
+
+  .. code-block:: none
+
+     mongodb:///tmp/mongodb-27017.sock
+
+  .. note:: Not all drivers support UNIX domain sockets. For information
+     on your driver, see the :doc:`drivers </applications/drivers>`
+     documentation.
+
+- Connect to a :term:`replica set` with two members, one on
+  ``db1.example.net`` and the other on ``db2.example.net``:
+
+  .. code-block:: none
+
+     mongodb://db1.example.net,db2.example.com
+
+- Connect to a replica set with three members running on ``localhost``, on
+  ports ``27017``, ``27018``, and ``27019``:
+
+  .. code-block:: none
+
+     mongodb://localhost,localhost:27018,localhost:27019
+
+- Connect to a replica set with three members. Send all writes to the
+  :term:`primary` and distribute reads to the :term:`secondaries <secondary>`:
+
+  .. code-block:: none
+
+     mongodb://example1.com,example2.com,example3.com/?readPreference=secondary
+
+- Connect to a replica set with write concern configured to wait for
+  replication to succeed on at least two members, with a two-second
+  timeout.
+
+  .. code-block:: none
+
+     mongodb://example1.com,example2.com,example3.com/?w=2&wtimeoutMS=2000

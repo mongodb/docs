@@ -1,0 +1,95 @@
+=====================
+$unwind (aggregation)
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. pipeline:: $unwind
+
+   Peels off the elements of an array individually, and returns a
+   stream of documents. :pipeline:`$unwind` returns one document for
+   every member of the unwound array within every source
+   document. Take the following aggregation command:
+
+   .. code-block:: javascript
+
+      db.article.aggregate(
+          { $project : {
+              author : 1 ,
+              title : 1 ,
+              tags : 1
+          }},
+          { $unwind : "$tags" }
+      );
+
+   .. note::
+
+      The dollar sign (i.e. ``$``) must proceed the field
+      specification handed to the :pipeline:`$unwind` operator.
+
+   In the above aggregation :pipeline:`$project` selects
+   (inclusively) the ``author``, ``title``, and ``tags`` fields, as
+   well as the ``_id`` field implicitly. Then the pipeline passes the
+   results of the projection to the :pipeline:`$unwind` operator,
+   which will unwind the ``tags`` field. This operation may return
+   a sequence of documents that resemble the following for a
+   collection that contains one document holding a ``tags`` field
+   with an array of 3 items.
+
+   .. code-block:: javascript
+
+      {
+           "result" : [
+                   {
+                           "_id" : ObjectId("4e6e4ef557b77501a49233f6"),
+                           "title" : "this is my title",
+                           "author" : "bob",
+                           "tags" : "fun"
+                   },
+                   {
+                           "_id" : ObjectId("4e6e4ef557b77501a49233f6"),
+                           "title" : "this is my title",
+                           "author" : "bob",
+                           "tags" : "good"
+                   },
+                   {
+                           "_id" : ObjectId("4e6e4ef557b77501a49233f6"),
+                           "title" : "this is my title",
+                           "author" : "bob",
+                           "tags" : "fun"
+                   }
+           ],
+           "OK" : 1
+      }
+
+   A single document becomes 3 documents: each document is identical
+   except for the value of the ``tags`` field. Each value of ``tags``
+   is one of the values in the original "tags" array.
+
+   .. note::
+
+      :pipeline:`$unwind` has the following behaviors:
+
+      - :pipeline:`$unwind` is most useful in combination
+        with :pipeline:`$group`.
+
+      - You may undo the effects of unwind operation with the
+        :pipeline:`$group` pipeline operator.
+
+      - If you specify a target field for :pipeline:`$unwind` that
+        does not exist in an input document, the pipeline ignores the
+        input document, and will generate no result documents.
+
+      - If you specify a target field for :pipeline:`$unwind` that is
+        not an array, :method:`db.collection.aggregate()` generates an error.
+
+      - If you specify a target field for :pipeline:`$unwind` that
+        holds an empty array (``[]``) in an input document, the
+        pipeline ignores the input document, and will generates no
+        result documents.

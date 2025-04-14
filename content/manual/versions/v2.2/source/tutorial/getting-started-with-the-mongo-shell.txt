@@ -1,0 +1,284 @@
+========================================
+Getting Started with the ``mongo`` Shell
+========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This document provides a basic introduction to using the
+:binary:`~bin.mongo` shell. See :doc:`/installation` for instructions on
+installing MongoDB for your system.
+
+Start the ``mongo`` Shell
+-------------------------
+
+To start the :binary:`~bin.mongo` shell and connect to your :doc:`MongoDB
+</reference/mongod>` instance running on **localhost** with **default port**:
+
+#. Go to your ``<mongodb installation dir>``:
+
+   .. code-block:: sh
+
+      cd <mongodb installation dir>
+
+#. Type ``./bin/mongo`` to start :binary:`~bin.mongo`:
+
+   .. code-block:: sh
+
+      ./bin/mongo
+
+   If you have added the ``<mongodb installation dir>/bin`` to the
+   ``PATH`` environment variable, you can just type ``mongo`` instead
+   of ``./bin/mongo``.
+
+#. To display the database you are using, type ``db``:
+
+   .. code-block:: sh
+
+      db
+
+   The command should return ``test``, which is the default database.
+   To switch databases, issue the ``use <db>`` command, as in the
+   following example:
+
+   .. code-block:: javascript
+
+      use <database>
+
+   To list the available databases, use the command ``show dbs``. See
+   also :ref:`mongo-shell-getSiblingDB` to access a different database
+   from the current database without switching your current database
+   context (i.e. ``db.``.)
+
+To start the :binary:`~bin.mongo` shell with other options, see
+:ref:`examples of starting up mongo <mongo-usage-examples>` and
+:doc:`mongo reference </reference/mongo>` which provides details on the
+available options.
+
+.. note::
+
+   When starting, :binary:`~bin.mongo` checks the user's :envvar:`HOME`
+   directory for a JavaScript file named :ref:`.mongorc.js
+   <mongo-mongorc-file>`. If found, :binary:`~bin.mongo` interprets the
+   content of :file:`.mongorc.js` before displaying the prompt for the
+   first time. If you use the shell to evaluate a JavaScript file or
+   expression, either by using the :option:`--eval <mongo --eval>` option on the
+   command line or by specifying :ref:`a .js file to mongo
+   <mongo-shell-file>`, :binary:`~bin.mongo` will read the ``.mongorc.js``
+   file *after* the JavaScript has finished processing.
+
+.. _mongo-shell-executing-queries:
+
+Executing Queries
+-----------------
+
+From the :binary:`~bin.mongo` shell, you can use the :doc:`shell methods
+</reference/javascript>` to run queries, as in the following example:
+
+.. code-block:: javascript
+
+   db.<collection>.find()
+
+- The ``db`` refers to the current database.
+
+- The ``<collection>`` is the name of the collection to query. See
+  :ref:`mongo-shell-help-collection` to list the available collections.
+
+  If the :binary:`~bin.mongo` shell does not accept the name of the
+  collection, for instance if the name contains a space, hyphen, or
+  starts with a number, you can use an alternate syntax to refer to
+  the collection, as in the following:
+
+  .. code-block:: javascript
+
+     db["3test"].find()
+
+     db.getCollection("3test").find()
+
+- The :method:`find() <db.collection.find()>` method is the JavaScript
+  method to retrieve documents from ``<collection>``. The
+  :method:`find() <db.collection.find()>` method returns a
+  :term:`cursor` to the results; however, in the :binary:`~bin.mongo`
+  shell, if the returned cursor is not assigned to a variable, then the
+  cursor is automatically iterated up to 20 times to print up to the
+  first 20 documents that match the query. The :binary:`~bin.mongo` shell
+  will prompt ``Type it`` to iterate another 20 times.
+
+  You can set the ``DBQuery.shellBatchSize`` attribute to change the
+  number of iteration from the default value ``20``, as in the
+  following example which sets it to ``10``:
+
+  .. code-block:: javascript
+
+     DBQuery.shellBatchSize = 10;
+
+  For more information and examples on cursor handling in the
+  :binary:`~bin.mongo` shell, see :ref:`read-operations-cursors`.
+
+  See also :ref:`mongo-shell-help-cursor` for list of
+  cursor help in the :binary:`~bin.mongo` shell.
+
+For more documentation of basic MongoDB operations in the
+:binary:`~bin.mongo` shell, see:
+
+- :doc:`/tutorial/getting-started`
+- :doc:`/reference/mongo-shell`
+- :doc:`/applications/create`
+- :doc:`/applications/read`
+- :doc:`/applications/update`
+- :doc:`/applications/delete`
+- :doc:`/administration/indexes`
+- :doc:`/core/read-operations`
+- :doc:`/core/write-operations`
+
+.. _mongo-shell-print:
+
+Print
+-----
+
+The :binary:`~bin.mongo` shell automatically prints the results of the
+:method:`find() <db.collection.find()>` method if the returned cursor
+is not assigned to a variable. To format the result, you can add the
+``.pretty()`` to the operation, as in the following:
+
+.. code-block:: javascript
+
+   db.<collection>.find().pretty()
+
+In addition, you can use the following explicit print methods in the
+:binary:`~bin.mongo` shell:
+
+- ``print()`` to print without formatting
+
+- ``print(tojson(<obj>))`` to print with :term:`JSON` formatting and
+  equivalent to ``printjson()``
+
+- ``printjson()`` to print with :term:`JSON` formatting and equivalent
+  to ``print(tojson(<obj>))``
+
+Use a Custom Prompt
+-------------------
+
+You may modify the content of the prompt by creating the variable
+``prompt`` in the shell. The prompt variable can hold strings as well
+as any arbitrary JavaScript. If ``prompt`` holds a function that returns a
+string, :binary:`~bin.mongo` can display dynamic information in each
+prompt. Consider the following examples:
+
+.. example::
+
+   Create a prompt with the number of commands issued in the current
+   session, define the following variables:
+
+   .. code-block:: javascript
+
+      cmdCount = 1;
+      prompt = function() {
+                   return (cmdCount++) + "> ";
+               }
+
+   The prompt would then resemble the following:
+
+   .. code-block:: javascript
+
+      1> db.collection.find()
+      2> show collections
+      3>
+
+.. example::
+
+   To create a :binary:`~bin.mongo` shell prompt in the form of
+   ``<database>@<hostnane>$`` define the following variables:
+
+   .. code-block:: javascript
+
+       host = db.serverStatus().host;
+
+       prompt = function() {
+                    return db+"@"+host+"$ ";
+                }
+
+   The prompt would then resemble the following:
+
+   .. code-block:: javascript
+
+      <database>@<hostname>$ use records
+      switched to db records
+      records@<hostname>$
+
+.. example::
+
+   To create a :binary:`~bin.mongo` shell prompt that contains the system
+   up time *and* the number of documents in the current database,
+   define the following prompt variable:
+
+   .. code-block:: javascript
+
+      prompt = function() {
+                   return "Uptime:"+db.serverStatus().uptime+" Documents:"+db.stats().objects+" > ";
+               }
+
+   The prompt would then resemble the following:
+
+   .. code-block:: javascript
+
+       Uptime:5897 Documents:6 > db.people.save({name : "James"});
+       Uptime:5948 Documents:7 >
+
+Use an External Editor in the ``mongo`` Shell
+---------------------------------------------
+
+.. versionadded:: 2.2
+
+In the :binary:`~bin.mongo` shell you can use the ``edit`` operation to
+edit a function or variable in an external editor. The ``edit``
+operation uses the value of your environments ``EDITOR`` variable.
+
+At your system prompt you can define the ``EDITOR`` variable and start
+:binary:`~bin.mongo` with the following two operations:
+
+.. code-block:: bash
+
+   export EDITOR=vim
+   mongo
+
+Then, consider the following example shell session:
+
+.. code-block:: javascript
+
+   MongoDB shell version: 2.2.0
+   > function f() {}
+   > edit f
+   > f
+   function f() {
+       print("this really works");
+   }
+   > f()
+   this really works
+   > o = {}
+   { }
+   > edit o
+   > o
+   { "soDoes" : "this" }
+   >
+
+.. note::
+
+   As :binary:`~bin.mongo` shell interprets code edited in an external
+   editor, it may modify code in functions, depending on the
+   JavaScript compiler. For :binary:`~bin.mongo` may convert ``1+1`` to
+   ``2`` or remove comments. The actual changes affect only the
+   appearance of the code and will vary based on the version of
+   JavaScript used but will not affect the semantics of the code.
+
+.. _mongo-shell-exit:
+
+Exit the Shell
+--------------
+
+To exit the shell, type ``quit()`` or use the ``<Ctrl-c>`` shortcut.

@@ -1,0 +1,267 @@
+========================
+Database Profiler Output
+========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The database profiler captures data information about read and write
+operations, cursor operations, and database commands. To configure the
+database profile and set the thresholds for capturing profile data,
+see the :doc:`/tutorial/manage-the-database-profiler` section.
+
+The database profiler writes data in the :data:`system.profile
+<<database>.system.profile>` collection,
+which is a :term:`capped collection`. To view the profiler's output,
+use normal MongoDB queries on the :data:`system.profile
+<<database>.system.profile>` collection.
+
+.. note::
+
+   Because the database profiler writes data to the
+   :data:`system.profile <<database>.system.profile>` collection in a
+   database, the profiler will profile some write activity, even for
+   databases that are otherwise read-only.
+
+Example ``system.profile`` Document
+-----------------------------------
+
+The documents in the :data:`system.profile
+<<database>.system.profile>` collection have the following form. This
+example document reflects an update operation:
+
+.. code-block:: javascript
+
+   {
+       "ts" : ISODate("2012-12-10T19:31:28.977Z"),
+       "op" : "update",
+       "ns" : "social.users",
+       "query" : {
+           "name" : "jane"
+       },
+       "updateobj" : {
+           "$set" : {
+               "likes" : [
+                   "basketball",
+                   "trekking"
+               ]
+           }
+       },
+       "nscanned" : 8,
+       "moved" : true,
+       "nmoved" : 1,
+       "nupdated" : 1,
+       "keyUpdates" : 0,
+       "numYield" : 0,
+       "lockStats" : {
+           "timeLockedMicros" : {
+               "r" : NumberLong(0),
+               "w" : NumberLong(258)
+           },
+           "timeAcquiringMicros" : {
+               "r" : NumberLong(0),
+               "w" : NumberLong(7)
+           }
+       },
+       "millis" : 0,
+       "client" : "127.0.0.1",
+       "user" : ""
+   }
+
+Output Reference
+----------------
+
+For any single operation, the documents created by the database
+profiler will include a subset of the following fields. The precise
+selection of fields in these documents depends on the type of
+operation.
+
+.. data:: system.profile.ts
+
+   The timestamp of the operation.
+
+.. data:: system.profile.op
+
+   The type of operation. The possible values are:
+
+   - ``insert``
+   - ``query``
+   - ``update``
+   - ``remove``
+   - ``getmore``
+   - ``command``
+
+.. data:: system.profile.ns
+
+   The :term:`namespace` the operation targets. Namespaces in MongoDB
+   take the form of the :term:`database`, followed by a dot (``.``),
+   followed by the name of
+   the :term:`collection`.
+
+.. data:: system.profile.query
+
+   The query document used. See :ref:`documents-query-selectors` for
+   more information on these documents, and
+   :doc:`/reference/meta-query-operators` for more information.
+
+.. data:: system.profile.command
+
+   The command operation.
+
+.. data:: system.profile.updateobj
+
+   The :ref:`update document <documents-update-actions>` passed in
+   during an :doc:`update </applications/update>` operation.
+
+.. data:: system.profile.cursorid
+
+   The ID of the cursor accessed by a ``getmore`` operation.
+
+.. data:: system.profile.ntoreturn
+
+   .. versionchanged:: 2.2
+      In 2.0, MongoDB includes this field for ``query`` and
+      ``command`` operations. In 2.2, this information MongoDB also
+      includes this field for ``getmore`` operations.
+
+   The number of documents the operation specified to return. For
+   example, the :dbcommand:`profile` command would return one document
+   (a results document) so the :data:`~system.profile.ntoreturn` value would be ``1``. The
+   :method:`limit(5) <cursor.limit()>` command would return five
+   documents so the :data:`~system.profile.ntoreturn` value would be ``5``.
+
+   If the :data:`~system.profile.ntoreturn` value is ``0``, the command did not specify a
+   number of documents to return, as would be the case with a simple
+   :method:`find() <db.collection.find()>` command with no limit
+   specified.
+
+.. data:: system.profile.ntoskip
+
+   .. versionadded:: 2.2
+
+   The number of documents the :method:`skip() <cursor.skip()>` method
+   specified to skip.
+
+.. data:: system.profile.nscanned
+
+   The number of documents that MongoDB scans in the :doc:`index </indexes>` in order to
+   carry out the operation.
+
+   In general, if :data:`~system.profile.nscanned` is much higher than :data:`~system.profile.nreturned`, the
+   database is scanning many objects to find the target objects.
+   Consider creating an index to improve this.
+
+.. data:: system.profile.moved
+
+   If :data:`~system.profile.moved` has a value of ``true`` indicates that the update operation moved one or
+   more documents to a new location on disk. These operations take
+   more time than
+   in-place updates, and typically occur when documents grow as a
+   result of document growth.
+
+   .. todo put a link to document growth in schema design/data
+      modeling docs.
+
+.. data:: system.profile.nmoved
+
+   .. versionadded:: 2.2
+
+   The number of documents moved on disk by the operation.
+
+.. data:: system.profile.nupdated
+
+   .. versionadded:: 2.2
+
+   The number of documents updated by the operation.
+
+.. data:: system.profile.keyUpdates
+
+   .. versionadded:: 2.2
+
+   The number of :doc:`index </indexes>` keys the update changed in
+   the operation. Changing an index key
+   carries a small performance cost because the database must remove the old
+   key and inserts a new key into the B-tree index.
+
+.. data:: system.profile.numYield
+
+   .. versionadded:: 2.2
+
+   The number of times the operation yielded to allow other operations
+   to complete. Typically, operations yield when they need access to
+   data that MongoDB has not yet fully read into memory. This allows
+   other operations that have data in memory to complete while MongoDB
+   reads in data for the yielding operation. For more information,
+   see :ref:`the FAQ on when operations yield <faq-concurrency-yielding>`.
+
+.. data:: system.profile.lockStats
+
+   .. versionadded:: 2.2
+
+   The time in microseconds the operation spent acquiring and holding
+   locks. This field reports data for the following lock types:
+
+   - ``R`` - global read lock
+   - ``W`` - global write lock
+   - ``r`` - database-specific read lock
+   - ``w`` - database-specific write lock
+
+   .. data:: system.profile.lockStats.timeLockedMicros
+
+      The time in microseconds the operation held a specific lock. For
+      operations that require more than one lock, like those
+      that lock the ``local`` database to update the :term:`oplog`, then
+      this value may be longer than the total length of the
+      operation (i.e. :data:`~system.profile.millis`.)
+
+   .. data:: system.profile.lockStats.timeAcquiringMicros
+
+      The time in microseconds the operation spent waiting to acquire a
+      specific lock.
+
+.. data:: system.profile.nreturned
+
+   The number of documents returned by the operation.
+
+.. data:: system.profile.responseLength
+
+   The length in bytes of the operation's result document. A large
+   :data:`~system.profile.responseLength` can affect performance.
+   To limit the size of the
+   result document for a query operation, you can use any of the
+   following:
+
+   - :ref:`Projections <read-operations-projection>`
+   - :method:`The limit() method <cursor.limit()>`
+   - :method:`The batchSize() method <cursor.batchSize()>`
+
+.. data:: system.profile.millis
+
+   The time in milliseconds for the server to perform the operation.
+   This time does not include network time nor time to acquire the lock.
+
+.. data:: system.profile.client
+
+   The IP address or hostname of the client connection where the
+   operation originates.
+
+   For some operations, such as :method:`db.eval()`, the client is
+   ``0.0.0.0:0`` instead of an actual client.
+
+.. data:: system.profile.user
+
+   The authenticated user who ran the operation.
+
+.. todo Test what values appear for authenticated users and add that info.
+   When we do, we can add back this: "If the operation was not run by an
+   authenticated user, this field's value is an empty string."
+
+.. todo Consider adding documentation to our manual on the
+   "internal user" used by replication
+
+.. todo add versionchanged stats for version 2.0 in all the fields.

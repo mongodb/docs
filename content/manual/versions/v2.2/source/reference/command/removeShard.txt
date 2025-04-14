@@ -1,0 +1,55 @@
+===========
+removeShard
+===========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. dbcommand:: removeShard
+
+   Starts the process of removing a shard from a :term:`cluster
+   <sharded cluster>`. This
+   is a multi-stage process. Begin by issuing the following command:
+
+   .. code-block:: javascript
+
+      { removeShard : "[shardName]" }
+
+   The balancer will then migrate chunks from the shard specified by
+   ``[shardName]``. This process happens slowly to avoid placing
+   undue load on the overall cluster.
+
+   The command returns immediately, with the following message:
+
+   .. code-block:: javascript
+
+      { msg : "draining started successfully" , state: "started" , shard: "shardName" , ok : 1 }
+
+   If you run the command again, you'll see the following progress
+   output:
+
+   .. code-block:: javascript
+
+      { msg: "draining ongoing" , state: "ongoing" , remaining: { chunks: 23 , dbs: 1 }, ok: 1 }
+
+   The ``remaining`` :term:`document` specifies how many chunks and
+   databases remain on the shard. Use :method:`db.printShardingStatus()`
+   to list the databases that you must move from the shard.
+
+   Each database in a sharded cluster has a primary shard. If the
+   shard you want to remove is also the primary of one of the cluster's
+   databases, then you must manually move the database to a new
+   shard. This can be only after the shard is empty. See the
+   :dbcommand:`movePrimary` command for details.
+
+   After removing all chunks and databases from the shard, you
+   may issue the command again, to return:
+
+   .. code-block:: javascript
+
+      { msg: "remove shard completed successfully", state: "completed", host: "shardName", ok : 1 }

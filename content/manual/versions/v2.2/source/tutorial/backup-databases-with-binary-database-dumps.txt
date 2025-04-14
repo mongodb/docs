@@ -1,0 +1,252 @@
+==============================================================================
+Use ``mongodump`` and ``mongorestore`` to Backup and Restore MongoDB Databases
+==============================================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This document describes the process for writing the entire contents of
+your MongoDB instance to a file in a binary format. If disk-level
+snapshots are not available, this approach provides the best option for
+full system database backups. If your system has disk level snapshot
+capabilities, consider the backup methods described in
+:doc:`/tutorial/backup-databases-with-filesystem-snapshots`.
+
+.. seealso::
+
+   - :doc:`/administration/backups`
+   - :doc:`/reference/mongodump`
+   - :doc:`/reference/mongorestore`
+
+.. _backup-mongodump:
+
+Backup a Database with ``mongodump``
+-------------------------------------
+
+Basic ``mongodump`` Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :binary:`~bin.mongodump` utility can back up data by either:
+
+- connecting to a running :binary:`~bin.mongod` or
+  :binary:`~bin.mongos` instance, or
+
+- accessing data files without an active instance.
+
+The utility can create a backup for an entire server, database or collection,
+or can use a query to backup just part of a collection.
+
+When you run :binary:`~bin.mongodump` without any arguments, the command
+connects to the local database instance (e.g. ``127.0.0.1`` or
+``localhost``) on port ``27017`` and creates a database backup named
+``dump/`` in the current directory.
+
+To backup data from a :binary:`~bin.mongod` or :binary:`~bin.mongos` instance
+running on the same machine and on the default port of ``27017``
+use the following command:
+
+.. code-block:: sh
+
+   mongodump
+
+.. include:: /includes/note-mongodump-compatibility-2.2.rst
+
+To limit the amount of data included in the database dump, you can
+specify :option:`--db <mongodump --db>` and
+:option:`--collection <mongodump --collection>` as options to the
+:binary:`~bin.mongodump` command. For example:
+
+.. code-block:: sh
+
+   mongodump --dbpath /data/db/ --out /data/backup/
+
+.. code-block:: sh
+
+   mongodump --host mongodb.example.net --port 27017
+
+:binary:`~bin.mongodump` will write :term:`BSON` files that hold a copy of
+data accessible via the :binary:`~bin.mongod` listening on port ``27017`` of
+the ``mongodb.example.net`` host.
+
+.. code-block:: sh
+
+   mongodump --collection collection --db test
+
+This command creates a dump of the collection named ``collection``
+from the database ``test`` in a :file:`dump/` subdirectory of the current
+working directory.
+
+Point in Time Operation Using Oplogs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use the :option:`--oplog <mongodump --oplog>` option with
+:binary:`~bin.mongodump` to collect the :term:`oplog` entries to build a
+point-in-time snapshot of a database within a replica set. With :option:`--oplog
+<mongodump --oplog>`, :binary:`~bin.mongodump` copies all the data from
+the source database as well as all of the :term:`oplog` entries from
+the beginning of the backup procedure to until the backup procedure
+completes. This backup procedure, in conjunction with
+:option:`mongorestore --oplogReplay <mongorestore --oplogReplay>`,
+allows you to restore a backup that reflects a consistent and specific
+moment in time.
+
+Create Backups Without a Running ``mongod`` Instance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your MongoDB instance is not running, you can use the
+:option:`--dbpath <mongodump --dbpath>` option to specify the
+location to your MongoDB instance's database files. :binary:`~bin.mongodump`
+reads from the data files directly with this operation. This
+locks the data directory to prevent conflicting writes. The
+:binary:`~bin.mongod` process must *not* be running or attached to these
+data files when you run :binary:`~bin.mongodump` in this
+configuration. Consider the following example:
+
+.. code-block:: sh
+
+   mongodump --dbpath /srv/mongodb
+
+Create Backups from Non-Local ``mongod`` Instances
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :option:`--host <mongodump --host>` and
+:option:`--port <mongodump --port>` options for
+:binary:`~bin.mongodump` allow you to connect to and backup from a remote host.
+Consider the following example:
+
+.. code-block:: sh
+
+   mongodump --host mongodb1.example.net --port 3017 --username user --password pass --out /opt/backup/mongodump-2012-10-24
+
+On any :binary:`~bin.mongodump` command you may, as above, specify username
+and password credentials to specify database authentication.
+
+.. _backup-restore-dump:
+
+Restore a Database with ``mongorestore``
+----------------------------------------
+
+The :binary:`~bin.mongorestore` utility restores a binary backup created by
+:binary:`~bin.mongodump`. By default, :binary:`~bin.mongorestore` looks for a
+database backup in the :file:`dump/` directory.
+
+The :binary:`~bin.mongorestore` utility can restore data either by:
+
+- connecting to a running :binary:`~bin.mongod` or
+  :binary:`~bin.mongos` directly, or
+
+- writing to a local database path without use of a running :binary:`~bin.mongod`.
+
+The :binary:`~bin.mongorestore` utility can restore either an entire
+database backup or a subset of the backup.
+
+A :binary:`~bin.mongorestore` command that connects to an active
+:binary:`~bin.mongod` or :binary:`~bin.mongos` has the following prototype form:
+
+.. code-block:: sh
+
+   mongorestore --port <port number> <path to the backup>
+
+A :binary:`~bin.mongorestore` command that writes to data files
+without using a running :binary:`~bin.mongod` has the following prototype
+form:
+
+.. code-block:: sh
+
+   mongorestore --dbpath <local database path> <path to the backup>
+
+Consider the following example:
+
+.. code-block:: sh
+
+   mongorestore dump-2012-10-25/
+
+Here, :binary:`~bin.mongorestore` imports the database backup in
+the :file:`dump-2012-10-25` directory to the :binary:`~bin.mongod` instance
+running on the localhost interface.
+
+.. _backup-restore-oplogreplay:
+
+Restore Point in Time Oplog Backup
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you created your database dump using the :option:`--oplog
+<mongodump --oplog>` option to ensure a point-in-time snapshot, call
+:binary:`~bin.mongorestore` with the
+:option:`--oplogReplay <mongorestore --oplogReplay>`
+option, as in the following example:
+
+.. code-block:: sh
+
+   mongorestore --oplogReplay
+
+You may also consider using the :option:`mongorestore --objcheck`
+option to check the integrity of objects while inserting them into the
+database, or you may consider the :option:`mongorestore --drop` option to drop each
+collection from the database before restoring from
+backups.
+
+.. _backup-restore-filter:
+
+Restore a Subset of data from a Binary Database Dump
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:binary:`~bin.mongorestore` also includes the ability to a filter
+to all input before inserting it into the new database. Consider the
+following example:
+
+.. code-block:: sh
+
+   mongorestore --filter '{"field": 1}'
+
+Here, :binary:`~bin.mongorestore` only adds documents to the database from
+the dump located in the :file:`dump/` folder *if* the documents have a
+field name ``field`` that holds a value of ``1``. Enclose the
+filter in single quotes (e.g. ``'``) to prevent the filter from
+interacting with your shell environment.
+
+.. _backup-restore-dbpath:
+
+Restore without a Running ``mongod``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:binary:`~bin.mongorestore` can write data to MongoDB data files without
+needing to connect to a :binary:`~bin.mongod` directly.
+
+.. code-block:: sh
+
+   mongorestore --dbpath /srv/mongodb --journal
+
+Here, :binary:`~bin.mongorestore` restores the database dump located in
+:file:`dump/` folder into the data files located at :file:`/srv/mongodb`.
+Additionally, the :option:`--journal <mongorestore --journal>` option ensures that
+:binary:`~bin.mongorestore` records all operation in the durability
+:term:`journal`. The journal prevents data file corruption if anything
+(e.g. power failure, disk failure, etc.)  interrupts the restore
+operation.
+
+.. seealso:: :doc:`/reference/mongodump` and
+   :doc:`/reference/mongorestore`.
+
+Restore Backups to Non-Local ``mongod`` Instances
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, :binary:`~bin.mongorestore` connects to a MongoDB instance
+running on the localhost interface (e.g. ``127.0.0.1``) and on the
+default port (``27017``). If you want to restore to a different host or
+port, use the :option:`--host <mongorestore --host>` and :option:`--port
+<mongorestore --port>` options.
+
+Consider the following example:
+
+.. code-block:: sh
+
+   mongorestore --host mongodb1.example.net --port 3017 --username user --password pass /opt/backup/mongodump-2012-10-24
+
+As above, you may specify username and password connections if your
+:binary:`~bin.mongod` requires authentication.

@@ -1,0 +1,1064 @@
+===============
+Read Operations
+===============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+Read operations include all operations that return a cursor in
+response to application request data (i.e. *queries*,) and also
+include a number of :doc:`aggregation </aggregation>` operations that
+do not return a cursor but have similar properties as queries. These
+commands include :dbcommand:`aggregate`, :dbcommand:`count`, and
+:dbcommand:`distinct`.
+
+This document describes the syntax and structure of the queries
+applications use to request data from MongoDB and how different
+factors affect the efficiency of reads.
+
+.. note::
+
+   All of the examples in this document use the :binary:`~bin.mongo`
+   shell interface. All of these operations are available in an
+   idiomatic interface for each language by way of the :doc:`MongoDB
+   Driver </applications/drivers>`. See your :api:`driver documentation <>` for
+   full API documentation.
+
+.. index:: read operations; query
+.. _read-operations-query-operations:
+.. _read-operations-queries:
+
+Queries in MongoDB
+------------------
+
+In the :binary:`~bin.mongo` shell, the :method:`find()
+<db.collection.find()>` and :method:`findOne()
+<db.collection.findOne()>` methods perform read operations. The
+:method:`find() <db.collection.find()>` method has the following
+syntax: [#formal-query-structure]_
+
+.. code-block:: javascript
+
+   db.collection.find( <query>, <projection> )
+
+- The ``db.collection`` object specifies the database and collection
+  to query. All queries in MongoDB address a *single* collection.
+
+  You can enter ``db`` in the :binary:`~bin.mongo` shell to return the
+  name of the current database. Use the ``show collections`` operation
+  in the :binary:`~bin.mongo` shell to list the current collections in the
+  database.
+
+- Queries in MongoDB are :term:`BSON` objects that use a set of
+  :doc:`query operators </reference/operators>` to describe query
+  parameters.
+
+  The ``<query>`` argument of the :method:`find()
+  <db.collection.find()>` method holds this query document. A read
+  operation without a query document will return all documents in the
+  collection.
+
+- The ``<projection>`` argument describes the result set in the form of
+  a document. Projections specify or limit the fields to return.
+
+  Without a projection, the operation will return all
+  fields of the documents. Specify a projection if your documents are
+  larger, or when your application only needs a subset of available
+  fields.
+
+- The order of documents returned by a query is not defined and is not
+  necessarily consistent unless you specify a sort (:method:`sort()
+  <cursor.sort()>`).
+
+For example, the following operation on the ``inventory`` collection
+selects all documents where the ``type`` field equals ``'food'`` and
+the ``price`` field has a value less than ``9.95``. The projection
+limits the response to the ``item`` and ``qty``, and ``_id`` field:
+
+.. code-block:: javascript
+
+   db.inventory.find( { type: 'food', price: { $lt: 9.95 } },
+                      { item: 1, qty: 1 } )
+
+The :method:`findOne() <db.collection.findOne()>` method is similar to
+the :method:`find() <db.collection.find()>` method except the
+:method:`findOne() <db.collection.findOne()>` method returns a single
+document from a collection rather than a cursor. The method has the
+syntax:
+
+.. code-block:: javascript
+
+   db.collection.findOne( <query>, <projection> )
+
+For additional documentation and examples of the main MongoDB read
+operators, refer to the :doc:`/applications/read` page of the
+:doc:`/crud` section.
+
+.. [#formal-query-structure] :method:`db.collection.find()` is a
+   wrapper for the more formal query structure with the
+   :operator:`$query` operator.
+
+.. _read-operations-query-document:
+.. _read-operations-query-argument:
+
+Query Document
+~~~~~~~~~~~~~~
+
+This section provides an overview of the query document for MongoDB
+queries. See the preceding section for more information on
+:ref:`queries in MongoDB <read-operations-query-operations>`.
+
+The following examples demonstrate the key properties of the query
+document in MongoDB queries, using the :method:`find()
+<db.collection.find()>` method from the :binary:`~bin.mongo` shell, and a
+collection of documents named ``inventory``:
+
+- An empty query document (``{}``) selects all documents in the
+  collection:
+
+  .. code-block:: javascript
+
+     db.inventory.find( {} )
+
+  Not specifying a query document to the :method:`find()
+  <db.collection.find()>` is equivalent to specifying an empty query
+  document. Therefore the following operation is equivalent to the
+  previous operation:
+
+  .. code-block:: javascript
+
+     db.inventory.find()
+
+- A single-clause query selects all documents in a collection where a
+  field has a certain value. These are simple "equality" queries.
+
+  In the following example, the query selects all documents in the
+  collection where the ``type`` field has the value ``snacks``:
+
+  .. code-block:: javascript
+
+     db.inventory.find( { type: "snacks" } )
+
+- A single-clause query document can also select all documents in a
+  collection given a condition or set of conditions for one field in
+  the collection's documents. Use the :ref:`query operators
+  <query-selectors>` to specify conditions in a MongoDB query.
+
+  In the following example, the query selects all documents in the
+  collection where the value of the ``type`` field is either
+  ``'food'`` or ``'snacks'``:
+
+  .. code-block:: javascript
+
+     db.inventory.find( { type: { $in: [ 'food', 'snacks' ] } } )
+
+  .. note::
+
+     Although you can express this query using the :query:`$or`
+     operator, choose the :query:`$in` operator rather than the
+     :query:`$or` operator when performing equality checks on the
+     same field.
+
+- A compound query can specify conditions for more than one field in
+  the collection's documents. Implicitly, a logical ``AND`` conjunction
+  connects the clauses of a compound query so that the query selects
+  the documents in the collection that match all the conditions.
+
+  In the following example, the query document specifies an equality
+  match on a single field, followed by a range of values for a second
+  field using a :ref:`comparison operator <query-selectors-comparison>`:
+
+  .. code-block:: javascript
+
+     db.inventory.find( { type: 'food', price: { $lt: 9.95 } } )
+
+  This query selects all documents where the ``type`` field has the
+  value ``'food'`` **and** the value of the ``price`` field is less
+  than (:query:`$lt`) ``9.95``.
+
+- Using the :query:`$or` operator, you can specify a compound query
+  that joins each clause with a logical ``OR`` conjunction so that the
+  query selects the documents in the collection that match at least one
+  condition.
+
+  In the following example, the query document selects all documents
+  in the collection where the field ``qty`` has a value greater than
+  (:query:`$gt`) ``100`` **or** the value of the ``price``
+  field is less than (:query:`$lt`) ``9.95``:
+
+  .. code-block:: javascript
+
+     db.inventory.find( { $or: [ { qty: { $gt: 100 } },
+                                 { price: { $lt: 9.95 } } ]
+                        } )
+
+- With additional clauses, you can specify precise conditions for
+  matching documents. In the following example, the compound query
+  document selects all documents in the collection where the value of
+  the ``type`` field is ``'food'`` **and** *either* the ``qty`` has a
+  value greater than (:query:`$gt`) ``100`` *or* the value of
+  the ``price`` field is less than (:query:`$lt`) ``9.95``:
+
+  .. code-block:: javascript
+
+     db.inventory.find( { type: 'food', $or: [ { qty: { $gt: 100 } },
+                                               { price: { $lt: 9.95 } } ]
+                         } )
+
+.. _read-operations-subdocuments:
+
+Subdocuments
+````````````
+
+When the field holds an embedded document (i.e. subdocument), you can
+either specify the entire subdocument as the value of a field, or
+"reach into" the subdocument using :term:`dot notation`, to specify
+values for individual fields in the subdocument:
+
+- Equality matches within subdocuments select documents if the
+  subdocument matches *exactly* the specified subdocument, including the
+  field order.
+
+  In the following example, the query matches all documents where
+  the value of the field ``producer`` is a subdocument that contains
+  *only* the field ``company`` with the value ``'ABC123'`` and the field
+  ``address`` with the value ``'123 Street'``, in the exact order:
+
+  .. code-block:: javascript
+
+     db.inventory.find( {
+                          producer: {
+                                      company: 'ABC123',
+                                      address: '123 Street'
+                                    }
+                        }
+                      )
+
+- Equality matches for specific fields within subdocuments select
+  documents when the field in the subdocument contains a field that
+  matches the specified value.
+
+  In the following example, the query uses the :term:`dot notation` to
+  match all documents where the value of the field ``producer`` is a
+  subdocument that contains a field ``company`` with the value
+  ``'ABC123'`` and may contain other fields:
+
+  .. code-block:: javascript
+
+     db.inventory.find( { 'producer.company': 'ABC123' } )
+
+.. _read-operations-arrays:
+
+Arrays
+````````
+
+When the field holds an array, you can query for values in the array,
+and if the array holds sub-documents, you query for specific fields
+within the sub-documents using :term:`dot notation`:
+
+- Equality matches can specify an entire array, to select an array
+  that matches exactly. In the following example, the query matches all
+  documents where the value of the field ``tags`` is an array and
+  holds three elements, ``'fruit'``, ``'food'``, and ``'citrus'``, in
+  this order:
+
+  .. code-block:: javascript
+
+     db.inventory.find( { tags: [ 'fruit', 'food', 'citrus' ] } )
+
+- Equality matches can specify a single element in the array. If the
+  array contains at least *one* element with the specified value, as
+  in the following example: the query matches all documents where
+  the value of the field ``tags`` is an array that contains, as one of
+  its elements, the element ``'fruit'``:
+
+  .. code-block:: javascript
+
+     db.inventory.find( { tags: 'fruit' } )
+
+  Equality matches can also select documents by values in an array
+  using the array index (i.e. position) of the element in the array,
+  as in the following example: the query uses the :term:`dot notation`
+  to match all documents where the value of the ``tags`` field is an
+  array whose first element equals ``'fruit'``:
+
+  .. code-block:: javascript
+
+     db.inventory.find( { 'tags.0' : 'fruit' } )
+
+In the following examples, consider an array that contains
+subdocuments:
+
+- If you know the array index of the subdocument, you can specify the
+  document using the subdocument's position.
+
+  The following example selects all documents where the ``memos``
+  contains an array whose first element (i.e. index is ``0``) is a
+  subdocument with the field ``by`` with the value ``'shipping'``:
+
+  .. code-block:: javascript
+
+     db.inventory.find( { 'memos.0.by': 'shipping' } )
+
+- If you do not know the index position of the subdocument,
+  concatenate the name of the field that contains the array, with a
+  dot (``.``) and the name of the field in the subdocument.
+
+  The following example selects all documents where the ``memos`` field
+  contains an array that contains at least one subdocument with the
+  field ``by`` with the value ``'shipping'``:
+
+  .. code-block:: javascript
+
+     db.inventory.find( { 'memos.by': 'shipping' } )
+
+- To match by multiple fields in the subdocument, you can use either
+  dot notation or the :query:`$elemMatch` operator:
+
+  The following example uses dot notation to query for documents
+  where the value of the ``memos`` field is an array that has at least
+  one subdocument that contains the field ``memo`` equal to ``'on time'``
+  and the field ``by`` equal to ``'shipping'``:
+
+  .. code-block:: javascript
+
+     db.inventory.find(
+                        {
+                          'memos.memo': 'on time',
+                          'memos.by': 'shipping'
+                        }
+                      )
+
+  The following example uses :query:`$elemMatch` to query for
+  documents where the value of the ``memos`` field is an array that
+  has at least one subdocument that contains the field ``memo`` equal
+  to ``'on time'`` and the field ``by`` equal to ``'shipping'``:
+
+  .. code-block:: javascript
+
+     db.inventory.find( { memos: {
+                                   $elemMatch: {
+                                                 memo : 'on time',
+                                                 by: 'shipping'
+                                               }
+                                 }
+                        }
+                      )
+
+Refer to the :doc:`/reference/operator` document for the complete list
+of query operators.
+
+.. _read-operations-projection:
+.. _projection:
+
+Result Projections
+~~~~~~~~~~~~~~~~~~
+
+The :term:`projection` specification limits the fields to return for
+all matching documents. Restricting the fields to return can minimize
+network transit costs and the costs of deserializing documents in the
+application layer.
+
+The second argument to the :method:`find() <db.collection.find()>`
+method is a projection, and it takes the form of a :term:`document` with
+a list of fields for inclusion or exclusion from the result set. You
+can either specify the fields to include (e.g. ``{ field: 1 }``) or specify the
+fields to exclude (e.g. ``{ field: 0 }``). The ``_id`` field is implicitly
+included, unless explicitly excluded.
+
+.. note::
+
+   You cannot combine inclusion and exclusion semantics in a single
+   projection with the *exception* of the ``_id`` field.
+
+Consider the following projection specifications in :method:`find()
+<db.collection.find()>` operations:
+
+- If you specify no projection, the :method:`find()
+  <db.collection.find()>` method returns all fields of all documents
+  that match the query.
+
+  .. code-block:: javascript
+
+     db.inventory.find( { type: 'food' } )
+
+  This operation will return all documents in the ``inventory``
+  collection where the value of the ``type`` field is ``'food'``.
+
+- A projection can explicitly include several fields. In the following
+  operation, :method:`find() <db.collection.find()>` method returns
+  all documents that match the query as well as ``item`` and ``qty``
+  fields. The results also include the ``_id`` field:
+
+  .. code-block:: javascript
+
+     db.inventory.find( { type: 'food' }, { item: 1, qty: 1 } )
+
+- You can remove the ``_id`` field by excluding it from the
+  projection, as in the following example:
+
+  .. code-block:: javascript
+
+     db.inventory.find( { type: 'food' }, { item: 1, qty: 1, _id:0 } )
+
+  This operation returns all documents that match the query, and
+  *only* includes the ``item`` and ``qty`` fields in the result set.
+
+- To exclude a single field or group of fields you can use a
+  projection in the following form:
+
+  .. code-block:: javascript
+
+     db.inventory.find( { type: 'food' }, { type:0 } )
+
+  This operation returns all documents where the value of the ``type``
+  field is ``food``, but does not include the ``type`` field in the
+  output.
+
+  With the exception of the ``_id`` field you cannot combine inclusion
+  and exclusion statements in projection documents.
+
+The :projection:`$elemMatch` and :projection:`$slice` projection
+operators provide more control when projecting only a portion of an
+array.
+
+.. _read-operations-indexing:
+
+Indexes
+-------
+
+Indexes improve the efficiency of read operations by reducing the
+amount of data that query operations need to process and thereby
+simplifying the work associated with fulfilling queries within
+MongoDB. The indexes themselves are a special data structure that
+MongoDB maintains when inserting or modifying documents, and any given
+index can: support and optimize specific queries, sort operations, and
+allow for more efficient storage utilization. For more information
+about indexes in MongoDB see: :doc:`/indexes` and :doc:`/core/indexes`.
+
+You can create indexes using the :method:`db.collection.ensureIndex()` method
+in the :binary:`~bin.mongo` shell, as in the following prototype
+operation:
+
+.. code-block:: javascript
+
+   db.collection.ensureIndex( { <field1>: <order>, <field2>: <order>, ... } )
+
+- The ``field`` specifies the field to index. The field may be a field
+  from a subdocument, using :term:`dot notation` to specify subdocument
+  fields.
+
+  You can create an index on a single field or a :ref:`compound index
+  <index-type-compound>` that includes multiple fields in the index.
+
+- The ``order`` option is specifies either ascending ( ``1`` ) or
+  descending ( ``-1`` ).
+
+  MongoDB can read the index in either direction. In most cases, you
+  only need to specify :ref:`indexing order
+  <index-ascending-and-descending>` to support sort operations in
+  compound queries.
+
+.. _read-operations-covered-query:
+
+Covering a Query
+~~~~~~~~~~~~~~~~
+
+An index :ref:`covers <indexes-covered-queries>` a query, a *covered
+query*, when:
+
+- all the fields in the :ref:`query <read-operations-query-document>`
+  are part of that index, **and**
+
+- all the fields returned in the documents that match the query are in
+  the same index.
+
+For these queries, MongoDB does not need to inspect at documents
+outside of the index, which is often more efficient than inspecting
+entire documents.
+
+.. example::
+
+   Given a collection ``inventory`` with the following index on the
+   ``type`` and ``item`` fields:
+
+   .. code-block:: sh
+
+      { type: 1, item: 1 }
+
+   This index will cover the following query on the ``type`` and ``item``
+   fields, which returns only the ``item`` field:
+
+   .. code-block:: javascript
+
+      db.inventory.find( { type: "food", item:/^c/ },
+                         { item: 1, _id: 0 } )
+
+   However, this index will **not** cover the following query, which
+   returns the ``item`` field **and** the ``_id`` field:
+
+   .. code-block:: javascript
+
+      db.inventory.find( { type: "food", item:/^c/ },
+                         { item: 1 } )
+
+See :ref:`indexes-covered-queries` for more information on the
+behavior and use of covered queries.
+
+Measuring Index Use
+~~~~~~~~~~~~~~~~~~~
+
+The :method:`~cursor.explain()` cursor method allows you to
+inspect the operation of the query system, and is useful for analyzing
+the efficiency of queries, and for determining how the query uses the
+index. Call the :method:`~cursor.explain()` method on a
+cursor returned by :method:`~db.collection.find()`, as in the
+following example:
+
+.. code-block:: javascript
+
+   db.inventory.find( { type: 'food' } ).explain()
+
+.. note::
+
+   Only use :method:`~cursor.explain()` to test the query
+   operation, and *not* the timing of query performance. Because
+   :method:`~cursor.explain()` attempts multiple query
+   plans, it does not reflect accurate query performance.
+
+If the above operation could not use an index, the output of
+:method:`~cursor.explain()` would resemble the following:
+
+.. code-block:: javascript
+
+   {
+     "cursor" : "BasicCursor",
+     "isMultiKey" : false,
+     "n" : 5,
+     "nscannedObjects" : 4000006,
+     "nscanned" : 4000006,
+     "nscannedObjectsAllPlans" : 4000006,
+     "nscannedAllPlans" : 4000006,
+     "scanAndOrder" : false,
+     "indexOnly" : false,
+     "nYields" : 2,
+     "nChunkSkips" : 0,
+     "millis" : 1591,
+     "indexBounds" : { },
+     "server" : "mongodb0.example.net:27017"
+   }
+
+The ``BasicCursor`` value in the :data:`~explain.cursor` field confirms that
+this query does not use an index. The :data:`explain.nscannedObjects` value shows that
+MongoDB must scan 4,000,006 documents to return only 5 documents. To
+increase the efficiency of the query, create an index on the ``type``
+field, as in the following example:
+
+.. code-block:: javascript
+
+   db.inventory.ensureIndex( { type: 1 } )
+
+Run the :method:`~cursor.explain()` operation, as follows,
+to test the use of the index:
+
+.. code-block:: javascript
+
+   db.inventory.find( { type: 'food' } ).explain()
+
+Consider the results:
+
+.. code-block:: javascript
+
+   {
+     "cursor" : "BtreeCursor type_1",
+     "isMultiKey" : false,
+     "n" : 5,
+     "nscannedObjects" : 5,
+     "nscanned" : 5,
+     "nscannedObjectsAllPlans" : 5,
+     "nscannedAllPlans" : 5,
+     "scanAndOrder" : false,
+     "indexOnly" : false,
+     "nYields" : 0,
+     "nChunkSkips" : 0,
+     "millis" : 0,
+     "indexBounds" : { "type" : [
+                                   [ "food",
+                                     "food" ]
+                                ] },
+     "server" : "mongodbo0.example.net:27017" }
+
+The ``BtreeCursor`` value of the :data:`~explain.cursor` field indicates that
+the query used an index. This query:
+
+- returned 5 documents, as indicated by the :data:`~explain.n` field;
+
+- scanned 5 documents from the index, as indicated by the
+  :data:`~explain.nscanned` field;
+
+- then read 5 full documents from the collection, as indicated by
+  the :data:`~explain.nscannedObjects` field.
+
+  Although the query uses an index to find the matching documents, if
+  :data:`~explain.indexOnly` is false then an index could
+  not :ref:`cover <read-operations-covered-query>` the query:
+  MongoDB could not both match the :ref:`query conditions
+  <read-operations-query-document>` **and** return the results using
+  only this index. See :ref:`indexes-covered-queries` for more
+  information.
+
+.. index:: query optimizer
+.. _read-operations-query-optimization:
+
+Query Optimization
+~~~~~~~~~~~~~~~~~~
+
+The MongoDB query optimizer processes queries and chooses the most
+efficient query plan for a query given the available indexes. The
+query system then uses this query plan each time the query runs. The
+query optimizer occasionally reevaluates query plans as the content of
+the collection changes to ensure optimal query plans.
+
+To create a new query plan, the query optimizer:
+
+1. runs the query against several candidate indexes in parallel.
+
+#. records the matches in a common results buffer
+   or buffers.
+
+   - If the candidate plans include only :term:`ordered query plans
+     <ordered query plan>`, there is a single common results buffer.
+
+   - If the candidate plans include only :term:`unordered query plans
+     <unordered query plan>`, there is a single common results buffer.
+
+   - If the candidate plans include *both* :term:`ordered query plans
+     <ordered query plan>` and :term:`unordered query plans
+     <unordered query plan>`, there are two common results buffers, one
+     for the ordered plans and the other for the unordered plans.
+
+   If an index returns a result already returned by another index, the
+   optimizer skips the duplicate match. In the case of the two buffers,
+   both buffers are de-duped.
+
+#. stops the testing of candidate plans and selects an index when one of
+   the following events occur:
+
+   - An :term:`unordered query plan` has returned all the matching results; *or*
+
+   - An :term:`ordered query plan` has returned all the matching results; *or*
+
+   - An :term:`ordered query plan` has returned a threshold number of matching results:
+
+     - Version 2.0: Threshold is the query batch size. The default
+       batch size is 101.
+
+     - Version 2.2: Threshold is 101.
+
+The selected index becomes the index specified in the query plan;
+future iterations of this query or queries with the same query
+pattern will use this index. Query pattern refers to query select
+conditions that differ only in the values, as in the following two
+queries with the same query pattern:
+
+.. code-block:: javascript
+
+   db.inventory.find( { type: 'food' } )
+   db.inventory.find( { type: 'utensil' } )
+
+To manually compare the performance of a query using more than one
+index, you can use the :method:`hint() <cursor.hint()>` and
+:method:`explain() <cursor.explain()>` methods in conjunction, as in
+the following prototype:
+
+.. code-block:: javascript
+
+   db.collection.find().hint().explain()
+
+The following operations each run the same query but will reflect the
+use of the different indexes:
+
+.. code-block:: javascript
+
+   db.inventory.find( { type: 'food' } ).hint( { type: 1 } ).explain()
+   db.inventory.find( { type: 'food' } ).hint( { type: 1, name: 1 }).explain()
+
+This returns the statistics regarding the execution of the query. For
+more information on the output of :method:`explain()
+<cursor.explain()>`, see the :doc:`/reference/explain`.
+
+.. note::
+
+   If you run :method:`explain() <cursor.explain()>` without including
+   :method:`hint() <cursor.hint()>`, the query optimizer reevaluates
+   the query and runs against multiple indexes before returning the
+   query statistics.
+
+As collections change over time, the query optimizer deletes a query
+plan and reevaluates the after any of the following events:
+
+- the collection receives 1,000 write operations.
+
+- the :dbcommand:`reIndex` rebuilds the index.
+
+- you add or drop an index.
+
+- the :binary:`~bin.mongod` process restarts.
+
+For more information, see :doc:`/applications/indexes`.
+
+Query Operations that Cannot Use Indexes Effectively
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Some query operations cannot use indexes effectively or cannot use
+indexes at all. Consider the following situations:
+
+- The inequality operators :query:`$nin` and :query:`$ne` are
+  not very selective, as they often match a large portion of the
+  index.
+
+  As a result, in most cases, a :query:`$nin` or :query:`$ne`
+  query with an index may perform no better than a :query:`$nin` or
+  :query:`$ne` query that must scan all documents in a collection.
+
+- Queries that specify regular expressions, with inline JavaScript
+  regular expressions or :query:`$regex` operator expressions,
+  cannot use an index. *However*, the regular expression with anchors
+  to the beginning of a string *can* use an index.
+
+.. _read-operations-cursors:
+
+Cursors
+-------
+
+The :method:`find() <db.collection.find()>` method returns a
+:term:`cursor` to the results; however, in the :binary:`~bin.mongo` shell,
+if the returned cursor is not assigned to a variable, then the cursor
+is automatically iterated up to 20 times [#set-shell-batch-size]_ to print
+up to the first 20 documents that match the query, as in the following
+example:
+
+.. code-block:: javascript
+
+   db.inventory.find( { type: 'food' } );
+
+When you assign the :method:`find() <db.collection.find()>` to a
+variable:
+
+- you can call the cursor variable in the shell to iterate up to 20
+  times [#set-shell-batch-size]_ and print the matching documents, as in
+  the following example:
+
+  .. code-block:: javascript
+
+     var myCursor = db.inventory.find( { type: 'food' } );
+
+     myCursor
+
+- you can use the cursor method :method:`next() <cursor.next()>` to
+  access the documents, as in the following example:
+
+  .. code-block:: javascript
+
+     var myCursor = db.inventory.find( { type: 'food' } );
+     var myDocument = myCursor.hasNext() ? myCursor.next() : null;
+
+     if (myDocument) {
+         var myItem = myDocument.item;
+         print(tojson(myItem));
+     }
+
+  As an alternative print operation, consider the ``printjson()``
+  helper method to replace ``print(tojson())``:
+
+  .. code-block:: javascript
+
+     if (myDocument) {
+         var myItem = myDocument.item;
+         printjson(myItem);
+     }
+
+- you can use the cursor method :method:`forEach() <cursor.forEach()>`
+  to iterate the cursor and access the documents, as in the following
+  example:
+
+  .. code-block:: javascript
+
+     var myCursor =  db.inventory.find( { type: 'food' } );
+
+     myCursor.forEach(printjson);
+
+See :ref:`JavaScript cursor methods <js-query-cursor-methods>` and your
+:doc:`driver </applications/drivers>` documentation for more
+information on cursor methods.
+
+.. [#set-shell-batch-size] You can use the ``DBQuery.shellBatchSize`` to
+   change the number of iteration from the default value ``20``. See
+   :ref:`mongo-shell-executing-queries` for more information.
+
+Iterator Index
+~~~~~~~~~~~~~~
+
+In the :binary:`~bin.mongo` shell, you can use the
+:method:`~cursor.toArray()` method to iterate the cursor and return
+the documents in an array, as in the following:
+
+.. code-block:: javascript
+
+   var myCursor = db.inventory.find( { type: 'food' } );
+   var documentArray = myCursor.toArray();
+   var myDocument = documentArray[3];
+
+The :method:`~cursor.toArray()` method loads into RAM all
+documents returned by the cursor; the :method:`~cursor.toArray()` method exhausts the cursor.
+
+Additionally, some :doc:`drivers </applications/drivers>` provide
+access to the documents by using an index on the cursor (i.e.
+``cursor[index]``). This is a shortcut for first calling the
+:method:`~cursor.toArray()` method and then using an index
+on the resulting array.
+
+Consider the following example:
+
+.. code-block:: javascript
+
+   var myCursor = db.inventory.find( { type: 'food' } );
+   var myDocument = myCursor[3];
+
+The ``myCursor[3]`` is equivalent to the following example:
+
+.. code-block:: javascript
+
+   myCursor.toArray() [3];
+
+.. _cursor-behaviors:
+
+Cursor Behaviors
+~~~~~~~~~~~~~~~~
+
+Consider the following behaviors related to cursors:
+
+- By default, the server will automatically close the cursor after 10
+  minutes of inactivity or if client has exhausted the cursor. To
+  override this behavior, you can specify the ``noTimeout``
+  :meta-driver:`wire protocol flag </legacy/mongodb-wire-protocol>` in your query;
+  however, you should either close the cursor manually or exhaust the
+  cursor. In the :binary:`~bin.mongo` shell, you can set the ``noTimeout``
+  flag:
+
+  .. code-block:: javascript
+
+     var myCursor = db.inventory.find().addOption(DBQuery.Option.noTimeout);
+
+  See your :doc:`driver </applications/drivers>` documentation for
+  information on setting the ``noTimeout`` flag. See
+  :ref:`cursor-flags` for a complete list of available cursor flags.
+
+- Because the cursor is not isolated during its lifetime, intervening
+  write operations may result in a cursor that returns a single
+  document [#single-document-def]_ more than once. To handle this
+  situation, see the information on :ref:`snapshot mode
+  <faq-developers-isolate-cursors>`.
+
+- The MongoDB server returns the query results in batches:
+
+  - For most queries, the *first* batch returns 101 documents or just
+    enough documents to exceed 1 megabyte. Subsequent batch size is 4
+    megabytes. To override the default size of the batch, see
+    :method:`~cursor.batchSize()` and :method:`~cursor.limit()`.
+
+  - For queries that include a sort operation *without* an index, the
+    server must load all the documents in memory to perform the sort
+    and will return all documents in the first batch.
+
+  - Batch size will not exceed the :ref:`maximum BSON document size
+    <limit-bson-document-size>`.
+
+  - As you iterate through the cursor and reach the end of the returned
+    batch, if there are more results, :method:`cursor.next()` will
+    perform a :data:`getmore operation <currentOp.op>` to retrieve the next batch.
+
+    To see how many documents remain in the batch as you iterate the
+    cursor, you can use the :method:`~cursor.objsLeftInBatch()` method,
+    as in the following example:
+
+    .. code-block:: javascript
+
+       var myCursor = db.inventory.find();
+
+       var myFirstDocument = myCursor.hasNext() ? myCursor.next() : null;
+
+       myCursor.objsLeftInBatch();
+
+- You can use the command :dbcommand:`cursorInfo` to retrieve the
+  following information on cursors:
+
+  - total number of open cursors
+
+  - size of the client cursors in current use
+
+  - number of timed out cursors since the last server restart
+
+  Consider the following example:
+
+  .. code-block:: javascript
+
+     db.runCommand( { cursorInfo: 1 } )
+
+  The result from the command returns the following documentation:
+
+  .. code-block:: javascript
+
+     { "totalOpen" : <number>, "clientCursors_size" : <number>, "timedOut" : <number>, "ok" : 1 }
+
+.. [#single-document-def] A single document relative to value of the
+   ``_id`` field. A cursor cannot return the same document more than
+   once *if* the document has not changed.
+
+.. _cursor-flags:
+
+Cursor Flags
+~~~~~~~~~~~~
+
+The :binary:`~bin.mongo` shell provides the following cursor flags:
+
+- ``DBQuery.Option.tailable``
+- ``DBQuery.Option.slaveOk``
+- ``DBQuery.Option.oplogReplay``
+- ``DBQuery.Option.noTimeout``
+- ``DBQuery.Option.awaitData``
+- ``DBQuery.Option.exhaust``
+- ``DBQuery.Option.partial``
+
+.. _read-operations-aggregation:
+
+Aggregation
+~~~~~~~~~~~
+
+.. versionchanged:: 2.2
+
+MongoDB can perform some basic data aggregation operations on results
+before returning data to the application. These operations are not
+queries; they use :term:`database commands <database command>` rather than queries, and
+they do not return a cursor. However, they still require MongoDB to read data.
+
+Running aggregation operations on the database side can be more
+efficient than running them in the application layer and can reduce
+the amount of data MongoDB needs to send to the application. These
+aggregation operations include basic grouping, counting, and even
+processing data using a map reduce framework. Additionally, in 2.2
+MongoDB provides a complete aggregation framework for more rich
+aggregation operations.
+
+The aggregation framework provides users with a "pipeline" like
+framework: documents enter from a collection and then pass through a
+series of steps by a sequence of :ref:`pipeline operators
+<aggregation-pipeline-operator-reference>` that manipulate and
+transform the documents until they're output at the end. The
+aggregation framework is accessible via the :dbcommand:`aggregate`
+command or the :method:`db.collection.aggregate()` helper in the
+:binary:`~bin.mongo` shell.
+
+For more information on the aggregation framework see
+:doc:`/aggregation`.
+
+Additionally, MongoDB provides a number of simple data aggregation
+operations for more basic data aggregation operations:
+
+- :dbcommand:`count` (:method:`~cursor.count()`)
+
+- :dbcommand:`distinct` (:method:`db.collection.distinct()`)
+
+- :dbcommand:`group` (:method:`db.collection.group()`)
+
+- :dbcommand:`mapReduce`. (Also consider
+  :method:`~db.collection.mapReduce()` and
+  :doc:`/applications/map-reduce`.)
+
+.. index:: read operation; architecture
+.. _read-operations-architecture:
+
+Architecture
+------------
+
+.. index:: read operation; connection pooling
+.. index:: connection pooling; read operations
+.. _read-operations-connection-pooling:
+
+Read Operations from Sharded Clusters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:term:`Sharded clusters <sharded cluster>` allow you to partition a
+data set among a cluster of :binary:`~bin.mongod` in a way that is nearly
+transparent to the application. See the :doc:`/sharding` section of
+this manual for additional information about these deployments.
+
+For a sharded cluster, you issue all operations to one of the
+:binary:`~bin.mongos` instances associated with the
+cluster. :binary:`~bin.mongos` instances route operations to the
+:binary:`~bin.mongod` in the cluster and behave like :binary:`~bin.mongod`
+instances to the application. Read operations to a sharded collection
+in a sharded cluster are largely the same as operations to a :term:`replica
+set` or :term:`standalone` instances. See the section on :ref:`Read
+Operations in Sharded Clusters <sharding-read-operations>` for more
+information.
+
+In sharded deployments, the :binary:`~bin.mongos` instance routes
+the queries from the clients to the :binary:`~bin.mongod` instances that
+hold the data, using the cluster metadata stored in the :ref:`config
+database <sharding-config-server>`.
+
+For sharded collections, if queries do not include the :ref:`shard key
+<sharding-shard-key>`, the :binary:`~bin.mongos` must direct the query to
+all shards in a collection. These *scatter gather* queries can be
+inefficient, particularly on larger clusters, and are unfeasible for
+routine operations.
+
+For more information on read operations in sharded clusters, consider
+the following resources:
+
+- :ref:`An Introduction to Shard Keys <sharding-shard-key>`
+- :ref:`Shard Key Internals and Operations <sharding-internals-shard-keys>`
+- :ref:`Querying Sharded Clusters <sharding-internals-querying>`
+- :ref:`sharding-mongos`
+
+Read Operations from Replica Sets
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:term:`Replica sets <replica set>` use :term:`read preferences <read
+preference>` to determine where and how to route read operations to
+members of the replica set. By default, MongoDB always reads data from
+a replica set's :term:`primary`. You can modify that behavior by
+changing the :ref:`read preference mode
+<replica-set-read-preference-modes>`.
+
+You can configure the :ref:`read preference mode
+<replica-set-read-preference-modes>` on a per-connection or
+per-operation basis to allow reads from :term:`secondaries
+<secondary>` to:
+
+- reduce latency in multi-data-center deployments,
+
+- improve read throughput by distributing high read-volumes (relative
+  to write volume),
+
+- for backup operations, and/or
+
+- to allow reads during :ref:`failover <replica-set-failover>`
+  situations.
+
+Read operations from secondary members of replica sets are not
+guaranteed to reflect the current state of the primary, and the state
+of secondaries will trail the primary by some amount of time. Often,
+applications don't rely on this kind of strict consistency, but
+application developers should always consider the needs of their
+application before setting read preference.
+
+For more information on :ref:`read preferences <read-preference>` or
+on the read preference modes, see :ref:`read-preference` and
+:ref:`replica-set-read-preference-modes`.

@@ -1,0 +1,266 @@
+.. _mongodump:
+
+=============
+``mongodump``
+=============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Synopsis
+--------
+
+:binary:`~bin.mongodump` is a utility for creating a binary export of the
+contents of a database. Consider using this utility as part an
+effective :doc:`backup strategy </administration/backups>`. Use
+:binary:`~bin.mongodump` in conjunction with :binary:`~bin.mongorestore` to
+restore databases.
+
+:binary:`~bin.mongodump` can read data from either `mongod` or :binary:`~bin.mongos`
+instances, in addition to reading directly from MongoDB data files
+without an active :binary:`~bin.mongod`.
+
+.. include:: /includes/note-mongodump-compatibility-2.2.rst
+
+.. seealso:: :binary:`~bin.mongorestore`,
+   :doc:`/tutorial/backup-sharded-cluster-with-database-dumps`
+   and :doc:`/administration/backups`.
+
+Options
+-------
+
+.. binary:: mongodump
+
+.. program:: mongodump
+
+.. option:: --help
+
+   Returns a basic help and usage text.
+
+.. option:: --verbose, -v
+
+   Increases the amount of internal reporting returned on the command
+   line. Increase the verbosity with the ``-v`` form by including the
+   option multiple times, (e.g. ``-vvvvv``.)
+
+.. option:: --version
+
+   Returns the version of the :binary:`~bin.mongodump` utility and exits.
+
+.. option:: --host <hostname><:port>
+
+   Specifies a resolvable hostname for the :binary:`~bin.mongod` that you wish to
+   use to create the database dump. By default :binary:`~bin.mongodump` will
+   attempt to connect to a MongoDB process ruining on the localhost
+   port number ``27017``.
+
+   Optionally, specify a port number to connect a MongoDB instance
+   running on a port other than ``27017``.
+
+   To connect to a replica set, use the :option:`--host <mongodump --host>`
+   argument with a setname, followed by a slash and a comma-separated
+   list of host names and port numbers. The :binary:`~bin.mongodump`
+   utility will, given the seed of at least one connected set member,
+   connect to the primary member of that set. This option would resemble:
+
+   .. code-block:: javascript
+
+      mongodump --host repl0/mongo0.example.net,mongo0.example.net:27018,mongo1.example.net,mongo2.example.net
+
+   You can always connect directly to a single MongoDB instance by
+   specifying the host and port number directly.
+
+.. option:: --port <port>
+
+   Specifies the port number, if the MongoDB instance is not running
+   on the standard port. (i.e. ``27017``) You may also specify a port
+   number using the :option:`--host <mongodump --host>` option.
+
+.. option:: --ipv6
+
+   Enables IPv6 support that allows :binary:`~bin.mongodump` to connect to
+   the MongoDB instance using an IPv6 network. All MongoDB programs
+   and processes, including :binary:`~bin.mongodump`, disable IPv6 support
+   by default.
+
+.. option:: --username <username>, -u <username>
+
+   Specifies a username to authenticate to the MongoDB instance, if
+   your database requires authentication. Use in conjunction with the
+   :option:`--password <mongodump --password>` option to supply a
+   password.
+
+.. option:: --password <password>
+
+   Specifies a password to authenticate to the MongoDB instance. Use
+   in conjunction with the :option:`--username <mongodump --username>`
+   option to supply a username.
+
+   If you specify a :option:`--username <mongodump --username>`
+   without the :option:`--password` option, :binary:`~bin.mongodump` will
+   prompt for a password interactively.
+
+.. option:: --dbpath <path>
+
+   Specifies the directory of the MongoDB data files. If used, the
+   :option:`--dbpath` option enables :binary:`~bin.mongodump` to attach
+   directly to local data files and copy the data without the
+   :binary:`~bin.mongod`. To run with :option:`--dbpath`,
+   :binary:`~bin.mongodump` needs to restrict access to the data
+   directory: as a result, no :binary:`~bin.mongod` can access the same
+   path while the process runs.
+
+.. option:: --directoryperdb
+
+   Use the :option:`--directoryperdb` in conjunction with the
+   corresponding option to :binary:`~bin.mongod`. This option allows
+   :binary:`~bin.mongodump` to read data files organized with each
+   database located in a distinct directory. This option is only
+   relevant when specifying the :option:`--dbpath` option.
+
+.. option:: --journal
+
+   Allows :binary:`~bin.mongodump` operations to use the durability
+   :term:`journal` to ensure that the export is in a
+   consistent state. This option is only relevant when specifying the
+   :option:`--dbpath` option.
+
+.. option:: --db <db>, -d <db>
+
+   Use the :option:`--db` option to specify a database for
+   :binary:`~bin.mongodump` to backup. If you do not specify a DB,
+   :binary:`~bin.mongodump` copies all databases in this instance into the
+   dump files. Use this option to backup or copy a smaller subset of
+   your data.
+
+.. option:: --collection <collection>, -c <collection>
+
+   Use the :option:`--collection` option to specify a collection for
+   :binary:`~bin.mongodump` to backup. If you do not specify a collection,
+   this option copies all collections in the specified database or
+   instance to the dump files. Use this option to backup or copy a
+   smaller subset of your data.
+
+.. option:: --out <path>, -o <path>
+
+   Specifies a directory where :binary:`~bin.mongodump` saves the output of
+   the database dump. By default, :binary:`~bin.mongodump` saves output
+   files in a directory named ``dump`` in the current working directory.
+
+   To send the database dump to standard output, specify "``-``"
+   instead of a path. Write to standard output if you want process the
+   output before saving it, such as to use ``gzip`` to compress the
+   dump. When writing standard output, :binary:`~bin.mongodump` does not
+   write the metadata that writes in a ``<dbname>.metadata.json`` file
+   when writing to files directly.
+
+.. option:: --query <json>, -q <json>
+
+   Provides a query to limit (optionally) the documents included in
+   the output of :binary:`~bin.mongodump`.
+
+.. option:: --oplog
+
+   Use this option to ensure that :binary:`~bin.mongodump` creates a dump
+   of the database that includes an :term:`oplog`, to create a
+   point-in-time snapshot of the state of a :binary:`~bin.mongod` instance. To
+   restore to a specific point-in-time backup, use the output created
+   with this option in conjunction with :option:`mongorestore --oplogReplay`.
+
+   Without :option:`--oplog`, if there are write operations during the
+   dump operation, the dump will not reflect a single moment in
+   time. Changes made to the database during the update process can
+   affect the output of the backup.
+
+   :option:`--oplog` has no effect when running :binary:`~bin.mongodump`
+   against a :binary:`~bin.mongos` instance to dump the entire contents of
+   a sharded cluster. However, you can use :option:`--oplog` to dump
+   individual shards.
+
+   .. note::
+
+      :option:`--oplog` only works against nodes that maintain an
+      :term:`oplog`. This includes all members of a replica set, as
+      well as :term:`master` nodes in master/slave replication
+      deployments.
+
+.. option:: --repair
+
+   Use this option to run a repair option in addition to dumping the
+   database. The repair option attempts to repair a database that may
+   be in an inconsistent state as a result of an improper shutdown or
+   :binary:`~bin.mongod` crash.
+
+.. option:: --forceTableScan
+
+   Forces :binary:`~bin.mongodump` to scan the data store directly:
+   typically, :binary:`~bin.mongodump` saves entries as they appear in the
+   index of the ``_id`` field. Use :option:`--forceTableScan` to skip
+   the index and scan the data directly. Typically there are two cases
+   where this behavior is preferable to the default:
+
+   1. If you have key sizes over 800 bytes that would not be present
+      in the ``_id`` index.
+   2. Your database uses a custom ``_id`` field.
+
+   When you run with :option:`--forceTableScan`, :binary:`~bin.mongodump`
+   does not use :operator:`$snapshot`. As a result, the dump produced
+   by :binary:`~bin.mongodump` can reflect the state of the database at
+   many different points in time.
+
+   .. warning:: Use :option:`--forceTableScan` with extreme caution
+      and consideration.
+
+   .. include:: /includes/warning-fsync-lock-mongodump.rst
+
+.. _mongodump-behavior:
+
+Behavior
+--------
+
+When running :binary:`~bin.mongodump` against a :binary:`~bin.mongos` instance
+where the :term:`sharded cluster` consists of :term:`replica sets <replica
+set>`, the :term:`read preference` of the operation will prefer reads
+from :term:`secondary` members of the set.
+
+Usage
+-----
+
+See the :doc:`/tutorial/backup-databases-with-binary-database-dumps`
+for a larger overview of :binary:`~bin.mongodump` usage. Also see the
+":doc:`mongorestore`" document for an overview of the
+:binary:`~bin.mongorestore`, which provides the related inverse
+functionality.
+
+The following command, creates a dump file that contains only the
+collection named ``collection`` in the database named ``test``. In
+this case the database is running on the local interface on port
+``27017``:
+
+.. code-block:: sh
+
+   mongodump --collection collection --db test
+
+In the next example, :binary:`~bin.mongodump` creates a backup of the
+database instance stored in the ``/srv/mongodb`` directory on the
+local machine. This requires that no :binary:`~bin.mongod` instance is
+using the ``/srv/mongodb`` directory.
+
+.. code-block:: sh
+
+   mongodump --dbpath /srv/mongodb
+
+In the final example, :binary:`~bin.mongodump` creates a database dump
+located at ``/opt/backup/mongodump-2011-10-24``, from a database
+running on port ``37017`` on the host ``mongodb1.example.net`` and
+authenticating using the username ``user`` and the password
+``pass``, as follows:
+
+.. code-block:: sh
+
+   mongodump --host mongodb1.example.net --port 37017 --username user --password pass /opt/backup/mongodump-2011-10-24

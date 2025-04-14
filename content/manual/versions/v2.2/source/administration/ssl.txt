@@ -1,0 +1,241 @@
+================================
+Use MongoDB with SSL Connections
+================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This document outlines the use and operation of MongoDB's SSL
+support. SSL allows MongoDB clients to support encrypted connections
+to :binary:`~bin.mongod` instances.
+
+.. note:: The `default distribution of MongoDB`_ does **not** contain
+   support for SSL.
+
+   As of the current release, to use SSL you must either: build
+   MongoDB locally passing the "``--ssl``" option to ``scons``, or use
+   the `MongoDB subscriber build`_.
+
+These instructions outline the process for getting started with SSL
+and assume that you have already installed a build of MongoDB that
+includes SSL support and that your client driver supports SSL.
+
+.. _`default distribution of MongoDB`: http://www.mongodb.org/downloads
+.. _`MongoDB subscriber build`: http://www.mongodb.com/mongodb-subscriber-edition-download
+
+``mongod`` and ``mongos`` SSL Configuration
+-------------------------------------------
+
+Add the following command line options to your :binary:`~bin.mongod` invocation:
+
+.. code-block:: sh
+
+   mongod --sslOnNormalPorts --sslPEMKeyFile <pem> --sslPEMKeyPassword <pass>
+
+Replace "``<pem>``" with the path to your SSL certificate ``.pem``
+file, and "``<pass>``" with the password you used to encrypt the
+``.pem`` file.
+
+You may also specify these options in your "``mongodb.conf``" file, as in
+the following:
+
+.. code-block:: ini
+
+   sslOnNormalPorts = true
+   sslPEMKeyFile = /etc/ssl/mongodb.pem
+   sslPEMKeyPassword = pass
+
+Modify these values to reflect the location of your actual ``.pem``
+file and its password.
+
+You can specify these configuration options in a configuration file
+for :binary:`~bin.mongos`, or start :binary:`~bin.mongos` with the following
+invocation:
+
+.. code-block:: sh
+
+   mongos --sslOnNormalPorts --sslPEMKeyFile <pem> --sslPEMKeyPassword <pass>
+
+You can use any existing SSL certificate, or you can generate your own
+SSL certificate using a command that resembles the following:
+
+.. code-block:: sh
+
+   cd /etc/ssl/
+   openssl req -new -x509 -days 365 -nodes -out mongodb-cert.pem -keyout mongodb-cert.key
+
+To create the combined ``.pem`` file that contains the ``.key`` file
+and the ``.pem`` certificate, use the following command:
+
+.. code-block:: sh
+
+   cat mongodb-cert.key mongodb-cert.pem > mongodb.pem
+
+Clients
+-------
+
+Clients must have support for SSL to work with a :binary:`~bin.mongod`
+instance that has SSL support enabled. The current versions of the
+Python, Java, Ruby, Node.js, and .NET drivers have support for SSL, with
+full support coming in future releases of other drivers.
+
+``mongo``
+~~~~~~~~~
+
+The :binary:`~bin.mongo` shell built with ssl support distributed with the
+subscriber build also supports SSL. Use the "``--ssl``" flag as
+follows:
+
+.. code-block:: sh
+
+   mongo --ssl --host <host>
+
+MMS
+~~~
+
+The MMS agent will also have to connect via SSL in order to gather its
+stats.  Because the agent already utilizes SSL for its communications
+to the MMS servers, this is just a matter of enabling SSL support in
+MMS itself on a per host basis.
+
+Please see the `MMS Manual <http://mms.mongodb.com/help>`_ for more
+information about MMS configuration.
+
+PyMongo
+~~~~~~~
+
+Add the "``ssl=True``" parameter to a PyMongo
+:py:class:`MongoClient <pymongo:pymongo.mongo_client.MongoClient>`
+to create a MongoDB connection to an SSL MongoDB instance:
+
+.. code-block:: python
+
+   from pymongo import MongoClient
+   c = MongoClient(host="mongodb.example.net", port=27017, ssl=True)
+
+To connect to a replica set, use the following operation:
+
+.. code-block:: python
+
+   from pymongo import MongoReplicaSetClient
+   c = MongoReplicaSetClient("mongodb.example.net:27017",
+                             replicaSet="mysetname", ssl=True)
+
+PyMongo also supports an "``ssl=true``" option for the MongoDB URI:
+
+.. code-block:: none
+
+   mongodb://mongodb.example.net:27017/?ssl=true
+
+Java
+~~~~
+
+Consider the following example "``SSLApp.java``" class file:
+
+.. code-block:: java
+
+    import com.mongodb.*;
+    import javax.net.ssl.SSLSocketFactory;
+
+    public class SSLApp {
+
+        public static void main(String args[])  throws Exception {
+
+            MongoClientOptions o = new MongoClientOptions.Builder()
+                    .socketFactory(SSLSocketFactory.getDefault())
+                    .build();
+
+            MongoClient m = new MongoClient("localhost", o);
+
+            DB db = m.getDB( "test" );
+            DBCollection c = db.getCollection( "foo" );
+
+            System.out.println( c.findOne() );
+        }
+    }
+
+Ruby
+~~~~
+
+The recent versions of the Ruby driver have support for connections
+to SSL servers. Install the latest version of the driver with the
+following command:
+
+.. code-block:: sh
+
+   gem install mongo
+
+Then connect to a standalone instance, using the following form:
+
+.. code-block:: javascript
+
+   require 'rubygems'
+   require 'mongo'
+
+   connection = Mongo::Connection.new('localhost', 27017, :ssl => true)
+
+Replace ``connection`` with the following if you're connecting to a
+replica set:
+
+.. code-block:: ruby
+
+   connection = Mongo::ReplSetConnection.new(['localhost:27017'],
+                                             ['localhost:27018'],
+                                             :ssl => true)
+
+Here, :binary:`~bin.mongod` instance run on "``localhost:27017``" and
+"``localhost:27018``".
+
+Node.JS (``node-mongodb-native``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the `node-mongodb-native`_ driver, use the following invocation to
+connect to a :binary:`~bin.mongod` or :binary:`~bin.mongos` instance via SSL:
+
+.. code-block:: javascript
+
+   var db1 = new Db(MONGODB, new Server("127.0.0.1", 27017,
+                                        { auto_reconnect: false, poolSize:4, ssl:ssl } );
+
+To connect to a replica set via SSL, use the following form:
+
+.. code-block:: javascript
+
+   var replSet = new ReplSetServers( [
+       new Server( RS.host, RS.ports[1], { auto_reconnect: true } ),
+       new Server( RS.host, RS.ports[0], { auto_reconnect: true } ),
+       ],
+     {rs_name:RS.name, ssl:ssl}
+   );
+
+.. _`node-mongodb-native`: https://github.com/mongodb/node-mongodb-native
+
+.NET
+~~~~
+
+As of release 1.6, the .NET driver supports SSL connections with
+:binary:`~bin.mongod` and :binary:`~bin.mongos` instances. To connect using
+SSL, you must add an option to the connection string, specifying
+``ssl=true`` as follows:
+
+.. code-block:: csharp
+
+    var connectionString = "mongodb://localhost/?ssl=true";
+    var server = MongoServer.Create(connectionString);
+
+The .NET driver will validate the certificate against the local
+trusted certificate store, in addition to providing encryption of the
+server. This behavior may produce issues during testing, if the server
+uses a self-signed certificate. If you encounter this issue, add the
+``sslverifycertificate=false`` option to the connection string to
+prevent the .NET driver from validating the certificate, as follows:
+
+.. code-block:: csharp
+
+    var connectionString = "mongodb://localhost/?ssl=true&sslverifycertificate=false";
+    var server = MongoServer.Create(connectionString);

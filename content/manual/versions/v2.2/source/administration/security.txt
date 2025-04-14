@@ -1,0 +1,406 @@
+=================================
+Security Practices and Management
+=================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+As with all software running in a networked environment,
+administrators of MongoDB must consider security and risk
+exposures for a MongoDB deployment. There are no magic solutions for risk
+mitigation, and maintaining a secure MongoDB deployment is an ongoing
+process. This document takes a *Defense in Depth* approach to securing
+MongoDB deployments, and addresses a number of different methods for
+managing risk and reducing risk exposure
+
+The intent of *Defense In Depth* approaches are to ensure there are no
+exploitable points of failure in your deployment that could allow an
+intruder or un-trusted party to access the data stored in the MongoDB
+database. The easiest and most effective way to reduce the risk of
+exploitation is to run MongoDB in a trusted environment, limit access,
+follow a system of least privilege, and follow best development and
+deployment practices. See the :ref:`security-reduce-risk` section for
+more information.
+
+.. _security-reduce-risk:
+
+Strategies for Reducing Risk
+----------------------------
+
+The most effective way to reduce risk for MongoDB deployments is to
+run your entire MongoDB deployment, including all MongoDB components
+(i.e. :binary:`~bin.mongod`, :binary:`~bin.mongos` and application instances)
+in a *trusted environment*. Trusted environments use the following
+strategies to control access:
+
+- network filter (e.g. firewall) rules that block all connections
+  from unknown systems to MongoDB components.
+
+- bind :binary:`~bin.mongod` and :binary:`~bin.mongos` instances to specific
+  IP addresses to limit accessibility.
+
+- limit MongoDB programs to non-public local networks, and virtual
+  private networks.
+
+You may further reduce risk by:
+
+- requiring authentication for access to MongoDB instances.
+
+- requiring strong, complex, single purpose authentication credentials.
+  This should be part of your internal security policy but is not
+  currently configurable in MongoDB.
+
+- deploying a model of least privilege, where all users have *only* the
+  amount of access they need to accomplish required tasks, and no
+  more.
+
+- following the best application development and deployment practices,
+  which includes: validating all inputs, managing sessions, and
+  application-level access control.
+
+Continue reading this document for more information on specific
+strategies and configurations to help reduce the risk exposure of
+your application.
+
+Vulnerability Notification
+--------------------------
+
+MongoDB, Inc. takes the security of MongoDB and associated products
+very seriously. If you discover a vulnerability in MongoDB, or would
+like to know more about our vulnerability reporting and response
+process, see the :doc:`/administration/vulnerability-notification`
+document.
+
+Networking Risk Exposure
+------------------------
+
+.. _security-port-numbers:
+
+Interfaces and Port Numbers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following list includes all default ports used by MongoDB:
+
+By default, listens for connections on the following ports:
+
+``27017``
+   This is the default port :binary:`~bin.mongod` and :binary:`~bin.mongos`
+   instances. You can change this port with :setting:`port` or
+   :option:`--port <mongod --port>`.
+
+``27018``
+   This is the default port when running with :option:`--shardsvr
+   <mongod --shardsvr>` runtime operation or :setting:`shardsvr`
+   setting.
+
+``27019``
+   This is the default port when running with :option:`--configsvr
+   <mongod --configsvr>` runtime operation or :setting:`configsvr`
+   setting.
+
+``28017``
+   This is the default port for the web status page. This is always
+   accessible at a port that is ``1000`` greater than the port
+   determined by :setting:`port`.
+
+By default MongoDB programs (i.e. :binary:`~bin.mongos` and
+:binary:`~bin.mongod`) will bind to all available network interfaces
+(i.e. IP addresses) on a system. The next section outlines various
+runtime options that allow you to limit access to MongoDB programs.
+
+Network Interface Limitation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can limit the network exposure with the following configuration options:
+
+- the :setting:`nohttpinterface` setting for
+  :binary:`~bin.mongod` and :binary:`~bin.mongos` instances.
+
+  Disables the "home" status page, which would run on port ``28017``
+  by default. The status interface is read-only by default. You may
+  also specify this option on the command line as
+  :option:`mongod --nohttpinterface` or :option:`mongos --nohttpinterface`.
+  Authentication does not control or affect access to this interface.
+
+  .. important:: Disable this option for production deployments. If
+     *do* you leave this interface enabled, you should only allow trusted
+     clients to access this port.
+
+  .. todo:: cross reference the above with the firewall rules below.
+
+- the :setting:`port` setting for :binary:`~bin.mongod` and
+  :binary:`~bin.mongos` instances.
+
+  Changes the main port on which the :binary:`~bin.mongod` or
+  :binary:`~bin.mongos` instance listens for connections. Changing the
+  port does not meaningfully reduce risk or limit exposure.
+
+  You may also specify this option on the command line as
+  :option:`mongod --port` or :option:`mongos --port`.
+
+  Whatever port you attach :binary:`~bin.mongod` and :binary:`~bin.mongos`
+  instances to, you should only allow trusted clients to connect to
+  this port.
+
+  .. todo:: cross reference the above with the firewall rules below.
+
+- the :setting:`rest` setting for :binary:`~bin.mongod`.
+
+  Enables a fully interactive administrative :term:`REST` interface,
+  which is *disabled by default.* The status interface, which *is*
+  enabled by default, is read-only. This configuration makes that
+  interface fully interactive. The REST interface does not support any
+  authentication and you should always restrict access to this
+  interface to only allow trusted clients to connect to this port.
+
+  You may also enable this interface on the command line as
+  :option:`mongod --rest`.
+
+  .. important:: Disable this option for production deployments. If
+     *do* you leave this interface enabled, you should only allow trusted
+     clients to access this port.
+
+- the :setting:`bind_ip` setting for :binary:`~bin.mongod` and
+  :binary:`~bin.mongos` instances.
+
+  Limits the network interfaces on which MongoDB programs will listen
+  for incoming connections. You can also specify a number of
+  interfaces by passing :setting:`bind_ip` a comma separated list of
+  IP addresses. You can use the :option:`mongod --bind_ip` and
+  :option:`mongos --bind_ip` option on the command line at run time to
+  limit the network accessibility of a MongoDB program.
+
+  .. important::
+
+     Make sure that your :binary:`~bin.mongod` and
+     :binary:`~bin.mongos` instances are only accessible on trusted
+     networks. If your system has more than one network interface,
+     bind MongoDB programs to the private or internal network
+     interface.
+
+.. _security-firewalls:
+
+Firewalls
+~~~~~~~~~
+
+Firewalls allow administrators to filter and control access to a
+system by providing granular control over what network
+communications. For administrators of MongoDB, the following
+capabilities are important:
+
+- limiting incoming traffic on a specific port to specific
+  systems.
+
+- limiting incoming traffic from untrusted hosts.
+
+On Linux systems, the ``iptables`` interface provides access to the
+underlying ``netfilter`` firewall. On Windows systems ``netsh``
+command line interface provides access to the underlying Windows
+Firewall. For additional information about firewall configuration
+consider the following documents:
+
+- :doc:`/tutorial/configure-linux-iptables-firewall`
+- :doc:`/tutorial/configure-windows-netsh-firewall`
+
+For best results and to minimize overall exposure, ensure that *only*
+traffic from trusted sources can reach :binary:`~bin.mongod` and
+:binary:`~bin.mongos` instances and that the :binary:`~bin.mongod` and
+:binary:`~bin.mongos` instances can only connect to trusted outputs.
+
+.. seealso:: For MongoDB deployments on Amazon's web services, see the
+   :ecosystem:`Amazon EC2 </platforms/amazon-ec2>` page, which addresses Amazon's
+   Security Groups and other EC2-specific security features.
+
+Virtual Private Networks
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Virtual private networks, or VPNs, make it possible to link two
+networks over an encrypted and limited-access trusted
+network. Typically MongoDB users who use VPNs use SSL rather than
+IPSEC VPNs for performance issues.
+
+Depending on configuration and implementation VPNs provide for
+certificate validation and a choice of encryption protocols, which
+requires a rigorous level of authentication and identification of all
+clients. Furthermore, because VPNs provide a secure tunnel, using a
+VPN connection to control access to your MongoDB instance, you can
+prevent tampering and "man-in-the-middle" attacks.
+
+.. _security-operations:
+
+Operations
+----------
+
+Always run the :binary:`~bin.mongod` or :binary:`~bin.mongos` process as a
+*unique* user with the minimum required permissions and access. Never
+run a MongoDB program as a ``root`` or administrative users. The
+system users that run the MongoDB processes should have robust
+authentication credentials that prevent unauthorized or casual
+access.
+
+To further limit the environment, you can run the :binary:`~bin.mongod` or
+:binary:`~bin.mongos` process in a ``chroot`` environment. Both user-based
+access restrictions and ``chroot`` configuration follow recommended
+conventions for administering all daemon processes on Unix-like
+systems.
+
+You can disable anonymous access to the database by enabling
+authentication using the :setting:`auth` as detailed in the
+:ref:`security-authentication` section.
+
+.. _security-authentication:
+
+Authentication
+--------------
+
+MongoDB provides basic support for authentication with the
+:setting:`auth` setting. For multi-instance deployments
+(i.e. :term:`replica sets <replica set>`, and :term:`sharded clusters
+<sharded cluster>`) use the :setting:`keyFile` setting, which implies
+:setting:`auth`, and allows intra-deployment authentication and
+operation. Be aware of the following behaviors of MongoDB's
+authentication system:
+
+- Authentication is **disabled** by default.
+
+- MongoDB provisions access on a per-database level. Users either have
+  *read only* access to a database or *normal* access to a database that
+  permits full read and write access to the database. *Normal* access
+  conveys the ability to add additional users to the database.
+
+- The ``system.users`` collection in each database stores all
+  credentials. You can query the authorized users with the following
+  operation:
+
+  .. code-block:: javascript
+
+     db.system.users.find()
+
+- The ``admin`` database is unique. Users with *normal* access to the
+  ``admin`` database have read and write access to all databases. Users
+  with *read only* access to the ``admin`` database have read only
+  access to all databases, with the exception of the ``system.users``
+  collection, which is protected to prevent privilege escalation
+  attacks.
+
+  Additionally the ``admin`` database exposes several commands and
+  functionality, such as :dbcommand:`listDatabases`.
+
+- Once authenticated a *normal* user has full read and write access to
+  a database.
+
+- If you have authenticated to a database as a normal, read and write,
+  user; authenticating as a read-only user on the same database will
+  invalidate the earlier authentication, leaving the current
+  connection with read only access.
+
+- If you have authenticated to the ``admin`` database as normal, read
+  and write, user; logging into a *different* database as a read only
+  user will *not* invalidate the authentication to the ``admin``
+  database. In this situation, this client will be able to read and
+  write data to this second database.
+
+- When setting up authentication for the first time you must either:
+
+  #. add at least one user to the ``admin`` database before starting
+     the :binary:`~bin.mongod` instance with :setting:`auth`.
+
+  #. add the first user to the ``admin`` database when connected to
+     the :binary:`~bin.mongod` instance from a ``localhost`` connection. [#sharded-localhost]_
+
+.. versionadded:: 2.0
+   Support for authentication with sharded clusters. Before 2.0
+   sharded clusters *had* to run with trusted applications and a
+   trusted networking configuration.
+
+Consider the
+:doc:`/tutorial/control-access-to-mongodb-with-authentication`
+document which outlines procedures for configuring and maintaining
+users and access with MongoDB's authentication system.
+
+.. [#sharded-localhost] Because of :issue:`SERVER-6591`, you cannot
+   add the first user to a sharded cluster using the ``localhost``
+   connection in 2.2. If you are running a 2.2 sharded cluster, and
+   want to enable authentication, you must deploy the cluster and add
+   the first user to the ``admin`` database before restarting the
+   cluster to run with :setting:`keyFile`.
+
+Interfaces
+----------
+
+Simply limiting access to a :binary:`~bin.mongod` is not sufficient for
+totally controlling risk exposure. Consider the recommendations in the
+following section, for limiting exposure other interface-related
+risks.
+
+JavaScript and the Security of the ``mongo`` Shell
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Be aware of the following capabilities and behaviors of the
+:binary:`~bin.mongo` shell:
+
+- :binary:`~bin.mongo` will evaluate a ``.js`` file passed to the
+  :option:`mongo --eval` option. The :binary:`~bin.mongo`
+  shell does not validate the input of JavaScript input to
+  :option:`--eval <mongo --eval>`.
+
+- :binary:`~bin.mongo` will evaluate a ``.mongorc.js`` file before
+  starting. You can disable this behavior by passing the
+  :option:`mongo --norc` option.
+
+  On Linux and Unix systems, :binary:`~bin.mongo` reads the
+  :file:`.mongorc.js` file from :file:`{$HOME}/.mongorc.js`
+  (i.e. :file:`~/.mongorc.js`), and Windows :binary:`~bin.mongo.exe` reads the
+  :file:`.mongorc.js` file from :file:`{%HOME%}\.mongorc.js` or
+  :file:`{%HOMEDRIVE%}\{%HOMEPATH%}\.mongorc.js`.
+
+HTTP Status Interface
+~~~~~~~~~~~~~~~~~~~~~
+
+The HTTP status interface provides a web-based interface that includes
+a variety of operational data, logs, and status reports regarding the
+:binary:`~bin.mongod` or :binary:`~bin.mongos` instance. The HTTP interface is
+always available on the port numbered ``1000`` greater than the
+primary :binary:`~bin.mongod` port. By default this is ``28017``, but is
+indirectly set using the :setting:`port` option which allows you to
+configure the primary :binary:`~bin.mongod` port.
+
+Without the :setting:`rest` setting, this interface is entirely
+read-only, and limited in scope; nevertheless, this interface may
+represent an exposure. To disable the HTTP interface, set the
+:setting:`nohttpinterface` run time option or the
+:option:`--nohttpinterface <mongod --nohttpinterface>` command line
+option.
+
+REST API
+~~~~~~~~
+
+The REST API to MongoDB provides additional information and
+write access on top of the HTTP Status interface. The REST interface
+is *disabled* by default, and is not recommended for production use.
+
+While the REST API does not provide any support for insert, update, or
+remove operations, it does provide administrative access, and its
+accessibility represents a vulnerability in a secure environment.
+
+If you must use the REST API, please control and limit access to the
+REST API. The REST API does not include any support for
+authentication, even if when running with :setting:`auth` enabled.
+
+See the following documents for instructions on restricting access to
+the REST API interface:
+
+- :doc:`/tutorial/configure-linux-iptables-firewall`
+- :doc:`/tutorial/configure-windows-netsh-firewall`
+
+Data Encryption
+---------------
+
+To support audit requirements, you may need to encrypt data stored in
+MongoDB. For best results you can encrypt this data in the application
+layer, by encrypting the content of fields that hold secure data.

@@ -1,0 +1,50 @@
+======================
+Restore a Single Shard
+======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+Restoring a single shard from backup with other unaffected shards
+requires a number of special considerations and practices. This
+document outlines the additional tasks you must perform when restoring
+a single shard.
+
+Consider the following resources on backups in general as well as
+backup and restoration of sharded clusters specifically:
+
+- :ref:`sharded-cluster-backups`
+- :doc:`/tutorial/restore-sharded-cluster`
+- :doc:`/administration/backups`
+
+Procedure
+---------
+
+Always restore :term:`sharded clusters <sharded cluster>`
+as a whole. When you restore a single shard, keep in mind that the
+:term:`balancer` process might have moved :term:`chunks <chunk>` to or
+from this shard since the last backup. If that's the case, you must
+manually move those chunks, as described in this procedure.
+
+1. Restore the shard as you would any other :binary:`~bin.mongod`
+   instance. See :doc:`/administration/backups` for overviews of these
+   procedures.
+
+#. For all chunks that migrate away from this shard, you do not need
+   to do anything at this time. You do not need to delete these
+   documents from the shard because the chunks are automatically
+   filtered out from queries by :binary:`~bin.mongos`. You can remove
+   these documents from the shard, if you like, at your leisure.
+
+#. For chunks that migrate to this shard after the most recent backup,
+   you must manually recover the chunks using backups of other shards,
+   or some other source.  To determine what chunks have moved, view the
+   ``changelog`` collection in the :ref:`config-database`.
