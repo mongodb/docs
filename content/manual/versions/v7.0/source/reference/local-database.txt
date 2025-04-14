@@ -1,0 +1,162 @@
+.. _replica-set-local-database:
+
+======================
+The ``local`` Database
+======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+
+
+
+
+
+Overview
+--------
+
+Every :binary:`~bin.mongod` instance has its own ``local`` database, which
+stores data used in the replication process, and other
+instance-specific data. The ``local`` database is invisible to
+replication: collections in the ``local`` database are not replicated.
+
+
+Collections on all ``mongod`` Instances
+---------------------------------------
+
+.. data:: local.startup_log
+
+   On startup, each :binary:`~bin.mongod` instance inserts a document into
+   :data:`~local.startup_log` with diagnostic information about the
+   :binary:`~bin.mongod` instance itself and host
+   information. :data:`~local.startup_log` is a capped
+   collection. This information is primarily useful for diagnostic
+   purposes.
+
+   For example, the following is a prototype of a document from the
+   :data:`~local.startup_log` collection:
+
+   .. code-block:: javascript
+
+      {
+        "_id" : "<string>",
+        "hostname" : "<string>",
+        "startTime" : ISODate("<date>"),
+        "startTimeLocal" : "<string>",
+        "cmdLine" : {
+              "dbpath" : "<path>",
+              "<option>" : <value>
+        },
+        "pid" : <number>,
+        "buildinfo" : {
+              "version" : "<string>",
+              "gitVersion" : "<string>",
+              "sysInfo" : "<string>",
+              "loaderFlags" : "<string>",
+              "compilerFlags" : "<string>",
+              "allocator" : "<string>",
+              "versionArray" : [ <num>, <num>, <...> ],
+              "javascriptEngine" : "<string>",
+              "bits" : <number>,
+              "debug" : <boolean>,
+              "maxBsonObjectSize" : <number>
+        }
+      }
+
+   Documents in the :data:`~local.startup_log` collection contain the
+   following fields:
+
+   .. data:: local.startup_log._id
+
+      Includes the system hostname and a millisecond epoch value.
+
+   .. data:: local.startup_log.hostname
+
+      The system's hostname.
+
+   .. data:: local.startup_log.startTime
+
+      A UTC :term:`ISODate` value that reflects when the server started.
+
+   .. data:: local.startup_log.startTimeLocal
+
+      A string that reports the :data:`~local.startup_log.startTime`
+      in the system's local time zone.
+
+   .. data:: local.startup_log.cmdLine
+
+      An embedded document that reports the :binary:`~bin.mongod` runtime
+      options and their values.
+
+   .. data:: local.startup_log.pid
+
+      The process identifier for this process.
+
+   .. data:: local.startup_log.buildinfo
+
+      An embedded document that reports information about the build
+      environment and settings used to compile this
+      :binary:`~bin.mongod`. This is the same output as
+      :dbcommand:`buildInfo`. See :data:`buildInfo`.
+
+Collections on Replica Set Members
+----------------------------------
+
+.. data:: local.system.replset
+
+   :data:`local.system.replset` holds the replica set's configuration
+   object as its single document. To view the object's configuration
+   information, issue :method:`rs.conf()` from :binary:`~bin.mongosh`.
+   You can also query this collection directly.
+
+.. data:: local.oplog.rs
+
+   :data:`local.oplog.rs` is the capped collection that holds the
+   :term:`oplog`. You set its size at creation using the
+   :setting:`~replication.oplogSizeMB` setting. To resize the oplog
+   after replica set initiation, use the
+   :doc:`/tutorial/change-oplog-size` procedure. For additional
+   information, see the :ref:`replica-set-oplog-sizing` section.
+
+   .. include:: /includes/fact-oplog-size.rst
+
+   Starting in MongoDB 5.0, it is no longer possible to perform manual
+   write operations to the :doc:`oplog </core/replica-set-oplog>` on a
+   cluster running as a :ref:`replica set <replication>`. Performing
+   write operations to the oplog when running as a
+   :term:`standalone instance <standalone>` should only be done with
+   guidance from MongoDB Support.
+
+.. data:: local.replset.minvalid
+
+   This contains an object used internally by replica sets to track replication
+   status.
+
+
+Restrictions
+------------
+
+Multi-Document Transactions on ``local``
+  You cannot perform read/write operations to the collections in the
+  ``local`` database inside a 
+  :ref:`multi-document transaction <transactions>`.
+
+Retryable Writes against ``local``
+  You cannot perform write operations to collections in the ``local``
+  database with :ref:`retryable writes <retryable-writes>` enabled.
+
+  .. important::
+
+     The official MongoDB drivers enable retryable writes by
+     default. Applications which write to the ``local`` database
+     will encounter write errors *unless* retryable writes are explicitly 
+     disabled.
+
+     To disable retryable writes, specify
+     :urioption:`retryWrites=false <retryWrites>` in the 
+     :ref:`connection string <mongodb-uri>` for the MongoDB cluster.

@@ -1,0 +1,810 @@
+================================
+$text (Self-Managed Deployments)
+================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: programming_language
+   :values: shell
+
+.. meta:: 
+   :keywords: search
+   :description: Use the $text operator to perform text searches on indexed fields. $text supports language-specific rules and scoring.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/extracts/fact-text-search-legacy-atlas.rst
+
+This page describes the ``$text`` operator for self-managed deployments.
+
+Definition
+----------
+
+.. query:: $text
+
+   ``$text`` performs a text query on the content of the fields
+   indexed with a :ref:`text index <index-type-text>`. 
+
+Compatibility
+-------------
+
+.. |operator-method| replace:: ``$text``
+
+.. include:: /includes/fact-compatibility.rst
+
+Syntax
+------
+   
+A ``$text`` expression has the following syntax:
+
+.. code-block:: javascript
+
+   {
+     $text: {
+       $search: <string>,
+       $language: <string>,
+       $caseSensitive: <boolean>,
+       $diacriticSensitive: <boolean>
+     }
+   }
+
+The ``$text`` operator accepts a text query document with the
+following fields:
+
+.. |object-behavior| replace:: :ref:`text-query-operator-behavior`
+.. |text-obj| replace:: text search
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Field
+     - Type
+     - Description
+   
+   * - ``$search``
+     - string
+     - A string of terms that MongoDB parses and uses to query the text
+       index. MongoDB performs a logical ``OR`` query on the terms
+       unless you specify the terms as an :ref:`exact string
+       <text-operator-exact-string>`. For more information on the field, see
+       |object-behavior|.        
+
+   * - ``$language``
+     - string
+
+     - .. _language-field:
+
+       Optional. The language that determines the list of stop words for
+       the query and the rules for the stemmer and tokenizer. If
+       unspecified, MongoDB uses the default language of the index. For
+       supported languages, see :ref:`text-search-languages`.
+          
+       .. include:: /includes/fact-text-search-language-none.rst
+
+   * - ``$caseSensitive``
+     - boolean
+     - Optional. A boolean flag to enable or disable case sensitivity.
+       Defaults to ``false``. If unspecified, MongoDB defers to the case
+       insensitivity of the :ref:`text <index-type-text>` index.
+          
+       For more information, see :ref:`text-operator-case-sensitivity`.
+
+   * - ``$diacriticSensitive``
+     - boolean
+     - Optional. A boolean flag to enable or disable diacritic
+       sensitivity against :ref:`version 3 text indexes
+       <index-type-text>`. Defaults to ``false``. If unspecified,
+       MongoDB defers to the diacritic insensitivity of the :ref:`text
+       <index-type-text>` index.
+
+       Text queries against earlier versions of the text index are
+       inherently diacritic sensitive and cannot be diacritic insensitive.
+       As such, the ``$diacriticSensitive`` option has no effect with
+       earlier versions of the ``text`` index.
+
+       For more information, see :ref:`text-operator-diacritic-sensitivity`.
+
+The ``$text`` operator, by default, does *not* return results sorted in
+terms of the results' scores. For more information on sorting by the
+results' scores, see the :ref:`text-operator-text-score` documentation.
+
+.. _text-query-operator-behavior:
+
+Behavior
+--------
+
+Restrictions
+~~~~~~~~~~~~
+
+- A query can specify, at most, one ``$text`` expression.
+
+- ``$text`` cannot appear in :query:`$nor` expressions.
+
+- ``$text`` cannot appear in :query:`$elemMatch` query
+  expressions or :projection:`$elemMatch` projection expressions.
+
+- To use ``$text`` in an :query:`$or` expression, all
+  clauses in the :query:`$or` array must be indexed.
+
+- .. include:: /includes/fact-hint-text-query-restriction.rst
+
+- You cannot specify the :operator:`$natural` sort order if the query
+  includes a ``$text`` expression.
+
+  .. |operation| replace:: ``$text`` expression
+
+- .. include:: /includes/fact-special-indexes-and-text.rst
+
+- .. include:: /includes/extracts/views-unsupported-text-search.rst
+
+- ``$text`` is unsupported for creating indexes using the
+  :ref:`Stable API <stable-api>` V1.
+
+If using the ``$text`` operator in aggregation, the following
+restrictions also apply.
+
+.. include:: /includes/list-text-search-restrictions-in-agg.rst
+
+.. |text-object| replace:: ``$text``
+.. |meta-object| replace:: :expression:`$meta` projection operator
+.. |sort-object| replace:: :method:`~cursor.sort()` method
+
+``$search`` Field
+~~~~~~~~~~~~~~~~~
+
+In the ``$search`` field, specify a string of words that the
+``$text`` operator parses and uses to query the :ref:`text index
+<index-type-text>`.
+
+The ``$text`` operator treats most punctuation
+in the string as delimiters, except a hyphen-minus (``-``) that negates term or
+an escaped double quotes ``\"`` that specifies an exact string.
+
+.. note::
+
+   The ``$search`` field for the ``$text`` expression is different than
+   the :atlas:`$search aggregation stage
+   </reference/atlas-search/query-syntax/>` provided by :atlas:`Atlas
+   Search </atlas-search>`. The ``$search`` aggregation stage performs a
+   full-text search on specified fields and is only available on MongoDB
+   Atlas.
+
+.. _text-operator-exact-string:
+
+Exact Strings
+`````````````
+
+To match on an exact multi-word string, as opposed to individual terms, enclose
+the string in escaped double quotes (``\"``), as in:
+
+.. code-block:: javascript
+
+   "\"ssl certificate\""
+
+.. include:: /includes/fact-text-search-multiword-and-term.rst
+
+For example, the following ``$search`` string returns documents that include the
+exact string ``"ssl certificate"``:
+
+.. code-block:: javascript
+
+   "\"ssl certificate\" authority key"
+
+.. _text-operator-term-negation:
+
+Negations
+`````````
+
+Prefixing a word with a hyphen-minus (``-``) negates a word:
+
+- The negated word excludes documents that contain the
+  negated word from the result set.
+
+- When passed a string that only contains negated words, ``$text`` does
+  not match any documents.
+
+- A hyphenated word, such as ``pre-market``, is not a negation. If used
+  in a hyphenated word, the ``$text`` operator treats the hyphen-minus
+  (``-``) as a delimiter. To negate the word ``market`` in this
+  instance, include a space between ``pre`` and ``-market``, i.e.,
+  ``pre -market``.
+
+The ``$text`` operator adds all negations to the operation with the
+logical ``AND`` operator.
+
+Match Operation
+~~~~~~~~~~~~~~~
+
+Stop Words
+``````````
+
+The ``$text`` operator ignores language-specific stop words, such
+as ``the`` and ``and`` in English.
+
+.. _match-operation-stemmed-words:
+
+Stemmed Words
+`````````````
+
+When you use case insensitivity and diacritic insensitivity, the
+``$text`` operator matches on the complete *stemmed* word. If a document
+field contains the word ``blueberry``, a ``$text`` operation with a
+``$search`` term of ``blue`` does not match. However, ``blueberry`` or
+``blueberries`` match.
+
+.. _case-sensitivity-and-stemming:
+
+Case Sensitivity and Stemmed Words
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When you use :ref:`case sensitivity <text-operator-case-sensitivity>`
+(``$caseSensitive: true``), if the suffix stem contains uppercase
+letters, the ``$text`` operator matches on the exact word.
+
+.. _diacritic-sensitivity-and-stemming:
+
+Diacritic Sensitivity and Stemmed Words
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When you use :ref:`diacritic sensitivity
+<text-operator-diacritic-sensitivity>` (``$diacriticSensitive: true``),
+if the suffix stem contains the diacritic mark or marks, the ``$text``
+operator matches on the exact word.
+
+.. _text-operator-case-sensitivity:
+
+Case Insensitivity
+~~~~~~~~~~~~~~~~~~
+
+The ``$text`` operator defaults to the case insensitivity of the
+:ref:`text <index-type-text>` index:
+
+- The version 3 :ref:`text index <text-index-case-insensitivity>` is
+  case insensitive for Latin characters with or without diacritics and
+  characters from non-Latin alphabets, such as the Cyrillic alphabet.
+  See :ref:`text <text-index-case-insensitivity>` index for details.
+
+- Earlier versions of the ``text`` index are case insensitive for Latin
+  characters without diacritic marks; i.e. for ``[A-z]``.
+
+``$caseSensitive`` Option
+`````````````````````````
+
+To support case sensitivity where the ``text`` index is case
+insensitive, specify ``$caseSensitive: true``.
+
+Case Sensitivity Process
+````````````````````````
+
+If ``$caseSensitive: true`` and the ``text`` index is case insensitive,
+the ``$text`` operator:
+
+- First queries the ``text`` index for case insensitive and diacritic
+  matches.
+
+- Then, to return just the documents that match the case of the
+  specified terms, the ``$text`` operation includes an additional stage to
+  filter out the documents that do not match the specified case.
+
+If ``$caseSensitive: true`` and if the suffix stem contains uppercase
+letters, the ``$text`` operator matches on the exact word.
+
+Specifying ``$caseSensitive: true`` may impact performance.
+
+.. seealso::
+
+   :ref:`match-operation-stemmed-words`
+
+.. _text-operator-diacritic-sensitivity:
+
+Diacritic Insensitivity
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``$text`` operator defaults to the diacritic insensitivity of
+the :ref:`text <index-type-text>` index:
+
+- The version 3 :ref:`text index <text-index-diacritic-insensitivity>` is
+  diacritic insensitive. That is, the index does not distinguish
+  between characters that contain diacritical marks and their
+  non-marked counterpart, such as ``é``, ``ê``, and ``e``.
+
+- Earlier versions of the ``text`` index are diacritic sensitive.
+
+``$diacriticSensitive`` Option
+``````````````````````````````
+
+To support diacritic sensitivity with the ``text`` index, specify
+``$diacriticSensitive: true``.
+
+Text queries against earlier versions of the ``text`` index are
+inherently diacritic sensitive and cannot be diacritic insensitive.  As
+such, the ``$diacriticSensitive`` option for the ``$text``
+operator has no effect with earlier versions of the ``text`` index.
+
+Diacritic Sensitivity Process
+`````````````````````````````
+
+To use diacritic sensitivity (``$diacriticSensitive: true``) with a
+version 3 ``text`` index, the ``$text`` operator:
+
+- First queries the ``text`` index, which is diacritic insensitive.
+
+- Then, to return just the documents that match the diacritic marked
+  characters of the specified terms, the ``$text`` operation includes an
+  additional stage to filter out the documents that do not match.
+
+Specifying ``$diacriticSensitive: true`` may impact performance.
+
+If you use ``$diacriticSensitive: true`` with an earlier version of the
+``text`` index, the ``$text`` operator queries the ``text`` index, which
+is diacritic sensitive.
+
+If ``$diacriticSensitive: true`` and if the suffix stem contains the
+diacritic mark or marks, the ``$text`` operator matches on the exact
+word.
+
+.. seealso::
+
+   :ref:`match-operation-stemmed-words`
+
+.. _text-operator-text-score:
+
+Text Score
+~~~~~~~~~~
+
+.. include:: /includes/fact-text-search-score.rst
+
+.. _text-query-examples:
+
+Examples
+--------
+
+The following examples assume a collection ``articles`` that has a
+:ref:`version 3 text <index-type-text>` index on the field ``subject``:
+
+.. code-block:: javascript
+
+   db.articles.createIndex( { subject: "text" } )
+
+Populate the collection with the following documents:
+
+.. code-block:: javascript
+
+   db.articles.insertMany( [
+        { _id: 1, subject: "coffee", author: "xyz", views: 50 },
+        { _id: 2, subject: "Coffee Shopping", author: "efg", views: 5 },
+        { _id: 3, subject: "Baking a cake", author: "abc", views: 90  },
+        { _id: 4, subject: "baking", author: "xyz", views: 100 },
+        { _id: 5, subject: "Café Con Leche", author: "abc", views: 200 },
+        { _id: 6, subject: "Сырники", author: "jkl", views: 80 },
+        { _id: 7, subject: "coffee and cream", author: "efg", views: 10 },
+        { _id: 8, subject: "Cafe con Leche", author: "xyz", views: 10 }
+   ] )
+
+
+``$text`` with a Single Word
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example specifies a ``$search`` string of ``coffee``:
+
+.. code-block:: javascript
+
+   db.articles.find( { $text: { $search: "coffee" } } )
+
+This operation returns the documents that contain the term ``coffee`` in the
+indexed ``subject`` field, or more precisely, the stemmed version of
+the word:
+
+.. code-block:: javascript
+
+   { _id: 1, subject: 'coffee', author: 'xyz', views: 50 },
+   { _id: 7, subject: 'coffee and cream', author: 'efg', views: 10 },
+   { _id: 2, subject: 'Coffee Shopping', author: 'efg', views: 5 }
+
+.. seealso::
+
+   - :ref:`text-operator-case-sensitivity`
+   - :ref:`match-operation-stemmed-words`
+
+Match Any of the ``$search`` Terms
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the ``$search`` string is a space-delimited string, ``$text``
+performs a logical ``OR`` operation on each term and returns documents
+that contain any of the terms.
+
+The following example specifies a ``$search`` string of three terms
+delimited by space, ``"bake coffee cake"``:
+
+.. code-block:: javascript
+
+   db.articles.find( { $text: { $search: "bake coffee cake" } } )
+
+This operation returns documents that contain either ``bake`` **or**
+``coffee`` **or** ``cake`` in the indexed ``subject`` field, or more
+precisely, the stemmed version of these words:
+
+.. code-block:: javascript
+
+   { "_id" : 2, "subject" : "Coffee Shopping", "author" : "efg", "views" : 5 }
+   { "_id" : 7, "subject" : "coffee and cream", "author" : "efg", "views" : 10 }
+   { "_id" : 1, "subject" : "coffee", "author" : "xyz", "views" : 50 }
+   { "_id" : 3, "subject" : "Baking a cake", "author" : "abc", "views" : 90 }
+   { "_id" : 4, "subject" : "baking", "author" : "xyz", "views" : 100 }
+
+.. seealso::
+
+   - :ref:`text-operator-case-sensitivity`
+   - :ref:`match-operation-stemmed-words`
+
+``$text`` with an Exact String
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To match an exact multi-word string as a single term, escape the quotes.
+
+The following example matches the exact string ``coffee shop``:
+
+.. code-block:: javascript
+
+   db.articles.find( { $text: { $search: "\"coffee shop\"" } } )
+
+This operation returns documents that contain the string ``coffee shop``:
+
+.. code-block:: javascript
+
+   { "_id" : 2, "subject" : "Coffee Shopping", "author" : "efg", "views" : 5 }
+
+The following example matches the strings ``coffee shop`` and ``Cafe
+con Leche``. This is a logical OR of the two strings.
+
+.. code-block:: javascript
+
+   db.articles.find( { $text: { $search: "\'coffee shop\' \'Cafe con Leche\'" } } )
+   
+This operation returns documents that contain both the strings, including
+documents that contain terms from both the strings: 
+
+.. code-block:: javascript
+   :copyable: false 
+
+   [
+     { _id: 8, subject: 'Cafe con Leche', author: 'xyz', views: 10 },
+     { _id: 5, subject: 'Café Con Leche', author: 'abc', views: 200 },
+     { _id: 1, subject: 'coffee', author: 'xyz', views: 50 },
+     { _id: 7, subject: 'coffee and cream', author: 'efg', views: 10 },
+     { _id: 2, subject: 'Coffee Shopping', author: 'efg', views: 5 }
+   ]
+
+.. seealso::
+
+   :ref:`text-operator-exact-string`
+
+Exclude Documents That Contain a Term
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A *negated* term is a term that is prefixed by a minus sign ``-``. If
+you negate a term, the ``$text`` operator excludes the documents that
+contain those terms from the results.
+
+The following example matches documents that contain the word ``coffee``
+but do **not** contain the term ``shop``, or more precisely the stemmed
+version of the words:
+
+.. code-block:: javascript
+
+   db.articles.find( { $text: { $search: "coffee -shop" } } )
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 7, "subject" : "coffee and cream", "author" : "efg", "views" : 10 }
+   { "_id" : 1, "subject" : "coffee", "author" : "xyz", "views" : 50 }
+
+.. seealso::
+
+   - :ref:`text-operator-term-negation`
+   - :ref:`match-operation-stemmed-words`
+
+Query a Different Language
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use the optional ``$language`` field in the ``$text`` expression
+to specify a language that determines the list of stop words and the
+rules for the stemmer and tokenizer for the ``$search`` string.
+
+.. include:: /includes/fact-text-search-language-none.rst
+
+The following example specifies ``es``, i.e. Spanish, as the language
+that determines the tokenization, stemming, and stop words:
+
+.. code-block:: javascript
+
+   db.articles.find(
+      { $text: { $search: "leche", $language: "es" } }
+   )
+
+The example returns the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 5, "subject" : "Café Con Leche", "author" : "abc", "views" : 200 }
+   { "_id" : 8, "subject" : "Cafe con Leche", "author" : "xyz", "views" : 10 }
+
+The ``$text`` expression can also accept the language by name,
+``spanish``. See :ref:`text-search-languages` for the supported
+languages.
+
+.. seealso::
+
+   :ref:`text-operator-case-sensitivity`
+
+Case and Diacritic Insensitivity
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``$text`` operator defers to the case and diacritic
+insensitivity of the ``text`` index. The version 3 ``text`` index is
+diacritic insensitive and expands its case insensitivity to include the
+Cyrillic alphabet as well as characters with diacritics. For details,
+see :ref:`text Index Case Insensitivity
+<text-index-case-insensitivity>` and :ref:`text Index Diacritic
+Insensitivity <text-index-diacritic-insensitivity>`.
+
+The following example performs a case and diacritic insensitive text
+query for the terms ``сы́рники`` or ``CAFÉS``:
+
+.. code-block:: javascript
+
+   db.articles.find( { $text: { $search: "сы́рники CAFÉS" } } )
+
+Using the version 3 ``text`` index, the operation matches the following
+documents.
+
+.. code-block:: javascript
+
+   { "_id" : 6, "subject" : "Сырники", "author" : "jkl", "views" : 80 }
+   { "_id" : 5, "subject" : "Café Con Leche", "author" : "abc", "views" : 200 }
+   { "_id" : 8, "subject" : "Cafe con Leche", "author" : "xyz", "views" : 10 }
+
+With previous versions of the ``text`` index, the query would not
+match any document.
+
+.. seealso::
+
+   - :ref:`text-operator-case-sensitivity`
+   - :ref:`text-operator-diacritic-sensitivity`
+   - :ref:`match-operation-stemmed-words`
+   - :ref:`<index-type-text>`
+
+.. _text-operator-case-sensitive-search:
+
+Case Sensitivity
+~~~~~~~~~~~~~~~~
+
+To enable case sensitivity, specify ``$caseSensitive: true``. Specifying
+``$caseSensitive: true`` may impact performance.
+
+Case Sensitivity with a Term
+````````````````````````````
+
+The following example performs a case sensitive query for the term
+``Coffee``:
+
+.. code-block:: javascript
+
+   db.articles.find( { $text: { $search: "Coffee", $caseSensitive: true } } )
+
+The operation matches just the following document:
+
+.. code-block:: json
+
+   { "_id" : 2, "subject" : "Coffee Shopping", "author" : "efg", "views" : 5 }
+
+.. seealso::
+
+   - :ref:`text-operator-case-sensitivity`
+   - :ref:`case-sensitivity-and-stemming`
+
+Case Sensitivity with an Exact String
+`````````````````````````````````````
+
+The following example performs a case sensitive query for the exact multi-word
+string ``Café Con Leche``:
+
+.. code-block:: javascript
+
+   db.articles.find( {
+      $text: { $search: "\"Café Con Leche\"", $caseSensitive: true }
+   } )
+
+The operation matches just the following document:
+
+.. code-block:: json
+
+   { "_id" : 5, "subject" : "Café Con Leche", "author" : "abc", "views" : 200 }
+
+.. seealso::
+
+   - :ref:`case-sensitivity-and-stemming`
+   - :ref:`text-operator-case-sensitivity`
+
+Case Sensitivity with Negated Term
+``````````````````````````````````
+
+A *negated* term is a term that is prefixed by a minus sign ``-``. If
+you negate a term, the ``$text`` operator will exclude the
+documents that contain those terms from the results. You can also
+specify case sensitivity for negated terms.
+
+The following example performs a case sensitive query for documents
+that contain the word ``Coffee`` but do **not** contain the lower-case
+term ``shop``, or more precisely the stemmed version of the words:
+
+.. code-block:: javascript
+
+   db.articles.find( { $text: { $search: "Coffee -shop", $caseSensitive: true } } )
+
+The operation matches the following document:
+
+.. code-block:: json
+
+   { "_id" : 2, "subject" : "Coffee Shopping", "author" : "efg" }
+
+.. seealso::
+
+   - :ref:`case-sensitivity-and-stemming`
+   - :ref:`text-operator-term-negation`
+
+Diacritic Sensitivity
+~~~~~~~~~~~~~~~~~~~~~
+
+To enable diacritic sensitivity with a version 3 :ref:`text
+<index-type-text>` index, specify ``$diacriticSensitive: true``.
+Specifying ``$diacriticSensitive: true`` may impact performance.
+
+Diacritic Sensitivity with a Term
+`````````````````````````````````
+
+The following example performs a diacritic sensitive text query on the
+term ``CAFÉ``, or more precisely the stemmed version of the word:
+
+.. code-block:: javascript
+
+   db.articles.find( { $text: { $search: "CAFÉ", $diacriticSensitive: true } } )
+
+The operation only matches the following document:
+
+.. code-block:: javascript
+
+   { "_id" : 5, "subject" : "Café Con Leche", "author" : "abc" }
+
+.. seealso::
+
+   - :ref:`diacritic-sensitivity-and-stemming`
+   - :ref:`text-operator-diacritic-sensitivity`
+   - :ref:`text-operator-case-sensitivity`
+
+
+Diacritic Sensitivity with Negated Term
+```````````````````````````````````````
+
+The ``$diacriticSensitive`` option applies also to negated terms. A
+negated term is a term that is prefixed by a minus sign ``-``. If you
+negate a term, the ``$text`` operator will exclude the documents that
+contain those terms from the results.
+
+The following example performs a diacritic sensitive text query for
+documents that contain the term ``leches`` but not the term ``cafés``,
+or more precisely the stemmed version of the words:
+
+.. code-block:: javascript
+
+   db.articles.find(
+     { $text: { $search: "leches -cafés", $diacriticSensitive: true } }
+   )
+
+The operation matches the following document:
+
+.. code-block:: javascript
+
+   { "_id" : 8, "subject" : "Cafe con Leche", "author" : "xyz" }
+
+.. seealso::
+
+   - :ref:`diacritic-sensitivity-and-stemming`
+   - :ref:`text-operator-diacritic-sensitivity`
+   - :ref:`text-operator-case-sensitivity`
+
+.. _ex-text-search-score:
+
+Relevance Score Examples
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _ex-return-text-search-score:
+
+Return the Relevance Score
+``````````````````````````
+
+The following example performs a text query for the term ``cake`` and
+uses the :expression:`$meta` operator in the projection document to
+append the relevance score to each matching document:
+
+.. code-block:: javascript
+
+   db.articles.find(
+      { $text: { $search: "cake" } },
+      { score: { $meta: "textScore" } }
+   )
+
+The returned document includes an *additional* field ``score`` that
+contains the document's relevance score:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 3, "subject" : "Baking a cake", "author" : "abc", "views" : 90, "score" : 0.75 }
+
+.. seealso::
+
+   :expression:`$meta`
+
+.. _ex-sort-text-search-score:
+
+Sort by Relevance Score
+```````````````````````
+
+.. include:: /includes/extracts/4.4-changes-projection-sort-meta-list.rst
+
+.. seealso::
+
+   :expression:`$meta`
+
+.. _ex-sort-limit-two:
+
+Return Top 2 Matching Documents
+```````````````````````````````
+
+Use the :method:`~cursor.limit()` method in conjunction with a
+:method:`~cursor.sort()` to return the top ``n`` matching documents.
+
+The following example queries for the term ``coffee`` and sorts the
+results by the descending score, limiting the results to the top two
+matching documents:
+
+.. code-block:: javascript
+
+   db.articles.find(
+      { $text: { $search: "coffee" } },
+      { score: { $meta: "textScore" } }
+   ).sort( { score: { $meta: "textScore" } } ).limit(2)
+
+.. seealso::
+
+   :expression:`$meta`
+
+.. _text-operator-example-compound-sort:
+
+$text with Additional Query and Sort Expressions
+````````````````````````````````````````````````
+
+The following example matches documents where the ``author`` equals
+``"xyz"`` and the indexed field ``subject`` contains the terms
+``coffee`` or ``bake``. The operation also specifies a sort order of
+ascending ``date``, then descending relevance score:
+
+.. code-block:: javascript
+
+   db.articles.find(
+      { author: "xyz", $text: { $search: "coffee bake" } },
+      { score: { $meta: "textScore" } } 
+   ).sort( { date: 1, score: { $meta: "textScore" } } )
+
+.. seealso::
+
+   :doc:`/tutorial/text-search-in-aggregation`

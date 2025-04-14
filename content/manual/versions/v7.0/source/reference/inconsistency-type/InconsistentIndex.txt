@@ -1,0 +1,107 @@
+#################
+InconsistentIndex
+#################
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. |incon-type| replace:: ``InconsistentIndex``
+
+Description
+===========
+
+.. data:: InconsistentIndex
+
+   .. include:: /includes/inconsistency-type/InconsistentIndex
+
+Format
+======
+
+.. code-block:: json
+
+   {
+      type: "InconsistentIndex",
+      description: "<string>",
+      details: {
+         namespace: "<string>",
+         info: <document>
+      }
+   }
+
+|incon-type| inconsistency documents contain the following fields:
+
+.. list-table::
+   :widths: 30 25 45
+   :header-rows: 1
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``type``
+     - string
+     - .. include:: /includes/inconsistency-type/type
+
+   * - ``description``
+     - string
+     - .. include:: /includes/inconsistency-type/descr
+
+   * - ``details``
+     - document
+     - .. include:: /includes/inconsistency-type/details
+
+   * - ``details.namespace``
+     - string
+     - .. include:: /includes/inconsistency-type/details.namespace
+
+   * - ``details.info``
+     - document
+     - Information on the inconsistent index.
+
+Example
+=======
+
+Use the :method:`db.adminCommand` method to call the 
+:dbcommand:`checkMetadataConsistency` command:
+
+.. code-block:: javascript
+
+   db.adminCommand( { 
+      checkMetadataConsistency: 1,
+      checkIndexes: true
+   } )
+
+The method returns a cursor with a batch of documents showing the inconsistencies
+found in the sharding metadata.  The example below shows a cursor with
+a |incon-type| inconsistency document:
+
+.. code-block:: json
+   :emphasize-lines: 6-19
+   :copyable: false
+
+   {
+      cursor: {
+         id: Long("0"),
+         ns: "test.$cmd.aggregate",
+         firstBatch: [
+            {
+               type: "InconsistentIndex",
+               description: "Found an index of a sharded collection that is inconsistent between different shards",
+               details: {
+                  namespace: "test.authors",
+                  info: {
+                      missingFromShards: [
+                         "shard-rs1"
+                      ],
+                      inconsistentProperties: [ ],
+                      indexName: "index1"
+                  }
+               }
+            }
+         ],
+      },
+      ok: 1
+   }

@@ -1,0 +1,3 @@
+
+Collection shard key pattern.
+

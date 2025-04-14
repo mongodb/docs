@@ -1,0 +1,243 @@
+===================
+createSearchIndexes
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: createSearchIndexes
+
+.. versionadded:: 7.0 (*Also available starting in 6.0.7*)
+
+.. |fts-indexes| replace:: :atlas:`{+fts+} indexes </atlas-search/atlas-search-overview/#fts-indexes>`
+
+.. include:: /includes/atlas-search-commands/command-descriptions/createSearchIndexes-description.rst
+
+The ``mongosh`` method :method:`db.collection.createSearchIndex()`
+provides a wrapper around the ``createSearchIndexes`` database command.
+
+.. include:: /includes/atlas-search-commands/atlas-only-db-command.rst
+
+Syntax
+------
+
+Command syntax:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         createSearchIndexes: "<collection name>",
+         indexes: [
+            {
+               name: "<index name>",
+               definition: {
+                  /* search index definition fields */
+               } 
+           },
+           ...
+         ]
+      }
+   )
+
+Command Fields
+--------------
+
+The ``createSearchIndexes`` command takes the following fields:
+
+.. list-table::
+  :header-rows: 1
+  :widths: 20 20 20 80
+
+  * - Field
+    - Type
+    - Necessity
+    - Description
+
+  * - ``createSearchIndexes``
+    - string
+    - Required
+    - Name of the collection on which to create the search index.
+
+  * - ``indexes``
+    - array
+    - Required
+    - Array of documents describing the indexes to create.
+
+  * - ``indexes.name``
+    - string
+    - Optional
+    - Name of the search index to create.
+    
+      You cannot create multiple indexes with the same name on a single
+      collection.
+      
+      If you do not specify a ``name``, the index is named ``default``.
+
+  * - ``indexes.definition``
+    - document
+    - Required
+    - Document describing the index to create. For details on
+      ``definition`` syntax, see :ref:`search-index-definition-create`.
+
+.. _search-index-definition-create:
+
+Search Index Definition Syntax
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/atlas-search-commands/search-index-definition-fields.rst
+
+Behavior
+--------
+
+.. |method-name| replace:: the ``createSearchIndexes`` command
+.. |method-name-title| replace:: The ``createSearchIndexes`` command
+
+.. include:: /includes/atlas-search-commands/behavior/create-behavior.rst   
+
+Access Control
+--------------
+
+.. include:: /includes/atlas-search-commands/access-control/create-access-control.rst
+
+Output
+------
+
+The ``createSearchIndexes`` command output resembles the following:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      ok: 1,
+      indexesCreated: [
+         {
+            id: "<index Id>",
+            name: "<index name>"   
+         }
+      ]
+   }
+
+.. important::
+
+   The response field ``ok: 1`` indicates that the command was
+   successful. However, there may be a delay between when you receive
+   the response and when the created indexes are ready for use.
+
+   To see the status of your search indexes, use the
+   :pipeline:`$listSearchIndexes` aggregation stage.
+
+Examples
+--------
+
+Create a Search Index on All Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example creates a search index named ``searchIndex01`` on
+the ``contacts`` collection:
+
+.. code-block:: javascript
+
+   db.runCommand( {
+      createSearchIndexes: "contacts",
+      indexes: [
+         {
+            name: "searchIndex01",
+            definition: { mappings: { dynamic: true } }
+         }
+      ]
+   } )
+
+The index definition specifies ``mappings: { dynamic: true }``, which
+means that the index contains all fields in the collection that have
+:ref:`supported data types <bson-data-chart>`.
+
+Create a Search Index with a Language Analyzer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A language analyzer introduces stop-words, which are words that are not
+significant enough to be indexed.
+
+The following example creates a search index named ``frenchIndex01`` on
+the ``cars`` collection, and specifies the ``lucene.french`` analyzer on
+the ``fr`` field:
+
+.. code-block:: javascript
+
+   db.runCommand( {
+      createSearchIndexes: "cars",
+      indexes: [
+         {
+            name: "frenchIndex01",
+            definition: {
+               mappings: {
+                 fields: {
+                   subject: {
+                     fields: {
+                       fr: {
+                         analyzer: "lucene.french",
+                         type: "string"
+                       }
+                     },
+                     type: "document"
+                   }
+                 }
+               }
+             }
+         }
+      ]
+   } )
+
+To learn more about language analyzers, see
+:ref:`ref-language-analyzers`.
+
+Create Multiple Search Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following command creates two search indexes on the ``products``
+collection, ``searchIndex02`` and ``searchIndex03``:
+
+.. code-block:: javascript
+
+   db.runCommand( {
+      createSearchIndexes: "products",
+      indexes: [
+         {
+            name: "searchIndex02",
+            definition: {
+               mappings: {
+                  fields: {
+                     title: {
+                        type: "string",
+                        analyzer: "lucene.simple"
+                     }
+                  }
+               }
+            }
+         },
+         {
+            name: "searchIndex03",
+            definition:
+               {
+                  mappings: { dynamic: true }
+               }
+         }
+      ]
+   } )
+
+``searchIndex02`` uses a :ref:`simple analyzer <ref-simple-analyzer>` on
+the ``title`` field. The simple analyzer divides text into searchable
+terms based on non-letter characters, such as whitespace, punctuation,
+or digits.
+
+``searchIndex03`` uses a dynamic field mapping, meaning the index
+contains all fields in the collection that have :ref:`supported data
+types <bson-data-chart>`.

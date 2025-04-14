@@ -1,0 +1,112 @@
+.. _drop-a-hashed-shard-key-index:
+
+=============================
+Drop a Hashed Shard Key Index
+=============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/drop-hashed-shard-key-index-main.rst
+
+About this Task
+---------------
+
+Dropping an `unnecessary index 
+<http://www.mongodb.com/developer/products/mongodb/schema-design-anti-pattern-unnecessary-indexes/>`_ 
+can speed up CRUD operations. Each CRUD operation has to update all the 
+indexes related to a document. Removing one index can increase the 
+speed of all CRUD operations.  
+
+.. important::
+
+   You should only drop a hashed shard key index from a collection 
+   if a supporting non-hashed index on the shard key exists. If a 
+   supporting non-hashed index does not exist on the shard key, queries 
+   filtering by the shard key perform a :term:`collection scan`.
+   To see what indexes exist on a collection, use 
+   :method:`db.collection.getIndexes()`.
+
+Considerations
+--------------
+
+When dropping a hashed shard key index, consider the following:
+
+- The server disables balancing for your collection and excludes 
+  the collection from future balancing rounds. To include 
+  the collection in future balancing rounds, recreate 
+  the shard key index.
+- When you drop the shard key index, the range deleter does not clean up 
+  any remaining orphans in your collection. You must confirm that no orphaned
+  documents exist in your collection before dropping the hashed shard key index.
+  See the below procedure for how to confirm that there are no orphaned documents
+  in your collection.
+
+Steps
+-----
+
+.. procedure::
+   :style: normal
+
+   .. step:: Stop the balancer
+  
+      Run the following command to stop the balancer:
+
+      .. code-block:: javascript
+
+         sh.stopBalancer()
+
+      You can only run ``sh.stopBalancer()`` on ``mongos``. 
+      ``sh.stopBalancer()`` produces an error if run on ``mongod``.
+
+   .. step:: Confirm there are no orphaned documents in your collection
+
+      Starting in MongoDB 6.0.3, you can run an aggregation using the 
+      :pipeline:`$shardedDataDistribution` stage to confirm no orphaned 
+      documents remain:
+
+      .. code-block:: javascript
+
+         db.aggregate([ 
+            { $shardedDataDistribution: {} },
+            { $match: { "ns": "<database>.<collection>" } }
+         ])
+
+      ``$shardedDataDistribution`` has output similar to the following:
+
+      .. include:: /includes/shardedDataDistribution-output-example.rst
+
+      Ensure that ``"numOrphanedDocs"`` is ``0`` for each shard in the
+      cluster.
+
+   .. step:: Drop the hashed shard key index 
+
+      Run the following command to drop the index:
+ 
+      .. code-block:: javascript
+
+         db.collection.dropIndex("<index name>")
+
+   .. step:: Restart the balancer
+
+      Run the following command to restart the balancer on the cluster:
+
+      .. code-block:: javascript
+
+         sh.startBalancer()
+
+
+Learn More
+----------
+
+- :ref:`sharding-hashed`
+- :ref:`sharding-balancing`
+- :method:`db.collection.dropIndex()`
+- :method:`sh.stopBalancer()`
+- :method:`sh.startBalancer()`
+- :method:`sh.getBalancerState()`

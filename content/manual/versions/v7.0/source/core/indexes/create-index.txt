@@ -1,0 +1,183 @@
+.. _manual-create-an-index:
+
+===============
+Create an Index
+===============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+Indexes support efficient execution of queries in MongoDB. If your
+application is repeatedly running queries on the same fields, you can
+create an index on those fields to improve performance for those
+queries.
+
+To create an index, use the :method:`~db.collection.createIndex()` shell
+method or equivalent method for your driver. This page shows examples
+for the MongoDB Shell and drivers.
+
+About this Task
+---------------
+
+When you run a create index command in the MongoDB Shell or a driver,
+MongoDB only creates the index if an index of the same specification
+does not exist.
+
+Although indexes improve query performance, adding an index has negative
+performance impact for write operations. For collections with a high
+write-to-read ratio, indexes are expensive because each insert and
+update must also update any indexes.
+
+Procedure
+---------
+
+----------
+
+.. |arrow| unicode:: U+27A4
+
+|arrow| To set the language of the examples on this page, use the
+**Select your language** drop-down menu in the right navigation pane.
+
+----------
+
+.. tabs-selector:: drivers
+
+.. include:: /includes/driver-examples/driver-procedure-indexes-1.rst
+
+Example
+-------
+
+.. include:: /includes/driver-examples/driver-example-indexes-1.rst
+
+Results
+-------
+
+You can use :binary:`mongosh` to monitor the creation of your index. 
+
+To see what indexes exist on your collection, including indexes that are currently being built, 
+run the :method:`db.collection.getIndexes()` method:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: javascript
+
+      db.collection.getIndexes()
+
+   .. output::
+      :language: javascript
+      :visible: false
+
+      [
+         { v: 2, key: { _id: 1 }, name: '_id_' },
+         { v: 2, key: { name: -1 }, name: 'name_-1' }
+      ]    
+
+To check if your index is being built, use the :pipeline:`$currentOp` aggregation stage to return information about active operations on your database. 
+To run :pipeline:`$currentOp` in :binary:`mongosh`, use the :method:`db.aggregate()` method on the ``admin`` database. 
+
+The following aggregation pipeline uses the :pipeline:`$match` stage to return information
+about an active operation that builds a descending index on the ``name`` field: 
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: 
+      :language: javascript
+   
+      db.getSiblingDB("admin").aggregate( [
+         { $currentOp : { idleConnections: true } },
+         { $match : {"command.createIndexes": { $exists: true } } }
+      ] )
+      
+   .. output:: 
+      :language: javascript 
+      :visible: false
+      :emphasize-lines: 12, 26-39
+
+      [
+         {
+            type: 'op',
+            host: 'mongodb.example.net:27017',
+            desc: 'conn584',
+            connectionId: 584,
+            client: '104.30.134.189:12077',
+            appName: 'mongosh 2.3.4',
+            clientMetadata: { 
+               ... 
+            },
+            active: true,
+            currentOpTime: '2024-12-05T16:13:35.571+00:00',
+            effectiveUsers: [ { user: jane-doe, db: 'admin' } ],
+            isFromUserConnection: true,
+            threaded: true,
+            opid: ...,
+            lsid: { 
+               ... 
+            },
+            secs_running: Long('3'),
+            microsecs_running: Long('3920881'),
+            op: 'command',
+            ns: 'example_db.collection',
+            redacted: false,
+            command: {
+               createIndexes: 'collection',
+               indexes: [ { name: 'name_-1', key: { name: -1 } } ],
+               apiVersion: '1',
+               lsid: { id: UUID('570931be-c692-4963-b9e2-1e279efd9702') },
+               '$clusterTime': {
+               clusterTime: Timestamp({ t: 1733415063, i: 32 }),
+               signature: {
+                  hash: Binary.createFromBase64('z0zaUHJ5SfhNQyvQLhocsKRFNbo=', 0),
+                  keyId: Long('7444956895695077380')
+               }
+               },
+               '$db': 'example_db'
+            },
+            numYields: 0,
+            queues: {
+               ...
+            },
+            currentQueue: null,
+            locks: {},
+            waitingForLock: false,
+            lockStats: { ... },
+            waitingForFlowControl: false,
+            flowControlStats: { acquireCount: Long('3') }
+         }, ...
+      ]
+
+MongoDB marks index builds in various stages, including waiting on commit quorum, as an
+idle connection by setting the ``active`` field to ``false``. The ``idleConnections: true``
+setting includes these idle connections in the ``$currentOp`` output.
+
+To view information on existing indexes using a driver, refer to your
+:driver:`driver's documentation </>`.
+
+Learn More
+----------
+
+- To learn how to create indexes in |compass|, see :ref:`Manage Indexes
+  <compass-indexes>` in the Compass documentation.
+
+- To see how often your indexes are used, see
+  :ref:`index-measure-index-use`.
+
+- To learn how to specify the name of your index, see :ref:`specify-index-name`.
+
+- To learn how MongoDB builds indexes, see :ref:`index-build-process`.
+
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   Specify a Name </core/indexes/create-index/specify-index-name>

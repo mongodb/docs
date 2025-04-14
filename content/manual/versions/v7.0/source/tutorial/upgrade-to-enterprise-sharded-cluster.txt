@@ -1,0 +1,160 @@
+===============================================
+Upgrade to MongoDB Enterprise (Sharded Cluster)
+===============================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/extracts/enterprise-additional-features.rst
+
+The following steps outline the procedure to upgrade a sharded cluster
+from the MongoDB Community Edition to the MongoDB Enterprise Edition.
+For example, the steps can be used to upgrade MongoDB 7.0 Community to 
+MongoDB 7.0 Enterprise.
+
+About This Task
+---------------
+
+Upgrade Major Releases
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. warning::
+
+   .. include:: /includes/extracts/enterprise-upgrade-edition-only.rst
+
+Ops Manager
+~~~~~~~~~~~
+
+.. include:: /includes/fact-ops-mgr-upgrade
+
+Rolling Upgrades
+~~~~~~~~~~~~~~~~
+
+When updating the sharded clusters manually, you can perform a
+rolling upgrade on the shard replica sets and config servers to
+update each MongoDB Community Server to Enterprise edition with
+minimal downtime.
+
+In a rolling upgrade, each secondary is taken down and upgraded.
+The Enterprise server rejoins the replica set as a
+secondary. When all secondaries are upgraded, you can
+:term:`step down` the primary, forcing the replica set to elect
+one of the Enterprise servers as the new primary. 
+
+Steps
+-----
+
+To minimize downtime, manually upgrade each from MongoDB
+Community Server to Enterprise Edition: 
+
+.. procedure::
+
+   .. step:: Stop the balancer
+
+      During an upgrade, the balancer should not attempt to
+      redistribute data between the shards. To prevent the
+      balancer from attempting to redistribute data, stop the
+      balancer for the duration of the upgrade.
+
+      To stop the balancer, connect to :program:`mongos` and run
+      the :method:`sh.stopBalancer` method:
+
+      .. code-block:: javascript
+
+         sh.stopBalancer()
+
+      If a balancing round is in progress, the operation waits
+      for balancing to complete.
+
+      To confirm that the balancer is stopped, use the
+      :method:`sh.getBalancerState` method:
+
+      .. io-code-block::
+
+         .. input::
+            :language: javascript
+
+            sh.getBalancerState()
+
+         .. output::
+            :language: javascript
+
+            false
+
+      The command returns ``false`` when the balancer is stopped.
+
+   .. step:: Upgrade the config servers
+
+      Perform a rolling upgrade of the config servers.
+
+      For the procedure, see :ref:`Upgrade a Replica Set to
+      MongoDB Enterprise <upgrade-to-enterprise-rs>`.
+
+   .. step:: Upgrade the shards
+
+      Perform a rolling upgrade on each shard.
+
+      For the procedure, see :ref:`Upgrade a Replica Set to
+      MongoDB Enterprise <upgrade-to-enterprise-rs>`.
+
+   .. step:: Upgrade routers (mongos)
+
+      Perform a rolling upgrade of the :program:`mongos`
+      instances from the Community installation to Enterprise. 
+
+      a. Connect to ``mongos`` and stop the router process:
+
+         .. code-block:: javascript
+
+            db.getSiblingDB("admin").shutdownServer()
+
+      #. .. include:: /includes/tabs-remove-com-mongos
+
+      #. .. include:: /includes/extracts/enterprise-install-binaries.rst
+
+      #. To start the router, run Enterprise ``mongos`` with the
+         same configuration as you used for the Community
+         ``mongos``.
+
+         For example:
+
+         .. code-block:: bash
+
+            sudo mongos --config /etc/mongos.conf
+
+
+   .. step:: Restart the balancer
+
+      To restart the balancer, connect to :program:`mongos` and
+      use the :method:`sh.startBalancer` method:
+
+      .. code-block:: javascript
+
+         sh.startBalancer()
+
+      To confirm that the balancer is running, use the
+      :method:`sh.getBalancerState` method:
+
+      .. io-code-block::
+
+         .. input::
+            :language: javascript
+
+            sh.getBalancerState()
+
+         .. output::
+            :language: javascript
+
+            true
+
+      The command returns ``true`` when the balancer is running.
+
+.. important::
+
+   Before using any Enterprise features, ensure that all members have
+   been upgraded to Enterprise edition.

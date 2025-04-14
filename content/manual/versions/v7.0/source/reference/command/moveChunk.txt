@@ -1,0 +1,244 @@
+=========
+moveChunk
+=========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: moveChunk
+
+   Internal administrative command. Moves :term:`chunks <chunk>` between
+   :term:`shards <shard>`. Issue the :dbcommand:`moveChunk` command via
+   a :binary:`~bin.mongos` instance while using the :term:`admin database`.
+   Use the following forms:
+
+
+   .. |method| replace:: :method:`sh.moveChunk` 
+      helper method
+   .. include:: /includes/fact-dbcommand-tip
+
+   .. code-block:: javascript
+
+
+      db.adminCommand( { moveChunk : <namespace> ,
+                       find : <query> ,
+                       to : <string>,
+                       forceJumbo: <boolean>,
+                       _secondaryThrottle : <boolean>,
+                       writeConcern: <document>,
+                       _waitForDelete : <boolean> } )
+
+   Alternatively:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { moveChunk : <namespace> ,
+                       bounds : <array> ,
+                       to : <string>,
+                       forceJumbo: <boolean>, 
+                       _secondaryThrottle : <boolean>,
+                       writeConcern: <document>,
+                       _waitForDelete : <boolean> } )
+
+   The :dbcommand:`moveChunk` command has the following fields:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``moveChunk``
+   
+        - string
+   
+        - The :term:`namespace` of the :term:`collection` where the
+          :term:`chunk` exists. Specify the collection's full namespace,
+          including the database name.
+          
+          
+   
+      * - ``find``
+   
+        - document
+   
+        - An equality match on the shard key that specifies the shard-key value
+          of the chunk to move. Specify either the ``bounds`` field or the
+          ``find`` field but not both. Do **not** use the ``find`` field to
+          select chunks in collections that use a :term:`hashed shard key`.
+          
+          
+   
+      * - ``bounds``
+   
+        - array
+   
+        - The bounds of a specific chunk to move. The array must consist of two
+          documents that specify the lower and upper shard key values of a chunk
+          to move. Specify either the ``bounds`` field or the ``find`` field but
+          not both. Use ``bounds`` to select chunks in collections that use a
+          :term:`hashed shard key`.
+          
+          
+   
+      * - ``to``
+   
+        - string
+   
+        - The name of the destination shard for the chunk.
+
+      * - :ref:`forceJumbo <movechunk-forceJumbo>`
+
+        - boolean
+
+        - .. _movechunk-forceJumbo:
+
+          Optional. A flag that determines if the command can move a
+          chunk that is :ref:`too large to migrate
+          <migration-chunk-size-limit>`. The chunk may or may not be
+          labeled as :ref:`jumbo <jumbo-chunk>`.
+
+          - If ``true``, the command can move the chunk.
+
+          - If ``false``, the command cannot move the chunk.
+
+          The default is ``false``.
+
+          .. |cmd| replace:: ``moveChunk``
+          .. include:: /includes/fact-forceJumbo
+
+      * - ``_secondaryThrottle``
+   
+        - boolean
+   
+        - Optional. For :ref:`WiredTiger <storage-wiredtiger>`, defaults to 
+          ``false``.
+             
+          - If ``true``, then by default, each document move during chunk
+            migration propagates to at least one secondary before the balancer
+            proceeds with the next document. This is equivalent to a write
+            concern of :writeconcern:`{ w: 2 } <\<number\>>`. 
+          
+            Use the ``writeConcern`` option to specify a different write concern.
+          
+          - If ``false``, the balancer does not wait for replication to a
+            secondary and instead continues with the next document.
+          
+          For more information, see
+          :ref:`sharded-cluster-config-secondary-throttle`.
+          
+          
+   
+      * - ``writeConcern``
+   
+        - document
+   
+        - Optional. A document that expresses the :doc:`write concern
+          </reference/write-concern>` that the ``_secondaryThrottle`` will use to
+          wait for secondaries during the chunk migration. 
+            
+          ``writeConcern`` requires ``_secondaryThrottle: true``.
+          
+          
+   
+      * - ``_waitForDelete``
+   
+        - boolean
+   
+        - Optional. If set to ``true``, the delete phase of a :dbcommand:`moveChunk` 
+          operation is blocking. ``_waitForDelete`` defaults to ``false``.
+
+          .. include:: /includes/sharding/waitForDelete-warning.rst
+
+          
+          
+   
+
+
+   The value of ``bounds`` takes the form:
+
+   .. code-block:: javascript
+
+      [ { hashedField : <minValue> } ,
+        { hashedField : <maxValue> } ]
+
+   The :ref:`chunk migration <sharding-chunk-migration>` section
+   describes how chunks move between shards on MongoDB.
+
+.. seealso::
+
+   - :dbcommand:`split`
+   - :method:`sh.moveChunk()`
+   - :method:`sh.splitAt()`
+   - :method:`sh.splitFind()`
+
+Compatibility
+-------------
+
+This command is available in deployments hosted in the following environments: 
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. include:: /includes/fact-environments-atlas-support-no-serverless.rst
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
+     
+Considerations
+--------------
+
+Only use the :dbcommand:`moveChunk` in special circumstances
+such as preparing your :term:`sharded cluster` for an initial
+ingestion of data, or a large bulk import operation.  In most cases
+allow the balancer to create and balance chunks in sharded clusters.
+See :doc:`/tutorial/create-chunks-in-sharded-cluster` for more information.
+
+Behavior
+--------
+
+Indexes
+~~~~~~~
+
+:dbcommand:`moveChunk` requires that all indexes exist on the
+target (i.e. ``to`` ) shard before migration and returns an error if a
+required index does not exist.
+
+Meta Data Error
+~~~~~~~~~~~~~~~
+
+:dbcommand:`moveChunk` returns the following error message if another
+metadata operation is in progress on the :data:`~config.chunks` collection:
+
+.. code-block:: none
+
+   errmsg: "The collection's metadata lock is already taken."
+
+If another process, such as a balancer process, changes meta data
+while :dbcommand:`moveChunk` is running, you may see this
+error. You may retry the :dbcommand:`moveChunk` operation without
+side effects.
+
+``maxCatchUpPercentageBeforeBlockingWrites`` Server Parameter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 5.0, you can set the
+:parameter:`maxCatchUpPercentageBeforeBlockingWrites` to specify the
+maximum allowed percentage of data not yet migrated
+during a :dbcommand:`moveChunk` operation when compared to the
+total size (in MBs) of the chunk being transferred.
+
+
+.. admin-only

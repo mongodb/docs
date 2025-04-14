@@ -1,0 +1,169 @@
+===================
+$tanh (aggregation)
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. expression:: $tanh 
+
+   Returns the hyperbolic tangent of a value that is measured in
+   radians.
+
+   :expression:`$tanh` has the following syntax:
+
+   .. code-block:: javascript
+
+      { $tanh: <expression> }
+
+   :expression:`$tanh` takes any valid :ref:`expression
+   <aggregation-expressions>` that resolves to a number, measured in
+   radians. If the expression returns a value in degrees, use the
+   :expression:`$degreesToRadians` operator to convert the value to
+   radians.
+
+   By default :expression:`$tanh` returns values as a ``double``.
+   :expression:`$tanh` can also return values as a :ref:`128-bit decimal
+   <shell-type-decimal>` if the ``<expression>`` resolves to a 128-bit
+   decimal value. 
+
+   For more information on expressions, see 
+   :ref:`aggregation-expressions`.
+
+Behavior
+--------
+
+``null``, ``NaN``, and ``+/- Infinity``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the input argument resolves to a value of ``null`` or refers to a
+field that is missing, :expression:`$tanh` returns ``null``. If the
+argument resolves to ``NaN``, :expression:`$tanh` returns ``NaN``. If
+the argument resolves to negative or positive ``Infinity``,
+:expression:`$tanh` returns ``-1`` or ``1`` respectively.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - Example
+     - Results
+
+   * - ``{ $tanh: NaN }``
+     - ``NaN``
+
+   * - ``{ $tanh: null }``
+     - ``null``
+
+   * - ``{ $tanh: -Infinity }``
+     - ``-1``
+
+   * - ``{ $tanh: Infinity }``
+     - ``1``
+
+Example
+-------
+
+.. tabs::
+
+   tabs:
+
+     - id: degrees
+       name: Hyperbolic Tangent in Degrees
+       content: |
+
+         The following ``trigonometry`` collection contains a document
+         that stores an ``angle`` value measured in degrees:
+
+         .. code-block:: javascript
+
+            db.trigonometry.insertOne(
+               {
+                  "_id" : ObjectId( "5c50782193f833234ba90d45" ),
+                  "angle" : NumberDecimal( "53.1301023541559787031443874490659" )
+               }
+            )
+
+         The following aggregation operation uses the
+         :expression:`$tanh` expression to calculate the hyperbolic
+         tangent of ``angle`` and adds it to the input document using
+         the :pipeline:`$addFields` pipeline stage:
+
+         .. code-block:: javascript
+
+            db.trigonometry.aggregate( [
+               {
+                  $addFields : {
+                     "tanh_output" : { $tanh : { $degreesToRadians : "$angle" } }
+                  }
+               }
+            ] )
+
+         The :expression:`$degreesToRadians` expression converts the
+         ``angle`` in degrees to radians.
+
+         Example output:
+
+         .. code-block:: javascript
+            :copyable: false
+ 
+            {
+               "_id" : ObjectId("5c50782193f833234ba90d45"),
+               "angle" : NumberDecimal("53.1301023541559787031443874490659"),
+               "tanh_output" : NumberDecimal("0.7293303448445332820512777329448416")
+            }
+
+         Because ``angle`` is stored as a :ref:`128-bit decimal
+         <shell-type-decimal>`, the :expression:`$tanh` output is also a
+         128-bit decimal.
+
+     - id: radians
+       name: Hyperbolic Tangent in Radians
+       content: |
+
+         The following ``trigonometry`` collection contains a document
+         that stores an ``angle`` value measured in radians:
+
+         .. code-block:: javascript
+
+            db.trigonometry.insertOne(
+               {
+                  "_id" : ObjectId( "5c50782193f833234ba90d55" ),
+                  "angle" : NumberDecimal( "1.6301023541559787031443874490659" )
+               }
+            )
+
+         The following aggregation operation uses the
+         :expression:`$tanh` expression to calculate the hyperbolic
+         tangent of ``angle`` and adds it to the input document using
+         the :pipeline:`$addFields` pipeline stage:
+
+         .. code-block:: javascript
+
+            db.trigonometry.aggregate( [
+               {
+                  $addFields : {
+                     "tanh_output" : { $tanh : "$angle" }
+                  }
+               }
+            ] )
+
+         Example output:
+
+         .. code-block:: javascript
+            :copyable: false
+ 
+            {
+               "_id" : ObjectId("5c50782193f833234ba90d55"),
+               "angle" : NumberDecimal("1.6301023541559787031443874490659"),
+               "tanh_output" : NumberDecimal("0.9260761562750713360156803177935379")
+            }
+
+         Because ``angle`` is stored as a :ref:`128-bit decimal
+         <shell-type-decimal>`, the :expression:`$tanh` output is also
+         a 128-bit decimal.

@@ -1,0 +1,174 @@
+==============
+db.aggregate()
+==============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.aggregate()
+
+   Runs a specified admin/diagnostic pipeline which does not require an 
+   underlying collection. For aggregations on collection data, see
+   :method:`db.collection.aggregate()`.
+
+   .. |dbcommand| replace:: :dbcommand:`aggregate` command
+   .. include:: /includes/fact-mongosh-shell-method-alt.rst
+
+   The :method:`db.aggregate()` method has the following syntax:
+
+   .. code-block:: javascript
+
+      db.aggregate( [ <pipeline> ], { <options> } )
+
+   The ``pipeline`` parameter is an array of stages to execute. It
+   must start with a compatible stage that does not require an
+   underlying collection, such as :pipeline:`$currentOp` or 
+   :pipeline:`$listLocalSessions`.
+
+   The ``options`` document can contain the following fields and values:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+        - Type
+        - Description
+   
+      * - ``explain``
+        - boolean
+        - Optional. Specifies that the method should return 
+          information on the processing of the pipeline. 
+          
+          See :ref:`example-aggregate-method-explain-option` for an example.
+          
+          Not available in :ref:`multi-document transactions <transactions>`.
+          
+   
+      * - ``allowDiskUse``
+        - boolean
+        - Optional. Enables writing to temporary files. When set to ``true``, aggregation
+          operations can write data to the :file:`_tmp` subdirectory in the
+          :setting:`~storage.dbPath` directory. See
+          :ref:`example-aggregate-method-external-sort` for an example.
+          
+          .. include:: /includes/extracts/4.2-changes-usedDisk.rst
+          
+   
+      * - ``cursor``
+        - document
+        - Optional. Specifies the *initial* batch size for the cursor. The value of the ``cursor``
+          field is a document with the field ``batchSize``. See
+          :ref:`example-aggregate-method-initial-batch-size` for syntax and example.
+
+   
+      * - ``maxTimeMS``
+        - non-negative integer
+        - Optional. Specifies a time limit in milliseconds for processing
+          operations on a cursor. If you do not specify a value for maxTimeMS,
+          operations will not time out. A value of ``0`` explicitly
+          specifies the default unbounded behavior.
+          
+          MongoDB terminates operations that exceed their allotted time limit
+          using the same mechanism as :method:`db.killOp()`. MongoDB only
+          terminates an operation at one of its designated :term:`interrupt 
+          points <interrupt point>`.
+          
+   
+      * - ``bypassDocumentValidation``
+        - boolean
+        - Optional. Applicable only if you specify the :pipeline:`$out` or :pipeline:`$merge` aggregation
+          stages.
+          
+          Enables :method:`db.collection.aggregate` to bypass schema validation
+          during the operation. This lets you insert documents that do not
+          meet the validation requirements.
+   
+      * - ``readConcern``
+        - document
+        - Optional. Specifies the :term:`read concern`.
+          
+          .. include:: /includes/fact-readConcern-syntax.rst
+          
+          .. include:: /includes/fact-readConcern-option-description.rst
+          
+          .. include:: /includes/extracts/4.2-changes-out-linearizable.rst
+          
+          .. include:: /includes/extracts/4.2-changes-linearizable-merge-restriction.rst
+          
+   
+      * - ``collation``
+        - document
+        - Optional. 
+          
+          .. include:: /includes/extracts/collation-option.rst
+   
+
+      * - ``hint``
+        - string or document
+        - Optional. The index to use for the aggregation. The index is on the initial
+          collection/view against which the aggregation is run.
+          
+          Specify the index either by the index name or by the index
+          specification document.
+          
+          The ``hint`` does not apply to :pipeline:`$lookup` and
+          :pipeline:`$graphLookup` stages.
+          
+   
+      * - ``comment``
+        - string
+        - Optional. Users can specify an arbitrary string to help trace the operation 
+          through the database profiler, currentOp, and logs.
+          
+   
+      * - ``writeConcern``
+        - document
+        - Optional. A document that expresses the :ref:`write concern <write-concern>`
+          to use with the :pipeline:`$out` or :pipeline:`$merge` stage. 
+          
+          Omit to use the default write concern with the :pipeline:`$out` or
+          :pipeline:`$merge` stage.
+
+
+Compatibility
+-------------
+
+This method is available in deployments hosted in the following environments:
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. include:: /includes/fact-environments-atlas-support-all.rst
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
+                    
+Example
+-------
+
+.. _admin-pipeline-currentOp:
+
+Pipeline with ``$currentOp``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example runs a pipeline with two stages. The first stage 
+runs the :pipeline:`$currentOp` operation and the second stage filters the
+results of that operation. 
+
+.. code-block:: javascript
+
+   use admin
+   db.aggregate( [ { 
+      $currentOp : { allUsers: true, idleConnections: true } }, { 
+      $match : { shard: "shard01" } 
+      }
+   ] )

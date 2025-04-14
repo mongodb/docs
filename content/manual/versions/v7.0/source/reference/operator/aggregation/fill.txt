@@ -1,0 +1,880 @@
+===================
+$fill (aggregation)
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. |linear-interpolation| replace:: :wikipedia:`linear interpolation <Linear_interpolation>`
+
+Definition
+----------
+
+.. pipeline:: $fill
+
+   .. versionadded:: 5.3
+
+   .. include:: /includes/fact-fill-description.rst
+
+   You can use :pipeline:`$fill` to populate missing data points:
+   
+   - In a sequence based on surrounding values.
+   - With a fixed value.
+
+Syntax
+------
+
+The :pipeline:`$fill` stage has this syntax:
+
+.. code-block:: none
+
+   {
+      $fill: {
+         partitionBy: <expression>,
+         partitionByFields: [ <field 1>, <field 2>, ... , <field n> ],
+         sortBy: {
+            <sort field 1>: <sort order>,
+            <sort field 2>: <sort order>,
+            ...,
+            <sort field n>: <sort order>
+         },
+         output: {
+            <field 1>: { value: <expression> },
+            <field 2>: { method: <string> },
+            ...
+         }
+      }
+   }
+
+The :pipeline:`$fill` stage takes a document with these fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 25 70
+
+   * - Field
+     - Necessity
+     - Description
+
+   * - :ref:`partitionBy <fill-partitionBy>`
+     - Optional
+     - .. _fill-partitionBy:
+
+       Specifies an :ref:`expression <aggregation-expressions>` to group
+       the documents. In the :pipeline:`$fill` stage, a group of
+       documents is known as a *partition*.
+
+       If you omit :ref:`partitionBy <fill-partitionBy>` and
+       :ref:`partitionByFields <fill-partitionBy-fields>`,
+       :pipeline:`$fill` uses one partition for the entire collection.
+
+       :ref:`partitionBy <fill-partitionBy>` and :ref:`partitionByFields
+       <fill-partitionBy-fields>` are mutually exclusive.
+
+       See an :ref:`example <fill-example-partition>`.
+
+   * - :ref:`partitionByFields <fill-partitionBy-fields>`
+     - Optional
+     - .. _fill-partitionBy-fields:
+
+       Specifies an array of fields as the compound key to group the
+       documents. In the :pipeline:`$fill` stage, each group of
+       documents is known as a *partition*.
+
+       If you omit :ref:`partitionBy <fill-partitionBy>` and
+       :ref:`partitionByFields <fill-partitionBy-fields>`,
+       :pipeline:`$fill` uses one partition for the entire collection.
+
+       :ref:`partitionBy <fill-partitionBy>` and :ref:`partitionByFields
+       <fill-partitionBy-fields>` are mutually exclusive.
+
+       See :ref:`fill-partition-by-fields-restrictions`.
+
+   * - :ref:`sortBy <fill-sortBy>`
+     - Required if :ref:`method <fill-output-field-method>` is specified
+       in at least one :ref:`output.\<field\> <fill-output-field>`.
+     
+       Otherwise, optional.
+     - .. _fill-sortBy:
+     
+       Specifies the field or fields to sort the documents within each
+       partition. Uses the same syntax as the :pipeline:`$sort` stage.
+
+   * - :ref:`output <fill-output>`
+     - Required
+     - .. _fill-output:
+
+       Specifies an object containing each field for which to fill
+       missing values. You can specify multiple fields in the
+       :ref:`output <fill-output>` object.
+
+       The object name is the name of the field to fill. The object value
+       specifies how the field is filled.
+
+   * - :ref:`output.\<field\> <fill-output-field>`
+     - Required
+     - .. _fill-output-field:
+
+       Specifies an object indicating how to fill missing values in the
+       target field.
+
+       .. _fill-output-field-method:
+       
+       The object name must be either ``value`` or ``method``. If the
+       name is:
+
+       - ``value``, the value must be an :ref:`expression
+         <aggregation-expressions>` indicating the value used to fill
+         the target field.
+
+       - ``method``, the value must be either ``linear`` or ``locf``. If
+         you specify:
+
+         - ``linear`` fill method, values are filled using
+           |linear-interpolation| based on the surrounding non-``null``
+           values in the sequence.
+
+         - ``locf`` fill method, values are filled based on the last
+           non-null value for the field in the partition. ``locf``
+           stands for last observation carried forward.
+           
+           To learn more, see: 
+           
+           - :ref:`linear Behavior Details <fill-linear-behavior>`
+
+           - :ref:`linear Fill Example <fill-example-linear>`
+              
+           - :ref:`locf Behavior Details <fill-locf-behavior>`
+
+           - :ref:`locf Fill Example <fill-example-locf>`
+
+Behavior and Restrictions
+-------------------------
+
+.. _fill-partition-by-fields-restrictions:
+
+``partitionByFields`` Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:pipeline:`$fill` returns an error if any field name in the
+:ref:`partitionByFields <fill-partitionBy-fields>` array:
+
+- Evaluates to a non-string value.
+- Begins with ``$``.
+
+.. _fill-linear-behavior:
+
+``linear`` Behavior
+~~~~~~~~~~~~~~~~~~~
+
+The ``linear`` fill method fills ``null`` and missing fields using
+|linear-interpolation| based on the surrounding non-``null`` values in
+the sequence.
+
+- For each document where the field is ``null`` or missing,
+  ``linearFill`` fills those fields in proportion to the missing value
+  range between surrounding non-``null`` values according to the
+  :ref:`sortBy <fill-sortBy>` order. To determine the values for missing
+  fields, ``linearFill`` uses:
+  
+  - The difference of surrounding non-``null`` values.
+    
+  - The number of ``null`` fields to fill between the surrounding
+    values.
+
+- The ``linear`` method can fill multiple consecutive ``null`` values
+  if those values are preceded and followed by non-``null`` values
+  according to the :ref:`sortBy <fill-sortBy>` order.
+
+  .. example::
+
+     If a collection contains these documents:
+
+     .. code-block:: javascript
+
+        { index: 0, value: 0 },
+        { index: 1, value: null },
+        { index: 2, value: null },
+        { index: 3, value: null },
+        { index: 4, value: 10 }
+
+     After using the ``linear`` fill method to fill the ``null``
+     values, the documents become:
+
+     .. code-block:: javascript
+
+        { index: 0, value: 0 },
+        { index: 1, value: 2.5 },
+        { index: 2, value: 5 },
+        { index: 3, value: 7.5 },
+        { index: 4, value: 10 }
+
+- ``null`` values that are not preceded and followed by non-``null``
+  values remain ``null``.
+
+- To use the ``linear`` fill method, you must also use the :ref:`sortBy
+  <fill-sortBy>` field to sort your data.
+
+  - When using the ``linear`` fill method, :pipeline:`$fill` returns an
+    error if there are any repeated values in the :ref:`sortBy
+    <fill-sortBy>` field in a single partition.
+
+For a complete example using the ``linear`` fill method, see
+:ref:`fill-example-linear`.
+
+.. _fill-locf-behavior:
+
+``locf`` Behavior
+~~~~~~~~~~~~~~~~~
+
+``locf`` stands for last observation carried forward.
+
+- If a field being filled contains both ``null`` and non-null values,
+  ``locf`` sets the ``null`` and missing values to the field's
+  last known non-null value according to the :ref:`sortBy <fill-sortBy>`
+  order.
+
+  - If the field contains only ``null`` or missing values in a
+    :ref:`partition <fill-partitionBy>`, ``locf`` sets the field value
+    to ``null`` for that partition.
+
+  - ``null`` and missing field values that appear before non-null values
+    in the sort order remain ``null``.
+
+- To use the ``locf`` fill method, you must also use the :ref:`sortBy
+  <fill-sortBy>` field to sort your data.
+
+For a complete example using the ``locf`` fill method, see
+:ref:`fill-example-locf`.
+
+Comparison of ``$fill`` and Aggregation Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To fill ``null`` and missing field values within a document you can use:
+
+- The :pipeline:`$fill` stage.
+
+  When you use the :pipeline:`$fill` stage, the field you specify in the
+  output is the same field used as the source data.
+
+- The :group:`$linearFill` and :group:`$locf` aggregation operators.
+
+  When you :group:`$linearFill` or :group:`$locf`, you can set values
+  for a different field than the field used as the source data.
+   
+Examples
+--------
+
+The examples in this section show how to use :pipeline:`$fill` to
+fill missing values:
+
+- :ref:`With a constant value <fill-example-constant-value>`
+- :ref:`With linear interpolation <fill-example-linear>`
+- :ref:`Based on the last observed value <fill-example-locf>`
+- :ref:`For distinct partitions <fill-example-partition>`
+
+.. _fill-example-constant-value:
+
+Fill Missing Field Values with a Constant Value
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A shoe store maintains a ``dailySales`` collection that contains a
+document summarizing each day's sales. The shoe store sells these types
+of shoes:
+
+- ``boots``
+- ``sandals``
+- ``sneakers``
+
+Create the following ``dailySales`` collection:
+
+.. code-block:: javascript
+
+   db.dailySales.insertMany( [
+      {
+         "date": ISODate("2022-02-02"),
+         "bootsSold": 10,
+         "sandalsSold": 20,
+         "sneakersSold": 12
+      },
+      {
+         "date": ISODate("2022-02-03"),
+         "bootsSold": 7,
+         "sneakersSold": 18
+      },
+      {
+         "date": ISODate("2022-02-04"),
+         "sneakersSold": 5
+      }
+   ] )
+
+Not all of the documents in the ``dailySales`` collection contain each
+shoe type. If a shoe type is missing, it means there were no shoes of
+that type sold on the corresponding date.
+
+The following example uses :pipeline:`$fill` to set the quantities sold
+to ``0`` for the missing shoe types for each day's sales:
+
+.. code-block:: javascript
+
+   db.dailySales.aggregate( [
+      {
+         $fill:
+            {
+               output:
+                  {
+                     "bootsSold": { value: 0 },
+                     "sandalsSold": { value: 0 },
+                     "sneakersSold": { value: 0 }
+                  }
+            }
+      }
+   ] )
+
+In the preceding pipeline:
+
+- :pipeline:`$fill` fills in values for missing fields.
+
+- :ref:`output <fill-output>` specifies:
+
+  - The names of the fields to fill in.
+
+  - The value to set the filled in fields to. In this example, the
+    output specifies a constant value of ``0``.
+
+Example output:
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 14,20,21
+
+   [
+      {
+        _id: ObjectId("6202df9f394d47411658b51e"),
+        date: ISODate("2022-02-02T00:00:00.000Z"),
+        bootsSold: 10,
+        sandalsSold: 20,
+        sneakersSold: 12
+      },
+      {
+        _id: ObjectId("6202df9f394d47411658b51f"),
+        date: ISODate("2022-02-03T00:00:00.000Z"),
+        bootsSold: 7,
+        sneakersSold: 18,
+        sandalsSold: 0
+      },
+      {
+        _id: ObjectId("6202df9f394d47411658b520"),
+        date: ISODate("2022-02-04T00:00:00.000Z"),
+        sneakersSold: 5,
+        bootsSold: 0,
+        sandalsSold: 0
+      }
+   ]
+
+.. _fill-example-linear:
+
+Fill Missing Field Values with Linear Interpolation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create a ``stock`` collection that contains tracks a single company's
+stock price at hourly intervals:
+
+.. code-block:: javascript
+
+   db.stock.insertMany( [ 
+      {
+         time: ISODate("2021-03-08T09:00:00.000Z"),
+         price: 500
+      },
+      {
+         time: ISODate("2021-03-08T10:00:00.000Z"),
+      },
+      { 
+         time: ISODate("2021-03-08T11:00:00.000Z"),
+         price: 515
+      },
+      {
+         time: ISODate("2021-03-08T12:00:00.000Z")
+      },
+      {
+         time: ISODate("2021-03-08T13:00:00.000Z")
+      },
+      {
+         time: ISODate("2021-03-08T14:00:00.000Z"),
+         price: 485
+      }
+   ] )
+
+The ``price`` field is missing for some of the documents in the
+collection.
+
+To populate the missing ``price`` values using |linear-interpolation|,
+use :pipeline:`$fill` with the ``linear`` fill method:
+
+.. code-block:: javascript
+
+   db.stock.aggregate( [
+      {
+         $fill:
+            {
+               sortBy: { time: 1 },
+               output:
+                  {
+                     "price": { method: "linear" }
+                  }
+            }
+      }
+   ] )
+
+In the preceding pipeline:
+
+- :pipeline:`$fill` fills in values for missing fields.
+
+- ``sortBy: { time: 1 }`` sorts the documents by the ``time`` field in
+  ascending order, from earliest to latest.
+
+- :ref:`output <fill-output>` specifies:
+
+  - ``price`` as the field for which to fill in missing values.
+
+  - ``{ method: "linear" }`` as the fill method. The ``linear`` fill
+    method fills missing ``price`` values using |linear-interpolation|
+    based on the surrounding ``price`` values in the sequence.
+
+Example output:
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 10,20,25
+
+   [
+      {
+         _id: ObjectId("620ad41c394d47411658b5e9"),
+         time: ISODate("2021-03-08T09:00:00.000Z"),
+         price: 500
+      },
+      {
+         _id: ObjectId("620ad41c394d47411658b5ea"),
+         time: ISODate("2021-03-08T10:00:00.000Z"),
+         price: 507.5
+      },
+      {
+         _id: ObjectId("620ad41c394d47411658b5eb"),
+         time: ISODate("2021-03-08T11:00:00.000Z"),
+         price: 515
+      },
+      {
+         _id: ObjectId("620ad41c394d47411658b5ec"),
+         time: ISODate("2021-03-08T12:00:00.000Z"),
+         price: 505
+      },
+      {
+         _id: ObjectId("620ad41c394d47411658b5ed"),
+         time: ISODate("2021-03-08T13:00:00.000Z"),
+         price: 495
+      },
+      {
+         _id: ObjectId("620ad41c394d47411658b5ee"),
+         time: ISODate("2021-03-08T14:00:00.000Z"),
+         price: 485
+      }
+   ]
+
+.. _fill-example-locf:
+
+Fill Missing Field Values Based on the Last Observed Value
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create a ``restaurantReviews`` collection that contains review scores
+for a single restaurant over time:
+
+.. code-block:: javascript
+
+   db.restaurantReviews.insertMany( [ 
+      {
+         date: ISODate("2021-03-08"),
+         score: 90
+      },
+      {
+         date: ISODate("2021-03-09"),
+         score: 92
+      },
+      {
+         date: ISODate("2021-03-10")
+      },
+      { 
+         date: ISODate("2021-03-11")
+      },
+      {
+         date: ISODate("2021-03-12"),
+         score: 85
+      },
+      {
+         date: ISODate("2021-03-13")
+      }
+   ] )
+
+The ``score`` field is missing for some of the documents in the
+collection.
+
+To populate the missing ``score`` fields and ensure that there are no
+gaps in the data, use :pipeline:`$fill`. In the following example,
+:pipeline:`$fill` uses the ``locf`` fill method to fill the missing
+``score`` values with the previous ``score`` in the sequence:
+
+.. code-block:: javascript
+
+   db.restaurantReviews.aggregate( [
+      {
+         $fill:
+            {
+               sortBy: { date: 1 },
+               output:
+                  {
+                     "score": { method: "locf" }
+                  }
+            }
+      }
+   ] )
+
+In the preceding pipeline:
+
+- :pipeline:`$fill` fills in missing ``score`` values.
+
+- ``sortBy: { date: 1 }`` sorts the documents by the ``date`` field in
+  ascending order, from earliest to latest.
+
+- :ref:`output <fill-output>` specifies:
+
+  - ``score`` as the field for which to fill in missing values.
+  - ``{ method: "locf" }`` as the fill method. The ``locf`` fill
+    method fills missing ``score`` values with the last observed
+    ``score`` in the sequence.
+
+Example output:
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 15,20,30
+
+   [
+      {
+        _id: ObjectId("62040bc9394d47411658b553"),
+        date: ISODate("2021-03-08T00:00:00.000Z"),
+        score: 90
+      },
+      {
+        _id: ObjectId("62040bc9394d47411658b554"),
+        date: ISODate("2021-03-09T00:00:00.000Z"),
+        score: 92
+      },
+      {
+        _id: ObjectId("62040bc9394d47411658b555"),
+        date: ISODate("2021-03-10T00:00:00.000Z"),
+        score: 92
+      },
+      {
+        _id: ObjectId("62040bc9394d47411658b556"),
+        date: ISODate("2021-03-11T00:00:00.000Z"),
+        score: 92
+      },
+      {
+        _id: ObjectId("62040bc9394d47411658b557"),
+        date: ISODate("2021-03-12T00:00:00.000Z"),
+        score: 85
+      },
+      {
+        _id: ObjectId("62040bc9394d47411658b558"),
+        date: ISODate("2021-03-13T00:00:00.000Z"),
+        score: 85
+      }
+   ]
+
+.. _fill-example-partition:
+
+Fill Data for Distinct Partitions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider the :ref:`previous example <fill-example-locf>` with restaurant
+reviews but instead of tracking a single restaurant, the collection now
+contains reviews for multiple restaurants.
+
+Create a collection named ``restaurantReviewsMultiple`` and populate the
+collection with these documents:
+
+.. code-block:: javascript
+
+   db.restaurantReviewsMultiple.insertMany( [ 
+      {
+         date: ISODate("2021-03-08"),
+         restaurant: "Joe's Pizza",
+         score: 90
+      },
+      {
+         date: ISODate("2021-03-08"),
+         restaurant: "Sally's Deli",
+         score: 75
+      },
+      {
+         date: ISODate("2021-03-09"),
+         restaurant: "Joe's Pizza",
+         score: 92
+      },
+      {
+         date: ISODate("2021-03-09"),
+         restaurant: "Sally's Deli"
+      },
+      {
+         date: ISODate("2021-03-10"),
+         restaurant: "Joe's Pizza"
+      },
+      { 
+         date: ISODate("2021-03-10"),
+         restaurant: "Sally's Deli",
+         score: 68
+      },
+      {
+         date: ISODate("2021-03-11"),
+         restaurant: "Joe's Pizza",
+         score: 93
+      },
+      {
+         date: ISODate("2021-03-11"),
+         restaurant: "Sally's Deli"
+      }
+   ] )
+
+The ``score`` field is missing for some of the documents in the
+collection.
+
+To populate the missing ``score`` fields and ensure that there are no
+gaps in the data, use :pipeline:`$fill`. In the following example,
+:pipeline:`$fill` uses the ``locf`` fill method to fill the missing
+``score`` values with the previous ``score`` in the sequence:
+
+.. code-block:: javascript
+
+   db.restaurantReviewsMultiple.aggregate( [
+      {
+         $fill:
+            {
+               sortBy: { date: 1 },
+               partitionBy: { "restaurant": "$restaurant" },
+               output:
+                  {
+                     "score": { method: "locf" }
+                  }
+            }
+      }
+   ] )
+
+In the preceding pipeline:
+
+- :pipeline:`$fill` fills in missing ``score`` values.
+
+- ``sortBy: { date: 1 }`` sorts the documents by the ``date`` field in
+  ascending order, from earliest to latest.
+
+- ``partitionBy: { "restaurant": "$restaurant" }`` partitions the data by
+  ``restaurant``. There are two restaurants: ``Joe's Pizza`` and
+  ``Sally's Deli``.
+
+- :ref:`output <fill-output>` specifies:
+
+  - ``score`` as the field for which to fill in missing values.
+  - ``{ method: "locf" }`` as the fill method. The ``locf`` fill
+    method fills missing ``score`` values with the last observed
+    ``score`` in the sequence.
+
+Example output:
+
+.. code-block:: javascript
+   :emphasize-lines: 18,36,48
+   :copyable: false
+
+   [
+     {
+       _id: ObjectId("620559f4394d47411658b58f"),
+       date: ISODate("2021-03-08T00:00:00.000Z"),
+       restaurant: "Joe's Pizza",
+       score: 90
+     },
+     {
+       _id: ObjectId("620559f4394d47411658b591"),
+       date: ISODate("2021-03-09T00:00:00.000Z"),
+       restaurant: "Joe's Pizza",
+       score: 92
+     },
+     {
+       _id: ObjectId("620559f4394d47411658b593"),
+       date: ISODate("2021-03-10T00:00:00.000Z"),
+       restaurant: "Joe's Pizza",
+       score: 92
+     },
+     {
+       _id: ObjectId("620559f4394d47411658b595"),
+       date: ISODate("2021-03-11T00:00:00.000Z"),
+       restaurant: "Joe's Pizza",
+       score: 93
+     },
+     {
+       _id: ObjectId("620559f4394d47411658b590"),
+       date: ISODate("2021-03-08T00:00:00.000Z"),
+       restaurant: "Sally's Deli",
+       score: 75
+     },
+     {
+       _id: ObjectId("620559f4394d47411658b592"),
+       date: ISODate("2021-03-09T00:00:00.000Z"),
+       restaurant: "Sally's Deli",
+       score: 75
+     },
+     {
+       _id: ObjectId("620559f4394d47411658b594"),
+       date: ISODate("2021-03-10T00:00:00.000Z"),
+       restaurant: "Sally's Deli",
+       score: 68
+     },
+     {
+       _id: ObjectId("620559f4394d47411658b596"),
+       date: ISODate("2021-03-11T00:00:00.000Z"),
+       restaurant: "Sally's Deli",
+       score: 68
+     }
+   ]
+
+Indicate if a Field was Populated Using ``$fill``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you populate missing values, the output does not indicate if a
+value was populated with the ``$fill`` operator or if the value existed
+in the document originally. To distinguish between filled and
+preexisting values, you can use a :pipeline:`$set` stage before
+``$fill`` and set a new field based on whether the value exists.
+
+For example, create a ``restaurantReviews`` collection that contains
+review scores for a restaurant over time:
+
+.. code-block:: javascript
+
+   db.restaurantReviews.insertMany( [ 
+      {
+         date: ISODate("2021-03-08"),
+         score: 90
+      },
+      {
+         date: ISODate("2021-03-09"),
+         score: 92
+      },
+      {
+         date: ISODate("2021-03-10")
+      },
+      { 
+         date: ISODate("2021-03-11")
+      },
+      {
+         date: ISODate("2021-03-12"),
+         score: 85
+      },
+      {
+         date: ISODate("2021-03-13")
+      }
+   ] )
+
+The ``score`` field is missing for some of the documents in the
+collection. You can populate missing ``score`` values with the ``$fill``
+operator.
+
+Create a pipeline to perform the following actions:
+
+- Add a new field to each document (using :pipeline:`$set`) indicating
+  if the document's ``score`` field exists prior to the ``$fill``
+  operator populating values. This new field is called ``valueExisted``.
+  
+- Populate missing ``score`` values with the last observed ``score`` in
+  the sequence. The fill method ``locf`` stands for "last observation
+  carried forward".
+
+The pipeline looks like this:
+
+.. code-block:: javascript
+
+   db.restaurantReviews.aggregate( [
+      {
+         $set: {
+            "valueExisted": {
+               "$ifNull": [
+                  { "$toBool": { "$toString": "$score" } },
+                  false
+               ]
+            }
+         }
+      },
+      {
+         $fill: {
+            sortBy: { date: 1 },
+            output:
+               {
+                  "score": { method: "locf" }
+               }
+         }
+      }
+   ] )
+
+.. note:: Handling Values of Zero
+
+   In the :expression:`$ifNull` expression, the ``score`` values are
+   converted to strings, then to booleans. The :expression:`$toBool`
+   expression always converts strings to ``true``. If the ``score``
+   values are not converted to strings, ``score`` values of ``0`` will
+   have ``valueExisted`` set to ``false``.
+
+Output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      {
+         _id: ObjectId("63595116b1fac2ee2e957f15"),
+         date: ISODate("2021-03-08T00:00:00.000Z"),
+         score: 90,
+         valueExisted: true
+      },
+      {
+         _id: ObjectId("63595116b1fac2ee2e957f16"),
+         date: ISODate("2021-03-09T00:00:00.000Z"),
+         score: 92,
+         valueExisted: true
+      },
+      {
+         _id: ObjectId("63595116b1fac2ee2e957f17"),
+         date: ISODate("2021-03-10T00:00:00.000Z"),
+         valueExisted: false,
+         score: 92
+      },
+      {
+         _id: ObjectId("63595116b1fac2ee2e957f18"),
+         date: ISODate("2021-03-11T00:00:00.000Z"),
+         valueExisted: false,
+         score: 92
+      },
+      {
+         _id: ObjectId("63595116b1fac2ee2e957f19"),
+         date: ISODate("2021-03-12T00:00:00.000Z"),
+         score: 85,
+         valueExisted: true
+      },
+      {
+         _id: ObjectId("63595116b1fac2ee2e957f1a"),
+         date: ISODate("2021-03-13T00:00:00.000Z"),
+         valueExisted: false,
+         score: 85
+      }
+   ]

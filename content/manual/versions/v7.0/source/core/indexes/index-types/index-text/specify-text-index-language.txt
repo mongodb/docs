@@ -1,0 +1,139 @@
+.. _specify-text-index-language:
+.. _specify-language-field-text-index-example:
+.. _specify-default-text-index-language:
+
+=========================================================================
+Specify the Default Language for a Text Index on Self-Managed Deployments
+=========================================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+By default, the ``default_language`` for text indexes is ``english``. 
+To improve the performance of non-English text search queries, you can specify 
+a different default language associated with your text index. 
+
+The default language associated with the indexed data determines the suffix 
+stemming rules. The default language also determines which language-specific 
+stop words (for example, ``the``, ``an``, ``a``, and ``and`` in English) are 
+not indexed.
+
+To specify a different language, use the ``default_language`` option when 
+creating the text index. To see the languages available for text indexing, see 
+:ref:`text-search-languages`. Your operation should resemble this prototype: 
+
+.. code-block:: javascript 
+
+   db.<collection>.createIndex( 
+      { <field>: "text" }, 
+      { default_language: <language> } 
+   )
+
+.. include:: /includes/fact-text-search-language-none.rst
+
+Before You Begin
+----------------
+
+Create a ``quotes`` collection that contains the following documents
+with a Spanish text field:
+
+.. code-block:: javascript
+
+   db.quotes.insertMany( [
+      {
+         _id: 1,
+         quote : "La suerte protege a los audaces."
+      },
+      {
+         _id: 2,
+         quote: "Nada hay más surrealista que la realidad."
+      },
+      {
+         _id: 3,
+         quote: "Es este un puñal que veo delante de mí?"
+      },
+      {
+         _id: 4,
+         quote: "Nunca dejes que la realidad te estropee una buena historia."
+      } 
+   ] )
+
+Procedure
+---------
+
+The following operation creates a text index on the ``quote`` field and sets 
+the ``default_language`` to ``spanish``: 
+
+.. code-block:: javascript
+
+   db.quotes.createIndex( 
+      { quote: "text" },
+      { default_language: "spanish" }
+   )
+
+Results 
+-------
+
+The resulting index supports text search queries on the ``quote`` field with 
+Spanish-language suffix stemming rules. For example, the following 
+query searches for the keyword ``punal`` in the ``quote`` field:
+
+.. code-block:: javascript
+
+   db.quotes.find(
+      { 
+         $text: { $search: "punal" }
+      }
+   )
+
+Output: 
+
+.. code-block:: javascript
+
+   [
+      {
+         _id: 3,
+         quote: "Es este un puñal que veo delante de mí?"
+      }
+   ]
+
+Although the ``$search`` value is set to ``punal``, the query will return the 
+document containing the word ``puñal`` because text indexes are :ref:`diacritic 
+insensitive <text-index-diacritic-insensitivity>`. 
+
+
+The index also ignores language-specific stop words. For example, although the 
+document with ``_id: 2`` contains the word ``hay``, the following query does not
+return any documents. ``hay`` is classified as a Spanish stop word, meaning it 
+is not included in the text index. 
+
+.. code-block:: javascript
+
+   db.quotes.find(
+      { 
+         $text: { $search: "hay" }
+      }
+   )
+
+
+Learn More 
+----------
+
+- To create a text index for a collection containing text in 
+  multiple languages, see :ref:`multiple-language-text-index`.
+
+- To learn about other text index properties, see
+  :ref:`text-index-properties`.
+
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   Multiple Languages </core/indexes/index-types/index-text/specify-language-text-index/create-text-index-multiple-languages>
+   Field Use </core/indexes/index-types/index-text/specify-language-text-index/use-any-field-to-specify-language>

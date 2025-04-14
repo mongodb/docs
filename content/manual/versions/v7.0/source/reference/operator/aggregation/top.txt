@@ -1,0 +1,250 @@
+==============================
+$top (aggregation accumulator)
+==============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+  :local:
+  :backlinks: none
+  :depth: 1
+  :class: singlecol
+
+Definition
+----------
+
+.. group:: $top
+
+   .. versionadded:: 5.2
+
+   Returns the top element within a group according to the specified 
+   sort order. 
+
+Syntax
+------
+
+.. code-block:: none
+   :copyable: false
+
+   {
+      $top:
+         {
+            sortBy: { <field1>: <sort order>, <field2>: <sort order> ... },
+            output: <expression>
+         }
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 15 70
+
+   * - Field
+     - Necessity
+     - Description
+
+   * - sortBy
+
+     - Required
+
+     - Specifies the order of results, with syntax similar to 
+       :pipeline:`$sort`.
+
+   * - output
+
+     - Required
+
+     - Represents the output for each element in the group 
+       and can be any expression.
+
+Behavior
+--------
+
+Null and Missing Values
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider the following aggregation that returns the top document 
+from a group of scores:
+
+- ``$top`` does not filter out null values.
+- ``$top`` converts missing values to null.
+
+.. code-block:: javascript
+   :emphasize-lines: 7,8
+
+   db.aggregate( [
+      {
+         $documents: [
+            { playerId: "PlayerA", gameId: "G1", score: 1 },
+            { playerId: "PlayerB", gameId: "G1", score: 2 },
+            { playerId: "PlayerC", gameId: "G1", score: 3 },
+            { playerId: "PlayerD", gameId: "G1"},
+            { playerId: "PlayerE", gameId: "G1", score: null }
+         ]
+      },
+      {
+         $group:
+         {  
+            _id: "$gameId",
+            playerId:
+               { 
+                  $top:
+                     {    
+                        output: [ "$playerId", "$score" ],
+                        sortBy: { "score": 1 }
+                     }
+               }
+         }
+      }
+   ] )
+
+In this example:
+
+- :pipeline:`$documents` creates the literal documents that contain
+  player scores.
+- :pipeline:`$group` groups the documents by ``gameId``. This
+  example has only one ``gameId``, ``G1``.
+- ``PlayerD`` has a missing score and ``PlayerE`` has a
+  null ``score``. These values are both considered as null.
+- The ``playerId`` and ``score`` fields are specified as 
+  ``output : ["$playerId"," $score"]`` and returned as array values. 
+- Specify the sort order with ``sortBy: { "score": 1 }``.
+- ``PlayerD`` and ``PlayerE`` tied for the top element. ``PlayerD`` 
+  is returned as the top ``score``.
+- To have more deterministic tie breaking behavior for multiple null 
+  values, add more fields to ``sortBy``.
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      {
+         _id: 'G1',
+         playerId: [ 'PlayerD', null ]
+      }
+   ]
+
+
+Restrictions
+------------
+
+Window Function and Aggregation Expression Support
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``$top`` is not supported as a 
+:ref:`aggregation expression <aggregation-expressions>`.
+
+``$top`` is supported as a 
+:pipeline:`window operator <$setWindowFields>`.
+
+Memory Limit Considerations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Aggregation pipelines which call ``$top`` are subject to the
+:ref:`100 MB limit <agg-memory-restrictions>`. If this
+limit is exceeded for an individual group, the aggregation fails
+with an error.
+
+Examples
+--------
+
+Consider a ``gamescores`` collection with the following documents:
+
+.. code-block:: javascript
+
+   db.gamescores.insertMany([
+      { playerId: "PlayerA", gameId: "G1", score: 31 },
+      { playerId: "PlayerB", gameId: "G1", score: 33 },
+      { playerId: "PlayerC", gameId: "G1", score: 99 },
+      { playerId: "PlayerD", gameId: "G1", score: 1 },
+      { playerId: "PlayerA", gameId: "G2", score: 10 },
+      { playerId: "PlayerB", gameId: "G2", score: 14 },
+      { playerId: "PlayerC", gameId: "G2", score: 66 },
+      { playerId: "PlayerD", gameId: "G2", score: 80 }
+   ])
+
+Find the Top ``Score``
+~~~~~~~~~~~~~~~~~~~~~~
+
+You can use the ``$top`` accumulator to find the top score in a 
+single game.
+
+.. code-block:: javascript
+
+   db.gamescores.aggregate( [
+      {
+         $match : { gameId : "G1" }
+      },
+      {
+         $group:
+            {
+               _id: "$gameId",
+               playerId:
+                  {
+                     $top:
+                     {
+                        output: [ "$playerId", "$score" ],
+                        sortBy: { "score": -1 }
+                     }
+                  }
+            }
+      }
+   ] )
+
+The example pipeline:
+
+- Uses :pipeline:`$match` to filter the results on a single ``gameId``. 
+  In this case, ``G1``.
+- Uses :pipeline:`$group` to group the results by ``gameId``. In this 
+  case, ``G1``.
+- Specifies the fields that are output for ``$top`` with
+  ``output : ["$playerId"," $score"]``.
+- Uses ``sortBy: { "score": -1 }`` to sort the scores in descending order.
+- Uses ``$top`` to return the top score in the game.
+
+The operation returns the following results:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [ { _id: 'G1', playerId: [ 'PlayerC', 99 ] } ]
+
+Find the Top ``Score`` Across Multiple Games
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use the ``$top`` accumulator to find the top ``score``
+in each game.
+
+.. code-block:: javascript
+
+   db.gamescores.aggregate( [
+         {
+            $group:
+            { _id: "$gameId", playerId:
+               {
+                  $top:
+                     {
+                        output: [ "$playerId", "$score" ],
+                        sortBy: { "score": -1 }
+                     }
+               }
+            }
+         }
+   ] )
+
+The example pipeline:
+
+- Uses ``$group`` to group the results by ``gameId``.
+- Uses ``$top`` to return top ``score`` for each game.
+- Specifies the fields that are output for ``$top`` with
+  ``output : ["$playerId", "$score"]``.
+- Uses ``sortBy: { "score": -1 }`` to sort the scores in descending order.
+
+The operation returns the following results:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      { _id: 'G2', playerId: [ 'PlayerD', 80 ] },
+      { _id: 'G1', playerId: [ 'PlayerC', 99 ] }
+   ]

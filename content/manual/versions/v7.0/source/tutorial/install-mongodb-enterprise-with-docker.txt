@@ -1,0 +1,204 @@
+.. _docker-mdb-enterprise-install:
+.. _docker-mongodb-enterprise-install:
+
+======================================
+Install MongoDB Enterprise with Docker
+======================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. _`MongoDB Download Center`: https://www.mongodb.com/try/download/enterprise?tck=docs_server
+
+.. important::
+
+   The recommended solutions for using containers with MongoDB are:
+
+   - For development and testing use the
+     `MongoDB Community Docker container <https://hub.docker.com/r/mongodb/mongodb-community-server/>`__.
+     This image is maintained by MongoDB. The image contains the
+     Community Edition of MongoDB.
+
+   - For MongoDB Enterprise production installations, use the
+     `Enterprise Kubernetes Operator <https://www.mongodb.com/docs/kubernetes-operator/master/kind-quick-start/>`__
+     to deploy and manage MongoDB clusters within Kubernetes.
+
+You can run MongoDB Enterprise Edition as a Docker container using the 
+official MongoDB Enterprise image. Use a Docker container to run your 
+MongoDB deployment if you want to:
+
+- Quickly set up a deployment.
+- Avoid editing configuration files.
+- Test features from multiple versions of MongoDB.
+
+About This Task
+---------------
+
+- This page assumes prior knowledge of Docker. A full description of 
+  `Docker <https://docs.docker.com/>`__ is beyond the scope of this 
+  documentation.
+
+- This procedure uses the official `MongoDB Enterprise Advanced Server
+  <https://hub.docker.com/r/mongodb/mongodb-enterprise-server>`__ 
+  container, which is maintained by MongoDB.
+
+.. include:: /includes/fact-avx-support-docker
+
+Before You Begin
+----------------
+
+- Install `Docker <https://docs.docker.com/install/>`__
+
+- Install `mongosh <https://www.mongodb.com/docs/mongodb-shell/install/>`__
+
+Steps
+-----
+
+.. procedure::
+   :style: normal
+
+   .. step:: Pull the MongoDB Docker Image
+
+      .. code-block:: sh
+
+         docker pull mongodb/mongodb-enterprise-server:latest
+
+   .. step:: Run the Image as a Container
+
+      .. code-block:: sh
+
+         docker run --name mongodb -p 27017:27017 -d mongodb/mongodb-enterprise-server:latest
+
+      The ``-p 27017:27017`` in this command maps the container port to the host port.
+      This allows you to connect to MongoDB with a ``localhost:27017`` connection string.
+
+      To install a specific version of MongoDB, specify the version
+      after the ``:`` in the Docker run command. Docker pulls and 
+      runs the specified version.
+
+      For example, to run MongoDB 5.0:
+
+      .. code-block:: sh
+
+         docker run --name mongodb -p 27017:27017 -d mongodb/mongodb-enterprise-server:5.0-ubuntu2004
+
+      For a full list of available versions, see 
+      `Tags <https://hub.docker.com/r/mongodb/mongodb-enterprise-server/tags>`__.
+
+      .. note:: Add Command Line Options
+
+         You can use :ref:`mongod command-line options <conf-file-command-line-mapping>` 
+         by appending the command-line options to the docker run command.
+
+         For example, consider the :option:`<mongod --replSet>` docker command-line option:
+
+         .. code-block:: bash
+
+            docker run -p 27017:27017 -d mongodb/mongodb-enterprise-server:latest --name mongodb --replSet myReplicaSet
+
+   .. step:: Check that the Container is Running
+
+      To check the status of your Docker container, run the following 
+      command:
+
+      .. code-block:: sh
+
+         docker container ls
+
+      The output from the ``ls`` command lists the following fields that 
+      describe the running container:
+
+      - ``Container ID``
+      - ``Image``
+      - ``Command``
+      - ``Created``
+      - ``Status``
+      - ``Port``
+      - ``Names`` 
+
+      .. code-block:: sh
+         :copyable: false
+
+         CONTAINER ID   IMAGE                                      COMMAND                 CREATED         STATUS         PORTS       NAMES
+         c29db5687290   mongodb-enterprise-server:latest  "docker-entrypoint.s…"   4 seconds ago   Up 3 seconds   27017/tcp   mongo
+
+   .. step:: Connect to the MongoDB Deployment with ``mongosh``
+
+      .. code-block:: sh
+
+         mongosh --port 27017
+
+   .. step:: Validate Your Deployment
+
+      To confirm your MongoDB instance is running, run the ``Hello`` 
+      command:
+
+      .. code-block:: sh
+
+         db.runCommand(
+            {
+               hello: 1
+            }
+         )
+
+      The result of this command returns a document describing your 
+      ``mongod`` deployment:
+
+      .. code-block:: javascript
+         :copyable: false 
+
+         {
+            isWritablePrimary: true,
+            topologyVersion: {
+               processId: ObjectId("63c00e27195285e827d48908"),
+               counter: Long("0")
+         },
+            maxBsonObjectSize: 16777216,
+            maxMessageSizeBytes: 48000000,
+            maxWriteBatchSize: 100000,
+            localTime: ISODate("2023-01-12T16:51:10.132Z"),
+            logicalSessionTimeoutMinutes: 30,
+            connectionId: 18,
+            minWireVersion: 0,
+            maxWireVersion: 20,
+            readOnly: false,
+            ok: 1
+         }
+
+Next Steps (Optional)
+---------------------
+
+.. include:: /includes/installation/docker/verify-signature-intro.rst
+
+.. procedure::
+   :style: normal
+
+   .. step:: Download and install Cosign
+
+      For installation instructions, see the `Cosign GitHub repository
+      <https://github.com/sigstore/cosign>`__.
+
+   .. step:: Download the MongoDB Server container image's public key
+
+      .. code-block:: sh
+
+         curl https://cosign.mongodb.com/server.pem > server.pem
+
+   .. step:: Verify the signature
+
+      Run the following command to verify the signature by tag: 
+      
+      .. code-block:: sh
+
+         COSIGN_REPOSITORY=docker.io/mongodb/signatures cosign verify --private-infrastructure --key=./server.pem docker.io/mongodb/mongodb-enterprise-server:latest
+       
+Learn More
+----------
+
+For compatibility information, see 
+`Docker & MongoDB <https://www.mongodb.com/compatibility/docker>`__.

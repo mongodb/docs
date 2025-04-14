@@ -1,0 +1,178 @@
+================
+cursor.comment()
+================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: cursor.comment()
+
+
+   .. include:: /includes/fact-mongosh-shell-method.rst
+
+   Adds a ``comment`` field to the query.
+
+   :method:`cursor.comment()` has the following syntax:
+
+   .. code-block:: javascript
+
+      cursor.comment( <string> )
+
+   :method:`~cursor.comment()` has the following parameter:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``comment``
+   
+        - string
+   
+        - The comment to apply to the query.
+          
+          
+Compatibility
+-------------
+
+This method is available in deployments hosted in the following environments: 
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. include:: /includes/fact-environments-atlas-support-all.rst
+
+.. include:: /includes/fact-environments-onprem-only.rst   
+
+
+Behavior
+--------
+
+:method:`~cursor.comment()` associates a comment string with the
+find operation. This can make it easier to track a particular query in the
+following diagnostic outputs:
+
+- The :data:`system.profile <<database>.system.profile>`
+- The :data:`QUERY` :doc:`log </reference/log-messages>` component
+- :method:`db.currentOp()`
+
+See :ref:`configure log verbosity <log-messages-configure-verbosity>` for the
+:binary:`~bin.mongod` log, the
+:ref:`Database Profiler tutorial <database-profiler>`, or
+the :method:`db.currentOp()` command.
+
+Example
+-------
+
+The following operation attaches a comment to a query on the ``restaurants``
+collection:
+
+.. code-block:: javascript
+
+   db.restaurants.find(
+      { "borough" : "Manhattan" }
+   ).comment( "Find all Manhattan restaurants" )
+
+Output Examples
+---------------
+
+:data:`system.profile <<database>.system.profile>`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following is an excerpt from the
+:data:`system.profile <<database>.system.profile>`:
+
+.. code-block:: javascript
+   :emphasize-lines: 9
+
+   {
+      "op" : "query",
+      "ns" : "guidebook.restaurant",
+      "query" : {
+         "find" : "restaurant",
+         "filter" : {
+            "borough" : "Manhattan"
+         },
+         "comment" : "Find all Manhattan restaurants"
+      },
+      ...
+   }
+
+
+:binary:`~bin.mongod` :doc:`log </reference/log-messages>`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following is an excerpt from the :binary:`~bin.mongod` log. It has been
+formatted for readability.
+
+.. important::
+
+   The verbosity level for :data:`QUERY` must be greater than ``0``.
+   See :ref:`log-messages-configure-verbosity`
+
+.. code-block:: javascript
+   :emphasize-lines: 5
+
+   2015-11-23T13:09:16.202-05:00 I COMMAND  [conn1]
+      command guidebook.restaurant command: find {
+         find: "restaurant",
+         filter: { "borough" : "Manhattan" },
+         comment: "Find all Manhattan restaurants"
+      }
+      ...
+
+
+:method:`db.currentOp()`
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Suppose the following operation is currently running on a :binary:`~bin.mongod`
+instance:
+
+.. code-block:: javascript
+
+   db.restaurants.find(
+      { "borough" : "Manhattan" }
+   ).comment("Find all Manhattan restaurants")
+
+Running the :method:`db.currentOp()` command returns the following:
+
+.. code-block:: javascript
+   :emphasize-lines: 17
+
+   {
+      "inprog" : [
+         {
+            "host" : "198.51.100.1:27017",
+            "desc" : "conn3",
+            "connectionId" : 3,
+            ...
+
+            "op" : "query",
+            "ns" : "test.$cmd",
+            "command" : {
+               "find" : "restaurants",
+               "filter" : {
+                  "borough" : "Manhattan"
+               },
+               "comment" : "Find all Manhattan restaurants",
+               "$db" : "test"
+            },
+            "numYields" : 0,
+            ...
+         }
+      ],
+      "ok" : 1
+   }
