@@ -1,0 +1,74 @@
+ref: connect-mongos
+stepnum: 1
+level: 3
+title: "Connect to :binary:`~bin.mongos` using :binary:`~bin.mongosh`."  
+content: |
+  You can connect to any :binary:`~bin.mongos` in the cluster.
+---
+ref: use-config
+stepnum: 2
+level: 3
+title: "Switch to the :ref:`config-database`."
+action:
+  - pre: |
+      Issue the following command to switch to the config database.
+    language: sh
+    code: |
+      use config
+---
+ref: ensure-balancer-not-stopped
+stepnum: 3
+level: 3
+title: "Ensure that the balancer is not ``stopped``."
+action:
+  - pre: |
+      The balancer will not activate in the ``stopped`` state.
+      To ensure that the  balancer
+      is not ``stopped``, use :method:`sh.startBalancer()`,
+      as in the following:
+    language: sh
+    code: |
+      sh.startBalancer()
+    post: |
+      The balancer will not start if you are outside
+      of the ``activeWindow`` timeframe.
+      
+      .. include:: /includes/extracts/4.2-changes-start-balancer-autosplit.rst
+---
+ref: modify-window
+stepnum: 4
+level: 3
+title: "Modify the balancer's window."
+action:
+  - pre: |
+      Set the ``activeWindow`` using :method:`~db.collection.updateOne()`,
+      as in the following:
+    language: sh
+    code: |
+      db.settings.updateOne(
+         { _id: "balancer" },
+         { $set: { activeWindow : { start : "<start-time>", stop : "<stop-time>" } } },
+         { upsert: true }
+      )
+    post: |
+      Replace ``<start-time>`` and ``<end-time>`` with time values using
+      two digit hour and minute values (i.e. ``HH:MM``) that specify the
+      beginning and end boundaries of the balancing window.
+
+      - For ``HH`` values, use hour values ranging from ``00`` - ``23``.
+      - For ``MM`` value, use minute values ranging from ``00`` - ``59``.
+  - pre: |
+      MongoDB evaluates the start and stop times relative to the time
+      zone of the member which is serving as a primary in the config
+      server replica set.
+  - pre: |
+      .. note::
+
+         The balancer window must be sufficient to *complete* the
+         migration of all data inserted during the day.
+
+         As data insert rates can change based on activity and usage
+         patterns, it is important to ensure that the balancing window
+         you select will be sufficient to support the needs of your
+         deployment.
+...

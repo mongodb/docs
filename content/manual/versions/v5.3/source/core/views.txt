@@ -1,0 +1,375 @@
+.. _views-landing-page:
+
+=====
+Views
+=====
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+A MongoDB view is a queryable object whose contents are defined by an
+:ref:`aggregation pipeline <aggregation-pipeline>` on other collections
+or views. MongoDB does not persist the view contents to disk. A view's
+content is computed on-demand when a client :ref:`queries
+<views-supported-operations>` the view. MongoDB can require clients to
+:ref:`have permission <authorization>` to query the view. MongoDB does
+not support write operations against views.
+
+For example, you can:
+
+- Create a view on a collection of employee data to 
+  :pipeline:`exclude <$project>` any private or personal
+  information (PII). Applications can query the view for employee
+  data that does not contain any PII.
+
+- Create a view on a collection of collected sensor data to 
+  :pipeline:`add <$addFields>` computed fields and metrics. Applications
+  can use simple find operations to query the data.
+
+- Create a view that :pipeline:`joins <$lookup>` two collections
+  containing inventory and order history respectively. Applications can
+  query the joined data without managing or understanding the underlying
+  complex pipeline.
+
+When clients :ref:`query a view <views-supported-operations>`, MongoDB
+appends the client query to the underlying pipeline and returns the
+results of that combined pipeline to the client. MongoDB may apply
+:doc:`aggregation pipeline optimizations
+</core/aggregation-pipeline-optimization>` to the combined pipeline.
+
+.. note::
+
+   The following page discusses views. For discussion of
+   on-demand materialized views, see :doc:`/core/materialized-views`
+   instead.
+
+
+Create View
+-----------
+
+To create or define a view:
+
+- Use the :method:`db.createCollection()` method or the 
+  :dbcommand:`create` command:
+
+  .. code-block:: javascript
+
+     db.createCollection( 
+       "<viewName>", 
+       {
+         "viewOn" : "<source>", 
+         "pipeline" : [<pipeline>],
+         "collation" : { <collation> }
+       }
+     )
+
+- Use the :method:`db.createView()` method:
+
+  .. code-block:: javascript
+
+     db.createView(
+       "<viewName>",
+       "<source>",
+       [<pipeline>],
+       {
+         "collation" : { <collation> }
+       }
+     )
+
+.. note::
+   - You must create views in the same database as the source collection.
+
+   - .. include:: /includes/extracts/views-restriction-output-to-disk.rst
+
+Behavior
+--------
+
+.. include:: /includes/extracts/views-behavior.rst
+
+Public View Definition
+~~~~~~~~~~~~~~~~~~~~~~
+
+Operations that lists collections, such as
+:method:`db.getCollectionInfos()` and
+:method:`db.getCollectionNames()`, include views in their outputs.
+
+.. important::
+
+   .. include:: /includes/extracts/views-public-definition.rst
+
+Drop a View
+-----------
+
+To remove a view, use the :method:`db.collection.drop()` method on the
+view.
+
+.. _views-modify:
+
+Modify a View
+-------------
+
+You can modify a view either by dropping and recreating the view or
+using the :dbcommand:`collMod` command.
+
+.. _views-supported-operations:
+
+Supported Operations
+--------------------
+
+The following operations provide support for views, except for the
+restrictions mentioned in this page:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - Commands
+     - Methods
+
+   * - :dbcommand:`create`
+     - | :method:`db.createCollection()`
+       | :method:`db.createView()`
+
+   * - :dbcommand:`collMod`
+     -
+
+   * - 
+     - | :method:`db.getCollection()`
+       | :method:`db.getCollectionInfos()`
+       | :method:`db.getCollectionNames()`
+
+   * - | :dbcommand:`find`
+       | :dbcommand:`distinct`
+       | :dbcommand:`count`
+
+     - | :method:`db.collection.aggregate()`
+       | :method:`db.collection.find()`
+       | :method:`db.collection.findOne()`
+       | :method:`db.collection.countDocuments()`
+       | :method:`db.collection.estimatedDocumentCount()`
+       | :method:`db.collection.count()`
+       | :method:`db.collection.distinct()`
+
+Examples
+--------
+
+Create the ``students`` collection to use in the following examples:
+
+.. _ex-views-create-sample:
+
+.. code-block:: javascript
+
+   db.students.insertMany( [
+      { sID: 22001, name: "Alex", year: 1, score: 4.0 }, 
+      { sID: 21001, name: "bernie", year: 2, score: 3.7 }, 
+      { sID: 20010, name: "Chris", year: 3, score: 2.5 }, 
+      { sID: 22021, name: "Drew", year: 1, score: 3.2 }, 
+      { sID: 17301, name: "harley", year: 6, score: 3.1 }, 
+      { sID: 21022, name: "Farmer", year: 1, score: 2.2 }, 
+      { sID: 20020, name: "george", year: 3, score: 2.8 },
+      { sID: 18020, name: "Harley", year: 5, score: 2.8 }, 
+   ] )
+
+Use db.createView() to Create a View 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use :method:`db.createView()` to create a view that is limited to first
+year students: 
+
+.. code-block:: javascript
+
+   db.createView(
+      "firstYears",
+      "students",
+      [ { $match: { year: 1 } } ]
+   )
+
+In the example:
+
+- ``firstYears`` is the name of the new view.
+- ``students`` is the collection the view is based on.
+- :pipeline:`$match` is an aggregation expression that matches first
+  year students in the ``students`` collection.
+
+This example queries the view:
+
+.. code-block:: javascript
+
+   db.firstYears.find({}, { _id: 0 } )
+
+The following output only contains the documents with data on first
+year students. The ``{ _id: 0 }`` :ref:`projection
+<method-find-projection>` suppresses the ``_id`` field in the output.
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+     { sID: 22001, name: 'Alex', year: 1, score: 4 },
+     { sID: 22021, name: 'Drew', year: 1, score: 3.2 },
+     { sID: 21022, name: 'Farmer', year: 1, score: 2.2 }
+   ]
+
+Use db.createCollection() to Create a View
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :method:`db.createCollection()` method allows you to create a
+collection or a view with specific options.
+
+The following example creates a ``graduateStudents`` view. The view
+only contains documents selected by the :pipeline:`$match` stage. The
+optional :ref:`collation <collation>` setting determines the sort
+order.
+
+.. code-block:: javascript
+
+   db.createCollection(
+      "graduateStudents",
+      { 
+         viewOn: "students",
+         pipeline: [ { $match: { $expr: { $gt: [ "$year", 4 ] } } } ],
+         collation: { locale: "en", caseFirst: "upper" }
+      }
+   )
+
+The following example queries the view. The :pipeline:`$unset` stage
+removes the ``_id`` field from the output for clarity.
+
+.. code-block:: javascript
+
+   db.graduateStudents.aggregate(
+      [
+         { $sort: { name: 1 } },
+         { $unset: [ "_id" ] }
+      ]
+   )
+
+When the output is sorted, the :pipeline:`$sort` stage uses the 
+:ref:`collation <collation>` ordering to sort uppercase letters before
+lowercase letters.
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+     { sID: 18020, name: 'Harley', year: 5, score: 2.8 },
+     { sID: 17301, name: 'harley', year: 6, score: 3.1 }
+   ]
+
+Use a View to Join Two Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+It is often convenient to use :pipeline:`$lookup` to create a view over
+two collections and then run queries against the view. Applications can
+query the view without having to construct or maintain complex
+pipelines.
+
+Create two sample collections, ``inventory`` and ``orders``:
+
+.. code-block:: javascript
+
+   db.inventory.insertMany( [
+      { prodId: 100, price: 20, quantity: 125 },
+      { prodId: 101, price: 10, quantity: 234 },
+      { prodId: 102, price: 15, quantity: 432 },
+      { prodId: 103, price: 17, quantity: 320 }
+   ] )
+
+   db.orders.insertMany( [
+      { orderID: 201, custid: 301, prodId: 100, numPurchased: 20 }, 
+      { orderID: 202, custid: 302, prodId: 101, numPurchased: 10 }, 
+      { orderID: 203, custid: 303, prodId: 102, numPurchased: 5 }, 
+      { orderID: 204, custid: 303, prodId: 103, numPurchased: 15 }, 
+      { orderID: 205, custid: 303, prodId: 103, numPurchased: 20 }, 
+      { orderID: 206, custid: 302, prodId: 102, numPurchased: 1 }, 
+      { orderID: 207, custid: 302, prodId: 101, numPurchased: 5 }, 
+      { orderID: 208, custid: 301, prodId: 100, numPurchased: 10 }, 
+      { orderID: 209, custid: 303, prodId: 103, numPurchased: 30 }
+   ] )
+
+Create a view that combines elements from each collection:
+
+.. code-block:: javascript
+
+   db.createView( "sales", "orders", [ 
+      {
+         $lookup:
+            {
+               from: "inventory",
+               localField: "prodId",
+               foreignField: "prodId",
+               as: "inventoryDocs"
+            }
+      },
+      {
+         $project:
+            {
+              _id: 0, 
+              prodId: 1, 
+              orderId: 1,
+              numPurchased: 1,
+              price: "$inventoryDocs.price"
+            }
+      },
+         { $unwind: "$price" }
+   ] )
+
+In the example:
+
+- :method:`db.createView()` creates the ``sales`` view.
+- The ``sales`` view is based on the ``orders`` collection.
+- The :pipeline:`$lookup` stage uses the ``prodId`` field in the
+  ``orders`` collection to "join" documents in the ``inventory``
+  collection that have matching ``prodId`` fields.
+- The matching documents are added as an array in the ``inventoryDocs``
+  field.
+- The :pipeline:`$project` stage selects a subset of the available
+  fields.
+- The :pipeline:`$unwind` stage converts the ``price`` field from an
+  array to a scalar value.
+
+The documents in the ``sales`` view are:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { prodId: 100, numPurchased: 20, price: 20 },
+   { prodId: 101, numPurchased: 10, price: 10 },
+   { prodId: 102, numPurchased: 5, price: 15 },
+   { prodId: 103, numPurchased: 15, price: 17 },
+   { prodId: 103, numPurchased: 20, price: 17 },
+   { prodId: 102, numPurchased: 1, price: 15 },
+   { prodId: 101, numPurchased: 5, price: 10 },
+   { prodId: 100, numPurchased: 10, price: 20 },
+   { prodId: 103, numPurchased: 30, price: 17 }
+
+To find the total amount sold of each product, query the view:
+
+.. code-block:: javascript
+
+   db.sales.aggregate( [ 
+      { 
+         $group: 
+            {
+               _id: "$prodId",
+               amountSold: { $sum: { $multiply: [ "$price", "$numPurchased" ] } }
+            }
+      }
+   ] )
+
+The output is:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+     { _id: 100, amountSold: 600 },
+     { _id: 103, amountSold: 1105 },
+     { _id: 101, amountSold: 150 },
+     { _id: 102, amountSold: 90 }
+   ]
+

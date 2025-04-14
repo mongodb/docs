@@ -1,0 +1,283 @@
+.. _manual-manage-cmk-and-dek:
+
+=============================================
+Master Key and Data Encryption Key Management
+=============================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. versionadded:: 4.2
+
+.. _field-level-encryption-kms:
+
+Supported Key Management Services
+---------------------------------
+
+Client-side field level encryption requires a Key Management Service
+(KMS) for accessing a Customer Master Key (CMK). MongoDB automatically
+encrypts data encryption keys using the specified CMK during 
+:ref:`data encryption key creation <keyvault-createkey-method>`.
+
+Deleting the CMK renders all data encryption keys encrypted with that
+CMK as permanently unreadable, which in turn renders all values
+encrypted with those data encryption keys as permanently unreadable.
+
+Client-side field level encryption supports the following KMS providers:
+
+- :ref:`Amazon Web Services KMS <field-level-encryption-aws-kms>`
+- :ref:`Azure Key Vault <field-level-encryption-azure-keyvault>`
+- :ref:`Google Cloud Platform KMS <field-level-encryption-gcp-kms>`
+- :ref:`Locally Managed Key <field-level-encryption-local-kms>`
+
+.. _field-level-encryption-aws-kms:
+
+Amazon Web Services KMS
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/csfle-aws-kms-4.2.0-4.2.1-broken.rst
+
+MongoDB client-side encryption supports using the 
+`Amazon Web Services Key Management Service 
+<https://aws.amazon.com/kms>`__ for encrypting
+and decrypting data encryption keys. Specifically, MongoDB securely
+transmits the data encryption key to AWS KMS for encrypting or
+decrypting using the specified Customer Master Key (CMK). The CMK never
+leaves the AWS KMS. 
+
+:binary:`~bin.mongosh` supports two methods for configuring 
+access to an AWS KMS:
+
+- Use the client-side field level encryption :ref:`command-line options 
+  <mongo-client-side-field-level-encryption-options>`, or
+
+- Use the :method:`Mongo()` constructor to create a database connection
+  with the required AWS :ref:`KMS configuration options
+  <ClientSideFieldLevelEncryptionOptions>`.
+
+Configuring access to an AWS KMS requires at minimum an AWS Access Key
+and its corresponding Secret Key. The IAM User associated to the Access
+Key must have at least one policy with the following actions:
+
+- ``kms:Encrypt`` 
+  `(reference) 
+  <https://docs.aws.amazon.com/kms/latest/APIReference/API_Encrypt.html>`__ 
+
+- ``kms:Decrypt`` 
+  `(reference) 
+  <https://docs.aws.amazon.com/kms/latest/APIReference/API_Decrypt.html>`__ 
+
+.. note:: Implement Principle of Least Privilege for KMS Access
+
+   Consider configuring IAM user roles such that MongoDB has only the 
+   access to the actions and resources required to function. 
+
+   For example, the following policy JSON scopes the required actions to
+   a single CMK:
+
+   .. code-block:: json
+
+      {
+          "Version": "2012-10-17",
+          "Statement": [
+              {
+                  "Sid": "VisualEditor0",
+                  "Effect": "Allow",
+                  "Action": [
+                      "kms:Decrypt",
+                      "kms:Encrypt"
+                  ],
+                  "Resource": "arn:aws:kms:region:account:key/12a345b6-cd7e-8f9g-0h1i-jk23l45mn6o7"
+              }
+          ]
+      }
+
+For complete documentation on data encryption key management using AWS
+KMS, see :ref:`Manage Data Encryption Keys <manual-manage-dek>` and
+select the "Amazon Web Services KMS" tab.
+
+.. _field-level-encryption-azure-keyvault:
+
+Azure Key Vault
+~~~~~~~~~~~~~~~
+
+MongoDB client-side encryption supports using the 
+`Azure Key Vault Key Management Service 
+<https://docs.microsoft.com/en-us/azure/key-vault/>`__ for encrypting
+and decrypting data encryption keys. Specifically, MongoDB securely
+transmits the data encryption key to Azure Key Vault for encrypting or
+decrypting using the specified Customer Master Key (CMK). The CMK never
+leaves the Azure Key Vault. 
+
+:binary:`~bin.mongosh` supports specifying Azure Key Vault
+as a KMS using the :method:`Mongo()` constructor using the
+:ref:`KMS configuration options
+<ClientSideFieldLevelEncryptionOptions>`.
+
+Configuring access to Azure Key Vault requires at minimum an Azure
+Tenant ID, Client ID, and Client Secret. The Tenant ID must have the
+ability to perform the following actions:
+
+- ``wrap key`` 
+  `(reference) 
+  <https://docs.microsoft.com/en-us/rest/api/keyvault/wrapkey/wrapkey>`__ 
+
+- ``unwrap key`` 
+  `(reference) 
+  <https://docs.microsoft.com/en-us/rest/api/keyvault/unwrapkey/unwrapkey>`__ 
+
+.. note::
+
+   MongoDB does *not* support Azure's client certificate authentication
+   (also known as TLS mutual authentication).
+
+For complete documentation on data encryption key management using
+Azure Key Vault, see
+:ref:`Manage Data Encryption Keys <manual-manage-dek>` and select the
+"Azure Key Vault" tab.
+
+.. _field-level-encryption-gcp-kms:
+
+Google Cloud Platform KMS
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB client-side encryption supports using the 
+`Google Cloud KMS <https://cloud.google.com/kms/docs/>`__ for encrypting
+and decrypting data encryption keys. Specifically, MongoDB securely
+transmits the data encryption key to Google Cloud KMS for encrypting or
+decrypting using the specified Customer Master Key (CMK). The CMK never
+leaves the Google Cloud KMS.
+
+:binary:`~bin.mongosh` supports specifying Google Cloud KMS
+as a KMS using the :method:`Mongo()` constructor using the
+:ref:`KMS configuration options
+<ClientSideFieldLevelEncryptionOptions>`.
+
+Configuring access to Google Cloud KMS requires at minimum a Google
+Cloud Email and associated Private Key. The Google Cloud Email account
+must have the following IAM permissions for the specified Private Key:
+
+- ``cloudkms.cryptoKeyVersions.useToEncrypt`` 
+
+- ``cloudkms.cryptoKeyVersions.useToDecrypt`` 
+
+These IAM permissions are included in certain
+`Google Cloud predefined roles
+<https://cloud.google.com/kms/docs/reference/permissions-and-roles#predefined>`__
+or can be included in a
+`Google Cloud custom role
+<https://cloud.google.com/kms/docs/reference/permissions-and-roles#custom_roles>`__.
+
+For complete documentation on data encryption key management using
+Google Cloud KMS, see
+:ref:`Manage Data Encryption Keys <manual-manage-dek>` and select the
+"Google Cloud KMS" tab.
+
+.. _field-level-encryption-local-kms:
+
+Locally Managed Key
+~~~~~~~~~~~~~~~~~~~
+
+:binary:`~bin.mongosh` supports specifying a locally managed key
+as a KMS using the :method:`Mongo()` constructor. The local key *must*
+be a 96-byte long string.
+
+For complete documentation on data encryption key management using a
+locally managed key, see
+:ref:`Manage Data Encryption Keys <manual-manage-dek>` and select the
+"Local Keyfile" tab.
+
+.. _field-level-encryption-keyvault:
+
+Encryption Key Vault
+--------------------
+
+The key vault is a collection that stores data encryption keys for use
+with client-side field level encryption. Data encryption keys are
+encrypted using a Customer Master Key (CMK) managed through a supported
+:ref:`Key Management System (KMS) <field-level-encryption-kms>`.
+
+:binary:`~bin.mongosh` provides helper methods for data
+encryption key management:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 60 40
+
+   * - Use Case
+     - Helper Methods
+
+   * - Retrieving data encryption keys
+     - | :method:`KeyVault.getKey()`
+       | :method:`KeyVault.getKeys()`
+       | :method:`KeyVault.getKeyByAltName()`
+
+   * - Creating or Modifying data encryption keys
+     - | :method:`KeyVault.createKey()`
+       | :method:`KeyVault.addKeyAlternateName()`
+       | :method:`KeyVault.removeKeyAlternateName()`
+
+   * - Removing data encryption keys
+     - :method:`KeyVault.deleteKey()`
+
+       .. important::
+          
+          Removing a data encryption key renders all fields encrypted
+          using that data encryption key as permanently unreadable.
+
+
+Applications with :authrole:`read` access to the key vault collection
+can retrieve data encryption keys by querying the collection. However,
+only applications with access to the CMK used to encrypt a data
+encryption key can use that key for encryption or decryption.
+
+By default MongoDB stores the key vault collection on the connected
+cluster. MongoDB also supports specifying a remote cluster as the key
+vault. Applications must have access to both the remote key vault
+cluster and the connection cluster to perform client-side field level
+encryption operations.
+
+Data encryption keys have the following structure:
+
+.. code-block:: json
+
+   {
+     "_id" : UUID("<string>"),
+     "keyMaterial" : BinData(0,"<encrypted binary data string>"),
+   	 "creationDate" : ISODate("2019-08-20T15:45:02.575Z"),
+   	 "updateDate" : ISODate("2019-08-20T15:45:02.575Z"),
+   	 "status" : <int>,
+   	 "version" : NumberLong(0),
+   	 "masterKey" : {
+   	   "provider" : "<string>",
+   	   "key" : "<string>",
+   	   "region" : "<string>",
+   	   "endpoint" : "<string>"
+   	 },
+   	 "keyAltNames" : [
+       "<string>"
+     ]
+   }
+
+Client-side field level encryption depends on uniqueness of
+``keyAltNames`` values. The :binary:`~bin.mongosh`
+:method:`KeyVault.createKey()` method creates a :ref:`unique index
+<index-type-unique>` on ``keyAltNames`` if one does not exist.
+Applications can use the :dbcommand:`listIndexes` command against the
+key vault collection to check if the unique index exists. If the unique
+index does not exist, applications *must* create it prior to performing
+data encryption key management.
+
+For complete documentation on data encryption key management, see
+:ref:`Manage Data Encryption Keys <manual-manage-dek>`.
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   /tutorial/manage-client-side-encryption-data-keys.txt

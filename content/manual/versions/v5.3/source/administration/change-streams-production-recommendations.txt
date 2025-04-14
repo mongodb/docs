@@ -1,0 +1,105 @@
+
+
+=========================================
+Change Streams Production Recommendations
+=========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+If you drop or rename a collection or database with change streams
+opened against it, the change stream cursors close when they advance to
+that point in the oplog. Change stream cursors with the ``fullDocument :
+updateLookup`` option may return ``null`` for the lookup document.
+
+Attempting to resume a change stream against a dropped collection results in
+an error. Any data changes that occurred on the collection between the last
+event the change stream captured and the collection drop event are lost.
+
+Change stream response documents must adhere to the 16MB BSON document limit.
+Depending on the size of documents in the collection against which you open a
+change stream, notifications may fail if the resulting notification document
+exceeds the 16MB limit. For example, update operations on change streams
+configured to return the full updated document, or insert/replace operations
+with a document that is at or just below the limit.
+
+Replica Sets
+------------
+
+For replica sets with :term:`arbiter` members, change streams may remain
+idle if enough data-bearing members are unavailable such that operations cannot
+be majority committed.
+
+For example, consider a 3-member replica set with two data-bearing nodes and
+an arbiter. If the secondary goes down, such as due to failure or an upgrade,
+writes cannot be majority committed. The change stream remains open, but does
+not send any notifications.
+
+In this scenario, the application can catch up to all operations that occurred
+during the downtime so long as the last operation the application received is
+still in the oplog of the replica set.
+
+If significant downtime is estimated, such as for an upgrade or a significant
+disaster, consider increasing the size of the oplog such that operations are
+retained for a duration of time greater than the estimated downtime.
+Use :method:`rs.printReplicationInfo()` to retrieve information on the
+oplog status, including the size of the oplog and the time range of operations.
+
+Sharded Clusters
+----------------
+
+Change streams provide a total ordering of changes across shards by utilizing
+a global logical clock. MongoDB guarantees the order of changes are preserved
+and change stream notifications can be safely interpreted in the order
+received. For example, a change stream cursor opened against a 3-shard sharded
+cluster returns change notifications respecting the total order of those
+changes across all three shards.
+
+To guarantee total ordering of changes, for each change notification the
+:binary:`~bin.mongos` checks with each shard to see if the shard has seen more
+recent changes. Sharded clusters with one or more shards that have little or
+no activity for the collection, or are "cold", can negatively affect the
+response time of the change stream as the :binary:`~bin.mongos` must still check
+with those cold shards to guarantee total ordering of changes. This effect may
+be more apparent with geographically distributed shards, or workloads where
+the majority of operations occur on a subset of shards in the cluster.
+
+If a sharded collection has high levels of activity, the :binary:`~bin.mongos`
+may not be able to keep up with the changes across all of the shards.
+Consider utilizing notification filters for these types of collections.
+For example, passing a :pipeline:`$match` pipeline configured to filter
+only ``insert`` operations.
+
+For sharded collections, update operations with :ref:`multi : true
+<multi-parameter>` may cause any change streams opened against that collection
+to send notifications for :term:`orphaned documents <orphaned document>`.
+
+From the moment an unsharded collection is sharded until the time the change
+stream catches up to the first chunk migration, the ``documentKey`` in the
+change stream notification document only includes the ``_id`` of the document,
+not the full shard key.
+
+Indexes and Performance
+-----------------------
+
+Change streams cannot use indexes. MongoDB does not support creating
+indexes on the :term:`oplog` collection. Therefore, avoid opening a high
+number of :ref:`specifically-targeted <changeStreams-watch-deployment>`
+change streams as these can impact server performance.
+
+Change Stream Optimization
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. |change-streams| replace:: change streams
+
+.. include:: /includes/change-streams-optimization.rst
+
+Change Streams and Orphan Documents
+-----------------------------------
+
+.. include:: /includes/change-streams-and-orphans.rst

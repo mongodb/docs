@@ -1,0 +1,172 @@
+============================
+$arrayToObject (aggregation)
+============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $arrayToObject
+
+   Converts an array into a single document; the array must be
+   either:
+
+   - An array of two-element arrays where the first element is the
+     field name, and the second element is the field value:
+
+     .. code-block:: none
+
+        [ [ "item", "abc123"], [ "qty", 25 ] ]
+
+   \- OR -
+
+   - An array of documents that contains two fields, ``k`` and ``v``
+     where:
+
+     - The ``k`` field contains the field name.
+
+     - The ``v`` field contains the value of the field.
+
+     .. code-block:: none
+
+        [ { "k": "item", "v": "abc123"}, { "k": "qty", "v": 25 } ]
+
+   :expression:`$arrayToObject` has the following syntax:
+
+   .. code-block:: javascript
+
+      { $arrayToObject: <expression> }
+
+   The ``<expression>`` can be any valid :ref:`expression
+   <aggregation-expressions>` that resolves to an array of two-element
+   arrays or array of documents that contains "k" and "v" fields.
+
+   For more information on expressions, see
+   :ref:`aggregation-expressions`.
+
+Behavior
+--------
+
+If the name of a field repeats in the array,
+
+- Starting in 4.0.5, :expression:`$arrayToObject` uses the last value
+  for that field. For 4.0.0-4.0.4, the value used depends on the driver.
+
+- Starting in 3.6.10, :expression:`$arrayToObject` uses the last value
+  for that field. For 3.6.0-3.6.9, the value used depends on the driver.
+
+- Starting in 3.4.19, :expression:`$arrayToObject` uses the last value
+  for that field. For 3.4.0-3.4.19, the value uses depends on the
+  driver.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 80 20
+   :class: border-table
+
+   * - Example
+     - Results
+
+   * - .. code-block:: json
+          :copyable: false
+
+          { $arrayToObject:  { $literal: [ 
+                { "k": "item", "v": "abc123"},
+                { "k": "qty", "v": 25 } 
+          ] } }
+
+     - .. code-block:: json
+          :copyable: false
+
+          { "item" : "abc123", "qty" : 25 }
+
+   * - .. code-block:: json
+          :copyable: false
+
+          { $arrayToObject: { $literal:  [ 
+             [ "item", "abc123"], [ "qty", 25 ] 
+          ] } }
+
+     - .. code-block:: json
+          :copyable: false
+
+          { "item" : "abc123", "qty" : 25 }
+
+   * - .. code-block:: json
+          :copyable: false
+
+          { $arrayToObject: { $literal: [ 
+             { "k": "item", "v": "123abc"}, 
+             { "k": "item", "v": "abc123" } 
+          ] } }
+
+     - .. code-block:: json
+          :copyable: false
+
+          { "item" : "abc123" }
+          
+       
+       Starting in versions 4.0.5+ (3.6.10+ and 3.4.19+), if the name
+       of a field repeats in the array, :expression:`$arrayToObject`
+       uses the last value for that field.
+
+
+Examples
+--------
+
+
+``$arrayToObject``  Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider a ``inventory`` collection with the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "ABC1",  dimensions: [ { "k": "l", "v": 25} , { "k": "w", "v": 10 }, { "k": "uom", "v": "cm" } ] }
+   { "_id" : 2, "item" : "ABC2",  dimensions: [ [ "l", 50 ], [ "w",  25 ], [ "uom", "cm" ] ] }
+   { "_id" : 3, "item" : "ABC3",  dimensions: [ [ "l", 25 ], [ "l",  "cm" ], [ "l", 50 ] ] }
+
+The following aggregation pipeline operation use the
+:expression:`$arrayToObject` to return the ``dimensions`` field as a
+document:
+
+.. code-block:: javascript
+
+   db.inventory.aggregate(
+      [
+         {
+            $project: {
+               item: 1,
+               dimensions: { $arrayToObject: "$dimensions" }
+            }
+         }
+      ]
+   )
+
+The operation returns the following:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "ABC1", "dimensions" : { "l" : 25, "w" : 10, "uom" : "cm" } }
+   { "_id" : 2, "item" : "ABC2", "dimensions" : { "l" : 50, "w" : 25, "uom" : "cm" } }
+   { "_id" : 3, "item" : "ABC3", "dimensions" : { "l" : 50 } }
+
+Starting in versions 4.0.5+ (3.6.10+ and 3.4.19+), if the name of a
+field repeats in the array, :expression:`$arrayToObject` uses the last
+value for that field. 
+
+``$objectToArray`` + ``$arrayToObject`` Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/example-objectToArray-arrayToObject.rst
+
+.. seealso::
+
+   :expression:`$objectToArray`

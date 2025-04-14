@@ -1,0 +1,104 @@
+
+.. the remainder of be dropped or completly rewritten as needed, or
+   used in filling out the blanks in existing documentation.
+
+Data Center Awareness Through Read Preferences and Write Concerns
+-----------------------------------------------------------------
+
+Read and Write Preferences are driver features
+which control the conditions under which a driver reads or writes to a
+MongoDB database.
+You should verify that the specific driver you are using supports these
+features before utilizing them for data center awareness.
+
+Read preferences control whether your application reads from the primary
+or a secondary or the *nearest* MongoDB instance in the current topology
+of the network.
+
+Write concerns control how durable the replication of your data is,
+from insurance that at least one replica set member
+has the data through assurance that a majority or all members of a
+replica set have copies of the data.
+The MongoDB write concern is not comparable to a transaction, it controls
+how long your client application will wait for confirmation that
+an update has propagated to however many replica set members you require.
+
+Read Preferences and Write Concerns are documented in
+:doc:`/applications/replication`.
+
+In the context of data center awareness, read preferences can be used to
+control whether a client reads from a primary, a secondary, the nearest
+replica set member, or a custom preference composed of
+:ref:`replica set tags <replica-set-configuration-tag>`.
+
+In parallel, you can set the write concern on a connection to ensure
+that data has been written to one or more members of the replica set, to
+a majority of members of the replica set, or to a custom write concern
+composed of replica set tags and a quantity of tagged members which must
+acknowledge the success of the write.
+
+While write concerns can be set on a per-connection basis, you can also
+define a default write concern for a replica set by updating the
+:data:`~local.system.replset.settings.getLastErrorDefaults`
+setting of the replica set.
+
+See :ref:`replica-set-configuration-tag-sets` for sample configurations
+of replica sets with tags.
+
+Within a data center you can use a combination of read preferences and
+write concerns to manage where information is written to and where it is
+read from.
+
+You could direct all read activity from a reporting tool to secondary
+members of a replica set, lessening the workload on your primary server,
+by using a read preference of :readmode:`secondaryPreferred`.
+
+If your replica set members are distributed across multiple data centers
+you can utilize :readmode:`nearest` to direct reads to the closest
+replica set member, which may be a primary or secondary member of the
+replica set.
+
+Write activities always start by writing to the primary member of the
+replica set.  The :term:`write concern` affects how long your client will
+wait for confirmation that the data has been written to additional
+replica set members.
+
+As of the :ref:`Fall 2012 driver update <driver-write-concern-change>`,
+officially supported MongoDB drivers will wait for confirmation that
+updates have been committed on the primary.
+You can specify to wait for additional members to acknowledge a write,
+by specifying a number or ``w:majority`` on your connection, or by
+changing the :data:`~local.system.replset.settings.getLastErrorDefaults`
+setting of the replica set.
+
+Replica set tags can be combined with write operations to wait for
+confirmation that an update has been committed to members of the replica
+set matching the specified tags.
+
+For example, you could tag your replica set members with tags identifying
+the rack they occupy in a datacenter, or the type of storage media
+(spinning disk, solid state drive, etc.).
+
+.. TODO:: several examples TK.
+
+.. _tag-aware-sharding:
+
+Multi Data Center Awareness Through Tag Aware Sharding
+------------------------------------------------------
+
+Shard tagging controls data location, and is complementary to but separate
+from replica set tagging.  Where replica set tags affect read and write
+operations within a given replica set, shard tags determine which
+replica sets contain tagged ranges of data.
+
+Given a shard key with good cardinality, you can assign tags to ranges
+of the shard key.  You then assign specific ranges to specific shards.
+
+For example, given a collection with documents containing some sort of
+country and national sub-division (state, province) and a shard key composed
+of those fields plus some unique identifier (perhaps the BSON ObjectId of
+the document), you could assign tag ranges to the shard keys based on
+country and sub-division and then assign those chunks to shards whose
+primaries are geographically closer to those geographic locations.
+
+.. TODO:: examples

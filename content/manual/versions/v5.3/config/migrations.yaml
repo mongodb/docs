@@ -1,0 +1,85 @@
+# These targets use ``touch`` to bump the mtime of directories to
+# ensure that all the proper dependencies are built.
+#
+# The build system generator will only use the first two items of the
+# document in any list.
+
+target: $(branch-output)/sitemap.xml.gz
+dependency:
+  - $(public-branch-output)
+  # - $(public-output)/manual
+  - links
+command: "fab generate.sitemap"
+message: "[sitemap]: sitemap build complete at ``date``."
+action: cmd
+---
+# target: '$(public-output)/manual'
+# dependency: 'master'
+# action: 'link'
+# type: 'phony'
+# ---
+target: '$(branch-output)/html'
+dependency: 'html'
+action: 'touch'
+---
+target: setup
+dependency:
+  - 'mongodb-domain.yaml'
+action: 'dep'
+---
+target: 'mongodb-domain.yaml'
+dependency: 'config/mongodb-domain.yaml'
+action: 'cp'
+type: 'build'
+---
+target: '$(public-output)/sitemap.xml'
+dependency: 'source/.static/sitemap.xml'
+action: 'cp'
+type: 'static'
+---
+target: '$(public-output)/10gen-gpg-key.asc'
+dependency: 'source/.static/10gen-gpg-key.asc'
+action: 'cp'
+type: 'static'
+---
+target: '$(public-output)/10gen-security-gpg-key.asc'
+dependency: 'source/.static/10gen-security-gpg-key.asc'
+action: 'cp'
+type: 'static'
+---
+target: '$(public-output)/osd.xml'
+dependency: 'source/.static/osd.xml'
+action: 'cp'
+type: 'access'
+---
+target: 'manpages'
+dependency: 'man'
+action: 'dep'
+---
+target: '$(public-output)/'
+action: 'mkdir'
+---
+target: '$(output)'
+action: 'mkdir'
+---
+target: htaccess
+dependency: $(public-output)/.htaccess
+action: dep
+---
+target: $(public-output)/.htaccess
+dependency:
+  - config/htaccess.yaml
+  - $(tools)/bin/htaccess.py
+command: "fab generate.htaccess:$(public-output)/.htaccess"
+action: cmd
+---
+target: robots
+dependency: $(public-output)/robots.txt
+action: dep
+---
+target: $(public-output)/robots.txt
+dependency:
+  - config/robots.yaml
+command: "fab generate.robots:$(public-output)/robots.txt"
+action: cmd
+...

@@ -1,0 +1,326 @@
+
+.. _index-type-unique:
+
+==============
+Unique Indexes
+==============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+A unique index ensures that the indexed fields do not store duplicate
+values; i.e. enforces uniqueness for the indexed fields. By default,
+MongoDB creates a unique index on the :ref:`_id <document-id-field>`
+field during the creation of a collection.
+
+.. note:: New Internal Format
+
+
+   Starting in MongoDB 4.2, for :ref:`featureCompatibilityVersion
+   <view-fcv>` (fCV) of 4.2 (or greater), MongoDB uses a new internal
+   format for unique indexes that is incompatible with earlier MongoDB
+   versions. The new format applies to both existing unique indexes as
+   well as newly created/rebuilt unique indexes.
+
+.. _index-unique-create:
+
+Create a Unique Index
+---------------------
+
+To create a unique index, use the :method:`db.collection.createIndex()`
+method with the ``unique`` option set to ``true``. 
+
+.. code-block:: javascript
+
+   db.collection.createIndex( <key and index type specification>, { unique: true } )
+
+
+.. _index-unique-index:
+
+Unique Index on a Single Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For example, to create a unique index on the ``user_id`` field of the
+``members`` collection, use the following operation in
+:binary:`~bin.mongosh`:
+
+.. code-block:: javascript
+
+   db.members.createIndex( { "user_id": 1 }, { unique: true } )
+
+.. _index-unique-compound-index:
+
+Unique Compound Index
+~~~~~~~~~~~~~~~~~~~~~
+
+You can also enforce a unique constraint on :ref:`compound indexes
+<index-type-compound>`. If you use the unique constraint on a
+:ref:`compound index <index-type-compound>`, then MongoDB will enforce
+uniqueness on the *combination* of the index key values.
+
+For example, to create a unique index on ``groupNumber``, ``lastname``,
+and ``firstname`` fields of the ``members`` collection, use the
+following operation in :binary:`~bin.mongosh`:
+
+.. code-block:: javascript
+
+   db.members.createIndex( { groupNumber: 1, lastname: 1, firstname: 1 }, { unique: true } )
+
+The created index enforces uniqueness for the *combination* of
+``groupNumber``, ``lastname``, and ``firstname`` values.
+
+For another example, consider a collection with the following document:
+
+.. code-block:: javascript
+
+   { _id: 1, a: [ { loc: "A", qty: 5 }, { qty: 10 } ] }
+
+Create a unique compound :doc:`multikey </core/index-multikey>` index
+on ``a.loc`` and ``a.qty``:
+
+.. code-block:: javascript
+
+   db.collection.createIndex( { "a.loc": 1, "a.qty": 1 }, { unique: true } )
+
+The unique index permits the insertion of the following documents into
+the collection since the index enforces uniqueness for the
+*combination* of ``a.loc`` and ``a.qty`` values:
+
+.. code-block:: javascript
+
+   db.collection.insertMany( [
+      { _id: 2, a: [ { loc: "A" }, { qty: 5 } ] },
+      { _id: 3, a: [ { loc: "A", qty: 10 } ] }
+   ] )
+
+.. seealso::
+
+   - :ref:`unique-separate-documents`
+   - :ref:`unique-index-and-missing-field`
+
+Behavior
+--------
+
+.. _unique-index-restrictions:
+
+Restrictions
+~~~~~~~~~~~~~
+
+MongoDB cannot create a :ref:`unique index <index-type-unique>` on the
+specified index field(s) if the collection already contains data that
+would violate the unique constraint for the index.
+
+You may not specify a unique constraint on a :ref:`hashed
+index <index-type-hashed>`.
+
+Building Unique Index on Replica Sets and Sharded Clusters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For replica sets and sharded clusters, using a :doc:`rolling procedure
+</tutorial/build-indexes-on-replica-sets>` to create a unique index
+requires that you stop all writes to the collection during the
+procedure. If you cannot stop all writes to the collection during the
+procedure, do not use the rolling procedure. Instead, build your unique index
+on the collection by:
+
+- issuing :method:`db.collection.createIndex()` on the primary for a
+  replica set, or
+
+- issuing :method:`db.collection.createIndex()` on the
+  :binary:`~bin.mongos` for a sharded cluster.
+ 
+.. _unique-separate-documents:
+
+Unique Constraint Across Separate Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The unique constraint applies to separate documents in the collection.
+That is, the unique index prevents *separate* documents from having the
+same value for the indexed key.
+
+Because the constraint applies to separate documents, for a unique
+:doc:`multikey </core/index-multikey>` index, a document may have array
+elements that result in repeating index key values as long as the index
+key values for that document do not duplicate those of another
+document. In this case, the repeated index entry is inserted into the
+index only once.
+
+For example, consider a collection with the following documents:
+
+.. code-block:: javascript
+
+   { _id: 1, a: [ { loc: "A", qty: 5 }, { qty: 10 } ] }
+   { _id: 2, a: [ { loc: "A" }, { qty: 5 } ] }
+   { _id: 3, a: [ { loc: "A", qty: 10 } ] }
+
+Create a unique compound multikey index on ``a.loc`` and ``a.qty``:
+
+.. code-block:: javascript
+
+   db.collection.createIndex( { "a.loc": 1, "a.qty": 1 }, { unique: true } )
+
+The unique index permits the insertion of the following document into
+the collection if no other document in the collection has an index key
+value of ``{ "a.loc": "B", "a.qty": null }``.
+
+.. code-block:: javascript
+
+   db.collection.insertOne( { _id: 4, a: [ { loc: "B" }, { loc: "B" } ] } )
+
+.. _unique-index-and-missing-field:
+
+Unique Index and Missing Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If a document does not have a value for the indexed field in a unique
+index, the index will store a null value for this document. Because of
+the unique constraint, MongoDB will only permit one document that lacks
+the indexed field. If there is more than one document without a value
+for the indexed field or is missing the indexed field, the index build
+will fail with a duplicate key error.
+
+For example, a collection has a unique index on ``x``:
+
+.. code-block:: javascript
+
+   db.collection.createIndex( { "x": 1 }, { unique: true } )
+
+The unique index allows the insertion of a document without the field
+``x`` if the collection does not already contain a document missing the
+field ``x``:
+
+.. code-block:: javascript
+
+   db.collection.insertOne( { y: 1 } )
+
+However, the unique index errors on the insertion of a document without
+the field ``x`` if the collection already contains a document missing
+the field ``x``:
+
+.. code-block:: javascript
+
+   db.collection.insertOne( { z: 1 } )
+
+The operation fails to insert the document because of the violation of
+the unique constraint on the value of the field ``x``:
+
+.. code-block:: javascript
+
+   WriteResult({
+      "nInserted" : 0,
+      "writeError" : {
+         "code" : 11000,
+         "errmsg" : "E11000 duplicate key error index: test.collection.$a.b_1 dup key: { : null }"
+      }
+   })
+
+.. seealso::
+
+   :ref:`unique-partial-indexes`
+
+.. _unique-partial-indexes:
+
+Unique Partial Indexes
+~~~~~~~~~~~~~~~~~~~~~~
+
+Partial indexes only index the documents in a collection that meet a
+specified filter expression. If you specify both the
+``partialFilterExpression`` and a :ref:`unique constraint
+<index-type-unique>`, the unique constraint only applies to the
+documents that meet the filter expression.
+
+A partial index with a unique constraint does not prevent the insertion
+of documents that do not meet the unique constraint if the documents do
+not meet the filter criteria. For an example, see
+:ref:`partial-index-with-unique-constraints`.
+
+
+Sharded Clusters and Unique Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You cannot specify a unique constraint on a :ref:`hashed index
+<index-type-hashed>`.
+
+For a ranged sharded collection, only the following indexes can be
+:doc:`unique </core/index-unique>`:
+
+- the index on the shard key
+
+- a :term:`compound index` where the shard key is a :ref:`prefix
+  <compound-index-prefix>`
+
+- the default ``_id`` index; **however**, the ``_id`` index only
+  enforces the uniqueness constraint per shard **if** the ``_id`` field
+  is **not** the shard key or the prefix of the shard key.
+
+  .. important:: Uniqueness and the ``_id`` Index
+
+
+     If the ``_id`` field is not the shard key or the prefix of the
+     shard key, ``_id`` index only enforces the uniqueness constraint
+     per shard and **not** across shards.
+
+     For example, consider a sharded collection (with shard key ``{x:
+     1}``) that spans two shards A and B. Because the ``_id`` key is
+     not part of the shard key, the collection could have a document
+     with ``_id`` value ``1`` in shard A and another document with
+     ``_id`` value ``1`` in shard B.
+
+     If the ``_id`` field is not the shard key nor the prefix of the
+     shard key, MongoDB expects applications to enforce the uniqueness
+     of the ``_id`` values across the shards.
+
+The unique index constraints mean that:
+
+- For a to-be-sharded collection, you cannot shard the collection if
+  the collection has other unique indexes.
+
+- For an already-sharded collection, you cannot create unique indexes
+  on other fields.
+
+Sparse and Non-Sparse Unique Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-5.0-sparse-unique-index-updates.rst
+
+Basic and Unique Indexes With Duplicate Key Patterns
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 5.0, basic and unique indexes can exist with the
+same :ref:`key pattern <key_patterns>`. 
+
+This duplication in key patterns allows for adding a unique index to 
+already indexed fields.
+
+In this example:
+
+Create a basic index with the key pattern ``{ score : 1 }`` and insert 
+three documents.
+
+.. code-block:: javascript
+
+   db.scoreHistory.createIndex( { score : 1 }, { name: "basic_index" } )
+   db.scoreHistory.insert( { score : 1 } )
+   db.scoreHistory.insert( { score : 2 } )
+   db.scoreHistory.insert( { score : 3 } )
+
+Create a unique index with the same key pattern ``{ score : 1 }``.
+
+.. code-block:: javascript
+
+   db.scoreHistory.createIndex( { score : 1 }, { name: "unique_index", unique: true } )
+
+Try to insert a duplicate ``score`` document that fails because of
+the unique index.
+
+.. code-block:: javascript
+
+   db.scoreHistory.insert( { score : 3 } )
+
+
+

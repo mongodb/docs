@@ -1,0 +1,128 @@
+.. _data-modeling-schema-versioning:
+
+================================
+Model Data for Schema Versioning
+================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+Database schemas occasionally need to be updated. For example, a schema 
+designed to hold user contact information may need to be updated to 
+include new methods of communication as they become popular, such as 
+Twitter or Skype.
+
+You can use MongoDB's flexible schema model, which supports differently 
+shaped documents in the same collection, to gradually update your 
+collection's schema. As you update your schema model, the Schema 
+Versioning pattern allows you to track these updates with version 
+numbers. Your application code can use version numbers to identify and 
+handle differently shaped documents without downtime.
+
+Schema Versioning Pattern
+-------------------------
+
+To implement the Schema Versioning pattern, add a ``schema_version`` 
+(or similarly named) field to your schema the first time that you 
+modify your schema. Documents that use the new schema should have a 
+``schema_version`` of ``2`` to indicate that they adhere to the second 
+iteration of your schema. If you update your schema again, increment 
+the ``schema_version``.
+
+Your application code can use a document's ``schema_version``, or lack 
+thereof, to conditionally handle documents. Use the latest schema to 
+store new information in the database.
+
+Example
+-------
+
+The following example iterates upon the schema for documents in the 
+``users`` collection.
+
+In the first iteration of this schema, a record includes 
+``galactic_id``, ``name``, and ``phone`` fields:
+
+.. code-block:: javascript
+
+   // users collection
+
+   {
+       "_id": "<ObjectId>",
+       "galactic_id": 123,
+       "name": "Anakin Skywalker",
+       "phone": "503-555-0000",
+   }
+
+In the next iteration, the schema is updated to include more 
+information in a different shape:
+
+.. code-block:: javascript
+   :emphasize-lines: 13
+
+   // users collection
+
+   {
+       "_id": "<ObjectId>",
+       "galactic_id": 123,
+       "name": "Darth Vader",
+       "contact_method": {
+           "work": "503-555-0210",
+           "home": "503-555-0220",
+           "twitter": "@realdarthvader",
+           "skype": "AlwaysWithYou"
+       },
+       "schema_version": "2"
+   }
+
+Adding a ``schema_version`` means that an application can identify 
+documents shaped for the new schema and handle them accordingly. The 
+application can still handle old documents if ``schema_version`` does 
+not exist on the document.
+
+For example, consider an application that finds a user's phone number(s)
+by ``galactic_id``. Upon being given a ``galactic_id``, the application 
+needs to query the database:
+
+.. code-block:: javascript
+
+   db.users.find( { galactic_id: 123 } );
+
+After the document is returned from the database, the application checks
+to see whether the document has a ``schema_version`` field.
+
+- If it does not have a ``schema_version`` field, the application 
+  passes the returned document to a dedicated function that renders the 
+  ``phone`` field from the original schema.
+
+- If it does have a ``schema_version`` field, the application checks
+  the schema version. In this example, the ``schema_version`` is ``2`` 
+  and the application passes the returned document to a dedicated 
+  function that renders the new ``contact_method.work`` and 
+  ``contact_method.home`` fields.
+
+Using the ``schema_version`` field, application code can support any 
+number of schema iterations in the same collection by adding dedicated 
+handler functions to the code.
+
+Use Cases
+---------
+
+The Schema Versioning pattern is ideal for any one or a combination of 
+the following cases:
+
+- Application downtime is not an option
+
+- Updating documents may take hours, days, or weeks of time to complete
+
+- Updating documents to the new schema version is not a requirement
+
+The Schema Versioning pattern helps you better decide when and how data 
+migrations will take place relative to traditional, tabular databases.

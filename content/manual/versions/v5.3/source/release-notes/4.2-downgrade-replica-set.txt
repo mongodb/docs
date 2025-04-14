@@ -1,0 +1,409 @@
+==================================================
+Downgrade |newversion| Replica Set to |oldversion|
+==================================================
+
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Before you attempt any downgrade, familiarize yourself with the content
+of this document.
+
+.. |downgrading| replace:: downgrading
+
+Downgrade Path
+--------------
+
+.. include:: /includes/downgrade-path.rst
+
+.. include:: /includes/extracts/4.2-changes-downgrade-floor.rst
+
+Considerations
+--------------
+
+.. include:: /includes/extracts/changestream-rc-majority-4.2.rst
+
+Once you downgrade to |oldseries|, change streams will be disabled if
+you have disabled read concern ``"majority"``.
+
+Create Backup
+-------------
+
+*Optional but Recommended.*  Create a backup of your database.
+
+Access Control
+--------------
+
+If your replica set has access control enabled, your downgrade user
+privileges must include privileges to list and manage indexes across
+databases. A user with :authrole:`root` role has the required
+privileges.
+
+Prerequisites
+-------------
+
+To downgrade from 4.2 to 4.0, you must remove incompatible features
+that are persisted and/or update incompatible configuration settings.
+These include:
+
+.. |target| replace:: primary
+
+.. _4.2-downgrade-feature-compatibility-rs:
+
+1. Downgrade Feature Compatibility Version (fCV)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tip::
+
+   - Ensure that no initial sync is in progress. Running
+     :dbcommand:`setFeatureCompatibilityVersion` command while an
+     initial sync is in progress will cause the initial sync to restart.
+
+   - Ensure that no replica set member is in :replstate:`ROLLBACK` or
+     :replstate:`RECOVERING` state.
+
+To downgrade the ``featureCompatibilityVersion`` of your replica set:
+
+#. Connect a :binary:`~bin.mongo` shell to the |target|.
+
+#. .. include:: /includes/4.2-downgrade-fcv.rst
+
+#. To ensure that all members of the replica set reflect the updated
+   ``featureCompatibilityVersion``, connect to each replica set member and
+   check the ``featureCompatibilityVersion``:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { getParameter: 1, featureCompatibilityVersion: 1 } )
+
+   All members should return a result that includes:
+
+   .. code-block:: javascript
+
+      "featureCompatibilityVersion" : { "version" : "4.0" }
+
+   If any member returns a ``featureCompatibilityVersion`` of ``"4.2"``,
+   wait for the member to reflect version ``"4.0"`` before proceeding.
+
+.. note::
+
+   .. include:: /includes/arbiter-fcv.rst
+
+   .. include:: /includes/arbiter-fcv-version.rst
+
+
+For more information on the returned ``featureCompatibilityVersion``
+value, see :ref:`view-fcv`.
+
+2. Remove FCV 4.2 Persisted Features
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following steps are necessary only if fCV has ever been set to
+``"4.2"``.
+
+Remove all persisted 4.2 features that are :ref:`incompatible with 4.0
+<4.2-compatibility-enabled>`.
+
+.. _4.2-downgrade-index-key-repl:
+
+2a. Index Key Size
+``````````````````
+
+.. include:: /includes/extracts/4.2-downgrade-fcv-index-key.rst
+
+.. _4.2-downgrade-index-name-repl:
+
+2b. Index Name Length
+`````````````````````
+
+.. include:: /includes/extracts/4.2-downgrade-fcv-index-name.rst
+
+2c. Unique Index Version
+````````````````````````
+
+.. include:: /includes/extracts/4.2-downgrade-fcv-unique-index.rst
+
+.. tip::
+
+   Perform this operation after you have resolved any :ref:`index
+   key size <4.2-downgrade-index-key-repl>` and :ref:`index name
+   length <4.2-downgrade-index-name-repl>` issues first.
+
+Script
+   .. include:: /includes/extracts/4.2-downgrade-fcv-unique-index-script.rst
+
+2d. Remove ``user_1_db_1`` System Unique Index
+``````````````````````````````````````````````
+
+.. include:: /includes/extracts/4.2-downgrade-fcv-system-unique-index.rst
+
+2e. Remove Wildcard Indexes
+````````````````````````````
+
+.. include:: /includes/extracts/4.2-downgrade-fcv-wildcard-index.rst
+
+2f. View Definitions/Collection Validation Definitions that Include 4.2 Operators
+`````````````````````````````````````````````````````````````````````````````````
+
+.. include:: /includes/extracts/4.2-downgrade-view-definitions.rst
+
+
+3. Update ``tls``-Prefixed Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.2-changes-options-tls-ssl-downgrade.rst
+
+4. Prepare Downgrade from ``zstd`` Compression
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _downgrade-repl-prereq-zstd:
+
+``zstd`` Data Compression
+`````````````````````````
+
+.. important::
+
+   If you also use
+   :ref:`downgrade-repl-prereq-zstd-journal`, perform these
+   steps *after* you perform the :ref:`prerequisite steps for the
+   journal compressor <downgrade-repl-prereq-zstd-journal>`.
+
+The :term:`zstd` compression library is available starting in
+version 4.2. For any member that has data stored using :term:`zstd`
+compression, the downgrade procedure will require an initial sync
+for that member. To prepare:
+
+.. include:: /includes/extracts/4.2-changes-zstd-downgrade-prereq.rst
+
+Repeat for any other members that used :term:`zstd` compression.
+
+.. _downgrade-repl-prereq-zstd-journal:
+
+``zstd`` Journal Compression
+````````````````````````````
+
+The :term:`zstd` compression library is available for journal data
+compression starting in version 4.2.
+
+For any member that uses :term:`zstd` library for its journal
+compressor:
+
+If the member uses ``zstd`` for journal compression and :ref:`data compression <downgrade-repl-prereq-zstd>`, 
+   .. include:: /includes/extracts/4.2-changes-zstd-journal-compression-config-only.rst
+
+If the member uses ``zstd`` for journal compression only,
+   .. note::
+
+      The following procedure involves restarting the replica member as a
+      standalone without the journal.
+
+   #. Perform a clean shutdown of the :binary:`~bin.mongod` instance:
+
+      .. code-block:: javascript
+
+         db.getSiblingDB('admin').shutdownServer()
+
+   #. Update the :doc:`configuration file
+      </reference/configuration-options>` to prepare to restart as a
+      standalone:
+
+      - Set :setting:`storage.journal.enabled` to ``false``.
+
+      - Comment out the :ref:`replication <replication-options>` settings
+        for your deployment.
+
+      - Set parameter ``disableLogicalSessionCacheRefresh`` to
+        ``true`` in the :setting:`setParameter` section.
+
+      For example:
+
+      .. code-block:: none
+
+         storage:
+            journal:
+               enabled: false
+         #replication:
+         #   replSetName: replA
+         setParameter:
+             disableLogicalSessionCacheRefresh: true
+
+      If you use command-line options instead of a configuration file, you
+      will have to update the command-line option during the restart.
+   
+   #. Restart the :binary:`~bin.mongod` instance:
+
+      - If you are using a configuration file:
+
+        .. code-block:: bash
+
+           mongod -f <path/to/myconfig.conf>
+
+      - If you are using command-line options instead of a
+        configuration file, 
+
+        - Include the :option:`--nojournal <mongod
+          --nojournal>` option
+        
+        - Remove any :ref:`replication command-line options
+          <cli-mongod-replica-set>` (such as :option:`--replSet
+          <mongod --replSet>`):
+        
+        - Set parameter ``disableLogicalSessionCacheRefresh``
+          to ``true`` in the :option:`--setParameter <mongod
+          --setParameter>` option.
+               
+        .. code-block:: bash
+
+           mongod --nojournal --setParameter disableLogicalSessionCacheRefresh=true  ...
+
+   #. Perform a clean shutdown of the :binary:`~bin.mongod` instance:
+
+      .. code-block:: javascript
+
+         db.getSiblingDB('admin').shutdownServer()
+
+      Confirm that the process is no longer running.
+
+   #. Update the configuration file to prepare to restart as a replica set
+      member with the new journal compressor:
+
+      - Remove the :setting:`storage.journal.enabled` setting.
+
+      - Uncomment the :ref:`replication <replication-options>`
+        settings for your deployment.
+
+      - Remove the ``disableLogicalSessionCacheRefresh`` parameter.
+
+      - Remove
+        :setting:`storage.wiredTiger.engineConfig.journalCompressor` setting
+        to use the default journal compressor or specify a  new value.
+
+      For example:
+
+      .. code-block:: none
+
+         storage:
+            wiredTiger:
+               engineConfig:
+                  journalCompressor: <newValue>
+         replication:
+            replSetName: replA
+
+      If you use command-line options instead of a configuration file, you
+      will have to update the command-line options during the restart
+      below.
+
+
+   #. Restart the :binary:`~bin.mongod` instance as a replica set member:
+
+      - If you are using a configuration file:
+
+        .. code-block:: bash
+
+           mongod -f <path/to/myconfig.conf>
+
+      - If you are using command-line options instead of a configuration
+        file:
+
+        - Remove the :option:`--nojournal <mongod --nojournal>` option.
+
+        - Remove the :option:`--wiredTigerJournalCompressor <mongod
+          --wiredTigerJournalCompressor>` command-line option to use
+          the default journal compressor or update to a new value.
+
+        - Include your :ref:`replication command-line options
+          <cli-mongod-replica-set>` as well as any additional
+          options for your replica set member.
+
+        - Remove the ``disableLogicalSessionCacheRefresh`` parameter.
+
+        .. code-block:: bash
+
+           mongod --wiredTigerJournalCompressor <differentCompressor|none> --replSet ...
+
+.. note::
+
+   If you encounter an unclean shutdown for a :binary:`~bin.mongod`
+   during the downgrade procedure such that you need to use the
+   journal files to recover, recover the
+   instance using the 4.2 :binary:`~bin.mongod` and then retry the
+   downgrade of the instance.
+
+.. _downgrade-repl-prereq-zstd-network:
+
+``zstd`` Network Compression
+````````````````````````````
+
+.. include:: /includes/extracts/4.2-changes-zstd-network-compression.rst
+
+5. Remove Client-Side Field Level Encryption Document Validation Keywords
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. important::
+
+   Remove client-side field level encryption code in applications
+   *prior* to downgrading the server.
+
+MongoDB 4.2 adds support for 
+:ref:`enforcing client-side field level encryption 
+<field-level-encryption-enforce-schema>` as part of a collection's
+:ref:`schema-validation-json` document validation. Specifically, 
+the :query:`$jsonSchema` object supports the
+:autoencryptkeyword:`encrypt` and :autoencryptkeyword:`encryptMetadata`
+keywords. MongoDB 4.0 does **not** support these keywords and fails to 
+start if any collection specifies those keywords as part of its 
+validation :query:`$jsonSchema`.
+
+Use :method:`db.getCollectionInfos()` on each database to identify
+collections specifying automatic field level encryption rules as part of
+the :query:`$jsonSchema` validator. To prepare for downgrade, connect to
+the replica set primary and perform either of the following operations
+for each collection using the 4.0-incompatible keywords:
+
+- Use :dbcommand:`collMod` to modify the collection's 
+  :collflag:`validator` and replace the :query:`$jsonSchema` with
+  a schema that contains only 
+  :v4.0:`4.0-compatible document validation syntax 
+  </reference/operator/query/jsonSchema#available-keywords>`:
+
+  .. code-block:: javascript
+
+     db.runCommand({ 
+       "collMod" : "<collection>",
+       "validator" : {
+         "$jsonSchema" : { <4.0-compatible schema object> }
+       }
+     })
+
+  -*or*-
+
+- Use :dbcommand:`collMod` to remove the :collflag:`validator` object
+  entirely:
+
+  .. code-block:: javascript
+
+     db.runComand({ "collMod" : "<collection>", "validator" : {} })
+
+.. |binary| replace:: any replica set member
+
+
+Procedure
+---------
+
+.. warning::
+
+   Before proceeding with the downgrade procedure, ensure that all
+   replica set members, including delayed replica set members, reflect
+   the prerequisite changes. That is, check the
+   ``featureCompatibilityVersion`` and the removal of incompatible
+   features for each node before downgrading.
+
+.. include:: /includes/steps/4.2-downgrade-replica-set.rst
+
+.. include:: /includes/4.2-upgrade-replacements.rst
+

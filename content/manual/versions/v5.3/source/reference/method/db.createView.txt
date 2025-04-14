@@ -1,0 +1,375 @@
+===============
+db.createView()
+===============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+   
+.. method:: db.createView()
+
+   .. note::
+
+      The following page discusses views. For discussion of on-demand
+      materialized views, see :pipeline:`$merge` instead.
+
+   Creates a :doc:`view </core/views>` as the result of the applying
+   the specified :ref:`aggregation pipeline <aggregation-pipeline>` to
+   the source collection or view. Views act as read-only collections,
+   and are computed on demand during read operations. You must create
+   views in the same database as the source collection. MongoDB
+   executes read operations on views as part of the underlying
+   aggregation pipeline.
+
+   .. include:: /includes/extracts/views-restriction-output-to-disk.rst
+
+   The :method:`db.createView` has the following syntax:
+   
+   .. code-block:: javascript
+
+      db.createView(<view>, <source>, <pipeline>, <options>)
+
+   The method accepts the following parameters:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``view``
+   
+        - string
+   
+        - The name of the view to create.
+          
+          
+   
+      * - ``source``
+   
+        - string
+   
+        - The name of the source collection or view from which to create the
+          view. The name is not the full namespace of the collection or
+          view; i.e. does not include the database name and implies the same
+          database as the view to create. You must create views in the same
+          database as the source collection.
+          
+          
+   
+      * - ``pipeline``
+   
+        - array
+   
+        - An array that consists of the :ref:`aggregation pipeline stage(s)
+          <aggregation-pipeline>`.  :method:`db.createView` creates the view by
+          applying the specified ``pipeline`` to the ``source`` collection or view.
+          
+          .. include:: /includes/extracts/views-restriction-output-to-disk.rst
+                  
+          .. include:: /includes/extracts/views-public-definition.rst
+          
+          
+   
+      * - ``options``
+   
+        - document
+   
+        - Optional. Additional options for the method.
+          
+          
+   
+
+
+   The options document contains the following option field:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``collation``
+   
+        - document
+   
+        - Optional. Specifies the default :ref:`collation <collation>` for the view.
+          
+          .. include:: /includes/extracts/collation-description.rst
+          
+          If the underlying ``source`` is a collection, the view does not
+          inherit the collection's collation settings. 
+          
+          If no collation is specified, the view's default collation is the
+          "simple" binary comparison collator.
+          
+          If the underlying ``source`` is another view, the view must specify
+          the same collation settings.
+          
+          .. include:: /includes/extracts/collation-option-specification.rst
+          
+          
+   
+
+
+   The :method:`db.createView()` method wraps the following
+   :dbcommand:`create` command operation:
+
+   .. code-block:: javascript
+
+      db.runCommand( { create: <view>, viewOn: <source>, pipeline: <pipeline>, collation: <collation> } )
+
+   Operations that lists collections, such as
+   :method:`db.getCollectionInfos()` and
+   :method:`db.getCollectionNames()`, includes views in their outputs.
+   
+   .. important::
+
+      .. include:: /includes/extracts/views-public-definition.rst
+
+   To remove a view, use the :method:`~db.collection.drop()` method on the
+   view.
+
+
+Behavior
+--------
+
+.. include:: /includes/extracts/views-behavior.rst
+
+Resource Locking
+~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 4.2
+
+.. include:: /includes/extracts/createView-resource-lock.rst
+
+Access Control
+--------------
+
+.. include:: /includes/extracts/views-access-control.rst
+
+Examples
+--------
+
+Create a View from a Single Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Given a collection ``survey`` with the following documents:
+
+.. code-block:: javascript
+
+   { _id: 1, empNumber: "abc123", feedback: { management: 3, environment: 3 }, department: "A" }
+   { _id: 2, empNumber: "xyz987", feedback: { management: 2, environment: 3 }, department: "B" }
+   { _id: 3, empNumber: "ijk555", feedback: { management: 3, environment: 4 }, department: "A" }
+
+The following operation creates a ``managementFeedback`` view with
+the ``_id``, ``feedback.management``, and ``department`` fields:
+
+.. code-block:: javascript
+
+   db.createView(
+      "managementFeedback",
+      "survey",
+      [ { $project: { "management": "$feedback.management", department: 1 } } ]
+   )
+
+Query a View
+````````````
+
+To query the view, you can use :method:`db.collection.find()` on
+the view:
+
+.. code-block:: javascript
+
+   db.managementFeedback.find()
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "department" : "A", "management" : 3 }
+   { "_id" : 2, "department" : "B", "management" : 2 }
+   { "_id" : 3, "department" : "A", "management" : 3 }
+
+Perform Aggregation Pipeline on a View
+``````````````````````````````````````
+
+The following operation performs an aggregation on the
+``managementFeedback`` view, using the :pipeline:`$sortByCount` to
+group by the ``department`` field and sort in descending order by the
+count of each distinct department:
+
+.. code-block:: javascript
+
+   db.managementFeedback.aggregate([ { $sortByCount: "$department" } ] )
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : "A", "count" : 2 }
+   { "_id" : "B", "count" : 1 }
+
+Create a View from Multiple Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Given the following two collections:
+
+- The ``orders`` collection:
+
+  .. code-block:: javascript
+
+     { "_id" : 1, "item" : "abc", "price" : NumberDecimal("12.00"), "quantity" : 2 }
+     { "_id" : 2, "item" : "jkl", "price" : NumberDecimal("20.00"), "quantity" : 1 }
+     { "_id" : 3, "item" : "abc", "price" : NumberDecimal("10.95"), "quantity" : 5 }
+     { "_id" : 4, "item" : "xyz", "price" : NumberDecimal("5.95"), "quantity" : 5 }
+     { "_id" : 5, "item" : "xyz", "price" : NumberDecimal("5.95"), "quantity" : 10 }
+
+- The ``inventory`` collection:
+
+  .. code-block:: javascript
+
+     { "_id" : 1, "sku" : "abc", description: "product 1", "instock" : 120 }
+     { "_id" : 2, "sku" : "def", description: "product 2", "instock" : 80 }
+     { "_id" : 3, "sku" : "ijk", description: "product 3", "instock" : 60 }
+     { "_id" : 4, "sku" : "jkl", description: "product 4", "instock" : 70 }
+     { "_id" : 5, "sku" : "xyz", description: "product 5", "instock" : 200 }
+
+The following :method:`db.createView()` example specifies a
+:pipeline:`$lookup` stage to create a view from the join of the two
+collections:
+
+.. code-block:: javascript
+
+   db.createView (
+      "orderDetails",
+      "orders",
+      [
+        { $lookup: { from: "inventory", localField: "item", foreignField: "sku", as: "inventory_docs" } },
+        { $project: { "inventory_docs._id": 0, "inventory_docs.sku": 0 } }
+      ]
+   )
+
+Query a View
+````````````
+
+To query the view, you can use :method:`db.collection.find()` on
+the view:
+
+.. code-block:: javascript
+
+   db.orderDetails.find()
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 1,
+      "item" : "abc",
+      "price" : NumberDecimal("12.00"),
+      "quantity" : 2,
+      "inventory_docs" : [ { "description" : "product 1", "instock" : 120 } ]
+   }
+   {
+      "_id" : 2,
+      "item" : "jkl",
+      "price" : NumberDecimal("20.00"),
+      "quantity" : 1,
+      "inventory_docs" : [ { "description" : "product 4", "instock" : 70 } ]
+   }
+   {
+      "_id" : 3,
+      "item" : "abc",
+      "price" : NumberDecimal("10.95"),
+      "quantity" : 5,
+      "inventory_docs" : [ { "description" : "product 1", "instock" : 120 } ]
+   }
+   {
+      "_id" : 4,
+      "item" : "xyz",
+      "price" : NumberDecimal("5.95"),
+      "quantity" : 5,
+      "inventory_docs" : [ { "description" : "product 5", "instock" : 200 } ]
+   }
+   {
+      "_id" : 5,
+      "item" : "xyz",
+      "price" : NumberDecimal("5.95"),
+      "quantity" : 10,
+      "inventory_docs" : [ { "description" : "product 5", "instock" : 200 } ]
+   }
+
+Perform Aggregation Pipeline on a View
+``````````````````````````````````````
+
+The following operation performs an aggregation on the ``orderDetails``
+view, using the :pipeline:`$sortByCount` to group by the ``item``
+field and sort in descending order by the count of each distinct item:
+
+.. code-block:: javascript
+
+   db.orderDetails.aggregate( [ { $sortByCount: "$item" } ] )
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : "xyz", "count" : 2 }
+   { "_id" : "abc", "count" : 2 }
+   { "_id" : "jkl", "count" : 1 }
+
+.. _create-view-w-collation:
+
+Create a View with Default Collation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Given the ``places`` collection with the following document:
+
+.. code-block:: javascript
+
+   { _id: 1, category: "café" }
+   { _id: 2, category: "cafe" }
+   { _id: 3, category: "cafE" }
+
+The following operation creates a view, specifying :ref:`collation
+<collation>` at the view level:
+
+.. code-block:: javascript
+
+   db.createView(
+      "placesView", 
+      "places",
+      [ { $project: { category: 1 } } ],
+      { collation: { locale: "fr", strength: 1 } } 
+   )
+
+String comparisons on the view use the view's default collation. For
+example, the following operation uses the view's collation:
+
+.. code-block:: javascript
+
+   db.placesView.count( { category: "cafe" } )
+
+The operation returns ``3``.
+
+An operation that attempts to change or override a view's default
+collation will fail with an error.
+
+.. seealso::
+
+   :ref:`ref-collation-and-views`

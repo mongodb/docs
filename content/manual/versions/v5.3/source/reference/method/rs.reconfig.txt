@@ -1,0 +1,432 @@
+=============
+rs.reconfig()
+=============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: rs.reconfig( configuration, { options } )
+
+   Reconfigures an existing replica set, overwriting the existing
+   replica set configuration. To run the method, you must connect to
+   the :term:`primary` of the replica set.
+
+   The :method:`rs.reconfig()` method has the following syntax:
+
+   .. code-block:: bash
+
+      rs.reconfig(
+        <configuration>,
+        {
+          "force" : <boolean>,
+          "maxTimeMS" : <int>
+        }
+      )
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - .. _rs-reconfig-method-configuration:
+          
+          :ref:`configuration <rs-reconfig-method-configuration>`
+   
+        - document
+   
+        - A :doc:`document </reference/replica-configuration>` that specifies
+          the configuration of a replica set.
+   
+      * - .. _rs-reconfig-method-force: 
+          
+          :ref:`force <rs-reconfig-method-force>`
+   
+        - boolean
+   
+        - *Optional*
+        
+          Specify ``true`` to force the available replica set members to
+          accept the new configuration. Defaults to ``false``.
+
+          Force reconfiguration can result in unexpected or undesired
+          behavior, including :ref:`rollback <replica-set-rollbacks>` of
+          :writeconcern:`"majority"` committed writes.
+          
+      * - .. _rs-reconfig-method-maxTimeMS:
+
+          :ref:`maxTimeMS <rs-reconfig-method-maxTimeMS>`
+
+        - integer
+
+        - *Optional* 
+        
+          Specifies a cumulative time limit in milliseconds
+          for processing the :method:`rs.reconfig()` operation. By
+          default, :method:`rs.reconfig()` waits indefinitely for the
+          replica configuration to propagate to a majority of replica
+          set members. 
+
+          .. versionadded:: 4.4
+
+
+   To reconfigure an existing replica set, first retrieve the
+   current configuration with :method:`rs.conf()`, modify the
+   configuration document as needed, and then pass the modified
+   document to :method:`rs.reconfig()`.
+
+   :method:`rs.reconfig()` provides a wrapper around the
+   :dbcommand:`replSetReconfig` command.
+   
+   The ``force`` parameter allows a reconfiguration command to be issued
+   to a non-primary node.
+
+Behavior
+--------
+
+Global Write Concern
+~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-set-global-write-concern-before-reconfig.rst
+
+``term`` Replica Configuration Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 4.4 adds the :rsconf:`term` field to the replica set
+configuration document. The :rsconf:`term` field is set by the
+:term:`primary` replica set member. The primary ignores the
+:rsconf:`term` field if set explicitly in the
+:method:`rs.reconfig()` operation.
+
+.. |reconfig| replace:: :method:`rs.reconfig()`
+.. |reconfig-force| replace:: :ref:`force <rs-reconfig-method-force>`
+.. |reconfig-maxTimeMS| replace:: :ref:`maxTimeMS <rs-reconfig-method-maxTimeMS>`
+
+.. _rs-reconfig-single-node:
+
+Reconfiguration Can Add or Remove No More than One Voting Member at a Time
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/replSetReconfig-single-node.rst
+
+.. _rs-reconfig-majority-install:
+
+Reconfiguration Waits Until a Majority of Members Install the Replica Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/replSetReconfig-majority.rst
+
+Access Control
+~~~~~~~~~~~~~~
+
+To run the method on deployments that enforce :doc:`access
+control</core/authorization>`, the user must have
+:authaction:`replSetConfigure` privilege action on the cluster
+resource. The :authrole:`clusterManager` built-in role, available in
+the ``admin`` database, provides the required privileges for this
+command.
+
+Locking Behavior
+~~~~~~~~~~~~~~~~
+
+:method:`rs.reconfig()` obtains a special mutually
+exclusive lock to prevent more than one
+:method:`rs.reconfig()` operation from occurring at the same
+time.
+
+
+Mixed Version Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. warning::
+
+   .. include:: /includes/warning-mixed-version-rs-config.rst
+
+Availability
+~~~~~~~~~~~~
+
+The :method:`rs.reconfig()` shell method can trigger the current primary
+to step down in some situations. Primary step-down triggers an 
+:ref:`election <replica-set-elections>` to select a new :term:`primary`:
+
+- Starting in MongoDB 4.2, when the primary steps down, it no longer
+  closes all client connections and writes that were in progress are
+  killed. For details, see :ref:`replSetStepDown-behavior`.
+
+- In MongoDB 4.0 and earlier, when the primary steps down, it closes
+  all client connections.
+
+.. include:: /includes/fact-election-latency.rst
+
+During the election process, the cluster cannot
+accept write operations until it elects the new primary.
+
+.. include:: /includes/fact-retryable-writes-failover-election.rst
+
+To further reduce potential impact to a production cluster,
+reconfigure only during scheduled maintenance periods.
+
+``{ force: true }``
+~~~~~~~~~~~~~~~~~~~
+
+.. warning::
+
+   Using :method:`rs.reconfig()` with ``{ force: true }`` can lead to
+   :term:`rollback` of majority-committed writes. Exercise caution when
+   using this option.
+
+Member Priority and Votes
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 3.2
+
+- .. include:: /includes/fact-rs-nonzero-priority-vote-restriction.rst
+   
+- .. include:: /includes/fact-rs-non-voting-priority-restriction.rst
+
+Drop Outgoing Connections After Removing a Member
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+..
+  This behavior will change once SERVER-36417 closes. 
+
+Using :method:`rs.reconfig()` to remove a replica set member does not
+automatically drop open outgoing connections from other replica set
+members to the removed member.
+
+By default, replica set members wait for 5 minutes before dropping
+connections to the removed member. In sharded replica sets, you can
+modify this timeout using the
+:parameter:`ShardingTaskExecutorPoolHostTimeoutMS` server parameter.
+
+.. versionadded:: 4.2
+
+   To immediately drop all outgoing connections from the replica set to
+   the removed member, run the :dbcommand:`dropConnections`
+   administrative command on each remaining member on the replica set:
+
+.. code-block:: javascript
+
+   db.adminCommand( 
+     {
+       "dropConnections" : 1,
+       "hostAndPort" : [
+         "<hostname>:<port>"
+       ] 
+     } 
+   )
+
+Replace ``<hostname>`` and ``<port>`` with those of the removed 
+member.
+
+Automatic Reconfiguration for New Voting Replica Set Members
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/initial-sync-semantics.rst
+
+.. _replica-set-reconfiguration-usage:
+
+Examples
+--------
+
+A replica set named ``rs0`` has the following configuration:
+
+.. code-block:: javascript
+
+   {
+      "_id" : "rs0",
+      "version" : 1,
+      "protocolVersion" : NumberLong(1),
+      "members" : [
+         {
+            "_id" : 0,
+            "host" : "mongodb0.example.net:27017",
+            "arbiterOnly" : false,
+            "buildIndexes" : true,
+            "hidden" : false,
+            "priority" : 1,
+            "tags" : {
+            
+            },
+            "secondaryDelaySecs" : NumberLong(0),
+            "votes" : 1
+         },
+         {
+            "_id" : 1,
+            "host" : "mongodb1.example.net:27017",
+            "arbiterOnly" : false,
+            "buildIndexes" : true,
+            "hidden" : false,
+            "priority" : 1,
+            "tags" : {
+            
+            },
+            "secondaryDelaySecs" : NumberLong(0),
+            "votes" : 1
+         },
+         {
+            "_id" : 2,
+            "host" : "mongodb2.example.net:27017",
+            "arbiterOnly" : false,
+            "buildIndexes" : true,
+            "hidden" : false,
+            "priority" : 1,
+            "tags" : {
+            
+            },
+            "secondaryDelaySecs" : NumberLong(0),
+            "votes" : 1
+         }
+      ],
+      "settings" : {
+         "chainingAllowed" : true,
+         "heartbeatIntervalMillis" : 2000,
+         "heartbeatTimeoutSecs" : 10,
+         "electionTimeoutMillis" : 10000,
+         "catchUpTimeoutMillis" : 2000,
+         "getLastErrorModes" : {
+         
+         },
+         "getLastErrorDefaults" : {
+            "w" : 1,
+            "wtimeout" : 0
+         },
+         "replicaSetId" : ObjectId("58858acc1f5609ed986b641b")
+      }
+   }
+   
+Change Replica Set Member Priority
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following sequence of operations updates the
+:rsconf:`members[n].priority` of the second member. The operations are
+issued through a :binary:`~bin.mongosh` session that is connected to
+the primary.
+
+.. code-block:: javascript
+
+   cfg = rs.conf();
+   cfg.members[1].priority = 2;
+   rs.reconfig(cfg);
+
+#. The first statement uses the :method:`rs.conf()` method to retrieve
+   a document containing the current :ref:`configuration
+   <replSetGetConfig-output>` for the replica set and sets the
+   document to the local variable ``cfg``.
+
+#. The second statement sets a
+   :rsconf:`members[n].priority` value to the
+   second document in the :rsconf:`members` array.
+   For additional settings, see :ref:`replica set configuration settings
+   <replSetGetConfig-output>`.
+
+   To access the member configuration document in the array, the
+   statement uses the array index and **not** the replica set member's
+   :rsconf:`members[n]._id` field.
+
+#. The last statement calls the :method:`rs.reconfig()` method with the
+   modified ``cfg`` to initialize this new configuration. Upon
+   successful reconfiguration, the replica set configuration will
+   resemble the following:
+
+.. code-block:: javascript
+
+   {
+      "_id" : "rs0",
+      "version" : 2,
+      "protocolVersion" : NumberLong(1),
+      "members" : [
+         {
+            "_id" : 0,
+            "host" : "mongodb0.example.net:27017",
+            "arbiterOnly" : false,
+            "buildIndexes" : true,
+            "hidden" : false,
+            "priority" : 1,
+            "tags" : {
+            
+            },
+            "secondaryDelaySecs" : NumberLong(0),
+            "votes" : 1
+         },
+         {
+            "_id" : 1,
+            "host" : "mongodb1.example.net:27017",
+            "arbiterOnly" : false,
+            "buildIndexes" : true,
+            "hidden" : false,
+            "priority" : 2,
+            "tags" : {
+            
+            },
+            "secondaryDelaySecs" : NumberLong(0),
+            "votes" : 1
+         },
+         {
+            "_id" : 2,
+            "host" : "mongodb2.example.net:27017",
+            "arbiterOnly" : false,
+            "buildIndexes" : true,
+            "hidden" : false,
+            "priority" : 1,
+            "tags" : {
+            
+            },
+            "secondaryDelaySecs" : NumberLong(0),
+            "votes" : 1
+         }
+      ],
+      "settings" : {
+         "chainingAllowed" : true,
+         "heartbeatIntervalMillis" : 2000,
+         "heartbeatTimeoutSecs" : 10,
+         "electionTimeoutMillis" : 10000,
+         "catchUpTimeoutMillis" : 2000,
+         "getLastErrorModes" : {
+         
+         },
+         "getLastErrorDefaults" : {
+            "w" : 1,
+            "wtimeout" : 0
+         },
+         "replicaSetId" : ObjectId("58858acc1f5609ed986b641b")
+      }
+   }
+
+Change Replica Set Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can also modify the cluster replica set :rsconf:`settings` document.
+The :rsconf:`settings` document contains configuration options that 
+apply to the whole replica set.
+
+The following sequence of operations updates the 
+:rsconf:`settings.heartbeatTimeoutSecs` of the cluster to ``15``.
+The operations are issued through a :binary:`~bin.mongosh` session 
+that is connected to the primary.
+
+.. code-block:: javascript
+
+   cfg = rs.conf();
+   cfg.settings.heartbeatTimeoutSecs = 15;
+   rs.reconfig(cfg);
+
+.. seealso::
+
+   - :method:`rs.conf()`
+   - :ref:`replSetGetConfig-output`
+   - :doc:`/administration/replica-set-member-configuration`
+   - :doc:`/administration/replica-set-maintenance`
+

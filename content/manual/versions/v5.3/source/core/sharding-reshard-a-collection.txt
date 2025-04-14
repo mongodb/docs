@@ -1,0 +1,200 @@
+.. _sharding-resharding:
+
+====================
+Reshard a Collection
+====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+.. versionadded:: 5.0
+
+The ideal shard key allows MongoDB to distribute documents evenly
+throughout the cluster while facilitating common query patterns. A
+suboptimal shard key can lead to performance or scaling issues due to
+uneven data distribution. Starting in MongoDB 5.0, you can change the
+shard key for a collection to change the distribution of your data
+across a cluster.
+
+.. note::
+
+   Before resharding your collection, read
+   :ref:`shardkey-troubleshoot-shard-keys` for information on common
+   performance and scaling issues and advice on how to fix them.
+
+Requirements
+--------------
+
+Before you reshard your collection, ensure that you meet the following
+requirements:
+
+- Your application can tolerate a period of **two seconds** where the
+  collection that is being resharded blocks writes. During the time
+  period where writes are blocked your application experiences an
+  increase in latency. If your workload cannot tolerate this
+  requirement, consider :ref:`refining your shard key
+  <shard-key-refine>` instead.
+- Your database meets these resource requirements:
+
+  -  Available storage space: Ensure that your available storage space
+     is at least 1.2x the size of the collection that you want to
+     reshard. For example, if the size of the collection you want to
+     reshard is 1 TB, you should have at least 1.2 TB of free storage
+     when starting the sharding operation.
+  -  I/O: Ensure that your I/O capacity is below 50%.
+  -  CPU load: Ensure your CPU load is below 80%.
+
+  .. important::
+
+     These requirements are not enforced by the database. A failure to
+     allocate enough resources can result in:
+
+     - the database running out of space and shutting down
+     - decreased performance
+     - the resharding operation taking longer than expected
+
+     If your application has time periods with less traffic, reshard your
+     collection during that time if possible.
+
+- You have rewritten your application code to update your queries to use
+  **both** the current shard key and the new shard key.
+
+  The following queries return an error if the query filter does not
+  include **both** the current shard key or a unique field (like
+  ``_id``):
+
+  - :method:`~db.collection.deleteOne()`
+  - :method:`~db.collection.findAndModify()`
+  - :method:`~db.collection.findOneAndDelete()`
+  - :method:`~db.collection.findOneAndReplace()`
+  - :method:`~db.collection.findOneAndUpdate()`
+  - :method:`~db.collection.replaceOne()`
+  - :method:`~db.collection.updateOne()`
+
+  For optimal performance, we recommend that you also rewrite other
+  queries to include the new shard key.
+
+  Once the resharding operation completes, you can remove the old shard
+  key from the queries.
+
+- No index builds are in progress. Use ``db.currentOp()`` to
+  check for any running index builds:
+
+  .. code-block:: javascript
+
+     db.adminCommand(
+        {
+          currentOp: true,
+          $or: [
+            { op: "command", "command.createIndexes": { $exists: true }  },
+            { op: "none", "msg" : /^Index Build/ }
+          ]
+        }
+    )
+
+  In the result document, if the ``inprog`` field value is an empty
+  array, there are no index builds in progress:
+
+  .. code-block:: javascript
+
+     {
+        inprog: [],
+        ok: 1,
+        '$clusterTime': { ... },
+        operationTime: <timestamp>
+     }
+
+.. warning::
+
+   We strongly recommend that you check the
+   :ref:`resharding-limitations` and read the :ref:`resharding
+   process <resharding_process>` section in full before resharding your
+   collection.
+
+.. _resharding-limitations:
+
+Limitations
+-----------
+
+- Only one collection can be resharded at a time.
+- :rsconf:`writeConcernMajorityJournalDefault` must be ``true``.
+- Resharding a collection that has a
+  :doc:`uniqueness </core/index-unique>` constraint is not supported.
+- The new shard key cannot have a :doc:`uniqueness </core/index-unique>`
+  constraint.
+- The following commands and corresponding shell methods are not
+  supported on the collection that is being resharded while the
+  resharding operation is in progress:
+
+  - :dbcommand:`collMod`
+  - :dbcommand:`convertToCapped`
+  - :dbcommand:`createIndexes`
+  - :method:`~db.collection.createIndex()`
+  - :dbcommand:`drop`
+  - :method:`~db.collection.drop()`
+  - :dbcommand:`dropIndexes`
+  - :method:`~db.collection.dropIndex()`
+  - :dbcommand:`renameCollection`
+  - :method:`~db.collection.renameCollection()`
+
+- The following commands and methods are not supported on the cluster
+  while the resharding operation is in progress:
+
+  - :dbcommand:`addShard`
+  - :dbcommand:`removeShard`
+  - :method:`db.createCollection()`
+  - :dbcommand:`dropDatabase`
+
+  .. warning::
+
+     Using any of the preceding commands during a resharding
+     operation causes the resharding operation to fail.
+
+- If the collection to be resharded uses :atlas:`Atlas Search
+  </atlas-search>`, the search index will become unavailable when the
+  resharding operation completes. You need to manually rebuild the
+  search index once the resharding operation completes.
+
+- You can't reshard a sharded :ref:`time series collection
+  <manual-timeseries-collection>`.
+
+.. _resharding_process:
+
+Resharding Process
+------------------
+
+.. include:: /includes/steps/reshard-a-collection.rst
+
+Behavior
+--------
+
+Minimum Duration of a Resharding Operation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The minimum duration of a resharding operation is always 5 minutes.
+
+Retryable Writes
+~~~~~~~~~~~~~~~~
+
+:ref:`Retryable writes <retryable-writes>` initiated before or during
+resharding can be retried during and after the collection has been
+resharded for up to 5 minutes. After 5 minutes you may be unable to find
+the definitive result of the write and subsequent attempts to retry the
+write fail with an ``IncompleteTransactionHistory`` error.
+
+Error Case
+----------
+
+Duplicate ``_id`` Values
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The resharding operation fails if ``_id`` values are not globally unique
+to avoid corrupting collection data. Duplicate ``_id`` values can also
+prevent successful chunk migration. If you have documents with duplicate
+``_id`` values, copy the data from each into a new document, and then
+delete the duplicate documents.
