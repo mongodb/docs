@@ -24,7 +24,7 @@
         metadata:
           name: multi-replica-set
         spec:
-          version: 6.0.0-ent
+          version: 8.0.0
           type: ReplicaSet
           duplicateServiceObjects: false
           credentials: my-credentials
