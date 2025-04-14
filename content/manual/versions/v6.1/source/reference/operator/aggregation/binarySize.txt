@@ -1,0 +1,234 @@
+=========================
+$binarySize (aggregation)
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $binarySize
+
+   .. versionadded:: 4.4
+
+   Returns the size of a given string or binary data value's content in
+   bytes.
+
+   :expression:`$binarySize` has the following syntax:
+
+   .. code-block:: javascript
+
+      { $binarySize: <string or binData> }
+
+   The argument can be any valid :ref:`expression
+   <aggregation-expressions>` as long as it resolves to
+   either a string or binary data value. For more information on
+   expressions, see :ref:`aggregation-expressions`.
+
+Behavior
+--------
+
+The argument for :expression:`$binarySize` must resolve to either:
+
+- A string,
+
+- A binary data value, or
+
+- null.
+
+If the argument is a string or binary data value, the expression
+returns the size of the argument in bytes. 
+
+If the argument is ``null``, the expression returns ``null``.
+
+If the argument resolves to any other data type,
+:expression:`$binarySize` errors.
+
+String Size Calculation
+~~~~~~~~~~~~~~~~~~~~~~~
+
+If the argument for :expression:`$binarySize` is a string, the operator
+counts the number of UTF-8 encoded bytes in a string where each character
+may use between one and four bytes.
+
+.. include:: /includes/fact-utf8-char-byte-sizes.rst
+
+Consider the following examples:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 15 45
+   :class: border-table
+
+   * - Example
+     - Results
+     - Notes
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $binarySize: "abcde" }
+     - ``5``
+     - Each character is encoded using one byte.
+     
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $binarySize: "Hello World!" }
+     - ``12``
+     - Each character is encoded using one byte.
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $binarySize: "cafeteria" }
+     - ``9``
+     - Each character is encoded using one byte.
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $binarySize: "cafétéria" }
+     - ``11``
+     - ``é`` is encoded using two bytes.
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $binarySize: "" }
+     - ``0``
+     - Empty strings return 0.
+ 
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $binarySize: "$€λG" }
+     - ``7``
+     - ``€`` is encoded using three bytes.
+       ``λ`` is encoded using two bytes.
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $binarySize: "寿司" }
+     - ``6``
+     - Each character is encoded using three bytes.
+
+Example
+-------
+
+In :binary:`~bin.mongosh`, create a sample collection named
+``images`` with the following documents:
+
+.. code-block:: javascript
+
+   db.images.insertMany([
+     { _id: 1, name: "cat.jpg", binary: new BinData(0, "OEJTfmD8twzaj/LPKLIVkA==")},
+     { _id: 2, name: "big_ben.jpg", binary: new BinData(0, "aGVsZmRqYWZqYmxhaGJsYXJnYWZkYXJlcTU1NDE1Z2FmZCBmZGFmZGE=")},
+     { _id: 3, name: "tea_set.jpg", binary: new BinData(0, "MyIRAFVEd2aImaq7zN3u/w==")},
+     { _id: 4, name: "concert.jpg", binary: new BinData(0, "TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlzIHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2YgdGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGludWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRoZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=")},
+     { _id: 5, name: "empty.jpg", binary: new BinData(0, "") }
+   ])
+
+The following aggregation :pipeline:`projects <$project>`:
+
+- The ``name`` field
+
+- The ``imageSize`` field, which uses :expression:`$binarySize` to
+  return the size of the document's ``binary`` field in bytes.
+
+.. code-block:: javascript
+
+   db.images.aggregate([
+     {
+       $project: {
+         "name": "$name",
+         "imageSize": { $binarySize: "$binary" }
+       }
+     }
+   ])
+
+The operation returns the following result:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 1, "name" : "cat.jpg", "imageSize" : 16 }
+   { "_id" : 2, "name" : "big_ben.jpg", "imageSize" : 41 }
+   { "_id" : 3, "name" : "teaset.jpg", "imageSize" : 16 }
+   { "_id" : 4, "name" : "concert.jpg", "imageSize" : 269 }
+   { "_id" : 5, "name" : "empty.jpg", "imageSize" : 0 }
+
+Find Largest Binary Data
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following pipeline returns the image with the largest 
+binary data size:
+
+.. code-block:: javascript
+   
+   db.images.aggregate([
+      // First Stage
+      { $project: { name: "$name", imageSize: { $binarySize: "$binary" } }  },
+      // Second Stage
+      { $sort: { "imageSize" : -1 } },
+      // Third Stage
+      { $limit: 1 }
+   ])
+
+First Stage
+  The first stage of the pipeline :pipeline:`projects <$project>`:
+  
+  - The ``name`` field
+
+  - The ``imageSize`` field, which uses :expression:`$binarySize` to
+    return the size of the document's ``binary`` field in bytes.
+
+  This stage outputs the following documents to the next stage:
+
+  .. code-block:: javascript
+     :copyable: false
+
+     { "_id" : 1, "name" : "cat.jpg", "imageSize" : 16 }
+     { "_id" : 2, "name" : "big_ben.jpg", "imageSize" : 41 }
+     { "_id" : 3, "name" : "teaset.jpg", "imageSize" : 16 }
+     { "_id" : 4, "name" : "concert.jpg", "imageSize" : 269 }
+     { "_id" : 5, "name" : "empty.jpg", "imageSize" : 0 }
+
+Second Stage
+  The second stage :pipeline:`sorts <$sort>` the documents by
+  ``imageSize`` in descending order.
+
+  This stage outputs the following documents to the next stage:
+
+  .. code-block:: javascript
+     :copyable: false
+
+     { "_id" : 4, "name" : "concert.jpg", "imageSize" : 269 }
+     { "_id" : 2, "name" : "big_ben.jpg", "imageSize" : 41 }
+     { "_id" : 1, "name" : "cat.jpg", "imageSize" : 16 }
+     { "_id" : 3, "name" : "teaset.jpg", "imageSize" : 16 }
+     { "_id" : 5, "name" : "empty.jpg", "imageSize" : 0 }
+
+Third Stage
+  The third stage :pipeline:`limits <$limit>` the output documents to
+  only return the document appearing first in the sort order:
+
+  .. code-block:: javascript
+     :copyable: false
+
+     { "_id" : 4, "name" : "concert.jpg", "imageSize" : 269 }
+
+.. seealso::
+
+   - :pipeline:`$project`
+   - :pipeline:`$sort`
+   - :pipeline:`$limit`
+   - :expression:`$strLenBytes`
+   - :expression:`$bsonSize`

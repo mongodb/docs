@@ -1,0 +1,273 @@
+===========================
+$expMovingAvg (aggregation)
+===========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. versionadded:: 5.0
+
+.. group:: $expMovingAvg
+
+Returns the exponential moving average of numeric :ref:`expressions
+<aggregation-expressions>` applied to documents in a :ref:`partition
+<setWindowFields-partitionBy>` defined in the
+:pipeline:`$setWindowFields` stage.
+
+:group:`$expMovingAvg` is only available in the
+:pipeline:`$setWindowFields` stage.
+
+:group:`$expMovingAvg` syntax:
+
+.. code-block:: none
+   :copyable: false
+
+   {
+      $expMovingAvg: {
+         input: <input expression>,
+         N: <integer>,
+         alpha: <float>
+      }
+   } 
+
+:group:`$expMovingAvg` takes a document with these fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 85
+
+   * - Field
+     - Description
+
+   * - :ref:`input <expMovingAvg-input>`
+
+     - .. _expMovingAvg-input:
+     
+       Specifies the :ref:`expression <aggregation-expressions>` to
+       evaluate. Non-numeric expressions are ignored.
+
+   * - :ref:`N <expMovingAvg-N>`
+
+     - .. _expMovingAvg-N:
+       
+       An ``integer`` that specifies the number of historical documents
+       that have a significant mathematical weight in the exponential
+       moving average calculation, with the most recent documents
+       contributing the most weight.
+       
+       .. include:: /includes/expMovingAvg-N-or-alpha.rst
+
+       The ``N`` value is used in this formula to calculate the current
+       result based on the :ref:`expression <aggregation-expressions>`
+       value from the current document being read and the previous
+       result of the calculation:
+       
+       .. code-block:: none
+          :copyable: false
+
+          current result = current value * ( 2 / ( N + 1 ) ) +
+                           previous result * ( 1 - ( 2 / ( N + 1 ) ) )
+
+   * - :ref:`alpha <expMovingAvg-alpha>`
+
+     - .. _expMovingAvg-alpha:
+     
+       A ``double`` that specifies the exponential decay value to use in
+       the exponential moving average calculation. A higher ``alpha``
+       value assigns a lower mathematical significance to previous
+       results from the calculation.
+       
+       .. include:: /includes/expMovingAvg-N-or-alpha.rst
+
+       The ``alpha`` value is used in this formula to calculate the
+       current result based on the :ref:`expression
+       <aggregation-expressions>` value from the current document being
+       read and the previous result of the calculation:
+       
+       .. code-block:: none
+          :copyable: false
+
+          current result = current value * alpha +
+                           previous result * ( 1 - alpha )
+
+Behavior
+--------
+
+.. include:: /includes/expMovingAvg-N-or-alpha.rst
+
+:group:`$expMovingAvg` ignores non-numeric values, ``null`` values, and
+missing fields.
+
+Examples
+--------
+
+Create a ``stockPrices`` collection that contains prices for stocks
+named ``"ABC"`` and ``"DEF"``:
+
+.. code-block:: javascript
+
+   db.stockPrices.insertMany( [
+      { stock: "ABC", date: new Date( "2020-05-18T20:00:00Z" ), price: 13 },
+      { stock: "ABC", date: new Date( "2020-05-19T20:00:00Z" ), price: 15.4 },
+      { stock: "ABC", date: new Date( "2020-05-20T20:00:00Z" ), price: 12 },
+      { stock: "ABC", date: new Date( "2020-05-21T20:00:00Z" ), price: 11.7 },
+      { stock: "DEF", date: new Date( "2020-05-18T20:00:00Z" ), price: 82 },
+      { stock: "DEF", date: new Date( "2020-05-19T20:00:00Z" ), price: 94 },
+      { stock: "DEF", date: new Date( "2020-05-20T20:00:00Z" ), price: 112 },
+      { stock: "DEF", date: new Date( "2020-05-21T20:00:00Z" ), price: 97.3 }
+   ] )
+
+Exponential Moving Average Using ``N``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example uses :group:`$expMovingAvg` in the
+:pipeline:`$setWindowFields` stage to output the exponential moving
+average for the stock prices weighted for two historical documents (two
+days for the example documents) using :ref:`N <expMovingAvg-N>` set to
+``2``:
+
+.. code-block:: javascript
+
+   db.stockPrices.aggregate( [
+      {
+         $setWindowFields: {
+            partitionBy: "$stock",
+            sortBy: { date: 1 },
+            output: {
+               expMovingAvgForStock: {
+                  $expMovingAvg: { input: "$price", N: 2 }
+               }
+            }
+         }
+      }
+   ] )
+
+In the example:
+
+- ``partitionBy: "$stock"`` :ref:`partitions
+  <setWindowFields-partitionBy>` the documents in the collection by
+  ``stock``. There are partitions for ``"ABC"`` and ``"DEF"``.
+
+- ``sortBy: { date: 1 }`` :ref:`sorts
+  <setWindowFields-sortBy>` the documents in each partition by
+  ``date`` in ascending order (``1``), so the earliest ``date``
+  is first.
+
+- ``output`` returns the exponential moving average for the stock
+  ``price`` field with :ref:`N <expMovingAvg-N>` set to ``2``:
+  
+  - In the input documents, there is one document for each day
+    and the documents are ordered by ``date``. Therefore, with :ref:`N
+    <expMovingAvg-N>` is set to ``2``, the ``price`` in the current
+    document and the ``price`` in the previous document, if available,
+    are allocated the highest weight in the :ref:`exponential moving
+    average formula <expMovingAvg-N>`.
+  
+  - The exponential moving average for the ``price`` field is stored in
+    a new field called ``expMovingAvgForStocks``, as shown in the
+    following results.
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : ObjectId("60d11fef833dfeadc8e6286b"), "stock" : "ABC",
+     "date" : ISODate("2020-05-18T20:00:00Z"), "price" : 13,
+     "expMovingAvgForStock" : 13 }
+   { "_id" : ObjectId("60d11fef833dfeadc8e6286c"), "stock" : "ABC",
+     "date" : ISODate("2020-05-19T20:00:00Z"), "price" : 15.4,
+     "expMovingAvgForStock" : 14.6 }
+   { "_id" : ObjectId("60d11fef833dfeadc8e6286d"), "stock" : "ABC",
+     "date" : ISODate("2020-05-20T20:00:00Z"), "price" : 12,
+     "expMovingAvgForStock" : 12.866666666666667 }
+   { "_id" : ObjectId("60d11fef833dfeadc8e6286e"), "stock" : "ABC",
+     "date" : ISODate("2020-05-21T20:00:00Z"), "price" : 11.7,
+     "expMovingAvgForStock" : 12.088888888888889 }
+   { "_id" : ObjectId("60d11fef833dfeadc8e6286f"), "stock" : "DEF",
+     "date" : ISODate("2020-05-18T20:00:00Z"), "price" : 82,
+     "expMovingAvgForStock" : 82 }
+   { "_id" : ObjectId("60d11fef833dfeadc8e62870"), "stock" : "DEF",
+     "date" : ISODate("2020-05-19T20:00:00Z"), "price" : 94,
+     "expMovingAvgForStock" : 90 }
+   { "_id" : ObjectId("60d11fef833dfeadc8e62871"), "stock" : "DEF",
+     "date" : ISODate("2020-05-20T20:00:00Z"), "price" : 112,
+     "expMovingAvgForStock" : 104.66666666666667 }
+   { "_id" : ObjectId("60d11fef833dfeadc8e62872"), "stock" : "DEF",
+     "date" : ISODate("2020-05-21T20:00:00Z"), "price" : 97.3,
+     "expMovingAvgForStock" : 99.75555555555556 }
+
+Exponential Moving Average Using ``alpha``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example uses :group:`$expMovingAvg` in the
+:pipeline:`$setWindowFields` stage to output the exponential moving
+average for the stock prices using :ref:`alpha <expMovingAvg-alpha>` set
+to ``0.75``:
+
+.. code-block:: javascript
+
+   db.stockPrices.aggregate( [
+      {
+         $setWindowFields: {
+            partitionBy: "$stock",
+            sortBy: { date: 1 },
+            output: {
+               expMovingAvgForStock: {
+                  $expMovingAvg: { input: "$price", alpha: 0.75 }
+               }
+            }
+         }
+      }
+   ] )
+
+In the example:
+
+- ``partitionBy: "$stock"`` :ref:`partitions
+  <setWindowFields-partitionBy>` the documents in the collection by
+  ``stock``. There are partitions for ``"ABC"`` and ``"DEF"``.
+
+- ``sortBy: { date: 1 }`` :ref:`sorts
+  <setWindowFields-sortBy>` the documents in each partition by
+  ``date`` in ascending order (``1``), so the earliest ``date``
+  is first.
+
+- ``output`` sets the exponential moving average for the stock prices in
+  a new field called ``expMovingAvgForStock``, as shown in the following
+  results. The value for :ref:`alpha <expMovingAvg-alpha>` is set to
+  ``0.75`` in the :ref:`exponential moving average formula
+  <expMovingAvg-alpha>`.
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : ObjectId("60d11fef833dfeadc8e6286b"), "stock" : "ABC",
+     "date" : ISODate("2020-05-18T20:00:00Z"), "price" : 13,
+     "expMovingAvgForStock" : 13 }
+   { "_id" : ObjectId("60d11fef833dfeadc8e6286c"), "stock" : "ABC",
+     "date" : ISODate("2020-05-19T20:00:00Z"), "price" : 15.4,
+     "expMovingAvgForStock" : 14.8 }
+   { "_id" : ObjectId("60d11fef833dfeadc8e6286d"), "stock" : "ABC",
+     "date" : ISODate("2020-05-20T20:00:00Z"), "price" : 12,
+     "expMovingAvgForStock" : 12.7 }
+   { "_id" : ObjectId("60d11fef833dfeadc8e6286e"), "stock" : "ABC",
+     "date" : ISODate("2020-05-21T20:00:00Z"), "price" : 11.7,
+     "expMovingAvgForStock" : 11.95 }
+   { "_id" : ObjectId("60d11fef833dfeadc8e6286f"), "stock" : "DEF",
+     "date" : ISODate("2020-05-18T20:00:00Z"), "price" : 82,
+     "expMovingAvgForStock" : 82 }
+   { "_id" : ObjectId("60d11fef833dfeadc8e62870"), "stock" : "DEF",
+     "date" : ISODate("2020-05-19T20:00:00Z"), "price" : 94,
+     "expMovingAvgForStock" : 91 }
+   { "_id" : ObjectId("60d11fef833dfeadc8e62871"), "stock" : "DEF",
+     "date" : ISODate("2020-05-20T20:00:00Z"), "price" : 112,
+     "expMovingAvgForStock" : 106.75 }
+   { "_id" : ObjectId("60d11fef833dfeadc8e62872"), "stock" : "DEF",
+     "date" : ISODate("2020-05-21T20:00:00Z"), "price" : 97.3,
+     "expMovingAvgForStock" : 99.6625 }

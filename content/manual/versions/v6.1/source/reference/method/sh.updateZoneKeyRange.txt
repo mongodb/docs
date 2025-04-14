@@ -1,0 +1,380 @@
+=======================
+sh.updateZoneKeyRange()
+=======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: sh.updateZoneKeyRange(namespace, minimum, maximum, zone)
+
+   Associates a range of shard key values with a :term:`zone`.
+
+   .. include:: /includes/extracts/zoned-sharding-updateZoneKeyRange-change.rst
+
+   .. |dbcommand| replace:: :dbcommand:`updateZoneKeyRange` command
+   .. include:: /includes/fact-mongosh-shell-method-alt.rst
+
+
+   :method:`sh.updateZoneKeyRange()` takes the following arguments:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+
+      * - Parameter
+
+        - Type
+
+        - Description
+
+      * - ``namespace``
+
+        - string
+
+        - The :term:`namespace` of the sharded collection associate with the ``zone``.
+
+          The collection must be sharded for the operation to succeed.
+
+
+
+      * - ``minimum``
+
+        - document
+
+        - The inclusive lower bound of the range of :term:`shard key` values. 
+
+          Specify each field of the shard key in the form of ``<fieldname> : <value>``.
+          The value must be of the same BSON type or types as the shard key.
+
+          .. note::
+
+             To use hashed sharding, the field value needs to be of type
+             :bsontype:`NumberLong <data_numberlong>`.
+
+      * - ``maximum``
+
+        - document
+
+        - The exclusive upper bound of the range of :term:`shard key` values. 
+
+          Specify each field of the shard key in the form of ``<fieldname> : <value>``.
+          The value must be of the same BSON type or types as the shard key.
+
+          .. note::
+
+             To use hashed sharding, the field value needs to be of type
+             :bsontype:`NumberLong <data_numberlong>`.
+
+      * - ``zone``
+
+        - string
+
+        - The name of the zone to associate with the range of shard key values bounded
+          by ``minimum`` and ``maximum``.
+
+
+
+
+
+   Only issue :method:`sh.updateZoneKeyRange()` when connected to a
+   :binary:`~bin.mongos` instance.
+
+Behavior
+--------
+
+You cannot create a range of shard key values whose lower and upper boundaries
+overlap with an existing range for the sharded collection. For example, given
+an existing range of ``1`` to ``10``, you cannot create a new range of ``5``
+to ``20``, as the new range would overlap with the existing range.
+
+A zone can have multiple ranges of data associated with it, but a range
+can at most be associated with a single zone.
+
+See the :ref:`zone <zone-sharding>` manual page for more information on zones
+in sharded clusters.
+
+.. _updateZoneKeyRange-method-init-chunk-distribution:
+
+Initial Chunk Distribution for Empty or Non-Existing Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you are considering performing :ref:`zone sharding <zone-sharding>`
+on an empty or non-existent collection, use
+:method:`sh.updateZoneKeyRange()` to create the zones and zone ranges
+*before* sharding the collection (*since 4.0.2*). Starting in version
+4.0.3, creating zones and zone ranges on empty or non-existing
+collections allows MongoDB to optimize the initial chunk creation and
+distribution process when sharding the collection. This optimized
+process supports faster setup of zoned sharding with less balancer
+overhead than creating zones after sharding. The :ref:`balancer
+<sharding-balancing>` performs all chunk management after the optimized
+initial chunk creation and distribution.
+
+For an example of defining zones and zone ranges for initial chunk
+distribution, see :ref:`pre-define-zone-range-example`.
+
+.. _updateZoneKeyRange-method-init-chunk-distribution-compound-hashed:
+
+Initial Chunk Distribution with Compound Hashed Shard Keys
+``````````````````````````````````````````````````````````
+
+Starting in version 4.4, MongoDB supports sharding collections on
+:ref:`compound hashed indexes <index-type-compound-hashed>`. MongoDB can
+perform optimized initial chunk creation and distribution when sharding
+the empty or non-existing collection on a compound hashed shard key.
+
+.. tabs::
+
+   .. tab:: Hashed Field Is Prefix
+      :tabid: hash-prefix
+
+      .. include:: /includes/extracts/zoned-sharding-chunk-distribution-compound-hashed-prefix.rst
+
+
+   .. tab:: Hashed Field is Not Prefix
+      :tabid: hash-not-prefix
+
+      .. include:: /includes/extracts/zoned-sharding-chunk-distribution-compound-hashed-not-prefix.rst
+
+For a more complete example of defining zones and zone ranges for
+initial chunk distribution on a compound hashed shard key, see
+:ref:`pre-define-zone-range-hashed-example`.
+
+.. seealso::
+
+   :method:`sh.balancerCollectionStatus()`
+
+
+Balancer
+~~~~~~~~
+
+After associating a range to a zone, the :ref:`balancer
+<sharding-balancing-internals>` must first run in order to migrate any chunks
+whose ranges are covered by the zone to shards inside of that zone. Until
+balancing completes, some chunks may reside on the wrong shard given the
+configured zones for the sharded cluster. See :ref:`zone-sharding-balancer`
+for more information.
+
+See the :ref:`sharded cluster balancer <sharding-balancing>` manual page for
+more information on how migrations work in a sharded cluster.
+
+Bounds
+~~~~~~
+
+.. include:: /includes/fact-shard-ranges-inclusive-exclusive.rst
+
+Dropped Collections
+~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/zoned-sharding-drop-collection-change.rst
+
+In earlier versions, MongoDB does not remove the tag associations for a
+dropped collection, and if you later create a new collection with the
+same name, the old tag associations will apply to the new collection.
+
+Security
+~~~~~~~~
+
+For sharded clusters running with :ref:`authentication <authentication>`, you
+must authenticate as either:
+
+- a user whose privileges include the specified actions on various
+  collections in the ``config`` database:
+
+  - :authaction:`find` on the ``config.shards`` collection
+
+  - :authaction:`find` and :authaction:`update` on the ``config.tags``
+    collection;
+
+  or, alternatively,
+
+- a user whose privileges include :authaction:`enableSharding` on the
+  :ref:`cluster <resource-specific-collection>` resource (available
+  starting in version 4.2.2, 4.0.14, 3.6.16).
+
+The :authrole:`clusterAdmin` or :authrole:`clusterManager` built-in roles have
+the appropriate permissions for issuing :method:`sh.updateZoneKeyRange()`. See
+the documentation page for :ref:`Role-Based Access Control <authorization>`
+for more information.
+
+Examples
+--------
+
+Given a sharded collection ``exampledb.collection`` with a shard key of ``{ a
+: 1 }``, the following operation creates a range with a lower bound of ``1``
+and an upper bound of ``10`` on the ``alpha`` zone:
+
+.. code-block:: javascript
+
+   sh.updateZoneKeyRange(
+      "exampledb.collection",
+      { a : 1 },
+      { a : 10 },
+      "alpha"
+   )
+
+The following operation removes the previously created range by passing
+``null`` to the ``zone`` field.
+
+.. code-block:: javascript
+
+   sh.updateZoneKeyRange( 
+      "exampledb.collection",
+      { a : 1 },
+      { a : 10 },
+      null
+   )
+
+The ``min`` and ``max`` must match exactly the bounds of the target range.
+The following operation attempts to remove the previously created range, but
+specifies ``{ a : 0 }`` as the ``min`` bound:
+
+.. code-block:: javascript
+
+   sh.updateZoneKeyRange(
+      "exampledb.collection",
+      { a : 0 },
+      { a : 10 },
+      null
+   )
+
+While the range of ``{ a : 0 }`` and ``{ a : 10 }`` encompasses the existing
+range, it is not an exact match and therefore :dbcommand:`updateZoneKeyRange`
+does not remove anything.
+
+Compound Shard Key
+~~~~~~~~~~~~~~~~~~
+
+Given a sharded collection ``exampledb.collection`` with a shard key of ``{ a
+: 1, b : 1 }``, the following operation creates a range covering the lower
+bound of ``{ a: 1, b : 1 }`` and an upper bound of ``{ a : 10, b : 10}`` and associates it
+with the ``alpha`` zone:
+
+.. code-block:: javascript
+
+   sh.updateZoneKeyRange(
+      "exampledb.collection",
+      { a : 1, b : 1 },
+      { a : 10, b : 10 },
+      "alpha"
+   )
+
+.. _pre-define-zone-range-example:
+.. _pre-define-zone-range-hashed-example:
+
+Pre-Define Zones and Zone Ranges for an Empty or Non-Existing Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in version 4.2, creating zones and zone ranges on empty or
+non-existing collections allows MongoDB to optimize the initial chunk
+creation and distribution process when sharding the collection. This
+optimized process supports faster setup of zoned sharding with less
+balancer overhead than creating zones after sharding. The :ref:`balancer
+<sharding-balancing>` performs all chunk management after the optimized
+initial chunk creation and distribution. See 
+:ref:`updateZoneKeyRange-method-init-chunk-distribution-compound-hashed`
+for more information.
+
+The sections below contain examples for three different shard key types.
+
+Consider the following examples, which explore pre-defining zones or
+zone ranges for three different shard key types:
+
+- :ref:`updatezonekeyrange-single-or-compound-example`
+- :ref:`updatezonekeyrange-compound-prefix-hashed-example`
+- :ref:`updatezonekeyrange-compound-non-prefix-hashed-example`
+
+.. _updatezonekeyrange-single-or-compound-example:
+
+Single or Compound Shard Keys
+`````````````````````````````
+
+.. note::
+
+   This example only applies to single-field or compound shard keys
+   *without* a hashed field. 
+         
+   For example, ``{ "zip" : 1 }`` or  
+   ``{ "zip" : 1, "account" : 1}``
+
+.. include:: /includes/steps/zones-initial-chunk-distribution-single-compound.rst
+
+.. _updatezonekeyrange-compound-prefix-hashed-example:
+
+Compound Hashed Shard Key with Hashed Prefix
+````````````````````````````````````````````
+
+.. note:: 
+
+   This example only applies to compound hashed shard keys where the
+   hashed field is the prefix of the shard key (i.e. the first field in
+   the shard key is hashed).
+  
+   For example, ``{ "_id" : "hashed", "facility" : 1 }``
+
+Starting in version 4.4, MongoDB supports sharding collections on
+:ref:`compound hashed indexes <index-type-compound-hashed>`. When
+sharding on a compound hashed shard key, MongoDB can perform
+optimized initial chunk creation and distribution on the empty or
+non-existing collection *only if* the defined zone ranges meet
+:ref:`additional requirements
+<updateZoneKeyRange-method-init-chunk-distribution>`.
+
+Consider an empty collection ``examples.metrics`` which will store
+analytics from one of two manufacturing facilities. The 
+planned shard key is ``{ "_id" : "hashed", "facility" : 1}``,
+where the hashed field is the shard key *prefix*.
+ 
+.. include:: /includes/steps/zones-initial-chunk-distribution-compound-hashed-prefix.rst
+
+.. _updatezonekeyrange-compound-non-prefix-hashed-example:
+
+Compound Hashed Shard Key with Non-Prefix Hashed Field
+``````````````````````````````````````````````````````
+
+.. note:: 
+
+   This example only applies to compound hashed shard keys where the
+   hashed field is *not* the prefix of the shard key (i.e. the first
+   field in the shard key is not hashed).
+  
+   For example, ``{ "facility" : 1, "_id" : "hashed" }``
+
+Starting in version 4.4, MongoDB supports sharding collections on
+:ref:`compound hashed indexes <index-type-compound-hashed>`. When
+sharding on a compound hashed shard key, MongoDB can perform
+optimized initial chunk creation and distribution on the empty or
+non-existing collection *only if* the defined zone ranges meet
+:ref:`additional requirements
+<updateZoneKeyRange-method-init-chunk-distribution>`.
+
+Consider an empty collection ``examples.metrics`` which will store
+analytics from one of two manufacturing facilities. The planned
+shard key is ``{ "facility" : 1, "_id" : "hashed" }``, where 
+the hashed field is *not* the shard key prefix.
+
+- The ``facility`` field stores the name of the facility: 
+  ``"FacilityAlpha"`` or ``"FacilityBaker"``.  The 
+  collection requires zone ranges on ``facility`` to help isolate 
+  data for each facility to specific shards. 
+
+- The ``_id`` field compensates for the low-cardinality of the 
+  ``facility`` field. Hashing compensates for the
+  monotonically-increasing nature of the ``_id`` field.
+ 
+.. include:: /includes/steps/zones-initial-chunk-distribution-compound-hashed-non-prefix.rst
+
+.. seealso::
+
+   - :method:`sh.addShardToZone()`
+   - :method:`sh.removeRangeFromZone()`
+

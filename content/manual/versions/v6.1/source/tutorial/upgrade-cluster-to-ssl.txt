@@ -1,0 +1,237 @@
+================================
+Upgrade a Cluster to Use TLS/SSL
+================================
+
+.. default-domain:: mongodb
+
+The MongoDB server supports listening for both TLS/SSL encrypted and
+unencrypted connections on the same TCP port. This allows upgrades of
+MongoDB clusters to use TLS/SSL encrypted connections. 
+
+.. note::
+
+   .. include:: /includes/fact-tls-1.0.rst
+
+   .. |binary| replace:: MongoDB
+
+.. _upgrade-to-tls:
+
+Procedure (Using ``tls`` Settings)
+----------------------------------
+
+.. important::
+
+   .. include:: /includes/extracts/security-prereq-configure-ssl-clients.rst
+
+To upgrade from a MongoDB cluster using no TLS/SSL encryption to one
+using *only* TLS/SSL encryption, use the following rolling upgrade
+process.
+
+.. note::
+
+   The procedures in this section use the ``tls`` settings/option
+   (Available in MongoDB 4.2). For procedures using their ``ssl``
+   aliases, see :ref:`upgrade-to-ssl`.
+   
+   The ``tls`` settings/options provide **identical** functionality
+   as the ``ssl`` options since MongoDB has always supported TLS 1.0
+   and later.
+
+#. For each node of a cluster, start the node with the command-line option
+   ``--tlsMode`` or the configuration file option :setting:`net.tls.mode` set to ``allowTLS``. 
+   The ``allowTLS`` setting allows the node to accept both TLS/SSL
+   and non-TLS/non-SSL incoming connections. Its connections to other servers
+   do not use TLS/SSL. Include other :doc:`TLS/SSL options
+   </tutorial/configure-ssl>` [#systemstore]_ as well as any other options that are
+   required for your specific configuration. 
+
+   .. note::
+
+      .. include:: /includes/extracts/default-bind-ip-security.rst
+
+   For example:
+
+   .. tabs::
+
+      tabs:
+
+        - id: commandline
+          name: Command-Line Options
+          content: |
+
+            .. code-block:: bash
+
+               mongod --replSet <name> --tlsMode allowTLS --tlsCertificateKeyFile <TLS/SSL certificate and key file> --sslCAFile <path to root CA PEM file> <additional options>
+
+        - id: config
+          name: Configuration File Options
+          content: |
+
+             To specify these options in the :doc:`configuration file
+             </reference/configuration-options>`, include the following
+             settings in the file:
+
+             .. code-block:: yaml
+
+                net:
+                   tls:
+                      mode: allowTLS
+                      certificateKeyFile: <path to TLS/SSL certificate and key PEM file>
+                      CAFile: <path to root CA PEM file>
+
+   Upgrade all nodes of the cluster to these settings.
+
+#. Switch all clients to use TLS/SSL. See :ref:`ssl-clients`.
+
+#. For each node of a cluster, use the :dbcommand:`setParameter`
+   command to update the :parameter:`tlsMode` to ``preferTLS``.
+   [#update-mode-alternative]_ With ``preferTLS`` as its
+   :setting:`net.tls.mode`, the node accepts both TLS/SSL and non-TLS/non-SSL incoming
+   connections, and its connections to other servers use TLS/SSL. For
+   example:
+
+   .. code-block:: bash
+
+      db.adminCommand( { setParameter: 1, tlsMode: "preferTLS" } )
+
+   Upgrade all nodes of the cluster to these settings.
+
+   At this point, all connections should be using TLS/SSL.
+
+#. For each node of the cluster, use the
+   :dbcommand:`setParameter` command to update the :parameter:`tlsMode`
+   to ``requireTLS``. [#update-mode-alternative]_ With ``requireTLS``
+   as its :setting:`net.tls.mode`, the node will reject any non-TLS/non-SSL
+   connections. For example:
+
+   .. code-block:: bash
+
+      db.adminCommand( { setParameter: 1, tlsMode: "requireTLS" } )
+
+#. After the upgrade of all nodes, edit the :doc:`configuration file
+   </reference/configuration-options>` with the appropriate TLS/SSL
+   settings to ensure that upon subsequent restarts, the cluster uses
+   TLS/SSL.
+
+.. _upgrade-to-ssl:
+
+Procedure (Using ``ssl`` Settings)
+----------------------------------
+
+.. important::
+
+   .. include:: /includes/extracts/security-prereq-configure-ssl-clients.rst
+
+To upgrade from a MongoDB cluster using no TLS/SSL encryption to one
+using *only* TLS/SSL encryption, use the following rolling upgrade
+process.
+
+
+.. note::
+
+   The procedures in this section use the ``ssl`` settings/option. For
+   procedures using their ``tls`` aliases (Available in MongoDB 4.2),
+   see :ref:`upgrade-to-tls`.
+   
+   The ``tls`` settings/options provide **identical** functionality
+   as the ``ssl`` options since MongoDB has always supported TLS 1.0
+   and later.
+
+#. For each node of a cluster, start the node with the command-line option
+   ``--sslMode`` or the configuration file option :setting:`net.ssl.mode` set to ``allowSSL``. 
+   The ``allowSSL`` setting allows the node to accept both TLS/SSL
+   and non-TLS/non-SSL incoming connections. Its connections to other servers
+   do not use TLS/SSL. Include other :doc:`TLS/SSL options
+   </tutorial/configure-ssl>` [#systemstore]_ as well as any other options that are
+   required for your specific configuration. 
+
+   .. note::
+
+      .. include:: /includes/extracts/default-bind-ip-security.rst
+
+   For example:
+
+   .. tabs::
+
+      tabs:
+
+        - id: commandline
+          name: Command-Line Options
+          content: |
+
+            .. code-block:: bash
+
+               mongod --replSet <name> --sslMode allowSSL --sslPEMKeyFile <path to TLS/SSL Certificate and key PEM file> --sslCAFile <path to root CA PEM file> <additional options>
+
+        - id: config
+          name: Configuration File Options
+          content: |
+
+             To specify these options in the :doc:`configuration file
+             </reference/configuration-options>`, include the following
+             settings in the file:
+
+             .. code-block:: yaml
+
+                net:
+                   ssl:
+                      mode: <allowSSL>
+                      certificateKeyFile: <path to TLS/SSL certificate and key PEM file>
+                      CAFile: <path to root CA PEM file>
+
+   Upgrade all nodes of the cluster to these settings.
+
+#. Switch all clients to use TLS/SSL. See :ref:`ssl-clients`.
+
+#. For each node of a cluster, use the :dbcommand:`setParameter`
+   command to update the :parameter:`sslMode` to ``preferSSL``.
+   [#update-mode-alternative]_ With ``preferSSL`` as its
+   :setting:`net.ssl.mode`, the node accepts both TLS/SSL and non-TLS/non-SSL incoming
+   connections, and its connections to other servers use TLS/SSL. For
+   example:
+
+   .. code-block:: bash
+
+      db.adminCommand( { setParameter: 1, sslMode: "preferSSL" } )
+
+   Upgrade all nodes of the cluster to these settings.
+
+   At this point, all connections should be using TLS/SSL.
+
+#. For each node of the cluster, use the
+   :dbcommand:`setParameter` command to update the :parameter:`sslMode`
+   to ``requireSSL``. [#update-mode-alternative]_ With ``requireSSL``
+   as its :setting:`net.ssl.mode`, the node will reject any non-TLS/non-SSL
+   connections. For example:
+
+   .. code-block:: bash
+
+      db.adminCommand( { setParameter: 1, sslMode: "requireSSL" } )
+
+#. After the upgrade of all nodes, edit the :doc:`configuration file
+   </reference/configuration-options>` with the appropriate TLS/SSL
+   settings to ensure that upon subsequent restarts, the cluster uses
+   TLS/SSL.
+
+.. [#update-mode-alternative] As an alternative to using the
+   :dbcommand:`setParameter` command, you can also
+   restart the nodes with the appropriate TLS/SSL options and values.
+
+.. [#systemstore] 
+
+   Starting in MongoDB 4.0, you can use system SSL certificate stores
+   for Windows and macOS. To use the system SSL certificate store, use:
+
+   - :setting:`net.tls.certificateSelector` (or the command-line option
+     ``--tlsCertificateSelector``) instead of
+     :setting:`net.tls.certificateKeyFile` (or the command-line
+     option``--certificateKeyFile``).
+   
+   - :setting:`net.ssl.certificateSelector` (or the command-line option
+     ``--sslCertificateSelector``) instead of
+     :setting:`net.ssl.PEMKeyFile` (or the command-line
+     option``--sslPEMKeyFile``).
+
+   When using the system SSL certificate store, OCSP (Online
+   Certificate Status Protocol) is used to validate the revocation
+   status of certificates.

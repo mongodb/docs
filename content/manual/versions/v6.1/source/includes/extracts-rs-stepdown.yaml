@@ -1,0 +1,74 @@
+ref: rs-stepdown-election-handoff
+content: |
+
+   .. versionchanged:: 4.0.2
+
+      If the parameter :parameter:`enableElectionHandoff` is true
+      (default), when a primary steps down from :method:`rs.stepDown()`
+      (or the :dbcommand:`replSetStepDown` command without the ``force:
+      true``), the stepped-down primary nominates an eligible secondary
+      to call an election immediately. Otherwise, secondaries can wait
+      up to :rsconf:`settings.electionTimeoutMillis` before calling an
+      election. The stepped down primary does not wait for the effects
+      of the handoff. For more information, see
+      :parameter:`enableElectionHandoff`.
+---
+ref: rs-stepdown-write-fail
+content: |
+   .. note::
+
+      All writes to the primary fail during the period starting when the
+      |command-method-name| |command-method| is received until either a new
+      primary is elected, or if there are no electable secondaries, the
+      original primary resumes normal operation. 
+
+      Writes that were in progress when |command-method-name| is run
+      are killed. In-progress :ref:`transactions <transactions>`
+      also fail with :ref:`transient-transaction-error` and can be
+      retried as a whole.
+
+      The time period where writes fail is at maximum:
+
+      ``secondaryCatchUpPeriodSecs`` (10s by default) +
+      :rsconf:`~settings.electionTimeoutMillis` (10s by default).
+---
+ref: rs-stepdown-concurrent-ops
+content: |
+
+   The |command-method-name| |command-method| attempts to
+   terminate long running user operations that block the primary
+   from stepping down, such as an index build, a write operation or a
+   map-reduce job.
+---
+ref: rs-stepdown-eligible-secondaries
+content: |
+   The |command-method| then initiates a catchup period where it waits up to
+   ``secondaryCatchUpPeriodSeconds``, by default 10 seconds, for a
+   secondary to become up-to-date with the primary. The primary only steps
+   down if a secondary is up-to-date with the primary during the
+   catchup period to prevent :doc:`rollbacks </core/replica-set-rollbacks>`.
+
+   If no electable secondary meets this criterion by the end of the waiting
+   period, the primary does not step down and the |command-method| errors.
+   |force-option|
+
+   Once the primary steps down successfully, that node cannot become the
+   primary for the remainder of the |stepdown-secs| period,
+   which began when the node received the |command-method|.
+---
+ref: rs-stepdown-client-connections
+content: |
+
+   Starting in MongoDB 4.2, |command-method-name| |command-method| no
+   longer closes all client connections. 
+   
+   In MongoDB 4.0 and earlier, |command-method-name| |command-method|
+   closes all client connections during the step down. Because the
+   disconnect includes the connection used to run the |command-method|,
+   you cannot retrieve the return status of the |command-method| if the
+   |command-method| completes successfully. You can only retrieve the
+   return status of the |command-method| if it errors. When running the
+   4.0 and earlier |command-method| in a script, the script should
+   account for this behavior.
+
+...

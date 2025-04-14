@@ -1,0 +1,243 @@
+===============
+listCollections
+===============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: listCollections
+
+   Retrieve information, i.e. the name and options, about the
+   collections and :ref:`views <views-landing-page>` in a database. Specifically, the command returns a
+   document that contains information with which to create a
+   cursor to the collection information. :binary:`~bin.mongosh`
+   provides the :method:`db.getCollectionInfos()` and the
+   :method:`db.getCollectionNames()` helper methods.
+
+Syntax
+------
+
+The command has the following syntax:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      { 
+        listCollections: 1, 
+        filter: <document>, 
+        nameOnly: <boolean>, 
+        authorizedCollections: <boolean>, 
+        comment: <any> 
+      }
+   )
+
+Command Fields
+--------------
+
+The command can take the following optional fields:
+
+.. list-table::
+  :header-rows: 1
+  :widths: 20 20 80
+
+  * - Field
+    - Type
+    - Description
+
+  * - ``filter``
+    - document
+    - Optional. A query expression to filter the list of collections.
+      
+      You can specify a query expression on any of the :ref:`fields
+      returned <list-collection-output>` by :dbcommand:`listCollections`.
+
+  * - ``nameOnly``
+    - boolean
+    - Optional. A flag to indicate whether the command should return just the
+      collection/view names and type or return both the name and other information.
+      
+      Returning just the name and type (``view`` or ``collection``) does
+      not take collection-level locks whereas returning full collection
+      information locks each collection in the database.
+      
+      The default value is ``false``.
+      
+      .. note::
+      
+         When ``nameOnly`` is ``true``, your ``filter`` expression can only
+         filter based on a collection's name and type. No other fields are
+         available.
+      
+  * - ``authorizedCollections``
+    - boolean
+    - Optional. A flag, when set to ``true`` and used with ``nameOnly: true``, that
+      allows a user without the required privilege (i.e.
+      :authaction:`listCollections` action on the database) to run the
+      command when access control is enforced.
+      
+      When both ``authorizedCollections`` and ``nameOnly`` options are set
+      to true, the command returns only those collections for which the user
+      has privileges. For example, if a user has :authaction:`find` action
+      on specific collections, the command returns only those collections; or,
+      if a user has :authaction:`find` or any other action, on the
+      database resource, the command lists all collections in the database.
+      
+      The default value is ``false``. That is, the user must have
+      :authaction:`listCollections` action on the database to run the
+      command.
+      
+      For a user who has :authaction:`listCollections` action on the
+      database, this option has no effect since the user has privileges to
+      list the collections in the database.
+      
+      When used without ``nameOnly: true``, this option has no effect.
+      That is, the user must have the required privileges to run the
+      command when access control is enforced. Otherwise, the user is
+      unauthorized to run the command.
+      
+  * - ``comment``
+    - any
+    - .. include:: /includes/extracts/comment-content.rst
+   
+      .. versionadded:: 4.4
+
+.. _listCollections-behavior:
+
+Behavior
+--------
+
+Filter
+~~~~~~
+
+Use a filter to limit the results of :dbcommand:`listCollections`. You
+can specify a ``filter`` on any of the :ref:`fields returned
+<list-collection-output>` in the :dbcommand:`listCollections` result
+set.
+
+Locks
+~~~~~
+
+The :dbcommand:`listCollections` command takes Intent Shared lock on the
+database. In previous versions, the command takes Shared lock on the
+database.
+
+Unless the ``nameOnly`` option is specified, the command also takes an
+Intent Shared lock on each of the collections in turn while holding the
+Intent Shared lock on the database.
+
+Client Disconnection
+~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.2-changes-disconnect.rst
+
+.. |operation| replace:: :dbcommand:`listCollections`
+
+Replica Set Member State Restriction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.4-changes-repl-state-restrictions-operation.rst
+
+.. |operations| replace:: :dbcommand:`listCollections`
+
+Required Access
+---------------
+
+.. include:: /includes/extracts/listCollections-auth-required-access.rst
+
+``show collections``
+~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/listCollections-auth-show-collections.rst
+
+.. _list-collection-output:
+
+Output
+------
+
+.. data:: listCollections.cursor
+
+   A document that contains information with which to create a cursor
+   to documents that contain collection names and options. The cursor
+   information includes the cursor id, the full namespace for the
+   command, as well as the first batch of results. Each document in the
+   batch output contains the following fields:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 15 15 30
+
+      * - Field
+        - Type
+        - Description
+
+      * - name
+        - String
+        - Name of the collection.
+
+      * - type
+        - String
+        - Type of data store. Returns ``collection`` for
+          :manual:`collections
+          </core/databases-and-collections/#collections>`, ``view`` for
+          :manual:`views </core/views/>`, and ``timeseries`` for
+          :ref:`time series collection <manual-timeseries-collection>`.
+
+      * - options
+        - Document
+        - Collection options.
+
+          These options correspond directly to the options available in
+          :method:`db.createCollection()`. For the descriptions on the
+          options, see :method:`db.createCollection()`.
+
+      * - info
+        - Document
+        - Lists the following fields related to the collection:
+
+          readOnly
+             ``boolean``. If ``true`` the data store is read only.
+
+          uuid
+             :abbr:`UUID (Universally unique identifier)`. Once
+             established, the collection UUID does not change. The
+             collection UUID remains the same across replica set
+             members and shards in a sharded cluster.
+
+      * - idIndex
+        - Document
+        - Provides information on the ``_id`` index for the
+          collection.
+
+.. data:: listCollections.ok
+
+   The return value for the command. A value of ``1`` indicates
+   success.
+
+
+
+Example
+-------
+
+List All Collections
+~~~~~~~~~~~~~~~~~~~~
+
+The following example uses the :method:`db.getCollectionInfos()` helper
+to return information for all collections in the ``records`` database:
+
+.. code-block:: javascript
+
+   use records
+   db.getCollectionInfos();
+
+.. seealso::
+
+   :method:`db.getCollectionInfos()`
+

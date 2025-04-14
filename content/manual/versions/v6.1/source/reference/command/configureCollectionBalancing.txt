@@ -1,0 +1,154 @@
+================================
+configureCollectionBalancing
+================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. meta::
+   :description: configureCollectionBalancing
+   :keywords: configureCollectionBalancing
+
+Definition
+------------
+
+.. dbcommand:: configureCollectionBalancing
+
+   .. versionadded:: 5.3
+
+   Configures balancer settings for a sharded collection, such as
+   setting the chunk size for and defragmenting the collection.
+
+Syntax
+------
+
+The command has the following syntax:
+
+.. code-block:: javascript
+
+   db.adminCommand( 
+      {
+        configureCollectionBalancing: "<db>.<collection>",
+        chunkSize: <num>,
+        defragmentCollection: <bool>
+      } 
+   )
+
+Command Fields
+~~~~~~~~~~~~~~
+
+:dbcommand:`configureCollectionBalancing` has the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+ 
+   * - Field
+     - Type
+     - Description
+   * - ``configureCollectionBalancing``
+     - string
+     - Required: The name of the database and sharded collection to
+       configure.
+   * - ``chunkSize``
+     - integer
+     - Optional: Sets the chunk size in MiB for the collection. The
+       recommended size is 256, 512, or larger.
+   * - ``defragmentCollection``
+     - boolean
+     - Optional: Causes the balancer to defragment the collection.
+ 
+
+For more information, see :ref:`Data Partitioning with Chunks
+<sharding-data-partitioning>`.
+
+Behavior
+--------
+
+No Collection ``chunkSize`` Specified
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you do not specify ``chunkSize`` for a collection and no custom size 
+has been set previously, the global default ``chunkSize`` is 
+used for balancing.
+
+Specifying ``chunkSize: 0``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you use :dbcommand:`configureCollectionBalancing` with
+``chunkSize: 0``, the per-collection ``chunkSize`` is reset and the 
+global default ``chunkSize`` is used for balancing.
+
+For more information on configuring default ``chunkSize``,
+see :ref:`tutorial-modifying-range-size`.
+
+Examples
+--------
+
+Configure Chunk Size
+~~~~~~~~~~~~~~~~~~~~
+
+To change the chunk size for a sharded collection, use
+the ``chunkSize`` option:
+
+.. code-block:: javascript
+
+   db.adminCommand( {
+      configureCollectionBalancing: "test.students",
+      chunkSize: 256
+   } )
+
+Use this command to change the chunk size for the given collection.
+
+.. warning::
+
+   By default, MongoDB cannot move a chunk if the number of documents in
+   the chunk is greater than 1.3 times the result of dividing the
+   configured chunk size by the average document size.
+
+   To find the average document size, see the ``avgObjSize`` field in the
+   output of the :method:`db.collection.stats()` method.
+
+For more information, see :ref:`Range Size <sharding-range-size>`.
+
+Defragment Collections
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. warning:: 
+
+   We do not recommend using ``defragmentCollection`` to defragment sharded
+   collections for MongoDB 6.0.0 to 6.0.3 and MongoDB 6.1.0 to 6.1.1, as the
+   defragmentation process on these releases can make databases and collections
+   unavailable for extended periods of time.
+
+To tell the balancer to defragment a sharded collection, use the
+``defragmentCollection`` option:
+
+.. code-block:: javascript
+
+   db.adminCommand( {
+      configureCollectionBalancing: "test.students",
+      defragmentCollection: true
+   } )
+
+Use this command to have the balancer defragment a sharded collection.
+To monitor the chunk defragmentation process, use the
+:dbcommand:`balancerCollectionStatus` command.
+
+Reconfigure and Defragment Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To defragment a sharded collection while updating the chunk size, use
+the ``defragmentCollection`` option and the ``chunkSize`` option
+together:
+
+.. code-block:: javascript
+
+   db.adminCommand( {
+      configureCollectionBalancing: "test.students",
+      chunkSize: 512,
+      defragmentCollection: true
+   } )

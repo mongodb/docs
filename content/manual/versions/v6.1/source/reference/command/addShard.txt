@@ -1,0 +1,126 @@
+========
+addShard
+========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: addShard
+
+   Adds a shard replica set to a :term:`sharded cluster`.
+
+   .. |method| replace:: :method:`sh.addShard` helper method
+   .. include:: /includes/fact-dbcommand-tip
+
+
+Syntax
+------
+
+The command has the following syntax:
+
+.. code-block:: javascript
+  
+   db.adminCommand(
+      { 
+        addShard: "<replica_set>/<hostname><:port>", 
+        maxSize: <size>, 
+        name: "<shard_name>" 
+      } 
+   )
+
+Command Fields
+~~~~~~~~~~~~~~
+
+The command contains the following fields:
+
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+ 
+   * - Field
+ 
+     - Type
+ 
+     - Description
+ 
+   * - ``addShard``
+ 
+     - string
+ 
+     - The replica set name, hostname, and port of at least one member of
+       the shard's replica set. Any additional replica set member hostnames
+       must be comma separated. For example:
+       
+       .. code-block:: bash
+       
+          <replica_set>/<hostname><:port>,<hostname><:port>, ...
+       
+       
+ 
+   * - ``maxSize``
+ 
+     - integer
+ 
+     - Optional. The maximum size in megabytes of the shard. If you set ``maxSize``
+       to ``0``, MongoDB does not limit the size of the shard.
+       
+       
+ 
+   * - ``name``
+ 
+     - string
+ 
+     - Optional. A name for the shard. If this is not specified, MongoDB
+       automatically provides a unique name.
+           
+           
+The :dbcommand:`addShard` command stores shard configuration
+information in the :term:`config database`. Always run
+:dbcommand:`addShard` when using the ``admin`` database.
+
+Specify a ``maxSize`` when you have machines with different disk
+capacities, or if you want to limit the amount of data on some
+shards. The ``maxSize`` constraint prevents the :term:`balancer`
+from migrating chunks to the shard when the ``totalSize`` returned
+from running :dbcommand:`listDatabases` on the shard exceeds the
+value of ``maxSize``.
+
+
+Considerations
+--------------
+
+Balancing
+~~~~~~~~~
+
+.. include:: /includes/fact-adding-shards-changes-cluster-balance.rst
+
+Hidden Members
+~~~~~~~~~~~~~~
+
+.. |cmd-name| replace:: :dbcommand:`addShard`
+.. include:: /includes/important-add-shard-not-compatible-with-hidden-members.rst
+
+Examples
+--------
+
+The following command adds a replica set as a shard:
+
+.. code-block:: javascript
+
+   use admin
+   db.runCommand( { addShard: "repl0/mongodb3.example.net:27327"} )
+
+.. warning::
+
+   Do not use ``localhost`` for the hostname unless your
+   config server is also running on
+   ``localhost``.

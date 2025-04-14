@@ -1,0 +1,137 @@
+.. _single-field-indexes:
+
+====================
+Single Field Indexes
+====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+MongoDB provides complete support for indexes on any field in a
+:term:`collection` of :term:`documents <document>`. By default, all
+collections have an index on the :ref:`_id field <index-type-id>`, and
+applications and users may add additional indexes to support important
+queries and operations.
+
+This document describes ascending/descending indexes on a single field.
+
+.. include:: /images/index-ascending.rst
+
+Create an Ascending Index on a Single Field
+-------------------------------------------
+
+Consider a collection named ``records`` that holds documents that
+resemble the following sample document:
+
+.. code-block:: javascript
+
+   {
+     "_id": ObjectId("570c04a4ad233577f97dc459"),
+     "score": 1034,
+     "location": { state: "NY", city: "New York" }
+   }
+
+The following operation creates an ascending index on the ``score``
+field of the ``records`` collection:
+
+.. code-block:: javascript
+
+   db.records.createIndex( { score: 1 } )
+
+.. include:: /includes/fact-index-specification-field-value.rst
+
+The created index will support queries that select on the field
+``score``, such as the following:
+
+.. code-block:: javascript
+
+   db.records.find( { score: 2 } )
+   db.records.find( { score: { $gt: 10 } } )
+
+
+.. _index-embedded-fields:
+.. _index-subdocuments:
+.. _index-embedded-documents:
+
+Create an Index on an Embedded Field
+------------------------------------
+
+You can create indexes on fields within embedded documents, just as you
+can index top-level fields in documents. Indexes on embedded fields
+differ from :ref:`indexes on embedded documents <index-embedded-documents>`,
+which include the full content up to the maximum :limit:`index size
+<Index Key Limit>` of the embedded document in the index. Instead, indexes on
+embedded fields allow you to use a "dot notation," to introspect into
+embedded documents.
+
+Consider a collection named ``records`` that holds documents that
+resemble the following sample document:
+
+.. code-block:: javascript
+
+   {
+     "_id": ObjectId("570c04a4ad233577f97dc459"),
+     "score": 1034,
+     "location": { state: "NY", city: "New York" }
+   }
+
+The following operation creates an index on the ``location.state``
+field:
+
+.. code-block:: javascript
+
+   db.records.createIndex( { "location.state": 1 } )
+
+The created index will support queries that select on the field
+``location.state``, such as the following:
+
+.. code-block:: javascript
+
+   db.records.find( { "location.state": "CA" } )
+   db.records.find( { "location.city": "Albany", "location.state": "NY" } )
+
+Create an Index on Embedded Document
+------------------------------------
+
+You can also create indexes on embedded document as a whole.
+
+Consider a collection named ``records`` that holds documents that
+resemble the following sample document:
+
+.. code-block:: javascript
+
+   {
+     "_id": ObjectId("570c04a4ad233577f97dc459"),
+     "score": 1034,
+     "location": { state: "NY", city: "New York" }
+   }
+
+The ``location`` field is an embedded document, containing the embedded fields
+``city`` and ``state``. The following command creates an index on the ``location``
+field as a whole:
+
+.. code-block:: javascript
+
+   db.records.createIndex( { location: 1 } )
+
+The following query can use the index on the ``location`` field:
+
+.. code-block:: javascript
+
+   db.records.find( { location: { city: "New York", state: "NY" } } )
+
+.. note:: Although the query can use the index, the result set does not
+   include the sample document above. When performing equality matches on
+   embedded documents, field order matters and the embedded documents
+   must match exactly. See :ref:`query-embedded-documents` for more
+   information regarding querying on embedded documents.
+
+Additional Considerations
+-------------------------
+
+.. include:: /includes/index-tutorials-considerations.rst

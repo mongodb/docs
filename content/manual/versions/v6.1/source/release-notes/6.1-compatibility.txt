@@ -1,0 +1,117 @@
+.. _6.1-compatibility:
+
+====================================
+Compatibility Changes in MongoDB 6.1
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/rapid-release.rst
+
+This page describes changes introduced in MongoDB 6.1 that can affect
+compatibility with older versions of MongoDB.
+
+Aggregation
+-----------
+
+The following changes to :ref:`aggregation <aggregation>` can affect
+compatibility with older versions of MongoDB.
+
+``$add`` Floating Point Rounding Errors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 6.1, when an :expression:`$add` expression receives
+an input list with multiple floating point values, MongoDB may return
+slightly different results compared to previous versions.
+
+The ``$add`` expression no longer accounts for floating-point rounding
+errors. As a result, ``$add`` behaves like addition in most programming
+languages.
+
+For example, the following ``$add`` expression returns a different
+result when run on MongoDB 6.1 compared to older versions:
+
+.. code-block:: javascript
+
+   db.test.aggregate(
+      [
+        {
+           $project: {
+              sumOfValues: {
+                 $add: [ 0.1, 0.2, 0.3 ]
+              }
+            }
+         }
+      ]
+   )
+
+MongoDB 6.1 and later output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+     {
+       _id: ObjectId("6390f8085425651d8d0ef0a7"),
+       sumOfValues: 0.6000000000000001
+     }
+   ]
+
+MongoDB 6.0 and earlier output:
+
+.. code-block:: javascript
+
+   [
+     {
+       _id: ObjectId("6390f8085425651d8d0ef0a7"),
+       sumOfValues: 0.6
+     }
+   ]
+
+Removed Options
+---------------
+
+.. include:: /includes/journal-option-removed.rst
+
+.. include:: /includes/SNMP-removed.rst
+
+Time Series Collections
+-----------------------
+
+Views Not Permitted on Bucket Collection Namespace
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You cannot create a :ref:`view <views-landing-page>` from a :ref:`time
+series <manual-timeseries-collection>` bucket collection namespace
+(namely, a collection prefixed with ``system.buckets``).
+
+If you are upgrading to MongoDB 6.1 from a prior version, you must drop
+all views which are created on ``system.buckets`` collections.
+
+Server Parameters
+-----------------
+
+Starting in MongoDB 6.1, the default value for
+:parameter:`coordinateCommitReturnImmediatelyAfterPersistingDecision` is
+``false``.
+
+No Automatic Chunk Splitting
+----------------------------
+
+.. include:: /includes/autosplit-no-operation.rst
+
+.. include:: /includes/autosplit-commands.rst
+
+Sharding Metrics Changes
+------------------------
+
+``currentOp.opStatus`` is removed from the resharding metrics in MongoDB
+6.1. For a list of new metrics that replace the reporting
+``currentOp.opStatus`` provided, see the :ref:`release notes
+<6.1-rel-notes-currentOp>`.

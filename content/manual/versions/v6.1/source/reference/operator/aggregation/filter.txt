@@ -1,0 +1,350 @@
+=====================
+$filter (aggregation)
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $filter
+
+   Selects a subset of an array to return based on the specified
+   condition. Returns an array with only those elements that match the
+   condition. The returned elements are in the original order.
+
+   :expression:`$filter` has the following syntax:
+
+   .. code-block:: javascript
+
+      { 
+         $filter: 
+            { 
+               input: <array>, 
+               cond: <expression>,
+               as: <string>,  
+               limit: <number expression> 
+            } 
+      }
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+
+      * - Field
+        - Specification
+
+      * - ``input``
+
+        - An :ref:`expression <aggregation-expressions>` that
+          resolves to an array.
+
+      * - ``cond``
+
+        - An :ref:`expression <aggregation-expressions>` that resolves
+          to a boolean value used to determine if an element should be
+          included in the output array. The expression references each
+          element of the ``input`` array individually with the variable
+          name specified in ``as``.
+
+      * - ``as``
+
+        - Optional. A name for the :doc:`variable
+          </reference/aggregation-variables>` that represents each
+          individual element of the ``input`` array. If no name is
+          specified, the variable name defaults to ``this``.
+
+      * - ``limit``
+        - Optional. A number expression that restricts the number of matching
+          array elements that :expression:`$filter` returns. You cannot
+          specify a limit less than ``1``. The matching array elements are 
+          returned in the order they appear in the input array. 
+          
+          If the specified ``limit`` is greater than the number of matching 
+          array elements, :expression:`$filter` returns all matching array 
+          elements. If the limit is ``null``, :expression:`$filter` returns 
+          all matching array elements.
+
+   For more information on expressions, see
+   :ref:`aggregation-expressions`.
+
+Behavior
+--------
+
+.. list-table::
+   :header-rows: 1
+   :class: border-table
+
+   * - Example
+     - Results
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+            $filter: {
+               input: [ 1, "a", 2, null, 3.1, NumberLong(4), "5" ],
+               as: "num",
+               cond: { $and: [
+                  { $gte: [ "$$num", NumberLong("-9223372036854775807") ] }, 
+                  { $lte: [ "$$num", NumberLong("9223372036854775807") ] }
+                ] } 
+            }
+          }
+
+     - ``[ 1, 2, 3.1, NumberLong(4) ]``
+
+   * - .. code-block:: javascript
+          :copyable: false
+          :emphasize-lines: 9
+
+          {
+            $filter: {
+               input: [ 1, "a", 2, null, 3.1, NumberLong(4), "5" ],
+               as: "num",
+               cond: { $and:[
+                  { $gte: [ "$$num", NumberLong("-9223372036854775807") ] },
+                  { $lte: [ "$$num", NumberLong("9223372036854775807") ] }
+               ] },
+               limit: 2
+            }
+          }
+
+     - ``[ 1, 2 ]``
+
+   * - .. code-block:: javascript
+          :copyable: false
+          :emphasize-lines: 9
+
+          {
+            $filter: {
+               input: [ 1, "a", 2, null, 3.1, NumberLong(4), "5" ],
+               as: "num",
+               cond: { $and:[
+                  { $gte: [ "$$num", NumberLong("-9223372036854775807") ] },
+                  { $lte: [ "$$num", NumberLong("9223372036854775807") ] }
+               ] },
+               limit: { $add: [ 0, 1 ]}
+            }
+          }
+
+     - ``[ 1 ]``
+
+Examples
+--------
+
+A collection ``sales`` has the following documents:
+
+.. code-block:: javascript
+
+   db.sales.insertMany( [
+      {
+         _id: 0,
+         items: [
+            { item_id: 43, quantity: 2, price: 10 },
+            { item_id: 2, quantity: 1, price: 240 }
+         ]
+      },
+      {
+         _id: 1,
+         items: [
+            { item_id: 23, quantity: 3, price: 110 },
+            { item_id: 103, quantity: 4, price: 5 },
+            { item_id: 38, quantity: 1, price: 300 }
+         ]
+      },
+      {
+         _id: 2,
+         items: [
+            { item_id: 4, quantity: 1, price: 23 }
+         ]
+      }
+   ] )
+
+The following example filters the ``items`` array to only include
+documents that have a ``price`` greater than or equal to ``100``:
+
+.. code-block:: javascript
+
+   db.sales.aggregate( [
+      {
+         $project: {
+            items: {
+               $filter: {
+                  input: "$items", 
+                  as: "item", 
+                  cond: { $gte: [ "$$item.price", 100 ] } 
+               }
+            }
+         }
+      }
+   ] )
+
+The operation produces the following results:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 0,
+      "items" : [
+         { "item_id" : 2, "quantity" : 1, "price" : 240 }
+      ]
+   }
+   {
+      "_id" : 1,
+      "items" : [
+         { "item_id" : 23, "quantity" : 3, "price" : 110 },
+         { "item_id" : 38, "quantity" : 1, "price" : 300 }
+      ]
+   }
+   { "_id" : 2, "items" : [ ] }
+
+Using the ``limit`` field
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example uses the ``sales`` collection from the previous example.
+
+The example uses the ``limit`` field to specifiy the number of matching elements 
+returned in each ``items`` array. 
+
+.. code-block:: javascript
+   :emphasize-lines: 9
+
+   db.sales.aggregate( [
+      {
+         $project: {
+            items: {
+               $filter: {
+                  input: "$items",
+                  cond: { $gte: [ "$$item.price", 100 ] }, 
+                  as: "item", 
+                  limit: 1 
+               }
+            }
+         }
+      }
+   ] )
+
+The operation produces the following results:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 0,
+      "items" : [
+         { "item_id" : 2, "quantity" : 1, "price" : 240 }
+      ]
+   }
+   {
+      "_id" : 1,
+      "items" : [
+         { "item_id" : 23, "quantity" : 3, "price" : 110 }
+      ]
+   }
+   { "_id" : 2, "items" : [ ] }
+
+``limit`` as a Numeric Expression
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example uses the ``sales`` collection from the previous example.
+
+The following example uses a numeric expression for the ``limit`` field to 
+specifiy the number of matching elements returned in each ``items`` array. 
+
+.. code-block:: javascript
+   :emphasize-lines: 9
+
+   db.sales.aggregate( [
+      {
+         $project: {
+            items: {
+               $filter: {
+                  input: "$items",
+                  cond: { $lte: [ "$$item.price", 150] }, 
+                  as: "item", 
+                  limit: 2.000
+               }
+            }
+         }
+      }
+   ] )
+
+The operation produces the following results:
+
+.. code-block:: javascript
+
+   {
+      "_id": 0,
+      "items": [
+         { "item_id": 43, "quantity": 2, "price": 10 }
+      ] 
+   },
+   {
+      "_id": 1,
+      "items": [
+         { "item_id": 23, "quantity": 3, "price": 110 },
+         { "item_id": 103, "quantity": 4, "price": 5 }
+      ] 
+   },
+   {
+      "_id": 2,
+      "items": [
+         { "item_id": 4, "quantity": 1, "price": 23 }
+      ] 
+   }
+
+``limit`` Greater than Possible Matches
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example uses the ``sales`` collection from the previous example.
+
+The example uses a ``limit`` field value that is larger than the possible
+number of matching elements that can be returned. 
+
+.. code-block:: javascript
+   :emphasize-lines: 9
+
+   db.sales.aggregate( [
+      {
+         $project: {
+            items: {
+               $filter: {
+                  input: "$items",
+                  cond: { $gte: [ "$$item.price", 100] }, 
+                  as: "item", 
+                  limit: 5
+               }
+            }
+         }
+      }
+   ] )
+
+The operation produces the following results:
+
+.. code-block:: javascript
+
+   [
+      {
+         "_id": 0,
+         "items": [
+         { "item_id": 2, "quantity": 1, "price": 240 }
+         ]
+      },
+      {
+         "_id": 1,
+         "items": [
+            { "item_id": 23, "quantity": 3, "price": 110 },
+            { "item_id": 38, "quantity": 1, "price": 300 }
+         ]
+      },
+      {
+         "_id": 2,
+         "items": []
+      }
+   ]

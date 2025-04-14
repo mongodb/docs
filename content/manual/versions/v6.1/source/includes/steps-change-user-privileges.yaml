@@ -1,0 +1,83 @@
+stepnum: 1
+level: 4
+source:
+  file: steps-connect-with-admin-privileges.yaml
+  ref: connect
+---
+title: Identify the user's roles and privileges.
+stepnum: 2
+level: 4
+ref: identify-privileges
+pre: |
+  To display the roles and privileges of the user to be modified, use the
+  :method:`db.getUser()` and :method:`db.getRole()` methods.
+action:
+  - pre: |      
+      For example, to view roles for ``reportsUser`` created in
+      :ref:`add-new-user`, issue:
+    language: javascript
+    code: |
+      use reporting
+      db.getUser("reportsUser")
+  - pre: |
+      To display the privileges granted to the user by the
+      ``readWrite`` role on the ``"accounts"`` database, issue:
+    language: javascript
+    code: |
+      use accounts
+      db.getRole( "readWrite", { showPrivileges: true } )
+---
+title: Identify the privileges to grant or revoke.
+ref: select-roles-to-modify
+level: 4
+content: |
+  If the user requires additional privileges, grant to the user the
+  role, or roles, with the required set of privileges. If such a role
+  does not exist, :ref:`create a new role <create-user-defined-role>`
+  with the appropriate set of privileges.
+
+  To revoke a subset of privileges provided by an existing role: revoke
+  the original role and grant a role that contains only the required
+  privileges. You may need to :ref:`create a new role
+  <create-user-defined-role>` if a role does not exist.
+---
+title: Modify the user's access.
+ref: user-modification
+level: 4
+action:
+  - heading: Revoke a Role
+    pre: |
+      Revoke a role with the :method:`db.revokeRolesFromUser()` method.
+      The following example operation removes the :authrole:`readWrite`
+      role on the ``accounts`` database from the ``reportsUser``:
+    language: javascript
+    code: |
+      use reporting
+      db.revokeRolesFromUser(
+          "reportsUser",
+          [
+            { role: "readWrite", db: "accounts" }
+          ]
+      )
+  - heading: Grant a Role
+    pre: |
+      Grant a role using the :method:`db.grantRolesToUser()`
+      method. For example, the following operation grants the
+      ``reportsUser`` user the :authrole:`read` role on the
+      ``accounts`` database:
+    language: javascript
+    code: |
+      use reporting
+      db.grantRolesToUser(
+          "reportsUser",
+          [
+            { role: "read", db: "accounts" }
+          ]
+      )
+post: |
+  For sharded clusters, the changes to the user are instant on the
+  :binary:`~bin.mongos` on which the command runs. However, for other
+  :binary:`~bin.mongos` instances in the cluster, the user cache may wait
+  up to 10 minutes to refresh. See
+  :parameter:`userCacheInvalidationIntervalSecs`.
+...

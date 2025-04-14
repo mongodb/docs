@@ -1,0 +1,233 @@
+title: "Download the latest |oldversion| binaries."
+level: 4
+ref: 4.0-downgrade-binaries-sharded-cluster
+content: |
+  Using either a package manager or a manual download, get the latest
+  release in the |oldversion| series. If using a package manager, add a new
+  repository for the |oldversion| binaries, then perform the actual downgrade
+  process.
+
+  .. include:: /includes/4.0-downgrade-path.rst
+---
+title: Disable the Balancer.
+level: 4
+ref: disable-balancer
+content: |
+  Connect a ``mongo`` shell to a :binary:`~bin.mongos` instance in
+  the sharded cluster, and run :method:`sh.stopBalancer()` to
+  disable the balancer:
+
+  .. code-block:: javascript
+
+     sh.stopBalancer()
+
+  .. note::
+
+     If a migration is in progress, the system will complete the
+     in-progress migration before stopping the balancer. You can run
+     :method:`sh.isBalancerRunning()` to check the balancer's current
+     state.
+
+  To verify that the balancer is disabled, run
+  :method:`sh.getBalancerState()`, which returns false if the balancer
+  is disabled:
+
+  .. code-block:: javascript
+
+     sh.getBalancerState()
+
+  For more information on disabling the balancer, see
+  :ref:`sharding-balancing-disable-temporarily`.
+
+---
+title: "Downgrade the ``mongos`` instances."
+level: 4
+ref: downgrade-mongos
+content: |
+   Downgrade the binaries and restart.
+---
+title: Downgrade each shard, one at a time.
+level: 4
+ref: 4.0-downgrade-shard
+content: |
+
+   Downgrade the shards one at a time. If the shards are replica sets, for each shard:
+
+   1. Downgrade the :ref:`secondary <replica-set-secondary-members>`
+      members of the replica set one at a time:
+
+      a. Shut down the :binary:`~bin.mongod` instance and replace the |newversion|
+         binary with the |oldversion| binary.
+
+      #. Start the |oldversion| binary with the ``--shardsvr`` and
+         ``--port`` command line options. Include any other
+         configuration as appropriate for your deployment, e.g.
+         ``--bind_ip``.
+ 
+         .. code-block:: bash
+
+            mongod --shardsvr --port <port> --dbpath <path> --bind_ip localhost,<hostname(s)|ip address(es)>
+
+         Or if using a :doc:`configuration file
+         </reference/configuration-options>`, update the file to
+         include :setting:`sharding.clusterRole: shardsvr
+         <sharding.clusterRole>`, :setting:`net.port`, and any other
+         configuration as appropriate for your deployment, e.g.
+         :setting:`net.bindIp`, and start:
+
+         .. code-block:: yaml
+
+            sharding:
+               clusterRole: shardsvr
+            net:
+               port: <port>
+               bindIp: localhost,<hostname(s)|ip address(es)>
+            storage:
+               dbpath: <path>
+
+
+      #. Wait for the member to recover to ``SECONDARY`` state before
+         downgrading the next secondary member. To check the member's
+         state, you can issue :method:`rs.status()` in the
+         ``mongo`` shell.
+
+         Repeat for each secondary member.
+
+   #. Step down the replica set primary.
+
+      Connect a ``mongo`` shell to the primary and use
+      :method:`rs.stepDown()` to step down the primary and force an
+      election of a new primary:
+
+      .. code-block:: javascript
+
+         rs.stepDown()
+
+   #. When :method:`rs.status()`
+      shows that the primary has stepped down and another member
+      has assumed ``PRIMARY`` state, downgrade the stepped-down primary: 
+
+      1. Shut down the stepped-down primary and replace the
+         :binary:`~bin.mongod` binary with the |oldversion| binary.
+
+      #. Start the |oldversion| binary with the ``--shardsvr`` and
+         ``--port`` command line options. Include any other
+         configuration as appropriate for your deployment, e.g.
+         ``--bind_ip``.
+ 
+         .. code-block:: bash
+
+            mongod --shardsvr --port <port> --dbpath <path>  --bind_ip localhost,<hostname(s)|ip address(es)>
+
+         Or if using a :doc:`configuration file
+         </reference/configuration-options>`, update the file to
+         include :setting:`sharding.clusterRole: shardsvr
+         <sharding.clusterRole>`, :setting:`net.port`, and any other
+         configuration as appropriate for your deployment, e.g.
+         :setting:`net.bindIp`, and start the |oldversion| binary:
+
+         .. code-block:: yaml
+
+            sharding:
+               clusterRole: shardsvr
+            net:
+               port: <port>
+               bindIp: localhost,<hostname(s)|ip address(es)>
+            storage:
+               dbpath: <path>
+---
+title: "Downgrade the config servers."
+level: 4
+ref: 4.0-downgrade-config-servers
+content: |-
+   If the config servers are replica sets:
+      
+   1. Downgrade the :ref:`secondary <replica-set-secondary-members>`
+      members of the replica set one at a time:
+
+      a. Shut down the secondary :binary:`~bin.mongod` instance and replace
+         the |newversion| binary with the |oldversion| binary.
+
+      #. Start the |oldversion| binary with both the ``--configsvr`` and
+         ``--port`` options. Include any other
+         configuration as appropriate for your deployment, e.g.
+         ``--bind_ip``.
+
+         .. code-block:: bash
+
+            mongod --configsvr --port <port> --dbpath <path>  --bind_ip localhost,<hostname(s)|ip address(es)>
+
+         If using a :doc:`configuration file
+         </reference/configuration-options>`, update the file to
+         specify :setting:`sharding.clusterRole: configsvr
+         <sharding.clusterRole>`, :setting:`net.port`, and any other
+         configuration as appropriate for your deployment, e.g.
+         :setting:`net.bindIp`, and start the |oldversion| binary:
+
+         .. code-block:: yaml
+
+            sharding:
+               clusterRole: configsvr
+            net:
+               port: <port>
+               bindIp: localhost,<hostname(s)|ip address(es)>
+            storage:
+               dbpath: <path>
+
+         Include any other configuration as appropriate for your deployment.
+
+      #. Wait for the member to recover to ``SECONDARY`` state before
+         downgrading the next secondary member. To check the member's state,
+         issue :method:`rs.status()` in the ``mongo`` shell.
+
+         Repeat for each secondary member.
+
+   #. Step down the replica set primary.
+
+      a. Connect a ``mongo`` shell to the primary and use
+         :method:`rs.stepDown()` to step down the primary and force an
+         election of a new primary:
+
+         .. code-block:: javascript
+
+            rs.stepDown()
+
+      #. When :method:`rs.status()` shows that the primary has stepped
+         down and another member has assumed ``PRIMARY`` state, shut down
+         the stepped-down primary and replace the :binary:`~bin.mongod` binary
+         with the |oldversion| binary.
+
+      #. Start the |oldversion| binary with both the ``--configsvr`` and
+         ``--port`` options. Include any other
+         configuration as appropriate for your deployment, e.g.
+         ``--bind_ip``.
+
+         .. code-block:: bash
+
+            mongod --configsvr --port <port> --dbpath <path> --bind_ip localhost,<hostname(s)|ip address(es)>
+
+         If using a :doc:`configuration file
+         </reference/configuration-options>`, update the file to
+         specify :setting:`sharding.clusterRole: configsvr
+         <sharding.clusterRole>`, :setting:`net.port`, and any other
+         configuration as appropriate for your deployment, e.g.
+         :setting:`net.bindIp`, and start the |oldversion| binary:
+
+         .. code-block:: yaml
+
+            sharding:
+               clusterRole: configsvr
+            net:
+               port: <port>
+               bindIp: localhost,<hostname(s)|ip address(es)>
+            storage:
+               dbpath: <path>
+
+---
+title: "Re-enable the balancer."
+level: 4
+ref: reenable-balancer
+content: |
+  Once the downgrade of sharded cluster components is
+  complete, :ref:`re-enable the balancer <sharding-balancing-enable>`.
+...
