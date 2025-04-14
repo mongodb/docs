@@ -1,0 +1,147 @@
+.. _production-considerations-sharded:
+
+============================================
+Production Considerations (Sharded Clusters)
+============================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+Starting in version 4.2, MongoDB provides the ability to perform
+multi-document transactions for sharded clusters.
+
+The following page lists concerns specific to running transactions on a
+sharded cluster. These concerns are in addition to those listed in
+:doc:`/core/transactions-production-consideration`.
+
+Sharded Transactions and MongoDB Drivers
+----------------------------------------
+
+*For transactions on MongoDB 4.2 deployments (replica sets and sharded
+clusters)*, clients :red:`must` use MongoDB drivers updated for MongoDB
+4.2.
+
+On sharded clusters with multiple :binary:`~bin.mongos` instances,
+performing transactions with drivers updated for MongoDB 4.0 (instead
+of MongoDB 4.2) will fail and can result in errors, including:
+
+.. note::
+
+   Your driver may return a different error. Refer to your driver's
+   documentation for details.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Error Code
+     - Error Message
+
+   * - 251
+     - ``cannot continue txnId -1 for session ... with txnId 1``
+
+   * - 50940
+     - ``cannot commit with no participants``
+
+Performance
+-----------
+
+Single Shard
+~~~~~~~~~~~~
+
+Transactions that target a single shard should have the same
+performance as replica-set transactions.
+
+Multiple Shards
+~~~~~~~~~~~~~~~
+
+Transactions that affect multiple shards incur a greater performance
+cost.
+
+.. note::
+
+   On a sharded cluster, transactions that span multiple shards will
+   error and abort if any involved shard contains an arbiter.
+
+.. _transactions-sharded-clusters-time-limit:
+
+Time Limit
+~~~~~~~~~~
+
+To specify a time limit, specify a ``maxTimeMS`` limit on
+``commitTransaction``. 
+
+If ``maxTimeMS`` is unspecified, MongoDB will use the
+:parameter:`transactionLifetimeLimitSeconds`.
+
+If ``maxTimeMS`` is specified but would result in transaction that
+exceeds :parameter:`transactionLifetimeLimitSeconds`, MongoDB will use
+the :parameter:`transactionLifetimeLimitSeconds`.
+
+To modify :parameter:`transactionLifetimeLimitSeconds` for a sharded
+cluster, the parameter must be modified for all shard replica set
+members.
+
+Read Concerns
+-------------
+
+Multi-document transactions support :readconcern:`"local"`,
+:readconcern:`"majority"`, and :readconcern:`"snapshot"` read concern
+levels.
+
+For transactions on a sharded cluster, only the
+:readconcern:`"snapshot"` read concern provides a consistent snapshot
+across multiple shards.
+
+For more information on read concern and transactions, see
+:ref:`transactions-read-concern`.
+
+Write Concerns
+--------------
+
+.. include:: /includes/extracts/transactions-shards-wcmajority-disabled.rst
+
+.. note::
+
+   .. include:: /includes/extracts/transactions-sharded-clusters-commit-writeconcern.rst
+
+Arbiters
+--------
+
+.. include:: /includes/extracts/transactions-arbiters.rst
+
+Backups and Restores
+--------------------
+
+.. warning::
+
+   .. include:: /includes/extracts/sharded-clusters-backup-restore-mongodump-mongorestore-restriction.rst
+
+Chunk Migrations
+----------------
+
+.. include:: /includes/extracts/transactions-chunk-migration.rst
+
+.. seealso::
+
+   :serverstatus:`shardingStatistics.countDonorMoveChunkLockTimeout`
+
+
+Outside Reads During Commit
+---------------------------
+
+.. include:: /includes/extracts/transactions-multi-shard-block-external-reads.rst
+
+.. seealso::
+
+   :ref:`transactions-atomicity`
+
+Additional Information
+----------------------
+
+See also :doc:`/core/transactions-production-consideration`.

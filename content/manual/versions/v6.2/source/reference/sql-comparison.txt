@@ -1,0 +1,909 @@
+.. _sql-to-mongodb-mapping:
+
+============================
+SQL to MongoDB Mapping Chart
+============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+In addition to the charts that follow, you might want to consider the
+:doc:`/faq` section for a selection of common questions about MongoDB.
+
+Terminology and Concepts
+------------------------
+
+The following table presents the various SQL terminology and concepts
+and the corresponding MongoDB terminology and concepts.
+
+.. list-table::
+   :header-rows: 1
+
+   * - SQL Terms/Concepts
+     - MongoDB Terms/Concepts
+
+   * - database
+     - :term:`database`
+
+   * - table
+     - :term:`collection`
+
+   * - row
+     - :term:`document` or :term:`BSON` document
+
+   * - column
+     - :term:`field`
+
+   * - index
+     - :term:`index`
+
+   * - table joins
+
+     - :pipeline:`$lookup`, embedded documents
+
+   * - primary key
+
+       Specify any unique column or column combination as primary key.
+
+     - :term:`primary key`
+
+       In MongoDB, the primary key is automatically set to the
+       :term:`_id` field.
+
+   * - aggregation (e.g. group by)
+     - aggregation pipeline
+
+       See the :doc:`/reference/sql-aggregation-comparison`.
+
+   * - SELECT INTO NEW_TABLE
+     - :pipeline:`$out`
+     
+       See the :doc:`/reference/sql-aggregation-comparison`.
+
+   * - MERGE INTO TABLE
+     - :pipeline:`$merge` (Available starting in MongoDB 4.2)
+
+       See the :doc:`/reference/sql-aggregation-comparison`.
+
+   * - UNION ALL
+     - :pipeline:`$unionWith` (Available starting in MongoDB 4.4)
+
+   * - transactions
+
+     - :ref:`transactions <transactions>`
+
+       .. tip::
+
+          For many scenarios, the :ref:`denormalized data model
+          (embedded documents and arrays) <data-modeling-embedding>`
+          will continue to be optimal for your data and use cases
+          instead of multi-document transactions. That is, for many
+          scenarios, modeling your data appropriately will minimize the
+          need for multi-document transactions.
+
+Executables
+-----------
+
+The following table presents some database executables and the
+corresponding MongoDB executables. This table is *not* meant to be
+exhaustive.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 20 20 20 20 20 
+
+   * -
+
+     - MongoDB
+
+     - MySQL
+
+     - Oracle
+
+     - Informix
+
+     - DB2
+
+   * - Database Server
+
+     - :binary:`~bin.mongod`
+
+     - ``mysqld``
+
+     - ``oracle``
+
+     - ``IDS``
+
+     - ``DB2 Server``
+
+   * - Database Client
+
+     - :binary:`~bin.mongosh`
+
+     - ``mysql``
+
+     - ``sqlplus``
+
+     - ``DB-Access``
+
+     - ``DB2 Client``
+
+Examples
+--------
+
+The following table presents the various SQL statements and the
+corresponding MongoDB statements. The examples in the table assume the
+following conditions:
+
+- The SQL examples assume a table named ``people``.
+
+- The MongoDB examples assume a collection named ``people`` that contain
+  documents of the following prototype:
+
+  .. code-block:: javascript
+
+     {
+       _id: ObjectId("509a8fb2f3f4948bd2f983a0"),
+       user_id: "abc123",
+       age: 55,
+       status: 'A'
+     }
+
+Create and Alter
+~~~~~~~~~~~~~~~~
+
+The following table presents the various SQL statements related to
+table-level actions and the corresponding MongoDB statements.
+
+.. list-table::
+   :header-rows: 1
+   :class: border-table
+
+   * - SQL Schema Statements
+
+     - MongoDB Schema Statements
+
+   * - .. code-block:: sql
+          :copyable: false
+
+          CREATE TABLE people (
+              id MEDIUMINT NOT NULL
+                  AUTO_INCREMENT,
+              user_id Varchar(30),
+              age Number,
+              status char(1),
+              PRIMARY KEY (id)
+          )
+
+
+     - Implicitly created on first :method:`~db.collection.insertOne()` or
+       :method:`~db.collection.insertMany()` operation. The primary key
+       ``_id`` is automatically added if ``_id`` field is not specified.
+
+       .. code-block:: javascript
+          :copyable: false
+          :emphasize-lines: 1
+
+          db.people.insertOne( {
+              user_id: "abc123",
+              age: 55,
+              status: "A"
+           } )
+
+       However, you can also explicitly create a collection:
+
+       .. code-block:: javascript
+          :copyable: false
+          :emphasize-lines: 1
+
+          db.createCollection("people")
+
+
+   * - .. code-block:: sql
+          :copyable: false
+
+          ALTER TABLE people
+          ADD join_date DATETIME
+
+
+     - Collections do not describe or enforce the structure of its
+       documents; i.e. there is no structural alteration at the
+       collection level.
+
+       However, at the document level, :method:`~db.collection.updateMany()`
+       operations can add fields to existing documents using the
+       :update:`$set` operator.
+
+
+       .. code-block:: javascript
+          :copyable: false
+          :emphasize-lines: 3
+
+          db.people.updateMany(
+              { },
+              { $set: { join_date: new Date() } }
+          )
+
+
+   * - .. code-block:: sql
+          :copyable: false
+
+          ALTER TABLE people
+          DROP COLUMN join_date
+
+
+     - Collections do not describe or enforce the structure of its
+       documents; i.e. there is no structural alteration at the collection
+       level.
+
+       However, at the document level, :method:`~db.collection.updateMany()`
+       operations can remove fields from documents using the
+       :update:`$unset` operator.
+
+       .. code-block:: javascript
+          :copyable: false
+          :emphasize-lines: 3
+
+          db.people.updateMany(
+              { },
+              { $unset: { "join_date": "" } }
+          )
+
+
+   * - .. code-block:: sql
+          :copyable: false
+
+          CREATE INDEX idx_user_id_asc
+          ON people(user_id)
+
+
+     - .. code-block:: javascript
+          :copyable: false
+          :emphasize-lines: 1
+
+          db.people.createIndex( { user_id: 1 } )
+
+
+   * - .. code-block:: sql
+          :copyable: false
+
+          CREATE INDEX
+                 idx_user_id_asc_age_desc
+          ON people(user_id, age DESC)
+
+
+     - .. code-block:: javascript
+          :copyable: false
+          :emphasize-lines: 1
+
+          db.people.createIndex( { user_id: 1, age: -1 } )
+
+
+   * - .. code-block:: sql
+          :copyable: false
+
+          DROP TABLE people
+
+
+     - .. code-block:: javascript
+          :copyable: false
+          :emphasize-lines: 1
+
+          db.people.drop()
+
+For more information on the methods and operators used, see:
+
+- :method:`db.collection.insertOne()`
+- :method:`db.collection.insertMany()`
+- :method:`db.createCollection()`
+- :method:`db.collection.updateMany()`
+- :method:`db.collection.createIndex()`
+- :method:`db.collection.drop()`
+- :update:`$set`
+- :update:`$unset`
+
+.. seealso::
+
+   - :ref:`databases-and-collections`
+   - :ref:`bson-document-format`
+   - :ref:`Indexes <indexes>`
+   - :ref:`data-modeling-concepts`.
+
+Insert
+~~~~~~
+
+The following table presents the various SQL statements related to
+inserting records into tables and the corresponding MongoDB statements.
+
+.. list-table::
+   :header-rows: 1
+   :class: border-table
+
+   * - SQL INSERT Statements
+
+     - MongoDB insertOne() Statements
+
+   * - .. code-block:: sql
+          :copyable: false
+
+          INSERT INTO people(user_id,
+                            age,
+                            status)
+          VALUES ("bcd001",
+                  45,
+                  "A")
+
+
+     - .. code-block:: javascript
+          :copyable: false
+          :emphasize-lines: 2
+
+          db.people.insertOne(
+             { user_id: "bcd001", age: 45, status: "A" }
+          )
+
+
+For more information, see :method:`db.collection.insertOne()`.
+
+.. seealso::
+
+   - :ref:`write-op-insert`
+   - :method:`db.collection.insertMany()`
+   - :ref:`databases-and-collections`
+   - :ref:`bson-document-format`
+
+
+Select
+~~~~~~
+
+The following table presents the various SQL statements related to
+reading records from tables and the corresponding MongoDB statements.
+
+.. note::
+
+   The :method:`~db.collection.find()` method always includes the ``_id``
+   field in the returned documents unless specifically excluded through
+   :ref:`projection<projection>`. Some of the SQL queries below may include an
+   ``_id`` field to reflect this, even if the field is not included in the
+   corresponding :method:`~db.collection.find()` query.
+
+.. list-table::
+   :header-rows: 1
+   :class: border-table
+
+   * - SQL SELECT Statements
+
+     - MongoDB find() Statements
+
+   * - .. code-block:: sql
+          :copyable: false
+
+          SELECT *
+          FROM people
+
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.people.find()
+
+
+   * - .. code-block:: sql
+          :copyable: false
+
+          SELECT id,
+                 user_id,
+                 status
+          FROM people
+
+
+     - .. code-block:: javascript
+          :emphasize-lines: 3
+          :copyable: false
+
+          db.people.find(
+              { },
+              { user_id: 1, status: 1 }
+          )
+
+
+   * - .. code-block:: sql
+          :copyable: false
+
+          SELECT user_id, status
+          FROM people
+
+
+     - .. code-block:: javascript
+          :emphasize-lines: 3
+          :copyable: false
+
+          db.people.find(
+              { },
+              { user_id: 1, status: 1, _id: 0 }
+          )
+
+
+   * - .. code-block:: sql
+          :copyable: false
+
+          SELECT *
+          FROM people
+          WHERE status = "A"
+
+
+     - .. code-block:: javascript
+          :emphasize-lines: 2
+          :copyable: false
+
+          db.people.find(
+              { status: "A" }
+          )
+
+
+   * - .. code-block:: sql
+          :copyable: false
+
+          SELECT user_id, status
+          FROM people
+          WHERE status = "A"
+
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.people.find(
+              { status: "A" },
+              { user_id: 1, status: 1, _id: 0 }
+          )
+
+
+   * - .. code-block:: sql
+          :copyable: false
+
+          SELECT *
+          FROM people
+          WHERE status != "A"
+
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.people.find(
+              { status: { $ne: "A" } }
+          )
+
+
+   * - .. code-block:: sql
+          :copyable: false
+
+          SELECT *
+          FROM people
+          WHERE status = "A"
+          AND age = 50
+
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.people.find(
+              { status: "A",
+                age: 50 }
+          )
+
+
+   * - .. code-block:: sql
+          :copyable: false
+
+          SELECT *
+          FROM people
+          WHERE status = "A"
+          OR age = 50
+
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.people.find(
+              { $or: [ { status: "A" } , { age: 50 } ] }
+          )
+
+
+   * - .. code-block:: sql
+          :copyable: false
+
+          SELECT *
+          FROM people
+          WHERE age > 25
+
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.people.find(
+              { age: { $gt: 25 } }
+          )
+
+
+   * - .. code-block:: sql
+          :copyable: false
+
+          SELECT *
+          FROM people
+          WHERE age < 25
+
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.people.find(
+             { age: { $lt: 25 } }
+          )
+
+
+   * - .. code-block:: sql
+          :copyable: false
+
+          SELECT *
+          FROM people
+          WHERE age > 25
+          AND   age <= 50
+
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.people.find(
+             { age: { $gt: 25, $lte: 50 } }
+          )
+
+
+   * - .. code-block:: sql
+          :copyable: false
+
+          SELECT *
+          FROM people
+          WHERE user_id like "%bc%"
+
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.people.find( { user_id: /bc/ } )
+
+       \-or-
+
+       .. code-block:: javascript
+          :copyable: false
+
+          db.people.find( { user_id: { $regex: /bc/ } } )
+
+
+   * - .. code-block:: sql
+          :copyable: false
+
+          SELECT *
+          FROM people
+          WHERE user_id like "bc%"
+
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.people.find( { user_id: /^bc/ } )
+
+       \-or-
+
+       .. code-block:: javascript
+          :copyable: false
+
+          db.people.find( { user_id: { $regex: /^bc/ } } )
+
+
+   * - .. code-block:: sql
+          :copyable: false
+
+          SELECT *
+          FROM people
+          WHERE status = "A"
+          ORDER BY user_id ASC
+
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.people.find( { status: "A" } ).sort( { user_id: 1 } )
+
+
+   * - .. code-block:: sql
+          :copyable: false
+
+          SELECT *
+          FROM people
+          WHERE status = "A"
+          ORDER BY user_id DESC
+
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.people.find( { status: "A" } ).sort( { user_id: -1 } )
+
+
+   * - .. code-block:: sql
+          :copyable: false
+
+          SELECT COUNT(*)
+          FROM people
+
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.people.count()
+
+       *or*
+
+       .. code-block:: javascript
+          :copyable: false
+
+          db.people.find().count()
+
+
+   * - .. code-block:: sql
+          :copyable: false
+
+          SELECT COUNT(user_id)
+          FROM people
+
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.people.count( { user_id: { $exists: true } } )
+
+       *or*
+
+       .. code-block:: javascript
+          :copyable: false
+
+          db.people.find( { user_id: { $exists: true } } ).count()
+
+
+   * - .. code-block:: sql
+          :copyable: false
+
+          SELECT COUNT(*)
+          FROM people
+          WHERE age > 30
+
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.people.count( { age: { $gt: 30 } } )
+
+       *or*
+
+       .. code-block:: javascript
+          :copyable: false
+
+          db.people.find( { age: { $gt: 30 } } ).count()
+
+
+   * - .. code-block:: sql
+          :copyable: false
+
+          SELECT DISTINCT(status)
+          FROM people
+
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.people.aggregate( [ { $group : { _id : "$status" } } ] )
+
+       or, for distinct value sets that do not exceed the :ref:`BSON size limit <limit-bson-document-size>`
+
+       .. code-block:: javascript
+          :copyable: false
+
+          db.people.distinct( "status" )
+
+
+   * - .. code-block:: sql
+          :copyable: false
+
+          SELECT *
+          FROM people
+          LIMIT 1
+
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.people.findOne()
+
+       *or*
+
+       .. code-block:: javascript
+          :copyable: false
+
+          db.people.find().limit(1)
+
+
+   * - .. code-block:: sql
+          :copyable: false
+
+          SELECT *
+          FROM people
+          LIMIT 5
+          SKIP 10
+
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.people.find().limit(5).skip(10)
+
+
+   * - .. code-block:: sql
+          :copyable: false
+
+          EXPLAIN SELECT *
+          FROM people
+          WHERE status = "A"
+
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.people.find( { status: "A" } ).explain()
+
+For more information on the methods and operators used, see
+
+- :method:`db.collection.find()`
+- :method:`db.collection.distinct()`
+- :method:`db.collection.findOne()`
+- :method:`~cursor.limit()`
+- :method:`~cursor.skip()`
+- :method:`~cursor.explain()`
+- :method:`~cursor.sort()`
+- :method:`~cursor.count()`
+- :query:`$ne`
+- :query:`$and`
+- :query:`$or`
+- :query:`$gt`
+- :query:`$lt`
+- :query:`$exists`
+- :query:`$lte`
+- :query:`$regex`
+
+.. seealso::
+
+   - :doc:`/tutorial/query-documents`
+   - :doc:`/reference/operator/query`
+   - :doc:`/reference/method`
+
+Update Records
+~~~~~~~~~~~~~~
+
+The following table presents the various SQL statements related to
+updating existing records in tables and the corresponding MongoDB
+statements.
+
+.. list-table::
+   :header-rows: 1
+   :class: border-table
+
+   * - SQL Update Statements
+
+     - MongoDB updateMany() Statements
+
+   * - .. code-block:: sql
+          :copyable: false
+
+          UPDATE people
+          SET status = "C"
+          WHERE age > 25
+
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.people.updateMany(
+             { age: { $gt: 25 } },
+             { $set: { status: "C" } }
+          )
+
+
+   * - .. code-block:: sql
+          :copyable: false
+
+          UPDATE people
+          SET age = age + 3
+          WHERE status = "A"
+
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.people.updateMany(
+             { status: "A" } ,
+             { $inc: { age: 3 } }
+          )
+
+
+For more information on the method and operators used in the examples, see:
+
+- :method:`db.collection.updateMany()`
+- :query:`$gt`
+- :update:`$set`
+- :update:`$inc`
+
+.. seealso::
+
+   - :doc:`/tutorial/update-documents`
+   - :doc:`/reference/operator/update`
+   - :method:`db.collection.updateOne()`
+   - :method:`db.collection.replaceOne()`
+
+Delete Records
+~~~~~~~~~~~~~~
+
+The following table presents the various SQL statements related to
+deleting records from tables and the corresponding MongoDB statements.
+
+.. list-table::
+   :header-rows: 1
+   :class: border-table
+
+   * - SQL Delete Statements
+
+     - MongoDB deleteMany() Statements
+
+   * - .. code-block:: sql
+          :copyable: false
+
+          DELETE FROM people
+          WHERE status = "D"
+
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.people.deleteMany( { status: "D" } )
+
+
+   * - .. code-block:: sql
+          :copyable: false
+
+          DELETE FROM people
+
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.people.deleteMany({})
+
+
+For more information, see :method:`db.collection.deleteMany()`.
+
+.. seealso::
+
+   - :doc:`/tutorial/remove-documents`
+   - :method:`db.collection.deleteOne()`
+
+Further Reading
+---------------
+
+If you are considering migrating your SQL application to MongoDB,
+download the `MongoDB Application Modernization Guide
+<https://www.mongodb.com/modernize?tck=docs_server>`_.
+
+.. include:: /includes/fact-rdbms-guide-contents.rst

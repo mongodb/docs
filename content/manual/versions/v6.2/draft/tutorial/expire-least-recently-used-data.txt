@@ -1,0 +1,144 @@
+=================================================
+Expire Least Recently Used Data from a Collection
+=================================================
+
+.. default-domain:: mongodb
+
+Least recently used, or LRU, data retention patterns are used in simple
+data caches or support for stateless systems. By extending TTL
+collections with application support provides additional features.
+
+This pattern presents some cases and provides a pattern for maintaining
+documents in MongoDB where LRU documents are retained while others are
+removed using the TTL collection feature.
+
+Use Case
+--------
+
+- Online shopping cart
+
+  A database can be used to track shoppers' carts and items while
+  they're on the site. If there are any abandoned carts, the database
+  will clean them up and can make items available to shoppers again.
+
+- Authentication sessions
+
+  An mobile app stores session information in a database, and
+  validates current users' session when servicing requests.
+
+- Rendered page cache
+
+  Assemble pages from database content and store rendered pages in a
+  collection. The page should be stored as long as the page is being
+  requested.
+
+- Draft comment 
+
+  Draft web comments are saved on the server temporarily until the
+  visitor submits it. If the visitor does not submit, then the comment
+  will be cleared from the server.
+
+- Transcoded media cache
+
+  Archival images and videos are stored in a high quality format and
+  transcoded to device specific formats for distribution. Keeping
+  lists of frequently accessed media in cache and transcoding archive
+  materials on demand can provide excellent application response while
+  maximizing resources.
+  
+Solution
+--------
+
+Use a MongoDB TTL collection with your application to create a Least
+Recently Used collection. Your application updates current items while
+MongoDB automatically remove expired items.
+
+Requirements:
+
+- MongoDB version 2.2 or greater.
+- Application to connect to MongoDB.
+
+Process:
+
+#. Collection setup.
+#. Set up a MongodB TTL collection.
+#. Set up a application to insert, access, and update MongoDB
+   collection.
+
+Pattern
+-------
+
+For an online shopping cart, MongoDB will track the shoppers' items in
+the ``carts`` collection for a limited time.
+
+The store application needs to update the collection when:
+
+- the shopper accesses the site, 
+- adds or removes items, or 
+- checks out.
+
+If the shopper leaves the site, their cart will be available for a
+limited time, eventually, the cart will be removed.
+
+Collection setup
+~~~~~~~~~~~~~~~~
+
+The ``carts`` collection may be the following:
+
+.. code-block:: javascript
+
+   { "_id" : ObjectId("..."), 
+     "cartID" : 100, 
+     "lastChange" : ISODate("2012-08-02T17:47:15.275Z"),
+     "products": [ soap, sugar, milk ] }
+
+   { "_id" : ObjectId("..."), 
+     "cartID" : 101,
+     "lastChange" : ISODate("2012-08-02T17:47:15.275Z"),
+     "products": [ milk, bread, eggs ] }
+
+   { "_id" : ObjectId("..."), 
+     "cartID" : 102,
+     "lastChange" : ISODate("2012-08-02T17:47:15.275Z"),
+     "products": [ sugar, flour, eggs ] }
+
+The ``carts`` collection can be created by using the following commands:
+
+.. code-block:: javascript
+
+   db.carts.insert( { cartID: 100, lastChange: new ISODate(), products: [ "soap", "sugar", "milk" ] })
+   db.carts.insert( { cartID: 101, lastChange: new ISODate(), products: [ "milk", "bread", "eggs" ] } ) 
+   db.carts.insert( { cartID: 102, lastChange: new ISODate(), products: [ "sugar", "flour", "eggs" ] } )
+
+Set up a TTL collection
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following command will set :program:`mongod` to monitor the
+``lastChange`` field and delete any documents that are older than
+86,400 seconds or 24 hours:
+ 
+.. code-block:: javascript
+
+   db.carts.ensureIndex( { lastChange: 1 }, { expireAfterSeconds: 86400 } )
+
+Application response
+~~~~~~~~~~~~~~~~~~~~
+
+To keep any documents in the collection, update the ``lastChange``
+field with a newer date. The following command will update the time of
+``lastChange`` of cart ``101`` and add an item to the ``products`` list.
+
+.. code-block:: javascript
+
+   db.carts.update( { cartID: 101 }, { $set: { lastChange: new ISODate(), products: [ "milk", "bread", "eggs", "banana" ] } } )
+
+Overall result
+~~~~~~~~~~~~~~
+
+Any documents in a TTL collection that is updated properly will remain
+in the collection, while others will be deleted by
+:program:`mongod`. Your application will only have to perform simple
+updates to individual documents.
+
+With basic application updates, any TTL collection can easily become a
+Least Recently Used collection.

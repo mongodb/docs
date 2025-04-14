@@ -1,0 +1,114 @@
+
+.. _index-measure-index-use:
+.. _indexes-measuring-use:
+
+=================
+Measure Index Use
+=================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Get Index Access Information with ``$indexStats``
+-------------------------------------------------
+
+Use the :pipeline:`$indexStats` aggregation stage to get statistics
+regarding the use of each index for a collection. For example, the
+following aggregation operation returns statistics on the index use on
+the ``orders`` collection:
+
+.. code-block:: javascript
+
+   db.orders.aggregate( [ { $indexStats: { } } ] )
+
+.. seealso::
+
+   :pipeline:`$indexStats`
+
+Return Query Plan with ``explain()``
+------------------------------------
+
+Use the :method:`db.collection.explain()` or the
+:method:`cursor.explain()` method in :ref:`executionStats
+<explain-method-executionStats>` mode to return statistics about the
+query process, including the index used, the number of documents
+scanned, and the time the query takes to process in milliseconds.
+
+Run :method:`db.collection.explain()` or the :method:`cursor.explain()`
+method in :ref:`allPlansExecution <explain-method-allPlansExecution>`
+mode to view partial execution statistics collected during plan
+selection.
+
+.. seealso::
+
+   :ref:`plan-cache-key`
+
+Control Index Use with ``hint()``
+---------------------------------
+
+To *force* MongoDB to use a particular index for a
+:method:`db.collection.find()` operation, specify the index with the
+:method:`~cursor.hint()` method. Append the :method:`~cursor.hint()`
+method to the :method:`~db.collection.find()` method. Consider the
+following example:
+
+.. code-block:: javascript
+
+   db.people.find(
+      { name: "John Doe", zipcode: { $gt: "63000" } }
+   ).hint( { zipcode: 1 } )
+
+To view the execution statistics for a specific index, append to the
+:method:`db.collection.find()` the :method:`~cursor.hint()` method
+followed by :method:`cursor.explain()`, e.g.:
+
+.. code-block:: javascript
+
+   db.people.find(
+      { name: "John Doe", zipcode: { $gt: "63000" } }
+   ).hint( { zipcode: 1 } ).explain("executionStats")
+
+Or, append :method:`~cursor.hint()` method to
+:method:`db.collection.explain().find() <db.collection.explain()>`:
+
+.. code-block:: javascript
+
+   db.people.explain("executionStats").find(
+      { name: "John Doe", zipcode: { $gt: "63000" } }
+   ).hint( { zipcode: 1 } )
+
+Specify the ``$natural`` operator to the :method:`~cursor.hint()`
+method to prevent MongoDB from using *any* index:
+
+.. code-block:: javascript
+
+   db.people.find(
+      { name: "John Doe", zipcode: { $gt: "63000" } }
+   ).hint( { $natural: 1 } )
+
+Index Metrics
+-------------
+
+In addition to the :pipeline:`$indexStats` aggregation stage, MongoDB
+provides various index statistics that you may want to consider when
+analyzing index use for your database:
+
+- In the output of :dbcommand:`serverStatus`:
+
+  - :serverstatus:`metrics.queryExecutor.scanned`
+  - :serverstatus:`metrics.operation.scanAndOrder`
+
+- In the output of :dbcommand:`collStats`:
+
+  - :data:`~collStats.totalIndexSize`
+  - :data:`~collStats.indexSizes`
+
+- In the output of :dbcommand:`dbStats`:
+
+  - :data:`dbStats.indexes`
+  - :data:`dbStats.indexSize`

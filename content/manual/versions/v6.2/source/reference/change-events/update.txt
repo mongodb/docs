@@ -1,0 +1,299 @@
+.. _change-event-update:
+.. _change-streams-update-event:
+
+================
+``update`` Event
+================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. |idref| replace:: ce-update
+
+Summary
+-------
+
+.. data:: update
+
+   An ``update`` event occurs when an operation updates a document
+   in a collection.
+
+   .. note:: Disambiguation
+
+      To learn more about events that occur when collection options are
+      modified, see the :data:`modify` event.
+
+Description
+-----------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 60
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``_id``
+     - Document
+     - .. include:: /includes/change-stream/id
+
+   * - ``clusterTime``
+     - Timestamp
+     - .. include:: /includes/change-stream/clusterTime
+
+   * - ``collectionUUID``
+     - UUID
+     - .. include:: /includes/change-stream/collectionUUID
+
+   * - ``documentKey``
+     - document
+     - .. include:: /includes/change-stream/documentKey
+
+
+   * - ``fullDocument``
+     - document
+     - .. include:: /includes/change-stream/fullDocument
+
+       .. include:: /includes/change-stream/fullDocument-update
+
+       .. include:: /includes/change-stream/fullDocument-postimage
+
+   * - ``fullDocumentBeforeChange``
+     - document
+     - .. include:: /includes/change-stream/fullDocumentBeforeChange
+
+   * - ``lsid``
+     - document
+     - .. include:: /includes/change-stream/lsid
+
+   * - ``ns``
+     - document
+     - .. include:: /includes/change-stream/ns
+
+   * - ``ns.coll``
+     - string
+     - .. include:: /includes/change-stream/ns.coll
+
+   * - ``ns.db``
+     - string
+     - .. include:: /includes/change-stream/ns.db
+
+   * - ``operationType``
+     - string
+     - .. include:: /includes/change-stream/operationType
+
+       Returns a value of ``update`` for these change events.
+
+   * - ``updateDescription``
+     - document
+     - .. include:: /includes/change-stream/updateDescription
+
+   * - | ``updateDescription.``
+       | ``disambiguatedPaths``
+     - document
+     - .. include:: /includes/change-stream/ud-disambiguatedPaths
+
+   * - | ``updateDescription.``
+       | ``removedFields``
+     - array
+     - .. include:: /includes/change-stream/ud-removedFields
+
+   * - | ``updateDescription.``
+       | ``truncatedArrays``
+     - array 
+     - .. include:: /includes/change-stream/ud-truncatedArrays
+
+   * - | ``updateDescription.``
+       | ``trucatedArrays.``
+       | ``field``
+     - string
+     - .. include:: /includes/change-stream/ud-ta-field
+
+   * - | ``updateDescription.``
+       | ``trucatedArrays.``
+       | ``newSize``
+     - integer
+     - .. include:: /includes/change-stream/ud-ta-newSize
+
+   * - | ``updateDescription.``
+       | ``updatedFields``
+     - document
+     - .. include:: /includes/change-stream/ud-updatedFields
+
+   * - ``txnNumber``
+     - NumberLong
+     - .. include:: /includes/change-stream/txnNumber
+
+   * - ``wallTime``
+     - :term:`ISODate`
+     - .. include:: /includes/change-stream/wallTime
+
+Behavior
+--------
+
+Document Pre- and Post-Images
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. include:: /includes/change-stream-pre-and-post-images-change-events.rst
+
+.. include:: /includes/change-stream-pre-and-post-images-additional-information.rst
+
+Path Disambiguation
+^^^^^^^^^^^^^^^^^^^
+
+.. versionadded:: 6.1
+
+The ``updateDescription`` field notes changes made to specific fields in 
+documents by an operation.  These field descriptors use dots (``.``) as
+path separators and numbers as array indexes, which leads to some
+ambiguity when it contains field names that use dots or numbers.
+
+When an ``update`` event reports changes involving ambiguous fields,
+the ``disambiguatedPaths`` document provides the path key with an array 
+listing each path component.
+
+.. note::
+   
+   The ``disambiguatedPaths`` field is only available on change streams
+   started with the :ref:`showExpandedEvents 
+   <change-streams-expanded-events>` option 
+
+For example, consider a document that lists people and the towns in which they 
+live:
+
+.. code-block:: json
+
+   {
+      "name": "Anthony Trollope",
+      "home.town": "Oxford",
+      "residences": [
+         {"0": "Oxford"},
+         {"1": "Sunbury"}
+      ]
+   }
+
+* When an update modifies the ``home.town`` field from ``Oxford`` to
+  ``London``, it produces an update description that looks like this:
+
+  .. code-block:: json
+  
+     "updateDescription": {
+        "updatedFields": {
+           "home.town": "London"
+        },
+        "disambiguatedPaths": {
+           "home.town": [ "home.town" ]
+        }
+     }
+  
+  Because the field ``home.town`` contains a period, the ``disambiguatedPaths`` 
+  field shows an array with one value, to indicate that ``town`` is not a
+  sub-field of ``home``.
+
+* When an update modifies a value in the ``residences`` array to make the same 
+  change, it produces an update description that looks like this:
+  
+  .. code-block:: json
+  
+     "updateDescription": {
+        "updatedFields": {
+           "residences.0.0": "London"
+        },
+        "disambiguatedPaths": { "residences.0.0": [ "residences", 0, "0" ] }
+     }
+
+  The disambiguated paths include an integer ``0`` to indicate the array index
+  and the string ``"0"`` to indicate the field name within the nested document.
+  
+There are two cases where ``disambiguatedPath`` does **not** include a 
+numeric field:
+
+* When the first field in the path is a numeric string (i.e. ``0.name``).
+  This is not ambiguous since the first field cannot be an array index.
+
+
+* When the numeric string field has leading zeroes (i.e., ``0001``).  
+  This is not ambiguous since an integer cannot have leading zeroes.
+
+
+Example
+-------
+
+The following example illustrates an ``update`` event:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+      "_id": { <Resume Token> },
+      "operationType": "update",
+      "clusterTime": <Timestamp>,
+      "wallTime": <ISODate>,
+      "ns": {
+         "db": "engineering",
+         "coll": "users"
+      },
+      "documentKey": {
+         "_id": ObjectId("58a4eb4a30c75625e00d2820")
+      },
+      "updateDescription": {
+         "updatedFields": {
+            "email": "alice@10gen.com"
+         },
+         "removedFields": ["phoneNumber"],
+         "truncatedArrays": [ {
+            "field" : "vacation_time",
+            "newSize" : 36
+         } ]
+      }
+   }
+
+The following example illustrates an ``update`` event for change streams
+opened with the ``fullDocument : updateLookup`` option:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+      "_id": { <Resume Token> },
+      "operationType": "update",
+      "clusterTime": <Timestamp>,
+      "wallTime": <ISODate>,
+      "ns": {
+         "db": "engineering",
+         "coll": "users"
+      },
+      "documentKey": {
+         "_id": ObjectId("58a4eb4a30c75625e00d2820")
+      },
+      "updateDescription": {
+         "updatedFields": {
+            "email": "alice@10gen.com"
+         },
+         "removedFields": ["phoneNumber"],
+         "truncatedArrays": [ {
+            "field" : "vacation_time",
+            "newSize" : 36
+         } ],
+         "disambiguatedPaths": { }
+      },
+      "fullDocument": {
+         "_id": ObjectId("58a4eb4a30c75625e00d2820"),
+         "name": "Alice",
+         "userName": "alice123",
+         "email": "alice@10gen.com",
+         "team": "replication"
+      }
+   }
+
+The ``fullDocument`` document represents the most current majority-committed
+version of the updated document. The ``fullDocument`` document may vary from
+the document at the time of the update operation depending on the number of
+interleaving majority-committed operations that occur between the update
+operation and the document lookup.
+

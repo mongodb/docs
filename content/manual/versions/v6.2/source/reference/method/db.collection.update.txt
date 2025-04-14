@@ -1,0 +1,1532 @@
+.. _collection-update:
+
+======================
+db.collection.update()
+======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/fact-mongosh-shell-method-deprecated.rst
+
+Definition
+----------
+
+.. method:: db.collection.update(query, update, options)
+
+   Modifies an existing document or documents in a collection. The
+   method can modify specific fields of an existing document or documents
+   or replace an existing document entirely, depending on the
+   :ref:`update parameter <update-parameter>`.
+
+   By default, the :method:`db.collection.update()` method updates a
+   **single** document. Include the option :ref:`multi: true <multi-parameter>`
+   to update all documents that match the query criteria.
+
+Syntax
+------
+
+.. versionchanged:: 5.0
+
+The :method:`db.collection.update()` method has the following form:
+
+.. code-block:: javascript
+
+   db.collection.update(
+      <query>,
+      <update>,
+      {
+        upsert: <boolean>,
+        multi: <boolean>,
+        writeConcern: <document>,
+        collation: <document>,
+        arrayFilters: [ <filterdocument1>, ... ],
+        hint:  <document|string>, // Added in MongoDB 4.2
+        let: <document> // Added in MongoDB 5.0
+      }
+   )
+
+.. _update-parameters:
+
+Parameters
+~~~~~~~~~~
+
+The :method:`db.collection.update()` method takes the following
+parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Parameter
+
+     - Type
+
+     - Description
+
+   * - :ref:`query <update-query>`
+
+     - document
+
+     - .. _update-query:
+
+       The selection criteria for the update. The same :ref:`query
+       selectors <query-selectors>` as in the :method:`find()
+       <db.collection.find()>` method are available.
+
+       .. include:: /includes/fact-upsert-id.rst
+          :end-before: end-short-description
+
+   * - :ref:`update <update-parameter>`
+
+     - document or pipeline
+
+     - .. _update-parameter:
+
+       The modifications to apply. Can be one of the following:
+
+       .. list-table::
+          :widths: 40 80
+          :class: border-table
+
+          * - :ref:`Update document <update-method-update-document>`
+            - .. _update-method-update-document:
+
+              Contains only :ref:`update operator expressions
+              <update-operators>`.
+
+          * - :ref:`Replacement document
+              <update-method-replacement-document>`
+            - .. _update-method-replacement-document:
+
+              Contains only ``<field1>: <value1>`` pairs.
+
+          * - :ref:`Aggregation pipeline <update-method-agg-pipeline>`
+              (*Starting in MongoDB 4.2*)
+
+            - .. _update-method-agg-pipeline:
+
+              Contains only the following aggregation stages:
+
+              .. include:: /includes/list-update-agg-stages.rst
+
+       For details and examples, see :ref:`update-method-examples`.
+
+   * - :ref:`upsert <update-upsert>`
+
+     - boolean
+
+     - .. _update-upsert:
+
+       .. include:: /includes/extracts/update-upsert-behavior-method.rst
+
+   * - :ref:`multi <update-multi>`
+
+     - boolean
+
+     - .. _update-multi:
+
+       Optional. If set to ``true``, updates multiple documents that
+       meet the ``query`` criteria. If set to ``false``, updates one
+       document. The default value is ``false``. For additional
+       information, see :ref:`Update Multiple Documents Examples
+       <multi-parameter>`.
+
+   * - :ref:`writeConcern <update-wc>`
+
+     - document
+
+     - .. _update-wc:
+
+       Optional. A document expressing the :ref:`write concern
+       <write-concern>`. Omit to use the default write concern 
+       ``w: 1``.
+
+       .. include:: /includes/extracts/transactions-operations-write-concern.rst
+
+       For an example using ``writeConcern``, see
+       :ref:`example-update-write-concern`.
+
+   * - :ref:`collation <update-collation>`
+
+     - document
+
+     - .. _update-collation:
+
+       Optional.
+
+       .. include:: /includes/extracts/collation-description.rst
+
+       For an example using ``collation``, see
+       :ref:`example-update-collation`.
+
+   * - :ref:`arrayFilters <update-array-filters>`
+
+     - array
+
+     - .. _update-array-filters:
+
+       Optional. An array of filter documents that determine which array
+       elements to modify for an update operation on an array field.
+
+       In the :ref:`update document <update-parameter>`, use the
+       :update:`$[\<identifier\>]` to define an identifier to update
+       only those array elements that match the corresponding filter
+       document in the ``arrayFilters``.
+
+       .. note::
+
+          You cannot have an array filter document for an identifier if
+          the identifier is not included in the update document.
+
+       For examples, see :ref:`update-arrayFilters`.
+
+   * - :ref:`hint <update-hint>`
+
+     - Document or string
+
+     - .. _update-hint:
+
+       Optional. A document or string that specifies the :ref:`index
+       <indexes>` to use to support the :ref:`query predicate
+       <update-query>`.
+
+       The option can take an index specification document or the index
+       name string.
+
+       If you specify an index that does not exist, the operation
+       errors.
+
+       For an example, see :ref:`ex-update-hint`.
+
+       .. versionadded:: 4.2
+
+   * - :ref:`let <db.collection.update-let-syntax>`
+
+     - document
+        
+     - .. _db.collection.update-let-syntax:
+     
+       Optional.
+     
+       .. include:: /includes/let-variables-syntax.rst
+
+       .. include:: /includes/let-variables-syntax-note.rst
+
+       For a complete example using ``let`` and variables, see
+       :ref:`db.collection.update-let-example`.
+
+       .. versionadded:: 5.0
+
+Returns
+~~~~~~~
+
+The method returns a :ref:`writeresults-update` document that contains
+the status of the operation.
+
+Access Control
+--------------
+
+On deployments running with :setting:`~security.authorization`, the
+user must have access that includes the following privileges:
+
+- :authaction:`update` action on the specified collection(s).
+
+- :authaction:`find` action on the specified collection(s).
+
+- :authaction:`insert` action on the specified collection(s) if the
+  operation results in an upsert.
+
+The built-in role :authrole:`readWrite` provides the required
+privileges.
+
+.. _update-behavior:
+
+Behavior
+--------
+
+Using ``$expr`` in an Update with ``Upsert``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Attempting to use the :manual:`$expr </reference/operator/query/expr/>` 
+operator with the upsert flag set to ``true`` will generate an error.
+
+.. _update-sharded-collection:
+
+Sharded Collections
+~~~~~~~~~~~~~~~~~~~
+
+To use :method:`db.collection.update()` with ``multi: false`` on a
+sharded collection, you must include an exact match on the ``_id``
+field or target a single shard (such as by including the shard key).
+
+When the :method:`db.collection.update()` performs update operations
+(and not document replacement operations),
+:method:`db.collection.update()` can target multiple shards.
+
+.. seealso::
+
+   :method:`~db.collection.findAndModify()`
+
+
+Replace Document Operations on a Sharded Collection
+```````````````````````````````````````````````````
+
+Starting in MongoDB 4.2, replace document operations attempt to target
+a single shard, first by using the query filter. If the operation
+cannot target a single shard by the query filter, it then attempts to target
+by the replacement document.
+
+In earlier versions, the operation attempts to target using the
+replacement document.
+
+.. _method-update-sharded-upsert:
+
+``upsert`` on a Sharded Collection
+``````````````````````````````````
+
+For a :method:`db.collection.update()` operation that includes
+:ref:`upsert: true <update-upsert>` and is on a sharded collection, you
+must include the full shard key in the ``filter``:
+
+- For an update operation.
+
+- For a replace document operation (starting in MongoDB 4.2).
+
+.. include:: /includes/extracts/missing-shard-key-equality-condition-update.rst
+
+.. _method-update-shard-key-modification:
+
+Shard Key Modification
+``````````````````````
+
+.. include:: /includes/limits-sharding-shardkey-document-immutable.rst
+
+To modify the **existing** shard key value with
+:method:`db.collection.update()`:
+
+- You :red:`must` run on a :binary:`~bin.mongos`. Do :red:`not`
+  issue the operation directly on the shard.
+
+- You :red:`must` run either in a :ref:`transaction
+  <transactions>` or as a :ref:`retryable write
+  <retryable-writes>`.
+
+- You :red:`must` specify ``multi: false``.
+
+- You :red:`must` include an equality :ref:`query filter
+  <update-query>` on the full shard key.
+
+.. tip::
+
+   .. include:: /includes/extracts/missing-shard-key-equality-condition-abridged.rst
+
+See also :ref:`method-update-sharded-upsert`.
+
+.. _method-update-missing-shard-key:
+
+Missing Shard Key
+`````````````````
+
+Starting in version 4.4, documents in a sharded collection can be
+:ref:`missing the shard key fields <shard-key-missing>`. To use
+:method:`db.collection.update()` to set the document's
+**missing** shard key, you :red:`must` run on a
+:binary:`~bin.mongos`. Do :red:`not` issue the operation directly on
+the shard.
+
+In addition, the following requirements also apply:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Task
+
+     - Requirements
+
+   * - To set to ``null``
+
+     - - Can specify ``multi: true``.
+
+       - Requires equality filter on the full shard key if ``upsert:
+         true``.
+
+   * - To set to a non-``null`` value
+
+     - - :red:`Must` be performed either inside a :ref:`transaction
+         <transactions>` or as a :ref:`retryable write
+         <retryable-writes>`.
+
+       - :red:`Must` specify ``multi: false``.
+
+       - Requires equality filter on the full shard key if either:
+
+         - ``upsert: true``, or
+
+         - if using a replacement document and the new shard key
+           value belongs to a different shard.
+
+.. tip::
+
+   .. include:: /includes/extracts/missing-shard-key-equality-condition-abridged.rst
+
+See also:
+
+- :ref:`method-update-sharded-upsert`
+
+- :ref:`shard-key-missing`
+
+Transactions
+~~~~~~~~~~~~
+
+.. include:: /includes/extracts/transactions-supported-operation.rst
+
+.. include:: /includes/extracts/transactions-usage.rst
+
+
+Upsert within Transactions
+``````````````````````````
+
+.. include:: /includes/extracts/transactions-upsert-availability.rst
+
+
+Write Concerns and Transactions
+````````````````````````````````
+
+.. include:: /includes/extracts/transactions-operations-write-concern.rst
+
+.. |operation| replace:: :method:`db.collection.update()`
+
+.. _update-method-examples:
+.. _update-behavior-operator-expressions-document:
+.. _multi-parameter:
+.. _example-update-specific-fields:
+.. _example-update-replace-fields:
+.. _update-behavior-replacement-document:
+
+Examples
+--------
+
+The following tabs showcase a variety of common
+:method:`~db.collection.update()` operations.
+
+.. include:: /includes/fact-update-example-docs-intro.rst
+
+.. include:: /includes/fact-update-example-docs.rst
+
+.. tabs::
+
+   .. tab:: Set
+      :tabid: op-expr
+
+      Use Update Operator Expressions (``$inc`` and ``$set``)
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      If the ``<update>`` document contains :ref:`update operator
+      <update-operators>` modifiers, such as those using the
+      :update:`$set` modifier, then:
+
+      - The ``<update>`` document must contain *only*
+        :ref:`update operator <update-operators>` expressions.
+
+      - The :method:`db.collection.update()` method updates only the
+        corresponding fields in the document.
+
+        - To update an embedded document or an array as a whole,
+          specify the replacement value for the field.
+
+        - To update particular fields in an embedded document or in
+          an array, use :ref:`dot notation <document-dot-notation>`
+          to specify the field.
+
+      .. code-block:: javascript
+
+         db.books.update(
+            { _id: 1 },
+            {
+              $inc: { stock: 5 },
+              $set: {
+                item: "ABC123",
+                "info.publisher": "2222",
+                tags: [ "software" ],
+                "ratings.1": { by: "xyz", rating: 3 }
+              }
+            }
+         )
+
+      In this operation:
+
+      - The ``<query>`` parameter of ``{ _id: 1 }`` specifies which
+        document to update,
+
+      - the :update:`$inc` operator increments the ``stock`` field,
+        and
+
+      - the :update:`$set` operator replaces the value of the
+
+        - ``item`` field,
+        - ``publisher`` field in the ``info`` embedded document,
+        - ``tags`` field, and
+        - second element in the ``ratings`` array.
+
+      The updated document is the following:
+
+      .. code-block:: javascript
+         :emphasize-lines: 2,4-6
+
+         {
+           "_id" : 1,
+           "item" : "ABC123",
+           "stock" : 5,
+           "info" : { "publisher" : "2222", "pages" : 430 },
+           "tags" : [ "software" ],
+           "ratings" : [ { "by" : "ijk", "rating" : 4 }, { "by" : "xyz", "rating" : 3 } ],
+           "reorder" : false
+         }
+
+      This operation corresponds to the following SQL statement:
+
+      .. code-block:: sql
+
+          UPDATE books
+          SET    stock = stock + 5
+                 item = "ABC123"
+                 publisher = 2222
+                 pages = 430
+                 tags = "software"
+                 rating_authors = "ijk,xyz"
+                 rating_values = "4,3"
+          WHERE  _id = 1
+
+      .. note::
+
+         If the ``query`` parameter had matched multiple documents,
+         this operation would only update one matching document. To
+         update multiple documents, you must set the ``multi`` option
+         to ``true``.
+
+      .. seealso::
+
+         :update:`$set`, :update:`$inc`,
+         :ref:`update operators <update-operators>`
+         :ref:`dot notation <document-dot-notation>`
+
+   .. tab:: Arrays
+      :tabid: push-elements-existing-array
+
+      Push Elements to Existing Array (``$push``)
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      The following operation uses the :update:`$push` update
+      operator to append a new object to the ``ratings`` array.
+
+      .. code-block:: javascript
+
+         db.books.update(
+            { _id: 2 },
+            {
+              $push: { ratings: { "by" : "jkl", "rating" : 2 } }
+            }
+         )
+
+      The updated document is the following:
+
+      .. code-block:: javascript
+         :emphasize-lines: 12
+
+         {
+           "_id" : 2,
+           "item" : "XYZ123",
+           "stock" : 15,
+           "info" : {
+            "publisher" : "5555",
+            "pages" : 150
+           },
+           "tags" : [ ],
+           "ratings" : [
+            { "by" : "xyz", "rating" : 5 },
+            { "by" : "jkl", "rating" : 2 }
+           ],
+           "reorder" : false
+          }
+
+      .. seealso::
+
+         :update:`$push`
+
+   .. tab:: Unset
+      :tabid: remove-fields
+
+      Remove Fields (``$unset``)
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      The following operation uses the :update:`$unset` operator to remove
+      the ``tags`` field from the document with ``{ _id: 1 }``.
+
+      .. code-block:: javascript
+
+         db.books.update( { _id: 1 }, { $unset: { tags: 1 } } )
+
+      The updated document is the following:
+
+      .. code-block:: javascript
+
+         {
+           "_id" : 1,
+           "item" : "TBD",
+           "stock" : 0,
+           "info" : {
+            "publisher" : "1111",
+            "pages" : 430
+           },
+           "ratings" : [ { "by" : "ijk", "rating" : 4 }, { "by" : "lmn", "rating" : 5 } ],
+           "reorder" : false
+          }
+
+      There is not a direct SQL equivalent to :update:`$unset`,
+      however :update:`$unset` is similar to the following SQL
+      command which removes the ``tags`` field from the ``books``
+      table:
+
+      .. code-block:: sql
+
+         ALTER TABLE books
+         DROP COLUMN tags
+
+      .. seealso::
+
+         :update:`$unset`, :update:`$rename`, :ref:`update operators <update-operators>`
+
+   .. tab:: Multiple
+      :tabid: update-multiple
+
+      Update Multiple Documents (``$update`` With ``multi``)
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      If ``multi`` is set to ``true``, the
+      :method:`db.collection.update()` method updates *all* documents
+      that meet the ``<query>`` criteria. The ``multi`` update
+      operation may interleave with other read/write operations.
+
+      The following operation sets the ``reorder`` field to ``true``
+      for all documents where ``stock`` is less than or equal to
+      ``10``. If the ``reorder`` field does not exist in the matching
+      document(s), the :update:`$set` operator adds the field
+      with the specified value.
+
+      .. code-block:: javascript
+
+         db.books.update(
+            { stock: { $lte: 10 } },
+            { $set: { reorder: true } },
+            { multi: true }
+         )
+
+      The resulting documents in the collection are the following:
+
+      .. code-block:: javascript
+         :emphasize-lines: 11,19
+
+         [
+           {
+             "_id" : 1,
+             "item" : "ABC123",
+             "stock" : 5,
+             "info" : {
+              "publisher" : "2222",
+              "pages" : 430
+             },
+             "ratings" : [ { "by" : "ijk", "rating" : 4 }, { "by" : "xyz", "rating" : 3 } ],
+             "reorder" : true
+            }
+            {
+              "_id" : 2,
+              "item" : "XYZ123",
+              "stock" : 10,
+              "info" : { "publisher" : "2255", "pages" : 150 },
+              "tags" : [ "baking", "cooking" ],
+              "reorder" : true
+            }
+         ]
+
+      This operation corresponds to the following SQL statement:
+
+      .. code-block:: sql
+
+         UPDATE books
+         SET reorder=true
+         WHERE stock <= 10
+
+      .. note::
+
+         You cannot specify ``multi: true`` when performing a
+         replacement, i.e., when the :ref:`\<update\>
+         <update-parameter>` document contains *only*
+         ``field:value`` expressions.
+
+      .. seealso::
+
+         :update:`$set`
+
+.. _example-update-upsert:
+.. _upsert-parameter:
+.. _upsert-behavior:
+
+Insert a New Document if No Match Exists (``Upsert``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you specify the option :ref:`upsert: true <update-upsert>`:
+
+- If document(s) match the query criteria,
+  :method:`db.collection.update()` performs an update.
+
+- If no document matches the query criteria,
+  :method:`db.collection.update()` inserts a *single* document.
+
+  .. note::
+
+     If multiple, identical :term:`upserts <upsert>` are issued at
+     roughly the same time, it is possible for
+     :method:`~db.collection.update()` used with :ref:`upsert: true
+     <update-upsert>` to create duplicate documents. See
+     :ref:`update-with-unique-indexes` for more information.
+
+If you specify ``upsert: true`` on a sharded collection, you must
+include the full shard key in the ``filter``. For additional
+:method:`db.collection.update()` behavior on a sharded collection, see
+:ref:`update-sharded-collection`.
+
+The following tabs showcase a variety of uses of the ``upsert`` modifier
+with :method:`~db.collection.update()`.
+
+.. tabs::
+
+   .. tab:: Replace
+      :tabid: upsert-example
+
+      Upsert with Replacement Document
+      ````````````````````````````````
+
+      If no document matches the query criteria and the ``<update>``
+      parameter is a replacement document (i.e., contains only field
+      and value pairs), the update inserts a new document with the
+      fields and values of the replacement document.
+
+      - If you specify an ``_id`` field in either the query parameter
+        or replacement document, MongoDB uses that ``_id`` field in the
+        inserted document.
+
+      - If you do not specify an ``_id`` field in either the query
+        parameter or replacement document, MongoDB generates adds the
+        ``_id`` field with a randomly generated :ref:`objectid`
+        value.
+
+        .. note::
+
+           You cannot specify different ``_id`` field values in the
+           query parameter and replacement document. If you do, the
+           operation errors.
+
+      For example, the following update sets the :ref:`upsert
+      <upsert-parameter>` option to ``true``:
+
+      .. code-block:: javascript
+         :emphasize-lines: 8
+
+         db.books.update(
+            { item: "ZZZ135" },   // Query parameter
+            {                     // Replacement document
+              item: "ZZZ135",
+              stock: 5,
+              tags: [ "database" ]
+            },
+            { upsert: true }      // Options
+         )
+
+      If no document matches the ``<query>`` parameter, the update
+      operation inserts a document with *only* the replacement
+      document. Because no ``_id`` field was specified in the
+      replacement document or query document, the operation creates a
+      new unique ``ObjectId`` for the new document's ``_id`` field.
+      You can see the ``upsert`` reflected in the :ref:`WriteResult
+      <writeresults-update>` of the operation:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         WriteResult({
+           "nMatched" : 0,
+           "nUpserted" : 1,
+           "nModified" : 0,
+           "_id" : ObjectId("5da78973835b2f1c75347a83")
+          })
+
+      The operation inserts the following document into the ``books``
+      collection (your :ref:`objectid` value will differ):
+
+      .. code-block:: javascript
+
+         {
+           "_id" : ObjectId("5da78973835b2f1c75347a83"),
+           "item" : "ZZZ135",
+           "stock" : 5,
+           "tags" : [ "database" ]
+         }
+
+   .. tab:: Set
+      :tabid: upsert-op-expr
+
+      Upsert with Operator Expressions (``$set``)
+      ```````````````````````````````````````````
+
+      If no document matches the query criteria and the ``<update>``
+      parameter is a document with :ref:`update operator expressions
+      <update-operators>`, then the operation creates a base document
+      from the equality clauses in the ``<query>`` parameter and
+      applies the expressions from the ``<update>`` parameter.
+
+      :ref:`Comparison <query-projection-operators-top>` operations from
+      the ``<query>`` will not be included in the new document. If
+      the new document does not include the ``_id`` field, MongoDB
+      adds the ``_id`` field with an :ref:`objectid` value.
+
+      For example, the following update sets the :ref:`upsert
+      <upsert-parameter>` option to ``true``:
+
+      .. code-block:: javascript
+
+         db.books.update(
+            { item: "BLP921" },   // Query parameter
+            {                     // Update document
+               $set: { reorder: false },
+               $setOnInsert: { stock: 10 }
+            },
+            { upsert: true }      // Options
+         )
+
+      If no documents match the query condition, the operation
+      inserts the following document (your :ref:`objectid` value
+      will differ):
+
+      .. code-block:: javascript
+
+         {
+           "_id" : ObjectId("5da79019835b2f1c75348a0a"),
+           "item" : "BLP921",
+           "reorder" : false,
+           "stock" : 10
+         }
+
+      .. seealso::
+
+         :update:`$setOnInsert`
+
+   .. tab:: Aggregation
+      :tabid: agg-pipeline-upsert
+
+      Upsert using an Aggregation Pipeline
+      ````````````````````````````````````
+
+      If the ``<update>`` parameter is an :ref:`aggregation pipeline
+      <update-behavior-agg-pipeline>`, the update creates a base
+      document from the equality clauses in the ``<query>``
+      parameter, and then applies the pipeline to the document to
+      create the document to insert. If the new document does not
+      include the ``_id`` field, MongoDB adds the ``_id`` field with
+      an :ref:`objectid` value.
+
+      For example, the following :ref:`upsert: true
+      <upsert-parameter>` operation specifies an aggregation pipeline that uses
+
+      - the :pipeline:`$replaceRoot` stage which can provide
+        somewhat similar behavior to a :update:`$setOnInsert`
+        update operator expression,
+
+      - the :pipeline:`$set` stage which can provide similar
+        behavior to the :update:`$set` update operator expression,
+
+      - the aggregation variable :variable:`NOW`, which resolves to
+        the current datetime and can provide similar behavior to the
+        :update:`$currentDate` update operator expression.
+
+      .. code-block:: javascript
+
+         db.books.update(
+            { item: "MRQ014", ratings: [2, 5, 3] }, // Query parameter
+            [                                       // Aggregation pipeline
+               { $replaceRoot: { newRoot: { $mergeObjects: [ { stock: 0 }, "$$ROOT"  ] } } },
+               { $set: { avgRating: { $avg: "$ratings" }, tags: [ "fiction", "murder" ], lastModified: "$$NOW" } }
+            ],
+            { upsert: true }   // Options
+         )
+
+      If no document matches the ``<query>`` parameter, the
+      operation inserts the following document into the ``books``
+      collection (your :ref:`objectid` value will differ):
+
+      .. code-block:: javascript
+
+         {
+            "_id" : ObjectId("5e2921e0b4c550aad59d1ba9"),
+            "stock" : 0,
+            "item" : "MRQ014",
+            "ratings" : [ 2, 5, 3 ],
+            "avgRating" : 3.3333333333333335,
+            "tags" : [ "fiction", "murder" ],
+            "lastModified" : ISODate("2020-01-23T04:32:32.951Z")
+         }
+
+      .. seealso::
+
+         For additional examples of updates using
+         aggregation pipelines, see :ref:`update-behavior-agg-pipeline`.
+
+   .. tab:: Multiple
+      :tabid: combine-upsert-multi
+
+      Using ``upsert`` with ``multi`` (Match)
+      ```````````````````````````````````````
+
+      From :binary:`~bin.mongosh`, insert the following
+      documents into a ``books`` collection:
+
+      .. code-block:: javascript
+
+         db.books.insertMany( [
+           {
+             _id: 5,
+             item: "RQM909",
+             stock: 18,
+             info: { publisher: "0000", pages: 170 },
+             reorder: true
+           },
+           {
+             _id: 6,
+             item: "EFG222",
+             stock: 15,
+             info: { publisher: "1111", pages: 72 },
+             reorder: true
+           }
+         ] )
+
+      The following operation specifies both the ``multi`` option and
+      the ``upsert`` option. If matching documents exist, the
+      operation updates all matching documents. If no matching
+      documents exist, the operation inserts a new document.
+
+      .. code-block:: javascript
+
+         db.books.update(
+            { stock: { $gte: 10 } },        // Query parameter
+            {                               // Update document
+              $set: { reorder: false, tags: [ "literature", "translated" ] }
+            },
+            { upsert: true, multi: true }   // Options
+         )
+
+      The operation updates all matching documents and results in the
+      following:
+
+      .. code-block:: javascript
+
+         {
+            "_id" : 5,
+            "item" : "RQM909",
+            "stock" : 18,
+            "info" : { "publisher" : "0000", "pages" : 170 },
+            "reorder" : false,
+            "tags" : [ "literature", "translated" ]
+         }
+         {
+            "_id" : 6,
+            "item" : "EFG222",
+            "stock" : 15,
+            "info" : { "publisher" : "1111", "pages" : 72 },
+            "reorder" : false,
+            "tags" : [ "literature", "translated" ]
+         }
+
+      Using ``upsert`` with ``multi`` (No Match)
+      ``````````````````````````````````````````
+
+      If the collection had *no* matching document, the operation
+      would result in the insertion of a single document using the
+      fields from both the ``<query>`` and the ``<update>``
+      specifications. For example, consider the following operation:
+
+      .. code-block:: javascript
+
+         db.books.update(
+           { "info.publisher": "Self-Published" },   // Query parameter
+           {                                         // Update document
+             $set: { reorder: false, tags: [ "literature", "hardcover" ], stock: 25 }
+           },
+           { upsert: true, multi: true }             // Options
+         )
+
+      The operation inserts the following document into the ``books``
+      collection (your :ref:`objectid` value will differ):
+
+      .. code-block:: javascript
+
+         {
+           "_id" : ObjectId("5db337934f670d584b6ca8e0"),
+           "info" : { "publisher" : "Self-Published" },
+           "reorder" : false,
+           "stock" : 25,
+           "tags" : [ "literature", "hardcover" ]
+         }
+
+   .. tab:: Dotted ``_id``
+      :tabid: upsert-dotted-id
+
+      Upsert with Dotted ``_id`` Query
+      ````````````````````````````````
+
+      .. include:: /includes/fact-upsert-id.rst
+
+      The ``WriteResult`` of the operation returns the following
+      error:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         WriteResult({
+           "nMatched" : 0,
+           "nUpserted" : 0,
+           "nModified" : 0,
+           "writeError" : {
+             "code" : 111,
+             "errmsg" : "field at '_id' must be exactly specified, field at sub-path '_id.name'found"
+           }
+         })
+
+      .. seealso::
+
+         :method:`WriteResult()`
+
+.. _update-with-unique-indexes:
+
+Upsert with Unique Index
+````````````````````````
+
+.. include:: /includes/extracts/upsert-unique-index-update-method.rst
+
+.. seealso::
+
+   :update:`$setOnInsert`
+
+.. _update-behavior-agg-pipeline:
+.. _update-example-agg:
+
+Update with Aggregation Pipeline
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.2, the :method:`db.collection.update()` method
+can accept an :ref:`aggregation pipeline <aggregation-pipeline>` 
+``[ <stage1>, <stage2>, ... ]`` that specifies the modifications to 
+perform. The pipeline can consist of the following stages:
+
+.. include:: /includes/list-update-agg-stages.rst
+
+Using the aggregation pipeline allows for a more expressive update
+statement, such as expressing conditional updates based on current
+field values or updating one field using the value of another field(s).
+
+Modify a Field Using the Values of the Other Fields in the Document
+```````````````````````````````````````````````````````````````````
+
+Create a ``members`` collection with the following documents:
+
+.. code-block:: javascript
+
+   db.members.insertMany( [
+      { "_id" : 1, "member" : "abc123", "status" : "A", "points" : 2, "misc1" : "note to self: confirm status", "misc2" : "Need to activate", "lastUpdate" : ISODate("2019-01-01T00:00:00Z") },
+      { "_id" : 2, "member" : "xyz123", "status" : "A", "points" : 60, "misc1" : "reminder: ping me at 100pts", "misc2" : "Some random comment", "lastUpdate" : ISODate("2019-01-01T00:00:00Z") }
+   ] )
+
+Assume that instead of separate ``misc1`` and ``misc2`` fields, you
+want to gather these into a new ``comments`` field. The following
+update operation uses an aggregation pipeline to:
+
+- add the new ``comments`` field and set the ``lastUpdate`` field.
+
+- remove the ``misc1`` and ``misc2`` fields for all documents in the
+  collection.
+
+.. code-block:: javascript
+
+   db.members.update(
+      { },
+      [
+         { $set: { status: "Modified", comments: [ "$misc1", "$misc2" ], lastUpdate: "$$NOW" } },
+         { $unset: [ "misc1", "misc2" ] }
+      ],
+      { multi: true }
+   )
+
+.. note::
+
+   The ``$set`` and ``$unset`` used in the pipeline refers to the
+   aggregation stages :pipeline:`$set` and :pipeline:`$unset`
+   respectively, and not the update operators :update:`$set` and
+   :update:`$unset`.
+
+First Stage
+   The :pipeline:`$set` stage:
+
+   - creates a new array field ``comments`` whose elements are the current
+     content of the ``misc1`` and ``misc2`` fields and
+
+   - sets the field ``lastUpdate`` to the value of the aggregation
+     variable :variable:`NOW`. The aggregation variable
+     :variable:`NOW` resolves to the current datetime value and remains
+     the same throughout the pipeline. To access aggregation
+     variables, prefix the variable with double dollar signs ``$$``
+     and enclose in quotes.
+
+Second Stage
+   The :pipeline:`$unset` stage removes the ``misc1`` and ``misc2`` fields.
+
+After the command, the collection contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "member" : "abc123", "status" : "Modified", "points" : 2, "lastUpdate" : ISODate("2020-01-23T05:11:45.784Z"), "comments" : [ "note to self: confirm status", "Need to activate" ] }
+   { "_id" : 2, "member" : "xyz123", "status" : "Modified", "points" : 60, "lastUpdate" : ISODate("2020-01-23T05:11:45.784Z"), "comments" : [ "reminder: ping me at 100pts", "Some random comment" ] }
+
+.. seealso::
+
+   :ref:`updates-agg-pipeline`
+
+Perform Conditional Updates Based on Current Field Values
+`````````````````````````````````````````````````````````
+
+Create a ``students3`` collection with the following documents:
+
+.. code-block:: javascript
+
+   db.students3.insertMany( [
+      { "_id" : 1, "tests" : [ 95, 92, 90 ], "lastUpdate" : ISODate("2019-01-01T00:00:00Z") },
+      { "_id" : 2, "tests" : [ 94, 88, 90 ], "lastUpdate" : ISODate("2019-01-01T00:00:00Z") },
+      { "_id" : 3, "tests" : [ 70, 75, 82 ], "lastUpdate" : ISODate("2019-01-01T00:00:00Z") }
+   ] )
+
+Using an aggregation pipeline, you can update the documents with the
+calculated grade average and letter grade.
+
+.. code-block:: javascript
+
+   db.students3.update(
+      { },
+      [
+        { $set: { average : { $trunc: [ { $avg: "$tests" }, 0 ] }, lastUpdate: "$$NOW" } },
+        { $set: { grade: { $switch: {
+                              branches: [
+                                  { case: { $gte: [ "$average", 90 ] }, then: "A" },
+                                  { case: { $gte: [ "$average", 80 ] }, then: "B" },
+                                  { case: { $gte: [ "$average", 70 ] }, then: "C" },
+                                  { case: { $gte: [ "$average", 60 ] }, then: "D" }
+                              ],
+                              default: "F"
+        } } } }
+      ],
+      { multi: true }
+   )
+
+.. note::
+
+   The ``$set`` used in the pipeline refers to the aggregation stage
+   :pipeline:`$set`, and not the update operators :update:`$set`.
+
+First Stage
+   The :pipeline:`$set` stage:
+
+   - calculates a new field ``average`` based on the average of the
+     ``tests`` field. See :group:`$avg` for more information on the
+     ``$avg`` aggregation operator and :expression:`$trunc` for more
+     information on the  ``$trunc`` truncate aggregation operator.
+
+   - sets the field ``lastUpdate`` to the value of the aggregation
+     variable :variable:`NOW`. The aggregation variable
+     :variable:`NOW` resolves to the current datetime value and remains
+     the same throughout the pipeline. To access aggregation
+     variables, prefix the variable with double dollar signs ``$$``
+     and enclose in quotes.
+
+Second Stage
+   The :pipeline:`$set` stage calculates a new field ``grade`` based on
+   the ``average`` field calculated in the previous stage. See
+   :expression:`$switch` for more information on the ``$switch``
+   aggregation operator.
+
+After the command, the collection contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "tests" : [ 95, 92, 90 ], "lastUpdate" : ISODate("2020-01-24T17:29:35.340Z"), "average" : 92, "grade" : "A" }
+   { "_id" : 2, "tests" : [ 94, 88, 90 ], "lastUpdate" : ISODate("2020-01-24T17:29:35.340Z"), "average" : 90, "grade" : "A" }
+   { "_id" : 3, "tests" : [ 70, 75, 82 ], "lastUpdate" : ISODate("2020-01-24T17:29:35.340Z"), "average" : 75, "grade" : "C" }
+
+.. seealso::
+
+   :ref:`updates-agg-pipeline`
+
+.. _update-arrayFilters:
+
+Specify ``arrayFilters`` for Array Update Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include::  /includes/extracts/arrayFilters-details.rst
+
+.. include:: /includes/extracts/arrayFilters-update-aggregation-restriction.rst
+
+Update Elements Match ``arrayFilters`` Criteria
+```````````````````````````````````````````````
+
+To update all array elements which match a specified criteria, use the
+:ref:`arrayFilters <update-array-filters>` parameter.
+
+In :binary:`~bin.mongosh`, create a ``students``
+collection with the following documents:
+
+.. code-block:: javascript
+
+   db.students.insertMany( [
+      { "_id" : 1, "grades" : [ 95, 92, 90 ] },
+      { "_id" : 2, "grades" : [ 98, 100, 102 ] },
+      { "_id" : 3, "grades" : [ 95, 110, 100 ] }
+   ] )
+
+To update all elements that are greater than or equal to ``100`` in the
+``grades`` array, use the filtered positional operator
+:update:`$[\<identifier\>]` with the ``arrayFilters`` option:
+
+.. code-block:: javascript
+
+   db.students.update(
+      { grades: { $gte: 100 } },
+      { $set: { "grades.$[element]" : 100 } },
+      {
+        multi: true,
+        arrayFilters: [ { "element": { $gte: 100 } } ]
+      }
+   )
+
+After the operation, the collection contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "grades" : [ 95, 92, 90 ] }
+   { "_id" : 2, "grades" : [ 98, 100, 100 ] }
+   { "_id" : 3, "grades" : [ 95, 100, 100 ] }
+
+Update Specific Elements of an Array of Documents
+`````````````````````````````````````````````````
+
+You can also use the :ref:`arrayFilters <update-array-filters>`
+parameter to update specific document fields within an array of
+documents.
+
+In :binary:`~bin.mongosh`, create a ``students2``
+collection with the following documents:
+
+.. code-block:: javascript
+
+   db.students2.insertMany( [
+     {
+       "_id" : 1,
+       "grades" : [
+          { "grade" : 80, "mean" : 75, "std" : 6 },
+          { "grade" : 85, "mean" : 90, "std" : 4 },
+          { "grade" : 85, "mean" : 85, "std" : 6 }
+       ]
+     }
+     {
+        "_id" : 2,
+        "grades" : [
+           { "grade" : 90, "mean" : 75, "std" : 6 },
+           { "grade" : 87, "mean" : 90, "std" : 3 },
+           { "grade" : 85, "mean" : 85, "std" : 4 }
+        ]
+     }
+   ] )
+
+To modify the value of the ``mean`` field for all elements in the
+``grades`` array where the grade is greater than or equal to ``85``,
+use the filtered positional operator :update:`$[\<identifier\>]` with
+the ``arrayFilters``:
+
+.. code-block:: javascript
+
+   db.students2.update(
+      { },
+      { $set: { "grades.$[elem].mean" : 100 } },
+      {
+        multi: true,
+        arrayFilters: [ { "elem.grade": { $gte: 85 } } ]
+      }
+   )
+
+After the operation, the collection has the following documents:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 1,
+      "grades" : [
+         { "grade" : 80, "mean" : 75, "std" : 6 },
+         { "grade" : 85, "mean" : 100, "std" : 4 },
+         { "grade" : 85, "mean" : 100, "std" : 6 }
+      ]
+   }
+   {
+      "_id" : 2,
+      "grades" : [
+         { "grade" : 90, "mean" : 100, "std" : 6 },
+         { "grade" : 87, "mean" : 100, "std" : 3 },
+         { "grade" : 85, "mean" : 100, "std" : 4 }
+      ]
+   }
+
+.. _ex-update-hint:
+
+Specify ``hint`` for Update Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 4.2
+
+In :binary:`~bin.mongosh`, create a ``members``
+collection with the following documents:
+
+.. code-block:: javascript
+
+   db.members.insertMany( [
+      { "_id" : 1, "member" : "abc123", "status" : "P", "points" :  0,  "misc1" : null, "misc2" : null },
+      { "_id" : 2, "member" : "xyz123", "status" : "A", "points" : 60,  "misc1" : "reminder: ping me at 100pts", "misc2" : "Some random comment" },
+      { "_id" : 3, "member" : "lmn123", "status" : "P", "points" :  0,  "misc1" : null, "misc2" : null },
+      { "_id" : 4, "member" : "pqr123", "status" : "D", "points" : 20,  "misc1" : "Deactivated", "misc2" : null },
+      { "_id" : 5, "member" : "ijk123", "status" : "P", "points" :  0,  "misc1" : null, "misc2" : null },
+      { "_id" : 6, "member" : "cde123", "status" : "A", "points" : 86,  "misc1" : "reminder: ping me at 100pts", "misc2" : "Some random comment" }
+   ] )
+
+Create the following indexes on the collection:
+
+.. code-block:: javascript
+
+   db.members.createIndex( { status: 1 } )
+   db.members.createIndex( { points: 1 } )
+
+The following update operation explicitly :ref:`hints <update-hint>` to
+use the index ``{status: 1 }``:
+
+.. note::
+
+   If you specify an index that does not exist, the operation errors.
+
+.. code-block:: javascript
+
+   db.members.update(
+      { points: { $lte: 20 }, status: "P" },     // Query parameter
+      { $set: { misc1: "Need to activate" } },   // Update document
+      { multi: true, hint: { status: 1 } }       // Options
+   )
+
+The update command returns the following:
+
+.. code-block:: javascript
+
+   WriteResult({ "nMatched" : 3, "nUpserted" : 0, "nModified" : 3 })
+
+To see the index used, run :dbcommand:`explain` on the operation:
+
+.. code-block:: javascript
+
+   db.members.explain().update(
+      { "points": { $lte: 20 }, "status": "P" },
+      { $set: { "misc1": "Need to activate" } },
+      { multi: true, hint: { status: 1 } }
+   )
+
+The :method:`db.collection.explain().update() <db.collection.explain>`
+does not modify the documents.
+
+.. _db.collection.update-let-example:
+
+Use Variables in ``let``
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. |let-option| replace:: :ref:`let <db.collection.update-let-syntax>`
+
+.. include:: /includes/let-example-introduction.rst
+
+.. include:: /includes/let-example-update-flavors.rst
+
+.. code-block:: javascript
+
+   db.cakeFlavors.update(
+      { $expr: { $eq: [ "$flavor", "$$targetFlavor" ] } },
+      [ { $set: { flavor: "$$newFlavor" } } ],
+      { let : { targetFlavor: "cherry", newFlavor: "orange" } }
+   )
+
+.. _example-update-write-concern:
+
+Override Default Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation to a replica set specifies a :ref:`write concern
+<write-concern>` of ``w: 2`` with a ``wtimeout`` of 5000
+milliseconds. This operation either returns after the write propagates
+to both the primary and one secondary, or times out after 5 seconds.
+
+.. code-block:: javascript
+
+   db.books.update(
+      { stock: { $lte: 10 } },
+      { $set: { reorder: true } },
+      {
+        multi: true,
+        writeConcern: { w: 2, wtimeout: 5000 }
+      }
+   )
+
+.. _example-update-collation:
+
+Specify Collation
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/collation-option.rst
+
+In :binary:`~bin.mongosh`, create a collection named
+``myColl`` with the following documents:
+
+.. code-block:: javascript
+
+   db.myColl.insertMany( [
+       { _id: 1, category: "café", status: "A" },
+       { _id: 2, category: "cafe", status: "a" },
+       { _id: 3, category: "cafE", status: "a" }
+   ] )
+
+The following operation includes the :ref:`collation <collation>`
+option and sets ``multi`` to ``true`` to update all matching documents:
+
+.. code-block:: javascript
+
+   db.myColl.update(
+      { category: "cafe" },
+      { $set: { status: "Updated" } },
+      {
+        collation: { locale: "fr", strength: 1 },
+        multi: true
+      }
+   );
+
+The :ref:`write result <writeresults-update>` of the operation returns the following document, indicating that all three documents in the
+collection were updated:
+
+.. code-block:: none
+   :copyable: false
+
+   WriteResult({ "nMatched" : 3, "nUpserted" : 0, "nModified" : 3 })
+
+After the operation, the collection contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "category" : "café", "status" : "Updated" }
+   { "_id" : 2, "category" : "cafe", "status" : "Updated" }
+   { "_id" : 3, "category" : "cafE", "status" : "Updated" }
+
+.. _writeresults-update:
+
+WriteResult
+-----------
+
+Successful Results
+~~~~~~~~~~~~~~~~~~
+
+The :method:`db.collection.update()` method returns a
+:method:`WriteResult` object that contains the status of the operation.
+Upon success, the :method:`WriteResult` object contains the number of
+documents that matched the query condition, the number of documents
+inserted by the update, and the number of documents modified:
+
+.. code-block:: javascript
+
+   WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+
+.. see:: 
+
+   - :data:`WriteResult.nMatched`
+   - :data:`WriteResult.nUpserted`
+   - :data:`WriteResult.nModified`
+
+Write Concern Errors
+~~~~~~~~~~~~~~~~~~~~
+
+If the :method:`db.collection.update()` method encounters write
+concern errors, the results include the
+:data:`WriteResult.writeConcernError` field:
+
+.. versionchanged:: 4.4
+
+.. code-block:: javascript
+
+   WriteResult({
+      "nMatched" : 1,
+      "nUpserted" : 0,
+      "nModified" : 1,
+      "writeConcernError": {
+        "code" : 64,
+        "errmsg" : "waiting for replication timed out",
+        "errInfo" : {
+          "wtimeout" : true,
+          "writeConcern" : {
+            "w" : "majority",
+            "wtimeout" : 100,
+            "provenance" : "getLastErrorDefaults"
+          }
+      }
+   })
+
+The following table explains the possible values of
+``WriteResult.writeConcernError.provenance``:
+
+.. include:: /includes/fact-wc-provenance-table.rst
+
+.. seealso::
+
+   :method:`WriteResult.hasWriteConcernError()`
+
+
+Errors Unrelated to Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the :method:`db.collection.update()` method encounters a non-write
+concern error, the results include the :data:`WriteResult.writeError`
+field:
+
+.. code-block:: javascript
+
+   WriteResult({
+      "nMatched" : 0,
+      "nUpserted" : 0,
+      "nModified" : 0,
+      "writeError" : {
+         "code" : 7,
+         "errmsg" : "could not contact primary for replica set shard-a"
+      }
+   })
+
+.. seealso::
+
+   :method:`WriteResult.hasWriteError()`
+

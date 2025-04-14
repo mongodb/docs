@@ -1,0 +1,101 @@
+.. _shards-concepts:
+
+======
+Shards
+======
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+A :term:`shard` contains a subset of sharded data for a :term:`sharded
+cluster`. Together, the cluster's shards hold the entire data set for the
+cluster.
+
+As of MongoDB 3.6, shards must be deployed as a :term:`replica set` to
+provide redundancy and high availability.
+
+Users, clients, or applications should only directly connect to a shard to
+perform local administrative and maintenance operations.
+
+Performing queries on a single shard only returns a subset of data. Connect to
+the :binary:`~bin.mongos` to perform cluster level operations, including read or
+write operations.
+
+.. important::
+
+   MongoDB does not guarantee that any two contiguous :term:`chunks<chunk>`
+   reside on a single shard.
+
+.. _primary-shard:
+
+Primary Shard
+-------------
+
+Each database in a sharded cluster has a :term:`primary shard` that holds all
+the un-sharded collections for that database. Each database has its own
+primary shard. The primary shard has no relation to the :term:`primary` in a
+replica set.
+
+The :binary:`~bin.mongos` selects the primary shard when creating a new database
+by picking the shard in the cluster that has the least amount of data.
+:binary:`~bin.mongos` uses the ``totalSize`` field returned by the
+:dbcommand:`listDatabases` command as a part of the selection criteria.
+
+.. include:: /images/sharded-cluster-primary-shard.rst
+
+To change the primary shard for a database, use the :dbcommand:`movePrimary`
+command. The process of migrating the primary shard may take significant time
+to complete, and you should not access the collections associated to the
+database until it completes. Depending on the amount of data being migrated,
+the migration may affect overall cluster operations. Consider the impact to
+cluster operations and network load before attempting to change the primary
+shard.
+
+When you deploy a new :term:`sharded cluster` with shards that were
+previously used as replica sets, all existing databases
+continue to reside on their original replica sets. Databases created
+subsequently may reside on any shard in the cluster.
+
+Shard Status
+------------
+
+Use the :method:`sh.status()` method in :binary:`~bin.mongosh` to
+see an overview of the cluster. This reports includes which shard is
+primary for the database and the :term:`chunk` distribution across the
+shards. See :method:`sh.status()` method for more details.
+
+Sharded Cluster Security
+------------------------
+
+Use :doc:`/core/security-internal-authentication` to enforce intra-cluster
+security and prevent unauthorized cluster components from accessing the
+cluster. You must start each :binary:`~bin.mongod` in the cluster with the
+appropriate security settings in order to enforce internal authentication.
+
+.. include:: /includes/intra-cluster-authentication.rst
+
+See :doc:`/tutorial/deploy-sharded-cluster-with-keyfile-access-control` for a
+tutorial on deploying a secured sharded cluster.
+
+Shard Local Users
+~~~~~~~~~~~~~~~~~
+
+Each shard supports :doc:`/core/authorization` *(RBAC)* for restricting
+unauthorized access to shard data and operations. Start each :binary:`~bin.mongod`
+in the replica set with the :option:`--auth <mongod --auth>` option to enforce RBAC.
+Alternatively, enforcing :doc:`/core/security-internal-authentication` for
+intra-cluster security also enables user access controls via RBAC.
+
+.. include:: /includes/intra-cluster-authentication.rst
+
+Each shard has its own shard-local users. These users cannot be used
+on other shards, nor can they be used for connecting to the cluster
+via a :binary:`~bin.mongos`.
+
+See :doc:`/tutorial/enable-authentication` for a tutorial on enabling
+adding users to an RBAC-enabled MongoDB deployment.

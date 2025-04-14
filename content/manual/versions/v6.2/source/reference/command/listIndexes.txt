@@ -1,0 +1,230 @@
+===========
+listIndexes
+===========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: listIndexes
+
+   Returns information about the indexes on the specified collection. Returned 
+   index information includes the keys and options used to create the index, as 
+   well as :ref:`hidden indexes <index-type-hidden>`. You can optionally set 
+   the batch size for the first batch of results. 
+
+   .. |method| replace:: :method:`db.collection.getIndexes()` helper method
+   .. include:: /includes/fact-dbcommand-tip
+   
+Syntax
+------
+
+The command has the following syntax:
+
+.. code-block:: javascript
+      
+   db.runCommand ( 
+      {
+         listIndexes: "<collection-name>", 
+         cursor: { batchSize: <int> },
+         comment: <any>
+      } 
+   )
+
+Command Fields
+--------------
+
+The command takes the following fields: 
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+   
+   * - Field
+     - Type
+     - Description
+   
+   * - ``listIndexes``
+     - string
+     - The name of the collection.
+
+   * - ``cursor.batchSize``
+     - integer
+     - Optional. Specifies the cursor batch size. 
+      
+   * - ``comment``
+     - any
+     - .. include:: /includes/extracts/comment-content.rst
+       .. versionadded:: 4.4
+
+Required Access
+---------------
+
+If access control is enforced, the built-in :authrole:`read` role provides the 
+required privileges to run :dbcommand:`listIndexes` for the collections in a 
+database.
+
+Behavior
+--------
+
+.. |operation| replace:: :dbcommand:`listIndexes`
+
+Client Disconnection
+~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.2-changes-disconnect.rst
+
+Replica Set Member State Restriction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.4-changes-repl-state-restrictions-operation.rst
+
+.. |operations| replace:: :dbcommand:`listIndexes`
+
+Output
+------
+
+.. data:: listIndexes.cursor
+
+   A result set returned in the batch size specified by your cursor. 
+   Each document in the batch output contains the following fields:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 15 15 30
+
+      * - Field
+        - Type
+        - Description
+
+      * - id
+        - integer
+        - A 64-bit integer. If zero, there are no more batches of information. 
+          If non-zero, a cursor ID, usable in a ``getMore`` command to get the 
+          next batch of index information.  
+
+      * - ns
+        - string 
+        - The database and collection name in the following format: 
+          ``<database-name>.<collection-name>``
+
+      * - firstBatch
+        - document
+        - Index information includes the keys and options used to create the 
+          index. The index option hidden, available starting in MongoDB 4.4, 
+          is only present if the value is true. 
+
+          Use :dbcommand:`getMore` to retrieve additional results as needed.
+
+
+.. data:: listIndexes.ok
+
+   The return value for the command. A value of ``1`` indicates success.
+
+Examples
+--------
+
+List Database Indexes
+~~~~~~~~~~~~~~~~~~~~~
+
+This example lists indexes for the ``contacts`` collection without specifying the 
+cursor batch size.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: json
+      :linenos:
+   
+      db.runCommand ( 
+        { 
+           listIndexes: "contacts"
+        } 
+      ) 
+
+   .. output::
+      :linenos:
+
+      {
+         cursor: {
+            id: Long("0"),
+            ns: 'test.contacts',
+            firstBatch: [
+               { v: 2, key: { _id: 1 }, name: '_id_', ns: 'test.contacts' },
+               { v: 2, key: { a: 1 }, name: 'a_1', ns: 'test.contacts' }
+            ]
+         },
+         ok: 1
+      }
+
+Specify Result Batch Size
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example lists indexes for the ``contacts`` collection, and specifies a cursor 
+batch size of 1. 
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: json
+      :linenos:
+
+      db.runCommand ( 
+         {
+            listIndexes: "contacts", cursor: { batchSize: 1 }
+         }
+      )
+
+   .. output::
+      :linenos:
+
+      {
+         cursor: {
+           id: Long("4809221676960028307"),
+           ns: 'test.contacts',
+          firstBatch: [ { v: 2, key: { _id: 1 }, name: '_id_', ns: 'test.contacts' } ]
+        },
+        ok: 1
+      }
+
+Retrieve Additional Results
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example uses ``getMore`` to retrieve additional result batches from the 
+``contacts`` collection. 
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: json
+      :linenos:
+
+      db.runCommand( 
+         { 
+            getMore: Long("4809221676960028307"), collection: "contacts"
+         } 
+      )
+
+   .. output::
+      :linenos:
+
+      {
+         cursor: {
+          nextBatch: [ { v: 2, key: { a: 1 }, name: 'a_1', ns: 'test.contacts' } ],
+          id: Long("0"),
+          ns: 'test.contacts'
+        },
+        ok: 1
+      }
+      
+

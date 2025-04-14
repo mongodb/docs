@@ -1,0 +1,88 @@
+.. _2d-index:
+
+==============
+``2d`` Indexes
+==============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Use a ``2d`` index for data stored as points on a two-dimensional
+plane. The ``2d`` index is intended for :ref:`legacy coordinate pairs
+<geospatial-legacy>` used in MongoDB 2.2 and earlier.
+
+Use a ``2d`` index if:
+
+- your database has legacy :ref:`legacy coordinate pairs
+  <geospatial-legacy>` from MongoDB 2.2 or earlier, *and*
+
+- you do not intend to store any location data as :term:`GeoJSON` objects.
+
+For more information on geospatial queries, see
+:doc:`/geospatial-queries`.
+
+Considerations
+--------------
+
+.. |first-geo-index| replace:: ``2d`` index
+.. |second-geo-index| replace:: :doc:`2dsphere index</core/2dsphere>`
+.. include:: /includes/fact-limitation-one-geo-index-per-collection.rst
+
+Do not use a ``2d`` index if your location data includes GeoJSON
+objects. To index on both :ref:`legacy coordinate pairs
+<geospatial-legacy>` *and* :ref:`GeoJSON objects <geospatial-geojson>`,
+use a :ref:`2dsphere <2dsphere-index>` index.
+
+.. include:: /includes/extracts/geospatial-index-shard-key-restriction-2d.rst
+
+Behavior
+--------
+
+The ``2d`` index supports calculations on a :ref:`flat, Euclidean plane
+<geospatial-geometry>`. The ``2d`` index also supports *distance-only*
+calculations on a sphere (i.e. :query:`$nearSphere`), but for
+*geometric* calculations on a sphere (e.g. :query:`$geoWithin`), store
+data as :ref:`GeoJSON objects <geospatial-geojson>` and use a
+``2dsphere`` index.
+
+A ``2d`` index can reference two fields. The first must be the location
+field. A ``2d`` compound index constructs queries that select first on
+the location field, and then filters those results by the additional
+criteria. A compound ``2d`` index can cover queries.
+
+``sparse`` Property
+-------------------
+
+``2d`` indexes are always :ref:`sparse <index-type-sparse>` and
+ignore the ``sparse`` option. If a document lacks a ``2d`` index field 
+(or the field is ``null`` or an empty array), MongoDB does not add an 
+entry for the document to the ``2d`` index. For inserts, MongoDB inserts 
+the document but does not add to the ``2d`` index.
+
+For a compound index that includes a ``2d`` index key along with keys
+of other types, only the ``2d`` index field determines whether the
+index references a document.
+
+Collation Option
+----------------
+
+``2d`` indexes only support simple binary comparison and do not support
+the :ref:`collation <collation>` option.
+
+To create a ``2d`` index on a collection that has a non-simple
+collation, you must explicitly specify ``{collation: {locale: "simple"}
+}`` when creating the index.
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   /tutorial/build-a-2d-index
+   /tutorial/query-a-2d-index
+   /core/geospatial-indexes
+   /tutorial/calculate-distances-using-spherical-geometry-with-2d-geospatial-indexes

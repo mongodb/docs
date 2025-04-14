@@ -1,0 +1,128 @@
+.. _timeseries-granularity:
+
+====================================
+Set Granularity for Time Series Data
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. meta::
+   :description: Time series, granularity, IOT
+   :keywords: Time series, granularity, IOT
+
+When you create a :ref:`time series collection 
+<manual-timeseries-collection>`, MongoDB automatically creates a ``system.buckets`` 
+:ref:`system collection <metadata-system-collections>` based on the ``granularity`` value you specify, and groups 
+documents into those buckets.
+
+.. note::
+
+   You must be running MongoDB 5.0.1 or later in order to change a
+   time series collection's granularity after the collection has been
+   created. See :ref:`MongoDB 5.0 known issues
+   <5.0-known-issue-granularity>`.
+
+The following table shows the maximum time interval included in one 
+bucket of data when using a given ``granularity`` value:
+
+.. include:: /includes/table-timeseries-granularity-intervals.rst
+
+You can improve performance by setting the ``granularity`` value to the 
+closest match to the time span between incoming measurements from the 
+same data source. For example, if you are recording weather data from 
+thousands of sensors but only record data from each sensor once per 5 
+minutes, set ``granularity`` to ``"minutes"``. This accurately reflects 
+the polling interval for a data source.
+
+.. code-block:: javascript
+
+   db.createCollection(
+       "weather24h",
+       {
+          timeseries: {
+             timeField: "timestamp",
+             metaField: "metadata",
+             granularity: "minutes"
+          },
+          expireAfterSeconds: 86400
+       }
+   )
+
+Setting the ``granularity`` to ``hours`` would group up to a month's 
+worth of data ingest events into a single bucket, resulting in longer 
+traversal times and slower queries. Setting it to ``seconds`` 
+would lead to multiple buckets per polling interval, many of which 
+might contain only a single document.
+
+.. seealso::
+
+   :ref:`Timing of Automatic Removal
+   <timeseries-collection-delete-operations-timing>`
+
+Retrieve the ``granularity`` of a Time Series Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To retrieve the current value of ``granularity``, use the
+:dbcommand:`listCollections` command:
+
+.. code-block:: javascript
+
+   db.runCommand( { listCollections: 1 } )
+
+The result document contains a document for the time series collection
+which contains the ``options.timeseries.granularity`` field.
+
+.. code-block:: javascript
+  :copyable: false
+
+  {
+      cursor: {
+         id: <number>,
+         ns: 'test.$cmd.listCollections',
+         firstBatch: [
+           {
+              name: <string>,
+              type: 'timeseries',
+              options: {
+                 expireAfterSeconds: <number>,
+                 timeseries: {
+                    timeField: <string>,
+                    metaField: <string>,
+                    granularity: <string>,
+                    bucketMaxSpanSeconds: <number>
+                 }
+              },
+              ...
+           },
+           ...
+         ]
+      }
+   }
+
+Change the ``granularity`` of a Time Series Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To change the ``granularity`` value, issue the following
+:dbcommand:`collMod` command: 
+
+.. code-block:: javascript
+
+   db.runCommand({
+      collMod: "weather24h",
+      timeseries: { granularity: "hours" }
+   })
+
+Once set, you cannot decrease granularity. For example, if granularity
+is set to ``minutes``, you can increase it to ``hours``, but you cannot
+decrease it to ``seconds``.
+
+.. note::
+
+   To modify the granularity of a **sharded** time series collection,
+   you must be running MongoDB 6.0 or later.

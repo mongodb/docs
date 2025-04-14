@@ -1,0 +1,146 @@
+.. _development-checklist:
+
+=====================
+Development Checklist
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The following checklist, along with the
+:doc:`/administration/production-checklist-operations`, provides
+recommendations to help you avoid issues in your production MongoDB
+deployment.
+
+.. start-content
+
+Data Durability
+~~~~~~~~~~~~~~~
+
+- Ensure that your replica set includes at least three data-bearing voting
+  members and that your write operations use ``w: majority`` :doc:`write
+  concern </reference/write-concern>`. Three data-bearing voting members are
+  required for replica-set wide data durability.
+
+- Ensure that all instances use :ref:`journaling <journaling-internals>`.
+
+Schema Design
+~~~~~~~~~~~~~
+
+Data in MongoDB has a *dynamic schema*. :term:`Collections
+<collection>` do not enforce :term:`document` structure. This
+facilitates iterative development and polymorphism. Nevertheless,
+collections often hold documents with highly homogeneous
+structures. See :doc:`/core/data-models` for more information.
+
+- Determine the set of collections that you will need and the
+  indexes required to support your queries. With the exception of
+  the ``_id`` index, you must create all indexes explicitly: MongoDB
+  does not automatically create any indexes other than ``_id``.
+
+- Ensure that your schema design supports your deployment type: if
+  you are planning to use :term:`sharded clusters <sharded cluster>`
+  for horizontal scaling, design your schema to include a strong
+  shard key. While you can :ref:`change your shard key
+  <change-a-shard-key>` later, it is important to carefully consider
+  your :ref:`shard key choice <sharding-shard-key-requirements>` to
+  avoid scalability and perfomance issues.
+
+- Ensure that your schema design does not rely on indexed arrays that
+  grow in length without bound. Typically, best performance can
+  be achieved when such indexed arrays have fewer than 1000 elements.
+
+- Consider the document size limits when designing your schema.
+  The :limit:`BSON Document Size` limit is 16MB per document. If
+  you require larger documents, use :ref:`GridFS <gridfs>`.
+
+Replication
+~~~~~~~~~~~
+
+- Use an odd number of voting members to ensure that elections
+  proceed successfully. You can have up to 7 voting members. If you
+  have an *even* number of voting members, and constraints, such as
+  cost, prohibit adding another secondary to be a voting member, you
+  can add an :term:`arbiter` to ensure an odd number of votes. For
+  additional considerations when using an arbiter for a 3-member
+  replica set (P-S-A), see :doc:`/core/replica-set-arbiter`.
+
+  .. note::
+
+    .. include:: /includes/extracts/arbiters-and-pvs-with-reference.rst
+
+- Ensure that your secondaries remain up-to-date by using
+  :doc:`monitoring tools </administration/monitoring>` and by
+  specifying appropriate :doc:`write concern
+  </reference/write-concern>`.
+
+- Do not use secondary reads to scale overall read throughput. See:
+  `Can I use more replica nodes to scale`_ for an overview of read
+  scaling. For information about secondary reads, see:
+  :doc:`/core/read-preference`.
+
+  .. _Can I use more replica nodes to scale: http://askasya.com/post/canreplicashelpscaling
+
+Sharding
+~~~~~~~~
+
+- Ensure that your shard key distributes the load evenly on your shards.
+  See: :doc:`/core/sharding-shard-key` for more information.
+
+- Use :ref:`targeted operations <sharding-mongos-targeted>`
+  for workloads that need to scale with the number of shards.
+
+- **For MongoDB 3.4 and earlier**, read from the primary nodes for
+  :ref:`non-targeted or broadcast <sharding-mongos-broadcast>`
+  queries as these queries may be sensitive to `stale or orphaned
+  data
+  <http://blog.mongodb.org/post/74730554385/background-indexing-on-se condaries-and-orphaned>`_.
+
+- | **For MongoDB 3.6 and later**, secondaries no longer return orphaned
+    data unless using read concern :readconcern:`"available"` (which
+    is the default read concern for reads against secondaries when not
+    associated with :ref:`causally consistent sessions <sessions>`).
+
+  | Starting in MongoDB 3.6, all members of the shard replica set
+    maintain chunk metadata, allowing them to filter out orphans
+    when not using :readconcern:`"available"`. As such,
+    :ref:`non-targeted or broadcast <sharding-mongos-broadcast>`
+    queries that are not using :readconcern:`"available"` can be
+    safely run on any member and will not return orphaned data.
+
+  | The :readconcern:`"available"` read concern can return
+    :term:`orphaned documents <orphaned document>` from secondary
+    members since it does not check for updated chunk metadata.
+    However, if the return of orphaned documents is immaterial to an
+    application, the :readconcern:`"available"` read concern provides
+    the lowest latency reads possible among the various read concerns.
+
+- :doc:`Pre-split and manually balance chunks
+  </tutorial/create-chunks-in-sharded-cluster>` when inserting large
+  data sets into a new non-hashed sharded collection. Pre-splitting
+  and manually balancing enables the insert load to be distributed
+  among the shards, increasing performance for the initial load.
+
+Drivers
+~~~~~~~
+
+- Make use of connection pooling. Most MongoDB drivers support
+  connection pooling. Adjust the connection pool size to suit your
+  use case, beginning at 110-115% of the typical number of concurrent
+  database requests.
+
+- Ensure that your applications handle transient write and read errors
+  during replica set elections.
+
+- Ensure that your applications handle failed requests and retry them if
+  applicable. Drivers **do not** automatically retry failed requests.
+
+- Use exponential backoff logic for database request retries.
+
+- Use :method:`cursor.maxTimeMS()` for reads and :ref:`wc-wtimeout` for
+  writes if you need to cap execution time for database operations.

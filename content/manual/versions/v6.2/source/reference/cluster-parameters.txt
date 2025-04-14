@@ -1,0 +1,88 @@
+.. _cluster-parameters:
+
+==========================
+MongoDB Cluster Parameters
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Synopsis
+--------
+
+You can specify configuration options which affect all nodes in a 
+replica set or sharded cluster. To set these options, use the 
+:dbcommand:`setClusterParameter` command:
+
+.. code-block:: javascript
+
+   db.adminCommand( { setClusterParameter:{ <parameter>: <value> } } )
+
+To view the current values of cluster parameters, use the 
+:dbcommand:`getClusterParameter` command: 
+
+.. code-block:: javascript
+
+   db.adminCommand( { getClusterParameter: <parameter> } )
+
+.. include:: /includes/reference/fact-setClusterParameter-availability.rst
+
+Parameters
+----------
+
+.. |mongod-only| replace:: Available for :binary:`~bin.mongod` only.
+
+.. |mongos-only| replace:: Available for :binary:`~bin.mongos` only.
+
+.. |both| replace:: Available for both :binary:`~bin.mongod` and :binary:`~bin.mongos`.
+
+.. parameter:: changeStreamOptions
+
+   .. versionadded:: 6.0
+
+   |both|
+   
+   This is an object containing :ref:`change stream <change-streams-update-event>` 
+   configuration options. 
+
+   You can only set ``changeStreamOptions`` on mongos or a 
+   replica set primary. The value is set cluster-wide.
+   
+   .. parameter:: changeStreamOptions.preAndPostImages.expireAfterSeconds
+   
+      .. versionadded:: 6.0
+
+      *Default*: off
+   
+      Controls the retention policy of change stream pre- and post-images.
+      Pre- and post-images are the versions of a document before and after 
+      document modification respectively. ``expireAfterSeconds`` 
+      controls how long pre- and post-images are retained. 
+
+      When ``expireAfterSeconds`` is ``off``, MongoDB uses the default retention 
+      policy: pre- and post-images are retained until the corresponding change 
+      stream events are removed from the :term:`oplog`.  
+
+      To specify the minimum pre- and post-image retention time:
+      
+      - Set ``expireAfterSeconds`` using an integer. 
+      
+      - If a change stream event is removed from the oplog, then the 
+        corresponding pre- and post-images are also deleted regardless of the 
+        ``expireAfterSeconds`` pre- and post-image retention time.
+
+      The following example sets the retention time for pre- and post-images in 
+      change streams to ``100 seconds``:
+
+      .. code-block:: javascript
+
+         db.runCommand( {
+            setClusterParameter: {
+            changeStreamOptions: { preAndPostImages: { expireAfterSeconds: 100 } }
+            }
+         } )
