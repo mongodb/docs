@@ -1,5 +1,5 @@
-MongoDB Relational Migrator is a free tool to help you migrate data from a
-relational database to MongoDB. With Relational Migrator, you can:
+{+mdb-rel-mig+} is a free tool to help you migrate data from a
+relational database to MongoDB. With {+rel-mig+}, you can:
 
 - **Transform your data** 
   

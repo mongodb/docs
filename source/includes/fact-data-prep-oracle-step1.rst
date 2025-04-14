@@ -1,7 +1,7 @@
 The following code creates a new Oracle service account 
-for Relational Migrator to connect to the Oracle 
+for {+rel-mig+} to connect to the Oracle 
 instance. Alternatively, you can use an existing Oracle 
-service account to connect to Relational Migrator with 
+service account to connect to {+rel-mig+} with 
 the appropriate permissions.
 
 .. tip::

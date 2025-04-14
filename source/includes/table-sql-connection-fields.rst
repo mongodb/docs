@@ -24,7 +24,7 @@
      - By default, this is set to :guilabel:`SQL Server`. Set to
        :guilabel:`Windows` to enable :ref:`Windows Integrated Authentication
        <rm-sql-connection-string>`, using the credentials of the user who
-       launched the Relational Migrator executable. This disables the
+       launched the {+rel-mig+} executable. This disables the
        :guilabel:`Username` and :guilabel:`Password` fields.
 
    * - :guilabel:`Username` and :guilabel:`Password`

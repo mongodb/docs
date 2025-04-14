@@ -25,7 +25,7 @@ connection string.
       
       #. If they aren't included in the connection string, enter the 
          :guilabel:`Username` and :guilabel:`Password` of your
-         :ref:`Relational Migrator MongoDB user <rm-mongodb-service-user>`.
+         :ref:`{+rel-mig+} MongoDB user <rm-mongodb-service-user>`.
          
          Checking :guilabel:`Save password` saves the password securely
          on your machine, so you don't have to enter the :guilabel:`Username`
@@ -46,12 +46,12 @@ connection string.
       
       #. If they aren't included in the connection string, enter the 
          :guilabel:`Username` and :guilabel:`Password` of your
-         :ref:`Relational Migrator MongoDB user <rm-mongodb-service-user>`.
+         :ref:`{+rel-mig+} MongoDB user <rm-mongodb-service-user>`.
          
          Checking :guilabel:`Save password` saves the password securely
-         on your machine. Relational Migrator automatically fills in the 
+         on your machine. {+rel-mig+} automatically fills in the 
          :guilabel:`Password` field when updating connection information.
       
       If you leave the form :guilabel:`Database`, :guilabel:`Username`, 
-      or :guilabel:`Password` fields blank, Relational Migrator uses the
+      or :guilabel:`Password` fields blank, {+rel-mig+} uses the
       values from the URI.

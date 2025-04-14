@@ -14,7 +14,7 @@ a. Enter the MongoDB connection string.
    
    #. If they aren't included in the connection string and you aren't using
       X.509 authentication, enter the :guilabel:`Username` and
-      :guilabel:`Password` of your :ref:`Relational Migrator MongoDB user
+      :guilabel:`Password` of your :ref:`{+rel-mig+} MongoDB user
       <rm-mongodb-service-user>`.
 
 #. Enter a :guilabel:`Connection name` and optional :guilabel:`Environment tag`.
