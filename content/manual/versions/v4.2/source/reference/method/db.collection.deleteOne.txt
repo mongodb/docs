@@ -1,0 +1,233 @@
+=========================
+db.collection.deleteOne()
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.collection.deleteOne()
+
+   .. |dbcommand| replace:: :dbcommand:`delete` command
+   .. include:: /includes/fact-mongo-shell-method-alt.rst
+
+   Removes a single document from a collection.
+
+   .. code-block:: javascript
+
+      db.collection.deleteOne(
+         <filter>,
+         {
+            writeConcern: <document>,
+            collation: <document>
+         }
+      )
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``filter``
+   
+        - document
+   
+        - Specifies deletion criteria using :doc:`query operators
+          </reference/operator>`. 
+          
+          Specify an empty document ``{ }`` to delete the first document returned in 
+          the collection.
+          
+          
+   
+      * - ``writeConcern``
+   
+        - document
+   
+        - Optional. A document expressing the :doc:`write concern
+          </reference/write-concern>`. Omit to use the default write concern.
+          
+          .. include:: /includes/extracts/transactions-operations-write-concern.rst
+          
+          
+   
+      * - ``collation``
+   
+        - document
+   
+        - Optional. 
+          
+          .. include:: /includes/extracts/collation-option.rst
+          
+          
+   
+
+
+   :returns:
+      
+      A document containing:
+      
+      - A boolean ``acknowledged`` as ``true`` if the operation ran with 
+        :term:`write concern` or ``false`` if write concern was disabled
+       
+      - ``deletedCount`` containing the number of deleted documents
+
+Behavior
+--------
+
+.. _deleteOne-deletion-order:
+
+Deletion Order
+~~~~~~~~~~~~~~
+
+:method:`db.collection.deleteOne` deletes the first document that matches 
+the filter. Use a field that is part of a :term:`unique index` such as ``_id`` 
+for precise deletions.
+
+.. _deleteOne-capped-collection:
+
+Capped Collections
+~~~~~~~~~~~~~~~~~~
+
+:method:`db.collection.deleteOne()` throws a ``WriteError`` exception 
+if used on a :term:`capped collection`. To remove documents from a capped 
+collection, use :method:`db.collection.drop()` instead.
+
+Transactions
+~~~~~~~~~~~~
+
+.. include:: /includes/extracts/transactions-supported-operation.rst
+
+.. include:: /includes/extracts/transactions-operations-write-concern.rst
+
+.. include:: /includes/extracts/transactions-usage.rst
+
+.. |operation| replace:: :method:`db.collection.deleteOne()`
+
+Examples
+--------
+
+.. _deleteOne-example-delete-single-document:
+
+Delete a Single Document
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``orders`` collection has documents with the following structure:
+
+.. code-block:: javascript
+
+   {
+      _id: ObjectId("563237a41a4d68582c2509da"),
+      stock: "Brent Crude Futures",
+      qty: 250,
+      type: "buy-limit",
+      limit: 48.90,
+      creationts: ISODate("2015-11-01T12:30:15Z"),
+      expiryts: ISODate("2015-11-01T12:35:15Z"),
+      client: "Crude Traders Inc."
+   }
+   
+The following operation deletes the order with ``_id: 
+ObjectId("563237a41a4d68582c2509da")`` : 
+
+.. code-block:: javascript
+
+   try {
+      db.orders.deleteOne( { "_id" : ObjectId("563237a41a4d68582c2509da") } );
+   } catch (e) {
+      print(e);
+   }
+   
+The operation returns:
+
+.. code-block:: javascript
+
+   { "acknowledged" : true, "deletedCount" : 1 }
+   
+The following operation deletes the first document with ``expiryts`` greater 
+than ``ISODate("2015-11-01T12:40:15Z")``
+
+.. code-block:: javascript
+
+   try {
+      db.orders.deleteOne( { "expiryts" : { $lt: ISODate("2015-11-01T12:40:15Z") } } );
+   } catch (e) {
+      print(e);
+   }
+
+The operation returns:
+
+.. code-block:: javascript
+
+   { "acknowledged" : true, "deletedCount" : 1 }
+   
+.. _deleteOne-example-update-with-write-concern:
+
+deleteOne() with Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Given a three member replica set, the following operation specifies a 
+``w`` of ``majority``, ``wtimeout`` of ``100``:
+
+.. code-block:: javascript
+
+   try {
+      db.orders.deleteOne(
+          { "_id" : ObjectId("563237a41a4d68582c2509da") },
+          { w : "majority", wtimeout : 100 }
+      );
+   } catch (e) {
+      print (e);
+   }
+
+If the acknowledgement takes longer than the ``wtimeout`` limit, the following 
+exception is thrown:
+
+.. code-block:: javascript
+
+   WriteConcernError({
+      "code" : 64,
+      "errInfo" : {
+         "wtimeout" : true
+      },
+      "errmsg" : "waiting for replication timed out"
+   })
+
+Specify Collation
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/collation-versionadded.rst
+
+A collection ``myColl`` has the following documents:
+
+.. code-block:: javascript
+
+   { _id: 1, category: "café", status: "A" }
+   { _id: 2, category: "cafe", status: "a" }
+   { _id: 3, category: "cafE", status: "a" }
+
+The following operation includes the :ref:`collation <collation>`
+option:
+
+.. code-block:: javascript
+
+   db.myColl.deleteOne( 
+      { category: "cafe", status: "A" }, 
+      { collation: { locale: "fr", strength: 1 } }
+   )
+
+.. seealso:: To delete multiple documents, see 
+   :method:`db.collection.deleteMany()`

@@ -1,0 +1,122 @@
+=========================
+Replica Set Member States
+=========================
+
+.. default-domain:: mongodb
+
+Each member of a replica set has a state.
+
+.. include:: /includes/replica-states.rst
+
+States
+------
+
+Core States
+~~~~~~~~~~~
+
+.. replstate:: PRIMARY
+
+   Members in :replstate:`PRIMARY` state accept write operations. A replica set has at most
+   one primary at a time. [#edge-cases-2-primaries]_ A :replstate:`SECONDARY` member becomes primary
+   after an :ref:`election <replica-set-elections>`. Members in the :replstate:`PRIMARY`
+   state are eligible to vote.
+
+.. replstate:: SECONDARY
+
+   Members in :replstate:`SECONDARY` state replicate the primary's data set
+   and can be configured to accept read operations. Secondaries are eligible to vote in
+   elections, and may be elected to the :replstate:`PRIMARY` state if the
+   primary becomes unavailable.
+
+.. replstate:: ARBITER
+
+   Members in :replstate:`ARBITER` state do not replicate data or accept write operations.
+   They are eligible to vote, and exist solely to break a tie during
+   elections. Replica sets should only have a member in the :replstate:`ARBITER` state
+   if the set would otherwise have an even number of voting members, and could suffer
+   from tied elections. There should only be at most one arbiter configured
+   in any replica set. For considerations when using an arbiter, see
+   :doc:`/core/replica-set-arbiter`.
+
+See :doc:`/core/replica-set-members` for more information on core states.
+
+Other States
+~~~~~~~~~~~~
+
+.. replstate:: STARTUP
+
+   Each member of a replica set starts up in :replstate:`STARTUP`
+   state. :binary:`~bin.mongod` then loads that member's replica set configuration,
+   and transitions the member's state to :replstate:`STARTUP2` or :replstate:`ARBITER`. Members in
+   :replstate:`STARTUP` are not eligible to vote, as they are not yet a recognized member of any replica set.
+
+.. replstate:: STARTUP2
+
+   Each data-bearing member of a replica set enters the :replstate:`STARTUP2` state as
+   soon as :binary:`~bin.mongod` finishes loading that member's
+   configuration, at which time it becomes an active member of the replica set and is eligible to vote.
+   The member then decides whether or not to undertake an initial sync.
+   If a member begins an initial sync, the member remains in :replstate:`STARTUP2` until all
+   data is copied and all indexes are built.  Afterwards, the member transitions to
+   :replstate:`RECOVERING`.
+
+.. replstate:: RECOVERING
+
+   A member of a replica set enters :replstate:`RECOVERING` state when
+   it is not ready to accept reads. The :replstate:`RECOVERING` state
+   can occur during normal operation, and doesn't necessarily reflect
+   an error condition.  Members in the :replstate:`RECOVERING` state
+   are eligible to vote in elections, but are not eligible to enter the
+   :replstate:`PRIMARY` state.
+
+   A member transitions from :replstate:`RECOVERING` to :replstate:`SECONDARY`
+   after replicating enough data to guarantee a consistent view of the data for
+   client reads.  The only difference between :replstate:`RECOVERING`
+   and :replstate:`SECONDARY` states is that :replstate:`RECOVERING`
+   prohibits client reads and :replstate:`SECONDARY` permits them.
+   :replstate:`SECONDARY` state does not guarantee anything about the
+   staleness of the data with respect to the primary.
+
+   Due to overload, a :term:`secondary` may fall far enough behind the
+   other members of the replica set such that it may need to :doc:`resync
+   </tutorial/resync-replica-set-member>` with the
+   rest of the set. When this happens, the member enters the
+   :replstate:`RECOVERING` state and requires manual intervention.
+
+.. replstate:: ROLLBACK
+
+   Whenever the replica set replaces a :term:`primary` in an
+   election, the old primary may contain documents
+   that did not replicate to the :term:`secondary`
+   members. In this case, the old primary member reverts those writes. During
+   :doc:`rollback </core/replica-set-rollbacks>`, the member will have
+   :replstate:`ROLLBACK` state. Members in the :replstate:`ROLLBACK` state
+   are eligible to vote in elections.
+
+   .. include:: /includes/extracts/4.2-changes-rollback-user-ops.rst
+
+Error States
+~~~~~~~~~~~~
+
+Members in any error state can't vote.
+
+.. replstate:: UNKNOWN
+
+   Members that have never communicated status information to the replica
+   set are in the :replstate:`UNKNOWN` state.
+
+.. replstate:: DOWN
+
+   Members that lose their connection to the replica set are seen as :replstate:`DOWN` by the remaining members of the set.
+
+.. replstate:: REMOVED
+
+   Members that are removed from the replica set enter the :replstate:`REMOVED`
+   state.
+   When members enter the :replstate:`REMOVED` state, the logs will
+   mark this event with a ``replSet REMOVED`` message entry.
+
+.. [#edge-cases-2-primaries]
+
+   .. include:: /includes/footnote-two-primaries-edge-cases.rst
+

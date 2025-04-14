@@ -1,0 +1,188 @@
+===============
+replSetStepDown
+===============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Description
+-----------
+
+.. dbcommand:: replSetStepDown
+
+   .. |command-method| replace:: command
+   .. |stepdown-secs| replace:: ``replSetStepDown: <seconds>``
+   .. |behavior-ref| replace:: :ref:`replSetStepDown-behavior`
+
+   .. include:: /includes/stepdown-intro.rst
+
+   .. |method| replace:: :method:`rs.stepDown` helper method
+   .. include:: /includes/fact-dbcommand-tip.rst
+
+   The :dbcommand:`replSetStepDown` can only run on the ``admin`` database
+   and has the following prototype form:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { 
+          replSetStepDown: <seconds>,
+          secondaryCatchUpPeriodSecs: <seconds>,
+          force: <true|false>
+      } )
+
+   :dbcommand:`replSetStepDown` takes the following fields as arguments:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``replSetStepDown``
+   
+        - number
+   
+        - The number of seconds to step down the primary, during which time the
+          stepdown member is ineligible for becoming primary. If you specify a
+          non-numeric value, the command uses ``60`` seconds.
+          
+          The stepdown period starts from the time that the
+          :binary:`~bin.mongod` receives the command. The stepdown period must
+          be greater than the ``secondaryCatchUpPeriodSecs``.
+          
+          
+   
+      * - ``secondaryCatchUpPeriodSecs``
+   
+        - number
+   
+        - Optional. The number of seconds that the :binary:`~bin.mongod` will wait for
+          an electable secondary to catch up to the primary.
+          
+          When specified, ``secondaryCatchUpPeriodSecs`` overrides the default
+          wait time of either ``10`` seconds or if ``force: true``, ``0``
+          seconds.
+          
+          
+   
+      * - ``force``
+   
+        - boolean
+   
+        - Optional. A boolean that determines whether the primary steps down if no electable
+          and up-to-date secondary exists within the wait period.
+          
+          If ``true``, the primary steps down even if no suitable secondary
+          member exists; this could lead to :doc:`rollbacks
+          </core/replica-set-rollbacks>` if a secondary with replication lag
+          becomes the new primary.
+          
+          If ``false``, the primary does not step down if no suitable secondary
+          member exists and the command returns an error.
+          
+          Defaults to ``false``.
+          
+          
+   
+
+
+.. _replSetStepDown-behavior:
+
+Behavior
+--------
+
+.. |force-option| replace:: You can override this behavior and issue with command with the ``force: true`` option to immediately step down the primary.
+
+.. |command-method-name| replace:: :dbcommand:`replSetStepDown`
+
+Concurrent Operations
+~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/rs-stepdown-concurrent-ops.rst
+
+Availability of Eligible Secondaries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/rs-stepdown-eligible-secondaries.rst
+
+
+
+Client Connections
+~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/rs-stepdown-client-connections.rst
+
+
+Writes During Stepdown
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/rs-stepdown-write-fail.rst
+
+Election Handoff
+~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/rs-stepdown-election-handoff.rst
+
+Examples
+--------
+
+Step Down with Default Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example, run on the current primary, attempts to step
+down the member for ``120`` seconds.
+
+The operation waits up to the default ``10`` seconds for a
+secondary to catch up. If no suitable secondary exists, the primary
+does not step down and the command errors.
+
+.. include:: /includes/extracts/rs-stepdown-write-fail.rst
+
+.. class:: copyable-code
+.. code-block:: javascript
+
+   db.adminCommand( { replSetStepDown: 120 } )
+
+Specify Wait Time for Secondary Catch Up
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example, run on the current primary, attempts to step
+down the member for ``120`` seconds, waiting up to ``15`` seconds for
+an electable secondary to catch up. If no suitable secondary exists,
+the primary does not step down and the command errors.
+
+.. include:: /includes/extracts/rs-stepdown-write-fail.rst
+
+.. class:: copyable-code
+.. code-block:: javascript
+
+   db.adminCommand( { replSetStepDown: 120, secondaryCatchUpPeriodSecs: 15 } )
+
+Specify Secondary Catch Up with Force Step Down
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example, run on the current primary, attempts to step
+down the member for ``120`` seconds, waiting up to ``15`` seconds for
+an electable secondary to catch up. Because of the ``force: true``
+option, the primary steps down even if no suitable secondary exists.
+
+.. include:: /includes/extracts/rs-stepdown-write-fail.rst
+
+.. class:: copyable-code
+.. code-block:: javascript
+
+   db.adminCommand( { replSetStepDown: 120, secondaryCatchUpPeriodSecs: 15, force: true } )
+
+.. seealso:: :method:`rs.stepDown()`
+
+.. slave-ok, admin-only

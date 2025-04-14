@@ -1,0 +1,178 @@
+==============
+cursor.count()
+==============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: cursor.count()
+
+
+   .. include:: /includes/fact-mongo-shell-method.rst
+
+
+   .. note::
+
+      MongoDB drivers compatible with the 4.0 features deprecate their
+      respective cursor and collection ``count()`` APIs in favor of new
+      APIs that corresponds to ``countDocuments()`` and
+      ``estimatedDocumentCount()``. For the specific API names for a
+      given driver, see the driver API documentation.
+
+   Counts the number of documents referenced by a cursor. Append the
+   :method:`~cursor.count()` method to a
+   :method:`~db.collection.find()` query to return the number of
+   matching documents. The operation does not perform the query but
+   instead counts the results that would be returned by the query.
+
+   .. important::
+
+      - Avoid using :method:`~cursor.count()` if the
+        :method:`~db.collection.find()` operation is run without a
+        query predicate since without the query predicate, these
+        :method:`~cursor.count()` returns results based on the
+        collection's metadata, which may result in an approximate
+        count. In particular,
+        
+        - On a sharded cluster, the resulting count will not correctly
+          filter out :term:`orphaned documents <orphaned document>`.
+
+        - After an unclean shutdown, the count may be
+          incorrect.
+
+      - For counts based on collection metadata, see also
+        :ref:`collStats pipeline stage with the count <collstat-count>`
+        option.
+
+
+   The :method:`~cursor.count()` method has the following
+   prototype form:
+
+   .. code-block:: javascript
+
+      db.collection.find(<query>).count()
+
+   The :method:`~cursor.count()` method has the following
+   parameter:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``applySkipLimit``
+   
+        - boolean
+   
+        - Optional. Specifies whether to consider the effects of the
+          :method:`cursor.skip()` and :method:`cursor.limit()` methods in the
+          count. By default, the :method:`~cursor.count()` method
+          ignores the effects of the :method:`cursor.skip()` and
+          :method:`cursor.limit()`. Set ``applySkipLimit`` to ``true`` to
+          consider the effect of these methods.
+          
+          
+   
+
+
+   MongoDB also provides an equivalent :method:`db.collection.count()`
+   as an alternative to the ``db.collection.find(<query>).count()``
+   construct.
+
+   MongoDB supports the use of :method:`~cursor.hint()` with
+   :method:`~cursor.count()`. See :ref:`count-method-hint` for an
+   example.
+
+   .. seealso:: :method:`cursor.size()`
+
+Behavior
+--------
+
+Count and Transactions
+~~~~~~~~~~~~~~~~~~~~~~
+
+You cannot use :dbcommand:`count` and shell helpers
+:method:`~cursor.count()` and :method:`db.collection.count()` in
+:ref:`transactions <transactions-ops-count>`.
+
+For details, see :ref:`Transactions and Count Operations
+<transactions-ops-count>`.
+
+Sharded Clusters
+~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/fact-count-on-sharded-clusters-method-cursor.count.rst
+
+Index Use
+~~~~~~~~~
+
+.. include:: /includes/fact-count-index-use.rst
+
+Examples
+--------
+
+The following are examples of the :method:`~cursor.count()` method.
+
+Count All Documents
+~~~~~~~~~~~~~~~~~~~
+
+The following operation counts the number of all documents in the
+``orders`` collection:
+
+.. code-block:: javascript
+
+   db.orders.find().count()
+
+Count Documents That Match a Query
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation counts the number of the documents in the
+``orders`` collection with the field ``ord_dt`` greater than ``new
+Date('01/01/2012')``:
+
+.. code-block:: javascript
+
+   db.orders.find( { ord_dt: { $gt: new Date('01/01/2012') } } ).count()
+
+Limit Documents in Count
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation counts the number of the documents in the
+``orders`` collection with the field ``ord_dt`` greater than ``new
+Date('01/01/2012')`` *taking into account* the effect of the
+``limit(5)``:
+
+.. code-block:: javascript
+
+   db.orders.find( { ord_dt: { $gt: new Date('01/01/2012') } } ).limit(5).count(true)
+
+.. _count-method-hint:
+
+Specify the Index to Use
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation uses the index named ``"status_1"``, which has
+the index key specification of ``{ status: 1 }``, to return a count of
+the documents in the ``orders`` collection with the field ``ord_dt``
+greater than ``new Date('01/01/2012')`` and the ``status`` field is
+equal to ``"D"``:
+
+.. code-block:: javascript
+
+   db.orders.find(
+      { ord_dt: { $gt: new Date('01/01/2012') }, status: "D" }
+   ).hint( "status_1" ).count()

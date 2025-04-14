@@ -1,0 +1,477 @@
+=====================
+$unwind (aggregation)
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. pipeline:: $unwind
+
+   Deconstructs an array field from the input documents to output a
+   document for *each* element. Each output document is the input
+   document with the value of the array field replaced by the element.
+
+Syntax
+------
+
+You can pass a field path operand or a document operand to unwind an
+array field.
+
+Field Path Operand
+~~~~~~~~~~~~~~~~~~
+
+You can pass the array field path to :pipeline:`$unwind`. When using
+this syntax, :pipeline:`$unwind` does not output a document if the field
+value is null, missing, or an empty array.
+
+.. code-block:: javascript
+
+   { $unwind: <field path> }
+
+When you specify the field path, prefix the
+field name with a dollar sign ``$`` and enclose in quotes.
+
+Document Operand with Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.2
+
+You can pass a document to :pipeline:`$unwind` to specify various
+behavior options.
+
+.. code-block:: javascript
+
+   {
+     $unwind:
+       {
+         path: <field path>,
+         includeArrayIndex: <string>,
+         preserveNullAndEmptyArrays: <boolean>
+       }
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Field
+
+     - Type
+
+     - Description
+
+   * - :ref:`path <unwind-path>`
+
+     - string
+
+     - .. _unwind-path:
+     
+       Field path to an array field. To specify a field path, prefix
+       the field name with a dollar sign ``$`` and enclose in quotes.
+    
+   * - :ref:`includeArrayIndex <unwind-includeArrayIndex>`
+
+     - string
+
+     - .. _unwind-includeArrayIndex:
+      
+       Optional. The name of a new field to hold the array index of the
+       element. The name cannot start with a dollar sign ``$``.
+
+   * - :ref:`preserveNullAndEmptyArrays <unwind-preserveNullAndEmptyArrays>`
+
+     - boolean
+
+     - .. _unwind-preserveNullAndEmptyArrays:
+     
+       Optional.
+     
+       - If ``true``, if the ``path`` is null, missing, or an empty
+         array, :pipeline:`$unwind` outputs the document.
+         
+       - If ``false``, if ``path`` is null, missing, or an empty
+         array, :pipeline:`$unwind` does not output a document.
+       
+       The default value is ``false``.
+
+Behaviors
+---------
+
+Non-Array Field Path
+~~~~~~~~~~~~~~~~~~~~
+
+* When the operand does not resolve to an array, but is not missing, ``null``,
+  or an empty array, ``$unwind`` treats the operand as a single element array.
+
+* When the operand is ``null``, missing, or an empty array ``$unwind`` follows
+  the behavior set for the 
+  :ref:`preserveNullAndEmptyArrays <unwind-preserveNullAndEmptyArrays>` option.
+
+Missing Field
+~~~~~~~~~~~~~
+
+If you specify a path for a field that does not exist in an input
+document or the field is an empty array, :pipeline:`$unwind`, by
+default, ignores the input document and will not output documents for
+that input document.
+
+.. versionadded:: 3.2
+
+   To output documents where the array field is missing, null or an
+   empty array, use the
+   :ref:`preserveNullAndEmptyArrays <unwind-preserveNullAndEmptyArrays>`
+   option.
+
+Examples
+--------
+
+Unwind Array
+~~~~~~~~~~~~
+
+From the :binary:`~bin.mongo` shell, create a sample collection named
+``inventory`` with the following document:
+
+.. code-block:: javascript
+
+   db.inventory.insertOne({ "_id" : 1, "item" : "ABC1", sizes: [ "S", "M", "L"] })
+
+The following aggregation uses the :pipeline:`$unwind` stage to output
+a document for each element in the ``sizes`` array:
+
+.. code-block:: javascript
+
+   db.inventory.aggregate( [ { $unwind : "$sizes" } ] )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 1, "item" : "ABC1", "sizes" : "S" }
+   { "_id" : 1, "item" : "ABC1", "sizes" : "M" }
+   { "_id" : 1, "item" : "ABC1", "sizes" : "L" }
+
+Each document is identical to the input document except for the value
+of the ``sizes`` field which now holds a value from the original
+``sizes`` array.
+
+``includeArrayIndex`` and ``preserveNullAndEmptyArrays``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.2
+
+From the :binary:`~bin.mongo` shell, create a sample collection named
+``inventory2`` with the following documents:
+
+.. code-block:: javascript
+
+   db.inventory2.insertMany([
+     { "_id" : 1, "item" : "ABC", price: NumberDecimal("80"), "sizes": [ "S", "M", "L"] },
+     { "_id" : 2, "item" : "EFG", price: NumberDecimal("120"), "sizes" : [ ] },
+     { "_id" : 3, "item" : "IJK", price: NumberDecimal("160"), "sizes": "M" },
+     { "_id" : 4, "item" : "LMN" , price: NumberDecimal("10") },
+     { "_id" : 5, "item" : "XYZ", price: NumberDecimal("5.75"), "sizes" : null }
+   ])
+
+The following :pipeline:`$unwind` operations are equivalent and return
+a document for each element in the ``sizes`` field. If the ``sizes``
+field does not resolve to an array but is not missing, null, or an
+empty array, :pipeline:`$unwind` treats the non-array operand as a
+single element array.
+
+.. code-block:: javascript
+
+   db.inventory2.aggregate( [ { $unwind: "$sizes" } ] )
+   db.inventory2.aggregate( [ { $unwind: { path: "$sizes" } } ] )
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 1, "item" : "ABC", "price" : NumberDecimal("80"), "sizes" : "S" }
+   { "_id" : 1, "item" : "ABC", "price" : NumberDecimal("80"), "sizes" : "M" }
+   { "_id" : 1, "item" : "ABC", "price" : NumberDecimal("80"), "sizes" : "L" }
+   { "_id" : 3, "item" : "IJK", "price" : NumberDecimal("160"), "sizes" : "M" }
+
+``includeArrayIndex``
+`````````````````````
+
+The following :pipeline:`$unwind` operation uses the
+:ref:`includeArrayIndex <unwind-includeArrayIndex>` option to include
+the array index in the output.
+
+.. code-block:: javascript
+
+   db.inventory2.aggregate( [ 
+     { 
+       $unwind: 
+         { 
+           path: "$sizes", 
+           includeArrayIndex: "arrayIndex" 
+         } 
+      }])
+
+The operation unwinds the ``sizes`` array and includes the array index
+of the array index in the new ``arrayIndex`` field. If the ``sizes``
+field does not resolve to an array but is not missing, null, or an
+empty array, the ``arrayIndex`` field is ``null``.
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 1, "item" : "ABC", "price" : NumberDecimal("80"), "sizes" : "S", "arrayIndex" : NumberLong(0) }
+   { "_id" : 1, "item" : "ABC", "price" : NumberDecimal("80"), "sizes" : "M", "arrayIndex" : NumberLong(1) }
+   { "_id" : 1, "item" : "ABC", "price" : NumberDecimal("80"), "sizes" : "L", "arrayIndex" : NumberLong(2) }
+   { "_id" : 3, "item" : "IJK", "price" : NumberDecimal("160"), "sizes" : "M", "arrayIndex" : null }
+
+``preserveNullAndEmptyArrays``
+``````````````````````````````
+
+The following :pipeline:`$unwind` operation uses the
+:ref:`preserveNullAndEmptyArrays <unwind-preserveNullAndEmptyArrays>`
+option to include documents whose ``sizes`` field is null, missing,
+or an empty array.
+
+.. code-block:: javascript
+
+   db.inventory2.aggregate( [ 
+      { $unwind: { path: "$sizes", preserveNullAndEmptyArrays: true } }
+   ] )
+
+The output includes those documents where the ``sizes`` field is
+null, missing, or an empty array:
+
+.. code-block:: javascript
+   :emphasize-lines: 4,6-7
+   :copyable: false
+
+   { "_id" : 1, "item" : "ABC", "price" : NumberDecimal("80"), "sizes" : "S" }
+   { "_id" : 1, "item" : "ABC", "price" : NumberDecimal("80"), "sizes" : "M" }
+   { "_id" : 1, "item" : "ABC", "price" : NumberDecimal("80"), "sizes" : "L" }
+   { "_id" : 2, "item" : "EFG", "price" : NumberDecimal("120") }
+   { "_id" : 3, "item" : "IJK", "price" : NumberDecimal("160"), "sizes" : "M" }
+   { "_id" : 4, "item" : "LMN", "price" : NumberDecimal("10") }
+   { "_id" : 5, "item" : "XYZ", "price" : NumberDecimal("5.75"), "sizes" : null }
+
+Group by Unwound Values
+~~~~~~~~~~~~~~~~~~~~~~~
+
+From the :binary:`~bin.mongo` shell, create a sample collection named
+``inventory2`` with the following documents:
+
+.. code-block:: javascript
+
+   db.inventory2.insertMany([
+     { "_id" : 1, "item" : "ABC", price: NumberDecimal("80"), "sizes": [ "S", "M", "L"] },
+     { "_id" : 2, "item" : "EFG", price: NumberDecimal("120"), "sizes" : [ ] },
+     { "_id" : 3, "item" : "IJK", price: NumberDecimal("160"), "sizes": "M" },
+     { "_id" : 4, "item" : "LMN" , price: NumberDecimal("10") },
+     { "_id" : 5, "item" : "XYZ", price: NumberDecimal("5.75"), "sizes" : null }
+   ])
+
+The following pipeline unwinds the ``sizes`` array and groups the
+resulting documents by the unwound size values:
+
+.. code-block:: javascript
+
+   db.inventory2.aggregate( [ 
+      // First Stage
+      { 
+        $unwind: { path: "$sizes", preserveNullAndEmptyArrays: true }
+      },
+      // Second Stage
+      { 
+        $group: 
+          { 
+            _id: "$sizes",
+            averagePrice: { $avg: "$price" }
+          }
+      },
+      // Third Stage
+      {
+        $sort: { "averagePrice": -1 }
+      }
+   ] )
+
+First Stage:
+  The :pipeline:`$unwind` stage outputs a new document for each element
+  in the ``sizes`` array. The stage uses the
+  :ref:`preserveNullAndEmptyArrays <unwind-preserveNullAndEmptyArrays>`
+  option to include in the output those documents where ``sizes`` field
+  is missing, null or an empty array. This stage passes the following
+  documents to the next stage:
+
+  .. code-block:: javascript
+     :copyable: false
+
+     { "_id" : 1, "item" : "ABC", "price" : NumberDecimal("80"), "sizes" : "S" }
+     { "_id" : 1, "item" : "ABC", "price" : NumberDecimal("80"), "sizes" : "M" }
+     { "_id" : 1, "item" : "ABC", "price" : NumberDecimal("80"), "sizes" : "L" }
+     { "_id" : 2, "item" : "EFG", "price" : NumberDecimal("120") }
+     { "_id" : 3, "item" : "IJK", "price" : NumberDecimal("160"), "sizes" : "M" }
+     { "_id" : 4, "item" : "LMN", "price" : NumberDecimal("10") }
+     { "_id" : 5, "item" : "XYZ", "price" : NumberDecimal("5.75"), "sizes" : null }
+
+Second Stage:
+  The :pipeline:`$group` stage groups the documents by ``sizes``
+  and calculates the average price of each size. This stage
+  passes the following documents to the next stage:
+
+  .. code-block:: javascript
+     :copyable: false
+
+     { "_id" : "S", "averagePrice" : NumberDecimal("80") }
+     { "_id" : "L", "averagePrice" : NumberDecimal("80") }
+     { "_id" : "M", "averagePrice" : NumberDecimal("120") }
+     { "_id" : null, "averagePrice" : NumberDecimal("45.25") }
+  
+Third Stage:
+  The :pipeline:`$sort` stage sorts the documents by ``averagePrice`` in
+  descending order. The operation returns the following result:
+
+  .. code-block:: javascript
+     :copyable: false
+
+     { "_id" : "M", "averagePrice" : NumberDecimal("120") }
+     { "_id" : "L", "averagePrice" : NumberDecimal("80") }
+     { "_id" : "S", "averagePrice" : NumberDecimal("80") }
+     { "_id" : null, "averagePrice" : NumberDecimal("45.25") }
+
+.. seealso::
+
+   - :pipeline:`$group`
+   - :pipeline:`$sort`
+
+Unwind Embedded Arrays
+~~~~~~~~~~~~~~~~~~~~~~
+
+From the :binary:`~bin.mongo` shell, create a sample collection named
+``sales`` with the following documents:
+
+.. code-block:: javascript
+
+   db.sales.insertMany([
+     {
+       _id: "1",
+       "items" : [
+        {
+         "name" : "pens",
+         "tags" : [ "writing", "office", "school", "stationary" ],
+         "price" : NumberDecimal("12.00"),
+         "quantity" : NumberInt("5")
+        },
+        {
+         "name" : "envelopes",
+         "tags" : [ "stationary", "office" ],
+         "price" : NumberDecimal("19.95"),
+         "quantity" : NumberInt("8")
+        }
+       ]
+     },
+     {
+       _id: "2",
+       "items" : [
+        {
+         "name" : "laptop",
+         "tags" : [ "office", "electronics" ],
+         "price" : NumberDecimal("800.00"),
+         "quantity" : NumberInt("1")
+        },
+        {
+         "name" : "notepad",
+         "tags" : [ "stationary", "school" ],
+         "price" : NumberDecimal("14.95"),
+         "quantity" : NumberInt("3")
+        }
+       ]
+     }
+   ])
+
+The following operation groups the items sold by their tags and
+calculates the total sales amount per each tag.
+
+.. code-block:: javascript
+
+   db.sales.aggregate([
+     // First Stage
+     { $unwind: "$items" },
+
+     // Second Stage
+     { $unwind: "$items.tags" },
+
+     // Third Stage
+     { 
+       $group: 
+         {
+           _id: "$items.tags",
+           totalSalesAmount: 
+             { 
+               $sum: { $multiply: [ "$items.price", "$items.quantity" ] } 
+             }
+         }
+     }
+   ])
+
+First Stage
+  The first :pipeline:`$unwind` stage outputs a new document for
+  each element in the ``items`` array:
+
+  .. code-block:: javascript
+     :copyable: false
+
+     { "_id" : "1", "items" : { "name" : "pens", "tags" : [ "writing", "office", "school", "stationary" ], "price" : NumberDecimal("12.00"), "quantity" : 5 } }
+     { "_id" : "1", "items" : { "name" : "envelopes", "tags" : [ "stationary", "office" ], "price" : NumberDecimal("19.95"), "quantity" : 8 } }
+     { "_id" : "2", "items" : { "name" : "laptop", "tags" : [ "office", "electronics" ], "price" : NumberDecimal("800.00"), "quantity" : 1 } }
+     { "_id" : "2", "items" : { "name" : "notepad", "tags" : [ "stationary", "school" ], "price" : NumberDecimal("14.95"), "quantity" : 3 } }
+
+Second Stage
+  The second :pipeline:`$unwind` stage outputs a new document for each
+  element in the ``items.tags`` arrays:
+
+  .. code-block:: javascript
+     :copyable: false
+
+     { "_id" : "1", "items" : { "name" : "pens", "tags" : "writing", "price" : NumberDecimal("12.00"), "quantity" : 5 } }
+     { "_id" : "1", "items" : { "name" : "pens", "tags" : "office", "price" : NumberDecimal("12.00"), "quantity" : 5 } }
+     { "_id" : "1", "items" : { "name" : "pens", "tags" : "school", "price" : NumberDecimal("12.00"), "quantity" : 5 } }
+     { "_id" : "1", "items" : { "name" : "pens", "tags" : "stationary", "price" : NumberDecimal("12.00"), "quantity" : 5 } }
+     { "_id" : "1", "items" : { "name" : "envelopes", "tags" : "stationary", "price" : NumberDecimal("19.95"), "quantity" : 8 } }
+     { "_id" : "1", "items" : { "name" : "envelopes", "tags" : "office", "price" : NumberDecimal("19.95"), "quantity" : 8 } }
+     { "_id" : "2", "items" : { "name" : "laptop", "tags" : "office", "price" : NumberDecimal("800.00"), "quantity" : 1 } }
+     { "_id" : "2", "items" : { "name" : "laptop", "tags" : "electronics", "price" : NumberDecimal("800.00"), "quantity" : 1 } }
+     { "_id" : "2", "items" : { "name" : "notepad", "tags" : "stationary", "price" : NumberDecimal("14.95"), "quantity" : 3 } }
+     { "_id" : "2", "items" : { "name" : "notepad", "tags" : "school", "price" : NumberDecimal("14.95"), "quantity" : 3 } }
+
+Third Stage
+  The :pipeline:`$group` stage groups the documents by the tag and
+  calculates the total sales amount of items with each tag:
+
+  .. code-block:: javascript
+     :copyable: false
+
+     { "_id" : "writing", "totalSalesAmount" : NumberDecimal("60.00") }
+     { "_id" : "stationary", "totalSalesAmount" : NumberDecimal("264.45") }
+     { "_id" : "electronics", "totalSalesAmount" : NumberDecimal("800.00") }
+     { "_id" : "school", "totalSalesAmount" : NumberDecimal("104.85") }
+     { "_id" : "office", "totalSalesAmount" : NumberDecimal("1019.60") }
+
+.. seealso::
+
+   - :pipeline:`$group`
+   - :group:`$sum`
+   - :expression:`$multiply`
+
+Additional Resources
+--------------------
+
+- :doc:`/tutorial/aggregation-zip-code-data-set`,
+- :doc:`/tutorial/aggregation-with-user-preference-data`

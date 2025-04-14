@@ -1,0 +1,437 @@
+=========
+Collation
+=========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. versionadded:: 3.4
+
+Collation allows users to specify language-specific rules for string
+comparison, such as rules for lettercase and accent marks.
+
+You can specify collation for a collection or a view, an index, or
+specific operations that support collation.
+
+.. _collation-document-fields:
+
+Collation Document
+------------------
+
+A collation document has the following fields:
+
+.. include:: /includes/extracts/collation-document.rst
+
+Default collation parameter values vary depending on which
+locale you specify. For a complete list of default collation
+parameters and the locales they are associated with, see
+:ref:`Collation Default Parameters<collation-default-params>`.
+
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 20 80
+
+   * - Field
+
+     - Type
+
+     - Description
+
+   * - ``locale``
+
+     - string
+
+     - The ICU locale. See :ref:`collation-languages-locales` for a
+       list of supported locales.
+       
+       To specify simple binary comparison, specify ``locale`` value of
+       ``"simple"``.
+       
+       
+
+   * - ``strength``
+
+     - integer
+
+     - Optional. The level of comparison to perform.
+       Corresponds to `ICU Comparison Levels
+       <http://userguide.icu-project.org/collation/concepts#TOC-Comparison-Levels>`_.
+       Possible values are:
+       
+       .. list-table::
+          :header-rows: 1
+          :widths: 15 90
+       
+          * - Value
+            - Description
+       
+          * - 1
+       
+            - Primary level of comparison. Collation performs
+              comparisons of the base characters only, ignoring other
+              differences such as diacritics and case.
+       
+          * - 2
+       
+            - Secondary level of comparison. Collation performs comparisons
+              up to secondary differences, such as diacritics.
+              That is, collation performs comparisons of base characters
+              (primary differences) and diacritics (secondary differences).
+              Differences between base characters takes precedence over
+              secondary differences.
+       
+          * - 3
+       
+            - Tertiary level of comparison. Collation performs comparisons
+              up to tertiary differences, such as case and letter variants.
+              That is, collation performs comparisons of base characters
+              (primary differences), diacritics (secondary differences), and
+              case and variants (tertiary differences). Differences between
+              base characters takes precedence over secondary differences,
+              which takes precedence over tertiary differences.
+       
+              This is the default level.
+       
+          * - 4
+       
+            - Quaternary Level. Limited for specific use case to
+              consider punctuation when levels 1-3 ignore punctuation
+              or for processing Japanese text.
+       
+          * - 5
+       
+            - Identical Level. Limited for specific use case of tie
+              breaker.
+       
+       See `ICU Collation: Comparison Levels
+       <http://userguide.icu-project.org/collation/concepts#TOC-Comparison-Levels>`_
+       for details.
+       
+       
+
+   * - ``caseLevel``
+
+     - boolean
+
+     - Optional. Flag that determines whether to include case comparison 
+       at ``strength`` level ``1`` or ``2``.
+       
+       If ``true``, include case comparison:
+       
+       - When used with ``strength:1``, collation compares base characters
+         and case.
+       
+       - When used with ``strength:2``, collation compares base characters,
+         diacritics (and possible other secondary differences) and case.
+       
+       If ``false``, do not include case comparison at level ``1`` or
+       ``2``. The default is ``false``.
+       
+       For more information, see `ICU Collation: Case Level
+       <http://userguide.icu-project.org/collation/concepts#TOC-CaseLevel>`_.
+       
+       
+
+   * - ``caseFirst``
+
+     - string
+
+     - Optional. A field that determines sort order of case differences during
+       tertiary level comparisons.
+       
+       Possible values are: 
+           
+       .. list-table::
+          :header-rows: 1
+          :widths: 30 90
+       
+          * - Value
+            - Description
+
+          * - ``"upper"``
+            - Uppercase sorts before lowercase.
+       
+          * - ``"lower"``
+            - Lowercase sorts before uppercase.
+       
+          * - ``"off"``
+       
+            - Default value. Similar to ``"lower"`` with slight
+              differences. See
+              `<http://userguide.icu-project.org/collation/customization>`_
+              for details of differences.
+       
+       
+
+   * - ``numericOrdering``
+
+     - boolean
+
+     - Optional. Flag that determines whether to compare numeric strings as numbers
+       or as strings.
+       
+       If ``true``, compare as numbers. For example,
+       ``"10"`` is greater than ``"2"``.
+       
+       If ``false``, compare as strings. For example,
+       ``"10"`` is less than ``"2"``.
+       
+       Default is ``false``.
+
+       See :ref:`numericOrdering Restrictions <numeric-order-restrictions>`.
+       
+       
+
+   * - ``alternate``
+
+     - string
+
+     - Optional. Field that determines whether collation should consider whitespace
+       and punctuation as base characters for purposes of comparison.
+       
+       Possible values are:
+       
+       .. list-table::
+          :header-rows: 1
+          :widths: 30 90
+       
+          * - Value
+            - Description
+       
+          * - ``"non-ignorable"``
+       
+            - Whitespace and punctuation are considered base characters.
+       
+          * - ``"shifted"``
+       
+            - Whitespace and punctuation are not considered base characters
+              and are only distinguished at strength levels greater than 3.
+       
+       See `ICU Collation: Comparison Levels
+       <http://userguide.icu-project.org/collation/concepts#TOC-Comparison-Levels>`_
+       for more information.
+       
+       Default is ``"non-ignorable"``.
+       
+       
+
+   * - ``maxVariable``
+
+     - string
+
+     - Optional. Field that determines up to which characters are considered
+       ignorable when ``alternate: "shifted"``. Has no effect if
+       ``alternate: "non-ignorable"``
+       
+       Possible values are:
+       
+       .. list-table::
+          :header-rows: 1
+          :widths: 30 90
+       
+          * - Value
+            - Description
+       
+          * - ``"punct"``
+       
+            - Both whitespace and punctuation are ignorable and not
+              considered base characters.
+       
+          * - ``"space"``
+       
+            - Whitespace is ignorable and not considered to be base
+              characters.
+       
+       
+
+   * - ``backwards``
+
+     - boolean
+
+     - Optional. Flag that determines whether strings with diacritics sort from back
+       of the string, such as with some French dictionary ordering.
+       
+       If ``true``, compare from back to front.
+       
+       If ``false``, compare from front to back.
+       
+       The default value is ``false``.
+       
+       
+
+   * - ``normalization``
+
+     - boolean
+
+     - Optional. Flag that determines whether to check if text require normalization
+       and to perform normalization. Generally, majority of text does not
+       require this normalization processing.
+       
+       If ``true``, check if fully normalized and perform normalization to
+       compare text.
+       
+       If ``false``, does not check.
+       
+       The default value is ``false``.
+       
+       See
+       `<http://userguide.icu-project.org/collation/concepts#TOC-Normalization>`_ for details.
+       
+          
+   
+
+
+Operations that Support Collation
+---------------------------------
+
+You can specify collation for the following operations:
+
+.. note::
+
+   .. include:: /includes/extracts/collation-single-per-operation.rst
+
+.. include:: /includes/extracts/collation-operations-table.rst
+
+.. [#index-restriction] 
+
+   Some index types do not support collation. See
+   :ref:`collation-unsupported-index-types` for details.
+       
+Behavior
+--------
+
+Local Variants
+~~~~~~~~~~~~~~
+
+.. include:: /includes/collation-variants.rst
+
+For a complete list of all collation locales and their variants, see
+:ref:`Collation Locales<collation-languages-locales>`.
+
+.. _ref-collation-and-views:
+
+Collation and Views
+~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/views-collation-behavior.rst
+
+.. _collation-index-use:
+
+
+Collation and Index Use
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/collation-index-use.rst
+
+.. _collation-unsupported-index-types:
+
+Collation and Unsupported Index Types
+``````````````````````````````````````
+
+.. include::  /includes/extracts/collation-index-type-restrictions.rst
+
+.. include:: /includes/extracts/collation-index-type-restrictions-addendum.rst
+
+Restrictions
+------------
+
+.. _numeric-order-restrictions:
+
+numericOrdering
+~~~~~~~~~~~~~~~
+
+When specifying the ``numericOrdering`` as ``true`` the following 
+restrictions apply:
+
+- Only contiguous non-negative integer substrings of digits are 
+  considered in the comparisons. 
+
+  ``numericOrdering`` does not support:
+
+  - ``+``
+  - ``-``
+  - decimal separators, like decimal points and decimal commas
+  - exponents
+
+- Only Unicode code points in the Number or Decimal Digit (Nd) category 
+  are treated as digits.
+
+- If a digit length exceeds 254 characters, the excess characters are 
+  treated as a separate number.
+
+Consider a collection with the following string number and decimal 
+values:
+
+.. code-block:: javascript
+   :emphasize-lines: 6,10
+
+    db.c.insertMany(
+      [
+          { "n" : "1" },
+          { "n" : "2" },
+          { "n" : "2.1" },
+          { "n" : "-2.1" },
+          { "n" : "2.2" },
+          { "n" : "2.10" },
+          { "n" : "2.20" },
+          { "n" : "-10" },
+          { "n" : "10" },
+          { "n" : "20" },
+          { "n" : "20.1" }
+      ]
+    )
+
+The following :method:`find <db.collection.find()>` query uses a 
+collation document containing the ``numericOrdering`` parameter:
+
+.. code-block:: javascript
+
+   db.c.find(
+      { }, { _id: 0 }
+   ).sort(
+     { n: 1 }
+   ).collation( {
+     locale: 'en_US',
+     numericOrdering: true
+   } )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+   :emphasize-lines: 2-3,7-8
+   :copyable: false
+   
+      [
+          { n: '-2.1' }, 
+          { n: '-10' },
+          { n: '1' },    
+          { n: '2' },
+          { n: '2.1' },  
+          { n: '2.2' },
+          { n: '2.10' }, 
+          { n: '2.20' },
+          { n: '10' },   
+          { n: '20' },
+          { n: '20.1' }
+      ]
+
+- ``numericOrdering: true`` sorts the string values in ascending 
+  order as if they were numeric values.
+- The two negative values ``-2.1`` and ``-10`` are not sorted in the 
+  expected sort order because they have unsupported ``-`` characters.
+- The value ``2.2`` is sorted before the value ``2.10``, due to the fact
+  that the ``numericOrdering`` parameter does not support decimal 
+  values.
+- As a result, ``2.2`` and ``2.10`` are sorted in lexicographic order.
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   /reference/collation-locales-defaults

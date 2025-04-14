@@ -1,0 +1,220 @@
+========================
+$toDate (aggregation)
+========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+   
+.. meta::
+   :description: type conversion, convert to date, date conversion, aggregation
+   :keywords: type conversion, convert to date, date conversion, aggregation
+
+Definition
+----------
+
+.. expression:: $toDate
+
+   Converts a value to a date. If the value cannot be converted
+   to a date, :expression:`$toDate` errors. If the value is null or
+   missing, :expression:`$toDate` returns null.
+
+   :expression:`$toDate` has the following syntax:
+
+   .. code-block:: javascript
+
+      {
+         $toDate: <expression>
+      }
+
+   The :expression:`$toDate` takes any valid :ref:`expression
+   <aggregation-expressions>`.
+
+   The :expression:`$toDate` is a shorthand for the following
+   :expression:`$convert` expression:
+
+   .. code-block:: javascript
+
+      { $convert: { input: <expression>, to: "date" } }
+
+   .. seealso:: :expression:`$convert` and :expression:`$dateFromString`
+
+
+Behavior
+--------
+
+The following table lists the input types that can be converted to a
+date:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Input Type
+     - Behavior
+
+   * - Double
+
+     - Returns a date that corresponds to the number of milliseconds
+       represented by the truncated double value.
+
+       Positive number corresponds to the number of milliseconds since
+       Jan 1, 1970.
+
+       Negative number corresponds to the number of milliseconds before
+       Jan 1, 1970.
+
+   * - Decimal
+     - Returns a date that corresponds to the number of milliseconds
+       represented by the truncated decimal value.
+
+       Positive number corresponds to the number of milliseconds since
+       Jan 1, 1970.
+
+       Negative number corresponds to the number of milliseconds before
+       Jan 1, 1970.
+
+   * - Long
+
+     - Returns a date that corresponds to the number of milliseconds
+       represented by the long value.
+
+       Positive number corresponds to the number of milliseconds since
+       Jan 1, 1970.
+
+       Negative number corresponds to the number of milliseconds before
+       Jan 1, 1970.
+
+   * - String
+     - Returns a date that corresponds to the date string.
+
+       The string must be a valid date string, such as:
+
+       - "2018-03-20"
+
+       - "2018-03-20T12:00:00Z"
+
+       - "2018-03-20T12:00:00+0500"
+
+   * - ObjectId
+
+     - Returns a date that corresponds to the timestamp of the
+       ObjectId.
+
+The following table lists some conversion to date examples:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 80 20
+
+   * - Example
+     - Results
+
+   * - ``{$toDate: 120000000000.5}``
+     - ISODate("1973-10-20T21:20:00Z")
+
+   * - ``{$toDate: NumberDecimal("1253372036000.50")}``
+     - ISODate("2009-09-19T14:53:56Z")
+
+   * - ``{$toDate: NumberLong("1100000000000")}``
+     - ISODate("2004-11-19T11:33:20Z")
+
+   * - ``{$toDate:  NumberLong("-1100000000000")}``
+     - ISODate("1935-02-22T12:26:40Z")
+
+   * - ``{$toDate: ObjectId("5ab9c3da31c2ab715d421285")}``
+     - ISODate("2018-03-27T04:08:58Z")
+
+   * - ``{$toDate:  "2018-03-20"}``
+     - ISODate("2018-03-20T00:00:00Z")
+
+   * - ``{$toDate: "2018-03-20 11:00:06 +0500"}``
+     - ISODate("2018-03-20T06:00:06Z")
+
+   * - ``{$toDate: "Friday"}``
+     - Error
+
+Example
+-------
+
+Create a collection ``orders`` with the following documents:
+
+.. code-block:: javascript
+
+   db.orders.insert( [
+      { _id: 1, item: "apple", qty: 5, price: 2, order_date: new Date( "2018-03-20" ) },
+      { _id: 2, item: "pie", qty: 10, price: 3, order_date: new Date( "2018-03-22" ) },
+      { _id: 3, item: "ice cream", qty: 2, price: 4, order_date: "2018-03-15" },
+      { _id: 4, item: "almonds" , qty: 5, price: 7, order_date: "2018-03-15 +10:00" }
+   ] )
+
+The following aggregation operation on the ``orders`` collection
+converts the ``order_date`` to date before sorting by the date value:
+
+.. code-block:: javascript
+
+   // Define stage to add convertedDate field with the converted order_date value
+
+   dateConversionStage = { 
+      $addFields: { 
+         convertedDate: { $toDate: "$order_date" }
+      }
+   };
+
+   // Define stage to sort documents by the converted date
+
+   sortStage = {
+      $sort: { "convertedDate": 1 }
+   };
+
+   db.orders.aggregate( [
+      dateConversionStage,
+      sortStage
+   ] )
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   {
+      _id: 4,
+      item: 'almonds',
+      qty: 5,
+      price: 7,
+      order_date: '2018-03-15 +10:00',
+      convertedDate: ISODate("2018-03-14T14:00:00.000Z")
+   },
+   {
+      _id: 3,
+      item: 'ice cream',
+      qty: 2,
+      price: 4,
+      order_date: '2018-03-15',
+      convertedDate: ISODate("2018-03-15T00:00:00.000Z")
+   },
+   {
+      _id: 1,
+      item: 'apple',
+      qty: 5,
+      price: 2,
+      order_date: ISODate("2018-03-20T00:00:00.000Z"),
+      convertedDate: ISODate("2018-03-20T00:00:00.000Z")
+   },
+   {
+      _id: 2,
+      item: 'pie',
+      qty: 10,
+      price: 3,
+      order_date: ISODate("2018-03-22T00:00:00.000Z"),
+      convertedDate: ISODate("2018-03-22T00:00:00.000Z")
+   }
+
+.. note::
+
+   If the conversion operation encounters an error, the aggregation
+   operation stops and throws an error. To override this behavior, use
+   :expression:`$convert` instead.

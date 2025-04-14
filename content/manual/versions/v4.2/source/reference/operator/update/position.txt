@@ -1,0 +1,170 @@
+=========
+$position
+=========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. update:: $position
+
+   The :update:`$position` modifier specifies the location in the
+   array at which the :update:`$push` operator inserts elements.
+   Without the :update:`$position` modifier, the :update:`$push`
+   operator inserts elements to the end of the array. See :ref:`$push
+   modifiers <push-modifiers>` for more information.
+
+   To use the :update:`$position` modifier, it **must** appear with the
+   :update:`$each` modifier.
+
+   .. code-block:: javascript
+
+      {
+        $push: {
+          <field>: {
+             $each: [ <value1>, <value2>, ... ],
+             $position: <num>
+          }
+        }
+      }
+
+   ``<num>`` indicates the position in the array, based on a zero-based index:
+
+   - A non-negative number corresponds to the position in the array,
+     starting from the beginning of the array. If the value of
+     ``<num>`` is greater or equal to the length of the array, the
+     :update:`$position` modifier has no effect and :update:`$push`
+     adds elements to the end of the array.
+
+   - A negative number corresponds to the position in the array,
+     counting from (but not including) the last element of the array.
+     For example, ``-1`` indicates the position just before the last
+     element in the array. If you specify multiple elements in the
+     :update:`$each` array, the last added element is in the specified
+     position from the end. If the absolute value of ``<num>`` is
+     greater than or equal to the length of the array, the :update:`$push`
+     adds elements to the beginning of the array.
+
+
+Examples
+--------
+
+Add Elements at the Start of the Array
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider a collection ``students`` that contains the following document:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "scores" : [ 100 ] }
+
+The following operation updates the ``scores`` field to add the
+elements ``50``, ``60`` and ``70`` to the beginning of the array:
+
+.. code-block:: javascript
+
+   db.students.update(
+      { _id: 1 },
+      {
+        $push: {
+           scores: {
+              $each: [ 50, 60, 70 ],
+              $position: 0
+           }
+        }
+      }
+   )
+
+The operation results in the following updated document:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "scores" : [  50,  60,  70,  100 ] }
+
+Add Elements to the Middle of the Array
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider a collection ``students`` that contains the following document:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "scores" : [  50,  60,  70,  100 ] }
+
+The following operation updates the ``scores`` field to add the
+elements ``20`` and ``30`` at the array index of ``2``:
+
+.. code-block:: javascript
+
+   db.students.update(
+      { _id: 1 },
+      {
+        $push: {
+           scores: {
+              $each: [ 20, 30 ],
+              $position: 2
+           }
+        }
+      }
+   )
+
+The operation results in the following updated document:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "scores" : [  50,  60,  20,  30,  70,  100 ] }
+
+Use a Negative Index to Add Elements to the Array
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 3.6
+
+   :update:`$position` can accept a negative array index value to
+   indicate the position starting from the end, counting from (but not
+   including) the last element of the array. For example, ``-1``
+   indicates the position just before the last element in the array.
+
+Consider a collection ``students`` that contains the following document:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "scores" : [  50,  60,  20,  30,  70,  100 ] }
+
+
+The following operation specifies ``-2`` for the :update:`$position` to
+add ``90`` at the position two places before the last element, and then
+``80`` at the position two places before the last element.
+
+.. important::
+
+   With a negative index position, if you specify multiple elements in
+   the :update:`$each` array, the last added element is in the
+   specified position from the end.
+
+.. cssclass:: copyable-code
+
+.. code-block:: javascript
+
+   db.students.update(
+      { _id: 1 },
+      {
+        $push: {
+           scores: {
+              $each: [ 90, 80 ],
+              $position: -2
+           }
+        }
+      }
+   )
+
+The operation results in the following updated document:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "scores" : [ 50, 60, 20, 30, 90, 80, 70, 100 ] }

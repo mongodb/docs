@@ -1,0 +1,129 @@
+.. index:: index; TTL index
+.. index:: TTL index
+.. _index-feature-ttl:
+
+===========
+TTL Indexes
+===========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. note::
+
+   If you are removing documents to save on storage costs, consider
+   :atlas:`Online Archive </online-archive/manage-online-archive>` in
+   `MongoDB Atlas <https://www.mongodb.com/cloud?tck=docs_server>`__. Online
+   Archive automatically archives infrequently accessed data to
+   fully-managed S3 buckets for cost-effective data
+   tiering.
+
+TTL indexes are special single-field indexes that MongoDB can use to
+automatically remove documents from a collection after a certain amount
+of time or at a specific clock time. Data expiration is useful for certain types of information
+like machine generated event data, logs, and session information that
+only need to persist in a database for a finite amount of time.
+
+To create a TTL index, use the :method:`~db.collection.createIndex()`
+method on a field whose value is either a :ref:`date
+<document-bson-type-date>` or an array that contains :ref:`date values
+<document-bson-type-date>`, and specify the ``expireAfterSeconds``
+option with the desired TTL value in seconds.
+
+For example, to create a TTL index on the ``lastModifiedDate`` field of
+the ``eventlog`` collection, with a TTL value of ``3600`` seconds, use
+the following operation in the :binary:`~bin.mongo` shell:
+
+.. code-block:: javascript
+
+   db.eventlog.createIndex( { "lastModifiedDate": 1 }, { expireAfterSeconds: 3600 } )
+
+Behavior
+--------
+
+Expiration of Data
+~~~~~~~~~~~~~~~~~~
+
+TTL indexes expire documents after the specified number of seconds has
+passed since the indexed field value; i.e. the expiration threshold is
+the indexed field value plus the specified number of seconds.
+
+If the field is an array, and there are multiple date values in the
+index, MongoDB uses *lowest* (i.e. earliest) date value in the array to
+calculate the expiration threshold.
+
+If the indexed field in a document is not a :term:`date <bson types>`
+or an array that holds a date value(s), the document will not expire.
+
+If a document does not contain the indexed field, the document will not
+expire.
+
+Delete Operations
+~~~~~~~~~~~~~~~~~
+
+A background thread in :binary:`~bin.mongod` reads the values in the index
+and removes expired :term:`documents <document>` from the collection.
+
+When the TTL thread is active, you will see delete operations in the
+output of :method:`db.currentOp()` or in the data collected by the
+:ref:`database profiler <database-profiler>`.
+
+Timing of the Delete Operation
+``````````````````````````````
+
+MongoDB begins removing expired documents as soon as the index
+finishes building on the :term:`primary`. For more information on the
+index build process, see :ref:`index-operations`.
+
+.. include:: /includes/fact-ttl-collection-background-timing.rst
+
+Replica Sets
+````````````
+
+On :term:`replica set <replica set>` members, the TTL background thread *only*
+deletes documents when a member is in state :term:`primary`. The TTL background
+thread is idle when a member is in state :term:`secondary`. :term:`Secondary` members replicate
+deletion operations from the primary.
+
+Support for Queries
+~~~~~~~~~~~~~~~~~~~
+
+A TTL index supports queries in the same way non-TTL indexes do.
+
+Restrictions
+------------
+
+- TTL indexes are a single-field indexes. :ref:`Compound indexes
+  <index-type-compound>` do not support TTL and ignore the
+  ``expireAfterSeconds`` option.
+
+- The ``_id`` field does not support TTL indexes.
+
+- You cannot create a TTL index on a :doc:`capped collection
+  </core/capped-collections>` because MongoDB cannot remove documents
+  from a capped collection.
+
+- You cannot use :method:`~db.collection.createIndex()` to change the
+  value of ``expireAfterSeconds`` of an existing index. Instead use the
+  :dbcommand:`collMod` database command in conjunction with the
+  :collflag:`index` collection flag. Otherwise, to change the value of
+  the option of an existing index, you must drop the index first and
+  recreate.
+
+- If a non-TTL single-field index already exists for a field, you
+  cannot create a TTL index on the same field since you cannot create
+  indexes that have the same key specification and differ only by the
+  options. To change a non-TTL single-field index to a TTL index, you
+  must drop the index first and recreate with the
+  ``expireAfterSeconds`` option.
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   /tutorial/expire-data

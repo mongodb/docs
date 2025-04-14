@@ -1,0 +1,479 @@
+==============================
+setFeatureCompatibilityVersion
+==============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. |newversion| replace:: 4.2
+
+.. |oldversion| replace:: 4.0
+
+Definition
+----------
+
+.. dbcommand:: setFeatureCompatibilityVersion
+
+   Enables or disables the features that persist data incompatible with
+   earlier versions of MongoDB. You can only issue the
+   :dbcommand:`setFeatureCompatibilityVersion` against the ``admin``
+   database.
+
+   The command takes the following form:
+
+   .. code-block:: javascript
+
+      db.adminCommand( {
+         setFeatureCompatibilityVersion: <version>,
+         writeConcern: { wtimeout: <timeout> }
+      } )
+
+   The values for the ``version`` are:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 15 85
+
+      * - Version
+        - Description
+
+      * - ``"4.2"``
+
+
+        - *Available on MongoDB 4.2 Deployments*
+
+          Enables the :ref:`4.2 features that persist data incompatible
+          with MongoDB 4.0 <4.2-compatibility-enabled>`.
+
+          .. include:: /includes/featureCompatibility-caveat.rst
+
+      * - ``"4.0"``
+
+        - *Available on MongoDB 4.0 and 4.2 Deployments*
+
+          - If set on MongoDB 4.0 deployments,
+              Enables the :ref:`4.0 features that persist data incompatible
+              with MongoDB 3.6 <4.0-compatibility-enabled>`.
+
+              .. include:: /includes/featureCompatibility-caveat.rst
+
+          - If set on MongoDB 4.2 deployments,
+              Disables the :ref:`4.2 features that persist data
+              incompatible with MongoDB 4.0
+              <4.2-compatibility-enabled>`.
+
+      * - ``"3.6"``
+
+        - *Available on MongoDB 3.6 and 4.0 Deployments*
+
+          - If set on MongoDB 3.6 deployments,
+              Enables the :ref:`3.6 features that persist data
+              incompatible with MongoDB 3.4
+              <3.6-compatibility-enabled>`.
+
+              .. include:: /includes/featureCompatibility-caveat.rst
+
+          - If set on MongoDB 4.0 deployments,
+              Disables the :ref:`4.0 features that persist data
+              incompatible with MongoDB 3.6
+              <4.0-compatibility-enabled>`.
+
+
+      * - ``"3.4"``
+
+        - *Available on MongoDB 3.4 and MongoDB 3.6 Deployments*
+
+          - If set on MongoDB 3.4 deployments,
+              Enables the :ref:`3.4 features that persist data
+              incompatible with MongoDB 3.2
+              <3.4-compatibility-enabled>`.
+
+              .. include:: /includes/3.4-featureCompatibility-caveat.rst
+
+          - If set on MongoDB 3.6 deployments,
+              Disables the :ref:`3.6 features that persist data
+              incompatible with MongoDB 3.4
+              <3.6-compatibility-enabled>`.
+
+      * - ``"3.2"``
+
+        - *Available on MongoDB 3.4 Deployments*
+
+          Disables the :ref:`3.4 features that persist data
+          incompatible with MongoDB 3.2 <3.4-compatibility-enabled>`.
+
+   The optional ``writeConcern`` specifies the write concern
+   :ref:`wc-wtimeout` value in milliseconds:
+
+   - The time period that the :term:`primary` waits for
+     acknowledgment from the majority of the replica set members. If the
+     acknowledgment is not received in the time period, the operation
+     fails.
+
+   - Default is ``60000`` milliseconds. Use a longer time period if the
+     :term:`secondary` members of the replica set have a delay that
+     exceeds the :ref:`wc-wtimeout` default.
+
+   .. note::
+
+      .. include:: /includes/list-run-command-targets.rst
+
+Behavior
+--------
+
+Conflicts with Background Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Certain background operations may prevent
+execution of :dbcommand:`setFeatureCompatibilityVersion`. Use 
+:dbcommand:`currentOp` to identify any ongoing operations.
+
+Default Values
+~~~~~~~~~~~~~~
+
+.. include:: /includes/list-table-featureCompatibilityVersion-defaults.rst
+
+Idempotency
+~~~~~~~~~~~
+
+This command must perform writes to an internal system collection. If
+for any reason the command does not complete successfully, you can
+safely retry the command as the operation is idempotent.
+
+Feature Compatibility in Arbiters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/arbiter-fcv.rst
+
+For example, an arbiter in a MongoDB |newversion| cluster, has an FCV
+value of |oldversion|.
+
+Examples
+--------
+
+.. _view-fcv:
+
+View FeatureCompatibilityVersion
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To view the ``featureCompatibilityVersion`` for a :binary:`~bin.mongod`
+instance, run the following command on a :binary:`~bin.mongod` instance:
+
+.. note::
+
+   The operation is undefined on the :binary:`~bin.mongos` instances. For a
+   sharded cluster that has access control enabled, to run the command
+   against a member of the shard replica set, you must connect to the
+   member as a :ref:`shard local user <shard-local-users>`.
+
+.. code-block:: javascript
+
+   db.adminCommand( { getParameter: 1, featureCompatibilityVersion: 1 } )
+
+In the results document, the format of the
+``featureCompatibilityVersion`` depends on the MongoDB version. Click
+on the tab for the appropriate MongoDB version.
+
+.. tabs::
+
+   tabs:
+
+      - id: mongodb-36-or-greater
+        name: For MongoDB 3.6 or greater
+        content: |
+
+           For MongoDB 3.6 or greater :binary:`~bin.mongod` instances:
+
+           - If the deployment has the default ``featureCompatibilityVersion``, or
+             if the :dbcommand:`setFeatureCompatibilityVersion` command has run
+             successfully against the deployment, the
+             ``featureCompatibilityVersion`` has the form:
+
+             .. code-block:: javascript
+
+                "featureCompatibilityVersion" : {
+                   "version" : <version>
+                }
+
+           - If the :binary:`~bin.mongod` is in a partially upgraded or downgraded
+             state, the ``featureCompatibilityVersion`` has the following form:
+
+             .. code-block:: javascript
+
+                "featureCompatibilityVersion" : {
+                   "version" : <version> ,
+                   "targetVersion" : <target version>
+                }
+
+             For instance, if a sharded cluster has a shard replica set that is
+             read only when you run :dbcommand:`setFeatureCompatibilityVersion`
+             command against the :binary:`~bin.mongos`, the command will fail, and the
+             ``featureCompatibilityVersion`` of the config servers will include
+             the ``targetVersion`` field.
+
+             Or if a replica set becomes read only while
+             :dbcommand:`setFeatureCompatibilityVersion` is running, the command
+             will fail, and the ``featureCompatibilityVersion`` of the replica set
+             will include the ``targetVersion`` field as well.
+
+      - id: mongodb-3.4
+        name: For MongoDB 3.4
+        content: |
+
+           For MongoDB 3.4 :binary:`~bin.mongod` instances:
+
+           .. code-block:: javascript
+
+              "featureCompatibilityVersion" : <version>
+
+.. _set-fcv:
+
+Set Feature Compatibility Version on MongoDB 4.2 Deployments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. container::
+
+   .. tabs::
+
+      tabs:
+
+         - id: enable-4.2
+           name: Enable 4.2 Backwards Incompatible Features
+           content: |
+
+               To enable the :ref:`4.2 features that persist data incompatible with
+               MongoDB 4.0 <4.2-compatibility-enabled>`, set the feature compatibility
+               to ``"4.2"`` on the MongoDB 4.2 deployment:
+
+               .. note::
+
+                  Run the :dbcommand:`setFeatureCompatibilityVersion` command against
+                  the ``admin`` database.
+
+                  .. include:: /includes/list-run-command-targets.rst
+
+               .. code-block:: javascript
+
+                  db.adminCommand( { setFeatureCompatibilityVersion: "4.2" } )
+
+         - id: disable-4.2
+           name: Disable 4.2 Backwards Incompatible Features
+           content: |
+
+               To disable the :ref:`4.2 features that persist data incompatible with
+               MongoDB 4.0 <4.2-compatibility-enabled>`, set the feature compatibility
+               to ``"4.0"`` on the MongoDB 4.2 deployment:
+
+               .. note::
+
+                  Run the :dbcommand:`setFeatureCompatibilityVersion` command against
+                  the ``admin`` database.
+
+                  .. include:: /includes/list-run-command-targets.rst
+
+                  - ``"4.0"`` featureCompatibilityVersion is supported on MongoDB
+                    4.0 and MongoDB 4.2 deployments only.
+
+               .. code-block:: javascript
+
+                  db.adminCommand( { setFeatureCompatibilityVersion: "4.0" } )
+
+               If run as part of the downgrade process from MongoDB 4.2 to MongoDB
+               4.0, you must also remove all persisted features that are
+               :ref:`incompatible <4.2-compatibility-enabled>` with 4.0. See the
+               appropriate downgrade procedures.
+
+Set Feature Compatibility Version on MongoDB 4.0 Deployments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. container::
+
+   .. tabs::
+
+      tabs:
+
+         - id: enable-4.0
+           name: Enable 4.0 Backwards Incompatible Features
+           content: |
+               To enable the :ref:`4.0 features that persist data incompatible with
+               MongoDB 3.6 <4.0-compatibility-enabled>`, set the feature compatibility
+               to ``"4.0"`` on the MongoDB 4.0 deployment:
+
+               .. note::
+
+                  Run the :dbcommand:`setFeatureCompatibilityVersion` command against
+                  the ``admin`` database.
+
+                  .. include:: /includes/list-run-command-targets.rst
+
+               .. code-block:: javascript
+
+                  db.adminCommand( { setFeatureCompatibilityVersion: "4.0" } )
+
+         - id: disable-4.0
+           name: Disable 4.0 Backwards Incompatible Features
+           content: |
+               To disable the :ref:`4.0 features that persist data incompatible with
+               MongoDB 3.6 <4.0-compatibility-enabled>`, set the feature compatibility
+               to ``"3.6"`` on the MongoDB 4.0 deployment:
+
+               .. note::
+
+                  Run the :dbcommand:`setFeatureCompatibilityVersion` command against
+                  the ``admin`` database.
+
+                  .. include:: /includes/list-run-command-targets.rst
+
+                  - ``"3.6"`` featureCompatibilityVersion is supported on MongoDB
+                    3.6 and MongoDB 4.0 Deployments Only.
+
+               .. code-block:: javascript
+
+                  db.adminCommand( { setFeatureCompatibilityVersion: "3.6" } )
+
+               If run as part of the downgrade process from MongoDB 4.0 to MongoDB
+               3.6, you must also remove all persisted features that are
+               :ref:`incompatible <4.0-compatibility-enabled>` with 3.6. See the
+               appropriate downgrade procedures.
+
+Set Feature Compatibility Version on MongoDB 3.6 Deployments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. container::
+
+   .. tabs::
+
+      tabs:
+
+         - id: enable-3.6
+           name: Enable 3.6 Backwards Incompatible Features
+           content: |
+
+               To enable the :ref:`3.6 features that persist data incompatible with
+               MongoDB 3.4 <3.6-compatibility-enabled>`, set the feature compatibility
+               to ``"3.6"`` on the MongoDB 3.6 deployment:
+
+               .. note::
+
+                  Run the :dbcommand:`setFeatureCompatibilityVersion` command against
+                  the ``admin`` database.
+
+                  .. include:: /includes/list-run-command-targets.rst
+
+               .. code-block:: javascript
+
+                  db.adminCommand( { setFeatureCompatibilityVersion: "3.6" } )
+
+         - id: disable-3.6
+           name: Disable 3.6 Backwards Incompatible Features
+           content: |
+
+               To disable the :ref:`3.6 features that persist data incompatible with
+               MongoDB 3.4 <3.6-compatibility-enabled>`, set the feature compatibility
+               to ``"3.4"`` on the MongoDB 3.6 deployment:
+
+               .. note::
+
+                  Run the :dbcommand:`setFeatureCompatibilityVersion` command against
+                  the ``admin`` database.
+
+                  .. include:: /includes/list-run-command-targets.rst
+
+                  - ``"3.4"`` featureCompatibilityVersion is supported on MongoDB
+                    3.6 and MongoDB 3.4 Deployments Only.
+
+               .. code-block:: javascript
+
+                  db.adminCommand( { setFeatureCompatibilityVersion: "3.4" } )
+
+               If run as part of the downgrade process from MongoDB 3.6 to MongoDB
+               3.4, you must also remove all persisted features that are
+               :ref:`incompatible <3.6-compatibility-enabled>` with 3.4. See the
+               appropriate downgrade procedures.
+
+Set Feature Compatibility Version on MongoDB 3.4 Deployments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. container::
+
+   .. tabs::
+
+      tabs:
+
+         - id: enable-3.4
+           name: Enable 3.4 Backwards Incompatible Features
+           content: |
+
+               .. warning::
+
+                  .. include:: /includes/3.4-featureCompatibility-caveat.rst
+
+               To enable the 3.4 features that are :ref:`backward incompatible
+               <3.4-compatibility-enabled>`, set the feature compatibility
+               to ``"3.4"`` on the MongoDB 3.4 deployment:
+
+               .. note::
+
+                  Run the :dbcommand:`setFeatureCompatibilityVersion` command against
+                  the ``admin`` database.
+
+                  .. include:: /includes/list-run-command-targets.rst
+
+               .. code-block:: javascript
+
+                  db.adminCommand( { setFeatureCompatibilityVersion: "3.4" } )
+
+         - id: disable-3.4
+           name: Disable 3.4 Backwards Incompatible Features
+           content: |
+
+               To disable the :ref:`3.4 backwards-incompatible features
+               <3.4-compatibility-enabled>`, set the feature compatibility
+               to ``"3.2"`` on the MongoDB 3.4 deployment:
+
+               .. note::
+
+                  Run the ``setFeatureCompatibilityVersion`` command against the
+                  ``admin`` database.
+
+                  .. include:: /includes/list-run-command-targets.rst
+
+                  - ``"3.2"`` featureCompatibilityVersion is supported on MongoDB
+                    3.4 and MongoDB 3.2 Deployments Only.
+
+               .. code-block:: javascript
+
+                  db.adminCommand( { setFeatureCompatibilityVersion: "3.2" } )
+
+               Setting the ``featureCompatibilityVersion`` to ``"3.2"`` disables the
+               use of these features but does not remove existing usage of these
+               features.
+
+               If performed as part of a downgrade to 3.2 procedure, you must also
+               manually remove the existing usage before downgrading the binaries. For
+               details, see :ref:`3.4-downgrade-features-prereq`.
+
+Set Write Concern Timeout
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example sets the optional write concern :ref:`wc-wtimeout`
+field to 5000 (5 seconds).
+
+.. note::
+
+   Run the :dbcommand:`setFeatureCompatibilityVersion` command against
+   the ``admin`` database.
+
+   .. include:: /includes/list-run-command-targets.rst
+
+.. code-block:: javascript
+
+   db.adminCommand( {
+      setFeatureCompatibilityVersion: "4.2",
+      writeConcern: { wtimeout: 5000 }
+   } )

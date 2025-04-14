@@ -1,0 +1,306 @@
+=================================
+Updates with Aggregation Pipeline
+=================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: The following page provides examples of updates with aggregation pipelines.
+
+Starting in MongoDB 4.2, you can use the aggregation pipeline for
+update operations. With the update operations, the aggregation
+pipeline can consist of the following stages:
+
+.. list-table::
+   :class: border-table
+   
+   * - :pipeline:`$addFields`
+     - :pipeline:`$set`
+
+   * - :pipeline:`$project`
+     - :pipeline:`$unset`
+
+   * - :pipeline:`$replaceRoot`
+     - :pipeline:`$replaceWith`
+
+Using the aggregation pipeline allows for a more expressive update
+statement, such as expressing conditional updates based on current
+field values or updating one field using the value of another field(s).
+
+Example 1
+----------
+
+.. container::
+
+   Create an example ``students`` collection (if the collection does
+   not currently exist, insert operations will create the collection):
+
+   .. code-block:: javascript
+
+      db.students.insertMany([
+         { _id: 1, test1: 95, test2: 92, test3: 90, modified: new Date("01/05/2020") },
+         { _id: 2, test1: 98, test2: 100, test3: 102, modified: new Date("01/05/2020") },
+         { _id: 3, test1: 95, test2: 110, modified: new Date("01/04/2020") }
+      ])
+
+   To verify, query the collection:
+
+   .. code-block:: javascript
+
+      db.students.find()
+
+   The following :method:`db.collection.updateOne()` operation uses an
+   aggregation pipeline to update the document with ``_id: 3``:
+
+   .. code-block:: javascript
+
+      db.students.updateOne( { _id: 3 }, [ { $set: { "test3": 98, modified: "$$NOW"} } ] )
+
+   Specifically, the pipeline consists of a :pipeline:`$set` stage
+   which adds the ``test3`` field (and sets its value to ``98``) to the
+   document and sets the ``modified`` field to the current datetime.
+   The operation uses the aggregation variable :variable:`NOW` for the 
+   current datetime. To access the variable, prefix with  ``$$`` and enclose 
+   in quotes.
+
+   To verify the update, you can query the collection:
+
+   .. code-block:: javascript
+
+      db.students.find().pretty()
+
+Example 2
+----------
+
+.. container::
+
+   Create an example ``students2`` collection (if the collection does not
+   currently exist, insert operations will create the collection):
+
+   .. code-block:: javascript
+
+      db.students2.insertMany([
+         { "_id" : 1, quiz1: 8, test2: 100, quiz2: 9, modified: new Date("01/05/2020") },
+         { "_id" : 2, quiz2: 5, test1: 80, test2: 89, modified: new Date("01/05/2020") },
+      ])
+
+   To verify, query the collection:
+
+   .. code-block:: javascript
+
+      db.students2.find()
+
+   The following
+   :method:`db.collection.updateMany()` operation uses an aggregation
+   pipeline to standardize the fields for the documents (i.e. documents
+   in the collection should have the same fields) and update the
+   ``modified`` field:
+   
+   .. code-block:: javascript
+
+      db.students2.updateMany( {}, 
+        [
+          { $replaceRoot: { newRoot: 
+             { $mergeObjects: [ { quiz1: 0, quiz2: 0, test1: 0, test2: 0 }, "$$ROOT" ] }
+          } },
+          { $set: { modified: "$$NOW"}  }
+        ]
+      )
+
+   Specifically, the pipeline consists of:
+
+   - a :pipeline:`$replaceRoot` stage with a
+     :expression:`$mergeObjects` expression to set default values for
+     the ``quiz1``, ``quiz2``, ``test1`` and ``test2`` fields. The
+     aggregation variable :variable:`ROOT` refers to the current
+     document being modified. To access the variable, prefix with
+     ``$$`` and enclose in quotes. The current document fields will
+     override the default values.
+
+   - a :pipeline:`$set` stage to update the ``modified`` field to the
+     current datetime. The operation uses the aggregation variable 
+     :variable:`NOW` for the current datetime. To access the variable, 
+     prefix with ``$$`` and enclose in quotes.
+
+   To verify the update, you can query the collection:
+
+   .. code-block:: javascript
+
+      db.students2.find()
+
+Example 3
+---------
+
+.. container::
+
+   Create an example ``students3`` collection (if the collection does not
+   currently exist, insert operations will create the collection):
+
+   .. code-block:: javascript
+
+      db.students3.insert([
+         { "_id" : 1, "tests" : [ 95, 92, 90 ], "modified" : ISODate("2019-01-01T00:00:00Z") },
+         { "_id" : 2, "tests" : [ 94, 88, 90 ], "modified" : ISODate("2019-01-01T00:00:00Z") },
+         { "_id" : 3, "tests" : [ 70, 75, 82 ], "modified" : ISODate("2019-01-01T00:00:00Z") }
+      ]);
+
+   To verify, query the collection:
+
+   .. code-block:: javascript
+
+      db.students3.find()
+
+   The following :method:`db.collection.updateMany()` operation uses an
+   aggregation pipeline to update the documents with the calculated
+   grade average and letter grade.
+
+   .. code-block:: javascript
+
+      db.students3.updateMany(
+         { },
+         [
+           { $set: { average : { $trunc: [ { $avg: "$tests" }, 0 ] }, modified: "$$NOW" } },
+           { $set: { grade: { $switch: {
+                                 branches: [
+                                     { case: { $gte: [ "$average", 90 ] }, then: "A" },
+                                     { case: { $gte: [ "$average", 80 ] }, then: "B" },
+                                     { case: { $gte: [ "$average", 70 ] }, then: "C" },
+                                     { case: { $gte: [ "$average", 60 ] }, then: "D" }
+                                 ],
+                                 default: "F"
+           } } } }
+         ]
+      )
+
+   Specifically, the pipeline consists of:
+
+   - a :pipeline:`$set` stage to calculate the truncated average value
+     of the ``tests`` array elements and to update the ``modified``
+     field to the current datetime. To calculate the truncated average,
+     the stage uses the :group:`$avg` and :expression:`$trunc`
+     expressions. The operation uses the aggregation variable 
+     :variable:`NOW` for the current datetime. To access the variable,
+     prefix with ``$$`` and enclose in quotes.
+
+   - a :pipeline:`$set` stage to add the ``grade`` field based on the
+     ``average`` using the :expression:`$switch` expression.
+
+   To verify the update, you can query the collection:
+
+   .. code-block:: javascript
+
+      db.students3.find()
+
+Example 4
+---------
+
+.. container::
+
+   Create an example ``students4`` collection (if the collection does
+   not currently exist, insert operations will create the collection):
+
+   .. code-block:: javascript
+
+      db.students4.insertMany([
+        { "_id" : 1, "quizzes" : [ 4, 6, 7 ] },
+        { "_id" : 2, "quizzes" : [ 5 ] },
+        { "_id" : 3, "quizzes" : [ 10, 10, 10 ] }
+      ])
+
+   To verify, query the collection:
+
+   .. code-block:: javascript
+
+      db.students4.find()
+
+   The following :method:`db.collection.updateOne()` operation uses an
+   aggregation pipeline to add quiz scores to the document with ``_id:
+   2``:
+
+
+   .. code-block:: javascript
+
+      db.students4.updateOne( { _id: 2 }, 
+        [ { $set: { quizzes: { $concatArrays: [ "$quizzes", [ 8, 6 ]  ] } } } ]
+      )
+
+   To verify the update, query the collection:
+
+   .. code-block:: javascript
+
+      db.students4.find()
+
+Example 5
+---------
+
+.. container::
+
+   Create an example ``temperatures`` collection that contains
+   temperatures in Celsius (if the collection does not currently exist,
+   insert operations will create the collection):
+
+   .. code-block:: javascript
+
+      db.temperatures.insertMany([
+        { "_id" : 1, "date" : ISODate("2019-06-23"), "tempsC" : [ 4, 12, 17 ] },
+        { "_id" : 2, "date" : ISODate("2019-07-07"), "tempsC" : [ 14, 24, 11 ] },
+        { "_id" : 3, "date" : ISODate("2019-10-30"), "tempsC" : [ 18, 6, 8 ] }
+      ])
+   
+   To verify, query the collection:
+
+   .. code-block:: javascript
+
+      db.temperatures.find()
+
+   The following :method:`db.collection.updateMany()` operation uses an
+   aggregation pipeline to update the documents with the corresponding
+   temperatures in Fahrenheit:
+
+   .. code-block:: javascript
+
+      db.temperatures.updateMany( { },
+        [
+          { $addFields: { "tempsF": {
+                $map: {
+                   input: "$tempsC",
+                   as: "celsius",
+                   in: { $add: [ { $multiply: ["$$celsius", 9/5 ] }, 32 ] }
+                }
+          } } }
+        ]
+      )
+
+   Specifically, the pipeline consists of an :pipeline:`$addFields`
+   stage to add a new array field ``tempsF`` that contains the
+   temperatures in Fahrenheit. To convert each celsius temperature in
+   the ``tempsC`` array to Fahrenheit, the stage uses the
+   :expression:`$map` expression with :expression:`$add` and
+   :expression:`$multiply` expressions.
+
+   To verify the update, you can query the collection:
+
+   .. code-block:: javascript
+
+      db.temperatures.find()
+
+Additional Examples
+-------------------
+
+See also the various update method pages for additional examples:
+
+- :ref:`db.collection.updateOne <updateOne-example-agg>`
+
+- :ref:`db.collection.updateMany <updateMany-example-agg>`
+
+- :ref:`db.collection.update() <update-example-agg>`
+
+- :ref:`db.collection.findOneAndUpdate() <findOneAndUpdate-agg-pipeline>`
+
+- :ref:`db.collection.findAndModify() <findAndModify-agg-pipeline>`
+
+- :ref:`Bulk.find.update() <example-bulk-find-update-agg>`
+
+- :ref:`Bulk.find.updateOne() <example-bulk-find-update-one-agg>`
+
+- :ref:`Bulk.find.upsert() <bulk-find-upsert-update-agg-example>`

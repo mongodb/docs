@@ -1,0 +1,315 @@
+======================
+db.collection.insert()
+======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.collection.insert()
+
+
+   .. include:: /includes/fact-mongo-shell-method.rst
+
+
+   Inserts a document or documents into a collection.
+
+   The :method:`~db.collection.insert()` method has the following
+   syntax:
+
+   .. code-block:: none
+
+      db.collection.insert(
+         <document or array of documents>,
+         {
+           writeConcern: <document>,
+           ordered: <boolean>
+         }
+      )
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``document``
+   
+        - document or array
+   
+        - A document or array of documents to insert into the collection.
+          
+          
+   
+      * - ``writeConcern``
+   
+        - document
+   
+        - Optional. A document expressing the :doc:`write concern
+          </reference/write-concern>`. Omit to use the default write concern.
+          See :ref:`insert-wc`.
+          
+          .. include:: /includes/extracts/transactions-operations-write-concern.rst
+          
+          
+   
+      * - ``ordered``
+   
+        - boolean
+   
+        - Optional. If ``true``, perform an ordered insert of the documents in the
+          array, and if an error occurs with one of documents, MongoDB will
+          return without processing the remaining documents in the array.
+          
+          If ``false``, perform an unordered insert, and if an error occurs
+          with one of documents, continue processing the remaining documents
+          in the array.
+          
+          Defaults to ``true``.
+
+
+   The :method:`~db.collection.insert()` returns an object that
+   contains the status of the operation.
+
+   :returns:
+      - A :ref:`writeresults-insert` object for single inserts.
+
+      - A :ref:`bulkwriteresults-insert` object for bulk inserts.
+
+Behaviors
+---------
+
+.. _insert-wc:
+
+Write Concern
+~~~~~~~~~~~~~
+
+The :method:`~db.collection.insert()` method uses the
+:dbcommand:`insert` command, which uses the default :doc:`write concern
+</reference/write-concern>`. To specify a different write concern,
+include the write concern in the options parameter.
+
+Create Collection
+~~~~~~~~~~~~~~~~~
+
+If the collection does not exist, then the
+:method:`~db.collection.insert()` method will create the collection.
+
+``_id`` Field
+~~~~~~~~~~~~~
+
+If the document does not specify an :term:`_id` field, then MongoDB
+will add the ``_id`` field and assign a unique
+:method:`ObjectId` for the document before inserting. Most
+drivers create an ObjectId and insert the ``_id`` field, but the
+:binary:`~bin.mongod` will create and populate the ``_id`` if the driver or
+application does not.
+
+If the document contains an ``_id`` field, the ``_id`` value must be
+unique within the collection to avoid duplicate key error.
+
+Transactions
+~~~~~~~~~~~~
+
+.. include:: /includes/extracts/transactions-supported-operation.rst
+
+The collection must already exist. An insert operation that
+would result in the creation of a new collection are not allowed in a
+transaction.
+
+.. include:: /includes/extracts/transactions-operations-write-concern.rst
+
+.. include:: /includes/extracts/transactions-usage.rst
+
+.. |operation| replace:: :method:`db.collection.insert()`
+
+Examples
+--------
+
+The following examples insert documents into the ``products``
+collection. If the collection does not exist, the
+:method:`~db.collection.insert()` method creates the collection.
+
+Insert a Document without Specifying an ``_id`` Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the following example, the document passed to the
+:method:`~db.collection.insert()` method does not contain the ``_id``
+field:
+
+.. code-block:: javascript
+
+   db.products.insert( { item: "card", qty: 15 } )
+
+During the insert, :binary:`~bin.mongod` will create the ``_id`` field and
+assign it a unique :method:`ObjectId` value, as verified by
+the inserted document:
+
+.. code-block:: javascript
+
+   { "_id" : ObjectId("5063114bd386d8fadbd6b004"), "item" : "card", "qty" : 15 }
+
+.. include:: /includes/fact-object-id-may-differ.rst
+
+Insert a Document Specifying an ``_id`` Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the following example, the document passed to the
+:method:`~db.collection.insert()` method includes the ``_id`` field.
+The value of ``_id`` must be unique within the collection to avoid
+duplicate key error.
+
+.. code-block:: javascript
+
+   db.products.insert( { _id: 10, item: "box", qty: 20 } )
+
+The operation inserts the following document in the ``products``
+collection:
+
+.. code-block:: javascript
+
+   { "_id" : 10, "item" : "box", "qty" : 20 }
+
+Insert Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example performs a bulk insert of three documents by
+passing an array of documents to the :method:`~db.collection.insert()`
+method. By default, MongoDB performs an *ordered* insert. With
+*ordered* inserts, if an error occurs during an insert of one of the
+documents, MongoDB returns on error without processing the remaining
+documents in the array.
+
+The documents in the array do not need to have the same fields. For
+instance, the first document in the array has an ``_id`` field and a
+``type`` field. Because the second and third documents do not contain
+an ``_id`` field, :binary:`~bin.mongod` will create the ``_id`` field for
+the second and third documents during the insert:
+
+.. code-block:: javascript
+
+   db.products.insert(
+      [
+        { _id: 11, item: "pencil", qty: 50, type: "no.2" },
+        { item: "pen", qty: 20 },
+        { item: "eraser", qty: 25 }
+      ]
+   )
+
+The operation inserted the following three documents:
+
+.. code-block:: javascript
+
+   { "_id" : 11, "item" : "pencil", "qty" : 50, "type" : "no.2" }
+   { "_id" : ObjectId("51e0373c6f35bd826f47e9a0"), "item" : "pen", "qty" : 20 }
+   { "_id" : ObjectId("51e0373c6f35bd826f47e9a1"), "item" : "eraser", "qty" : 25 }
+
+Perform an Unordered Insert
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example performs an *unordered* insert of three
+documents. With *unordered* inserts, if an error occurs during an
+insert of one of the documents, MongoDB continues to insert the
+remaining documents in the array.
+
+.. code-block:: javascript
+
+   db.products.insert(
+      [
+        { _id: 20, item: "lamp", qty: 50, type: "desk" },
+        { _id: 21, item: "lamp", qty: 20, type: "floor" },
+        { _id: 22, item: "bulk", qty: 100 }
+      ],
+      { ordered: false }
+   )
+
+Override Default Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation to a replica set specifies a :doc:`write
+concern </reference/write-concern>` of ``"w: majority"`` with a
+``wtimeout`` of 5000 milliseconds such that the method returns after
+the write propagates to a majority of the voting replica set members or
+the method times out after 5 seconds.
+
+.. code-block:: javascript
+
+   db.products.insert(
+       { item: "envelopes", qty : 100, type: "Clasp" },
+       { writeConcern: { w: "majority", wtimeout: 5000 } }
+   )
+
+.. _writeresults-insert:
+
+WriteResult
+-----------
+
+When passed a single document, :method:`~db.collection.insert()`
+returns a ``WriteResult`` object.
+
+Successful Results
+~~~~~~~~~~~~~~~~~~
+
+The :method:`~db.collection.insert()` returns a :method:`WriteResult`
+object that contains the status of the operation. Upon success, the
+:method:`WriteResult` object contains information on the number of
+documents inserted:
+
+.. code-block:: javascript
+
+   WriteResult({ "nInserted" : 1 })
+
+Write Concern Errors
+~~~~~~~~~~~~~~~~~~~~
+
+If the :method:`~db.collection.insert()` method encounters write
+concern errors, the results include the
+:data:`WriteResult.writeConcernError` field:
+
+.. code-block:: javascript
+
+   WriteResult({
+      "nInserted" : 1,
+      "writeConcernError" : {
+         "code" : 64,
+         "errmsg" : "waiting for replication timed out at shard-a"
+      }
+   })
+
+Errors Unrelated to Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the :method:`~db.collection.insert()` method encounters a non-write
+concern error, the results include the :data:`WriteResult.writeError`
+field:
+
+.. code-block:: javascript
+
+   WriteResult({
+      "nInserted" : 0,
+      "writeError" : {
+         "code" : 11000,
+         "errmsg" : "insertDocument :: caused by :: 11000 E11000 duplicate key error index: test.foo.$_id_  dup key: { : 1.0 }"
+      }
+   })
+
+.. _bulkwriteresults-insert:
+
+BulkWriteResult
+---------------
+
+When passed an array of documents, :method:`~db.collection.insert()`
+returns a :method:`BulkWriteResult()` object. See
+:method:`BulkWriteResult()` for details.

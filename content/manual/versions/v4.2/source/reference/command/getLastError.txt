@@ -1,0 +1,249 @@
+============
+getLastError
+============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: getLastError
+
+   .. include:: /includes/extracts/fact-2.6-wc-gle-change-cmd-getLastError.rst
+
+   Returns the error status of the preceding write operation on the
+   *current connection*.
+
+   :dbcommand:`getLastError` uses the following prototype form:
+
+   .. code-block:: javascript
+
+      { getLastError: 1 }
+
+   :dbcommand:`getLastError` uses the following fields:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``j``
+   
+        - boolean
+   
+        - If ``true``, wait for the next journal commit before returning, rather
+          than waiting for a full disk flush. If :binary:`~bin.mongod` does not have
+          journaling enabled, this option has no effect. If this option is
+          enabled for a write operation, :binary:`~bin.mongod` will wait *no more*
+          than 1/3 of the current :setting:`~storage.journal.commitIntervalMs` before
+          writing data to the journal.
+          
+          
+   
+      * - ``w``
+   
+        - integer or string
+   
+        - When running with replication, this is the number of servers to
+          replicate to before returning. A ``w`` value of 1 indicates the
+          primary only. A ``w`` value of 2 includes the primary and at least
+          one secondary, etc. In place of a number, you may also set ``w`` to
+          ``majority`` to indicate that the command should wait until the
+          latest write propagates to a majority of the voting replica set
+          members.
+          
+          If using ``w``, you should also use ``wtimeout``. Specifying
+          a value for ``w`` without also providing a ``wtimeout`` may cause
+          :dbcommand:`getLastError` to block indefinitely.
+          
+          
+   
+      * - ``wtimeout``
+   
+        - integer
+   
+        - Optional. Milliseconds. Specify a value in milliseconds to control how
+          long to wait for write propagation to complete. If replication does
+          not complete in the given timeframe, the :dbcommand:`getLastError`
+          command will return with an error status.
+          
+          
+   
+
+
+   .. seealso:: :doc:`/reference/write-concern`
+
+.. _getLastError-output:
+
+Output
+------
+
+Each :dbcommand:`~db.collection.getLastError()` command returns a document containing a
+subset of the fields listed below.
+
+.. data:: getLastError.ok
+
+   :data:`~getLastError.ok` is ``true`` when the
+   :dbcommand:`getLastError` command completes successfully.
+
+   .. note:: A value of ``true`` does *not* indicate that the preceding
+      operation did not produce an error.
+
+.. data:: getLastError.err
+
+   :data:`~getLastError.err` is ``null`` unless an error occurs. When
+   there was an error with the preceding operation, ``err`` contains
+   a string identifying the error.
+
+.. data:: getLastError.errmsg
+
+   :data:`~getLastError.errmsg` contains the description of the error.
+   :data:`~getLastError.errmsg` only appears if there was an error with
+   the preceding operation.
+
+.. data:: getLastError.code
+
+   :data:`~getLastError.code` reports the preceding operation's error
+   code. For description of the error, see :data:`~getLastError.err`
+   and :data:`~getLastError.errmsg`.
+
+.. data:: getLastError.connectionId
+
+   The identifier of the connection.
+
+.. data:: getLastError.lastOp
+
+   When issued against a replica set member and the preceding
+   operation was a write or update, :data:`~getLastError.lastOp` is the
+   *optime* timestamp in the :term:`oplog`  of the change.
+
+.. data:: getLastError.n
+
+   If the preceding operation was an update or a remove operation, but
+   *not* a :dbcommand:`findAndModify` operation,
+   :data:`~getLastError.n` reports the number of documents matched by
+   the update or remove operation.
+
+   For a remove operation, the number of matched documents will equal
+   the number removed.
+
+   For an update operation, if the operation results in no
+   change to the document, such as setting the value of the field to
+   its current value, the number of matched documents may be smaller
+   than the number of documents actually modified. If the update
+   includes the ``upsert:true`` option and results in the creation of a
+   new document, :data:`~getLastError.n` returns the number of
+   documents inserted.
+
+   :data:`~getLastError.n` is ``0`` if reporting on an update or remove
+   that occurs through a :dbcommand:`findAndModify` operation.
+
+.. data:: getLastError.syncMillis
+
+   :data:`~getLastError.syncMillis` is the number of milliseconds spent
+   waiting for the write to disk operation (e.g. write to journal
+   files).
+
+.. data:: getLastError.shards
+
+   When issued against a sharded cluster after a write operation,
+   :data:`~getLastError.shards` identifies the shards targeted in the
+   write operation. :data:`~getLastError.shards` is present in the
+   output only if the write operation targets multiple shards.
+
+.. data:: getLastError.singleShard
+
+   When issued against a sharded cluster after a write operation,
+   identifies the shard targeted in the write operation.
+   :data:`~getLastError.singleShard` is only present if the write
+   operation targets exactly one shard.
+
+.. data:: getLastError.updatedExisting
+
+   :data:`~getLastError.updatedExisting` is ``true`` when an update
+   affects at least one document and does not result in an
+   :term:`upsert`.
+
+.. data:: getLastError.upserted
+
+   If the update results in an insert, :data:`~getLastError.upserted`
+   is the value of ``_id`` field of the document.
+
+.. data:: getLastError.wnote
+
+   If set, ``wnote`` indicates that the preceding operation's error
+   relates to using the ``w`` parameter to :dbcommand:`getLastError`.
+
+   .. see:: :doc:`/reference/write-concern` for more information about
+      ``w`` values.
+
+.. data:: getLastError.wtimeout
+
+   :data:`~getLastError.wtimeout` is ``true`` if the
+   :dbcommand:`getLastError` timed out because of the ``wtimeout``
+   setting to :dbcommand:`getLastError`.
+
+.. data:: getLastError.waited
+
+   If the preceding operation specified a timeout using the
+   ``wtimeout`` setting to :dbcommand:`getLastError`, then
+   :data:`~getLastError.waited` reports the number of milliseconds
+   :dbcommand:`getLastError` waited before timing out.
+
+.. data:: getLastError.wtime
+
+   :data:`getLastError.wtime` is the number of milliseconds spent
+   waiting for the preceding operation to complete. If
+   :dbcommand:`getLastError` timed out, :data:`~getLastError.wtime` and
+   :dbcommand:`getLastError.waited` are equal.
+
+.. data:: getLastError.writtenTo
+
+   If writing to a replica set, :data:`~getLastError.writtenTo` is an
+   array that contains the hostname and port number of the members that
+   confirmed the previous write operation, based on the value of the
+   ``w`` field in the command.
+
+.. _gle-examples:
+
+Examples
+--------
+
+Confirm Replication to Two Replica Set Members
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example ensures the preceding operation has replicated to
+two members (the primary and one other member). The command also
+specifies a timeout of ``5000`` milliseconds to ensure that
+the:dbcommand:`getLastError` command does not block forever if MongoDB
+cannot satisfy the requested write concern:
+
+.. code-block:: javascript
+
+   db.runCommand( { getLastError: 1, w: 2, wtimeout:5000 } )
+
+Confirm Replication to a Majority of a Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example ensures the write operation has replicated to a
+majority of the voting members of the replica set. The command also
+specifies a timeout of ``5000`` milliseconds to ensure that
+the:dbcommand:`getLastError` command does not block forever if MongoDB
+cannot satisfy the requested write concern:
+
+.. code-block:: javascript
+
+   db.runCommand( { getLastError: 1, w: "majority", wtimeout:5000 } )
+

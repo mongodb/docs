@@ -1,0 +1,663 @@
+=====================
+db.collection.stats()
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. db.coll.stats() only takes one argument. (3.0-series change) You
+   can either specify a number to use as the scale argument to
+   collStats, or a document specifying a set of options to the
+   helper. This change is contained in the implementation of the
+   helper and not in the underlying command.
+
+.. method:: db.collection.stats(<option>)
+
+   .. |dbcommand| replace:: :dbcommand:`collStats` command
+   .. include:: /includes/fact-mongo-shell-method-alt.rst
+
+   Returns statistics about the collection.
+
+   The method has the following format:
+   
+   .. code-block:: javascript
+   
+      db.collection.stats({
+         scale: <num>,                   // Optional
+         indexDetails: <boolean>,        // Optional
+         indexDetailsKey: <document>,    // Optional
+         indexDetailsName: <string>.     // Optional
+      })
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``scale``
+   
+        - number
+   
+        - Optional. The scale factor for the various size data. The ``scale`` defaults
+          to 1 to return size data in bytes. To display kilobytes rather than
+          bytes, specify a ``scale`` value of ``1024``.
+          
+          If you specify a non-integer scale factor, MongoDB uses the integer
+          part of the specified factor. For example, if you specify a scale
+          factor of ``1023.999``, MongoDB uses ``1023`` as the scale factor.
+          
+          .. include:: /includes/extracts/4.2-changes-stats-scaleFactor.rst
+
+
+      * - ``indexDetails``
+   
+        - boolean
+   
+        - Optional. If ``true``, :method:`db.collection.stats()` returns 
+          :data:`index details <collStats.indexDetails>`
+          in addition to the collection stats. 
+          
+          Only works for :ref:`WiredTiger<storage-wiredTiger>` storage engine.
+          
+          Defaults to ``false``.
+
+
+      * - ``indexDetailsKey``
+   
+        - document
+   
+        - Optional. If ``indexDetails`` is ``true``, you can use ``indexDetailsKey`` to filter 
+          index details by specifying the index key specification. 
+          Only the index that exactly matches ``indexDetailsKey`` will be returned.
+          
+          If no match is found, :data:`~collStats.indexDetails` will display 
+          statistics for all indexes.
+          
+          Use :method:`~db.collection.getIndexes()` to discover index keys. You cannot 
+          use ``indexDetailsKey`` with ``indexDetailsName``.
+
+   
+      * - ``indexDetailsName``
+   
+        - string
+   
+        - Optional. If ``indexDetails`` is ``true``, you can use ``indexDetailsName`` to 
+          filter index details by specifying the index ``name``. 
+          Only the index name that exactly 
+          matches ``indexDetailsName`` will be returned.
+          
+          If no match is found, :data:`~collStats.indexDetails` will display 
+          statistics for all indexes.
+          
+          Use :method:`~db.collection.getIndexes()` to discover index names. You cannot 
+          use ``indexDetailsName`` with ``indexDetailsField``.
+
+
+
+   To specify just the ``scale`` factor, MongoDB supports the legacy
+   format:
+   
+   .. code-block:: javascript
+
+      db.collection.stats(<number>)
+
+   :returns: A :term:`document` that contains statistics on the specified
+     collection. See :dbcommand:`collStats` for a breakdown of the returned
+     statistics.
+
+
+Behavior
+--------
+
+Scaled Sizes
+~~~~~~~~~~~~
+
+Unless otherwise specified by the metric name (such as ``"bytes
+currently in the cache"``), values related to size are displayed in
+bytes and can be overridden by ``scale``.
+
+The scale factor rounds the affected size values to whole numbers.
+
+Storage Engine
+~~~~~~~~~~~~~~
+
+Depending on the storage engine, the data returned may differ. For details on
+the fields, see :ref:`output details <collStats-output>`.
+
+Accuracy after Unexpected Shutdown
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. |cmd| replace:: :method:`db.collection.stats()`
+.. |opt| replace:: count and size
+
+.. include:: /includes/fact-unexpected-shutdown-accuracy.rst
+
+Index Filter Behavior
+~~~~~~~~~~~~~~~~~~~~~
+
+Filtering on ``indexDetails`` using either ``indexDetailsKey`` or
+``indexDetailsName`` will only return a single matching index.
+If no exact match is found, ``indexDetails`` will show information
+on all indexes for the collection.
+
+The ``indexDetailsKey`` field takes a document of the following form:
+
+.. code-block:: javascript
+
+    { '<string>' : <value>, '<string>' : <value>, ... }
+
+Where ``<string>>`` is the field that is indexed and ``<value>`` is either
+the direction of the index, or the special index type such as ``text`` or
+``2dsphere``. See :ref:`index types <index-types>` for the full list of
+index types.
+
+Unexpected Shutdown and Count
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For MongoDB instances using the :doc:`WiredTiger </core/wiredtiger>`
+storage engine, after an unclean shutdown, statistics on size and count
+may off by up to 1000 documents as reported by :dbcommand:`collStats`,
+:dbcommand:`dbStats`, :dbcommand:`count`. To restore the correct
+statistics for the collection, run :dbcommand:`validate` on the
+collection.
+
+
+In-Progress Indexes
+~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.2, the :method:`db.collection.stats` includes
+information on indexes currently being built. For details, see:
+
+- :data:`collStats.nindexes`
+- :data:`collStats.indexDetails`
+- :data:`collStats.indexBuilds`
+- :data:`collStats.totalIndexSize`
+- :data:`collStats.indexSizes`
+
+Examples
+--------
+
+.. note::
+
+   You can find the collection data used for these examples in our
+   `primer-dataset.json
+   <https://raw.githubusercontent.com/mongodb/docs-assets/primer-dataset/primer-dataset.json>`_
+
+Basic Stats Lookup
+~~~~~~~~~~~~~~~~~~
+
+The following operation returns stats on the ``restaurants`` collection
+in the ``test`` database:
+
+.. code-block:: javascript
+
+   db.restaurants.stats()
+
+The operation returns:
+
+.. code-block:: javascript
+
+   {
+      "ns" : "test.restaurants",
+      "size" : 10624215,
+      "count" : 25359,
+      "avgObjSize" : 418,
+      "storageSize" : 3801088,
+      "capped" : false,
+      "wiredTiger" : {
+            "metadata" : {
+               "formatVersion" : 1
+            },
+            "creationString" : "access_pattern_hint=none,allocation_size=4KB,app_metadata=(formatVersion=1),assert=(commit_timestamp=none,read_timestamp=none),block_allocation=best,block_compressor=snappy,cache_resident=false,checksum=on,colgroups=,collator=,columns=,dictionary=0,encryption=(keyid=,name=),exclusive=false,extractor=,format=btree,huffman_key=,huffman_value=,ignore_in_memory_cache_size=false,immutable=false,internal_item_max=0,internal_key_max=0,internal_key_truncate=true,internal_page_max=4KB,key_format=q,key_gap=10,leaf_item_max=0,leaf_key_max=0,leaf_page_max=32KB,leaf_value_max=64MB,log=(enabled=true),lsm=(auto_throttle=true,bloom=true,bloom_bit_count=16,bloom_config=,bloom_hash_count=8,bloom_oldest=false,chunk_count_limit=0,chunk_max=5GB,chunk_size=10MB,merge_custom=(prefix=,start_generation=0,suffix=),merge_max=15,merge_min=0),memory_page_image_max=0,memory_page_max=10m,os_cache_dirty_max=0,os_cache_max=0,prefix_compression=false,prefix_compression_min=4,source=,split_deepen_min_child=0,split_deepen_per_child=0,split_pct=90,type=file,value_format=u",
+            "type" : "file",
+            "uri" : "statistics:table:collection-13--5172949556175635116",
+            "LSM" : {
+               "bloom filter false positives" : 0,
+               "bloom filter hits" : 0,
+               "bloom filter misses" : 0,
+               "bloom filter pages evicted from cache" : 0,
+               "bloom filter pages read into cache" : 0,
+               "bloom filters in the LSM tree" : 0,
+               "chunks in the LSM tree" : 0,
+               "highest merge generation in the LSM tree" : 0,
+               "queries that could have benefited from a Bloom filter that did not exist" : 0,
+               "sleep for LSM checkpoint throttle" : 0,
+               "sleep for LSM merge throttle" : 0,
+               "total size of bloom filters" : 0
+            },
+            "block-manager" : {
+               "allocations requiring file extension" : 0,
+               "blocks allocated" : 0,
+               "blocks freed" : 0,
+               "checkpoint size" : 0,
+               "file allocation unit size" : 4096,
+               "file bytes available for reuse" : 0,
+               "file magic number" : 120897,
+               "file major version number" : 1,
+               "file size in bytes" : 4096,
+               "minor version number" : 0
+            },
+            "btree" : {
+               "btree checkpoint generation" : 0,
+               "column-store fixed-size leaf pages" : 0,
+               "column-store internal pages" : 0,
+               "column-store variable-size RLE encoded values" : 0,
+               "column-store variable-size deleted values" : 0,
+               "column-store variable-size leaf pages" : 0,
+               "fixed-record size" : 0,
+               "maximum internal page key size" : 368,
+               "maximum internal page size" : 4096,
+               "maximum leaf page key size" : 2867,
+               "maximum leaf page size" : 32768,
+               "maximum leaf page value size" : 67108864,
+               "maximum tree depth" : 3,
+               "number of key/value pairs" : 0,
+               "overflow pages" : 0,
+               "pages rewritten by compaction" : 0,
+               "row-store internal pages" : 0,
+               "row-store leaf pages" : 0
+            },
+            "cache" : {
+               "bytes currently in the cache" : 13522657,
+               "bytes dirty in the cache cumulative" : 1288,
+               "bytes read into cache" : 0,
+               "bytes written from cache" : 0,
+               "checkpoint blocked page eviction" : 0,
+               "data source pages selected for eviction unable to be evicted" : 0,
+               "eviction walk passes of a file" : 0,
+               "eviction walk target pages histogram - 0-9" : 0,
+               "eviction walk target pages histogram - 10-31" : 0,
+               "eviction walk target pages histogram - 128 and higher" : 0,
+               "eviction walk target pages histogram - 32-63" : 0,
+               "eviction walk target pages histogram - 64-128" : 0,
+               "eviction walks abandoned" : 0,
+               "eviction walks gave up because they restarted their walk twice" : 0,
+               "eviction walks gave up because they saw too many pages and found no candidates" : 0,
+               "eviction walks gave up because they saw too many pages and found too few candidates" : 0,
+               "eviction walks reached end of tree" : 0,
+               "eviction walks started from root of tree" : 0,
+               "eviction walks started from saved location in tree" : 0,
+               "hazard pointer blocked page eviction" : 0,
+               "in-memory page passed criteria to be split" : 2,
+               "in-memory page splits" : 1,
+               "internal pages evicted" : 0,
+               "internal pages split during eviction" : 0,
+               "leaf pages split during eviction" : 0,
+               "modified pages evicted" : 0,
+               "overflow pages read into cache" : 0,
+               "page split during eviction deepened the tree" : 0,
+               "page written requiring cache overflow records" : 0,
+               "pages read into cache" : 0,
+               "pages read into cache after truncate" : 1,
+               "pages read into cache after truncate in prepare state" : 0,
+               "pages read into cache requiring cache overflow entries" : 0,
+               "pages requested from the cache" : 25961,
+               "pages seen by eviction walk" : 0,
+               "pages written from cache" : 0,
+               "pages written requiring in-memory restoration" : 0,
+               "tracked dirty bytes in the cache" : 13522657,
+               "unmodified pages evicted" : 0
+            },
+            "cache_walk" : {
+               "Average difference between current eviction generation when the page was last considered" : 0,
+               "Average on-disk page image size seen" : 0,
+               "Average time in cache for pages that have been visited by the eviction server" : 0,
+               "Average time in cache for pages that have not been visited by the eviction server" : 0,
+               "Clean pages currently in cache" : 0,
+               "Current eviction generation" : 0,
+               "Dirty pages currently in cache" : 0,
+               "Entries in the root page" : 0,
+               "Internal pages currently in cache" : 0,
+               "Leaf pages currently in cache" : 0,
+               "Maximum difference between current eviction generation when the page was last considered" : 0,
+               "Maximum page size seen" : 0,
+               "Minimum on-disk page image size seen" : 0,
+               "Number of pages never visited by eviction server" : 0,
+               "On-disk page image sizes smaller than a single allocation unit" : 0,
+               "Pages created in memory and never written" : 0,
+               "Pages currently queued for eviction" : 0,
+               "Pages that could not be queued for eviction" : 0,
+               "Refs skipped during cache traversal" : 0,
+               "Size of the root page" : 0,
+               "Total number of pages currently in cache" : 0
+            },
+            "compression" : {
+               "compressed pages read" : 0,
+               "compressed pages written" : 0,
+               "page written failed to compress" : 0,
+               "page written was too small to compress" : 0
+            },
+            "cursor" : {
+               "bulk-loaded cursor-insert calls" : 0,
+               "close calls that result in cache" : 0,
+               "create calls" : 1,
+               "cursor operation restarted" : 0,
+               "cursor-insert key and value bytes inserted" : 10691718,
+               "cursor-remove key bytes removed" : 0,
+               "cursor-update value bytes updated" : 0,
+               "cursors reused from cache" : 28,
+               "insert calls" : 25359,
+               "modify calls" : 0,
+               "next calls" : 76080,
+               "open cursor count" : 0,
+               "prev calls" : 1,
+               "remove calls" : 0,
+               "reserve calls" : 0,
+               "reset calls" : 1034,
+               "search calls" : 0,
+               "search near calls" : 595,
+               "truncate calls" : 0,
+               "update calls" : 0
+            },
+            "reconciliation" : {
+               "dictionary matches" : 0,
+               "fast-path pages deleted" : 0,
+               "internal page key bytes discarded using suffix compression" : 0,
+               "internal page multi-block writes" : 0,
+               "internal-page overflow keys" : 0,
+               "leaf page key bytes discarded using prefix compression" : 0,
+               "leaf page multi-block writes" : 0,
+               "leaf-page overflow keys" : 0,
+               "maximum blocks required for a page" : 0,
+               "overflow values written" : 0,
+               "page checksum matches" : 0,
+               "page reconciliation calls" : 0,
+               "page reconciliation calls for eviction" : 0,
+               "pages deleted" : 0
+            },
+            "session" : {
+               "object compaction" : 0
+            },
+            "transaction" : {
+               "update conflicts" : 0
+            }
+      },
+      "nindexes" : 4,
+      "indexBuilds" : [ ],  // Available starting in MongoDB 4.2
+      "totalIndexSize" : 684032s,
+      "indexSizes" : {
+         "_id_" : 237568,
+         "cuisine_1" : 143360,
+         "borough_1_cuisine_1" : 151552,
+         "borough_1_address.zipcode_1" : 151552
+      },
+      "scaleFactor" : 1,   // Available starting in MongODB 4.2
+      "ok" : 1
+   }
+
+As stats was not give a scale parameter, all size values are in ``bytes``.
+
+
+Stats Lookup With Scale
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation changes the scale of data from ``bytes`` to ``kilobytes``
+by specifying a ``scale`` of ``1024``:
+
+.. code-block:: javascript
+
+   db.restaurants.stats( { scale : 1024 } )
+
+The operation returns:
+
+.. code-block:: javascript
+
+   {
+      "ns" : "test.restaurants",
+      "size" : 10375,
+      "count" : 25359,
+      "avgObjSize" : 418,
+      "storageSize" : 3712,
+      "capped" : false,
+      "wiredTiger" : {
+         ...
+      },
+      "nindexes" : 4,
+      "indexBuilds" : [ ],  // Available starting in MongoDB 4.2
+      "totalIndexSize" : 668,
+      "indexSizes" : {
+         "_id_" : 232,
+         "cuisine_1" : 140,
+         "borough_1_cuisine_1" : 148,
+         "borough_1_address.zipcode_1" : 148
+      },
+      "scaleFactor" : 1024, // Available starting in MongoDB 4.2
+      "ok" : 1
+   }
+
+Statistics Lookup With Index Details
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation creates an ``indexDetails`` document that contains
+information related to each of the indexes within the collection:
+
+.. code-block:: javascript
+
+   db.restaurants.stats( { indexDetails : true } )
+
+The operation returns:
+
+.. code-block:: javascript
+
+   {
+      "ns" : "test.restaurants",
+      "size" : 10624215,
+      "count" : 25359,
+      "avgObjSize" : 418,
+      "storageSize" : 3801088,
+      "capped" : false,
+      "wiredTiger" : {
+      ...
+      }
+      "nindexes" : 4,
+      "indexDetails" : {
+         "_id_" : {
+            "metadata" : {
+               "formatVersion" : 8,
+               "infoObj" : "{ \"v\" : 2, \"key\" : { \"_id\" : 1 }, \"name\" : \"_id_\", \"ns\" : \"test.restaurants\" }"
+            },
+            "creationString" : "access_pattern_hint=none,allocation_size=4KB,app_metadata=(formatVersion=8,infoObj={ \"v\" : 2, \"key\" : { \"_id\" : 1 }, \"name\" : \"_id_\", \"ns\" : \"test.restaurants\" }),assert=(commit_timestamp=none,read_timestamp=none),block_allocation=best,block_compressor=,cache_resident=false,checksum=on,colgroups=,collator=,columns=,dictionary=0,encryption=(keyid=,name=),exclusive=false,extractor=,format=btree,huffman_key=,huffman_value=,ignore_in_memory_cache_size=false,immutable=false,internal_item_max=0,internal_key_max=0,internal_key_truncate=true,internal_page_max=16k,key_format=u,key_gap=10,leaf_item_max=0,leaf_key_max=0,leaf_page_max=16k,leaf_value_max=0,log=(enabled=true),lsm=(auto_throttle=true,bloom=true,bloom_bit_count=16,bloom_config=,bloom_hash_count=8,bloom_oldest=false,chunk_count_limit=0,chunk_max=5GB,chunk_size=10MB,merge_custom=(prefix=,start_generation=0,suffix=),merge_max=15,merge_min=0),memory_page_image_max=0,memory_page_max=5MB,os_cache_dirty_max=0,os_cache_max=0,prefix_compression=true,prefix_compression_min=4,source=,split_deepen_min_child=0,split_deepen_per_child=0,split_pct=90,type=file,value_format=u",
+            "type" : "file",
+            "uri" : "statistics:table:index-14--5172949556175635116",
+            "LSM" : {
+            ...
+            },
+            "block-manager" : {
+            ...
+            },
+            "btree" : {
+            ...
+            },
+            "cache" : {
+            ...
+            },
+            "cache_walk" : {
+            ...
+            },
+            "compression" : {
+            ...
+            },
+            "cursor" : {
+            ...
+
+            },
+            "reconciliation" : {
+            ...
+            },
+            "session" : {
+            ...
+            },
+            "transaction" : {
+               "update conflicts" : 0
+            }
+         },
+         "cuisine_1" : {
+            "metadata" : {
+               "formatVersion" : 8,
+               "infoObj" : "{ \"v\" : 2, \"key\" : { \"cuisine\" : 1 }, \"name\" : \"cuisine_1\", \"ns\" : \"test.restaurants\" }"
+            },
+            ...
+         },
+         "borough_1_cuisine_1" : {
+            "metadata" : {
+               "formatVersion" : 8,
+               "infoObj" : "{ \"v\" : 2, \"key\" : { \"borough\" : 1, \"cuisine\" : 1 }, \"name\" : \"borough_1_cuisine_1\", \"ns\" : \"test.restaurants\" }"
+            },
+            ...
+
+         },
+         "borough_1_address.zipcode_1" : {
+            "metadata" : {
+               "formatVersion" : 8,
+               "infoObj" : "{ \"v\" : 2, \"key\" : { \"borough\" : 1, \"address.zipcode\" : 1 }, \"name\" : \"borough_1_address.zipcode_1\", \"ns\" : \"test.restaurants\" }"
+            },
+            ...
+         }
+      },
+      "indexBuilds" : [ ],  // Available starting in MongoDB 4.2
+      "totalIndexSize" : 684032,
+      "indexSizes" : {
+         "_id_" : 237568,
+         "cuisine_1" : 143360,
+         "borough_1_cuisine_1" : 151552,
+         "borough_1_address.zipcode_1" : 151552
+      },
+      "scaleFactor" : 1,    // Available starting in MongoDB 4.2
+      "ok" : 1
+   }
+
+
+Statistics Lookup With Filtered Index Details
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To filter the indexes in the  :data:`~collStats.indexDetails` field, you can
+either specify the index keys using the ``indexDetailsKey`` option or specify
+the index name using the ``indexDetailsName``.  To discover index keys and
+names for the collection, use :method:`db.collection.getIndexes()`.
+
+Given the following index:
+
+.. code-block:: javascript
+
+   {
+      "ns" : "test.restaurants",
+      "v" : 1,
+      "key" : {
+         "borough" : 1,
+         "cuisine" : 1
+      },
+      "name" : "borough_1_cuisine_1"
+   }
+
+The following operation filters the ``indexDetails`` document to a single
+index as defined by the ``indexDetailsKey`` document.
+
+.. code-block:: javascript
+
+   db.restaurants.stats(
+      {
+         'indexDetails' : true,
+         'indexDetailsKey' :
+         {
+            'borough' : 1,
+            'cuisine' : 1
+         }
+      }
+   )
+
+The following operation filters the ``indexDetails`` document to a single
+index as defined by the ``indexDetailsName`` document.
+
+.. code-block:: javascript
+
+   db.restaurants.stats(
+      {
+         'indexDetails' : true,
+         'indexDetailsName' : 'borough_1_cuisine_1'
+      }
+   )
+
+Both operations will return the same output:
+
+.. code-block:: javascript
+
+   {
+      "ns" : "test.restaurants",
+      "size" : 10624215,
+      "count" : 25359,
+      "avgObjSize" : 418,
+      "storageSize" : 3801088,
+      "capped" : false,
+      "wiredTiger" : {
+         ...
+      },
+      "nindexes" : 4,
+      "indexDetails" : {
+         "borough_1_cuisine_1" : {
+            "metadata" : {
+               "formatVersion" : 6,
+               "infoObj" : "{ \"v\" : 1, \"key\" : { \"borough\" : 1, \"cuisine\" : 1 }, \"name\" : \"borough_1_cuisine_1\", \"ns\" : \"blogs.posts\" }"
+            },
+            "creationString" : "allocation_size=4KB,app_metadata=(formatVersion=6,infoObj={ \"v\" : 1, \"key\" : { \"borough\" : 1, \"cuisine\" : 1 }, \"name\" : \"borough_1_cuisine_1\", \"ns\" : \"blogs.posts\" }),block_allocation=best,block_compressor=,cache_resident=0,checksum=on,colgroups=,collator=,columns=,dictionary=0,encryption=(keyid=,name=),exclusive=0,extractor=,format=btree,huffman_key=,huffman_value=,immutable=0,internal_item_max=0,internal_key_max=0,internal_key_truncate=,internal_page_max=16k,key_format=u,key_gap=10,leaf_item_max=0,leaf_key_max=0,leaf_page_max=16k,leaf_value_max=0,log=(enabled=),lsm=(auto_throttle=,bloom=,bloom_bit_count=16,bloom_config=,bloom_hash_count=8,bloom_oldest=0,chunk_count_limit=0,chunk_max=5GB,chunk_size=10MB,merge_max=15,merge_min=0),memory_page_max=5MB,os_cache_dirty_max=0,os_cache_max=0,prefix_compression=true,prefix_compression_min=4,source=,split_deepen_min_child=0,split_deepen_per_child=0,split_pct=75,type=file,value_format=u",
+            "type" : "file",
+            "uri" : "statistics:table:index-4-7253336746667145592",
+            "LSM" : {
+               ...
+            },
+            "block-manager" : {
+               ...
+            },
+            "btree" : {
+               ...
+            },
+            "cache" : {
+               ...
+            },
+            "cache_walk" : {
+               ...
+            },
+            "compression" : {
+               ...
+            },
+            "cursor" : {
+               ...
+            },
+            "reconciliation" : {
+               ...
+            },
+            "session" : {
+               ...
+            },
+            "transaction" : {
+               ...
+            }
+         }
+      },
+      "indexBuilds" : [ ],  // Available starting in MongoDB 4.2
+      "totalIndexSize" : 684032,
+      "indexSizes" : {
+         "_id_" : 237568,
+         "cuisine_1" : 143360,
+         "borough_1_cuisine_1" : 151552,
+         "borough_1_address.zipcode_1" : 151552
+      },
+      "ok" : 1
+   }
+
+For explanation of the output, see :ref:`output details<collStats-output>`.
+
+.. seealso:: :pipeline:`$collStats`

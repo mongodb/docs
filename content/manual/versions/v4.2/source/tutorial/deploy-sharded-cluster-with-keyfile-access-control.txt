@@ -1,0 +1,259 @@
+==================================================
+Deploy Sharded Cluster with Keyfile Authentication
+==================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+Enforcing access control on a :term:`sharded cluster` requires configuring:
+
+- Security between components of the cluster using
+  :doc:`Internal Authentication</core/security-internal-authentication>`.
+
+- Security between connecting clients and the cluster using
+  :doc:`User Access Controls</core/authorization>`.
+
+For this tutorial, each member of the sharded cluster *must* use the same
+internal authentication mechanism and settings. This means enforcing internal
+authentication on each :binary:`~bin.mongos` and :binary:`~bin.mongod` in the cluster.
+
+The following tutorial uses a :ref:`keyfile <internal-auth-keyfile>` to
+enable internal authentication.
+
+Enforcing internal authentication also enforces user access control. To
+connect to the replica set, clients like the :binary:`~bin.mongo` shell need to
+use a :doc:`user account</core/authorization>`. See
+:ref:`security-shardClust-deploy-access-control`.
+
+CloudManager and OpsManager
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you are using Cloud Manager or Ops Manager to manage your deployment,
+see the respective :mms-docs:`Cloud Manager manual
+</tutorial/edit-host-authentication-credentials>`
+or the :opsmgr:`Ops Manager manual
+</tutorial/edit-host-authentication-credentials>` to enforce authentication.
+
+
+Considerations
+--------------
+
+.. include:: /includes/tip-hostnames.rst
+
+IP Binding
+~~~~~~~~~~~
+
+.. include:: /includes/fact-default-bind-ip-change.rst
+
+Keyfile Security
+~~~~~~~~~~~~~~~~
+
+Keyfiles are bare-minimum forms of security and are best suited for testing or
+development environments. For production environments we recommend using
+:doc:`x.509 certificates</core/security-x.509>`.
+
+.. _security-shardClust-deploy-access-control:
+
+Access Control
+~~~~~~~~~~~~~~
+
+.. include:: /includes/internal-authentication-tutorials-access-control-consideration.rst
+
+Users
+~~~~~
+
+.. include:: /includes/sharded-clusters-users.rst
+
+This tutorial requires creating sharded cluster users, but includes
+optional steps for adding shard-local users.
+
+See the :doc:`/core/security-users` security documentation for more
+information.
+
+Operating System
+~~~~~~~~~~~~~~~~
+
+This tutorial uses the :binary:`~bin.mongod` and :binary:`~bin.mongos`
+programs. Windows users should use the :binary:`~bin.mongod.exe` and
+:binary:`~bin.mongos.exe` programs instead.
+
+.. _security-shard-deploy-sharded-cluster-with-access-control:
+
+Deploy Sharded Cluster with Keyfile Access Control
+--------------------------------------------------
+
+The following procedures involve creating a new sharded cluster that consists
+of a :binary:`~bin.mongos`, the config servers, and two shards.
+
+.. include:: /includes/tip-hostnames.rst
+
+Create the Keyfile
+~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/keyfile-intro-sharded-cluster.rst
+
+.. code-block:: shell
+
+   openssl rand -base64 756 > <path-to-keyfile>
+   chmod 400 <path-to-keyfile>
+
+See :ref:`internal-auth-keyfile` for additional details  and requirements
+for using keyfiles.
+
+Distribute the Keyfile
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/keyfile-distribution-sharded-cluster.rst
+
+.. _deploy-auth-cluster-create-config-server-replica-set:
+
+Create the Config Server Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following steps deploys a config server replica set.
+
+For a production deployment, deploys a config server replica set with at
+least three members. For testing purposes, you can create a
+single-member replica set.
+
+.. include:: /includes/steps/deploy-sharded-cluster-config-server.rst
+
+Once the config server replica set (CSRS) is initiated and up, proceed
+to creating the shard replica sets.
+
+Create the Shard Replica Sets
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For a production deployment, use a replica set with at least three
+members. For testing purposes, you can create a single-member replica
+set.
+
+These steps include optional procedures for adding shard-local users.
+Executing them now ensures that there are users available for each
+shard to perform shard-level maintenance.
+
+.. include:: /includes/steps/deploy-sharded-cluster-shard-replica.rst
+
+Connect a ``mongos`` to the Sharded Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/steps/deploy-sharded-cluster-connect.rst
+
+Add Shards to the Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To proceed, you must be connected to the :binary:`~bin.mongos` and
+authenticated as the cluster administrator user for the sharded cluster.
+
+.. note::
+
+   This is the cluster administrator for the sharded cluster and *not*
+   the shard-local cluster administrator.
+
+To add each shard to the cluster, use the :method:`sh.addShard()`
+method. If the shard is a replica set, specify the name of the replica
+set and specify a member of the set. In production deployments, *all*
+shards should be replica sets.
+
+The following operation adds a single shard replica set to the cluster:
+
+.. code-block:: javascript
+
+   sh.addShard( "<replSetName>/s1-mongo1.example.net:27017")
+
+The following operation is an example of adding a standalone :binary:`~bin.mongod`
+shard to the cluster:
+
+.. code-block:: javascript
+
+   sh.addShard( "s1-mongo1.example.net:27017")
+
+Repeat these steps until the cluster includes all shards. At this
+point, the sharded cluster enforces access control for the cluster as
+well as for internal communications between each sharded cluster
+component.
+
+Enable Sharding for a Database
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To proceed, you must be connected to the :binary:`~bin.mongos` and
+authenticated as the cluster administrator user for the sharded cluster.
+
+.. note::
+
+   This is the cluster administrator for the sharded cluster and *not*
+   the shard-local cluster administrator.
+
+Enabling sharding on a database makes it possible to shard collections
+within the database. Use the :method:`sh.enableSharding()` method to
+enable sharding on the target database.
+
+.. code-block:: javascript
+
+   sh.enableSharding("<database>")
+
+Shard a Collection
+~~~~~~~~~~~~~~~~~~
+
+To proceed, you must be connected to the :binary:`~bin.mongos` and
+authenticated as the cluster administrator user for the sharded cluster.
+
+.. note::
+
+   This is the cluster administrator for the sharded cluster and *not*
+   the shard-local cluster administrator.
+
+To shard a collection, use the :method:`sh.shardCollection()` method.
+You must specify the full namespace of the collection and a document containing
+the shard key.
+
+Your selection of shard key affects the efficiency of sharding, as well as
+your ability to take advantage of certain sharding features such as
+:ref:`zones <zone-sharding>`. See the selection considerations listed
+in the :ref:`sharding-shard-key-selection`.
+
+If the collection already contains data, you must create an index on the
+:term:`shard key` using the :method:`db.collection.createIndex()` method before
+using :method:`~sh.shardCollection()`.
+
+If the collection is empty, MongoDB creates the index as part of
+:method:`sh.shardCollection()`.
+
+The following is an example of the :method:`sh.shardCollection()` method:
+
+.. code-block:: javascript
+
+   sh.shardCollection("<database>.<collection>", { <key> : <direction> } )
+
+Next Steps
+----------
+
+Create users to allow clients to connect to and interact with
+the sharded cluster.
+
+See :ref:`database-user-roles` for basic built-in roles to use in creating
+read-only and read-write users.
+
+x.509 Internal Authentication
+-----------------------------
+
+For details on using x.509 for internal authentication, see
+:doc:`/tutorial/configure-x509-member-authentication`.
+
+To upgrade from keyfile internal authentication to x.509 internal
+authentication, see
+:doc:`/tutorial/upgrade-keyfile-to-x509`.
+
+.. seealso::
+
+   :doc:`/core/sharded-cluster-components`
+
+   :doc:`/core/sharded-cluster-requirements`

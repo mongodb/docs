@@ -1,0 +1,57 @@
+===========================================
+Schedule Backup Window for Sharded Clusters
+===========================================
+
+.. default-domain:: mongodb
+
+.. role:: red(strong)
+   :class: text-danger
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+In a :term:`sharded cluster`, the balancer process is responsible for
+distributing sharded data around the cluster, so that each
+:term:`shard` has roughly the same amount of data.
+
+However, when creating backups from a sharded cluster it is important
+that you disable the balancer while taking backups to ensure that no
+chunk migrations affect the content of the backup captured by the
+backup procedure. 
+
+.. include:: /includes/fact-backup-shard.rst
+
+Using the procedure outlined in the section
+:ref:`sharding-balancing-disable-temporarily` you can manually stop the
+balancer process temporarily. As an alternative, you can
+use the following procedure to define a balancing window so that the balancer
+is always disabled during your automated backup operation.
+
+.. tip::
+
+   .. include:: /includes/extracts/sharded-clusters-backup-restore-mongodump-mongorestore-restriction.rst
+
+Procedure
+---------
+
+If you have an automated backup schedule, you can disable all
+balancing operations for a period of time. For instance, consider the
+following command:
+
+.. code-block:: javascript
+
+   use config
+   db.settings.update( { _id : "balancer" }, { $set : { activeWindow : { start : "06:00", stop : "23:00" } } }, true )
+
+This operation configures the balancer to run between 6:00am and
+11:00pm, server time. Schedule your backup operation to run *and
+complete* outside of this time. Ensure that the backup can complete
+outside the window when the balancer is running *and* that the
+balancer can effectively balance the collection among the shards
+in the window allotted to each.

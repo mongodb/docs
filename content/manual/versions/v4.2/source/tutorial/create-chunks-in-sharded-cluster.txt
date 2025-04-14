@@ -1,0 +1,66 @@
+==================================
+Create Chunks in a Sharded Cluster
+==================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+In most situations a :term:`sharded cluster` will create/split and
+distribute chunks automatically without user intervention. However, in
+a limited number of cases, MongoDB cannot create enough chunks or
+distribute data fast enough to support the required throughput.
+
+For example, if you want to ingest a large volume of data into a
+cluster that is unbalanced, or where the ingestion of data will lead to
+data imbalance, such as with monotonically increasing or decreasing
+shard keys. Pre-splitting the chunks of an empty sharded collection
+can help with the throughput in these cases.
+
+Alternatively, by defining the :doc:`zones
+and zone ranges </core/zone-sharding>` *before* sharding an empty or a
+non-existing collection, the shard collection operation creates chunks
+for the defined zone ranges as well as any additional chunks to cover
+the entire range of the shard key values and performs an initial chunk
+distribution based on the zone ranges. For more information, see
+:ref:`initial-chunks-empty-collection`.
+
+.. warning::
+
+   Only pre-split chunks for an empty collection. Manually splitting
+   chunks for a populated collection can lead to unpredictable chunk
+   ranges and sizes as well as inefficient or ineffective balancing
+   behavior.
+
+To split empty chunks manually, you can run the :dbcommand:`split` command:
+
+.. example::
+
+   To create chunks for documents in the ``myapp.users``
+   collection using the ``email`` field as the :term:`shard key`,
+   use the following operation in the :binary:`~bin.mongo` shell:
+
+   .. code-block:: javascript
+
+      for ( var x=97; x<97+26; x++ ){
+          for ( var y=97; y<97+26; y+=6 ) {
+              var prefix = String.fromCharCode(x) + String.fromCharCode(y);
+              db.adminCommand( { split: "myapp.users", middle: { email : prefix } } );
+          }
+      }
+
+   This assumes a collection size of 100 million documents.
+
+- For information on the initial chunks created and distributed by the
+  sharding command, see :ref:`initial-chunks-empty-collection`.
+
+- For information on the balancer and automatic distribution of chunks
+  across shards, see :ref:`sharding-balancing-internals` and
+  :ref:`sharding-chunk-migration`.
+
+- For information on manually migrating chunks, see
+  :doc:`/tutorial/migrate-chunks-in-sharded-cluster`.

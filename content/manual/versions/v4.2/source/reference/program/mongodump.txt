@@ -1,0 +1,1018 @@
+.. _mongodump:
+
+=============
+``mongodump``
+=============
+
+.. default-domain:: mongodb
+
+.. role:: red(strong)
+   :class: text-danger
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. |tool-binary| replace:: ``mongodump``
+
+.. |tool-opt-uri| replace:: :option:`--uri <mongodump --uri>`
+
+.. include:: /includes/admonition-mac-osx-sierra-restriction.rst
+
+.. include:: /includes/extracts/migration-to-database-tools-mongodump.rst
+
+Synopsis
+--------
+
+:binary:`~bin.mongodump` is a utility for creating a binary export of
+the contents of a database. :binary:`~bin.mongodump` can export data
+from either :binary:`~bin.mongod` or :binary:`~bin.mongos` instances;
+i.e. can export data from standalone, replica set, and sharded cluster
+deployments.
+
+.. note::
+
+   .. include:: /includes/fact-online-archive-callout.rst
+
+.. _mongodump-availability:
+
+Availability
+------------
+
+.. include:: /includes/extracts/download-from-tools-mongodump.rst
+
+Usage in Backup Strategy
+------------------------
+
+Standalones/Replica Sets
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+For standalone or a replica set, :binary:`~bin.mongodump` can be a part
+of a :ref:`backup strategy <backup-with-mongodump>` with
+:binary:`~bin.mongorestore` for partial backups based on a query,
+syncing from production to staging or development environments, or
+changing the storage engine of a standalone.
+
+For an overview of :binary:`~bin.mongodump` in conjunction with
+:binary:`~bin.mongorestore` part of a backup and recovery strategy, see:
+
+- :doc:`/tutorial/backup-and-restore-tools`
+
+- :doc:`/core/backups`
+
+Sharded Clusters
+~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/sharded-clusters-backup-restore-mongodump-mongorestore-restriction.rst
+
+Syntax
+------
+
+.. include:: /includes/extracts/require-cmd-line-mongodump.rst
+
+.. code-block:: sh
+
+   mongodump [options]
+
+Connect to a MongoDB Instance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To connect to a local MongoDB instance running on port 27017 and use
+the default settings to export the content, run
+:binary:`~bin.mongodump` without any command-line options:
+
+.. code-block:: sh
+
+   mongodump
+
+To specify a host and/or port of the MongoDB instance, you can either:
+
+- Specify the hostname and port in the :option:`--uri connection string
+  <mongodump --uri>`:
+
+  .. code-block:: sh
+
+     mongodump --uri="mongodb://mongodb0.example.com:27017" [additional options]
+
+- Specify the hostname and port in the :option:`--host <mongodump
+  --host>`:
+
+  .. code-block:: sh
+
+     mongodump --host="mongodb0.example.com:27017"  [additional options]
+  
+- Specify the hostname and port in the :option:`--host <mongodump
+  --host>` and :option:`--port <mongodump --port>`:
+
+  .. code-block:: sh
+
+     mongodump --host="mongodb0.example.com" --port=27017 [additional options]
+
+For more information on the options available, see :ref:`mongodump-options`.
+
+Connect to a Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To connect to a replica set to export its data, you can either:
+
+- Specify the replica set name and members in the :option:`--uri connection string <mongodump --uri>`:
+
+  .. code-block:: sh
+  
+     mongodump --uri="mongodb://mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017/?replicaSet=myReplicaSetName" [additional options]
+
+- Specify the replica set name and members in the :option:`--host <mongodump --host>`:
+
+  .. code-block:: sh
+
+     mongodump --host="myReplicaSetName/mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com" [additional options]
+
+By default, :binary:`~bin.mongodump` reads from the primary of the
+replica set. To override the default, you can specify the :ref:`read
+preference <replica-set-read-preference>`:
+
+- You can specify the read preference in the
+  :option:`--uri connection string <mongodump --uri>`
+
+  .. code-block:: sh
+
+     mongodump --uri="mongodb://mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017/?replicaSet=myReplicaSetName&readPreference=secondary" [additional options]
+
+  If specifying the read preference tags, include the
+  :urioption:`readPreferenceTags` option:
+
+  .. code-block:: sh
+
+     mongodump --uri="mongodb://mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017/?replicaSet=myReplicaSetName&readPreference=secondary&readPreferenceTags=region:east" [additional options]
+
+- You can specify the read preference in using the
+  :option:`--readPreference <mongodump --readPreference>` command-line
+  option. The command-line option takes a string if specifying only the read preference mode:
+
+  .. code-block:: sh
+
+     mongodump --host="myReplicaSetName/mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017" --readPreference=secondary [additional options]
+
+  Or, the command-line option can takes a quote-enclosed document 
+  ``'{ mode: <mode>, tagSets: [ <tag1>, ... ], maxStalenessSeconds:<num>}'`` 
+  to specify the mode, the optional :ref:`read preference tag
+  sets <configure-read-pref-tags>`, and the optional
+  :ref:`maxStalenessSeconds
+  <replica-set-read-preference-max-staleness>`:
+  
+  .. code-block:: sh
+
+     mongodump --host="myReplicaSetName/mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017" --readPreference='{mode: "secondary", tagSets: [ { "region": "east" } ]}' [additional options]
+
+For more information on the options available, see :ref:`mongodump-options`.
+
+Connect to a Sharded Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To connect to a sharded cluster to export its data, you can either:
+
+- Specify the hostname of the :binary:`~bin.mongos` instance in the
+  :option:`--uri connection string <mongodump --uri>`
+
+  .. code-block:: sh
+  
+     mongodump --uri="mongodb://mongos0.example.com:27017" [additional options]
+
+- Specify the hostname and port of the :binary:`~bin.mongos` instance in the :option:`--host <mongodump --host>` 
+
+  .. code-block:: sh
+
+     mongodump --host="mongos0.example.com:27017" [additional options]
+
+By default, :binary:`~bin.mongodump` reads from the primary of the
+shard replica set. To override the default, you can specify the :ref:`read
+preference <replica-set-read-preference>`:
+
+- You can specify the read preference in the
+  :option:`--uri connection string <mongodump --uri>`
+
+  .. code-block:: sh
+  
+     mongodump --uri="mongodb://mongos0.example.com:27017/?readPreference=secondary" [additional options]
+
+  If specifying the read preference tags, include the
+  :urioption:`readPreferenceTags` option:
+
+  .. code-block:: sh
+  
+     mongodump --uri="mongodb://mongos0.example.com:27017/?readPreference=secondary&readPreferenceTags=region:east" [additional options]
+
+- You can specify the read preference in using the
+  :option:`--readPreference <mongodump --readPreference>` command-line
+  option.  The command-line option takes a string if specifying only the read preference mode:
+
+  .. code-block:: sh
+  
+     mongodump --host="mongos0.example.com:27017" --readPreference=secondary [additional options]
+
+  Or, the command-line option can takes a quote-enclosed document 
+  ``'{ mode: <mode>, tagSets: [ <tag1>, ... ], maxStalenessSeconds: <num>}'`` 
+  to specify the mode, the optional :ref:`read preference tag
+  sets <configure-read-pref-tags>`, and the optional
+  :ref:`maxStalenessSeconds
+  <replica-set-read-preference-max-staleness>`:
+
+
+  .. code-block:: sh
+
+     mongodump --host="mongos0.example.com:27017" --readPreference='{mode: "secondary", tagSets: [ { "region": "east" } ]}' [additional options]
+
+For more information on the options available, see :ref:`mongodump-options`.
+
+.. seealso::
+
+   :ref:`mongodump-examples`
+
+.. _mongodump-behavior:
+
+Behavior
+--------
+
+Read Preference
+~~~~~~~~~~~~~~~
+
+By default, :binary:`~bin.mongodump` uses read preference
+:readmode:`primary`. To override the default, you can specify the
+:ref:`read preference <replica-set-read-preference>` in the
+:option:`--readPreference <mongodump --readPreference>` command-line
+option or in the :option:`--uri connection string <mongodump --uri>`.
+
+Starting in version 4.2, if you specify read preference in the URI
+string and the :option:`--readPreference <mongodump --readPreference>`
+option, the :option:`--readPreference <mongodump --readPreference>`
+value overrides the read preference specified in the URI string.
+
+In earlier versions, the two options are incompatible.
+
+Data Exclusion
+~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-mongodump-local-database.rst
+
+:binary:`~bin.mongodump` output only captures the documents in the
+database and does not include index data. :binary:`~bin.mongorestore`
+or :binary:`~bin.mongod` must then rebuild the indexes after restoring
+data.
+
+.. versionchanged:: 3.4 MongoDB 3.4 added support for
+   :doc:`read-only views </core/views>`. By default,
+   :binary:`~bin.mongodump` only captures a view's metadata: it does not
+   create a binary export of the documents included in the view. To
+   capture the documents in a view use :option:`--viewsAsCollections <mongodump --viewsAsCollections>`.
+
+Metadata Format
+~~~~~~~~~~~~~~~
+
+Starting in version 4.2, :binary:`~bin.mongodump` uses :doc:`Extended
+JSON v2.0 (Canonical) </reference/mongodb-extended-json>` format
+for the metadata files. To parse these files for restore, use
+:binary:`~bin.mongorestore` version 4.2+ that supports :doc:`Extended
+JSON v2.0 (Canonical or Relaxed mode)
+</reference/mongodb-extended-json>` format.
+
+.. tip::
+
+   If general, use corresponding versions of :binary:`~bin.mongodump`
+   and :binary:`~bin.mongorestore`. That is, to restore data files
+   created with a specific version of :binary:`~bin.mongodump`, use the
+   corresponding version of :binary:`~bin.mongorestore`.
+
+Overwrite Files
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-mongodump-overwrite-files.rst
+
+Data Compression Handling
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When run against a :binary:`~bin.mongod` instance that uses the
+:doc:`WiredTiger </core/wiredtiger>` storage engine,
+:binary:`~bin.mongodump` outputs uncompressed data.
+
+Working Set
+~~~~~~~~~~~
+
+:binary:`~bin.mongodump` can adversely affect performance of the
+:binary:`~bin.mongod`. If your data is larger than system memory, the
+:binary:`~bin.mongodump` will push the working set out of memory.
+
+FIPS
+~~~~
+
+.. include:: /includes/extracts/4.2-changes-fips-program.rst
+
+
+Required Access
+---------------
+
+.. include:: /includes/access-mongodump-collections.rst
+
+.. _mongodump-options:
+
+Options
+-------
+
+.. binary:: mongodump
+
+.. program:: mongodump
+
+.. option:: --help
+
+   Returns information on the options and use of :program:`mongodump`.
+
+
+.. option:: --verbose, -v
+
+   Increases the amount of internal reporting returned on standard output
+   or in log files. Increase the verbosity with the ``-v`` form by
+   including the option multiple times, (e.g. ``-vvvvv``.)
+   
+
+
+.. option:: --quiet
+
+   Runs :program:`mongodump` in a quiet mode that attempts to limit the amount
+   of output.
+
+   This option suppresses:
+   
+   - output from :term:`database commands <database command>`
+   
+   - replication activity
+   
+   - connection accepted events
+   
+   - connection closed events
+
+
+.. option:: --version
+
+   Returns the :program:`mongodump` release number.
+
+
+.. option:: --uri=<connectionString>
+
+   .. versionadded:: 3.4.6
+   
+   Specify a resolvable :doc:`URI </reference/connection-string/>`
+   connection string (enclose in quotes) to connect to the MongoDB deployment.
+   
+   .. code-block:: none
+   
+      --uri="mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]"
+   
+   For information on the components of the connection string, see
+   the :doc:`Connection String URI Format
+   </reference/connection-string/>` documentation. 
+   
+   .. note::
+   
+      For TLS/SSL options, use the command-line options instead of the
+      :ref:`URI options for TLS/SSL (Available starting in
+      4.2)<uri-options-tls>`.
+   
+
+   .. important::
+   
+      The following command-line options cannot be used in conjunction
+      with :option:`--uri` option:
+   
+      - :option:`--host`
+      - :option:`--port`
+      - :option:`--db`
+      - :option:`--username`
+      - :option:`--password`  (if the
+        :doc:`URI </reference/connection-string/>` connection string also includes the password)
+      - :option:`--authenticationDatabase`
+      - :option:`--authenticationMechanism`
+   
+      Instead, specify these options as part of your :option:`--uri` 
+      connection string.           
+
+
+.. option:: --host=<hostname><:port>, -h=<hostname><:port>
+
+   *Default*: localhost:27017
+
+   Specifies a resolvable hostname for the :binary:`~bin.mongod` to which to
+   connect. By default, the :program:`mongodump` attempts to connect to a MongoDB
+   instance running on the localhost on port number ``27017``.
+   
+   To connect to a replica set, specify the
+   :setting:`~replication.replSetName` and a seed list of set members, as in
+   the following:
+   
+   .. code-block:: none
+   
+      --host=<replSetName>/<hostname1><:port>,<hostname2><:port>,<...>
+   
+   When specifying the replica set list format, :program:`mongodump` always connects to
+   the :term:`primary <Primary>`. 
+   
+   You can also connect to any single member of the replica set by specifying
+   the host and port of only that member:
+   
+   .. code-block:: none
+   
+      --host=<hostname1><:port>
+
+   If you use IPv6 and use the ``<address>:<port>`` format, you must
+   enclose the portion of an address and port combination in
+   brackets (e.g. ``[<address>]``).
+
+   .. note::
+   
+      You cannot specify both :option:`--host` and :option:`--uri`.
+
+      .. include:: /includes/srv-uri-connection.rst
+
+.. option:: --port=<port>
+
+   *Default*: 27017
+
+   Specifies the TCP port on which the MongoDB instance listens for
+   client connections.
+   
+   .. note::
+   
+      You cannot specify both :option:`--port` and :option:`--uri`.
+
+      .. include:: /includes/srv-uri-connection.rst
+
+.. option:: --ipv6
+
+   *Removed in version 3.0.*
+   
+   Enables IPv6 support and allows :program:`mongodump` to connect to the
+   MongoDB instance using an IPv6 network. Prior to MongoDB 3.0, you
+   had to specify :option:`--ipv6` to use IPv6. In MongoDB 3.0 and later, IPv6
+   is always enabled.
+
+
+.. option:: --ssl
+
+   Enables connection to a :binary:`~bin.mongod` or :binary:`~bin.mongos` that has
+   TLS/SSL support enabled.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+   
+
+
+.. option:: --sslCAFile=<filename>
+
+   Specifies the :file:`.pem` file that contains the root certificate chain
+   from the Certificate Authority. Specify the file name of the
+   :file:`.pem` file using relative or absolute paths.
+   
+   .. include:: /includes/extracts/ssl-facts-ca-file.rst
+   
+   .. warning::
+   
+      **Version 3.2 and earlier:** For TLS/SSL connections (``--ssl``) to
+      :binary:`~bin.mongod` and :binary:`~bin.mongos`, if the :program:`mongodump` runs without the
+      :option:`--sslCAFile`, :program:`mongodump` will not attempt
+      to validate the server certificates. This creates a vulnerability
+      to expired :binary:`~bin.mongod` and :binary:`~bin.mongos` certificates as
+      well as to foreign processes posing as valid :binary:`~bin.mongod` or
+      :binary:`~bin.mongos` instances. Ensure that you *always* specify the
+      CA file to validate the server certificates in cases where
+      intrusion is a possibility.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslPEMKeyFile=<filename>
+
+   Specifies the :file:`.pem` file that contains both the TLS/SSL certificate
+   and key. Specify the file name of the :file:`.pem` file using relative
+   or absolute paths.
+   
+   This option is required when using the :option:`--ssl` option to connect
+   to a :binary:`~bin.mongod` or :binary:`~bin.mongos` that has
+   :setting:`~net.ssl.CAFile` enabled *without*
+   :setting:`~net.ssl.allowConnectionsWithoutCertificates`.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+   
+
+
+.. option:: --sslPEMKeyPassword=<value>
+
+   Specifies the password to de-crypt the certificate-key file (i.e.
+   :option:`--sslPEMKeyFile`). Use the :option:`--sslPEMKeyPassword` option only if the
+   certificate-key file is encrypted. In all cases, the :program:`mongodump` will
+   redact the password from all logging and reporting output.
+   
+   If the private key in the PEM file is encrypted and you do not specify
+   the :option:`--sslPEMKeyPassword` option, the :program:`mongodump` will prompt for a passphrase. See
+   :ref:`ssl-certificate-password`.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslCRLFile=<filename>
+
+   Specifies the :file:`.pem` file that contains the Certificate Revocation
+   List. Specify the file name of the :file:`.pem` file using relative or
+   absolute paths.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+   
+
+
+.. option:: --sslAllowInvalidCertificates
+
+   Bypasses the validation checks for server certificates and allows
+   the use of invalid certificates. When using the
+   :setting:`~net.ssl.allowInvalidCertificates` setting, MongoDB logs as a
+   warning the use of the invalid certificate.
+   
+   .. include:: /includes/extracts/ssl-facts-x509-invalid-certificate.rst
+   
+   .. include:: /includes/extracts/ssl-facts-invalid-cert-warning-clients.rst
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+   
+
+
+.. option:: --sslAllowInvalidHostnames
+
+   Disables the validation of the hostnames in TLS/SSL certificates. Allows
+   :program:`mongodump` to connect to MongoDB instances even if the hostname in their
+   certificates do not match the specified hostname.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --username=<username>, -u=<username>
+
+   Specifies a username with which to authenticate to a MongoDB database
+   that uses authentication. Use in conjunction with the :option:`--password` and
+   :option:`--authenticationDatabase` options.
+   
+   .. note::
+   
+      You cannot specify both :option:`--username` and :option:`--uri`.
+
+      .. include:: /includes/srv-uri-connection.rst
+
+.. option:: --password=<password>, -p=<password>
+
+   Specifies a password with which to authenticate to a MongoDB database
+   that uses authentication. Use in conjunction with the :option:`--username` and
+   :option:`--authenticationDatabase` options.
+
+   To prompt the user for the password, pass the :option:`--username`
+   option without :option:`--password` or specify an empty string as the
+   :option:`--password` value, as in ``--password ""`` .
+
+   .. note::
+   
+      You cannot specify both :option:`--password` and :option:`--uri`.
+
+      .. include:: /includes/srv-uri-connection.rst
+
+.. option:: --authenticationDatabase=<dbname>
+
+   Specifies the authentication database where the specified :option:`--username` has been created.
+   See :ref:`user-authentication-database`.
+   
+   .. note::
+   
+      You cannot specify both :option:`--authenticationDatabase` and :option:`--uri`.
+
+      .. include:: /includes/srv-uri-connection.rst
+
+   If you do not specify an authentication database, :program:`mongodump`
+   assumes that the database specified to export holds the user's credentials.
+
+   If you do not specify an authentication database or a database to
+   export, :program:`mongodump` assumes the ``admin`` database holds the user's
+   credentials.
+
+
+.. option:: --authenticationMechanism=<name>
+
+   *Default*: SCRAM-SHA-1
+
+   Specifies the authentication mechanism the :program:`mongodump` instance uses to
+   authenticate to the :binary:`~bin.mongod` or :binary:`~bin.mongos`.
+   
+   .. versionchanged:: 4.0
+   
+      MongoDB removes support for the deprecated MongoDB
+      Challenge-Response (``MONGODB-CR``) authentication mechanism.
+   
+      MongoDB adds support for SCRAM mechanism using the SHA-256 hash
+      function (``SCRAM-SHA-256``).
+   
+   .. include:: /includes/list-table-auth-mechanisms.rst
+   
+   .. note::
+   
+      You cannot specify both :option:`--authenticationMechanism` and :option:`--uri`.
+
+      .. include:: /includes/srv-uri-connection.rst
+
+.. option:: --gssapiServiceName
+
+   Specify the name of the service using :doc:`GSSAPI/Kerberos
+   </core/kerberos>`. Only required if the service does not use the
+   default name of ``mongodb``.
+   
+   This option is available only in MongoDB Enterprise.
+   
+
+
+.. option:: --gssapiHostName
+
+   Specify the hostname of a service using :doc:`GSSAPI/Kerberos
+   </core/kerberos>`. *Only* required if the hostname of a machine does
+   not match the hostname resolved by DNS.
+   
+   This option is available only in MongoDB Enterprise.
+   
+
+
+.. option:: --db=<database>, -d=<database>
+
+   Specifies a database to backup. If you do not specify a database,
+   :binary:`~bin.mongodump` copies all databases in this instance into the dump
+   files.
+   
+   .. note::
+
+      You cannot specify both :option:`--db` and :option:`--uri`.
+
+      .. include:: /includes/srv-uri-connection.rst
+
+.. option:: --collection=<collection>, -c=<collection>
+
+   Specifies a collection to backup. If you do not specify a collection,
+   this option copies all collections in the specified database or instance
+   to the dump files.
+   
+
+
+.. option:: --query=<json>, -q=<json>
+
+   Provides a :term:`JSON document` as a query that optionally limits
+   the documents included in the output of :binary:`~bin.mongodump`. To
+   use the ``--query`` option, you must also specify the
+   :option:`--collection <mongodump --collection>` option.
+   
+   .. include:: /includes/fact-quote-command-line-query.rst
+   
+   Starting in MongoDB 4.2, the query :red:`must` be in
+   :doc:`Extended JSON v2 format (either relaxed or canonical/strict
+   mode) </reference/mongodb-extended-json>`, including enclosing the
+   field names and operators in quotes.  For example:
+      
+   .. code-block:: sh
+   
+      mongodump -d=test -c=records -q='{ "a": { "$gte": 3 }, "date": { "$lt": { "$date": "2016-01-01T00:00:00.000Z" } } }'
+   
+
+
+.. option:: --queryFile=<path>
+
+   .. versionadded:: 3.2
+   
+   Specifies the path to a file containing a JSON document as a query
+   filter that limits the documents included in the output of
+   :binary:`~bin.mongodump`. :option:`--queryFile` enables you to create query filters that
+   are too large to fit in your terminal's buffer.
+
+
+.. option:: --readPreference=<string|document>
+
+   *Default*: :readmode:`primary`
+
+   Specifies the :ref:`read preference<replica-set-read-preference>` for
+   :program:`mongodump`. The :option:`--readPreference` option can take:
+   
+   - A string if specifying only the read preference mode:
+   
+     .. code-block:: sh
+   
+        --readPreference=secondary
+   
+   - A quote-enclosed document to specify the mode, the optional
+     :ref:`read preference tag sets <configure-read-pref-tags>`, and the
+     optional :ref:`maxStalenessSeconds
+     <replica-set-read-preference-max-staleness>`:
+   
+     .. code-block:: sh
+   
+        --readPreference='{mode: "secondary", tagSets: [ { "region": "east" } ], maxStalenessSeconds: 120}'
+   
+     If specifying the :ref:`maxStalenessSeconds
+     <replica-set-read-preference-max-staleness>`, the value must be greater than or equal to 90.
+     
+     .. versionadded:: 4.2
+   
+   :program:`mongodump` defaults to :readmode:`primary`
+   :ref:`read preference <replica-set-read-preference>`.
+   
+   Starting in version 4.2, if the read
+   preference is also included in the :option:`--uri connection string
+   <--uri>`, the command-line :option:`--readPreference` overrides the read preference
+   specified in the URI string.
+   
+   .. include:: /includes/warning-read-preference-mongos.rst
+
+
+.. option:: --forceTableScan
+
+   
+   By default, :program:`mongodump` uses the ``_id`` index when scanning
+   collections with that index is available (for example, :ref:`views
+   <views-landing-page>` do not have any indexes). Specify
+   :option:`--forceTableScan` to direct :program:`mongodump` to scan
+   collection data without the use of the ``_id`` index. 
+   
+   :option:`--forceTableScan` does not ensure a point-in-time snapshot. Use
+   :option:`--oplog` to create a point-in-time snapshot.
+   
+   You cannot use :option:`--forceTableScan` with the :option:`--query` option.
+
+
+.. option:: --gzip
+
+   .. versionadded:: 3.2
+   
+   Compresses the output. If :binary:`~bin.mongodump` outputs to the dump
+   directory, the new feature compresses the individual files. The files
+   have the suffix ``.gz``.
+   
+   If :binary:`~bin.mongodump` outputs to an archive file or the standard
+   out stream, the new feature compresses the archive file or the data
+   output to the stream.
+   
+
+
+.. option:: --out=<path>, -o=<path>
+
+   Specifies the directory where :binary:`~bin.mongodump` will write
+   :term:`BSON` files for the dumped databases. By default,
+   :binary:`~bin.mongodump` saves output files in a directory named
+   ``dump`` in the current working directory.
+   
+   To send the database dump to standard output, specify "``-``" instead of
+   a path. Write to standard output if you want process the output before
+   saving it, such as to use ``gzip`` to compress the dump. When writing
+   standard output, :binary:`~bin.mongodump` does not write the metadata that
+   writes in a ``<dbname>.metadata.json`` file when writing to files
+   directly.
+   
+   You cannot use the ``--archive`` option with the
+   :option:`--out` option.
+   
+
+
+.. option:: --archive=<file>
+
+   .. versionadded:: 3.2
+   
+   Writes the output to a specified archive file or, if the archive
+   file is unspecified, writes to the standard output (``stdout``).
+   
+   - To output the dump to an archive file, run
+     :binary:`~bin.mongodump` with the :option:`--archive <mongodump
+     --archive>` option and the archive filename.
+
+     .. code-block:: javascript
+
+        mongodump --archive=<file>
+
+   - To output the dump to the standard output stream in order to pipe
+     to another process, run :binary:`~bin.mongodump` with the
+     :option:`--archive <mongodump --archive>` option but *omit* the
+     filename.
+   
+     .. code-block:: javascript
+
+        mongodump --archive
+
+   You cannot use the :option:`--archive <mongodump --archive>` option
+   with the :option:`--out <mongodump --out>` option.
+
+.. option:: --oplog
+
+   Creates a file named :file:`oplog.bson` as part of the
+   :binary:`~bin.mongodump` output. The :file:`oplog.bson` file, located in
+   the top level of the output directory, contains oplog entries that
+   occur during the :binary:`~bin.mongodump` operation. This file provides
+   an effective point-in-time snapshot of the state of a
+   :binary:`~bin.mongod` instance. To restore to a specific point-in-time
+   backup, use the output created with this option in conjunction with
+   :option:`mongorestore --oplogReplay`.
+   
+   Without :option:`--oplog`, if there are write operations during the dump
+   operation, the dump will not reflect a single moment in time. Changes
+   made to the database during the update process can affect the output of
+   the backup.
+
+   .. important::
+      
+      A :binary:`~bin.mongodump` running with :option:`--oplog` fails if
+      a client issues any of the listed operations during the dump
+      process.
+
+      - :dbcommand:`renameCollection`
+      - :method:`db.collection.renameCollection()`
+      - :method:`db.collection.aggregate()` with :pipeline:`$out`
+   
+   :option:`--oplog` has no effect when running :binary:`~bin.mongodump`
+   against a :binary:`~bin.mongos` instance to dump the entire contents of a
+   sharded cluster. However, you can use :option:`--oplog` to dump
+   individual shards.
+   
+   :option:`--oplog` only works against nodes that maintain an
+   :term:`oplog`. This includes all members of a replica set.
+   
+   :option:`--oplog` does not dump the oplog collection.
+   
+   .. note::
+   
+      To use :binary:`~bin.mongodump` with :option:`--oplog`, you must create a full dump of
+      a :term:`replica set` member. :binary:`~bin.mongodump` with  :option:`--oplog` fails
+      if you use any of the following options to limit the data to be dumped:
+   
+      - :option:`--db`
+      - :option:`--collection`
+   
+   .. seealso:: :option:`mongorestore --oplogReplay`
+
+
+.. option:: --dumpDbUsersAndRoles
+
+   Includes user and role definitions in the database's dump directory
+   when performing :binary:`~bin.mongodump` on a specific database. This
+   option applies only when you specify a database in the
+   :option:`--db` option. MongoDB always includes user and role
+   definitions when :binary:`~bin.mongodump` applies to an entire instance
+   and not just a specific database.
+   
+
+
+.. option:: --excludeCollection=<string>
+
+   Excludes the specified collection from the :program:`mongodump` output.
+   To exclude multiple collections, specify the :option:`--excludeCollection` multiple times.
+
+
+.. option:: --excludeCollectionsWithPrefix=<string>
+
+   Excludes all collections with a specified prefix from the :program:`mongodump`
+   outputs. To specify multiple prefixes, specify the :option:`--excludeCollectionsWithPrefix` multiple
+   times.
+
+
+.. option:: --numParallelCollections=<int>, -j=<int>
+
+   *Default*: 4
+
+   Number of collections :program:`mongodump` should export
+   in parallel.
+
+
+.. option:: --viewsAsCollections
+
+   .. versionadded:: 3.4
+   
+
+   When specified, :program:`mongodump` exports :doc:`read-only views
+   </core/views>` as collections. For each view, :program:`mongodump` will
+   produce a BSON file containing the documents in the view. If you
+   :binary:`~bin.mongorestore` the produced BSON file, the view will be
+   restored as a :term:`collection`.
+   
+   If you do *not* include :option:`--viewsAsCollections`,
+   :program:`mongodump` captures each view's metadata. If you include a
+   view's metadata file in a :binary:`~bin.mongorestore` operation, the view
+   is recreated.
+
+
+.. _mongodump-examples:
+
+Examples
+--------
+
+``mongodump`` a Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation creates a dump file that contains only the
+collection named ``records`` in the database named ``test``. In
+this case the database is running on the local interface on port
+``27017``:
+
+.. code-block:: sh
+
+   mongodump  --db=test --collection=records
+
+
+``mongodump`` a Database Excluding Specified Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation dumps all collections in the ``test`` database
+except for ``users`` and ``salaries``:
+
+.. code-block:: sh
+
+   mongodump  --db=test --excludeCollection=users --excludeCollection=salaries
+
+``mongodump`` with Access Control
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the next example, :binary:`~bin.mongodump` creates a database dump
+located at ``/opt/backup/mongodump-2011-10-24``, from a database
+running on port ``37017`` on the host ``mongodb1.example.net`` and
+authenticating using the username ``user`` as follows:
+
+.. code-block:: sh
+
+   mongodump --host=mongodb1.example.net --port=37017 --username=user --authenticationDatabase=admin --out=/opt/backup/mongodump-2011-10-24
+
+If you do not include the :option:`--password <mongodump --password>`,
+:binary:`mongodump` prompts the user for the password.
+
+.. _mongodump-example-archive-file:
+
+Output to an Archive File
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.2
+
+To output the dump to an archive file, run :binary:`~bin.mongodump` with the
+``--archive`` option and the archive filename. For example, the following
+operation creates a file ``test.20150715.archive`` that contains the dump
+of the ``test`` database.
+
+.. code-block:: sh
+
+   mongodump --archive=test.20150715.archive --db=test
+
+.. _mongodump-example-archive-stdout:
+
+Output an Archive to Standard Output
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 3.2
+
+To output the archive to the standard output stream in order to pipe to
+another process, run :binary:`~bin.mongodump` with the ``archive``
+option but *omit* the filename:
+
+.. code-block:: sh
+
+   mongodump --archive --db=test --port=27017 | mongorestore --archive --port=27018
+
+.. note::
+
+   You cannot use the ``--archive`` option with the
+   :option:`--out <mongodump --out>` option.
+
+.. _mongodump-example-gzip:
+
+Compress the Output
+~~~~~~~~~~~~~~~~~~~
+
+To compress the files in the output dump directory, run
+:binary:`~bin.mongodump` with the new ``--gzip`` option. For example,
+the following operation outputs compressed files into the default
+``dump`` directory.
+
+.. code-block:: sh
+
+   mongodump --gzip --db=test
+
+To compress the archive file output by :binary:`~bin.mongodump`, use the
+``--gzip`` option in conjunction with the :option:`--archive <mongodump --archive>`
+option, specifying the name of the compressed file.
+
+.. code-block:: sh
+
+   mongodump --archive=test.20150715.gz --gzip --db=test
+
+.. _mongodump-example-copy-clone-database:
+
+Copy/Clone a Database
+~~~~~~~~~~~~~~~~~~~~~
+
+Starting in version 4.2, MongoDB removes the deprecated ``copydb``
+command and ``clone`` command.
+
+As an alternative, users can use :binary:`~bin.mongodump` and
+:binary:`~bin.mongorestore` (with the ``mongorestore`` options
+:option:`--nsFrom <mongorestore --nsFrom>` and :option:`--nsTo
+<mongorestore --nsFrom>`).
+
+.. include:: /includes/extracts/clone-copy-db-same-instance.rst

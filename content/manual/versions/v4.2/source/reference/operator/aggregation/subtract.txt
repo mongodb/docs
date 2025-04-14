@@ -1,0 +1,123 @@
+=======================
+$subtract (aggregation)
+=======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $subtract
+
+   Subtracts two numbers to return the difference, or two dates to
+   return the difference in milliseconds, or a date and a number in
+   milliseconds to return the resulting date.
+
+   The :expression:`$subtract` expression has the following syntax:
+
+   .. code-block:: javascript
+
+      { $subtract: [ <expression1>, <expression2> ] }
+
+   The second argument is subtracted from the first argument.
+
+   The arguments can be any valid :ref:`expression
+   <aggregation-expressions>` as long as they resolve to numbers
+   and/or dates. To subtract a number from a date, the date must be the
+   first argument. For more information on expressions, see
+   :ref:`aggregation-expressions`.
+
+Behavior
+--------
+
+Starting in MongoDB 4.2.12, the result will have the same type as the
+input except when it cannot be represented accurately in that type. In
+these cases:
+
+- A 32-bit integer will be converted to a 64-bit integer if the
+  result is representable as a 64-bit integer.
+
+- A 32-bit integer will be converted to a double if the result is
+  not representable as a 64-bit integer.
+
+- A 64-bit integer will be converted to double if the result is not
+  representable as a 64-bit integer.
+
+Examples
+--------
+
+Consider a ``sales`` collection with the following documents:
+
+.. code-block:: javascript
+
+   db.sales.insertMany([
+      { "_id" : 1, "item" : "abc", "price" : 10, "fee" : 2, "discount" : 5, "date" : ISODate("2014-03-01T08:00:00Z") },
+      { "_id" : 2, "item" : "jkl", "price" : 20, "fee" : 1, "discount" : 2, "date" : ISODate("2014-03-01T09:00:00Z") }
+   ])
+
+Subtract Numbers
+~~~~~~~~~~~~~~~~
+
+The following aggregation uses the :expression:`$subtract` expression
+to compute the ``total`` by subtracting the ``discount`` from the
+subtotal of ``price`` and ``fee``.
+
+.. code-block:: javascript
+
+   db.sales.aggregate( [ { $project: { item: 1, total: { $subtract: [ { $add: [ "$price", "$fee" ] }, "$discount" ] } } } ] )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "abc", "total" : 7 }
+   { "_id" : 2, "item" : "jkl", "total" : 19 }
+
+Subtract Two Dates
+~~~~~~~~~~~~~~~~~~
+
+The following aggregation uses the :expression:`$subtract` expression
+to subtract ``$date`` from the current date, using the system
+:variable:`NOW` (available starting in 4.2) and returns the difference in
+milliseconds:
+
+.. code-block:: javascript
+
+   db.sales.aggregate( [ { $project: { item: 1, dateDifference: { $subtract: [ "$$NOW", "$date" ] } } } ] )
+
+Alternatively, you can use the :method:`Date()` for the current date:s
+
+.. code-block:: javascript
+
+   db.sales.aggregate( [ { $project: { item: 1, dateDifference: { $subtract: [ new Date(), "$date" ] } } } ] )
+
+Both operations return documents that resemble the following:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "abc", "dateDifference" : NumberLong("186136746187") }
+   { "_id" : 2, "item" : "jkl", "dateDifference" : NumberLong("186133146187") }
+
+Subtract Milliseconds from a Date
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following aggregation uses the :expression:`$subtract` expression
+to subtract 5 * 60 * 1000 milliseconds (5 minutes) from the "$date"
+field:
+
+.. code-block:: javascript
+
+   db.sales.aggregate( [ { $project: { item: 1, dateDifference: { $subtract: [ "$date", 5 * 60 * 1000 ] } } } ] )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "abc", "dateDifference" : ISODate("2014-03-01T07:55:00Z") }
+   { "_id" : 2, "item" : "jkl", "dateDifference" : ISODate("2014-03-01T08:55:00Z") }

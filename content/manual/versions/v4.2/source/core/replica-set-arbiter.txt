@@ -1,0 +1,147 @@
+.. index:: replica set members; arbiters
+.. _replica-set-arbiter-configuration:
+
+===================
+Replica Set Arbiter
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. start-content
+
+In some circumstances (such as when you have a primary and a secondary,
+but cost constraints prohibit adding another secondary), you may choose
+to add an arbiter to your replica set. An arbiter participates in
+:ref:`elections for primary <replica-set-elections>` but an arbiter does
+**not** have a copy of the data set and **cannot** become a primary.
+
+An arbiter has exactly ``1`` election vote. By default an arbiter has
+priority ``0``.
+
+   .. include:: /includes/fact-arbiter-priority.rst
+
+.. important:: Do not run an arbiter on systems that also host the
+   primary or the secondary members of the replica set.
+
+To add an arbiter, see :doc:`/tutorial/add-replica-set-arbiter`.
+
+.. end-content
+
+Example
+-------
+
+.. start-content-even-votes-example
+
+For example, in the following replica set with a 2 data bearing members
+(the primary and a secondary), an arbiter allows the set to have an odd
+number of votes to break a tie:
+
+.. include:: /images/replica-set-primary-with-secondary-and-arbiter.rst
+
+.. end-content-even-votes-example
+
+Read Concern ``majority`` and Three-Member PSA
+----------------------------------------------
+
+.. admonition:: For 3-Member Primary-Secondary-Arbiter Architecture*
+   :class: warning
+
+   If you have a three-member replica set with a
+   primary-secondary-arbiter (PSA) architecture or a sharded cluster
+   with a three-member PSA shards, the cache pressure will increase if
+   any data bearing node is down and support for
+   :readconcern:`"majority"` read concern is enabled. 
+
+   To prevent the storage cache pressure from immobilizing a deployment
+   with a three-member primary-secondary-arbiter (PSA) architecture,
+   you can disable read concern "majority" starting in MongoDB 4.0.3
+   (and 3.6.1+). For more information, see
+   :ref:`disable-read-concern-majority`.
+
+Replica Set Protocol Version and Arbiter
+-----------------------------------------
+
+.. include:: /includes/extracts/arbiters-and-pvs-with-reference.rst
+
+For more information, see the :dbcommand:`setFeatureCompatibilityVersion` command.
+
+Feature Compatibility Version
+-----------------------------
+
+.. include:: /includes/arbiter-fcv.rst
+
+.. _rollbacks-multi-arbiters:
+
+Concerns with Multiple Arbiters
+-------------------------------
+
+Use a single arbiter to avoid problems with data consistency. Multiple
+arbiters prevent the reliable use of the majority write concern.
+
+To ensure that a write will persist after the failure of a primary node,
+the majority write concern requires a majority of nodes to acknowledge
+a write operation. Arbiters do not store any data, but they do
+contribute to the number of nodes in a replica set. When a replica set
+has multiple arbiters it is less likely that a majority of data bearing
+nodes will be available after a node failure.
+
+.. warning::
+
+   If a secondary node falls behind the primary, and the cluster is
+   :method:`reconfigured <rs.reconfig()>`, votes from multiple arbiters
+   can elect the node that had fallen behind. The new primary will not
+   have the unreplicated writes even though the writes could have been
+   majority committed by the old configuration. The result is data
+   loss.
+
+   To avoid this scenario, use at most a single arbiter.
+
+Security
+--------
+
+Authentication
+~~~~~~~~~~~~~~
+
+When running with :setting:`~security.authorization`, arbiters exchange credentials with
+other members of the set to authenticate. MongoDB encrypts the
+authentication process, and the MongoDB authentication exchange is
+cryptographically secure.
+
+Because arbiters do not store data, they do not possess the internal table of user and role mappings
+used for authentication.  Thus, the only way to log on to an arbiter with authorization active is to
+use the :ref:`localhost exception <localhost-exception>`.
+
+
+Communication
+~~~~~~~~~~~~~
+
+The only communication between arbiters and other set members are:
+votes during elections, heartbeats, and configuration data. These
+exchanges are not encrypted.
+
+**However**, if your MongoDB deployment uses TLS/SSL, MongoDB will encrypt
+*all* communication between replica set members. See
+:doc:`/tutorial/configure-ssl` for more information.
+
+As with all MongoDB components, run arbiters in trusted network
+environments.
+
+Example
+-------
+
+.. start-content-even-votes-example
+
+For example, in the following replica set with 2 data-bearing members
+(the primary and a secondary), an arbiter allows the set to have an odd
+number of votes to break a tie:
+
+.. include:: /images/replica-set-primary-with-secondary-and-arbiter.rst
+
+.. end-content-even-votes-example
+

@@ -1,0 +1,164 @@
+=====================
+planCacheClearFilters
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: planCacheClearFilters
+
+   Removes :ref:`index filters <index-filters>` on a collection.
+   Although index filters only exist for the duration of the server
+   process and do not persist after shutdown, you can also clear
+   existing index filters with the :dbcommand:`planCacheClearFilters`
+   command.
+
+   Specify the :term:`query shape` to remove a specific index filter.
+   Omit the query shape to clear all index filters on a collection.
+
+   The command has the following syntax:
+
+   .. code-block:: javascript
+
+      db.runCommand(
+         {
+            planCacheClearFilters: <collection>,
+            query: <query pattern>,
+            sort: <sort specification>,
+            projection: <projection specification>
+         }
+      )
+
+   The :dbcommand:`planCacheClearFilters` command has the following field:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``planCacheClearFilters``
+   
+        - string
+   
+        - The name of the collection.
+          
+          
+   
+      * - ``query``
+   
+        - document
+   
+        - Optional. The query predicate associated with the filter to remove. If
+          omitted, clears all filters from the collection.
+          
+          The values in the ``query`` predicate are insignificant in
+          determining the :term:`query shape`, so the values used in the query
+          need not match the values shown using
+          :dbcommand:`planCacheListFilters`.
+          
+          
+   
+      * - ``sort``
+   
+        - document
+   
+        - Optional. The sort associated with the filter to remove, if any.
+          
+          
+   
+      * - ``projection``
+   
+        - document
+   
+        - Optional. The projection associated with the filter to remove,
+          if any.
+          
+          
+   
+
+
+Required Access
+---------------
+
+A user must have access that includes the
+:authaction:`planCacheIndexFilter` action.
+
+Examples
+--------
+
+Clear Specific Index Filter on Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``orders`` collection contains the following two filters:
+
+.. code-block:: javascript
+
+   {
+     "query" : { "status" : "A" },
+     "sort" : { "ord_date" : -1 },
+     "projection" : { },
+     "indexes" : [ { "status" : 1, "cust_id" : 1 } ]
+   }
+
+   {
+     "query" : { "status" : "A" },
+     "sort" : { },
+     "projection" : { },
+     "indexes" : [ { "status" : 1, "cust_id" : 1 } ]
+   }
+
+The following command removes the second index filter only:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         planCacheClearFilters: "orders",
+         query: { "status" : "A" }
+      }
+   )
+
+Because the values in the ``query`` predicate are insignificant in
+determining the :term:`query shape`, the following command would also
+remove the second index filter:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         planCacheClearFilters: "orders",
+         query: { "status" : "P" }
+      }
+   )
+
+Clear all Index Filters on a Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example clears all index filters on the ``orders``
+collection:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         planCacheClearFilters: "orders"
+      }
+   )
+
+.. seealso::
+   :dbcommand:`planCacheListFilters`,
+   :dbcommand:`planCacheSetFilter`

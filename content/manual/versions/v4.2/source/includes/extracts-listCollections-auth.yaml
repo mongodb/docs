@@ -1,0 +1,97 @@
+ref: listCollections-auth-required-access
+content: |
+
+   To run :dbcommand:`listCollections` when access control is enforced,
+   users must, in general, have privileges that grant
+   :authaction:`listCollections` action on the database. For example,
+   the following privilege grants users to run
+   :method:`db.getCollectionInfos()` against the ``test`` database:
+
+   .. code-block:: javascript
+
+      { resource: { db: "test", collection: "" }, actions: [ "listCollections" ] }
+
+   The built-in role :authrole:`read` provides the privilege to run
+   :dbcommand:`listCollection` for a specific database.
+
+   Users without the required privilege
+   can run the command with **both** ``authorizedCollections`` and
+   ``nameOnly`` options set to ``true``. In this case, the command returns
+   just the name and type of the collection(s) to which the user has
+   privileges.
+
+   For example, consider a user with a role that grants just the following
+   privilege:
+
+   .. code-block:: javascript
+
+      { resource: { db: "test", collection: "foo" }, actions: [ "find" ] }
+
+   The user can run the command if the command includes **both**
+   ``authorizedCollections`` and ``nameOnly`` options set to ``true``
+   (with or without the ``filter`` option):
+
+   .. code-block:: javascript
+
+      db.runCommand( { listCollections: 1.0, authorizedCollections: true, nameOnly: true } )
+
+   The operation returns the name and type of the ``foo`` collection.
+
+   However, the following operations (with or without the ``filter``
+   option) error for the user without the required access:
+
+   .. code-block:: javascript
+
+      db.runCommand( { listCollections: 1.0, authorizedCollections: true } )
+      db.runCommand( { listCollections: 1.0, nameOnly: true } )
+---
+ref: listCollections-auth-show-collections
+content: |
+
+   The ``mongo`` shell, ``show collections`` is equivalent to:
+
+   .. code-block:: javascript
+
+      db.runCommand( { listCollections: 1.0, authorizedCollections: true, nameOnly: true } )
+
+   - For users with the required access, ``show collections`` lists the
+     non-system collections for the database.
+
+   - For users without the required access, ``show collections`` lists
+     only the collections for which the users has privileges.
+---
+ref: listCollections-auth-show-collections-earlier-versions
+content: |
+   When a version 4.0 :binary:`~bin.mongo` shell is connected to an
+   earlier version MongoDB deployment that does not support
+   ``authorizedCollections`` and ``nameOnly`` options, 
+
+   - A user must have the required access to run
+     :dbcommand:`listCollection`.
+
+   - If a user does not have required access and runs ``show
+     collections``, MongoDB uses the
+     :data:`~connectionStatus.authInfo.authenticatedUserPrivileges` field
+     returned by :dbcommand:`connectionStatus` to return an approximate
+     list of collections for the user.
+---
+ref: listCollections-auth-showCollectionNames
+content: |
+
+   The :method:`db.getCollectionNames()` is equivalent to:
+
+   .. code-block:: javascript
+
+      db.runCommand( { listCollections: 1.0, authorizedCollections: true, nameOnly: true } )
+
+   - For users with the required access (privileges that grant
+     :authaction:`listCollections` action on the database), the method
+     lists the names of all collections for the database.
+
+   - For users without the required access, the method lists only the
+     collections for which the users has privileges. For example, if a
+     user has :authaction:`find` on a specific collection in a
+     database, the method would return just that collection.
+
+...
+

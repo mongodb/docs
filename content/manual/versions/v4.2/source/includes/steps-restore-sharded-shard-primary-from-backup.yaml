@@ -1,0 +1,356 @@
+title: "Restore the shard primary :binary:`mongod <bin.mongod>` data files."
+stepnum: 1
+ref: restore-backup-files
+content: |
+  Select the tab that corresponds to your preferred backup method:
+
+  .. tabs::
+
+     tabs:
+
+       - id: lvm
+         name: "LVM Snapshot"
+         content: |
+
+           1. Mount the :term:`LVM` snapshot on the target host machine. 
+              The specific steps for mounting an LVM snapshot depends on 
+              your LVM configuration.
+
+              The following example assumes an LVM snapshot created 
+              using the :ref:`lvm-backup-operation` step in the
+              :doc:`/tutorial/backup-with-filesystem-snapshots` 
+              procedure.
+
+              .. code-block:: shell
+
+                 lvcreate --size 250GB --name mongod-datafiles-snapshot vg0
+                 gzip -d -c mongod-datafiles-snapshot.gz | dd o/dev/vg0/mongod-datafiles-snapshot
+                 mount /dev/vg0/mongod-datafiles-snapshot /snap/mongodb
+
+              This example may not apply to all possible LVM 
+              configurations. Refer to the LVM documentation for your 
+              system for more complete guidance on LVM restoration.
+
+           #. Copy the :binary:`mongod <bin.mongod>` data files from the
+              snapshot mount to the data directory created in
+              :guilabel:`B. Prepare the Target Host for Restoration`:
+
+              .. code-block:: sh
+
+                 cp -a /snap/mongodb/path/to/mongodb /path/to/mongodb
+
+              The ``-a`` option recursively copies the contents of
+              the source path to the destination path while preserving
+              folder and file permissions.
+
+           #. Comment out or omit the following 
+              :ref:`configuration file <configuration-file>` settings:
+
+              .. code-block:: yaml
+
+                 #replication
+                 #  replSetName: myShardName
+                 #sharding
+                 #  clusterRole: shardsvr
+
+
+              To start the :binary:`mongod <bin.mongod>` using a 
+              configuration file, specify the 
+              :option:`--config <mongod --config>` option in the command
+              line specifying the full path to the configuration file:
+
+              .. code-block:: sh
+
+                 mongod --config /path/to/mongodb/mongod.conf
+
+              If you have :binary:`mongod <bin.mongod>` configured to 
+              run as a system service, start it using the recommended 
+              process for your system service manager.
+
+              After the :binary:`mongod <bin.mongod>` starts, connect 
+              to it using the :binary:`mongo <bin.mongo>` shell.
+
+       - id: other
+         name: "Other Backup Files (NOT mongodump)"
+         content: |
+
+           1. Make the data files stored in your selected backup medium
+              accessible on the host. This may require mounting the 
+              backup volume, opening the backup in a software utility, 
+              or using another tool to extract the data to disk. Refer 
+              to the documentation for your preferred backup tool for 
+              instructions on accessing the data contained in the 
+              backup. 
+
+           #. Copy the :binary:`mongod <bin.mongod>` data files from the
+              backup data location to the data directory created in
+              :guilabel:`B. Prepare the Target Host for Restoration`:
+
+              .. code-block:: sh
+
+                 cp -a /backup/mongodb/path/to/mongodb /path/to/mongodb
+
+              The ``-a`` option recursively copies the contents of
+              the source path to the destination path while preserving
+              folder and file permissions.
+
+           #. Comment out or omit the following 
+              :ref:`configuration file <configuration-file>` settings:
+    
+              .. code-block:: yaml
+
+                 #replication
+                 #  replSetName: myShardName
+                 #sharding
+                 #  clusterRole: shardsvr
+
+           #. To start the :binary:`mongod <bin.mongod>` using a 
+              configuration file, specify the 
+              :option:`--config <mongod --config>` option in the command
+              line specifying the full path to the configuration file:
+
+              .. code-block:: sh
+
+                 mongod --config /path/to/mongodb/mongod.conf
+
+              .. admonition:: Cloud Manager or Ops Manager Only
+                 :class: note
+
+                 If performing a manual restoration of a Cloud Manager 
+                 or Ops Manager backup, you must specify the 
+                 ``disableLogicalSessionCacheRefresh`` server parameter
+                 prior to startup:
+
+                 .. code-block:: sh
+
+                    mongod --config /path/to/mongodb/mongod.conf \
+                      --setParameter disableLogicalSessionCacheRefresh=true
+
+              If you have :binary:`mongod <bin.mongod>` configured to 
+              run as a system service, start it using the recommended 
+              process for your system service manager.
+
+              After the :binary:`mongod <bin.mongod>` starts, connect 
+              to it using the :binary:`mongo <bin.mongo>` shell.
+---
+title: "Create a temporary user with the ``__system`` role."
+stepnum: 2
+ref: create-system
+content: |
+  During this procedure you will modify documents in the
+  :data:`admin.system.version` collection. For clusters enforcing
+  :ref:`authentication <authentication>`, only the :authrole:`__system`
+  role grants permission to modify this collection. You can skip this
+  step if the cluster does not enforce authentication.
+
+  .. warning::
+
+     The ``__system`` role entitles its holder to take any action 
+     against any object in the database. This procedure includes
+     instructions for removing the user created in this step. **Do not**
+     keep this user active beyond the scope of this procedure. 
+
+     Consider creating this user with the ``clientSource``
+     :ref:`authentication restriction <method-createUser-authentication-restrictions>`
+     configured such that only the specified hosts can 
+     authenticate as the privileged user.
+
+  a. Authenticate as a user with the :authrole:`userAdmin` role on the
+     ``admin`` database or
+     :authrole:`userAdminAnyDatabase` role:
+
+     .. code-block:: javascript
+        :copyable: false
+
+        use admin
+        db.auth("myUserAdmin","mySecurePassword")
+
+  #. Create a user with the :authrole:`__system` role:
+
+     .. code-block:: javascript
+
+        db.createUser(
+          {
+            user: "mySystemUser",
+            pwd: "<replaceMeWithAStrongPassword>",
+            roles: [ "__system" ]
+          }
+        )
+
+     Passwords should be random, long, and complex to ensure system
+     security and to prevent or delay malicious access. 
+
+  #. Authenticate as the privileged user:
+
+     .. code-block:: javascript
+
+        db.auth("mySystemUser","<replaceMeWithAStrongPassword>")
+---
+stepnum: 3
+ref: drop-local
+source:
+  file: steps-restore-sharded-config-primary-from-backup.yaml
+  ref: drop-local
+---
+title: "Remove the ``minOpTimeRecovery`` document from the ``admin.system.versions`` collection."
+stepnum: 4
+ref: delete-minOpTimeRecovery
+content: |
+
+  To update the sharding internals, issue the following 
+  :method:`~db.collection.deleteOne()` method on the 
+  :data:`system.version <admin.system.version>` collection in the 
+  ``admin`` database:
+
+  .. code-block:: javascript
+
+     use admin
+     db.system.version.deleteOne( { _id: "minOpTimeRecovery" } )
+  
+  .. note::
+
+     The :data:`system.version <admin.system.version>` collection is an 
+     internal, system collection. You should only modify it when when 
+     given specific instructions like these. 
+     
+---
+title: "For any CSRS hostname or replica set name changes, update shard metadata in each shard's identity document."
+stepnum: 5
+ref: metadata-update
+optional: true
+content: |
+
+  You can skip this step if all of the following are true:
+
+  * The hostnames for any CSRS host did not change during this procedure.
+  * The CSRS replica set name did not change during this procedure.
+
+  The :data:`system.version <admin.system.version>`
+  collection on the ``admin`` database contains metadata related
+  to the shard, including the CSRS connection string. If either the
+  CSRS name or any member hostnames changed while restoring the CSRS,
+  you must update this metadata.
+
+  Issue the following :method:`~db.collection.find()` method on the 
+  :data:`system.version <admin.system.version>` collection in the 
+  ``admin`` database:
+
+  .. code-block:: javascript
+
+     use admin
+     db.system.version.find( {"_id" : "shardIdentity" } )
+
+  The :method:`~db.collection.find()` method returns a document that
+  resembles the following:
+
+  .. code-block:: javascript
+
+     { 
+       "_id" : "shardIdentity", 
+       "clusterId" : ObjectId("2bba123c6eeedcd192b19024"), 
+       "shardName" : "shard1", 
+       "configsvrConnectionString" : "myCSRSName/alpha.example.net:27019,beta.example.net:27019,charlie.example.net:27019" }
+
+  The following :method:`~db.collection.updateOne` method
+  updates the document such that the ``host`` string represents
+  the most current CSRS connection string:
+
+  .. code-block:: javascript
+
+     db.system.version.updateOne(
+       { "_id" : "shardIdentity" },
+       { $set : 
+         { "configsvrConnectionString" : "myNewCSRSName/config1.example.net:27019,config2.example.net:27019,config3.example.net:27019"}
+       } 
+     )
+
+  .. important::
+
+     The ``shardName`` value must match the ``_id`` value in the 
+     :data:`~config.shards` collection on the CSRS. Validate
+     that the metadata on the CSRS match the metadata for the shard.
+     Refer to substep :guilabel:`3` in the
+     :guilabel:`C. Restore Config Server Replica Set` portion
+     of this procedure for instructions on viewing the
+     CSRS metadata.
+
+---
+stepnum: 6
+ref: restart-as-repl
+source:
+  file: steps-restore-sharded-config-primary-from-backup.yaml
+  ref: restart-as-repl
+replacement:
+  code: |
+
+    .. code-block:: yaml
+
+       replication
+         replSetName: myNewShardName
+       sharding
+         clusterRole: shardsvr
+
+---
+stepnum: 7
+ref: initiate
+source:
+  file: steps-restore-sharded-config-primary-from-backup.yaml
+  ref: initiate
+---
+stepnum: 8
+ref: add-members
+source:
+  file: steps-restore-sharded-config-primary-from-backup.yaml
+  ref: add-members
+replacement:
+  code: |
+
+    .. code-block:: javascript
+
+       rs.add("repl2.example.net:27018")
+       rs.add("repl3.example.net:27018")
+
+  morecode: |
+
+    .. code-block:: javascript
+
+       rs.add(
+        {
+          "host" : "repl2.example.net:27018",
+          priority: <int>,
+          votes: <int>,
+          tags: <int>
+        }
+       )
+  component: "shard replica set"
+---
+stepnum: 9
+ref: configure-replication
+source:
+  file: steps-restore-sharded-config-primary-from-backup.yaml
+  ref: configure-replication
+---
+title: "Remove the temporary privileged user."
+stepnum: 10
+ref: remove-system
+content: |
+  
+  For clusters enforcing authentication, remove the privileged user 
+  created earlier in this procedure:
+
+  a. Authenticate as a user with the :authrole:`userAdmin` role on the
+     ``admin`` database or
+     :authrole:`userAdminAnyDatabase` role:
+
+     .. code-block:: javascript
+        :copyable: false
+
+        use admin
+        db.auth("myUserAdmin","mySecurePassword")
+
+  #. Delete the privileged user:
+
+     .. code-block:: javascript
+
+        db.removeUser("mySystemUser")
+...

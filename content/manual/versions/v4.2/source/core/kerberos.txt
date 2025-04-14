@@ -1,0 +1,217 @@
+.. _security-kerberos:
+
+=======================
+Kerberos Authentication
+=======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+
+Overview
+--------
+
+MongoDB Enterprise provides support for Kerberos authentication of
+MongoDB clients to :binary:`~bin.mongod` and :binary:`~bin.mongos`. Kerberos is
+an industry standard authentication protocol for large client/server
+systems. Kerberos allows MongoDB and applications to take advantage of
+existing authentication infrastructure and processes.
+
+Kerberos Components and MongoDB
+-------------------------------
+
+Principals
+~~~~~~~~~~
+
+In a Kerberos-based system, every participant in the authenticated
+communication is known as a "principal", and every principal must have
+a unique name.
+
+Principals belong to administrative units called *realms*. For each
+realm, the Kerberos Key Distribution Center (KDC) maintains a database
+of the realm's principal and the principals' associated "secret keys".
+
+For a client-server authentication, the client requests from the KDC a
+"ticket" for access to a specific asset. KDC uses the client's
+secret and the server's secret to construct the ticket which allows the
+client and server to mutually authenticate each other, while keeping
+the secrets hidden.
+
+For the configuration of MongoDB for Kerberos support, two kinds of
+principal names are of interest: :ref:`user principals
+<kerberos-user-principal>` and :ref:`service principals
+<kerberos-service-principal>`.
+
+.. _kerberos-user-principal:
+
+User Principal
+``````````````
+
+To authenticate using Kerberos, you must add the Kerberos user
+principals to MongoDB to the ``$external`` database. User principal
+names have the form:
+
+.. code-block:: none
+
+   <username>@<KERBEROS REALM>
+
+For every user you want to authenticate using Kerberos, you must create
+a corresponding user in MongoDB in the ``$external`` database.
+
+.. include:: /includes/extracts/sessions-external-username-limit.rst
+
+For examples of adding a user to MongoDB as well as authenticating as
+that user, see
+:doc:`/tutorial/control-access-to-mongodb-with-kerberos-authentication`
+and
+:doc:`/tutorial/control-access-to-mongodb-windows-with-kerberos-authentication`.
+
+.. seealso:: :doc:`/tutorial/manage-users-and-roles` for
+   general information regarding creating and managing users in
+   MongoDB.
+
+.. _kerberos-service-principal:
+
+Service Principal
+`````````````````
+
+Every MongoDB :binary:`~bin.mongod` and :binary:`~bin.mongos` instance (or
+:binary:`~bin.mongod.exe` or :binary:`~bin.mongos.exe` on Windows) must have an
+associated service principal. Service principal names have the form:
+
+.. code-block:: none
+
+   <service>/<fully qualified domain name>@<KERBEROS REALM>
+
+For MongoDB, the ``<service>`` defaults to ``mongodb``. For example, if
+``m1.example.com`` is a MongoDB server, and ``example.com`` maintains
+the ``EXAMPLE.COM`` Kerberos realm, then ``m1`` should have the service
+principal name ``mongodb/m1.example.com@EXAMPLE.COM``.
+
+To specify a different value for ``<service>``, use
+:setting:`~security.sasl.serviceName` during the start up of :binary:`~bin.mongod` or
+:binary:`~bin.mongos` (or :binary:`~bin.mongod.exe` or :binary:`~bin.mongos.exe`).
+:binary:`~bin.mongo` shell or other clients may also specify a different
+service principal name using :setting:`~security.sasl.serviceName`.
+
+Service principal names must be reachable over the network using the
+fully qualified domain name (FQDN) part of its service principal name.
+
+By default, Kerberos attempts to identify hosts using the
+``/etc/krb5.conf`` file before using DNS to resolve hosts.
+
+On Windows, if running MongoDB as a service, see
+:ref:`assign-service-principal-name`.
+
+.. _keytab-files:
+
+Linux Keytab Files
+~~~~~~~~~~~~~~~~~~
+
+Linux systems can store Kerberos authentication keys for a
+:ref:`service principal <kerberos-service-principal>` in *keytab*
+files. Each Kerberized :binary:`~bin.mongod` and :binary:`~bin.mongos` instance
+running on Linux must have access to a keytab file containing keys for
+its :ref:`service principal <kerberos-service-principal>`.
+
+To keep keytab files secure, use file permissions that restrict access
+to only the user that runs the :binary:`~bin.mongod` or :binary:`~bin.mongos`
+process.
+
+.. _linux-init-mongodb-clients:
+
+Tickets
+~~~~~~~
+
+On Linux, MongoDB clients can use Kerberos's ``kinit`` program to
+initialize a credential cache for authenticating the user principal to
+servers.
+
+Windows Active Directory
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Unlike on Linux systems, :binary:`~bin.mongod` and :binary:`~bin.mongos`
+instances running on Windows do not require access to keytab files.
+Instead, the :binary:`~bin.mongod` and :binary:`~bin.mongos` instances read
+their server credentials from a credential store specific to the
+operating system.
+
+However, from the Windows Active Directory, you can export a keytab
+file for use on Linux systems. See `Ktpass
+<http://technet.microsoft.com/en-us/library/cc753771.aspx>`_ for more
+information.
+
+Authenticate With Kerberos
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To configure MongoDB for Kerberos support and authenticate, see
+:doc:`/tutorial/control-access-to-mongodb-with-kerberos-authentication`
+and
+:doc:`/tutorial/control-access-to-mongodb-windows-with-kerberos-authentication`.
+
+Operational Considerations
+--------------------------
+
+DNS
+~~~
+
+Each host that runs a :binary:`~bin.mongod` or :binary:`~bin.mongos` instance
+must have both ``A`` and ``PTR`` DNS records to provide forward and
+reverse lookup.
+
+Without ``A`` and ``PTR`` DNS records, the host cannot resolve the
+components of the Kerberos domain or the Key Distribution Center (KDC).
+
+System Time Synchronization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To successfully authenticate, the system time for each
+:binary:`~bin.mongod` and :binary:`~bin.mongos` instance must be within
+5 minutes of the system time of the other hosts in the Kerberos
+infrastructure.
+
+Kerberized MongoDB Environments
+-------------------------------
+
+.. _kerberos-and-drivers:
+
+Driver Support
+~~~~~~~~~~~~~~
+
+The following MongoDB drivers support Kerberos authentication:
+
+- :api:`C <c>`
+- `C++ <https://mongodb.github.io/mongo-cxx-driver/mongocxx-v3/configuration/>`_
+- :ecosystem:`Java </tutorial/authenticate-with-java-driver/>`
+- `C# <http://mongodb.github.io/mongo-csharp-driver/2.0/reference/driver/authentication/#gssapi-kerberos>`_
+- `Node.js <http://mongodb.github.io/node-mongodb-native/2.0/tutorials/enterprise_features/>`_
+- `Perl <https://metacpan.org/pod/MongoDB::MongoClient#GSSAPI-(for-Kerberos)>`_
+- `PHP <http://php.net/manual/en/mongodb-driver-manager.construct.php>`_
+- :api:`Python <pymongo>`
+- `Ruby <https://docs.mongodb.com/ruby-driver/current/tutorials/ruby-driver-authentication/#kerberos-gssapi-mechanism>`_
+- `Scala <http://mongodb.github.io/mongo-scala-driver/2.1/reference/connecting/authenticating/>`_
+
+Use with Additional MongoDB Authentication Mechanism
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Although MongoDB supports the use of Kerberos authentication with other
+authentication mechanisms, only add the other mechanisms as necessary.
+See the ``Incorporate Additional Authentication Mechanisms`` section in
+:doc:`/tutorial/control-access-to-mongodb-with-kerberos-authentication`
+and
+:doc:`/tutorial/control-access-to-mongodb-windows-with-kerberos-authentication`
+for details.
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   /tutorial/control-access-to-mongodb-with-kerberos-authentication
+   /tutorial/control-access-to-mongodb-windows-with-kerberos-authentication
+   /tutorial/troubleshoot-kerberos
+   /tutorial/kerberos-auth-activedirectory-authz.txt

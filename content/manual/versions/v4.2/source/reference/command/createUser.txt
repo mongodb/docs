@@ -1,0 +1,282 @@
+==========
+createUser
+==========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: createUser
+
+   .. |local-cmd-name| replace:: :dbcommand:`createUser`
+
+   Creates a new user on the database where you run the command. The
+   :dbcommand:`createUser` command returns a *duplicate user* error if the
+   user exists.
+   The :dbcommand:`createUser` command uses the following syntax:
+
+   .. tip::
+
+      .. include:: /includes/extracts/4.2-changes-passwordPrompt.rst
+
+   .. code-block:: javascript
+
+      {
+        createUser: "<name>",
+        pwd: passwordPrompt(),      // Or  "<cleartext password>"
+        customData: { <any information> },
+        roles: [
+          { role: "<role>", db: "<database>" } | "<role>",
+          ...
+        ],
+        writeConcern: { <write concern> },
+        authenticationRestrictions: [
+           { clientSource: [ "<IP|CIDR range>", ... ], serverAddress: [ "<IP|CIDR range>", ... ] }, 
+           ...
+        ],
+        mechanisms: [ "<scram-mechanism>", ... ],  //Available starting in MongoDB 4.0
+        digestPassword: <boolean>
+      }
+
+   :dbcommand:`createUser` has the following fields:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``createUser``
+   
+        - string
+   
+        - The name of the new user.
+          
+          
+   
+      * - ``pwd``
+   
+        - string
+   
+        - The user's password. The ``pwd`` field is not
+          required if you run |local-cmd-name| on the ``$external``
+          database to create users who have credentials stored externally to
+          MongoDB.
+          
+          The value can be either:
+          
+          - the user's password in cleartext string, or
+          
+          - :method:`passwordPrompt()` to prompt for the user's password. 
+          
+          .. tip::
+          
+             .. include:: /includes/extracts/4.2-changes-passwordPrompt.rst
+          
+          
+   
+      * - ``customData``
+   
+        - document
+   
+        - Optional. Any arbitrary information.  This field can be used to store any data
+          an admin wishes to associate with this particular user.  For example,
+          this could be the user's full name or employee id.
+          
+          
+   
+      * - ``roles``
+   
+        - array
+   
+        - The roles granted to the user. Can specify an empty array ``[]`` to
+          create users without roles.
+          
+          
+   
+      * - ``digestPassword``
+   
+        - boolean
+   
+        - Optional. Indicates whether the server or the client digests the password.
+          
+          If true, the server receives undigested password from the client and
+          digests the password.
+          
+          If false, the client digests the password and passes the digested
+          password to the server. Not compatible with ``SCRAM-SHA-256``
+          
+          .. versionchanged:: 4.0
+          
+             The default value is ``true``. In earlier versions, the default
+             value is ``false``.
+          
+          
+   
+      * - ``writeConcern``
+   
+        - document
+   
+        - Optional. The level of :doc:`write concern </reference/write-concern>` for the
+          creation operation. The ``writeConcern`` document takes the same
+          fields as the :dbcommand:`getLastError` command.
+          
+          
+   
+      * - ``authenticationRestrictions``
+   
+        - array
+   
+        - Optional. The authentication restrictions the server enforces on the created
+          user. Specifies a list of IP addresses and
+          :abbr:`CIDR (Classless Inter-Domain Routing)` ranges from which the
+          user is allowed to connect to the server or from which the server can
+          accept users.
+          
+          .. versionadded:: 3.6
+          
+          
+   
+      * - ``mechanisms``
+   
+        - array
+   
+        - Optional. Specify the specific SCRAM mechanism or mechanisms for creating
+          SCRAM user credentials. If :parameter:`authenticationMechanisms` is
+          specified, you can only specify a subset of the
+          :parameter:`authenticationMechanisms`.
+          
+          Valid values are:
+          
+          - ``"SCRAM-SHA-1"``
+          
+            - Uses the ``SHA-1`` hashing function.
+          
+          - ``"SCRAM-SHA-256"``
+          
+            - Uses the ``SHA-256`` hashing function.
+          
+            - Requires featureCompatibilityVersion set to ``4.0``.
+          
+            - Requires digestPassword to be ``true``.
+          
+          The default for featureCompatibilityVersion is ``4.0`` is both
+          ``SCRAM-SHA-1`` and ``SCRAM-SHA-256``.
+          
+          The default for featureCompatibilityVersion is ``3.6`` is
+          ``SCRAM-SHA-1``.
+          
+          .. versionadded:: 4.0
+          
+          
+   
+      * - ``digestPassword``
+   
+        - boolean
+   
+        - Optional. Indicates whether the server or the client digests the password.
+          
+          If true, the server receives undigested password from the client and
+          digests the password.
+          
+          If false, the client digests the password and passes the digested
+          password to the server. Not compatible with ``SCRAM-SHA-256``
+          
+          .. versionchanged:: 4.0
+          
+             The default value is ``true``. In earlier versions, the default
+             value is ``false``.
+          
+          
+   
+
+
+Roles
+~~~~~
+
+.. include:: /includes/fact-roles-array-contents.rst
+
+.. _create-user-auth-restrictions:
+
+Authentication Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-auth-restrictions-array-contents.rst
+
+.. TODO rename section (or make it subsection or something)
+
+Behavior
+--------
+
+User ID
+~~~~~~~
+
+Starting in version 4.0.9, MongoDB automatically assigns a unique
+``userId`` to the user upon creation.
+
+Encryption
+~~~~~~~~~~
+
+.. |command| replace:: :dbcommand:`createUser`
+
+.. include:: /includes/fact-cleartext-passwords-tls.rst
+
+External Credentials
+~~~~~~~~~~~~~~~~~~~~
+
+Users created on the ``$external`` database should have credentials
+stored externally to MongoDB, as, for example, with :doc:`MongoDB
+Enterprise installations that use Kerberos
+</tutorial/control-access-to-mongodb-with-kerberos-authentication>`.
+
+.. include:: /includes/extracts/sessions-external-username-limit.rst
+
+``local`` Database
+~~~~~~~~~~~~~~~~~~
+
+You cannot create users on the local database.
+
+.. _createUser-required-access:
+
+Required Access
+---------------
+
+.. include:: /includes/access-create-user.rst
+
+Example
+-------
+
+The following :dbcommand:`createUser` command creates a user ``accountAdmin01`` on the
+``products`` database. The command gives ``accountAdmin01`` the
+``clusterAdmin`` and ``readAnyDatabase`` roles on the ``admin`` database
+and the ``readWrite`` role on the ``products`` database:
+
+.. tip::
+
+   .. include:: /includes/extracts/4.2-changes-passwordPrompt.rst
+
+.. code-block:: javascript
+
+   db.getSiblingDB("products").runCommand( {
+         createUser: "accountAdmin01",
+         pwd: passwordPrompt(), 
+         customData: { employeeId: 12345 },
+         roles: [
+                  { role: "clusterAdmin", db: "admin" },
+                  { role: "readAnyDatabase", db: "admin" },
+                  "readWrite"
+                ],
+         writeConcern: { w: "majority" , wtimeout: 5000 }
+  } )

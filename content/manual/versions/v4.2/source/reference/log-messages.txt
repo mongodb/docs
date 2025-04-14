@@ -1,0 +1,484 @@
+============
+Log Messages
+============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Log Message Format (Console/Log File)
+-------------------------------------
+
+Starting in MongoDB 3.0, MongoDB includes the :ref:`severity level
+<log-severity-levels>` and the :ref:`component
+<log-message-components>` for each log message when output to the
+console or a logfile (i.e. not to ``syslog`` [#syslog]_). 
+
+The log messages have the form:
+
+.. code-block:: none
+
+   <timestamp> <severity> <component> [<context>] <message>
+
+For example:
+
+.. code-block:: none
+
+   2014-11-03T18:28:32.450-0500 I NETWORK [initandlisten] waiting for connections on port 27017
+
+.. [#syslog]
+
+   Syslog messages follow the standard syslog message format. Starting
+   in version 4.2, MongoDB includes the :ref:`component
+   <log-message-components>` in its log messages to ``syslog``.
+
+.. _log-message-slow-ops:
+
+Logging Slow Operations
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Client operations appear in the log if their duration exceeds the
+:ref:`slow operation threshold <slowms-threshold-option>` or when the
+:ref:`log verbosity level <log-message-verbosity-levels>` is 1 or
+higher. [#slow-oplogs]_ These log entries include the full command
+object associated with the operation.
+
+.. include:: /includes/extracts/4.2-changes-log-query-shapes-plan-cache-key.rst
+
+The following example output includes information about
+a slow :doc:`aggregation </aggregation>` operation:
+
+.. code-block:: none
+
+   2019-01-14T12:00:59.166-0500 I COMMAND  [conn4] command test.items appName: "MongoDB Shell" command: aggregate { aggregate: "items", pipeline: [ { $match: { a: { $lte: 500.0 } } }, { $sort: { a: -1.0 } } ], allowDiskUse: true, cursor: {}, lsid: { id: UUID("a73100a6-2f4d-48b7-a119-4632491c20eb") }, $db: "test" } planSummary: IXSCAN { a: 1, _id: -1 } cursorid:4808731480531288834 keysExamined:12524506 docsExamined:25003 hasSortStage:1 usedDisk:1 fromMultiPlanner:1 numYields:98113 nreturned:101 queryHash:811451DD planCacheKey:759981BA reslen:1305014 locks:{ Global: { acquireCount: { r: 98211, w: 98211 } }, Database: { acquireCount: { r: 98211 } }, Collection: { acquireCount: { r: 98211 } } } storage:{ data: { bytesRead: 112803842, timeReadingMicros: 62720 } } protocol:op_msg 39658ms
+
+.. _log-messages-remoteOpWaitMillis:
+
+Time Waiting for Shards Logged in ``remoteOpWaitMillis`` Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 4.2.10
+
+Starting in MongoDB 4.2.10, you can use the ``remoteOpWaitMillis`` log
+field to obtain the wait time (in milliseconds) for results from
+:term:`shards <shard>`.
+
+``remoteOpWaitMillis`` is only logged:
+
+- If you configure :ref:`slow operations logging
+  <log-message-slow-ops>`.
+
+- On the :term:`shard` or :binary:`~bin.mongos` that merges the results.
+
+To determine if a merge operation or a shard issue is causing a slow
+query, compare the ``durationMillis`` and ``remoteOpWaitMillis`` time
+fields in the log. ``durationMillis`` is the total time the query took
+to complete. Specifically:
+
+- If ``durationMillis`` is slightly longer than ``remoteOpWaitMillis``,
+  then most of the time was spent waiting for a shard response. For
+  example, ``durationMillis`` of 17 and ``remoteOpWaitMillis`` of 15.
+
+- If ``durationMillis`` is significantly longer than
+  ``remoteOpWaitMillis``, then most of the time was spent performing the
+  merge. For example, ``durationMillis`` of 100 and
+  ``remoteOpWaitMillis`` of 15.
+
+Timestamp (Console/Log File)
+----------------------------
+
+When logging to the console or a logfile [#syslog-ts]_, the default
+format for the ``<timestamp>`` is ``iso8601-local``. To modify the
+timestamp format, use the :option:`--timeStampFormat <mongod
+--timeStampFormat>` runtime option or the
+:setting:`systemLog.timeStampFormat` setting.
+
+.. [#syslog-ts]
+
+   If logging to ``syslog``, the ``syslog`` daemon generates timestamps
+   when it logs a message, not when MongoDB issues the message. This
+   can lead to misleading timestamps for log entries, especially when
+   the system is under heavy load.
+
+.. _log-severity-levels:
+
+Severity Levels
+---------------
+
+The following table lists the severity levels associated with each log
+message:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 85
+
+   * - Level
+     - Description
+
+   * - ``F``
+     - Fatal
+
+   * - ``E``
+     - Error
+
+   * - ``W``
+     - Warning
+
+   * - ``I``
+     - Informational, for Verbosity Level of ``0``
+
+   * - ``D``\ [1-5]
+     - Debug, for All Verbosity Levels > ``0``
+
+       Starting in version 4.2, MongoDB logs the :ref:`debug verbosity
+       level <log-messages-configure-verbosity>`. For example, if
+       verbosity level is 2, MongoDB logs ``D2``.
+
+       In previous versions, MongoDB log messages only specified ``D``
+       for Debug level.
+
+You can specify the verbosity level of various components to determine
+the amount of Informational and Debug messages MongoDB outputs. [#slow-oplogs]_
+
+To set verbosity levels, see :ref:`log-messages-configure-verbosity`.
+
+Client Data
+-----------
+
+.. versionadded:: 3.4
+
+Client application debugging and performance monitoring is easier
+when you can clearly match server events with particular client
+requests. With this in mind, recent MongoDB
+`drivers <https://docs.mongodb.com/ecosystem/drivers/>`_ and client
+applications (including the :binary:`~bin.mongo` shell) have the ability
+to send identifying information at the time of connection to the
+server. After the connection is established, the client does not send
+the identifying information again unless the connection is dropped
+and reestablished.
+
+The exact fields included vary by client. Below is a sample client
+data document:
+
+.. code-block:: javascript
+
+   {
+      application: {
+        name: "MongoDB Shell"
+      },
+      driver: {
+         name: "MongoDB Internal Client",
+         version: "3.4.0"
+      },
+      os: {
+         type: "Darwin",
+         name: "Mac OS X",
+         architecture: "x86_64",
+         version: "15.3.0"
+      }
+   }
+
+When secondary members of a
+:doc:`replica set </core/replica-set-members/>` initiate
+a connection to a primary, they send similar data. A typical
+connection document is as follows:
+
+.. code-block:: javascript
+
+   {
+      driver: {
+         name: "NetworkInterfaceASIO-Replication",
+         version: "3.4.0"
+      },
+      os: {
+         type: "Darwin",
+         name: "Mac OS X",
+         architecture: "x86_64",
+         version: "15.3.0"
+      }
+   }
+
+For a complete description of client information and required fields,
+see the
+`MongoDB Handshake specification <https://github.com/mongodb/specifications/blob/master/source/mongodb-handshake/handshake.rst>`_.
+
+.. _log-message-components:
+
+Components
+----------
+
+Log messages now include components, providing functional
+categorization of the messages:
+
+.. data:: ACCESS
+
+   Messages related to access control, such as authentication. To
+   specify the log level for :data:`ACCESS` components, use the
+   :setting:`systemLog.component.accessControl.verbosity` setting.
+
+.. data:: COMMAND
+
+   Messages related to :doc:`database commands </reference/command>`,
+   such as :dbcommand:`count`. To specify the log level for
+   :data:`COMMAND` components, use the
+   :setting:`systemLog.component.command.verbosity` setting.
+
+.. data:: CONTROL
+
+   Messages related to control activities, such as initialization. To
+   specify the log level for :data:`CONTROL` components, use the
+   :setting:`systemLog.component.control.verbosity` setting.
+
+.. data:: ELECTION
+
+   Messages related specifically to replica set elections. To specify
+   the log level for :data:`ELECTION` components, set the
+   :setting:`systemLog.component.replication.election.verbosity`
+   parameter.
+
+   :data:`REPL` is the parent component of :data:`ELECTION`. If
+   :setting:`systemLog.component.replication.election.verbosity` is
+   unset, MongoDB uses the :data:`REPL` verbosity level for
+   :data:`ELECTION` components.
+
+.. data:: FTDC
+
+   .. versionadded:: 3.2
+   
+   Messages related to the diagnostic data collection mechanism, such 
+   as server statistics and status messages. To specify the log level for 
+   :data:`FTDC` components, use the 
+   :setting:`systemLog.component.ftdc.verbosity` setting.
+
+.. data:: GEO
+
+   Messages related to the parsing of geospatial shapes, such as
+   verifying the GeoJSON shapes. To specify the log level for
+   :data:`GEO` components, set the
+   :setting:`systemLog.component.geo.verbosity` parameter.
+
+.. data:: INDEX
+
+   Messages related to indexing operations, such as
+   creating indexes. To specify the log level for
+   :data:`INDEX` components, set the
+   :setting:`systemLog.component.index.verbosity` parameter.
+
+.. data:: INITSYNC
+
+   Messages related to initial sync operation. To specify the log level
+   for :data:`INITSYNC` components, set the
+   :setting:`systemLog.component.replication.initialSync.verbosity`
+   parameter.
+
+   :data:`REPL` is the parent component of :data:`INITSYNC`. If
+   :setting:`systemLog.component.replication.initialSync.verbosity` is
+   unset, MongoDB uses the :data:`REPL` verbosity level for
+   :data:`INITSYNC` components.
+
+.. data:: NETWORK
+
+   Messages related to network activities, such as accepting
+   connections. To specify the log level for :data:`NETWORK`
+   components, set the
+   :setting:`systemLog.component.network.verbosity` parameter.
+
+.. data:: QUERY
+
+   Messages related to queries, including query planner activities.
+   To specify the log level for :data:`QUERY` components, set the
+   :setting:`systemLog.component.query.verbosity` parameter.
+
+.. data:: REPL
+
+   Messages related to replica sets, such as initial sync, heartbeats,
+   steady state replication, and rollback. [#slow-oplogs]_ To specify
+   the log level for :data:`REPL` components, set the
+   :setting:`systemLog.component.replication.verbosity` parameter.
+
+.. data:: REPL_HB
+
+   Messages related specifically to replica set heartbeats. To specify
+   the log level for :data:`REPL_HB` components, set the
+   :setting:`systemLog.component.replication.heartbeats.verbosity`
+   parameter.
+
+   :data:`REPL` is the parent component of :data:`REPL_HB`. If
+   :setting:`systemLog.component.replication.heartbeats.verbosity` is
+   unset, MongoDB uses the :data:`REPL` verbosity level for
+   :data:`REPL_HB` components.
+
+.. data:: ROLLBACK
+
+   Messages related to :ref:`rollback<replica-set-rollbacks>` operations. To specify the log level for
+   :data:`ROLLBACK` components, set the
+   :setting:`systemLog.component.replication.rollback.verbosity`
+   parameter.
+
+   :data:`REPL` is the parent component of :data:`ROLLBACK`. If
+   :setting:`systemLog.component.replication.rollback.verbosity` is
+   unset, MongoDB uses the :data:`REPL` verbosity level for
+   :data:`ROLLBACK` components.
+
+.. data:: SHARDING
+
+   Messages related to sharding activities, such as the startup of
+   the :binary:`~bin.mongos`. To specify the log level for :data:`SHARDING`
+   components, use the
+   :setting:`systemLog.component.sharding.verbosity` setting.
+
+.. data:: STORAGE
+
+   Messages related to storage activities, such as processes involved
+   in the :dbcommand:`fsync` command. To specify the log level for
+   :data:`STORAGE` components, use the
+   :setting:`systemLog.component.storage.verbosity` setting.
+
+.. data:: RECOVERY
+
+   Messages related to recovery activities. To specify the log level for
+   :data:`RECOVERY` components, use the
+   :setting:`systemLog.component.storage.recovery.verbosity` setting.
+
+.. data:: JOURNAL
+
+   Messages related specifically to journaling activities. To specify
+   the log level for :data:`JOURNAL` components, use the
+   :setting:`systemLog.component.storage.journal.verbosity` setting.
+
+   :data:`STORAGE` is the parent component of :data:`JOURNAL`. If
+   :setting:`systemLog.component.storage.journal.verbosity` is
+   unset, MongoDB uses the :data:`STORAGE` verbosity level for
+   :data:`JOURNAL` components.
+
+.. data:: TXN
+
+   Messages related to :doc:`multi-document transactions
+   </core/transactions>`. To specify the log level for :data:`TXN`
+   components, use the
+   :setting:`systemLog.component.transaction.verbosity` setting.
+
+.. data:: WRITE
+
+   Messages related to write operations, such as :dbcommand:`update`
+   commands. To specify the log level for :data:`WRITE` components,
+   use the :setting:`systemLog.component.write.verbosity` setting.
+
+.. data:: -
+
+   Messages not associated with a named component. Unnamed components
+   have the default log level specified in the
+   :setting:`systemLog.verbosity` setting. The
+   :setting:`systemLog.verbosity` setting is the default setting for
+   both named and unnamed components.
+
+.. _log-message-verbosity-levels:
+
+Verbosity Levels
+----------------
+
+View Current Log Verbosity Level
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To view the current verbosity levels, use the
+:method:`db.getLogComponents()` method.
+
+.. _log-messages-configure-verbosity:
+
+Configure Log Verbosity Levels
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can configure the verbosity level using: the
+:setting:`systemLog.verbosity` and
+``systemLog.component.<name>.verbosity`` settings, the
+:parameter:`logComponentVerbosity` parameter; the
+:method:`db.setLogLevel()` method. [#slow-oplogs]_
+
+``systemLog`` Verbosity Settings
+````````````````````````````````
+
+To configure the default log level for all components, use the
+:setting:`systemLog.verbosity` setting. To configure the level of
+specific components, use the ``systemLog.component.<name>.verbosity``
+settings.
+
+For example, the following configuration sets the
+:setting:`systemLog.verbosity` to ``1``, the
+:setting:`systemLog.component.query.verbosity` to ``2``, the
+:setting:`systemLog.component.storage.verbosity` to ``2``, and the
+:setting:`systemLog.component.storage.journal.verbosity` to ``1``:
+
+.. code-block:: javascript
+
+   systemLog:
+      verbosity: 1
+      component:
+         query:
+            verbosity: 2
+         storage:
+            verbosity: 2
+            journal:
+               verbosity: 1
+
+All components not specified in the configuration have the
+:setting:`systemLog.verbosity` of ``1``.
+
+``logComponentVerbosity`` Parameter
+```````````````````````````````````
+
+To set the :parameter:`logComponentVerbosity` parameter, pass a
+document with the verbosity settings to change.
+
+For example, the following sets the :setting:`default verbosity level
+<systemLog.verbosity>` to ``1``, the :setting:`query
+<systemLog.component.query.verbosity>` to ``2``, the :setting:`storage
+<systemLog.component.storage.verbosity>` to ``2``, and the
+:setting:`storage.journal
+<systemLog.component.storage.journal.verbosity>` to ``1``.
+
+.. code-block:: javascript
+
+   db.adminCommand( {
+      setParameter: 1,
+      logComponentVerbosity: {
+         verbosity: 1,
+         query: {
+            verbosity: 2
+         },
+         storage: {
+            verbosity: 2,
+            journal: {
+               verbosity: 1
+            }
+         }
+      }
+   } )
+
+``db.setLogLevel()``
+````````````````````
+
+Use the :method:`db.setLogLevel()` method to update a single component
+log level. For a component, you can specify verbosity level of ``0`` to
+``5``, or you can specify ``-1`` to inherit the verbosity of the
+parent. For example, the following sets the
+:setting:`systemLog.component.query.verbosity` to its parent verbosity
+(i.e. default verbosity):
+
+.. code-block:: javascript
+
+   db.setLogLevel(-1, "query")
+
+.. [#slow-oplogs]
+
+   .. include:: /includes/extracts/4.2-changes-slow-oplog-log-message-footnote.rst
+
+.. _log-message-log-redaction:
+
+Log Redaction 
+-------------
+
+.. include:: /includes/fact-log-redaction.rst

@@ -1,0 +1,212 @@
+.. index:: index; compound
+.. index:: compound index
+.. _index-type-compound:
+
+================
+Compound Indexes
+================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+MongoDB supports *compound indexes*, where a single index structure
+holds references to multiple fields [#compound-index-field-limit]_
+within a collection's documents. The following diagram illustrates an
+example of a compound index on two fields:
+
+.. include:: /images/index-compound-key.rst
+
+.. [#compound-index-field-limit]
+   MongoDB imposes a :limit:`limit of 32 fields for any compound index
+   <Number of Indexed Fields in a Compound Index>`.
+
+Compound indexes can support queries that match on multiple fields.
+
+Create a Compound Index
+-----------------------
+
+To create a :ref:`compound index <index-type-compound>` use an
+operation that resembles the following prototype:
+
+.. code-block:: javascript
+
+   db.collection.createIndex( { <field1>: <type>, <field2>: <type2>, ... } )
+
+.. include:: /includes/fact-index-specification-field-value.rst
+
+.. important:: 
+
+   In MongoDB 4.2 or earlier: 
+   
+   - Compound indexes may **not** contain a :doc:`hashed index field 
+     </core/index-hashed>`. 
+   - You will receive an error if you attempt to create a compound index
+     that contains a :doc:`hashed index field </core/index-hashed>`.
+
+Consider a collection named ``products`` that holds documents that
+resemble the following document:
+
+.. code-block:: javascript
+
+   {
+    "_id": ObjectId(...),
+    "item": "Banana",
+    "category": ["food", "produce", "grocery"],
+    "location": "4th Street Store",
+    "stock": 4,
+    "type": "cases"
+   }
+
+The following operation creates an ascending index on the ``item`` and
+``stock`` fields:
+
+.. code-block:: javascript
+
+   db.products.createIndex( { "item": 1, "stock": 1 } )
+
+The order of the fields listed in a compound index is important. The
+index will contain references to documents sorted first by the values
+of the ``item`` field and, within each value of the ``item`` field, sorted by
+values of the stock field. See :ref:`index-ascending-and-descending`
+for more information.
+
+In addition to supporting queries that match on all the index fields,
+compound indexes can support queries that match on the prefix of the
+index fields. That is, the index supports queries on the ``item`` field
+as well as both ``item`` and ``stock`` fields:
+
+.. code-block:: javascript
+
+   db.products.find( { item: "Banana" } )
+   db.products.find( { item: "Banana", stock: { $gt: 5 } } )
+
+For details, see :ref:`compound-index-prefix`.
+
+.. index:: index; sort order
+
+The order of the indexed fields has a strong impact on the
+effectiveness of a particular index for a given query. For most
+compound indexes, following the :ref:`ESR (Equality, Sort, Range) rule
+<esr-indexing-rule>` helps to create efficient indexes.
+
+.. _index-ascending-and-descending:
+
+Sort Order
+----------
+
+Indexes store references to fields in either ascending (``1``) or
+descending (``-1``) sort order. For single-field indexes, the sort
+order of keys doesn't matter because MongoDB can traverse the index in
+either direction. However, for :ref:`compound indexes
+<index-type-compound>`, sort order can matter in determining whether
+the index can support a sort operation.
+
+Consider a collection ``events`` that contains documents with the
+fields ``username`` and ``date``. Applications can issue queries that
+return results sorted first by ascending ``username`` values and then
+by descending (i.e. more recent to last) ``date`` values, such as:
+
+.. code-block:: javascript
+
+   db.events.find().sort( { username: 1, date: -1 } )
+
+or queries that return results sorted first by descending ``username``
+values and then by ascending ``date`` values, such as:
+
+.. code-block:: javascript
+
+   db.events.find().sort( { username: -1, date: 1 } )
+
+The following index can support both these sort operations:
+
+.. code-block:: javascript
+
+   db.events.createIndex( { "username" : 1, "date" : -1 } )
+
+However, the above index **cannot** support sorting by ascending
+``username`` values and then by ascending ``date`` values, such as the
+following:
+
+.. code-block:: javascript
+
+   db.events.find().sort( { username: 1, date: 1 } )
+
+For more information on sort order and compound indexes, see
+:doc:`/tutorial/sort-results-with-indexes`.
+
+.. _compound-index-prefix:
+
+Prefixes
+--------
+
+Index prefixes are the *beginning* subsets of indexed fields. For
+example, consider the following compound index:
+
+.. code-block:: javascript
+
+   { "item": 1, "location": 1, "stock": 1 }
+
+The index has the following index prefixes:
+
+- ``{ item: 1 }``
+
+- ``{ item: 1, location: 1 }``
+
+For a compound index, MongoDB can use the index to support queries on
+the index prefixes. As such, MongoDB can use the index for queries on
+the following fields:
+
+- the ``item`` field,
+- the ``item`` field *and* the ``location`` field,
+- the ``item`` field *and* the ``location`` field *and* the ``stock`` field.
+
+MongoDB can also use the index to support a query on the ``item`` and
+``stock`` fields, since the ``item`` field corresponds to a prefix.
+However, in this case the index would not be as efficient in supporting
+the query as it would be if the index were on only ``item`` and
+``stock``. Index fields are parsed in order; if a query omits a
+particular index prefix, it is unable to make use of any index fields
+that follow that prefix.
+
+Since a query on ``item`` and ``stock`` omits the ``location`` index
+prefix, it cannot use the ``stock`` index field which follows
+``location``.  Only the ``item`` field in the index can support this
+query. See :ref:`create-indexes-to-support-queries` for
+more information.
+
+MongoDB cannot use the index to support queries that include the
+following fields since without the ``item`` field, none of the listed
+fields correspond to a prefix index:
+
+- the ``location`` field,
+
+- the ``stock`` field, or
+
+- the ``location`` and ``stock`` fields.
+
+If you have a collection that has both a compound index and an index on
+its prefix (e.g. ``{ a: 1, b: 1 }`` and ``{ a: 1 }``), if neither index
+has a sparse or unique constraint, then you can remove the index on the
+prefix (e.g. ``{ a: 1 }``). MongoDB will use the compound index in all
+of the situations that it would have used the prefix index.
+
+Index Intersection
+------------------
+
+.. include:: /includes/fact-index-intersection-vs-compound-indexes.rst
+
+Sparse Compound Indexes
+-----------------------
+
+.. include:: /includes/indexes/sparse-compound-indexes.rst
+
+
+Additional Considerations
+-------------------------
+
+.. include:: /includes/index-tutorials-considerations.rst

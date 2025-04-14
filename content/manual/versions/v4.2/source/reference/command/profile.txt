@@ -1,0 +1,137 @@
+=======
+profile
+=======
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: profile
+
+   .. versionchanged:: 4.2.12
+
+      The command can be run on :binary:`~bin.mongos` with ``profile``
+      level:
+
+      - ``0`` to set the ``slowms`` and ``sampleRate`` for the system
+        log; i.e. you cannot enable the profiler on a
+        :binary:`~bin.mongos`.
+
+      - ``-1`` to read the current settings.
+
+   For a :binary:`~bin.mongod` instance, the command enables, disables,
+   or configures the :doc:`/tutorial/manage-the-database-profiler`. The
+   profiler captures and records data on the performance of write
+   operations, cursors, and database commands on a running
+   :binary:`~bin.mongod` instance. If the profiler is disabled, the
+   command sets the ``slowms`` and ``sampleRate`` for logging slow
+   operations to the diagnostic log.
+   
+   For :binary:`~bin.mongos` instance, the command sets the ``slowms``
+   and ``sampleRate`` configuration settings, which configure how
+   operations get written to the diagnostic log.
+
+   The profiler is off by default.
+
+   .. include:: /includes/warning-profiler-performance.rst
+
+   .. include:: /includes/log-changes-to-database-profiler.rst
+
+   The :dbcommand:`profile` command has the following syntax:
+
+   .. code-block:: javascript
+
+      {
+        profile: <level>,
+        slowms: <threshold>,
+        sampleRate: <rate>
+      }
+
+   .. _slowms-threshold-option:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``profile``
+   
+        - int
+   
+        - Configures the profiler level.
+          The following profiler levels are available:
+          
+          .. include:: /includes/database-profiler-levels.rst
+          
+          Since profiling is not available on :binary:`~bin.mongos`, the
+          :dbcommand:`profile` command cannot be used to set the profiling
+          level to a value other than ``0`` on a :binary:`~bin.mongos` instance.
+          
+          
+   
+      * - ``slowms``
+   
+        - int
+   
+        - Optional. Default: 100
+          
+          .. include:: /includes/dbcommand-slowms-definition.rst
+          
+          .. note::
+             This argument affects the same setting as the configuration option
+             :setting:`~operationProfiling.slowOpThresholdMs`.
+          
+          
+   
+      * - ``sampleRate``
+   
+        - double
+   
+        - Optional. Default: 1.0
+          
+          | The fraction of *slow* operations that should be profiled or logged.
+          | ``sampleRate`` accepts values between 0 and 1, inclusive.
+          
+          .. note::
+          
+             This argument affects the same setting as the configuration option
+             :setting:`~operationProfiling.slowOpSampleRate` and does not
+             affect the :ref:`slow oplog entry log messages on secondaries
+             (available starting in MongoDB 4.2) <slow-oplog>`.
+          
+          .. versionadded:: 3.6
+          
+          
+   
+
+
+The :method:`db.getProfilingStatus()` and
+:method:`db.setProfilingLevel()` :doc:`shell methods
+</reference/method>` provide wrappers around the :dbcommand:`profile`
+command.
+
+.. |binary| replace:: :binary:`~bin.mongod` or :binary:`~bin.mongos`
+
+Behavior
+--------
+
+The :dbcommand:`profile` command obtains a write lock on the affected
+database while enabling or disabling the profiler. This is typically a
+short operation. The lock blocks other operations until the
+:dbcommand:`profile` command has completed.
+
+.. seealso::
+   :ref:`Database Profiling <database-profiling>`.

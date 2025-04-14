@@ -1,0 +1,150 @@
+======================
+$unset (aggregation)
+======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. topic:: Disambiguation
+
+   The following page refers to the aggregation stage
+   :pipeline:`$unset`. For the update operator :update:`$unset`, see
+   :update:`$unset`.
+
+.. pipeline:: $unset
+
+   .. versionadded:: 4.2
+
+   Removes/excludes fields from documents.
+
+Syntax
+------
+
+The :pipeline:`$unset` stage has the following syntax:
+
+- To remove a single field, the :pipeline:`$unset` takes a string that
+  specifies the field to remove:
+
+  .. code-block:: javascript
+
+     { $unset: "<field>" }
+
+- To remove multiple fields, the :pipeline:`$unset` takes an array of
+  fields to remove.
+
+  .. code-block:: javascript
+
+    { $unset: [ "<field1>", "<field2>", ... ] }
+
+Considerations
+--------------
+
+``$unset`` and ``$project``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :pipeline:`$unset` is an alias for the :pipeline:`$project`
+stage that removes/excludes fields:
+
+.. code-block:: javascript
+
+   { $project: { "<field1>": 0, "<field2>": 0, ... } }
+
+Embedded Fields
+~~~~~~~~~~~~~~~
+
+To remove/exclude a field or fields within an embedded document, you
+can use the :term:`dot notation`, as in:
+
+.. code-block:: javascript
+
+   { $unset: "<field.nestedfield>" }
+
+or
+
+.. code-block:: javascript
+
+   { $unset: [ "<field1.nestedfield>", ...] }
+
+
+Examples
+--------
+
+Create a sample ``books`` collection with the following documents:
+
+.. code-block:: javascript
+
+   db.books.insertMany([
+      { "_id" : 1, title: "Antelope Antics", isbn: "0001122223334", author: { last:"An", first: "Auntie" }, copies: [ { warehouse: "A", qty: 5 }, { warehouse: "B", qty: 15 } ] },
+      { "_id" : 2, title: "Bees Babble", isbn: "999999999333", author: { last:"Bumble", first: "Bee" }, copies: [ { warehouse: "A", qty: 2 }, { warehouse: "B", qty: 5 } ] }
+   ])
+
+Remove a Single Field
+~~~~~~~~~~~~~~~~~~~~~
+
+The following example removes the top-level field ``copies``:
+
+.. code-block:: javascript
+
+   db.books.aggregate([ { $unset: "copies" } ])
+
+Alternatively, you can also use the following syntax:
+
+.. code-block:: javascript
+
+   db.books.aggregate([ { $unset: [ "copies" ] } ])
+
+Either operation returns the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "title" : "Antelope Antics", "isbn" : "0001122223334", "author" : { "last" : "An", "first" : "Auntie" } }
+   { "_id" : 2, "title" : "Bees Babble", "isbn" : "999999999333", "author" : { "last" : "Bumble", "first" : "Bee" } }
+
+Remove Top-Level Fields
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example removes the top-level fields ``isbn`` and
+``copies``:
+
+.. code-block:: javascript
+
+   db.books.aggregate([
+      { $unset: [ "isbn", "copies" ] }
+   ])
+
+The :pipeline:`$unset` operation outputs the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "title" : "Antelope Antics", "author" : { "last" : "An", "first" : "Auntie" } }
+   { "_id" : 2, "title" : "Bees Babble", "author" : { "last" : "Bumble", "first" : "Bee" } }
+
+
+Remove Embedded Fields
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example removes the top-level field ``isbn``, the
+embedded field ``first`` (from the ``name`` document) and the embedded field
+``warehouse`` (from the elements in the ``copies`` array):
+
+.. code-block:: javascript
+
+   db.books.aggregate([
+      { $unset: [ "isbn", "author.first", "copies.warehouse" ] }
+   ])
+
+The :pipeline:`$unset` operation outputs the following documents:
+ 
+.. code-block:: javascript
+
+   { "_id" : 1, "title" : "Antelope Antics", "author" : { "last" : "An" }, "copies" : [ { "qty" : 5 }, { "qty" : 15 } ] }
+   { "_id" : 2, "title" : "Bees Babble", "author" : { "last" : "Bumble" }, "copies" : [ { "qty" : 2 }, { "qty" : 5 } ] }
+

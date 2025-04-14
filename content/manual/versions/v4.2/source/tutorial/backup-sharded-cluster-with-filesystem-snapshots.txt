@@ -1,0 +1,86 @@
+.. _backup-sharded-lvm:
+
+====================================================
+Back Up a Sharded Cluster with File System Snapshots
+====================================================
+
+.. default-domain:: mongodb
+
+.. role:: red(strong)
+   :class: text-danger
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+
+Overview
+--------
+
+This document describes a procedure for taking a backup of all
+components of a :term:`sharded cluster`. This procedure uses file system
+snapshots to capture a copy of the :binary:`~bin.mongod` instance.
+
+.. include:: /includes/note-shard-cluster-backup.rst
+
+For more information on backups in MongoDB and backups of sharded
+clusters in particular, see :doc:`/core/backups` and
+:doc:`/administration/backup-sharded-clusters`.
+
+Considerations
+--------------
+
+Transactions Across Shards
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/sharded-clusters-backup-restore-file-system-snapshot-restriction.rst
+
+Encrypted Storage Engine (MongoDB Enterprise Only)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-aes256-backups.rst
+   
+Balancer
+~~~~~~~~
+
+It is *essential* that you stop the :ref:`balancer
+<sharding-internals-balancing>` before capturing a backup.
+
+If the balancer is active while you capture backups, the backup
+artifacts may be incomplete and/or have duplicate data, as :term:`chunks
+<chunk>` may migrate while recording backups.
+
+Precision
+~~~~~~~~~
+
+In this procedure, you will stop the cluster balancer and take a backup
+up of the :term:`config database`, and then take backups of each
+shard in the cluster using a file-system snapshot tool. If you need an
+exact moment-in-time snapshot of the system, you will need to stop all
+application writes before taking the file system snapshots; otherwise
+the snapshot will only approximate a moment in time.
+
+For approximate point-in-time snapshots, you can minimize the impact on
+the cluster by taking the backup from a secondary member of each
+replica set shard.
+
+Consistency
+~~~~~~~~~~~
+
+If the journal and data files are on the same logical volume, you can
+use a single point-in-time snapshot to capture a consistent copy of the
+data files.
+
+If the journal and data files are on different file systems, you must
+use :method:`db.fsyncLock()` and :method:`db.fsyncUnlock()` to ensure
+that the data files do not change, providing consistency for the
+purposes of creating backups.
+
+.. include:: /includes/fact-backup-snapshots-with-ebs-in-raid10.rst
+
+Procedure
+---------
+
+.. include:: /includes/steps/backup-sharded-cluster-with-snapshots.rst

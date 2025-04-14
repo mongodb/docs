@@ -1,0 +1,189 @@
+============================================
+Production Considerations (Sharded Clusters)
+============================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+Starting in version 4.2, MongoDB provides the ability to perform
+multi-document transactions for sharded clusters.
+
+The following page lists concerns specific to running transactions on a
+sharded cluster. These concerns are in addition to those listed in
+:doc:`/core/transactions-production-consideration`.
+
+Sharded Transactions and MongoDB Drivers
+----------------------------------------
+
+*For transactions on MongoDB 4.2 deployments (replica sets and sharded
+clusters)*, clients :red:`must` use MongoDB drivers updated for MongoDB
+4.2.
+
+On sharded clusters with multiple :binary:`~bin.mongos` instances,
+performing transactions with drivers updated for MongoDB 4.0 (instead
+of MongoDB 4.2) will fail and can result in errors, including:
+
+.. note::
+
+   Your driver may return a different error. Refer to your driver's
+   documentation for details.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Error Code
+     - Error Message
+
+   * - 251
+     - ``cannot continue txnId -1 for session ... with txnId 1``
+
+   * - 50940
+     - ``cannot commit with no participants``
+
+Performance
+-----------
+
+Single Shard
+~~~~~~~~~~~~
+
+Transactions that target a single shard should have the same
+performance as replica-set transactions.
+
+Multiple Shards
+~~~~~~~~~~~~~~~
+
+Transactions that affect multiple shards incur a greater performance
+cost.
+
+.. note::
+
+   On a sharded cluster, transactions that span multiple shards will
+   error and abort if any involved shard contains an arbiter.
+
+.. _transactions-sharded-clusters-time-limit:
+
+Time Limit
+~~~~~~~~~~
+
+To specify a time limit, specify a ``maxTimeMS`` limit on
+``commitTransaction``. 
+
+If ``maxTimeMS`` is unspecified, MongoDB will use the
+:parameter:`transactionLifetimeLimitSeconds`.
+
+If ``maxTimeMS`` is specified but would result in transaction that
+exceeds :parameter:`transactionLifetimeLimitSeconds`, MongoDB will use
+the :parameter:`transactionLifetimeLimitSeconds`.
+
+To modify :parameter:`transactionLifetimeLimitSeconds` for a sharded
+cluster, the parameter must be modified for all shard replica set
+members.
+
+Read Concerns
+-------------
+
+Multi-document transactions support :readconcern:`"local"`,
+:readconcern:`"majority"`, and :readconcern:`"snapshot"` read concern
+levels.
+
+For transactions on a sharded cluster, only the
+:readconcern:`"snapshot"` read concern provides a consistent snapshot
+across multiple shards.
+
+For more information on read concern and transactions, see
+:ref:`transactions-read-concern`.
+
+Write Concerns
+--------------
+
+.. include:: /includes/extracts/transactions-shards-wcmajority-disabled.rst
+
+.. note::
+
+   .. include:: /includes/extracts/transactions-sharded-clusters-commit-writeconcern.rst
+
+Arbiters
+--------
+
+.. include:: /includes/extracts/transactions-arbiters.rst
+
+.. |disabledrcmaj| replace:: :ref:`transactions-sharded-clusters-psa`
+
+.. _transactions-sharded-clusters-psa:
+
+Three Member Primary-Secondary-Arbiter Shards
+---------------------------------------------
+
+For a sharded cluster with three-member PSA shards, you may have
+:ref:`disabled read concern "majority" <disable-read-concern-majority>`
+(i.e. :option:`--enableMajorityReadConcern false <mongod
+--enableMajorityReadConcern>` or
+:setting:`replication.enableMajorityReadConcern: false
+<replication.enableMajorityReadConcern>`) to avoid cache pressure.
+
+.. include:: /includes/extracts/transactions-read-concern-majority-sharded-clusters.rst
+
+To check if read concern "majority" is disabled, 
+   You can run :method:`db.serverStatus()` and check the
+   :serverstatus:`storageEngine.supportsCommittedReads` field. If
+   ``false``, read concern "majority" is disabled.
+
+Backups and Restores
+--------------------
+
+.. warning::
+
+   .. include:: /includes/extracts/sharded-clusters-backup-restore-mongodump-mongorestore-restriction.rst
+
+Chunk Migrations
+----------------
+
+.. include:: /includes/extracts/transactions-chunk-migration.rst
+
+.. seealso:: :serverstatus:`shardingStatistics.countDonorMoveChunkLockTimeout`
+
+Outside Reads During Commit
+---------------------------
+
+.. include:: /includes/extracts/transactions-multi-shard-block-external-reads.rst
+
+.. seealso:: :ref:`transactions-atomicity`
+
+Interaction with Replicated Index Builds
+----------------------------------------
+
+For :ref:`replicated index builds <index-operations-replicated-build>`
+on a collection (as opposed to a :ref:`rolling index build
+<index-build-on-replica-sets>`), once an index build issued against the
+primary replica set member completes, the secondary members apply the
+associated oplog entry and start the index build. While building the
+index, the secondary waits to apply any later oplog entries, including a
+distributed transaction that commits during the build. If replication
+stalls for longer than the :ref:`oplog window
+<replica-set-oplog-sizing>`, the secondary falls out of sync and
+requires :ref:`resynchronization <replica-set-initial-sync>` to recover.
+
+To minimize potential interactions between sharded transactions and
+indexes, consider one of the following strategies for building indexes
+on sharded clusters:
+
+- Build indexes during a maintenance window in which applications cease
+  issuing distributed transactions against the collections being indexed. 
+
+- Build indexes using a rolling index build procedure as described in 
+  :doc:`/tutorial/build-indexes-on-sharded-clusters`.
+
+- Increase the :doc:`oplog size </tutorial/change-oplog-size>` on each
+  replica set member to mitigate the likelihood of falling out of
+  sync due to replicated index builds. 
+
+Additional Information
+----------------------
+
+See also :doc:`/core/transactions-production-consideration`.

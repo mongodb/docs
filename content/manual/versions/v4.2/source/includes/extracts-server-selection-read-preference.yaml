@@ -1,0 +1,86 @@
+ref: _server-selection-read-preference
+content: |
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+
+      * - Read Preference
+        - Selection Process
+
+      * - :readmode:`primary` (Default)
+
+        - #. The {{actor}} selects the primary.
+
+      * - :readmode:`secondary`
+
+        - #. The {{actor}} assembles a list of eligible secondary members.
+             :ref:`maxStalenessSeconds
+             <replica-set-read-preference-max-staleness>` and :doc:`tag
+             sets </tutorial/configure-replica-set-tag-sets>` can further
+             restrict the eligibility of the members.
+
+          #. If the list of eligible members is not empty, the {{actor}}
+             determines which eligible member is the "closest" (i.e. the
+             member with the lowest average network round-trip-time) and
+             calculates a latency window by adding the average
+             round-trip-time of this "closest" server and the
+             {{threshold}}. The  {{actor}} uses this latency window to
+             pare down the list of eligible members to those members that
+             fall within this window.
+
+          #. From this list of eligible members that fall within the
+             latency window, the  {{actor}} randomly chooses an eligible member.
+
+      * - :readmode:`nearest`
+
+        - #. The {{actor}} assembles a list of eligible members (primary and
+             secondaries). :ref:`maxStalenessSeconds
+             <replica-set-read-preference-max-staleness>` and :doc:`tag sets
+             </tutorial/configure-replica-set-tag-sets>`
+             can further limit the
+             eligibility of the members.
+
+          #. If the list of eligible members is not empty, the {{actor}}
+             determines which eligible member is the "closest" (i.e. the
+             member with the lowest average network round-trip-time) and
+             calculates a latency window by adding the average
+             round-trip-time of this "closest" server and the
+             {{threshold}} [#default-threshold]_. The {{actor}} uses
+             this latency window to pare down the list of eligible members
+             to those members that fall within this window.
+
+          #. From this list of eligible members that fall within the
+             latency window, the {{actor}} randomly chooses an eligible member.
+
+
+      * - :readmode:`primaryPreferred`
+
+        - #. If the primary is available, {{actor}} selects the primary.
+
+          #. Otherwise, server selection follows the process for the read
+             preference ``secondary``.
+
+      * - :readmode:`secondaryPreferred`
+
+        - #. Following the server selection process for the read
+             preference ``secondary``, if a list of eligible secondary
+             members is non-empty, {{actor}} chooses an eligible secondary member.
+
+          #. Otherwise, if the list is empty, {{actor}} selects the primary.
+---
+ref: server-selection-read-preference-replica-sets
+source: 
+   file: extracts-server-selection-read-preference.yaml
+   ref: _server-selection-read-preference
+replacement:
+   actor: "driver"
+   threshold: "``localThresholdMS``"
+---
+ref: server-selection-read-preference-sharded-clusters
+source: 
+   file: extracts-server-selection-read-preference.yaml
+   ref: _server-selection-read-preference
+replacement:
+   actor: ":binary:`~bin.mongos`"
+   threshold: ":setting:`replication.localPingThresholdMs` (or :option:`--localThreshold <mongos --localThreshold>` command line option)"
+...

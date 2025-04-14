@@ -1,0 +1,153 @@
+ref: concurrent-operations-read-uncommitted
+content: |
+
+  Depending on the read concern, clients can see the results of writes
+  before the writes are :term:`durable`:
+
+  .. include:: /includes/list-visibility-of-data.rst
+
+---
+ref: concurrent-operations-single-document-write
+content: |
+   Write operations are atomic with respect to a single document; i.e.
+   if a write is updating multiple fields in the document, a read operation
+   will never see the document with only some of the fields updated.
+   However, although a client may not see a *partially* updated
+   document, read uncommitted means that concurrent read operations may still
+   see the updated document before the changes are made :term:`durable`.
+
+   With a standalone :binary:`~bin.mongod` instance, a set of read and write
+   operations to a single document is serializable. With a replica set,
+   a set of read and write operations to a single document is serializable
+   *only* in the absence of a rollback.
+
+---
+ref: concurrent-operations-multi-document-writes
+content: |
+
+   When a single write operation (e.g.
+   :method:`db.collection.updateMany()`) modifies multiple documents,
+   the modification of each document is atomic, but the operation as a
+   whole is not atomic.
+
+   When performing multi-document write operations, whether through a
+   single write operation or multiple write operations, other
+   operations may interleave.
+
+   .. include:: /includes/extracts/transactions-intro-blurb.rst
+
+---
+ref: concurrent-operations-multi-document-writes-no-isolation
+content: |
+
+   #. Non-point-in-time read operations. Suppose a read operation
+      begins at time *t*\ :sub:`1` and starts reading documents. A
+      write operation then commits an update to one of the documents at
+      some later time *t*\ :sub:`2`. The reader may see the updated
+      version of the document, and therefore does not see a
+      point-in-time snapshot of the data.
+
+   #. Non-serializable operations. Suppose a read operation reads a
+      document *d*\ :sub:`1` at time *t*\ :sub:`1` and a write
+      operation updates *d*\ :sub:`1` at some later time *t*\ :sub:`3`.
+      This introduces a read-write dependency such that, if the
+      operations were to be serialized, the read operation must precede
+      the write operation. But also suppose that the write operation
+      updates document *d*\ :sub:`2` at time *t*\ :sub:`2` and the read
+      operation subsequently reads *d*\ :sub:`2` at some later time
+      *t*\ :sub:`4`. This introduces a write-read dependency which
+      would instead require the read operation to come *after* the
+      write operation in a serializable schedule. There is a dependency
+      cycle which makes serializability impossible.
+
+   #. Reads may miss matching documents that are updated during the
+      course of the read operation.
+---
+ref: monotonic-writes
+content: |
+
+   MongoDB provides monotonic write guarantees, by default, for
+   standalone :binary:`~bin.mongod` instances and replica set.
+
+   For monotonic writes and sharded clusters, see
+   :ref:`causal-consistency`.
+
+---
+ref: isolate-cursor-snapshot
+content: |
+
+   MongoDB cursors can return the same document more than once in some
+   situations. As a cursor returns documents, other operations may
+   interleave with the query. If one of these operations changes the
+   indexed field on the index used by the query, then the cursor could
+   return the same document more than once.
+
+   Queries that use :ref:`unique indexes <index-type-unique>` can, in
+   some cases, return duplicate values. If a cursor using a unique index
+   interleaves with a delete and insert of documents sharing the same
+   unique value, the cursor may return the same unique value twice from
+   different documents.
+
+---
+ref: lock-general
+content: |
+    MongoDB uses multi-granularity locking [#mgl-ref]_ that allows
+    operations to lock at the global, database or collection level, and
+    allows for individual storage engines to implement their own
+    concurrency control below the collection level (e.g., at the
+    document-level in WiredTiger).
+
+    MongoDB uses reader-writer locks that allow concurrent readers
+    shared access to a resource, such as a database or collection.
+---
+ref: lock-sharding
+content: |
+   In a sharded cluster, locks apply to each individual shard, not to
+   the whole cluster; i.e. each :binary:`~bin.mongod` instance is
+   independent of the others in the sharded cluster and uses its own
+   :ref:`locks <faq-concurrency-locking>`. The operations on one
+   :binary:`~bin.mongod` instance do not block the operations on any others.
+---
+ref: lock-replica-set-primary
+content: |
+   When writing to a :term:`replica set`, the lock's scope
+   applies to the :term:`primary`.
+---
+ref: no-journaling-writeConcernMajorityJournalDefault-false
+content: |
+   
+   If any voting member of a replica set uses the :ref:`in-memory
+   storage engine <storage-inmemory>`, you must set
+   :rsconf:`writeConcernMajorityJournalDefault` to ``false``.
+
+---
+ref: no-journaling-writeConcernMajorityJournalDefault-true
+content: |
+
+   .. include:: /includes/extracts/no-journaling-writeConcernMajorityJournalDefault-false.rst
+   
+   If any voting member of a replica set uses the :ref:`in-memory
+   storage engine <storage-inmemory>` and
+   :rsconf:`writeConcernMajorityJournalDefault` is ``true``,
+   :writeconcern:`"majority"` write operations may fail. These include
+   operations that inherently use :writeconcern:`"majority"` write
+   concern, such as the :dbcommand:`replSetStepDown` command, or
+   various :binary:`~bin.mongo` shell methods that by default use
+   :writeconcern:`"majority"` write concern, such as :doc:`user
+   management methods </reference/method/js-user-management/>` and
+   :doc:`role management methods
+   </reference/method/js-role-management>`.
+   
+   .. include:: /includes/extracts/4.2-changes-inmem-startup-warning.rst
+---
+ref: no-journaling-rollback
+content: |
+   
+   With :rsconf:`writeConcernMajorityJournalDefault` set to ``false``,
+   MongoDB does not wait for :writeconcern:`w: "majority" <"majority">`
+   writes to be written to the on-disk journal before acknowledging the
+   writes. As such, :writeconcern:`majority` write operations could
+   possibly roll back in the event of a transient loss (e.g. crash and
+   restart) of a majority of nodes in a given replica set.
+
+...

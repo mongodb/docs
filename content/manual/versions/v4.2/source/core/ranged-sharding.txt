@@ -1,0 +1,105 @@
+.. _sharding-ranged:
+
+===============
+Ranged Sharding
+===============
+
+.. default-domain:: mongodb
+
+Range-based sharding involves dividing data into contiguous ranges determined
+by the shard key values. In this model, documents with "close" shard key
+values are likely to be in the same :term:`chunk` or :term:`shard`. This
+allows for efficient queries where reads target documents within a contiguous
+range. However, both read and write performance may decrease with poor shard
+key selection. See :ref:`sharding-ranged-shard-key`.
+
+.. include:: /images/sharding-range-based.rst
+
+Range-based sharding is the default sharding methodology if no other options
+such as those required for :doc:`/core/hashed-sharding` or
+:ref:`zones <zone-sharding>` are configured.
+
+.. _sharding-ranged-shard-key:
+
+Shard Key Selection
+-------------------
+
+Ranged sharding is most efficient when the shard key displays the following
+traits:
+
+* Large :ref:`shard-key-range`
+* Low :ref:`shard-key-frequency`
+* Non-:ref:`shard-key-monotonic`
+
+
+The following image illustrates a sharded cluster using the field ``X`` as the
+shard key. If the values for ``X`` have a large range, low frequency, and
+change at a non-monotonic rate, the distribution of inserts may look similar
+to the following:
+
+.. include:: /images/sharded-cluster-ranged-distribution-good.rst
+
+Shard a Collection
+------------------
+
+Use the :method:`sh.shardCollection()` method, specifying the full namespace
+of the collection and the target :term:`index` or :term:`compound index`
+to use as the :term:`shard key`.
+
+.. code-block:: javascript
+
+   sh.shardCollection( "database.collection", { <shard key> } )
+
+.. important::
+
+   - Once you shard a collection, the selection of the shard key is
+     immutable; i.e. you cannot select a different shard key for that
+     collection.
+
+   - .. include:: /includes/limits-sharding-shardkey-document-immutable.rst
+
+Shard a Populated Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you shard a populated collection:
+
+- The sharding operation creates the initial chunk(s) to cover the
+  entire range of the shard key values. The number of chunks created
+  depends on the :ref:`configured chunk size <sharding-chunk-size>`.
+
+- After the initial chunk creation, the balancer migrates these initial
+  chunks across the shards as appropriate as well as manages the chunk
+  distribution going forward.
+
+Shard an Empty Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you shard an empty collection:
+
+- With no :doc:`zones and zone ranges </core/zone-sharding>` specified for the
+  empty or non-existing collection:
+
+  - The sharding operation creates a single empty chunk to cover the
+    entire range of the shard key values.
+
+  - After the initial chunk creation, the balancer migrates the initial
+    chunk across the shards as appropriate as well as manages the chunk
+    distribution going forward.
+
+- With :doc:`zones and zone ranges </core/zone-sharding>` specified for the
+  empty or a non-existing collection (Available starting in MongoDB
+  4.0.3),
+
+  - The sharding operation creates empty chunks for the defined zone
+    ranges as well as any additional chunks to cover the entire range
+    of the shard key values and performs an initial chunk distribution
+    based on the zone ranges. This initial creation and distribution of
+    chunks allows for faster setup of zoned sharding.
+
+  - After the initial distribution, the balancer manages the chunk
+    distribution going forward.
+
+.. seealso::
+
+   To learn how to deploy a sharded cluster and implement ranged
+   sharding, see :ref:`sharding-procedure-setup`.

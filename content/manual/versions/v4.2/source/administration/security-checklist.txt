@@ -1,0 +1,278 @@
+==================
+Security Checklist
+==================
+
+.. default-domain:: mongodb
+
+This document provides a list of security measures that you should
+implement to protect your MongoDB installation. The list is not meant
+to be exhaustive.
+
+Pre-production Checklist/Considerations
+---------------------------------------
+
+.. _checklist-auth:
+
+|arrow| Enable Access Control and Enforce Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 5 95
+
+   * -
+
+     - Enable access control and specify the authentication mechanism.
+       You can use MongoDB's SCRAM or x.509 authentication mechanism or
+       integrate with your existing Kerberos/LDAP infrastructure. Authentication
+       requires that all clients and servers provide valid credentials
+       before they can connect to the system.
+
+       See :doc:`/core/authentication` and
+       :doc:`/tutorial/enable-authentication`.
+
+.. _security-checklist-role-based-access-control:
+
+|arrow| Configure Role-Based Access Control
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 5 95
+
+   * -
+
+     - Create a user administrator **first**, then create additional
+       users. Create a unique MongoDB user for each person/application
+       that accesses the system.
+       
+       |
+
+       Follow the principle of least privilege. Create roles that define the
+       exact access rights required by a set of users. Then create
+       users and assign them only the roles they need to perform their
+       operations. A user can be a person or a client application.
+
+       .. tip::
+
+          A user can have privileges across different databases. If a
+          user requires privileges on multiple databases, create a
+          single user with roles that grant applicable database
+          privileges instead of creating the user multiple times in
+          different databases.
+
+       See :doc:`/core/authorization` and
+       :doc:`/tutorial/manage-users-and-roles`.
+
+|arrow| Encrypt Communication (TLS/SSL)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 5 95
+
+   * -
+
+     - Configure MongoDB to use TLS/SSL for all incoming and outgoing
+       connections. Use TLS/SSL to encrypt communication between
+       :binary:`~bin.mongod` and :binary:`~bin.mongos` components of a
+       MongoDB deployment as well as between all applications and
+       MongoDB.
+
+       .. include:: /includes/fact-tls-libraries.rst
+
+       .. note::
+
+          .. include:: /includes/fact-tls-1.0.rst
+
+       See :doc:`/tutorial/configure-ssl`.
+
+.. |binary| replace:: MongoDB
+
+|arrow| Encrypt and Protect Data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 5 95
+
+   * -
+
+     - Starting with MongoDB Enterprise 3.2, you can encrypt data in
+       the storage layer with the WiredTiger storage engine's native
+       :doc:`/core/security-encryption-at-rest`.
+
+   * -
+
+     - If you are not using WiredTiger's encryption at rest, MongoDB
+       data should be encrypted on each host using file-system, device,
+       or physical encryption (e.g. dm-crypt). Protect MongoDB data
+       using file-system permissions. MongoDB data includes data files,
+       configuration files, auditing logs, and key files.
+
+   * -
+
+     - Collect logs to a central log store. These logs contain DB
+       authentication attempts including source IP address.
+       
+       
+|arrow| Limit Network Exposure
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 5 95
+
+   * -
+
+     - Ensure that MongoDB runs in a trusted network environment and
+       configure firewall or security groups to control inbound and
+       outbound traffic for your MongoDB instances.
+      
+       Allow only trusted clients to access the network interfaces and
+       ports on which MongoDB instances are available. For instance,
+       use IP whitelisting to allow access from trusted IP addresses (see )
+
+       .. note::
+
+          .. include:: /includes/fact-default-bind-ip-change.rst
+
+       See:
+       
+       - :doc:`/core/security-hardening` 
+
+       - :setting:`net.bindIp` configuration setting
+       
+       - :setting:`security.clusterIpSourceWhitelist` configuration setting
+
+       - :ref:`authenticationRestrictions
+         <db-createUser-authenticationRestrictions>` to specify
+         per-user IP whitelist.
+
+   * -
+
+     - Disable direct SSH root access.
+
+
+|arrow| Audit System Activity
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 5 95
+
+   * -
+
+     - Track access and changes to database configurations and data.
+       `MongoDB Enterprise
+       <http://www.mongodb.com/products/mongodb-enterprise-advanced?tck=docs_server>`_ 
+       includes a system auditing facility that can record
+       system events (e.g. user operations, connection events) on a
+       MongoDB instance. These audit records permit forensic analysis
+       and allow administrators to verify proper controls. You can set
+       up filters to record specific events, such as authentication
+       events.
+
+       See :doc:`/core/auditing` and
+       :doc:`/tutorial/configure-auditing`.
+
+|arrow| Run MongoDB with a Dedicated User
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 5 95
+
+   * -
+
+     - Run MongoDB processes with a dedicated operating system user
+       account. Ensure that the account has permissions to access data
+       but no unnecessary permissions.
+
+       See :doc:`/installation` for more information on running MongoDB.
+
+|arrow| Run MongoDB with Secure Configuration Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 5 95
+
+   * -
+
+     - MongoDB supports the execution of JavaScript code for certain
+       server-side operations: :dbcommand:`mapReduce` and
+       :query:`$where`. If you do not use these operations, disable
+       server-side scripting by using the :option:`--noscripting
+       <mongod --noscripting>` option on the command line.
+
+   * -
+
+     - Keep input validation enabled. MongoDB enables input validation
+       by default through the :setting:`net.wireObjectCheck` setting.
+       This ensures that all documents stored by the
+       :binary:`~bin.mongod` instance are valid :term:`BSON`.
+
+|arrow| Request a Security Technical Implementation Guide (where applicable)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 5 95
+
+   * -
+
+     - The Security Technical Implementation Guide (STIG) contains
+       security guidelines for deployments within the United States
+       Department of Defense. MongoDB Inc. provides its STIG, upon
+       request, for situations where it is required. Please `request a
+       copy <http://www.mongodb.com/lp/contact/stig-requests>`_ for
+       more information.
+
+|arrow| Consider Security Standards Compliance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 5 95
+
+   * -
+
+     - For applications requiring HIPAA or PCI-DSS compliance, please
+       refer to the `MongoDB Security Reference Architecture
+       <https://www.mongodb.com/collateral/mongodb-security-architecture>`_
+       to learn more about how you can use the key security
+       capabilities to build compliant application infrastructure.
+
+
+Periodic/Ongoing Production Checks
+----------------------------------
+
+.. list-table::
+   :widths: 5 95
+
+   * -
+
+     - Periodically check for `MongoDB Product CVE
+       <https://www.mongodb.com/alerts>`_ and upgrade your products .
+
+   * -
+
+     - Consult the `MongoDB end of life dates
+       <https://www.mongodb.com/support-policy>`_ and upgrade your
+       MongoDB installation. In general, try to stay on the latest
+       version.
+
+   * -
+
+     - Ensure that your information security management system policies
+       and procedures extend to your MongoDB installation, including
+       performing the following:
+
+       - Periodically apply patches to your machine and review
+         guidelines.
+
+       - Review policy/procedure changes, especially changes to your
+         network rules to prevent inadvertent MongoDB exposure to the
+         Internet.
+
+       - Review MongoDB database users and periodically rotate them.
+
+Report Suspected Security Bugs
+------------------------------
+
+If you suspect that you have identified a security bug in any MongoDB products, 
+please report the issue through the MongoDB `Bug Submission Form 
+<https://www.mongodb.com/security>`_.
+
+.. |arrow| unicode:: U+27A4

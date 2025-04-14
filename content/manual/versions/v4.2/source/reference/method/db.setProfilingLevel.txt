@@ -1,0 +1,267 @@
+======================
+db.setProfilingLevel()
+======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. |binary| replace:: :binary:`~bin.mongod` or :binary:`~bin.mongos`
+
+Definition
+----------
+
+.. method:: db.setProfilingLevel(level, options)
+
+   The method configures :ref:`database profiler level
+   <set-profiling-level-level>`, the :ref:`slowms
+   <set-profiling-level-options-slowms>`, and the :ref:`sampleRate
+   <set-profiling-level-options-sampleRate>`.
+
+   If the :ref:`database profiler level <set-profiling-level-level>` is
+   ``1`` or ``2`` (specifically, the :doc:`database profiler
+   </tutorial/manage-the-database-profiler/>` is enabled), the
+   :ref:`slowms <set-profiling-level-options-slowms>` and the
+   :ref:`sampleRate <set-profiling-level-options-sampleRate>` affect
+   the behavior of both the profiler and the :option:`diagnostic log
+   <mongod --logpath>`.
+
+   If the :ref:`database profiler level <set-profiling-level-level>` is
+   ``0`` (specifically, :doc:`database profiler
+   </tutorial/manage-the-database-profiler/>` is disabled), the
+   :ref:`slowms <set-profiling-level-options-slowms>` and the
+   :ref:`sampleRate <set-profiling-level-options-sampleRate>` affect
+   only the diagnostic log.
+
+   Although profiling is unavailable on :binary:`~bin.mongos` instance,
+   starting in MongoDB 4.0, you can run
+   :method:`db.setProfilingLevel()` on :binary:`~bin.mongos` to set the
+   :ref:`slowms <set-profiling-level-options-slowms>` and
+   :ref:`sampleRate <set-profiling-level-options-sampleRate>` for the
+   diagnostic log. That is, for a :binary:`~bin.mongos` instance, you
+   must specify ``0`` for :ref:`level <set-profiling-level-level>`.
+
+   :method:`db.setProfilingLevel()` provides a wrapper around the
+   :dbcommand:`profile` command.
+
+   .. include:: /includes/log-changes-to-database-profiler.rst
+
+Syntax
+~~~~~~
+
+The :method:`db.setProfilingLevel()` method has the following form:
+
+.. code-block:: javascript
+
+   db.setProfilingLevel(<level>, <options>)
+
+Parameters
+~~~~~~~~~~
+
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Parameter
+
+     - Type
+
+     - Description
+
+   * - :ref:`level <set-profiling-level-level>`
+
+     - integer
+
+     - .. _set-profiling-level-level:
+
+       Configures the :doc:`database profiler
+       </tutorial/manage-the-database-profiler/>` level. The following
+       profiler levels are available:
+
+       .. include:: /includes/database-profiler-levels.rst
+
+       Because profiling is not available on :binary:`~bin.mongos`,
+       :method:`db.setProfilingLevel()` cannot be used to set the profiling
+       level to a value other than ``0`` on a :binary:`~bin.mongos` instance.
+
+   * - :ref:`options <set-profiling-level-options>`
+
+     - document or integer
+
+     - .. _set-profiling-level-options:
+
+       Optional. Accepts an integer or an options document. If an integer value is
+       passed as the ``options`` argument instead of a document, the value is
+       assigned to :ref:`slowms <set-profiling-level-options-slowms>`.
+       The following options are available:
+
+       .. list-table::
+          :stub-columns: 1
+          :widths: 15 85
+
+          * - :ref:`slowms <set-profiling-level-options-slowms>`
+
+            - .. _set-profiling-level-options-slowms:
+
+              | Default: 100
+              | Type: integer
+
+              .. include:: /includes/dbcommand-slowms-definition.rst
+
+              For :binary:`~bin.mongod` instances, the setting affects both the
+              diagnostic log and, if enabled, the profiler.
+
+              For :binary:`~bin.mongos` instances, the setting affects
+              the diagnostic log only and not the profiler because
+              profiling is not available on :binary:`~bin.mongos`.
+
+              .. note::
+                 This argument affects the same setting as the configuration
+                 file option :setting:`~operationProfiling.slowOpThresholdMs`.
+
+          * - :ref:`sampleRate <set-profiling-level-options-sampleRate>`
+
+            - .. _set-profiling-level-options-sampleRate:
+
+              | Default: 1.0
+              | Type: double
+
+              The fraction of *slow* operations that should be profiled or logged.
+              ``sampleRate`` accepts values between 0 and 1, inclusive.
+
+              For :binary:`~bin.mongod` instances, the setting affects both the
+              diagnostic log and, if enabled, the profiler.
+
+              For :binary:`~bin.mongos` instances, the setting affects
+              the diagnostic log only and not the profiler because
+              profiling is not available on :binary:`~bin.mongos`.
+
+              .. note::
+                 This argument affects the same setting as the configuration option
+                 :setting:`~operationProfiling.slowOpSampleRate`.
+
+Returns
+~~~~~~~
+
+The method returns a document that contains the **previous** values of
+the settings.
+
+.. tabs::
+
+   .. tab:: Standalone
+      :tabid: standalone
+
+      .. code-block:: javascript
+
+         { "was" : 0, "slowms" : 100, "sampleRate" : 1, "ok" : 1 }
+
+   .. tab:: Replica Set Member 
+      :tabid: repl-set
+
+      .. code-block:: javascript
+
+         {
+            "was" : 0,
+            "slowms" : 100,
+            "sampleRate" : 1,
+            "ok" : 1,
+            "$clusterTime" : {
+               "clusterTime" : Timestamp(1572991238, 1),
+               "signature" : {
+                  "hash" : BinData(0,"hg6GnlrVhV9MAhwWdeHmHQ4T4qU="),
+                  "keyId" : NumberLong("6755945537557495811")
+               }
+            },
+            "operationTime" : Timestamp(1572991238, 1)
+         }
+
+   .. tab:: mongos Instance
+      :tabid: mongos
+
+      .. code-block:: javascript
+
+         {
+            "was" : 0,
+            "slowms" : 100,
+            "sampleRate" : 1,
+            "ok" : 1,
+            "operationTime" : Timestamp(1572991499, 2),
+            "$clusterTime" : {
+               "clusterTime" : Timestamp(1572991499, 2),
+               "signature" : {
+                  "hash" : BinData(0,"nhCquIxUw7thlrBudXe3PnsnvP0="),
+                  "keyId" : NumberLong("6755946491040235540")
+               }
+            }
+         }
+
+Where:
+
+- ``was`` is the **previous** :ref:`level <set-profiling-level-level>`
+  setting.
+
+- ``slowms`` is the **previous** :ref:`slowms
+  <set-profiling-level-options-slowms>` setting.
+
+- ``sampleRate`` is the **previous** :ref:`sampleRate
+  <set-profiling-level-options-sampleRate>` setting.
+
+To view the current profiling level, see :method:`db.getProfilingStatus()`.
+
+Behavior
+--------
+
+.. include:: /includes/warning-profiler-performance.rst
+
+Examples
+--------
+
+Enable Profiler and Set Slow Operation Threshhold and Sample Rate
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example sets for a :binary:`~bin.mongod` instance:
+
+- the :ref:`profiling level <set-profiling-level-level>` to ``1``,
+
+- the slow operation threshold :ref:`slowms
+  <set-profiling-level-options-slowms>` to ``20`` milliseconds, and
+  
+- the :ref:`sampleRate <set-profiling-level-options-sampleRate>` to
+  ``0.42``.
+
+.. code-block:: javascript
+
+   db.setProfilingLevel(1, { slowms: 20, sampleRate: 0.42 })
+
+The method returns a document with the **previous** values for the
+settings.
+
+To view the current profiling level, see :method:`db.getProfilingStatus()`.
+
+Disable Profiler and Set Slow Operation Threshhold and Sample Rate
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example sets for a :binary:`~bin.mongod` or
+:binary:`~bin.mongos` instance:
+
+- the :ref:`profiling level <set-profiling-level-level>` to ``0``,
+
+- the slow operation threshold :ref:`slowms
+  <set-profiling-level-options-slowms>` to ``20`` milliseconds, and
+
+- the :ref:`sampleRate <set-profiling-level-options-sampleRate>` to
+  ``0.42``.
+
+.. code-block:: javascript
+
+   db.setProfilingLevel(0, { slowms: 20, sampleRate: 0.42 })
+
+The method returns a document with the **previous** values for the
+settings.
+
+To view the current profiling level, see :method:`db.getProfilingStatus()`.

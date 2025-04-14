@@ -1,0 +1,83 @@
+==================================
+Map-Reduce and Sharded Collections
+==================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Map-reduce supports operations on sharded collections, both as an input
+and as an output. This section describes the behaviors of
+:dbcommand:`mapReduce` specific to sharded collections.
+
+However, starting in version 4.2, MongoDB deprecates the map-reduce
+option to *create* a new sharded collection as well as the use of the
+``sharded`` option for map-reduce. To output to a sharded collection,
+create the sharded collection first. MongoDB 4.2 also deprecates the
+replacement of an existing sharded collection.
+
+.. _map-reduce-sharded-cluster:
+
+Sharded Collection as Input
+---------------------------
+
+When using sharded collection as the input for a map-reduce operation,
+:binary:`~bin.mongos` will automatically dispatch the map-reduce job to
+each shard in parallel. There is no special option
+required. :binary:`~bin.mongos` will wait for jobs on all shards to
+finish.
+
+Sharded Collection as Output
+----------------------------
+
+If the ``out`` field for :dbcommand:`mapReduce` has the ``sharded``
+value, MongoDB shards the output collection using the ``_id`` field as
+the shard key.
+
+.. note::
+
+   Starting in version 4.2, MongoDB deprecates the use of the
+   ``sharded`` option for
+   :dbcommand:`mapReduce`/:method:`db.collection.mapReduce`.
+   
+To output to a sharded collection:
+
+- If the output collection does not exist, create the sharded
+  collection first.
+
+  Starting in version 4.2, MongoDB deprecates the map-reduce option to
+  *create* a new sharded collection and the use of the ``sharded``
+  option for map-reduce. As such, to output to a sharded collection,
+  create the sharded collection first. 
+
+  If you did not create the sharded collection first, MongoDB creates
+  and shards the collection on the ``_id`` field. However, it is
+  recommended that you create the sharded collection first.
+
+- Starting in version 4.2, MongoDB deprecates the replacement of an
+  existing sharded collection.
+
+  
+- Starting in version 4.0, if the output collection already exists but
+  is not sharded, map-reduce fails.
+
+- For a new or an empty sharded collection, MongoDB uses the results of
+  the first stage of the map-reduce operation to create the initial
+  :term:`chunks <chunk>` distributed among the shards.
+
+- :binary:`~bin.mongos` dispatches, in parallel, a map-reduce
+  post-processing job to every shard that owns a chunk. During the
+  post-processing, each shard will pull the results
+  for its own chunks from the other shards, run the final
+  reduce/finalize, and write locally to the output collection.
+
+.. note::
+
+   - During later map-reduce jobs, MongoDB splits chunks as needed.
+
+   - Balancing of chunks for the output collection is automatically
+     prevented during post-processing to avoid concurrency issues.

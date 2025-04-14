@@ -1,0 +1,129 @@
+================
+sh.addTagRange()
+================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: sh.addTagRange(namespace, minimum, maximum, tag)
+
+   .. |method| replace:: :method:`sh.updateZoneKeyRange()`
+   
+   .. include:: /includes/fact-zone-sharding-alias.rst
+
+   Attaches a range of shard key values to a shard tag created using the
+   :method:`sh.addShardTag()` method. 
+
+   .. include:: /includes/extracts/zoned-sharding-updateZoneKeyRange-change.rst
+
+   :method:`sh.addTagRange()` takes
+   the following arguments:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``namespace``
+   
+        - string
+   
+        - The :term:`namespace` of the sharded collection to tag.
+          
+          
+   
+      * - ``minimum``
+   
+        - document
+   
+        - The minimum value of the :term:`shard key` range to include in the
+          tag. The minimum is an inclusive match. Specify the minimum value in
+          the form of ``<fieldname>:<value>``.  This value must be of the same
+          BSON type or types as the shard key.
+          
+          
+   
+      * - ``maximum``
+   
+        - document
+   
+        - The maximum value of the shard key range to include in the tag.
+          The maximum is an exclusive match.  Specify the maximum value in the
+          form of ``<fieldname>:<value>``. This value must be of the same BSON
+          type or types as the shard key.
+          
+          
+   
+      * - ``tag``
+   
+        - string
+   
+        - The name of the tag to attach the range specified by the ``minimum``
+          and ``maximum`` arguments to.
+          
+          
+   
+
+
+   Use :method:`sh.addShardTag()` to ensure that the balancer migrates
+   documents that exist within the specified range to a specific shard
+   or set of shards.
+
+   Only issue :method:`sh.addTagRange()` when connected to a
+   :binary:`~bin.mongos` instance.
+
+Behavior
+--------
+
+Bounds
+~~~~~~
+
+.. include:: /includes/fact-shard-ranges-inclusive-exclusive.rst
+
+Initial Chunk Distribution
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/zoned-sharding-updateZoneKeyRange-change.rst
+
+.. tip::
+
+   .. versionchanged:: 4.0.3
+
+      .. include:: /includes/extracts/zoned-sharding-pre-define-zone.rst
+
+Dropped Collections
+~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/zoned-sharding-drop-collection-change.rst
+
+In earlier versions, MongoDB does not remove the tag associations for a
+dropped collection, and if you later create a new collection with the
+same name, the old tag associations will apply to the new collection.
+
+Example
+-------
+
+Given a shard key of ``{state: 1, zip: 1}``, the following operation
+creates a tag range covering zip codes in New York State:
+
+.. code-block:: javascript
+
+   sh.addTagRange( "exampledb.collection",
+                   { state: "NY", zip: MinKey },
+                   { state: "NY", zip: MaxKey },
+                   "NY"
+                 )

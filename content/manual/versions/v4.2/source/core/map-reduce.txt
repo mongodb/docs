@@ -1,0 +1,122 @@
+==========
+Map-Reduce
+==========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Map-reduce is a data processing paradigm for condensing large volumes
+of data into useful *aggregated* results. For map-reduce operations,
+MongoDB provides the :dbcommand:`mapReduce` database command.
+
+.. note::
+
+   .. include:: /includes/extracts/4.2-changes-map-reduce-deprecation.rst
+
+Consider the following map-reduce operation:
+
+.. include:: /images/map-reduce.rst
+
+In this map-reduce operation, MongoDB applies the *map* phase to each
+input document (i.e. the documents in the collection that match the
+query condition). The map function emits key-value pairs. For those
+keys that have multiple values, MongoDB applies the *reduce* phase, which
+collects and condenses the aggregated data. MongoDB then stores the results
+in a collection. Optionally, the output of the reduce function may
+pass through a *finalize* function to further condense or process the
+results of the aggregation.
+
+All map-reduce functions in MongoDB are JavaScript and run
+within the :binary:`~bin.mongod` process. Map-reduce operations take the
+documents of a single :term:`collection` as the *input* and can perform
+any arbitrary sorting and limiting before beginning the map stage.
+:dbcommand:`mapReduce` can return the results of a map-reduce operation
+as a document, or may write the results to collections.
+
+.. note::
+
+   For most aggregation operations, the
+   :doc:`/core/aggregation-pipeline` provides better performance and
+   more coherent interface. However, map-reduce operations provide
+   some flexibility that is not presently available in the aggregation
+   pipeline.
+
+Map-Reduce JavaScript Functions
+-------------------------------
+
+In MongoDB, map-reduce operations use custom JavaScript functions to
+*map*, or associate, values to a key. If a key has multiple values
+mapped to it, the operation *reduces* the values for the key to a
+single object.
+
+The use of custom JavaScript functions provide flexibility to
+map-reduce operations. For instance, when processing a document, the
+map function can create more than one key and value mapping or no
+mapping. Map-reduce operations can also use a custom JavaScript
+function to make final modifications to the results at the end of the
+map and reduce operation, such as perform additional calculations.
+
+.. note::
+
+   Starting in version 4.2.1, MongoDB deprecates the use of BSON type
+   JavaScript code with scope (:doc:`BSON type 15
+   </reference/bson-types/>`) for the ``map``, ``reduce``, and
+   ``finalize`` functions. Using JavaScript code with scope with these
+   functions will print a warning to the log. Instead, use BSON type
+   String (:doc:`BSON type 2 </reference/bson-types/>`) or BSON type
+   JavaScript (:doc:`BSON type 13 </reference/bson-types/>`). To pass
+   constant values which will be accessible in the ``map``, ``reduce``,
+   and ``finalize`` functions, use the ``scope`` parameter.
+
+    
+Map-Reduce Results
+-------------------
+
+In MongoDB, the map-reduce operation can write results to a collection
+or return the results inline. If you write map-reduce output to a
+collection, you can perform subsequent map-reduce operations on the
+same input collection that merge replace, merge, or reduce new results
+with previous results. See :dbcommand:`mapReduce` and
+:doc:`/tutorial/perform-incremental-map-reduce` for details and
+examples.
+
+When returning the results of a map-reduce operation *inline*, the
+result documents must be within the :limit:`BSON Document Size` limit,
+which is currently 16 megabytes. For additional information on limits
+and restrictions on map-reduce operations, see the
+:doc:`/reference/command/mapReduce` reference page.
+
+Sharded Collections
+-------------------
+
+MongoDB supports map-reduce operations on :doc:`sharded collections
+</sharding>`.
+
+However, starting in version 4.2, MongoDB deprecates the map-reduce
+option to *create* a new sharded collection and the use of the
+``sharded`` option for map-reduce. To output to a sharded collection,
+create the sharded collection first. MongoDB 4.2 also deprecates the
+replacement of an existing sharded collection.
+
+See :doc:`/core/map-reduce-sharded-collections`.
+
+Views
+-----
+
+.. include:: /includes/extracts/views-unsupported-mapReduce.rst
+
+.. toctree::
+   :titlesonly: 
+   :hidden: 
+
+   /core/map-reduce-sharded-collections
+   /core/map-reduce-concurrency
+   /tutorial/map-reduce-examples
+   /tutorial/perform-incremental-map-reduce
+   /tutorial/troubleshoot-map-function
+   /tutorial/troubleshoot-reduce-function

@@ -1,0 +1,155 @@
+.. _views-landing-page:
+
+=====
+Views
+=====
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+A MongoDB view is a queryable object whose contents are defined by an
+:ref:`aggregation pipeline <aggregation-pipeline>` on other collections
+or views. MongoDB does not persist the view contents to disk. A view's
+content is computed on-demand when a client :ref:`queries
+<views-supported-operations>` the view. MongoDB can require clients to
+:ref:`have permission <authorization>` to query the view. MongoDB does
+not support write operations against views.
+
+For example, you can:
+
+- Create a view on a collection of employee data to 
+  :pipeline:`exclude <$project>` any private or personal
+  information (PII). Applications can query the view for employee
+  data that does not contain any PII.
+
+- Create a view on a collection of collected sensor data to 
+  :pipeline:`add <$addFields>` computed fields and metrics. Applications
+  can use simple find operations to query the data.
+
+- Create a view that :pipeline:`joins <$lookup>` two collections
+  containing inventory and order history respectively. Applications can
+  query the joined data without managing or understanding the underlying
+  complex pipeline.
+
+When clients :ref:`query a view <views-supported-operations>`, MongoDB
+appends the client query to the underlying pipeline and returns the
+results of that combined pipeline to the client. MongoDB may apply
+:doc:`aggregation pipeline optimizations
+</core/aggregation-pipeline-optimization>` to the combined pipeline.
+
+.. note::
+
+   The following page discusses views. For discussion of
+   on-demand materialized views, see :doc:`/core/materialized-views`
+   instead.
+
+
+Create View
+-----------
+
+To create or define a view:
+
+- Use the :method:`db.createCollection()` method or the 
+  :dbcommand:`create` command:
+
+  .. code-block:: javascript
+
+     db.createCollection( 
+       "<viewName>", 
+       {
+         "viewOn" : "<source>", 
+         "pipeline" : [<pipeline>],
+         "collation" : { <collation> }
+       }
+     )
+
+- Use the :method:`db.createView()` method:
+
+  .. code-block:: javascript
+
+     db.createView(
+       "<viewName>",
+       "<source>",
+       [<pipeline>],
+       {
+         "collation" : { <collation> }
+       }
+     )
+
+.. note::
+   - You must create views in the same database as the source collection.
+
+   - .. include:: /includes/extracts/views-restriction-output-to-disk.rst
+
+Behavior
+--------
+
+.. include:: /includes/extracts/views-behavior.rst
+
+Public View Definition
+~~~~~~~~~~~~~~~~~~~~~~
+
+Operations that lists collections, such as
+:method:`db.getCollectionInfos()` and
+:method:`db.getCollectionNames()`, include views in their outputs.
+
+.. important::
+
+   .. include:: /includes/extracts/views-public-definition.rst
+
+Drop a View
+-----------
+
+To remove a view, use the :method:`db.collection.drop()` method on the
+view.
+
+.. _views-modify:
+
+Modify a View
+-------------
+
+You can modify a view either by dropping and recreating the view or
+using the :dbcommand:`collMod` command.
+
+.. _views-supported-operations:
+
+Supported Operations
+--------------------
+
+The following operations provide support for views, except for the
+restrictions mentioned in this page:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - Commands
+     - Methods
+
+   * - :dbcommand:`create`
+     - | :method:`db.createCollection()`
+       | :method:`db.createView()`
+
+   * - :dbcommand:`collMod`
+     -
+
+   * - 
+     - | :method:`db.getCollection()`
+       | :method:`db.getCollectionInfos()`
+       | :method:`db.getCollectionNames()`
+
+   * - | :dbcommand:`find`
+       | :dbcommand:`distinct`
+       | :dbcommand:`count`
+
+     - | :method:`db.collection.aggregate()`
+       | :method:`db.collection.find()`
+       | :method:`db.collection.findOne()`
+       | :method:`db.collection.countDocuments()`
+       | :method:`db.collection.estimatedDocumentCount()`
+       | :method:`db.collection.count()`
+       | :method:`db.collection.distinct()`

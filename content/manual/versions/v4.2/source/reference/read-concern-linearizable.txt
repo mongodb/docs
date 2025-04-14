@@ -1,0 +1,99 @@
+.. default-domain:: mongodb
+
+.. class:: hidden
+
+   .. readconcern:: "linearizable"
+
+===============================
+Read Concern ``"linearizable"``
+===============================
+
+.. versionadded:: 3.4
+
+The query returns data that reflects all successful
+majority-acknowledged writes that completed prior to the start of the
+read operation. The query may wait for concurrently executing writes to
+propagate to a majority of replica set members before returning results.
+
+If a majority of your replica set members crash and restart after the
+read operation, documents returned by the read operation are durable if
+:rsconf:`writeConcernMajorityJournalDefault` is set to the default
+state of ``true``.
+
+.. include:: /includes/extracts/no-journaling-rollback.rst
+
+You can specify linearizable read concern for read operations on
+the :replstate:`primary <PRIMARY>` only.
+
+Linearizable read concern guarantees only apply if read
+operations specify a query filter that uniquely identifies a
+single document.
+
+.. tip::
+
+   Always use ``maxTimeMS`` with linearizable read concern in case a
+   majority of data bearing members are unavailable. ``maxTimeMS``
+   ensures that the operation does not block indefinitely and instead
+   ensures that the operation returns an error if the read concern
+   cannot be fulfilled.
+
+Causally Consistent Sessions
+----------------------------
+
+Read concern :readconcern:`linearizable` is unavailable for use with
+causally consistent sessions.
+
+Aggregation Restriction
+-----------------------
+
+.. include:: /includes/extracts/4.2-changes-linearizable-agg.rst
+
+Real Time Order
+---------------
+
+Combined with :writeconcern:`"majority"` write concern,
+:readconcern:`"linearizable"` read concern enables multiple threads to
+perform reads and writes on a single document as if a single thread
+performed these operations in real time; that is, the corresponding
+schedule for these reads and writes is considered linearizable.
+
+Read Your Own Writes
+--------------------
+
+.. versionchanged:: 3.6
+
+.. include:: /includes/fact-read-own-writes.rst
+
+Performance Comparisons
+-----------------------
+
+Unlike :readconcern:`"majority"`, :readconcern:`"linearizable"` read
+concern confirms with secondary members that the read operation is
+reading from a primary that is capable of confirming writes with
+:writeconcern:`{ w: "majority" } <"majority">` write concern.
+[#edge-cases-2-primaries]_ As such, reads with linearizable read
+concern may be significantly slower than reads with
+:readconcern:`"majority"` or :readconcern:`"local"` read concerns.
+
+Always use ``maxTimeMS`` with linearizable read concern in case a
+majority of data bearing members are unavailable. ``maxTimeMS`` ensures
+that the operation does not block indefinitely and instead ensures that
+the operation returns an error if the read concern cannot be fulfilled.
+
+For example:
+
+.. code-block:: javascript
+
+   db.restaurants.find( { _id: 5 } ).readConcern("linearizable").maxTimeMS(10000)
+
+   db.runCommand( {
+        find: "restaurants",
+        filter: { _id: 5 },
+        readConcern: { level: "linearizable" },
+        maxTimeMS: 10000
+   } )
+
+.. [#edge-cases-2-primaries]
+
+   .. include:: /includes/footnote-two-primaries-edge-cases.rst
+

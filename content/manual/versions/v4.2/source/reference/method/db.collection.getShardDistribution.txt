@@ -1,0 +1,148 @@
+====================================
+db.collection.getShardDistribution()
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.collection.getShardDistribution()
+
+
+   .. include:: /includes/fact-mongo-shell-method.rst
+
+
+   Prints the data distribution statistics for a :term:`sharded
+   <sharding>` collection. 
+
+   .. tip::
+
+      Before running the method, use the :dbcommand:`flushRouterConfig`
+      command to refresh the cached routing table to avoid returning
+      stale distribution information for the collection. Once
+      refreshed, run :method:`db.collection.getShardDistribution()` for
+      the collection you wish to build the index.
+
+   For example:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { flushRouterConfig: "test.myShardedCollection" } );
+      db.getSiblingDB("test").myShardedCollection.getShardDistribution();
+
+.. seealso:: :doc:`/sharding`
+
+.. TODO - Improve the output sections.
+
+Output
+------
+
+Sample Output
+~~~~~~~~~~~~~
+
+The following is a sample output for the distribution of a sharded
+collection:
+
+.. code-block:: none
+   :copyable: false
+
+   Shard shard-a at shard-a/MyMachine.local:30000,MyMachine.local:30001,MyMachine.local:30002
+   data : 38.14Mb docs : 1000003 chunks : 2
+   estimated data per chunk : 19.07Mb
+   estimated docs per chunk : 500001
+
+   Shard shard-b at shard-b/MyMachine.local:30100,MyMachine.local:30101,MyMachine.local:30102
+   data : 38.14Mb docs : 999999 chunks : 3
+   estimated data per chunk : 12.71Mb
+   estimated docs per chunk : 333333
+
+   Totals
+   data : 76.29Mb docs : 2000002 chunks : 5
+   Shard shard-a contains 50% data, 50% docs in cluster, avg obj size on shard : 40b
+   Shard shard-b contains 49.99% data, 49.99% docs in cluster, avg obj size on shard : 40b
+
+Output Fields
+~~~~~~~~~~~~~
+
+.. code-block:: none
+   :copyable: false
+
+   Shard <shard-a> at <host-a>
+    data : <size-a> docs : <count-a> chunks : <number of chunks-a>
+    estimated data per chunk : <size-a>/<number of chunks-a>
+    estimated docs per chunk : <count-a>/<number of chunks-a>
+
+   Shard <shard-b> at <host-b>
+    data : <size-b> docs : <count-b> chunks : <number of chunks-b>
+    estimated data per chunk : <size-b>/<number of chunks-b>
+    estimated docs per chunk : <count-b>/<number of chunks-b>
+
+   Totals
+    data : <stats.size> docs : <stats.count> chunks : <calc total chunks>
+    Shard <shard-a> contains  <estDataPercent-a>% data, <estDocPercent-a>% docs in cluster, avg obj size on shard : stats.shards[ <shard-a> ].avgObjSize
+    Shard <shard-b> contains  <estDataPercent-b>% data, <estDocPercent-b>% docs in cluster, avg obj size on shard : stats.shards[ <shard-b> ].avgObjSize
+
+
+The output information displays:
+
+- ``<shard-x>`` is a string that holds the shard name.
+
+- ``<host-x>`` is a string that holds the host name(s).
+
+- ``<size-x>`` is a number that includes the size of the data,
+  including the unit of measure (e.g. ``b``, ``Mb``).
+
+- ``<count-x>`` is a number that reports the number of
+  documents in the shard.
+
+- ``<number of chunks-x>`` is a number that reports the
+  number of chunks in the shard.
+
+- ``<size-x>/<number of chunks-x>`` is a calculated value
+  that reflects the estimated data size per chunk for the shard,
+  including the unit of measure (e.g. ``b``, ``Mb``).
+
+- ``<count-x>/<number of chunks-x>`` is a calculated value
+  that reflects the estimated number of documents per chunk for the
+  shard.
+
+- ``<stats.size>`` is a value that reports the total size of
+  the data in the sharded collection, including the unit of measure.
+
+- ``<stats.count>`` is a value that reports the total number
+  of documents in the sharded collection.
+
+- ``<calc total chunks>`` is a calculated number that reports the
+  number of chunks from all shards, for example:
+
+  .. code-block:: sh
+
+     <calc total chunks> = <number of chunks-a> + <number of chunks-b>
+
+- ``<estDataPercent-x>`` is a calculated value that
+  reflects, for each shard, the data size as the percentage of the
+  collection's total data size, for example:
+
+  .. code-block:: sh
+
+     <estDataPercent-x> = <size-x>/<stats.size>
+
+- ``<estDocPercent-x>`` is a calculated value that
+  reflects, for each shard, the number of documents as the
+  percentage of the total number of documents for the collection,
+  for example:
+
+  .. code-block:: sh
+
+     <estDocPercent-x> = <count-x>/<stats.count>
+
+- ``stats.shards[ <shard-x> ].avgObjSize`` is a number that
+  reflects the average object size, including the unit of measure,
+  for the shard.

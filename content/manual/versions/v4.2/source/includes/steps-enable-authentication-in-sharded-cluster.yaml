@@ -1,0 +1,427 @@
+stepnum: 1
+title: Create a keyfile.
+ref: generate-keyfile
+level: 4
+pre: |
+  .. include:: /includes/extracts/keyfile-intro-sharded-cluster.rst
+source:
+  file: steps-deploy-replica-set-with-auth.yaml
+  ref: deploy-repset-generate-keyfile
+---
+stepnum: 2
+title: Copy the keyfile to each component in the sharded cluster.
+ref: copy-keyfile
+level: 4
+pre: |
+  Every server hosting a :binary:`~bin.mongod` or :binary:`~bin.mongos` component
+  of the sharded cluster must contain a copy of the keyfile.
+
+  .. include:: /includes/extracts/keyfile-distribution-sharded-cluster.rst
+
+---
+title: Disable the Balancer.
+stepnum: 3
+ref: disable-balancer
+level: 4
+pre: |
+  Connect a :binary:`~bin.mongo` shell to a :binary:`~bin.mongos`.
+action:
+  - pre: |
+    language: sh
+    code: |
+      sh.stopBalancer()
+    post: |
+      The balancer may not stop immediately if a migration is in progress.
+      The :method:`sh.stopBalancer()` method blocks the shell until the
+      balancer stops.
+      
+      .. include:: /includes/extracts/4.2-changes-stop-balancer-autosplit.rst
+
+  - pre: |
+      Use :method:`sh.getBalancerState()` to verify that the balancer has
+      stopped.
+    language: sh
+    code: |
+      sh.getBalancerState()
+post: |
+  .. important:: Do not proceed until the balancer has stopped running.
+
+  See :doc:`/tutorial/manage-sharded-cluster-balancer` for tutorials on
+  configuring sharded cluster balancer behavior.
+---
+title: Shut down all :binary:`~bin.mongos` instances for the sharded cluster.
+stepnum: 4
+ref: shutdown-mongos
+level: 4
+pre: |
+  Connect a :binary:`~bin.mongo` shell to each :binary:`~bin.mongos` and shut
+  them down.
+
+  Use the :method:`db.shutdownServer()` method on the ``admin`` database
+  to safely shut down the :binary:`~bin.mongos`:
+action:
+  language: sh
+  code: |
+    db.getSiblingDB("admin").shutdownServer()
+post: |
+  Repeat until all :binary:`~bin.mongos` instances in the cluster
+  are offline.
+
+  Once this step is complete, all :binary:`~bin.mongos` instances in the cluster
+  should be offline.
+---
+title: Shut down config server :binary:`~bin.mongod` instances.
+stepnum: 5
+ref: shutdown-config-servers
+level: 4
+pre: |
+  Connect a :binary:`~bin.mongo` shell to each :binary:`~bin.mongod` in the
+  config server deployment and shut them down.
+
+  For replica set config server deployments, shut down the :term:`primary`
+  member last.
+
+  Use the :method:`db.shutdownServer()` method on the ``admin`` database
+  to safely shut down the :binary:`~bin.mongod`:
+action:
+  language: sh
+  code: |
+    db.getSiblingDB("admin").shutdownServer()
+post: |
+  Repeat until all config servers are offline.
+---
+title: Shut down shard replica set :binary:`~bin.mongod` instances.
+stepnum: 6
+ref: shutdown-shard-servers
+level: 4
+pre: |
+  For each shard replica set, connect a :binary:`~bin.mongo` shell to each
+  :binary:`~bin.mongod` member in the replica set and shut them down. Shut down
+  the :term:`primary` member last.
+
+  Use the :method:`db.shutdownServer()` method on the ``admin`` database
+  to safely shut down the :binary:`~bin.mongod`:
+action:
+  language: sh
+  code: |
+    db.getSiblingDB("admin").shutdownServer()
+post: |
+  Repeat this step for each shard replica set until all :binary:`~bin.mongod`
+  instances in all shard replica sets are offline.
+
+  Once this step is complete, the entire sharded cluster should be offline.
+---
+title: Enforce Access Control on the Config Servers.
+stepnum: 7
+ref: enable-auth-config-serv
+level: 4
+pre: |
+   Start *each* :binary:`~bin.mongod` in the config server replica set.
+   Include the ``keyFile`` setting. The ``keyFile`` setting enforces
+   both :doc:`/core/security-internal-authentication` and
+   :doc:`/core/authorization`.
+
+   You can specify the :binary:`~bin.mongod` settings either via a
+   configuration file or the command line.
+action:
+  - pre: |
+      **Configuration File**
+
+      If using a :doc:`configuration file
+      </reference/configuration-options>`, for a config server replica
+      set, set :setting:`security.keyFile` to the keyfile's path,
+      :setting:`sharding.clusterRole` to ``configsvr``, and
+      :setting:`replication.replSetName` to the name of the config
+      server replica set.
+
+      .. code-block:: yaml
+
+         security:
+           keyFile: <path-to-keyfile>
+         sharding:
+           clusterRole: configsvr
+         replication:
+           replSetName: <setname>
+         storage:
+            dbpath: <path>
+
+      .. include:: /includes/extracts/default-bind-ip-security-additional-config-file.rst
+
+  - pre: |
+      Start the :binary:`~bin.mongod` specifying the ``--config`` option and the
+      path to the configuration file.
+    language: shell
+    code: |
+      mongod --config <path-to-config>
+  - pre: |
+      **Command Line**
+
+      If using the command line parameters, for a config server replica
+      set, start the :binary:`~bin.mongod` with the ``-keyFile``,
+      ``--configsvr``, and ``--replSet`` parameters.
+
+      .. code-block:: sh
+
+         mongod --keyFile <path-to-keyfile> --configsvr --replSet <setname> --dbpath <path>
+
+    post: |
+
+       .. include:: /includes/extracts/default-bind-ip-security-additional-command-line.rst
+
+       For more information on command line options, see the
+       :binary:`~bin.mongod` reference page.
+
+       Make sure to use the original replica set name when restarting each
+       member. You cannot change the name of a replica set.
+---
+title: Enforce Access Control for each Shard in the Sharded Cluster.
+stepnum: 8
+ref: enable-auth
+level: 4
+pre: |
+  Running a :binary:`~bin.mongod` with the ``keyFile`` parameter enforces both
+  :doc:`/core/security-internal-authentication` and
+  :doc:`/core/authorization`.
+
+  Start *each* :binary:`~bin.mongod` in the replica set using either
+  a configuration file or the command line.
+action:
+  - pre: |
+      **Configuration File**
+
+      If using a :doc:`configuration file
+      </reference/configuration-options>`, set the
+      :setting:`security.keyFile` option to the keyfile's path and the
+      :setting:`replication.replSetName` option to the *original* name
+      of the replica set.
+
+    language: yaml
+    code: |
+      security:
+        keyFile: <path-to-keyfile>
+      replication:
+        replSetName: <setname>
+      storage:
+         dbPath: <path>
+    post: |
+      .. include:: /includes/extracts/default-bind-ip-security-additional-config-file.rst
+
+  - pre: |
+      Start the :binary:`~bin.mongod` specifying the ``--config`` option and the
+      path to the configuration file.
+    language: shell
+    code: |
+      mongod --config <path-to-config-file>
+  - pre: |
+      **Command Line**
+
+      If using the command line parameters, start the :binary:`~bin.mongod` and
+      specify the ``--keyFile`` and ``--replSet`` parameters.
+    language: sh
+    code: |
+       mongod --keyfile <path-to-keyfile> --replSet <setname> --dbpath <path>
+    post: |
+
+       .. include:: /includes/extracts/default-bind-ip-security-additional-command-line.rst
+
+       For more information on startup parameters,
+       see the :binary:`~bin.mongod` reference page.
+
+       Make sure to use the original replica set name when restarting each
+       member. You cannot change the name of a replica set.
+post: |
+  Repeat this step until all shards in the cluster are online.
+---
+title: Create a Shard-Local User Administrator (Optional).
+stepnum: 9
+ref: shard-local-adduser
+level: 4
+pre: |
+  .. important::
+     The :ref:`localhost-exception` allows clients connected over the
+     localhost interface to create users on a :binary:`~bin.mongod`
+     enforcing access control. After creating the first user,
+     the :ref:`localhost-exception` closes.
+
+     The first user must have privileges to create other users, such
+     as a user with the :authrole:`userAdminAnyDatabase`. This ensures
+     that you can create additional users after the :ref:`localhost-exception`
+     closes.
+
+     If at least one user does *not* have privileges to create users,
+     once the localhost exception closes you may be unable to create
+     or modify users with new privileges, and therefore unable to
+     access certain functions or operations.
+
+  For each shard replica set in the cluster, connect a :binary:`~bin.mongo`
+  shell to the :term:`primary` member over the :ref:`localhost
+  interface<localhost-exception>`. You must run the :binary:`~bin.mongo` on
+  the same machine as the target :binary:`~bin.mongod` to use the localhost
+  interface.
+
+  Create a user with the ``userAdminAnyDatabase``
+  role on the ``admin`` database. This user can create
+  additional users for the shard replica set as necessary.
+  Creating this user also closes the :ref:`localhost-exception`.
+
+  The following example creates the shard-local user ``fred`` on the
+  ``admin`` database.
+
+  .. important::
+     Passwords should be random, long, and complex to ensure system security
+     and to prevent or delay malicious access.
+action:
+  pre: |
+      .. tip::
+
+         .. include:: /includes/extracts/4.2-changes-passwordPrompt.rst
+  language: javascript
+  code: |
+    admin = db.getSiblingDB("admin")
+    admin.createUser(
+      {
+        user: "fred",
+        pwd: passwordPrompt(),  // or cleartext password
+        roles: [ { role: "userAdminAnyDatabase", db: "admin" } ]
+      }
+    )
+---
+title: Enforce Access Control for the :binary:`~bin.mongos` servers.
+stepnum: 10
+ref: enable-auth-mongos
+level: 4
+pre: |
+  Running a :binary:`~bin.mongod` with the ``keyFile`` parameter enforces both
+  :doc:`/core/security-internal-authentication` and
+  :doc:`/core/authorization`.
+
+  Start *each* :binary:`~bin.mongos` in the replica set using either
+  a configuration file or the command line.
+action:
+  - pre: |
+      **Configuration File**
+
+      If using a :doc:`configuration file
+      </reference/configuration-options>`, set the
+      :setting:`security.keyFile` to the keyfile`s path and the
+      :setting:`sharding.configDB` to the replica set name and at least
+      one member of the replica set in ``<replSetName>/<host:port>``
+      format.
+
+    language: yaml
+    code: |
+      security:
+        keyFile: <path-to-keyfile>
+      sharding:
+        configDB: <configReplSetName>/cfg1.example.net:27019,cfg2.example.net:27019,...
+    post: |
+      .. include:: /includes/extracts/default-bind-ip-security-additional-config-file.rst
+
+  - pre: |
+      Start the :binary:`~bin.mongos` specifying the ``--config`` option and the
+      path to the configuration file.
+    language: shell
+    code: |
+      mongos --config <path-to-config-file>
+  - pre: |
+      **Command Line**
+
+      If using command line parameters start the :binary:`~bin.mongos` and specify
+      the ``--keyFile`` and ``--configdb`` parameters.
+    language: sh
+    code: |
+      mongos --keyFile <path-to-keyfile> --configdb <configReplSetName>/cfg1.example.net:27019,cfg2.example.net:27019,...
+    post: |
+      .. include:: /includes/extracts/default-bind-ip-security-additional-command-line.rst
+
+post: |
+  At this point, the entire sharded cluster is back online and can
+  communicate internally using the keyfile specified. However, external
+  programs like the :binary:`~bin.mongo` shell need to use a correctly
+  provisioned user in order to read or write to the cluster.
+---
+title: Connect to the :binary:`~bin.mongos` instance over the localhost interface.
+stepnum: 11
+level: 4
+ref: connect-via-localhost
+source:
+  file: steps-deploy-replica-set-with-auth.yaml
+  ref: deploy-repset-connect-to-member
+replacement:
+  program: :binary:`~bin.mongos`
+---
+title: Create the user administrator.
+stepnum: 12
+level: 4
+ref: add-user
+source:
+  file: steps-deploy-sharded-cluster-connect.yaml
+  ref: add-user
+---
+title: Authenticate as the user administrator.
+stepnum: 13
+level: 4
+source:
+  file: steps-deploy-sharded-cluster-connect.yaml
+  ref: auth-as-admin
+ref: auth-as-admin
+---
+title: Create Administrative User for Cluster Management
+stepnum: 14
+level: 4
+source:
+  file: steps-deploy-sharded-cluster-connect.yaml
+  ref: add-user-cluster
+ref: add-user-cluster
+pre: |
+  The cluster administrator user has the :authrole:`clusterAdmin` role
+  for the sharded cluster and *not* the shard-local cluster
+  administrator.
+
+post: |
+  See :ref:`cluster-admin-roles` for a full list of built-in roles related to
+  replica set and sharded cluster operations.
+---
+stepnum: 15
+title: Authenticate as cluster admin.
+ref: auth-user-cluster
+level: 4
+pre: |
+  To perform sharding operations, authenticate as a
+  :authrole:`clusterAdmin` user with either the
+  :method:`db.auth()` method or a new :binary:`~bin.mongo` shell with the
+  ``username``, ``password``, and ``authenticationDatabase`` parameters.
+
+  .. note::
+
+     This is the cluster administrator for the sharded cluster and *not*
+     the shard-local cluster administrator.
+
+---
+stepnum: 16
+title: Start the balancer.
+ref: shard-start-load-balancer
+level: 4
+pre: |
+  Start the balancer.
+action:
+  language: javascript
+  code: |
+    sh.startBalancer()
+post: |
+
+  .. include:: /includes/extracts/4.2-changes-start-balancer-autosplit.rst
+   
+  Use the :method:`sh.getBalancerState()` to verify the balancer has started.
+
+  See :doc:`/tutorial/manage-sharded-cluster-balancer` for tutorials on
+  the sharded cluster balancer.
+---
+stepnum: 17
+title: Create additional users (Optional).
+source:
+  file: steps-deploy-sharded-cluster-connect.yaml
+  ref: deploy-cluster-create-users
+ref: deploy-cluster-create-users
+level: 4
+...

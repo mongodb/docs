@@ -1,0 +1,505 @@
+ref: transactions-read-pref
+content: |
+
+   :doc:`Multi-document transactions </core/transactions>` that contain
+   read operations must use read preference :readmode:`primary`. All
+   operations in a given transaction must route to the same member.
+
+---
+ref: transactions-usage
+content: |
+   .. important::
+
+      In most cases, multi-document transaction incurs a greater
+      performance cost over single document writes, and the
+      availability of multi-document transactions should not be a
+      replacement for effective schema design. For many scenarios, the
+      :ref:`denormalized data model (embedded documents and arrays)
+      <data-modeling-embedding>` will continue to be optimal for your
+      data and use cases. That is, for many scenarios, modeling your data
+      appropriately will minimize the need for multi-document
+      transactions. 
+      
+      For additional transactions usage considerations
+      (such as runtime limit and oplog size limit), see also
+      :doc:`/core/transactions-production-consideration`.
+
+---
+ref: transactions-intro
+content: |
+   .. include:: /includes/extracts/transactions-intro-blurb.rst
+
+   .. include:: /includes/extracts/transactions-usage.rst
+---
+ref: transactions-intro-blurb
+content: |
+
+   For situations that require atomicity of reads and writes to multiple
+   documents (in a single or multiple collections), MongoDB supports
+   multi-document transactions:
+
+   - **In version 4.0**, MongoDB supports multi-document transactions on
+     replica sets.
+
+   - **In version 4.2**, MongoDB introduces distributed transactions,
+     which adds support for multi-document transactions on sharded
+     clusters and incorporates the existing support for
+     multi-document transactions on replica sets.
+
+   For details regarding transactions in MongoDB, see the
+   :doc:`/core/transactions` page.
+
+---
+ref: transactions-faq
+content: |
+   Because a single document can contain related data that would otherwise
+   be modeled across separate parent-child tables in a relational schema,
+   MongoDB's atomic single-document operations already provide transaction
+   semantics that meet the data integrity needs of the majority of
+   applications. One or more fields may be written in a single operation,
+   including updates to multiple sub-documents and elements of an array.
+   The guarantees provided by MongoDB ensure complete isolation as a
+   document is updated; any errors cause the operation to roll back so
+   that clients receive a consistent view of the document.
+
+   However, for situations that require atomicity of reads and writes
+   to multiple documents (in a single or multiple collections), MongoDB
+   supports multi-document transactions:
+
+   - **In version 4.0**, MongoDB supports multi-document transactions on
+     replica sets.
+
+   - **In version 4.2**, MongoDB introduces distributed transactions,
+     which adds support for multi-document transactions on sharded
+     clusters and incorporates the existing support for
+     multi-document transactions on replica sets.
+
+     For details regarding transactions in MongoDB, see the
+     :doc:`/core/transactions` page.
+
+---
+ref: transactions-operations-restrictions
+content: |
+ 
+   The following operations are not allowed in transactions:
+
+   - Operations that affect the database catalog, such as creating or
+     dropping a collection or an index. For example, a
+     transaction cannot include an insert operation that would result
+     in the creation of a new collection.
+
+     The :dbcommand:`listCollections` and :dbcommand:`listIndexes`
+     commands and their helper methods are also excluded.
+ 
+   - Non-CRUD and non-informational operations, such as
+     :dbcommand:`createUser`, :dbcommand:`getParameter`,
+     :dbcommand:`count`, etc. and their helpers.
+
+---
+ref: transactions-operations-restrictions-info
+content: |
+
+   Informational commands, such as :dbcommand:`hello`,
+   :dbcommand:`buildInfo`, :dbcommand:`connectionStatus` (and their
+   helper methods) are allowed in transactions; however, they cannot be
+   the first operation in the transaction.
+
+---
+ref: transactions-operations-crud
+content: |
+
+   - You can specify read/write (CRUD) operations on **existing**
+     collections. The collections can be in different databases. For a
+     list of CRUD operations, see :ref:`transactions-operations-crud`.
+
+   - You cannot write to :doc:`capped </core/capped-collections>`
+     collections. (Starting in MongoDB 4.2)
+
+   - You cannot read/write to collections in the ``config``, ``admin``,
+     or ``local`` databases.
+
+   - You cannot write to ``system.*`` collections.
+
+   - You cannot return the supported operation's query plan (i.e. ``explain``).
+
+   .. include:: /includes/extracts/transactions-operations-getMore.rst
+
+   - .. include:: /includes/extracts/transactions-killop-change.rst
+
+---
+ref: transactions-operations-catalog-tip
+content: |
+
+   .. tip:: 
+
+      When creating or dropping a collection immediately before
+      starting a transaction, if the collection is accessed within the
+      transaction, issue the create or drop operation with write
+      concern :writeconcern:`"majority"` to ensure that the transaction
+      can acquire the required locks.
+
+---
+ref: transactions-operations-getMore
+content: |
+
+   - For cursors created outside of a transaction, you cannot call
+     :dbcommand:`getMore` inside the transaction.
+
+   - For cursors created in a transaction, you cannot call
+     :dbcommand:`getMore` outside the transaction.
+
+---
+ref: transactions-supported-operation
+content: |
+
+   |operation| can be used inside :doc:`multi-document transactions
+   </core/transactions>`.
+
+---
+ref: transactions-distinct-support
+content: |
+
+   To perform a distinct operation within a transaction:
+      
+   - For unsharded collections, you can use the
+     :method:`db.collection.distinct()` method/the
+     :dbcommand:`distinct` command as well as the aggregation pipeline
+     with the :pipeline:`$group` stage.
+  
+   - For sharded collections, you cannot use the
+     :method:`db.collection.distinct()` method or the
+     :dbcommand:`distinct` command.
+     
+     To find the distinct values for a sharded collection, use the
+     aggregation pipeline with the :pipeline:`$group` stage instead.
+     See :ref:`transactions-operations-distinct` for details.
+
+### A fleshed out version (transactions-distinct) of this extract is included in transaction pages
+
+---
+ref: transactions-operations-write-concern
+content: |
+
+   Do not explicitly set the write concern for the operation if run in
+   a transaction. To use write concern with transactions, see
+   :ref:`transactions-write-concern`.
+
+---
+ref: transactions-write-conflict
+content: |
+
+   If a transaction is in progress and a write
+   outside the transaction modifies a document that an operation in the
+   transaction later tries to modify, the transaction aborts because of
+   a write conflict.
+
+   If a transaction is in progress and has taken a lock
+   to modify a document, when a write outside the transaction tries to
+   modify the same document, the write waits until the transaction ends.
+
+---
+ref: transactions-stale-reads
+content: |
+
+   Read operations inside a transaction can return stale data. That is,
+   read operations inside a transaction are not guaranteed to see
+   writes performed by other committed transactions or
+   non-transactional writes. For
+   example, consider the following sequence: 1) a transaction is
+   in-progress 2) a write outside the transaction deletes a document 3)
+   a read operation inside the transaction is able to read the
+   now-deleted document since the operation is using a snapshot from
+   before the write.
+
+   To avoid stale reads inside transactions for a single document, you
+   can use the :method:`db.collection.findOneAndUpdate()` method. For
+   example:
+
+   .. code-block:: javascript
+
+      session.startTransaction( { readConcern: { level: "snapshot" }, writeConcern: { w: "majority" } } );
+
+      employeesCollection = session.getDatabase("hr").employees;
+
+      employeeDoc = employeesCollection.findOneAndUpdate( 
+         { _id: 1, employee: 1, status: "Active" },
+         { $set: { employee: 1 } },
+         { returnNewDocument: true }
+      );
+
+   - If the employee document has changed outside the transaction, then
+     the transaction aborts.
+
+   - If the employee document has not changed, the transaction returns
+     the document and locks the document.
+---
+ref: transactions-read-concern-majority
+content: |
+   Disabling :readconcern:`"majority"` read concern affects support for
+   :doc:`transactions </core/transactions>` on sharded clusters. Specifically:
+
+   - A transaction cannot use read concern :readconcern:`"snapshot"` if
+     the transaction involves a shard that has :ref:`disabled read
+     concern "majority" <disable-read-concern-majority>`.
+
+   - A transaction that writes to multiple shards errors if any of the
+     transaction's read or write operations involves a shard that has
+     disabled read concern :readconcern:`"majority"`.
+
+   However, it does not affect :doc:`transactions </core/transactions>`
+   on replica sets. For transactions on replica sets, you can specify
+   read concern :readconcern:`"majority"` (or :readconcern:`"snapshot"`
+   or :readconcern:`"local"` ) for multi-document transactions even if
+   read concern :readconcern:`"majority"` is disabled.
+   
+# This is included in pages talking more about disabling rc majority and its effects.
+
+# Separate includes (see below) for transactions pages where the transactions leads as the subject
+---
+ref: transactions-read-concern-majority-sharded-clusters
+content: |
+
+   On sharded clusters, 
+      - If a transaction involves a shard that has :ref:`disabled read
+        concern "majority" <disable-read-concern-majority>`, you cannot
+        use read concern :readconcern:`"snapshot"` for the transaction.
+        You can only use read concern :readconcern:`"local"` or
+        :readconcern:`"majority"` for the transaction. If you use read
+        concern :readconcern:`"snapshot"`, the transaction errors and
+        aborts.
+
+        .. code-block:: none
+           :copyable: false
+
+           readConcern level 'snapshot' is not supported in sharded clusters when enableMajorityReadConcern=false.
+
+      - Transactions whose write operations span multiple shards will
+        error and abort if any of the transaction's read or write
+        operations involves a shard that has disabled read concern
+        ``"majority"``.
+
+---
+ref: transactions-read-concern-majority-replica-set
+content: |  
+
+   On replica set,
+      You can specify read concern :readconcern:`"local"` or
+      :readconcern:`"majority"` or :readconcern:`"snapshot"` even in
+      the replica set has :ref:`disabled read concern "majority"
+      <disable-read-concern-majority>`.
+   
+      However, if you are planning to transition to a sharded cluster with
+      disabled read concern majority shards, you may wish to avoid using
+      read concern ``"snapshot"``.
+
+---
+ref: transactions-chunk-migration
+content: |
+   :ref:`Chunk migration <chunk-migration-procedure>` acquires
+   exclusive collection locks during certain stages.
+
+   If an ongoing transaction has a lock on a collection and a chunk
+   migration that involves that collection starts, these migration stages
+   must wait for the transaction to release the locks on the collection,
+   thereby impacting the performance of chunk migrations.
+
+   If a chunk migration interleaves with a transaction (for instance, if a
+   transaction starts while a chunk migration is already in progress and
+   the migration completes before the transaction takes a lock on the
+   collection), the transaction errors during the commit and aborts.
+
+   Depending on how the two operations interleave, some sample errors
+   include (the error messages have been abbreviated):
+
+   - ``an error from cluster data placement change ... migration commit in progress for <namespace>``
+
+   - ``Cannot find shardId the chunk belonged to at cluster time ...``
+
+---
+ref: transactions-count
+content: |
+
+   To perform a count operation within a transaction, use the
+   :pipeline:`$count` aggregation stage or the :pipeline:`$group` (with a
+   :group:`$sum` expression) aggregation stage.
+
+   MongoDB drivers compatible with the 4.0 features provide a
+   collection-level API ``countDocuments(filter, options)`` as a helper
+   method that uses the :pipeline:`$group` with a :group:`$sum` expression
+   to perform a count. The 4.0 drivers have deprecated the ``count()`` API.
+
+   Starting in MongoDB 4.0.3, the :binary:`~bin.mongo` shell provides the
+   :method:`db.collection.countDocuments()` helper method that uses the
+   :pipeline:`$group` with a :group:`$sum` expression to perform a count.
+
+---
+ref: transactions-distinct
+content: |
+
+   To perform a distinct operation within a transaction:
+      
+   - For unsharded collections, you can use the
+     :method:`db.collection.distinct()` method/the
+     :dbcommand:`distinct` command as well as the aggregation pipeline
+     with the :pipeline:`$group` stage.
+  
+   - For sharded collections, you cannot use the
+     :method:`db.collection.distinct()` method or the
+     :dbcommand:`distinct` command.
+
+     To find the distinct values for a sharded collection, use the
+     aggregation pipeline with the :pipeline:`$group` stage instead.
+     For example:
+
+     - Instead of ``db.coll.distinct("x")``, use
+     
+       .. code-block:: javascript
+     
+          db.coll.aggregate([ 
+             { $group: { _id: null, distinctValues: { $addToSet: "$x" } } }, 
+             { $project: { _id: 0 } } 
+          ])
+     
+     - Instead of ``db.coll.distinct("x", { status: "A" })``, use:
+     
+       .. code-block:: javascript
+     
+          db.coll.aggregate([ 
+             { $match: { status: "A" } },
+             { $group: { _id: null, distinctValues: { $addToSet: "$x" } } }, 
+             { $project: { _id: 0 } } 
+          ])
+
+     The pipeline returns a cursor to a document:
+
+     .. code-block:: javascript
+        :copyable: false
+
+        { "distinctValues" : [ 2, 3, 1 ] }
+
+     Iterate the cursor to access the results document.
+
+### A shorter version (transactions-distinct-support) of this extract is included in the distinct command/method pages.
+---
+ref: transactions-shards-wcmajority-disabled
+content: |
+
+   You cannot run transactions on a sharded cluster that has a shard
+   with :rsconf:`writeConcernMajorityJournalDefault` set to ``false``
+   (such as a shard with a voting member that uses the :doc:`in-memory
+   storage engine </core/inmemory>`).
+
+---
+ref: transactions-killop-change
+content: |
+
+   Starting in MongoDB 4.2, you cannot specify :dbcommand:`killCursors` as
+   the first operation in a :doc:`transaction </core/transactions>`.
+
+---
+ref: transactions-capped-collection-change
+content: |
+
+   Starting in MongoDB 4.2, you cannot write to :doc:`capped
+   </core/capped-collections>` collections in :doc:`transactions
+   </core/transactions>`.  Reads from :doc:`capped
+   </core/capped-collections>` collections are still supported
+   in :doc:`transactions </core/transactions>`.
+
+---
+ref: transactions-arbiters
+content: |
+
+   Transactions whose write operations span multiple shards will error
+   and abort if any transaction operation reads from or writes to a
+   shard that contains an arbiter.
+
+   See also |disabledrcmaj| for transaction restrictions on shards that
+   have disabled read concern majority.
+---
+ref: transactions-committed-visibility
+content: |
+   
+   Until a transaction commits, the data changes made in the
+   transaction are not visible outside the transaction.
+
+   However, when a transaction writes to multiple shards, not all
+   outside read operations need to wait for the result of the committed
+   transaction to be visible across the shards. For example, if a
+   transaction is committed and write 1 is visible on shard A but write
+   2 is not yet visible on shard B, an outside read at read concern
+   :readconcern:`"local"` can read the results of write 1 without
+   seeing write 2.
+
+---
+ref: transactions-multi-shard-block-external-reads
+content: |
+   
+   During the commit for a transaction, outside read operations may try
+   to read the same documents that will be modified by the transaction.
+   If the transaction writes to multiple shards, then during the commit
+   attempt across the shards
+   
+   - Outside reads that use read concern :readconcern:`snapshot` or
+     :readconcern:`"linearizable"`, or are part of causally consistent
+     sessions (i.e. include :ref:`afterClusterTime <afterClusterTime>`)
+     wait for all writes of a transaction to be visible.
+
+   - Outside reads using other read concerns do not wait for all writes
+     of a transaction to be visible but instead read the
+     before-transaction version of the documents available.
+
+---
+ref: transactions-inmemory-txn-page
+content: |
+
+   Starting in MongoDB 4.2, :doc:`multi-document transactions
+   </core/transactions>` are supported on replica sets and sharded
+   clusters where:
+
+   - the primary uses the WiredTiger storage engine, and
+
+   - the secondary members use either the WiredTiger storage engine or the
+     :doc:`in-memory </core/inmemory>` storage engines.
+
+   In MongoDB 4.0, only replica sets using the WiredTiger storage
+   engine supported transactions.
+
+   .. note:: 
+
+      You cannot run transactions on a sharded cluster that has a shard
+      with :rsconf:`writeConcernMajorityJournalDefault` set to
+      ``false``, such as a shard with a voting member that uses the
+      :doc:`in-memory storage engine </core/inmemory>`.
+
+---
+ref: transactions-inmemory-storage-page
+content: |
+   
+   Starting in MongoDB 4.2, transactions are supported on replica sets
+   and sharded clusters where:
+
+   - the primary uses the :doc:`WiredTiger </core/wiredtiger>` storage
+     engine, and
+
+   - the secondary members use either the WiredTiger storage engine or the
+     :doc:`in-memory </core/inmemory>` storage engines.
+
+   In MongoDB 4.0, only replica sets using the WiredTiger storage
+   engine supported transactions.
+
+   .. note:: 
+
+      You cannot run transactions on a sharded cluster that has a shard
+      with :rsconf:`writeConcernMajorityJournalDefault` set to
+      ``false``, such as a shard with a voting member that uses the
+      :doc:`in-memory storage engine </core/inmemory>`.
+---
+ref: transactions-sharded-clusters-commit-writeconcern
+content: |
+   Regardless of the :ref:`write concern specified for the
+   transaction<transactions-write-concern>`, the commit operation for a
+   sharded cluster transaction includes some parts that use ``{w:
+   "majority", j: true}`` write concern.
+...
+

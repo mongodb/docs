@@ -1,0 +1,159 @@
+.. _shards-tag-sets:
+.. _zone-sharding:
+.. _zones-sharding:
+
+=====
+Zones
+=====
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/intro-zone-sharding.rst
+
+Some common deployment patterns where zones can be applied are as follows:
+
+- Isolate a specific subset of data on a specific set of shards.
+
+- Ensure that the most relevant data reside on shards that are
+  geographically closest to the application servers.
+
+- Route data to shards based on the hardware / performance of the
+  shard hardware.
+
+The following image illustrates a sharded cluster with three shards and two
+zones. The ``A`` zone represents a range with a lower boundary of ``1`` and an
+upper bound of ``10``. The ``B`` zone represents a range with a lower boundary
+of ``10`` and an upper boundary of ``20``. Shards ``Alpha`` and ``Beta`` have
+the ``A`` zone. Shard ``Beta`` also has the ``B`` zone. Shard ``Charlie`` has
+no zones associated with it. The cluster is in a steady state and no chunks
+violate any of the zones.
+
+.. include:: /images/sharded-cluster-zones.rst
+
+.. toctree::
+   :titlesonly: 
+   :hidden: 
+
+   /tutorial/manage-shard-zone
+   /tutorial/sharding-segmenting-data-by-location
+   /tutorial/sharding-tiered-hardware-for-varying-slas
+   /tutorial/sharding-segmenting-shards
+   /tutorial/sharding-high-availability-writes
+
+Behavior and Operations
+-----------------------
+
+Ranges
+~~~~~~
+
+
+Each zone covers one or more ranges of :term:`shard key` values for a
+collection. Each range a zone covers is always inclusive of its lower
+boundary and exclusive of its upper boundary.
+
+Zones cannot share ranges, nor can they have overlapping ranges.
+
+To define ranges, MongoDB provides the :dbcommand:`updateZoneKeyRange`
+command and the associated helper methods
+:method:`sh.updateZoneKeyRange()` and :method:`sh.addShardTag()`.
+
+.. include:: /includes/extracts/zoned-sharding-updateZoneKeyRange-change.rst
+
+.. include:: /includes/extracts/zoned-sharding-drop-collection-change.rst
+
+.. _zone-sharding-initial-chunk-distribution:
+
+Initial Chunk Distribution
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 4.0.3
+
+.. include:: /includes/extracts/zoned-sharding-pre-define-zone.rst
+
+.. _zone-sharding-balancer:
+
+Balancer
+~~~~~~~~
+
+The :term:`balancer` attempts to evenly distribute a sharded collection's
+chunks across all shards in the cluster.
+
+For each :term:`chunk <chunk>` marked for migration, the balancer checks each
+possible destination shard for any configured zones. If the chunk range falls
+into a zone, the balancer migrates the chunk into a shard inside that
+zone. Chunks that do not fall into a zone can exist on *any* shard in the
+cluster and are migrated normally.
+
+During balancing rounds, if the balancer detects that any chunks violate the
+configured zones for a given shard, the balancer migrates those chunks to
+a shard where no conflict exists.
+
+After associating a zone with a shard or shards and configuring the
+zone with a shard key range for a sharded collection, the cluster may
+take some time to migrate the affected data for the sharded collection.
+This depends on the division of chunks and the current distribution of
+data in the cluster. When balancing is complete, reads and writes for
+documents in a given zone are routed only to the shard or shards inside
+that zone.
+
+Once configured, the balancer respects zones during future
+:ref:`balancing rounds <sharding-internals-balancing>`.
+
+.. _zone-sharding-shard-key:
+
+Shard Key
+~~~~~~~~~
+
+You must use fields contained in the :term:`shard key` when defining a new
+range for a zone to cover. If using a :term:`compound <compound index>` shard
+key, the range must include the prefix of the shard key.
+
+For example, given a shard key ``{ a : 1, b : 1, c : 1 }``, creating or
+updating a range to cover values of ``b`` requires including ``a`` as the
+prefix. Creating or updating a range to covers values of ``c`` requires
+including ``a`` and ``b`` as the prefix.
+
+You cannot create ranges using fields not included in the shard key. For
+example, if you wanted to use zones to partition data based on
+geographic location, the shard key would need the first field to
+contain geographic data.
+
+When choosing a shard key for a collection, consider what fields you might
+want to use for configuring zones. After sharding, you cannot change the
+shard key. See :ref:`sharding-internals-choose-shard-key` for considerations
+in choosing a shard key.
+
+Hashed Shard Keys and Zones
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When using zones on a hashed shard key, each zone covers the *hashed* shard
+key values. Given a shard key ``{ a : 1 }`` and a zone ``alpha`` with a lower
+bound of ``1`` and an upper bound of ``5``, the bounds represent the *hashed*
+value of ``a``, and not the actual value. Therefore, there is no guarantee
+that MongoDB routes documents where ``a`` has a value of ``1`` to ``5`` to
+zone ``alpha``. MongoDB routes any document where the *hashed* shard key value
+falls within the range of ``1`` or ``5`` to a shard inside zone ``alpha``.
+
+In general, a zone covering a sequential range of hashed shard key values may
+exhibit unexpected behavior.
+
+It is possible create a zone which covers the entire range of shard key
+values using :doc:`minKey </reference/bson-types>` and :doc:`maxkey
+</reference/bson-types>` to guarantee that MongoDB restricts all the
+data for a specific collection to the shard or shards in that zone.
+
+Shard Zone Boundaries
+~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-shard-ranges-inclusive-exclusive.rst
+
+.. seealso::
+
+   :doc:`/tutorial/manage-shard-zone`
+

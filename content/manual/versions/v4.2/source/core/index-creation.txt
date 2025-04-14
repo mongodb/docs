@@ -1,0 +1,546 @@
+.. index:: index; options
+.. _index-creation-operations:
+.. _index-operations:
+
+.. _index-creation-background:
+
+=====================================
+Index Builds on Populated Collections
+=====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+
+.. versionchanged:: MongoDB 4.2
+
+MongoDB index builds against a populated collection require an exclusive
+read-write lock against the collection. Operations that require a read
+or write lock on the collection must wait until the
+:binary:`~bin.mongod` releases the lock. MongoDB 4.2 uses an optimized
+build process that only holds the  exclusive lock at the beginning and
+end of the index build. The rest of the build process yields to
+interleaving read and write operations.
+
+The build process is summarized as follows:
+
+1. **Initialization**
+
+   The :binary:`~bin.mongod` takes an exclusive lock against the
+   collection being indexed. This blocks all read and write operations
+   to the collection until the :binary:`~bin.mongod` releases the lock.
+   Applications cannot access the collection during
+   this time.
+
+2. **Data Ingestion and Processing**
+
+   The :binary:`~bin.mongod` releases all locks taken by the index build
+   process before taking a series of intent locks against the collection
+   being indexed.  Applications can issue read and write operations
+   against the collection during this time.
+
+3. **Cleanup**
+
+   The :binary:`~bin.mongod` releases all locks taken by the index build
+   process before taking an exclusive lock against the collection
+   being indexed. This blocks all read and write operations to the
+   collection until the :binary:`~bin.mongod` releases the lock.
+   Applications cannot access the collection during this time.
+
+4. **Completion**
+
+   The :binary:`~bin.mongod` marks the index as ready to use
+   and releases all locks taken by the index build process.
+
+For a detailed description of index build locking behavior, see
+:ref:`index-build-process`. For more information on MongoDB locking
+behavior, see :doc:`/faq/concurrency`.
+
+Behavior
+--------
+
+MongoDB 4.2 index builds fully replace the index build processes
+supported in previous MongoDB versions. MongoDB ignores the
+``background`` index build option if specified to
+:dbcommand:`createIndexes` or its shell helpers
+:method:`~db.collection.createIndex()` and
+:method:`~db.collection.createIndexes()`.
+
+.. admonition:: Requires featureCompatibilityVersion 4.2
+   :class: note
+
+   For MongoDB clusters upgraded from 4.0 to 4.2, you must set the
+   :ref:`feature compatibility version (fcv) <view-fcv>` to ``4.2``
+   to enable the optimized build process. For more information on
+   setting the fCV, see :dbcommand:`setFeatureCompatibilityVersion`.
+
+   MongoDB 4.2 clusters running with fCV ``4.0`` only support 4.0 index
+   builds.
+
+Comparison to Foreground and Background Builds
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Previous versions of MongoDB supported building indexes either in the
+foreground or background. Foreground index builds were fast and produced
+more efficient index data structures, but required blocking all
+read-write access to the parent database of the collection being indexed
+for the duration of the build. Background index builds were slower and
+had less efficient results, but allowed read-write access to the
+database and its collections during the build process.
+
+.. versionchanged:: MongoDB 4.2
+
+MongoDB 4.2 index builds obtain an exclusive lock on only the collection
+being indexed during the start and end of the build process to protect
+metadata changes. The rest of the build process uses the yielding
+behavior of background index builds to maximize read-write access to the
+collection during the build. 4.2 index builds still produce efficient 
+index data structures despite the more permissive locking behavior.
+
+MongoDB 4.2 index build performance is at least on par with background
+index builds. For workloads with few or no updates received during the
+build process, 4.2 index builds builds can be as fast as a foreground
+index build on that same data.
+
+Use :method:`db.currentOp()` to monitor  the progress of ongoing index
+builds. 
+
+.. _index-build-constraint-violation:
+
+Constraint Violations During Index Build
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For indexes that enforce constraints on the collection, such as
+:doc:`unique </core/index-unique>` indexes, the :binary:`~bin.mongod`
+checks all pre-existing and concurrently-written documents for
+violations of those constraints *after* the index build completes.
+Documents that violate the index constraints can exist during the index
+build. If any documents violate the index constraints at the end of the
+build, the :binary:`~bin.mongod` terminates the build and throws an
+error.
+
+For example, consider a populated collection ``inventory``. An
+administrator wants to create a unique index on the ``product_sku``
+field. If any documents in the collection have duplicate values for
+``product_sku``, the index build can still start successfully. 
+If any violations still exist at the end of the build, 
+the :binary:`~bin.mongod` terminates the build and throws an error. 
+
+Similarly, an application can successfully write documents to the
+``inventory`` collection with duplicate values of ``product_sku`` while
+the index build is in progress. If any violations still exist at the end
+of the build,  the :binary:`~bin.mongod` terminates the build and throws
+an error. 
+
+To mitigate the risk of index build failure due to constraint
+violations:
+
+- Validate that no documents in the collection violate the index
+  constraints.
+
+- Stop all writes to the collection from applications that cannot
+  guarantee violation-free write operations.
+
+.. _index-build-constraint-violation-sharded:
+
+Sharded Collections
+````````````````````
+
+For a sharded collection distributed across multiple shards, one or
+more shards may contain a chunk with duplicate documents. As such, the
+create index operation may succeed on some of the shards (i.e. the ones
+without duplicates) but not on others (i.e. the ones with duplicates).
+To avoid leaving inconsistent indexes across shards, you can issue the
+:method:`db.collection.dropIndex()` from a :binary:`~bin.mongos` to
+drop the index from the collection.
+
+To mitigate the risk of this occurrence, before creating the index:
+
+- Validate that no documents in the collection violate the index
+  constraints.
+
+- Stop all writes to the collection from applications that cannot
+  guarantee violation-free write operations.
+
+.. seealso:: :ref:`index-creation-index-consistency`
+
+Index Build Impact on Database Performance
+------------------------------------------
+
+Index Builds During Write-Heavy Workloads
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Building indexes during time periods where the target collection
+is under heavy write load can result in reduced write 
+performance and longer index builds.
+
+Consider designating a maintenance window during which applications
+stop or reduce write operations against the collection. Start the
+index build during this maintenance window to mitigate the
+potential negative impact of the build process.
+
+Insufficient Available System Memory (RAM)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-index-build-default-memory-limit.rst
+
+If the host machine has limited available free RAM, you may need
+to schedule a maintenance period to increase the total system RAM
+before you can modify the :binary:`~bin.mongod` RAM usage.
+
+.. _index-operations-replicated-build:
+
+Index Builds in Replicated Environments
+---------------------------------------
+
+To minimize the impact of building an index on:
+
+- Replica Sets, use a rolling index build procedure as described in
+  :doc:`/tutorial/build-indexes-on-replica-sets`.
+
+- Sharded Clusters with Shard Replica Sets, use a rolling index build
+  procedure as described in
+  :doc:`/tutorial/build-indexes-on-sharded-clusters`.
+  
+You can alternatively start the index build on the :term:`primary`. Once
+the index build completes, the secondaries replicate and start the index
+build. Consider the following risks *before* starting a replicated index
+build:
+
+Secondaries May Fall Out of Sync
+  Secondary index builds block the application of replicated
+  transactions on a sharded cluster *if* that transaction includes 
+  writes to the collection being indexed. Similarly, replicated metadata 
+  operations against the collection being indexed also stall behind the
+  index build. The :binary:`~bin.mongod` cannot apply any further 
+  oplog entries until the index build completes. 
+
+  Replicated write operation to the collection being indexed can also
+  stall behind the index build *if* the index build is holding an
+  exclusive lock at the time of the operation or command. The
+  :binary:`~bin.mongod` cannot apply any further oplog entries until the
+  index build releases the exclusive lock. If replication stalls for
+  longer than the :ref:`oplog window <replica-set-oplog-sizing>` on that
+  secondary, the secondary falls out of sync and requires
+  :ref:`resynchronization <replica-set-initial-sync>` to recover.
+
+  Use :method:`rs.printReplicationInfo()` on each replica set member to 
+  validate the time covered by the oplog size configured for that
+  member *prior* to starting the index build. You can 
+  :doc:`increase the oplog size </tutorial/change-oplog-size>` 
+  to mitigate the likelihood of a secondary falling out of sync.
+  For example, setting an oplog window size that can cover
+  72 hours of operations ensures that secondaries can tolerate at least
+  that much replication lag.
+
+  Alternatively, build indexes during a maintenance window in which
+  applications cease issuing distributed transactions, write operations,
+  or metadata commands that affect the collection being indexed. 
+
+Secondary Index Builds May Stall Read and Write Operations
+  MongoDB 4.2 index builds obtain an exclusive lock on the collection
+  being indexed at the start and end of the build process. While
+  a secondary index build holds the exclusive lock, any read or
+  write operations that depends on the secondary stall until the
+  build releases that lock.
+
+Secondaries Process Index Drops After Index Build Completes
+  Avoid dropping an index on a collection while any index is being
+  replicated on a secondary.
+
+  If you attempt to drop an index from a collection on a :term:`primary`
+  while the collection has a background index building on the
+  :term:`secondary`, the two indexing operations will conflict with each
+  other.
+
+  As a result, reads will be halted across all namespaces and
+  replication will halt until the background index build completes.
+  When the build finishes the ``dropIndex`` action will execute, then
+  reads and replication will resume.
+
+Build Failure and Recovery
+--------------------------
+
+Interrupted Index Builds on Standalone ``mongod``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the :binary:`~bin.mongod` shuts down during the index build, the
+index build job and all progress is lost. Restarting the
+:binary:`~bin.mongod` does not restart the index build. You must
+re-issue the :method:`~db.collection.createIndex()` operation to restart
+the index build.
+
+Interrupted Index Builds on a Primary ``mongod``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the primary shuts down or steps down during the index build, the
+index build job and all progress is lost. Restarting the
+:binary:`~bin.mongod` does not restart the index build. You must
+re-issue the :method:`~db.collection.createIndex()` operation to
+restart the index build.
+
+Interrupted Index Builds on a Secondary ``mongod``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If a secondary shuts down during the index build, the index build job is
+persisted. Restarting the :binary:`~bin.mongod` recovers the index build
+and restarts it **from scratch**.
+
+The startup process stalls behind any recovered index builds. All other
+operations, including replication, wait until the index builds complete.
+If the secondary's oplog does not cover the time required to complete
+the index build, the secondary may fall out of sync with the rest of the
+replica set and require 
+:ref:`resynchronization <replica-set-initial-sync>`.
+
+If you restart the :binary:`~bin.mongod` as a standalone
+(i.e. removing or commenting out :setting:`replication.replSetName`
+or omitting :option:`--replSetName <mongod --replSet>`), the 
+``mongod`` still recovers the index build **from scratch**. You can use 
+the :setting:`storage.indexBuildRetry` configuration file setting or 
+:option:`--noIndexBuildRetry <mongod --noIndexBuildRetry>` command line
+option to skip the index build on start up.
+
+.. admonition:: MongoDB 4.0+
+   :class: note
+
+   You cannot specify :setting:`storage.indexBuildRetry` or
+   :option:`--noIndexBuildRetry <mongod --noIndexBuildRetry>` for a
+   :binary:`~bin.mongod` that is part of a replica set.
+
+Rollbacks during Build Process
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in version 4.0, MongoDB waits for any in-progress index builds
+to finish before starting a 
+:doc:`rollback </core/replica-set-rollbacks>`.
+
+.. _index-creation-index-consistency:
+
+Index Consistency Checks for Sharded Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A sharded collection has an inconsistent index if the collection does
+not have the exact same indexes (including the index options) on each
+shard that contains chunks for the collection. Although inconsistent
+indexes should not occur during normal operations, inconsistent indexes
+can occur, such as:
+
+- When a user is creating an index with a ``unique`` key constraint and
+  one shard contains a chunk with duplicate documents. In such cases,
+  the create index operation may succeed on the shards without
+  duplicates but not on the shard with duplicates.
+
+- When a user is creating an index across the shards in a :doc:`rolling
+  manner (i.e. manually building the index one by one across the
+  shards) </tutorial/build-indexes-on-sharded-clusters>` but either
+  fails to build the index for an associated shard or incorrectly
+  builds an index with different specification.
+
+Starting in MongoDB 4.2.6, the :doc:`config server
+</core/sharded-cluster-config-servers>` primary periodically checks for
+index inconsistencies across the shards for sharded collections. To
+configure these periodic checks, see
+:parameter:`enableShardedIndexConsistencyCheck` and
+:parameter:`shardedIndexConsistencyCheckIntervalMS`.
+
+The command :dbcommand:`serverStatus` returns the field
+:serverstatus:`shardedIndexConsistency` to report on index
+inconsistencies when run on the config server primary.
+
+To check if a sharded collection has inconsistent indexes, see
+:ref:`manage-indexes-find-inconsistent-indexes`.
+
+Monitor In Progress Index Builds
+--------------------------------
+
+To see the status of an index build operation, you can use the
+:method:`db.currentOp()` method in the :binary:`~bin.mongo` shell. To
+filter the current operations for index creation operations, see
+:ref:`currentOp-index-creation` for an example.
+
+The :data:`~currentOp.msg` field includes a percentage-complete
+measurement of the current stage in the index build process. 
+
+Terminate In Progress Index Builds
+----------------------------------
+
+To terminate an ongoing index build on a primary or standalone
+``mongod``, use the :method:`db.killOp()` method in the
+:binary:`~bin.mongo` shell. When terminating an index build, the effects
+of :method:`db.killOp()` may not be immediate and may occur well after
+much of the index build operation has completed.
+
+You cannot terminate a *replicated* index build on secondary members of
+a replica set. You must first :method:`drop <db.collection.dropIndex()>`
+the index on the primary. The secondaries will replicate the drop
+operation and drop the indexes *after* the index build completes.
+All further replication blocks behind the index build and drop. 
+
+To minimize the impact of building an index on replica
+sets and sharded clusters with replica set shards, see:
+
+- :doc:`/tutorial/build-indexes-on-replica-sets`
+- :doc:`/tutorial/build-indexes-on-sharded-clusters`
+
+.. _index-build-process:
+
+Index Build Process
+-------------------
+
+The following table describes each stage of the index build
+process:
+
+.. list-table::
+  :header-rows: 1
+  :widths: 30 70
+
+  * - Stage
+    - Description
+
+  * - Lock
+
+    - The :binary:`~bin.mongod` obtains an exclusive ``X`` lock on the
+      the collection being indexed. This blocks all read and write 
+      operations on the collection, including the application
+      of any replicated write operations or metadata commands that
+      target the collection. The :binary:`~bin.mongod` does not yield 
+      this lock. 
+
+  * - Initialization
+
+    - The :binary:`~bin.mongod` creates three data structures 
+      at this initial state:
+
+      - The initial index metadata entry.
+      - A temporary table ("side writes table") that stores keys
+        generated from writes to the collection being indexed
+        during the build process.
+      - A temporary table ("constraint violation table") for all 
+        documents that may cause a duplicate-key constraint violation.
+
+  * - Lock
+
+    - The :binary:`~bin.mongod` downgrades the exclusive ``X`` 
+      collection lock to an intent exclusive
+      ``IX`` lock. The :binary:`~bin.mongod` periodically yields
+      this lock to  interleaving read and write operations.
+
+  * - Scan Collection
+
+    - For each document in the collection, the :binary:`~bin.mongod` 
+      generates a key for that document and dumps the 
+      key into an external sorter.
+
+      If the :binary:`~bin.mongod` encounters a duplicate key
+      error while generating a key during the collection scan,
+      it stores that key in the constraint violation table for later
+      processing.
+
+      If the :binary:`~bin.mongod` encounters any other error while
+      generating a key, the build fails with an error.
+
+      Once the :binary:`~bin.mongod` completes the collection
+      scan, it dumps the sorted keys into the index.
+
+  * - Process Side Writes Table
+
+    - The :binary:`~bin.mongod` drains the side write table using
+      first-in-first-out priority.
+
+      If the :binary:`~bin.mongod` encounters a duplicate key 
+      error while processing a key in the side write table, it
+      stores that key in the constraint violation table for later
+      processing.
+
+      If the :binary:`~bin.mongod` encounters any other error while
+      processing a key, the build fails with an error.
+
+      For each document written to the collection during the build
+      process, the :binary:`~bin.mongod` generates a key for that
+      document and stores it in the side write table for later
+      processing. The :binary:`~bin.mongod` uses a snapshot system to set
+      a limit to the number of keys to process. 
+
+  * - Lock
+
+    - The :binary:`~bin.mongod` upgrades the intent exclusive ``IX`` 
+      lock on the collection to a shared ``S`` lock. This 
+      blocks all write operations to the collection, including the
+      application of any replicated write operations or metadata
+      commands that target the collection.
+
+  * - Finish Processing Temporary Side Writes Table
+
+    - The :binary:`~bin.mongod` continues draining remaining 
+      records in the side writes table. The :binary:`~bin.mongod` may 
+      pause replication  during this stage.
+
+      If the :binary:`~bin.mongod` encounters a duplicate key 
+      error while processing a key in the side write table, it
+      stores that key in the constraint violation table for later
+      processing.
+
+      If the :binary:`~bin.mongod` encounters any other error while
+      processing a key, the build fails with an error.
+
+  * - Lock
+
+    - The :binary:`~bin.mongod` upgrades the shared ``S`` lock on the 
+      collection to an exclusive ``X`` lock on the collection. This 
+      blocks all read and write operations on the collection, including 
+      the application of any replicated write operations or metadata 
+      commands that target the collection. The :binary:`~bin.mongod` 
+      does not yield this lock. 
+
+  * - Drop Side Write Table
+
+    - The :binary:`~bin.mongod` applies any remaining 
+      operations in the side writes table before dropping it. 
+
+      If the :binary:`~bin.mongod` encounters a duplicate key 
+      error while processing a key in the side write table, it
+      stores that key in the constraint violation table for later
+      processing.
+
+      If the :binary:`~bin.mongod` encounters any other error while
+      processing a key, the build fails with an error.
+
+      At this point, the index includes all data written to
+      the collection.
+
+  * - Process Constraint Violation Table
+
+    - The :binary:`~bin.mongod` drains the constraint violation table
+      using first-in-first-out priority. The :binary:`~bin.mongod`
+      then drops the table.
+
+      If any key in the constraint violation table still produces a
+      duplicate key error, the :binary:`~bin.mongod` aborts the build
+      and throws an error.
+
+      The :binary:`~bin.mongod` drops the constraint violation table
+      once it is drained *or* if it encounters a duplicate key violation
+      during processing.
+
+  * - Mark the Index as Ready
+
+    - The :binary:`~bin.mongod` updates the index metadata to 
+      mark the index as ready for use.
+
+  * - Lock
+
+    - The :binary:`~bin.mongod` releases the ``X`` lock on the 
+      collection. 
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   /tutorial/build-indexes-on-replica-sets
+   /tutorial/build-indexes-on-sharded-clusters

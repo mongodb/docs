@@ -1,0 +1,126 @@
+.. _ttl-collections:
+
+===========================================
+Expire Data from Collections by Setting TTL
+===========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This document provides an introduction to MongoDB's "*time to live*"
+or :term:`TTL` collection feature. TTL collections make it possible to
+store data in MongoDB and have the :binary:`~bin.mongod` automatically
+remove data after a specified number of seconds or at a specific clock
+time.
+
+Data expiration is useful for some classes of information, including
+machine generated event data, logs, and session information that only
+need to persist for a limited period of time.
+
+A special :doc:`TTL index property </core/index-ttl>` supports the
+implementation of TTL collections. The TTL feature relies on a
+background thread in :binary:`~bin.mongod` that reads the date-typed values
+in the index and removes expired :term:`documents <document>` from the
+collection.
+
+Procedures
+----------
+
+To create a :doc:`TTL index </core/index-ttl>`, use the
+:method:`db.collection.createIndex()` method with the
+``expireAfterSeconds`` option on a field whose value is either a
+:ref:`date <document-bson-type-date>` or an array that contains
+:ref:`date values <document-bson-type-date>`.
+
+.. note::
+
+   The TTL index is a single field index. Compound indexes do not
+   support the TTL property. For more information on TTL indexes, see
+   :doc:`/core/index-ttl`.
+
+You can modify the ``expireAfterSeconds`` of an existing TTL index
+using the :dbcommand:`collMod` command.
+
+Expire Documents after a Specified Number of Seconds
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To expire data after a specified number of seconds has passed since the
+indexed field, create a TTL index on a field that holds values of BSON
+date type or an array of BSON date-typed objects *and* specify a
+positive non-zero value in the ``expireAfterSeconds`` field. A document
+will expire when the number of seconds in the ``expireAfterSeconds``
+field has passed since the time specified in its indexed field.
+[#field-is-array-of-dates]_
+
+For example, the following operation creates an index on the
+``log_events`` collection's ``createdAt`` field and specifies the
+``expireAfterSeconds`` value of ``3600`` to set the expiration time to
+be one hour after the time specified by ``createdAt``.
+
+.. code-block:: javascript
+
+   db.log_events.createIndex( { "createdAt": 1 }, { expireAfterSeconds: 3600 } )
+
+When adding documents to the ``log_events`` collection, set the
+``createdAt`` field to the current time:
+
+.. code-block:: javascript
+
+   db.log_events.insert( {
+      "createdAt": new Date(),
+      "logEvent": 2,
+      "logMessage": "Success!"
+   } )
+
+MongoDB will automatically delete documents from the ``log_events``
+collection when the document's ``createdAt`` value
+[#field-is-array-of-dates]_ is older than the number of seconds
+specified in ``expireAfterSeconds``.
+
+.. [#field-is-array-of-dates] If the field contains an array of BSON
+   date-typed objects, data expires if at least one of BSON date-typed
+   object is older than the number of seconds specified in
+   ``expireAfterSeconds``.
+
+Expire Documents at a Specific Clock Time
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To expire documents at a specific clock time, begin by creating a TTL
+index on a field that holds values of BSON date type or an array of
+BSON date-typed objects *and* specify an ``expireAfterSeconds`` value
+of ``0``. For each document in the collection, set the indexed date
+field to a value corresponding to the time the document should expire.
+If the indexed date field contains a date in the past, MongoDB
+considers the document expired.
+
+For example, the following operation creates an index on the
+``log_events`` collection's ``expireAt`` field and specifies the
+``expireAfterSeconds`` value of ``0``:
+
+.. code-block:: javascript
+
+   db.log_events.createIndex( { "expireAt": 1 }, { expireAfterSeconds: 0 } )
+
+For each document, set the value of ``expireAt`` to correspond to the
+time the document should expire. For instance, the following
+:method:`~db.collection.insert()` operation adds a document that should
+expire at ``July 22, 2013 14:00:00``.
+
+.. code-block:: javascript
+
+   db.log_events.insert( {
+      "expireAt": new Date('July 22, 2013 14:00:00'),
+      "logEvent": 2,
+      "logMessage": "Success!"
+   } )
+
+MongoDB will automatically delete documents from the ``log_events``
+collection when the documents' ``expireAt`` value is older than the
+number of seconds specified in ``expireAfterSeconds``, i.e. ``0``
+seconds older in this case. As such, the data expires at the specified
+``expireAt`` value.

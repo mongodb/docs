@@ -1,0 +1,487 @@
+=============================
+MongoDB Limits and Thresholds
+=============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This document provides a collection of hard and soft limitations of
+the MongoDB system.
+
+BSON Documents
+--------------
+
+.. _limit-bson-document-size:
+.. limit:: BSON Document Size
+
+   .. include:: /includes/fact-document-max-size.rst
+
+.. _limit-nested-depth:
+.. limit:: Nested Depth for BSON Documents
+
+   MongoDB supports no more than 100 levels of nesting for :term:`BSON
+   documents <document>`. Each object or array adds a level.
+
+.. _restrictions-on-db-names:
+.. _restrictions-on-collection-names:
+.. _faq-restrictions-on-collection-names:
+
+Naming Restrictions
+-------------------
+
+.. limit:: Use of Case in Database Names
+
+   Do not rely on case to distinguish between databases. For example,
+   you cannot use two databases with names like, ``salesData`` and
+   ``SalesData``.
+
+   After you create a database in MongoDB, you must use consistent
+   capitalization when you refer to it. For example, if you create the
+   ``salesData`` database, do not refer to it using alternate
+   capitalization such as ``salesdata`` or ``SalesData``.
+
+.. limit:: Restrictions on Database Names for Windows
+
+   For MongoDB deployments running on Windows, database names cannot
+   contain any of the following characters:
+
+   .. code-block:: none
+
+      /\. "$*<>:|?
+
+   Also database names cannot contain the null character.
+
+.. limit:: Restrictions on Database Names for Unix and Linux Systems
+
+   For MongoDB deployments running on Unix and Linux systems, database
+   names cannot contain any of the following characters:
+
+   .. code-block:: none
+
+      /\. "$
+
+   Also database names cannot contain the null character.
+
+.. limit:: Length of Database Names
+
+   Database names cannot be empty and must have fewer than 64 characters.
+
+.. limit:: Restriction on Collection Names
+
+   Collection names should begin with an underscore or a letter
+   character, and *cannot*:
+
+   - contain the ``$``.
+
+   - be an empty string (e.g. ``""``).
+
+   - contain the null character.
+
+   - begin with the ``system.`` prefix. (Reserved for internal use.)
+
+   If your collection name includes special characters, such as the
+   underscore character, or begins with numbers, then to access the
+   collection use the :method:`db.getCollection()` method in the
+   :binary:`~bin.mongo` shell or a :api:`similar method for your driver <>`.
+
+   .. include:: /includes/fact-collection-namespace-limit.rst
+
+.. _limit-restrictions-on-field-names:
+
+.. limit:: Restrictions on Field Names
+
+   .. include:: /includes/fact-document-field-name-restrictions.rst
+
+   .. include:: /includes/warning-document-duplicate-key-names.rst
+
+.. _faq-dev-namespace:
+
+Namespaces
+----------
+
+.. _limit-namespace-length:
+.. limit:: Namespace Length
+
+   .. include:: /includes/fact-collection-namespace-limit.rst
+
+   .. seealso:: :ref:`faq-restrictions-on-collection-names`
+
+
+
+.. _index-limitations:
+
+Indexes
+-------
+
+.. _limit-index-size:
+.. limit:: Index Key Limit
+
+
+   .. admonition:: Changed in version 4.2
+      :class: note
+
+      Starting in version 4.2, MongoDB removes the :limit:`Index Key
+      Limit` for :ref:`featureCompatibilityVersion <view-fcv>` (fCV)
+      set to ``"4.2"`` or greater.
+
+   For MongoDB 2.6 through MongoDB versions with fCV set to ``"4.0"`` or
+   earlier, the *total size* of an index entry, which can include
+   structural overhead depending on the BSON type, must be *less than*
+   1024 bytes.
+
+   .. |limit| replace:: :limit:`index key limit <Index Key Limit>`
+
+   .. include:: /includes/list-index-field-limit-behaviors.rst
+
+.. _limit-number-of-indexes-per-collection:
+.. limit:: Number of Indexes per Collection
+
+   A single collection can have *no more* than 64 indexes.
+
+.. _limit-index-name-length:
+.. limit:: Index Name Length
+
+   .. admonition:: Changed in version 4.2
+      :class: note
+
+      Starting in version 4.2, MongoDB removes the :limit:`Index Name Length
+      Limit` for MongoDB versions with
+      :ref:`featureCompatibilityVersion <view-fcv>` (fCV) set to
+      ``"4.2"`` or greater.
+
+   In previous versions of MongoDB or MongoDB versions with fCV set
+   to ``"4.0"`` or earlier, fully qualified index names, which include
+   the namespace and the dot separators (i.e. ``<database
+   name>.<collection name>.$<index name>``), cannot be longer than 127
+   bytes.
+
+   By default, ``<index name>`` is the concatenation of the field names
+   and index type. You can explicitly specify the ``<index name>`` to
+   the :method:`~db.collection.createIndex()` method to ensure that the
+   fully qualified index name does not exceed the limit.
+
+.. limit:: Number of Indexed Fields in a Compound Index
+
+   There can be no more than 32 fields in a compound index.
+
+.. limit:: Queries cannot use both text and Geospatial Indexes
+
+   .. |operation| replace:: :query:`$text` query
+
+   .. include:: /includes/fact-special-indexes-and-text.rst
+
+   .. TODO remove in the 2.6 version of the manual
+
+.. limit:: Fields with 2dsphere Indexes can only hold Geometries
+
+   .. include:: /includes/geo-data-limit-for-2dsphere.rst
+
+.. seealso:: The unique indexes limit in :ref:`limits-sharding-operations`.
+
+.. limit:: NaN values returned from Covered Queries by the WiredTiger Storage Engine are always of type double
+
+   If the value of a field returned from a query that is :ref:`covered
+   by an index <covered-queries>` is ``NaN``, the type of that ``NaN``
+   value is *always* ``double``.
+
+.. limit:: Multikey Index
+
+   .. include:: /includes/fact-multikey-index-covered-query.rst
+
+.. limit:: Geospatial Index
+
+   .. include:: /includes/fact-geospatial-index-covered-query.rst
+
+.. limit:: Memory Usage in Index Builds
+
+   .. include:: /includes/fact-index-build-default-memory-limit.rst
+
+   .. include:: /includes/extracts/4.2-index-limit.rst
+
+   .. include:: /includes/fact-index-build-memory-limit.rst
+
+.. limit:: Collation and Index Types
+
+   The following index types only support simple binary comparison and
+   do not support :ref:`collation <collation>`:
+
+   - :doc:`text </core/index-text>` indexes, 
+
+   - :doc:`2d </core/2d>` indexes, and 
+
+   - :doc:`geoHaystack </core/geohaystack>` indexes.
+
+   .. include:: /includes/extracts/collation-index-type-restrictions-addendum.rst
+
+Sorts
+-----
+
+.. limit:: Maximum Number of Sort Keys
+
+   .. include:: /includes/sort-limits.rst
+
+Data
+----
+
+.. limit:: Maximum Number of Documents in a Capped Collection
+
+   If you specify a maximum number of documents for a capped
+   collection using the ``max`` parameter to
+   :dbcommand:`create`, the limit must be less than 2\ :sup:`32`
+   documents. If you do not specify a maximum number of documents when
+   creating a capped collection, there is no limit on the number of
+   documents.
+
+
+Replica Sets
+------------
+
+.. limit:: Number of Members of a Replica Set
+
+   Replica sets can have up to 50 members.
+
+.. limit:: Number of Voting Members of a Replica Set
+
+   Replica sets can have up to 7 voting members. For replica sets with
+   more than 7 total members, see :ref:`replica-set-non-voting-members`.
+
+.. limit:: Maximum Size of Auto-Created Oplog
+
+   If you do not explicitly specify an oplog size (i.e. with
+   :setting:`~replication.oplogSizeMB` or :option:`--oplogSize
+   <mongod --oplogSize>`) MongoDB will create an oplog that is no
+   larger than 50 gigabytes. [#oplog]_
+
+   .. [#oplog]
+
+      .. include:: /includes/fact-oplog-size.rst
+
+.. _limits-sharding:
+
+Sharded Clusters
+----------------
+
+Sharded clusters have the restrictions and thresholds described here.
+
+.. _limits-sharding-operations:
+
+Sharding Operational Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. limit:: Operations Unavailable in Sharded Environments
+
+   .. include:: /includes/limits-sharding-unavailable-operations.rst
+
+.. limit:: Covered Queries in Sharded Clusters
+
+   .. include:: /includes/extracts/fact-covered-query-sharded-collection-covered-queries.rst
+
+.. limit:: Sharding Existing Collection Data Size
+
+   .. include:: /includes/limits-sharding-existing-collection-data-size.rst
+
+.. limit:: Single Document Modification Operations in Sharded Collections
+
+   .. |single-modification-operation-names| replace:: :method:`~db.collection.update()` and :method:`~db.collection.remove()`
+   .. |single-modification-operation-option| replace:: ``justOne`` or ``multi: false``
+
+   .. include:: /includes/fact-single-modification-in-sharded-collections.rst
+
+.. _limit-sharding-unique-indexes:
+
+.. limit:: Unique Indexes in Sharded Collections
+
+   .. include:: /includes/limits-sharding-unique-indexes.rst
+
+.. _limit-balancer-migration-document-limit:
+
+.. limit:: Maximum Number of Documents Per Chunk to Migrate
+
+   .. include:: /includes/limits-sharding-maximum-documents-chunk.rst
+
+.. _limits-shard-keys:
+
+Shard Key Limitations
+~~~~~~~~~~~~~~~~~~~~~
+
+.. limit:: Shard Key Size
+
+   .. include:: /includes/limits-sharding-keysize.rst
+
+.. limit:: Shard Key Index Type
+
+   .. include:: /includes/limits-sharding-index-type.rst
+
+.. limit:: Shard Key Selection is Immutable
+
+   Once you shard a collection, the selection of the shard key is
+   immutable; i.e. you cannot select a different shard key for that
+   collection.
+
+   .. include:: /includes/limits-sharding-shardkey-immutable.rst
+
+.. limit:: Monotonically Increasing Shard Keys Can Limit Insert Throughput
+
+   .. include:: /includes/limits-sharding-shardkey-monotonic-throughput.rst
+
+Operations
+----------
+
+.. _limit-sort:
+.. limit:: Sort Operations
+
+   If MongoDB cannot use an index to get documents in the requested
+   sort order, the combined size of all documents in the sort
+   operation, plus a small overhead, must be less than 32 megabytes.
+
+.. _limit-agg-sort:
+
+.. limit:: Aggregation Pipeline Operation
+
+   .. include:: /includes/fact-agg-memory-limit.rst
+
+.. limit:: Aggregation and Read Concern
+
+   - .. include:: /includes/extracts/4.2-changes-out-linearizable.rst
+   
+   - .. include:: /includes/extracts/4.2-changes-linearizable-merge-restriction.rst
+
+.. limit:: 2d Geospatial queries cannot use the $or operator
+
+   .. see:: :query:`$or` and :doc:`/core/geospatial-indexes`.
+
+.. limit:: Geospatial Queries
+
+   .. include:: /includes/extracts/geospatial-queries-longitude-values.rst
+
+.. limit:: Geospatial Coordinates
+
+   .. include:: /includes/extracts/geospatial-valid-long-lat-values.rst
+
+.. limit:: Area of GeoJSON Polygons
+
+   .. |geo-operator-method| replace:: :query:`$geoIntersects` or :query:`$geoWithin`
+
+   .. include:: /includes/fact-geometry-hemisphere-limitation.rst
+
+.. limit:: Multi-document Transactions
+
+   For :doc:`multi-document transactions </core/transactions>`:
+
+   .. include:: /includes/extracts/transactions-operations-crud.rst
+
+   .. include:: /includes/extracts/transactions-operations-restrictions.rst
+   
+   Transactions have a lifetime limit as specified by
+   :parameter:`transactionLifetimeLimitSeconds`. The default is 60 seconds.
+
+.. limit:: Write Command Batch Limit Size
+
+   ``100,000`` :doc:`writes </reference/command/nav-crud>` are
+   allowed in a single batch operation, defined by a single request to
+   the server.
+
+   .. versionchanged:: 3.6
+
+      The limit raises from ``1,000`` to ``100,000`` writes. This limit
+      also applies to legacy ``OP_INSERT`` messages.
+
+   The :method:`Bulk()` operations in the
+   :binary:`~bin.mongo` shell and comparable methods in the drivers do not
+   have this limit.
+
+.. limit:: Views
+
+   .. include:: /includes/extracts/views-restriction-output-to-disk.rst
+
+   Views have the following operation restrictions:
+
+   - Views are read-only.
+
+   - .. include:: /includes/extracts/views-unsupported-rename.rst
+
+   - .. include:: /includes/extracts/views-unsupported-projection-operators.rst
+
+   - .. include:: /includes/extracts/views-unsupported-text-search.rst
+
+   - .. include:: /includes/extracts/views-unsupported-mapReduce.rst
+
+   - .. include:: /includes/extracts/views-unsupported-geoNear.rst
+
+
+Sessions
+--------
+
+.. limit:: Sessions and $external Username Limit 
+
+   .. include:: /includes/extracts/sessions-external-username-limit.rst
+
+.. limit:: Session Idle Timeout
+
+   Sessions that receive no read or write operations for 30 minutes *or*
+   that are not refreshed using :dbcommand:`refreshSessions` within this
+   threshold are marked as expired and can be closed by the MongoDB
+   server at any time. Closing a session kills any in-progress
+   operations and open cursors associated with the session. This
+   includes cursors configured with :method:`~cursor.noCursorTimeout` or
+   a :method:`~cursor.maxTimeMS` greater than 30 minutes.
+
+   Consider an application that issues a :method:`db.collection.find()`.
+   The server returns a cursor along with a batch of documents defined
+   by the :method:`cursor.batchSize()` of the
+   :method:`~db.collection.find()`. The session refreshes each time the
+   application requests a new batch of documents from the server.
+   However, if the application takes longer than 30 minutes to process
+   the current batch of documents, the session is marked as expired and
+   closed. When the application requests the next batch of documents,
+   the server returns an error as the cursor was killed when the session
+   was closed.
+
+   For operations that return a cursor, if the cursor may be idle for
+   longer than 30 minutes, issue the operation within an explicit
+   session using :method:`Session.startSession()` and periodically
+   refresh the session using the :dbcommand:`refreshSessions` command.
+   For example:
+
+   .. code-block:: shell
+
+     var session = db.getMongo().startSession()
+     var sessionId = session
+     sessionId  // show the sessionId
+
+     var cursor = session.getDatabase("examples").getCollection("data").find().noCursorTimeout()
+     var refreshTimestamp = new Date() // take note of time at operation start
+    
+     while (cursor.hasNext()) {
+      
+       // Check if more than 5 minutes have passed since the last refresh
+       if ( (new Date()-refreshTimestamp)/1000 > 300 ) { 
+         print("refreshing session")
+         db.adminCommand({"refreshSessions" : [sessionId]})
+         refreshTimestamp = new Date()
+       }
+
+       // process cursor normally
+      
+     }
+
+   In the example operation, the :method:`db.collection.find()` method
+   is associated with an explicit session. The cursor is configured with
+   :method:`~cursor.noCursorTimeout()` to prevent the server from
+   closing the cursor if idle. The ``while`` loop includes a block that
+   uses :dbcommand:`refreshSessions` to refresh the session every 5
+   minutes. Since the session will never exceed the 30 minute idle
+   timeout, the cursor can remain open indefinitely.
+
+   For MongoDB drivers, defer to the :ecosystem:`driver documentation
+   </drivers>` for instructions and syntax for creating sessions. 
+
+Shell
+-----
+
+.. include:: /includes/fact-mongo-prompt-size.rst

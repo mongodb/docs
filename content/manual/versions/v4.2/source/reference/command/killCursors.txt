@@ -1,0 +1,171 @@
+===========
+killCursors
+===========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. versionadded:: 3.2
+
+Definition
+----------
+
+.. dbcommand:: killCursors
+
+   Kills the specified cursor or cursors for a collection. MongoDB
+   drivers use the :dbcommand:`killCursors` command as part of the
+   client-side cursor implementation.
+
+   .. note::
+
+      In general, applications should not use the
+      :dbcommand:`killCursors` command directly.
+
+   .. |command| replace:: killCursors
+
+   The ``killCursors`` command must be run against the database of the
+   collection whose cursors you wish to kill.
+
+   .. include:: /includes/fact-dbcommand.rst
+
+   The command has the following form:
+
+   .. code-block:: javascript
+
+      db.runCommand( { "killCursors": <collection>, "cursors": [ <cursor id1>, ... ] } )
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``killCursors``
+   
+        - string
+   
+        - The name of the collection.
+          
+          
+   
+      * - ``cursors``
+   
+        - array
+   
+        - The ids of the cursors to kill.
+          
+          
+   
+
+
+Required Access
+---------------
+
+Kill Own Cursors
+~~~~~~~~~~~~~~~~
+
+- **In MongoDB 4.2 and later**, users can always kill their own cursors,
+  regardless of whether the users have the privilege to
+  :authaction:`killCursors`. Cursors are associated with the users at
+  the time of cursor creation.
+
+- **In MongoDB 3.6.3 through MongoDB 4.0.x**, users require
+  :authaction:`killCursors` privilege to kill their own cursors.
+  Cursors are associated with the users at the time of cursor creation.
+
+Kill Any Cursor
+~~~~~~~~~~~~~~~
+
+If a user possesses the :authaction:`killAnyCursor` privilege, that
+user may kill any cursor, even cursors created by other users.
+
+``killCursors`` and Transactions
+--------------------------------
+
+.. include:: /includes/extracts/transactions-killop-change.rst
+
+Example
+-------
+
+Consider the following :dbcommand:`find` operation on the
+``test.restaurants`` collection:
+
+.. code-block:: javascript
+
+   use test
+   db.runCommand(
+      { find: "restaurants",
+        filter: { stars: 5 },
+        projection: { name: 1, rating: 1, address: 1 },
+        sort: { name: 1 },
+        batchSize: 5
+      }
+   )
+
+which returns the following:
+
+.. code-block:: javascript
+
+   {
+      "waitedMS" : NumberLong(0),
+      "cursor" : {
+         "firstBatch" : [
+            {
+               "_id" : ObjectId("57506d63f578028074723dfd"),
+               "name" : "Cakes and more"
+            },
+            {
+               "_id" : ObjectId("57506d63f578028074723e0b"),
+               "name" : "Pies and things"
+            },
+            {
+               "_id" : ObjectId("57506d63f578028074723e1d"),
+               "name" : "Ice Cream Parlour"
+            },
+            {
+               "_id" : ObjectId("57506d63f578028074723e65"),
+               "name" : "Cream Puffs"
+            },
+            {
+               "_id" : ObjectId("57506d63f578028074723e66"),
+               "name" : "Cakes and Rolls"
+            }
+         ],
+         "id" : NumberLong("18314637080"),
+         "ns" : "test.restaurants"
+      },
+      "ok" : 1
+   }
+
+To kill this cursor, use the :dbcommand:`killCursors` command.
+
+.. code-block:: javascript
+
+   use test
+
+   db.runCommand( { killCursors: "restaurants", cursors: [ NumberLong("18314637080") ] } )
+
+:dbcommand:`killCursors` returns the following operation details:
+
+.. code-block:: javascript
+
+   {
+      "cursorsKilled" : [
+         NumberLong("18314637080")
+      ],
+      "cursorsNotFound" : [ ],
+      "cursorsAlive" : [ ],
+      "cursorsUnknown" : [ ],
+      "ok" : 1
+   }
+

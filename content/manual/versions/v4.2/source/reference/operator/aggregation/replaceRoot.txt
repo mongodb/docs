@@ -1,0 +1,258 @@
+==========================
+$replaceRoot (aggregation)
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. pipeline:: $replaceRoot
+
+   .. versionadded:: 3.4
+ 
+   Replaces the input document with the specified document. The
+   operation replaces all existing fields in the input document,
+   including the ``_id`` field. You can promote an existing
+   embedded document to the top level, or create a new document
+   for promotion (see
+   :ref:`example<new-replacement-doc>`).
+
+   .. note::
+
+      Starting in version 4.2, MongoDB adds a new aggregation pipeline
+      stage :pipeline:`$replaceWith` that is an alias for
+      :pipeline:`$replaceRoot`.
+   
+   The :pipeline:`$replaceRoot` stage has the following form:
+ 
+   .. code-block:: javascript
+ 
+      { $replaceRoot: { newRoot: <replacementDocument> } }
+ 
+   The replacement document can be any valid :ref:`expression
+   <aggregation-expressions>` that resolves to a document. The stage
+   errors and fails if ``<replacementDocument>`` is not a document. For
+   more information on expressions, see :ref:`aggregation-expressions`.
+
+Behavior
+--------
+
+If the ``<replacementDocument>`` is not a document,
+:pipeline:`$replaceRoot` errors and fails.
+
+If the ``<replacementDocument>`` resolves to a missing document (i.e.
+the document does not exist), :pipeline:`$replaceRoot` errors and
+fails. For example, create a collection with the following
+documents:
+
+.. code-block:: javascript
+   
+   db.collection.insertMany([
+      { "_id": 1, "name" : { "first" : "John", "last" : "Backus" } },
+      { "_id": 2, "name" : { "first" : "John", "last" : "McCarthy" } },
+      { "_id": 3, "name": { "first" : "Grace", "last" : "Hopper" } },
+      { "_id": 4, "firstname": "Ole-Johan", "lastname" : "Dahl" },
+   ])
+
+Then the following :pipeline:`$replaceRoot` operation fails because one
+of the documents does not have the ``name`` field:
+
+.. code-block:: javascript
+
+   db.collection.aggregate([
+      { $replaceRoot: { newRoot: "$name" } }
+   ])
+
+To avoid the error, you can use :expression:`$mergeObjects` to merge
+the ``name`` document into some default document; for example:
+
+.. code-block:: javascript
+
+   db.collection.aggregate([
+      { $replaceRoot: { newRoot: { $mergeObjects: [ { _id: "$_id", first: "", last: "" }, "$name" ] } } }
+   ])
+
+Alternatively, you can skip the documents that are missing the ``name`` field by
+including a :pipeline:`$match` stage to check for existence of the
+document field before passing documents to the :pipeline:`$replaceRoot`
+stage:
+
+.. code-block:: javascript
+
+   db.collection.aggregate([
+      { $match: { name : { $exists: true, $not: { $type: "array" }, $type: "object" } } },
+      { $replaceRoot: { newRoot: "$name" } }
+   ])
+
+Or, you can use :expression:`$ifNull` expression to specify some other
+document to be root; for example:
+
+.. code-block:: javascript
+
+   db.collection.aggregate([
+      { $replaceRoot: { newRoot: { $ifNull: [ "$name", { _id: "$_id", missingName: true} ] } } }
+   ])
+
+
+Examples
+--------
+
+.. _replace-with-match:
+
+``$replaceRoot`` with an Embedded Document Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A collection named ``people`` contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "name" : "Arlene", "age" : 34, "pets" : { "dogs" : 2, "cats" : 1 } }
+   { "_id" : 2, "name" : "Sam", "age" : 41, "pets" : { "cats" : 1, "fish" : 3 } }
+   { "_id" : 3, "name" : "Maria", "age" : 25 }
+
+
+The following operation uses the :pipeline:`$replaceRoot` stage to
+replace each input document with the result of a
+:expression:`$mergeObjects` operation. The :expression:`$mergeObjects`
+expression merges the specified default document with the ``pets``
+document.
+
+.. code-block:: javascript
+
+   db.people.aggregate( [
+      { $replaceRoot: { newRoot: { $mergeObjects:  [ { dogs: 0, cats: 0, birds: 0, fish: 0 }, "$pets" ] }} }
+   ] )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "dogs" : 2, "cats" : 1, "birds" : 0, "fish" : 0 }
+   { "dogs" : 0, "cats" : 1, "birds" : 0, "fish" : 3 }
+   { "dogs" : 0, "cats" : 0, "birds" : 0, "fish" : 0 }
+
+``$replaceRoot`` with a Document Nested in an Array
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A collection named ``students`` contains the following documents:
+
+.. code-block:: javascript
+
+   db.students.insertMany([
+      {
+         "_id" : 1,
+         "grades" : [
+            { "test": 1, "grade" : 80, "mean" : 75, "std" : 6 },
+            { "test": 2, "grade" : 85, "mean" : 90, "std" : 4 },
+            { "test": 3, "grade" : 95, "mean" : 85, "std" : 6 }
+         ]
+      },
+      {
+         "_id" : 2,
+         "grades" : [
+            { "test": 1, "grade" : 90, "mean" : 75, "std" : 6 },
+            { "test": 2, "grade" : 87, "mean" : 90, "std" : 3 },
+            { "test": 3, "grade" : 91, "mean" : 85, "std" : 4 }
+         ]
+      }
+   ])
+
+The following operation promotes the embedded document(s) with the
+``grade`` field greater than or equal to ``90`` to the top level:
+
+.. code-block:: javascript
+
+   db.students.aggregate( [
+      { $unwind: "$grades" },
+      { $match: { "grades.grade" : { $gte: 90 } } },
+      { $replaceRoot: { newRoot: "$grades" } }
+   ] )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "test" : 3, "grade" : 95, "mean" : 85, "std" : 6 }
+   { "test" : 1, "grade" : 90, "mean" : 75, "std" : 6 }
+   { "test" : 3, "grade" : 91, "mean" : 85, "std" : 4 }
+
+.. _new-replacement-doc:
+
+``$replaceRoot`` with a newly created document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can also create new documents as part of the
+``$replaceRoot`` stage and use them to replace all the other fields.
+
+A collection named ``contacts`` contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "first_name" : "Gary", "last_name" : "Sheffield", "city" : "New York" }
+   { "_id" : 2, "first_name" : "Nancy", "last_name" : "Walker", "city" : "Anaheim" }
+   { "_id" : 3, "first_name" : "Peter", "last_name" : "Sumner", "city" : "Toledo" }
+
+The following operation creates a new document out of the
+``first_name`` and ``last_name`` fields.
+
+.. code-block:: javascript
+
+   db.contacts.aggregate( [
+      {
+         $replaceRoot: {
+            newRoot: {
+               full_name: {
+                  $concat : [ "$first_name", " ", "$last_name" ]
+               }
+            }
+         }
+      }
+   ] )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "full_name" : "Gary Sheffield" }
+   { "full_name" : "Nancy Walker" }
+   { "full_name" : "Peter Sumner" }
+
+``$replaceRoot`` with a New Document Created from ``$$ROOT`` and a Default Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create a collection named ``contacts`` with the following documents:
+
+.. code-block:: javascript
+
+   db.contacts.insert([
+      { "_id" : 1, name: "Fred", email: "fred@example.net" },
+      { "_id" : 2, name: "Frank N. Stine", cell: "012-345-9999" },
+      { "_id" : 3, name: "Gren Dell", home: "987-654-3210", email: "beo@example.net" }
+   ]);
+
+The following operation uses :pipeline:`$replaceRoot` with
+:expression:`$mergeObjects` to output current documents with default
+values for missing fields:
+
+.. code-block:: javascript
+
+   db.contacts.aggregate([
+      { $replaceRoot: { newRoot: { $mergeObjects: [ { _id: "", name: "", email: "", cell: "", home: "" }, "$$ROOT" ] } } }
+   ])
+
+The aggregation returns the following documents:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 1, "name" : "Fred", "email" : "fred@example.net", "cell" : "", "home" : "" }
+   { "_id" : 2, "name" : "Frank N. Stine", "email" : "", "cell" : "012-345-9999", "home" : "" }
+   { "_id" : 3, "name" : "Gren Dell", "email" : "beo@example.net", "cell" : "", "home" : "987-654-3210" }
+

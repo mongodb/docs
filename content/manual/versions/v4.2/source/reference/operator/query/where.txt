@@ -1,0 +1,131 @@
+======
+$where
+======
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Definition
+----------
+
+.. query:: $where
+
+   Use the :query:`$where` operator to pass either a string
+   containing a JavaScript expression or a full JavaScript function to
+   the query system. The :query:`$where` provides greater
+   flexibility, but requires that the database processes the
+   JavaScript expression or function for *each* document in the
+   collection. Reference the document in the JavaScript expression or
+   function using either ``this`` or ``obj`` .
+
+   .. code-block:: javascript
+
+      { $where: <string|JavaScript Code> }
+
+.. note::
+
+   Starting in version 4.2.1, MongoDB deprecates the use of BSON
+   type JavaScript code with scope (:doc:`BSON type 15
+   </reference/bson-types/>`) for the :query:`$where` operator. Using
+   JavaScript code with scope with :query:`$where` will print a warning
+   to the log. Instead, use BSON type String (:doc:`BSON type 2
+   </reference/bson-types/>`) or BSON type JavaScript
+   (:doc:`BSON type 13 </reference/bson-types/>`). 
+
+.. important::
+   
+   .. versionchanged:: 3.6
+
+      The :query:`$expr` operator allows the
+      use of :ref:`aggregation expressions <aggregation-expressions>`
+      within the query language. :query:`$expr` is faster than
+      :query:`$where` because it does not execute JavaScript and should
+      be preferred where possible.
+
+Behavior
+--------
+
+Restrictions
+~~~~~~~~~~~~
+
+.. include:: /includes/fact-group-map-reduce-where-limitations-in-24.rst
+
+``elemMatch``
+~~~~~~~~~~~~~
+
+Only apply the :query:`$where` query operator to top-level
+documents. The :query:`$where` query operator will not work inside a
+nested document, for instance, in an :query:`$elemMatch` query.
+
+Considerations
+~~~~~~~~~~~~~~
+
+- Do not use global variables.
+
+- :query:`$where` evaluates JavaScript and cannot take
+  advantage of indexes. Therefore, query performance improves
+  when you express your query using the standard MongoDB
+  operators (e.g., :query:`$gt`, :query:`$in`).
+
+- In general, you should use :query:`$where` only when you
+  can't express your query using another operator. If you must
+  use :query:`$where`, try to include at least one other
+  standard query operator to filter the result set. Using
+  :query:`$where` alone requires a collection scan.
+
+Using normal non\-:query:`$where` query statements provides the
+following performance advantages:
+
+- MongoDB will evaluate non\-:query:`$where` components of query
+  before :query:`$where` statements. If the
+  non\-:query:`$where` statements match no documents, MongoDB
+  will not perform any query evaluation using :query:`$where`.
+
+- The non\-:query:`$where` query statements may use an
+  :term:`index`.
+
+Example
+-------
+
+Consider the following documents in the ``players`` collection:
+
+.. code-block:: javascript
+
+   {  
+      _id: 12378,
+      name: "Steve", 
+      username: "steveisawesome",
+      first_login: "2017-01-01"
+   }
+   {
+      _id: 2,
+      name: "Anya",
+      username: "anya",
+      first_login: "2001-02-02"
+   }
+
+The following example uses :query:`$where` and the ``hex_md5()``
+JavaScript function to compare the value of the ``name`` field to an
+MD5 hash and returns any matching document.
+
+.. code-block:: sh
+
+   db.players.find( { $where: function() { 
+      return (hex_md5(this.name) == "9b53e667f30cd329dca1ec9e6a83e994") 
+   } } );
+
+The operation returns the following result:
+
+.. code-block:: sh
+
+   {
+      "_id" : 2,
+      "name" : "Anya",
+      "username" : "anya",
+      "first_login" : "2001-02-02"
+   }

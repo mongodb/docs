@@ -1,0 +1,329 @@
+===============
+cleanupOrphaned
+===============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: cleanupOrphaned
+
+   Deletes from a shard the :term:`orphaned documents <orphaned
+   document>` whose shard key values fall into a single or a single
+   contiguous range that do not belong to the shard. For example, if
+   two contiguous ranges do not belong to the shard, the
+   :dbcommand:`cleanupOrphaned` examines both ranges for orphaned
+   documents.
+
+   To run, issue :dbcommand:`cleanupOrphaned` in the ``admin`` database
+   directly on the :binary:`~bin.mongod` instance that is the primary
+   replica set member of the shard. You do not need to disable the
+   balancer before running :dbcommand:`cleanupOrphaned`.
+
+   .. note::
+
+      Do not run :dbcommand:`cleanupOrphaned` on a
+      :binary:`~bin.mongos` instance.
+
+   :dbcommand:`cleanupOrphaned` has the following syntax:
+
+   .. code-block:: javascript
+
+      db.runCommand( {
+         cleanupOrphaned: "<database>.<collection>",
+         startingFromKey: <minimumShardKeyValue>,
+         secondaryThrottle: <boolean>,
+         writeConcern: <document>
+      } )
+
+   :dbcommand:`cleanupOrphaned` has the following fields:
+
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Field
+   
+        - Type
+   
+        - Description
+   
+      * - ``cleanupOrphaned``
+   
+        - string
+   
+        - The namespace, i.e. both the database and the collection name, of the
+          sharded collection for which to clean the orphaned data.
+          
+          
+   
+      * - ``startingFromKey``
+   
+        - document
+   
+        - Optional. The :term:`shard key` value that determines the lower bound of the
+          cleanup range. The default value is ``MinKey``.
+          
+          If the range that contains the specified ``startingFromKey`` value
+          belongs to a chunk owned by the shard, :dbcommand:`cleanupOrphaned`
+          continues to examine the next ranges until it finds a range not owned
+          by the shard. See :ref:`cleanupOrphaned-determine-range` for details.
+          
+          
+   
+      * - ``secondaryThrottle``
+   
+        - boolean
+   
+        - Optional. If ``true``, each delete operation must be replicated to another
+          secondary before the cleanup operation proceeds further. If
+          ``false``, do not wait for replication. Defaults to ``false``.
+          
+          Independent of the ``secondaryThrottle`` setting, after the final
+          delete, :dbcommand:`cleanupOrphaned` waits for all deletes to
+          replicate to a majority of replica set members before returning.
+          
+          
+   
+      * - ``writeConcern``
+   
+        - document
+   
+        - Optional. A document that expresses the :doc:`write concern
+          </reference/write-concern>` that the ``secondaryThrottle`` will use to
+          wait for the secondaries when removing orphaned data.
+          
+          ``writeConcern`` requires ``secondaryThrottle: true``.
+          
+          
+   
+
+
+Behavior
+--------
+
+Performance
+~~~~~~~~~~~
+
+:dbcommand:`cleanupOrphaned` scans the documents in the shard to
+determine whether the documents belong to the shard. As such, running
+:dbcommand:`cleanupOrphaned` can impact performance; however,
+performance will depend on the number of orphaned documents in the
+range.
+
+To remove all orphaned documents in a shard, you can run the command in
+a loop (see :ref:`cleanupOrphaned-example-all-orphaned` for an
+example). If concerned about the performance impact of this operation,
+you may prefer to include a pause in-between iterations.
+
+Alternatively, to mitigate the impact of :dbcommand:`cleanupOrphaned`,
+you may prefer to run the command at off peak hours.
+
+It is also possible to tune the performance impact of
+:dbcommand:`cleanupOrphaned` with the parameters,
+:parameter:`rangeDeleterBatchSize` and
+:parameter:`rangeDeleterBatchDelayMS`. For example:
+
+- To limit the number of documents deleted per batch, you can set
+  :parameter:`rangeDeleterBatchSize` to a small value such as ``32``.
+
+- To add an additional delay between batch deletions, you can set
+  :parameter:`rangeDeleterBatchDelayMS` above the current default of
+  ``20`` milliseconds.
+
+.. note::
+
+   Changing :parameter:`rangeDeleterBatchSize` and
+   :parameter:`rangeDeleterBatchDelayMS` affect all range deletion,
+   including during normal :ref:`chunk
+   migration <chunk-migration-procedure>`.
+
+   If you are temporarily modifying one or both of these parameters to
+   run :dbcommand:`cleanupOrphaned`, return to their previous values
+   after you run :dbcommand:`cleanupOrphaned`.
+
+.. _cleanupOrphaned-determine-range:
+
+Determine Range
+~~~~~~~~~~~~~~~
+
+The :dbcommand:`cleanupOrphaned` command uses the ``startingFromKey``
+value, if specified, to determine the start of the range to examine for
+orphaned document:
+
+- If the ``startingFromKey`` value falls into a range for a chunk not
+  owned by the shard, :dbcommand:`cleanupOrphaned` begins examining at
+  the start of this range, which may not necessarily be the
+  ``startingFromKey``.
+
+- If the ``startingFromKey`` value falls into a range for a chunk owned
+  by the shard, :dbcommand:`cleanupOrphaned` moves onto the next range
+  until it finds a range for a chunk not owned by the shard.
+
+The :dbcommand:`cleanupOrphaned` deletes orphaned documents from the
+start of the determined range and ends at the start of the chunk range
+that belongs to the shard.
+
+Consider the following key space with documents distributed across
+``Shard A`` and ``Shard B``.
+
+.. include:: /images/sharding-cleanup-orphaned.rst
+
+``Shard A`` owns:
+
+- ``Chunk 1`` with the range ``{ x: minKey } --> { x: -75 }``,
+
+- ``Chunk 2`` with the range ``{ x: -75 } --> { x: 25 }``, and
+
+- ``Chunk 4`` with the range ``{ x: 175 } --> { x: 200 }``.
+
+``Shard B`` owns:
+
+- ``Chunk 3`` with the range ``{ x: 25 } --> { x: 175 }`` and
+
+- ``Chunk 5`` with the range ``{ x: 200 } --> { x: maxKey }``.
+
+If on ``Shard A``, the :dbcommand:`cleanupOrphaned` command runs with
+``startingFromKey: { x: -70 }`` or any other value belonging to range for
+``Chunk 1`` or ``Chunk 2``, the :dbcommand:`cleanupOrphaned` command examines
+the ``Chunk 3`` range of ``{ x: 25 } --> { x: 175 }`` to delete
+orphaned data.
+
+If on ``Shard B``, the :dbcommand:`cleanupOrphaned` command runs with
+the ``startingFromKey: { x: -70 }`` or any other value belonging to range
+for ``Chunk 1``, the :dbcommand:`cleanupOrphaned` command examines the
+combined contiguous range for ``Chunk 1`` and ``Chunk 2``, namely ``{
+x: minKey } --> { x: 25 }`` to delete orphaned data.
+
+Required Access
+---------------
+
+On systems running with :setting:`~security.authorization`, you must have
+:authrole:`clusterAdmin` privileges to run :dbcommand:`cleanupOrphaned`.
+
+.. _cleanupOrphaned-output:
+
+Output
+------
+
+Return Document
+~~~~~~~~~~~~~~~
+
+Each :dbcommand:`cleanupOrphaned` command returns a document containing
+a subset of the following fields:
+
+.. data:: cleanupOrphaned.ok
+
+   Equal to ``1`` on success.
+
+   A value of ``1`` indicates that :dbcommand:`cleanupOrphaned` scanned
+   the specified shard key range, deleted any orphaned documents
+   found in that range, and confirmed that all deletes replicated to a
+   majority of the members of that shard's replica set. If confirmation
+   does not arrive within 1 hour, :dbcommand:`cleanupOrphaned`
+   times out.
+
+   A value of ``0`` could indicate either of two cases:
+
+   - :dbcommand:`cleanupOrphaned` found orphaned documents on the
+     shard but could not delete them.
+
+   - :dbcommand:`cleanupOrphaned` found and deleted orphaned
+     documents, but could not confirm replication before the 1
+     hour timeout. In this case, replication does occur but only
+     after :dbcommand:`cleanupOrphaned` returns.
+
+.. data:: cleanupOrphaned.stoppedAtKey
+
+   The upper bound of the cleanup range of shard keys. If present, the
+   value corresponds to the lower bound of the next chunk on the shard.
+   The absence of the field signifies that the cleanup range was the
+   uppermost range for the shard.
+
+.. _cleanuporphaned-examples:
+
+Examples
+--------
+
+The following examples run the :dbcommand:`cleanupOrphaned` command
+directly on the primary of the shard.
+
+Remove Orphaned Documents for a Specific Range
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For a sharded collection ``info`` in the ``test`` database, a shard
+owns a single chunk with the range: ``{ x: MinKey } --> { x: 10 }``.
+
+The shard also contains documents whose shard keys values fall in a
+range for a chunk *not* owned by the shard: ``{ x: 10 } --> { x: MaxKey
+}``.
+
+To remove orphaned documents within the ``{ x: 10 } => { x: MaxKey }``
+range, you can specify a ``startingFromKey`` with a value that falls into
+this range, as in the following example:
+
+.. code-block:: javascript
+
+   db.adminCommand( {
+      "cleanupOrphaned": "test.info",
+      "startingFromKey": { x: 10 },
+      "secondaryThrottle": true
+   } )
+
+Or you can specify a ``startingFromKey`` with a value that falls into the
+previous range, as in the following:
+
+.. code-block:: javascript
+
+   db.adminCommand( {
+      "cleanupOrphaned": "test.info",
+      "startingFromKey": { x: 2 },
+      "secondaryThrottle": true
+   } )
+
+Since ``{ x: 2 }`` falls into a range that belongs to a chunk owned by
+the shard, :dbcommand:`cleanupOrphaned` examines the next range to find
+a range not owned by the shard, in this case ``{ x: 10 } => { x: MaxKey
+}``.
+
+.. _cleanupOrphaned-example-all-orphaned:
+
+Remove All Orphaned Documents from a Shard
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:dbcommand:`cleanupOrphaned` examines documents from a single
+contiguous range of shard keys. To remove all orphaned documents from
+the shard, you can run :dbcommand:`cleanupOrphaned` in a loop, using
+the returned ``stoppedAtKey`` as the next ``startingFromKey``, as shown in
+the following example:
+
+.. code-block:: javascript
+
+   var loopSleep = 100; 
+   var nextKey = { };
+   var result;
+
+   while ( nextKey != null ) {
+     result = db.adminCommand( { cleanupOrphaned: "test.user", startingFromKey: nextKey } );
+
+     if (result.ok != 1)
+        print("Unable to complete at this time: failure or timeout.")
+
+     printjson(result);
+
+     nextKey = result.stoppedAtKey;
+
+     if (loopSleep > 0) sleep(loopSleep);
+   }
+
+   print("Orphan cleanup complete.");
+
+.. admin-only

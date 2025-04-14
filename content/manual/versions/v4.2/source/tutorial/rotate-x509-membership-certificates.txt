@@ -1,0 +1,178 @@
+================================================================
+Rolling Update of x.509 Cluster Certificates that Contain New DN
+================================================================
+
+.. default-domain:: mongodb
+
+.. role:: red(strong)
+   :class: text-danger
+
+Members of a replica set or a sharded cluster can use :ref:`x.509
+certificates for membership authentication <internal-auth-x509>` to
+identify each other as memers of the same deployment.
+
+To identify each others as members of the same deployment, the
+Organization attributes (``O``\'s), the Organizational Unit attributes
+(``OU``\'s), and the Domain Components (``DC``\'s) from the
+certificates must match.
+
+In some situations, you may need to update the member certificates to
+new certificates with the new Distinguished Name (``DN``), such as if
+an organization changes its name. Starting in version 4.2, MongoDB
+provides a new :parameter:`tlsX509ClusterAuthDNOverride` parameter to
+set an alternative ``DN`` to use in matching. Using this parameter, you
+can perform a rolling update of the certificates to new certificates
+with different ``DN``.
+
+The following tutorial describes the process to update the
+certificates for a replica set without downtime. 
+
+Consider a replica set where each member's certificates
+(:setting:`~net.tls.clusterFile` and
+:setting:`~net.tls.certificateKeyFile`) with ``DN`` value that contains
+``"OU=10gen Server,O=10gen"`` (additional attributes are not considered
+as part of the comparison):
+
+.. code-block:: yaml
+
+   net.tls.mode: requireTLS
+   net.tls.certificateKeyFile: "./mycerts/10gen-server1.pem"
+   net.tls.CAFile: "./mycerts/ca.pem"
+
+   security.clusterAuthMode: x509
+   net.tls.clusterFile:  "./mycerts/10gen-cluster1.pem"
+   net.tls.clusterCAFile: "./mycerts/ca.pem"
+
+The following procedure updates the members' certificates
+(:setting:`~net.tls.clusterFile` and
+:setting:`~net.tls.certificateKeyFile`) to new certificates that have a
+``DN`` value with ``"OU=MongoDB Server,O=MongoDB"``.
+
+.. note::
+
+   The following procedure assumes that the new x.509 certificates meet
+   membership certificate all other requirements. For details, see
+   :ref:`x509-member-certificate-requirements`
+
+Procedure
+---------
+
+0. Optional. Set Override Parameter on Running Members
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. container::
+
+   The procedure requires that all members of the deployment be
+   restarted. As the settings will not take into consideration until
+   you restart all members, your instances may log messages until the
+   procedure completes.
+
+   To avoid these messages, you can set the override parameter on
+   running members.
+
+   Connect a :binary:`~bin.mongo` shell directly to each member of the
+   deployment and set the :parameter:`tlsX509ClusterAuthDNOverride`
+   parameter to the new certificate ``DN``:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, tlsX509ClusterAuthDNOverride: "OU=MongoDB Server,O=MongoDB" } )
+
+1. Modify the Configuration of ALL Members
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+.. container::
+
+   Modify each member's configuration:
+
+   - Update :setting:`net.tls.certificateKeyFile` to the new certificate.
+
+   - Update :setting:`net.tls.clusterFile` to the new certificate.
+
+   - Set :parameter:`tlsX509ClusterAuthDNOverride` parameter to the new
+     certificate ``DN``.
+
+   For example:
+
+   .. code-block:: yaml
+
+      net.tls.mode: requireTLS
+      net.tls.certificateKeyFile: "./mycerts/mongodb-server1.pem"
+      net.tls.CAFile: "./mycerts/ca.pem"
+
+      security.clusterAuthMode: x509
+
+      net.tls.clusterFile:  "./mycerts/mongodb-cluster1.pem"
+      net.tls.clusterCAFile: "./mycerts/ca.pem"
+
+      setParameter:
+         tlsX509ClusterAuthDNOverride: "OU=MongoDB Server,O=MongoDB"
+
+   The settings will not take into consideration until you restart each
+   member (see next step).
+
+2. Restart Each Member
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. container::
+
+   Once you have modified the configuration for all the members,
+   restart each secondary and then the primary.
+
+   **For each secondary member**, connect a :binary:`~bin.mongo` shell to the
+   member and:
+
+   a. Use the :method:`db.shutdownServer()` method to shut down the member:
+
+      .. code-block:: javascript
+
+         use admin
+         db.shutdownServer()
+
+   b. Restart the member. 
+
+      Ensure the member has reached :replstate:`SECONDARY` state before
+      restarting the next secondary.
+
+   **For the primary**, connect a :binary:`~bin.mongo` shell to the member and
+
+   a. Use :method:`rs.stepDown()` to step down the member:
+
+      .. code-block:: javascript
+
+         rs.stepDown()
+
+   #. Use the :method:`db.shutdownServer()` method to shut down the member:
+
+      .. code-block:: javascript
+
+         use admin
+         db.shutdownServer()
+
+   #. Restart the member.
+
+3. Remove the ``tlsX509ClusterAuthDNOverride`` Setting
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. container::
+
+   Once all the members have been restarted with the new certificate,
+   you can remove the ``tlsX509ClusterAuthDNOverride`` parameter from
+   the configuration.
+   
+   For example:
+
+   .. code-block:: yaml
+
+      net.tls.mode: requireTLS
+      net.tls.certificateKeyFile: "./mycerts/mongodb-server1.pem"
+      net.tls.CAFile: "./mycerts/ca.pem"
+
+      security.clusterAuthMode: x509
+
+      net.tls.clusterFile:  "./mycerts/mongodb-cluster1.pem"
+      net.tls.clusterCAFile: "./mycerts/ca.pem"
+
+   The settings will not take into consideration until you restart each
+   member.

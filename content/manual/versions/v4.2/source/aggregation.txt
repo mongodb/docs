@@ -1,0 +1,157 @@
+===========
+Aggregation
+===========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Aggregation operations process data records and return computed
+results. Aggregation operations group values from multiple documents
+together, and can perform a variety of operations on the grouped data
+to return a single result. MongoDB provides three ways to perform
+aggregation: the :ref:`aggregation pipeline
+<aggregation-pipeline>`, the :ref:`map-reduce function
+<aggregation-map-reduce>`, and :ref:`single purpose aggregation methods
+<single-purpose-agg-operations>`.
+
+.. _aggregation-pipeline-intro:
+
+Aggregation Pipeline
+--------------------
+
+MongoDB's :doc:`aggregation pipeline
+</core/aggregation-pipeline>` is modeled on the concept of data
+processing pipelines. Documents enter a multi-stage pipeline that
+transforms the documents into an aggregated result. For example:
+
+.. only:: website and dirhtml
+
+   .. raw:: html
+
+      <video style="width:100%;" src="../_images/agg-pipeline.mp4" controls> </video>
+
+.. only:: website and html and (not dirhtml)
+
+   .. raw:: html
+
+      <video style="width:100%;" src="_images/agg-pipeline.mp4" controls> </video>
+
+In the example,
+
+.. code-block:: javascript
+
+   db.orders.aggregate([
+      { $match: { status: "A" } },
+      { $group: { _id: "$cust_id", total: { $sum: "$amount" } } }
+   ])
+
+**First Stage**: The :pipeline:`$match` stage filters the documents by
+the ``status`` field and passes to the next stage those documents that
+have ``status`` equal to ``"A"``.
+
+**Second Stage**: The :pipeline:`$group` stage groups the documents by
+the ``cust_id`` field to calculate the sum of the amount for each
+unique ``cust_id``.
+
+The most basic pipeline stages provide *filters* that operate like
+queries and *document transformations* that modify the form
+of the output document.
+
+Other pipeline operations provide tools for grouping and sorting
+documents by specific field or fields as well as tools for aggregating
+the contents of arrays, including arrays of documents. In addition,
+pipeline stages can use :ref:`operators
+<aggregation-expression-operators>` for tasks such as calculating the
+average or concatenating a string.
+
+The pipeline provides efficient data aggregation using native
+operations within MongoDB, and is the preferred method for data
+aggregation in MongoDB.
+
+The aggregation pipeline can operate on a
+:doc:`sharded collection </sharding>`.
+
+The aggregation pipeline can use indexes to improve its performance
+during some of its stages. In addition, the aggregation pipeline has an
+internal optimization phase. See
+:ref:`aggregation-pipeline-operators-and-performance` and
+:doc:`/core/aggregation-pipeline-optimization` for details.
+
+.. _aggregation-map-reduce:
+
+Map-Reduce
+----------
+
+MongoDB also provides :doc:`map-reduce </core/map-reduce>` operations
+to perform aggregation. In general, map-reduce operations have two
+phases: a *map* stage that processes each document and *emits* one or
+more objects for each input document, and *reduce* phase that combines
+the output of the map operation. Optionally, map-reduce can have a
+*finalize* stage to make final modifications to the result. Like other
+aggregation operations, map-reduce can specify a query condition to
+select the input documents as well as sort and limit the results.
+
+Map-reduce uses custom JavaScript functions to perform the map and
+reduce operations, as well as the optional *finalize* operation. While
+the custom JavaScript provide great flexibility compared to the
+aggregation pipeline, in general, map-reduce is less efficient and more
+complex than the aggregation pipeline.
+
+Map-reduce can operate on a
+:doc:`sharded collection </sharding>`. Map-reduce operations
+can also output to a sharded collection. See
+:doc:`/core/map-reduce-sharded-collections` for details.
+
+.. note:: Starting in MongoDB 2.4, certain :binary:`~bin.mongo` shell
+   functions and properties are inaccessible in map-reduce
+   operations. MongoDB 2.4 also provides support for multiple
+   JavaScript operations to run at the same time. Before MongoDB 2.4,
+   JavaScript code executed in a single thread, raising concurrency
+   issues for map-reduce.
+
+.. include:: /images/map-reduce.rst
+
+.. _single-purpose-agg-operations:
+
+Single Purpose Aggregation Operations
+-------------------------------------
+
+MongoDB also provides :method:`db.collection.estimatedDocumentCount()`,
+:method:`db.collection.count()` and :method:`db.collection.distinct()`.
+
+All of these operations aggregate documents from a single collection.
+While these operations provide simple access to common aggregation
+processes, they lack the flexibility and capabilities of the
+aggregation pipeline and map-reduce.
+
+.. include:: /images/distinct.rst
+
+Additional Features and Behaviors
+---------------------------------
+
+For a feature comparison of the aggregation pipeline,
+map-reduce, and the special group functionality, see
+:doc:`/reference/aggregation-commands-comparison`.
+
+Learn More
+----------
+
+Practical MongoDB Aggregations E-Book
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For more information on aggregations, read the `Practical MongoDB
+Aggregations <https://www.practical-mongodb-aggregations.com>`__ e-book.
+
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   /core/aggregation-pipeline
+   /core/map-reduce
+   /reference/aggregation

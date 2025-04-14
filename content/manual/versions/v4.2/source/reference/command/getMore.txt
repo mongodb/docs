@@ -1,0 +1,193 @@
+=======
+getMore
+=======
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: getMore
+
+   .. versionadded:: 3.2
+
+   Use in conjunction with commands that return a cursor, e.g.
+   :dbcommand:`find` and :dbcommand:`aggregate`, to return subsequent
+   batches of documents currently pointed to by the cursor.
+
+Syntax
+------
+
+The :dbcommand:`getMore` command has the following form:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         "getMore": <long>,
+         "collection": <string>,
+         "batchSize": <int>,
+         "maxTimeMS": <int>
+      }
+   )
+
+Command Fields
+~~~~~~~~~~~~~~
+
+The command accepts the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Field
+
+     - Type
+
+     - Description
+
+   * - ``getMore``
+
+     - long
+
+     - The cursor id.
+       
+       
+
+   * - ``collection``
+
+     - string
+
+     - The name of the collection over which the cursor is operating.
+       
+       
+
+   * - ``batchSize``
+
+     - positive integer
+
+     - Optional. The number of documents to return in the batch.
+       
+       
+
+   * - ``maxTimeMS``
+
+     - non-negative integer
+
+     - Optional. Specifies a time limit in milliseconds for processing
+       operations on a cursor. If you do not specify a value for maxTimeMS,
+       operations will not time out. A value of ``0`` explicitly
+       specifies the default unbounded behavior.
+       
+       MongoDB terminates operations that exceed their allotted time limit
+       using the same mechanism as :method:`db.killOp()`. MongoDB only
+       terminates an operation at one of its designated :term:`interrupt 
+       points <interrupt point>`.
+          
+          
+   
+
+Output
+~~~~~~
+
+The command returns a document that contains the cursor information
+as well as the next batch. 
+
+For example, a document similar to the one below may be returned when
+:dbcommand:`getMore` is run on a cursor that was originally created by a
+:dbcommand:`find` operation on a sharded cluster:
+
+.. code-block:: javascript
+
+   {
+      "cursor" : {
+         "id" : NumberLong("678960441858272731"),
+         "ns" : "test.contacts",
+         "nextBatch" : [
+            {
+               "_id" : ObjectId("5e8e501e1a32d227f9085857"),
+               "zipcode" : "220000"
+            }
+         ],
+         "postBatchResumeToken": "< Resume Token >"
+      },
+      "ok" : 1,
+      "operationTime" : Timestamp(1586385239, 2),
+      "$clusterTime" : {
+         "clusterTime" : Timestamp(1586385239, 2),
+         "signature" : {
+            "hash" : BinData(0,"lLjejeW6AQGReR9x1PD8xU+tP+A="),
+            "keyId" : NumberLong("6813467763969884181")
+         }
+      }
+   }
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+   
+   * - Field
+     - Description
+
+   * - ``cursor``
+     
+     - Contains the cursor information, including the
+       cursor ID as well as the ``nextBatch`` of documents.
+
+       The ``postBatchResumeToken`` field can be used with the
+       :pipeline:`$changeStream` pipeline to start or resume
+       a change stream from this point.
+
+   * - ``"ok"``
+   
+     - Indicates whether the command has succeeded (``1``) or failed
+       (``0``).
+
+In addition to the aforementioned :dbcommand:`getMore`-specific fields,
+the :method:`db.runCommand()` includes the following information for
+replica sets and sharded clusters:
+
+- ``$clusterTime``
+  
+- ``operationTime``
+
+See :ref:`db.runCommand() Results <command-response>` for details.
+
+
+Behavior
+--------
+
+Access Control
+~~~~~~~~~~~~~~
+
+.. versionadded:: 3.6
+
+If :doc:`authentication </core/authentication>` is turned on, you can 
+only issue a :dbcommand:`getMore` against cursors you created.
+
+Sessions
+~~~~~~~~
+
+.. versionadded:: 4.0
+
+For cursors created inside a session, you cannot call
+:dbcommand:`getMore` outside the session.
+
+Similarly, for cursors created outside of a session, you cannot call
+:dbcommand:`getMore` inside a session.
+
+Transactions
+````````````
+
+.. versionadded:: 4.0
+
+For :doc:`multi-document transactions </core/transactions>`:
+
+.. include:: /includes/extracts/transactions-operations-getMore.rst
+

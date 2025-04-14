@@ -1,0 +1,100 @@
+.. _perform-findAndModify-linearizable-reads:
+
+========================================
+Linearizable Reads via ``findAndModify``
+========================================
+
+.. default-domain:: mongodb
+
+Overview
+--------
+
+When reading from a replica set, it is possible to read data that is
+stale (i.e. may not reflect all writes that have occurred prior to the
+read operation) or not durable (i.e. the state of the data may reflect
+a write that has not been acknowledged by a majority or the replica set
+members and thus could be rolled back), depending on the read concern
+used.
+
+Starting in version 3.4, MongoDB introduces
+:readconcern:`"linearizable"` read concern that returns durable data
+that is not stale. :readconcern:`Linearizable <"linearizable">` read
+concern guarantees only apply if read operations specify a query filter
+that uniquely identifies a single document.
+
+This tutorial outlines an alternative procedure, one using
+:method:`db.collection.findAndModify()` to read data that is not stale
+and cannot be rolled back, for deployments using MongoDB 3.2. For
+MongoDB 3.4, although the outlined procedure can be applied, see
+:readconcern:`"linearizable"` read concern instead.
+
+Linearizable Reads via ``findAndModify``
+----------------------------------------
+
+This procedure uses :method:`db.collection.findAndModify()` to read
+data that is not stale and cannot be rolled back. To do so, the
+procedure uses the :method:`~db.collection.findAndModify()` method with
+a :ref:`write concern <write-concern>` to modify a dummy field in a
+document. Specifically, the procedure requires that:
+
+- :method:`db.collection.findAndModify()` use an **exact** match query,
+  and a :doc:`unique index </core/index-unique>` **must exist** to
+  satisfy the query.
+
+- :method:`~db.collection.findAndModify()` must actually modify a
+  document; i.e. result in a change to the document.
+
+- :method:`~db.collection.findAndModify()` must use the write concern
+  :writeconcern:`{ w: "majority" } <"majority">`.
+
+.. important::
+
+   The "quorum read" procedure has a substantial cost over simply using
+   a read concern of :readconcern:`"majority"` because it incurs write
+   latency rather than read latency. This technique should only be used
+   if staleness is absolutely intolerable.
+
+Prerequisites
+~~~~~~~~~~~~~
+
+This tutorial reads from a collection named ``products``. Initialize
+the collection using the following operation.
+
+.. code-block:: javascript
+
+   db.products.insert( [
+      {
+        _id: 1,
+        sku: "xyz123",
+        description: "hats",
+        available: [ { quantity: 25, size: "S" }, { quantity: 50, size: "M" } ],
+        _dummy_field: 0
+      },
+      {
+        _id: 2,
+        sku: "abc123",
+        description: "socks",
+        available: [ { quantity: 10, size: "L" } ],
+        _dummy_field: 0
+      },
+      {
+        _id: 3,
+        sku: "ijk123",
+        description: "t-shirts",
+        available: [ { quantity: 30, size: "M" }, { quantity: 5, size: "L" } ],
+        _dummy_field: 0
+      }
+   ] )
+
+The documents in this collection contain a dummy field named
+``_dummy_field`` that will be incremented by the
+:method:`db.collection.findAndModify()` in the tutorial. If the field
+does not exist, the :method:`db.collection.findAndModify()` operation
+will add the field to the document. The purpose of the field is to
+ensure that the :method:`db.collection.findAndModify()` results in a
+modification to the document.
+
+Procedure
+~~~~~~~~~
+
+.. include:: /includes/steps/findAndModify-quorum-reads.rst

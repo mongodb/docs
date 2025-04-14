@@ -1,0 +1,135 @@
+title: Add user to MongoDB for authentication.
+stepnum: 1
+ref: add-ldap-sasl-auth-user
+pre: |
+  Add the user to the ``$external`` database in MongoDB. To specify the
+  user's privileges, assign :doc:`roles </core/authorization>` to the
+  user.
+  
+  .. include:: /includes/extracts/sessions-external-username-limit.rst
+  
+action:
+   pre: |
+     For example, the following adds a user with read-only access to
+     the ``records`` database.
+   language: sh
+   code: |
+      db.getSiblingDB("$external").createUser(
+          {
+            user : <username>,
+            roles: [ { role: "read", db: "records" } ]
+          }
+      )
+post: |
+   Add additional principals as needed. For more
+   information about creating and managing users, see
+   :doc:`/reference/command/nav-user-management`.
+---
+title: Configure MongoDB server.
+stepnum: 2
+ref: ldap-sasl-configure-mongodb
+pre: |
+  To configure the MongoDB server to use the ``saslauthd`` instance for
+  proxy authentication, include the following options when starting :binary:`~bin.mongod`:
+
+  - :option:`--auth <mongod --auth>` command line option or :setting:`security.authorization` setting,
+
+  - :parameter:`authenticationMechanisms` parameter set to ``PLAIN``, and
+
+  - :parameter:`saslauthdPath` parameter set to the path to the Unix-domain Socket of the ``saslauthd`` instance.
+
+    .. include:: /includes/fact-saslauthd-permission.rst
+
+  If you use the :setting:`~security.authorization` option to enforce
+  authentication, you will need privileges to create a user.
+action:
+  - heading: Use specific ``saslauthd`` socket path.
+    pre: |
+       For socket path of ``/<some>/<path>/saslauthd``, set the
+       :parameter:`saslauthdPath` to ``/<some>/<path>/saslauthd/mux``,
+       as in the following command line example:
+    language: none
+    code: |
+       mongod --auth --setParameter saslauthdPath=/<some>/<path>/saslauthd/mux --setParameter authenticationMechanisms=PLAIN
+    post: |
+       .. include:: /includes/extracts/default-bind-ip-security-additional-command-line.rst
+
+  - pre: |
+
+       .. include:: /includes/config-settings-for-saslauthd-specific-socket.rst
+
+  - heading: Use default Unix-domain socket path.
+    pre: |
+       To use the default Unix-domain socket path, set the
+       :parameter:`saslauthdPath` to the empty string ``""``, as in the
+       following command line example:
+    language: none
+    code: |
+       mongod --auth --setParameter saslauthdPath="" --setParameter authenticationMechanisms=PLAIN
+    post: |
+       .. include:: /includes/extracts/default-bind-ip-security-additional-command-line.rst
+
+  - pre: |
+
+       .. include:: /includes/config-settings-for-saslauthd-default-socket.rst
+    post: |
+       .. include:: /includes/extracts/default-bind-ip-security-additional-config-file.rst
+
+---
+title: Authenticate the user in the ``mongo`` shell.
+stepnum: 3
+ref: ldap-sasl-authenticate
+content: |
+
+   You can authenticate from the command line during connection, or
+   connect first and then authenticate using :method:`db.auth()` method.
+
+   .. tabs::
+
+      tabs:
+         - id: cmdline
+           name: Authenticate during Connection
+           content: |
+
+              To authenticate when connecting with the ``mongo`` shell,
+              run :binary:`~bin.mongo` with the following command-line
+              options, substituting ``<host>`` and ``<user>``, and
+              enter your password when prompted:
+
+              .. code-block:: shell
+
+                 mongo --host <host> --authenticationMechanism PLAIN --authenticationDatabase '$external' -u <user> -p
+
+         - id: authafter
+           name: Authenticate after Connection
+           content: |
+         
+              Alternatively, connect without supplying credentials and then call
+              the :method:`db.auth()` method on the ``$external`` database. Specify
+              the value ``"PLAIN"`` in the ``mechanism`` field, the user and
+              password in the ``user`` and ``pwd`` fields respectively. Use the default
+              ``digestPassword`` value (``false``) since the server must receive an
+              undigested password to forward on to ``saslauthd``, as in the
+              following example:
+
+              .. tip::
+
+                 .. include:: /includes/extracts/4.2-changes-passwordPrompt.rst
+
+              .. code-block:: javascript
+
+                 db.getSiblingDB("$external").auth(
+                    {
+                      mechanism: "PLAIN",
+                      user: <username>,
+                      pwd:  passwordPrompt() // or cleartext password
+                    }
+                 )
+
+              Enter the password when prompted.
+
+   The server forwards the password in plain text. In general, use only
+   on a trusted channel (VPN, TLS/SSL, trusted wired network). See
+   Considerations.
+
+...

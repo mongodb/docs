@@ -1,0 +1,139 @@
+=========================
+db.collection.dropIndex()
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.collection.dropIndex(index)
+
+
+   .. |dbcommand| replace:: :dbcommand:`dropIndexes` command
+   .. include:: /includes/fact-mongo-shell-method-alt.rst
+
+   Drops or removes the specified index from a collection. 
+   
+   .. note::
+
+      - You cannot drop the default index on the ``_id`` field.
+      
+      - Starting in MongoDB 4.2, you cannot specify
+        :method:`db.collection.dropIndex("*")
+        <db.collection.dropIndex>` to drop all non-``_id`` indexes. Use
+        :method:`db.collection.dropIndexes()` instead.
+
+   To get the index name or the index specification document for the
+   :method:`db.collection.dropIndex()` method, use the
+   :method:`db.collection.getIndexes()` method.
+
+   The :method:`db.collection.dropIndex()` method takes the following
+   parameter:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+
+      * - Parameter
+
+        - Type
+
+        - Description
+
+      * - ``index``
+
+        - string or document
+
+        - Optional. Specifies the index to drop. You can specify the
+          index either by the index name or by the index specification
+          document.
+
+          To drop a :doc:`text </core/index-text>` index, specify the
+          index name.
+
+          Starting in MongoDB 4.2, you cannot specify ``"*"`` to drop
+          all non-``_id`` indexes. Use
+          :method:`db.collection.dropIndexes()` instead.
+
+   To get the index name or the index specification document for the
+   :method:`db.collection.dropIndex()` method, use the
+   :method:`db.collection.getIndexes()` method.
+
+Behavior
+--------
+
+.. include:: /includes/extracts/fact-method-dropIndex-query-behavior.rst
+
+Resource Locking
+~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 4.2
+
+.. include:: /includes/extracts/dropIndex-method-resource-lock.rst
+
+Dropping an Index during Index Replication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Avoid dropping an index on a collection while any index is being
+replicated on a secondary. If you attempt to drop an index from a
+collection on a :term:`primary` while the collection has a background
+index building on a :term:`secondary`, reads will be halted across all
+namespaces and replication will halt until the background index build
+completes.
+
+Example
+-------
+
+Consider a ``pets`` collection. Calling the
+:method:`~db.collection.getIndexes()` method on the ``pets`` collection
+returns the following indexes:
+
+.. code-block:: javascript
+
+   [
+      {  "v" : 1,
+         "key" : { "_id" : 1 },
+         "ns" : "test.pets",
+         "name" : "_id_"
+      },
+      {
+         "v" : 1,
+         "key" : { "cat" : -1 },
+         "ns" : "test.pets",
+         "name" : "catIdx"
+      },
+      {
+         "v" : 1,
+         "key" : { "cat" : 1, "dog" : -1 },
+         "ns" : "test.pets",
+         "name" : "cat_1_dog_-1"
+      }
+   ]
+
+The single field index on the field ``cat`` has the user-specified name
+of ``catIdx`` [#index-name]_ and the index specification document of
+``{ "cat" : -1 }``.
+
+To drop the index ``catIdx``, you can use either the index name:
+
+.. code-block:: javascript
+
+   db.pets.dropIndex( "catIdx" )
+
+Or you can use the index specification document ``{ "cat" : -1 }``:
+
+.. code-block:: javascript
+
+   db.pets.dropIndex( { "cat" : -1 } )
+
+.. [#index-name] During index creation, if the user does **not**
+   specify an index name, the system generates the name by
+   concatenating the index key field and value with an underscore,
+   e.g. ``cat_1``.

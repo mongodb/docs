@@ -1,0 +1,136 @@
+===========================
+$dateToString (aggregation)
+===========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $dateToString
+
+   Converts a date object to a string according to a user-specified
+   format.
+
+   The :expression:`$dateToString` expression has the following
+   :ref:`operator expression syntax <aggregation-expressions>`:
+
+   .. code-block:: javascript
+
+      { $dateToString: {
+          date: <dateExpression>,
+          format: <formatString>,
+          timezone: <tzExpression>,
+          onNull: <expression>
+      } }
+
+   The :pipeline:`$dateToString` takes a document with the following fields:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+
+      * - Field
+        - Description
+
+      * - ``date``
+
+        - .. versionchanged:: 3.6
+
+          The date to convert to string. ``<dateExpression>`` must be a
+          valid :ref:`expression <aggregation-expressions>` that
+          resolves to a :ref:`Date <document-bson-type-date>`, a
+          :ref:`Timestamp <document-bson-type-timestamp>`, or an
+          :ref:`ObjectID <document-bson-type-object-id>`.
+
+      * - ``format``
+
+        - Optional. The date format specification. ``<formatString>`` can be any
+          string literal, containing 0 or more format specifiers. For a
+          list of specifiers available, see :ref:`format-specifiers`.
+
+          If unspecified, :expression:`$dateToString` uses
+          ``"%Y-%m-%dT%H:%M:%S.%LZ"`` as the default format.
+
+      * - ``timezone``
+
+        - .. include:: /includes/fact-timezone-description.rst
+        
+          .. versionadded:: 3.6
+
+      * - ``onNull``
+
+        - Optional. The value to return if the ``date`` is null or missing.
+          The arguments can be any valid :ref:`expression
+          <aggregation-expressions>`.
+
+          If unspecified, :expression:`$dateToString` returns null if the
+          ``date`` is null or missing.
+
+.. seealso::
+
+   - :expression:`$toString`
+   - :expression:`$convert`
+
+.. _format-specifiers:
+
+Format Specifiers
+-----------------
+
+.. include:: /includes/extracts/date-format-specifiers-dateToString.rst
+
+Example
+-------
+
+Consider a ``sales`` collection with the following document:
+
+.. class:: copyable-code
+.. code-block:: javascript
+
+   {
+     "_id" : 1,
+     "item" : "abc",
+     "price" : 10,
+     "quantity" : 2,
+     "date" : ISODate("2014-01-01T08:15:39.736Z")
+   }
+
+The following aggregation uses :expression:`$dateToString` to
+return the ``date`` field as formatted strings:
+
+.. cssclass:: copyable-code
+.. code-block:: javascript
+
+   db.sales.aggregate(
+      [
+        {
+          $project: {
+             yearMonthDayUTC: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+             timewithOffsetNY: { $dateToString: { format: "%H:%M:%S:%L%z", date: "$date", timezone: "America/New_York"} },
+             timewithOffset430: { $dateToString: { format: "%H:%M:%S:%L%z", date: "$date", timezone: "+04:30" } },
+             minutesOffsetNY: { $dateToString: { format: "%Z", date: "$date", timezone: "America/New_York" } },
+             minutesOffset430: { $dateToString: { format: "%Z", date: "$date", timezone: "+04:30" } }
+          }
+        }
+      ]
+   )
+
+The operation returns the following result:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 1,
+      "yearMonthDayUTC" : "2014-01-01",
+      "timewithOffsetNY" : "03:15:39:736-0500",
+      "timewithOffset430" : "12:45:39:736+0430",
+      "minutesOffsetNY" : "-300",
+      "minutesOffset430" : "270"
+   }
+

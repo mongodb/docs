@@ -1,0 +1,441 @@
+=================================
+db.collection.findOneAndReplace()
+=================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.collection.findOneAndReplace( filter, replacement, options )
+
+   .. |dbcommand| replace:: :dbcommand:`update` command
+   .. include:: /includes/fact-mongo-shell-method-alt.rst
+
+   Replaces a single document based on the specified :ref:`filter
+   <findOneAndReplace-filter>`.
+
+Syntax
+------
+
+The :method:`~db.collection.findOneAndReplace()` method has the following 
+form:
+
+.. code-block:: javascript
+
+   db.collection.findOneAndReplace(
+      <filter>,
+      <replacement>,
+      {
+        projection: <document>,
+        sort: <document>,
+        maxTimeMS: <number>,
+        upsert: <boolean>,
+        returnNewDocument: <boolean>,
+        collation: <document>
+      }
+   )
+
+Parameters and Options
+~~~~~~~~~~~~~~~~~~~~~~
+
+The :method:`~db.collection.findOneAndReplace()` method takes the following
+parameters and options:
+
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Parameter
+
+     - Type
+
+     - Description
+
+   * - :ref:`filter <findOneAndReplace-filter>`
+
+     - document
+
+     - .. _findOneAndReplace-filter:
+     
+       The selection criteria for the update. The same :ref:`query
+       selectors <query-selectors>` as in the :method:`find()
+       <db.collection.find()>` method are available.
+       
+       Specify an empty document ``{ }`` to replace the first document returned in 
+       the collection.
+       
+       If unspecified, defaults to an empty document.
+       
+       Starting in MongoDB 4.2 (and 4.0.12+, 3.6.14+, and 3.4.23+), the operation
+       errors if the query argument is not a document.
+       
+       
+
+   * - :ref:`replacement <findOneAndReplace-replacement>`
+
+     - document
+
+     - .. _findOneAndReplace-replacement:
+     
+       The replacement document.
+       
+       Cannot contain 
+       :doc:`update operators</reference/operator/update>`.
+       
+       The ``<replacement>`` document cannot specify an ``_id`` value that differs 
+       from the replaced document.
+       
+       
+
+   * - :ref:`projection <findOneAndReplace-projection>`
+
+     - document
+
+     - .. _findOneAndReplace-projection:
+     
+       Optional. A subset of fields to return.
+       
+       To return all fields in the matching document, omit this parameter.
+       
+       Starting in MongoDB 4.2 (and 4.0.12+, 3.6.14+, and 3.4.23+), the operation
+       errors if the projection argument is not a document.
+       
+       
+
+   * - :ref:`sort <findOneAndReplace-sort>`
+
+     - document
+
+     - .. _findOneAndReplace-sort:
+     
+       Optional. Specifies a sorting order for the documents matched by the ``filter``.
+       
+       Starting in MongoDB 4.2 (and 4.0.12+, 3.6.14+, and 3.4.23+), the operation
+       errors if the sort argument is not a document.
+       
+       See :method:`cursor.sort()`.
+       
+       
+
+   * - ``maxTimeMS``
+
+     - number
+
+     - Optional. Specifies a time limit in milliseconds within which the operation must 
+       complete. Throws an error if the limit is exceeded.
+       
+       
+
+   * - :ref:`upsert <findOneAndReplace-upsert>`
+
+     - boolean
+
+     - .. _findOneAndReplace-upsert:
+     
+       .. include:: /includes/extracts/findOneAndReplace-behavior-method.rst
+       
+       
+
+   * - :ref:`returnNewDocument <findOneAndReplace-returnNewDocument>`
+
+     - boolean
+
+     - .. _findOneAndReplace-returnNewDocument:
+
+       Optional. When ``true``, returns the replacement document instead of the original 
+       document.
+       
+       Defaults to ``false``.
+       
+       
+
+   * - :ref:`collation <findOneAndReplace-collation>`
+
+     - document
+
+     - .. _findOneAndReplace-collation:
+     
+       Optional. 
+       
+       .. include:: /includes/extracts/collation-option.rst
+       
+       
+
+
+Returns
+~~~~~~~
+
+Returns either the original document or, if :ref:`returnNewDocument:
+true <findOneAndReplace-returnNewDocument>`, the replacement document.
+      
+Behavior
+--------
+
+Document Match
+~~~~~~~~~~~~~~
+
+:method:`db.collection.findOneAndReplace()` replaces the first matching 
+document in the collection that matches the ``filter``. 
+The ``sort`` parameter can be used to influence which document is modified.
+
+Projection
+~~~~~~~~~~
+
+The ``projection`` parameter takes a document in the following form:
+
+.. code-block:: javascript
+
+   { field1 : < boolean >, field2 : < boolean> ... }
+   
+The ``<boolean>`` value can be any of the following:
+
+- ``1`` or ``true`` to include the field. The method returns the
+  ``_id`` field even if it is not explicitly stated in the projection
+  parameter.
+
+- ``0`` or ``false`` to exclude the field. This can be used on any
+  field, including ``_id``.
+
+Sharded Collections
+~~~~~~~~~~~~~~~~~~~
+
+To use |operation| on a sharded collection, the query filter must
+include an equality condition on the shard key.
+
+.. _findOneAndReplace-shard-key-modification:
+
+Shard Key Modification
+``````````````````````
+
+.. include:: /includes/limits-sharding-shardkey-document-immutable.rst
+
+Transactions
+~~~~~~~~~~~~
+
+.. include:: /includes/extracts/transactions-supported-operation.rst
+
+If the operation results in an upsert, the collection must already exist.
+
+.. include:: /includes/extracts/transactions-operations-write-concern.rst
+
+.. include:: /includes/extracts/transactions-usage.rst
+
+.. |operation| replace:: :method:`db.collection.findOneAndReplace()`
+
+.. _findOneAndReplace-examples:
+
+Examples
+--------
+
+.. _findOneAndReplace-example-replace-document:
+
+Replace A Document
+~~~~~~~~~~~~~~~~~~
+
+Create a sample ``scores`` collection with the following documents:
+
+.. code-block:: javascript
+
+   db.scores.insertMany([
+      { "_id" : 1, "team" : "Fearful Mallards", "score" : 25000 },
+      { "_id" : 2, "team" : "Tactful Mooses", "score" : 23500 },
+      { "_id" : 3, "team" : "Aquatic Ponies", "score" : 19250 },
+      { "_id" : 4, "team" : "Cuddly Zebras", "score" : 15235 },
+      { "_id" : 5, "team" : "Garrulous Bears", "score" : 18000 }
+   ]);
+
+The following operation finds a document with ``score`` less than
+``20000`` and replaces it:
+
+.. code-block:: javascript
+
+   db.scores.findOneAndReplace( 
+      { "score" : { $lt : 20000 } },  
+      { "team" : "Observant Badgers", "score" : 20000 }
+   )
+
+The operation returns the *original* document that has been replaced:
+
+.. code-block:: javascript
+
+   { "_id" : 3, "team" : "Aquatic Ponies", "score" : 19250 }
+
+If :ref:`returnNewDocument <findOneAndReplace-returnNewDocument>` was
+true, the operation would return the replacement document instead.
+
+Although multiple documents meet the filter criteria,
+:method:`db.collection.findOneAndReplace` replaces only one document.
+
+.. _findOneAndReplace-example-sort-and-replace-document: 
+
+Sort and Replace A Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create a sample ``scores`` collection with the following documents:
+
+.. code-block:: javascript
+
+   db.scores.insertMany([
+      { "_id" : 1, "team" : "Fearful Mallards", "score" : 25000 },
+      { "_id" : 2, "team" : "Tactful Mooses", "score" : 23500 },
+      { "_id" : 3, "team" : "Aquatic Ponies", "score" : 19250 },
+      { "_id" : 4, "team" : "Cuddly Zebras", "score" : 15235 },
+      { "_id" : 5, "team" : "Garrulous Bears", "score" : 18000 }
+   ]);
+
+By including an ascending :ref:`sort <findOneAndReplace-sort>` on
+the ``score`` field, the following example replaces the document with the
+lowest score among those documents that match the :ref:`filter
+<findOneAndReplace-filter>`:
+
+.. code-block:: javascript
+
+   db.scores.findOneAndReplace(
+      { "score" : { $lt : 20000 } },
+      { "team" : "Observant Badgers", "score" : 20000 },
+      { sort: { "score" : 1 } }
+   )
+
+The operation returns the *original* document that has been replaced:
+
+.. code-block:: javascript
+
+   { "_id" : 4, "team" : "Cuddly Zebras", "score" : 15235 }
+
+See :ref:`findOneAndReplace-example-replace-document` for the non-sorted 
+result of this command.
+
+.. _findOneAndReplace-example-project-returned-document:
+
+Project Specific Fields in Return Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create a sample ``scores`` collection with the following documents:
+
+.. code-block:: javascript
+
+   db.scores.insertMany([
+      { "_id" : 1, "team" : "Fearful Mallards", "score" : 25000 },
+      { "_id" : 2, "team" : "Tactful Mooses", "score" : 23500 },
+      { "_id" : 3, "team" : "Aquatic Ponies", "score" : 19250 },
+      { "_id" : 4, "team" : "Cuddly Zebras", "score" : 15235 },
+      { "_id" : 5, "team" : "Garrulous Bears", "score" : 18000 }
+   ])
+
+The following operation uses :ref:`projection
+<findOneAndReplace-projection>` to only display the ``team`` field in
+the returned document:
+
+.. code-block:: javascript
+
+   db.scores.findOneAndReplace(
+      { "score" : { $lt : 22250 } },
+      { "team" : "Therapeutic Hamsters", "score" : 22250 },
+      { sort : { "score" : 1 }, projection: { "_id" : 0, "team" : 1 } }
+   )
+   
+The operation returns the *original* document with only the ``team`` field: 
+
+.. code-block:: javascript
+
+   { "team" : "Cuddly Zebras" }
+
+.. _findOneAndReplace-example-replace-with-time-limit:
+
+Replace Document with Time Limit
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation sets a 5ms time limit to complete:
+
+.. code-block:: javascript
+
+   try {
+      db.scores.findOneAndReplace(
+         { "score" : { $gt : 25000 } },
+         { "team" : "Emphatic Rhinos", "score" : 25010 },
+         { maxTimeMS: 5 } 
+      );
+   } catch(e){
+      print(e);
+   }
+
+If the operation exceeds the time limit, it returns:
+
+.. code-block:: javascript
+
+   Error: findAndModifyFailed failed: { "ok" : 0, "errmsg" : "operation exceeded time limit", "code" : 50 }
+
+
+.. _findOneAndReplace-example-replace-with-upsert:
+
+Replace Document with Upsert
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation uses the :ref:`upsert <findOneAndReplace-upsert>` field to insert the
+replacement document if no document matches the :ref:`filter
+<findOneAndReplace-filter>`:
+
+.. code-block:: javascript
+
+   try {
+      db.scores.findOneAndReplace( 
+         { "team" : "Fortified Lobsters" },
+         { "_id" : 6019, "team" : "Fortified Lobsters" , "score" : 32000},
+         { upsert : true, returnNewDocument: true }
+      );
+   } catch (e){
+      print(e);
+   }
+
+The operation returns the following:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 6019,
+      "team" : "Fortified Lobsters",
+      "score" : 32000
+   }
+   
+If ``returnNewDocument`` was false, the operation would return ``null`` as 
+there is no original document to return.
+
+Specify Collation
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/collation-versionadded.rst
+
+Create a sample ``myColl`` collection with the following documents:
+
+.. code-block:: javascript
+
+   db.myColl.insertMany([
+      { _id: 1, category: "café", status: "A" },
+      { _id: 2, category: "cafe", status: "a" },
+      { _id: 3, category: "cafE", status: "a" }
+   ]);
+
+The following operation includes the :ref:`collation <findOneAndReplace-collation>`
+option:
+
+.. code-block:: javascript
+
+   db.myColl.findOneAndReplace(
+      { category: "cafe", status: "a" },
+      { category: "cafÉ", status: "Replaced" },
+      { collation: { locale: "fr", strength: 1 } }
+   );
+
+The operation returns the following document:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "category" : "café", "status" : "A" }

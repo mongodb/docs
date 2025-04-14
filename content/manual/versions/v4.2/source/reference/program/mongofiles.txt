@@ -1,0 +1,657 @@
+==============
+``mongofiles``
+==============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. |tool-binary| replace:: ``mongofiles``
+
+.. only:: (not man)
+
+   .. binary:: mongofiles
+
+.. include:: /includes/admonition-mac-osx-sierra-restriction.rst
+
+.. include:: /includes/extracts/migration-to-database-tools-mongofiles.rst
+
+Synopsis
+--------
+
+The :binary:`~bin.mongofiles` utility makes it possible to manipulate files
+stored in your MongoDB instance in :term:`GridFS` objects from the
+command line. It is particularly useful as it provides an interface
+between objects stored in your file system and GridFS.
+
+All :binary:`~bin.mongofiles` commands have the following form:
+
+.. code-block:: sh
+
+   mongofiles <options> <commands> <filename>
+
+The components of the :binary:`~bin.mongofiles` command are:
+
+1. :ref:`Options <mongofiles-options>`. You may use one or more of
+   these options to control the behavior of :binary:`~bin.mongofiles`.
+
+2. :ref:`Commands <mongofiles-commands>`. Use one of these commands to
+   determine the action of :binary:`~bin.mongofiles`.
+
+3. A filename which is either: the name of a file on your local's file
+   system, or a GridFS object.
+
+.. include:: /includes/extracts/require-cmd-line-mongofiles.rst
+
+.. important:: For :term:`replica sets <replica set>`,
+   :binary:`~bin.mongofiles` can only read from the set's
+   :term:`primary`.
+
+.. _mongofiles-availability:
+
+Availability
+------------
+
+.. include:: /includes/extracts/download-from-tools-mongofiles.rst
+
+Required Access
+---------------
+
+In order to connect to a :binary:`~bin.mongod` that enforces authorization
+with the :option:`--auth <mongod --auth>` option, you must use the
+:option:`--username <mongofiles --username>` and :option:`--password
+<mongofiles --password>` options. The connecting user must possess, at a
+minimum:
+
+- the :authrole:`read` role for the accessed database when using the
+  ``list``, ``search`` or ``get`` commands,
+
+- the :authrole:`readWrite` role for the accessed database when using
+  the ``put`` or ``delete`` commands.
+
+Behavior
+--------
+
+FIPS
+~~~~
+
+.. include:: /includes/extracts/4.2-changes-fips-program.rst
+
+
+Read Preference
+~~~~~~~~~~~~~~~
+
+By default, :binary:`~bin.mongofiles` uses read preference
+:readmode:`primary`. To override the default, you can specify the
+:ref:`read preference <replica-set-read-preference>` in the
+:option:`--readPreference <mongofiles --readPreference>` command line
+option or in the :option:`--uri connection string <mongofiles --uri>`.
+
+Starting in version 4.2, if you specify read preference in the URI
+string and the :option:`--readPreference <mongofiles
+--readPreference>`, the :option:`--readPreference <mongofiles
+--readPreference>` value overrides the read preference specified in the
+URI string.
+
+In earlier versions, the two options are incompatible.
+
+Write Concern
+~~~~~~~~~~~~~
+
+Starting in version 4.2, you can specify both the
+:option:`--writeConcern <mongofiles --writeConcern>` and the
+:option:`--uri connection string <mongofiles --uri>` option. If write
+concern is specified using both options, the
+:option:`--writeConcern <mongofiles --writeConcern>` value overrides
+the write concern specified in the URI string.
+
+In earlier versions, the two options are incompatible.
+
+
+.. _mongofiles-options:
+
+Options
+-------
+
+.. program:: mongofiles
+
+.. option:: --help
+
+   Returns information on the options and use of :program:`mongofiles`.
+
+
+.. option:: --verbose, -v
+
+   Increases the amount of internal reporting returned on standard output
+   or in log files. Increase the verbosity with the ``-v`` form by
+   including the option multiple times, (e.g. ``-vvvvv``.)
+   
+
+
+.. option:: --quiet
+
+   Runs :program:`mongofiles` in a quiet mode that attempts to limit the amount
+   of output.
+
+   This option suppresses:
+   
+   - output from :term:`database commands <database command>`
+   
+   - replication activity
+   
+   - connection accepted events
+   
+   - connection closed events
+
+
+.. option:: --version
+
+   Returns the :program:`mongofiles` release number.
+
+
+.. option:: --uri=<connectionString>
+
+   .. versionadded:: 3.4.6
+   
+   Specify a resolvable :doc:`URI </reference/connection-string/>`
+   connection string (enclose in quotes) to connect to the MongoDB deployment.
+   
+   .. code-block:: none
+   
+      --uri="mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]"
+   
+   For information on the components of the connection string, see
+   the :doc:`Connection String URI Format
+   </reference/connection-string/>` documentation. 
+   
+   .. note::
+   
+      For TLS/SSL options, use the command-line options instead of the
+      :ref:`URI options for TLS/SSL (Available starting in
+      4.2)<uri-options-tls>`.
+   
+
+   .. important::
+   
+      The following command-line options cannot be used in conjunction
+      with :option:`--uri` option:
+   
+      - :option:`--host`
+      - :option:`--port`
+      - :option:`--db`
+      - :option:`--username`
+      - :option:`--password`  (if the
+        :doc:`URI </reference/connection-string/>` connection string also includes the password)
+      - :option:`--authenticationDatabase`
+      - :option:`--authenticationMechanism`
+   
+      Instead, specify these options as part of your :option:`--uri` 
+      connection string.           
+
+
+.. option:: --host=<hostname><:port>
+
+   Specifies a resolvable hostname for the :binary:`~bin.mongod` that holds
+   your GridFS system. By default :binary:`~bin.mongofiles` attempts to connect
+   to a MongoDB process running on the localhost port number ``27017``.
+   
+   Optionally, specify a port number to connect a MongoDB instance running
+   on a port other than 27017.
+   
+   .. note::
+   
+      You cannot specify both :option:`--host` and :option:`--uri`.
+   
+
+
+.. option:: --port=<port>
+
+   *Default*: 27017
+
+   Specifies the TCP port on which the MongoDB instance listens for
+   client connections.
+   
+   .. note::
+   
+      You cannot specify both :option:`--port` and :option:`--uri`.
+
+
+.. option:: --ipv6
+
+   *Removed in version 3.0.*
+   
+   Enables IPv6 support and allows :program:`mongofiles` to connect to the
+   MongoDB instance using an IPv6 network. Prior to MongoDB 3.0, you
+   had to specify :option:`--ipv6` to use IPv6. In MongoDB 3.0 and later, IPv6
+   is always enabled.
+
+
+.. option:: --ssl
+
+   Enables connection to a :binary:`~bin.mongod` or :binary:`~bin.mongos` that has
+   TLS/SSL support enabled.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+   
+
+
+.. option:: --sslCAFile=<filename>
+
+   Specifies the :file:`.pem` file that contains the root certificate chain
+   from the Certificate Authority. Specify the file name of the
+   :file:`.pem` file using relative or absolute paths.
+   
+   .. include:: /includes/extracts/ssl-facts-ca-file.rst
+   
+   .. warning::
+   
+      **Version 3.2 and earlier:** For TLS/SSL connections (``--ssl``) to
+      :binary:`~bin.mongod` and :binary:`~bin.mongos`, if the :program:`mongofiles` runs without the
+      :option:`--sslCAFile`, :program:`mongofiles` will not attempt
+      to validate the server certificates. This creates a vulnerability
+      to expired :binary:`~bin.mongod` and :binary:`~bin.mongos` certificates as
+      well as to foreign processes posing as valid :binary:`~bin.mongod` or
+      :binary:`~bin.mongos` instances. Ensure that you *always* specify the
+      CA file to validate the server certificates in cases where
+      intrusion is a possibility.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslPEMKeyFile=<filename>
+
+   Specifies the :file:`.pem` file that contains both the TLS/SSL certificate
+   and key. Specify the file name of the :file:`.pem` file using relative
+   or absolute paths.
+   
+   This option is required when using the :option:`--ssl` option to connect
+   to a :binary:`~bin.mongod` or :binary:`~bin.mongos` that has
+   :setting:`~net.ssl.CAFile` enabled *without*
+   :setting:`~net.ssl.allowConnectionsWithoutCertificates`.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+   
+
+
+.. option:: --sslPEMKeyPassword=<value>
+
+   Specifies the password to de-crypt the certificate-key file (i.e.
+   :option:`--sslPEMKeyFile`). Use the :option:`--sslPEMKeyPassword` option only if the
+   certificate-key file is encrypted. In all cases, the :program:`mongofiles` will
+   redact the password from all logging and reporting output.
+   
+   If the private key in the PEM file is encrypted and you do not specify
+   the :option:`--sslPEMKeyPassword` option, the :program:`mongofiles` will prompt for a passphrase. See
+   :ref:`ssl-certificate-password`.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --sslCRLFile=<filename>
+
+   Specifies the :file:`.pem` file that contains the Certificate Revocation
+   List. Specify the file name of the :file:`.pem` file using relative or
+   absolute paths.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+   
+
+
+.. option:: --sslAllowInvalidCertificates
+
+   Bypasses the validation checks for server certificates and allows
+   the use of invalid certificates. When using the
+   :setting:`~net.ssl.allowInvalidCertificates` setting, MongoDB logs as a
+   warning the use of the invalid certificate.
+   
+   .. include:: /includes/extracts/ssl-facts-x509-invalid-certificate.rst
+   
+   .. include:: /includes/extracts/ssl-facts-invalid-cert-warning-clients.rst
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+   
+
+
+.. option:: --sslAllowInvalidHostnames
+
+   Disables the validation of the hostnames in TLS/SSL certificates. Allows
+   :program:`mongofiles` to connect to MongoDB instances even if the hostname in their
+   certificates do not match the specified hostname.
+   
+   .. include:: /includes/extracts/ssl-facts-see-more.rst
+
+
+.. option:: --username=<username>, -u=<username>
+
+   Specifies a username with which to authenticate to a MongoDB database
+   that uses authentication. Use in conjunction with the :option:`--password` and
+   :option:`--authenticationDatabase` options.
+   
+   .. note::
+   
+      You cannot specify both :option:`--username` and :option:`--uri`.
+
+
+.. option:: --password=<password>, -p=<password>
+
+   Specifies a password with which to authenticate to a MongoDB database
+   that uses authentication. Use in conjunction with the :option:`--username` and
+   :option:`--authenticationDatabase` options.
+
+   To prompt the user for the password, pass the :option:`--username`
+   option without :option:`--password` or specify an empty string as the
+   :option:`--password` value, as in ``--password ""`` .
+
+   .. note::
+   
+      You cannot specify both :option:`--password` and :option:`--uri`.
+
+
+.. option:: --authenticationDatabase=<dbname>
+
+   Specifies the authentication database where the specified :option:`--username` has been created.
+   See :ref:`user-authentication-database`.
+   
+   .. note::
+   
+      You cannot specify both :option:`--authenticationDatabase` and :option:`--uri`.
+
+
+.. option:: --authenticationMechanism=<name>
+
+   *Default*: SCRAM-SHA-1
+
+   Specifies the authentication mechanism the :program:`mongofiles` instance uses to
+   authenticate to the :binary:`~bin.mongod` or :binary:`~bin.mongos`.
+   
+   .. versionchanged:: 4.0
+   
+      MongoDB removes support for the deprecated MongoDB
+      Challenge-Response (``MONGODB-CR``) authentication mechanism.
+   
+      MongoDB adds support for SCRAM mechanism using the SHA-256 hash
+      function (``SCRAM-SHA-256``).
+   
+   .. include:: /includes/list-table-auth-mechanisms.rst
+   
+   .. note::
+   
+      You cannot specify both :option:`--authenticationMechanism` and :option:`--uri`.
+
+
+.. option:: --gssapiServiceName=<serviceName>
+
+   Specify the name of the service using :doc:`GSSAPI/Kerberos
+   </core/kerberos>`. Only required if the service does not use the
+   default name of ``mongodb``.
+   
+   This option is available only in MongoDB Enterprise.
+   
+
+
+.. option:: --gssapiHostName=<hostname>
+
+   Specify the hostname of a service using :doc:`GSSAPI/Kerberos
+   </core/kerberos>`. *Only* required if the hostname of a machine does
+   not match the hostname resolved by DNS.
+   
+   This option is available only in MongoDB Enterprise.
+   
+
+
+.. option:: --db=<database>, -d=<database>
+
+   Specifies the name of the database on which to run the :program:`mongofiles`.
+   
+   .. note::
+    
+       You cannot specify both :option:`--db` and :option:`--uri`.
+
+
+.. option:: --local=<filename>, -l=<filename>
+
+   Specifies the local filesystem name of a file for get and put
+   operations.
+   
+   In the :command:`mongofiles put` and :command:`mongofiles get` commands,
+   the required ``<filename>`` modifier refers to the name the object will
+   have in GridFS. :binary:`~bin.mongofiles` assumes that this reflects the
+   file's name on the local file system. This setting overrides this
+   default.
+   
+
+
+.. option:: --type=<MIME>
+
+   Provides the ability to specify a :term:`MIME` type to describe the file
+   inserted into GridFS storage. :binary:`~bin.mongofiles` omits this option in
+   the default operation.
+   
+   Use only with :command:`mongofiles put` operations.
+   
+
+
+.. option:: --replace, -r
+
+   Alters the behavior of :command:`mongofiles put` to replace existing
+   GridFS objects with the specified local file, rather than adding an
+   additional object with the same name.
+   
+   In the default operation, files will not be overwritten by a
+   :command:`mongofiles put` option.
+   
+
+
+.. option:: --prefix=<string>
+
+   *Default*: fs
+
+   GridFS prefix to use.
+   
+
+
+.. option:: --writeConcern=<document>
+
+   *Default*: majority
+
+   Specifies the :term:`write concern` for each write operation that :program:`mongofiles`
+   performs.
+   
+   Specify the write concern as a document with :ref:`w options <wc-w>`:
+      
+   .. code-block:: sh
+   
+      --writeConcern="{w:'majority'}"
+
+   
+   If the write concern is also included in the :option:`--uri
+   connection string <--uri>`, the command-line
+   :option:`--writeConcern` overrides the write concern specified in
+   the URI string.
+
+
+.. option:: --readPreference=<string|document>
+
+   *Default*: :readmode:`primary`
+
+   Specifies the :ref:`read preference<replica-set-read-preference>` for
+   :program:`mongofiles`. The :option:`--readPreference` option can take:
+   
+   - A string if specifying only the read preference mode:
+   
+     .. code-block:: sh
+   
+        --readPreference=secondary
+   
+   - A quote-enclosed document to specify the mode, the optional
+     :ref:`read preference tag sets <configure-read-pref-tags>`, and the
+     optional :ref:`maxStalenessSeconds
+     <replica-set-read-preference-max-staleness>`:
+   
+     .. code-block:: sh
+   
+        --readPreference='{mode: "secondary", tagSets: [ { "region": "east" } ], maxStalenessSeconds: 120}'
+   
+     If specifying the :ref:`maxStalenessSeconds
+     <replica-set-read-preference-max-staleness>`, the value must be greater than or equal to 90.
+     
+     .. versionadded:: 4.2
+   
+   :program:`mongofiles` defaults to :readmode:`primary`
+   :ref:`read preference <replica-set-read-preference>`.
+   
+   Starting in version 4.2, if the read
+   preference is also included in the :option:`--uri connection string
+   <--uri>`, the command-line :option:`--readPreference` overrides the read preference
+   specified in the URI string.
+   
+   .. include:: /includes/warning-read-preference-mongos.rst
+
+
+.. _mongofiles-commands:
+
+Commands
+--------
+
+.. describe:: list <prefix>
+
+   Lists the files in the GridFS store. The characters specified after
+   ``list`` (e.g. ``<prefix>``) optionally limit the list of
+   returned items to files that begin with that string of characters.
+
+.. describe:: search <string>
+
+   Lists the files in the GridFS store with names that match any
+   portion of ``<string>``.
+
+.. describe:: put <filename>
+
+   Copy the specified file from the local file system into GridFS
+   storage.
+
+   Here, ``<filename>`` refers to the name the object will have in
+   GridFS, and :binary:`~bin.mongofiles` assumes that this reflects the name the
+   file has on the local file system. If the local filename is
+   different use the :option:`mongofiles --local` option.
+
+.. describe:: get <filename>
+
+   Copy the specified file from GridFS storage to the local file
+   system.
+
+   Here, ``<filename>`` refers to the name the object will have in
+   GridFS. :binary:`~bin.mongofiles` writes the file to the local
+   file system using the file's ``filename`` in GridFS. To choose a
+   different location for the file on the local file system, use the
+   :option:`--local <mongofiles --local>` option.
+
+.. describe:: get_id "<_id>"
+
+   .. versionadded:: 3.2.0
+
+   Copy the file, specified by its ``<_id>``, from GridFS storage to the
+   local file system.
+
+   Here ``<_id>`` refers to the extended JSON ``_id`` of the
+   object in GridFS:
+
+   - Starting in MongoDB 4.2, ``get_id`` can accept either ObjectId
+     values or non-ObjectId values for ``<_id>``.
+
+   - In MongoDB 4.0 and earlier, ``get_id`` only   
+     accepts ``<ObjectId>`` values.
+   
+   :binary:`~bin.mongofiles` writes the file to the local
+   file system using the file's ``filename`` in GridFS. To choose a
+   different location for the file on the local file system, use the
+   :option:`--local <mongofiles --local>` option.
+
+.. describe:: delete <filename>
+
+   Delete the specified file from GridFS storage.
+
+.. describe:: delete_id "<_id>"
+
+   .. versionadded:: 3.2.0
+
+   Delete the file, specified by its ``<_id>``, from GridFS storage:
+
+   - Starting in MongoDB 4.2, ``delete_id`` can accept    
+     either ObjectId values or non-ObjectId values for ``<_id>``. 
+
+   - In MongoDB 4.0 and earlier, ``delete_id`` only   
+     accepts ``<ObjectId>`` values.
+
+Examples
+--------
+
+To return a list of all files in a :term:`GridFS` collection in the
+``records`` database, use the following invocation at the system shell:
+
+.. code-block:: sh
+
+   mongofiles -d=records list
+
+This :binary:`~bin.mongofiles` instance will connect to the
+:binary:`~bin.mongod` instance running on the ``27017`` localhost
+interface to specify the same operation on a different port or
+hostname, and issue a command that resembles one of the following:
+
+.. code-block:: sh
+
+   mongofiles --port=37017 -d=records list
+   mongofiles --host=db1.example.net -d=records list
+   mongofiles --host=db1.example.net --port=37017 -d=records list
+
+Modify any of the following commands as needed if you're connecting
+the :binary:`~bin.mongod` instances on different ports or hosts.
+
+To upload a file named ``32-corinth.lp`` to the GridFS collection in
+the ``records`` database, you can use the following command:
+
+.. code-block:: sh
+
+   mongofiles -d=records put 32-corinth.lp
+
+To delete the ``32-corinth.lp`` file from this GridFS collection in
+the ``records`` database, you can use the following command:
+
+.. code-block:: sh
+
+   mongofiles -d=records delete 32-corinth.lp
+
+To search for files in the GridFS collection in the ``records``
+database that have the string ``corinth`` in their names, you can use
+following command:
+
+.. code-block:: sh
+
+   mongofiles -d=records search corinth
+
+To list all files in the GridFS collection in the ``records`` database
+that begin with the string ``32``, you can use the following command:
+
+.. code-block:: sh
+
+   mongofiles -d=records list 32
+
+To fetch the file from the GridFS collection in the ``records``
+database named ``32-corinth.lp``, you can use the following command:
+
+.. code-block:: sh
+
+   mongofiles -d=records get 32-corinth.lp
+
+To fetch the file from the GridFS collection in the ``records`` database
+with ``_id: ObjectId("56feac751f417d0357e7140f")``, you can use the
+following command:
+
+.. code-block:: sh
+
+   mongofiles -d=records get_id '{"$oid": "56feac751f417d0357e7140f"}'
+
+You must include quotation marks around the ``_id``.

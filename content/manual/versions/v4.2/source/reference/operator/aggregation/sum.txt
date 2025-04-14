@@ -1,0 +1,215 @@
+==================
+$sum (aggregation)
+==================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. group:: $sum
+
+   Calculates and returns the sum of numeric values. :group:`$sum`
+   ignores non-numeric values.
+
+   .. include:: /includes/extracts/fact-aggregation-accumulator-sum.rst
+
+   When used in the :pipeline:`$group` stage, :expression:`$sum` has the
+   following syntax and returns the collective sum of all the numeric
+   values that result from applying a specified expression to each
+   document in a group of documents that share the same group by key:
+
+   .. code-block:: javascript
+
+      { $sum: <expression> }
+
+   When used in the other supported stages, :expression:`$sum` returns the
+   sum of the specified expression or list of expressions for each
+   document and has one of two syntaxes:
+
+   - :expression:`$sum` has one specified expression as its operand:
+
+     .. code-block:: javascript
+
+        { $sum: <expression> }
+
+   - :expression:`$sum` has a list of specified expressions as its
+     operand:
+
+     .. code-block:: javascript
+
+        { $sum: [ <expression1>, <expression2> ... ]  }
+
+   For more information on expressions, see
+   :ref:`aggregation-expressions`.
+
+Behavior
+--------
+
+Result Data Type
+~~~~~~~~~~~~~~~~
+
+The result will have the same type as the input except when it cannot be
+represented accurately in that type. In these cases:
+
+- A 32-bit integer will be converted to a 64-bit integer if the
+  result is representable as a 64-bit integer.
+
+- A 32-bit integer will be converted to a double if the result is
+  not representable as a 64-bit integer.
+
+- A 64-bit integer will be converted to double if the result is not
+  representable as a 64-bit integer.
+
+Non-Numeric or Non-Existent Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If used on a field that contains both numeric and non-numeric values,
+:group:`$sum` ignores the non-numeric values and returns the sum of the
+numeric values.
+
+If used on a field that does not exist in any document in the collection,
+:group:`$sum` returns ``0`` for that field.
+
+If all operands are non-numeric, :group:`$sum` returns ``0``.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 28 39 33
+
+   * - Example
+     - Field Values
+     - Results
+
+   * - ``{ $sum : <field> }``
+     - ``Numeric``
+     - ``Sum of Values``
+
+   * - ``{ $sum : <field> }``
+     - ``Numeric and Non-Numeric``
+     - ``Sum of Numeric Values``
+
+   * - ``{ $sum : <field> }``
+     - ``Non-Numeric or Non-Existent``
+     - ``0``
+
+
+Array Operand
+~~~~~~~~~~~~~
+
+In the :pipeline:`$group` stage, if the expression resolves to an
+array, :group:`$sum` treats the operand as a non-numerical value.
+
+.. include:: /includes/extracts/fact-agg-accumulator-array-operand-in-project-sum.rst
+
+Examples
+--------
+
+Use in ``$group`` Stage
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider a ``sales`` collection with the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "abc", "price" : 10, "quantity" : 2, "date" : ISODate("2014-01-01T08:00:00Z") }
+   { "_id" : 2, "item" : "jkl", "price" : 20, "quantity" : 1, "date" : ISODate("2014-02-03T09:00:00Z") }
+   { "_id" : 3, "item" : "xyz", "price" : 5, "quantity" : 5, "date" : ISODate("2014-02-03T09:05:00Z") }
+   { "_id" : 4, "item" : "abc", "price" : 10, "quantity" : 10, "date" : ISODate("2014-02-15T08:00:00Z") }
+   { "_id" : 5, "item" : "xyz", "price" : 5, "quantity" : 10, "date" : ISODate("2014-02-15T09:05:00Z") }
+
+Grouping the documents by the day and the year of the ``date`` field,
+the following operation uses the :group:`$sum` accumulator to compute the
+total amount and the count for each group of documents.
+
+.. code-block:: javascript
+
+   db.sales.aggregate(
+      [
+        {
+          $group:
+            {
+              _id: { day: { $dayOfYear: "$date"}, year: { $year: "$date" } },
+              totalAmount: { $sum: { $multiply: [ "$price", "$quantity" ] } },
+              count: { $sum: 1 }
+            }
+        }
+      ]
+   )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "_id" : { "day" : 46, "year" : 2014 }, "totalAmount" : 150, "count" : 2 }
+   { "_id" : { "day" : 34, "year" : 2014 }, "totalAmount" : 45, "count" : 2 }
+   { "_id" : { "day" : 1, "year" : 2014 }, "totalAmount" : 20, "count" : 1 }
+
+Using :group:`$sum` on a non-existent field returns a value of ``0``.
+The following operation attempts to :group:`$sum` on ``qty``:
+
+.. code-block:: javascript
+
+   db.sales.aggregate(
+      [
+        {
+          $group:
+            {
+              _id: { day: { $dayOfYear: "$date"}, year: { $year: "$date" } },
+              totalAmount: { $sum: "$qty" },
+              count: { $sum: 1 }
+            }
+        }
+      ]
+   )
+
+The operation returns:
+
+.. code-block:: javascript
+
+   { "_id" : { "day" : 46, "year" : 2014 }, "totalAmount" : 0, "count" : 2 }
+   { "_id" : { "day" : 34, "year" : 2014 }, "totalAmount" : 0, "count" : 2 }
+   { "_id" : { "day" : 1, "year" : 2014 }, "totalAmount" : 0, "count" : 1 }
+
+Use in ``$project`` Stage
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A collection ``students`` contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id": 1, "quizzes": [ 10, 6, 7 ], "labs": [ 5, 8 ], "final": 80, "midterm": 75 }
+   { "_id": 2, "quizzes": [ 9, 10 ], "labs": [ 8, 8 ], "final": 95, "midterm": 80 }
+   { "_id": 3, "quizzes": [ 4, 5, 5 ], "labs": [ 6, 5 ], "final": 78, "midterm": 70 }
+
+The following example uses the :group:`$sum` in the
+:pipeline:`$project` stage to calculate the total quiz scores, the
+total lab scores, and the total of the final and the midterm:
+
+.. code-block:: javascript
+
+   db.students.aggregate([
+      {
+        $project: {
+          quizTotal: { $sum: "$quizzes"},
+          labTotal: { $sum: "$labs" },
+          examTotal: { $sum: [ "$final", "$midterm" ] }
+        }
+      }
+   ])
+
+The operation results in the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "quizTotal" : 23, "labTotal" : 13, "examTotal" : 155 }
+   { "_id" : 2, "quizTotal" : 19, "labTotal" : 16, "examTotal" : 175 }
+   { "_id" : 3, "quizTotal" : 14, "labTotal" : 11, "examTotal" : 148 }
+
+.. include:: /includes/extracts/fact-agg-accumulator-array-operand-in-project-sum.rst

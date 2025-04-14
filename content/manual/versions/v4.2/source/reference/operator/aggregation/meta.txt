@@ -1,0 +1,72 @@
+===================
+$meta (aggregation)
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $meta
+
+   Returns the metadata associated with a document in a pipeline
+   operations, e.g. ``"textScore"`` when performing text search.
+
+   .. |meta-object| replace:: :expression:`$meta`
+   .. |empty-value| replace:: null
+   .. include:: /includes/fact-meta-syntax.rst
+
+Behavior
+--------
+
+The ``{ $meta: "textScore" }`` expression is the only :ref:`expression
+<aggregation-expressions>` that the :pipeline:`$sort` stage accepts.
+
+Although available for use everywhere expressions are accepted in the
+pipeline, the ``{ $meta: "textScore" }`` expression is only meaningful
+in a pipeline that includes a :pipeline:`$match` stage with a
+:query:`$text` query.
+
+.. include:: /includes/extracts/views-unsupported-text-search.rst
+
+Examples
+--------
+
+.. TODO when $meta returns other data that requires documentation,
+   subsection Examples section by keywords.
+
+Consider an ``articles`` collection with the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "title" : "cakes and ale" }
+   { "_id" : 2, "title" : "more cakes" }
+   { "_id" : 3, "title" : "bread" }
+   { "_id" : 4, "title" : "some cakes" }
+
+The following aggregation operation performs a text search and use the
+:expression:`$meta` operator to group by the text search score:
+
+.. code-block:: javascript
+
+   db.articles.aggregate(
+      [
+        { $match: { $text: { $search: "cake" } } },
+        { $group: { _id: { $meta: "textScore" }, count: { $sum: 1 } } }
+      ]
+   )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "_id" : 0.75, "count" : 1 }
+   { "_id" : 1, "count" : 2 }
+
+For more examples, see :doc:`/tutorial/text-search-in-aggregation`.

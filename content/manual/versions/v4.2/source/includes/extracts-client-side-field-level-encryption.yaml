@@ -1,0 +1,127 @@
+ref: csfle-requires-enabling-encryption
+content: |
+
+  The :binary:`~bin.mongo` client-side field level encryption methods
+  require a database connection with client-side field level encryption
+  enabled. If the current database connection was not initiated with
+  client-side field level encryption enabled, either:
+    
+  - Use the :method:`Mongo()` constructor from the :binary:`~bin.mongo`
+    shell to establish a connection with the required client-side field
+    level encryption options. The :method:`Mongo()` method supports both
+    Amazon Web Services and Local Key Management Service (KMS) providers
+    for Customer Master Key (CMK) management.
+
+    *or*
+
+  - Use the ``mongo`` shell :ref:`command line options
+    <mongo-client-side-field-level-encryption-options>` to establish a
+    connection with the required options. The command line options only
+    support the AWS KMS provider for CMK management. 
+---
+ref: csfle-keyvault-unique-index
+content: |
+
+  The :method:`getKeyVault()` method automatically creates a
+  :ref:`unique index <index-type-unique>`  on the ``keyAltNames`` field
+  with a :ref:`partial index <index-type-partial>` filter for only
+  documents where ``keyAltNames`` exists. :method:`getKeyVault()`
+  creates this index in the key vault collection. This prevents any two
+  data encryption keys in the same key vault from having the same key
+  alternative name and therefore avoids ambiguity around which data
+  encryption key is appropriate for encryption/decryption.
+
+  .. warning::
+
+     Do not drop the unique index created by :method:`getKeyVault()`.
+     Client-side field level encryption operations depend on
+     server-enforced uniqueness of ``keyAltNames``. Removing the index
+     may lead to unexpected or unpredictable behavior.
+     
+---
+ref: csfle-environmental-variables
+content: |
+
+  To mitigate the risk of the AWS Access Key or AWS Secret Key leaking
+  into logs, consider specifying an environment variable containing the
+  required values as part of the :binary:`~bin.mongo` startup. For
+  example, the following operation loads the ``AWS_ACCESS_KEY_ID`` and
+  ``AWS_SECRET_ACCESS_KEY`` environment variables into local variables
+  in the :binary:`~bin.mongo` shell:
+
+  .. code-block:: shell
+
+     mongo --eval "
+         var AWS_ACCESS_KEY_ID = '$AWS_ACCESS_KEY_ID'
+         var AWS_SECRET_ACCESS_KEY = '$AWS_SECRET_ACCESS_KEY'
+       " \
+       --shell
+       --nodb
+
+  Use the created ``AWS_ACCESS_KEY_ID`` and ``AWS_SECRET_ACCESS_KEY`` 
+  variables in the shell to reference the AWS credentials.
+
+---
+ref: csfle-connection-boilerplate
+content: |
+
+  Configuring client-side field level encryption for a locally
+  managed key requires specifying a base64-encoded 96-byte
+  string with no line breaks. The following operation generates
+  a key that meets the stated requirements and loads it into
+  the :binary:`~bin.mongo` shell:
+
+  .. code-block:: shell
+     :emphasize-lines: 1
+
+     TEST_LOCAL_KEY=$(echo "$(head -c 96 /dev/urandom | base64 | tr -d '\n')")
+     
+     mongo --nodb --shell --eval "var TEST_LOCAL_KEY='$TEST_LOCAL_KEY'"
+
+  Create the client-side field level encryption object using the
+  generated local key string:
+
+  .. code-block:: javascript
+     :emphasize-lines: 5
+
+     var ClientSideFieldLevelEncryptionOptions = {
+       "keyVaultNamespace" : "encryption.__dataKeys",
+       "kmsProviders" : {
+         "local" : {
+           "key" : BinData(0, TEST_LOCAL_KEY)
+         }
+       }
+     }
+
+  Use the :binary:`Mongo()` constructor to create a database connection
+  with the client-side field level encryption options. Replace the
+  ``mongodb://myMongo.example.net`` URI with the :ref:`connection string
+  URI <mongodb-uri>` of the target cluster.
+
+  .. code-block:: javascript
+     :emphasize-lines: 2
+       
+     encryptedClient = Mongo( 
+       "mongodb://myMongo.example.net:27017/?replSetName=myMongo", 
+       ClientSideFieldLevelEncryptionOptions
+     )
+---
+ref: csfle-enterprise-atlas-only
+content: |
+
+  .. admonition:: Enterprise Feature
+
+     The automatic feature of field level encryption is only available
+     in MongoDB Enterprise 4.2 or later, and MongoDB Atlas 4.2 or later
+     clusters. 
+---
+ref: csfle-aws-kms-4.2.0-4.2.1-broken
+content: |
+
+  .. important::
+     
+     For AWS KMS support, use the 4.2.2 or later :binary:`~bin.mongo`
+     shell. The 4.2.0 and 4.2.1 :binary:`~bin.mongo` shell does not
+     support the AWS KMS service due to an unexpected change in the KMS
+     response object. See :issue:`SERVER-44721` for more information.
+...

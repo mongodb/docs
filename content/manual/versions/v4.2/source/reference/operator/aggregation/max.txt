@@ -1,0 +1,149 @@
+==================
+$max (aggregation)
+==================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. group:: $max
+
+   Returns the maximum value. :group:`$max` compares both value and
+   type, using the :ref:`specified BSON comparison order
+   <bson-types-comparison-order>` for values of different types.
+
+   .. include:: /includes/extracts/fact-aggregation-accumulator-max.rst
+
+   When used in the :pipeline:`$group` stage, :expression:`$max` has the
+   following syntax and returns the maximum value that results
+   from applying an expression to each document in a group of documents
+   that share the same group by key:
+
+   .. code-block:: javascript
+
+      { $max: <expression> }
+
+   When used in the other supported stages,
+   :expression:`$max` returns the maximum of the specified expression
+   or list of expressions for each document and has one of two syntaxes:
+
+   - :expression:`$max` has one specified expression as its operand:
+
+     .. code-block:: javascript
+
+        { $max: <expression> }
+
+   - :expression:`$max` has a list of specified expressions as its
+     operand:
+
+     .. code-block:: javascript
+
+        { $max: [ <expression1>, <expression2> ... ]  }
+
+   For more information on expressions, see
+   :ref:`aggregation-expressions`.
+
+Behavior
+--------
+
+Null or Missing Values
+~~~~~~~~~~~~~~~~~~~~~~
+
+If some, **but not all**, documents for the :group:`$max`
+operation have either a ``null`` value for the field or are
+missing the field, the :group:`$max` operator only considers the
+non-null and the non-missing values for the field.
+
+If **all** documents for the :group:`$max` operation have ``null``
+value for the field or are missing the field, the :group:`$max`
+operator returns ``null`` for the maximum value.
+
+Array Operand
+~~~~~~~~~~~~~
+
+In the :pipeline:`$group` stage, if the expression resolves to an
+array, :group:`$max` does not traverse the array and compares the array
+as a whole.
+
+.. include:: /includes/extracts/fact-agg-accumulator-array-operand-in-project-max.rst
+
+Examples
+--------
+
+Use in ``$group`` Stage
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider a ``sales`` collection with the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "abc", "price" : 10, "quantity" : 2, "date" : ISODate("2014-01-01T08:00:00Z") }
+   { "_id" : 2, "item" : "jkl", "price" : 20, "quantity" : 1, "date" : ISODate("2014-02-03T09:00:00Z") }
+   { "_id" : 3, "item" : "xyz", "price" : 5, "quantity" : 5, "date" : ISODate("2014-02-03T09:05:00Z") }
+   { "_id" : 4, "item" : "abc", "price" : 10, "quantity" : 10, "date" : ISODate("2014-02-15T08:00:00Z") }
+   { "_id" : 5, "item" : "xyz", "price" : 5, "quantity" : 10, "date" : ISODate("2014-02-15T09:05:00Z") }
+
+Grouping the documents by the ``item`` field, the following operation
+uses the :group:`$max` accumulator to compute the maximum total amount and
+maximum quantity for each group of documents.
+
+.. code-block:: javascript
+
+   db.sales.aggregate(
+      [
+        {
+          $group:
+            {
+              _id: "$item",
+              maxTotalAmount: { $max: { $multiply: [ "$price", "$quantity" ] } },
+              maxQuantity: { $max: "$quantity" }
+            }
+        }
+      ]
+   )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "_id" : "xyz", "maxTotalAmount" : 50, "maxQuantity" : 10 }
+   { "_id" : "jkl", "maxTotalAmount" : 20, "maxQuantity" : 1 }
+   { "_id" : "abc", "maxTotalAmount" : 100, "maxQuantity" : 10 }
+
+Use in ``$project`` Stage
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A collection ``students`` contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id": 1, "quizzes": [ 10, 6, 7 ], "labs": [ 5, 8 ], "final": 80, "midterm": 75 }
+   { "_id": 2, "quizzes": [ 9, 10 ], "labs": [ 8, 8 ], "final": 95, "midterm": 80 }
+   { "_id": 3, "quizzes": [ 4, 5, 5 ], "labs": [ 6, 5 ], "final": 78, "midterm": 70 }
+
+The following example uses the :group:`$max` in the
+:pipeline:`$project` stage to calculate the maximum quiz scores, the
+maximum lab scores, and the maximum of the final and the midterm:
+
+.. code-block:: javascript
+
+   db.students.aggregate([
+      { $project: { quizMax: { $max: "$quizzes"}, labMax: { $max: "$labs" }, examMax: { $max: [ "$final", "$midterm" ] } } }
+   ])
+
+The operation results in the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "quizMax" : 10, "labMax" : 8, "examMax" : 80 }
+   { "_id" : 2, "quizMax" : 10, "labMax" : 8, "examMax" : 95 }
+   { "_id" : 3, "quizMax" : 5, "labMax" : 6, "examMax" : 78 }
+
+.. include:: /includes/extracts/fact-agg-accumulator-array-operand-in-project-max.rst

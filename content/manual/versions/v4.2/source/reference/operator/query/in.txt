@@ -1,0 +1,111 @@
+===
+$in
+===
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. query:: $in
+
+   The :query:`$in` operator selects the documents where the value
+   of a field equals any value in the specified array. To specify an
+   :query:`$in` expression, use the following prototype:
+
+   .. include:: /includes/fact-comparison-order.rst
+
+   .. code-block:: javascript
+
+      { field: { $in: [<value1>, <value2>, ... <valueN> ] } }
+
+   If the ``field`` holds an array, then the :query:`$in` operator
+   selects the documents whose ``field`` holds an array that contains
+   at least one element that matches a value in the specified array
+   (for example, ``<value1>``, ``<value2>``, and so on).
+
+   The :query:`$in` operator compares each parameter to each document
+   in the collection, which can lead to performance issues.
+   To improve performance:
+
+   * It is recommended that you limit the number of parameters passed to the
+     :query:`$in` operator to tens of values.  Using hundreds of parameters
+     or more can negatively impact query performance.
+
+   * Create an index on the ``field`` you want to query.
+
+   .. note::
+
+      This document describes the :query:`$in` query operator.
+      For the ``$in`` aggregation operator, see
+      :doc:`/reference/operator/aggregation/in`.
+
+Examples
+--------
+
+Use the ``$in`` Operator to Match Values
+----------------------------------------
+
+Consider the following example:
+
+.. code-block:: javascript
+
+   db.inventory.find( { qty: { $in: [ 5, 15 ] } } )
+
+This query selects all documents in the ``inventory``
+collection where the ``qty`` field value is either ``5`` or
+``15``. Although you can express this query using the
+:query:`$or` operator, choose the :query:`$in` operator rather
+than the :query:`$or` operator when performing equality checks on
+the same field.
+
+Use the ``$in`` Operator to Match Values in an Array
+----------------------------------------------------
+
+The collection ``inventory`` contains documents that include the field
+``tags``, as in the following:
+
+.. code-block:: javascript
+
+   { _id: 1, item: "abc", qty: 10, tags: [ "school", "clothing" ], sale: false }
+
+Then, the following :method:`~db.collection.update()` operation will
+set the ``sale`` field value to ``true`` where the ``tags`` field holds
+an array with at least one element matching either ``"appliances"`` or
+``"school"``.
+
+.. code-block:: javascript
+
+   db.inventory.update(
+                        { tags: { $in: ["appliances", "school"] } },
+                        { $set: { sale:true } }
+                      )
+
+.. include:: /includes/extracts/additional-examples-arrays.rst
+
+.. _query-in-regex:
+
+Use the ``$in`` Operator with a Regular Expression
+--------------------------------------------------
+
+The :query:`$in` operator can specify matching values using regular
+expressions of the form ``/pattern/``. You *cannot* use :query:`$regex`
+operator expressions inside an :query:`$in`.
+
+Consider the following example:
+
+.. code-block:: javascript
+
+   db.inventory.find( { tags: { $in: [ /^be/, /^st/ ] } } )
+
+This query selects all documents in the ``inventory`` collection where
+the ``tags`` field holds either a string that starts with ``be`` or
+``st`` or an array with at least one element that starts with ``be`` or
+``st``.
+
+.. seealso::
+
+   :method:`~db.collection.find()`, :method:`~db.collection.update()`, :query:`$or`, :update:`$set`, :query:`$elemMatch`.

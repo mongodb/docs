@@ -1,0 +1,460 @@
+======================================================
+Downgrade |newversion| Sharded Cluster to |oldversion|
+======================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Before you attempt any downgrade, familiarize yourself with the content
+of this document.
+
+Downgrade Path
+--------------
+
+.. include:: /includes/downgrade-path.rst
+
+.. include:: /includes/extracts/4.2-changes-downgrade-floor.rst
+
+.. |downgrading| replace:: downgrading
+
+Considerations
+--------------
+
+.. include:: /includes/extracts/changestream-rc-majority-4.2.rst
+
+Once you downgrade to |oldseries|, change streams will be disabled if
+you have disabled read concern ``"majority"``.
+
+Create Backup
+-------------
+
+*Optional but Recommended.*  Create a backup of your database.
+
+Access Control
+--------------
+
+.. include:: /includes/extracts/4.2-downgrade-fcv-unique-index-access-control-sharded-cluster.rst
+
+Prerequisites
+-------------
+
+To downgrade from 4.2 to 4.0, you must remove incompatible features
+that are persisted and/or update incompatible configuration settings.
+These include:
+
+.. |target| replace:: :binary:`~bin.mongos` instance
+
+.. _4.2-downgrade-feature-compatibility-sharded-cluster:
+
+1. Downgrade Feature Compatibility Version (fCV)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To downgrade the ``featureCompatibilityVersion`` of your sharded
+cluster:
+
+#. Connect a :binary:`~bin.mongo` shell to the |target|.
+
+#. .. include:: /includes/4.2-downgrade-fcv.rst
+
+#. To ensure that all members of the sharded cluster reflect the
+   updated ``featureCompatibilityVersion``, connect to each shard replica
+   set member and each config server replica set member and check the
+   ``featureCompatibilityVersion``:
+
+   .. tip::
+
+      For a sharded cluster that has access control enabled, to run the
+      following command against a shard replica set member, you must
+      connect to the member as a :ref:`shard local user
+      <shard-local-users>`.
+
+   .. code-block:: javascript
+
+      db.adminCommand( { getParameter: 1, featureCompatibilityVersion: 1 } )
+
+   All members should return a result that includes:
+
+   .. code-block:: javascript
+
+      "featureCompatibilityVersion" : { "version" : "4.0" }
+
+   If any member returns a ``featureCompatibilityVersion`` of ``"4.2"``,
+   wait for the member to reflect version ``"4.0"`` before proceeding.
+
+.. note::
+
+   .. include:: /includes/arbiter-fcv.rst
+
+   .. include:: /includes/arbiter-fcv-version.rst
+
+
+For more information on the returned ``featureCompatibilityVersion``
+value, see :ref:`view-fcv`.
+
+2. Remove FCV 4.2 Persisted Features
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following steps are necessary only if fCV has ever been set to
+``"4.2"``.
+
+Remove all persisted 4.2 features that are :ref:`incompatible with 4.0
+<4.2-compatibility-enabled>`. These include:
+
+.. _4.2-downgrade-index-key-sharded:
+
+2a. Index Key Size
+``````````````````
+
+.. container::
+
+   .. include:: /includes/extracts/4.2-downgrade-fcv-index-key.rst
+
+.. _4.2-downgrade-index-name-sharded:
+
+2b. Index Name Length
+`````````````````````
+
+.. container::
+
+   .. include:: /includes/extracts/4.2-downgrade-fcv-index-name.rst
+
+2c. Unique Index Version
+````````````````````````
+
+.. container::
+
+   .. include:: /includes/extracts/4.2-downgrade-fcv-unique-index.rst
+
+
+   Script to run on ``mongos``
+      .. include:: /includes/extracts/4.2-downgrade-fcv-unique-index-script.rst
+
+   Script to run on shards
+      .. include:: /includes/extracts/4.2-downgrade-fcv-unique-index-script-local-users.rst
+
+2d. Remove ``user_1_db_1`` System Unique Index
+``````````````````````````````````````````````
+
+.. container::
+
+   .. include:: /includes/extracts/4.2-downgrade-fcv-system-unique-index.rst
+
+2e. Remove Wildcard Indexes
+```````````````````````````
+
+.. container::
+
+   .. include:: /includes/extracts/4.2-downgrade-fcv-wildcard-index.rst
+
+2f. View Definitions/Collection Validation Definitions that Include 4.2 Operators
+`````````````````````````````````````````````````````````````````````````````````
+
+.. container::
+
+   .. include:: /includes/extracts/4.2-downgrade-view-definitions.rst
+
+
+3. Update ``tls``-Prefixed Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. container::
+
+   .. include:: /includes/extracts/4.2-changes-options-tls-ssl-downgrade.rst
+
+4. Prepare Downgrade from ``zstd`` Compression
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _downgrade-sharded-cluster-prereq-zstd-journal:
+
+``zstd`` Journal Compression
+````````````````````````````
+
+.. container::
+
+   The :term:`zstd` compression library is available for journal data
+   compression starting in version 4.2.
+
+   For any shard or config server member that uses :term:`zstd` library
+   for its journal compressor:
+   
+   If the member uses ``zstd`` for journal compression and :ref:`downgrade-sharded-cluster-prereq-zstd`, 
+      .. include:: /includes/extracts/4.2-changes-zstd-journal-compression-config-only.rst
+
+   If the member only uses ``zstd`` for journal compression only,
+      .. note::
+
+         The following procedure involves restarting the replica member as a
+         standalone without the journal.
+
+      #. Perform a clean shutdown of the :binary:`~bin.mongod` instance:
+
+         .. code-block:: javascript
+
+            db.getSiblingDB('admin').shutdownServer()
+
+      #. Update the :doc:`configuration file
+         </reference/configuration-options>` to prepare to restart as a
+         standalone:
+
+         - Set :setting:`storage.journal.enabled` to ``false``.
+
+         - Set parameter :parameter:`skipShardingConfigurationChecks` to true.
+
+         - Set parameter ``disableLogicalSessionCacheRefresh`` to
+           ``true`` in the :setting:`setParameter` section.
+                   
+         - Comment out the :ref:`replication <replication-options>`
+           settings for your deployment.
+
+         - Comment out the :setting:`sharding.clusterRole` setting.
+
+         - Set the :setting:`net.port` to the member's
+           current port, if it is not explicitly set.
+   
+         For example:
+
+         .. code-block:: none
+
+            storage:
+               journal:
+                  enabled: false
+            setParameter:
+               skipShardingConfigurationChecks: true
+               disableLogicalSessionCacheRefresh: true
+            #replication:
+            #   replSetName: shardA
+            #sharding:
+            #   clusterRole: shardsvr
+            net:
+              port: 27218
+
+         If you use command-line options instead of a configuration file, you
+         will have to update the command-line option during the restart.
+      
+      #. Restart the :binary:`~bin.mongod` instance:
+
+         - If you are using a configuration file:
+
+           .. code-block:: sh
+
+              mongod -f <path/to/myconfig.conf>
+
+         - If you are using command-line options instead of a
+           configuration file:
+           
+           - Include the :option:`--nojournal <mongod --nojournal>`
+             option.
+           
+           - Set parameter :parameter:`skipShardingConfigurationChecks` to true.
+
+           - Set parameter ``disableLogicalSessionCacheRefresh`` to
+             ``true`` in the :option:`--setParameter <mongod
+             --setParameter>` option.
+
+           - Remove any :ref:`replication command-line options
+             <cli-mongod-replica-set>` (such as :option:`--replSet
+             <mongod --replSet>`).
+
+           - Remove :option:`--shardsvr <mongod
+             --shardsvr>`/:option:`--configsvr <mongod --configsvr>` option.
+
+           - Explicitly include :option:`--port <mongod --port>` set to
+             the instance's current port.
+
+           .. code-block:: sh
+
+              mongod --nojournal --setParameter skipShardingConfigurationChecks=true --setParameter disableLogicalSessionCacheRefresh=true --port <samePort> ...
+
+      #. Perform a clean shutdown of the :binary:`~bin.mongod` instance:
+
+         .. code-block:: javascript
+
+            db.getSiblingDB('admin').shutdownServer()
+
+         Confirm that the process is no longer running.
+
+      #. Update the configuration file to prepare to restart with the new journal compressor:
+
+         - Remove the :setting:`storage.journal.enabled` setting.
+
+         - Remove the :parameter:`skipShardingConfigurationChecks` parameter setting.
+
+         - Remove the ``disableLogicalSessionCacheRefresh`` parameter
+           setting.
+
+         - Uncomment the :ref:`replication <replication-options>`
+           settings for your deployment.
+
+         - Uncomment the :setting:`sharding.clusterRole` setting.
+
+         - Remove
+           :setting:`storage.wiredTiger.engineConfig.journalCompressor` setting
+           to use the default journal compressor or specify a  new value.
+
+         For example:
+
+         .. code-block:: none
+
+            storage:
+               wiredTiger:
+                  engineConfig:
+                     journalCompressor: <newValue>
+            replication:
+               replSetName: shardA
+            sharding:
+               clusterRole: shardsvr
+            net:
+              port: 27218
+
+         If you use command-line options instead of a configuration file, you
+         will have to update the command-line options during the restart
+         below.
+
+
+      #. Restart the :binary:`~bin.mongod` instance as a replica set member:
+
+         - If you are using a configuration file:
+
+           .. code-block:: sh
+
+              mongod -f <path/to/myconfig.conf>
+
+         - If you are using command-line options instead of a configuration
+           file:
+
+           - Remove the :option:`--nojournal <mongod --nojournal>` option.
+
+           - Remove the :parameter:`skipShardingConfigurationChecks` parameter setting.
+
+           - Remove the ``disableLogicalSessionCacheRefresh`` parameter
+             setting.
+
+           - Remove the :option:`--wiredTigerJournalCompressor <mongod
+             --wiredTigerJournalCompressor>` command-line option to use
+             the default journal compressor or update to a new value.
+
+           - Include :option:`--shardsvr <mongod
+             --shardsvr>`/:option:`--configsvr <mongod --configsvr>` option.
+
+           - Include your :ref:`replication command-line options
+             <cli-mongod-replica-set>` as well as any additional
+             options for your replica set member.
+
+           .. code-block:: sh
+
+              mongod --shardsvr --wiredTigerJournalCompressor <differentCompressor|none> --replSet ...
+
+   .. note::
+
+      If you encounter an unclean shutdown for a :binary:`~bin.mongod`
+      during the downgrade procedure such that you need to use the
+      journal files to recover, recover the
+      instance using the 4.2 :binary:`~bin.mongod` and then retry the
+      downgrade of the instance.
+
+
+.. _downgrade-sharded-cluster-prereq-zstd:
+
+``zstd`` Data Compression
+`````````````````````````
+
+.. important::
+
+   If you also use
+   :ref:`downgrade-sharded-cluster-prereq-zstd-journal`, perform these
+   steps *after* you perform the :ref:`prerequisite steps for the
+   journal compressor <downgrade-sharded-cluster-prereq-zstd-journal>`.
+   
+.. container::
+
+   The :term:`zstd` compression library is available starting in
+   version 4.2. For any config server member or shard member that has data
+   stored using :term:`zstd` compression, the downgrade procedure will
+   require an initial sync for that member. To prepare:
+
+   .. include:: /includes/extracts/4.2-changes-zstd-downgrade-prereq.rst
+
+   Repeat for any other members that used :term:`zstd` compression.
+   
+.. _downgrade-sharded-cluster-prereq-zstd-network:
+
+``zstd`` Network Compression
+````````````````````````````
+
+.. container::
+
+   .. include:: /includes/extracts/4.2-changes-zstd-network-compression.rst
+
+5. Remove Client-Side Field Level Encryption Document Validation Keywords
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. important::
+
+   Remove client-side field level encryption code in applications
+   *prior* to downgrading the server.
+
+MongoDB 4.2 adds support for 
+:ref:`enforcing client-side field level encryption 
+<field-level-encryption-enforce-schema>` as part of a collection's
+:ref:`schema-validation-json` document validation. Specifically, 
+the :query:`$jsonSchema` object supports the
+:autoencryptkeyword:`encrypt` and :autoencryptkeyword:`encryptMetadata`
+keywords. MongoDB 4.0 does **not** support these keywords and fails to 
+start if any collection specifies those keywords as part of its 
+validation :query:`$jsonSchema`.
+
+Use :method:`db.getCollectionInfos()` on each database to identify
+collections specifying automatic field level encryption rules as part of
+the :query:`$jsonSchema` validator. To prepare for downgrade, connect to
+a cluster :binary:`~bin.mongos` and perform either of the following
+operations for each collection using the 4.0-incompatible keywords:
+
+- Use :dbcommand:`collMod` to modify the collection's 
+  :collflag:`validator` and replace the :query:`$jsonSchema` with
+  a schema that contains only 
+  `4.0-compatible document validation syntax 
+  <https://docs.mongodb.com/v4.0/reference/operator/query/jsonSchema#available-keywords>`__:
+
+  .. code-block:: javascript
+
+     db.runCommand({ 
+       "collMod" : "<collection>",
+       "validator" : {
+         "$jsonSchema" : { <4.0-compatible schema object> }
+       }
+     })
+
+  -*or*-
+
+- Use :dbcommand:`collMod` to remove the :collflag:`validator` object
+  entirely:
+
+  .. code-block:: javascript
+
+     db.runComand({ "collMod" : "<collection>", "validator" : {} })
+
+.. |binary| replace:: any :binary:`~bin.mongod`/:binary:`~bin.mongos` instance
+
+Procedure
+---------
+
+Downgrade a Sharded Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. warning::
+
+   Before proceeding with the downgrade procedure, ensure that all
+   members, including delayed replica set members in the sharded
+   cluster, reflect the prerequisite changes.  That is, check the
+   ``featureCompatibilityVersion`` and the removal of incompatible
+   features for each node before downgrading.
+
+.. include:: /includes/steps/4.2-downgrade-sharded-cluster.rst
+
+.. include:: /includes/4.2-upgrade-replacements.rst
+

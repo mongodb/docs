@@ -1,0 +1,240 @@
+==================
+Configure Auditing
+==================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. admonition:: Auditing in MongoDB Atlas
+   :class: note
+
+   MongoDB Atlas supports auditing for all ``M10`` and larger
+   clusters. Atlas supports specifying a JSON-formatted audit
+   filter as documented in :doc:`/tutorial/configure-audit-filters` 
+   and using the Atlas audit filter builder for simplified auditing 
+   configuration. To learn more, see the Atlas documentation for 
+   :atlas:`Set Up Database Auditing </database-auditing>`
+   and
+   :atlas:`Configure a Custom Auditing Filter </tutorial/auditing-custom-filter>`.
+
+:products:`MongoDB Enterprise </mongodb-enterprise-advanced?tck=docs_server>`
+supports :ref:`auditing <auditing>` of various operations. A complete
+auditing solution must involve **all** :binary:`~bin.mongod` server and
+:binary:`~bin.mongos` router processes.
+
+The audit facility can write audit events to the console, the
+:term:`syslog` (option is unavailable on Windows), a JSON file, or a
+BSON file. For details on the audited operations and the audit log
+messages, see :doc:`/reference/audit-message`.
+
+Enable and Configure Audit Output
+---------------------------------
+
+Use the :option:`--auditDestination <mongod --auditDestination>` option
+to enable auditing and specify where to output the audit events.
+
+.. warning::
+
+   For sharded clusters, if you enable auditing on :binary:`~bin.mongos`
+   instances, you must enable auditing on all :binary:`~bin.mongod`
+   instances in the cluster, i.e. shards and config servers.
+
+Output to Syslog
+~~~~~~~~~~~~~~~~
+
+To enable auditing and print audit events to the syslog (option
+is unavailable on Windows) in JSON format, specify ``syslog`` for the
+:option:`--auditDestination <mongod --auditDestination>` setting. For
+example:
+
+.. code-block:: sh
+
+   mongod --dbpath data/db --auditDestination syslog
+
+.. include:: /includes/extracts/default-bind-ip-security-additional-command-line.rst
+
+.. important::
+
+   Before you bind to other ip addresses, consider :ref:`enabling
+   access control <checklist-auth>` and other security measures listed
+   in :doc:`/administration/security-checklist` to prevent unauthorized
+   access.
+
+.. warning::
+
+   The syslog message limit can result in the truncation of the audit
+   messages. The auditing system will neither detect the truncation nor
+   error upon its occurrence.
+
+You may also specify these options in the :doc:`configuration file
+</reference/configuration-options>`:
+
+.. code-block:: yaml
+
+   storage:
+      dbPath: data/db
+   auditLog:
+      destination: syslog
+
+Output to Console
+~~~~~~~~~~~~~~~~~
+
+To enable auditing and print the audit events to standard
+output (i.e. ``stdout``), specify ``console`` for the
+:option:`--auditDestination <mongod --auditDestination>` setting. For
+example:
+
+.. code-block:: sh
+
+   mongod --dbpath data/db --auditDestination console
+
+.. include:: /includes/extracts/default-bind-ip-security-additional-command-line.rst
+
+.. important::
+
+   Before you bind to other ip addresses, consider :ref:`enabling
+   access control <checklist-auth>` and other security measures listed
+   in :doc:`/administration/security-checklist` to prevent unauthorized
+   access.
+
+You may also specify these options in the :doc:`configuration file
+</reference/configuration-options>`:
+
+.. code-block:: yaml
+
+   storage:
+      dbPath: data/db
+   auditLog:
+      destination: console
+
+Output to JSON File
+~~~~~~~~~~~~~~~~~~~
+
+To enable auditing and print audit events to a file in JSON
+format, specify the following options:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 40
+
+   * - Option
+     - Value
+
+   * - :option:`--auditDestination <mongod --auditDestination>`
+     - ``file``
+
+   * - :option:`--auditFormat <mongod --auditFormat>`
+     - ``JSON``
+
+   * - :option:`--auditPath <mongod --auditPath>`
+     - The output filename. Accepts either the full path name or
+       relative path name.
+  
+For example, the following enables auditing and records audit events to
+a file with the relative path name of ``data/db/auditLog.json``:
+
+.. code-block:: sh
+
+   mongod --dbpath data/db --auditDestination file --auditFormat JSON --auditPath data/db/auditLog.json
+
+.. include:: /includes/extracts/default-bind-ip-security-additional-command-line.rst
+
+.. important::
+
+   Before you bind to other ip addresses, consider :ref:`enabling
+   access control <checklist-auth>` and other security measures listed
+   in :doc:`/administration/security-checklist` to prevent unauthorized
+   access.
+
+The audit file is :dbcommand:`rotated <logRotate>` at the same time as
+the server log file. Rotation specifics may be configured with the
+:setting:`systemLog.logRotate` configuration file option or the
+:option:`--logRotate <mongod --logRotate>` command-line option.
+
+You may also specify these options in the :doc:`configuration file
+</reference/configuration-options>`:
+
+.. code-block:: yaml
+
+   storage:
+      dbPath: data/db
+   auditLog:
+      destination: file
+      format: JSON
+      path: data/db/auditLog.json
+
+.. note:: Printing audit events to a file in JSON format degrades
+   server performance more than printing to a file in BSON format.
+
+Output to BSON File
+~~~~~~~~~~~~~~~~~~~
+
+To enable auditing and print audit events to a file in BSON binary
+format, specify the following options:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 40
+
+   * - Option
+     - Value
+
+   * - :option:`--auditDestination <mongod --auditDestination>`
+     - ``file``
+
+   * - :option:`--auditFormat <mongod --auditFormat>`
+     - ``BSON``
+
+   * - :option:`--auditPath <mongod --auditPath>`
+     - The output filename. Accepts either the full path name or
+       relative path name.
+
+For example, the following enables auditing and records audit events to
+a BSON file with the relative path name of ``data/db/auditLog.bson``:
+
+.. code-block:: sh
+
+   mongod --dbpath data/db --auditDestination file --auditFormat BSON --auditPath data/db/auditLog.bson
+
+.. include:: /includes/extracts/default-bind-ip-security-additional-command-line.rst
+
+.. important::
+
+   Before you bind to other ip addresses, consider :ref:`enabling
+   access control <checklist-auth>` and other security measures listed
+   in :doc:`/administration/security-checklist` to prevent unauthorized
+   access.
+
+The audit file is :dbcommand:`rotated <logRotate>` at the same time as
+the server log file. Rotation specifics may be configured with the
+:setting:`systemLog.logRotate` configuration file option or the
+:option:`--logRotate <mongod --logRotate>` command-line option.
+
+You may also specify these options in the :doc:`configuration file
+</reference/configuration-options>`:
+
+.. code-block:: yaml
+
+   storage:
+      dbPath: data/db
+   auditLog:
+      destination: file
+      format: BSON
+      path: data/db/auditLog.bson
+
+To view the contents of the file, pass the file to the MongoDB utility
+:binary:`~bin.bsondump`. For example, the following converts the audit log
+into a human-readable form and output to the terminal:
+
+.. code-block:: sh
+
+   bsondump data/db/auditLog.bson
+
+.. seealso::
+   :doc:`/tutorial/configure-audit-filters`, :doc:`/core/auditing`,
+   :doc:`/reference/audit-message`
