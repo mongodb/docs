@@ -3,7 +3,7 @@
 
    .. step:: Create an agent.
          
-      a. In the left navigation for Amazon Bedrock, 
+      a. In the left navigation for {+aws-bedrock+}, 
          click :guilabel:`Agents`.
       #. Click :guilabel:`Create Agent`. 
       #. Specify ``mongodb-rag-agent`` as the 
@@ -11,7 +11,7 @@
 
    .. step:: Select a model and provide a prompt.
 
-      By default, Amazon Bedrock creates a new |iam| role to access
+      By default, {+aws-bedrock+} creates a new |iam| role to access
       the agent. In the :guilabel:`Agent details` section,
       specify the following:
 
@@ -21,7 +21,7 @@
 
          .. note::
 
-            Amazon Bedrock doesn't grant access to :abbr:`FMs (foundation models)` 
+            {+aws-bedrock+} doesn't grant access to :abbr:`FMs (foundation models)` 
             automatically. If you haven't already,
             follow the steps to :aws:`add model access 
             </bedrock/latest/userguide/model-access.html>`
@@ -62,7 +62,7 @@
 
       a. Click the :guilabel:`Prepare` button. 
 
-      #. Click :guilabel:`Test`. Amazon Bedrock displays
+      #. Click :guilabel:`Test`. {+aws-bedrock+} displays
          a testing window to the right of your agent details
          if it's not already displayed.
       

@@ -1,15 +1,15 @@
 .. procedure:: 
    :style: normal 
 
-   .. step:: Navigate to Amazon Bedrock management console. 
+   .. step:: Navigate to {+aws-bedrock+} management console. 
 
       a. Log in to the `AWS Console <https://aws.amazon.com/console/>`__.
       #. In the upper-left corner, click the :guilabel:`Services` dropdown menu.
-      #. Click :guilabel:`Machine Learning`, and then select :guilabel:`Amazon Bedrock`.
+      #. Click :guilabel:`Machine Learning`, and then select :guilabel:`{+aws-bedrock+}`.
 
    .. step:: Manage model access.
 
-      Amazon Bedrock doesn't grant access to :abbr:`FMs (foundation models)` 
+      {+aws-bedrock+} doesn't grant access to :abbr:`FMs (foundation models)` 
       automatically. If you haven't already,
       follow the steps to :aws:`add model access 
       </bedrock/latest/userguide/model-access.html>`
@@ -17,13 +17,13 @@
 
    .. step:: Create the knowledge base.
       
-      a. In the left navigation of the Amazon Bedrock console, 
+      a. In the left navigation of the {+aws-bedrock+} console, 
          click :guilabel:`Knowledge Bases`.
       #. Click :guilabel:`Create` and then select :guilabel:`Knowledge base with vector store`.
       #. Specify ``mongodb-atlas-knowledge-base`` as the :guilabel:`Knowledge Base name`.
       #. Click :guilabel:`Next`.
 
-      By default, Amazon Bedrock creates a new |iam| role to access
+      By default, {+aws-bedrock+} creates a new |iam| role to access
       the knowledge base.
 
    .. step:: Add a data source.
@@ -34,7 +34,7 @@
          that contains your data source from the list.
       #. Click :guilabel:`Next`. 
       
-         Amazon Bedrock displays available embeddings models that you can use to 
+         {+aws-bedrock+} displays available embeddings models that you can use to 
          convert your data source's text data into vector embeddings. 
          
       #. Select the :guilabel:`Titan Embeddings G1 - Text` model.
@@ -65,8 +65,8 @@
 
          - For the :guilabel:`Vector search index name`, enter ``vector_index``.
          - For the :guilabel:`Vector embedding field path`, enter ``embedding``.
-         - For the :guilabel:`Text field path`, enter ``text_chunk``.
-         - For the :guilabel:`Metadata field path`, enter ``metadata``.
+         - For the :guilabel:`Text field path`, enter ``bedrock_text_chunk``.
+         - For the :guilabel:`Metadata field path`, enter ``bedrock_metadata``.
 
       #. If you :ref:`configured an endpoint service 
          <bedrock-configure-privatelink>`,
@@ -81,7 +81,7 @@
 
    .. step:: Sync the data source.
       
-      After Amazon Bedrock creates the knowledge base, it prompts you 
+      After {+aws-bedrock+} creates the knowledge base, it prompts you 
       to sync your data. In the :guilabel:`Data source` section, 
       select your data source and click :guilabel:`Sync` to sync 
       the data from the |s3| bucket and load it into |service|.

@@ -30,10 +30,19 @@
         specifies ``1024`` vector dimensions and
         measures similarity using ``cosine``.
 
-      - ``metadata``, ``text_chunk``, and ``page_number`` fields 
+      - ``bedrock_metadata``, ``bedrock_text_chunk``, and 
+        ``x-amz-bedrock-kb-document-page-number`` fields 
         as the :ref:`filter <avs-types-vector-search>` type for 
         pre-filtering your data. You will also specify these fields
-        in Amazon Bedrock when you configure the knowledge base.
+        in {+aws-bedrock+} when you configure the knowledge base.
+
+      .. note:: 
+       
+         If you previously created an index with the filter field ``page_number``, 
+         you must update your index definition to use the new filter field name 
+         ``x-amz-bedrock-kb-document-page-number`` instead. {+aws-bedrock+} has 
+         updated the field name, and indexes using the old field name no longer 
+         work correctly with {+aws-bedrock+} knowledge bases.
 
       .. tabs::
 
@@ -63,15 +72,15 @@
                            "type": "vector"
                        },
                        {
-                           "path": "metadata",
+                           "path": "bedrock_metadata",
                            "type": "filter"
                        },
                        {
-                           "path": "text_chunk",
+                           "path": "bedrock_text_chunk",
                            "type": "filter"
                        },
                        {
-                           "path": "page_number",
+                           "path": "x-amz-bedrock-kb-document-page-number",
                            "type": "filter"
                        }
                    ]
