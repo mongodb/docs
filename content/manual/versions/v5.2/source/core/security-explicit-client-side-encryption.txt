@@ -1,0 +1,133 @@
+====================================================
+Explicit (Manual) Client-Side Field Level Encryption
+====================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+MongoDB 4.2+ compatible drivers, :binary:`~bin.mongosh`, and the MongoDB
+4.2 or later legacy :binary:`~bin.mongo` shell support explicitly
+encrypting or decrypting fields with a specific data encryption key and
+encryption algorithm.
+
+Applications must modify any code associated with constructing read and
+write operations to include encryption/decryption logic via the driver
+encryption library. Applications are responsible for selecting the
+appropriate data encryption key for encryption/decryption on a
+per-operation basis.
+
+:binary:`~bin.mongosh` provides the following methods for 
+performing explicit encryption and decryption:
+
+- :method:`getClientEncryption()`
+- :method:`ClientEncryption.encrypt()`
+- :method:`ClientEncryption.decrypt()`
+
+MongoDB 4.2+ compatible drivers have specific syntax for performing
+explicit client-side field level encryption. See
+:ref:`field-level-encryption-drivers` for a complete list of
+4.2+ compatible drivers with support for client-side field
+level encryption. Defer to the documentation for your preferred
+driver for specific instructions on performing client-side field
+level encryption.
+
+The following operation issued from :binary:`~bin.mongosh`
+explicitly encrypts the ``taxid`` field as part of a write operation.
+
+.. code-block:: javascript
+   :copyable: false
+
+   clientEncryption = encryptedClient.getClientEncryption()
+
+   db.getSiblingDB("hr").getCollection("employees").insertOne({
+     "name" : "J. Doe",
+     "taxid" : clientEncryption.encrypt(
+         UUID("64e2d87d-f168-493c-bbdf-a394535a2cb9"),
+         "123-45-6789",
+         "AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic"
+      )
+   })
+
+The following operation issued from :binary:`~bin.mongosh`
+explicitly encrypts the ``taxid`` field as part of a read operation:
+
+.. code-block:: javascript
+   :copyable: false
+
+   encrypt = encryptedClient.getClientEncryption()
+
+   db.getSiblingDB("hr").getCollection("employees").findOne({
+     "taxid" : clientEncryption.encrypt(
+        UUID("64e2d87d-f168-493c-bbdf-a394535a2cb9"),
+        "123-45-6789",
+        "AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic"
+      )
+   })
+
+These operations assumes that the database connection
+:ref:`configuration <mongo-connection-client-side-encryption-enabled>`
+specified a key vault and key management service with access to the
+specified data encryption key *and* its associated customer master key.
+
+For read operations that returns encrypted fields, the driver/shell
+:ref:`automatically decrypts
+<field-level-encryption-automatic-decryption>` the encrypted values
+*only if* the driver/shell was configured with access to the keys used
+to protect those values.
+
+Enabling Explicit Client-Side Field Level Encryption
+----------------------------------------------------
+
+Each official MongoDB 4.2+ compatible driver introduces new
+functionality for supporting client-side field level encryption and data
+encryption key management. Defer to your preferred
+:ref:`driver's documentation <field-level-encryption-drivers>` for
+language-specific instructions on implementing explicit client-side
+field level encryption.
+
+:binary:`~bin.mongosh` adds an additional
+option to the :method:`Mongo()` method for instantiating a database
+connection with explicit client-side field level encryption. 
+For a complete example, see 
+:ref:`mongo-connection-client-side-encryption-enabled`.
+
+Applications must specify the following components when instantiating
+the database connection to enable explicit client-side field level
+encryption:
+
+- A :ref:`key vault <field-level-encryption-keyvault>` of data
+  encryption keys. The key vault can reside on either a remote MongoDB
+  cluster *or* the MongoDB cluster storing client-side encrypted data.  
+
+- A supported :ref:`Key Management Service (KMS) 
+  <field-level-encryption-kms>` provider used to manage Customer Master
+  Keys (CMK). MongoDB encrypts all data encryption keys using the
+  specified CMK *prior* to storing them in the key vault, leaving only
+  metadata unencrypted.
+  
+  4.2+ compatible drivers, :binary:`~bin.mongosh`, and the MongoDB 4.2
+  or later legacy :binary:`~bin.mongo` shell need access to the KMS to
+  encrypt and decrypt protected fields *or* to create new data
+  encryption keys.
+
+Server-Side Field Level Encryption Enforcement
+----------------------------------------------
+
+The MongoDB 4.2 server supports using :doc:`schema validation
+</core/schema-validation>` to enforce encryption of specific fields in a
+collection. If the collection validation :query:`$jsonSchema`
+requires encryption for a field, clients performing explicit (manual)
+field level encryption **must** 
+:method:`encrypt <ClientEncryption.encrypt()>` that field.
+
+For complete documentation on server-side client-side field level
+encryption enforcement, see
+:ref:`field-level-encryption-enforce-schema`.

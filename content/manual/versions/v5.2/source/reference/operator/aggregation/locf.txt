@@ -1,0 +1,258 @@
+===================
+$locf (aggregation)
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. group:: $locf
+
+   .. versionadded:: 5.2
+
+   .. include:: /includes/fact-locf-description.rst
+
+   :group:`$locf` is only available in the :pipeline:`$setWindowFields`
+   stage.
+
+Syntax
+------
+
+The :group:`$locf` expression has this syntax:
+
+.. code-block:: none
+
+   { $locf: <expression> }
+
+For more information on expressions, see 
+:ref:`aggregation-expressions`.
+
+Behavior
+--------
+
+If a field being filled contains both ``null`` and non-null values,
+:group:`$locf` sets the ``null`` and missing values to the field's
+last known non-null value according to the sort order specified in
+:pipeline:`$setWindowFields`.
+
+``null`` and missing field values that appear before non-null values
+in the sort order remain ``null``.
+
+If a field being filled contains only ``null`` or missing values in a
+:ref:`partition <setWindowFields-partitionBy>`, :group:`$locf` sets the
+field value to ``null`` for that partition.
+
+Example
+-------
+
+Create a ``stock`` collection that contains data for two different
+company stocks trading in the financial market. The collection contains
+the following properties of the stocks, recorded at hourly intervals:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 10 10 20
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``time``
+     - Date
+     - Time when the stock ``price`` and ``volume`` were observed.
+
+   * - ``company``
+     - String
+     - Name of the company.
+
+   * - ``price``
+     - Decimal
+     - Price of the stock at the ``time`` observed.
+
+   * - ``volume``
+     - Integer
+     - Number of shares traded over one day.
+
+Not all documents in the dataset contain all of the previous fields.
+
+.. code-block:: javascript
+
+   db.stock.insertMany( [ 
+      {
+         time: "2021-03-08T09:00:00.000Z",
+         company: "CompanyA",
+         price: 500,
+         volume: 200000
+      },
+      {
+         time: "2021-03-08T09:00:00.000Z",
+         company: "CompanyB",
+         price: 20,
+         volume: 100000
+      },
+      {
+         time: "2021-03-08T10:00:00.000Z",
+         company: "CompanyA",
+         price: 490,
+         volume: 205000
+      },
+      {
+         time: "2021-03-08T10:00:00.000Z",
+         company: "CompanyB",
+         price: 22,
+         volume: 105000
+      },
+      {
+         time: "2021-03-08T11:00:00.000Z",
+         company: "CompanyA"
+      },
+      {
+         time: "2021-03-08T11:00:00.000Z",
+         company: "CompanyB",
+         price: 24,
+         volume: null
+      },
+      { 
+         time: "2021-03-08T12:00:00.000Z",
+         company: "CompanyA",
+         price: 510,
+         volume: 220000
+      },
+      {
+         time: "2021-03-08T12:00:00.000Z",
+         company: "CompanyB"
+      },
+      {
+         time: "2021-03-08T13:00:00.000Z",
+         company: "CompanyA",
+         price: 505,
+         volume: 225000
+      },
+      {
+         time: "2021-03-08T13:00:00.000Z",
+         company: "CompanyB",
+         price: 28,
+         volume: 120000
+      }
+   ] )
+
+The following example uses the :group:`$locf` operator to set ``null``
+and missing fields to the values from the last document with a non-null
+value in the corresponding partition:
+
+.. code-block:: javascript
+   :emphasize-lines: 7-8
+
+   db.stock.aggregate( [
+      {
+         $setWindowFields: {
+           partitionBy: "$company",
+           sortBy: { time: 1 },
+           output: {
+              price: { $locf: "$price" },
+              volume: { $locf: "$volume" }
+           }
+         }
+       }
+   ] )
+
+In the example:
+
+- ``partitionBy: "$company"`` :ref:`partitions
+  <setWindowFields-partitionBy>` the documents by ``company``. There
+  are partitions for ``CompanyA`` and ``CompanyB``.
+
+- ``sortBy: { time: 1 }`` :ref:`sorts
+  <setWindowFields-sortBy>` the documents in each partition by
+  ``time`` in ascending order (``1``), so the earliest
+  ``time`` is first.
+
+- For documents where ``price`` or ``volume`` is ``null`` or missing,
+  the :group:`$locf` operator sets the missing field to the previous
+  value for that field in the partition.
+
+Example output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      {
+         _id: ObjectId("61b11166b412e1948a407dc6"),
+         time: '2021-03-08T09:00:00.000Z',
+         company: 'CompanyA',
+         price: 500,
+         volume: 200000
+      },
+      {
+         _id: ObjectId("61b11166b412e1948a407dc8"),
+         time: '2021-03-08T10:00:00.000Z',
+         company: 'CompanyA',
+         price: 490,
+         volume: 205000
+      },
+      {
+         _id: ObjectId("61b11166b412e1948a407dca"),
+         time: '2021-03-08T11:00:00.000Z',
+         company: 'CompanyA',
+         price: 490,
+         volume: 205000
+      },
+      {
+         _id: ObjectId("61b11166b412e1948a407dcc"),
+         time: '2021-03-08T12:00:00.000Z',
+         company: 'CompanyA',
+         price: 510,
+         volume: 220000
+      },
+      {
+         _id: ObjectId("61b11166b412e1948a407dce"),
+         time: '2021-03-08T13:00:00.000Z',
+         company: 'CompanyA',
+         price: 505,
+         volume: 225000
+      },
+      {
+         _id: ObjectId("61b11166b412e1948a407dc7"),
+         time: '2021-03-08T09:00:00.000Z',
+         company: 'CompanyB',
+         price: 20,
+         volume: 100000
+      },
+      {
+         _id: ObjectId("61b11166b412e1948a407dc9"),
+         time: '2021-03-08T10:00:00.000Z',
+         company: 'CompanyB',
+         price: 22,
+         volume: 105000
+      },
+      {
+         _id: ObjectId("61b11166b412e1948a407dcb"),
+         time: '2021-03-08T11:00:00.000Z',
+         company: 'CompanyB',
+         price: 24,
+         volume: 105000
+      },
+      {
+         _id: ObjectId("61b11166b412e1948a407dcd"),
+         time: '2021-03-08T12:00:00.000Z',
+         company: 'CompanyB',
+         price: 24,
+         volume: 105000
+      },
+      {
+         _id: ObjectId("61b11166b412e1948a407dcf"),
+         time: '2021-03-08T13:00:00.000Z',
+         company: 'CompanyB',
+         price: 28,
+         volume: 120000
+      }
+   ]

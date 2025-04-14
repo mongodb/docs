@@ -1,0 +1,140 @@
+title: Create the ``init.d`` script.
+stepnum: 1
+level: 4
+ref: create-initd
+action:
+  - pre: |
+      Create the following file at ``/etc/init.d/disable-transparent-hugepages``:
+
+    language: sh
+    code: |
+         #!/bin/bash
+         ### BEGIN INIT INFO
+         # Provides:          disable-transparent-hugepages
+         # Required-Start:    $local_fs
+         # Required-Stop:
+         # X-Start-Before:    mongod mongodb-mms-automation-agent
+         # Default-Start:     2 3 4 5
+         # Default-Stop:      0 1 6
+         # Short-Description: Disable Linux transparent huge pages
+         # Description:       Disable Linux transparent huge pages, to improve
+         #                    database performance.
+         ### END INIT INFO
+
+         case $1 in
+           start)
+             if [ -d /sys/kernel/mm/transparent_hugepage ]; then
+               thp_path=/sys/kernel/mm/transparent_hugepage
+             elif [ -d /sys/kernel/mm/redhat_transparent_hugepage ]; then
+               thp_path=/sys/kernel/mm/redhat_transparent_hugepage
+             else
+               return 0
+             fi
+
+             echo 'never' | tee ${thp_path}/enabled > /dev/null
+
+             unset thp_path
+             ;;
+         esac
+  - post: |
+      .. note::
+
+         Prior to version 4.2, MongoDB also checks the THP *defrag*
+         setting and presents a startup warning if defrag is
+         enabled. As long as THP itself is disabled in
+         the ``init.d`` script, MongoDB is unaffected by the defrag
+         setting. However, to avoid this message, you may set defrag to
+         ``never`` by adding the following line to the ``init.d``
+         script, just before the ``unset thp_path`` statement:
+
+         .. code-block:: bash
+
+            echo 'never' | tee ${thp_path}/defrag > /dev/null
+---
+title: Make it executable.
+stepnum: 2
+level: 4
+ref: make-executable
+action:
+  - pre: |
+      Run the following command to make the script executable:
+
+    language: sh
+    code: sudo chmod 755 /etc/init.d/disable-transparent-hugepages
+---
+title: Run the script.
+stepnum: 3
+level: 4
+ref: run-script
+action:
+  - pre: |
+      Run the script manually once to ensure that the appropriate THP
+      setting has been changed:
+
+    language: sh
+    code:
+      sudo /etc/init.d/disable-transparent-hugepages start
+
+  - pre: |
+      Verify that THP has successfully been set to ``[never]`` by running the
+      following command:
+
+    language: sh
+    code:
+
+       cat /sys/kernel/mm/transparent_hugepage/enabled
+
+  - pre: |
+      On Red Hat Enterprise Linux and potentially other Red Hat-based
+      derivatives, you may instead need to use the following:
+
+    language: sh
+    code:
+
+       cat /sys/kernel/mm/redhat_transparent_hugepage/enabled
+---
+title: Configure your operating system to run it on boot.
+stepnum: 4
+level: 4
+ref: configure-initd
+action:
+  - pre: |
+      To ensure that this setting is applied each time your system
+      boots, run the following command for your Linux distribution:
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 20 80
+
+         * - Distribution
+
+           - Command
+
+         * - Ubuntu and Debian
+
+           - .. code:: sh
+
+                sudo update-rc.d disable-transparent-hugepages defaults
+
+         * - SUSE
+
+           - .. code:: sh
+
+                sudo insserv /etc/init.d/disable-transparent-hugepages
+
+         * - Red Hat, CentOS, Amazon Linux, and derivatives
+
+           - .. code:: sh
+
+                sudo chkconfig --add disable-transparent-hugepages
+---
+title: "Customize tuned / ktune profile, if applicable."
+stepnum: 5
+level: 4
+ref: customize-tuned-profile
+action:
+  - pre: |
+      If you are using ``tuned`` or ``ktune`` on
+      :abbr:`RHEL (Red Hat Enterprise Linux)`/ CentOS,
+      you must now also create a custom ``tuned`` profile.
+...

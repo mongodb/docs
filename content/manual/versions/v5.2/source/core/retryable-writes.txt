@@ -1,0 +1,380 @@
+.. _retryable-writes:
+
+================
+Retryable Writes
+================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Retryable writes allow MongoDB drivers to automatically retry certain
+write operations a single time if they encounter network errors, or if
+they cannot find a healthy :term:`primary` in the :ref:`replica set
+<replication>` or :ref:`sharded cluster <sharding-introduction>`.
+[#duplicate-key-update]_
+
+Prerequisites
+-------------
+
+Retryable writes have the following requirements:
+
+Supported Deployment Topologies
+  Retryable writes require a :ref:`replica set <replication>`
+  or :ref:`sharded cluster <sharding-introduction>`, and do **not**
+  support :term:`standalone instances <standalone>`.
+
+Supported Storage Engine
+  Retryable writes require a storage engine supporting document-level
+  locking, such as the :doc:`WiredTiger </core/wiredtiger>` or
+  :doc:`in-memory </core/inmemory>` storage engines.
+
+3.6+ MongoDB Drivers
+  Clients require MongoDB drivers updated for MongoDB 3.6 or greater:
+
+  .. include:: /includes/3.6-drivers.rst
+
+MongoDB Version
+  The MongoDB version of every node in the cluster must be ``3.6`` or
+  greater, and the ``featureCompatibilityVersion`` of each node in the
+  cluster must be ``3.6`` or greater. See
+  :dbcommand:`setFeatureCompatibilityVersion` for more information on
+  the ``featureCompatibilityVersion`` flag.
+
+Write Acknowledgment
+  Write operations issued with a :doc:`/reference/write-concern` of ``0``
+  are **not** retryable.
+
+Retryable Writes and Multi-Document Transactions
+------------------------------------------------
+
+.. versionadded:: 4.0
+
+The :ref:`transaction commit and abort operations <transactions-retry>`
+are retryable write operations. If the commit operation or the abort
+operation encounters an error, MongoDB drivers retry the operation a
+single time regardless of whether :urioption:`retryWrites` is set to
+``false``.
+
+The write operations inside the transaction are not individually
+retryable, regardless of value of :urioption:`retryWrites`.
+
+For more information on transactions, see :doc:`/core/transactions`.
+
+Enabling Retryable Writes
+-------------------------
+
+MongoDB Drivers
+  .. include:: /includes/extracts/4.2-changes-drivers-retryWrites-default.rst
+
+:binary:`~bin.mongosh`
+  Retryable writes are enabled by default in :binary:`~bin.mongosh`. To
+  disable retryable writes, use the :option:`--retryWrites=false
+  <mongosh --retryWrites>` command line option:
+
+  .. code-block:: bash
+
+     mongosh --retryWrites=false
+
+:binary:`~bin.mongo`
+  Retryable writes are disabled by default in the legacy
+  :binary:`~bin.mongo` shell. To enable retryable writes, use the
+  :option:`--retryWrites=true <mongosh --retryWrites>` command line
+  option:
+
+  .. code-block:: bash
+
+     mongo --retryWrites=true
+
+.. _retryable-write-ops:
+
+Retryable Write Operations
+--------------------------
+
+The following write operations are retryable when issued with
+acknowledged write concern; e.g., :doc:`/reference/write-concern`
+cannot be :writeconcern:`{w: 0} <\<number\>>`.
+
+.. note::
+
+   The write operations inside the :doc:`transactions
+   </core/transactions>` are not individually retryable.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Methods
+     - Descriptions
+
+   * - | :method:`db.collection.insertOne()`
+       | :method:`db.collection.insertMany()`
+     - Insert operations.
+
+   * - | :method:`db.collection.updateOne()`
+       | :method:`db.collection.replaceOne()`
+     - Single-document update operations. [#duplicate-key-update]_
+
+   * - | :method:`db.collection.deleteOne()`
+       | :method:`db.collection.remove()` where ``justOne`` is ``true``
+     - Single document delete operations.
+
+   * - | :method:`db.collection.findAndModify()`
+       | :method:`db.collection.findOneAndDelete()`
+       | :method:`db.collection.findOneAndReplace()`
+       | :method:`db.collection.findOneAndUpdate()`
+     - ``findAndModify`` operations. All ``findAndModify`` operations
+       are single document operations.
+
+   * - :method:`db.collection.bulkWrite()` with the following write
+       operations:
+
+       - :ref:`bulkwrite-write-operations-insertOne`
+       - :ref:`updateOne <bulkwrite-write-operations-updateOneMany>`
+       - :ref:`bulkwrite-write-operations-replaceOne`
+       - :ref:`deleteOne <bulkwrite-write-operations-deleteOneMany>`
+
+     - Bulk write operations that only consist of the single-document
+       write operations. A retryable bulk operation can include any
+       combination of the specified write operations but cannot include
+       any multi-document write operations, such as ``updateMany``.
+
+   * - :method:`Bulk <Bulk()>` operations for:
+
+       - :method:`Bulk.find.removeOne()`
+       - :method:`Bulk.find.replaceOne()`
+       - :method:`Bulk.find.replaceOne()`
+
+     - Bulk write operations that only consist of the single-document
+       write operations. A retryable bulk operation can include any
+       combination of the specified write operations but cannot include
+       any multi-document write operations, such as ``update`` which
+       specifies ``true`` for the ``multi`` option.
+
+.. note:: Updates to Shard Key Values
+
+   Starting in MongoDB 4.2, you can update a document's shard key value
+   (unless the shard key field is the immutable ``_id`` field) by
+   issuing single-document update/findAndModify operations either as a
+   retryable write or in a :doc:`transaction </core/transactions>`. For
+   details, see :ref:`update-shard-key`.
+
+.. [#duplicate-key-update]
+
+   MongoDB 4.2 will retry certain single-document upserts
+   (update with ``upsert: true`` and ``multi: false``) that encounter a
+   duplicate key exception. See :ref:`retryable-update-upsert` for
+   conditions.
+
+   Prior to MongoDB 4.2, MongoDB would not retry upsert operations
+   that encountered a duplicate key error.
+
+Behavior
+--------
+
+Persistent Network Errors
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB retryable writes make only **one** retry attempt. This helps
+address transient network errors and
+:ref:`replica set elections <replica-set-elections>`, but not persistent
+network errors.
+
+Failover Period
+~~~~~~~~~~~~~~~
+
+If the driver cannot find a healthy :term:`primary` in the destination
+replica set or sharded cluster shard, the drivers wait
+:urioption:`serverSelectionTimeoutMS` milliseconds to determine the new
+primary before retrying. Retryable writes do not address instances where
+the failover period exceeds :urioption:`serverSelectionTimeoutMS`.
+
+.. warning::
+
+   If the client application becomes temporarily unresponsive for more
+   than the :parameter:`localLogicalSessionTimeoutMinutes` after
+   issuing a write operation, there is a chance that when the client
+   applications starts responding (without a restart), the write
+   operation may be retried and applied again.
+
+.. _retryable-update-upsert:
+
+Duplicate Key Errors on Upsert
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 4.2 will retry single-document upsert operations
+(i.e ``upsert : true`` and ``multi : false``) that
+fail due to a duplicate key error *only if* the operation meets
+*all* of the following conditions:
+
+- The target collection has a unique index that caused the duplicate key 
+  error.
+
+- The update match condition is either:
+
+  - A single equality predicate 
+
+    ``{ "fieldA" : "valueA" }``, 
+
+    *or*
+
+  - a logical AND of equality predicates 
+
+    ``{ "fieldA" : "valueA", "fieldB" : "valueB" }``
+
+- The set of fields in the unique index key pattern matches the set
+  of fields in the update query predicate.
+
+- The update operation does not modify any of the fields in the
+  query predicate.
+
+The following table contains examples of upsert operations that
+the server can or cannot retry on a duplicate key error:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 40 30
+
+   * - Unique Index Key Pattern
+     - Update Operation
+     - Retryable
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { _id : 1 }
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.collName.updateOne(
+            { _id : ObjectId("1aa1c1efb123f14aaa167aaa") },
+            { $set : { fieldA : 25 } },
+            { upsert : true }
+          )
+     - Yes
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { fieldA : 1 }
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.collName.updateOne(
+            { fieldA : { $in : [ 25 ] } },
+            { $set : { fieldB : "someValue" } },
+            { upsert : true }
+          )
+     - Yes
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { 
+            fieldA : 1, 
+            fieldB : 1 
+          }
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.collName.updateOne(
+            { fieldA : 25, fieldB : "someValue" },
+            { $set : { fieldC : false } },
+            { upsert : true }
+          )
+     - Yes
+
+   * - .. code-block:: javascript
+          :copyable: false
+          
+          { fieldA : 1 }
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.collName.updateOne(
+            { fieldA : { $lte : 25 } },
+            { $set : { fieldC : true } },
+            { upsert : true }
+          )
+     - No
+
+       The query predicate on ``fieldA`` is not an equality
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { fieldA : 1 }
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.collName.updateOne(
+            { fieldA : { $in : [ 25 ] } },
+            { $set : { fieldA : 20 } },
+            { upsert : true }
+          )
+     - No
+
+       The update operation modifies fields specified in the
+       query predicate.
+
+   * - .. code-block:: javascript
+          :copyable: false
+          
+          { _id : 1 }
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.collName.updateOne(
+            { fieldA : { $in : [ 25 ] } },
+            { $set : { fieldA : 20 } },
+            { upsert : true }
+          )
+     - No
+
+       The set of query predicate fields (``fieldA``) does not
+       match the set of index key fields (``_id``).
+
+   * - .. code-block:: javascript
+          :copyable: false
+          
+          { fieldA : 1 }
+     - .. code-block:: javascript
+          :copyable: false
+
+          db.collName.updateOne(
+            { fieldA : 25, fieldC : true },
+            { $set : { fieldD : false } },
+            { upsert : true }
+          )
+     - No
+
+       The set of query predicate fields (``fieldA``, ``fieldC``)
+       does not match the set of index key fields (``fieldA``).
+
+Prior to MongoDB 4.2, MongoDB retryable writes did not support
+retrying upserts which failed due to duplicate key errors.
+
+Diagnostics
+~~~~~~~~~~~
+
+.. versionadded:: 3.6.3
+
+The :dbcommand:`serverStatus` command, and its :binary:`~bin.mongosh`
+shell helper :method:`db.serverStatus()` includes statistics on
+retryable writes in the :serverstatus:`transactions` section.
+
+Retryable Writes Against ``local`` Database
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The official MongoDB 4.2-series drivers enable retryable writes by default.
+Applications which write to the ``local`` 
+:ref:`database <replica-set-local-database>` will encounter write errors upon 
+upgrading to 4.2-series drivers *unless* retryable writes are explicitly 
+disabled.
+
+To disable retryable writes, specify
+:urioption:`retryWrites=false <retryWrites>` in the 
+:ref:`connection string <mongodb-uri>` for the MongoDB cluster.

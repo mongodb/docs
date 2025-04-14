@@ -1,0 +1,91 @@
+.. _index-selectivity:
+
+======================================
+Create Queries that Ensure Selectivity
+======================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Selectivity is the ability of a query to narrow results using the index.
+Effective indexes are more selective and allow MongoDB to use the index
+for a larger portion of the work associated with fulfilling the query.
+
+To ensure selectivity,
+write queries that limit the number of possible documents with the
+indexed field. Write queries that are appropriately selective relative
+to your indexed data.
+
+.. example::
+
+   Suppose you have a field called ``status`` where the possible values
+   are ``new`` and ``processed``. If you add an index on ``status``
+   you've created a low-selectivity index. The index will
+   be of little help in locating records.
+
+   A better strategy, depending on your queries, would be to create a
+   :ref:`compound index <index-type-compound>` that includes the
+   low-selectivity field and another field. For example, you could
+   create a compound index on ``status`` and ``created_at.``
+
+   Another option, again depending on your use case, might be to use
+   separate collections, one for each status.
+
+.. example::
+
+   Consider an index ``{ a : 1 }`` (i.e. an index on the key ``a``
+   sorted in ascending order) on a collection where ``a`` has three
+   values evenly distributed across the collection:
+
+   .. code-block:: javascript
+
+      { _id: ObjectId(), a: 1, b: "ab" }
+      { _id: ObjectId(), a: 1, b: "cd" }
+      { _id: ObjectId(), a: 1, b: "ef" }
+      { _id: ObjectId(), a: 2, b: "jk" }
+      { _id: ObjectId(), a: 2, b: "lm" }
+      { _id: ObjectId(), a: 2, b: "no" }
+      { _id: ObjectId(), a: 3, b: "pq" }
+      { _id: ObjectId(), a: 3, b: "rs" }
+      { _id: ObjectId(), a: 3, b: "tv" }
+
+   If you query for ``{ a: 2, b: "no" }`` MongoDB must scan 3
+   :term:`documents <document>` in the collection to return the one
+   matching result. Similarly, a query for ``{ a: { $gt: 1}, b: "tv" }``
+   must scan 6 documents, also to return one result.
+
+   Consider the same index on a collection where ``a`` has *nine* values
+   evenly distributed across the collection:
+
+   .. code-block:: javascript
+
+      { _id: ObjectId(), a: 1, b: "ab" }
+      { _id: ObjectId(), a: 2, b: "cd" }
+      { _id: ObjectId(), a: 3, b: "ef" }
+      { _id: ObjectId(), a: 4, b: "jk" }
+      { _id: ObjectId(), a: 5, b: "lm" }
+      { _id: ObjectId(), a: 6, b: "no" }
+      { _id: ObjectId(), a: 7, b: "pq" }
+      { _id: ObjectId(), a: 8, b: "rs" }
+      { _id: ObjectId(), a: 9, b: "tv" }
+
+   If you query for ``{ a: 2, b: "cd" }``, MongoDB must scan only one
+   document to fulfill the query. The index and query are more selective
+   because the values of ``a`` are evenly distributed *and* the query
+   can select a specific document using the index.
+
+   However, although the index on ``a`` is more selective, a query such
+   as ``{ a: { $gt: 5 }, b: "tv" }`` would still need to scan 4
+   documents.
+
+   .. todo:: is there an answer to that last "However" paragraph?
+
+If overall selectivity is low, and if MongoDB must read a number of
+documents to return results, then some queries may perform faster
+without indexes. To determine performance, see
+:ref:`indexes-measuring-use`.
