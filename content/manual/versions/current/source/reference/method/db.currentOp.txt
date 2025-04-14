@@ -1,0 +1,262 @@
+==============
+db.currentOp()
+==============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: db.currentOp()
+
+   .. |command| replace:: db.currentOp()
+   
+   .. |operation| replace:: :method:`db.currentOp()`
+
+   .. important:: 
+   
+      .. include:: /includes/fact-currentOp-aggregation-stage.rst
+
+   Returns a :term:`document` that contains information on in-progress
+   operations for the database instance. The :method:`db.currentOp()`
+   method wraps the database command :dbcommand:`currentOp`. 
+
+   .. note::
+
+      .. include:: /includes/5.0-fact-currentop.rst
+
+
+Compatibility
+-------------
+
+This method is available in deployments hosted in the following environments: 
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. include:: /includes/fact-environments-atlas-support-no-free.rst
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
+                   
+Syntax
+~~~~~~
+
+:method:`db.currentOp()` has the following form:
+
+.. code-block:: javascript
+
+   db.currentOp(<operations>)
+
+
+:method:`db.currentOp()` can take the following *optional*
+argument:
+
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Parameter
+     - Type
+     - Description
+
+   * - :ref:`operations <method-currentop-operations>`
+     - boolean or document
+     - .. _method-currentop-operations:
+     
+       Optional. Specifies the operations to report on. Can pass either
+       a boolean or a document:
+       
+       - Specify ``true`` to include operations on idle connections and
+         system operations.
+       - Specify a document with query conditions to report only on
+         those operations that match the conditions. See
+         :ref:`currentOp-behavior` for details.
+
+
+.. _currentOp-behavior:
+
+Behavior
+--------
+
+:method:`db.currentOp()` can accept a filter document or a boolean
+parameter.
+
+If you pass a filter document to :method:`db.currentOp()`, the output
+returns information only for the current operations that match the
+filter. The filter document can contain:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 85
+   
+   * - Field
+     - Description
+
+   * - ``"$ownOps"``
+     - Boolean. If set to ``true``, returns information on the current user's
+       operations only.
+
+       On :binary:`~bin.mongod` instances, users can always run
+       ``db.currentOp( { "$ownOps": true } )`` to view their own
+       operations.
+
+   * - ``"$all"``
+     - Boolean. If set to ``true``, returns information on all operations,
+       including operations on idle connections and system operations.
+       For more information, see :ref:`<current-op-agg>`.
+
+       If the document includes ``"$all": true`` along with
+       :ref:`db.currentOp-output-fields` conditions, only the
+       ``"$all":true`` applies.
+
+   * - <filter>
+     - Specify filter conditions on the :ref:`db.currentOp-output-fields`.
+       See :ref:`currentOp-method-examples`.
+       
+       If the document includes ``"$all": true`` along with
+       :ref:`db.currentOp-output-fields` conditions, only the ``"$all":
+       true`` applies.
+ 
+Passing in ``true`` to :method:`db.currentOp()` is equivalent to
+passing in a document of ``{ "$all": true }``. The following operations
+are equivalent:
+
+.. code-block:: javascript
+
+   db.currentOp(true)
+   db.currentOp( { "$all": true } )
+
+:method:`db.currentOp` and the
+:ref:`database profiler <database-profiler>` report the same
+basic diagnostic information for all CRUD operations, including the
+following:
+
+.. include:: /includes/fact-diagnostic-info.rst
+   
+Access Control
+--------------
+
+On systems running with :setting:`~security.authorization`, the user
+must have access that includes the :authaction:`inprog` privilege
+action. 
+
+Users can run ``db.currentOp( { "$ownOps": true }
+)`` on :binary:`~bin.mongod` instances to view their own operations
+even without the :authaction:`inprog` privilege action.
+
+.. seealso::
+
+   :ref:`create-role-to-manage-ops`
+
+.. _currentOp-method-examples:
+
+Examples
+--------
+
+The following examples use the :method:`db.currentOp()` method with
+various query documents to filter the output.
+
+.. NOTE TO WRITERS: If you're editing the following examples, make
+   sure that you also update the examples on currentOp (the equiv. 
+   command). Single sourcing is weird due to diffs in code block. - ARM
+
+Write Operations Waiting for a Lock
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example returns information on all write operations that
+are waiting for a lock:
+
+.. code-block:: javascript
+
+   db.currentOp(
+      {
+        "waitingForLock" : true,
+        $or: [
+           { "op" : { "$in" : [ "insert", "update", "remove" ] } },
+           { "command.findandmodify": { $exists: true } }
+       ]  
+      }
+   )
+
+Active Operations with no Yields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example returns information on all active running
+operations that have never yielded:
+
+.. code-block:: javascript
+
+   db.currentOp(
+      {
+        "active" : true,
+        "numYields" : 0,
+        "waitingForLock" : false
+      }
+   )
+
+Active Operations on a Specific Database
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example returns information on all active operations for
+database ``db1`` that have been running longer than 3 seconds:
+
+.. code-block:: javascript
+
+   db.currentOp(
+      {
+        "active" : true,
+        "secs_running" : { "$gt" : 3 },
+        "ns" : /^db1\./
+      }
+   )
+
+.. _currentOp-index-creation:
+
+Active Indexing Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example returns information on index creation operations
+on any number of fields:
+
+.. code-block:: javascript
+
+   db.getSiblingDB("admin").aggregate( [
+      { $currentOp : { idleConnections: true } },
+      { $match: {
+            $or: [
+               { "op": "command", "command.createIndexes": { $exists: true } },
+               { "op": "none", "msg": /^Index Build/ }
+            ]
+         }
+      }
+   ] )
+
+Output Example
+--------------
+
+The following is a prototype of :method:`db.currentOp()` output.
+
+.. include:: /includes/currentOp-output-example.rst
+
+.. _db.currentOp-specific-output-examples:
+
+Specific Output Examples
+------------------------
+
+.. include:: /includes/metrics/txt-section-intro.rst
+.. include:: /includes/metrics/ex-resharding.rst
+
+.. _db.currentOp-output-fields:
+
+Output Fields
+-------------
+
+For a complete list of :method:`db.currentOp()` output fields, see
+:ref:`currentOp <currentOp-output-fields>`.

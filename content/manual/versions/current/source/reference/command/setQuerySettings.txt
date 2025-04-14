@@ -1,0 +1,524 @@
+================
+setQuerySettings
+================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: setQuerySettings
+
+.. versionadded:: 8.0
+
+You can use query settings to add index hints, define :ref:`operation
+rejection filters <operation-rejection-filters>`, and set other fields.
+The settings apply to the :ref:`query shape <query-shapes>` on
+the entire cluster. The cluster retains the settings after shutdown.
+
+For example, query settings allow you to use an index for all executions
+of a query shape in a cluster.
+
+The :term:`query optimizer` uses the query settings as an additional
+input during query planning, which affects the plan selected to run the
+query.
+
+``setQuerySettings`` defines query settings used by the
+:dbcommand:`find`, :dbcommand:`distinct`, and :dbcommand:`aggregate`
+commands.
+
+Starting in MongoDB 8.0, use query settings instead of :ref:`index
+filters <index-filters>`. Index filters are deprecated starting in
+MongoDB 8.0.
+
+Query settings have more functionality than index filters. Also, index
+filters aren't persistent and you cannot easily create index filters for
+all cluster nodes.
+
+.. note::
+
+   To remove query settings, use :dbcommand:`removeQuerySettings`. To
+   obtain the query settings, use a :pipeline:`$querySettings` stage in
+   an aggregation pipeline.
+
+.. _setQuerySettings-syntax:
+
+Syntax
+------
+
+You can add or update query settings using either of the two syntax
+specifications shown in this section.
+
+Set Query Settings by Passing in a Query
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the following syntax, you provide:
+
+- The same fields as a :dbcommand:`find`, :dbcommand:`distinct`, or
+  :dbcommand:`aggregate` command. See the syntax sections on the pages
+  for those commands for the fields you can include in
+  ``setQuerySettings``.
+- A ``$db`` field to specify the database for the query settings.
+- A ``settings`` document with ``indexHints`` and other fields.
+
+.. code-block:: javascript
+
+   db.adminCommand( {
+      setQuerySettings: {
+         <fields>,  // Provide fields for 
+                    // find, distinct, or aggregate command
+         $db: <string>  // Provide a database name
+      },
+      // Provide a settings document with indexHints and other fields
+      settings: { 
+         indexHints: [ { 
+            ns: { db: <string>, coll: <string> },
+            allowedIndexes: <array>
+         }, ... ],
+         queryFramework: <string>,
+         reject: <boolean>,
+         comment: <BSON type>
+      }
+   } )
+
+Set Query Settings by Passing in a Query Shape Hash
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can provide an existing query shape hash string in
+``setQuerySettings`` and an updated ``settings`` document with
+``indexHints`` and other fields:
+
+.. code-block:: javascript
+
+   db.adminCommand( {
+      setQuerySettings: <string>,  // Provide an existing query shape hash string
+      // Provide a settings document with indexHints and other fields
+      settings: { 
+         indexHints: [ { 
+            ns: { db: <string>, coll: <string> },
+            allowedIndexes: <array>
+         }, ... ],
+         queryFramework: <string>,
+         reject: <boolean>,
+         comment: <BSON type>
+      }
+   } )
+
+.. include:: /includes/query-shape-hash-string.rst
+
+.. tip::
+
+   In both syntax variations, you can provide an array of ``indexHints``
+   documents. You can omit the array brackets if you provide only one
+   ``indexHints`` document.
+
+Command Fields
+--------------
+
+The command takes these fields:
+
+.. list-table::
+   :widths: 5 25 10 50
+   :header-rows: 1
+
+   * - Field
+     - Field Type (document, string, ...)
+     - Necessity
+     - Description
+ 
+   * - ``setQuerySettings``
+     - document or string
+     - Required
+     - You can provide either:
+     
+       - The same fields as those in a :dbcommand:`find`,
+         :dbcommand:`distinct`, or :dbcommand:`aggregate` command, and a
+         ``$db`` field with the database associated with the original
+         command.
+
+       - An existing query shape hash string that uniquely identifies
+         the query shape. An example query shape hash is
+         ``"F42757F1AEB68B4C5A6DE6182B29B01947C829C926BCC01226BDA4DDE799766C"```.
+ 
+   * - ``indexHints.ns``
+     - document
+     - Optional
+     - Namespace for index hints. Only required when optional index
+       hints are specified.
+     
+       .. list-table::
+
+          * - ``db`` 
+            - string
+            - Required
+            - Name of the database for index hints.
+
+          * - ``coll``
+            - string
+            - Required
+            - Name of the collection for index hints.
+
+   * - ``indexHints.allowedIndexes``
+     - array
+     - Optional
+     - Array of indexes for index hints. An index hint can be one of
+       these:
+
+       - Index name
+       - index key pattern
+       - :operator:`$natural` hint
+
+       For more details, see :ref:`indexes` and
+       :method:`~cursor.hint()`.
+     
+   * - ``queryFramework`` 
+     - string
+     - Optional
+     - :term:`Query framework <query framework>` string can be set to:
+
+       - ``classic`` to use the classic engine.
+       - ``sbe`` to use {+sbe+}. For details, see :ref:`sbe-landing`.
+
+   * - ``reject``
+     - boolean
+     - Optional
+     - If ``true``:
+       
+       - New queries with the matching query shape are rejected
+         and the query response states the query is rejected.
+       - Any queries currently in progress aren't rejected.
+
+       Default is ``false``.
+
+       To enable a query shape, run ``setQuerySettings`` again for the
+       query shape and set ``reject`` to ``false``. If you set
+       ``reject`` to ``true`` and then back to ``false`` using
+       ``setQuerySettings`` then:
+
+       - If your ``settings`` document isn't empty, then
+         ``setQuerySettings`` enables the query shape.
+
+       - If your ``settings`` document only contains ``reject: false``,
+         then ``setQuerySettings`` returns an error. Instead, use the
+         ``removeQuerySettings`` command to remove the settings and then
+         use ``setQuerySettings`` to add query settings.
+
+   * - ``comment``
+     - BSON type
+     - Optional
+     - A comment can be any valid :ref:`BSON type <bson-types>`. For
+       example: string, object, and so on.
+
+       You can use a comment to provide additional information about the
+       query settings. For example, to add a string that indicates why
+       you added the query settings, use ``comment: "Index hint for
+       orderDate_1 index to improve query performance"``.
+       
+       To update a comment, run ``setQuerySettings`` again and use
+       ``comment: { body: { msg: "Updated comment" } }``.
+
+       You cannot remove a comment, but you can set it to a string with
+       a space character. You can remove the query settings using
+       :dbcommand:`removeQuerySettings`.
+
+       Comments appear in the :pipeline:`$querySettings` aggregation
+       pipeline stage output, the :ref:`explain() command output
+       <explain-results>`, and the :ref:`slow query logs
+       <log-message-slow-ops>`.
+
+       Available starting in MongoDB 8.1 (and 8.0.4).
+
+Examples
+--------
+
+The following examples create a collection and add query settings for
+different commands. The examples use one index for all executions of a
+query shape run in the cluster.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create the example collection and indexes
+
+      Run:
+
+      .. code-block:: javascript
+
+         // Create pizzaOrders collection
+         db.pizzaOrders.insertMany( [
+           { _id: 0, type: "pepperoni", size: "small", price: 19,
+             totalNumber: 10, orderDate: ISODate( "2023-03-13T08:14:30Z" ) },
+           { _id: 1, type: "pepperoni", size: "medium", price: 20,
+             totalNumber: 20, orderDate: ISODate( "2023-03-13T09:13:24Z" ) },
+           { _id: 2, type: "pepperoni", size: "large", price: 21,
+             totalNumber: 30, orderDate: ISODate( "2023-03-17T09:22:12Z" ) },
+           { _id: 3, type: "cheese", size: "small", price: 12,
+             totalNumber: 15, orderDate: ISODate( "2023-03-13T11:21:39.736Z" ) },
+           { _id: 4, type: "cheese", size: "medium", price: 13,
+             totalNumber: 50, orderDate: ISODate( "2024-01-12T21:23:13.331Z" ) },
+           { _id: 5, type: "cheese", size: "large", price: 14,
+             totalNumber: 10, orderDate: ISODate( "2024-01-12T05:08:13Z" ) },
+           { _id: 6, type: "vegan", size: "small", price: 17,
+             totalNumber: 10, orderDate: ISODate( "2023-01-13T05:08:13Z" ) },
+           { _id: 7, type: "vegan", size: "medium", price: 18,
+             totalNumber: 10, orderDate: ISODate( "2023-01-13T05:10:13Z" ) }
+        ] )
+
+         // Create ascending index on orderDate field
+         db.pizzaOrders.createIndex( { orderDate: 1 } )
+
+         // Create ascending index on totalNumber field
+         db.pizzaOrders.createIndex( { totalNumber: 1 } )
+
+      The indexes have the default names ``orderDate_1`` and
+      ``totalNumber_1``.
+
+   .. step:: Add query settings for a find command
+
+      The following example adds query settings for a :dbcommand:`find`
+      command. The example provides fields in ``setQuerySettings`` for
+      the ``find`` command, and includes the ``orderDate_1`` index in
+      ``allowedIndexes``.
+
+      .. code-block:: javascript
+
+         db.adminCommand( {
+            setQuerySettings: {
+               find: "pizzaOrders",
+               filter: {
+                  orderDate: { $gt: ISODate( "2023-01-20T00:00:00Z" ) }
+               },
+               sort: {
+                  totalNumber: 1
+               },
+               $db: "test"
+            },
+            settings: {
+               indexHints: {
+                  ns: { db: "test", coll: "pizzaOrders" },
+                  allowedIndexes: [ "orderDate_1" ]
+               },
+               queryFramework: "classic",
+               comment: "Index hint for orderDate_1 index to improve query performance"
+            }
+         } )
+
+   .. step:: (Optional) Verify the query settings
+
+      Run this :dbcommand:`explain` command:
+
+      .. code-block:: javascript
+
+         db.pizzaOrders.explain().find( { orderDate: { $gt: ISODate(
+         "2023-01-20T00:00:00Z" ) } } ).sort( { totalNumber: 1 } )
+
+      The following truncated output shows the query settings are set:
+
+      .. code-block:: javascript
+         :copyable: false
+         :emphasize-lines: 11-17
+
+         queryPlanner: {
+            winningPlan: {
+              stage: 'SINGLE_SHARD',
+              shards: [
+                {
+                  explainVersion: '1',
+                  ...
+                  namespace: 'test.pizzaOrders',
+                  indexFilterSet: false,
+                  parsedQuery: { orderDate: { '$gt': ISODate('2023-01-20T00:00:00.000Z') } },
+                  querySettings: {
+                    indexHints: {
+                      ns: { db: 'test', coll: 'pizzaOrders' },
+                      allowedIndexes: [ 'orderDate_1' ]
+                    },
+                    queryFramework: 'classic',
+                    comment: 'Index hint for orderDate_1 index to improve query performance'
+                  },
+                  ...
+                }
+              ...
+              ]
+            }
+         }
+
+   .. step:: (Optional) Run the query
+
+      The following example runs the query:
+
+      .. code-block:: javascript
+
+         db.pizzaOrders.find(
+            { orderDate: { $gt: ISODate( "2023-01-20T00:00:00Z" ) } } ).sort( { totalNumber: 1 }
+         )
+
+      The query optimizer uses the query settings as an additional input
+      during query planning, which affects the plan selected to run the
+      query.
+
+      Query output:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         [
+            {
+               _id: 0,
+               type: 'pepperoni',
+               size: 'small',
+               price: 19,
+               totalNumber: 10,
+               orderDate: ISODate('2023-03-13T08:14:30.000Z')
+            },
+            {
+               _id: 5,
+               type: 'cheese',
+               size: 'large',
+               price: 14,
+               totalNumber: 10,
+               orderDate: ISODate('2024-01-12T05:08:13.000Z')
+            },
+            {
+               _id: 3,
+               type: 'cheese',
+               size: 'small',
+               price: 12,
+               totalNumber: 15,
+               orderDate: ISODate('2023-03-13T11:21:39.736Z')
+            },
+            {
+               _id: 1,
+               type: 'pepperoni',
+               size: 'medium',
+               price: 20,
+               totalNumber: 20,
+               orderDate: ISODate('2023-03-13T09:13:24.000Z')
+            },
+            {
+               _id: 2,
+               type: 'pepperoni',
+               size: 'large',
+               price: 21,
+               totalNumber: 30,
+               orderDate: ISODate('2023-03-17T09:22:12.000Z')
+            },
+            {
+               _id: 4,
+               type: 'cheese',
+               size: 'medium',
+               price: 13,
+               totalNumber: 50,
+               orderDate: ISODate('2024-01-12T21:23:13.331Z')
+            }
+         ]
+
+   .. step:: (Optional) Obtain the query settings
+
+      The following example uses a :pipeline:`$querySettings` stage in
+      an aggregation pipeline to obtain the query settings:
+
+      .. code-block:: javascript
+
+         db.aggregate( [
+            { $querySettings: {} }
+         ] )
+
+      Truncated output, which includes the ``queryShapeHash`` field:
+
+      .. code-block:: javascript
+         :copyable: false
+         :emphasize-lines: 3
+
+         [
+            {
+               queryShapeHash: 'AB8ECADEE8F0EB0F447A30744EB4813AE7E0BFEF523B0870CA10FCBC87F5D8F1',
+               settings: {
+                  indexHints: [
+                     {
+                        ns: { db: 'test', coll: 'pizzaOrders' },
+                        allowedIndexes: [ 'orderDate_1' ]
+                     }
+                  ],
+                  queryFramework: 'classic',
+                  comment: 'Index hint for orderDate_1 index to improve query performance'
+               },
+               representativeQuery: {
+                  find: 'pizzaOrders',
+                  filter: { orderDate: { '$gt': ISODate('2023-01-20T00:00:00.000Z') } },
+                  sort: { totalNumber: 1 },
+                  '$db': 'test'
+               }
+            }
+         ]
+
+   .. step:: Add query settings for a distinct command
+
+      The following example adds query settings for a
+      :dbcommand:`distinct` command:
+
+      .. code-block:: javascript
+
+         db.adminCommand( {
+            setQuerySettings: {
+               distinct: "pizzaOrders",
+               key: "totalNumber",
+               query: { type: "pepperoni"} ,
+               $db: "test"
+            },
+            settings: {
+               indexHints: {
+                  ns: { db: "test", coll: "pizzaOrders" },
+                  allowedIndexes: [ "orderDate_1" ]
+               },
+               queryFramework: "classic",
+               comment: "Index hint for orderDate_1 index to improve query performance"
+            }
+         } )
+
+   .. step:: Add query settings for an aggregate command
+
+      The following example adds query settings for an
+      :dbcommand:`aggregate` command:
+
+      .. code-block:: javascript
+
+         db.adminCommand( {
+            setQuerySettings: {
+               aggregate: "pizzaOrders",
+               pipeline: [
+                  { $match: { size: "medium" } },
+                  { $group: {
+                     _id: "$type",
+                     totalMediumPizzaOrdersGroupedByType: { $sum: "$totalNumber" }
+                  } }
+               ],
+               $db: "test"
+            },
+            settings: {
+               indexHints: {
+                  ns: { db: "test", coll: "pizzaOrders" },
+                  allowedIndexes: [ "totalNumber_1" ]
+               },
+               queryFramework: "classic",
+               comment: "Index hint for totalNumber_1 index to improve query performance"
+            }
+         } )
+
+Learn More
+----------
+
+- :ref:`query-plans-query-optimization`
+- :ref:`indexes`
+- :pipeline:`$querySettings`
+- :dbcommand:`removeQuerySettings`
+- :ref:`aggregation-pipeline`
+- :ref:`query-shapes`
+- :ref:`Query statistics for query shapes <queryStats-queryShape>`
+- :ref:`operation-rejection-filters`

@@ -1,0 +1,99 @@
+.. _text-index-restrictions:
+
+===================================================
+Text Index Restrictions on Self-Managed Deployments
+===================================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: on-prem
+                    
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Text indexes have these restrictions:
+
+One Text Index per Collection
+-----------------------------
+
+.. include:: /includes/fact-text-index-limit-one.rst
+
+Text Search and Hints
+---------------------
+
+.. include:: /includes/fact-hint-text-query-restriction.rst
+
+Text Search and Multi-Word Strings
+----------------------------------
+
+.. include:: /includes/fact-text-search-multiword-and-term.rst
+
+For an example of text search with multi-word strings, see
+:ref:`text-operator-exact-string`.  
+
+.. _text-index-and-sort:
+
+Text Index and Sort
+-------------------
+
+Text indexes cannot improve performance for sort operations. This
+restriction applies to both single-field and compound text indexes.
+
+.. _text-index-compound-restrictions:
+
+Compound Text Index
+-------------------
+
+A :ref:`compound index <index-type-compound>` can include a text index
+key in combination with ascending and descending index keys. However,
+compound text indexes have these restrictions:
+
+.. include:: /includes/fact-compound-index-with-text-restrictions.rst
+
+For examples of compound text indexes, see these pages:
+
+- :ref:`compound-text-index-example`
+- :ref:`limit-entries-scanned`
+
+Collation Option
+----------------
+
+Text indexes only support binary comparison, and do not support the
+:ref:`collation <collation>` option. Binary comparison compares the
+numeric Unicode value of each character in each string, and does not
+account for letter case or accent marks.
+
+To create a text index on a collection that has a non-simple
+collation, you must explicitly specify ``{ collation: { locale: "simple"
+} }`` when you create the index.
+
+For example, consider a collection named ``collationTest`` with a
+collation of ``{ locale: "en" }``:
+
+.. code-block:: javascript
+
+   db.createCollection(
+      "collationTest",
+      {
+         collation: { locale: "en" }
+      }
+   )
+
+To create a text index on the ``collationTest`` collection, you must
+specify ``{ collation: { locale: "simple" } }``. The following command
+creates a text index on the ``quotes`` field:
+
+.. code-block:: javascript
+
+   db.collationTest.createIndex(
+      {
+         quotes: "text"
+      },
+      {
+         collation: { locale: "simple" }
+      }
+   )

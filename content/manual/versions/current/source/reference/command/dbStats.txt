@@ -1,0 +1,330 @@
+=======
+dbStats
+=======
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: dbStats
+
+   The :dbcommand:`dbStats` command returns storage statistics for a
+   given database. 
+
+Compatibility
+-------------
+
+This command is available in deployments hosted in the following environments: 
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. include:: /includes/fact-environments-atlas-support-limited-free.rst
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
+   
+Syntax
+------
+
+The command has the following syntax:
+
+.. _scale-argument:
+
+.. code-block:: javascript
+
+   db.runCommand( 
+      { 
+        dbStats: 1, 
+        scale: <number>,
+        freeStorage: 0
+      } 
+   )
+
+Command Fields
+--------------
+
+The command takes the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+ 
+   * - Fields
+     - Description
+ 
+   * - :dbcommand:`dbStats`
+     - 1
+ 
+   * - :ref:`scale <dbStats-scale>`
+     - .. _dbStats-scale:
+     
+       Optional. The scale factor for the various size data. The
+       ``scale`` defaults to 1 to return size data in bytes. To
+       display kilobytes rather than bytes, specify a ``scale``
+       value of ``1024``.
+ 
+       If you specify a non-integer scale factor, MongoDB uses the
+       integer part of the specified factor. For example, if you
+       specify a scale factor of ``1023.999``, MongoDB uses ``1023``
+       as the scale factor.
+ 
+       .. include:: /includes/extracts/4.2-changes-stats-scaleFactor.rst
+ 
+   * - :ref:`freeStorage <dbStats-freeStorage>`
+     - .. _dbStats-freeStorage:
+ 
+       Optional. To return details on free space allocated to
+       collections, set ``freeStorage`` to 1.
+       
+       If the instance has a large number of collections or indexes,
+       obtaining free space usage data may cause processing delays.
+       To gather :dbcommand:`dbStats` information without free space
+       details, either set ``freeStorage`` to 0 or do not include
+       the field.
+ 
+In :binary:`~bin.mongosh`, the :method:`db.stats()` function
+provides a wrapper around :dbcommand:`dbStats`.
+
+Behavior
+--------
+
+The time required to run the command depends on the total size of the
+database. Because the command must touch all data files, the command
+may take several seconds to run.
+
+Accuracy after Unexpected Shutdown
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. |cmd| replace:: :dbcommand:`dbStats`
+.. |opt| replace:: count and size
+
+.. include:: /includes/fact-unexpected-shutdown-accuracy.rst
+
+Replica Set Member State Restriction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.4-changes-repl-state-restrictions-operation.rst
+
+.. |operations| replace:: :dbcommand:`dbStats`
+
+.. _dbstats-output:
+
+Output
+------
+
+.. data:: dbStats.db
+
+   Name of the database.
+
+.. data:: dbStats.collections
+
+   Number of collections in the database.
+
+.. data:: dbStats.views
+
+   Number of :ref:`views <views-landing-page>` in the database.
+
+.. data:: dbStats.objects
+
+   Number of objects (specifically, :term:`documents <document>`) in the
+   database across all collections.
+
+.. data:: dbStats.avgObjSize
+
+   Average size of each document in bytes. This is the
+   :data:`~dbStats.dataSize` divided by the number of documents. The
+   :ref:`scale argument <scale-argument>` does not affect the
+   ``avgObjSize`` value.
+
+.. data:: dbStats.dataSize
+
+   Total size of the uncompressed data held in the database. The
+   :data:`~dbStats.dataSize` decreases when you remove :term:`documents
+   <document>`.
+
+   For databases using the :ref:`WiredTiger
+   <storage-wiredtiger-compression>` storage engine, ``dataSize`` may be
+   larger than ``storageSize`` if compression is enabled. The
+   ``dataSize`` decreases when documents shrink.
+
+   .. sum of all records not counting deleted records
+
+.. data:: dbStats.storageSize
+
+   Sum of the disk space allocated to all collections in the database for
+   :term:`document` storage, including free space.
+
+   The :data:`~dbStats.storageSize` does not decrease as you remove or
+   shrink documents. This value may be smaller than
+   :data:`~dbStats.dataSize` for databases using the WiredTiger storage
+   engine with :ref:`compression <storage-wiredtiger-compression>`
+   enabled.
+
+   :data:`~dbStats.storageSize` does not include space allocated to
+   indexes. See :data:`~dbStats.indexSize` for the total index size.
+
+   .. include links to eventual documentation of storage management
+
+.. data:: dbStats.freeStorageSize
+
+   Sum of the free space allocated to all collections in the database
+   for :term:`document` storage. Free database storage space is
+   allocated to the collection but does not contain data.
+
+   :data:`~dbStats.freeStorageSize` does not include free space
+   allocated to indexes. See :data:`~dbStats.indexFreeStorageSize` for
+   the total free index size.
+
+   To include this value in the :dbcommand:`dbStats` output, set
+   :ref:`freeStorage <dbStats-freeStorage>` to 1.
+
+   *Updated in version 5.3.0, 5.2.1, and 5.0.6*
+
+.. data:: dbStats.indexes
+
+   Total number of indexes across all collections in the database.
+
+.. data:: dbStats.indexSize
+
+   Sum of the disk space allocated to all indexes in the database, 
+   including free index space.
+
+   .. note::
+
+      .. |Clustered-collections| replace:: :ref:`clustered collections <clustered-collections>`
+
+      .. include:: /includes/clustered-collections-index-size.rst
+
+.. data:: dbStats.indexFreeStorageSize
+
+   Sum of the free disk space allocated to all indexes in the database. Free
+   database storage space is allocated to the index but does not contain
+   data.
+
+   :data:`~dbStats.indexFreeStorageSize` does not include free space
+   allocated to document storage. See :data:`~dbStats.freeStorageSize`
+   for the total free document storage size.
+
+   :data:`~dbStats.indexFreeStorageSize` does not include in-progress 
+   index builds.
+
+   To include this value in the :dbcommand:`dbStats` output, set
+   :ref:`freeStorage <dbStats-freeStorage>` to 1.
+
+   *Updated in version 7.0, 6.3.2, 6.0.7, 5.3.0, 5.2.1, 5.0.19, and 5.0.6*
+
+.. data:: dbStats.totalSize
+
+   Sum of the disk space allocated for both documents and indexes in all
+   collections in the database. Includes used and free storage space.
+   This is the sum of :data:`~dbStats.storageSize` and
+   :data:`~dbStats.indexSize`.
+
+.. data:: dbStats.totalFreeStorageSize
+
+   Sum of the free storage space allocated for both documents and
+   indexes in all collections in the database. This is the sum of
+   :data:`~dbStats.freeStorageSize` and
+   :data:`~dbStats.indexFreeStorageSize`.
+
+   To include this value in the :dbcommand:`dbStats` output, set
+   :ref:`freeStorage <dbStats-freeStorage>` to 1.
+
+   *Updated in version 5.3.0, 5.2.1, and 5.0.6.*
+
+.. data:: dbStats.scaleFactor
+
+   ``scale`` value used by the command.
+
+   If you specified a non-integer scale factor, MongoDB uses the
+   integer part of the specified factor. For example, if you specify a
+   scale factor of ``1023.999``, MongoDB uses ``1023`` as the scale
+   factor.
+
+.. data:: dbStats.fsUsedSize
+
+   Total size of all disk space in use on the filesystem where MongoDB
+   stores data.
+
+   .. seealso::
+
+      :option:`--dbpath <mongod --dbpath>`
+
+.. data:: dbStats.fsTotalSize
+
+   Total size of all disk capacity on the filesystem where MongoDB
+   stores data.
+
+Examples
+--------
+
+The following examples demonstrate :dbcommand:`dbStats` usage.
+
+Limit Data Returned
+~~~~~~~~~~~~~~~~~~~
+
+To limit the data returned to a single field, append the field name to
+the :dbcommand:`dbStats` command. This example returns the
+:data:`~dbStats.indexSize` value:
+
+.. code-block:: javascript
+
+   db.runCommand( { dbStats: 1 } ).indexSize
+
+View Free Space Allocated to Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To view free storage usage, set :ref:`freeStorage
+<dbStats-freeStorage>` to 1. 
+
+.. code-block:: javascript
+
+   db.runCommand( { dbStats: 1, scale: 1024, freeStorage: 1 } )
+
+Example output:
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 9, 12, 14
+
+   {
+     db: 'test',
+     collections: 2,
+     views: 0,
+     objects: 1689,
+     avgObjSize: 52.56542332741267,
+     dataSize: 86.7021484375,
+     storageSize: 100,
+     freeStorageSize: 32,
+     indexes: 2,
+     indexSize: 116,
+     indexFreeStorageSize: 36,
+     totalSize: 216,
+     totalFreeStorageSize: 68,
+     scaleFactor: 1024,
+     fsUsedSize: 60155820,
+     fsTotalSize: 61255492,
+     ok: 1,
+     '$clusterTime': {
+       clusterTime: Timestamp({ t: 1646085664, i: 1 }),
+       signature: {
+         hash: Binary(Buffer.from("0000000000000000000000000000000000000000", "hex"), 0),
+         keyId: Long("0")
+       }
+     },
+     operationTime: Timestamp({ t: 1646085664, i: 1 })
+   }
+
+The :ref:`freeStorage <dbStats-freeStorage>` field enables
+the collection and display of the highlighted metrics.
+
+The :ref:`scale <dbStats-scale>` field sets the displayed values to
+kilobytes.
+

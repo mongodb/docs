@@ -1,0 +1,373 @@
+=====
+hello
+=====
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. meta::
+   :keywords: isMaster
+
+Definition
+----------
+
+.. dbcommand:: hello
+
+   .. versionadded:: 5.0
+
+   :dbcommand:`hello` returns a document that describes the role of
+   the :binary:`~bin.mongod` instance. If the optional field
+   ``saslSupportedMechs`` is specified, the command also returns an
+   :data:`array of SASL mechanisms <hello.saslSupportedMechs>` used
+   to create the specified user's credentials.
+
+   If the instance is a member of a
+   replica set, then :dbcommand:`hello` returns a subset of the
+   replica set configuration and status including whether or not the
+   instance is the :term:`primary` of the replica set.
+
+   When sent to a :binary:`~bin.mongod` instance that is not a member of a
+   replica set, :dbcommand:`hello` returns a subset of this
+   information.
+
+   MongoDB :term:`drivers <driver>` and :term:`clients <client>` use
+   :dbcommand:`hello` to determine the state of the replica set
+   members and to discover additional members of a :term:`replica
+   set`.
+
+Compatibility
+-------------
+
+This command is available in deployments hosted in the following environments: 
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. include:: /includes/fact-environments-atlas-support-all.rst
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
+Syntax
+------
+
+The command has the following syntax:
+
+.. code-block:: javascript
+
+   db.runCommand( 
+      { 
+        hello: 1 
+      } 
+   )
+
+The :dbcommand:`hello` command accepts optional fields
+``saslSupportedMechs: <db.user>`` to return an additional field
+:data:`hello.saslSupportedMechs` in its result and ``comment <any>`` to
+add a log comment associated with the command.
+
+.. code-block:: javascript
+
+   db.runCommand( 
+      { 
+        hello: 1, 
+        saslSupportedMechs: "<db.username>", 
+        comment: <any> 
+      } 
+   )
+
+The :method:`db.hello()` method in :binary:`~bin.mongosh`
+provides a wrapper around :dbcommand:`hello`.
+
+Behavior
+--------
+
+.. |operation| replace:: :dbcommand:`hello`
+
+Client Disconnection
+~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.2-changes-disconnect.rst
+
+.. _hello-cmd-output:
+
+Output
+------
+
+All Instances
+~~~~~~~~~~~~~
+
+The following :dbcommand:`hello` fields are common across all
+roles:
+
+.. data:: hello.isWritablePrimary
+
+   A boolean value that reports when this node is writable. If
+   ``true``, then this instance is a :term:`primary` in a
+   :term:`replica set`, or a :binary:`~bin.mongos` instance, or a standalone
+   :binary:`~bin.mongod`.
+
+   This field will be ``false`` if the instance is a
+   :term:`secondary` member of a replica set or if the member is an
+   :term:`arbiter` of a replica set.
+
+.. data:: hello.topologyVersion
+
+   *For internal use by MongoDB.*
+
+.. data:: hello.maxBsonObjectSize
+
+   The maximum permitted size of a :term:`BSON` object in bytes for
+   this :binary:`~bin.mongod` process. If not provided, clients should
+   assume a max size of "``16 * 1024 * 1024``".
+
+.. data:: hello.maxMessageSizeBytes
+
+   The maximum permitted size of a :term:`BSON` wire protocol message.
+   The default value is ``48000000`` bytes.
+
+.. data:: hello.maxWriteBatchSize
+
+   The maximum number of write operations permitted in a write batch.
+   If a batch exceeds this
+   :limit:`limit<Write Command Batch Limit Size>`, the client
+   driver divides the batch into smaller groups each with counts less
+   than or equal to the value of this field.
+
+   The value of this limit is ``100,000`` writes.
+
+.. data:: hello.localTime
+
+   Returns the local server time in UTC. This value is an
+   :term:`ISO date <ISODate>`.
+
+.. data:: hello.logicalSessionTimeoutMinutes
+
+   .. include:: /includes/fact-session-timeout.rst
+
+   Only available when ``featureCompatibilityVersion`` is ``"3.6"`` or greater.
+
+.. data:: hello.connectionId
+
+   An identifier for the :binary:`mongod` / :binary:`mongos`
+   instance's outgoing connection to the client.
+
+.. data:: hello.minWireVersion
+
+   The earliest version of the wire protocol that this
+   :binary:`~bin.mongod` or :binary:`~bin.mongos` instance is capable of using
+   to communicate with clients.
+
+   Clients may use :data:`~hello.minWireVersion` to help negotiate
+   compatibility with MongoDB.
+
+.. data:: hello.maxWireVersion
+
+   The latest version of the wire protocol that this :binary:`~bin.mongod`
+   or :binary:`~bin.mongos` instance is capable of using to communicate
+   with clients.
+
+   Clients may use :data:`~hello.maxWireVersion` to help negotiate
+   compatibility with MongoDB.
+
+.. data:: hello.readOnly
+
+   A boolean value that, when ``true``, indicates that the
+   :binary:`~bin.mongod` or :binary:`~bin.mongos` is running in read-only mode.
+
+.. data:: hello.compression
+
+   An array listing the compression algorithms used or available for
+   use (i.e. common to both the client and the :binary:`~bin.mongod` or
+   :binary:`~bin.mongos` instance) to compress the communication
+   between the client and the :binary:`~bin.mongod` or
+   :binary:`~bin.mongos` instance.
+
+   The field is only available if compression is used. For example:
+
+   - If the :binary:`~bin.mongod` is enabled to use both the
+     ``snappy,zlib`` compressors and a client has specified ``zlib``,
+     the :data:`~hello.compression` field would contain:
+
+     .. code-block:: javascript
+
+        "compression": [ "zlib" ]
+
+   - If the :binary:`~bin.mongod` is enabled to use both the
+     ``snappy,zlib`` compressors and a client has specified ``zlib,snappy``,
+     the :data:`~hello.compression` field would contain:
+
+     .. code-block:: javascript
+
+        "compression": [ "zlib", "snappy" ]
+
+   - If the :binary:`~bin.mongod` is enabled to use  the
+     ``snappy`` compressor and a client has specified ``zlib,snappy``,
+     the :data:`~hello.compression` field would contain :
+
+     .. code-block:: javascript
+
+        "compression": [ "snappy" ]
+
+   - If the :binary:`~bin.mongod` is enabled to use  the ``snappy``
+     compressor and a client has specified ``zlib`` or the client has
+     specified no compressor, the field is omitted.
+
+   That is, if the client does not specify compression or if the client
+   specifies a compressor not enabled for the connected
+   :binary:`~bin.mongod` or :binary:`~bin.mongos` instance, the field
+   does not return.
+
+.. data:: hello.saslSupportedMechs
+
+   An array of SASL mechanisms used to create the user's credential or
+   credentials.  Supported SASL mechanisms are:
+
+   - ``GSSAPI``
+   - ``SCRAM-SHA-256``
+   - ``SCRAM-SHA-1``
+
+   The field is returned only when the command is run with the
+   ``saslSupportedMechs`` field:
+
+   .. code-block:: javascript
+
+      db.runCommand( { hello: 1, saslSupportedMechs: "<db.username>" } )
+
+Sharded Instances
+~~~~~~~~~~~~~~~~~
+
+:binary:`~bin.mongos` instances add the following field to the
+:dbcommand:`hello` response document:
+
+.. data:: hello.msg
+
+   Contains the value ``isdbgrid`` when :dbcommand:`hello`
+   returns from a :binary:`~bin.mongos` instance.
+
+Replica Sets
+~~~~~~~~~~~~
+
+:dbcommand:`hello` contains these fields when returned by a member
+of a replica set:
+
+.. data:: hello.hosts
+
+   An array of strings in the format of ``"[hostname]:[port]"`` that
+   lists all members of the :term:`replica set` that are neither
+   :term:`hidden <hidden member>`, :term:`passive <passive member>`,
+   nor :term:`arbiters <arbiter>`.
+
+   Drivers use this array and the :data:`hello.passives` to determine
+   which members to read from.
+
+.. data:: hello.setName
+
+   The name of the current :replica set.
+
+.. data:: hello.setVersion
+
+   The current replica set config version.
+
+.. data:: hello.secondary
+
+   A boolean value that, when ``true``, indicates if the
+   :binary:`~bin.mongod` is a :term:`secondary` member of a :term:`replica
+   set`.
+
+.. data:: hello.passives
+
+   An array of strings in the format of ``"[hostname]:[port]"``
+   listing all members of the :term:`replica set` which have a
+   :rsconf:`members[n].priority` of ``0``.
+
+   This field only appears if there is at least one member with a
+   :rsconf:`members[n].priority` of ``0``.
+
+   Drivers use this array and the :data:`hello.hosts` to determine
+   which members to read from.
+
+.. data:: hello.arbiters
+
+   An array of strings  in the format of ``"[hostname]:[port]"``
+   listing all members of the :term:`replica set` that are
+   :term:`arbiters <arbiter>`.
+
+   This field only appears if there is at least one arbiter in the
+   replica set.
+
+.. data:: hello.primary
+
+   A string in the format of ``"[hostname]:[port]"`` listing the
+   current :term:`primary` member of the replica set.
+
+.. data:: hello.arbiterOnly
+
+   A boolean value that , when ``true``, indicates that the current
+   instance is an :term:`arbiter`.  The :data:`~hello.arbiterOnly`
+   field is only present, if the instance is an arbiter.
+
+.. data:: hello.passive
+
+   A boolean value that, when ``true``, indicates that the current
+   instance is :term:`passive <passive member>`.  The
+   :data:`~hello.passive` field is only present for members with a
+   :rsconf:`members[n].priority` of ``0``.
+
+.. data:: hello.hidden
+
+   A boolean value that, when ``true``, indicates that the current
+   instance is :term:`hidden <hidden member>`.  The
+   :data:`~hello.hidden` field is only present for hidden members.
+
+.. data:: hello.tags
+
+   .. include:: /includes/fact-tags-field.rst
+
+   .. seealso::
+
+      :rsconf:`members[n].tags`
+
+
+.. data:: hello.me
+
+   The ``[hostname]:[port]`` of the member that returned
+   :dbcommand:`hello`.
+
+.. data:: hello.electionId
+
+   A unique identifier for each election. Included only in the output
+   of :dbcommand:`hello` for the :term:`primary`. Used by clients
+   to determine when elections occur.
+
+.. data:: hello.lastWrite
+
+   A document containing :term:`optime` and date information for the
+   database's most recent write operation.
+
+   .. data:: hello.lastWrite.opTime
+
+      An object giving the :term:`optime` of the last write operation.
+
+   .. data:: hello.lastWrite.lastWriteDate
+
+      A date object containing the
+      time of the last write operation.
+
+   .. data:: hello.lastWrite.majorityOpTime
+
+      An object giving the :term:`optime` of the last write operation
+      readable by :readconcern:`majority <"majority">` reads.
+
+   .. data:: hello.lastWrite.majorityWriteDate
+
+      A date object containing the
+      time of the last write operation readable by
+      :readconcern:`majority <"majority">` reads.
+
+For details on the ``ok`` status field, the ``operationTime`` field,
+and the ``$clusterTime`` field, see
+:ref:`Command Response <command-response>`.

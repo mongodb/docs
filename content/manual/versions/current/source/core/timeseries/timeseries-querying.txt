@@ -1,0 +1,100 @@
+.. meta::
+   :keywords: querying
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. facet::
+   :name: programming_language
+   :values: javascript/typescript
+
+
+.. _timeseries-querying:
+
+===============================
+About Querying Time Series Data
+===============================
+   
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+MongoDB groups documents with matching :ref:`metaFields
+<timeseries-collections-metafield>` to optimize the storage and query
+latency of time series data. Your choice of ``metaField`` has the biggest 
+impact on optimizing queries in your application.
+
+
+Querying the metaField
+----------------------
+
+You query a time series collection the same way you query a standard MongoDB
+collection. For an example query and example aggregation pipeline, see
+:ref:`timeseries-query-example`. For a list of querying best practices, see 
+:ref:`tsc-best-practice-optimize-query-performance`.
+
+Queries against time series data typically focus on a single time series in the
+collection. For example, consider a time series collection that tracks stock
+data using the following schema:
+
+.. code-block:: javascript
+
+   {
+      _id: 573a1397f29313caabce8347,
+
+      "ticker": "MDB",
+      "timestamp": ISODate("2024-07-24T13:45:00.000Z"),
+      "price": 248.21,
+      "volume": 6930
+   }
+
+The collection has the following settings:
+
+.. code-block:: javascript
+
+   timeseries: {
+      timeField: "timestamp",
+      metaField: "ticker",
+      granularity: "seconds"
+   }
+
+MongoDB groups documents with matching ``ticker`` values. Instead of having to
+check for matches across all fields in all documents, the server only has to
+check against the ``metaField``, in this case ``ticker``, to narrow down
+the search range to a unique time series. This fits the expected use
+case, which is searching for activity on a single stock. A user searching for
+information on MongoDB stock (MDB) doesn't need to consider results for Amazon
+(AMZN).
+
+Querying the timeField
+----------------------
+
+The second major dimension for querying time series data is time. Since MongoDB
+groups documents that have both an identical ``metaField`` value and close
+``timeField`` values, this further narrows the scope of a query to a range of
+buckets. Recent transactions are kept in memory, so it's easy to stream data in
+real time.
+
+.. _timeseries-querying-block-processing:
+
+Block Processing 
+----------------
+
+.. include:: /includes/fact-block-processing.rst
+
+MongoDB automatically enables block processing for eligible time series queries. 
+You cannot manually specify whether a query uses block processing. To see if 
+your time series query uses block processing, see 
+:data:`~explain.queryPlanner.winningPlan.slotBasedPlan.stages` in the explain 
+plan output.
+
+.. toctree::
+   :titlesonly:
+
+   Aggregations & Operators </core/timeseries/timeseries-aggregations-operators>
+   List Time Series Collections </core/timeseries/timeseries-check-type>
+   Build Materialized Views </core/timeseries/timeseries-build-materialized-views>
+   

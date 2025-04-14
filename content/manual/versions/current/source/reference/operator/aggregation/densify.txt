@@ -1,0 +1,577 @@
+======================
+$densify (aggregation)
+======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. pipeline:: $densify
+
+   .. versionadded:: 5.1
+   
+   .. include:: /includes/fact-densify-description.rst
+
+   You can use :pipeline:`$densify` to:
+   
+   - Fill gaps in time series data.
+   - Add missing values between groups of data.
+   - Populate your data with a specified range of values.
+
+Syntax
+------
+
+The :pipeline:`$densify` stage has this syntax:
+
+.. code-block:: none
+
+   {
+      $densify: {
+         field: <fieldName>,
+         partitionByFields: [ <field 1>, <field 2> ... <field n> ],
+         range: {
+            step: <number>,
+            unit: <time unit>,
+            bounds: < "full" || "partition" > || [ < lower bound >, < upper bound > ]
+         }
+      }
+   }
+
+The :pipeline:`$densify` stage takes a document with these fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 15 70
+
+   * - Field
+     - Necessity
+     - Description
+
+   * - :ref:`field <densify-field>`
+
+     - Required
+     
+     - .. _densify-field:
+     
+       The field to densify. The values of the specified
+       ``field`` must either be all numeric values or all dates.
+
+       Documents that do not contain the specified ``field`` continue
+       through the pipeline unmodified.
+
+       .. include:: /includes/use-dot-notation.rst
+
+       For restrictions, see :ref:`densify-field-restrictions`.
+
+   * - :ref:`partitionByFields <densify-partition-by-fields>`
+
+     - Optional
+
+     - .. _densify-partition-by-fields:
+
+       The set of fields to act as the compound key to group
+       the documents. In the :pipeline:`$densify` stage, each group of
+       documents is known as a *partition*.
+
+       If you omit this field, :pipeline:`$densify` uses one partition
+       for the entire collection.
+
+       For an example, see :ref:`densify-examples-partitions`.
+
+       For restrictions, see :ref:`partition-by-fields-restrictions`.
+
+   * - :ref:`range <densify-range>`
+
+     - Required
+
+     - .. _densify-range:
+
+       An object that specifies how the data is densified.
+
+   * - :ref:`range.bounds <densify-bounds>`
+
+     - Required
+
+     - .. _densify-bounds:
+
+       You can specify ``range.bounds`` as either:
+
+       - An array: ``[ < lower bound >, < upper bound > ]``,
+       - A string: either ``"full"`` or ``"partition"``.
+
+       If ``bounds`` is an array:
+       
+       - :pipeline:`$densify` adds documents spanning the range of
+         values within the specified bounds. 
+
+       - The data type for the bounds must correspond to the data type
+         in the :ref:`field <densify-field>` being densified.
+       
+       - For behavior details, see :ref:`bounds-behavior`.
+
+       If ``bounds`` is ``"full"``:
+
+       - :pipeline:`$densify` adds documents spanning the full range of
+         values of the ``field`` being densified.
+
+       If ``bounds`` is ``"partition"``:
+
+       - :pipeline:`$densify` adds documents to each partition,
+         similar to if you had run a ``full`` range densification on
+         each partition individually.
+
+   * - :ref:`range.step <densify-step>`
+
+     - Required
+
+     - .. _densify-step:
+
+       The amount to increment the :ref:`field <densify-field>` value
+       in each document. :pipeline:`$densify` creates a new document for
+       each ``step`` between the existing documents.
+
+       If :ref:`range.unit <densify-unit>` is specified, ``step``
+       must be an integer. Otherwise, ``step`` can be any numeric
+       value.
+
+   * - :ref:`range.unit <densify-unit>`
+
+     - Required if :ref:`field <densify-field>` is a date.
+
+     - .. _densify-unit:
+
+       The unit to apply to the :ref:`step <densify-step>` field when
+       incrementing date values in :ref:`field <densify-field>`.
+
+       You can specify one of the following values for ``unit``
+       as a string:
+
+       - ``millisecond``
+       - ``second``
+       - ``minute``
+       - ``hour``
+       - ``day``
+       - ``week``
+       - ``month``
+       - ``quarter``
+       - ``year``
+
+       For an example, see :ref:`densify-examples-time-series`. 
+
+Behavior and Restrictions
+-------------------------
+
+.. _densify-field-restrictions:
+
+``field`` Restrictions
+~~~~~~~~~~~~~~~~~~~~~~
+
+For documents that contain the specified :ref:`field <densify-field>`,
+:pipeline:`$densify` errors if: 
+
+- Any document in the collection has a ``field`` value  of type date and
+  the :ref:`unit <densify-unit>` field is not specified.
+
+- Any document in the collection has a ``field`` value  of type numeric
+  and the :ref:`unit <densify-unit>` field is specified.
+
+- The ``field`` name begins with ``$``. You must rename the field if
+  you want to densify it. To rename fields, use :pipeline:`$project`.
+
+- .. versionadded:: 8.1
+  
+     ``field`` shares its prefix with any field in the
+     ``partitionByFields`` array. For example, the following combinations
+     of ``field`` and ``partitionByFields`` result in an error:
+
+     .. include:: /includes/densify-validation-examples.rst
+
+.. _partition-by-fields-restrictions:
+
+``partitionByFields`` Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:pipeline:`$densify` errors if any field name in the
+:ref:`partitionByFields <densify-partition-by-fields>` array:
+
+- Evaluates to a non-string value.
+- Begins with ``$``.
+
+.. _bounds-behavior:
+
+``range.bounds`` Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If :ref:`range.bounds <densify-bounds>` is an array: 
+
+- The lower bound indicates the start value for the added
+  documents, irrespective of documents already in the collection.
+
+- The lower bound is inclusive.
+
+- The upper bound is exclusive.
+
+- :pipeline:`$densify` does not filter out documents with
+  :ref:`field <densify-field>` values outside of the specified
+  bounds.
+
+.. note:: 
+
+   Starting in MongoDB 8.0, :pipeline:`$densify` treats bounds with an equal
+   lower and upper bound as an empty set and does not generate a document
+   with the bound as the field value. 
+   
+   In prior versions, :pipeline:`$densify` treats bounds with an equal lower 
+   and upper bound as a closed interval and generates a document with the 
+   bound value as a field value if the collection does not already contain
+   a document with the bound value. 
+
+   For example, a :ref:`range.bounds <densify-bounds>` of ``[10, 10]`` generates an extra document 
+   with field value ``10`` in versions prior to 8.0, but does not generate such a 
+   document in 8.0 and later.
+
+Order of Output
+~~~~~~~~~~~~~~~
+
+:pipeline:`$densify` does not guarantee sort order of the documents
+it outputs.
+
+To guarantee sort order, use :pipeline:`$sort` on the field you want
+to sort by.
+
+Examples
+--------
+
+.. _densify-examples-time-series:
+
+Densify Time Series Data
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create a ``weather`` collection that contains temperature readings over 
+four hour intervals.
+
+.. code-block:: javascript
+
+  db.weather.insertMany( [
+     {
+         "metadata": { "sensorId": 5578, "type": "temperature" },
+         "timestamp": ISODate("2021-05-18T00:00:00.000Z"),
+         "temp": 12
+     }, 
+     {
+         "metadata": { "sensorId": 5578, "type": "temperature" },
+         "timestamp": ISODate("2021-05-18T04:00:00.000Z"),
+         "temp": 11
+     }, 
+     {
+         "metadata": { "sensorId": 5578, "type": "temperature" },
+         "timestamp": ISODate("2021-05-18T08:00:00.000Z"),
+         "temp": 11
+     }, 
+     {
+         "metadata": { "sensorId": 5578, "type": "temperature" },
+         "timestamp": ISODate("2021-05-18T12:00:00.000Z"),
+         "temp": 12
+     }
+  ] )
+
+This example uses the :pipeline:`$densify` stage to fill in the gaps
+between the four-hour intervals to achieve hourly granularity for the
+data points:
+
+.. code-block:: javascript
+
+  db.weather.aggregate( [
+     {
+        $densify: {
+           field: "timestamp",
+           range: {
+              step: 1, 
+              unit: "hour",
+              bounds:[ ISODate("2021-05-18T00:00:00.000Z"), ISODate("2021-05-18T08:00:00.000Z") ]
+           }
+        }
+     }
+  ] )
+
+In the example:
+
+- The :pipeline:`$densify` stage fills in the gaps of time in between the 
+  recorded temperatures.
+  
+  - ``field: "timestamp"`` densifies the ``timestamp`` field.
+  
+  - ``range:``
+  
+    - ``step: 1`` increments the ``timestamp`` field by 1 unit.
+  
+    - ``unit: hour`` densifies the ``timestamp`` field by the hour.
+  
+    - ``bounds: [ ISODate("2021-05-18T00:00:00.000Z"), ISODate("2021-05-18T08:00:00.000Z") ]``
+      sets the range of time that is densified.
+
+In the following output, the :pipeline:`$densify` stage fills in the gaps of time
+between the hours of ``00:00:00`` and ``08:00:00``.
+
+.. code-block:: javascript
+  :emphasize-lines: 8-10, 17-19
+  :copyable: false
+
+  [
+    {
+      _id: ObjectId("618c207c63056cfad0ca4309"),
+      metadata: { sensorId: 5578, type: 'temperature' },
+      timestamp: ISODate("2021-05-18T00:00:00.000Z"),
+      temp: 12
+    },
+    { timestamp: ISODate("2021-05-18T01:00:00.000Z") },
+    { timestamp: ISODate("2021-05-18T02:00:00.000Z") },
+    { timestamp: ISODate("2021-05-18T03:00:00.000Z") },
+    {
+      _id: ObjectId("618c207c63056cfad0ca430a"),
+      metadata: { sensorId: 5578, type: 'temperature' },
+      timestamp: ISODate("2021-05-18T04:00:00.000Z"),
+      temp: 11
+    },
+    { timestamp: ISODate("2021-05-18T05:00:00.000Z") },
+    { timestamp: ISODate("2021-05-18T06:00:00.000Z") },
+    { timestamp: ISODate("2021-05-18T07:00:00.000Z") },
+    {
+      _id: ObjectId("618c207c63056cfad0ca430b"),
+      metadata: { sensorId: 5578, type: 'temperature' },
+      timestamp: ISODate("2021-05-18T08:00:00.000Z"),
+      temp: 11
+    }
+    {
+      _id: ObjectId("618c207c63056cfad0ca430c"),
+      metadata: { sensorId: 5578, type: 'temperature' },
+      timestamp: ISODate("2021-05-18T12:00:00.000Z"),
+      temp: 12
+    }
+  ]
+
+.. _densify-examples-partitions:
+
+Densifiction with Partitions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create a ``coffee`` collection that contains data for two
+varieties of coffee beans:
+
+.. code-block:: javascript
+
+   db.coffee.insertMany( [ 
+      {
+         "altitude": 600,
+         "variety": "Arabica Typica",
+         "score": 68.3
+      },
+      {
+         "altitude": 750,
+         "variety": "Arabica Typica",
+         "score": 69.5
+      },
+      {
+         "altitude": 950,
+         "variety": "Arabica Typica",
+         "score": 70.5
+      },
+      {
+         "altitude": 1250,
+         "variety": "Gesha",
+         "score": 88.15
+      },
+      {
+        "altitude": 1700,
+        "variety": "Gesha",
+        "score": 95.5,
+        "price": 1029
+      }
+   ] )
+
+Densify the Full Range of Values
+````````````````````````````````
+
+This example uses :pipeline:`$densify` to densify the
+``altitude`` field for each coffee ``variety``:
+
+.. code-block:: javascript
+   :emphasize-lines: 7
+
+   db.coffee.aggregate( [
+      {
+         $densify: {
+            field: "altitude",
+            partitionByFields: [ "variety" ],
+            range: {
+               bounds: "full",
+               step: 200
+            }
+         }
+      }
+   ] )
+
+The example aggregation:
+
+- Partitions the documents by ``variety`` to create one grouping for
+  ``Arabica Typica`` and one for ``Gesha`` coffee.
+
+- Specifies a ``full`` range, meaning that the data is densified
+  across the full range of existing documents *for each partition*.
+
+- Specifies a ``step`` of ``200``, meaning new documents are created
+  at ``altitude`` intervals of ``200``.
+
+The aggregation outputs the following documents:
+
+.. code-block:: javascript
+   :emphasize-lines: 14,21-24,31-32,40-43
+   :copyable: false
+
+   [
+      {
+        _id: ObjectId("618c031814fbe03334480475"),
+        altitude: 600,
+        variety: 'Arabica Typica',
+        score: 68.3
+      },
+      {
+        _id: ObjectId("618c031814fbe03334480476"),
+        altitude: 750,
+        variety: 'Arabica Typica',
+        score: 69.5
+      },
+      { variety: 'Arabica Typica', altitude: 800 },
+      {
+        _id: ObjectId("618c031814fbe03334480477"),
+        altitude: 950,
+        variety: 'Arabica Typica',
+        score: 70.5
+      },
+      { variety: 'Gesha', altitude: 600 },
+      { variety: 'Gesha', altitude: 800 },
+      { variety: 'Gesha', altitude: 1000 },
+      { variety: 'Gesha', altitude: 1200 },
+      {
+        _id: ObjectId("618c031814fbe03334480478"),
+        altitude: 1250,
+        variety: 'Gesha',
+        score: 88.15
+      },
+      { variety: 'Gesha', altitude: 1400 },
+      { variety: 'Gesha', altitude: 1600 },
+      {
+        _id: ObjectId("618c031814fbe03334480479"),
+        altitude: 1700,
+        variety: 'Gesha',
+        score: 95.5,
+        price: 1029
+      },
+      { variety: 'Arabica Typica', altitude: 1000 },
+      { variety: 'Arabica Typica', altitude: 1200 },
+      { variety: 'Arabica Typica', altitude: 1400 },
+      { variety: 'Arabica Typica', altitude: 1600 }
+    ]
+
+This image visualizes the documents created with :pipeline:`$densify`:
+
+.. figure:: /images/densification-full-range.png
+   :alt: State of the coffee collection after full-range densifiction
+   :figwidth: 700px
+
+.. include:: /includes/fact-densify-image-explanation.rst
+
+Densify Values within Each Partition
+````````````````````````````````````
+
+This example uses :pipeline:`$densify` to only densify gaps in the
+``altitude`` field within each ``variety``:
+
+.. code-block:: javascript
+   :emphasize-lines: 7
+
+   db.coffee.aggregate( [
+      {
+         $densify: {
+            field: "altitude",
+            partitionByFields: [ "variety" ],
+            range: {
+               bounds: "partition",
+               step: 200
+            }
+         }
+      }
+   ] )
+
+The example aggregation:
+
+- Partitions the documents by ``variety`` to create one grouping for
+  ``Arabica Typica`` and one for ``Gesha`` coffee.
+
+- Specifies a ``partition`` range, meaning that the data is densified
+  within each partition.
+
+  - For the ``Arabica Typica`` partition, the range is ``600``-``950``.
+
+  - For the ``Gesha`` partition, the range is ``1250``-``1700``.
+
+- Specifies a ``step`` of ``200``, meaning new documents are created
+  at ``altitude`` intervals of ``200``.
+
+The aggregation outputs the following documents:
+
+.. code-block:: javascript
+   :emphasize-lines: 14,27-28
+   :copyable: false
+
+   [
+      {
+        _id: ObjectId("618c031814fbe03334480475"),
+        altitude: 600,
+        variety: 'Arabica Typica',
+        score: 68.3
+      },
+      {
+        _id: ObjectId("618c031814fbe03334480476"),
+        altitude: 750,
+        variety: 'Arabica Typica',
+        score: 69.5
+      },
+      { variety: 'Arabica Typica', altitude: 800 },
+      {
+        _id: ObjectId("618c031814fbe03334480477"),
+        altitude: 950,
+        variety: 'Arabica Typica',
+        score: 70.5
+      },
+      {
+        _id: ObjectId("618c031814fbe03334480478"),
+        altitude: 1250,
+        variety: 'Gesha',
+        score: 88.15
+      },
+      { variety: 'Gesha', altitude: 1450 },
+      { variety: 'Gesha', altitude: 1650 },
+      {
+        _id: ObjectId("618c031814fbe03334480479"),
+        altitude: 1700,
+        variety: 'Gesha',
+        score: 95.5,
+        price: 1029
+      }
+    ]
+
+This image visualizes the documents created with :pipeline:`$densify`:
+
+.. figure:: /images/densification-by-partition.png
+   :alt: State of the coffee collection after partition range densification
+   :figwidth: 700px
+
+.. include:: /includes/fact-densify-image-explanation.rst

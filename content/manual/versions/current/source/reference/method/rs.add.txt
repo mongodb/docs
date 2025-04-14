@@ -1,0 +1,192 @@
+========
+rs.add()
+========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: rs.add(host, arbiterOnly)
+
+   Adds a member to a :term:`replica set`. To run the method, you must
+   connect to the :term:`primary` of the replica set.
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+   
+      * - Parameter
+   
+        - Type
+   
+        - Description
+   
+      * - ``host``
+   
+        - string or document
+   
+        - The new member to add to the replica set. Specify either as a string
+          or a configuration document:
+          
+          - If a document, specify a replica set member configuration document
+            as found in the :rsconf:`members` array. You must specify the
+            :rsconf:`~members[n].host` field in the member configuration
+            document.
+          
+            .. code-block:: javascript
+          
+               {
+                 _id: <int>,
+                 host: <string>,        // required
+                 arbiterOnly: <boolean>,
+                 buildIndexes: <boolean>,
+                 hidden: <boolean>,
+                 priority: <number>,
+                 tags: <document>,
+                 secondaryDelaySecs: <int>,
+                 votes: <number>
+              }
+          
+            For a description of the configuration field, refer to
+            :rsconf:`members`.
+          
+          - If a string, specify the hostname and optionally the port number
+            for the new member.
+          
+          
+   
+      * - ``arbiterOnly``
+   
+        - boolean
+   
+        - Optional. Applies only if the ``<host>`` value is a string. If ``true``, the
+          added host is an arbiter.
+
+
+   :method:`rs.add()` provides a wrapper around some of the
+   functionality of the :dbcommand:`replSetReconfig` :term:`database
+   command` and the corresponding :binary:`~bin.mongosh` helper
+   :method:`rs.reconfig()`. See the
+   :doc:`/reference/replica-configuration` document for full
+   documentation of all replica set configuration options.
+
+Compatibility
+-------------
+
+This method is available in deployments hosted in the following environments:
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
+IP Binding
+----------
+
+.. include:: /includes/fact-default-bind-ip.rst
+
+.. include:: /includes/important-hostnames.rst
+
+Behavior
+--------
+
+:method:`rs.add()` can, in some cases, trigger an election for primary
+which will disconnect the shell (such as adding a new member with
+a higher priority than the current primary). In such cases,
+:binary:`~bin.mongosh` may display an error even if the operation
+succeeds.
+
+.. warning::
+
+   .. include:: /includes/tip-repl-set-add-members.rst
+
+Example
+-------
+
+.. _rs-add-member-new-replica-set:
+
+Add a Secondary to a New Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To add a new secondary member with default vote and priority settings
+to a new replica set, you can call the :method:`rs.add()` method with:
+
+- Member Configuration Document
+
+  .. code-block:: javascript
+
+     rs.add( { host: "mongodbd4.example.net:27017" } )
+
+- Host name
+
+  .. code-block:: javascript
+
+     rs.add( "mongodbd4.example.net:27017" )
+
+.. _rs-add-member-configuration-document:
+
+Add a Secondary to an Existing Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Add a new secondary member with default vote and priority settings
+to an existing replica set:
+
+.. code-block:: javascript
+
+     rs.add( { host: "mongodbd4.example.net:27017" } )
+
+.. warning::
+
+   .. include:: /includes/tip-repl-set-add-members.rst
+
+.. _rs-add-priority-0:
+
+Add a Priority 0 Member to a Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation adds a :binary:`~bin.mongod` instance, running on
+the host ``mongodb4.example.net`` and accessible on the default port
+``27017``, as a :ref:`priority 0 <replica-set-secondary-only-members>`
+secondary member:
+
+.. code-block:: javascript
+
+   rs.add( { host: "mongodbd4.example.net:27017", priority: 0 } )
+
+You must specify the :rsconf:`members[n].host` field in the member
+configuration document.
+
+See the :rsconf:`members` for the available replica set member
+configuration settings.
+
+.. _rs-add-hostname:
+
+Add an Arbiter to a Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation adds a :binary:`~bin.mongod` instance, running on
+the host ``mongodb3.example.net`` and accessible on the default port
+``27017`` as an arbiter:
+
+- Member Configuration Document
+
+  .. code-block:: javascript
+
+     rs.add( { host: "mongodb3.example.net:27017", arbiterOnly: true } )
+
+- Host name
+
+  .. code-block:: javascript
+
+     rs.add("mongodb3.example.net:27017", true)
+
+See also:
+
+- :doc:`/tutorial/expand-replica-set`
+- :doc:`/tutorial/add-replica-set-arbiter`
+- :doc:`/tutorial/replace-replica-set-member`
+- :doc:`/tutorial/remove-replica-set-member`

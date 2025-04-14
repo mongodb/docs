@@ -1,0 +1,191 @@
+.. _7.0-compatibility:
+
+====================================
+Compatibility Changes in MongoDB 7.0
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. |version| replace:: 7.0
+
+This page describes changes introduced in MongoDB 7.0 that can affect
+compatibility with older versions of MongoDB.
+
+MongoDB 7.0 is a |lts| Release, which means that it is supported for
+both MongoDB Atlas and on-premises deployments. MongoDB 7.0 includes
+changes introduced in MongoDB Rapid Releases 6.1, 6.2, and 6.3. This
+page describes compatibility changes introduced in those Rapid Releases
+and MongoDB 7.0.
+
+To learn more about the differences between |lts| and Rapid Releases,
+see :ref:`release-version-numbers`.
+
+For detail on downgrading from MongoDB 7.0, see :ref:`7.0-downgrade`.
+
+Deprecations
+------------
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Deprecated
+
+     - Description
+
+   * - :authaction:`storageDetails`
+
+     - *Deprecated in version 7.0.*
+
+   * - :parameter:`taskExecutorPoolSize`
+
+     - *Deprecated only for Linux in 7.0.*
+
+Free Monitoring Decommissioned
+------------------------------
+
+Starting in MongoDB 7.0, :ref:`free monitoring
+<free-monitoring-mongodb>` is decommissioned. The following aren't
+available:
+
+- ``cloud.monitoring.free`` configuration option
+- ``--enableFreeMonitoring`` server parameter
+- ``db.enableFreeMonitoring()`` command
+- ``db.disableFreeMonitoring()`` command
+- ``setFreeMonitoring`` command
+
+Queryable Encryption General Availability
+-----------------------------------------
+
+Starting in MongoDB 7.0, {+qe-equality-ga+} is generally
+available (GA). Improvements in the GA make it
+incompatible with the {+qe-preview+}, which should not be used now that
+the feature is GA.
+
+Server and Drivers Compatibility Between Public Preview and GA
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To use {+qe-equality-ga+}, MongoDB server must be version 7.0 or
+later and drivers must be 7.0 compatible. If you are still using the
+{+qe-preview+} included with MongoDB 6.x, the server must remain on
+version 6.x and the drivers must be 6.x compatible. You cannot use
+MongoDB 6.x compatible drivers with a 7.0 server, or 7.0 compatible
+drivers with a 6.x server. Attempting to do so results in an error.
+
+To make upgrading easier, MongoDB 7.0 drivers can decrypt data
+created with MongoDB 6.x drivers. For upgrade options, see the following sections.
+
+Start Fresh (Preferred)
++++++++++++++++++++++++
+
+If possible, create new collections rather than migrating those produced
+with the {+qe-preview+} in MongoDB 6.x:
+
+#. Upgrade MongoDB server and drivers to 7.0.
+#. Configure a new encrypted collection with a different name from the
+   previous collection.
+#. Insert new data, or an unencrypted version of the existing data if
+   you have a local copy.
+#. Drop the previous version 6.x collection.
+
+Migration
++++++++++
+
+If you cannot use new data or do not have an unencrypted version of the
+existing data:
+
+#. Upgrade MongoDB server and drivers to 7.0
+#. Using a 7.0 compatible driver, query the encrypted collection to decrypt it.
+#. Save the output locally.
+#. Configure a new encrypted collection and ingest the data.
+
+
+.. warning::
+   * The :binary:`~bin.mongoexport` and :binary:`~bin.mongodump` 
+     operations do not decrypt the collection. You must query the 
+     collection from a driver to output the decrypted data. 
+   * MongoDB 7.0 compatible drivers can't query encrypted fields on 
+     data encrypted with MongoDB 6.x compatible drivers. To decrypt 
+     data, either query an unencrypted field or query the entire collection.
+
+.. _7.0-downgrade-incompatible:
+
+Backward-Incompatible Features
+------------------------------
+
+The following 7.0 features are not compatible with earlier versions of
+MongoDB. To downgrade from MongoDB 7.0 to an earlier version, you must
+remove data that uses any of the following features:
+
+- Collections with ``encryptedFields`` with :ref:`range indexes
+  <sharding-ranged>`
+
+- Compound wildcard indexes require FCV 7.0 or greater. A pre-7.0
+  :binary:`mongod` does not start if you are using one or more compound
+  wildcard indexes.
+
+- Config servers that have collections with
+  ``changeStreamPreAndPostImages`` enabled
+
+- Secondary :ref:`TTL indexes <index-feature-ttl>` with :ref:`partial
+  filters <index-type-partial>` on :ref:`time series collections
+  <manual-timeseries-collection>`
+
+- Time series collections with custom bucketing parameters
+
+
+Intra-Node Authentication
+-------------------------
+
+Starting in MongoDB 7.0, you can configure servers to authenticate 
+X.509 certificates as cluster members identified by attributes or extension
+values.  You can also override this configuration to accept alternate 
+certificates during a rolling upgrade.
+
+To downgrade to MongoDB 6.0, perform the certificate rotation procedure to unset
+the :setting:`net.tls.clusterAuthX509` setting and rotate the cluster
+membership certificates to ones with matching DC, O, and OU attributes.
+
+Once this is complete, you can downgrade the cluster.  
+
+Time-Series
+-----------
+
+- Remove partial TTL indexes from time series collections.
+
+- Remove or modify collections using new index parameters.  In some cases, you
+  may use :dbcommand:`collMod` to switch to legacy granularity settings, if not
+  you need to drop the collection before downgrading.
+
+Cluster Configuration
+---------------------
+
+Active :dbcommand:`setClusterParameter` parameter operations prevent
+feature Compatibility Version (FCV) from successful completion.
+
+
+Encrypted Multi-Map (EMM)
+--------------------------
+
+Remove collections that use the ``encryptedFields`` collection option 
+before downgrading.
+
+Wildcard Indexes
+----------------
+
+Compound wildcard indexes require FCV 7.0 or greater. A pre-7.0
+:binary:`mongod` does not start if you are using one or more compound
+wildcard indexes.
+
+OIDC Access Token Authentication Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-7-0-oidc-audience.rst
+
+For details, see :ref:`oidcidentityproviders-fields`.

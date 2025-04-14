@@ -1,0 +1,404 @@
+title: "Restore the CSRS primary :binary:`mongod <bin.mongod>` data files."
+stepnum: 1
+ref: restore-backup-files
+content: |
+
+  Select the tab that corresponds to your preferred backup method:
+
+  .. tabs::
+
+     tabs:
+       - id: lvm
+         name: "LVM Snapshot"
+         content: |
+           1. Mount the :term:`LVM` snapshot on the target host machine. 
+              The specific steps for mounting an LVM snapshot depends on 
+              your LVM configuration.
+
+              The following example assumes an LVM snapshot created 
+              using the :ref:`lvm-backup-operation` step in the
+              :doc:`/tutorial/backup-with-filesystem-snapshots` 
+              procedure.
+
+              .. code-block:: bash
+
+                 lvcreate --size 250GB --name mongod-datafiles-snapshot vg0
+                 gzip -d -c mongod-datafiles-snapshot.gz | dd o/dev/vg0/mongod-datafiles-snapshot
+                 mount /dev/vg0/mongod-datafiles-snapshot /snap/mongodb
+
+              This example may not apply to all possible LVM 
+              configurations. Refer to the LVM documentation for your 
+              system for more complete guidance on LVM restoration.
+
+           #. Copy the :binary:`mongod <bin.mongod>` data files from the
+              snapshot mount to the data directory created in
+              :guilabel:`B. Prepare the Target Host for Restoration`:
+
+              .. code-block:: bash
+
+                 cp -a /snap/mongodb/path/to/mongodb /path/to/mongodb
+
+              The ``-a`` option recursively copies the contents of
+              the source path to the destination path while preserving
+              folder and file permissions.
+
+           #. Comment out or omit the following 
+              :ref:`configuration file <configuration-file>` settings:
+
+              .. code-block:: yaml
+
+                 #replication:
+                 #  replSetName: myCSRSName
+                 #sharding:
+                 #  clusterRole: configsvr
+
+
+              To start the :binary:`mongod <bin.mongod>` using a 
+              configuration file, specify the 
+              :option:`--config <mongod --config>` option in the 
+              command line specifying the full path to the 
+              configuration file.
+
+              .. code-block:: bash
+
+                 mongod --config /path/to/mongodb/mongod.conf
+
+              If you are restoring from a 
+              :mms-docs:`namespace-filtered </core/backup-preparations/#namespaces-filter>` 
+              snapshot, specify the ``--restore`` option.
+
+              .. code-block:: bash
+            
+                 mongod --config /path/to/mongod/mongod.conf --restore
+
+              If you have :binary:`mongod <bin.mongod>` configured to 
+              run as a system service, start it using the recommended 
+              process for your system service manager.
+
+              After the :binary:`mongod <bin.mongod>` starts, connect 
+              to it using the :binary:`mongo <bin.mongo>` shell.
+
+       - id: other
+         name: "Other Backup Files (NOT mongodump)"
+         content: |
+           1. Make the data files stored in your selected backup medium
+              accessible on the host. This may require mounting the 
+              backup volume, opening the backup in a software utility, 
+              or using another tool to extract the data to disk. Refer 
+              to the documentation for your preferred backup tool for 
+              instructions on accessing the data contained in the 
+              backup. 
+
+           #. Copy the :binary:`mongod <bin.mongod>` data files from the
+              backup data location to the data directory created in
+              :guilabel:`B. Prepare the Target Host for Restoration`:
+
+              .. code-block:: bash
+
+                 cp -a /backup/mongodb/path/to/mongodb /path/to/mongodb
+
+              The ``-a`` option recursively copies the contents of
+              the source path to the destination path while preserving
+              folder and file permissions.
+
+           #. Comment out or omit the following 
+              :ref:`configuration file <configuration-file>` settings:
+
+              .. code-block:: yaml
+
+                 #replication:
+                 #  replSetName: myCSRSName
+                 #sharding:
+                 #  clusterRole: configsvr
+
+           #. To start the :binary:`mongod <bin.mongod>` using a 
+              configuration file, specify the 
+              :option:`--config <mongod --config>` option in the 
+              command line specifying the full path to the 
+              configuration file.
+
+              .. code-block:: bash
+
+                 mongod --config /path/to/mongodb/mongod.conf
+
+              If restoring from a 
+              :mms-docs:`namespace-filtered </core/backup-preparations/#namespaces-filter>` 
+              snapshot, also specify the  ``--restore`` option.
+
+              .. code-block:: bash
+            
+                 mongod --config /path/to/mongod/mongod.conf --restore
+
+              .. note:: Cloud Manager or Ops Manager Only
+
+
+                 If performing a manual restoration of a Cloud Manager 
+                 or Ops Manager backup, you must specify the 
+                 ``disableLogicalSessionCacheRefresh`` server parameter
+                 prior to startup.
+
+                 .. code-block:: bash
+
+                    mongod --config /path/to/mongodb/mongod.conf \
+                      --setParameter disableLogicalSessionCacheRefresh=true
+
+              If you have :binary:`mongod <bin.mongod>` configured to 
+              run as a system service, start it using the recommended 
+              process for your system service manager.
+
+              After the :binary:`mongod <bin.mongod>` starts, connect 
+              to it using the :binary:`mongo <bin.mongo>` shell.
+---
+title: "Drop the ``local`` database."
+stepnum: 2
+ref: drop-local
+content: |
+
+  Use :method:`db.dropDatabase()` to drop the ``local`` database:
+
+  .. code-block:: javascript
+
+     use local
+     db.dropDatabase()
+---
+title: "Insert the filtered file list into the local database."
+stepnum: 3
+ref: insert-filtered
+content: |
+
+  This step is only required if you are restoring from a 
+  namespace-filtered snapshot.
+
+  For each shard, locate the filtered file list with the following name
+  format: ``<shardRsID>-filteredFileList.txt``. This file contains a
+  list of JSON objects with the following format:
+
+  .. code-block:: javascript
+
+     {
+        "filename":"file1", 
+        "ns":"sampleDb1.sampleCollection1", 
+        "uuid": "3b241101-e2bb-4255-8caf-4136c566a962"
+     }
+
+  Add each JSON object from each shard file to a new 
+  ``db.systems.collections_to_restore`` collection in your ``local`` 
+  database. You can ignore entries with empty ``ns`` or ``uuid`` 
+  fields. When inserting entries, the ``uuid`` field must be inserted 
+  as type :method:`UUID`.
+---
+title: "Run the filtered file restore command."
+stepnum: 4
+ref: run-filtered
+content: |
+
+  This step is only required if you are restoring from a 
+  namespace-filtered snapshot.
+
+  After inserting all entries, run the following commands:
+
+  .. code-block:: bash
+
+     use admin
+     db.runCommand({"_configsvrRunRestore":1})
+---
+title: "For any planned or completed shard hostname or replica set name changes, update the metadata in ``config.shards``."
+stepnum: 4
+ref: metadata-update
+content: |
+
+  You can skip this step if all of the following are true:
+
+  * No shard member host machine hostname has or will change during this procedure.
+  * No shard replica set name has or will change during this procedure.
+
+  Issue the following :method:`~db.collection.find()` method on the 
+  :data:`~config.shards` collection in the :ref:`config-database`.
+  Replace ``<shardName>`` with the name of the shard. By default the 
+  shard name is its replica set name. If you added the shard
+  using the :dbcommand:`addShard` command *and* specified a custom
+  ``name``, you must specify that ``name`` to ``<shardName>``.
+
+  .. code-block:: javascript
+
+     use config
+     db.shards.find( { "_id" : "<shardName>" } )
+
+  This operation returns a document that
+  resembles the following:
+
+  .. code-block:: javascript
+
+     {  
+        "_id" : "shard1",  
+        "host" : "myShardName/alpha.example.net:27018,beta.example.net:27018,charlie.example.net:27018", 
+        "state" : 1 
+     }
+
+  .. important::
+
+     The ``_id`` value must match the ``shardName`` value in the
+     ``_id : "shardIdentity"`` document on the corresponding shard.
+     When restoring the shards later in this procedure, validate that
+     the ``_id`` field in :data:`~config.shards` matches the 
+     ``shardName`` value on the shard. 
+
+  Use the :method:`~db.collection.updateOne()` method to update the
+  ``hosts`` string to reflect the planned replica set name and
+  hostname list for the shard. For example, the following operation 
+  updates the  ``host`` connection string for the shard with ``"_id" : "shard1"``:
+
+  .. code-block:: javascript
+
+     db.shards.updateOne(
+       { "_id" : "shard1" },
+       { $set : { "host" : "myNewShardName/repl1.example.net:27018,repl2.example.net:27018,repl3.example.net:27018" } }
+     )
+
+  Repeat this process until all shard metadata accurately reflects
+  the planned replica set name and hostname list for each shard in the 
+  cluster.
+
+  .. note::
+
+     If you do not know the shard name, issue the 
+     :method:`~db.collection.find()` method on the :data:`~config.shards`
+     collection with an empty filter document ``{}``:
+
+     .. code-block:: javascript
+
+        use config
+        db.shards.find({})
+
+     Each document in the result set represents one shard in the 
+     cluster. For each document, check the ``host`` field for a 
+     connection string that matches the shard in question, i.e. a 
+     matching replica set name and member hostname list. Use the ``_id`` 
+     of that document in place of ``<shardName>``.
+
+
+---
+title: "Restart the :binary:`mongod <bin.mongod>` as a new single-node replica set."
+stepnum: 5
+ref: restart-as-repl
+content: |
+  
+  :ref:`Shut down <terminate-mongod-processes>` the
+  :binary:`mongod <bin.mongod>`. Uncomment or add the following
+  configuration file options:
+
+  {{code}}
+
+  If you want to change the replica set name, you must update
+  the :setting:`~replication.replSetName` field with the new name
+  before proceeding.
+
+  Start the :binary:`mongod <bin.mongod>` with the updated
+  configuration file:
+
+  .. code-block:: bash
+
+     mongod --config /path/to/mongodb/mongod.conf
+
+  If you have :binary:`mongod <bin.mongod>` configured to run as a
+  system service, start it using the recommended process for your
+  system service manager.
+
+  After the :binary:`mongod <bin.mongod>` starts, connect to it using
+  the :binary:`mongo <bin.mongo>` shell.
+replacement:
+  code: |
+
+    .. code-block:: yaml
+
+       replication:
+         replSetName: myNewCSRSName
+       sharding:
+         clusterRole: configsvr
+    
+---
+title: "Initiate the new replica set."
+stepnum: 6
+ref: initiate
+pre: |
+  Initiate the replica set using :method:`rs.initiate()` with the 
+  default settings. 
+action:
+  language: javascript
+  code: |
+    rs.initiate()
+post: |
+  Once the operation completes, use :method:`rs.status()` to check
+  that the member has become the :term:`primary <Primary>`. 
+---
+title: "Add additional replica set members."
+stepnum: 7
+ref: add-members
+content: |
+
+  For each replica set member in the {{component}}, start the
+  :binary:`mongod <bin.mongod>` on its host machine. Once you have
+  started up all remaining members of the cluster successfully, 
+  connect a :binary:`mongo <bin.mongo>` shell to the primary replica
+  set member. From the primary, use the :method:`rs.add()` method to 
+  add each member of the replica set. Include the replica set name as 
+  the prefix, followed by the hostname and port of the member's 
+  :binary:`mongod <bin.mongod>` process:
+
+  {{code}}
+
+  If you want to add the member with specific replica 
+  :rsconf:`member <members>` configuration settings, you can pass a 
+  document to :method:`rs.add()` that defines the member hostname
+  and any :rsconf:`members` settings your deployment requires.
+
+  {{morecode}}
+
+  Each new member performs an 
+  :ref:`initial sync <replica-set-initial-sync>` to catch up to the
+  primary. Depending on factors such as the amount of data to sync, your
+  network topology and health, and the power of each host machine,
+  initial sync may take an extended period of time to complete. 
+
+  The replica set may elect a new primary while you add additional 
+  members. Use :method:`rs.status()` to identify which member is
+  the current primary. You can only run :method:`rs.add()` from the
+  primary.
+
+replacement:
+  code: |
+
+    .. code-block:: javascript
+
+       rs.add("config2.example.net:27019")
+       rs.add("config3.example.net:27019")
+
+  morecode: |
+
+    .. code-block:: javascript
+
+       rs.add(
+        {
+          "host" : "config2.example.net:27019",
+          priority: <int>,
+          votes: <int>,
+          tags: <int>
+        }
+       )
+  component: "CSRS"
+---
+title: "Configure any additional required replication settings."
+stepnum: 7
+ref: configure-replication
+content: |
+
+  The :method:`rs.reconfig()` method updates the replica set
+  configuration based on a configuration document passed in as a
+  parameter. You must run :method:`~rs.reconfig()`
+  against the primary member of the replica set.
+
+  Reference the original configuration file output of the replica set as 
+  identified in step :guilabel:`A. Review Replica Set Configurations` 
+  and apply settings as needed.
+
+...

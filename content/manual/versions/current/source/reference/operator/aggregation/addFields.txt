@@ -1,0 +1,396 @@
+========================
+$addFields (aggregation)
+========================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: programming_language
+   :values: shell
+
+.. meta::
+   :description: Learn how to use an aggregation stage to add new fields to your documents.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. pipeline:: $addFields
+
+   Adds new fields to documents. ``$addFields`` outputs documents that
+   contain all existing fields from the input documents and newly
+   added fields.
+
+   The :pipeline:`$addFields` stage is equivalent to a
+   :pipeline:`$project` stage that explicitly specifies all existing
+   fields in the input documents and adds the new fields.
+   
+   .. note::
+   
+      You can also use the :pipeline:`$set` stage, which is an alias for 
+      :pipeline:`$addFields`.
+
+Compatibility
+-------------
+
+.. |operator-method| replace:: ``$addFields``
+
+.. include:: /includes/fact-compatibility.rst
+
+Syntax
+------
+
+The stage has the following syntax:
+
+.. code-block:: javascript
+
+   { $addFields: { <newField>: <expression>, ... } }
+
+Specify the name of each field to add and set its value to an
+:ref:`aggregation expression <aggregation-expressions>` or an empty object. 
+For more information on expressions, see :ref:`aggregation-expressions`.
+
+.. important::
+
+   If the name of the new field is the same as an existing field name
+   (including ``_id``), ``$addFields`` overwrites the existing value
+   of that field with the value of the specified expression.
+
+Behavior
+--------
+
+- ``$addFields`` appends new fields to existing documents. You can
+  include one or more ``$addFields`` stages in an aggregation operation. 
+
+- ``$addFields`` accepts the embedding of objects where you can set a value to 
+  an aggregation expression or to an empty object. For example, the following 
+  nested objects are accepted:
+
+  .. code-block:: javascript
+
+     {$addFields: { a: { b: { } } } }
+
+  To add a field or fields to embedded documents (including documents in
+  arrays) use the dot notation. See :ref:`example
+  <add-field-to-embedded>`.
+
+- To add an element to an existing array field with :pipeline:`$addFields`, use
+  with :expression:`$concatArrays`. See :ref:`example
+  <addFields-add-element-to-array>`.
+
+Examples
+--------
+
+Using Two ``$addFields`` Stages
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A collection called ``scores`` contains the following documents:
+
+.. code-block:: javascript
+
+   db.scores.insertMany( [
+      {
+         _id: 1, 
+         student: "Maya",
+         homework: [ 10, 5, 10 ],
+         quiz: [ 10, 8 ],
+         extraCredit: 0
+      },
+      {
+         _id: 2,
+         student: "Ryan",
+         homework: [ 5, 6, 5 ],
+         quiz: [ 8, 8 ],
+         extraCredit: 8
+      }
+   ] )
+
+The following operation uses two :pipeline:`$addFields` stages to
+include three new fields in the output documents:
+
+.. code-block:: javascript
+
+   db.scores.aggregate( [
+      {
+        $addFields: {
+          totalHomework: { $sum: "$homework" } ,
+          totalQuiz: { $sum: "$quiz" }
+        }
+      },
+      {
+        $addFields: { totalScore: 
+          { $add: [ "$totalHomework", "$totalQuiz", "$extraCredit" ] } }
+      }
+   ] )
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      { 
+         _id: 1,
+         student: "Maya",
+         homework: [ 10, 5, 10 ],
+         quiz: [ 10, 8 ],
+         extraCredit: 0, 
+         totalHomework: 25,
+         totalQuiz: 18,
+         totalScore: 43
+      },
+      { 
+         _id: 2,
+         student: "Ryan",
+         homework: [ 5, 6, 5 ],
+         quiz: [ 8, 8 ],
+         extraCredit: 8,
+         totalHomework: 16,
+         totalQuiz: 16,
+         totalScore: 40
+      }
+   ]
+
+Adding Fields to an Embedded Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _add-field-to-embedded:
+
+Use dot notation to add new fields to embedded documents.
+
+For example, create a collection called ``vehicles`` with
+the following documents:
+
+.. code-block:: javascript
+
+   db.vehicles.insertMany( [
+         { _id: 1, type: "car", specs: { doors: 4, wheels: 4 } },
+         { _id: 2, type: "motorcycle", specs: { doors: 0, wheels: 2 } },
+         { _id: 3, type: "jet ski" }
+   ] )
+
+The following aggregation operation adds a new field ``fuel_type`` to
+the embedded document ``specs``.
+
+.. code-block:: javascript
+
+   db.vehicles.aggregate( [
+      { $addFields: { "specs.fuel_type": "unleaded" } }
+   ] )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      { _id: 1, type: "car",
+         specs: { doors: 4, wheels: 4, fuel_type: "unleaded" } },
+      { _id: 2, type: "motorcycle",
+         specs: { doors: 0, wheels: 2, fuel_type: "unleaded" } },
+      { _id: 3, type: "jet ski",
+         specs: { fuel_type: "unleaded" } }
+   ]
+
+Overwriting an existing field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Specifying an existing field name in an ``$addFields`` operation
+causes the original field to be replaced.
+
+A collection called ``animals`` contains the following document:
+
+.. code-block:: javascript
+
+   db.animals.insertOne(
+      { _id: 1, dogs: 10, cats: 15 }
+   )
+
+The following ``$addFields`` operation specifies the ``cats`` field.
+
+.. code-block:: javascript
+
+   db.animals.aggregate( [
+     {
+       $addFields: { cats: 20 }
+     }
+   ] )
+
+The operation returns the following document:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [ { _id: 1, dogs: 10, cats: 20 } ]
+
+It is possible to replace one field with another. In the following
+example the ``item`` field substitutes for the ``_id`` field.
+
+A collection called ``fruit`` contains the following documents:
+
+.. code-block:: javascript
+
+   db.fruit.insertMany( [
+      { _id: 1, item: "tangerine", type: "citrus" },
+      { _id: 2, item: "lemon", type: "citrus" },
+      { _id: 3, item: "grapefruit", type: "citrus" }
+   ] )
+
+The following aggregation operation uses ``$addFields`` to replace
+the ``_id`` field of each document with the value of the ``item``
+field, and replaces the ``item`` field with a static value.
+
+.. code-block:: javascript
+
+   db.fruit.aggregate( [
+     {
+       $addFields: {
+         _id : "$item",
+         item: "fruit"
+       }
+     }
+   ] )
+
+The operation returns the following:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      { _id: "tangerine", item: "fruit", type: "citrus" },
+      { _id: "lemon", item: "fruit", type: "citrus" },
+      { _id: "grapefruit", item: "fruit", type: "citrus" }
+   ]
+
+.. _addFields-add-element-to-array:
+
+Add Element to an Array
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Create a sample ``scores`` collection with the following:
+
+.. code-block:: javascript
+
+   db.scores.insertMany( [
+      { _id: 1, student: "Maya", homework: [ 10, 5, 10 ], quiz: [ 10, 8 ], extraCredit: 0 },
+      { _id: 2, student: "Ryan", homework: [ 5, 6, 5 ], quiz: [ 8, 8 ], extraCredit: 8 }
+   ] )
+
+You can use :pipeline:`$addFields` with a :expression:`$concatArrays`
+expression to add an element to an existing array field. For example,
+the following operation uses :pipeline:`$addFields` to replace the
+``homework`` field with a new array whose elements are the current
+``homework`` array concatenated with another array containing a new
+score ``[ 7 ]``.
+
+.. code-block:: javascript
+
+   db.scores.aggregate( [
+      { $match: { _id: 1 } },
+      { $addFields: { homework: { $concatArrays: [ "$homework", [ 7 ] ] } } }
+   ] )
+
+The operation returns the following:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [ { _id: 1, student: "Maya", homework: [ 10, 5, 10, 7 ], quiz: [ 10, 8 ], extraCredit: 0 } ]
+
+.. _addFields-remove-example:
+
+Remove Fields
+~~~~~~~~~~~~~
+
+You can use ``$addFields`` with the :variable:`$$REMOVE <REMOVE>`
+variable to remove document fields.
+
+For example, create a ``labReadings`` collection:
+
+.. code-block:: javascript
+
+   db.labReadings.insertMany( [
+      {
+         date: ISODate("2024-10-09"),
+         temperature: 80
+      },
+      {
+         date: null,
+         temperature: 83
+      },
+      {
+         date: ISODate("2024-12-09"),
+         temperature: 85
+      }
+   ] )
+
+To remove the ``date`` field from the ``labReadings`` documents, use
+``$addFields`` with the ``$$REMOVE`` variable:
+
+.. code-block:: javascript
+
+   db.labReadings.aggregate( [
+      {
+         $addFields: { date: "$$REMOVE" }
+      }
+   ] )
+
+Output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      { _id: ObjectId('671285306fd2c3b24f2e7eaa'), temperature: 80 },
+      { _id: ObjectId('671285306fd2c3b24f2e7eab'), temperature: 83 },
+      { _id: ObjectId('671285306fd2c3b24f2e7eac'), temperature: 85 }
+   ]
+
+You can also use ``$$REMOVE`` to conditionally remove fields. For
+example, the following aggregation removes the ``date`` field from
+documents where ``date`` is ``null``:
+
+.. code-block:: javascript
+
+   db.labReadings.aggregate( [
+      {
+         $addFields:
+            {
+               date: {
+                  $ifNull: [ "$date", "$$REMOVE" ]
+               }
+            }
+      }
+   ] )
+
+Output:
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 7
+
+   [
+      {
+         _id: ObjectId('671285306fd2c3b24f2e7eaa'),
+         date: ISODate('2024-10-09T00:00:00.000Z'),
+         temperature: 80
+      },
+      { _id: ObjectId('671285306fd2c3b24f2e7eab'), temperature: 83 },
+      {
+         _id: ObjectId('671285306fd2c3b24f2e7eac'),
+         date: ISODate('2024-12-09T00:00:00.000Z'),
+         temperature: 85
+      }
+   ]
+
+.. tip:: Comparison with $project
+
+   .. include:: /includes/aggregation/agg-project-remove-fields-compare.rst
+
+   For an example using ``$$REMOVE`` in a ``$project`` stage, see
+   :ref:`remove-example`.

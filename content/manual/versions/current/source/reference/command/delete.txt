@@ -1,0 +1,538 @@
+======
+delete
+======
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: delete
+
+   The :dbcommand:`delete` command removes documents from a collection.
+   A single :dbcommand:`delete` command can contain multiple delete
+   specifications. The delete methods provided by the MongoDB drivers
+   use this command internally.
+
+   .. versionchanged:: 5.0
+
+   .. |method| replace:: :method:`~db.collection.deleteOne`,
+      :method:`~db.collection.deleteMany`, and
+      :method:`~db.collection.findOneAndDelete`
+      helper methods
+   .. include:: /includes/fact-dbcommand-tip
+
+   :returns:
+ 
+      A document that contains the status of the operation.
+      See :ref:`delete-command-output` for details.
+
+Compatibility
+-------------
+
+This command is available in deployments hosted in the following environments: 
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. include:: /includes/fact-environments-atlas-support-all.rst
+             
+.. include:: /includes/fact-environments-onprem-only.rst
+
+Syntax
+------
+
+.. _delete-syntax:
+
+The command has the following syntax:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+        delete: <collection>, 
+        deletes: [
+           { 
+             q : <query>, 
+             limit : <integer>, 
+             collation: <document>,
+             hint: <document|string>
+           },
+           ...
+        ],
+        comment: <any>,
+        let: <document>, // Added in MongoDB 5.0
+        ordered: <boolean>,
+        writeConcern: { <write concern> },
+        maxTimeMS: <integer>
+     }
+  )
+
+Command Fields
+--------------
+
+The command takes the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+ 
+   * - Field
+     - Type
+     - Description
+ 
+   * - :ref:`delete <delete-command-delete>`
+     - string
+     - .. _delete-command-delete:
+     
+       The name of the target collection.
+ 
+   * - :ref:`deletes <delete-command-deletes>`
+     - array
+     - .. _delete-command-deletes:
+     
+       An array of one or more delete statements to perform in the named
+       collection.
+       
+   * - ``comment``
+     - any
+     - .. include:: /includes/extracts/comment-content.rst
+
+   * - :ref:`let <delete-let-syntax>`
+     - document
+     - .. _delete-let-syntax:
+     
+       Optional.
+  
+       .. include:: /includes/let-variables-syntax.rst
+ 
+       .. include:: /includes/let-variables-syntax-note.rst
+ 
+       For a complete example using ``let`` and variables,
+       see :ref:`delete-let-example`.
+ 
+       .. versionadded:: 5.0
+ 
+   * - :ref:`ordered <delete-command-ordered>`
+     - boolean
+     - .. _delete-command-ordered:
+     
+       Optional. If ``true``, then when a delete statement fails, return without
+       performing the remaining delete statements. If ``false``, then when a
+       delete statement fails, continue with the remaining delete
+       statements, if any. Defaults to ``true``.
+       
+   * - :ref:`writeConcern <delete-command-wc>`
+     - document
+     - .. _delete-command-wc:
+     
+       Optional. A document expressing the :ref:`write concern <write-concern>`
+       of the :dbcommand:`delete` command. Omit to use the default write
+       concern.
+       
+       .. include:: /includes/extracts/transactions-operations-write-concern.rst
+
+   * - ``maxTimeMS``
+     - non-negative integer
+     - Optional.
+
+       .. include:: /includes/maxTimeMS-description.rst
+              
+
+.. |operation| replace:: delete
+
+.. |operations| replace:: delete statements
+ 
+ 
+Each element of the ``deletes`` array contains the following fields:
+ 
+ 
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+ 
+   * - Field
+     - Type
+     - Description
+ 
+   * - :ref:`q <deletes-array-q>`
+     - document
+     - .. _deletes-array-q:
+     
+       The query that matches documents to delete.
+       
+   * - :ref:`limit <deletes-array-limit>`
+     - integer
+     - .. _deletes-array-limit:
+     
+       The number of matching documents to delete. Specify either a ``0`` to
+       delete all matching documents or ``1`` to delete a single document.
+       
+   * - :ref:`collation <deletes-array-collation>`
+     - document
+     - .. _deletes-array-collation:
+     
+       Optional. 
+       
+       .. include:: /includes/extracts/collation-option.rst
+ 
+   * - :ref:`hint <deletes-array-hint>`
+     - Document or string
+     - .. _deletes-array-hint:
+     
+       Optional. A document or string that specifies the :ref:`index
+       <indexes>` to use to support the :ref:`query predicate
+       <deletes-array-q>`.
+       
+       The option can take an index specification document or the
+       index name string.
+       
+       If you specify an index that does not exist, the operation
+       errors.
+ 
+       For an example, see :ref:`ex-delete-command-hint`.
+ 
+Behavior
+--------
+
+Sharded Collections
+~~~~~~~~~~~~~~~~~~~
+
+.. |single-modification-operation-names| replace:: :dbcommand:`delete`
+
+.. |single-modification-operation-option| replace:: ``limit: 1``
+
+.. include:: /includes/fact-single-modification-in-sharded-collections.rst
+
+
+Limits
+~~~~~~
+
+The total size of all the queries (i.e. the ``q`` field values) in the
+``deletes`` array must be less than or equal to the :limit:`maximum
+BSON document size <BSON Document Size>`.
+
+The total number of delete documents in the ``deletes`` array must be
+less than or equal to the :limit:`maximum bulk size
+<Write Command Batch Limit Size>`.
+
+Transactions
+~~~~~~~~~~~~
+
+.. include:: /includes/extracts/transactions-supported-operation.rst
+
+.. include:: /includes/extracts/transactions-operations-write-concern.rst
+
+.. include:: /includes/extracts/transactions-usage.rst
+
+Examples
+--------
+
+Limit the Number of Documents Deleted
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example deletes from the ``orders`` collection one
+document that has the ``status`` equal to ``D`` by specifying the
+``limit`` of ``1``:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         delete: "orders",
+         deletes: [ { q: { status: "D" }, limit: 1 } ]
+      }
+   )
+
+The returned document shows that the command deleted ``1`` document.
+See :ref:`delete-command-output` for details.
+
+.. code-block:: javascript
+
+   { "ok" : 1, "n" : 1 }
+
+.. note::
+
+   .. include:: /includes/fact-single-modification-in-sharded-collections.rst
+
+Delete All Documents That Match a Condition
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example deletes from the ``orders`` collection all
+documents that have the ``status`` equal to ``D`` by specifying the
+``limit`` of ``0``:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         delete: "orders",
+         deletes: [ { q: { status: "D" }, limit: 0 } ],
+         writeConcern: { w: "majority", wtimeout: 5000 }
+      }
+   )
+
+The returned document shows that the command found and deleted ``13``
+documents. See :ref:`delete-command-output` for details.
+
+.. code-block:: javascript
+
+   { "ok" : 1, "n" : 13 }
+
+Delete All Documents from a Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/note-drop-faster-than-delete-for-large-collections.rst
+
+Delete all documents in the ``orders`` collection by specifying an
+empty query condition *and* a ``limit`` of ``0``:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         delete: "orders",
+         deletes: [ { q: { }, limit: 0 } ],
+         writeConcern: { w: "majority", wtimeout: 5000 }
+      }
+   )
+
+The returned document shows that the command found and deleted ``35``
+documents in total. See :ref:`delete-command-output` for details.
+
+.. code-block:: javascript
+
+   { "ok" : 1, "n" : 35 }
+
+Bulk Delete
+~~~~~~~~~~~
+
+The following example performs multiple delete operations on the
+``orders`` collection:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         delete: "orders",
+         deletes: [
+            { q: { status: "D" }, limit: 0 },
+            { q: { cust_num: 99999, item: "abc123", status: "A" }, limit: 1 }
+         ],
+         ordered: false,
+         writeConcern: { w: 1 }
+      }
+   )
+
+The returned document shows that the command found and deleted ``21``
+documents in total for the two delete statements. See
+:ref:`delete-command-output` for details.
+
+.. code-block:: javascript
+
+   { "ok" : 1, "n" : 21 }
+
+Specify Collation
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/collation-versionadded.rst
+
+A collection ``myColl`` has the following documents:
+
+.. code-block:: javascript
+
+   { _id: 1, category: "café", status: "A" }
+   { _id: 2, category: "cafe", status: "a" }
+   { _id: 3, category: "cafE", status: "a" }
+
+The following operation includes the :ref:`collation <collation>`
+option:
+
+.. code-block:: javascript
+
+   db.runCommand({
+      delete: "myColl",
+      deletes: [
+        { q: { category: "cafe", status: "a" }, limit: 0, collation: { locale: "fr", strength: 1 } }
+      ]
+   })
+
+.. _ex-delete-command-hint:
+
+Specify ``hint`` for Delete Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In :binary:`~bin.mongosh`, create a ``members`` collection
+with the following documents:
+
+.. code-block:: javascript
+
+   db.members.insertMany([
+      { "_id" : 1, "member" : "abc123", "status" : "P", "points" :  0,  "misc1" : null, "misc2" : null },
+      { "_id" : 2, "member" : "xyz123", "status" : "A", "points" : 60,  "misc1" : "reminder: ping me at 100pts", "misc2" : "Some random comment" },
+      { "_id" : 3, "member" : "lmn123", "status" : "P", "points" :  0,  "misc1" : null, "misc2" : null },
+      { "_id" : 4, "member" : "pqr123", "status" : "D", "points" : 20,  "misc1" : "Deactivated", "misc2" : null },
+      { "_id" : 5, "member" : "ijk123", "status" : "P", "points" :  0,  "misc1" : null, "misc2" : null },
+      { "_id" : 6, "member" : "cde123", "status" : "A", "points" : 86,  "misc1" : "reminder: ping me at 100pts", "misc2" : "Some random comment" }
+   ])
+
+Create the following indexes on the collection:
+
+.. code-block:: javascript
+
+   db.members.createIndex( { status: 1 } )
+   db.members.createIndex( { points: 1 } )
+
+The following delete operation explicitly hints to use the index
+``{ status: 1 }``:
+
+.. code-block:: javascript
+
+   db.runCommand({
+      delete: "members",
+      deletes: [
+        { q: { "points": { $lte: 20 }, "status": "P" }, limit: 0, hint: { status: 1 } }
+      ]
+   })
+
+.. note::
+   
+   If you specify an index that does not exist, the operation errors.
+
+To see the index used, run :dbcommand:`explain` on the operation:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+        explain: {
+          delete: "members",
+          deletes: [ 
+            { q: { "points": { $lte: 20 }, "status": "P" }, limit: 0, hint: { status: 1 } }
+          ]
+        },
+        verbosity: "queryPlanner"
+      }
+   )
+
+.. _delete-let-example:
+
+Use Variables in ``let``
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. |let-option| replace:: :ref:`let <delete-let-syntax>`
+
+.. include:: /includes/let-example-introduction.rst
+
+.. include:: /includes/let-example-delete-flavors.rst
+
+.. code-block:: javascript
+
+   db.runCommand( {
+      delete: db.cakeFlavors.getName(),
+      deletes: [ {
+         q: { $expr: { $eq: [ "$flavor", "$$targetFlavor" ] } },
+         limit: 1
+      } ],
+      let : { targetFlavor: "strawberry" }
+   } )
+
+.. _delete-command-output:
+
+Output
+------
+
+The returned document contains a subset of the following fields:
+
+.. data:: delete.ok
+
+   The status of the command.
+
+.. data:: delete.n
+
+   The number of documents deleted.
+
+.. data:: delete.writeErrors
+
+   An array of documents that contains information regarding any error
+   encountered during the delete operation. The
+   :data:`~delete.writeErrors` array contains an error document for
+   each delete statement that errors.
+
+   Each error document contains the following information:
+
+   .. data:: delete.writeErrors.index
+
+      An integer that identifies the delete statement in the
+      ``deletes`` array, which uses a zero-based index.
+
+   .. data:: delete.writeErrors.code
+
+      An integer value identifying the error.
+
+   .. data:: delete.writeErrors.errmsg
+
+      A description of the error.
+
+.. data:: delete.writeConcernError
+
+   Document describing errors that relate to the write concern.
+
+   .. |cmd| replace:: :dbcommand:`delete`
+   .. include:: /includes/fact-writeConcernError-mongos
+
+   The ``writeConcernError`` documents contian the following fields:
+
+   .. data:: delete.writeConcernError.code
+
+      An integer value identifying the cause of the write concern error.
+
+   .. data:: delete.writeConcernError.errmsg
+
+      A description of the cause of the write concern error.
+
+   .. data:: delete.writeConcernError.errInfo.writeConcern
+
+      .. include:: /includes/fact-errInfo-wc.rst
+
+      .. data:: delete.writeConcernError.errInfo.writeConcern.provenance
+
+         .. include:: /includes/fact-errInfo-wc-provenance.rst
+
+
+The following is an example document returned for a successful
+:dbcommand:`delete` command:
+
+.. code-block:: javascript
+
+   { ok: 1, n: 1 }
+
+The following is an example document returned for a :dbcommand:`delete`
+command that encountered an error because it specified a non-existent
+index in the ``hint`` field:
+
+.. code-block:: javascript
+
+   {
+     n: 0,
+     writeErrors: [
+       {
+         index: 0,
+         code: 2,
+         errmsg: 'error processing query: ns=test.products: hat $eq "bowler"\n' +
+           'Sort: {}\n' +
+           'Proj: {}\n' +
+           ' planner returned error :: caused by :: hint provided does not correspond to an existing index'
+       }
+     ],
+     ok: 1
+   }

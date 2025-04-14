@@ -1,0 +1,116 @@
+.. facet::
+   :name: programming_language
+   :values: csharp, go, java, javascript/typescript, python, shell
+
+.. meta::
+   :keywords: code example, node.js, compass
+
+.. _csfle-fundamentals-automatic-encryption:
+.. _field-level-encryption-automatic:
+
+====================
+Automatic Encryption
+====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. tabs-selector:: drivers
+
+MongoDB supports automatically encrypting fields in read and write
+operations when using {+csfle+}. You can perform automatic encryption
+using :binary:`~bin.mongosh` and official MongoDB drivers. For a complete list 
+of official compatible drivers with support for {+csfle-abbrev+}, see Driver
+Compatibility :ref:`csfle-driver-compatibility`.
+
+How Encrypted Writes and Reads Work
+-----------------------------------
+
+The following diagrams show how the client application and driver write
+and read field-level encrypted data.
+
+.. _encrypted-writes-diagram:
+
+Encrypted Writes
+~~~~~~~~~~~~~~~~
+
+For write operations, the driver encrypts field values *prior* to
+writing to the MongoDB database.
+
+The following diagram shows the steps taken by the client application and
+driver to perform a write of field-level encrypted data:
+
+.. image:: /images/CSFLE_Write_Encrypted_Data.png
+   :alt: Diagram that shows the data flow for a write of field-level encrypted data
+
+.. _encrypted-reads-diagram:
+
+Encrypted Reads
+~~~~~~~~~~~~~~~
+
+For read operations, the driver encrypts field values in the query
+*prior* to issuing the read operation.
+
+For read operations that return encrypted fields, the driver
+automatically decrypts the encrypted values *only if* the driver was
+configured with access to the Customer Master Key (CMK) and Data Encryption Keys (DEK) used to encrypt those values.
+
+The following diagram shows the steps taken by the client application and
+driver to query and decrypt field-level encrypted data:
+
+.. image:: /images/CSFLE_Read_Encrypted_Data.png
+   :alt: Diagram that shows the data flow for querying and reading field-level encrypted data
+
+.. _csfle-fundamentals-automatic-encryption-enable:
+
+Enabling Automatic {+csfle+}
+-----------------------------------------------------
+
+To enable automatic encryption, specify automatic encryption settings in
+your client's ``MongoClient`` instance.
+
+The following code snippets show how to create a client with automatic
+encryption enabled in ``mongosh`` and MongoDB drivers:
+
+.. include:: /includes/automatic-enc-options/tabs.rst
+         
+For more information on CSFLE-specific ``MongoClient`` settings, 
+see :ref:`csfle-reference-mongo-client`.
+
+.. _field-level-encryption-automatic-remote-schema:
+
+Server-Side Field Level Encryption Enforcement
+----------------------------------------------
+
+MongoDB supports using :ref:`schema validation
+<schema-validation-overview>` to enforce encryption of specific fields
+in a collection. Clients performing automatic {+csfle+} have
+specific behavior depending on the database connection
+configuration:
+
+- If the connection 
+  :ref:`{+auto-encrypt-options+} <csfle-enc-options-example>`
+  ``schemaMap`` object contains a key for the specified collection, the 
+  client uses that object to perform automatic field level encryption 
+  and ignores the remote schema. At minimum, the local rules **must** 
+  encrypt those fields that the remote schema marks as requiring 
+  encryption.
+
+- If the connection 
+  :ref:`{+auto-encrypt-options+} <csfle-enc-options-example>`
+  ``schemaMap`` object does *not* contain a key for the specified 
+  collection, the client downloads the server-side remote schema for 
+  the collection and uses it to perform automatic field level 
+  encryption.
+
+  .. important:: Behavior Considerations
+
+     .. include:: /includes/queryable-encryption/qe-csfle-schema-validation-warning.rst
+
+To learn how to set up server-side {+csfle-abbrev+}
+enforcement, see :ref:`csfle-reference-server-side-schema`.

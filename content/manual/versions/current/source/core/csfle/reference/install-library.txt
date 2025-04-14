@@ -1,0 +1,181 @@
+.. facet::
+   :name: programming_language
+   :values: csharp, go, java, javascript/typescript, python
+
+.. meta::
+   :keywords: code example, node.js, compass
+
+.. _csfle-reference-install-lib:
+.. _csfle-reference-mongocryptd:
+.. _field-level-encryption-mongocryptd:
+.. _mongocryptd:
+.. _csfle-reference-shared-library:
+
+======================================================
+Install and Configure a CSFLE Query Analysis Component
+======================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. binary:: mongocryptd
+
+MongoDB uses the {+shared-library+} (recommended) or the ``mongocryptd`` executable
+process to translate queries into encrypted queries, and to encrypt or decrypt data.
+
+Before You Begin
+----------------
+
+To use CSFLE with automatic encryption, you must first choose
+the query analysis component you want MongoDB to use to encrypt the fields.
+
+- :ref:`crypt_shared <csfle-reference-install-shared-lib>`, the
+  recommended CSFLE library. 
+- :ref:`mongocryptd
+  <csfle-reference-install-mongocryptd>`, which is included
+  in MongoDB Enterprise Server installations.
+
+The ``libmongocrypt`` library and MongoDB drivers require the 
+{+shared-library+} or ``mongocryptd`` to interpret encrypted queries. For more
+information, see :ref:`csfle-reference-libmongocrypt`.
+
+.. _csfle-reference-install-shared-lib:
+
+{+shared-library+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The {+shared-library+} is a **dynamic library** that enables
+your client application to perform automatic encryption. A
+dynamic library is a set of functionality accessed by an
+application at runtime rather than compile time. The
+{+shared-library+} performs the following tasks:
+
+- Reads the encryption schema to determine which fields to
+  encrypt or decrypt 
+- Prevents your application from executing unsupported
+  operations on encrypted fields
+
+The {+shared-library+} *does not* do any of the following:
+
+- Perform data encryption or decryption
+- Access the encryption key material
+- Listen for data over the network
+
+The {+shared-library+} is a preferred alternative to ``mongocryptd`` and does
+not require you to spawn another process to perform automatic encryption.
+
+.. note::
+
+   While we recommend using the {+shared-library+}, ``mongocryptd`` is still supported.
+
+To learn more about automatic encryption, see
+:ref:`<csfle-features>`.
+
+.. _csfle-reference-install-mongocryptd:
+
+mongocryptd
+~~~~~~~~~~~
+
+``mongocryptd`` is installed with `MongoDB Enterprise
+Server <{+enterprise-download-link+}>`__.
+
+When you create a CSFLE-enabled MongoDB client, the ``mongocryptd``
+process starts automatically by default.
+
+.. include:: /includes/queryable-encryption/qe-facts-mongocryptd-process.rst
+
+The official MongoDB drivers require access to the
+``mongocryptd`` process on the client host machine. These
+clients search for the ``mongocryptd`` process in the system
+``PATH`` by default.
+
+.. _csfle-reference-shared-library-download:
+.. _mongocryptd-installation:
+.. _csfle-reference-shared-library-configuration:
+
+Steps
+-----
+
+.. tabs::
+
+   .. tab:: {+shared-library+}
+      :tabid: shared-library
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Download the {+shared-library+}
+
+            Download the {+shared-library+} from the `MongoDB Download Center
+            <https://www.mongodb.com/try/download/enterprise>`__ by selecting the
+            version and platform, then the library:
+
+            #. In the :guilabel:`Version` dropdown, select the version labeled as "current."
+            #. In the :guilabel:`Platform` dropdown, select your platform.
+            #. In the :guilabel:`Package` dropdown, select ``crypt_shared``.
+            #. Click :guilabel:`Download`.
+
+            .. tip::
+
+               To view an expanded list of available releases and packages, see
+               `MongoDB Enterprise Downloads
+               <https://www.mongodb.com/download-center/enterprise/releases>`__.
+
+
+         .. step:: Configure {+shared-library+}
+
+            You can configure how your driver searches for the {+shared-library+}
+            through the following parameters:
+
+            .. list-table::
+               :header-rows: 1
+               :stub-columns: 1
+               :widths: 30 70
+
+               * - Name
+                 - Description
+
+               * - ``cryptSharedLibPath``
+                 -  Specifies the absolute path to the {+shared-library+} package,
+                    {+shared-library-package+}.
+
+                    **Default**: ``undefined``
+
+               * - ``cryptSharedLibRequired``
+                 - Specifies if the driver must use the {+shared-library+}. If
+                   ``true``, the driver raises an error if the {+shared-library+}
+                   is unavailable. If ``false``, the driver performs the following
+                   sequence of actions:
+        
+                   #. Attempts to use the {+shared-library+}.
+                   #. If the {+shared-library+} is unavailable, the driver attempts to
+                      spawn and connect to ``mongocryptd``.
+
+                   **Default**: ``false``
+
+            To view an example demonstrating how to configure these parameters,
+            see the :ref:`Quick Start <csfle-quick-start>`.
+
+   .. tab:: mongocryptd
+      :tabid: mongocryptd
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Install mongocryptd
+
+            .. include:: /includes/queryable-encryption/qe-csfle-install-mongocryptd
+
+         .. step:: Configure mongocryptd
+
+            .. include:: /includes/queryable-encryption/qe-csfle-configure-mongocryptd.rst
+
+            Example
+            ~~~~~~~
+
+            .. include:: /includes/queryable-encryption/qe-csfle-mongocryptd-examples.rst

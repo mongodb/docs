@@ -1,0 +1,188 @@
+=============
+$concatArrays
+=============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+Returns a single array that concatenates two or more arrays. 
+``$concatArrays`` can be used as an aggregation accumulator or an 
+array operator.
+
+Aggregation Accumulator
+-----------------------
+.. group:: $concatArrays
+
+``$concatArrays`` is available as an accumulator in these stages:
+
+- :pipeline:`$bucket`
+- :pipeline:`$bucketAuto`
+- :pipeline:`$group`
+- :pipeline:`$setWindowFields`
+
+.. _concatArrays-syntax:
+
+Syntax
+~~~~~~
+
+When used as an aggregation accumulator, ``$concatArrays`` has the 
+following syntax:
+
+.. code-block:: javascript
+
+   { $concatArrays: "<array field>" }
+
+.. _concatArrays-behavior:
+
+Behavior
+~~~~~~~~
+
+.. include:: /includes/fact-agg-accumulator-null-missing-behavior.rst
+
+Example
+~~~~~~~
+
+.. include:: /includes/concatArrays-setUnion-accum-example-setup.rst
+
+This example shows how you can use ``$concatArrays`` as an 
+accumulator. This example combines the elements of all ``items`` arrays 
+when grouping on the ``location`` field:
+
+.. code-block:: javascript
+
+   db.sales.aggregate( [ 
+      {
+         $group: {
+            _id: "$location",
+            array: { "$concatArrays": "$items" }
+         }
+      }
+   ] )
+
+The operation returns the following result:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      {
+         "_id": "NYC",
+         "array": [
+             "laptop", "tablet", "phone", "tablet", "desktop",
+             { "accessories": [ "mouse", "keyboard"] }
+         ]
+      }
+   ]
+
+Array Operator
+--------------
+
+.. expression:: $concatArrays
+
+Syntax
+~~~~~~
+
+When used as an array operator, ``$concatArrays`` has the following
+syntax:
+
+.. code-block:: javascript
+
+   { $concatArrays: [ <array1>, <array2>, ... ] }
+
+Behavior
+~~~~~~~~
+
+.. include:: /includes/fact-array-expr.rst
+
+If any argument resolves to a value of ``null`` or refers to a field
+that is missing, :expression:`$concatArrays` returns ``null``.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 60 40
+   :class: border-table
+
+   * - Example
+     - Results
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $concatArrays: [ 
+             [ "hello", " "], [ "world" ]
+          ] }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          [ "hello", " ", "world" ]
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $concatArrays: [ 
+             [ "hello", " "], 
+             [ [ "world" ], "again"] 
+          ] }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          [ "hello", " ", [ "world" ], "again" ]
+
+Example
+~~~~~~~
+
+Create a collection named ``warehouses`` with the following documents:
+
+.. code-block:: javascript
+
+   db.warehouses.insertMany( [
+      { _id : 1, instock: [ "chocolate" ], ordered: [ "butter", "apples" ] },
+      { _id : 2, instock: [ "apples", "pudding", "pie" ] },
+      { _id : 3, instock: [ "pears", "pecans" ], ordered: [ "cherries" ] },
+      { _id : 4, instock: [ "ice cream" ], ordered: [ ] }
+   ] )
+
+The following example concatenates the ``instock`` and the ``ordered``
+arrays:
+
+.. code-block:: javascript
+
+   db.warehouses.aggregate( [
+      { $project: { items: { $concatArrays: [ "$instock", "$ordered" ] } } }
+   ] )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+   :copyable: false
+   
+   [
+      { _id : 1, items : [ "chocolate", "butter", "apples" ] },
+      { _id : 2, items : null },
+      { _id : 3, items : [ "pears", "pecans", "cherries" ] },
+      { _id : 4, items : [ "ice cream" ] }
+   ]
+
+Limitations
+-----------
+
+``$concatArrays`` only supports arrays and expressions that resolve to 
+an array.
+
+Learn More
+----------
+
+- :pipeline:`$bucket`
+- :pipeline:`$bucketAuto`
+- :pipeline:`$group`
+- :pipeline:`$setWindowFields`

@@ -1,0 +1,3 @@
+
+UUID of the collection. 
+

@@ -1,0 +1,154 @@
+.. _self-managed-ftdc:
+.. _ftdc-stub:
+
+=================================
+Full Time Diagnostic Data Capture
+=================================
+
+.. meta:: 
+   :keywords: on-prem
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+To help MongoDB engineers analyze server behavior, :binary:`~bin.mongod` and
+:binary:`~bin.mongos` processes include a Full Time Diagnostic Data
+Capture (FTDC) mechanism. FTDC is enabled by default. Due to its
+importance in debugging deployments, FTDC thread failures are fatal and
+stop the parent ``mongod`` or ``mongos`` process.
+
+Behavior
+--------
+
+.. note:: FTDC User Permissions on Windows
+   
+   .. include:: /includes/fact-ftdc-windows-user-permissions.rst
+
+FTDC periodically collects statistics produced by the following 
+commands:
+
+- :dbcommand:`serverStatus`
+- :dbcommand:`replSetGetStatus` (:binary:`mongod <bin.mongod>` only)
+- :dbcommand:`collStats` for the :data:`local.oplog.rs` collection (:binary:`mongod <bin.mongod>` only)
+- :dbcommand:`connPoolStats` (:binary:`mongos <bin.mongos>` only)
+- :dbcommand:`getParameter`
+- :dbcommand:`getClusterParameter`
+
+Depending on the host operating system, the diagnostic data may include
+one or more of the following utilization statistics:
+
+- CPU utilization
+- Memory utilization
+- Disk utilization related to performance. FTDC does not include
+  data related to storage capacity.
+- Network performance statistics. FTDC only captures metadata and
+  does not capture or inspect any network packets.
+
+.. note::
+
+   If the :binary:`~bin.mongod` process runs in a :term:`container`, FTDC 
+   reports utilization statistics from the perspective of the container 
+   instead of the host operating system. For example, if a the 
+   :binary:`~bin.mongod` runs in a container that is configured with RAM 
+   restrictions, FTDC calculates memory utilization against the container's 
+   RAM limit, as opposed to the host operating system's RAM limit.
+
+FTDC collects statistics produced by the following commands on
+file rotation or startup:
+
+- :dbcommand:`getCmdLineOpts`
+- :dbcommand:`buildInfo`
+- :dbcommand:`hostInfo`
+
+FTDC Data Files
+~~~~~~~~~~~~~~~
+
+:binary:`mongod <bin.mongod>` processes store FTDC data files in a 
+``diagnostic.data`` directory under the instances 
+:setting:`storage.dbPath`. All diagnostic data files are stored
+under this directory. For example, given a :setting:`~storage.dbPath`
+of ``/data/db``, the diagnostic data directory would be
+``/data/db/diagnostic.data``. 
+
+:binary:`mongos <bin.mongos>` processes store FTDC data files in a 
+diagnostic directory relative to the :setting:`systemLog.path` log 
+path setting. MongoDB truncates the logpath's file extension and 
+concatenates ``diagnostic.data`` to the remaining name. For example, 
+given a :setting:`~systemLog.path` setting of
+``/var/log/mongodb/mongos.log``, the diagnostic data directory would be 
+``/var/log/mongodb/mongos.diagnostic.data``.
+
+FTDC Privacy
+~~~~~~~~~~~~
+
+FTDC data files are compressed and not human-readable. They inherit
+the same file access permissions as the MongoDB data files. Only
+users with access to FTDC data files can transmit the FTDC data.
+
+MongoDB engineers cannot access FTDC data without explicit
+permission and assistance from system owners or operators.
+
+FTDC data **never** contains any of the following information:
+
+- Samples of queries, query predicates, or query results
+- Data sampled from any end-user collection or index
+- System or MongoDB user credentials or security certificates
+
+FTDC data contains certain host machine information such as
+hostnames, operating system information, and the options or settings
+used to start the :binary:`mongod <bin.mongod>` or 
+:binary:`mongos <bin.mongos>`. This information may be
+considered protected or confidential by some organizations or
+regulatory bodies, but is not typically considered to be Personally
+Identifiable Information (PII). For clusters where these fields are
+configured with protected, confidential, or PII data, please notify
+MongoDB engineers before sending FTDC data to coordinate
+appropriate security measures.
+
+Details
+-------
+
+You can view the FTDC source code on the
+`MongoDB Github Repository <https://github.com/mongodb/mongo/tree/master/src/mongo/db/ftdc>`_.
+The ``ftdc_system_stats_*.ccp`` files specifically define any
+system-specific diagnostic data captured.
+
+FTDC Defaults
+~~~~~~~~~~~~~
+
+FTDC runs with the following defaults:
+
+- Data capture every 1 second
+- 200MB maximum ``diagnostic.data`` folder size. 
+
+These defaults are designed to provide useful data to MongoDB 
+engineers with minimal impact on performance or storage size. These 
+values only require modifications if requested by MongoDB engineers 
+for specific diagnostic purposes.
+
+Disable FTDC
+~~~~~~~~~~~~
+
+To disable FTDC, start up the :binary:`mongod <bin.mongod>` or 
+:binary:`mongos <bin.mongos>` with the 
+``diagnosticDataCollectionEnabled: false`` option in the 
+:setting:`setParameter` settings of your configuration file:
+
+.. code-block:: yaml
+
+   setParameter:
+     diagnosticDataCollectionEnabled: false
+
+Disabling FTDC may increase the time or resources required when 
+analyzing or debugging issues with support from MongoDB engineers. 
+For information on MongoDB Support, visit `Get Started With MongoDB Support <https://www.mongodb.com/support/get-started?tck=docs_server>`_.
+ 

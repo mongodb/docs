@@ -1,0 +1,367 @@
+==========================
+$replaceWith (aggregation)
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. pipeline:: $replaceWith
+
+   Replaces the input document with the specified document. The
+   operation replaces all existing fields in the input document,
+   including the ``_id`` field. With :pipeline:`$replaceWith`, you can
+   promote an embedded document to the top-level. You can also specify
+   a new document as the replacement.
+
+   The :pipeline:`$replaceWith` stage performs the same action as the
+   :pipeline:`$replaceRoot` stage, but the stages have different forms.
+
+   The :pipeline:`$replaceWith` stage has the following form:
+
+   .. code-block:: javascript
+
+      { $replaceWith: <replacementDocument> }
+
+   The replacement document can be any valid :ref:`expression
+   <aggregation-expressions>` that resolves to a document. 
+   For more information on expressions, see
+   :ref:`aggregation-expressions`.
+
+Behavior
+--------
+
+If the ``<replacementDocument>`` is not a document,
+:pipeline:`$replaceWith` errors and fails.
+
+If the ``<replacementDocument>`` resolves to a missing document (i.e.
+the document does not exist), :pipeline:`$replaceWith` errors and
+fails. For example, create a collection with the following
+documents:
+
+.. code-block:: javascript
+   
+   db.collection.insertMany([
+      { "_id": 1, "name" : { "first" : "John", "last" : "Backus" } },
+      { "_id": 2, "name" : { "first" : "John", "last" : "McCarthy" } },
+      { "_id": 3, "name": { "first" : "Grace", "last" : "Hopper" } },
+      { "_id": 4, "firstname": "Ole-Johan", "lastname" : "Dahl" },
+   ])
+
+
+Then the following :pipeline:`$replaceWith` operation fails because one
+of the document does not have the ``name`` field:
+
+.. code-block:: javascript
+
+   db.collection.aggregate([
+      { $replaceWith: "$name" }
+   ])
+
+To avoid the error, you can use :expression:`$mergeObjects` to merge
+the  ``name`` document with some default document; for example:
+
+.. code-block:: javascript
+
+   db.collection.aggregate([
+      { $replaceWith: { $mergeObjects: [ { _id: "$_id", first: "", last: "" }, "$name" ] } }
+   ])
+
+Alternatively, you can skip the documents that are missing the ``name`` field by
+including a :pipeline:`$match` stage to check for existence of the
+document field before passing documents to the :pipeline:`$replaceWith`
+stage:
+
+.. code-block:: javascript
+
+   db.collection.aggregate([
+      { $match: { name : { $exists: true, $not: { $type: "array" }, $type: "object" } } },
+      { $replaceWith: "$name" }
+   ])
+
+Or, you can use :expression:`$ifNull` expression to specify some other
+document to be root; for example:
+
+.. code-block:: javascript
+
+   db.collection.aggregate([
+      { $replaceWith: { $ifNull: [ "$name", { _id: "$_id", missingName: true} ] } }
+   ])
+
+Examples
+--------
+
+.. _replacewith-match:
+
+``$replaceWith`` an Embedded Document Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create a collection named ``people`` with the following documents:
+
+.. code-block:: javascript
+
+   db.people.insertMany([
+      { "_id" : 1, "name" : "Arlene", "age" : 34, "pets" : { "dogs" : 2, "cats" : 1 } },
+      { "_id" : 2, "name" : "Sam", "age" : 41, "pets" : { "cats" : 1, "fish" : 3 } },
+      { "_id" : 3, "name" : "Maria", "age" : 25 }
+   ])
+
+The following operation uses the :pipeline:`$replaceWith` stage to
+replace each input document with the result of a
+:expression:`$mergeObjects` operation. The :expression:`$mergeObjects`
+expression merges the specified default document with the ``pets``
+document.
+
+.. code-block:: javascript
+
+   db.people.aggregate( [
+      { $replaceWith: { $mergeObjects:  [ { dogs: 0, cats: 0, birds: 0, fish: 0 }, "$pets" ] } }
+   ] )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+   :copyable: false
+   
+   { "dogs" : 2, "cats" : 1, "birds" : 0, "fish" : 0 }
+   { "dogs" : 0, "cats" : 1, "birds" : 0, "fish" : 3 }
+   { "dogs" : 0, "cats" : 0, "birds" : 0, "fish" : 0 }
+
+``$replaceWith`` a Document Nested in an Array
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A collection named ``students`` contains the following documents:
+
+.. code-block:: javascript
+
+   db.students.insertMany([
+      {
+         "_id" : 1,
+         "grades" : [
+            { "test": 1, "grade" : 80, "mean" : 75, "std" : 6 },
+            { "test": 2, "grade" : 85, "mean" : 90, "std" : 4 },
+            { "test": 3, "grade" : 95, "mean" : 85, "std" : 6 }
+         ]
+      },
+      {
+         "_id" : 2,
+         "grades" : [
+            { "test": 1, "grade" : 90, "mean" : 75, "std" : 6 },
+            { "test": 2, "grade" : 87, "mean" : 90, "std" : 3 },
+            { "test": 3, "grade" : 91, "mean" : 85, "std" : 4 }
+         ]
+      }
+   ])
+
+The following operation promotes the embedded document(s) with the
+``grade`` field greater than or equal to ``90`` to the top level:
+
+.. code-block:: javascript
+
+   db.students.aggregate( [
+      { $unwind: "$grades" },
+      { $match: { "grades.grade" : { $gte: 90 } } },
+      { $replaceWith: "$grades" }
+   ] )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "test" : 3, "grade" : 95, "mean" : 85, "std" : 6 }
+   { "test" : 1, "grade" : 90, "mean" : 75, "std" : 6 }
+   { "test" : 3, "grade" : 91, "mean" : 85, "std" : 4 }
+
+.. _replacewith-new-doc:
+
+``$replaceWith`` a Newly Created Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Example 1
+`````````
+
+An example collection ``sales`` is populated with the following
+documents:
+
+.. code-block:: javascript
+
+   db.sales.insertMany([
+      { "_id" : 1, "item" : "butter", "price" : 10, "quantity": 2, date: ISODate("2019-03-01T08:00:00Z"), status: "C" },
+      { "_id" : 2, "item" : "cream", "price" : 20, "quantity": 1, date: ISODate("2019-03-01T09:00:00Z"), status: "A" },
+      { "_id" : 3, "item" : "jam", "price" : 5, "quantity": 10, date: ISODate("2019-03-15T09:00:00Z"), status: "C" },
+      { "_id" : 4, "item" : "muffins", "price" : 5, "quantity": 10, date: ISODate("2019-03-15T09:00:00Z"), status: "C" }
+   ])
+
+Assume that for reporting purposes, you want to calculate for each
+completed sale, the total amount as of the current report run time. The
+following operation finds all the sales with status ``C`` and creates
+new documents using the :pipeline:`$replaceWith` stage. The
+:pipeline:`$replaceWith` calculates the total amount as well as uses
+the variable :variable:`NOW` to get the current time.
+
+.. code-block:: javascript
+
+   db.sales.aggregate([
+      { $match: { status: "C" } },
+      { $replaceWith: { _id: "$_id", item: "$item", amount: { $multiply: [ "$price", "$quantity"]}, status: "Complete", asofDate: "$$NOW" } }
+   ])
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "butter", "amount" : 20, "status" : "Complete", "asofDate" : ISODate("2019-06-03T22:47:54.812Z") }
+   { "_id" : 3, "item" : "jam", "amount" : 50, "status" : "Complete", "asofDate" : ISODate("2019-06-03T22:47:54.812Z") }
+   { "_id" : 4, "item" : "muffins", "amount" : 50, "status" : "Complete", "asofDate" : ISODate("2019-06-03T22:47:54.812Z") }
+
+
+Example 2
+`````````
+
+An example collection ``reportedsales`` is populated with the
+reported sales information by quarter and regions:
+
+.. code-block:: javascript
+
+   db.reportedsales.insertMany( [
+      { _id: 1, quarter: "2019Q1", region: "A", qty: 400 },
+      { _id: 2, quarter: "2019Q1", region: "B", qty: 550 },
+      { _id: 3, quarter: "2019Q1", region: "C", qty: 1000 },
+      { _id: 4, quarter: "2019Q2", region: "A", qty: 660 },
+      { _id: 5, quarter: "2019Q2", region: "B", qty: 500 },
+      { _id: 6, quarter: "2019Q2", region: "C", qty: 1200 }
+   ] )
+
+Assume that for reporting purposes, you want to view the reported sales
+data by quarter; e.g.
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : "2019Q1", "A" : 400, "B" : 550, "C" : 1000 }
+
+To view the data grouped by quarter, you can use the following
+aggregation pipeline:
+
+.. code-block:: javascript
+
+   db.reportedsales.aggregate( [
+      { $addFields: { obj:  { k: "$region", v: "$qty" } } },
+      { $group: { _id: "$quarter", items: { $push: "$obj" } } },
+      { $project: { items2: { $concatArrays: [ [ { "k": "_id", "v": "$_id" } ], "$items" ] } } },
+      { $replaceWith: { $arrayToObject: "$items2" } } 
+   ] )
+
+First stage:
+   The :pipeline:`$addFields` stage adds a new ``obj`` document
+   field that defines the key ``k`` as the region value and the
+   value ``v`` as the quantity for that region. For example:
+
+   .. code-block:: javascript
+      :copyable: false
+
+      { "_id" : 1, "quarter" : "2019Q1", "region" : "A", "qty" : 400, "obj" : { "k" : "A", "v" : 400 } }
+
+Second stage:
+   The :pipeline:`$group` stage groups by the quarter and uses
+   :group:`$push` to accumulate the ``obj`` fields into a new
+   ``items`` array field. For example:
+
+   .. code-block:: javascript
+      :copyable: false
+
+      { "_id" : "2019Q1", "items" : [ { "k" : "A", "v" : 400 }, { "k" : "B", "v" : 550 }, { "k" : "C", "v" : 1000 } ] }
+
+Third stage: 
+   The :pipeline:`$project` stage uses :expression:`$concatArrays` to
+   create a new array ``items2`` that includes the ``_id`` info and the
+   elements from the ``items`` array:
+
+   .. code-block:: javascript
+      :copyable: false
+
+      { "_id" : "2019Q1", "items2" : [ { "k" : "_id", "v" : "2019Q1" }, { "k" : "A", "v" : 400 }, { "k" : "B", "v" : 550 }, { "k" : "C", "v" : 1000 } ] }
+
+Fourth stage:
+   The :pipeline:`$replaceWith` uses the
+   :expression:`$arrayToObject` to convert the ``items2`` into a
+   document, using the specified key ``k`` and value ``v`` pairs and
+   outputs that document to the next stage. For example:
+
+   .. code-block:: javascript
+      :copyable: false
+      
+      { "_id" : "2019Q1", "A" : 400, "B" : 550, "C" : 1000 }
+
+The aggregation returns the following document:
+
+.. code-block:: javascript
+   :copyable: false
+      
+   { "_id" : "2019Q1", "A" : 400, "B" : 550, "C" : 1000 }
+   { "_id" : "2019Q2", "A" : 660, "B" : 500, "C" : 1200 }
+
+``$replaceWith`` a New Document Created from ``$$ROOT`` and a Default Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create a collection named ``contacts`` with the following documents:
+
+.. code-block:: javascript
+
+   db.contacts.insertMany( [
+      { "_id" : 1, name: "Fred", email: "fred@example.net" },
+      { "_id" : 2, name: "Frank N. Stine", cell: "012-345-9999" },
+      { "_id" : 3, name: "Gren Dell", cell: "987-654-3210", email: "beo@example.net" }
+   ] )
+
+The following operation uses :pipeline:`$replaceWith` with
+:expression:`$mergeObjects` to output current documents with default
+values for missing fields:
+
+.. code-block:: javascript
+
+   db.contacts.aggregate( [
+      { $replaceWith:
+         { $mergeObjects:
+            [
+               { _id: "", name: "", email: "", cell: "", home: "" },
+               "$$ROOT"
+            ]
+         }
+      }
+   ] )
+
+The aggregation returns the following documents:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+     _id: 1,
+     name: 'Fred',
+     email: 'fred@example.net',
+     cell: '',
+     home: ''
+   },
+   {
+     _id: 2,
+     name: 'Frank N. Stine',
+     email: '',
+     cell: '012-345-9999',
+     home: ''
+   },
+   {
+     _id: 3,
+     name: 'Gren Dell',
+     email: 'beo@example.net',
+     cell: '',
+     home: '987-654-3210'
+   }
+

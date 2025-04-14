@@ -1,0 +1,220 @@
+.. _index-compound-sort-order:
+.. _index-ascending-and-descending:
+
+=========================
+Compound Index Sort Order
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Indexes store references to fields in either ascending (``1``) or
+descending (``-1``) order. For :ref:`compound indexes
+<index-type-compound>`, sort order can determine whether the index can
+support a sort operation.
+
+Compound indexes support sort operations that match either the sort
+order of the index, or the reverse sort order of the index.
+
+Use Case
+--------
+
+A mobile game has a leaderboard that shows the following information:
+
+- Highest game scores
+- The user who achieved each score
+- The date each score was achieved
+
+The application sorts the leaderboard first by ``score`` in descending
+order. Then, the ``username`` associated with each ``score`` is sorted
+in ascending order (alphabetically).
+
+A compound index can improve performance for the leaderboard if the sort
+order in the index matches the sort order in the query.
+
+Example
+-------
+
+Consider a ``leaderboard`` collection with these documents:
+
+.. code-block:: javascript
+
+   db.leaderboard.insertMany( [
+      {
+         "score": 50,
+         "username": "Alex Martin",
+         "date": ISODate("2022-03-01T00:00:00Z")
+      },
+      {
+         "score": 55,
+         "username": "Laura Garcia",
+         "date": ISODate("2022-03-02T00:00:00Z")
+      },
+      {
+         "score": 60,
+         "username": "Alex Martin",
+         "date": ISODate("2022-03-03T00:00:00Z")
+      },
+      {
+         "score": 60,
+         "username": "Riya Patel",
+         "date": ISODate("2022-03-04T00:00:00Z")
+      },
+      {
+         "score": 50,
+         "username": "Laura Garcia",
+         "date": ISODate("2022-03-05T00:00:00Z")
+      }
+   ] )
+
+This query returns leaderboard results:
+
+.. code-block:: javascript
+
+   db.leaderboard.find().sort( { score: -1, username: 1 } )
+
+Output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      {
+         _id: ObjectId("632235700646eaee87a56a74"),
+         score: 60,
+         username: 'Alex Martin',
+         date: ISODate("2022-03-03T00:00:00.000Z")
+      },
+      {
+         _id: ObjectId("632235700646eaee87a56a75"),
+         score: 60,
+         username: 'Riya Patel',
+         date: ISODate("2022-03-04T00:00:00.000Z")
+      },
+      {
+         _id: ObjectId("632235700646eaee87a56a73"),
+         score: 55,
+         username: 'Laura Garcia',
+         date: ISODate("2022-03-02T00:00:00.000Z")
+      },
+      {
+         _id: ObjectId("632235700646eaee87a56a72"),
+         score: 50,
+         username: 'Alex Martin',
+         date: ISODate("2022-03-01T00:00:00.000Z")
+      },
+      {
+         _id: ObjectId("632235700646eaee87a56a76"),
+         score: 50,
+         username: 'Laura Garcia',
+         date: ISODate("2022-03-05T00:00:00.000Z")
+      }
+   ]
+
+The results are sorted first by score in descending order, then by
+username in ascending order (alphabetically).
+
+Supporting Index for the Leaderboard
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following index improves performance for the leaderboard results
+because the sort order of the index matches the sort order used in the
+query:
+
+.. code-block:: javascript
+
+   db.leaderboard.createIndex( { score: -1, username: 1 } )
+
+This compound index stores:
+
+- ``score`` values in descending order.
+- ``username`` values in ascending order (alphabetically).
+
+Reverse Results
+~~~~~~~~~~~~~~~
+
+MongoDB can traverse a compound index in either direction. If the
+application allows users to view the leaderboard in reverse order, the
+index supports that query as well.
+
+The following query returns the leaderboard in reverse order, where
+results are sorted first by ascending ``score`` values and then by
+descending ``username`` values (reverse alphabetically):
+
+.. code-block:: javascript
+
+   db.leaderboard.find().sort( { score: 1, username: -1 } )
+
+Output:
+
+.. code-block:: javascript
+
+   [
+      {
+         _id: ObjectId("632235700646eaee87a56a76"),
+         score: 50,
+         username: 'Laura Garcia',
+         date: ISODate("2022-03-05T00:00:00.000Z")
+      },
+      {
+         _id: ObjectId("632235700646eaee87a56a72"),
+         score: 50,
+         username: 'Alex Martin',
+         date: ISODate("2022-03-01T00:00:00.000Z")
+      },
+      {
+         _id: ObjectId("632235700646eaee87a56a73"),
+         score: 55,
+         username: 'Laura Garcia',
+         date: ISODate("2022-03-02T00:00:00.000Z")
+      },
+      {
+         _id: ObjectId("632235700646eaee87a56a75"),
+         score: 60,
+         username: 'Riya Patel',
+         date: ISODate("2022-03-04T00:00:00.000Z")
+      },
+      {
+         _id: ObjectId("632235700646eaee87a56a74"),
+         score: 60,
+         username: 'Alex Martin',
+         date: ISODate("2022-03-03T00:00:00.000Z")
+      }
+   ]
+
+The ``{ score: -1, username: 1 }`` index supports this query.
+
+Unsupported Queries
+~~~~~~~~~~~~~~~~~~~
+
+Compound indexes cannot support queries where the sort order does not
+match the index or the reverse of the index. As a result, the ``{ score:
+-1, username: 1 }`` index **cannot** support sorting by ascending
+``score`` values and then by ascending ``username`` values, such as this
+query:
+
+.. code-block:: javascript
+
+   db.leaderboard.find().sort( { score: 1, username: 1 } )
+
+Additionally, for a sort operation to use an index, the fields specified
+in the sort must appear in the same order that they appear in an index.
+As a result, the above index cannot support this query:
+
+.. code-block:: javascript
+
+   db.leaderboard.find().sort( { username: 1, score: -1, } )
+
+Learn More
+----------
+
+- For more information on sort order and indexes, see
+  :ref:`sorting-with-indexes`.
+
+- For more information on sorting query results, see
+  :method:`~cursor.sort()`.

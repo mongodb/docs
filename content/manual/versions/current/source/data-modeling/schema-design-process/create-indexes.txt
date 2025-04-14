@@ -1,0 +1,145 @@
+.. _create-indexes-to-support-queries:
+
+======================================
+Create Indexes to Support Your Queries
+======================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+An index covers a query when the index contains all of the fields
+scanned by the query. A covered query scans the index and not the
+collection, which improves query performance.
+
+Indexes can also partially support queries if a subset of the fields
+queried are indexed.
+
+About this Task
+---------------
+
+A single collection can have a maximum of 64 indexes. However, too many
+indexes can degrade performance before that limit is reached. For
+collections with a high write-to-read ratio, indexes can degrade
+performance because each insert must also update any indexes.
+
+Steps
+-----
+
+.. procedure::
+   :style: normal
+
+   .. step:: Identify common queries
+
+      To identify common query patterns in your application, use the
+      :pipeline:`$queryStats` aggregation stage. ``$queryStats`` reports
+      metrics for :term:`query shapes <query shape>`, which group
+      queries based on shared fields.
+
+   .. step:: Create indexes to support common queries
+
+      After you know which fields your application frequently queries,
+      you can create indexes to support queries on those fields. For
+      more information, see :ref:`schema-design-indexes-examples`.
+
+   .. step:: Analyze index use
+
+      After your application begins using indexes, you can analyze your
+      indexes' effectiveness. To see index statistics and usage, you
+      can:
+      
+      - Use the :pipeline:`$indexStats` aggregation stage.
+      - For MongoDB Atlas deployments, view :atlas:`Indexes
+        </atlas-ui/indexes/#std-label-atlas-ui-view-indexes>` in the
+        Atlas UI.
+
+      Consider deleting unused indexes to improve application
+      performance. For more information, see
+      :ref:`unnecessary-indexes-antipattern`.
+
+Repeat this procedure periodically to ensure that your indexes support
+your current workload.
+
+.. _schema-design-indexes-examples:
+
+Examples
+--------
+
+Create a Single-Key Index
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your application only queries on a single key in a given collection,
+then you need to create a single-key index for that collection. For
+example, you can create an index on ``category`` in the ``product``
+collection:
+
+.. code-block:: javascript
+
+   db.products.createIndex( { category: 1 } )
+
+The preceding index supports this query:
+
+.. code-block:: javascript
+
+   db.products.find( { category: "electronics" } )
+
+.. _compound-key-indexes:
+
+Create a Compound Index
+~~~~~~~~~~~~~~~~~~~~~~~
+
+If your application performs queries on both a single key and multiple
+keys, a :ref:`compound index <index-type-compound>` is more efficient
+than a single-key index. For example, you can create an index on the
+``category``, ``item``, and ``location`` fields:
+
+.. code-block:: javascript
+
+   db.products.createIndex( { category: 1, item: 1, location: 1 } )
+
+Index Prefixes
+``````````````
+
+A compound index supports queries on index prefixes, which are the
+beginning subsets of indexed fields. For example, the preceding index
+supports these queries:
+
+.. code-block:: javascript
+
+   db.products.find( { category: "electronics" } )
+   db.products.find( { category: "electronics", item: "television" } )
+
+For more information and performance considerations on index prefixes,
+see :ref:`compound-index-prefix`.
+
+Create Indexes to Support Text Search
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/indexes/text-search-indexes-overview.rst
+
+Create Vector Search Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Vector Search Indexes support queries on vector embeddings. To create
+Vector Search Indexes, see :atlas:`Index Fields for Vector Search
+</atlas-vector-search/vector-search-type/>`. 
+
+Index Use and Collation
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/collation-index-use.rst
+
+Learn More
+----------
+
+- :ref:`esr-indexing-rule`
+
+- :ref:`collation`
+
+- :ref:`read-operations-indexing`

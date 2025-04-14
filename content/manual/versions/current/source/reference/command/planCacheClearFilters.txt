@@ -1,0 +1,205 @@
+=====================
+planCacheClearFilters
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: planCacheClearFilters
+
+   Removes :ref:`index filters <index-filters>` on a collection.
+   Although index filters only exist for the duration of the server
+   process and do not persist after shutdown, you can also clear
+   existing index filters with the :dbcommand:`planCacheClearFilters`
+   command.
+
+   Specify the :term:`plan cache query shape` to remove a specific index filter.
+   Omit the plan cache query shape to clear all index filters on a collection.
+
+Query Settings
+~~~~~~~~~~~~~~
+
+.. include:: /includes/persistent-query-settings-avoid-index-filters-intro.rst
+
+Compatibility
+-------------
+
+This command is available in deployments hosted in the following environments:
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. include:: /includes/fact-environments-atlas-support-no-free.rst
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
+Syntax
+------
+
+The command has the following syntax:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         planCacheClearFilters: <collection>,
+         query: <query pattern>,
+         sort: <sort specification>,
+         projection: <projection specification>,
+         collation: { <collation> },
+         comment: <any>
+      }
+   )
+
+Command Fields
+--------------
+
+The command has the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+   
+   * - Field
+     - Type
+     - Description
+   
+   * - ``planCacheClearFilters``
+     - string
+     - The name of the collection to remove the index filters from.
+   
+   * - ``query``
+     - document
+     - Optional. The query predicate for the index filter to
+       remove. If omitted, the command clears all index filters from the
+       collection.
+          
+       The values in the ``query`` predicate do not:
+
+       - Determine the plan cache query shape.
+       - Need to match the values returned by
+         :dbcommand:`planCacheListFilters`.
+
+   * - ``sort``   
+     - document
+     - Optional. The sort for the index filter to remove, if any.
+
+   * - ``projection``   
+     - document
+     - Optional. The projection for the index filter to remove, if any.
+
+   * - ``collation`` 
+     - document
+     - .. include:: /includes/extracts/collation-option.rst
+
+       .. include:: /includes/index-filters-and-collations.rst
+
+   * - ``comment``
+     - any
+     - .. include:: /includes/extracts/comment-content.rst
+       
+Required Access
+---------------
+
+A user must have access that includes the
+:authaction:`planCacheIndexFilter` action.
+
+Examples
+--------
+
+Clear Specific Index Filter on Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``orders`` collection contains the following index filters:
+
+.. code-block:: javascript
+
+   {
+     "query" : { "status" : "A" },
+     "sort" : { "ord_date" : -1 },
+     "projection" : { },
+     "indexes" : [ { "status" : 1, "cust_id" : 1 } ]
+   }
+
+   {
+     "query" : { "status" : "A" },
+     "sort" : { },
+     "projection" : { },
+     "indexes" : [ { "status" : 1, "cust_id" : 1 } ]
+   }
+
+   {
+     "query": { "item": "Movie" },
+     "collation": { locale: "en_US" },
+     "indexes": [ { "item": 1, "order_date": 1 , "quantity": 1 } ]
+   }
+
+.. note::
+
+   .. include:: /includes/index-filters-and-collations.rst
+
+The following command removes the second index filter only:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         planCacheClearFilters: "orders",
+         query: { "status" : "A" }
+      }
+   )
+
+Because the values in the ``query`` predicate are insignificant in
+determining the plan cache query shape, the following command would also
+remove the second index filter:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         planCacheClearFilters: "orders",
+         query: { "status" : "P" }
+      }
+   )
+
+Clear all Index Filters on a Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example clears all index filters on the ``orders``
+collection:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         planCacheClearFilters: "orders"
+      }
+   )
+
+Clear Index Filter Containing a Query and a Collation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example clears the index filter containing the query on
+``Movie`` and the collation ``en_US`` for the ``orders`` collection:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         planCacheClearFilters: "orders",
+         query: { item: "Movie" },
+         collation: { locale: "en_US" }
+      }
+   )
+
+.. seealso::
+
+   - :dbcommand:`planCacheListFilters`
+   - :dbcommand:`planCacheSetFilter`

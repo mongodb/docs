@@ -1,0 +1,120 @@
+.. _unshard-collection-task:
+
+====================
+Unshard a Collection
+====================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+You can unshard a sharded collection with the
+:dbcommand:`unshardCollection` command. When you unshard a collection,
+the collection cannot be partitioned across multiple :term:`shards
+<shard>` and the :term:`shard key` is removed.
+
+By default, when you unshard a collection, MongoDB moves the
+collection's data to the shard with the least amount of data.
+Alternatively, you can specify which shard to place the data on. 
+
+About this Task
+---------------
+
+Compatibility
+~~~~~~~~~~~~~
+
+You can perform this task on deployments hosted in the following
+environments: 
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. note:: 
+
+   This task is not available on the Atlas Shared Tier or on Atlas
+   Serverless.
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
+Restrictions
+~~~~~~~~~~~~
+
+.. |uc| replace:: ``unshardCollection``
+
+.. include:: /includes/uc-considerations.rst
+
+Access Control 
+--------------
+
+.. include:: /includes/access-control-unshardCollection.rst
+
+Before you Begin
+----------------
+
+.. include:: /includes/uc-reqs.rst
+
+Steps
+-----
+
+.. procedure::
+   :style: normal
+
+   .. step:: (Optional) List shard names
+
+      If you want to put the data from your sharded collection on a
+      specific shard, you need the target shard's name.
+
+      To see the list of shard names in your cluster, use the
+      :dbcommand:`listShards` command:
+
+      .. code-block:: javascript
+
+         db.adminCommand( { listShards: 1 } )
+
+      The ``shards._id`` field lists the name of each shard.
+   
+   .. step:: Unshard the collection
+
+      To unshard a collection, run the :dbcommand:`unshardCollection` command.
+      The following example unshards a collection called ``us_accounts`` in
+      the ``sales`` database:
+
+      .. code-block:: javascript
+
+         db.adminCommand( {
+            unshardCollection: "sales.us_accounts",
+            toShard: "shard1"
+         } )
+
+      After the unshard operation completes, the data in the
+      ``us_accounts`` collection is on ``shard1``. If you omit the
+      ``toShard`` field, the data is placed on the shard with the least
+      amount of data.
+
+   .. step:: Confirm that the collection is unsharded
+
+      To confirm that the collection is unsharded, use the
+      :pipeline:`$shardedDataDistribution` stage and try to match on the
+      unsharded namespace:
+      
+      .. code-block:: javascript
+
+         db.aggregate( [
+            { $shardedDataDistribution: { } }, 
+            { $match: {  "ns": "sales.us_accounts" } }
+         ] )
+
+      If the aggregation doesn't return any data, the collection is
+      unsharded.
+
+Learn More
+----------
+
+- :method:`sh.abortUnshardCollection()`
+- :ref:`remove-shards-from-cluster-tutorial`
+- :ref:`shard-key-refine`
